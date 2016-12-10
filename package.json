@@ -1,0 +1,36 @@
+{
+  "name": "ldap-totp-nginx-auth",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clems4ever/ldap-totp-nginx-auth.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/clems4ever/ldap-totp-nginx-auth/issues"
+  },
+  "homepage": "https://github.com/clems4ever/ldap-totp-nginx-auth#readme",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "cookie-parser": "^1.4.3",
+    "ejs": "^2.5.5",
+    "express": "^4.14.0",
+    "jsonwebtoken": "^7.2.1",
+    "ldapjs": "^1.0.1",
+    "object-path": "^0.11.3",
+    "q": "^1.4.1",
+    "speakeasy": "^2.0.0"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0",
+    "should": "^11.1.1",
+    "sinon": "^1.17.6",
+    "sinon-promise": "^0.1.3"
+  }
+}

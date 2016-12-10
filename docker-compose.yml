@@ -1,0 +1,39 @@
+
+version: '2'
+services:
+  auth-server:
+    build: .
+    environment:
+      - LDAP_URL=ldap://ldap
+      - SECRET=NBD2ZV64R9UV1O7K
+      - USERS_DN=dc=example,dc=com
+      - PORT=80
+      - EXPIRATION_TIME=2m
+    depends_on:
+      - ldap
+    expose:
+      - "80"
+
+  ldap:
+    image: osixia/openldap:1.1.7
+    environment:
+      - LDAP_ORGANISATION=MyCompany
+      - LDAP_DOMAIN=example.com
+      - LDAP_ADMIN_PASSWORD=test
+    expose:
+      - "389"
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - auth-server
+    ports:
+      - "8085:80"
+
+  secret:
+    image: nginx:alpine
+    volumes:
+      - ./secret/nginx.conf:/etc/nginx/nginx.conf
+      - ./secret/index.html:/usr/share/nginx/html/index.html
