@@ -9,6 +9,15 @@ var authentication = require('./authentication');
 var replies = require('./replies');
 
 function serveAuth(req, res) {
+  if(req.method == 'POST') {
+    serveAuthPost(req, res);
+  }
+  else {
+    serveAuthGet(req, res);
+  }
+}
+
+function serveAuthGet(req, res) {
   authentication.verify(req, res)
   .then(function(user) {
     replies.already_authenticated(res, user);
@@ -19,14 +28,12 @@ function serveAuth(req, res) {
   });
 }
 
+function serveAuthPost(req, res) {
+  authentication.authenticate(req, res);
+}
+
 function serveLogin(req, res) {
-  console.log('METHOD=%s', req.method);
-  if(req.method == 'POST') {
-    authentication.authenticate(req, res);
-  }
-  else {
-    res.render('login');
-  }
+  res.render('login');
 }
 
 function serveLogout(req, res) {

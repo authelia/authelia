@@ -1,5 +1,5 @@
 
-var Jwt = require('../lib/jwt');
+var Jwt = require('../src/lib/jwt');
 var sinon = require('sinon');
 var sinonPromise = require('sinon-promise');
 sinonPromise(sinon);

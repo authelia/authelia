@@ -1,5 +1,5 @@
 
-var replies = require('../lib/replies');
+var replies = require('../src/lib/replies');
 var assert = require('assert');
 var sinon = require('sinon');
 var sinonPromise = require('sinon-promise');
@@ -36,7 +36,7 @@ describe('test jwt', function() {
 
     replies.already_authenticated(res_mock, username);
 
-    assert(res_mock.status.calledWith(200));
+    assert(res_mock.status.calledWith(204));
     assert(res_mock.set.calledWith({'X-Remote-User': username }));
   });
 

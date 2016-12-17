@@ -2,9 +2,10 @@
   "name": "ldap-totp-nginx-auth",
   "version": "1.0.0",
   "description": "",
-  "main": "app/index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/mocha",
+    "coverage": "./node_modules/.bin/istanbul cover _mocha -- -R spec"
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "mocha": "^3.2.0",
+    "request": "^2.79.0",
     "should": "^11.1.1",
     "sinon": "^1.17.6",
     "sinon-promise": "^0.1.3"

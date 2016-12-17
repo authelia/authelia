@@ -5,9 +5,9 @@ module.exports = {
 
 var Q = require('q');
 
-function validate(speakeasy, token, totp_secret) {
+function validate(totp_engine, token, totp_secret) {
   var defer = Q.defer(); 
-  var real_token = speakeasy.totp({
+  var real_token = totp_engine.totp({
     secret: totp_secret,
     encoding: 'base32'
   });

@@ -1,6 +1,6 @@
 
 var assert = require('assert');
-var authentication = require('../lib/authentication');
+var authentication = require('../src/lib/authentication');
 var create_res_mock = require('./res_mock');
 var sinon = require('sinon');
 var sinonPromise = require('sinon-promise');
@@ -17,6 +17,9 @@ function create_req_mock(token) {
     },
     cookies: {
       'access_token': 'cookie_token'
+    },
+    app: {
+      get: sinon.stub()
     }
   }
 }
@@ -55,6 +58,14 @@ function create_mocks() {
     totp_interface: totp_interface_mock
   }
 
+  req_mock.app.get.withArgs('ldap client').returns(args.ldap_interface);
+  req_mock.app.get.withArgs('jwt engine').returns(args.jwt);
+  req_mock.app.get.withArgs('totp engine').returns(args.totp_interface);
+  req_mock.app.get.withArgs('config').returns({
+    totp_secret: 'totp_secret',
+    ldap_users_dn: 'ou=users,dc=example,dc=com'
+  });
+
   return {
     req: req_mock, 
     res: res_mock, 
@@ -70,11 +81,11 @@ describe('test jwt', function() {
       var jwt_token = 'jwt_token';
       var clock = sinon.useFakeTimers();
       var mocks = create_mocks();
-      authentication.authenticate(mocks.req, mocks.res, mocks.args)
+      authentication.authenticate(mocks.req, mocks.res)
       .then(function() {
         clock.restore();
-        assert(mocks.res.cookie.calledWith('access_token', jwt_token));
-        assert(mocks.res.redirect.calledWith('/'));
+        assert(mocks.res.status.calledWith(200));
+        assert(mocks.res.send.calledWith(jwt_token));
         done();
       })
     });
@@ -83,7 +94,7 @@ describe('test jwt', function() {
       var clock = sinon.useFakeTimers();
       var mocks = create_mocks();
       mocks.totp.returns('wrong token');
-      authentication.authenticate(mocks.req, mocks.res, mocks.args)
+      authentication.authenticate(mocks.req, mocks.res)
       .fail(function(err) {
         clock.restore();
         done();
@@ -96,8 +107,11 @@ describe('test jwt', function() {
     it('should be already authenticated', function(done) {
       var mocks = create_mocks();
       var data = { user: 'username' };
-      mocks.jwt.verify = sinon.promise().resolves(data);
-      authentication.verify_authentication(mocks.req, mocks.res, mocks.args)
+      mocks.req.app.get.withArgs('jwt engine').returns({
+        verify: sinon.promise().resolves(data)
+      });
+
+      authentication.verify(mocks.req, mocks.res)
       .then(function(actual_data) {
         assert.equal(actual_data, data);
         done();
@@ -107,8 +121,10 @@ describe('test jwt', function() {
     it('should not be already authenticated', function(done) {
       var mocks = create_mocks();
       var data = { user: 'username' };
-      mocks.jwt.verify = sinon.promise().rejects('Error with JWT token');
-      return authentication.verify_authentication(mocks.req, mocks.res, mocks.args)
+      mocks.req.app.get.withArgs('jwt engine').returns({
+        verify: sinon.promise().rejects('Error with JWT token')
+      });
+      return authentication.verify(mocks.req, mocks.res, mocks.args)
       .fail(function() {
         done();
       });

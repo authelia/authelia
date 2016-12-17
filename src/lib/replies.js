@@ -11,19 +11,17 @@ function authentication_failed(res) {
   res.send('Authentication failed');
 }
 
-function send_success(res, username, msg) {
+function authentication_succeeded(res, username, token) {
+  console.log('Reply: authentication succeeded');
   res.status(200);
   res.set({ 'X-Remote-User': username });
-  res.send(msg);
-}
-
-function authentication_succeeded(res, username) {
-  console.log('Reply: authentication succeeded');
-  send_success(res, username, 'Authentication succeeded');
+  res.send(token);
 }
 
 function already_authenticated(res, username) {
   console.log('Reply: already authenticated');
-  send_success(res, username, 'Authentication succeeded');
+  res.status(204);
+  res.set({ 'X-Remote-User': username });
+  res.send();
 }
 
