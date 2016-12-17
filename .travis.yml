@@ -19,3 +19,4 @@ notifications:
     - clement.michaud34@gmail.com
     on_success: change
     on_failure: always
+
