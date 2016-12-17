@@ -9,7 +9,7 @@ var sinon = require('sinon');
 describe('test the server', function() {
   var jwt = new Jwt('jwt_secret');
   var ldap_client = {
-    bind: sinon.mock()
+    bind: sinon.stub()
   };
 
   before(function() {
@@ -25,11 +25,30 @@ describe('test the server', function() {
     // ldap_client.bind.yields(undefined);
     ldap_client.bind.withArgs('cn=test_ok,ou=users,dc=example,dc=com', 
                               'password').yields(undefined);
-    // ldap_client.bind.withArgs('cn=test_nok,ou=users,dc=example,dc=com', 
-    //                           'password').yields(undefined, 'error');
+    ldap_client.bind.withArgs('cn=test_nok,ou=users,dc=example,dc=com', 
+                              'password').yields('error');
     server.run(config, ldap_client);
   });
 
+
+  describe('test GET /login', function() {
+    test_login()
+  });
+
+  describe('test GET /logout', function() {
+    test_logout()
+  });
+
+  describe('test GET /_auth', function() {
+    test_get_auth(jwt);
+  });
+ 
+  describe('test POST /_auth', function() {
+    test_post_auth(jwt);
+  });
+});
+
+function test_login() {
   it('should serve the login page', function(done) {
     request.get('http://localhost:8080/login')
     .on('response', function(response) {
@@ -37,7 +56,19 @@ describe('test the server', function() {
       done();
     }) 
   });
- 
+}
+
+function test_logout() {
+  it('should logout and redirect to /', function(done) {
+    request.get('http://localhost:8080/logout')
+    .on('response', function(response) {
+      assert.equal(response.req.path, '/');
+      done();
+    }) 
+  });
+}
+
+function test_get_auth(jwt) {
   it('should return status code 401 when user is not authenticated', function(done) {
     request.get('http://localhost:8080/_auth')
     .on('response', function(response) {
@@ -59,7 +90,9 @@ describe('test the server', function() {
       done();
     }) 
   });
+}
 
+function test_post_auth() {
   it('should return the JWT token when authentication is successful', function(done) {
     var clock = sinon.useFakeTimers();
     var real_token = speakeasy.totp({
@@ -83,4 +116,26 @@ describe('test the server', function() {
       }
     });
   });
-});
+
+  it('should return invalid authentication status code', function(done) {
+    var clock = sinon.useFakeTimers();
+    var real_token = speakeasy.totp({
+      secret: 'totp_secret',
+      encoding: 'base32'
+    });
+    var data = {
+      form: {
+        username: 'test_nok',
+        password: 'password',
+        token: real_token
+      }
+    }
+
+    request.post('http://localhost:8080/_auth', data, function (error, response, body) {
+      if(response.statusCode == 401) {
+        clock.restore();
+        done();
+      }
+    });
+  });
+}

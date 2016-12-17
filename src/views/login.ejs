@@ -1,17 +1,21 @@
 <!DOCTYPE html>
-<head>
+  <head>
+    <title>Login Portal</title>
     <link rel="stylesheet" type="text/css" href="login.css">
-</head>
-<body>
-<div class="login">
-    <h1>Login</h1>
-    <form method="POST">
-    	<input type="text" name="username" placeholder="Username" required="required" />
-        <input type="password" name="password" placeholder="Password" required="required" />
-        <input type="text" name="token" placeholder="Verification token" required="required" />
-        <button type="submit" class="btn btn-primary btn-block btn-large">Enter</button>
-    </form>
-    <br>
-</div>
-</body>
+  </head>
+  <body>
+  <div class="login">
+    <h1>Login Portal</h1>
+    <div id="login-form">
+      <input type="text" name="username" id="username" placeholder="Username" required="required" />
+      <input type="password" name="password" id="password" placeholder="Password" required="required" />
+      <input type="text" name="token" id="token" placeholder="Verification token" required="required" />
+      <button type="button" id="login-button" class="btn btn-primary btn-block btn-large">Enter</button>
+    </div>
+    <div id="information" style="display: none;"></div>
+  </div>
+  </body>
+  <script src="jquery.min.js"></script>
+  <script src="js.cookie.min.js"></script>
+  <script src="login.js"></script>
 </html>

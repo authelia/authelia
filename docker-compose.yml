@@ -5,10 +5,11 @@ services:
     build: .
     environment:
       - LDAP_URL=ldap://ldap
-      - SECRET=NBD2ZV64R9UV1O7K
-      - USERS_DN=dc=example,dc=com
+      - LDAP_USERS_DN=dc=example,dc=com
+      - TOTP_SECRET=NBD2ZV64R7UV1O7K
+      - JWT_SECRET=unsecure_secret
+      - JWT_EXPIRATION_TIME=1h
       - PORT=80
-      - EXPIRATION_TIME=2m
     depends_on:
       - ldap
     expose:
@@ -26,14 +27,10 @@ services:
   nginx:
     image: nginx:alpine
     volumes:
-      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx_conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx_conf/index.html:/usr/share/nginx/html/index.html
+      - ./nginx_conf/secret.html:/usr/share/nginx/html/secret.html
     depends_on:
       - auth-server
     ports:
       - "8085:80"
-
-  secret:
-    image: nginx:alpine
-    volumes:
-      - ./secret/nginx.conf:/etc/nginx/nginx.conf
-      - ./secret/index.html:/usr/share/nginx/html/index.html

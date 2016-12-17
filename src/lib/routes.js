@@ -33,10 +33,14 @@ function serveAuthPost(req, res) {
 }
 
 function serveLogin(req, res) {
+  console.log(req.headers);
   res.render('login');
 }
 
 function serveLogout(req, res) {
+  var redirect_param = req.query.redirect;
+  var redirect_url = redirect_param || '/';
   res.clearCookie('access_token');
-  res.redirect('/');
+  res.redirect(redirect_url);
 }
+

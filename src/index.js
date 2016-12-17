@@ -4,7 +4,7 @@ var server = require('./lib/server');
 var ldap = require('ldapjs');
 
 var config = {
-  port: process.env.PORT || 8080
+  port: process.env.PORT || 8080,
   totp_secret: process.env.TOTP_SECRET,
   ldap_url: process.env.LDAP_URL || 'ldap://127.0.0.1:389',
   ldap_users_dn: process.env.LDAP_USERS_DN,
