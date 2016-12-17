@@ -29,6 +29,7 @@ the server generates a JSON web token with an expiry date that the user must kee
 
 ### Endpoints
 Here are the available endpoints:
+
 | Endpoint        | Method    | Description                                                       |
 |-----------------|-----------|-------------------------------------------------------------------|
 | /login          | GET       | Serve a static webpage for login                                  |
@@ -38,6 +39,7 @@ Here are the available endpoints:
 
 ### Parameters
 And the parameters:
+
 | Endpoint           | Parameters                                                | Returns                          |
 |--------------------|-----------------------------------------------------------|----------------------------------|
 | /login             | None                                                      | Login static page                |
