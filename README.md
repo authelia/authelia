@@ -23,12 +23,32 @@ Test secret key: GRWGIJS6IRHVEODVNRCXCOBMJ5AGC6ZE
 
 ![secret-key](https://github.com/clems4ever/http-two-factor/raw/master/secret-key.png)
 
-## Contributing to http-two-factor
+## Documentation
+http-two-factor provides a way to log in using LDAP credentials and TOTP tokens. When the user is logged in,
+the server generates a JSON web token with an expiry date that the user must keep in the *access_token* cookie.
 
+### Endpoints
+Here are the available endpoints:
+| Endpoint        | Method    | Description                                                       |
+|-----------------|-----------|-------------------------------------------------------------------|
+| /login          | GET       | Serve a static webpage for login                                  |
+| /logout         | GET       | Logout the current session if logged in                           |
+| /_auth          | GET       | Verify whether the user is logged in                              |
+| /_auth          | POST      | Generate an access token to store in *access_token* cookie        |
+
+### Parameters
+And the parameters:
+| Endpoint           | Parameters                                                | Returns                          |
+|--------------------|-----------------------------------------------------------|----------------------------------|
+| /login             | None                                                      | Login static page                |
+| /logout            | None                                                      | Redirect to *redirect* parameter |
+| /_auth (GET)       | *access_token* cookie containing the JSON web token       | @204 or @401                     |
+| /_auth (POST)      | { password: 'abc', username: 'user', token: '0982'}       | @200 with access_token or @401   |
+
+## Contributing to http-two-factor
 Follow [contributing](CONTRIBUTING.md) file.
 
 ## License
-
 http-2-factor is **licensed** under the **[MIT License]**. The terms of the license are as follows:
 
     The MIT License (MIT)
