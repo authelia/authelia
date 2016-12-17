@@ -1,6 +1,7 @@
 language: node_js
 services:
 - docker
+- ntp
 before_install: npm install -g npm@'>=2.13.5'
 script:
 - npm test
