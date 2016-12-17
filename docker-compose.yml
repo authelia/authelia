@@ -1,12 +1,12 @@
 
 version: '2'
 services:
-  auth-server:
+  auth:
     build: .
     environment:
       - LDAP_URL=ldap://ldap
       - LDAP_USERS_DN=dc=example,dc=com
-      - TOTP_SECRET=NBD2ZV64R7UV1O7K
+      - TOTP_SECRET=GRWGIJS6IRHVEODVNRCXCOBMJ5AGC6ZE
       - JWT_SECRET=unsecure_secret
       - JWT_EXPIRATION_TIME=1h
       - PORT=80
@@ -20,7 +20,7 @@ services:
     environment:
       - LDAP_ORGANISATION=MyCompany
       - LDAP_DOMAIN=example.com
-      - LDAP_ADMIN_PASSWORD=test
+      - LDAP_ADMIN_PASSWORD=password
     expose:
       - "389"
 
@@ -31,6 +31,6 @@ services:
       - ./nginx_conf/index.html:/usr/share/nginx/html/index.html
       - ./nginx_conf/secret.html:/usr/share/nginx/html/secret.html
     depends_on:
-      - auth-server
+      - auth
     ports:
-      - "8085:80"
+      - "8080:80"
