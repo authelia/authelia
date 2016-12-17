@@ -1,5 +1,5 @@
 
-var totp_checker = require('../src/lib/totp_checker');
+var totp_checker = require('../../src/lib/totp_checker');
 var sinon = require('sinon');
 var sinonPromise = require('sinon-promise');
 sinonPromise(sinon);

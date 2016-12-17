@@ -1,6 +1,6 @@
 
 var assert = require('assert');
-var authentication = require('../src/lib/authentication');
+var authentication = require('../../src/lib/authentication');
 var create_res_mock = require('./res_mock');
 var sinon = require('sinon');
 var sinonPromise = require('sinon-promise');

@@ -1,10 +1,13 @@
 
+var server = require('../../src/lib/server');
+var Jwt = require('../../src/lib/jwt');
+
 var request = require('request');
 var assert = require('assert');
-var server = require('../src/lib/server');
-var Jwt = require('../src/lib/jwt');
 var speakeasy = require('speakeasy');
 var sinon = require('sinon');
+
+var BASE_URL = 'http://localhost:8090';
 
 describe('test the server', function() {
   var jwt = new Jwt('jwt_secret');
@@ -14,7 +17,7 @@ describe('test the server', function() {
 
   before(function() {
     var config = {
-      port: 8080,
+      port: 8090,
       totp_secret: 'totp_secret',
       ldap_url: 'ldap://127.0.0.1:389',
       ldap_users_dn: 'ou=users,dc=example,dc=com',
@@ -50,7 +53,7 @@ describe('test the server', function() {
 
 function test_login() {
   it('should serve the login page', function(done) {
-    request.get('http://localhost:8080/login')
+    request.get(BASE_URL + '/login')
     .on('response', function(response) {
       assert.equal(response.statusCode, 200);
       done();
@@ -60,7 +63,7 @@ function test_login() {
 
 function test_logout() {
   it('should logout and redirect to /', function(done) {
-    request.get('http://localhost:8080/logout')
+    request.get(BASE_URL + '/logout')
     .on('response', function(response) {
       assert.equal(response.req.path, '/');
       done();
@@ -70,7 +73,7 @@ function test_logout() {
 
 function test_get_auth(jwt) {
   it('should return status code 401 when user is not authenticated', function(done) {
-    request.get('http://localhost:8080/_auth')
+    request.get(BASE_URL + '/_auth')
     .on('response', function(response) {
       assert.equal(response.statusCode, 401);
       done();
@@ -82,9 +85,9 @@ function test_get_auth(jwt) {
     var r = request.defaults({jar: j});
     var token = jwt.sign({ user: 'test' }, '1h');
     var cookie = r.cookie('access_token=' + token);
-    j.setCookie(cookie, 'http://localhost:8080/_auth');
+    j.setCookie(cookie, BASE_URL + '/_auth');
 
-    r.get('http://localhost:8080/_auth')
+    r.get(BASE_URL + '/_auth')
     .on('response', function(response) {
       assert.equal(response.statusCode, 204);
       done();
@@ -101,7 +104,7 @@ function test_post_auth() {
     });
     var expectedJwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoidGVzdF9vayIsImlhdCI6MCwiZXhwIjozNjAwfQ.ihvaljGjO5h3iSO_h3PkNNSCYeePyB8Hr5lfVZZYyrQ';
 
-    request.post('http://localhost:8080/_auth', { 
+    request.post(BASE_URL + '/_auth', { 
       form: {
         username: 'test_ok',
         password: 'password',
@@ -131,7 +134,7 @@ function test_post_auth() {
       }
     }
 
-    request.post('http://localhost:8080/_auth', data, function (error, response, body) {
+    request.post(BASE_URL + '/_auth', data, function (error, response, body) {
       if(response.statusCode == 401) {
         clock.restore();
         done();

@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha",
+    "test": "./node_modules/.bin/mocha --recursive test/unitary",
+    "integration-test": "./node_modules/.bin/mocha --recursive test/integration",
     "coverage": "./node_modules/.bin/istanbul cover _mocha -- -R spec"
   },
   "repository": {

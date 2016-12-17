@@ -1,5 +1,5 @@
 
-var ldap_checker = require('../src/lib/ldap_checker');
+var ldap_checker = require('../../src/lib/ldap_checker');
 var sinon = require('sinon');
 var sinonPromise = require('sinon-promise');
 
