@@ -14,6 +14,7 @@ services:
       - ldap
     expose:
       - "80"
+    restart: always
 
   ldap:
     image: osixia/openldap:1.1.7
