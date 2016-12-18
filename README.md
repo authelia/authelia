@@ -14,7 +14,9 @@ Before starting, make sure you don't have anything listening on port 8080. Then,
     docker-compose build
     docker-compose up -d
 
-After few seconds the services should be running and you should be able to visit: http://localhost:8080/.
+After few seconds the services should be running and you should be able to visit [http://localhost:8080/](http://localhost:8080/) and access the login page:
+
+![login-page](/images/login.png)
 
 ### LDAP authentication
 An LDAP server has been deployed with the following credentials: **admin/password**.
@@ -24,7 +26,7 @@ You can use Google Authenticator for the verification of the TOTP token. You can
 
 Test secret key: GRWGIJS6IRHVEODVNRCXCOBMJ5AGC6ZE
 
-![secret-key](https://github.com/clems4ever/two-factor-auth-server/raw/master/secret-key.png)
+![secret-key](/images/secret-key.png)
 
 ## Documentation
 two-factor-auth-server provides a way to log in using LDAP credentials and TOTP tokens. When the user is logged in,
