@@ -1,8 +1,7 @@
 # two-factor-auth-server
 
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)][MIT License]
-[![Build](https://travis-ci.org/clems4ever/two-factor-auth-server.svg?branch=master)](https://travis-ci.org/clems4ever/two-factor-auth-server)
-
+  [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)][MIT License]
+  [![Build](https://travis-ci.org/clems4ever/two-factor-auth-server.svg?branch=master)](https://travis-ci.org/clems4ever/two-factor-auth-server)
 
 **two-factor-auth-server** is the simplest to set up HTTP 2-factor authentication server. It is compatible with NGINX auth_request module and is used in production to secure internal services in a swarm cluster.
 
