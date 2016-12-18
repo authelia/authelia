@@ -1,5 +1,5 @@
 {
-  "name": "ldap-totp-nginx-auth",
+  "name": "two-factor-auth-server",
   "version": "1.0.4",
   "description": "",
   "main": "src/index.js",
@@ -10,14 +10,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/clems4ever/ldap-totp-nginx-auth.git"
+    "url": "git+https://github.com/clems4ever/two-factor-auth-server"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Clement Michaud <clement.michaud34@gmail.com>",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/clems4ever/ldap-totp-nginx-auth/issues"
+    "url": "https://github.com/clems4ever/two-factor-auth-server/issues"
   },
-  "homepage": "https://github.com/clems4ever/ldap-totp-nginx-auth#readme",
   "dependencies": {
     "body-parser": "^1.15.2",
     "cookie-parser": "^1.4.3",
