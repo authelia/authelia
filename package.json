@@ -1,7 +1,7 @@
 {
   "name": "two-factor-auth-server",
   "version": "1.0.9",
-  "description": "",
+  "description": "Simple two factor authentication server with LDAP backend and TOTP",
   "main": "src/index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha --recursive test/unitary",
