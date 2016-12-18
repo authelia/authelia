@@ -2,24 +2,23 @@ language: node_js
 services:
 - docker
 - ntp
-before_install: npm install -g npm@'>=2.13.5'
 script:
 - npm test
 - docker-compose build
 - docker-compose up -d
 - sleep 5
-- npm run-script integration-test 
+- npm run-script integration-test
 deploy:
   provider: npm
   email: clement.michaud34@gmail.com
   api_key:
-    secure: hf7z+5j/3M+NkE3qcTdpKKa6P9CsrzbvoNp0FcuLzwYQlMyAW0BP+5Tktz39gqcIn3MYAYUQYOSjoTE1D9Ji5ImPREYR7qdU/V02NdkhLh19+/Be1t7a+uPi/NZ0dlqN3tnRsCpfuneHU1gH9K6KQjrP8fDgy6ehaunKY/vh2F5uk8Ip1lMdUA2Um7mwANzapEnjwyCELmuNwKMx0zqD8V+cjF7B0MZO/T4UTOx5+KG6yWrdmTSz2+IoCwtz5Ca6LtS+xovv8eEVkNbYFwojFQiYq63FXX2EY18A6tNkiBYRVCg9VC4yjtP+OfYK5ueN4gvsVH8IK70cEm6k3IVaI9AhxHC75tF5fW3/6oT3VikUZv7sPpWYQz4jlDCoJoXwNPA4gJh+Y8g+x+5SvG6CSgPpfTWL9y9XGb5+NCZIoRbVHBQp9z/xJPOO4RIJvhWTaZ3houL07KUYyVVqk7GxgNrfgpam1rX1ze1ajhJ7Cmv6TKCg0Av9aaSQ9g0kLYUfmG0pU+vzkckwok26u6+2nMsp6mZZctnhYaBzsai0T5CGSbQrouT+YSOexHw3HS3O0rm10ZLir3tK5QC7GytOKuzV0Nal7e3U6xXlYwBxvUXMZCNyOJM5+II7ucdvM6Jzhbro1i1zt7hwP6+lXdH7sFpaszP3dbkwotGs8OlswrM=
+    secure: IKRQQQmqpbWb42VKiL54pDHGGtpx4WmPCNSmcfxnF4gWK8OnzDYAO/KIEvZI8KWwuQCTCtAIb28eusYfQ1hMIDCpMNojgQ3cau/k3ivgojR7APjUuJYZqAuvyUPAHzLHSfFbSgKErW/ueTlQAPPsaRn7uxDC6zbnTLb0h4snwwp0pbpNQN446X6zbcEXcZI1RXBWX0guBy+D9t4b0oLkk8WmGheEzIXTn1FJLJZjB3/QESO5iwpDZDveTAxL1n5cxazeo/O8wdv6lgg3xlPF0UA+0fHO7LglNZdKb92AM5B04D4qkNgZ6iGrCYf+Ou7QGtaVaOvygTPa8m4rpbAuDl3rKCy2RVdWHxKWEMU0B1zv/8VdisdkYpXJjjYInxqqJ+dvHWthnVhHAeOFY5oBdJ3KBXCBI2r8SrPfwFh4hcBw9UmlU8AKTVTN+oduDFilHK77A6adzNsgZFfJC0Uoa57b2BobLhkbcsDMs7TSgIX8DsST7/5CcyMHbHkqKXi8keg1DDac/Hl2l1782iodz+ETr9+IEfJxBsWRO+4OmCUoEU6YzQCzOf4ve8RPEqyfeq9p0I35Q1y/ljUVpvRffuS3DHwMkPTVJfACG+cgvQKErmwbTOXXSDTsaW7shW7Xu3Wka3rVaIDxM6zlY9OuVGrHfRibb16FYIXgejWqB1w=
   on:
     tags: true
+    repo: clems4ever/http-two-factor
 notifications:
   email:
     recipients:
     - clement.michaud34@gmail.com
     on_success: change
     on_failure: always
-
