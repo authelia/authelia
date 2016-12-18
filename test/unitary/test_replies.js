@@ -1,5 +1,5 @@
 
-var replies = require('../src/lib/replies');
+var replies = require('../../src/lib/replies');
 var assert = require('assert');
 var sinon = require('sinon');
 var sinonPromise = require('sinon-promise');
