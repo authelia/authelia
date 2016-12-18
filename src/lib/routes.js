@@ -33,7 +33,6 @@ function serveAuthPost(req, res) {
 }
 
 function serveLogin(req, res) {
-  console.log(req.headers);
   res.render('login');
 }
 

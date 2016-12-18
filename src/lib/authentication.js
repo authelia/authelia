@@ -49,7 +49,6 @@ function authenticate(req, res) {
 
 function verify_authentication(req, res) {
   console.log('Verify authentication');
-  console.log(req.cookies);
 
   if(!objectPath.has(req, 'cookies.access_token')) {
     return utils.reject('No access token provided');

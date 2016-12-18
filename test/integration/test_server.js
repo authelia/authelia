@@ -107,6 +107,9 @@ describe('test the server', function() {
         (content.indexOf('This is a very important secret!') > -1);
       assert(is_secret_page_content);
       done();
+    })
+    .fail(function(err) {
+      console.error(err);
     });
   });
 

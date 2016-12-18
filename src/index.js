@@ -13,8 +13,8 @@ var config = {
 }
 
 var ldap_client = ldap.createClient({
-  url: config.ldap_url
+  url: config.ldap_url,
+  reconnect: true
 });
 
 server.run(config, ldap_client);
-
