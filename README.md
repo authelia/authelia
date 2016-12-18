@@ -53,7 +53,7 @@ And the parameters:
 | /_auth (POST)      | { password: 'abc', username: 'user', token: '0982'}       | @200 with access_token or @401   |
 
 ## Contributing to two-factor-auth-server
-Follow [contributing](CONTRIBUTING.md) file.
+Follow [contributing](CONTRIBUTORS.md) file.
 
 ## License
 two-factor-auth-server is **licensed** under the **[MIT License]**. The terms of the license are as follows:
