@@ -1,7 +1,7 @@
-# http-two-factor
+# two-factor-auth-server
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)][MIT License]
 
-**http-two-factor** is the simplest to set up HTTP 2-factor authentication server. It is compatible with NGINX auth_request module and is used in production to secure internal services in a swarm cluster.
+**two-factor-auth-server** is the simplest to set up HTTP 2-factor authentication server. It is compatible with NGINX auth_request module and is used in production to secure internal services in a swarm cluster.
 
 ## Getting started
 
@@ -21,10 +21,10 @@ You can use Google Authenticator for the verification of the TOTP token. You can
 
 Test secret key: GRWGIJS6IRHVEODVNRCXCOBMJ5AGC6ZE
 
-![secret-key](https://github.com/clems4ever/http-two-factor/raw/master/secret-key.png)
+![secret-key](https://github.com/clems4ever/two-factor-auth-server/raw/master/secret-key.png)
 
 ## Documentation
-http-two-factor provides a way to log in using LDAP credentials and TOTP tokens. When the user is logged in,
+two-factor-auth-server provides a way to log in using LDAP credentials and TOTP tokens. When the user is logged in,
 the server generates a JSON web token with an expiry date that the user must keep in the *access_token* cookie.
 
 ### Endpoints
@@ -47,11 +47,11 @@ And the parameters:
 | /_auth (GET)       | *access_token* cookie containing the JSON web token       | @204 or @401                     |
 | /_auth (POST)      | { password: 'abc', username: 'user', token: '0982'}       | @200 with access_token or @401   |
 
-## Contributing to http-two-factor
+## Contributing to two-factor-auth-server
 Follow [contributing](CONTRIBUTING.md) file.
 
 ## License
-http-2-factor is **licensed** under the **[MIT License]**. The terms of the license are as follows:
+two-factor-auth-server is **licensed** under the **[MIT License]**. The terms of the license are as follows:
 
     The MIT License (MIT)
 
