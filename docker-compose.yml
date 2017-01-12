@@ -9,11 +9,8 @@ services:
       - TOTP_SECRET=GRWGIJS6IRHVEODVNRCXCOBMJ5AGC6ZE
       - JWT_SECRET=unsecure_secret
       - JWT_EXPIRATION_TIME=1h
-      - PORT=80
     depends_on:
       - ldap
-    expose:
-      - "80"
     restart: always
 
   ldap:
