@@ -1,20 +1,18 @@
 
+var first_factor = require('./routes/first_factor');
+
 module.exports = {
-  'auth': serveAuth,
-  'login': serveLogin,
-  'logout': serveLogout
+  auth: serveAuth,
+  login: serveLogin,
+  logout: serveLogout,
+  first_factor: first_factor
 }
 
 var authentication = require('./authentication');
 var replies = require('./replies');
 
 function serveAuth(req, res) {
-  if(req.method == 'POST') {
-    serveAuthPost(req, res);
-  }
-  else {
-    serveAuthGet(req, res);
-  }
+  serveAuthGet(req, res);
 }
 
 function serveAuthGet(req, res) {
@@ -26,10 +24,6 @@ function serveAuthGet(req, res) {
     replies.authentication_failed(res);
     console.error(err);
   });
-}
-
-function serveAuthPost(req, res) {
-  authentication.authenticate(req, res);
 }
 
 function serveLogin(req, res) {

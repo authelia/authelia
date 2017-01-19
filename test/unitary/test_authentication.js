@@ -75,59 +75,30 @@ function create_mocks() {
   }
 }
 
-describe('test jwt', function() {
-  describe('test authentication', function() {
-    it('should authenticate user successfuly', function(done) {
-      var jwt_token = 'jwt_token';
-      var clock = sinon.useFakeTimers();
-      var mocks = create_mocks();
-      authentication.authenticate(mocks.req, mocks.res)
-      .then(function() {
-        clock.restore();
-        assert(mocks.res.status.calledWith(200));
-        assert(mocks.res.send.calledWith(jwt_token));
-        done();
-      })
+describe('test authentication token verification', function() {
+  it('should be already authenticated', function(done) {
+    var mocks = create_mocks();
+    var data = { user: 'username' };
+    mocks.req.app.get.withArgs('jwt engine').returns({
+      verify: sinon.promise().resolves(data)
     });
 
-    it('should fail authentication', function(done) {
-      var clock = sinon.useFakeTimers();
-      var mocks = create_mocks();
-      mocks.totp.returns('wrong token');
-      authentication.authenticate(mocks.req, mocks.res)
-      .fail(function(err) {
-        clock.restore();
-        done();
-      })
+    authentication.verify(mocks.req, mocks.res)
+    .then(function(actual_data) {
+      assert.equal(actual_data, data);
+      done();
     });
   });
 
-
-  describe('test verify authentication', function() {
-    it('should be already authenticated', function(done) {
-      var mocks = create_mocks();
-      var data = { user: 'username' };
-      mocks.req.app.get.withArgs('jwt engine').returns({
-        verify: sinon.promise().resolves(data)
-      });
-
-      authentication.verify(mocks.req, mocks.res)
-      .then(function(actual_data) {
-        assert.equal(actual_data, data);
-        done();
-      });
+  it('should not be already authenticated', function(done) {
+    var mocks = create_mocks();
+    var data = { user: 'username' };
+    mocks.req.app.get.withArgs('jwt engine').returns({
+      verify: sinon.promise().rejects('Error with JWT token')
     });
-
-    it('should not be already authenticated', function(done) {
-      var mocks = create_mocks();
-      var data = { user: 'username' };
-      mocks.req.app.get.withArgs('jwt engine').returns({
-        verify: sinon.promise().rejects('Error with JWT token')
-      });
-      return authentication.verify(mocks.req, mocks.res, mocks.args)
-      .fail(function() {
-        done();
-      });
+    return authentication.verify(mocks.req, mocks.res, mocks.args)
+    .fail(function() {
+      done();
     });
   });
 });

@@ -6,6 +6,9 @@ var request = require('request');
 var assert = require('assert');
 var speakeasy = require('speakeasy');
 var sinon = require('sinon');
+var Promise = require('bluebird');
+
+var request = Promise.promisifyAll(request);
 
 var BASE_URL = 'http://localhost:8090';
 
@@ -46,8 +49,8 @@ describe('test the server', function() {
     test_get_auth(jwt);
   });
  
-  describe('test POST /_auth', function() {
-    test_post_auth(jwt);
+  describe('test POST /_auth/1stfactor', function() {
+    test_post_auth_1st_factor();
   });
 });
 
@@ -95,50 +98,64 @@ function test_get_auth(jwt) {
   });
 }
 
-function test_post_auth() {
-  it('should return the JWT token when authentication is successful', function(done) {
-    var clock = sinon.useFakeTimers();
-    var real_token = speakeasy.totp({
-      secret: 'totp_secret',
-      encoding: 'base32'
-    });
-    var expectedJwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoidGVzdF9vayIsImlhdCI6MCwiZXhwIjozNjAwfQ.ihvaljGjO5h3iSO_h3PkNNSCYeePyB8Hr5lfVZZYyrQ';
-
-    request.post(BASE_URL + '/_auth', { 
+function test_post_auth_1st_factor() {
+  it('should return status code 204 when ldap bind is successful', function() {
+    request.postAsync(BASE_URL + '/_auth/1stfactor', {
       form: {
-        username: 'test_ok',
-        password: 'password',
-        token: real_token
+        username: 'username',
+        password: 'password'
       }
-    }, 
-    function (error, response, body) {
-      if (!error && response.statusCode == 200) {
-        assert.equal(body, expectedJwt);
-        clock.restore();
-        done();
-      }
-    });
-  });
-
-  it('should return invalid authentication status code', function(done) {
-    var clock = sinon.useFakeTimers();
-    var real_token = speakeasy.totp({
-      secret: 'totp_secret',
-      encoding: 'base32'
-    });
-    var data = {
-      form: {
-        username: 'test_nok',
-        password: 'password',
-        token: real_token
-      }
-    }
-
-    request.post(BASE_URL + '/_auth', data, function (error, response, body) {
-      if(response.statusCode == 401) {
-        clock.restore();
-        done();
-      }
+    })
+    .then(function(response) {
+      assert.equal(response.statusCode, 204);
+      return Promise.resolve();
     });
   });
 }
+// function test_post_auth_totp() {
+//   it('should return the JWT token when authentication is successful', function(done) {
+//     var clock = sinon.useFakeTimers();
+//     var real_token = speakeasy.totp({
+//       secret: 'totp_secret',
+//       encoding: 'base32'
+//     });
+//     var expectedJwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoidGVzdF9vayIsImlhdCI6MCwiZXhwIjozNjAwfQ.ihvaljGjO5h3iSO_h3PkNNSCYeePyB8Hr5lfVZZYyrQ';
+// 
+//     request.post(BASE_URL + '/_auth/totp', { 
+//       form: {
+//         username: 'test_ok',
+//         password: 'password',
+//         token: real_token
+//       }
+//     }, 
+//     function (error, response, body) {
+//       if (!error && response.statusCode == 200) {
+//         assert.equal(body, expectedJwt);
+//         clock.restore();
+//         done();
+//       }
+//     });
+//   });
+// 
+//   it('should return invalid authentication status code', function(done) {
+//     var clock = sinon.useFakeTimers();
+//     var real_token = speakeasy.totp({
+//       secret: 'totp_secret',
+//       encoding: 'base32'
+//     });
+//     var data = {
+//       form: {
+//         username: 'test_nok',
+//         password: 'password',
+//         token: real_token
+//       }
+//     }
+// 
+//     request.post(BASE_URL + '/_auth/totp', data, function (error, response, body) {
+//       if(response.statusCode == 401) {
+//         clock.restore();
+//         done();
+//       }
+//     });
+//   });
+// }

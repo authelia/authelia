@@ -1,5 +1,5 @@
 
-var ldap_checker = require('../../src/lib/ldap_checker');
+var ldap = require('../../src/lib/ldap');
 var sinon = require('sinon');
 var sinonPromise = require('sinon-promise');
 
@@ -17,10 +17,10 @@ function test_validate(bind_mock) {
       bind: bind_mock
     }
 
-    return ldap_checker.validate(ldap_client_mock, username, password, ldap_url, users_dn);
+    return ldap.validate(ldap_client_mock, username, password, ldap_url, users_dn);
 }
 
-describe('test ldap checker', function() {
+describe('test ldap validation', function() {
   it('should bind the user if good credentials provided', function() {
     var bind_mock = sinon.mock().yields();
     return test_validate(bind_mock);
@@ -29,7 +29,7 @@ describe('test ldap checker', function() {
   it('should not bind the user if wrong credentials provided', function() {
     var bind_mock = sinon.mock().yields('wrong credentials');
     var promise = test_validate(bind_mock);
-    return promise.fail(autoResolving);
+    return promise.error(autoResolving);
   });
 });
 

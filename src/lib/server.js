@@ -33,7 +33,8 @@ function run(config, ldap_client) {
   app.get  ('/logout',  routes.logout);
 
   app.get  ('/_auth',   routes.auth);
-  app.post ('/_auth',   routes.auth);
+
+  app.post ('/_auth/1stfactor',   routes.first_factor);
   
   app.listen(config.port, function(err) {
     console.log('Listening on %d...', config.port);
