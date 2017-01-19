@@ -1,33 +1,39 @@
 
 var Jwt = require('../../src/lib/jwt');
 var sinon = require('sinon');
-var sinonPromise = require('sinon-promise');
-sinonPromise(sinon);
-
-var autoResolving = sinon.promise().resolves();
 
 describe('test jwt', function() {
   it('should sign and verify the token', function() {
     var data = {user: 'user'};
     var secret = 'secret';
     var jwt = new Jwt(secret);
-    var token = jwt.sign(data, '1m');
-    return jwt.verify(token);
+    return jwt.sign(data, '1m')
+    .then(function(token) {
+      return jwt.verify(token);
+    });
   });
 
   it('should verify and fail on wrong token', function() {
     var jwt = new Jwt('secret');
-    return jwt.verify('wrong token').fail(autoResolving);
+    var token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoidXNlciIsImlhdCI6MTQ4NDc4NTExMywiZXhwIjoaNDg0Nzg1MTczfQ.yZOZEaMDyOn0tSDiDSPYl4ZP2oL3FQ-Vrzds7hYcNio';
+    return jwt.verify(token).catch(function() {
+      return Promise.resolve();
+    });
   });
 
-  it('should fail after expiry', function(done) {
+  it('should fail after expiry', function() {
     var clock = sinon.useFakeTimers(0);
-    var data = {user: 'user'};
+    var data = { user: 'user' };
     var jwt = new Jwt('secret');
-    var token = jwt.sign(data, '1m');
-    clock.tick(1000 * 61); // 61 seconds
-    jwt.verify(token).fail(function() { done(); });
-    clock.restore();
+    return jwt.sign(data, '1m')
+    .then(function(token) {
+      clock.tick(1000 * 61); // 61 seconds
+      return jwt.verify(token);
+    })
+    .catch(function() {
+      clock.restore();
+      return Promise.resolve();
+    });
   });
 });
 

@@ -86,15 +86,17 @@ function test_get_auth(jwt) {
   it('should return status code 204 when user is authenticated', function(done) {
     var j = request.jar();
     var r = request.defaults({jar: j});
-    var token = jwt.sign({ user: 'test' }, '1h');
-    var cookie = r.cookie('access_token=' + token);
-    j.setCookie(cookie, BASE_URL + '/_auth');
+    jwt.sign({ user: 'test' }, '1h')
+    .then(function(token) {
+      var cookie = r.cookie('access_token=' + token);
+      j.setCookie(cookie, BASE_URL + '/_auth');
 
-    r.get(BASE_URL + '/_auth')
-    .on('response', function(response) {
-      assert.equal(response.statusCode, 204);
-      done();
-    }) 
+      r.get(BASE_URL + '/_auth')
+      .on('response', function(response) {
+        assert.equal(response.statusCode, 204);
+        done();
+      });
+    });
   });
 }
 

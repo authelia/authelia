@@ -20,7 +20,7 @@ function serveAuthGet(req, res) {
   .then(function(user) {
     replies.already_authenticated(res, user);
   })
-  .fail(function(err) {
+  .catch(function(err) {
     replies.authentication_failed(res);
     console.error(err);
   });

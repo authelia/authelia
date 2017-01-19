@@ -1,5 +1,5 @@
 
-var totp_checker = require('../../src/lib/totp_checker');
+var totp = require('../../src/lib/totp');
 var sinon = require('sinon');
 var sinonPromise = require('sinon-promise');
 sinonPromise(sinon);
@@ -15,7 +15,7 @@ describe('test TOTP checker', function() {
     var speakeasy_mock = {
       totp: totp_mock
     }
-    return totp_checker.validate(speakeasy_mock, token, totp_secret);
+    return totp.validate(speakeasy_mock, token, totp_secret);
   });
 
   it('should not validate a wrong TOTP token', function() {
@@ -26,7 +26,7 @@ describe('test TOTP checker', function() {
     var speakeasy_mock = {
       totp: totp_mock
     }
-    return totp_checker.validate(speakeasy_mock, token, totp_secret).fail(autoResolving);
+    return totp.validate(speakeasy_mock, token, totp_secret).fail(autoResolving);
   });
 });
 

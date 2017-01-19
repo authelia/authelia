@@ -1,11 +1,9 @@
 
 module.exports = {
-  'verify': verify_authentication
+  verify: verify_authentication
 }
 
 var objectPath = require('object-path');
-var totp_checker = require('./totp_checker');
-var replies = require('./replies');
 var utils = require('./utils');
 
 function verify_authentication(req, res) {

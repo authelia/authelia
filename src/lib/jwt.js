@@ -3,27 +3,30 @@ module.exports = Jwt;
 
 var jwt = require('jsonwebtoken');
 var utils = require('./utils');
-var Q = require('q');
+var Promise = require('bluebird');
 
 function Jwt(secret) {
-  var _secret;
-
   this._secret = secret;
 }
 
 Jwt.prototype.sign = function(data, expiration_time) {
-  return jwt.sign(data, this._secret, { expiresIn: expiration_time });
+  var that = this;
+  return new Promise(function(resolve, reject) {
+    var token = jwt.sign(data, that._secret, { expiresIn: expiration_time })
+    resolve(token);
+  });
 }
 
 Jwt.prototype.verify = function(token) {
-  var defer = Q.defer();
-  try {
-    var decoded = jwt.verify(token, this._secret);
-    defer.resolve(decoded);
-  }
-  catch(err) {
-    defer.reject(err);
-  }
-  return defer.promise;
+  var that = this;
+  return new Promise(function(resolve, reject) {
+    try {
+      var decoded = jwt.verify(token, that._secret);
+      resolve(decoded);
+    }
+    catch(err) {
+      reject(err.message);
+    }
+  });
 }
 
