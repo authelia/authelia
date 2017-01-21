@@ -7,8 +7,8 @@ services:
       - LDAP_URL=ldap://ldap
       - LDAP_USERS_DN=dc=example,dc=com
       - TOTP_SECRET=GRWGIJS6IRHVEODVNRCXCOBMJ5AGC6ZE
-      - JWT_SECRET=unsecure_secret
-      - JWT_EXPIRATION_TIME=1h
+      - SESSION_SECRET=unsecure_secret
+      - SESSION_EXPIRATION_TIME=3600000
     depends_on:
       - ldap
     restart: always
@@ -28,7 +28,8 @@ services:
       - ./nginx_conf/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx_conf/index.html:/usr/share/nginx/html/index.html
       - ./nginx_conf/secret.html:/usr/share/nginx/html/secret.html
+      - ./nginx_conf/ssl:/etc/ssl
     depends_on:
       - auth
     ports:
-      - "8080:80"
+      - "8080:443"

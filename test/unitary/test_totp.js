@@ -1,12 +1,9 @@
 
 var totp = require('../../src/lib/totp');
 var sinon = require('sinon');
-var sinonPromise = require('sinon-promise');
-sinonPromise(sinon);
+var Promise = require('bluebird');
 
-var autoResolving = sinon.promise().resolves();
-
-describe('test TOTP checker', function() {
+describe('test TOTP validation', function() {
   it('should validate the TOTP token', function() {
     var totp_secret = 'NBD2ZV64R9UV1O7K';
     var token = 'token';
@@ -26,7 +23,10 @@ describe('test TOTP checker', function() {
     var speakeasy_mock = {
       totp: totp_mock
     }
-    return totp.validate(speakeasy_mock, token, totp_secret).fail(autoResolving);
+    return totp.validate(speakeasy_mock, token, totp_secret)
+    .catch(function() {
+      return Promise.resolve();
+    });
   });
 });
 

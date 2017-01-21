@@ -3,22 +3,16 @@ var request_ = require('request');
 var assert = require('assert');
 var speakeasy = require('speakeasy');
 var j = request_.jar();
-var request = request_.defaults({jar: j});
-var Q = require('q');
+var Promise = require('bluebird');
+var request = Promise.promisifyAll(request_.defaults({jar: j}));
 
-var BASE_URL = 'http://localhost:8080';
+var BASE_URL = 'https://localhost:8080';
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 describe('test the server', function() {
   var home_page;
   var login_page;
-  var config = {
-    port: 8090,
-    totp_secret: 'totp_secret',
-    ldap_url: 'ldap://127.0.0.1:389',
-    ldap_users_dn: 'ou=users,dc=example,dc=com',
-    jwt_secret: 'jwt_secret',
-    jwt_expiration_time: '1h'
-  };
 
   before(function() {
     var home_page_promise = getHomePage()
@@ -29,14 +23,14 @@ describe('test the server', function() {
     .then(function(data) {
       login_page = data.body;
     });
-    return Q.all([home_page_promise, 
-                  login_page_promise]);
+    return Promise.all([home_page_promise, 
+                        login_page_promise]);
   });
 
   it('should serve the login page', function(done) {
     getPromised(BASE_URL + '/auth/login?redirect=/')
     .then(function(data) {
-      assert.equal(data.response.statusCode, 200);
+      assert.equal(data.statusCode, 200);
       done();
     });
   });
@@ -44,7 +38,7 @@ describe('test the server', function() {
   it('should serve the homepage', function(done) {
     getPromised(BASE_URL + '/')
     .then(function(data) {
-      assert.equal(data.response.statusCode, 200);
+      assert.equal(data.statusCode, 200);
       done();
     });
   });
@@ -52,69 +46,71 @@ describe('test the server', function() {
   it('should redirect when logout', function(done) {
     getPromised(BASE_URL + '/auth/logout?redirect=/')
     .then(function(data) {
-      assert.equal(data.response.statusCode, 200);
+      assert.equal(data.statusCode, 200);
       assert.equal(data.body, home_page);
       done();
     });
   });
 
-  it('should be redirected to the login page when accessing secret while not authenticated', function(done) {
-    getPromised(BASE_URL + '/secret.html')
+  it('should be redirected to the login page when accessing secret while not authenticated', function() {
+    return getPromised(BASE_URL + '/secret.html')
     .then(function(data) {
-      assert.equal(data.response.statusCode, 200);
+      assert.equal(data.statusCode, 200);
       assert.equal(data.body, login_page);
-      done();
+      return Promise.resolve();
     });
   });
 
-  it('should fail the login', function(done) {
-    postPromised(BASE_URL + '/_auth', {
+  it('should fail the first_factor login', function() {
+    return postPromised(BASE_URL + '/auth/_auth/1stfactor', {
       form: {
         username: 'admin',
-        password: 'password',
-        token: 'abc'
+        password: 'bad_password'
       }
     })
     .then(function(data) {
-      assert.equal(data.body, 'Authentication failed');
-      done();
+      assert.equal(401, data.statusCode);
+      return Promise.resolve();
     });
   });
 
-  it('should login and access the secret', function(done) {
+  it('should login and access the secret using totp', function() {
     var token = speakeasy.totp({
       secret: 'GRWGIJS6IRHVEODVNRCXCOBMJ5AGC6ZE',
       encoding: 'base32' 
     });
    
-    postPromised(BASE_URL + '/_auth', {
+    return postPromised(BASE_URL + '/auth/_auth/1stfactor', {
       form: {
         username: 'admin',
         password: 'password',
-        token: token
       }
     })
-    .then(function(data) {
-      assert.equal(data.response.statusCode, 200);
-      assert.equal(data.body.length, 148);
-      var cookie = request.cookie('access_token=' + data.body);
-      j.setCookie(cookie, BASE_URL + '/_auth');
+    .then(function(response) {
+      assert.equal(response.statusCode, 204);
+      return postPromised(BASE_URL + '/auth/_auth/2ndfactor/totp', {
+        form: { token: token }
+      });
+    })
+    .then(function(response) {
+      assert.equal(response.statusCode, 204);
       return getPromised(BASE_URL + '/secret.html');
     })
-    .then(function(data) {
-      var content = data.body;
+    .then(function(response) {
+      var content = response.body;
       var is_secret_page_content = 
         (content.indexOf('This is a very important secret!') > -1);
       assert(is_secret_page_content);
-      done();
+      return Promise.resolve();
     })
-    .fail(function(err) {
+    .catch(function(err) {
       console.error(err);
+      return Promise.reject(err);
     });
   });
 
-  it('should logoff and should not be able to access secret anymore', function(done) {
-    getPromised(BASE_URL + '/secret.html')
+  it('should logoff and should not be able to access secret anymore', function() {
+    return getPromised(BASE_URL + '/secret.html')
     .then(function(data) {
       var content = data.body;
       var is_secret_page_content = 
@@ -123,17 +119,18 @@ describe('test the server', function() {
       return getPromised(BASE_URL + '/auth/logout')
     })
     .then(function(data) {
-      assert.equal(data.response.statusCode, 200);
+      assert.equal(data.statusCode, 200);
       assert.equal(data.body, home_page);
       return getPromised(BASE_URL + '/secret.html');
     })
     .then(function(data) {
       var content = data.body;
       assert.equal(data.body, login_page);
-      done();
+      return Promise.resolve();
     })
-    .fail(function(err) {
+    .catch(function(err) {
       console.error(err);
+      return Promise.reject();
     });
   });
 });
@@ -153,15 +150,13 @@ function responsePromised(defer) {
 }
 
 function getPromised(url) {
-  var defer = Q.defer();
-  request.get(url, responsePromised(defer));
-  return defer.promise;
+  console.log('GET: %s', url);
+  return request.getAsync(url);
 }
 
 function postPromised(url, body) {
-  var defer = Q.defer();
-  request.post(url, body, responsePromised(defer));
-  return defer.promise;
+  console.log('POST: %s, %s', url, JSON.stringify(body));
+  return request.postAsync(url, body);
 }
 
 function getHomePage() {

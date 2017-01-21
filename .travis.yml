@@ -10,7 +10,7 @@ script:
 - docker-compose build
 - docker-compose up -d
 - sleep 5
-- npm run-script integration-test
+- npm run-script int-test
 deploy:
   provider: npm
   email: clement.michaud34@gmail.com

@@ -1,39 +1,31 @@
 
 var first_factor = require('./routes/first_factor');
+var second_factor = require('./routes/second_factor');
+var verify = require('./routes/verify');
 
 module.exports = {
-  auth: serveAuth,
   login: serveLogin,
   logout: serveLogout,
-  first_factor: first_factor
-}
-
-var authentication = require('./authentication');
-var replies = require('./replies');
-
-function serveAuth(req, res) {
-  serveAuthGet(req, res);
-}
-
-function serveAuthGet(req, res) {
-  authentication.verify(req, res)
-  .then(function(user) {
-    replies.already_authenticated(res, user);
-  })
-  .catch(function(err) {
-    replies.authentication_failed(res);
-    console.error(err);
-  });
+  verify: verify,
+  first_factor: first_factor,
+  second_factor: second_factor
 }
 
 function serveLogin(req, res) {
+  req.session.auth_session = {};
+  req.session.auth_session.first_factor = false;
+  req.session.auth_session.second_factor = false;
+
   res.render('login');
 }
 
 function serveLogout(req, res) {
   var redirect_param = req.query.redirect;
   var redirect_url = redirect_param || '/';
-  res.clearCookie('access_token');
+  req.session.auth_session = {
+    first_factor: false,
+    second_factor: false
+  }
   res.redirect(redirect_url);
 }
 

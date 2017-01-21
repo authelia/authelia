@@ -5,7 +5,9 @@
   "main": "src/index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha --recursive test/unitary",
-    "integration-test": "./node_modules/.bin/mocha --recursive test/integration",
+    "unit-test": "./node_modules/.bin/mocha --recursive test/unitary",
+    "int-test": "./node_modules/.bin/mocha --recursive test/integration",
+    "all-test": "./node_modules/.bin/mocha --recursive test",
     "coverage": "./node_modules/.bin/istanbul cover _mocha -- -R spec"
   },
   "repository": {
@@ -18,16 +20,16 @@
     "url": "https://github.com/clems4ever/two-factor-auth-server/issues"
   },
   "dependencies": {
+    "authdog": "^0.1.1",
     "bluebird": "^3.4.7",
     "body-parser": "^1.15.2",
-    "cookie-parser": "^1.4.3",
     "ejs": "^2.5.5",
     "express": "^4.14.0",
-    "jsonwebtoken": "^7.2.1",
+    "express-session": "^1.14.2",
     "ldapjs": "^1.0.1",
     "object-path": "^0.11.3",
-    "q": "^1.4.1",
-    "speakeasy": "^2.0.0"
+    "speakeasy": "^2.0.0",
+    "winston": "^2.3.1"
   },
   "devDependencies": {
     "mocha": "^3.2.0",
