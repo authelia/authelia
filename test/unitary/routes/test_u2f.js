@@ -220,7 +220,7 @@ describe('test u2f routes', function() {
 
       req.session.auth_session.sign_request = {};
       req.app.get.withArgs('u2f').returns(u2f_mock);
-      u2f.register(req, res);
+      u2f.sign(req, res);
     });
 
     it('should return unauthorized error when no sign request has been initiated', function(done) {
@@ -234,7 +234,7 @@ describe('test u2f routes', function() {
       u2f_mock.finishAuthentication.returns(Promise.resolve());
 
       req.app.get.withArgs('u2f').returns(u2f_mock);
-      u2f.register(req, res);
+      u2f.sign(req, res);
     });
   }
 });

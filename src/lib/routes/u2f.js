@@ -162,7 +162,8 @@ function sign(req, res) {
     req.session.auth_session.second_factor = true;
     res.status(204);
     res.send();
-  }, function(err) {
+  })
+  .catch(function(err) {
     logger.error('U2F sign: %s', err);
     res.status(401);
     res.send();
