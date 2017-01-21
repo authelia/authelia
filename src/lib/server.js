@@ -11,10 +11,14 @@ var speakeasy = require('speakeasy');
 var path = require('path');
 var session = require('express-session');
 var winston = require('winston');
+var DataStore = require('nedb');
+var UserDataStore = require('./user_data_store');
 
 function run(config, ldap_client, u2f, fn) {
   var view_directory = path.resolve(__dirname, '../views');
   var public_html_directory = path.resolve(__dirname, '../public_html');
+  var datastore_options = {};
+  datastore_options.directory = config.store_directory;
 
   var app = express();
   app.use(express.static(public_html_directory));
@@ -41,6 +45,7 @@ function run(config, ldap_client, u2f, fn) {
   app.set('ldap client', ldap_client);
   app.set('totp engine', speakeasy);
   app.set('u2f', u2f);
+  app.set('user data store', new UserDataStore(DataStore, datastore_options));
   app.set('config', config);
   
   app.get  ('/login',   routes.login);

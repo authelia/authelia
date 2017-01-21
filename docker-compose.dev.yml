@@ -3,6 +3,7 @@ version: '2'
 services:
   auth:
     volumes:
+      - ./test:/usr/src/test
       - ./src/views:/usr/src/views
       - ./src/public_html:/usr/src/public_html
 

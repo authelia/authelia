@@ -10,4 +10,6 @@ COPY src /usr/src
 ENV PORT=80
 EXPOSE 80
 
+VOLUME /var/lib/auth-server
+
 CMD ["node", "index.js"]

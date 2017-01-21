@@ -9,6 +9,7 @@ services:
       - TOTP_SECRET=GRWGIJS6IRHVEODVNRCXCOBMJ5AGC6ZE
       - SESSION_SECRET=unsecure_secret
       - SESSION_EXPIRATION_TIME=3600000
+      - STORE_DIRECTORY=/var/lib/auth-server
     depends_on:
       - ldap
     restart: always
