@@ -62,7 +62,7 @@ describe('test the server', function() {
   });
 
   it('should fail the first_factor login', function() {
-    return postPromised(BASE_URL + '/auth/_auth/1stfactor', {
+    return postPromised(BASE_URL + '/auth/1stfactor', {
       form: {
         username: 'admin',
         password: 'bad_password'
@@ -80,7 +80,7 @@ describe('test the server', function() {
       encoding: 'base32' 
     });
    
-    return postPromised(BASE_URL + '/auth/_auth/1stfactor', {
+    return postPromised(BASE_URL + '/auth/1stfactor', {
       form: {
         username: 'admin',
         password: 'password',
@@ -88,7 +88,7 @@ describe('test the server', function() {
     })
     .then(function(response) {
       assert.equal(response.statusCode, 204);
-      return postPromised(BASE_URL + '/auth/_auth/2ndfactor/totp', {
+      return postPromised(BASE_URL + '/auth/2ndfactor/totp', {
         form: { token: token }
       });
     })

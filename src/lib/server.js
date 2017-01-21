@@ -51,15 +51,15 @@ function run(config, ldap_client, u2f, fn) {
   app.get  ('/login',   routes.login);
   app.get  ('/logout',  routes.logout);
 
-  app.get  ('/_verify',   routes.verify);
+  app.get  ('/verify',   routes.verify);
 
-  app.post ('/_auth/1stfactor',        routes.first_factor);
-  app.post ('/_auth/2ndfactor/totp',   routes.second_factor.totp);
+  app.post ('/1stfactor',        routes.first_factor);
+  app.post ('/2ndfactor/totp',   routes.second_factor.totp);
 
-  app.get  ('/_auth/2ndfactor/u2f/register_request',   routes.second_factor.u2f.register_request);
-  app.post ('/_auth/2ndfactor/u2f/register',           routes.second_factor.u2f.register);
-  app.get  ('/_auth/2ndfactor/u2f/sign_request',       routes.second_factor.u2f.sign_request);
-  app.post ('/_auth/2ndfactor/u2f/sign',               routes.second_factor.u2f.sign);
+  app.get  ('/2ndfactor/u2f/register_request',   routes.second_factor.u2f.register_request);
+  app.post ('/2ndfactor/u2f/register',           routes.second_factor.u2f.register);
+  app.get  ('/2ndfactor/u2f/sign_request',       routes.second_factor.u2f.sign_request);
+  app.post ('/2ndfactor/u2f/sign',               routes.second_factor.u2f.sign);
   
   return app.listen(config.port, function(err) {
     console.log('Listening on %d...', config.port);

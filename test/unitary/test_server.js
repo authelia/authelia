@@ -81,7 +81,7 @@ describe('test the server', function() {
   
   function test_authentication() {
     it('should return status code 401 when user is not authenticated', function() {
-      return request.getAsync({ url: BASE_URL + '/_verify' })
+      return request.getAsync({ url: BASE_URL + '/verify' })
       .then(function(response) {
         assert.equal(response.statusCode, 401);
         return Promise.resolve();
@@ -98,7 +98,7 @@ describe('test the server', function() {
       .then(function(res) {
         assert.equal(res.statusCode, 200, 'get login page failed');
         return request.postAsync({ 
-          url: BASE_URL + '/_auth/1stfactor',
+          url: BASE_URL + '/1stfactor',
           jar: j,
           form: {
             username: 'test_ok',
@@ -109,7 +109,7 @@ describe('test the server', function() {
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'first factor failed');
         return request.postAsync({
-          url: BASE_URL + '/_auth/2ndfactor/totp',
+          url: BASE_URL + '/2ndfactor/totp',
           jar: j,
           form: {
             token: real_token
@@ -118,7 +118,7 @@ describe('test the server', function() {
       })
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'second factor failed');
-        return request.getAsync({ url: BASE_URL + '/_verify', jar: j })
+        return request.getAsync({ url: BASE_URL + '/verify', jar: j })
       })
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'verify failed');
@@ -141,7 +141,7 @@ describe('test the server', function() {
       .then(function(res) {
         assert.equal(res.statusCode, 200, 'get login page failed');
         return request.postAsync({ 
-          url: BASE_URL + '/_auth/1stfactor',
+          url: BASE_URL + '/1stfactor',
           jar: j,
           form: {
             username: 'test_ok',
@@ -152,14 +152,14 @@ describe('test the server', function() {
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'first factor failed');
         return request.getAsync({
-          url: BASE_URL + '/_auth/2ndfactor/u2f/register_request',
+          url: BASE_URL + '/2ndfactor/u2f/register_request',
           jar: j
         });
       })
       .then(function(res) {
         assert.equal(res.statusCode, 200, 'second factor, start register failed');
         return request.postAsync({
-          url: BASE_URL + '/_auth/2ndfactor/u2f/register',
+          url: BASE_URL + '/2ndfactor/u2f/register',
           jar: j,
           form: {
             s: 'test'
@@ -169,14 +169,14 @@ describe('test the server', function() {
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'second factor, finish register failed');
         return request.getAsync({
-          url: BASE_URL + '/_auth/2ndfactor/u2f/sign_request',
+          url: BASE_URL + '/2ndfactor/u2f/sign_request',
           jar: j
         });
       })
       .then(function(res) {
         assert.equal(res.statusCode, 200, 'second factor, start sign failed');
         return request.postAsync({
-          url: BASE_URL + '/_auth/2ndfactor/u2f/sign',
+          url: BASE_URL + '/2ndfactor/u2f/sign',
           jar: j,
           form: {
             s: 'test'
@@ -185,7 +185,7 @@ describe('test the server', function() {
       })
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'second factor, finish sign failed');
-        return request.getAsync({ url: BASE_URL + '/_verify', jar: j })
+        return request.getAsync({ url: BASE_URL + '/verify', jar: j })
       })
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'verify failed');

@@ -118,7 +118,7 @@ describe('test data persistence', function() {
 
   function execute_first_factor(jar) {
     return request.postAsync({ 
-      url: BASE_URL + '/_auth/1stfactor',
+      url: BASE_URL + '/1stfactor',
       jar: jar,
       form: {
         username: 'test_ok',
@@ -129,12 +129,12 @@ describe('test data persistence', function() {
 
   function execute_u2f_registration(jar) {
     return request.getAsync({
-      url: BASE_URL + '/_auth/2ndfactor/u2f/register_request',
+      url: BASE_URL + '/2ndfactor/u2f/register_request',
       jar: jar
     })
     .then(function(res) {
       return request.postAsync({
-        url: BASE_URL + '/_auth/2ndfactor/u2f/register',
+        url: BASE_URL + '/2ndfactor/u2f/register',
         jar: jar,
         form: {
           s: 'test'
@@ -145,12 +145,12 @@ describe('test data persistence', function() {
 
   function execute_u2f_authentication(jar) {
     return request.getAsync({
-      url: BASE_URL + '/_auth/2ndfactor/u2f/sign_request',
+      url: BASE_URL + '/2ndfactor/u2f/sign_request',
       jar: jar
     })
     .then(function() {
       return request.postAsync({
-        url: BASE_URL + '/_auth/2ndfactor/u2f/sign',
+        url: BASE_URL + '/2ndfactor/u2f/sign',
         jar: jar,
         form: {
           s: 'test'

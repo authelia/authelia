@@ -79,7 +79,7 @@ function finishSecondFactorU2f(url, responseData, fn) {
 }
 
 function startSecondFactorU2fSigning(fn, timeout) {
-  $.get('/auth/_auth/2ndfactor/u2f/sign_request', {}, null, 'json')
+  $.get('/auth/2ndfactor/u2f/sign_request', {}, null, 'json')
   .done(function(signResponse) {
     var registeredKeys = signResponse.registeredKeys;
     $.notify('Please touch the token', 'information');
@@ -101,7 +101,7 @@ function startSecondFactorU2fSigning(fn, timeout) {
           fn(response);
         } else {
           // response['sessionId'] = sessionIds[response.keyHandle];
-          finishSecondFactorU2f('/auth/_auth/2ndfactor/u2f/sign', response, fn);
+          finishSecondFactorU2f('/auth/2ndfactor/u2f/sign', response, fn);
         }
       },
       timeout
@@ -113,7 +113,7 @@ function startSecondFactorU2fSigning(fn, timeout) {
 }
 
 function startSecondFactorU2fRegister(fn, timeout) {
-  $.get('/auth/_auth/2ndfactor/u2f/register_request', {}, null, 'json')
+  $.get('/auth/2ndfactor/u2f/register_request', {}, null, 'json')
   .done(function(startRegisterResponse) {
     console.log(startRegisterResponse);
     $.notify('Please touch the token', 'information');
@@ -126,7 +126,7 @@ function startSecondFactorU2fRegister(fn, timeout) {
           fn(response.errorCode);
         } else {
           // response['sessionId'] = startRegisterResponse.clientData;
-          finishSecondFactorU2f('/auth/_auth/2ndfactor/u2f/register', response, fn);
+          finishSecondFactorU2f('/auth/2ndfactor/u2f/register', response, fn);
         }
       },
       timeout 
@@ -135,7 +135,7 @@ function startSecondFactorU2fRegister(fn, timeout) {
 }
 
 function validateSecondFactorTotp(token, fn) {
-  $.post('/auth/_auth/2ndfactor/totp', {
+  $.post('/auth/2ndfactor/totp', {
     token: token,
   })
   .done(function() {
@@ -148,7 +148,7 @@ function validateSecondFactorTotp(token, fn) {
 
 
 function validateFirstFactor(username, password, fn) {
-  $.post('/auth/_auth/1stfactor', {
+  $.post('/auth/1stfactor', {
     username: username,
     password: password,
   })
