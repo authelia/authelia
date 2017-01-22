@@ -26,8 +26,8 @@ function register_handler_get(req, res) {
 
   var user_data_store = req.app.get('user data store');
 
-  logger.debug('U2F register_handler: verify token validity');
-  user_data_store.verify_u2f_registration_token(registration_token)
+  logger.debug('U2F register_handler: verify token validity and consume it');
+  user_data_store.consume_u2f_registration_token(registration_token)
   .then(function() {
     res.render('u2f_register');
   })

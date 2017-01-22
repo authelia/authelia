@@ -29,7 +29,7 @@ describe('test register handle', function() {
     user_data_store.set_u2f_meta = sinon.stub().returns(Promise.resolve({}));
     user_data_store.get_u2f_meta = sinon.stub().returns(Promise.resolve({}));
     user_data_store.save_u2f_registration_token = sinon.stub().returns(Promise.resolve({}));
-    user_data_store.verify_u2f_registration_token = sinon.stub().returns(Promise.resolve({}));
+    user_data_store.consume_u2f_registration_token = sinon.stub().returns(Promise.resolve({}));
     req.app.get.withArgs('user data store').returns(user_data_store);
 
     res = {};
@@ -107,7 +107,7 @@ describe('test register handle', function() {
 
       req.params = {};
       req.params.registration_token = 'token';
-      user_data_store.verify_u2f_registration_token = sinon.stub().returns(Promise.reject('Not valid anymore'));
+      user_data_store.consume_u2f_registration_token = sinon.stub().returns(Promise.reject('Not valid anymore'));
 
       u2f_register.register_handler_get(req, res);
     });

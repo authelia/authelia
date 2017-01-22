@@ -99,7 +99,7 @@ function test_u2f_registration_token() {
     });
   });
 
-  it('should save u2f registration token and verify it', function(done) {
+  it('should save u2f registration token and consume it', function(done) {
     var options = {};
     options.inMemoryOnly = true;
 
@@ -111,13 +111,36 @@ function test_u2f_registration_token() {
 
     data_store.save_u2f_registration_token(userid, token, max_age)
     .then(function(document) {
-      return data_store.verify_u2f_registration_token(token);
+      return data_store.consume_u2f_registration_token(token);
     })
     .then(function() {
       done();
     })
     .catch(function(err) {
       console.error(err);
+    });
+  });
+
+  it('should not be able to consume registration token twice', function(done) {
+    var options = {};
+    options.inMemoryOnly = true;
+
+    var data_store = new UserDataStore(DataStore, options);
+
+    var userid = 'user';
+    var token = 'token';
+    var max_age = 50;
+
+    data_store.save_u2f_registration_token(userid, token, max_age)
+    .then(function(document) {
+      return data_store.consume_u2f_registration_token(token);
+    })
+    .then(function(document) {
+      return data_store.consume_u2f_registration_token(token);
+    })
+    .catch(function(err) {
+      console.error(err);
+      done();
     });
   });
 
@@ -129,7 +152,7 @@ function test_u2f_registration_token() {
 
     var token = 'token';
 
-    return data_store.verify_u2f_registration_token(token)
+    return data_store.consume_u2f_registration_token(token)
     .then(function(document) {
       return Promise.reject();
     })
@@ -152,7 +175,7 @@ function test_u2f_registration_token() {
     data_store.save_u2f_registration_token(userid, token, max_age)
     .then(function() {
       MockDate.set('1/2/2000');
-      return data_store.verify_u2f_registration_token(token);
+      return data_store.consume_u2f_registration_token(token);
     })
     .catch(function(err) {
       MockDate.reset();

@@ -51,9 +51,10 @@ UserDataStore.prototype.save_u2f_registration_token = function(userid, token, ma
   return this._u2f_registration_tokens_collection.insertAsync(newDocument);
 }
 
-UserDataStore.prototype.verify_u2f_registration_token = function(token) {
+UserDataStore.prototype.consume_u2f_registration_token = function(token) {
   var query = {};
   query.token = token;
+  var that = this;
   
   return this._u2f_registration_tokens_collection.findOneAsync(query)
   .then(function(doc) {
@@ -68,5 +69,8 @@ UserDataStore.prototype.verify_u2f_registration_token = function(token) {
      }
 
      return Promise.resolve();
+  })
+  .then(function() {
+    return that._u2f_registration_tokens_collection.removeAsync(query);
   });
 }
