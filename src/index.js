@@ -18,6 +18,7 @@ var config = {
   session_secret: yaml_config.session.secret,
   session_max_age: yaml_config.session.expiration || 3600000, // in ms
   store_directory: yaml_config.store_directory,
+  debug_level: yaml_config.debug_level,
   gmail: {
     user: yaml_config.notifier.gmail.username,
     pass: yaml_config.notifier.gmail.password

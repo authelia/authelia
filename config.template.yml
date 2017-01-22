@@ -1,4 +1,6 @@
 
+debug_level: info
+
 ldap:
   url: ldap://ldap
   base_dn: ou=users,dc=example,dc=com

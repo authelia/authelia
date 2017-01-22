@@ -44,7 +44,7 @@ function run(config, ldap_client, u2f, fn) {
   app.set('views', view_directory);
   app.set('view engine', 'ejs');
 
-  winston.level = 'debug';
+  winston.level = config.debug_level || 'info';
 
   app.set('logger', winston);
   app.set('ldap client', ldap_client);
