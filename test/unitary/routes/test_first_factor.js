@@ -2,24 +2,40 @@
 var sinon = require('sinon');
 var Promise = require('bluebird');
 var assert = require('assert');
+var winston = require('winston');
 var first_factor = require('../../../src/lib/routes/first_factor');
 
 describe('test the first factor validation route', function() {
   var req, res;
   var ldap_interface_mock;
+  var search_res_ok;
 
   beforeEach(function() {
-    var bind_mock = sinon.stub();
     ldap_interface_mock = {
-      bind: bind_mock
+      bind: sinon.stub(),
+      search: sinon.stub()
     }
     var config = {
       ldap_users_dn: 'dc=example,dc=com'
     }
 
+    var search_doc = {
+      object: {
+        mail: 'test_ok@example.com'
+      }
+    };
+ 
+    var search_res_ok = {};
+    search_res_ok.on = sinon.spy(function(event, fn) {
+      if(event != 'error') fn(search_doc);
+    });
+    ldap_interface_mock.search.yields(undefined, search_res_ok);
+
     var app_get = sinon.stub();
     app_get.withArgs('ldap client').returns(ldap_interface_mock);
     app_get.withArgs('config').returns(ldap_interface_mock);
+    app_get.withArgs('logger').returns(winston);
+
     req = {
       app: {
         get: app_get
@@ -60,6 +76,18 @@ describe('test the first factor validation route', function() {
         resolve();
       });
       ldap_interface_mock.bind.yields('Bad credentials');
+      first_factor(req, res);
+    });
+  });
+
+  it('should return status code 500 when LDAP binding fails', function() {
+    return new Promise(function(resolve, reject) {
+      res.send = sinon.spy(function(data) {
+        assert.equal(500, res.status.getCall(0).args[0]);
+        resolve();
+      });
+      ldap_interface_mock.bind.yields(undefined);
+      ldap_interface_mock.search.yields('error');
       first_factor(req, res);
     });
   });

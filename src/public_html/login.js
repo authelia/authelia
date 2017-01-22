@@ -42,27 +42,39 @@ function onTotpSignButtonClicked() {
 }
 
 function onU2fSignButtonClicked() {
-  startSecondFactorU2fSigning(function(err) {
+  startU2fAuthentication(function(err) {
     if(err) {
-      onSecondFactorU2fSigningFailure();
+      onU2fAuthenticationFailure();
       return;
     }
-    onSecondFactorU2fSigningSuccess();
+    onU2fAuthenticationSuccess();
   }, 120);
 }
 
-function onU2fRegisterButtonClicked() {
-  startSecondFactorU2fRegister(function(err) {
+function onU2fRegistrationButtonClicked() {
+  askForU2fRegistration(function(err) {
     if(err) {
-      onSecondFactorU2fRegisterFailure();
+      $.notify('Unable to send you an email', 'error');
       return;
     }
-    onSecondFactorU2fRegisterSuccess();
-  }, 120);
+    $.notify('An email has been sent to your email address', 'info');
+  });
 }
 
-function finishSecondFactorU2f(url, responseData, fn) {
-  console.log(responseData);
+function askForU2fRegistration(fn) {
+  $.ajax({
+    type: 'POST',
+    url: '/auth/u2f-register'
+  })
+  .done(function(data) {
+    fn(undefined, data);
+  })
+  .fail(function(xhr, status) {
+    fn(status);
+  });
+}
+
+function finishU2fAuthentication(url, responseData, fn) {
   $.ajax({
     type: 'POST',
     url: url,
@@ -78,19 +90,11 @@ function finishSecondFactorU2f(url, responseData, fn) {
   });
 }
 
-function startSecondFactorU2fSigning(fn, timeout) {
+function startU2fAuthentication(fn, timeout) {
   $.get('/auth/2ndfactor/u2f/sign_request', {}, null, 'json')
   .done(function(signResponse) {
     var registeredKeys = signResponse.registeredKeys;
-    $.notify('Please touch the token', 'information');
-    console.log(signResponse);
-
-    // Store sessionIds
-    // var sessionIds = {};
-    // for (var i = 0; i < registeredKeys.length; i++) {
-    //   sessionIds[registeredKeys[i].keyHandle] = registeredKeys[i].sessionId;
-    //   delete registeredKeys[i]['sessionId'];
-    // }
+    $.notify('Please touch the token', 'info');
 
     u2f.sign(
       signResponse.appId,
@@ -100,8 +104,7 @@ function startSecondFactorU2fSigning(fn, timeout) {
         if (response.errorCode) {
           fn(response);
         } else {
-          // response['sessionId'] = sessionIds[response.keyHandle];
-          finishSecondFactorU2f('/auth/2ndfactor/u2f/sign', response, fn);
+          finishU2fAuthentication('/auth/2ndfactor/u2f/sign', response, fn);
         }
       },
       timeout
@@ -109,28 +112,6 @@ function startSecondFactorU2fSigning(fn, timeout) {
   })
   .fail(function(xhr, status) {
      fn(status);
-  });
-}
-
-function startSecondFactorU2fRegister(fn, timeout) {
-  $.get('/auth/2ndfactor/u2f/register_request', {}, null, 'json')
-  .done(function(startRegisterResponse) {
-    console.log(startRegisterResponse);
-    $.notify('Please touch the token', 'information');
-    u2f.register(
-      startRegisterResponse.appId,
-      startRegisterResponse.registerRequests,
-      startRegisterResponse.registeredKeys,
-      function (response) {
-        if (response.errorCode) {
-          fn(response.errorCode);
-        } else {
-          // response['sessionId'] = startRegisterResponse.clientData;
-          finishSecondFactorU2f('/auth/2ndfactor/u2f/register', response, fn);
-        }
-      },
-      timeout 
-    );
   });
 }
 
@@ -145,7 +126,6 @@ function validateSecondFactorTotp(token, fn) {
     fn(err);
   });
 }
-
 
 function validateFirstFactor(username, password, fn) {
   $.post('/auth/1stfactor', {
@@ -193,21 +173,11 @@ function onSecondFactorTotpFailure() {
   $.notify('Wrong TOTP token', 'error');
 }
 
-function onSecondFactorU2fSigningSuccess() {
+function onU2fAuthenticationSuccess() {
   onAuthenticationSuccess();
 }
 
-function onSecondFactorU2fSigningFailure(err) {
-  console.error(err);
-  $.notify('Problem authenticating with U2F.', 'error');
-}
-
-function onSecondFactorU2fRegisterSuccess() {
-  $.notify('Registration succeeded. You can now sign in.', 'success');
-}
-
-function onSecondFactorU2fRegisterFailure(err) {
-  console.error(err);
+function onU2fAuthenticationFailure(err) {
   $.notify('Problem authenticating with U2F.', 'error');
 }
 
@@ -247,26 +217,23 @@ function setupU2fSignButton() {
   setupEnterKeypressListener('#u2f', onU2fSignButtonClicked);
 }
 
-function setupU2fRegisterButton() {
-  $('#second-factor #u2f-register-button').on('click', onU2fRegisterButtonClicked);
-  setupEnterKeypressListener('#u2f', onU2fRegisterButtonClicked);
+function setupU2fRegistrationButton() {
+  $('#second-factor #u2f-register-button').on('click', onU2fRegistrationButtonClicked);
 }
 
 function enterFirstFactor() {
-  // console.log('entering first factor');
   showFirstFactorLayout();
   hideSecondFactorLayout();
   setupFirstFactorLoginButton();
 }
 
 function enterSecondFactor() {
-  // console.log('entering second factor');
   hideFirstFactorLayout();
   showSecondFactorLayout();
   cleanupFirstFactorLoginButton();
   setupTotpSignButton();
   setupU2fSignButton();
-  setupU2fRegisterButton();
+  setupU2fRegistrationButton();
 }
 
 $(document).ready(function() {

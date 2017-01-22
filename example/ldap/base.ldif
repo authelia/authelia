@@ -1,0 +1,31 @@
+dn: ou=groups,dc=example,dc=com
+objectclass: organizationalUnit
+objectclass: top
+ou: groups
+
+dn: ou=users,dc=example,dc=com
+objectclass: organizationalUnit
+objectclass: top
+ou: users
+
+dn: cn=user,ou=groups,dc=example,dc=com
+cn: user
+gidnumber: 502
+objectclass: posixGroup
+objectclass: top
+
+dn: cn=user,ou=users,dc=example,dc=com
+cn: user
+gidnumber: 500
+givenname: user
+homedirectory: /home/user1
+loginshell: /bin/sh
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: top
+mail: user@example.com
+sn: User
+uid: user
+uidnumber: 1000
+userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+

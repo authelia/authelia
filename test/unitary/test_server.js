@@ -15,7 +15,8 @@ describe('test the server', function() {
   var _server
   var u2f;
   var ldap_client = {
-    bind: sinon.stub()
+    bind: sinon.stub(),
+    search: sinon.stub()
   };
 
   beforeEach(function(done) {
@@ -25,7 +26,11 @@ describe('test the server', function() {
       ldap_url: 'ldap://127.0.0.1:389',
       ldap_users_dn: 'ou=users,dc=example,dc=com',
       session_secret: 'session_secret',
-      session_max_age: 50000
+      session_max_age: 50000,
+      gmail: {
+        user: 'user@example.com',
+        pass: 'password'
+      }
     };
 
     u2f = {};
@@ -34,8 +39,20 @@ describe('test the server', function() {
     u2f.startAuthentication = sinon.stub();
     u2f.finishAuthentication = sinon.stub();
 
+    var search_doc = {
+      object: {
+        mail: 'test_ok@example.com'
+      }
+    };
+ 
+    var search_res = {};
+    search_res.on = sinon.spy(function(event, fn) {
+      if(event != 'error') fn(search_doc);
+    });
+
     ldap_client.bind.withArgs('cn=test_ok,ou=users,dc=example,dc=com', 
                               'password').yields(undefined);
+    ldap_client.search.yields(undefined, search_res);
     ldap_client.bind.withArgs('cn=test_nok,ou=users,dc=example,dc=com', 
                               'password').yields('error');
     _server = server.run(config, ldap_client, u2f, function() {
@@ -126,6 +143,51 @@ describe('test the server', function() {
       });
     });
   
+    it('should keep session variables when login page is reloaded', function() {
+      var real_token = speakeasy.totp({
+        secret: 'totp_secret',
+        encoding: 'base32'
+      });
+      var j = request.jar();
+      return request.getAsync({ url: BASE_URL + '/login', jar: j })
+      .then(function(res) {
+        assert.equal(res.statusCode, 200, 'get login page failed');
+        return request.postAsync({ 
+          url: BASE_URL + '/1stfactor',
+          jar: j,
+          form: {
+            username: 'test_ok',
+            password: 'password'
+          }
+        });
+      }) 
+      .then(function(res) {
+        assert.equal(res.statusCode, 204, 'first factor failed');
+        return request.postAsync({
+          url: BASE_URL + '/2ndfactor/totp',
+          jar: j,
+          form: {
+            token: real_token
+          }
+        });
+      })
+      .then(function(res) {
+        assert.equal(res.statusCode, 204, 'second factor failed');
+        return request.getAsync({ url: BASE_URL + '/login', jar: j })
+      })
+      .then(function(res) {
+        assert.equal(res.statusCode, 200, 'login page loading failed');
+        return request.getAsync({ url: BASE_URL + '/verify', jar: j })
+      })
+      .then(function(res) {
+        assert.equal(res.statusCode, 204, 'verify failed');
+        return Promise.resolve();
+      })
+      .catch(function(err) {
+        console.error(err);
+      });
+    });
+
     it('should return status code 204 when user is authenticated using u2f', function() {
       var sign_request = {};
       var sign_status = {};
@@ -193,6 +255,5 @@ describe('test the server', function() {
       });
     });
   }
-
 });
 

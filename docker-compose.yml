@@ -3,33 +3,30 @@ version: '2'
 services:
   auth:
     build: .
-    environment:
-      - LDAP_URL=ldap://ldap
-      - LDAP_USERS_DN=dc=example,dc=com
-      - TOTP_SECRET=GRWGIJS6IRHVEODVNRCXCOBMJ5AGC6ZE
-      - SESSION_SECRET=unsecure_secret
-      - SESSION_EXPIRATION_TIME=3600000
-      - STORE_DIRECTORY=/var/lib/auth-server
     depends_on:
       - ldap
     restart: always
+    volumes:
+     - ./config.yml:/etc/auth-server/config.yml:ro
 
   ldap:
-    image: osixia/openldap:1.1.7
+    image: dinkel/openldap
     environment:
-      - LDAP_ORGANISATION=MyCompany
-      - LDAP_DOMAIN=example.com
-      - LDAP_ADMIN_PASSWORD=password
+      - SLAPD_ORGANISATION=MyCompany
+      - SLAPD_DOMAIN=example.com
+      - SLAPD_PASSWORD=password
     expose:
       - "389"
+    volumes:
+      - ./example/ldap:/etc/ldap.dist/prepopulate
 
   nginx:
     image: nginx:alpine
     volumes:
-      - ./nginx_conf/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx_conf/index.html:/usr/share/nginx/html/index.html
-      - ./nginx_conf/secret.html:/usr/share/nginx/html/secret.html
-      - ./nginx_conf/ssl:/etc/ssl
+      - ./example/nginx_conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./example/nginx_conf/index.html:/usr/share/nginx/html/index.html
+      - ./example/nginx_conf/secret.html:/usr/share/nginx/html/secret.html
+      - ./example/nginx_conf/ssl:/etc/ssl
     depends_on:
       - auth
     ports:

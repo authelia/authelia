@@ -64,12 +64,12 @@ describe('test the server', function() {
   it('should fail the first_factor login', function() {
     return postPromised(BASE_URL + '/auth/1stfactor', {
       form: {
-        username: 'admin',
+        username: 'user',
         password: 'bad_password'
       }
     })
     .then(function(data) {
-      assert.equal(401, data.statusCode);
+      assert.equal(data.statusCode, 401);
       return Promise.resolve();
     });
   });
@@ -82,7 +82,7 @@ describe('test the server', function() {
    
     return postPromised(BASE_URL + '/auth/1stfactor', {
       form: {
-        username: 'admin',
+        username: 'user',
         password: 'password',
       }
     })

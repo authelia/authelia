@@ -95,7 +95,7 @@ describe('test u2f routes', function() {
       u2f.register(req, res);
     });
 
-    it('should return unauthorized error on registration request', function(done) {
+    it('should return unauthorized on finishRegistration error', function(done) {
       res.send = sinon.spy(function(data) {
         assert.equal(401, res.status.getCall(0).args[0]);
         done();
@@ -105,6 +105,7 @@ describe('test u2f routes', function() {
       u2f_mock.finishRegistration = sinon.stub();
       u2f_mock.finishRegistration.returns(Promise.reject('Internal error'));
 
+      req.session.auth_session.register_request = 'abc';
       req.app.get.withArgs('u2f').returns(u2f_mock);
       u2f.register(req, res);
     });

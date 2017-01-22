@@ -1,0 +1,19 @@
+
+ldap:
+  url: ldap://ldap
+  base_dn: ou=users,dc=example,dc=com
+
+# Will be per user soon
+totp_secret: GRWGIJS6IRHVEODVNRCXCOBMJ5AGC6ZE
+
+session:
+  secret: unsecure_secret
+  expiration: 3600000
+
+store_directory: /var/lib/auth-server
+
+notifier:
+  gmail:
+    username: user@example.com
+    password: yourpassword
+  

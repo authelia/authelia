@@ -17,7 +17,8 @@ describe('test data persistence', function() {
   var u2f;
   var tmpDir;
   var ldap_client = {
-    bind: sinon.stub()
+    bind: sinon.stub(),
+    search: sinon.stub()
   };
   var config;
 
@@ -28,10 +29,23 @@ describe('test data persistence', function() {
     u2f.startAuthentication = sinon.stub();
     u2f.finishAuthentication = sinon.stub();
 
+    var search_doc = {
+      object: {
+        mail: 'test_ok@example.com'
+      }
+    };
+ 
+    var search_res = {};
+    search_res.on = sinon.spy(function(event, fn) {
+      if(event != 'error') fn(search_doc);
+    });
+
     ldap_client.bind.withArgs('cn=test_ok,ou=users,dc=example,dc=com', 
                               'password').yields(undefined);
     ldap_client.bind.withArgs('cn=test_nok,ou=users,dc=example,dc=com', 
                               'password').yields('error');
+    ldap_client.search.yields(undefined, search_res);
+
     tmpDir = tmp.dirSync({ unsafeCleanup: true });
     config = {
       port: PORT,
@@ -40,7 +54,8 @@ describe('test data persistence', function() {
       ldap_users_dn: 'ou=users,dc=example,dc=com',
       session_secret: 'session_secret',
       session_max_age: 50000,
-      store_directory: tmpDir.name
+      store_directory: tmpDir.name,
+      gmail: { user: 'user@example.com', pass: 'password' }
     };
   });
 
@@ -160,7 +175,7 @@ describe('test data persistence', function() {
   }
 
   function execute_verification(jar) {
-    return request.getAsync({ url: BASE_URL + '/_verify', jar: jar })
+    return request.getAsync({ url: BASE_URL + '/verify', jar: jar })
   }
 
   function execute_login(jar) {

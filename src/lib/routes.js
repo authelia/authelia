@@ -2,6 +2,7 @@
 var first_factor = require('./routes/first_factor');
 var second_factor = require('./routes/second_factor');
 var verify = require('./routes/verify');
+var objectPath = require('object-path');
 
 module.exports = {
   login: serveLogin,
@@ -12,9 +13,11 @@ module.exports = {
 }
 
 function serveLogin(req, res) {
-  req.session.auth_session = {};
-  req.session.auth_session.first_factor = false;
-  req.session.auth_session.second_factor = false;
+  if(!(objectPath.has(req, 'session.auth_session'))) {
+    req.session.auth_session = {};
+    req.session.auth_session.first_factor = false;
+    req.session.auth_session.second_factor = false;
+  }
 
   res.render('login');
 }
