@@ -30,6 +30,11 @@ function onLoginButtonClicked() {
   });
 }
 
+function onResetPasswordButtonClicked() {
+  var r = '/authentication/reset-password-form';
+  window.location.replace(r);
+}
+
 function onTotpSignButtonClicked() {
   var token = $('#totp-token').val();
   validateSecondFactorTotp(token, function(err) {
@@ -64,7 +69,7 @@ function onU2fRegistrationButtonClicked() {
 function askForU2fRegistration(fn) {
   $.ajax({
     type: 'POST',
-    url: '/auth/u2f-register'
+    url: '/authentication/u2f-register'
   })
   .done(function(data) {
     fn(undefined, data);
@@ -91,7 +96,7 @@ function finishU2fAuthentication(url, responseData, fn) {
 }
 
 function startU2fAuthentication(fn, timeout) {
-  $.get('/auth/2ndfactor/u2f/sign_request', {}, null, 'json')
+  $.get('/authentication/2ndfactor/u2f/sign_request', {}, null, 'json')
   .done(function(signResponse) {
     var registeredKeys = signResponse.registeredKeys;
     $.notify('Please touch the token', 'info');
@@ -104,7 +109,7 @@ function startU2fAuthentication(fn, timeout) {
         if (response.errorCode) {
           fn(response);
         } else {
-          finishU2fAuthentication('/auth/2ndfactor/u2f/sign', response, fn);
+          finishU2fAuthentication('/authentication/2ndfactor/u2f/sign', response, fn);
         }
       },
       timeout
@@ -116,7 +121,7 @@ function startU2fAuthentication(fn, timeout) {
 }
 
 function validateSecondFactorTotp(token, fn) {
-  $.post('/auth/2ndfactor/totp', {
+  $.post('/authentication/2ndfactor/totp', {
     token: token,
   })
   .done(function() {
@@ -128,7 +133,7 @@ function validateSecondFactorTotp(token, fn) {
 }
 
 function validateFirstFactor(username, password, fn) {
-  $.post('/auth/1stfactor', {
+  $.post('/authentication/1stfactor', {
     username: username,
     password: password,
   })
@@ -200,7 +205,6 @@ function hideSecondFactorLayout() {
 function setupFirstFactorLoginButton() {
   $('#first-factor #login-button').on('click', onLoginButtonClicked);
   setupEnterKeypressListener('#login-form', onLoginButtonClicked);
-  $('#first-factor #information').hide();
 }
 
 function cleanupFirstFactorLoginButton() {
@@ -221,10 +225,15 @@ function setupU2fRegistrationButton() {
   $('#second-factor #u2f-register-button').on('click', onU2fRegistrationButtonClicked);
 }
 
+function setupResetPasswordButton() {
+  $('#first-factor #reset-password-button').on('click', onResetPasswordButtonClicked);
+}
+
 function enterFirstFactor() {
   showFirstFactorLayout();
   hideSecondFactorLayout();
   setupFirstFactorLoginButton();
+  setupResetPasswordButton();
 }
 
 function enterSecondFactor() {

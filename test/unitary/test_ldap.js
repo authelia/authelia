@@ -11,12 +11,15 @@ describe('test ldap validation', function() {
   beforeEach(function() {
     ldap_client = {
       bind: sinon.stub(),
-      search: sinon.stub()
+      search: sinon.stub(),
+      modify: sinon.stub(),
+      Change: sinon.spy()
     }
   });
 
   describe('test binding', test_binding);
   describe('test get email', test_get_email);
+  describe('test update password', test_update_password);
 
   function test_binding() {
     function test_validate() {
@@ -80,6 +83,54 @@ describe('test ldap validation', function() {
       ldap_client.search.yields('error');
 
       ldap.get_email(ldap_client, 'user', 'dc=example,dc=com')
+      .catch(function() {
+        done();
+      })
+    });
+  }
+
+  function test_update_password() {
+    it('should update the password successfully', function(done) {
+      var change = {};
+      change.operation = 'replace';
+      change.modification = {};
+      change.modification.userPassword = 'new-password';
+
+      var config = {};
+      config.ldap_users_dn = 'dc=example,dc=com';
+      config.ldap_user = 'admin';
+
+      var userdn = 'cn=user,dc=example,dc=com';
+
+      var ldapjs = {};
+      ldapjs.Change = sinon.spy();
+
+      ldap_client.bind.yields(undefined);
+      ldap_client.modify.yields(undefined);
+
+      ldap.update_password(ldap_client, ldapjs, 'user', 'new-password', config)
+      .then(function() {
+        assert.deepEqual(ldap_client.modify.getCall(0).args[0], userdn);
+        assert.deepEqual(ldapjs.Change.getCall(0).args[0].operation, change.operation);
+      
+        var userPassword = ldapjs.Change.getCall(0).args[0].modification.userPassword;
+        assert(/{SSHA}/.test(userPassword));
+        done();
+      })
+    });
+
+    it('should fail when ldap throws an error', function(done) {
+      ldap_client.bind.yields(undefined);
+      ldap_client.modify.yields('Error');
+
+      var config = {};
+      config.ldap_users_dn = 'dc=example,dc=com';
+      config.ldap_user = 'admin';
+
+      var ldapjs = {};
+      ldapjs.Change = sinon.spy();
+
+      ldap.update_password(ldap_client, ldapjs, 'user', 'new-password', config)
       .catch(function() {
         done();
       })

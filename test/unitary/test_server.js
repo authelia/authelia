@@ -1,30 +1,39 @@
 
 var server = require('../../src/lib/server');
 
-var request = require('request');
+var Promise = require('bluebird');
+var request = Promise.promisifyAll(require('request'));
 var assert = require('assert');
 var speakeasy = require('speakeasy');
 var sinon = require('sinon');
-var Promise = require('bluebird');
 
-var request = Promise.promisifyAll(request);
-
-var BASE_URL = 'http://localhost:8090';
+var PORT = 8090;
+var BASE_URL = 'http://localhost:' + PORT;
+var requests = require('./requests')(PORT);
 
 describe('test the server', function() {
   var _server
-  var u2f;
+  var deps;
+  var u2f, nedb;
+  var transporter;
+  var collection;
   var ldap_client = {
     bind: sinon.stub(),
-    search: sinon.stub()
+    search: sinon.stub(),
+    modify: sinon.stub(),
   };
+  var ldap = {
+    Change: sinon.spy()
+  }
 
   beforeEach(function(done) {
     var config = {
-      port: 8090,
+      port: PORT,
       totp_secret: 'totp_secret',
       ldap_url: 'ldap://127.0.0.1:389',
       ldap_users_dn: 'ou=users,dc=example,dc=com',
+      ldap_user: 'cn=admin,dc=example,dc=com',
+      ldap_password: 'password',
       session_secret: 'session_secret',
       session_max_age: 50000,
       gmail: {
@@ -39,6 +48,23 @@ describe('test the server', function() {
     u2f.startAuthentication = sinon.stub();
     u2f.finishAuthentication = sinon.stub();
 
+    collection = {};
+    collection.insert = sinon.stub().yields(undefined, 1);
+    collection.findOne = sinon.stub().yields(undefined, {});
+    collection.update = sinon.stub().yields(undefined, {});
+    collection.remove = sinon.stub().yields(undefined, 1);
+    nedb = sinon.spy(function() {
+      return collection;
+    });
+
+    transporter = {};
+    transporter.sendMail = sinon.stub().yields();
+
+    var nodemailer = {};
+    nodemailer.createTransport = sinon.spy(function() {
+      return transporter;
+    });
+
     var search_doc = {
       object: {
         mail: 'test_ok@example.com'
@@ -52,10 +78,20 @@ describe('test the server', function() {
 
     ldap_client.bind.withArgs('cn=test_ok,ou=users,dc=example,dc=com', 
                               'password').yields(undefined);
+    ldap_client.bind.withArgs('cn=admin,dc=example,dc=com', 
+                              'password').yields(undefined);
     ldap_client.search.yields(undefined, search_res);
     ldap_client.bind.withArgs('cn=test_nok,ou=users,dc=example,dc=com', 
                               'password').yields('error');
-    _server = server.run(config, ldap_client, u2f, function() {
+    ldap_client.modify.yields(undefined);
+
+    var deps = {};
+    deps.u2f = u2f;
+    deps.nedb = nedb;
+    deps.nodemailer = nodemailer;
+    deps.ldap = ldap;
+
+    _server = server.run(config, ldap_client, deps, function() {
       done();
     });
   });
@@ -74,11 +110,12 @@ describe('test the server', function() {
 
   describe('test authentication and verification', function() {
     test_authentication();
+    test_reset_password();
   });
 
   function test_login() {
     it('should serve the login page', function(done) {
-      request.getAsync(BASE_URL + '/login')
+      request.getAsync(BASE_URL + '/authentication/login')
       .then(function(response) {
         assert.equal(response.statusCode, 200);
         done();
@@ -88,7 +125,7 @@ describe('test the server', function() {
   
   function test_logout() {
     it('should logout and redirect to /', function(done) {
-      request.getAsync(BASE_URL + '/logout')
+      request.getAsync(BASE_URL + '/authentication/logout')
       .then(function(response) {
         assert.equal(response.req.path, '/');
         done();
@@ -98,7 +135,7 @@ describe('test the server', function() {
   
   function test_authentication() {
     it('should return status code 401 when user is not authenticated', function() {
-      return request.getAsync({ url: BASE_URL + '/verify' })
+      return request.getAsync({ url: BASE_URL + '/authentication/verify' })
       .then(function(response) {
         assert.equal(response.statusCode, 401);
         return Promise.resolve();
@@ -111,31 +148,18 @@ describe('test the server', function() {
         encoding: 'base32'
       });
       var j = request.jar();
-      return request.getAsync({ url: BASE_URL + '/login', jar: j })
+      return requests.login(j)
       .then(function(res) {
         assert.equal(res.statusCode, 200, 'get login page failed');
-        return request.postAsync({ 
-          url: BASE_URL + '/1stfactor',
-          jar: j,
-          form: {
-            username: 'test_ok',
-            password: 'password'
-          }
-        });
+        return requests.first_factor(j);
       }) 
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'first factor failed');
-        return request.postAsync({
-          url: BASE_URL + '/2ndfactor/totp',
-          jar: j,
-          form: {
-            token: real_token
-          }
-        });
+        return requests.totp(j, real_token);
       })
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'second factor failed');
-        return request.getAsync({ url: BASE_URL + '/verify', jar: j })
+        return requests.verify(j);
       })
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'verify failed');
@@ -149,35 +173,22 @@ describe('test the server', function() {
         encoding: 'base32'
       });
       var j = request.jar();
-      return request.getAsync({ url: BASE_URL + '/login', jar: j })
+      return requests.login(j)
       .then(function(res) {
         assert.equal(res.statusCode, 200, 'get login page failed');
-        return request.postAsync({ 
-          url: BASE_URL + '/1stfactor',
-          jar: j,
-          form: {
-            username: 'test_ok',
-            password: 'password'
-          }
-        });
+        return requests.first_factor(j);
       }) 
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'first factor failed');
-        return request.postAsync({
-          url: BASE_URL + '/2ndfactor/totp',
-          jar: j,
-          form: {
-            token: real_token
-          }
-        });
+        return requests.totp(j, real_token);
       })
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'second factor failed');
-        return request.getAsync({ url: BASE_URL + '/login', jar: j })
+        return requests.login(j);
       })
       .then(function(res) {
         assert.equal(res.statusCode, 200, 'login page loading failed');
-        return request.getAsync({ url: BASE_URL + '/verify', jar: j })
+        return requests.verify(j);
       })
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'verify failed');
@@ -197,60 +208,56 @@ describe('test the server', function() {
       u2f.finishRegistration.returns(Promise.resolve(sign_status));
       u2f.startAuthentication.returns(Promise.resolve(registration_request));
       u2f.finishAuthentication.returns(Promise.resolve(registration_status));
+
+      collection.insert = sinon.spy(function(data, fn) {
+        collection.findOne.yields(undefined, data);
+        fn();
+      });
   
       var j = request.jar();
-      return request.getAsync({ url: BASE_URL + '/login', jar: j })
+      return requests.login(j)
       .then(function(res) {
         assert.equal(res.statusCode, 200, 'get login page failed');
-        return request.postAsync({ 
-          url: BASE_URL + '/1stfactor',
-          jar: j,
-          form: {
-            username: 'test_ok',
-            password: 'password'
-          }
-        });
+        return requests.first_factor(j);
       }) 
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'first factor failed');
-        return request.getAsync({
-          url: BASE_URL + '/2ndfactor/u2f/register_request',
-          jar: j
-        });
-      })
-      .then(function(res) {
-        assert.equal(res.statusCode, 200, 'second factor, start register failed');
-        return request.postAsync({
-          url: BASE_URL + '/2ndfactor/u2f/register',
-          jar: j,
-          form: {
-            s: 'test'
-          }
-        });
+        return requests.u2f_registration(j, transporter);
       })
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'second factor, finish register failed');
-        return request.getAsync({
-          url: BASE_URL + '/2ndfactor/u2f/sign_request',
-          jar: j
-        });
-      })
-      .then(function(res) {
-        assert.equal(res.statusCode, 200, 'second factor, start sign failed');
-        return request.postAsync({
-          url: BASE_URL + '/2ndfactor/u2f/sign',
-          jar: j,
-          form: {
-            s: 'test'
-          }
-        });
+        return requests.u2f_authentication(j);
       })
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'second factor, finish sign failed');
-        return request.getAsync({ url: BASE_URL + '/verify', jar: j })
+        return requests.verify(j);
       })
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'verify failed');
+        return Promise.resolve();
+      });
+    });
+  }
+ 
+  function test_reset_password() {
+    it('should reset the password', function() {
+      collection.insert = sinon.spy(function(data, fn) {
+        collection.findOne.yields(undefined, data);
+        fn();
+      });
+  
+      var j = request.jar();
+      return requests.login(j)
+      .then(function(res) {
+        assert.equal(res.statusCode, 200, 'get login page failed');
+        return requests.first_factor(j);
+      }) 
+      .then(function(res) {
+        assert.equal(res.statusCode, 204, 'first factor failed');
+        return requests.reset_password(j, transporter, 'user', 'new-password');
+      })
+      .then(function(res) {
+        assert.equal(res.statusCode, 204, 'second factor, finish register failed');
         return Promise.resolve();
       });
     });

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
   <head>
     <title>FIDO U2F Registration</title>
-    <link rel="stylesheet" type="text/css" href="login.css">
+    <% include head %>
   </head>
   <body>
     <div class="login">
@@ -10,8 +10,7 @@
     </div>
   </body>
 
-  <script src="jquery.min.js"></script>
-  <script src="notify.min.js"></script>
-  <script src="u2f-api.js"></script>
-  <script src="u2f-register.js"></script>
+  <% include scripts %>
+  <script src="js/u2f-api.js"></script>
+  <script src="js/u2f-register.js"></script>
 </html>

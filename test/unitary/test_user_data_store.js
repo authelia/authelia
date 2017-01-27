@@ -84,11 +84,13 @@ function test_u2f_registration_token() {
     var userid = 'user';
     var token = 'token';
     var max_age = 60;
+    var content = 'abc';
 
-    return data_store.save_u2f_registration_token(userid, token, max_age)
+    return data_store.issue_identity_check_token(userid, token, content, max_age)
     .then(function(document) {
-      assert.equal(userid, document.userid);
-      assert.equal(token, document.token);
+      assert.equal(document.userid, userid);
+      assert.equal(document.token, token);
+      assert.deepEqual(document.content, { userid: 'user', data: content });
       assert('max_date' in document);
       assert('_id' in document);
       return Promise.resolve();
@@ -109,9 +111,9 @@ function test_u2f_registration_token() {
     var token = 'token';
     var max_age = 50;
 
-    data_store.save_u2f_registration_token(userid, token, max_age)
+    data_store.issue_identity_check_token(userid, token, {}, max_age)
     .then(function(document) {
-      return data_store.consume_u2f_registration_token(token);
+      return data_store.consume_identity_check_token(token);
     })
     .then(function() {
       done();
@@ -131,12 +133,12 @@ function test_u2f_registration_token() {
     var token = 'token';
     var max_age = 50;
 
-    data_store.save_u2f_registration_token(userid, token, max_age)
+    data_store.issue_identity_check_token(userid, token, {}, max_age)
     .then(function(document) {
-      return data_store.consume_u2f_registration_token(token);
+      return data_store.consume_identity_check_token(token);
     })
     .then(function(document) {
-      return data_store.consume_u2f_registration_token(token);
+      return data_store.consume_identity_check_token(token);
     })
     .catch(function(err) {
       console.error(err);
@@ -152,7 +154,7 @@ function test_u2f_registration_token() {
 
     var token = 'token';
 
-    return data_store.consume_u2f_registration_token(token)
+    return data_store.consume_identity_check_token(token)
     .then(function(document) {
       return Promise.reject();
     })
@@ -172,14 +174,39 @@ function test_u2f_registration_token() {
     var max_age = 60;
     MockDate.set('1/1/2000');
 
-    data_store.save_u2f_registration_token(userid, token, max_age)
+    data_store.issue_identity_check_token(userid, token, {}, max_age)
     .then(function() {
       MockDate.set('1/2/2000');
-      return data_store.consume_u2f_registration_token(token);
+      return data_store.consume_identity_check_token(token);
     })
     .catch(function(err) {
       MockDate.reset();
       done();
     });
+  });
+
+  it('should save the userid and some data with the token', function(done) {
+    var options = {};
+    options.inMemoryOnly = true;
+
+    var data_store = new UserDataStore(DataStore, options);
+
+    var userid = 'user';
+    var token = 'token';
+    var max_age = 60;
+    MockDate.set('1/1/2000');
+    var data = 'abc';
+
+    data_store.issue_identity_check_token(userid, token, data, max_age)
+    .then(function() {
+      return data_store.consume_identity_check_token(token);
+    })
+    .then(function(content) {
+      var expected_content = {};
+      expected_content.userid = 'user';
+      expected_content.data = 'abc';
+      assert.deepEqual(content, expected_content); 
+      done();
+    })
   });
 }

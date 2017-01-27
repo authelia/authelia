@@ -4,6 +4,8 @@ debug_level: info
 ldap:
   url: ldap://ldap
   base_dn: ou=users,dc=example,dc=com
+  user: cn=admin,dc=example,dc=com
+  password: password
 
 # Will be per user soon
 totp_secret: GRWGIJS6IRHVEODVNRCXCOBMJ5AGC6ZE

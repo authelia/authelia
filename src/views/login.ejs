@@ -1,7 +1,7 @@
 <!DOCTYPE html>
   <head>
-    <title>Login Portal</title>
-    <link rel="stylesheet" type="text/css" href="login.css">
+    <title>Login</title>
+    <% include head %>
   </head>
   <body>
     <div id="first-factor" class="login">
@@ -10,6 +10,7 @@
         <input type="text" name="username" id="username" placeholder="Username" required="required" />
         <input type="password" name="password" id="password" placeholder="Password" required="required" />
         <button type="button" id="login-button" class="btn btn-primary btn-block btn-large">Enter</button>
+        <button type="button" id="reset-password-button" class="btn btn-primary btn-block btn-large">Reset password</button>
       </div>
     </div>
 
@@ -27,8 +28,7 @@
       </div>
     </div>
   </body>
-  <script src="jquery.min.js"></script>
-  <script src="notify.min.js"></script>
-  <script src="u2f-api.js"></script>
-  <script src="login.js"></script>
+  <% include scripts %>
+  <script src="js/u2f-api.js"></script>
+  <script src="js/login.js"></script>
 </html>

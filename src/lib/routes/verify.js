@@ -22,8 +22,6 @@ function verify_filter(req, res) {
 }
 
 function verify(req, res) {
-  console.log('Verify authentication');
-
   verify_filter(req, res)
   .then(function() {
     res.status(204);

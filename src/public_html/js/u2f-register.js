@@ -4,7 +4,6 @@ params={};
 location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi,function(s,k,v){params[k]=v});
 
 function finishRegister(url, responseData, fn) {
-  console.log(responseData);
   $.ajax({
     type: 'POST',
     url: url,
@@ -21,7 +20,7 @@ function finishRegister(url, responseData, fn) {
 }
 
 function startRegister(fn, timeout) {
-  $.get('/auth/2ndfactor/u2f/register_request', {}, null, 'json')
+  $.get('/authentication/2ndfactor/u2f/register_request', {}, null, 'json')
   .done(function(startRegisterResponse) {
     u2f.register(
       startRegisterResponse.appId,
@@ -31,7 +30,7 @@ function startRegister(fn, timeout) {
         if (response.errorCode) {
           fn(response.errorCode);
         } else {
-          finishRegister('/auth/2ndfactor/u2f/register', response, fn);
+          finishRegister('/authentication/2ndfactor/u2f/register', response, fn);
         }
       },
       timeout 

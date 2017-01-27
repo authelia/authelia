@@ -19,6 +19,9 @@ describe('test u2f routes', function() {
     req.session.auth_session.userid = 'user';
     req.session.auth_session.first_factor = true;
     req.session.auth_session.second_factor = false;
+    req.session.auth_session.identity_check = {};
+    req.session.auth_session.identity_check.challenge = 'u2f-register';
+    req.session.auth_session.register_request = {};
     req.headers = {};
     req.headers.host = 'localhost';
 
@@ -73,6 +76,15 @@ describe('test u2f routes', function() {
       req.app.get.withArgs('u2f').returns(u2f_mock);
       u2f.register_request(req, res);
     });
+
+    it('should return forbidden if identity has not been verified', function(done) {
+      res.send = sinon.spy(function(data) {
+        assert.equal(403, res.status.getCall(0).args[0]);
+        done();
+      });
+      req.session.auth_session.identity_check = undefined;
+      u2f.register_request(req, res);
+    });
   }
 
   function test_registration() {
@@ -97,7 +109,7 @@ describe('test u2f routes', function() {
 
     it('should return unauthorized on finishRegistration error', function(done) {
       res.send = sinon.spy(function(data) {
-        assert.equal(401, res.status.getCall(0).args[0]);
+        assert.equal(500, res.status.getCall(0).args[0]);
         done();
       });
       var user_key_container = {};
@@ -110,9 +122,9 @@ describe('test u2f routes', function() {
       u2f.register(req, res);
     });
 
-    it('should return unauthorized error when no auth request has been initiated', function(done) {
+    it('should return forbidden error when no auth request has been initiated', function(done) {
       res.send = sinon.spy(function(data) {
-        assert.equal(401, res.status.getCall(0).args[0]);
+        assert.equal(403, res.status.getCall(0).args[0]);
         done();
       });
       var user_key_container = {};
@@ -120,7 +132,17 @@ describe('test u2f routes', function() {
       u2f_mock.finishRegistration = sinon.stub();
       u2f_mock.finishRegistration.returns(Promise.resolve());
 
+      req.session.auth_session.register_request = undefined;
       req.app.get.withArgs('u2f').returns(u2f_mock);
+      u2f.register(req, res);
+    });
+
+    it('should return forbidden error when identity has not been verified', function(done) {
+      res.send = sinon.spy(function(data) {
+        assert.equal(403, res.status.getCall(0).args[0]);
+        done();
+      });
+      req.session.auth_session.identity_check = undefined;
       u2f.register(req, res);
     });
   }
@@ -148,7 +170,7 @@ describe('test u2f routes', function() {
 
     it('should return unauthorized error on registration request error', function(done) {
       res.send = sinon.spy(function(data) {
-        assert.equal(401, res.status.getCall(0).args[0]);
+        assert.equal(500, res.status.getCall(0).args[0]);
         done();
       });
       var user_key_container = {};
@@ -209,7 +231,7 @@ describe('test u2f routes', function() {
 
     it('should return unauthorized error on registration request internal error', function(done) {
       res.send = sinon.spy(function(data) {
-        assert.equal(401, res.status.getCall(0).args[0]);
+        assert.equal(500, res.status.getCall(0).args[0]);
         done();
       });
       var user_key_container = {};

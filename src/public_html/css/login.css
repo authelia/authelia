@@ -43,6 +43,8 @@ body {
 
 .login h2 { color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.3); letter-spacing:1px; text-align:center; font-size: 1em; }
 
+.login p { color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.3); letter-spacing:1px; text-align:center; }
+
 input { 
 	width: 100%; 
 	margin-bottom: 10px; 
@@ -98,6 +100,6 @@ input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgb
   float: right;
 }
 
-#second-factor #u2f button {
+button {
   margin-top: 5px;
 }

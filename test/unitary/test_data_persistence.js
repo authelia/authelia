@@ -1,17 +1,19 @@
 
 var server = require('../../src/lib/server');
 
-var request = require('request');
+var Promise = require('bluebird');
+var request = Promise.promisifyAll(require('request'));
 var assert = require('assert');
 var speakeasy = require('speakeasy');
 var sinon = require('sinon');
-var Promise = require('bluebird');
 var tmp = require('tmp');
-
-var request = Promise.promisifyAll(request);
+var nedb = require('nedb');
 
 var PORT = 8050;
 var BASE_URL = 'http://localhost:' + PORT;
+
+var requests = require('./requests')(PORT);
+
 
 describe('test data persistence', function() {
   var u2f;
@@ -73,38 +75,52 @@ describe('test data persistence', function() {
     u2f.finishRegistration.returns(Promise.resolve(sign_status));
     u2f.startAuthentication.returns(Promise.resolve(registration_request));
     u2f.finishAuthentication.returns(Promise.resolve(registration_status));
-  
+
+    var nodemailer = {};
+    var transporter = {
+      sendMail: sinon.stub().yields()
+    };
+    nodemailer.createTransport = sinon.spy(function() {
+      return transporter;
+    });
+
+    var deps = {};
+    deps.u2f = u2f;
+    deps.nedb = nedb;
+    deps.nodemailer = nodemailer;
+
     var j1 = request.jar();
     var j2 = request.jar();
-    return start_server(config, ldap_client, u2f)
+
+    return start_server(config, ldap_client, deps)
     .then(function(s) {
       server = s;
-      return execute_login(j1);
+      return requests.login(j1);
     })
     .then(function(res) {
-      return execute_first_factor(j1);
+      return requests.first_factor(j1);
     }) 
     .then(function() {
-      return execute_u2f_registration(j1);
+      return requests.u2f_registration(j1, transporter);
     })
     .then(function() {
-      return execute_u2f_authentication(j1);
+      return requests.u2f_authentication(j1);
     })
     .then(function() {
       return stop_server(server);
     })
     .then(function() {
-      return start_server(config, ldap_client, u2f)
+      return start_server(config, ldap_client, deps)
     })
     .then(function(s) {
       server = s;
-      return execute_login(j2);
+      return requests.login(j2);
     })
     .then(function() {
-      return execute_first_factor(j2);
+      return requests.first_factor(j2);
     }) 
     .then(function() {
-      return execute_u2f_authentication(j2);
+      return requests.u2f_authentication(j2);
     })
     .then(function(res) {
       assert.equal(204, res.statusCode);
@@ -117,9 +133,9 @@ describe('test data persistence', function() {
     });
   });
 
-  function start_server(config, ldap_client, u2f) {
+  function start_server(config, ldap_client, deps) {
     return new Promise(function(resolve, reject) {
-      var s = server.run(config, ldap_client, u2f);
+      var s = server.run(config, ldap_client, deps);
       resolve(s);
     });
   }
@@ -129,56 +145,5 @@ describe('test data persistence', function() {
       s.close();
       resolve();
     });
-  }
-
-  function execute_first_factor(jar) {
-    return request.postAsync({ 
-      url: BASE_URL + '/1stfactor',
-      jar: jar,
-      form: {
-        username: 'test_ok',
-        password: 'password'
-      }
-    });
-  }
-
-  function execute_u2f_registration(jar) {
-    return request.getAsync({
-      url: BASE_URL + '/2ndfactor/u2f/register_request',
-      jar: jar
-    })
-    .then(function(res) {
-      return request.postAsync({
-        url: BASE_URL + '/2ndfactor/u2f/register',
-        jar: jar,
-        form: {
-          s: 'test'
-        }
-      });
-    });
-  }
-
-  function execute_u2f_authentication(jar) {
-    return request.getAsync({
-      url: BASE_URL + '/2ndfactor/u2f/sign_request',
-      jar: jar
-    })
-    .then(function() {
-      return request.postAsync({
-        url: BASE_URL + '/2ndfactor/u2f/sign',
-        jar: jar,
-        form: {
-          s: 'test'
-        }
-      });
-    });
-  }
-
-  function execute_verification(jar) {
-    return request.getAsync({ url: BASE_URL + '/verify', jar: jar })
-  }
-
-  function execute_login(jar) {
-    return request.getAsync({ url: BASE_URL + '/login', jar: jar })
   }
 });

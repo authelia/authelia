@@ -13,8 +13,15 @@ var u2f_common = require('./u2f_common');
 var Promise = require('bluebird');
 
 function register_request(req, res) {
-  var u2f = req.app.get('u2f');
   var logger = req.app.get('logger');
+  var challenge = objectPath.get(req, 'session.auth_session.identity_check.challenge');
+  if(challenge != 'u2f-register') {
+    res.status(403);
+    res.send();
+    return;
+  }
+
+  var u2f = req.app.get('u2f');
   var appid = u2f_common.extract_app_id(req);
 
   logger.debug('U2F register_request: headers=%s', JSON.stringify(req.headers));
@@ -28,19 +35,23 @@ function register_request(req, res) {
   })
   .catch(function(err) {
     logger.error('U2F register_request: %s', err);
-    u2f_common.reply_with_internal_error(res, 'Unable to complete the registration');
+    res.status(500);
+    res.send('Unable to start registration request');
   });
 }
 
 function register(req, res) {
-  if(!objectPath.has(req, 'session.auth_session.register_request')) {
-    u2f_common.reply_with_unauthorized(res); 
+  var registrationRequest = objectPath.get(req, 'session.auth_session.register_request');
+  var challenge = objectPath.get(req, 'session.auth_session.identity_check.challenge');
+
+  if(!(registrationRequest && challenge == 'u2f-register')) {
+    res.status(403);
+    res.send();
     return; 
   }
 
   var user_data_storage = req.app.get('user data store');
   var u2f = req.app.get('u2f');
-  var registrationRequest = req.session.auth_session.register_request;
   var userid = req.session.auth_session.userid;
   var appid = u2f_common.extract_app_id(req);
   var logger = req.app.get('logger');
@@ -65,7 +76,8 @@ function register(req, res) {
   })
   .catch(function(err) {
     logger.error('U2F register: %s', err);
-    u2f_common.reply_with_unauthorized(res);
+    res.status(500);
+    res.send('Unable to register');
   });
 }
 
