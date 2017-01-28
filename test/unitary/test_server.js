@@ -38,9 +38,11 @@ describe('test the server', function() {
       session_secret: 'session_secret',
       session_max_age: 50000,
       store_in_memory: true,
-      gmail: {
-        user: 'user@example.com',
-        pass: 'password'
+      notifier: {
+        gmail: {
+          user: 'user@example.com',
+          pass: 'password'
+        }
       }
     };
 

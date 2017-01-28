@@ -1,0 +1,3 @@
+User: user
+Subject: Reset your password
+Link: https://localhost:8080/authentication/reset-password?identity_token=CmJ51IdJLEcVr7AbbJPANe0wmJoOcgYzPqgGOngVRIhKq1UbQUoS44FXDEXBcolz

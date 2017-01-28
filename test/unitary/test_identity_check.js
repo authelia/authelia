@@ -9,7 +9,7 @@ var Promise = require('bluebird');
 describe('test identity check process', function() {
   var req, res, app, icheck_interface;
   var user_data_store;
-  var email_sender;
+  var notifier;
 
   beforeEach(function() {
     req = {};
@@ -25,9 +25,8 @@ describe('test identity check process', function() {
     user_data_store.consume_identity_check_token = sinon.stub();
     user_data_store.consume_identity_check_token.returns(Promise.resolve({ userid: 'user' }));
 
-    email_sender = {};
-    email_sender.send = sinon.stub();
-    email_sender.send = sinon.stub().returns(Promise.resolve());
+    notifier = {};
+    notifier.notify = sinon.stub().returns(Promise.resolve());
 
     req.headers = {};
     req.session = {};
@@ -38,7 +37,7 @@ describe('test identity check process', function() {
     req.app.get = sinon.stub();
     req.app.get.withArgs('logger').returns(winston);
     req.app.get.withArgs('user data store').returns(user_data_store);
-    req.app.get.withArgs('email sender').returns(email_sender);
+    req.app.get.withArgs('notifier').returns(notifier);
 
     res.status = sinon.spy();
     res.send = sinon.spy();
@@ -126,7 +125,7 @@ describe('test identity check process', function() {
 
       res.send = sinon.spy(function() {
         assert.equal(res.status.getCall(0).args[0], 204);
-        assert(email_sender.send.calledOnce);
+        assert(notifier.notify.calledOnce);
         assert(user_data_store.issue_identity_check_token.calledOnce);
         assert.equal(user_data_store.issue_identity_check_token.getCall(0).args[0], 'user');
         assert.equal(user_data_store.issue_identity_check_token.getCall(0).args[3], 240000);

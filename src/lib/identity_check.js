@@ -14,13 +14,12 @@ var email_template = fs.readFileSync(filePath, 'utf8');
 
 // IdentityCheck class
 
-function IdentityCheck(user_data_store, email_sender, logger) {
+function IdentityCheck(user_data_store, logger) {
   this._user_data_store = user_data_store;
-  this._email_sender = email_sender;
   this._logger = logger;
 }
 
-IdentityCheck.prototype.issue_token = function(userid, email, content, logger) {
+IdentityCheck.prototype.issue_token = function(userid, content, logger) {
   var five_minutes = 4 * 60 * 1000;
   var token = randomstring.generate({ length: 64 });
   var that = this;
@@ -61,7 +60,7 @@ function identity_check_get(endpoint, icheck_interface) {
  
     var email_sender = req.app.get('email sender');
     var user_data_store = req.app.get('user data store');
-    var identity_check = new IdentityCheck(user_data_store, email_sender, logger);
+    var identity_check = new IdentityCheck(user_data_store, logger);
 
     identity_check.consume_token(identity_token, logger)
     .then(function(content) {
@@ -90,15 +89,16 @@ function identity_check_get(endpoint, icheck_interface) {
 function identity_check_post(endpoint, icheck_interface) {
   return function(req, res) {
     var logger = req.app.get('logger');
-    var email_sender = req.app.get('email sender');
+    var notifier = req.app.get('notifier');
     var user_data_store = req.app.get('user data store');
-    var identity_check = new IdentityCheck(user_data_store, email_sender, logger);
-    var userid, email_address;
+    var identity_check = new IdentityCheck(user_data_store, logger);
+    var identity;
 
     icheck_interface.pre_check_callback(req)
-    .then(function(identity) {
-      email_address = objectPath.get(identity, 'email');
-      userid = objectPath.get(identity, 'userid');
+    .then(function(id) {
+      identity = id;
+      var email_address = objectPath.get(identity, 'email');
+      var userid = objectPath.get(identity, 'userid');
 
       if(!(email_address && userid)) {
         throw new exceptions.IdentityError('Missing user id or email address');
@@ -111,19 +111,9 @@ function identity_check_post(endpoint, icheck_interface) {
     .then(function(token) {
       var original_url = util.format('https://%s%s', req.headers.host, req.headers['x-original-uri']);
       var link_url = util.format('%s?identity_token=%s', original_url, token); 
-      var email = {};
 
-      var d = {};
-      d.url = link_url;
-      d.button_title = 'Continue';
-      d.title = icheck_interface.email_subject;
-
-      email.to = email_address;
-      email.subject = icheck_interface.email_subject;
-      email.content = ejs.render(email_template, d);
-
-      logger.info('POST identity_check: send email to %s', email.to);
-      return email_sender.send(email.to, email.subject, email.content);
+      logger.info('POST identity_check: notify to %s', identity.userid);
+      return notifier.notify(identity, icheck_interface.email_subject, link_url);
     })
     .then(function() {
       res.status(204);

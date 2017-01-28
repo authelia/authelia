@@ -12,7 +12,7 @@ var path = require('path');
 var session = require('express-session');
 var winston = require('winston');
 var UserDataStore = require('./user_data_store');
-var EmailSender = require('./email_sender');
+var Notifier = require('./notifier');
 var AuthenticationRegulator = require('./authentication_regulator');
 var identity_check = require('./identity_check');
 
@@ -23,9 +23,6 @@ function run(config, ldap_client, deps, fn) {
   datastore_options.directory = config.store_directory;
   if(config.store_in_memory)
     datastore_options.inMemory = true;
-
-  var email_options = {};
-  email_options.gmail = config.gmail;
 
   var app = express();
   app.use(express.static(public_html_directory));
@@ -46,12 +43,13 @@ function run(config, ldap_client, deps, fn) {
   app.set('views', view_directory);
   app.set('view engine', 'ejs');
 
-  winston.level = config.debug_level || 'info';
+  // by default the level of logs is info
+  winston.level = config.logs_level || 'info';
 
   var five_minutes = 5 * 60;
   var data_store = new UserDataStore(deps.nedb, datastore_options);
   var regulator = new AuthenticationRegulator(data_store, five_minutes);
-  var notifier = new EmailSender(deps.nodemailer, email_options);
+  var notifier = new Notifier(config.notifier, deps);
 
   app.set('logger', winston);
   app.set('ldap', deps.ldap);
@@ -59,7 +57,7 @@ function run(config, ldap_client, deps, fn) {
   app.set('totp engine', speakeasy);
   app.set('u2f', deps.u2f);
   app.set('user data store', data_store);
-  app.set('email sender', notifier);
+  app.set('notifier', notifier);
   app.set('authentication regulator', regulator);
   app.set('config', config);
 
@@ -88,9 +86,11 @@ function run(config, ldap_client, deps, fn) {
   app.post (base_endpoint + '/1stfactor',        routes.first_factor);
   app.post (base_endpoint + '/2ndfactor/totp',   routes.second_factor.totp);
 
+  // U2F registration
   app.get  (base_endpoint + '/2ndfactor/u2f/register_request',   routes.second_factor.u2f.register_request);
   app.post (base_endpoint + '/2ndfactor/u2f/register',           routes.second_factor.u2f.register);
 
+  // U2F authentication
   app.get  (base_endpoint + '/2ndfactor/u2f/sign_request',       routes.second_factor.u2f.sign_request);
   app.post (base_endpoint + '/2ndfactor/u2f/sign',               routes.second_factor.u2f.sign);
   

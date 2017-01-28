@@ -1,20 +1,33 @@
 
-debug_level: info
+### Level of verbosity for logs
+logs_level: info
 
+### Configuration of your LDAP
 ldap:
   url: ldap://ldap
   base_dn: ou=users,dc=example,dc=com
   user: cn=admin,dc=example,dc=com
   password: password
 
+### Configuration of session cookies
 session:
   secret: unsecure_secret
   expiration: 3600000
 
-store_directory: /var/lib/auth-server
+### The directory where the DB files will be saved
+store_directory: /var/lib/auth-server/store
 
+
+### Notifications are sent to users when they require a password reset, a u2f
+### registration or a TOTP registration.
+### Use only one available configuration: filesystem, gmail
 notifier:
-  gmail:
-    username: user@example.com
-    password: yourpassword
+  ### For testing purpose, notifications can be sent in a file
+  filesystem:
+    filename: /var/lib/auth-server/notifications/notification.txt
+
+  ### Use your gmail account to send the notifications. You can use an app password.
+  # gmail:
+  #   username: user@example.com
+  #   password: yourpassword
   

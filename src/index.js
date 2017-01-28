@@ -23,12 +23,11 @@ var config = {
   session_secret: yaml_config.session.secret,
   session_max_age: yaml_config.session.expiration || 3600000, // in ms
   store_directory: yaml_config.store_directory,
-  debug_level: yaml_config.debug_level,
-  gmail: {
-    user: yaml_config.notifier.gmail.username,
-    pass: yaml_config.notifier.gmail.password
-  }
+  logs_level: yaml_config.logs_level,
+  notifier: yaml_config.notifier,
 }
+
+console.log(config);
 
 var ldap_client = ldap.createClient({
   url: config.ldap_url,

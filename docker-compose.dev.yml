@@ -6,6 +6,7 @@ services:
       - ./test:/usr/src/test
       - ./src/views:/usr/src/views
       - ./src/public_html:/usr/src/public_html
+      - ./notifications:/var/lib/auth-server/notifications
 
   ldap-admin:
     image: osixia/phpldapadmin:0.6.11

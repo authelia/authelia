@@ -57,7 +57,7 @@ describe('test data persistence', function() {
       session_secret: 'session_secret',
       session_max_age: 50000,
       store_directory: tmpDir.name,
-      gmail: { user: 'user@example.com', pass: 'password' }
+      notifier: { gmail: { user: 'user@example.com', pass: 'password' } }
     };
   });
 
