@@ -130,7 +130,6 @@ describe('test identity check process', function() {
         assert(user_data_store.issue_identity_check_token.calledOnce);
         assert.equal(user_data_store.issue_identity_check_token.getCall(0).args[0], 'user');
         assert.equal(user_data_store.issue_identity_check_token.getCall(0).args[3], 240000);
-        assert(email_sender.send.getCall(0).args[2].startsWith('<a href="https://localhost/auth/test?identity_token='));
         done();
       });
       var handler = app.post.getCall(0).args[1];

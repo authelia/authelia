@@ -4,9 +4,13 @@ var randomstring = require('randomstring');
 var Promise = require('bluebird');
 var util = require('util');
 var exceptions = require('./exceptions');
+var fs = require('fs');
+var ejs = require('ejs');
 
 module.exports = identity_check;
 
+var filePath = __dirname + '/../resources/email-template.ejs';
+var email_template = fs.readFileSync(filePath, 'utf8');
 
 // IdentityCheck class
 
@@ -24,15 +28,8 @@ IdentityCheck.prototype.issue_token = function(userid, email, content, logger) {
   this._logger.debug('identity_check: issue identity token %s for 5 minutes', token);
   return this._user_data_store.issue_identity_check_token(userid, token, content, five_minutes)
   .then(function() {
-    that._logger.debug('identity_check: send email to %s', email);
-    return that._send_identity_check_email(email, token);
-  })
-}
-
-IdentityCheck.prototype._send_identity_check_email = function(email, token) {
-  var url = util.format('%s?identity_token=%s', email.hook_url, token); 
-  var email_content = util.format('<a href="%s">Register</a>', url);
-  return this._email_sender.send(email.to, email.subject, email_content);
+    return Promise.resolve(token);
+  });
 }
 
 IdentityCheck.prototype.consume_token = function(token, logger) {
@@ -107,13 +104,26 @@ function identity_check_post(endpoint, icheck_interface) {
         throw new exceptions.IdentityError('Missing user id or email address');
       }
 
-      var email = {};
-      email.to = email_address;
-      email.subject = 'Identity Verification';
-      email.hook_url = util.format('https://%s%s', req.headers.host, req.headers['x-original-uri']);
-      return identity_check.issue_token(userid, email, undefined, logger);
+      return identity_check.issue_token(userid, undefined, logger);
     }, function(err) {
       throw new exceptions.AccessDeniedError();
+    })
+    .then(function(token) {
+      var original_url = util.format('https://%s%s', req.headers.host, req.headers['x-original-uri']);
+      var link_url = util.format('%s?identity_token=%s', original_url, token); 
+      var email = {};
+
+      var d = {};
+      d.url = link_url;
+      d.button_title = 'Continue';
+      d.title = icheck_interface.email_subject;
+
+      email.to = email_address;
+      email.subject = icheck_interface.email_subject;
+      email.content = ejs.render(email_template, d);
+
+      logger.info('POST identity_check: send email to %s', email.to);
+      return email_sender.send(email.to, email.subject, email.content);
     })
     .then(function() {
       res.status(204);

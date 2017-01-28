@@ -9,6 +9,7 @@ var icheck_interface = {
   challenge: CHALLENGE,
   render_template: 'reset-password',
   pre_check_callback: pre_check,
+  email_subject: 'Reset your password',
 }
 
 module.exports = {

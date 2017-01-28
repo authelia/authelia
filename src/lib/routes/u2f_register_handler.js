@@ -8,6 +8,7 @@ var icheck_interface = {
   challenge: CHALLENGE,
   render_template: 'u2f-register',
   pre_check_callback: pre_check,
+  email_subject: 'Register your U2F device',
 }
 
 module.exports = {

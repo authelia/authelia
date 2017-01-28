@@ -23,7 +23,7 @@ function onLoginButtonClicked() {
 
   validateFirstFactor(username, password, function(err) {
     if(err) {
-      onFirstFactorFailure(err);
+      onFirstFactorFailure(err.responseText);
       return;
     }
     onFirstFactorSuccess();
