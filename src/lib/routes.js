@@ -4,6 +4,7 @@ var second_factor = require('./routes/second_factor');
 var reset_password = require('./routes/reset_password');
 var verify = require('./routes/verify');
 var u2f_register_handler = require('./routes/u2f_register_handler');
+var totp_register = require('./routes/totp_register');
 var objectPath = require('object-path');
 
 module.exports = {
@@ -13,7 +14,8 @@ module.exports = {
   first_factor: first_factor,
   second_factor: second_factor,
   reset_password: reset_password,
-  u2f_register: u2f_register_handler
+  u2f_register: u2f_register_handler,
+  totp_register: totp_register,
 }
 
 function serveLogin(req, res) {

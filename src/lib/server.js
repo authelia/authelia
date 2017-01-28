@@ -69,6 +69,7 @@ function run(config, ldap_client, deps, fn) {
   app.get  (base_endpoint + '/login',   routes.login);
   app.get  (base_endpoint + '/logout',  routes.logout);
 
+  identity_check(app, base_endpoint + '/totp-register', routes.totp_register.icheck_interface);
   identity_check(app, base_endpoint + '/u2f-register', routes.u2f_register.icheck_interface);
   identity_check(app, base_endpoint + '/reset-password', routes.reset_password.icheck_interface);
 
@@ -76,6 +77,9 @@ function run(config, ldap_client, deps, fn) {
 
   // Reset the password
   app.post (base_endpoint + '/new-password', routes.reset_password.post);
+
+  // Generate a new TOTP secret
+  app.post (base_endpoint + '/new-totp-secret', routes.totp_register.post);
 
   // verify authentication
   app.get  (base_endpoint + '/verify',   routes.verify);

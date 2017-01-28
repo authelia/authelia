@@ -3,10 +3,12 @@ var totp = require('../../../src/lib/routes/totp');
 var Promise = require('bluebird');
 var sinon = require('sinon');
 var assert = require('assert');
+var winston = require('winston');
 
 describe('test totp route', function() {
   var req, res;
   var totp_engine;
+  var user_data_store;
 
   beforeEach(function() {
     var app_get = sinon.stub();
@@ -19,6 +21,7 @@ describe('test totp route', function() {
       },
       session: {
         auth_session: {
+          userid: 'user',
           first_factor: false,
           second_factor: false
         }
@@ -33,46 +36,52 @@ describe('test totp route', function() {
     totp_engine = {
       totp: sinon.stub()
     }
+
+    user_data_store = {};
+    user_data_store.get_totp_secret = sinon.stub();
+
+    var doc = {};
+    doc.userid = 'user';
+    doc.secret = {};
+    doc.secret.base32 = 'ABCDEF';
+    user_data_store.get_totp_secret.returns(Promise.resolve(doc));
+
+    app_get.withArgs('logger').returns(winston);
     app_get.withArgs('totp engine').returns(totp_engine);
     app_get.withArgs('config').returns(config);
+    app_get.withArgs('user data store').returns(user_data_store);
   });
 
 
-  it('should send status code 204 when totp is valid', function() {
-    return new Promise(function(resolve, reject) {
-      totp_engine.totp.returns('abc');
-      res.send = sinon.spy(function() {
-        // Second factor passed
-        assert.equal(true, req.session.auth_session.second_factor)
-        assert.equal(204, res.status.getCall(0).args[0]);
-        resolve();
-      });
-      totp(req, res); 
-    })
+  it('should send status code 204 when totp is valid', function(done) {
+    totp_engine.totp.returns('abc');
+    res.send = sinon.spy(function() {
+      // Second factor passed
+      assert.equal(true, req.session.auth_session.second_factor)
+      assert.equal(204, res.status.getCall(0).args[0]);
+      done();
+    });
+    totp(req, res); 
   });
 
-  it('should send status code 401 when totp is not valid', function() {
-    return new Promise(function(resolve, reject) {
-      totp_engine.totp.returns('bad_token');
-      res.send = sinon.spy(function() {
-        assert.equal(false, req.session.auth_session.second_factor)
-        assert.equal(401, res.status.getCall(0).args[0]);
-        resolve();
-      });
-      totp(req, res); 
-    })
+  it('should send status code 401 when totp is not valid', function(done) {
+    totp_engine.totp.returns('bad_token');
+    res.send = sinon.spy(function() {
+      assert.equal(false, req.session.auth_session.second_factor)
+      assert.equal(401, res.status.getCall(0).args[0]);
+      done();
+    });
+    totp(req, res); 
   });
 
-  it('should send status code 401 when session has not been initiated', function() {
-    return new Promise(function(resolve, reject) {
-      totp_engine.totp.returns('abc');
-      res.send = sinon.spy(function() {
-        assert.equal(401, res.status.getCall(0).args[0]);
-        resolve();
-      });
-      req.session = {};
-      totp(req, res); 
-    })
+  it('should send status code 401 when session has not been initiated', function(done) {
+    totp_engine.totp.returns('abc');
+    res.send = sinon.spy(function() {
+      assert.equal(403, res.status.getCall(0).args[0]);
+      done();
+    });
+    req.session = {};
+    totp(req, res); 
   });
 });
 

@@ -36,6 +36,37 @@ module.exports = function(port) {
     });
   }
 
+  function execute_register_totp(jar, transporter) {
+    return request.postAsync({
+      url: BASE_URL + '/authentication/totp-register',
+      jar: jar
+    })
+    .then(function(res) {
+      assert.equal(res.statusCode, 204);
+      var html_content = transporter.sendMail.getCall(0).args[0].html;
+      var regexp = /identity_token=([a-zA-Z0-9]+)/;
+      var token = regexp.exec(html_content)[1];
+      // console.log(html_content, token);
+      return request.getAsync({
+        url: BASE_URL + '/authentication/totp-register?identity_token=' + token,
+        jar: jar
+      })
+    })
+    .then(function(res) {
+      assert.equal(res.statusCode, 200);
+      return request.postAsync({
+        url : BASE_URL + '/authentication/new-totp-secret',
+        jar: jar,
+      })
+    })
+    .then(function(res) {
+      console.log(res.statusCode);
+      console.log(res.body);
+      assert.equal(res.statusCode, 200);
+      return Promise.resolve(res.body);
+    });
+  }
+
   function execute_totp(jar, token) {
     return request.postAsync({
       url: BASE_URL + '/authentication/2ndfactor/totp',
@@ -136,6 +167,7 @@ module.exports = function(port) {
     first_factor: execute_first_factor,
     failing_first_factor: execute_failing_first_factor,
     totp: execute_totp,
+    register_totp: execute_register_totp,
   }
 
 }

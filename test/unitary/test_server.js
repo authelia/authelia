@@ -219,10 +219,6 @@ describe('test the server', function() {
     });
   
     it('should return status code 204 when user is authenticated using totp', function() {
-      var real_token = speakeasy.totp({
-        secret: 'totp_secret',
-        encoding: 'base32'
-      });
       var j = request.jar();
       return requests.login(j)
       .then(function(res) {
@@ -231,6 +227,14 @@ describe('test the server', function() {
       }) 
       .then(function(res) {
         assert.equal(res.statusCode, 204, 'first factor failed');
+        return requests.register_totp(j, transporter);
+      })
+      .then(function(secret) {
+        var sec = JSON.parse(secret);
+        var real_token = speakeasy.totp({
+          secret: sec.base32,
+          encoding: 'base32'
+        });
         return requests.totp(j, real_token);
       })
       .then(function(res) {

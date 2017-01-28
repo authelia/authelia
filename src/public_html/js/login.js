@@ -39,10 +39,23 @@ function onTotpSignButtonClicked() {
   var token = $('#totp-token').val();
   validateSecondFactorTotp(token, function(err) {
     if(err) {
-      onSecondFactorTotpFailure();
+      onSecondFactorTotpFailure(err.responseText);
       return;
     }
     onSecondFactorTotpSuccess();
+  });
+}
+
+function onTotpRegisterButtonClicked() {
+  $.ajax({
+    type: 'POST',
+    url: '/authentication/totp-register'
+  })
+  .done(function(data) {
+    $.notify('An email has been sent to your email address', 'info');
+  })
+  .fail(function(xhr, status) {
+    $.notify('Unable to send you an email', 'error');
   });
 }
 
@@ -174,8 +187,8 @@ function onSecondFactorTotpSuccess() {
   onAuthenticationSuccess();
 }
 
-function onSecondFactorTotpFailure() {
-  $.notify('Wrong TOTP token', 'error');
+function onSecondFactorTotpFailure(err) {
+  $.notify('Error while validating TOTP token. Cause: ' + err, 'error');
 }
 
 function onU2fAuthenticationSuccess() {
@@ -216,6 +229,10 @@ function setupTotpSignButton() {
   setupEnterKeypressListener('#totp', onTotpSignButtonClicked);
 }
 
+function setupTotpRegisterButton() {
+  $('#second-factor #totp-register-button').on('click', onTotpRegisterButtonClicked);
+}
+
 function setupU2fSignButton() {
   $('#second-factor #u2f-sign-button').on('click', onU2fSignButtonClicked);
   setupEnterKeypressListener('#u2f', onU2fSignButtonClicked);
@@ -241,6 +258,7 @@ function enterSecondFactor() {
   showSecondFactorLayout();
   cleanupFirstFactorLoginButton();
   setupTotpSignButton();
+  setupTotpRegisterButton();
   setupU2fSignButton();
   setupU2fRegistrationButton();
 }

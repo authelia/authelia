@@ -5,6 +5,7 @@ module.exports = {
   IdentityError: IdentityError,
   AccessDeniedError: AccessDeniedError,
   AuthenticationRegulationError: AuthenticationRegulationError,
+  InvalidTOTPError: InvalidTOTPError,
 }
 
 function LdapSearchError(message) {
@@ -36,3 +37,9 @@ function AuthenticationRegulationError(message) {
   this.message = (message || "");
 }
 AuthenticationRegulationError.prototype = Object.create(Error.prototype);
+
+function InvalidTOTPError(message) {
+  this.name = "InvalidTOTPError";
+  this.message = (message || "");
+}
+InvalidTOTPError.prototype = Object.create(Error.prototype);

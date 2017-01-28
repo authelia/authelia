@@ -10,6 +10,8 @@ function UserDataStore(DataStore, options) {
     create_collection('identity_check_tokens', options, DataStore);
   this._authentication_traces_collection = 
     create_collection('authentication_traces', options, DataStore);
+  this._totp_secret_collection = 
+    create_collection('totp_secrets', options, DataStore);
 }
 
 function create_collection(name, options, DataStore) {
@@ -103,4 +105,20 @@ UserDataStore.prototype.consume_identity_check_token = function(token) {
   .then(function() {
     return Promise.resolve(doc_content);
   })
+}
+
+UserDataStore.prototype.set_totp_secret = function(userid, secret) {
+  var doc = {}
+  doc.userid = userid;
+  doc.secret = secret;
+
+  var query = {};
+  query.userid = userid;
+  return this._totp_secret_collection.updateAsync(query, doc, { upsert: true });
+}
+
+UserDataStore.prototype.get_totp_secret = function(userid) {
+  var query = {};
+  query.userid = userid;
+  return this._totp_secret_collection.findOneAsync(query);
 }
