@@ -10,3 +10,5 @@ coverage/
 config.yml
 
 npm-debug.log
+
+notifications/

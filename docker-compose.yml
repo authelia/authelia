@@ -7,7 +7,8 @@ services:
       - ldap
     restart: always
     volumes:
-     - ./config.yml:/etc/auth-server/config.yml:ro
+      - ./config.template.yml:/etc/auth-server/config.yml:ro
+      - ./notifications:/var/lib/auth-server/notifications
 
   ldap:
     image: dinkel/openldap
