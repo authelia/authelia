@@ -6,6 +6,7 @@ var request = Promise.promisifyAll(require('request'));
 var assert = require('assert');
 var speakeasy = require('speakeasy');
 var sinon = require('sinon');
+var MockDate = require('mockdate');
 
 var PORT = 8090;
 var BASE_URL = 'http://localhost:' + PORT;
@@ -36,6 +37,7 @@ describe('test the server', function() {
       ldap_password: 'password',
       session_secret: 'session_secret',
       session_max_age: 50000,
+      store_in_memory: true,
       gmail: {
         user: 'user@example.com',
         pass: 'password'
@@ -48,15 +50,8 @@ describe('test the server', function() {
     u2f.startAuthentication = sinon.stub();
     u2f.finishAuthentication = sinon.stub();
 
-    collection = {};
-    collection.insert = sinon.stub().yields(undefined, 1);
-    collection.findOne = sinon.stub().yields(undefined, {});
-    collection.update = sinon.stub().yields(undefined, {});
-    collection.remove = sinon.stub().yields(undefined, 1);
-    nedb = sinon.spy(function() {
-      return collection;
-    });
-
+    nedb = require('nedb');
+    
     transporter = {};
     transporter.sendMail = sinon.stub().yields();
 
@@ -80,10 +75,12 @@ describe('test the server', function() {
                               'password').yields(undefined);
     ldap_client.bind.withArgs('cn=admin,dc=example,dc=com', 
                               'password').yields(undefined);
-    ldap_client.search.yields(undefined, search_res);
+
     ldap_client.bind.withArgs('cn=test_nok,ou=users,dc=example,dc=com', 
                               'password').yields('error');
+
     ldap_client.modify.yields(undefined);
+    ldap_client.search.yields(undefined, search_res);
 
     var deps = {};
     deps.u2f = u2f;
@@ -101,17 +98,96 @@ describe('test the server', function() {
   });
 
   describe('test GET /login', function() {
-    test_login()
+    test_login();
   });
 
   describe('test GET /logout', function() {
-    test_logout()
+    test_logout();
+  });
+
+  describe('test GET /reset-password-form', function() {
+    test_reset_password_form();
+  });
+
+  describe('test endpoints locks', function() {
+    function should_post_and_reply_with(url, status_code) {
+      return request.postAsync(url).then(function(response) {
+        assert.equal(response.statusCode, status_code);
+        return Promise.resolve();
+      }) 
+    }
+
+    function should_get_and_reply_with(url, status_code) {
+      return request.getAsync(url).then(function(response) {
+        assert.equal(response.statusCode, status_code);
+        return Promise.resolve();
+      }) 
+    }
+
+    function should_post_and_reply_with_403(url) {
+      return should_post_and_reply_with(url, 403);
+    }
+    function should_get_and_reply_with_403(url) {
+      return should_get_and_reply_with(url, 403);
+    }
+
+    function should_post_and_reply_with_401(url) {
+      return should_post_and_reply_with(url, 401);
+    }
+    function should_get_and_reply_with_401(url) {
+      return should_get_and_reply_with(url, 401);
+    }
+
+    function should_get_and_post_reply_with_403(url) {
+      var p1 = should_post_and_reply_with_403(url);
+      var p2 = should_get_and_reply_with_403(url);
+      return Promise.all([p1, p2]);
+    }
+
+    it('should block /authentication/new-password', function() {
+      return should_post_and_reply_with_403(BASE_URL + '/authentication/new-password')
+    });
+
+    it('should block /authentication/u2f-register', function() {
+      return should_get_and_post_reply_with_403(BASE_URL + '/authentication/u2f-register');
+    });
+
+    it('should block /authentication/reset-password', function() {
+      return should_get_and_post_reply_with_403(BASE_URL + '/authentication/reset-password');
+    });
+
+    it('should block /authentication/2ndfactor/u2f/register_request', function() {
+      return should_get_and_reply_with_403(BASE_URL + '/authentication/2ndfactor/u2f/register_request');
+    });
+
+    it('should block /authentication/2ndfactor/u2f/register', function() {
+      return should_post_and_reply_with_403(BASE_URL + '/authentication/2ndfactor/u2f/register');
+    });
+
+    it('should block /authentication/2ndfactor/u2f/sign_request', function() {
+      return should_get_and_reply_with_403(BASE_URL + '/authentication/2ndfactor/u2f/sign_request');
+    });
+
+    it('should block /authentication/2ndfactor/u2f/sign', function() {
+      return should_post_and_reply_with_403(BASE_URL + '/authentication/2ndfactor/u2f/sign');
+    });
   });
 
   describe('test authentication and verification', function() {
     test_authentication();
     test_reset_password();
+    test_regulation();
   });
+
+  function test_reset_password_form() {
+    it('should serve the reset password form page', function(done) {
+      request.getAsync(BASE_URL + '/authentication/reset-password-form')
+      .then(function(response) {
+        assert.equal(response.statusCode, 200);
+        done();
+      });
+    });
+  }
 
   function test_login() {
     it('should serve the login page', function(done) {
@@ -209,11 +285,6 @@ describe('test the server', function() {
       u2f.startAuthentication.returns(Promise.resolve(registration_request));
       u2f.finishAuthentication.returns(Promise.resolve(registration_status));
 
-      collection.insert = sinon.spy(function(data, fn) {
-        collection.findOne.yields(undefined, data);
-        fn();
-      });
-  
       var j = request.jar();
       return requests.login(j)
       .then(function(res) {
@@ -241,11 +312,6 @@ describe('test the server', function() {
  
   function test_reset_password() {
     it('should reset the password', function() {
-      collection.insert = sinon.spy(function(data, fn) {
-        collection.findOne.yields(undefined, data);
-        fn();
-      });
-  
       var j = request.jar();
       return requests.login(j)
       .then(function(res) {
@@ -260,6 +326,40 @@ describe('test the server', function() {
         assert.equal(res.statusCode, 204, 'second factor, finish register failed');
         return Promise.resolve();
       });
+    });
+  }
+
+  function test_regulation() {
+    it('should regulate authentication', function() {
+      var j = request.jar();
+      MockDate.set('1/2/2017 00:00:00');
+      return requests.login(j)
+      .then(function(res) {
+        assert.equal(res.statusCode, 200, 'get login page failed');
+        return requests.failing_first_factor(j);
+      }) 
+      .then(function(res) {
+        console.log('coucou');
+        assert.equal(res.statusCode, 401, 'first factor failed');
+        return requests.failing_first_factor(j);
+      })
+      .then(function(res) {
+        assert.equal(res.statusCode, 401, 'first factor failed');
+        return requests.failing_first_factor(j);
+      })
+      .then(function(res) {
+        assert.equal(res.statusCode, 401, 'first factor failed');
+        return requests.failing_first_factor(j);
+      })
+      .then(function(res) {
+        assert.equal(res.statusCode, 403, 'first factor failed');
+        MockDate.set('1/2/2017 00:30:00');
+        return requests.failing_first_factor(j);
+      })
+      .then(function(res) {
+        assert.equal(res.statusCode, 401, 'first factor failed');
+        return Promise.resolve();
+      })
     });
   }
 });

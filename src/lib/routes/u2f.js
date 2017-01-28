@@ -20,6 +20,7 @@ function retrieve_u2f_meta(req, user_data_storage) {
   return user_data_storage.get_u2f_meta(userid, appid);
 }
 
+
 function sign_request(req, res) {
   var logger = req.app.get('logger');
   var user_data_storage = req.app.get('user data store');

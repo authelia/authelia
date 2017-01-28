@@ -14,7 +14,6 @@ var Dovehash = require('dovehash');
 function validateCredentials(ldap_client, username, password, users_dn) {
   var userDN = util.format("cn=%s,%s", username, users_dn);
   var bind_promised = Promise.promisify(ldap_client.bind, { context: ldap_client });
-  console.log(username, password);
   return bind_promised(userDN, password)
   .error(function(err) {
     console.error(err);

@@ -71,6 +71,7 @@ function register(req, res) {
     return user_data_storage.set_u2f_meta(userid, appid, meta);
   })
   .then(function() {
+    objectPath.set(req, 'session.auth_session.identity_check', undefined);
     res.status(204);
     res.send();
   })

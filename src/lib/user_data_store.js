@@ -8,6 +8,8 @@ function UserDataStore(DataStore, options) {
   this._u2f_meta_collection = create_collection('u2f_meta', options, DataStore);
   this._identity_check_tokens_collection = 
     create_collection('identity_check_tokens', options, DataStore);
+  this._authentication_traces_collection = 
+    create_collection('authentication_traces', options, DataStore);
 }
 
 function create_collection(name, options, DataStore) {
@@ -40,6 +42,28 @@ UserDataStore.prototype.get_u2f_meta = function(userid, app_id) {
   filter.appid = app_id;
 
   return this._u2f_meta_collection.findOneAsync(filter);
+}
+
+UserDataStore.prototype.save_authentication_trace = function(userid, type, is_success) {
+  var newDocument = {};
+  newDocument.userid = userid;
+  newDocument.date = new Date();
+  newDocument.is_success = is_success;
+  newDocument.type = type;
+
+  return this._authentication_traces_collection.insertAsync(newDocument);
+}
+
+UserDataStore.prototype.get_last_authentication_traces = function(userid, type, is_success, count) {
+  var query = {};
+  query.userid = userid;
+  query.type = type;
+  query.is_success = is_success;
+
+  var query = this._authentication_traces_collection.find(query)
+    .sort({ date: -1 }).limit(count);
+  var query_promisified = Promise.promisify(query.exec, { context: query });
+  return query_promisified();
 }
 
 UserDataStore.prototype.issue_identity_check_token = function(userid, token, data, max_age) {

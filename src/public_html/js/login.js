@@ -23,7 +23,7 @@ function onLoginButtonClicked() {
 
   validateFirstFactor(username, password, function(err) {
     if(err) {
-      onFirstFactorFailure();
+      onFirstFactorFailure(err);
       return;
     }
     onFirstFactorSuccess();
@@ -91,7 +91,7 @@ function finishU2fAuthentication(url, responseData, fn) {
     fn(undefined, data);
   })
   .fail(function(xhr, status) {
-    $.notify('Error when finish U2F transaction' + status);
+    $.notify('Error when finish U2F transaction', 'error');
   });
 }
 
@@ -159,10 +159,10 @@ function onFirstFactorSuccess() {
   enterSecondFactor();
 }
 
-function onFirstFactorFailure() {
+function onFirstFactorFailure(err) {
   $('#password').val('');
   $('#token').val('');
-  $.notify('Wrong credentials', 'error');
+  $.notify('Error during authentication: ' + err, 'error');
 }
 
 function onAuthenticationSuccess() {
@@ -183,7 +183,7 @@ function onU2fAuthenticationSuccess() {
 }
 
 function onU2fAuthenticationFailure(err) {
-  $.notify('Problem authenticating with U2F.', 'error');
+  $.notify('Problem with U2F authentication. Did you register before authenticating?', 'warn');
 }
 
 function showFirstFactorLayout() {

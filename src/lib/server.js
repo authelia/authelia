@@ -13,6 +13,7 @@ var session = require('express-session');
 var winston = require('winston');
 var UserDataStore = require('./user_data_store');
 var EmailSender = require('./email_sender');
+var AuthenticationRegulator = require('./authentication_regulator');
 var identity_check = require('./identity_check');
 
 function run(config, ldap_client, deps, fn) {
@@ -20,6 +21,8 @@ function run(config, ldap_client, deps, fn) {
   var public_html_directory = path.resolve(__dirname, '../public_html');
   var datastore_options = {};
   datastore_options.directory = config.store_directory;
+  if(config.store_in_memory)
+    datastore_options.inMemory = true;
 
   var email_options = {};
   email_options.gmail = config.gmail;
@@ -45,13 +48,19 @@ function run(config, ldap_client, deps, fn) {
 
   winston.level = config.debug_level || 'info';
 
+  var five_minutes = 5 * 60;
+  var data_store = new UserDataStore(deps.nedb, datastore_options);
+  var regulator = new AuthenticationRegulator(data_store, five_minutes);
+  var notifier = new EmailSender(deps.nodemailer, email_options);
+
   app.set('logger', winston);
   app.set('ldap', deps.ldap);
   app.set('ldap client', ldap_client);
   app.set('totp engine', speakeasy);
   app.set('u2f', deps.u2f);
-  app.set('user data store', new UserDataStore(deps.nedb, datastore_options));
-  app.set('email sender', new EmailSender(deps.nodemailer, email_options));
+  app.set('user data store', data_store);
+  app.set('email sender', notifier);
+  app.set('authentication regulator', regulator);
   app.set('config', config);
 
   var base_endpoint = '/authentication';
@@ -62,6 +71,7 @@ function run(config, ldap_client, deps, fn) {
 
   identity_check(app, base_endpoint + '/u2f-register', routes.u2f_register.icheck_interface);
   identity_check(app, base_endpoint + '/reset-password', routes.reset_password.icheck_interface);
+
   app.get  (base_endpoint + '/reset-password-form', function(req, res) { res.render('reset-password-form'); });
 
   // Reset the password

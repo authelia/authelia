@@ -68,7 +68,6 @@ describe('test identity check process', function() {
   describe('test POST', test_post_handler);
   describe('test GET', test_get_handler);
 
-
   function test_post_handler() {
     it('should send 403 if pre check rejects', function(done) {
       var endpoint = '/protected';

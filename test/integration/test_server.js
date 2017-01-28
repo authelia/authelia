@@ -28,7 +28,7 @@ describe('test the server', function() {
   });
 
   it('should serve the login page', function(done) {
-    getPromised(BASE_URL + '/auth/login?redirect=/')
+    getPromised(BASE_URL + '/authentication/login?redirect=/')
     .then(function(data) {
       assert.equal(data.statusCode, 200);
       done();
@@ -44,7 +44,7 @@ describe('test the server', function() {
   });
 
   it('should redirect when logout', function(done) {
-    getPromised(BASE_URL + '/auth/logout?redirect=/')
+    getPromised(BASE_URL + '/authentication/logout?redirect=/')
     .then(function(data) {
       assert.equal(data.statusCode, 200);
       assert.equal(data.body, home_page);
@@ -62,7 +62,7 @@ describe('test the server', function() {
   });
 
   it('should fail the first_factor login', function() {
-    return postPromised(BASE_URL + '/auth/1stfactor', {
+    return postPromised(BASE_URL + '/authentication/1stfactor', {
       form: {
         username: 'user',
         password: 'bad_password'
@@ -80,7 +80,7 @@ describe('test the server', function() {
       encoding: 'base32' 
     });
    
-    return postPromised(BASE_URL + '/auth/1stfactor', {
+    return postPromised(BASE_URL + '/authentication/1stfactor', {
       form: {
         username: 'user',
         password: 'password',
@@ -88,7 +88,7 @@ describe('test the server', function() {
     })
     .then(function(response) {
       assert.equal(response.statusCode, 204);
-      return postPromised(BASE_URL + '/auth/2ndfactor/totp', {
+      return postPromised(BASE_URL + '/authentication/2ndfactor/totp', {
         form: { token: token }
       });
     })
@@ -116,7 +116,7 @@ describe('test the server', function() {
       var is_secret_page_content = 
         (content.indexOf('This is a very important secret!') > -1);
       assert(is_secret_page_content);
-      return getPromised(BASE_URL + '/auth/logout')
+      return getPromised(BASE_URL + '/authentication/logout')
     })
     .then(function(data) {
       assert.equal(data.statusCode, 200);
@@ -164,5 +164,5 @@ function getHomePage() {
 }
 
 function getLoginPage() {
-  return getPromised(BASE_URL + '/auth/login');
+  return getPromised(BASE_URL + '/authentication/login');
 }

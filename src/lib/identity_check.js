@@ -61,7 +61,7 @@ function identity_check_get(endpoint, icheck_interface) {
       res.send();
       return;
     }
-
+ 
     var email_sender = req.app.get('email sender');
     var user_data_store = req.app.get('user data store');
     var identity_check = new IdentityCheck(user_data_store, email_sender, logger);
@@ -102,6 +102,7 @@ function identity_check_post(endpoint, icheck_interface) {
     .then(function(identity) {
       email_address = objectPath.get(identity, 'email');
       userid = objectPath.get(identity, 'userid');
+
       if(!(email_address && userid)) {
         throw new exceptions.IdentityError('Missing user id or email address');
       }
@@ -112,26 +113,24 @@ function identity_check_post(endpoint, icheck_interface) {
       email.hook_url = util.format('https://%s%s', req.headers.host, req.headers['x-original-uri']);
       return identity_check.issue_token(userid, email, undefined, logger);
     }, function(err) {
-      throw new exceptions.AccessDeniedError('Access denied');
+      throw new exceptions.AccessDeniedError();
     })
     .then(function() {
       res.status(204);
       res.send();
     })
     .catch(exceptions.IdentityError, function(err) {
-      logger.error('POST identity_check: %s', err);
+      logger.error('POST identity_check: IdentityError %s', err);
       res.status(400);
       res.send();
-      return;
     })
     .catch(exceptions.AccessDeniedError, function(err) {
-      logger.error('POST identity_check: %s', err);
+      logger.error('POST identity_check: AccessDeniedError %s', err);
       res.status(403);
       res.send();
-      return;
     })
     .catch(function(err) {
-      logger.error('POST identity_check: %s', err);
+      logger.error('POST identity_check: Error %s', err);
       res.status(500);
       res.send();
     });

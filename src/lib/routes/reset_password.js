@@ -1,6 +1,8 @@
 
+var Promise = require('bluebird');
 var objectPath = require('object-path');
 var ldap = require('../ldap');
+var exceptions = require('../exceptions');
 var CHALLENGE = 'reset-password';
 
 var icheck_interface = {
@@ -17,7 +19,8 @@ module.exports = {
 function pre_check(req) {
   var userid = objectPath.get(req, 'body.userid');
   if(!userid) {
-    return Promise.reject('No user id provided');
+    var err = new exceptions.AccessDeniedError();
+    return Promise.reject(err);
   }
 
   var ldap_client = req.app.get('ldap client');
@@ -31,7 +34,7 @@ function pre_check(req) {
     identity.email = email;
     identity.userid = userid;
     return Promise.resolve(identity);
-  })
+  });
 }
 
 function protect(fn) {
@@ -59,7 +62,7 @@ function post(req, res) {
   ldap.update_password(ldap_client, ldapjs, userid, new_password, config)
   .then(function() {
     logger.info('POST reset-password: Password reset for user %s', userid);
-    objectPath.set(req, 'session.auth_session', {});
+    objectPath.set(req, 'session.auth_session', undefined);
     res.status(204);
     res.send();
   })

@@ -3,7 +3,8 @@ module.exports = {
   LdapSearchError: LdapSearchError,
   LdapBindError: LdapBindError,
   IdentityError: IdentityError,
-  AccessDeniedError: AccessDeniedError
+  AccessDeniedError: AccessDeniedError,
+  AuthenticationRegulationError: AuthenticationRegulationError,
 }
 
 function LdapSearchError(message) {
@@ -29,3 +30,9 @@ function AccessDeniedError(message) {
   this.message = (message || "");
 }
 AccessDeniedError.prototype = Object.create(Error.prototype);
+
+function AuthenticationRegulationError(message) {
+  this.name = "AuthenticationRegulationError";
+  this.message = (message || "");
+}
+AuthenticationRegulationError.prototype = Object.create(Error.prototype);

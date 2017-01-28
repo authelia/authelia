@@ -95,7 +95,7 @@ describe('test reset password', function() {
   }
 
   function test_reset_password_post() {
-    it('should update the password', function(done) {
+    it('should update the password and reset auth_session for reauthentication', function(done) {
       req.session.auth_session.identity_check = {};
       req.session.auth_session.identity_check.userid = 'user';
       req.session.auth_session.identity_check.challenge = 'reset-password';
@@ -107,6 +107,7 @@ describe('test reset password', function() {
       res.send = sinon.spy(function() {
         assert.equal(ldap_client.modify.getCall(0).args[0], 'cn=user,dc=example,dc=com');
         assert.equal(res.status.getCall(0).args[0], 204);
+        assert.equal(req.session.auth_session, undefined);
         done();
       });
       reset_password.post(req, res); 

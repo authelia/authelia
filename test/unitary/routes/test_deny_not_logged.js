@@ -6,11 +6,11 @@ var assert = require('assert');
 var denyNotLogged = require('../../../src/lib/routes/deny_not_logged');
 
 describe('test not logged', function() {
-  it('should return status code 401 when auth_session has not been previously created', function() {
+  it('should return status code 403 when auth_session has not been previously created', function() {
     return test_auth_session_not_created();
   });
 
-  it('should return status code 401 when auth_session has failed first factor', function() {
+  it('should return status code 403 when auth_session has failed first factor', function() {
     return test_auth_first_factor_not_validated();
   });
 
@@ -23,7 +23,7 @@ function test_auth_session_not_created() {
   return new Promise(function(resolve, reject) {
     var send = sinon.spy(resolve);
     var status = sinon.spy(function(code) {
-      assert.equal(401, code);
+      assert.equal(403, code);
     });
     var req = {
       session: {}
@@ -42,7 +42,7 @@ function test_auth_first_factor_not_validated() {
   return new Promise(function(resolve, reject) {
     var send = sinon.spy(resolve);
     var status = sinon.spy(function(code) {
-      assert.equal(401, code);
+      assert.equal(403, code);
     });
     var req = {
       session: {

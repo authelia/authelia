@@ -95,7 +95,8 @@ describe('test u2f routes', function() {
         certificate: 'cert'
       };
       res.send = sinon.spy(function(data) {
-        assert('user', user_data_store.set_u2f_meta.getCall(0).args[0])
+        assert.equal('user', user_data_store.set_u2f_meta.getCall(0).args[0])
+        assert.equal(req.session.auth_session.identity_check, undefined);
         done();
       });
       var u2f_mock = {};

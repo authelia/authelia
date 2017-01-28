@@ -115,6 +115,17 @@ module.exports = function(port) {
       }
     });
   }
+
+  function execute_failing_first_factor(jar) {
+    return request.postAsync({ 
+      url: BASE_URL + '/authentication/1stfactor',
+      jar: jar,
+      form: {
+        username: 'test_nok',
+        password: 'password'
+      }
+    });
+  }
   
   return {
     login: execute_login,
@@ -123,6 +134,7 @@ module.exports = function(port) {
     u2f_authentication: execute_u2f_authentication,
     u2f_registration: execute_u2f_registration,
     first_factor: execute_first_factor,
+    failing_first_factor: execute_failing_first_factor,
     totp: execute_totp,
   }
 
