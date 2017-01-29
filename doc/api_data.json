@@ -384,12 +384,13 @@
     },
     "success": {
       "fields": {
-        "Success 204": [
+        "Success 200": [
           {
-            "group": "Success 204",
+            "group": "Success 200",
+            "type": "String",
             "optional": false,
-            "field": "status",
-            "description": "<p>Identity validation has been initiated.</p>"
+            "field": "content",
+            "description": "<p>The content of the page.</p>"
           }
         ]
       }
@@ -402,14 +403,6 @@
             "optional": false,
             "field": "AccessDenied",
             "description": "<p>Access is denied.</p>"
-          }
-        ],
-        "Error 400": [
-          {
-            "group": "Error 400",
-            "optional": false,
-            "field": "InvalidIdentity",
-            "description": "<p>User identity is invalid.</p>"
           }
         ],
         "Error 500": [
@@ -462,12 +455,13 @@
     },
     "success": {
       "fields": {
-        "Success 204": [
+        "Success 200": [
           {
-            "group": "Success 204",
+            "group": "Success 200",
+            "type": "String",
             "optional": false,
-            "field": "status",
-            "description": "<p>Identity validation has been initiated.</p>"
+            "field": "content",
+            "description": "<p>The content of the page.</p>"
           }
         ]
       }
@@ -480,14 +474,6 @@
             "optional": false,
             "field": "AccessDenied",
             "description": "<p>Access is denied.</p>"
-          }
-        ],
-        "Error 400": [
-          {
-            "group": "Error 400",
-            "optional": false,
-            "field": "InvalidIdentity",
-            "description": "<p>User identity is invalid.</p>"
           }
         ],
         "Error 500": [
@@ -657,13 +643,12 @@
     },
     "success": {
       "fields": {
-        "Success 200": [
+        "Success 204": [
           {
-            "group": "Success 200",
-            "type": "String",
+            "group": "Success 204",
             "optional": false,
-            "field": "content",
-            "description": "<p>The content of the page.</p>"
+            "field": "status",
+            "description": "<p>Identity validation has been initiated.</p>"
           }
         ]
       }
@@ -676,6 +661,14 @@
             "optional": false,
             "field": "AccessDenied",
             "description": "<p>Access is denied.</p>"
+          }
+        ],
+        "Error 400": [
+          {
+            "group": "Error 400",
+            "optional": false,
+            "field": "InvalidIdentity",
+            "description": "<p>User identity is invalid.</p>"
           }
         ],
         "Error 500": [
@@ -715,13 +708,12 @@
     },
     "success": {
       "fields": {
-        "Success 200": [
+        "Success 204": [
           {
-            "group": "Success 200",
-            "type": "String",
+            "group": "Success 204",
             "optional": false,
-            "field": "content",
-            "description": "<p>The content of the page.</p>"
+            "field": "status",
+            "description": "<p>Identity validation has been initiated.</p>"
           }
         ]
       }
@@ -734,6 +726,14 @@
             "optional": false,
             "field": "AccessDenied",
             "description": "<p>Access is denied.</p>"
+          }
+        ],
+        "Error 400": [
+          {
+            "group": "Error 400",
+            "optional": false,
+            "field": "InvalidIdentity",
+            "description": "<p>User identity is invalid.</p>"
           }
         ],
         "Error 500": [
@@ -773,13 +773,12 @@
     },
     "success": {
       "fields": {
-        "Success 200": [
+        "Success 204": [
           {
-            "group": "Success 200",
-            "type": "String",
+            "group": "Success 204",
             "optional": false,
-            "field": "content",
-            "description": "<p>The content of the page.</p>"
+            "field": "status",
+            "description": "<p>Identity validation has been initiated.</p>"
           }
         ]
       }
@@ -792,6 +791,14 @@
             "optional": false,
             "field": "AccessDenied",
             "description": "<p>Access is denied.</p>"
+          }
+        ],
+        "Error 400": [
+          {
+            "group": "Error 400",
+            "optional": false,
+            "field": "InvalidIdentity",
+            "description": "<p>User identity is invalid.</p>"
           }
         ],
         "Error 500": [
@@ -845,12 +852,13 @@
     },
     "success": {
       "fields": {
-        "Success 204": [
+        "Success 200": [
           {
-            "group": "Success 204",
+            "group": "Success 200",
+            "type": "String",
             "optional": false,
-            "field": "status",
-            "description": "<p>Identity validation has been initiated.</p>"
+            "field": "content",
+            "description": "<p>The content of the page.</p>"
           }
         ]
       }
@@ -863,14 +871,6 @@
             "optional": false,
             "field": "AccessDenied",
             "description": "<p>Access is denied.</p>"
-          }
-        ],
-        "Error 400": [
-          {
-            "group": "Error 400",
-            "optional": false,
-            "field": "InvalidIdentity",
-            "description": "<p>User identity is invalid.</p>"
           }
         ],
         "Error 500": [

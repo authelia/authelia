@@ -19,10 +19,11 @@ function setup_endpoints(app) {
    */
 
   /**
-   * @apiDefine IdentityValidationDesc
+   * @apiDefine IdentityValidationPost
    *
-   * @apiSuccess (Success 200) {String} content The content of the page.
+   * @apiSuccess (Success 204) status Identity validation has been initiated.
    * @apiError (Error 403) AccessDenied Access is denied.
+   * @apiError (Error 400) InvalidIdentity User identity is invalid.
    * @apiError (Error 500) {String} error Internal error message.
    *
    * @apiDescription This request issue an identity validation token for the user 
@@ -32,11 +33,10 @@ function setup_endpoints(app) {
    */
 
   /**
-   * @apiDefine IdentityValidationParam
+   * @apiDefine IdentityValidationGet
    * @apiParam {String} identity_token The one-time identity validation token provided in the email.
-   * @apiSuccess (Success 204) status Identity validation has been initiated.
+   * @apiSuccess (Success 200) {String} content The content of the page.
    * @apiError (Error 403) AccessDenied Access is denied.
-   * @apiError (Error 400) InvalidIdentity User identity is invalid.
    * @apiError (Error 500) {String} error Internal error message.
    */
 
@@ -73,7 +73,7 @@ function setup_endpoints(app) {
    * @apiGroup Registration
    * @apiVersion 1.0.0
    * @apiUse UserSession
-   * @apiUse IdentityValidationDesc
+   * @apiUse IdentityValidationPost
    */
   /**
    * @api {get} /authentication/totp-register Serve TOTP registration page
@@ -81,7 +81,7 @@ function setup_endpoints(app) {
    * @apiGroup Registration
    * @apiVersion 1.0.0
    * @apiUse UserSession
-   * @apiUse IdentityValidationParam
+   * @apiUse IdentityValidationGet
    *
    *
    * @apiDescription Serves the TOTP registration page that displays the secret.
@@ -96,7 +96,7 @@ function setup_endpoints(app) {
    * @apiGroup Registration
    * @apiVersion 1.0.0
    * @apiUse UserSession
-   * @apiUse IdentityValidationDesc
+   * @apiUse IdentityValidationPost
    */
   /**
    * @api {get} /authentication/u2f-register Serve U2F registration page
@@ -104,7 +104,7 @@ function setup_endpoints(app) {
    * @apiGroup Pages
    * @apiVersion 1.0.0
    * @apiUse UserSession
-   * @apiUse IdentityValidationParam
+   * @apiUse IdentityValidationGet
    *
    * @apiDescription Serves the U2F registration page that asks the user to 
    * touch the token of the U2F device.
@@ -117,7 +117,7 @@ function setup_endpoints(app) {
    * @apiGroup Registration
    * @apiVersion 1.0.0
    * @apiUse UserSession
-   * @apiUse IdentityValidationDesc
+   * @apiUse IdentityValidationPost
    */
   /**
    * @api {get} /authentication/reset-password Serve password reset form.
@@ -125,7 +125,7 @@ function setup_endpoints(app) {
    * @apiGroup Pages
    * @apiVersion 1.0.0
    * @apiUse UserSession
-   * @apiUse IdentityValidationParam
+   * @apiUse IdentityValidationGet
    *
    * @apiDescription Serves password reset form that allow the user to provide
    * the new password.
