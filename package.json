@@ -1,6 +1,6 @@
 {
   "name": "authelia",
-  "version": "1.0.11",
+  "version": "2.0.0",
   "description": "2-factor authentication server using LDAP as 1st factor and TOTP or U2F as 2nd factor",
   "main": "src/index.js",
   "bin": {
