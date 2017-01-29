@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
@@ -10,6 +11,12 @@ var nedb = require('nedb');
 var YAML = require('yamljs');
 
 var config_path = process.argv[2];
+if(!config_path) {
+  console.log('No config file has been provided.');
+  console.log('Usage: authelia <config>');
+  process.exit(0);
+}
+
 console.log('Parse configuration file: %s', config_path);
 
 var yaml_config = YAML.load(config_path);
