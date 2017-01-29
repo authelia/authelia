@@ -46,7 +46,7 @@ After few seconds the services should be running and you should be able to visit
 Normally, a self-signed certificate exception should appear, it has to be 
 accepted before getting to the login page:
 
-![first-factor-page](https://raw.githubusercontent.com/clems4ever/authelia/readme-update/images/first_factor.png)
+![first-factor-page](https://raw.githubusercontent.com/clems4ever/authelia/master/images/first_factor.png)
 
 ### 1st factor: LDAP
 An LDAP server has been deployed for you with the following credentials: **user/password**.
@@ -54,7 +54,7 @@ An LDAP server has been deployed for you with the following credentials: **user/
 Type them in the login page and validate. Then, the second factor page should 
 have appeared as shown below.
 
-![second-factor-page](https://raw.githubusercontent.com/clems4ever/authelia/readme-update/images/second_factor.png)
+![second-factor-page](https://raw.githubusercontent.com/clems4ever/authelia/master/images/second_factor.png)
 
 
 ### 2nd factor: TOTP (Time-Base One Time Password)
@@ -67,7 +67,7 @@ your secret in QRCode and Base32 formats. You can use
 [Google Authenticator](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en) 
 to store them and get the generated tokens required during authentication.
 
-![totp-secret](https://raw.githubusercontent.com/clems4ever/authelia/readme-update/images/totp.png)
+![totp-secret](https://raw.githubusercontent.com/clems4ever/authelia/master/images/totp.png)
 
 ### 2nd factor: U2F (Universal 2-Factor) with security keys
 **Authelia** also offers authentication using U2F devices like [Yubikey](Yubikey) 
@@ -82,7 +82,7 @@ the link in your browser and you'll be asking to touch the token of your device
 to register it. You can now authenticate using your U2F device by simply 
 touching the token.
 
-![u2f-validation](https://raw.githubusercontent.com/clems4ever/authelia/readme-update/images/u2f.png)
+![u2f-validation](https://raw.githubusercontent.com/clems4ever/authelia/master/images/u2f.png)
 
 ### Password reset
 With **Authelia**, you can also reset your password in no time. Click on the 
