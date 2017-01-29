@@ -3,8 +3,6 @@ module.exports = {
   run: run
 }
 
-var routes = require('./routes');
-
 var express = require('express');
 var bodyParser = require('body-parser');
 var speakeasy = require('speakeasy');
@@ -14,7 +12,7 @@ var winston = require('winston');
 var UserDataStore = require('./user_data_store');
 var Notifier = require('./notifier');
 var AuthenticationRegulator = require('./authentication_regulator');
-var identity_check = require('./identity_check');
+var setup_endpoints = require('./setup_endpoints');
 
 function run(config, ldap_client, deps, fn) {
   var view_directory = path.resolve(__dirname, '../views');
@@ -61,38 +59,7 @@ function run(config, ldap_client, deps, fn) {
   app.set('authentication regulator', regulator);
   app.set('config', config);
 
-  var base_endpoint = '/authentication';
-  
-  // web pages
-  app.get  (base_endpoint + '/login',   routes.login);
-  app.get  (base_endpoint + '/logout',  routes.logout);
-
-  identity_check(app, base_endpoint + '/totp-register', routes.totp_register.icheck_interface);
-  identity_check(app, base_endpoint + '/u2f-register', routes.u2f_register.icheck_interface);
-  identity_check(app, base_endpoint + '/reset-password', routes.reset_password.icheck_interface);
-
-  app.get  (base_endpoint + '/reset-password-form', function(req, res) { res.render('reset-password-form'); });
-
-  // Reset the password
-  app.post (base_endpoint + '/new-password', routes.reset_password.post);
-
-  // Generate a new TOTP secret
-  app.post (base_endpoint + '/new-totp-secret', routes.totp_register.post);
-
-  // verify authentication
-  app.get  (base_endpoint + '/verify',   routes.verify);
-
-  // Authentication process
-  app.post (base_endpoint + '/1stfactor',        routes.first_factor);
-  app.post (base_endpoint + '/2ndfactor/totp',   routes.second_factor.totp);
-
-  // U2F registration
-  app.get  (base_endpoint + '/2ndfactor/u2f/register_request',   routes.second_factor.u2f.register_request);
-  app.post (base_endpoint + '/2ndfactor/u2f/register',           routes.second_factor.u2f.register);
-
-  // U2F authentication
-  app.get  (base_endpoint + '/2ndfactor/u2f/sign_request',       routes.second_factor.u2f.sign_request);
-  app.post (base_endpoint + '/2ndfactor/u2f/sign',               routes.second_factor.u2f.sign);
+  setup_endpoints(app);
   
   return app.listen(config.port, function(err) {
     console.log('Listening on %d...', config.port);

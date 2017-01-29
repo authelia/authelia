@@ -123,6 +123,21 @@ describe('test u2f routes', function() {
       u2f.register(req, res);
     });
 
+    it('should return 403 when register_request is not provided', function(done) {
+      res.send = sinon.spy(function(data) {
+        assert.equal(403, res.status.getCall(0).args[0]);
+        done();
+      });
+      var user_key_container = {};
+      var u2f_mock = {};
+      u2f_mock.finishRegistration = sinon.stub();
+      u2f_mock.finishRegistration.returns(Promise.resolve());
+
+      req.session.auth_session.register_request = undefined;
+      req.app.get.withArgs('u2f').returns(u2f_mock);
+      u2f.register(req, res);
+    });
+
     it('should return forbidden error when no auth request has been initiated', function(done) {
       res.send = sinon.spy(function(data) {
         assert.equal(403, res.status.getCall(0).args[0]);

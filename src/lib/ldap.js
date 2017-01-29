@@ -8,7 +8,6 @@ module.exports = {
 var util = require('util');
 var Promise = require('bluebird');
 var exceptions = require('./exceptions');
-var Hashes = require('jshashes')
 var Dovehash = require('dovehash');
 
 function validateCredentials(ldap_client, username, password, users_dn) {

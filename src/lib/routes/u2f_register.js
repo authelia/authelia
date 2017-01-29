@@ -44,11 +44,18 @@ function register(req, res) {
   var registrationRequest = objectPath.get(req, 'session.auth_session.register_request');
   var challenge = objectPath.get(req, 'session.auth_session.identity_check.challenge');
 
+  if(!registrationRequest) {
+    res.status(403);
+    res.send();
+    return;
+  }
+
   if(!(registrationRequest && challenge == 'u2f-register')) {
     res.status(403);
     res.send();
     return; 
   }
+
 
   var user_data_storage = req.app.get('user data store');
   var u2f = req.app.get('u2f');
