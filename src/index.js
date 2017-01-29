@@ -27,12 +27,14 @@ var config = {
   notifier: yaml_config.notifier,
 }
 
-console.log(config);
-
 var ldap_client = ldap.createClient({
   url: config.ldap_url,
   reconnect: true
 });
+
+ldap_client.on('error', function(err) {
+  console.error('LDAP Error:', err.message)
+})
 
 var deps = {};
 deps.u2f = u2f;
