@@ -15,11 +15,21 @@ as 2nd factor.
 address.
 * Access restriction after too many authentication attempts.
 
+## Deployment
+
+### With NPM
+
+    npm install -g authelia
+
+### Docker
+
+    docker pull clems4ever/authelia
+
 ## Getting started
 
 The provided example is docker-based so that you can deploy and test it very 
-quickly.
-Before starting, make sure you don't have anything listening on port 8080. 
+quickly. First clone the repo make sure you don't have anything listening on 
+port 8080 before starting. 
 Then, type the following command to build and deploy the services:
 
     docker-compose build
