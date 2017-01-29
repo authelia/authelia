@@ -32,6 +32,10 @@ var ldap_client = ldap.createClient({
   reconnect: true
 });
 
+ldap_client.on('error', function(err) {
+  console.error('LDAP Error:', err.message)
+})
+
 var deps = {};
 deps.u2f = u2f;
 deps.nedb = nedb;
