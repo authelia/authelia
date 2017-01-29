@@ -1,45 +1,39 @@
 
+var first_factor = require('./routes/first_factor');
+var second_factor = require('./routes/second_factor');
+var reset_password = require('./routes/reset_password');
+var verify = require('./routes/verify');
+var u2f_register_handler = require('./routes/u2f_register_handler');
+var totp_register = require('./routes/totp_register');
+var objectPath = require('object-path');
+
 module.exports = {
-  'auth': serveAuth,
-  'login': serveLogin,
-  'logout': serveLogout
-}
-
-var authentication = require('./authentication');
-var replies = require('./replies');
-
-function serveAuth(req, res) {
-  if(req.method == 'POST') {
-    serveAuthPost(req, res);
-  }
-  else {
-    serveAuthGet(req, res);
-  }
-}
-
-function serveAuthGet(req, res) {
-  authentication.verify(req, res)
-  .then(function(user) {
-    replies.already_authenticated(res, user);
-  })
-  .fail(function(err) {
-    replies.authentication_failed(res);
-    console.error(err);
-  });
-}
-
-function serveAuthPost(req, res) {
-  authentication.authenticate(req, res);
+  login: serveLogin,
+  logout: serveLogout,
+  verify: verify,
+  first_factor: first_factor,
+  second_factor: second_factor,
+  reset_password: reset_password,
+  u2f_register: u2f_register_handler,
+  totp_register: totp_register,
 }
 
 function serveLogin(req, res) {
+  if(!(objectPath.has(req, 'session.auth_session'))) {
+    req.session.auth_session = {};
+    req.session.auth_session.first_factor = false;
+    req.session.auth_session.second_factor = false;
+  }
   res.render('login');
 }
 
 function serveLogout(req, res) {
   var redirect_param = req.query.redirect;
   var redirect_url = redirect_param || '/';
-  res.clearCookie('access_token');
+  req.session.auth_session = {
+    first_factor: false,
+    second_factor: false
+  }
   res.redirect(redirect_url);
 }
 

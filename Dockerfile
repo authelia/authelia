@@ -10,4 +10,7 @@ COPY src /usr/src
 ENV PORT=80
 EXPOSE 80
 
-CMD ["node", "index.js"]
+VOLUME /etc/auth-server
+VOLUME /var/lib/auth-server
+
+CMD ["node", "index.js", "/etc/auth-server/config.yml"]

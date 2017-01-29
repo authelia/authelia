@@ -6,3 +6,9 @@ coverage/
 *.swp
 
 *.sh
+
+config.yml
+
+npm-debug.log
+
+notifications/
