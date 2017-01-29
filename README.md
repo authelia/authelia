@@ -17,11 +17,16 @@ address.
 
 ## Deployment
 
+If you don't have any LDAP and nginx setup yet, I advise you to follow the 
+Getting Started. That way, you will not require anything to start.
+
+Otherwise here are the available steps to deploy on your machine.
+
 ### With NPM
 
     npm install -g authelia
 
-### Docker
+### With Docker
 
     docker pull clems4ever/authelia
 
