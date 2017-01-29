@@ -3,6 +3,9 @@
   "version": "1.0.11",
   "description": "2-factor authentication server using LDAP as 1st factor and TOTP or U2F as 2nd factor",
   "main": "src/index.js",
+  "bin": {
+    "authelia": "src/index.js"
+  },
   "scripts": {
     "test": "./node_modules/.bin/mocha --recursive test/unitary",
     "unit-test": "./node_modules/.bin/mocha --recursive test/unitary",

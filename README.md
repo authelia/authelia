@@ -79,6 +79,12 @@ Paste the link in your browser and you should be able to reset the password.
 
 ## Documentation
 ### Configuration
+The configuration of the server is defined in the file 
+**configuration.template.yml**. All the details are documented there.
+You can specify another configuration file by giving it as first argument of 
+**Authelia**.
+
+    authelia config.custom.yml
 
 ### API documentation
 There is a complete API documentation generated with 
