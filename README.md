@@ -35,13 +35,20 @@ Otherwise here are the available steps to deploy on your machine.
 The provided example is docker-based so that you can deploy and test it very 
 quickly. First clone the repo make sure you don't have anything listening on 
 port 8080 before starting. 
+Add the following lines to your /etc/hosts to simulate multiple subdomains
+
+    127.0.0.1       secret.test.local
+    127.0.0.1       secret1.test.local
+    127.0.0.1       secret2.test.local
+    127.0.0.1       auth.test.local
+    
 Then, type the following command to build and deploy the services:
 
     docker-compose build
     docker-compose up -d
 
 After few seconds the services should be running and you should be able to visit 
-[https://localhost:8080/](https://localhost:8080/). 
+[https://localhost:8080/](https://secret.test.local:8080/). 
 
 Normally, a self-signed certificate exception should appear, it has to be 
 accepted before getting to the login page:
