@@ -11,7 +11,7 @@ var exceptions = require('./exceptions');
 var Dovehash = require('dovehash');
 
 function validateCredentials(ldap_client, username, password, users_dn) {
-  var userDN = util.format("cn=%s,%s", username, users_dn);
+  var userDN = util.format("uid=%s,%s", username, users_dn);
   var bind_promised = Promise.promisify(ldap_client.bind, { context: ldap_client });
   return bind_promised(userDN, password)
   .error(function(err) {
@@ -21,7 +21,7 @@ function validateCredentials(ldap_client, username, password, users_dn) {
 }
 
 function retrieve_email(ldap_client, username, users_dn) {
-  var userDN = util.format("cn=%s,%s", username, users_dn);
+  var userDN = util.format("uid=%s,%s", username, users_dn);
   var search_promised = Promise.promisify(ldap_client.search, { context: ldap_client });
   var query = {};
   query.sizeLimit = 1;
@@ -49,7 +49,7 @@ function retrieve_email(ldap_client, username, users_dn) {
 }
 
 function update_password(ldap_client, ldap, username, new_password, config) {
-  var userDN = util.format("cn=%s,%s", username, config.ldap_users_dn);
+  var userDN = util.format("uid=%s,%s", username, config.ldap_users_dn);
   var encoded_password = Dovehash.encode('SSHA', new_password);
   var change = new ldap.Change({
     operation: 'replace',
