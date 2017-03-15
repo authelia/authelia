@@ -3,6 +3,11 @@
 params={};
 location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi,function(s,k,v){params[k]=v});
 
+function get_redirect_param() {
+  if('redirect' in params)
+    return params['redirect'];
+  return;
+}
 
 function setupEnterKeypressListener(filter, fn) {
   $(filter).on('keydown', 'input', function (e) {
@@ -49,7 +54,12 @@ function onTotpSignButtonClicked() {
 function onTotpRegisterButtonClicked() {
   $.ajax({
     type: 'POST',
-    url: '/authentication/totp-register'
+    url: '/authentication/totp-register',
+    data: JSON.stringify({
+      redirect: get_redirect_param()
+    }),
+    contentType: 'application/json',
+    dataType: 'json',
   })
   .done(function(data) {
     $.notify('An email has been sent to your email address', 'info');
@@ -82,7 +92,12 @@ function onU2fRegistrationButtonClicked() {
 function askForU2fRegistration(fn) {
   $.ajax({
     type: 'POST',
-    url: '/authentication/u2f-register'
+    url: '/authentication/u2f-register',
+    data: JSON.stringify({
+      redirect: get_redirect_param()
+    }),
+    contentType: 'application/json',
+    dataType: 'json',
   })
   .done(function(data) {
     fn(undefined, data);
@@ -157,6 +172,7 @@ function validateFirstFactor(username, password, fn) {
     fn(err);
   });
 }
+
 
 function redirect() {
   var redirect_uri = '/';

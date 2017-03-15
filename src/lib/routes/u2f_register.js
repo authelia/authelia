@@ -25,7 +25,7 @@ function register_request(req, res) {
   var appid = u2f_common.extract_app_id(req);
 
   logger.debug('U2F register_request: headers=%s', JSON.stringify(req.headers));
-  logger.info('U2F register_request: Starting registration');
+  logger.info('U2F register_request: Starting registration of app %s', appid);
   u2f.startRegistration(appid, [])
   .then(function(registrationRequest) {
     logger.info('U2F register_request: Sending back registration request');

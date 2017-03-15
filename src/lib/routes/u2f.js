@@ -35,7 +35,7 @@ function sign_request(req, res) {
     var u2f = req.app.get('u2f');
     var meta = doc.meta;
     var appid = u2f_common.extract_app_id(req);
-    logger.info('U2F sign_request: Start authentication');
+    logger.info('U2F sign_request: Start authentication to app %s', appid);
     return u2f.startAuthentication(appid, [meta])
   })
   .then(function(authRequest) {

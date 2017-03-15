@@ -1,32 +1,41 @@
 
-### Level of verbosity for logs
+# Level of verbosity for logs
 logs_level: info
 
-### Configuration of your LDAP
+# Configuration of LDAP
 ldap:
   url: ldap://ldap
   base_dn: ou=users,dc=example,dc=com
   user: cn=admin,dc=example,dc=com
   password: password
 
-### Configuration of session cookies
+
+# Configuration of session cookies
+#
+# _secret_ the secret to encrypt session cookies
+# _expiration_ the time before cookies expire
+# _domain_ the domain to protect. 
+# Note: the authenticator must also be in that domain. If empty, the cookie
+# is restricted to the subdomain of the issuer. 
 session:
   secret: unsecure_secret
   expiration: 3600000
+  domain: example.com
 
-### The directory where the DB files will be saved
+
+# The directory where the DB files will be saved
 store_directory: /var/lib/auth-server/store
 
 
-### Notifications are sent to users when they require a password reset, a u2f
-### registration or a TOTP registration.
-### Use only one available configuration: filesystem, gmail
+# Notifications are sent to users when they require a password reset, a u2f
+# registration or a TOTP registration.
+# Use only one available configuration: filesystem, gmail
 notifier:
-  ### For testing purpose, notifications can be sent in a file
+  # For testing purpose, notifications can be sent in a file
   filesystem:
     filename: /var/lib/auth-server/notifications/notification.txt
 
-  ### Use your gmail account to send the notifications. You can use an app password.
+  # Use your gmail account to send the notifications. You can use an app password.
   # gmail:
   #   username: user@example.com
   #   password: yourpassword

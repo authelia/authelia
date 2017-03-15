@@ -39,7 +39,7 @@ function startRegister(fn, timeout) {
 }
 
 function redirect() {
-  var redirect_uri = '/';
+  var redirect_uri = '/authentication/login';
   if('redirect' in params) {
     redirect_uri = params['redirect'];
   }

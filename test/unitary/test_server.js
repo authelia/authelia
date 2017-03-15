@@ -7,6 +7,7 @@ var assert = require('assert');
 var speakeasy = require('speakeasy');
 var sinon = require('sinon');
 var MockDate = require('mockdate');
+var session = require('express-session');
 
 var PORT = 8090;
 var BASE_URL = 'http://localhost:' + PORT;
@@ -89,6 +90,7 @@ describe('test the server', function() {
     deps.nedb = nedb;
     deps.nodemailer = nodemailer;
     deps.ldap = ldap;
+    deps.session = session;
 
     _server = server.run(config, ldap_client, deps, function() {
       done();

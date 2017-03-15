@@ -109,8 +109,12 @@ function identity_check_post(endpoint, icheck_interface) {
       throw new exceptions.AccessDeniedError();
     })
     .then(function(token) {
+      var redirect_url = objectPath.get(req, 'body.redirect');
       var original_url = util.format('https://%s%s', req.headers.host, req.headers['x-original-uri']);
       var link_url = util.format('%s?identity_token=%s', original_url, token); 
+      if(redirect_url) {
+        link_url = util.format('%s&redirect=%s', link_url, redirect_url); 
+      }
 
       logger.info('POST identity_check: notify to %s', identity.userid);
       return notifier.notify(identity, icheck_interface.email_subject, link_url);
