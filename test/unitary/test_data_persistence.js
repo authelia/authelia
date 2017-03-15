@@ -8,6 +8,7 @@ var speakeasy = require('speakeasy');
 var sinon = require('sinon');
 var tmp = require('tmp');
 var nedb = require('nedb');
+var session = require('express-session');
 
 var PORT = 8050;
 var BASE_URL = 'http://localhost:' + PORT;
@@ -88,6 +89,7 @@ describe('test data persistence', function() {
     deps.u2f = u2f;
     deps.nedb = nedb;
     deps.nodemailer = nodemailer;
+    deps.session = session;
 
     var j1 = request.jar();
     var j2 = request.jar();

@@ -3,7 +3,8 @@
     <title>Home page</title>
   </head>
   <body>
-  You need to <a href="/authentication/login?redirect=/">log in</a> to access the <a href="/secret.html">secret</a>!<br/><br/>
-  You can also log off by visiting the following <a href="/authentication/logout?redirect=/">link</a>.
+  You need to <a href="https://auth.test.local:8080/authentication/login?redirect=https://secret.test.local:8080/">log in</a> to access the <a href="/secret.html">secret</a>!<br/><br/>
+  But you can also access it from another <a href="https://secret1.test.local:8080/secret.html">domain</a> or still <a href="https://secret2.test.local:8080/secret.html">another one</a>.<br/><br/>
+  You can also log off by visiting the following <a href="https://auth.test.local:8080/authentication/logout?redirect=https://secret.test.local:8080/">link</a>.
   </body>
 </html>

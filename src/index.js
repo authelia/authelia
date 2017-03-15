@@ -9,6 +9,7 @@ var u2f = require('authdog');
 var nodemailer = require('nodemailer');
 var nedb = require('nedb');
 var YAML = require('yamljs');
+var session = require('express-session');
 
 var config_path = process.argv[2];
 if(!config_path) {
@@ -27,6 +28,7 @@ var config = {
   ldap_users_dn: yaml_config.ldap.base_dn,
   ldap_user: yaml_config.ldap.user,
   ldap_password: yaml_config.ldap.password,
+  session_domain: yaml_config.session.domain,
   session_secret: yaml_config.session.secret,
   session_max_age: yaml_config.session.expiration || 3600000, // in ms
   store_directory: yaml_config.store_directory,
@@ -48,5 +50,6 @@ deps.u2f = u2f;
 deps.nedb = nedb;
 deps.nodemailer = nodemailer;
 deps.ldap = ldap;
+deps.session = session;
 
 server.run(config, ldap_client, deps);

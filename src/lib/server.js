@@ -7,7 +7,6 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var speakeasy = require('speakeasy');
 var path = require('path');
-var session = require('express-session');
 var winston = require('winston');
 var UserDataStore = require('./user_data_store');
 var Notifier = require('./notifier');
@@ -28,13 +27,14 @@ function run(config, ldap_client, deps, fn) {
   app.use(bodyParser.json());
   app.set('trust proxy', 1); // trust first proxy
 
-  app.use(session({
+  app.use(deps.session({
     secret: config.session_secret,
     resave: false,
     saveUninitialized: true,
     cookie: { 
       secure: false,
-      maxAge: config.session_max_age
+      maxAge: config.session_max_age,
+      domain: config.session_domain
     },
   }));
   
