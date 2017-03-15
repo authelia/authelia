@@ -1,5 +1,8 @@
 (function() {
 
+params={};
+location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi,function(s,k,v){params[k]=v});
+
 function generateSecret(fn) {
   $.ajax({
     type: 'POST',
@@ -22,7 +25,18 @@ function onSecretGenerated(err, secret) {
   $("#secret").text(secret.base32);
 }
 
+function redirect() {
+  var redirect_uri = '/authentication/login';
+  if('redirect' in params) {
+    redirect_uri = params['redirect'];
+  }
+  window.location.replace(redirect_uri);
+}
+
 $(document).ready(function() {
   generateSecret(onSecretGenerated);
+  $('#login-button').on('click', function() {
+    redirect();
+  });
 });
 })();
