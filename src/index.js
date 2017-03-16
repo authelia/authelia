@@ -25,7 +25,8 @@ var yaml_config = YAML.load(config_path);
 var config = {
   port: process.env.PORT || 8080,
   ldap_url: yaml_config.ldap.url || 'ldap://127.0.0.1:389',
-  ldap_users_dn: yaml_config.ldap.base_dn,
+  ldap_user_search_base: yaml_config.ldap.user_search_base,
+  ldap_user_search_filter: yaml_config.ldap.user_search_filter,
   ldap_user: yaml_config.ldap.user,
   ldap_password: yaml_config.ldap.password,
   session_domain: yaml_config.session.domain,

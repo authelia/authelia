@@ -18,7 +18,8 @@ describe('test the first factor validation route', function() {
       search: sinon.stub()
     }
     var config = {
-      ldap_users_dn: 'dc=example,dc=com'
+      ldap_user_search_base: 'ou=users,dc=example,dc=com',
+      ldap_user_search_filter: 'uid'
     }
 
     var search_doc = {
@@ -42,7 +43,7 @@ describe('test the first factor validation route', function() {
 
     var app_get = sinon.stub();
     app_get.withArgs('ldap client').returns(ldap_interface_mock);
-    app_get.withArgs('config').returns(ldap_interface_mock);
+    app_get.withArgs('config').returns(config);
     app_get.withArgs('logger').returns(winston);
     app_get.withArgs('authentication regulator').returns(regulator);
 
@@ -77,6 +78,21 @@ describe('test the first factor validation route', function() {
       ldap_interface_mock.bind.yields(undefined);
       first_factor(req, res);
     });
+  });
+
+  it('should bind user based on LDAP DN', function(done) {
+    ldap_interface_mock.bind = sinon.spy(function(dn) {
+      if(dn == 'uid=username,ou=users,dc=example,dc=com') done();
+    });
+    first_factor(req, res);
+  });
+
+  it('should retrieve email from LDAP', function(done) {
+    ldap_interface_mock.bind.yields(undefined);
+    ldap_interface_mock.search = sinon.spy(function(dn) {
+      if(dn == 'uid=username,ou=users,dc=example,dc=com') done();
+    });
+    first_factor(req, res);
   });
 
   it('should return status code 401 when LDAP binding fails', function(done) {

@@ -1,6 +1,6 @@
 
 module.exports = {
-  validate: validateCredentials,
+  validate: validate_credentials,
   get_email: retrieve_email,
   update_password: update_password
 }
@@ -10,8 +10,12 @@ var Promise = require('bluebird');
 var exceptions = require('./exceptions');
 var Dovehash = require('dovehash');
 
-function validateCredentials(ldap_client, username, password, users_dn) {
-  var userDN = util.format("cn=%s,%s", username, users_dn);
+function validate_credentials(ldap_client, username, password, user_base, user_filter) {
+  // if not provided, default to cn
+  if(!user_filter) user_filter = 'cn';
+
+  var userDN = util.format("%s=%s,%s", user_filter, username, user_base);
+  console.log(userDN);
   var bind_promised = Promise.promisify(ldap_client.bind, { context: ldap_client });
   return bind_promised(userDN, password)
   .error(function(err) {
@@ -20,16 +24,19 @@ function validateCredentials(ldap_client, username, password, users_dn) {
   });
 }
 
-function retrieve_email(ldap_client, username, users_dn) {
-  var userDN = util.format("cn=%s,%s", username, users_dn);
+function retrieve_email(ldap_client, username, user_base, user_filter) {
+  // if not provided, default to cn
+  if(!user_filter) user_filter = 'cn';
+
+  var userDN = util.format("%s=%s,%s", user_filter, username, user_base);
+  console.log(userDN);
   var search_promised = Promise.promisify(ldap_client.search, { context: ldap_client });
   var query = {};
   query.sizeLimit = 1;
   query.attributes = ['mail'];
-  var base_dn = userDN;
 
   return new Promise(function(resolve, reject) {
-    search_promised(base_dn, query)
+    search_promised(userDN, query)
     .then(function(res) {
       var doc;
       res.on('searchEntry', function(entry) {
@@ -49,7 +56,12 @@ function retrieve_email(ldap_client, username, users_dn) {
 }
 
 function update_password(ldap_client, ldap, username, new_password, config) {
-  var userDN = util.format("cn=%s,%s", username, config.ldap_users_dn);
+  var user_filter = config.ldap_user_search_filter;
+  // if not provided, default to cn
+  if(!user_filter) user_filter = 'cn';
+
+  var userDN = util.format("%s=%s,%s", user_filter, username, 
+                           config.ldap_user_search_base);
   var encoded_password = Dovehash.encode('SSHA', new_password);
   var change = new ldap.Change({
     operation: 'replace',

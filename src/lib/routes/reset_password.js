@@ -27,7 +27,8 @@ function pre_check(req) {
   var ldap_client = req.app.get('ldap client');
   var config = req.app.get('config');
 
-  return ldap.get_email(ldap_client, userid, config.ldap_users_dn)
+  return ldap.get_email(ldap_client, userid, config.ldap_user_search_base,
+                        config.ldap_user_search_filter)
   .then(function(doc) {
     var email = objectPath.get(doc, 'mail');
 
