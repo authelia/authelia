@@ -54,7 +54,7 @@ describe('test data persistence', function() {
       port: PORT,
       totp_secret: 'totp_secret',
       ldap_url: 'ldap://127.0.0.1:389',
-      ldap_users_dn: 'ou=users,dc=example,dc=com',
+      ldap_user_search_base: 'ou=users,dc=example,dc=com',
       session_secret: 'session_secret',
       session_max_age: 50000,
       store_directory: tmpDir.name,

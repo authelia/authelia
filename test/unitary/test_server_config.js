@@ -4,9 +4,11 @@ var server = require('../../src/lib/server');
 var assert = require('assert');
 
 describe('test server configuration', function() {
-  it('should set cookie scope to domain set in the config', function() {
-    var config = {};
-    config.session_domain = 'example.com';
+  var deps;
+  var config;
+
+  before(function() {
+    config = {};
     config.notifier = {
       gmail: {
         user: 'user@example.com',
@@ -22,13 +24,17 @@ describe('test server configuration', function() {
       return transporter;
     });
 
-    var deps = {};
+    deps = {};
     deps.nedb = require('nedb');
     deps.nodemailer = nodemailer;
     deps.session = sinon.spy(function() {
       return function(req, res, next) { next(); };
     });
+  });
 
+
+  it('should set cookie scope to domain set in the config', function() {
+    config.session_domain = 'example.com';
     server.run(config, undefined, deps);
 
     assert(deps.session.calledOnce);

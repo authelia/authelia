@@ -3,9 +3,11 @@
 logs_level: info
 
 # Configuration of LDAP
+# Example: for user john, the DN will be cn=john,ou=users,dc=example,dc=com
 ldap:
   url: ldap://ldap
-  base_dn: ou=users,dc=example,dc=com
+  user_search_base: ou=users,dc=example,dc=com
+  user_search_filter: cn
   user: cn=admin,dc=example,dc=com
   password: password
 

@@ -23,18 +23,20 @@ function first_factor(req, res) {
 
   logger.debug('1st factor: Start bind operation against LDAP');
   logger.debug('1st factor: username=%s', username);
-  logger.debug('1st factor: base_dn=%s', config.ldap_users_dn);
+  logger.debug('1st factor: base_dn=%s', config.ldap_user_search_base);
+  logger.debug('1st factor: user_filter=%s', config.ldap_user_search_filter);
 
   regulator.regulate(username)
   .then(function() {
-    return ldap.validate(ldap_client, username, password, config.ldap_users_dn);
+    return ldap.validate(ldap_client, username, password, config.ldap_user_search_base, config.ldap_user_search_filter);
   })
   .then(function() {
     objectPath.set(req, 'session.auth_session.userid', username);
     objectPath.set(req, 'session.auth_session.first_factor', true);
     logger.info('1st factor: LDAP binding successful');
     logger.debug('1st factor: Retrieve email from LDAP');
-    return ldap.get_email(ldap_client, username, config.ldap_users_dn)
+    return ldap.get_email(ldap_client, username, config.ldap_user_search_base,
+                          config.ldap_user_search_filter)
   })
   .then(function(doc) {
     var email = objectPath.get(doc, 'mail');

@@ -46,7 +46,8 @@ describe('test reset password', function() {
     req.app.get.withArgs('ldap client').returns(ldap_client);
 
     config = {};
-    config.ldap_users_dn = 'dc=example,dc=com';
+    config.ldap_user_search_base = 'dc=example,dc=com';
+    config.ldap_user_search_filter = 'cn';
     req.app.get.withArgs('config').returns(config);
 
     res = {};
@@ -73,6 +74,15 @@ describe('test reset password', function() {
       .catch(function(err) {
         done();
       });
+    });
+
+    it('should perform a search in ldap to find email address', function(done) {
+      config.ldap_user_search_filter = 'uid';
+      ldap_client.search = sinon.spy(function(dn) {
+        console.log(dn);
+        if(dn == 'uid=user,dc=example,dc=com') done();
+      });
+      reset_password.icheck_interface.pre_check_callback(req);
     });
 
     it('should returns identity when ldap replies', function(done) {

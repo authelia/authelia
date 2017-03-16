@@ -25,14 +25,36 @@ describe('test ldap validation', function() {
     function test_validate() {
       var username = 'user';
       var password = 'password';
-      var ldap_url = 'http://ldap';
       var users_dn = 'dc=example,dc=com';
-      return ldap.validate(ldap_client, username, password, ldap_url, users_dn);
+      return ldap.validate(ldap_client, username, password, users_dn);
     }
 
     it('should bind the user if good credentials provided', function() {
       ldap_client.bind.yields();
       return test_validate();
+    });
+
+    it('should bind the user with correct DN', function(done) {
+      var username = 'user';
+      var password = 'password';
+      var user_search_base = 'dc=example,dc=com';
+      var user_search_filter = 'uid';
+      ldap_client.bind = sinon.spy(function(dn) {
+        if(dn == 'uid=user,dc=example,dc=com') done(); 
+      });
+      ldap.validate(ldap_client, username, password, user_search_base, 
+                    user_search_filter);
+    });
+
+    it('should default to cn user search filter if no filter provided', function(done) {
+      var username = 'user';
+      var password = 'password';
+      var user_search_base = 'dc=example,dc=com';
+      ldap_client.bind = sinon.spy(function(dn) {
+        if(dn == 'cn=user,dc=example,dc=com') done(); 
+      });
+      ldap.validate(ldap_client, username, password, user_search_base, 
+                    undefined);
     });
 
     // cover an issue with promisify context
@@ -76,6 +98,14 @@ describe('test ldap validation', function() {
       })
     });
 
+    it('should use the user filter', function(done) {
+      ldap_client.search = sinon.spy(function(dn) {
+        if(dn == 'uid=username,ou=users,dc=example,dc=com') done();
+      });
+      ldap.get_email(ldap_client, 'username', 'ou=users,dc=example,dc=com', 
+                     'uid')
+    });
+
     it('should fail on error with search method', function(done) {
       var expected_doc = {};
       expected_doc.mail = [];
@@ -97,7 +127,7 @@ describe('test ldap validation', function() {
       change.modification.userPassword = 'new-password';
 
       var config = {};
-      config.ldap_users_dn = 'dc=example,dc=com';
+      config.ldap_user_search_base = 'dc=example,dc=com';
       config.ldap_user = 'admin';
 
       var userdn = 'cn=user,dc=example,dc=com';
@@ -134,6 +164,22 @@ describe('test ldap validation', function() {
       .catch(function() {
         done();
       })
+    });
+
+    it('should use the user filter', function(done) {
+      var ldapjs = {};
+      ldapjs.Change = sinon.spy();
+
+      var config = {};
+      config.ldap_user_search_base = 'ou=users,dc=example,dc=com';
+      config.ldap_user_search_filter = 'uid';
+      config.ldap_user = 'admin';
+
+      ldap_client.bind.yields(undefined);
+      ldap_client.modify = sinon.spy(function(dn) {
+        if(dn == 'uid=username,ou=users,dc=example,dc=com') done();
+      });
+      ldap.update_password(ldap_client, ldapjs, 'username', 'newpass', config)
     });
   }
 });
