@@ -11,6 +11,7 @@ addons:
 before_install: npm install -g npm@'>=2.13.5'
 script:
 - npm test
+- docker build clems4ever/authelia
 - docker-compose build
 - docker-compose up -d
 - sleep 5
@@ -19,7 +20,7 @@ script:
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-    docker push USER/REPO;
+    docker push clems4ever/authelia;
     fi
 
 deploy:
