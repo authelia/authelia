@@ -11,7 +11,7 @@ addons:
 before_install: npm install -g npm@'>=2.13.5'
 script:
 - npm test
-- docker build clems4ever/authelia
+- docker build -t clems4ever/authelia .
 - docker-compose build
 - docker-compose up -d
 - sleep 5
