@@ -15,6 +15,13 @@ script:
 - docker-compose up -d
 - sleep 5
 - ./scripts/check_services.sh
+
+after_success:
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+    docker push USER/REPO;
+    fi
+
 deploy:
   provider: npm
   email: clement.michaud34@gmail.com
@@ -28,3 +35,4 @@ notifications:
     - clement.michaud34@gmail.com
     on_success: change
     on_failure: always
+
