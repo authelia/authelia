@@ -48,7 +48,7 @@ Then, type the following command to build and deploy the services:
     docker-compose up -d
 
 After few seconds the services should be running and you should be able to visit 
-[https://localhost:8080/](https://secret.test.local:8080/). 
+[https://secret.test.local:8080/](https://secret.test.local:8080/). 
 
 Normally, a self-signed certificate exception should appear, it has to be 
 accepted before getting to the login page:
