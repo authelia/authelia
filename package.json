@@ -14,12 +14,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/clems4ever/two-factor-auth-server"
+    "url": "git+https://github.com/clems4ever/authelia"
   },
   "author": "Clement Michaud <clement.michaud34@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/clems4ever/two-factor-auth-server/issues"
+    "url": "https://github.com/clems4ever/authelia/issues"
   },
   "apidoc": {
     "title": "Authelia API documentation"
