@@ -32,13 +32,17 @@ describe('test the server', function() {
     var config = {
       port: PORT,
       totp_secret: 'totp_secret',
-      ldap_url: 'ldap://127.0.0.1:389',
-      ldap_user_search_base: 'ou=users,dc=example,dc=com',
-      ldap_user_search_filter: 'cn',
-      ldap_user: 'cn=admin,dc=example,dc=com',
-      ldap_password: 'password',
-      session_secret: 'session_secret',
-      session_max_age: 50000,
+      ldap: {
+        url: 'ldap://127.0.0.1:389',
+        user_search_base: 'ou=users,dc=example,dc=com',
+        user_search_filter: 'cn',
+        user: 'cn=admin,dc=example,dc=com',
+        password: 'password',
+      },
+      session: {
+        secret: 'session_secret',
+        expiration: 50000,
+      },
       store_in_memory: true,
       notifier: {
         gmail: {

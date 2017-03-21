@@ -53,10 +53,14 @@ describe('test data persistence', function() {
     config = {
       port: PORT,
       totp_secret: 'totp_secret',
-      ldap_url: 'ldap://127.0.0.1:389',
-      ldap_user_search_base: 'ou=users,dc=example,dc=com',
-      session_secret: 'session_secret',
-      session_max_age: 50000,
+      ldap: {
+        url: 'ldap://127.0.0.1:389',
+        user_search_base: 'ou=users,dc=example,dc=com',
+      },
+      session: {
+        secret: 'session_secret',
+        expiration: 50000,
+      },
       store_directory: tmpDir.name,
       notifier: { gmail: { user: 'user@example.com', pass: 'password' } }
     };

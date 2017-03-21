@@ -12,8 +12,11 @@ var UserDataStore = require('./user_data_store');
 var Notifier = require('./notifier');
 var AuthenticationRegulator = require('./authentication_regulator');
 var setup_endpoints = require('./setup_endpoints');
+var config_adapter = require('./config_adapter');
 
-function run(config, ldap_client, deps, fn) {
+function run(yaml_config, ldap_client, deps, fn) {
+  var config = config_adapter(yaml_config);
+
   var view_directory = path.resolve(__dirname, '../views');
   var public_html_directory = path.resolve(__dirname, '../public_html');
   var datastore_options = {};

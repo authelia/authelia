@@ -1,4 +1,7 @@
 
+# The port to listen on
+port: 8080
+
 # Level of verbosity for logs
 logs_level: info
 

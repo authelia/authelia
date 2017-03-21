@@ -34,7 +34,8 @@ describe('test server configuration', function() {
 
 
   it('should set cookie scope to domain set in the config', function() {
-    config.session_domain = 'example.com';
+    config.session = {};
+    config.session.domain = 'example.com';
     server.run(config, undefined, deps);
 
     assert(deps.session.calledOnce);
