@@ -3,8 +3,81 @@
     <title>Home page</title>
   </head>
   <body>
-  You need to <a href="https://auth.test.local:8080/authentication/login?redirect=https://secret.test.local:8080/">log in</a> to access the <a href="/secret.html">secret</a>!<br/><br/>
-  But you can also access it from another <a href="https://secret1.test.local:8080/secret.html">domain</a> or still <a href="https://secret2.test.local:8080/secret.html">another one</a>.<br/><br/>
-  You can also log off by visiting the following <a href="https://auth.test.local:8080/authentication/logout?redirect=https://secret.test.local:8080/">link</a>.
+  <h1>Access the secret</h1>
+  You need to log in to access the secret!<br/><br/>
+  Try to access it via one of the following links.<br/>
+  <ul>
+    <li>
+      <a href="https://secret.test.local:8080/secret.html">secret.test.local</a>
+    </li>
+    <li>
+      <a href="https://secret1.test.local:8080/secret.html">secret1.test.local</a>
+    </li>
+    <li>
+      <a href="https://secret2.test.local:8080/secret.html">secret2.test.local</a>
+    </li>
+    <li>
+      <a href="https://home.test.local:8080/secret.html">home.test.local</a>
+    </li>
+    <li>
+      <a href="https://mx1.mail.test.local:8080/secret.html">mx1.mail.test.local</a>
+    </li>
+    <li>
+      <a href="https://mx2.mail.test.local:8080/secret.html">mx2.mail.test.local</a>
+    </li>
+  </ul>
+
+  You can also log off by visiting the following <a href="https://auth.test.local:8080/authentication/logout?redirect=https://home.test.local:8080/">link</a>.
+
+  <h1>List of users</h1>
+  Here is the list of credentials you can log in with to test access control.
+ 
+  <ul>
+    <li><strong>john / password</strong>: belongs to <em>admin</em> and <em>dev</em> groups.</li>
+    <li><strong>bob / password</strong>: belongs to <em>dev</em> group only.</li>
+    <li><strong>harry / password</strong>: does not belong to any group.</li>
+  </ul>
+
+  <h1>Access control rules</h1>
+
+  <ul>
+    <li><strong>Default policy</strong>
+      <ul>
+        <li>home.test.local</li>
+      </ul>
+    </li>
+
+    <li><strong>Groups policy</strong>
+      <ul>
+        <li>admin
+          <ul>
+            <li>*.test.local</li>
+          </ul>
+        </li>
+        <li>dev
+          <ul>
+            <li>secret.test.local</li>
+            <li>secret2.test.local</li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+
+    <li><strong>Users policy</strong>
+      <ul>
+        <li>harry
+          <ul>
+            <li>secret1.test.local</li>
+          </ul>
+        </li>
+        <li>bob
+          <ul>
+            <li>*.mail.test.local</li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+
   </body>
 </html>

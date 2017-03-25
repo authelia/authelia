@@ -2,11 +2,29 @@
 module.exports = first_factor;
 
 var exceptions = require('../exceptions');
-var ldap = require('../ldap');
 var objectPath = require('object-path');
+var Promise = require('bluebird');
+
+function get_allowed_domains(access_control, username, groups) {
+  var allowed_domains = [];
+
+  for(var i = 0; i<access_control.length; ++i) {
+    var rule = access_control[i];
+    if('allowed_domains' in rule) {
+      if('group' in rule && groups.indexOf(rule['group']) >= 0) {
+        var domains = rule.allowed_domains;
+        allowed_domains = allowed_domains.concat(domains);
+      }
+      else if('user' in rule && username == rule['user']) {
+        var domains = rule.allowed_domains;
+        allowed_domains = allowed_domains.concat(domains);
+      }
+    }
+  }
+  return allowed_domains;
+}
 
 function first_factor(req, res) {
-  var logger = req.app.get('logger');
   var username = req.body.username;
   var password = req.body.password;
   if(!username || !password) {
@@ -15,59 +33,70 @@ function first_factor(req, res) {
     return;
   }
 
-  logger.info('1st factor: Starting authentication of user "%s"', username);
-
-  var ldap_client = req.app.get('ldap client');
+  var logger = req.app.get('logger');
+  var ldap = req.app.get('ldap');
   var config = req.app.get('config');
   var regulator = req.app.get('authentication regulator');
+  var acl_builder = req.app.get('access control').builder;
 
+  logger.info('1st factor: Starting authentication of user "%s"', username);
   logger.debug('1st factor: Start bind operation against LDAP');
   logger.debug('1st factor: username=%s', username);
-  logger.debug('1st factor: base_dn=%s', config.ldap_user_search_base);
-  logger.debug('1st factor: user_filter=%s', config.ldap_user_search_filter);
 
   regulator.regulate(username)
   .then(function() {
-    return ldap.validate(ldap_client, username, password, config.ldap_user_search_base, config.ldap_user_search_filter);
+    return ldap.bind(username, password);
   })
   .then(function() {
     objectPath.set(req, 'session.auth_session.userid', username);
     objectPath.set(req, 'session.auth_session.first_factor', true);
     logger.info('1st factor: LDAP binding successful');
     logger.debug('1st factor: Retrieve email from LDAP');
-    return ldap.get_email(ldap_client, username, config.ldap_user_search_base,
-                          config.ldap_user_search_filter)
+    return Promise.join(ldap.get_emails(username), ldap.get_groups(username));
   })
-  .then(function(doc) {
-    var email = objectPath.get(doc, 'mail');
-    logger.debug('1st factor: document=%s', JSON.stringify(doc));
-    logger.debug('1st factor: Retrieved email is %s', email);
+  .then(function(data) {
+    var emails = data[0];
+    var groups = data[1];
+    var allowed_domains;
 
-    objectPath.set(req, 'session.auth_session.email', email);
+    if(!emails && emails.length <= 0) throw new Error('No email found');
+    logger.debug('1st factor: Retrieved email are %s', emails);
+    objectPath.set(req, 'session.auth_session.email', emails[0]);
+
+    if(config.access_control) {
+      allowed_domains = acl_builder.get_allowed_domains(username, groups);
+    }
+    else {
+      allowed_domains = acl_builder.get_any_domain();
+      logger.debug('1st factor: no access control rules found.' +
+        'Default policy to allow all.');
+    }
+    objectPath.set(req, 'session.auth_session.allowed_domains', allowed_domains);
+
     regulator.mark(username, true);
     res.status(204);
     res.send();
   })
   .catch(exceptions.LdapSearchError, function(err) {
-    logger.info('1st factor: Unable to retrieve email from LDAP', err);
+    logger.error('1st factor: Unable to retrieve email from LDAP', err);
     res.status(500);
     res.send();
   })
   .catch(exceptions.LdapBindError, function(err) {
-    logger.info('1st factor: LDAP binding failed');
+    logger.error('1st factor: LDAP binding failed');
     logger.debug('1st factor: LDAP binding failed due to ', err);
     regulator.mark(username, false);
     res.status(401);
     res.send('Bad credentials');
   })
   .catch(exceptions.AuthenticationRegulationError, function(err) {
-    logger.info('1st factor: the regulator rejected the authentication of user %s', username);
+    logger.error('1st factor: the regulator rejected the authentication of user %s', username);
     logger.debug('1st factor: authentication rejected due to  %s', err);
     res.status(403);
     res.send('Access has been restricted for a few minutes...');
   })
   .catch(function(err) {
-    logger.debug('1st factor: Unhandled error %s', err);
+    logger.error('1st factor: Unhandled error %s', err);
     res.status(500);
     res.send('Internal error');
   });

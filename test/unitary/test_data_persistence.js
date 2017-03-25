@@ -9,6 +9,7 @@ var sinon = require('sinon');
 var tmp = require('tmp');
 var nedb = require('nedb');
 var session = require('express-session');
+var winston = require('winston');
 
 var PORT = 8050;
 var BASE_URL = 'http://localhost:' + PORT;
@@ -21,8 +22,14 @@ describe('test data persistence', function() {
   var tmpDir;
   var ldap_client = {
     bind: sinon.stub(),
-    search: sinon.stub()
+    search: sinon.stub(),
+    on: sinon.spy()
   };
+  var ldap = {
+    createClient: sinon.spy(function() {
+      return ldap_client;
+    })
+  }
   var config;
 
   before(function() {
@@ -53,10 +60,14 @@ describe('test data persistence', function() {
     config = {
       port: PORT,
       totp_secret: 'totp_secret',
-      ldap_url: 'ldap://127.0.0.1:389',
-      ldap_user_search_base: 'ou=users,dc=example,dc=com',
-      session_secret: 'session_secret',
-      session_max_age: 50000,
+      ldap: {
+        url: 'ldap://127.0.0.1:389',
+        base_dn: 'ou=users,dc=example,dc=com',
+      },
+      session: {
+        secret: 'session_secret',
+        expiration: 50000,
+      },
       store_directory: tmpDir.name,
       notifier: { gmail: { user: 'user@example.com', pass: 'password' } }
     };
@@ -90,11 +101,13 @@ describe('test data persistence', function() {
     deps.nedb = nedb;
     deps.nodemailer = nodemailer;
     deps.session = session;
+    deps.winston = winston;
+    deps.ldapjs = ldap;
 
     var j1 = request.jar();
     var j2 = request.jar();
 
-    return start_server(config, ldap_client, deps)
+    return start_server(config, deps)
     .then(function(s) {
       server = s;
       return requests.login(j1);
@@ -112,7 +125,7 @@ describe('test data persistence', function() {
       return stop_server(server);
     })
     .then(function() {
-      return start_server(config, ldap_client, deps)
+      return start_server(config, deps)
     })
     .then(function(s) {
       server = s;
@@ -135,9 +148,9 @@ describe('test data persistence', function() {
     });
   });
 
-  function start_server(config, ldap_client, deps) {
+  function start_server(config, deps) {
     return new Promise(function(resolve, reject) {
-      var s = server.run(config, ldap_client, deps);
+      var s = server.run(config, deps);
       resolve(s);
     });
   }

@@ -26,7 +26,12 @@ describe('test server configuration', function() {
 
     deps = {};
     deps.nedb = require('nedb');
+    deps.winston = sinon.spy();
     deps.nodemailer = nodemailer;
+    deps.ldapjs = {};
+    deps.ldapjs.createClient = sinon.spy(function() {
+      return { on: sinon.spy() };
+    });
     deps.session = sinon.spy(function() {
       return function(req, res, next) { next(); };
     });
@@ -34,8 +39,11 @@ describe('test server configuration', function() {
 
 
   it('should set cookie scope to domain set in the config', function() {
-    config.session_domain = 'example.com';
-    server.run(config, undefined, deps);
+    config.session = {};
+    config.session.domain = 'example.com';
+    config.ldap = {};
+    config.ldap.url = 'http://ldap';
+    server.run(config, deps);
 
     assert(deps.session.calledOnce);
     assert.equal(deps.session.getCall(0).args[0].cookie.domain, 'example.com');

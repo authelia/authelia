@@ -5,35 +5,30 @@ var assert = require('assert');
 var winston = require('winston');
 var first_factor = require('../../../src/lib/routes/first_factor');
 var exceptions = require('../../../src/lib/exceptions');
+var Ldap = require('../../../src/lib/ldap');
+var AccessControl = require('../../../src/lib/access_control');
 
 describe('test the first factor validation route', function() {
   var req, res;
   var ldap_interface_mock;
+  var emails;
   var search_res_ok;
   var regulator;
+  var access_control;
+  var config;
 
   beforeEach(function() {
-    ldap_interface_mock = {
-      bind: sinon.stub(),
-      search: sinon.stub()
-    }
-    var config = {
-      ldap_user_search_base: 'ou=users,dc=example,dc=com',
-      ldap_user_search_filter: 'uid'
-    }
-
-    var search_doc = {
-      object: {
-        mail: 'test_ok@example.com'
+    ldap_interface_mock = sinon.createStubInstance(Ldap);
+    config = {
+      ldap: {
+        base_dn: 'ou=users,dc=example,dc=com',
+        user_name_attribute: 'uid'
       }
-    };
- 
-    var search_res_ok = {};
-    search_res_ok.on = sinon.spy(function(event, fn) {
-      if(event != 'error') fn(search_doc);
-    });
-    ldap_interface_mock.search.yields(undefined, search_res_ok);
+    }
 
+    emails = [ 'test_ok@example.com' ];
+    groups = [ 'group1', 'group2' ];
+ 
     regulator = {};
     regulator.mark = sinon.stub();
     regulator.regulate = sinon.stub();
@@ -41,11 +36,22 @@ describe('test the first factor validation route', function() {
     regulator.mark.returns(Promise.resolve());
     regulator.regulate.returns(Promise.resolve());
 
+    access_control = { 
+      builder: {
+        get_allowed_domains: sinon.stub(),
+        get_any_domain: sinon.stub(),
+      },
+      matcher: {
+        is_domain_allowed: sinon.stub()
+      }
+    };
+
     var app_get = sinon.stub();
-    app_get.withArgs('ldap client').returns(ldap_interface_mock);
+    app_get.withArgs('ldap').returns(ldap_interface_mock);
     app_get.withArgs('config').returns(config);
     app_get.withArgs('logger').returns(winston);
     app_get.withArgs('authentication regulator').returns(regulator);
+    app_get.withArgs('access control').returns(access_control);
 
     req = {
       app: {
@@ -75,43 +81,83 @@ describe('test the first factor validation route', function() {
         assert.equal(204, res.status.getCall(0).args[0]);
         resolve();
       });
-      ldap_interface_mock.bind.yields(undefined);
+      ldap_interface_mock.bind.withArgs('username').returns(Promise.resolve());
+      ldap_interface_mock.get_emails.returns(Promise.resolve(emails));
       first_factor(req, res);
     });
   });
 
-  it('should bind user based on LDAP DN', function(done) {
-    ldap_interface_mock.bind = sinon.spy(function(dn) {
-      if(dn == 'uid=username,ou=users,dc=example,dc=com') done();
+  describe('store the ACL matcher in the auth session', function() {
+    it('should store the allowed domains in the auth session', function() {
+      config.access_control = {};
+      access_control.builder.get_allowed_domains.returns(['example.com', 'test.example.com']);
+      return new Promise(function(resolve, reject) {
+        res.send = sinon.spy(function(data) {
+          assert.deepEqual(['example.com', 'test.example.com'], 
+            req.session.auth_session.allowed_domains);
+          assert.equal(204, res.status.getCall(0).args[0]);
+          resolve();
+        });
+        ldap_interface_mock.bind.withArgs('username').returns(Promise.resolve());
+        ldap_interface_mock.get_emails.returns(Promise.resolve(emails));
+        ldap_interface_mock.get_groups.returns(Promise.resolve(groups));
+        first_factor(req, res);
+      });
     });
-    first_factor(req, res);
+
+    it('should store the allow all ACL matcher in the auth session', function() {
+      access_control.builder.get_any_domain.returns(['*']);
+      return new Promise(function(resolve, reject) {
+        res.send = sinon.spy(function(data) {
+          assert(req.session.auth_session.allowed_domains);
+          assert.equal(204, res.status.getCall(0).args[0]);
+          resolve();
+        });
+        ldap_interface_mock.bind.withArgs('username').returns(Promise.resolve());
+        ldap_interface_mock.get_emails.returns(Promise.resolve(emails));
+        ldap_interface_mock.get_groups.returns(Promise.resolve(groups));
+        first_factor(req, res);
+      });
+    });
   });
 
   it('should retrieve email from LDAP', function(done) {
-    ldap_interface_mock.bind.yields(undefined);
-    ldap_interface_mock.search = sinon.spy(function(dn) {
-      if(dn == 'uid=username,ou=users,dc=example,dc=com') done();
-    });
+    res.send = sinon.spy(function(data) { done(); });
+    ldap_interface_mock.bind.returns(Promise.resolve());
+    ldap_interface_mock.get_emails = sinon.stub().withArgs('usernam').returns(Promise.resolve([{mail: ['test@example.com'] }]));
     first_factor(req, res);
   });
 
-  it('should return status code 401 when LDAP binding fails', function(done) {
+  it('should set email as session variables', function() {
+    return new Promise(function(resolve, reject) {
+      res.send = sinon.spy(function(data) {
+        assert.equal('test_ok@example.com', req.session.auth_session.email);
+        resolve();
+      });
+      var emails = [ 'test_ok@example.com' ];
+      ldap_interface_mock.bind.returns(Promise.resolve());
+      ldap_interface_mock.get_emails.returns(Promise.resolve(emails));
+      first_factor(req, res);
+    });
+  });
+
+  it('should return status code 401 when LDAP binding throws', function(done) {
     res.send = sinon.spy(function(data) {
       assert.equal(401, res.status.getCall(0).args[0]);
       assert.equal(regulator.mark.getCall(0).args[0], 'username');
       done();
     });
-    ldap_interface_mock.bind.yields('Bad credentials');
+    ldap_interface_mock.bind.throws(new exceptions.LdapBindError('Bad credentials'));
     first_factor(req, res);
   });
 
-  it('should return status code 500 when LDAP binding throws', function(done) {
+  it('should return status code 500 when LDAP search throws', function(done) {
     res.send = sinon.spy(function(data) {
       assert.equal(500, res.status.getCall(0).args[0]);
       done();
     });
-    ldap_interface_mock.bind.yields(undefined);
-    ldap_interface_mock.search.yields('error');
+    ldap_interface_mock.bind.returns(Promise.resolve());
+    ldap_interface_mock.get_emails.throws(new exceptions.LdapSearchError('err'));
     first_factor(req, res);
   });
 
@@ -122,8 +168,8 @@ describe('test the first factor validation route', function() {
       assert.equal(403, res.status.getCall(0).args[0]);
       done();
     });
-    ldap_interface_mock.bind.yields(undefined);
-    ldap_interface_mock.search.yields(undefined);
+    ldap_interface_mock.bind.returns(Promise.resolve());
+    ldap_interface_mock.get_emails.returns(Promise.resolve());
     first_factor(req, res);
   });
 });
