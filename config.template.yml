@@ -47,6 +47,7 @@ access_control:
     allowed_domains:
     - secret.test.local
     - secret1.test.local
+    - secret2.test.local
   - group: dev
     allowed_domains:
     - secret2.test.local

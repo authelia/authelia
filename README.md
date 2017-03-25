@@ -56,7 +56,12 @@ accepted before getting to the login page:
 ![first-factor-page](https://raw.githubusercontent.com/clems4ever/authelia/master/images/first_factor.png)
 
 ### 1st factor: LDAP
-An LDAP server has been deployed for you with the following credentials: **user/password**.
+An LDAP server has been deployed for you with the following credentials: 
+
+- **john/password** is in the admin group and has access to every subdomain.
+- **bob/password** is in the dev group and has only access to *secret2.test.local*
+- **harry/password** is not in a group but has access to *secret1.test.local* 
+as per the configuration file.
 
 Type them in the login page and validate. Then, the second factor page should 
 have appeared as shown below.
@@ -98,6 +103,12 @@ a password reset and **Authelia** will send an email with an link to the user
 email address. For the sake of the example, the email is delivered in the file 
 ./notifications/notification.txt.
 Paste the link in your browser and you should be able to reset the password.
+
+### Access Control
+With **Authelia**, you can define your own access control rules for restricting 
+the access to certain subdomains to your users. Those rules are defined in the
+configuration file and are per-user or per-group. Check out the 
+*config.template.yml* to see how they are defined.
 
 ## Documentation
 ### Configuration
