@@ -6,6 +6,7 @@ var winston = require('winston');
 var first_factor = require('../../../src/lib/routes/first_factor');
 var exceptions = require('../../../src/lib/exceptions');
 var Ldap = require('../../../src/lib/ldap');
+var AccessControl = require('../../../src/lib/access_control');
 
 describe('test the first factor validation route', function() {
   var req, res;
@@ -13,6 +14,7 @@ describe('test the first factor validation route', function() {
   var emails;
   var search_res_ok;
   var regulator;
+  var access_control;
   var config;
 
   beforeEach(function() {
@@ -34,11 +36,22 @@ describe('test the first factor validation route', function() {
     regulator.mark.returns(Promise.resolve());
     regulator.regulate.returns(Promise.resolve());
 
+    access_control = { 
+      builder: {
+        get_allowed_domains: sinon.stub(),
+        get_any_domain: sinon.stub(),
+      },
+      matcher: {
+        is_domain_allowed: sinon.stub()
+      }
+    };
+
     var app_get = sinon.stub();
     app_get.withArgs('ldap').returns(ldap_interface_mock);
     app_get.withArgs('config').returns(config);
     app_get.withArgs('logger').returns(winston);
     app_get.withArgs('authentication regulator').returns(regulator);
+    app_get.withArgs('access control').returns(access_control);
 
     req = {
       app: {
@@ -74,16 +87,13 @@ describe('test the first factor validation route', function() {
     });
   });
 
-  describe('store the allowed domains in the auth session', function() {
-    it('should store the per group allowed domains', function() {
-      config.access_control = [];
-      config.access_control.push({ 
-        group: 'group1', 
-        allowed_domains: ['domain1.example.com', 'domain2.example.com']
-      });
+  describe('store the ACL matcher in the auth session', function() {
+    it('should store the allowed domains in the auth session', function() {
+      config.access_control = {};
+      access_control.builder.get_allowed_domains.returns(['example.com', 'test.example.com']);
       return new Promise(function(resolve, reject) {
         res.send = sinon.spy(function(data) {
-          assert.deepEqual(['domain1.example.com', 'domain2.example.com'], 
+          assert.deepEqual(['example.com', 'test.example.com'], 
             req.session.auth_session.allowed_domains);
           assert.equal(204, res.status.getCall(0).args[0]);
           resolve();
@@ -95,16 +105,11 @@ describe('test the first factor validation route', function() {
       });
     });
 
-    it('should store the per group allowed domains', function() {
-      config.access_control = [];
-      config.access_control.push({ 
-        user: 'username', 
-        allowed_domains: ['domain1.example.com', 'domain2.example.com']
-      });
+    it('should store the allow all ACL matcher in the auth session', function() {
+      access_control.builder.get_any_domain.returns(['*']);
       return new Promise(function(resolve, reject) {
         res.send = sinon.spy(function(data) {
-          assert.deepEqual(['domain1.example.com', 'domain2.example.com'], 
-            req.session.auth_session.allowed_domains);
+          assert(req.session.auth_session.allowed_domains);
           assert.equal(204, res.status.getCall(0).args[0]);
           resolve();
         });

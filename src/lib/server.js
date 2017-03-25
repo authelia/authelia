@@ -12,6 +12,7 @@ var AuthenticationRegulator = require('./authentication_regulator');
 var setup_endpoints = require('./setup_endpoints');
 var config_adapter = require('./config_adapter');
 var Ldap = require('./ldap');
+var AccessControl = require('./access_control');
 
 function run(yaml_config, deps, fn) {
   var config = config_adapter(yaml_config);
@@ -51,6 +52,7 @@ function run(yaml_config, deps, fn) {
   var regulator = new AuthenticationRegulator(data_store, five_minutes);
   var notifier = new Notifier(config.notifier, deps);
   var ldap = new Ldap(deps, config.ldap);
+  var access_control = AccessControl(deps.winston, config.access_control);
 
   app.set('logger', deps.winston);
   app.set('ldap', ldap);
@@ -60,6 +62,7 @@ function run(yaml_config, deps, fn) {
   app.set('notifier', notifier);
   app.set('authentication regulator', regulator);
   app.set('config', config);
+  app.set('access control', access_control);
 
   setup_endpoints(app);
   

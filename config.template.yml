@@ -43,17 +43,19 @@ ldap:
 # is allowed to everyone.
 # Otherwise, the default policy is denied for any user and any subdomain.
 access_control:
-  - group: admin
-    allowed_domains:
-    - secret.test.local
-    - secret1.test.local
-    - secret2.test.local
-  - group: dev
-    allowed_domains:
-    - secret2.test.local
-  - user: harry
-    allowed_domains:
-    - secret1.test.local
+  default:
+    - home.test.local
+  groups:
+    admin:
+      - '*.test.local'
+    dev:
+      - secret.test.local
+      - secret2.test.local
+  users: 
+    harry:
+      - secret1.test.local
+    bob:
+      - '*.mail.test.local'
 
 
 # Configuration of session cookies

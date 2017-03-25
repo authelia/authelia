@@ -19,19 +19,17 @@ function verify_filter(req, res) {
   if(!objectPath.has(req, 'session.auth_session.userid'))
     return Promise.reject('No userid variable'); 
 
-  var config = req.app.get('config');
-  var access_control = config.access_control;
+  if(!objectPath.has(req, 'session.auth_session.allowed_domains'))
+    return Promise.reject('No allowed_domains variable'); 
 
-  if(access_control) {
-    var allowed_domains = objectPath.get(req, 'session.auth_session.allowed_domains');
-    var host = objectPath.get(req, 'headers.host');
-    var domain = host.split(':')[0]; 
-    logger.debug('Trying to access domain: %s', domain);
-    logger.debug('User has access to %s', JSON.stringify(allowed_domains));
+  // Get the session ACL matcher
+  var allowed_domains = objectPath.get(req, 'session.auth_session.allowed_domains');
+  var host = objectPath.get(req, 'headers.host');
+  var domain = host.split(':')[0]; 
+  var acl_matcher = req.app.get('access control').matcher;
 
-    if(allowed_domains.indexOf(domain) < 0)
-      return Promise.reject('Access restricted by ACL rules');
-  }
+  if(!acl_matcher.is_domain_allowed(domain, allowed_domains))
+    return Promise.reject('Access restricted by ACL rules');
 
   if(!req.session.auth_session.first_factor || 
      !req.session.auth_session.second_factor)

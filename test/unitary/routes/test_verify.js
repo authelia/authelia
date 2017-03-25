@@ -7,8 +7,15 @@ var winston = require('winston');
 describe('test authentication token verification', function() {
   var req, res;
   var config_mock;
+  var acl_matcher;
 
   beforeEach(function() {
+    acl_matcher = {
+      is_domain_allowed: sinon.stub().returns(true)
+    };
+    var access_control = {
+      matcher: acl_matcher
+    }
     config_mock = {};
     req = {};
     res = {};
@@ -18,6 +25,7 @@ describe('test authentication token verification', function() {
     req.app.get = sinon.stub();
     req.app.get.withArgs('config').returns(config_mock);
     req.app.get.withArgs('logger').returns(winston);
+    req.app.get.withArgs('access control').returns(access_control);
     res.status = sinon.spy();
   });
 
@@ -27,7 +35,7 @@ describe('test authentication token verification', function() {
       first_factor: true, 
       second_factor: true,
       userid: 'myuser',
-      group: 'mygroup'
+      allowed_domains: ['*']
     };
  
     res.send = sinon.spy(function() {
@@ -86,25 +94,16 @@ describe('test authentication token verification', function() {
     });
 
     it('should reply unauthorized when the domain is restricted', function() {
-      config_mock.access_control = [];
-      config_mock.access_control.push({
-        group: 'abc',
-        allowed_domains: ['secret.example.com']
-      });
+      acl_matcher.is_domain_allowed.returns(false);
       return test_unauthorized({
         first_factor: true,
         second_factor: true,
         userid: 'user',
-        allowed_domains: ['restricted.example.com']
+        allowed_domains: []
       });
     });
 
     it('should reply authorized when the domain is allowed', function() {
-      config_mock.access_control = [];
-      config_mock.access_control.push({
-        group: 'abc',
-        allowed_domains: ['secret.example.com']
-      });
       return test_authorized({
         first_factor: true,
         second_factor: true,
