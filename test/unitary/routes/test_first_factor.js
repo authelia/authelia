@@ -74,23 +74,45 @@ describe('test the first factor validation route', function() {
     });
   });
 
-  it('should store the allowed domains in the auth session', function() {
-    config.access_control = [];
-    config.access_control.push({ 
-      group: 'group1', 
-      allowed_domains: ['domain1.example.com', 'domain2.example.com']
-    });
-    return new Promise(function(resolve, reject) {
-      res.send = sinon.spy(function(data) {
-        assert.deepEqual(['domain1.example.com', 'domain2.example.com'], 
-          req.session.auth_session.allowed_domains);
-        assert.equal(204, res.status.getCall(0).args[0]);
-        resolve();
+  describe('store the allowed domains in the auth session', function() {
+    it('should store the per group allowed domains', function() {
+      config.access_control = [];
+      config.access_control.push({ 
+        group: 'group1', 
+        allowed_domains: ['domain1.example.com', 'domain2.example.com']
       });
-      ldap_interface_mock.bind.withArgs('username').returns(Promise.resolve());
-      ldap_interface_mock.get_emails.returns(Promise.resolve(emails));
-      ldap_interface_mock.get_groups.returns(Promise.resolve(groups));
-      first_factor(req, res);
+      return new Promise(function(resolve, reject) {
+        res.send = sinon.spy(function(data) {
+          assert.deepEqual(['domain1.example.com', 'domain2.example.com'], 
+            req.session.auth_session.allowed_domains);
+          assert.equal(204, res.status.getCall(0).args[0]);
+          resolve();
+        });
+        ldap_interface_mock.bind.withArgs('username').returns(Promise.resolve());
+        ldap_interface_mock.get_emails.returns(Promise.resolve(emails));
+        ldap_interface_mock.get_groups.returns(Promise.resolve(groups));
+        first_factor(req, res);
+      });
+    });
+
+    it('should store the per group allowed domains', function() {
+      config.access_control = [];
+      config.access_control.push({ 
+        user: 'username', 
+        allowed_domains: ['domain1.example.com', 'domain2.example.com']
+      });
+      return new Promise(function(resolve, reject) {
+        res.send = sinon.spy(function(data) {
+          assert.deepEqual(['domain1.example.com', 'domain2.example.com'], 
+            req.session.auth_session.allowed_domains);
+          assert.equal(204, res.status.getCall(0).args[0]);
+          resolve();
+        });
+        ldap_interface_mock.bind.withArgs('username').returns(Promise.resolve());
+        ldap_interface_mock.get_emails.returns(Promise.resolve(emails));
+        ldap_interface_mock.get_groups.returns(Promise.resolve(groups));
+        first_factor(req, res);
+      });
     });
   });
 

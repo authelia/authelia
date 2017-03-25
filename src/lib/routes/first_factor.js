@@ -5,13 +5,17 @@ var exceptions = require('../exceptions');
 var objectPath = require('object-path');
 var Promise = require('bluebird');
 
-function get_allowed_domains(access_control, groups) {
+function get_allowed_domains(access_control, username, groups) {
   var allowed_domains = [];
 
   for(var i = 0; i<access_control.length; ++i) {
     var rule = access_control[i];
-    if('group' in rule && 'allowed_domains' in rule) {
-      if(groups.indexOf(rule['group']) >= 0) {
+    if('allowed_domains' in rule) {
+      if('group' in rule && groups.indexOf(rule['group']) >= 0) {
+        var domains = rule.allowed_domains;
+        allowed_domains = allowed_domains.concat(domains);
+      }
+      else if('user' in rule && username == rule['user']) {
         var domains = rule.allowed_domains;
         allowed_domains = allowed_domains.concat(domains);
       }
@@ -58,7 +62,8 @@ function first_factor(req, res) {
     objectPath.set(req, 'session.auth_session.email', emails[0]);
 
     if(config.access_control) {
-      var allowed_domains = get_allowed_domains(config.access_control, groups);
+      var allowed_domains = get_allowed_domains(config.access_control, 
+        username, groups);
       logger.debug('1st factor: allowed domains are %s', allowed_domains);
       objectPath.set(req, 'session.auth_session.allowed_domains', 
         allowed_domains);

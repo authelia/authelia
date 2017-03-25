@@ -50,6 +50,9 @@ access_control:
   - group: dev
     allowed_domains:
     - secret2.test.local
+  - user: harry
+    allowed_domains:
+    - secret1.test.local
 
 
 # Configuration of session cookies
