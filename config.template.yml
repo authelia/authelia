@@ -36,12 +36,16 @@ ldap:
 
 # Access Control
 #
-# Access control is a set of rules where you can specify a group-based
-# subdomain restrictions.
+# Access control is a set of rules you can use to restrict the user access.
+# Default (anyone), per-user or per-group rules can be defined.
 #
-# If access_control is not defined, ACL rules are disabled and default policy
-# is allowed to everyone.
-# Otherwise, the default policy is denied for any user and any subdomain.
+# If 'access_control' is not defined, ACL rules are disabled and default policy
+# is applied, i.e., access is allowed to anyone. Otherwise restrictions follow 
+# the rules defined below.
+# If no rule is provided, all domains are denied.
+#
+# '*' means 'any' subdomains and matches any string. It must stand at the 
+# beginning of the pattern.
 access_control:
   default:
     - home.test.local

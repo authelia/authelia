@@ -40,6 +40,9 @@ Add the following lines to your /etc/hosts to simulate multiple subdomains
     127.0.0.1       secret.test.local
     127.0.0.1       secret1.test.local
     127.0.0.1       secret2.test.local
+    127.0.0.1       home.test.local
+    127.0.0.1       mx1.mail.test.local
+    127.0.0.1       mx2.mail.test.local
     127.0.0.1       auth.test.local
     
 Then, type the following command to build and deploy the services:
@@ -48,20 +51,28 @@ Then, type the following command to build and deploy the services:
     docker-compose up -d
 
 After few seconds the services should be running and you should be able to visit 
-[https://secret.test.local:8080/](https://secret.test.local:8080/). 
+[https://home.test.local:8080/](https://home.test.local:8080/). 
 
 Normally, a self-signed certificate exception should appear, it has to be 
 accepted before getting to the login page:
 
 ![first-factor-page](https://raw.githubusercontent.com/clems4ever/authelia/master/images/first_factor.png)
 
-### 1st factor: LDAP
-An LDAP server has been deployed for you with the following credentials: 
+### 1st factor: LDAP and ACL 
+An LDAP server has been deployed for you with the following credentials and
+access control list:
 
-- **john/password** is in the admin group and has access to every subdomain.
-- **bob/password** is in the dev group and has only access to *secret2.test.local*
-- **harry/password** is not in a group but has access to *secret1.test.local* 
-as per the configuration file.
+- **john / password** is in the admin group and has access to the secret from
+any subdomain.
+- **bob / password** is in the dev group and has access to the secret from
+  - [secret.test.local](https://secret.test.local:8080/secret.html) 
+  - [secret2.test.local](https://secret2.test.local:8080/secret.html)
+  - [home.test.local](https://home.test.local:8080/secret.html)
+  - [\*.mail.test.local](https://mx1.mail.test.local:8080/secret.html)
+- **harry / password** is not in a group but has rules giving him has access to 
+ the secret from 
+  - [secret1.test.local](https://secret1.test.local:8080/secret.html)
+  - [home.test.local](https://home.test.local:8080/secret.html)
 
 Type them in the login page and validate. Then, the second factor page should 
 have appeared as shown below.
@@ -107,8 +118,8 @@ Paste the link in your browser and you should be able to reset the password.
 ### Access Control
 With **Authelia**, you can define your own access control rules for restricting 
 the access to certain subdomains to your users. Those rules are defined in the
-configuration file and are per-user or per-group. Check out the 
-*config.template.yml* to see how they are defined.
+configuration file and can be either default, per-user or per-group policies. 
+Check out the *config.template.yml* to see how they are defined.
 
 ## Documentation
 ### Configuration
