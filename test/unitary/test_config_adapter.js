@@ -27,11 +27,11 @@ describe('test config adapter', function() {
 
     var config = config_adapter(yaml_config); 
 
-    assert.equal(config.ldap_url, 'http://ldap');
-    assert.equal(config.ldap_user_search_base, 'ou=groups,dc=example,dc=com');
-    assert.equal(config.ldap_user_search_filter, 'uid');
-    assert.equal(config.ldap_user, 'admin');
-    assert.equal(config.ldap_password, 'pass');
+    assert.equal(config.ldap.url, 'http://ldap');
+    assert.equal(config.ldap.user_search_base, 'ou=groups,dc=example,dc=com');
+    assert.equal(config.ldap.user_search_filter, 'uid');
+    assert.equal(config.ldap.user, 'admin');
+    assert.equal(config.ldap.password, 'pass');
   });
 
   it('should get the session attributes', function() {
@@ -63,5 +63,14 @@ describe('test config adapter', function() {
     var config = config_adapter(yaml_config); 
     
     assert.equal(config.notifier, 'notifier');
+  });
+
+  it('should get the access_control config', function() {
+    yaml_config = {};
+    yaml_config.access_control = 'access_control';
+
+    var config = config_adapter(yaml_config); 
+    
+    assert.equal(config.access_control, 'access_control');
   });
 });

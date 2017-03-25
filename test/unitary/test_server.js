@@ -1,5 +1,6 @@
 
 var server = require('../../src/lib/server');
+var Ldap = require('../../src/lib/ldap');
 
 var Promise = require('bluebird');
 var request = Promise.promisifyAll(require('request'));
@@ -8,6 +9,9 @@ var speakeasy = require('speakeasy');
 var sinon = require('sinon');
 var MockDate = require('mockdate');
 var session = require('express-session');
+var winston = require('winston');
+var speakeasy = require('speakeasy');
+var ldapjs = require('ldapjs');
 
 var PORT = 8090;
 var BASE_URL = 'http://localhost:' + PORT;
@@ -19,14 +23,6 @@ describe('test the server', function() {
   var u2f, nedb;
   var transporter;
   var collection;
-  var ldap_client = {
-    bind: sinon.stub(),
-    search: sinon.stub(),
-    modify: sinon.stub(),
-  };
-  var ldap = {
-    Change: sinon.spy()
-  }
 
   beforeEach(function(done) {
     var config = {
@@ -34,8 +30,8 @@ describe('test the server', function() {
       totp_secret: 'totp_secret',
       ldap: {
         url: 'ldap://127.0.0.1:389',
-        user_search_base: 'ou=users,dc=example,dc=com',
-        user_search_filter: 'cn',
+        base_dn: 'ou=users,dc=example,dc=com',
+        user_name_attribute: 'cn',
         user: 'cn=admin,dc=example,dc=com',
         password: 'password',
       },
@@ -50,6 +46,19 @@ describe('test the server', function() {
           pass: 'password'
         }
       }
+    };
+
+    var ldap_client = {
+      bind: sinon.stub(),
+      search: sinon.stub(),
+      modify: sinon.stub(),
+      on: sinon.spy()
+    };
+    var ldap = {
+      Change: sinon.spy(),
+      createClient: sinon.spy(function() {
+        return ldap_client;
+      })
     };
 
     u2f = {};
@@ -68,15 +77,15 @@ describe('test the server', function() {
       return transporter;
     });
 
-    var search_doc = {
+    ldap_document = {
       object: {
-        mail: 'test_ok@example.com'
+        mail: 'test_ok@example.com',
       }
     };
  
     var search_res = {};
     search_res.on = sinon.spy(function(event, fn) {
-      if(event != 'error') fn(search_doc);
+      if(event != 'error') fn(ldap_document);
     });
 
     ldap_client.bind.withArgs('cn=test_ok,ou=users,dc=example,dc=com', 
@@ -94,10 +103,12 @@ describe('test the server', function() {
     deps.u2f = u2f;
     deps.nedb = nedb;
     deps.nodemailer = nodemailer;
-    deps.ldap = ldap;
+    deps.ldapjs = ldap;
     deps.session = session;
+    deps.winston = winston;
+    deps.speakeasy = speakeasy;
 
-    _server = server.run(config, ldap_client, deps, function() {
+    _server = server.run(config, deps, function() {
       done();
     });
   });
@@ -352,7 +363,6 @@ describe('test the server', function() {
         return requests.failing_first_factor(j);
       }) 
       .then(function(res) {
-        console.log('coucou');
         assert.equal(res.statusCode, 401, 'first factor failed');
         return requests.failing_first_factor(j);
       })

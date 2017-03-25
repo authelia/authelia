@@ -1,7 +1,6 @@
 
 var Promise = require('bluebird');
 var objectPath = require('object-path');
-var ldap = require('../ldap');
 var exceptions = require('../exceptions');
 var CHALLENGE = 'reset-password';
 
@@ -24,16 +23,14 @@ function pre_check(req) {
     return Promise.reject(err);
   }
 
-  var ldap_client = req.app.get('ldap client');
-  var config = req.app.get('config');
+  var ldap = req.app.get('ldap');
 
-  return ldap.get_email(ldap_client, userid, config.ldap_user_search_base,
-                        config.ldap_user_search_filter)
-  .then(function(doc) {
-    var email = objectPath.get(doc, 'mail');
+  return ldap.get_emails(userid)
+  .then(function(emails) {
+    if(!emails && emails.length <= 0) throw new Error('No email found');
 
     var identity = {}
-    identity.email = email;
+    identity.email = emails[0];
     identity.userid = userid;
     return Promise.resolve(identity);
   });
@@ -53,15 +50,13 @@ function protect(fn) {
 
 function post(req, res) {
   var logger = req.app.get('logger');
-  var ldapjs = req.app.get('ldap');
-  var ldap_client = req.app.get('ldap client');
+  var ldap = req.app.get('ldap');
   var new_password = objectPath.get(req, 'body.password');
   var userid = objectPath.get(req, 'session.auth_session.identity_check.userid');
-  var config = req.app.get('config');
 
   logger.info('POST reset-password: User %s wants to reset his/her password', userid);
  
-  ldap.update_password(ldap_client, ldapjs, userid, new_password, config)
+  ldap.update_password(userid, new_password)
   .then(function() {
     logger.info('POST reset-password: Password reset for user %s', userid);
     objectPath.set(req, 'session.auth_session', undefined);

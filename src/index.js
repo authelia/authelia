@@ -4,12 +4,14 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 var server = require('./lib/server');
 
-var ldap = require('ldapjs');
+var ldapjs = require('ldapjs');
 var u2f = require('authdog');
 var nodemailer = require('nodemailer');
 var nedb = require('nedb');
 var YAML = require('yamljs');
 var session = require('express-session');
+var winston = require('winston');
+var speakeasy = require('speakeasy');
 
 var config_path = process.argv[2];
 if(!config_path) {
@@ -22,20 +24,13 @@ console.log('Parse configuration file: %s', config_path);
 
 var yaml_config = YAML.load(config_path);
 
-var ldap_client = ldap.createClient({
-  url: config.ldap_url,
-  reconnect: true
-});
-
-ldap_client.on('error', function(err) {
-  console.error('LDAP Error:', err.message)
-})
-
 var deps = {};
 deps.u2f = u2f;
 deps.nedb = nedb;
 deps.nodemailer = nodemailer;
-deps.ldap = ldap;
+deps.ldapjs = ldapjs;
 deps.session = session;
+deps.winston = winston;
+deps.speakeasy = speakeasy;
 
-server.run(yaml_config, ldap_client, deps);
+server.run(yaml_config, deps);

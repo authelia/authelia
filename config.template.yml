@@ -1,18 +1,55 @@
 
 # The port to listen on
-port: 8080
+port: 80
 
+# Log level
+#
 # Level of verbosity for logs
 logs_level: info
 
-# Configuration of LDAP
+# LDAP configuration
+#
 # Example: for user john, the DN will be cn=john,ou=users,dc=example,dc=com
 ldap:
+  # The url of the ldap server
   url: ldap://ldap
-  user_search_base: ou=users,dc=example,dc=com
-  user_search_filter: cn
+
+  # The base dn for every entries
+  base_dn: dc=example,dc=com
+
+  # An additional dn to define the scope to all users
+  additional_user_dn: ou=users
+
+  # The user name attribute of users. Might uid for FreeIPA. 'cn' by default.
+  user_name_attribute: cn
+
+  # An additional dn to define the scope of groups
+  additional_group_dn: ou=groups
+
+  # The group name attribute of group. 'cn' by default.
+  group_name_attribute: cn
+
+  # The username and password of the admin user.
   user: cn=admin,dc=example,dc=com
   password: password
+
+
+# Access Control
+#
+# Access control is a set of rules where you can specify a group-based
+# subdomain restrictions.
+#
+# If access_control is not defined, ACL rules are disabled and default policy
+# is allowed to everyone.
+# Otherwise, the default policy is denied for any user and any subdomain.
+access_control:
+  - group: admin
+    allowed_domains:
+    - secret.test.local
+    - secret1.test.local
+  - group: dev
+    allowed_domains:
+    - secret2.test.local
 
 
 # Configuration of session cookies

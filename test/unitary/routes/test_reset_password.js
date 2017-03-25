@@ -1,6 +1,8 @@
+var reset_password = require('../../../src/lib/routes/reset_password');
+var Ldap = require('../../../src/lib/ldap');
+
 var sinon = require('sinon');
 var winston = require('winston');
-var reset_password = require('../../../src/lib/routes/reset_password');
 var assert = require('assert');
 
 describe('test reset password', function() {
@@ -35,20 +37,30 @@ describe('test reset password', function() {
     user_data_store.consume_identity_check_token = sinon.stub().returns(Promise.resolve({}));
     req.app.get.withArgs('user data store').returns(user_data_store);
 
-    ldap = {};
-    ldap.Change = sinon.spy();
-    req.app.get.withArgs('ldap').returns(ldap);
+
+    config = {};
+    config.ldap = {};
+    config.ldap.base_dn = 'dc=example,dc=com';
+    config.ldap.user_name_attribute = 'cn';
+    req.app.get.withArgs('config').returns(config);
 
     ldap_client = {};
     ldap_client.bind = sinon.stub();
     ldap_client.search = sinon.stub();
     ldap_client.modify = sinon.stub();
-    req.app.get.withArgs('ldap client').returns(ldap_client);
+    ldap_client.on = sinon.spy();
 
-    config = {};
-    config.ldap_user_search_base = 'dc=example,dc=com';
-    config.ldap_user_search_filter = 'cn';
-    req.app.get.withArgs('config').returns(config);
+    ldapjs = {};
+    ldapjs.Change = sinon.spy();
+    ldapjs.createClient = sinon.spy(function() {
+      return ldap_client;
+    });
+
+    deps = {
+      ldapjs: ldapjs,
+      winston: winston
+    };
+    req.app.get.withArgs('ldap').returns(new Ldap(deps, config.ldap));
 
     res = {};
     res.send = sinon.spy();
@@ -77,9 +89,8 @@ describe('test reset password', function() {
     });
 
     it('should perform a search in ldap to find email address', function(done) {
-      config.ldap_user_search_filter = 'uid';
+      config.ldap.user_name_attribute = 'uid';
       ldap_client.search = sinon.spy(function(dn) {
-        console.log(dn);
         if(dn == 'uid=user,dc=example,dc=com') done();
       });
       reset_password.icheck_interface.pre_check_callback(req);
@@ -88,7 +99,7 @@ describe('test reset password', function() {
     it('should returns identity when ldap replies', function(done) {
       var doc = {};
       doc.object = {};
-      doc.object.email = 'test@example.com';
+      doc.object.email = ['test@example.com'];
       doc.object.userid = 'user';
 
       var res = {};

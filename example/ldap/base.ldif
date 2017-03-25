@@ -8,39 +8,55 @@ objectclass: organizationalUnit
 objectclass: top
 ou: users
 
-dn: cn=user,ou=groups,dc=example,dc=com
-cn: user
-gidnumber: 502
-objectclass: posixGroup
+dn: cn=dev,ou=groups,dc=example,dc=com
+cn: dev
+member: cn=john,ou=users,dc=example,dc=com
+member: cn=bob,ou=users,dc=example,dc=com
+objectclass: groupOfNames
 objectclass: top
 
-dn: cn=user,ou=users,dc=example,dc=com
-cn: user
-gidnumber: 500
-givenname: user
-homedirectory: /home/user1
-loginshell: /bin/sh
-objectclass: inetOrgPerson
-objectclass: posixAccount
+dn: cn=admin,ou=groups,dc=example,dc=com
+cn: admin
+member: cn=john,ou=users,dc=example,dc=com
+objectclass: groupOfNames
 objectclass: top
-mail: user@example.com
-sn: User
-uid: user
-uidnumber: 1000
+
+dn: cn=john,ou=users,dc=example,dc=com
+cn: john
+objectclass: inetOrgPerson
+objectclass: top
+mail: john.doe@example.com
+sn: John Doe
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
 
-dn: uid=useruid,ou=users,dc=example,dc=com
-cn: useruid
-gidnumber: 500
-givenname: user
-homedirectory: /home/user1
-loginshell: /bin/sh
+dn: cn=harry,ou=users,dc=example,dc=com
+cn: harry
 objectclass: inetOrgPerson
-objectclass: posixAccount
 objectclass: top
-mail: useruid@example.com
-sn: User
-uid: useruid
-uidnumber: 1001
+mail: harry.potter@example.com
+sn: Harry Potter
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
 
+dn: cn=bob,ou=users,dc=example,dc=com
+cn: bob
+objectclass: inetOrgPerson
+objectclass: top
+mail: bob.dylan@example.com
+sn: Bob Dylan
+userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+# dn: uid=jack,ou=users,dc=example,dc=com
+# cn: jack
+# gidnumber: 501
+# givenname: Jack
+# homedirectory: /home/jack
+# loginshell: /bin/sh
+# objectclass: inetOrgPerson
+# objectclass: posixAccount
+# objectclass: top
+# mail: jack.daniels@example.com
+# sn: Jack Daniels
+# uid: jack
+# uidnumber: 1001
+# userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+# 
