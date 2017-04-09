@@ -72,7 +72,7 @@ access_control:
 session:
   secret: unsecure_secret
   expiration: 3600000
-  domain: example.com
+  domain: test.local
 
 
 # The directory where the DB files will be saved
