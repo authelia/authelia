@@ -106,7 +106,7 @@ function identity_check_post(endpoint, icheck_interface) {
 
       return identity_check.issue_token(userid, undefined, logger);
     }, function(err) {
-      throw new exceptions.AccessDeniedError();
+      throw new exceptions.AccessDeniedError(err);
     })
     .then(function(token) {
       var redirect_url = objectPath.get(req, 'body.redirect');
@@ -124,12 +124,12 @@ function identity_check_post(endpoint, icheck_interface) {
       res.send();
     })
     .catch(exceptions.IdentityError, function(err) {
-      logger.error('POST identity_check: IdentityError %s', err);
+      logger.error('POST identity_check: %s', err);
       res.status(400);
       res.send();
     })
     .catch(exceptions.AccessDeniedError, function(err) {
-      logger.error('POST identity_check: AccessDeniedError %s', err);
+      logger.error('POST identity_check: %s', err);
       res.status(403);
       res.send();
     })

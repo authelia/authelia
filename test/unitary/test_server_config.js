@@ -41,6 +41,7 @@ describe('test server configuration', function() {
   it('should set cookie scope to domain set in the config', function() {
     config.session = {};
     config.session.domain = 'example.com';
+    config.session.secret = 'secret';
     config.ldap = {};
     config.ldap.url = 'http://ldap';
     server.run(config, deps);

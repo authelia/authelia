@@ -12,8 +12,6 @@ var session = require('express-session');
 var winston = require('winston');
 
 var PORT = 8050;
-var BASE_URL = 'http://localhost:' + PORT;
-
 var requests = require('./requests')(PORT);
 
 

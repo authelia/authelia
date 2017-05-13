@@ -1,5 +1,5 @@
 
-module.exports = totp;
+module.exports = totp_fn;
 
 var totp = require('../totp');
 var objectPath = require('object-path');
@@ -7,7 +7,7 @@ var exceptions = require('../../../src/lib/exceptions');
 
 var UNAUTHORIZED_MESSAGE = 'Unauthorized access';
 
-function totp(req, res) {
+function totp_fn(req, res) {
   var logger = req.app.get('logger');
   var userid = objectPath.get(req, 'session.auth_session.userid');
   logger.info('POST 2ndfactor totp: Initiate TOTP validation for user %s', userid);
