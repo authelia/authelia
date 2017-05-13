@@ -1,11 +1,12 @@
 
-var AuthenticationRegulator = require('../../src/lib/authentication_regulator');
-var UserDataStore = require('../../src/lib/user_data_store');
-var DataStore = require('nedb');
-var exceptions = require('../../src/lib/exceptions');
-var MockDate = require('mockdate');
+import { AuthenticationRegulator } from "../../src/lib/AuthenticationRegulator";
+import * as UserDataStore from "../../src/lib/user_data_store";
+import * as DataStore from "nedb";
+import * as MockDate from "mockdate";
 
-describe('test authentication regulator', function() {
+var exceptions = require('../../src/lib/exceptions');
+
+describe.only('test authentication regulator', function() {
   it('should mark 2 authentication and regulate (resolve)', function() {
     var options = {};
     options.inMemoryOnly = true;

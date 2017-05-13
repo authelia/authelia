@@ -3,7 +3,6 @@ import * as winston from "winston";
 import * as nedb from "nedb";
 
 declare namespace authelia {
-
     interface LdapConfiguration {
         url: string;
         base_dn: string;

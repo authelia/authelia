@@ -3,10 +3,10 @@ import { authelia } from "../types/authelia";
 import * as Express from "express";
 import * as BodyParser from "body-parser";
 import * as Path from "path";
+import { AuthenticationRegulator } from "./AuthenticationRegulator";
 
 const UserDataStore = require("./user_data_store");
 const Notifier = require("./notifier");
-const AuthenticationRegulator = require("./authentication_regulator");
 const setup_endpoints = require("./setup_endpoints");
 const config_adapter = require("./config_adapter");
 const Ldap = require("./ldap");

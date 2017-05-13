@@ -1,4 +1,3 @@
-import * as mocha from "mocha";
 import * as Assert from "assert";
 
 const config_adapter = require("../../src/lib/config_adapter");
