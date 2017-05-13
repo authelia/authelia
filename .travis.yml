@@ -19,8 +19,10 @@ addons:
 
 before_install: npm install -g npm@'>=2.13.5'
 script:
-- npm test
-- docker build -t clems4ever/authelia .
+- npm install
+- grunt test
+- grunt build
+- grunt docker-build
 - docker-compose build
 - docker-compose up -d
 - sleep 5

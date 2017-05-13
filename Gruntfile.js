@@ -13,6 +13,10 @@ module.exports = function(grunt) {
       "test": {
         cmd: "npm",
         args: ['run', 'test']
+      },
+      "docker-build": {
+        cmd: "docker",
+        args: ['build', '-t', 'clems4ever/authelia', '.']
       }
     },
     copy: {
@@ -43,7 +47,9 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['build']);
   
   grunt.registerTask('res', ['copy:resources', 'copy:views', 'copy:public_html']);
+
   grunt.registerTask('build', ['run:tslint', 'run:build-ts', 'res']);
+  grunt.registerTask('docker-build', ['run:docker-build']);
 
   grunt.registerTask('test', ['run:test']);
 };
