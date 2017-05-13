@@ -19,7 +19,6 @@ addons:
 
 before_install: npm install -g npm@'>=2.13.5'
 script:
-- npm install
 - grunt test
 - grunt build
 - grunt docker-build
