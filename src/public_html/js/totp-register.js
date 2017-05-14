@@ -19,9 +19,9 @@ function generateSecret(fn) {
 }
 
 function onSecretGenerated(err, secret) {
-  // console.log('secret generated successfully', secret);
-  var img = $('<img src="' + secret.qrcode + '" alt="secret-qrcode"/>');
-  $('#qrcode').append(img);
+  console.log('secret generated successfully', secret);
+  console.log('OTP Auth URL=', secret.otpauth_url);
+  new QRCode(document.getElementById("qrcode"), secret.otpauth_url);
   $("#secret").text(secret.base32);
 }
 

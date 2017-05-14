@@ -1,6 +1,5 @@
 var objectPath = require('object-path');
 var Promise = require('bluebird');
-var QRCode = require('qrcode');
 
 var CHALLENGE = 'totp-register';
 
@@ -15,7 +14,6 @@ module.exports = {
   icheck_interface: icheck_interface,
   post: post,
 }
-
 
 function pre_check(req) {
   var first_factor_passed = objectPath.get(req, 'session.auth_session.first_factor');
@@ -36,19 +34,6 @@ function pre_check(req) {
   return Promise.resolve(identity);
 }
 
-
-function secretToDataURLAsync(secret) {
-  return new Promise(function(resolve, reject) {
-    QRCode.toDataURL(secret.otpauth_url, function(err, url_data) {
-      if(err) {
-        reject(err);
-        return;
-      }
-      resolve(url_data);
-    });
-  });
-}
-
 // Generate a secret and send it to the user
 function post(req, res) {
   var logger = req.app.get('logger');
@@ -64,17 +49,12 @@ function post(req, res) {
   var user_data_store = req.app.get('user data store');
   var totp = req.app.get('totp engine');
   var secret = totp.generateSecret();
-  var qrcode_data;
 
-  secretToDataURLAsync(secret)
-  .then(function(data) {
-    qrcode_data = data;
-    logger.debug('POST new-totp-secret: save the TOTP secret in DB');
-    return user_data_store.set_totp_secret(userid, secret);
-  })
+  logger.debug('POST new-totp-secret: save the TOTP secret in DB');
+  user_data_store.set_totp_secret(userid, secret)
   .then(function() {
     var doc = {};
-    doc.qrcode = qrcode_data;
+    doc.otpauth_url = secret.otpauth_url;
     doc.base32 = secret.base32;
     doc.ascii = secret.ascii;
 
