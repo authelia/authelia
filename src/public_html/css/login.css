@@ -57,7 +57,12 @@ p { color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.3); letter-spacing:1px; text
 
 a { color: #fff;  text-align: center; }
 
-#qrcode { text-align: center; }
+#qrcode img { 
+  margin: auto;
+  text-align: center; 
+  padding: 10px;
+  background: white;
+}
 
 #secret { font-size: 0.7em; }
 

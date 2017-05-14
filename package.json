@@ -9,6 +9,7 @@
   "scripts": {
     "test": "./node_modules/.bin/mocha --recursive test/unitary",
     "unit-test": "./node_modules/.bin/mocha --recursive test/unitary",
+    "int-test": "./node_modules/.bin/mocha --recursive test/integration",
     "all-test": "./node_modules/.bin/mocha --recursive test",
     "coverage": "./node_modules/.bin/istanbul cover _mocha -- -R spec --recursive test"
   },
@@ -36,7 +37,6 @@
     "nedb": "^1.8.0",
     "nodemailer": "^2.7.0",
     "object-path": "^0.11.3",
-    "qrcode": "^0.5.0",
     "randomstring": "^1.1.5",
     "speakeasy": "^2.0.0",
     "winston": "^2.3.1",

@@ -118,7 +118,7 @@ describe('test totp register', function() {
       req.session.auth_session.identity_check = {};
       req.session.auth_session.identity_check.userid = 'user';
       req.session.auth_session.identity_check.challenge = 'totp-register';
-      user_data_store.set_totp_secret.throws('internal error');
+      user_data_store.set_totp_secret.returns(new Promise.reject('internal error'));
 
       res.send = sinon.spy(function() {
         assert.equal(res.status.getCall(0).args[0], 500);
