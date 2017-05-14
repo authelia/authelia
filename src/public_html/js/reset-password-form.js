@@ -21,13 +21,13 @@ function onResetPasswordButtonClicked() {
     return;
   }
   
-  $.post('/authentication/reset-password', {
+  $.post('/reset-password', {
     userid: username,
   })
   .done(function() {
     $.notify('An email has been sent. Click on the link to change your password', 'success');
     setTimeout(function() {
-      window.location.replace('/authentication/login');
+      window.location.replace('/login');
     }, 1000);
   })
   .fail(function() {

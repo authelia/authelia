@@ -39,7 +39,7 @@ function setup_endpoints(app) {
    */
 
   /**
-   * @api {get} /authentication/login Serve login page
+   * @api {get} /login Serve login page
    * @apiName Login
    * @apiGroup Pages
    * @apiVersion 1.0.0
@@ -53,7 +53,7 @@ function setup_endpoints(app) {
   app.get  ('/login',   routes.login);
 
   /**
-   * @api {get} /authentication/logout Server logout page
+   * @api {get} /logout Server logout page
    * @apiName Logout
    * @apiGroup Pages
    * @apiVersion 1.0.0
@@ -66,7 +66,7 @@ function setup_endpoints(app) {
   app.get  ('/logout',  routes.logout);
 
   /**
-   * @api {post} /authentication/totp-register Request TOTP registration
+   * @api {post} /totp-register Request TOTP registration
    * @apiName RequestTOTPRegistration
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -74,7 +74,7 @@ function setup_endpoints(app) {
    * @apiUse IdentityValidationPost
    */
   /**
-   * @api {get} /authentication/totp-register Serve TOTP registration page
+   * @api {get} /totp-register Serve TOTP registration page
    * @apiName ServeTOTPRegistrationPage
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -89,7 +89,7 @@ function setup_endpoints(app) {
 
 
   /**
-   * @api {post} /authentication/u2f-register Request U2F registration
+   * @api {post} /u2f-register Request U2F registration
    * @apiName RequestU2FRegistration
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -97,7 +97,7 @@ function setup_endpoints(app) {
    * @apiUse IdentityValidationPost
    */
   /**
-   * @api {get} /authentication/u2f-register Serve U2F registration page
+   * @api {get} /u2f-register Serve U2F registration page
    * @apiName ServeU2FRegistrationPage
    * @apiGroup Pages
    * @apiVersion 1.0.0
@@ -110,7 +110,7 @@ function setup_endpoints(app) {
   identity_check(app, '/u2f-register', routes.u2f_register.icheck_interface);
 
   /**
-   * @api {post} /authentication/reset-password Request for password reset
+   * @api {post} /reset-password Request for password reset
    * @apiName RequestPasswordReset
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -118,7 +118,7 @@ function setup_endpoints(app) {
    * @apiUse IdentityValidationPost
    */
   /**
-   * @api {get} /authentication/reset-password Serve password reset form.
+   * @api {get} /reset-password Serve password reset form.
    * @apiName ServePasswordResetForm
    * @apiGroup Pages
    * @apiVersion 1.0.0
@@ -133,7 +133,7 @@ function setup_endpoints(app) {
   app.get  ('/reset-password-form', function(req, res) { res.render('reset-password-form'); });
 
   /**
-   * @api {post} /authentication/new-password Set LDAP password
+   * @api {post} /new-password Set LDAP password
    * @apiName SetLDAPPassword
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -146,7 +146,7 @@ function setup_endpoints(app) {
   app.post ('/new-password', routes.reset_password.post);
 
   /**
-   * @api {post} /authentication/new-totp-secret Generate TOTP secret
+   * @api {post} /new-totp-secret Generate TOTP secret
    * @apiName GenerateTOTPSecret
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -165,7 +165,7 @@ function setup_endpoints(app) {
   app.post ('/new-totp-secret', routes.totp_register.post);
 
   /**
-   * @api {get} /authentication/verify Verify user authentication 
+   * @api {get} /verify Verify user authentication 
    * @apiName VerifyAuthentication
    * @apiGroup Verification 
    * @apiVersion 1.0.0
@@ -180,7 +180,7 @@ function setup_endpoints(app) {
   app.get  ('/verify',   routes.verify);
 
   /**
-   * @api {post} /authentication/1stfactor LDAP authentication
+   * @api {post} /1stfactor LDAP authentication
    * @apiName ValidateFirstFactor
    * @apiGroup Authentication
    * @apiVersion 1.0.0
@@ -200,7 +200,7 @@ function setup_endpoints(app) {
   app.post ('/1stfactor',        routes.first_factor);
 
   /**
-   * @api {post} /authentication/2ndfactor/totp TOTP authentication
+   * @api {post} /2ndfactor/totp TOTP authentication
    * @apiName ValidateTOTPSecondFactor
    * @apiGroup Authentication
    * @apiVersion 1.0.0
@@ -217,7 +217,7 @@ function setup_endpoints(app) {
   app.post ('/2ndfactor/totp',   routes.second_factor.totp);
 
   /**
-   * @api {get} /authentication/2ndfactor/u2f/sign_request U2F Start authentication
+   * @api {get} /2ndfactor/u2f/sign_request U2F Start authentication
    * @apiName StartU2FAuthentication
    * @apiGroup Authentication
    * @apiVersion 1.0.0
@@ -232,7 +232,7 @@ function setup_endpoints(app) {
   app.get  ('/2ndfactor/u2f/sign_request',       routes.second_factor.u2f.sign_request);
 
   /**
-   * @api {post} /authentication/2ndfactor/u2f/sign U2F Complete authentication
+   * @api {post} /2ndfactor/u2f/sign U2F Complete authentication
    * @apiName CompleteU2FAuthentication
    * @apiGroup Authentication
    * @apiVersion 1.0.0
@@ -247,7 +247,7 @@ function setup_endpoints(app) {
   app.post ('/2ndfactor/u2f/sign', routes.second_factor.u2f.sign);
 
   /**
-   * @api {get} /authentication/2ndfactor/u2f/register_request U2F Start device registration
+   * @api {get} /2ndfactor/u2f/register_request U2F Start device registration
    * @apiName StartU2FRegistration
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -262,7 +262,7 @@ function setup_endpoints(app) {
    app.get  ('/2ndfactor/u2f/register_request',   routes.second_factor.u2f.register_request);
 
   /**
-   * @api {post} /authentication/2ndfactor/u2f/register U2F Complete device registration
+   * @api {post} /2ndfactor/u2f/register U2F Complete device registration
    * @apiName CompleteU2FRegistration
    * @apiGroup Registration
    * @apiVersion 1.0.0

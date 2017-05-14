@@ -164,32 +164,32 @@ describe('test the server', function() {
       return Promise.all([p1, p2]);
     }
 
-    it('should block /authentication/new-password', function() {
-      return should_post_and_reply_with_403(BASE_URL + '/authentication/new-password')
+    it('should block /new-password', function() {
+      return should_post_and_reply_with_403(BASE_URL + '/new-password')
     });
 
-    it('should block /authentication/u2f-register', function() {
-      return should_get_and_post_reply_with_403(BASE_URL + '/authentication/u2f-register');
+    it('should block /u2f-register', function() {
+      return should_get_and_post_reply_with_403(BASE_URL + '/u2f-register');
     });
 
-    it('should block /authentication/reset-password', function() {
-      return should_get_and_post_reply_with_403(BASE_URL + '/authentication/reset-password');
+    it('should block /reset-password', function() {
+      return should_get_and_post_reply_with_403(BASE_URL + '/reset-password');
     });
 
-    it('should block /authentication/2ndfactor/u2f/register_request', function() {
-      return should_get_and_reply_with_403(BASE_URL + '/authentication/2ndfactor/u2f/register_request');
+    it('should block /2ndfactor/u2f/register_request', function() {
+      return should_get_and_reply_with_403(BASE_URL + '/2ndfactor/u2f/register_request');
     });
 
-    it('should block /authentication/2ndfactor/u2f/register', function() {
-      return should_post_and_reply_with_403(BASE_URL + '/authentication/2ndfactor/u2f/register');
+    it('should block /2ndfactor/u2f/register', function() {
+      return should_post_and_reply_with_403(BASE_URL + '/2ndfactor/u2f/register');
     });
 
-    it('should block /authentication/2ndfactor/u2f/sign_request', function() {
-      return should_get_and_reply_with_403(BASE_URL + '/authentication/2ndfactor/u2f/sign_request');
+    it('should block /2ndfactor/u2f/sign_request', function() {
+      return should_get_and_reply_with_403(BASE_URL + '/2ndfactor/u2f/sign_request');
     });
 
-    it('should block /authentication/2ndfactor/u2f/sign', function() {
-      return should_post_and_reply_with_403(BASE_URL + '/authentication/2ndfactor/u2f/sign');
+    it('should block /2ndfactor/u2f/sign', function() {
+      return should_post_and_reply_with_403(BASE_URL + '/2ndfactor/u2f/sign');
     });
   });
 
@@ -201,7 +201,7 @@ describe('test the server', function() {
 
   function test_reset_password_form() {
     it('should serve the reset password form page', function(done) {
-      request.getAsync(BASE_URL + '/authentication/reset-password-form')
+      request.getAsync(BASE_URL + '/reset-password-form')
       .then(function(response) {
         assert.equal(response.statusCode, 200);
         done();
@@ -211,7 +211,7 @@ describe('test the server', function() {
 
   function test_login() {
     it('should serve the login page', function(done) {
-      request.getAsync(BASE_URL + '/authentication/login')
+      request.getAsync(BASE_URL + '/login')
       .then(function(response) {
         assert.equal(response.statusCode, 200);
         done();
@@ -221,7 +221,7 @@ describe('test the server', function() {
   
   function test_logout() {
     it('should logout and redirect to /', function(done) {
-      request.getAsync(BASE_URL + '/authentication/logout')
+      request.getAsync(BASE_URL + '/logout')
       .then(function(response) {
         assert.equal(response.req.path, '/');
         done();
@@ -231,7 +231,7 @@ describe('test the server', function() {
   
   function test_authentication() {
     it('should return status code 401 when user is not authenticated', function() {
-      return request.getAsync({ url: BASE_URL + '/authentication/verify' })
+      return request.getAsync({ url: BASE_URL + '/verify' })
       .then(function(response) {
         assert.equal(response.statusCode, 401);
         return Promise.resolve();

@@ -9,7 +9,7 @@ module.exports = function(port) {
 
   function execute_reset_password(jar, transporter, user, new_password) {
     return request.postAsync({
-      url: BASE_URL + '/authentication/reset-password',
+      url: BASE_URL + '/reset-password',
       jar: jar,
       form: { userid: user }
     })
@@ -20,14 +20,14 @@ module.exports = function(port) {
       var token = regexp.exec(html_content)[1];
       // console.log(html_content, token);
       return request.getAsync({
-        url: BASE_URL + '/authentication/reset-password?identity_token=' + token,
+        url: BASE_URL + '/reset-password?identity_token=' + token,
         jar: jar
       })
     })
     .then(function(res) {
       assert.equal(res.statusCode, 200); 
       return request.postAsync({
-        url: BASE_URL + '/authentication/new-password',
+        url: BASE_URL + '/new-password',
         jar: jar,
         form: {
           password: new_password
@@ -38,7 +38,7 @@ module.exports = function(port) {
 
   function execute_register_totp(jar, transporter) {
     return request.postAsync({
-      url: BASE_URL + '/authentication/totp-register',
+      url: BASE_URL + '/totp-register',
       jar: jar
     })
     .then(function(res) {
@@ -48,14 +48,14 @@ module.exports = function(port) {
       var token = regexp.exec(html_content)[1];
       // console.log(html_content, token);
       return request.getAsync({
-        url: BASE_URL + '/authentication/totp-register?identity_token=' + token,
+        url: BASE_URL + '/totp-register?identity_token=' + token,
         jar: jar
       })
     })
     .then(function(res) {
       assert.equal(res.statusCode, 200);
       return request.postAsync({
-        url : BASE_URL + '/authentication/new-totp-secret',
+        url : BASE_URL + '/new-totp-secret',
         jar: jar,
       })
     })
@@ -69,7 +69,7 @@ module.exports = function(port) {
 
   function execute_totp(jar, token) {
     return request.postAsync({
-      url: BASE_URL + '/authentication/2ndfactor/totp',
+      url: BASE_URL + '/2ndfactor/totp',
       jar: jar,
       form: {
         token: token
@@ -79,13 +79,13 @@ module.exports = function(port) {
   
   function execute_u2f_authentication(jar) {
     return request.getAsync({
-      url: BASE_URL + '/authentication/2ndfactor/u2f/sign_request',
+      url: BASE_URL + '/2ndfactor/u2f/sign_request',
       jar: jar
     })
     .then(function(res) {
       assert.equal(res.statusCode, 200); 
       return request.postAsync({
-        url: BASE_URL + '/authentication/2ndfactor/u2f/sign',
+        url: BASE_URL + '/2ndfactor/u2f/sign',
         jar: jar,
         form: {
         }
@@ -94,16 +94,16 @@ module.exports = function(port) {
   }
   
   function execute_verification(jar) {
-    return request.getAsync({ url: BASE_URL + '/authentication/verify', jar: jar })
+    return request.getAsync({ url: BASE_URL + '/verify', jar: jar })
   }
   
   function execute_login(jar) {
-    return request.getAsync({ url: BASE_URL + '/authentication/login', jar: jar })
+    return request.getAsync({ url: BASE_URL + '/login', jar: jar })
   }
   
   function execute_u2f_registration(jar, transporter) {
     return request.postAsync({
-      url: BASE_URL + '/authentication/u2f-register',
+      url: BASE_URL + '/u2f-register',
       jar: jar
     })
     .then(function(res) {
@@ -113,21 +113,21 @@ module.exports = function(port) {
       var token = regexp.exec(html_content)[1];
       // console.log(html_content, token);
       return request.getAsync({
-        url: BASE_URL + '/authentication/u2f-register?identity_token=' + token,
+        url: BASE_URL + '/u2f-register?identity_token=' + token,
         jar: jar
       })
     })
     .then(function(res) {
       assert.equal(res.statusCode, 200); 
       return request.getAsync({
-        url: BASE_URL + '/authentication/2ndfactor/u2f/register_request',
+        url: BASE_URL + '/2ndfactor/u2f/register_request',
         jar: jar,
       });
     })
     .then(function(res) {
       assert.equal(res.statusCode, 200); 
       return request.postAsync({
-        url: BASE_URL + '/authentication/2ndfactor/u2f/register',
+        url: BASE_URL + '/2ndfactor/u2f/register',
         jar: jar,
         form: {
           s: 'test'
@@ -138,7 +138,7 @@ module.exports = function(port) {
   
   function execute_first_factor(jar) {
     return request.postAsync({ 
-      url: BASE_URL + '/authentication/1stfactor',
+      url: BASE_URL + '/1stfactor',
       jar: jar,
       form: {
         username: 'test_ok',
@@ -149,7 +149,7 @@ module.exports = function(port) {
 
   function execute_failing_first_factor(jar) {
     return request.postAsync({ 
-      url: BASE_URL + '/authentication/1stfactor',
+      url: BASE_URL + '/1stfactor',
       jar: jar,
       form: {
         username: 'test_nok',

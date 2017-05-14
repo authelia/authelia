@@ -20,7 +20,7 @@ function finishRegister(url, responseData, fn) {
 }
 
 function startRegister(fn, timeout) {
-  $.get('/authentication/2ndfactor/u2f/register_request', {}, null, 'json')
+  $.get('/2ndfactor/u2f/register_request', {}, null, 'json')
   .done(function(startRegisterResponse) {
     u2f.register(
       startRegisterResponse.appId,
@@ -30,7 +30,7 @@ function startRegister(fn, timeout) {
         if (response.errorCode) {
           fn(response.errorCode);
         } else {
-          finishRegister('/authentication/2ndfactor/u2f/register', response, fn);
+          finishRegister('/2ndfactor/u2f/register', response, fn);
         }
       },
       timeout 
@@ -39,7 +39,7 @@ function startRegister(fn, timeout) {
 }
 
 function redirect() {
-  var redirect_uri = '/authentication/login';
+  var redirect_uri = '/login';
   if('redirect' in params) {
     redirect_uri = params['redirect'];
   }
