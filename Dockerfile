@@ -1,9 +1,9 @@
-FROM node
+FROM node:7-alpine
 
 WORKDIR /usr/src
 
 COPY package.json /usr/src/package.json
-RUN npm install
+RUN npm install --production
 
 COPY src /usr/src
 
