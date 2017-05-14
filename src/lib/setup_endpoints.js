@@ -5,8 +5,6 @@ var routes = require('./routes');
 var identity_check = require('./identity_check');
 
 function setup_endpoints(app) {
-  var base_endpoint = '/authentication';
-
   /**
    * @apiDefine UserSession
    * @apiHeader {String} Cookie Cookie containing 'connect.sid', the user 
@@ -41,7 +39,7 @@ function setup_endpoints(app) {
    */
 
   /**
-   * @api {get} /authentication/login Serve login page
+   * @api {get} /login Serve login page
    * @apiName Login
    * @apiGroup Pages
    * @apiVersion 1.0.0
@@ -52,10 +50,10 @@ function setup_endpoints(app) {
    * @apiDescription Create a user session and serve the login page along with
    * a cookie.
    */
-  app.get  (base_endpoint + '/login',   routes.login);
+  app.get  ('/login',   routes.login);
 
   /**
-   * @api {get} /authentication/logout Server logout page
+   * @api {get} /logout Server logout page
    * @apiName Logout
    * @apiGroup Pages
    * @apiVersion 1.0.0
@@ -65,10 +63,10 @@ function setup_endpoints(app) {
    *
    * @apiDescription Deauthenticate the user and redirect him.
    */
-  app.get  (base_endpoint + '/logout',  routes.logout);
+  app.get  ('/logout',  routes.logout);
 
   /**
-   * @api {post} /authentication/totp-register Request TOTP registration
+   * @api {post} /totp-register Request TOTP registration
    * @apiName RequestTOTPRegistration
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -76,7 +74,7 @@ function setup_endpoints(app) {
    * @apiUse IdentityValidationPost
    */
   /**
-   * @api {get} /authentication/totp-register Serve TOTP registration page
+   * @api {get} /totp-register Serve TOTP registration page
    * @apiName ServeTOTPRegistrationPage
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -87,11 +85,11 @@ function setup_endpoints(app) {
    * @apiDescription Serves the TOTP registration page that displays the secret.
    * The secret is a QRCode and a base32 secret.
    */
-  identity_check(app, base_endpoint + '/totp-register', routes.totp_register.icheck_interface);
+  identity_check(app, '/totp-register', routes.totp_register.icheck_interface);
 
 
   /**
-   * @api {post} /authentication/u2f-register Request U2F registration
+   * @api {post} /u2f-register Request U2F registration
    * @apiName RequestU2FRegistration
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -99,7 +97,7 @@ function setup_endpoints(app) {
    * @apiUse IdentityValidationPost
    */
   /**
-   * @api {get} /authentication/u2f-register Serve U2F registration page
+   * @api {get} /u2f-register Serve U2F registration page
    * @apiName ServeU2FRegistrationPage
    * @apiGroup Pages
    * @apiVersion 1.0.0
@@ -109,10 +107,10 @@ function setup_endpoints(app) {
    * @apiDescription Serves the U2F registration page that asks the user to 
    * touch the token of the U2F device.
    */
-  identity_check(app, base_endpoint + '/u2f-register', routes.u2f_register.icheck_interface);
+  identity_check(app, '/u2f-register', routes.u2f_register.icheck_interface);
 
   /**
-   * @api {post} /authentication/reset-password Request for password reset
+   * @api {post} /reset-password Request for password reset
    * @apiName RequestPasswordReset
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -120,7 +118,7 @@ function setup_endpoints(app) {
    * @apiUse IdentityValidationPost
    */
   /**
-   * @api {get} /authentication/reset-password Serve password reset form.
+   * @api {get} /reset-password Serve password reset form.
    * @apiName ServePasswordResetForm
    * @apiGroup Pages
    * @apiVersion 1.0.0
@@ -130,12 +128,12 @@ function setup_endpoints(app) {
    * @apiDescription Serves password reset form that allow the user to provide
    * the new password.
    */
-  identity_check(app, base_endpoint + '/reset-password', routes.reset_password.icheck_interface);
+  identity_check(app, '/reset-password', routes.reset_password.icheck_interface);
 
-  app.get  (base_endpoint + '/reset-password-form', function(req, res) { res.render('reset-password-form'); });
+  app.get  ('/reset-password-form', function(req, res) { res.render('reset-password-form'); });
 
   /**
-   * @api {post} /authentication/new-password Set LDAP password
+   * @api {post} /new-password Set LDAP password
    * @apiName SetLDAPPassword
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -145,10 +143,10 @@ function setup_endpoints(app) {
    *
    * @apiDescription Set a new password for the user.
    */
-  app.post (base_endpoint + '/new-password', routes.reset_password.post);
+  app.post ('/new-password', routes.reset_password.post);
 
   /**
-   * @api {post} /authentication/new-totp-secret Generate TOTP secret
+   * @api {post} /new-totp-secret Generate TOTP secret
    * @apiName GenerateTOTPSecret
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -164,10 +162,10 @@ function setup_endpoints(app) {
    *
    * @apiDescription Generate a new TOTP secret and returns it.
    */
-  app.post (base_endpoint + '/new-totp-secret', routes.totp_register.post);
+  app.post ('/new-totp-secret', routes.totp_register.post);
 
   /**
-   * @api {get} /authentication/verify Verify user authentication 
+   * @api {get} /verify Verify user authentication 
    * @apiName VerifyAuthentication
    * @apiGroup Verification 
    * @apiVersion 1.0.0
@@ -179,10 +177,10 @@ function setup_endpoints(app) {
    * @apiDescription Verify that the user is authenticated, i.e., the two 
    * factors have been validated
    */
-  app.get  (base_endpoint + '/verify',   routes.verify);
+  app.get  ('/verify',   routes.verify);
 
   /**
-   * @api {post} /authentication/1stfactor LDAP authentication
+   * @api {post} /1stfactor LDAP authentication
    * @apiName ValidateFirstFactor
    * @apiGroup Authentication
    * @apiVersion 1.0.0
@@ -199,10 +197,10 @@ function setup_endpoints(app) {
    *
    * @apiDescription Verify credentials against the LDAP.
    */
-  app.post (base_endpoint + '/1stfactor',        routes.first_factor);
+  app.post ('/1stfactor',        routes.first_factor);
 
   /**
-   * @api {post} /authentication/2ndfactor/totp TOTP authentication
+   * @api {post} /2ndfactor/totp TOTP authentication
    * @apiName ValidateTOTPSecondFactor
    * @apiGroup Authentication
    * @apiVersion 1.0.0
@@ -216,10 +214,10 @@ function setup_endpoints(app) {
    *
    * @apiDescription Verify TOTP token. The user is authenticated upon success.
    */
-  app.post (base_endpoint + '/2ndfactor/totp',   routes.second_factor.totp);
+  app.post ('/2ndfactor/totp',   routes.second_factor.totp);
 
   /**
-   * @api {get} /authentication/2ndfactor/u2f/sign_request U2F Start authentication
+   * @api {get} /2ndfactor/u2f/sign_request U2F Start authentication
    * @apiName StartU2FAuthentication
    * @apiGroup Authentication
    * @apiVersion 1.0.0
@@ -231,10 +229,10 @@ function setup_endpoints(app) {
    *
    * @apiDescription Initiate an authentication request using a U2F device.
    */
-  app.get  (base_endpoint + '/2ndfactor/u2f/sign_request',       routes.second_factor.u2f.sign_request);
+  app.get  ('/2ndfactor/u2f/sign_request',       routes.second_factor.u2f.sign_request);
 
   /**
-   * @api {post} /authentication/2ndfactor/u2f/sign U2F Complete authentication
+   * @api {post} /2ndfactor/u2f/sign U2F Complete authentication
    * @apiName CompleteU2FAuthentication
    * @apiGroup Authentication
    * @apiVersion 1.0.0
@@ -246,10 +244,10 @@ function setup_endpoints(app) {
    *
    * @apiDescription Complete authentication request of the U2F device.
    */
-  app.post (base_endpoint + '/2ndfactor/u2f/sign', routes.second_factor.u2f.sign);
+  app.post ('/2ndfactor/u2f/sign', routes.second_factor.u2f.sign);
 
   /**
-   * @api {get} /authentication/2ndfactor/u2f/register_request U2F Start device registration
+   * @api {get} /2ndfactor/u2f/register_request U2F Start device registration
    * @apiName StartU2FRegistration
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -261,10 +259,10 @@ function setup_endpoints(app) {
    *
    * @apiDescription Initiate a U2F device registration request.
    */
-   app.get  (base_endpoint + '/2ndfactor/u2f/register_request',   routes.second_factor.u2f.register_request);
+   app.get  ('/2ndfactor/u2f/register_request',   routes.second_factor.u2f.register_request);
 
   /**
-   * @api {post} /authentication/2ndfactor/u2f/register U2F Complete device registration
+   * @api {post} /2ndfactor/u2f/register U2F Complete device registration
    * @apiName CompleteU2FRegistration
    * @apiGroup Registration
    * @apiVersion 1.0.0
@@ -277,6 +275,6 @@ function setup_endpoints(app) {
    *
    * @apiDescription Complete U2F registration request.
    */
-   app.post (base_endpoint + '/2ndfactor/u2f/register',           routes.second_factor.u2f.register);
+   app.post ('/2ndfactor/u2f/register',           routes.second_factor.u2f.register);
 }
 

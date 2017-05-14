@@ -27,12 +27,12 @@ function onResetPasswordButtonClicked() {
     return;
   }
   
-  $.post('/authentication/new-password', {
+  $.post('/new-password', {
     password: password1,
   })
   .done(function() {
     $.notify('Your password has been changed. Please login again', 'success');
-    window.location.replace('/authentication/login');
+    window.location.replace('/login');
   })
   .fail(function() {
     $.notify('An error occurred during password change.', 'warn');

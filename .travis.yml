@@ -8,6 +8,15 @@ addons:
   apt:
     packages:
     - libgif-dev
+  hosts:
+    - auth.test.local 
+    - home.test.local 
+    - secret.test.local 
+    - secret1.test.local 
+    - secret2.test.local 
+    - mx1.mail.test.local 
+    - mx2.mail.test.local 
+
 before_install: npm install -g npm@'>=2.13.5'
 script:
 - npm test
@@ -16,6 +25,7 @@ script:
 - docker-compose up -d
 - sleep 5
 - ./scripts/check_services.sh
+- npm run int-test
 
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then

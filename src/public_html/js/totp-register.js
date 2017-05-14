@@ -6,7 +6,7 @@ location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi,function(s,k,v){params[k]=v});
 function generateSecret(fn) {
   $.ajax({
     type: 'POST',
-    url: '/authentication/new-totp-secret',
+    url: '/new-totp-secret',
     contentType: 'application/json',
     dataType: 'json',
   })
@@ -26,7 +26,7 @@ function onSecretGenerated(err, secret) {
 }
 
 function redirect() {
-  var redirect_uri = '/authentication/login';
+  var redirect_uri = '/login';
   if('redirect' in params) {
     redirect_uri = params['redirect'];
   }

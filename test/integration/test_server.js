@@ -14,8 +14,13 @@ var AUTHELIA_HOST = 'nginx';
 var DOMAIN = 'test.local';
 var PORT = 8080;
 
-var BASE_URL = util.format('https://%s.%s:%d', 'home', DOMAIN, PORT);
-var BASE_AUTH_URL = util.format('https://%s.%s:%d/authentication', 'auth', DOMAIN, PORT);
+var HOME_URL = util.format('https://%s.%s:%d', 'home', DOMAIN, PORT);
+var SECRET_URL = util.format('https://%s.%s:%d', 'secret', DOMAIN, PORT);
+var SECRET1_URL = util.format('https://%s.%s:%d', 'secret1', DOMAIN, PORT);
+var SECRET2_URL = util.format('https://%s.%s:%d', 'secret2', DOMAIN, PORT);
+var MX1_URL = util.format('https://%s.%s:%d', 'mx1.mail', DOMAIN, PORT);
+var MX2_URL = util.format('https://%s.%s:%d', 'mx2.mail', DOMAIN, PORT);
+var BASE_AUTH_URL = util.format('https://%s.%s:%d', 'auth', DOMAIN, PORT);
 
 describe('test the server', function() {
   var home_page;
@@ -34,6 +39,24 @@ describe('test the server', function() {
                         login_page_promise]);
   });
 
+  function str_contains(str, pattern) {
+    return str.indexOf(pattern) != -1;
+  }
+
+  function home_page_contains(pattern) {
+    return str_contains(home_page, pattern);
+  }
+
+  it('should serve a correct home page', function() {
+    assert(home_page_contains(BASE_AUTH_URL + '/logout?redirect=' + HOME_URL + '/'));
+    assert(home_page_contains(HOME_URL + '/secret.html'));
+    assert(home_page_contains(SECRET_URL + '/secret.html'));
+    assert(home_page_contains(SECRET1_URL + '/secret.html'));
+    assert(home_page_contains(SECRET2_URL + '/secret.html'));
+    assert(home_page_contains(MX1_URL + '/secret.html'));
+    assert(home_page_contains(MX2_URL + '/secret.html'));
+  });
+
   it('should serve the login page', function(done) {
     getPromised(BASE_AUTH_URL + '/login?redirect=/')
     .then(function(data) {
@@ -43,7 +66,7 @@ describe('test the server', function() {
   });
 
   it('should serve the homepage', function(done) {
-    getPromised(BASE_URL + '/')
+    getPromised(HOME_URL + '/')
     .then(function(data) {
       assert.equal(data.statusCode, 200);
       done();
@@ -51,7 +74,7 @@ describe('test the server', function() {
   });
 
   it('should redirect when logout', function(done) {
-    getPromised(BASE_AUTH_URL + '/logout?redirect=' + BASE_URL)
+    getPromised(BASE_AUTH_URL + '/logout?redirect=' + HOME_URL)
     .then(function(data) {
       assert.equal(data.statusCode, 200);
       assert.equal(data.body, home_page);
@@ -60,7 +83,7 @@ describe('test the server', function() {
   });
 
   it('should be redirected to the login page when accessing secret while not authenticated', function(done) {
-    var url = BASE_URL + '/secret.html';
+    var url = HOME_URL + '/secret.html';
     // console.log(url);
     getPromised(url)
     .then(function(data) {
@@ -125,7 +148,7 @@ function postPromised(url, body) {
 }
 
 function getHomePage() {
-  return getPromised(BASE_URL + '/');
+  return getPromised(HOME_URL + '/');
 }
 
 function getLoginPage() {

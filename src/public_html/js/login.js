@@ -36,7 +36,7 @@ function onLoginButtonClicked() {
 }
 
 function onResetPasswordButtonClicked() {
-  var r = '/authentication/reset-password-form';
+  var r = '/reset-password-form';
   window.location.replace(r);
 }
 
@@ -54,7 +54,7 @@ function onTotpSignButtonClicked() {
 function onTotpRegisterButtonClicked() {
   $.ajax({
     type: 'POST',
-    url: '/authentication/totp-register',
+    url: '/totp-register',
     data: JSON.stringify({
       redirect: get_redirect_param()
     }),
@@ -92,7 +92,7 @@ function onU2fRegistrationButtonClicked() {
 function askForU2fRegistration(fn) {
   $.ajax({
     type: 'POST',
-    url: '/authentication/u2f-register',
+    url: '/u2f-register',
     data: JSON.stringify({
       redirect: get_redirect_param()
     }),
@@ -124,7 +124,7 @@ function finishU2fAuthentication(url, responseData, fn) {
 }
 
 function startU2fAuthentication(fn, timeout) {
-  $.get('/authentication/2ndfactor/u2f/sign_request', {}, null, 'json')
+  $.get('/2ndfactor/u2f/sign_request', {}, null, 'json')
   .done(function(signResponse) {
     var registeredKeys = signResponse.registeredKeys;
     $.notify('Please touch the token', 'info');
@@ -137,7 +137,7 @@ function startU2fAuthentication(fn, timeout) {
         if (response.errorCode) {
           fn(response);
         } else {
-          finishU2fAuthentication('/authentication/2ndfactor/u2f/sign', response, fn);
+          finishU2fAuthentication('/2ndfactor/u2f/sign', response, fn);
         }
       },
       timeout
@@ -149,7 +149,7 @@ function startU2fAuthentication(fn, timeout) {
 }
 
 function validateSecondFactorTotp(token, fn) {
-  $.post('/authentication/2ndfactor/totp', {
+  $.post('/2ndfactor/totp', {
     token: token,
   })
   .done(function() {
@@ -161,7 +161,7 @@ function validateSecondFactorTotp(token, fn) {
 }
 
 function validateFirstFactor(username, password, fn) {
-  $.post('/authentication/1stfactor', {
+  $.post('/1stfactor', {
     username: username,
     password: password,
   })
