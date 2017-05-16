@@ -1,6 +1,6 @@
 
 import * as ObjectPath from "object-path";
-import { authelia } from "../types/authelia";
+import { AppConfiguration, UserConfiguration, NotifiersConfiguration, ACLConfiguration, LdapConfiguration } from "./Configuration";
 
 
 function get_optional<T>(config: object, path: string, default_value: T): T {
@@ -17,7 +17,7 @@ function ensure_key_existence(config: object, path: string): void {
   }
 }
 
-export = function(yaml_config: object): authelia.Configuration {
+export = function(yaml_config: UserConfiguration): AppConfiguration {
   ensure_key_existence(yaml_config, "ldap");
   ensure_key_existence(yaml_config, "session.secret");
 
@@ -25,14 +25,16 @@ export = function(yaml_config: object): authelia.Configuration {
 
   return {
     port: port,
-    ldap: ObjectPath.get(yaml_config, "ldap"),
-    session_domain: ObjectPath.get<object, string>(yaml_config, "session.domain"),
-    session_secret: ObjectPath.get<object, string>(yaml_config, "session.secret"),
-    session_max_age: get_optional<number>(yaml_config, "session.expiration", 3600000), // in ms
+    ldap: ObjectPath.get<object, LdapConfiguration>(yaml_config, "ldap"),
+    session: {
+      domain: ObjectPath.get<object, string>(yaml_config, "session.domain"),
+      secret: ObjectPath.get<object, string>(yaml_config, "session.secret"),
+      expiration: get_optional<number>(yaml_config, "session.expiration", 3600000), // in ms
+    },
     store_directory: get_optional<string>(yaml_config, "store_directory", undefined),
     logs_level: get_optional<string>(yaml_config, "logs_level", "info"),
-    notifier: ObjectPath.get<object, authelia.NotifiersConfiguration>(yaml_config, "notifier"),
-    access_control: ObjectPath.get<object, authelia.ACLConfiguration>(yaml_config, "access_control")
+    notifier: ObjectPath.get<object, NotifiersConfiguration>(yaml_config, "notifier"),
+    access_control: ObjectPath.get<object, ACLConfiguration>(yaml_config, "access_control")
   };
 };
 

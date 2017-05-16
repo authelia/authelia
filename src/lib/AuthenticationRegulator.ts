@@ -11,8 +11,8 @@ interface DatedDocument {
 }
 
 export class AuthenticationRegulator {
-  _user_data_store: any;
-  _lock_time_in_seconds: number;
+  private _user_data_store: any;
+  private _lock_time_in_seconds: number;
 
   constructor(user_data_store: any, lock_time_in_seconds: number) {
     this._user_data_store = user_data_store;

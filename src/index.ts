@@ -2,7 +2,7 @@
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-import * as server from "./lib/server";
+import Server from "./lib/Server";
 const YAML = require("yamljs");
 
 const config_path = process.argv[2];
@@ -26,4 +26,8 @@ const deps = {
   nedb: require("nedb")
 };
 
-server.run(yaml_config, deps);
+const server = new Server();
+server.start(yaml_config, deps)
+.then(() => {
+  console.log("The server is started!");
+});
