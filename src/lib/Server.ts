@@ -7,6 +7,7 @@ import ConfigurationAdapter from "./ConfigurationAdapter";
 import { NotifierFactory } from "./notifiers/NotifierFactory";
 import TOTPValidator from "./TOTPValidator";
 import TOTPGenerator from "./TOTPGenerator";
+import RestApi from "./RestApi";
 
 import * as Express from "express";
 import * as BodyParser from "body-parser";
@@ -15,7 +16,6 @@ import * as http from "http";
 
 import AccessController from "./access_control/AccessController";
 
-const setup_endpoints = require("./setup_endpoints");
 const Ldap = require("./ldap");
 
 export default class Server {
@@ -74,7 +74,7 @@ export default class Server {
     app.set("config", config);
     app.set("access controller", accessController);
 
-    setup_endpoints(app);
+    RestApi.setup(app);
 
     return new Promise<void>((resolve, reject) => {
       this.httpServer = app.listen(config.port, function (err: string) {
