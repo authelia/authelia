@@ -1,16 +1,12 @@
 
-import * as assert from "assert";
-import * as sinon from "sinon";
-import nedb = require("nedb");
-import * as express from "express";
-import * as winston from "winston";
-import * as speakeasy from "speakeasy";
-import * as u2f from "authdog";
-
-import { AppConfiguration, UserConfiguration } from "../../src/lib/Configuration";
-import { GlobalDependencies, Nodemailer } from "../../src/lib/Dependencies";
 import Server from "../../src/lib/Server";
 
+import { UserConfiguration } from "../../src/lib/Configuration";
+import { GlobalDependencies } from "../../src/lib/Dependencies";
+import * as express from "express";
+
+const sinon = require("sinon");
+const assert = require("assert");
 
 describe("test server configuration", function () {
   let deps: GlobalDependencies;
@@ -20,7 +16,7 @@ describe("test server configuration", function () {
       sendMail: sinon.stub().yields()
     };
 
-    const nodemailer: Nodemailer = {
+    const nodemailer = {
       createTransport: sinon.spy(function () {
         return transporter;
       })
@@ -28,10 +24,10 @@ describe("test server configuration", function () {
 
     deps = {
       nodemailer: nodemailer,
-      speakeasy: speakeasy,
-      u2f: u2f,
-      nedb: nedb,
-      winston: winston,
+      speakeasy: sinon.spy(),
+      u2f: sinon.spy(),
+      nedb: require("nedb"),
+      winston: sinon.spy(),
       ldapjs: {
         createClient: sinon.spy(function () {
           return { on: sinon.spy() };
@@ -46,22 +42,23 @@ describe("test server configuration", function () {
 
   it("should set cookie scope to domain set in the config", function () {
     const config = {
+      notifier: {
+        gmail: {
+          username: "user@example.com",
+          password: "password"
+        }
+      },
       session: {
         domain: "example.com",
         secret: "secret"
       },
       ldap: {
         url: "http://ldap",
+        base_dn: "cn=test,dc=example,dc=com",
         user: "user",
         password: "password"
-      },
-      notifier: {
-        gmail: {
-          username: "user@example.com",
-          password: "password"
-        }
       }
-    } as UserConfiguration;
+    };
 
     const server = new Server();
     server.start(config, deps);

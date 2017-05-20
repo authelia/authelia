@@ -1,16 +1,16 @@
 
 import { UserConfiguration } from "./Configuration";
-import { GlobalDependencies } from "./GlobalDependencies";
+import { GlobalDependencies } from "./Dependencies";
+import { AuthenticationRegulator } from "./AuthenticationRegulator";
+import UserDataStore from "./UserDataStore";
+import ConfigurationAdapter from "./ConfigurationAdapter";
+import { NotifierFactory } from "./notifiers/NotifierFactory";
+
 import * as Express from "express";
 import * as BodyParser from "body-parser";
 import * as Path from "path";
-import { AuthenticationRegulator } from "./AuthenticationRegulator";
-import UserDataStore from "./UserDataStore";
 import * as http from "http";
 
-import config_adapter = require("./config_adapter");
-
-const Notifier = require("./notifier");
 const setup_endpoints = require("./setup_endpoints");
 const Ldap = require("./ldap");
 const AccessControl = require("./access_control");
@@ -19,7 +19,7 @@ export default class Server {
   private httpServer: http.Server;
 
   start(yaml_configuration: UserConfiguration, deps: GlobalDependencies): Promise<void> {
-    const config = config_adapter(yaml_configuration);
+    const config = ConfigurationAdapter.adapt(yaml_configuration);
 
     const view_directory = Path.resolve(__dirname, "../views");
     const public_html_directory = Path.resolve(__dirname, "../public_html");
@@ -54,7 +54,7 @@ export default class Server {
     const five_minutes = 5 * 60;
     const data_store = new UserDataStore(datastore_options);
     const regulator = new AuthenticationRegulator(data_store, five_minutes);
-    const notifier = new Notifier(config.notifier, deps);
+    const notifier = NotifierFactory.build(config.notifier, deps);
     const ldap = new Ldap(deps, config.ldap);
     const access_control = AccessControl(deps.winston, config.access_control);
 

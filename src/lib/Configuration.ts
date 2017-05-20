@@ -30,14 +30,18 @@ interface SessionCookieConfiguration {
     domain?: string;
 }
 
-interface GMailNotifier {
-    user: string;
-    pass: string;
+export interface GmailNotifierConfiguration {
+    username: string;
+    password: string;
 }
 
-type NotifierType = string;
-export interface NotifiersConfiguration {
-    gmail: GMailNotifier;
+export interface FileSystemNotifierConfiguration {
+    filename: string;
+}
+
+export interface NotifierConfiguration {
+    gmail?: GmailNotifierConfiguration;
+    filesystem?: FileSystemNotifierConfiguration;
 }
 
 export interface UserConfiguration {
@@ -46,7 +50,7 @@ export interface UserConfiguration {
     ldap: LdapConfiguration;
     session: SessionCookieConfiguration;
     store_directory?: string;
-    notifier: NotifiersConfiguration;
+    notifier: NotifierConfiguration;
     access_control?: ACLConfiguration;
 }
 
@@ -57,6 +61,6 @@ export interface AppConfiguration {
     session: SessionCookieConfiguration;
     store_in_memory?: boolean;
     store_directory?: string;
-    notifier: NotifiersConfiguration;
+    notifier: NotifierConfiguration;
     access_control?: ACLConfiguration;
 }

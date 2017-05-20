@@ -1,7 +1,6 @@
 import * as Assert from "assert";
 import { UserConfiguration } from "../../src/lib/Configuration";
-import config_adapter = require("../../src/lib/config_adapter");
-
+import ConfigurationAdapter from "../../src/lib/ConfigurationAdapter";
 
 describe("test config adapter", function() {
   function build_yaml_config(): UserConfiguration {
@@ -22,8 +21,8 @@ describe("test config adapter", function() {
       logs_level: "debug",
       notifier: {
         gmail: {
-          user: "user",
-          pass: "password"
+          username: "user",
+          password: "password"
         }
       }
     };
@@ -33,14 +32,14 @@ describe("test config adapter", function() {
   it("should read the port from the yaml file", function() {
     const yaml_config = build_yaml_config();
     yaml_config.port = 7070;
-    const config = config_adapter(yaml_config);
+    const config = ConfigurationAdapter.adapt(yaml_config);
     Assert.equal(config.port, 7070);
   });
 
   it("should default the port to 8080 if not provided", function() {
     const yaml_config = build_yaml_config();
     delete yaml_config.port;
-    const config = config_adapter(yaml_config);
+    const config = ConfigurationAdapter.adapt(yaml_config);
     Assert.equal(config.port, 8080);
   });
 
@@ -55,7 +54,7 @@ describe("test config adapter", function() {
       password: "pass"
     };
 
-    const config = config_adapter(yaml_config);
+    const config = ConfigurationAdapter.adapt(yaml_config);
 
     Assert.equal(config.ldap.url, "http://ldap");
     Assert.equal(config.ldap.additional_user_dn, "ou=users");
@@ -71,7 +70,7 @@ describe("test config adapter", function() {
       secret: "secret",
       expiration: 3600
     };
-    const config = config_adapter(yaml_config);
+    const config = ConfigurationAdapter.adapt(yaml_config);
     Assert.equal(config.session.domain, "example.com");
     Assert.equal(config.session.secret, "secret");
     Assert.equal(config.session.expiration, 3600);
@@ -80,7 +79,7 @@ describe("test config adapter", function() {
   it("should get the log level", function() {
     const yaml_config = build_yaml_config();
     yaml_config.logs_level = "debug";
-    const config = config_adapter(yaml_config);
+    const config = ConfigurationAdapter.adapt(yaml_config);
     Assert.equal(config.logs_level, "debug");
   });
 
@@ -88,15 +87,15 @@ describe("test config adapter", function() {
     const yaml_config = build_yaml_config();
     yaml_config.notifier = {
       gmail: {
-        user: "user",
-        pass: "pass"
+        username: "user",
+        password: "pass"
       }
     };
-    const config = config_adapter(yaml_config);
+    const config = ConfigurationAdapter.adapt(yaml_config);
     Assert.deepEqual(config.notifier, {
       gmail: {
-        user: "user",
-        pass: "pass"
+        username: "user",
+        password: "pass"
       }
     });
   });
@@ -108,7 +107,7 @@ describe("test config adapter", function() {
       users: {},
       groups: {}
     };
-    const config = config_adapter(yaml_config);
+    const config = ConfigurationAdapter.adapt(yaml_config);
     Assert.deepEqual(config.access_control, {
       default: [],
       users: {},

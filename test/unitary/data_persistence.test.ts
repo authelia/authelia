@@ -4,7 +4,7 @@ import * as request from "request";
 
 import Server from "../../src/lib/Server";
 import { UserConfiguration } from "../../src/lib/Configuration";
-import { GlobalDependencies } from "../../src/lib/GlobalDependencies";
+import { GlobalDependencies } from "../../src/lib/Dependencies";
 import * as tmp from "tmp";
 
 
@@ -77,8 +77,8 @@ describe("test data persistence", function () {
       store_directory: tmpDir.name,
       notifier: {
         gmail: {
-          user: "user@example.com",
-          pass: "password"
+          username: "user@example.com",
+          password: "password"
         }
       }
     };

@@ -44,8 +44,8 @@ describe("test the server", function () {
       store_in_memory: true,
       notifier: {
         gmail: {
-          user: "user@example.com",
-          pass: "password"
+          username: "user@example.com",
+          password: "password"
         }
       }
     };
