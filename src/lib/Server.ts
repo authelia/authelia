@@ -8,6 +8,7 @@ import { NotifierFactory } from "./notifiers/NotifierFactory";
 import TOTPValidator from "./TOTPValidator";
 import TOTPGenerator from "./TOTPGenerator";
 import RestApi from "./RestApi";
+import { LdapClient } from "./LdapClient";
 
 import * as Express from "express";
 import * as BodyParser from "body-parser";
@@ -15,8 +16,6 @@ import * as Path from "path";
 import * as http from "http";
 
 import AccessController from "./access_control/AccessController";
-
-const Ldap = require("./ldap");
 
 export default class Server {
   private httpServer: http.Server;
@@ -58,7 +57,7 @@ export default class Server {
     const data_store = new UserDataStore(datastore_options);
     const regulator = new AuthenticationRegulator(data_store, five_minutes);
     const notifier = NotifierFactory.build(config.notifier, deps.nodemailer);
-    const ldap = new Ldap(deps, config.ldap);
+    const ldap = new LdapClient(config.ldap, deps.ldapjs, deps.winston);
     const accessController = new AccessController(config.access_control, deps.winston);
     const totpValidator = new TOTPValidator(deps.speakeasy);
     const totpGenerator = new TOTPGenerator(deps.speakeasy);

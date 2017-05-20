@@ -1,6 +1,6 @@
 
 import Server from "../../src/lib/Server";
-import Ldap = require("../../src/lib/ldap");
+import LdapClient = require("../../src/lib/LdapClient");
 
 import Promise = require("bluebird");
 import speakeasy = require("speakeasy");

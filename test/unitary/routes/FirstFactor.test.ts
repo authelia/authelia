@@ -8,7 +8,7 @@ import FirstFactor = require("../../../src/lib/routes/FirstFactor");
 import exceptions = require("../../../src/lib/Exceptions");
 import AuthenticationRegulatorMock = require("../mocks/AuthenticationRegulator");
 import AccessControllerMock = require("../mocks/AccessController");
-import LdapMock = require("../mocks/Ldap");
+import { LdapClientMock } from "../mocks/LdapClient";
 import ExpressMock = require("../mocks/express");
 
 describe("test the first factor validation route", function() {
@@ -17,7 +17,7 @@ describe("test the first factor validation route", function() {
   let emails: string[];
   let groups: string[];
   let configuration;
-  let ldapMock: any;
+  let ldapMock: LdapClientMock;
   let regulator: any;
   let accessController: any;
 
@@ -32,7 +32,7 @@ describe("test the first factor validation route", function() {
     emails = [ "test_ok@example.com" ];
     groups = [ "group1", "group2" ];
 
-    ldapMock = LdapMock();
+    ldapMock = LdapClientMock();
 
     accessController = AccessControllerMock();
     accessController.isDomainAllowedForUser.returns(true);
@@ -63,7 +63,7 @@ describe("test the first factor validation route", function() {
         }
       }
     };
-    res = ExpressMock.Response();
+    res = ExpressMock.ResponseMock();
   });
 
   it("should return status code 204 when LDAP binding succeeds", function() {

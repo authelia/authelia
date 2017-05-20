@@ -19,12 +19,10 @@ module.exports = {
 function pre_check(req) {
   var userid = objectPath.get(req, 'body.userid');
   if(!userid) {
-    var err = new exceptions.AccessDeniedError();
-    return Promise.reject(err);
+    return Promise.reject(new exceptions.AccessDeniedError("No user id provided"));
   }
 
   var ldap = req.app.get('ldap');
-
   return ldap.get_emails(userid)
   .then(function(emails) {
     if(!emails && emails.length <= 0) throw new Error('No email found');
