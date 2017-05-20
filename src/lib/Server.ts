@@ -57,7 +57,7 @@ export default class Server {
     const five_minutes = 5 * 60;
     const data_store = new UserDataStore(datastore_options);
     const regulator = new AuthenticationRegulator(data_store, five_minutes);
-    const notifier = NotifierFactory.build(config.notifier, deps);
+    const notifier = NotifierFactory.build(config.notifier, deps.nodemailer);
     const ldap = new Ldap(deps, config.ldap);
     const accessController = new AccessController(config.access_control, deps.winston);
     const totpValidator = new TOTPValidator(deps.speakeasy);

@@ -2,7 +2,7 @@
 module.exports = totp_fn;
 
 var objectPath = require('object-path');
-var exceptions = require('../../../src/lib/exceptions');
+var exceptions = require('../../../src/lib/Exceptions');
 
 var UNAUTHORIZED_MESSAGE = 'Unauthorized access';
 

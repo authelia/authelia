@@ -1,15 +1,15 @@
 
 import { NotifierConfiguration } from "..//Configuration";
-import { NotifierDependencies } from "../../types/Dependencies";
+import { Nodemailer } from "../../types/Dependencies";
 import { INotifier } from "./INotifier";
 
 import { GMailNotifier } from "./GMailNotifier";
 import { FileSystemNotifier } from "./FileSystemNotifier";
 
 export class NotifierFactory {
-  static build(options: NotifierConfiguration, deps: NotifierDependencies): INotifier {
+  static build(options: NotifierConfiguration, nodemailer: Nodemailer): INotifier {
     if ("gmail" in options) {
-      return new GMailNotifier(options.gmail, deps.nodemailer);
+      return new GMailNotifier(options.gmail, nodemailer);
     }
     else if ("filesystem" in options) {
       return new FileSystemNotifier(options.filesystem);

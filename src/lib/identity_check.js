@@ -3,7 +3,7 @@ var objectPath = require('object-path');
 var randomstring = require('randomstring');
 var Promise = require('bluebird');
 var util = require('util');
-var exceptions = require('./exceptions');
+var exceptions = require('./Exceptions');
 var fs = require('fs');
 var ejs = require('ejs');
 

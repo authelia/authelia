@@ -3,7 +3,7 @@ import * as BluebirdPromise from "bluebird";
 import * as util from "util";
 import * as fs from "fs";
 import { INotifier } from "./INotifier";
-import { Identity } from "../Identity";
+import { Identity } from "../../types/Identity";
 
 import { FileSystemNotifierConfiguration } from "../Configuration";
 

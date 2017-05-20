@@ -9,14 +9,10 @@ import { NotifierFactory } from "../../../src/lib/notifiers/NotifierFactory";
 import { GMailNotifier } from "../../../src/lib/notifiers/GMailNotifier";
 import { FileSystemNotifier } from "../../../src/lib/notifiers/FileSystemNotifier";
 
-import { NotifierDependencies } from "../../../src/types/Dependencies";
+import nodemailerMock = require("../mocks/nodemailer");
 
 
-describe("test notifier", function() {
-  const deps: NotifierDependencies = {
-    nodemailer: NodemailerMock
-  };
-
+describe("test notifier factory", function() {
   it("should build a Gmail Notifier", function() {
     const options = {
       gmail: {
@@ -24,7 +20,8 @@ describe("test notifier", function() {
         password: "password"
       }
     };
-    assert(NotifierFactory.build(options, deps) instanceof GMailNotifier);
+    nodemailerMock.createTransport.returns(sinon.spy());
+    assert(NotifierFactory.build(options, nodemailerMock) instanceof GMailNotifier);
   });
 
   it("should build a FS Notifier", function() {
@@ -34,6 +31,6 @@ describe("test notifier", function() {
       }
     };
 
-    assert(NotifierFactory.build(options, deps) instanceof FileSystemNotifier);
+    assert(NotifierFactory.build(options, nodemailerMock) instanceof FileSystemNotifier);
   });
 });

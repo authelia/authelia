@@ -1,9 +1,8 @@
 
 import AuthenticationRegulator from "../../src/lib/AuthenticationRegulator";
 import UserDataStore from "../../src/lib/UserDataStore";
-import * as MockDate from "mockdate";
-
-const exceptions = require("../../src/lib/exceptions");
+import MockDate = require("mockdate");
+import exceptions = require("../../src/lib/Exceptions");
 
 describe("test authentication regulator", function() {
   it("should mark 2 authentication and regulate (resolve)", function() {

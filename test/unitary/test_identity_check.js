@@ -1,7 +1,7 @@
 
 var sinon = require('sinon');
 var identity_check = require('../../src/lib/identity_check');
-var exceptions = require('../../src/lib/exceptions');
+var exceptions = require('../../src/lib/Exceptions');
 var assert = require('assert');
 var winston = require('winston');
 var Promise = require('bluebird');

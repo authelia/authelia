@@ -4,8 +4,8 @@ import * as fs from "fs";
 import * as ejs from "ejs";
 import nodemailer = require("nodemailer");
 
-import { NodemailerDependencies } from "../../types/Dependencies";
-import { Identity } from "../Identity";
+import { Nodemailer } from "../../types/Dependencies";
+import { Identity } from "../../types/Identity";
 import { INotifier } from "../notifiers/INotifier";
 import { GmailNotifierConfiguration } from "../Configuration";
 
@@ -14,9 +14,9 @@ const email_template = fs.readFileSync(__dirname + "/../../resources/email-templ
 export class GMailNotifier extends INotifier {
   private transporter: any;
 
-  constructor(options: GmailNotifierConfiguration, deps: NodemailerDependencies) {
+  constructor(options: GmailNotifierConfiguration, nodemailer: Nodemailer) {
     super();
-    const transporter = deps.createTransport({
+    const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: options.username,

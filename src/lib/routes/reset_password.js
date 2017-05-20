@@ -1,7 +1,7 @@
 
 var Promise = require('bluebird');
 var objectPath = require('object-path');
-var exceptions = require('../exceptions');
+var exceptions = require('../Exceptions');
 var CHALLENGE = 'reset-password';
 
 var icheck_interface = {

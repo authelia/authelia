@@ -3,7 +3,7 @@ module.exports = Ldap;
 
 var util = require('util');
 var Promise = require('bluebird');
-var exceptions = require('./exceptions');
+var exceptions = require('./Exceptions');
 var Dovehash = require('dovehash');
 
 function Ldap(deps, ldap_config) {
@@ -70,7 +70,7 @@ Ldap.prototype._search_in_ldap = function(base, query) {
       });
     })
     .catch(function(err) {
-      reject(new exceptions.LdapSearchError(err));
+      reject(err);
     });
   });
 }

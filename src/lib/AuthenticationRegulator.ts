@@ -1,7 +1,6 @@
 
 import * as Promise from "bluebird";
-
-const exceptions = require("./exceptions");
+import exceptions = require("./Exceptions");
 
 const REGULATION_TRACE_TYPE = "regulation";
 const MAX_AUTHENTICATION_COUNT_IN_TIME_RANGE = 3;

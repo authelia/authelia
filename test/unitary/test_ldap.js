@@ -122,7 +122,7 @@ describe('test ldap validation', function() {
       var expected_doc = {};
       expected_doc.mail = [];
       expected_doc.mail.push('user@example.com');
-      ldap_client.search.yields('error');
+      ldap_client.search.yields('Error while searching mails');
 
       return ldap.get_emails('user')
       .catch(function() {

@@ -1,5 +1,5 @@
 
-var first_factor = require('./routes/first_factor');
+var first_factor = require('./routes/FirstFactor');
 var second_factor = require('./routes/second_factor');
 var reset_password = require('./routes/reset_password');
 var verify = require('./routes/verify');

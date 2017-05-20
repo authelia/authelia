@@ -1,8 +1,9 @@
-import * as winston from "winston";
-import * as speakeasy from "speakeasy";
+import winston = require("winston");
+import speakeasy = require("speakeasy");
 import nodemailer = require("nodemailer");
 import session = require("express-session");
 import nedb = require("nedb");
+import ldapjs = require("ldapjs");
 
 export type Nodemailer = typeof nodemailer;
 export type Speakeasy = typeof speakeasy;
@@ -18,10 +19,4 @@ export interface GlobalDependencies {
     winston: Winston;
     speakeasy: Speakeasy;
     nedb: Nedb;
-}
-
-export type NodemailerDependencies = Nodemailer;
-
-export interface NotifierDependencies {
-    nodemailer: Nodemailer;
 }
