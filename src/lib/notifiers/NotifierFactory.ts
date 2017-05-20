@@ -1,6 +1,6 @@
 
 import { NotifierConfiguration } from "..//Configuration";
-import { NotifierDependencies } from "../Dependencies";
+import { NotifierDependencies } from "../../types/Dependencies";
 import { INotifier } from "./INotifier";
 
 import { GMailNotifier } from "./GMailNotifier";

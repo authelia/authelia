@@ -4,7 +4,7 @@ import * as request from "request";
 
 import Server from "../../src/lib/Server";
 import { UserConfiguration } from "../../src/lib/Configuration";
-import { GlobalDependencies } from "../../src/lib/Dependencies";
+import { GlobalDependencies } from "../../src/types/Dependencies";
 import * as tmp from "tmp";
 
 

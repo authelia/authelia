@@ -2,11 +2,11 @@
 import Server from "../../src/lib/Server";
 import Ldap = require("../../src/lib/ldap");
 
-import * as Promise from "bluebird";
-import * as speakeasy from "speakeasy";
-import * as request from "request";
-import * as nedb from "nedb";
-import { TOTPSecret } from "../../src/lib/TOTPSecret";
+import Promise = require("bluebird");
+import speakeasy = require("speakeasy");
+import request = require("request");
+import nedb = require("nedb");
+import { TOTPSecret } from "../../src/types/TOTPSecret";
 
 
 const requestp = Promise.promisifyAll(request) as request.RequestAsync;
@@ -29,7 +29,6 @@ describe("test the server", function () {
   beforeEach(function () {
     const config = {
       port: PORT,
-      totp_secret: "totp_secret",
       ldap: {
         url: "ldap://127.0.0.1:389",
         base_dn: "ou=users,dc=example,dc=com",

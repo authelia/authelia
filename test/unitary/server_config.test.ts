@@ -1,30 +1,32 @@
 
-import * as assert from "assert";
-import * as sinon from "sinon";
+import assert = require("assert");
+import sinon = require ("sinon");
 import nedb = require("nedb");
-import * as express from "express";
-import * as winston from "winston";
-import * as speakeasy from "speakeasy";
-import * as u2f from "authdog";
+import express = require("express");
+import winston = require("winston");
+import speakeasy = require("speakeasy");
+import u2f = require("authdog");
+import nodemailer = require("nodemailer");
+import session = require("express-session");
 
 import { AppConfiguration, UserConfiguration } from "../../src/lib/Configuration";
-import { GlobalDependencies, Nodemailer } from "../../src/lib/Dependencies";
+import { GlobalDependencies, Nodemailer } from "../../src/types/Dependencies";
 import Server from "../../src/lib/Server";
 
 
 describe("test server configuration", function () {
   let deps: GlobalDependencies;
+  let sessionMock: sinon.SinonSpy;
 
   before(function () {
     const transporter = {
       sendMail: sinon.stub().yields()
     };
 
-    const nodemailer: Nodemailer = {
-      createTransport: sinon.spy(function () {
-        return transporter;
-      })
-    };
+    const createTransport = sinon.stub(nodemailer, "createTransport");
+    createTransport.returns(transporter);
+
+    sessionMock = sinon.spy(session);
 
     deps = {
       nodemailer: nodemailer,
@@ -37,9 +39,7 @@ describe("test server configuration", function () {
           return { on: sinon.spy() };
         })
       },
-      session: sinon.spy(function () {
-        return function (req: express.Request, res: express.Response, next: express.NextFunction) { next(); };
-      })
+      session: sessionMock as any
     };
   });
 
@@ -66,7 +66,7 @@ describe("test server configuration", function () {
     const server = new Server();
     server.start(config, deps);
 
-    assert(deps.session.calledOnce);
-    assert.equal(deps.session.getCall(0).args[0].cookie.domain, "example.com");
+    assert(sessionMock.calledOnce);
+    assert.equal(sessionMock.getCall(0).args[0].cookie.domain, "example.com");
   });
 });

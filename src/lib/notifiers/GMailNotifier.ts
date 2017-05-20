@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as ejs from "ejs";
 import nodemailer = require("nodemailer");
 
-import { NodemailerDependencies } from "../Dependencies";
+import { NodemailerDependencies } from "../../types/Dependencies";
 import { Identity } from "../Identity";
 import { INotifier } from "../notifiers/INotifier";
 import { GmailNotifierConfiguration } from "../Configuration";

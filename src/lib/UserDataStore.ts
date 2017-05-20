@@ -2,7 +2,7 @@ import * as Promise from "bluebird";
 import * as path from "path";
 import Nedb = require("nedb");
 import { NedbAsync } from "nedb";
-import { TOTPSecret } from "./TOTPSecret";
+import { TOTPSecret } from "../types/TOTPSecret";
 
 // Constants
 

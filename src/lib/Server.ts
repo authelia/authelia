@@ -1,10 +1,12 @@
 
 import { UserConfiguration } from "./Configuration";
-import { GlobalDependencies } from "./Dependencies";
-import { AuthenticationRegulator } from "./AuthenticationRegulator";
+import { GlobalDependencies } from "../types/Dependencies";
+import AuthenticationRegulator from "./AuthenticationRegulator";
 import UserDataStore from "./UserDataStore";
 import ConfigurationAdapter from "./ConfigurationAdapter";
 import { NotifierFactory } from "./notifiers/NotifierFactory";
+import TOTPValidator from "./TOTPValidator";
+import TOTPGenerator from "./TOTPGenerator";
 
 import * as Express from "express";
 import * as BodyParser from "body-parser";
@@ -58,10 +60,13 @@ export default class Server {
     const notifier = NotifierFactory.build(config.notifier, deps);
     const ldap = new Ldap(deps, config.ldap);
     const accessController = new AccessController(config.access_control, deps.winston);
+    const totpValidator = new TOTPValidator(deps.speakeasy);
+    const totpGenerator = new TOTPGenerator(deps.speakeasy);
 
     app.set("logger", deps.winston);
     app.set("ldap", ldap);
-    app.set("totp engine", deps.speakeasy);
+    app.set("totp validator", totpValidator);
+    app.set("totp generator", totpGenerator);
     app.set("u2f", deps.u2f);
     app.set("user data store", data_store);
     app.set("notifier", notifier);

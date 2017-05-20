@@ -1,5 +1,5 @@
 
-import { AuthenticationRegulator } from "../../src/lib/AuthenticationRegulator";
+import AuthenticationRegulator from "../../src/lib/AuthenticationRegulator";
 import UserDataStore from "../../src/lib/UserDataStore";
 import * as MockDate from "mockdate";
 

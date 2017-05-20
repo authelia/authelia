@@ -81,7 +81,9 @@ describe('test totp register', function() {
 
   function test_post_secret() {
     it('should send the secret in json format', function(done) {
-      req.app.get.withArgs('totp engine').returns(require('speakeasy'));
+      req.app.get.withArgs('totp generator').returns({
+        generate: sinon.stub().returns({ otpauth_url: "abc"})
+      });
       req.session.auth_session.identity_check = {};
       req.session.auth_session.identity_check.userid = 'user';
       req.session.auth_session.identity_check.challenge = 'totp-register';
@@ -92,7 +94,9 @@ describe('test totp register', function() {
     });
 
     it('should clear the session for reauthentication', function(done) {
-      req.app.get.withArgs('totp engine').returns(require('speakeasy'));
+      req.app.get.withArgs('totp generator').returns({
+        generate: sinon.stub().returns({ otpauth_url: "abc"})
+      });
       req.session.auth_session.identity_check = {};
       req.session.auth_session.identity_check.userid = 'user';
       req.session.auth_session.identity_check.challenge = 'totp-register';
@@ -114,7 +118,9 @@ describe('test totp register', function() {
     });
 
     it('should return 500 if db throws', function(done) {
-      req.app.get.withArgs('totp engine').returns(require('speakeasy'));
+      req.app.get.withArgs('totp generator').returns({
+        generate: sinon.stub().returns({ otpauth_url: "abc" })
+      });
       req.session.auth_session.identity_check = {};
       req.session.auth_session.identity_check.userid = 'user';
       req.session.auth_session.identity_check.challenge = 'totp-register';

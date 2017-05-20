@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --compilers ts:ts-node/register --recursive test/unitary",
+    "test-dbg": "./node_modules/.bin/mocha --debug-brk --compilers ts:ts-node/register --recursive test/unitary",
     "int-test": "./node_modules/.bin/mocha --recursive test/integration",
     "coverage": "./node_modules/.bin/istanbul cover _mocha -- -R spec --recursive test",
     "build-ts": "tsc",

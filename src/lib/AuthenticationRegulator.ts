@@ -10,7 +10,7 @@ interface DatedDocument {
   date: Date;
 }
 
-export class AuthenticationRegulator {
+export default class AuthenticationRegulator {
   private _user_data_store: any;
   private _lock_time_in_seconds: number;
 

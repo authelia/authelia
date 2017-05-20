@@ -7,7 +7,7 @@ var winston = require('winston');
 
 describe('test totp route', function() {
   var req, res;
-  var totp_engine;
+  var totpValidator;
   var user_data_store;
 
   beforeEach(function() {
@@ -33,8 +33,8 @@ describe('test totp route', function() {
     };
 
     var config = { totp_secret: 'secret' };
-    totp_engine = {
-      totp: sinon.stub()
+    totpValidator = {
+      validate: sinon.stub()
     }
 
     user_data_store = {};
@@ -47,14 +47,14 @@ describe('test totp route', function() {
     user_data_store.get_totp_secret.returns(Promise.resolve(doc));
 
     app_get.withArgs('logger').returns(winston);
-    app_get.withArgs('totp engine').returns(totp_engine);
+    app_get.withArgs('totp validator').returns(totpValidator);
     app_get.withArgs('config').returns(config);
     app_get.withArgs('user data store').returns(user_data_store);
   });
 
 
   it('should send status code 204 when totp is valid', function(done) {
-    totp_engine.totp.returns('abc');
+    totpValidator.validate.returns(Promise.resolve("ok"));
     res.send = sinon.spy(function() {
       // Second factor passed
       assert.equal(true, req.session.auth_session.second_factor)
@@ -65,7 +65,7 @@ describe('test totp route', function() {
   });
 
   it('should send status code 401 when totp is not valid', function(done) {
-    totp_engine.totp.returns('bad_token');
+    totpValidator.validate.returns(Promise.reject('bad_token'));
     res.send = sinon.spy(function() {
       assert.equal(false, req.session.auth_session.second_factor)
       assert.equal(401, res.status.getCall(0).args[0]);
@@ -75,7 +75,7 @@ describe('test totp route', function() {
   });
 
   it('should send status code 401 when session has not been initiated', function(done) {
-    totp_engine.totp.returns('abc');
+    totpValidator.validate.returns(Promise.resolve('abc'));
     res.send = sinon.spy(function() {
       assert.equal(403, res.status.getCall(0).args[0]);
       done();

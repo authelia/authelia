@@ -9,7 +9,7 @@ import { NotifierFactory } from "../../../src/lib/notifiers/NotifierFactory";
 import { GMailNotifier } from "../../../src/lib/notifiers/GMailNotifier";
 import { FileSystemNotifier } from "../../../src/lib/notifiers/FileSystemNotifier";
 
-import { NotifierDependencies } from "../../../src/lib/Dependencies";
+import { NotifierDependencies } from "../../../src/types/Dependencies";
 
 
 describe("test notifier", function() {

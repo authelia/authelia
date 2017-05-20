@@ -47,8 +47,8 @@ function post(req, res) {
   }
 
   var user_data_store = req.app.get('user data store');
-  var totp = req.app.get('totp engine');
-  var secret = totp.generateSecret();
+  var totpGenerator = req.app.get('totp generator');
+  var secret = totpGenerator.generate();
 
   logger.debug('POST new-totp-secret: save the TOTP secret in DB');
   user_data_store.set_totp_secret(userid, secret)

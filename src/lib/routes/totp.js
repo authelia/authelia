@@ -1,7 +1,6 @@
 
 module.exports = totp_fn;
 
-var totp = require('../totp');
 var objectPath = require('object-path');
 var exceptions = require('../../../src/lib/exceptions');
 
@@ -20,14 +19,14 @@ function totp_fn(req, res) {
   }
 
   var token = req.body.token;
-  var totp_engine = req.app.get('totp engine');
+  var totpValidator = req.app.get('totp validator');
   var data_store = req.app.get('user data store');  
 
   logger.debug('POST 2ndfactor totp: Fetching secret for user %s', userid);
   data_store.get_totp_secret(userid)
   .then(function(doc) {
     logger.debug('POST 2ndfactor totp: TOTP secret is %s', JSON.stringify(doc));
-    return totp.validate(totp_engine, token, doc.secret.base32)
+    return totpValidator.validate(token, doc.secret.base32);
   })
   .then(function() {
     logger.debug('POST 2ndfactor totp: TOTP validation succeeded');
