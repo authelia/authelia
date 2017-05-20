@@ -93,25 +93,6 @@ describe('test authentication token verification', function() {
       return test_unauthorized(undefined);
     });
 
-    it('should reply unauthorized when the domain is restricted', function() {
-      acl_matcher.is_domain_allowed.returns(false);
-      return test_unauthorized({
-        first_factor: true,
-        second_factor: true,
-        userid: 'user',
-        allowed_domains: []
-      });
-    });
-
-    it('should reply authorized when the domain is allowed', function() {
-      return test_authorized({
-        first_factor: true,
-        second_factor: true,
-        userid: 'user',
-        allowed_domains: ['secret.example.com']
-      });
-    });
-
     it('should not be authenticated when session is partially initialized', function() {
       return test_unauthorized({ first_factor: true });
     });

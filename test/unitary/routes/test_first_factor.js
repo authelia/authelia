@@ -6,7 +6,6 @@ var winston = require('winston');
 var first_factor = require('../../../src/lib/routes/first_factor');
 var exceptions = require('../../../src/lib/exceptions');
 var Ldap = require('../../../src/lib/ldap');
-var AccessControl = require('../../../src/lib/access_control');
 
 describe('test the first factor validation route', function() {
   var req, res;
@@ -14,7 +13,7 @@ describe('test the first factor validation route', function() {
   var emails;
   var search_res_ok;
   var regulator;
-  var access_control;
+  var access_controller;
   var config;
 
   beforeEach(function() {
@@ -36,14 +35,8 @@ describe('test the first factor validation route', function() {
     regulator.mark.returns(Promise.resolve());
     regulator.regulate.returns(Promise.resolve());
 
-    access_control = { 
-      builder: {
-        get_allowed_domains: sinon.stub(),
-        get_any_domain: sinon.stub(),
-      },
-      matcher: {
-        is_domain_allowed: sinon.stub()
-      }
+    access_controller = {
+      isDomainAllowedForUser: sinon.stub().returns(true)
     };
 
     var app_get = sinon.stub();
@@ -51,7 +44,7 @@ describe('test the first factor validation route', function() {
     app_get.withArgs('config').returns(config);
     app_get.withArgs('logger').returns(winston);
     app_get.withArgs('authentication regulator').returns(regulator);
-    app_get.withArgs('access control').returns(access_control);
+    app_get.withArgs('access controller').returns(access_controller);
 
     req = {
       app: {
@@ -84,40 +77,6 @@ describe('test the first factor validation route', function() {
       ldap_interface_mock.bind.withArgs('username').returns(Promise.resolve());
       ldap_interface_mock.get_emails.returns(Promise.resolve(emails));
       first_factor(req, res);
-    });
-  });
-
-  describe('store the ACL matcher in the auth session', function() {
-    it('should store the allowed domains in the auth session', function() {
-      config.access_control = {};
-      access_control.builder.get_allowed_domains.returns(['example.com', 'test.example.com']);
-      return new Promise(function(resolve, reject) {
-        res.send = sinon.spy(function(data) {
-          assert.deepEqual(['example.com', 'test.example.com'], 
-            req.session.auth_session.allowed_domains);
-          assert.equal(204, res.status.getCall(0).args[0]);
-          resolve();
-        });
-        ldap_interface_mock.bind.withArgs('username').returns(Promise.resolve());
-        ldap_interface_mock.get_emails.returns(Promise.resolve(emails));
-        ldap_interface_mock.get_groups.returns(Promise.resolve(groups));
-        first_factor(req, res);
-      });
-    });
-
-    it('should store the allow all ACL matcher in the auth session', function() {
-      access_control.builder.get_any_domain.returns(['*']);
-      return new Promise(function(resolve, reject) {
-        res.send = sinon.spy(function(data) {
-          assert(req.session.auth_session.allowed_domains);
-          assert.equal(204, res.status.getCall(0).args[0]);
-          resolve();
-        });
-        ldap_interface_mock.bind.withArgs('username').returns(Promise.resolve());
-        ldap_interface_mock.get_emails.returns(Promise.resolve(emails));
-        ldap_interface_mock.get_groups.returns(Promise.resolve(groups));
-        first_factor(req, res);
-      });
     });
   });
 

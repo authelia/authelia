@@ -37,7 +37,7 @@ function first_factor(req, res) {
   var ldap = req.app.get('ldap');
   var config = req.app.get('config');
   var regulator = req.app.get('authentication regulator');
-  var acl_builder = req.app.get('access control').builder;
+  var accessController = req.app.get('access controller');
 
   logger.info('1st factor: Starting authentication of user "%s"', username);
   logger.debug('1st factor: Start bind operation against LDAP');
@@ -63,15 +63,7 @@ function first_factor(req, res) {
     logger.debug('1st factor: Retrieved email are %s', emails);
     objectPath.set(req, 'session.auth_session.email', emails[0]);
 
-    if(config.access_control) {
-      allowed_domains = acl_builder.get_allowed_domains(username, groups);
-    }
-    else {
-      allowed_domains = acl_builder.get_any_domain();
-      logger.debug('1st factor: no access control rules found.' +
-        'Default policy to allow all.');
-    }
-    objectPath.set(req, 'session.auth_session.allowed_domains', allowed_domains);
+    allowed_domains = accessController.isDomainAllowedForUser(username, groups);
 
     regulator.mark(username, true);
     res.status(204);

@@ -11,9 +11,10 @@ import * as BodyParser from "body-parser";
 import * as Path from "path";
 import * as http from "http";
 
+import AccessController from "./access_control/AccessController";
+
 const setup_endpoints = require("./setup_endpoints");
 const Ldap = require("./ldap");
-const AccessControl = require("./access_control");
 
 export default class Server {
   private httpServer: http.Server;
@@ -56,7 +57,7 @@ export default class Server {
     const regulator = new AuthenticationRegulator(data_store, five_minutes);
     const notifier = NotifierFactory.build(config.notifier, deps);
     const ldap = new Ldap(deps, config.ldap);
-    const access_control = AccessControl(deps.winston, config.access_control);
+    const accessController = new AccessController(config.access_control, deps.winston);
 
     app.set("logger", deps.winston);
     app.set("ldap", ldap);
@@ -66,7 +67,8 @@ export default class Server {
     app.set("notifier", notifier);
     app.set("authentication regulator", regulator);
     app.set("config", config);
-    app.set("access control", access_control);
+    app.set("access controller", accessController);
+
     setup_endpoints(app);
 
     return new Promise<void>((resolve, reject) => {

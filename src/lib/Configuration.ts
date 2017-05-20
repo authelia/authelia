@@ -14,9 +14,9 @@ type UserName = string;
 type GroupName = string;
 type DomainPattern = string;
 
-type ACLDefaultRules = Array<DomainPattern>;
-type ACLGroupsRules = Object;
-type ACLUsersRules = Object;
+export type ACLDefaultRules = DomainPattern[];
+export type ACLGroupsRules = { [group: string]: string[]; };
+export type ACLUsersRules = { [user: string]: string[]; };
 
 export interface ACLConfiguration {
     default: ACLDefaultRules;
