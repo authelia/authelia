@@ -1,7 +1,7 @@
 import * as sinon from "sinon";
 import * as assert from "assert";
 
-import nodemailerMock = require("../mocks/nodemailer");
+import NodemailerMock = require("../mocks/nodemailer");
 import GMailNotifier = require("../../../src/lib/notifiers/GMailNotifier");
 
 
@@ -10,6 +10,7 @@ describe("test gmail notifier", function () {
     const transporter = {
       sendMail: sinon.stub().yields()
     };
+    const nodemailerMock = NodemailerMock.NodemailerMock();
     nodemailerMock.createTransport.returns(transporter);
 
     const options = {

@@ -8,6 +8,7 @@ export interface RequestMock {
     session?: any;
     headers?: any;
     get?: any;
+    query?: any;
 }
 
 export interface ResponseMock {
@@ -16,7 +17,7 @@ export interface ResponseMock {
     sendFile: sinon.SinonStub;
     sendfile: sinon.SinonStub;
     status: sinon.SinonStub | sinon.SinonSpy;
-    json: sinon.SinonStub;
+    json: sinon.SinonStub | sinon.SinonSpy;
     links: sinon.SinonStub;
     jsonp: sinon.SinonStub;
     download: sinon.SinonStub;
@@ -32,7 +33,7 @@ export interface ResponseMock {
     cookie: sinon.SinonStub;
     location: sinon.SinonStub;
     redirect: sinon.SinonStub;
-    render: sinon.SinonStub;
+    render: sinon.SinonStub | sinon.SinonSpy;
     locals: sinon.SinonStub;
     charset: string;
     vary: sinon.SinonStub;

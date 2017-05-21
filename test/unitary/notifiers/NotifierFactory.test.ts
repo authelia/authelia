@@ -3,16 +3,15 @@ import * as sinon from "sinon";
 import * as BluebirdPromise from "bluebird";
 import * as assert from "assert";
 
-import NodemailerMock = require("../mocks/nodemailer");
-
 import { NotifierFactory } from "../../../src/lib/notifiers/NotifierFactory";
 import { GMailNotifier } from "../../../src/lib/notifiers/GMailNotifier";
 import { FileSystemNotifier } from "../../../src/lib/notifiers/FileSystemNotifier";
 
-import nodemailerMock = require("../mocks/nodemailer");
+import NodemailerMock = require("../mocks/nodemailer");
 
 
 describe("test notifier factory", function() {
+  let nodemailerMock: NodemailerMock.NodemailerMock;
   it("should build a Gmail Notifier", function() {
     const options = {
       gmail: {
@@ -20,6 +19,7 @@ describe("test notifier factory", function() {
         password: "password"
       }
     };
+    nodemailerMock = NodemailerMock.NodemailerMock();
     nodemailerMock.createTransport.returns(sinon.spy());
     assert(NotifierFactory.build(options, nodemailerMock) instanceof GMailNotifier);
   });

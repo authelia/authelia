@@ -1,5 +1,5 @@
 
-import { ILogger } from "../ILogger";
+import { ILogger } from "../../types/ILogger";
 import { ACLConfiguration, ACLGroupsRules, ACLUsersRules, ACLDefaultRules } from "../Configuration";
 import objectPath = require("object-path");
 

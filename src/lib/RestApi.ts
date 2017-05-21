@@ -1,11 +1,12 @@
 
 import express = require("express");
-
-const routes = require("./routes");
-const identity_check = require("./identity_check");
+import routes = require("./routes");
+import IdentityValidator = require("./IdentityValidator");
+import UserDataStore from "./UserDataStore";
+import { ILogger } from "../types/ILogger";
 
 export default class RestApi {
-  static setup(app: express.Application): void {
+  static setup(app: express.Application, userDataStore: UserDataStore, logger: ILogger): void {
     /**
      * @apiDefine UserSession
      * @apiHeader {String} Cookie Cookie containing "connect.sid", the user
@@ -86,7 +87,7 @@ export default class RestApi {
      * @apiDescription Serves the TOTP registration page that displays the secret.
      * The secret is a QRCode and a base32 secret.
      */
-    identity_check(app, "/totp-register", routes.totp_register.icheck_interface);
+    IdentityValidator.IdentityValidator.setup(app, "/totp-register", routes.totp_register.icheck_interface, userDataStore, logger);
 
 
     /**
@@ -108,7 +109,7 @@ export default class RestApi {
      * @apiDescription Serves the U2F registration page that asks the user to
      * touch the token of the U2F device.
      */
-    identity_check(app, "/u2f-register", routes.u2f_register.icheck_interface);
+    IdentityValidator.IdentityValidator.setup(app, "/u2f-register", routes.u2f_register.icheck_interface, userDataStore, logger);
 
     /**
      * @api {post} /reset-password Request for password reset
@@ -129,7 +130,7 @@ export default class RestApi {
      * @apiDescription Serves password reset form that allow the user to provide
      * the new password.
      */
-    identity_check(app, "/reset-password", routes.reset_password.icheck_interface);
+    IdentityValidator.IdentityValidator.setup(app, "/reset-password", routes.reset_password.icheck_interface, userDataStore, logger);
 
     app.get("/reset-password-form", function (req, res) { res.render("reset-password-form"); });
 

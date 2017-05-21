@@ -7,6 +7,7 @@ export interface UserDataStore {
     issue_identity_check_token: sinon.SinonStub;
     consume_identity_check_token: sinon.SinonStub;
     get_totp_secret: sinon.SinonStub;
+    set_totp_secret: sinon.SinonStub;
 }
 
 export function UserDataStore(): UserDataStore {
@@ -15,6 +16,7 @@ export function UserDataStore(): UserDataStore {
         get_u2f_meta: sinon.stub(),
         issue_identity_check_token: sinon.stub(),
         consume_identity_check_token: sinon.stub(),
-        get_totp_secret: sinon.stub()
+        get_totp_secret: sinon.stub(),
+        set_totp_secret: sinon.stub()
     };
 }

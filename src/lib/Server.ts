@@ -10,6 +10,7 @@ import TOTPGenerator from "./TOTPGenerator";
 import RestApi from "./RestApi";
 import { LdapClient } from "./LdapClient";
 import BluebirdPromise = require("bluebird");
+import { IdentityValidator } from "./IdentityValidator";
 
 import * as Express from "express";
 import * as BodyParser from "body-parser";
@@ -55,26 +56,28 @@ export default class Server {
     deps.winston.level = config.logs_level || "info";
 
     const five_minutes = 5 * 60;
-    const data_store = new UserDataStore(datastore_options, deps.nedb);
-    const regulator = new AuthenticationRegulator(data_store, five_minutes);
+    const userDataStore = new UserDataStore(datastore_options, deps.nedb);
+    const regulator = new AuthenticationRegulator(userDataStore, five_minutes);
     const notifier = NotifierFactory.build(config.notifier, deps.nodemailer);
     const ldap = new LdapClient(config.ldap, deps.ldapjs, deps.winston);
     const accessController = new AccessController(config.access_control, deps.winston);
     const totpValidator = new TOTPValidator(deps.speakeasy);
     const totpGenerator = new TOTPGenerator(deps.speakeasy);
+    const identityValidator = new IdentityValidator(userDataStore, deps.winston);
 
     app.set("logger", deps.winston);
     app.set("ldap", ldap);
     app.set("totp validator", totpValidator);
     app.set("totp generator", totpGenerator);
     app.set("u2f", deps.u2f);
-    app.set("user data store", data_store);
+    app.set("user data store", userDataStore);
     app.set("notifier", notifier);
     app.set("authentication regulator", regulator);
     app.set("config", config);
     app.set("access controller", accessController);
+    app.set("identity validator", identityValidator);
 
-    RestApi.setup(app);
+    RestApi.setup(app, userDataStore, deps.winston);
 
     return new BluebirdPromise<void>((resolve, reject) => {
       this.httpServer = app.listen(config.port, function (err: string) {

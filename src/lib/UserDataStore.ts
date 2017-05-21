@@ -28,6 +28,17 @@ export interface Options {
   directory?: string;
 }
 
+export interface IdentityValidationRequestContent {
+  userid: string;
+  data: string;
+}
+
+export interface IdentityValidationRequestDocument {
+  userid: string;
+  token: string;
+  content: IdentityValidationRequestContent;
+  max_date: Date;
+}
 
 // Source
 
@@ -54,7 +65,7 @@ export default class UserDataStore {
       userid: userid,
       appid: appid,
       meta: meta
-    };
+    } as U2FMetaDocument;
 
     const filter = {
       userid: userid,
@@ -110,7 +121,7 @@ export default class UserDataStore {
     return this._identity_check_tokens_collection.insertAsync(newDocument);
   }
 
-  consume_identity_check_token(token: string): BluebirdPromise<any> {
+  consume_identity_check_token(token: string): BluebirdPromise<IdentityValidationRequestContent> {
     const query = {
       token: token
     };

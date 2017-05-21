@@ -8,7 +8,7 @@ import ldapjs = require("ldapjs");
 import { EventEmitter } from "events";
 import { LdapConfiguration } from "./Configuration";
 import { Ldapjs } from "../types/Dependencies";
-import { ILogger } from "./ILogger";
+import { ILogger } from "../types/ILogger";
 
 interface SearchEntry {
   object: any;

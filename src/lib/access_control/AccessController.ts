@@ -1,7 +1,7 @@
 
 import { ACLConfiguration } from "../Configuration";
 import PatternBuilder from "./PatternBuilder";
-import { ILogger } from "../ILogger";
+import { ILogger } from "../../types/ILogger";
 
 export default class AccessController {
     private logger: ILogger;

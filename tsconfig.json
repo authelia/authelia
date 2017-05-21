@@ -7,7 +7,6 @@
         "sourceMap": true,
         "outDir": "dist",
         "baseUrl": ".",
-        "allowJs": true,
         "paths": {
             "*": [
                 "src/types/*",

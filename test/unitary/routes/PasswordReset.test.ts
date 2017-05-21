@@ -1,5 +1,5 @@
 
-import reset_password = require("../../../src/lib/routes/reset_password");
+import PasswordReset = require("../../../src/lib/routes/PasswordReset");
 import LdapClient = require("../../../src/lib/LdapClient");
 import sinon = require("sinon");
 import winston = require("winston");
@@ -72,7 +72,7 @@ describe("test reset password", function () {
   function test_reset_password_check() {
     it("should fail when no userid is provided", function (done) {
       req.body.userid = undefined;
-      reset_password.icheck_interface.pre_check_callback(req)
+      PasswordReset.icheck_interface.preValidation(req as any)
         .catch(function (err: Error) {
           done();
         });
@@ -80,7 +80,7 @@ describe("test reset password", function () {
 
     it("should fail if ldap fail", function (done) {
       ldap_client.get_emails.returns(BluebirdPromise.reject("Internal error"));
-      reset_password.icheck_interface.pre_check_callback(req)
+      PasswordReset.icheck_interface.preValidation(req as any)
         .catch(function (err: Error) {
           done();
         });
@@ -89,7 +89,7 @@ describe("test reset password", function () {
     it("should perform a search in ldap to find email address", function (done) {
       configuration.ldap.user_name_attribute = "uid";
       ldap_client.get_emails.returns(BluebirdPromise.resolve([]));
-      reset_password.icheck_interface.pre_check_callback(req)
+      PasswordReset.icheck_interface.preValidation(req as any)
         .then(function () {
           assert.equal("user", ldap_client.get_emails.getCall(0).args[0]);
           done();
@@ -98,7 +98,7 @@ describe("test reset password", function () {
 
     it("should returns identity when ldap replies", function (done) {
       ldap_client.get_emails.returns(BluebirdPromise.resolve(["test@example.com"]));
-      reset_password.icheck_interface.pre_check_callback(req)
+      PasswordReset.icheck_interface.preValidation(req as any)
         .then(function () {
           done();
         });
@@ -120,7 +120,7 @@ describe("test reset password", function () {
         assert.equal(req.session.auth_session, undefined);
         done();
       });
-      reset_password.post(req, res);
+      PasswordReset.post(req as any, res as any);
     });
 
     it("should fail if identity_challenge does not exist", function (done) {
@@ -130,7 +130,7 @@ describe("test reset password", function () {
         assert.equal(res.status.getCall(0).args[0], 403);
         done();
       });
-      reset_password.post(req, res);
+      PasswordReset.post(req as any, res as any);
     });
 
     it("should fail when ldap fails", function (done) {
@@ -145,7 +145,7 @@ describe("test reset password", function () {
         assert.equal(res.status.getCall(0).args[0], 500);
         done();
       });
-      reset_password.post(req, res);
+      PasswordReset.post(req as any, res as any);
     });
   }
 });

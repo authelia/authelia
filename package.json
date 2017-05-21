@@ -59,6 +59,7 @@
     "@types/nodemailer": "^1.3.32",
     "@types/object-path": "^0.9.28",
     "@types/proxyquire": "^1.3.27",
+    "@types/randomstring": "^1.1.5",
     "@types/request": "0.0.43",
     "@types/sinon": "^2.2.1",
     "@types/speakeasy": "^2.0.1",

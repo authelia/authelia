@@ -1,10 +1,10 @@
 
 import FirstFactor = require("./routes/FirstFactor");
-import second_factor = require("./routes/second_factor");
-import reset_password = require("./routes/reset_password");
+import SecondFactorRoutes = require("./routes/SecondFactorRoutes");
+import PasswordReset = require("./routes/PasswordReset");
 import AuthenticationValidator = require("./routes/AuthenticationValidator");
-import u2f_register_handler = require("./routes/u2f_register_handler");
-import totp_register = require("./routes/totp_register");
+import U2FRegistration = require("./routes/U2FRegistration");
+import TOTPRegistration = require("./routes/TOTPRegistration");
 import objectPath = require("object-path");
 
 import express = require("express");
@@ -14,10 +14,10 @@ export = {
   logout: serveLogout,
   verify: AuthenticationValidator,
   first_factor: FirstFactor,
-  second_factor: second_factor,
-  reset_password: reset_password,
-  u2f_register: u2f_register_handler,
-  totp_register: totp_register,
+  second_factor: SecondFactorRoutes,
+  reset_password: PasswordReset,
+  u2f_register: U2FRegistration,
+  totp_register: TOTPRegistration,
 };
 
 function serveLogin(req: express.Request, res: express.Response) {
