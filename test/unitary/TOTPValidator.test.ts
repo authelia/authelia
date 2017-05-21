@@ -18,12 +18,12 @@ describe("test TOTP validation", function() {
     return totpValidator.validate(token, totp_secret);
   });
 
-  it("should not validate a wrong TOTP token", function() {
+  it("should not validate a wrong TOTP token", function(done) {
     const totp_secret = "NBD2ZV64R9UV1O7K";
     const token = "wrong token";
-    return totpValidator.validate(token, totp_secret)
+    totpValidator.validate(token, totp_secret)
     .catch(function() {
-      return Promise.resolve();
+      done();
     });
   });
 });

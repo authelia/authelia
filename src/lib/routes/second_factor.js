@@ -1,9 +1,10 @@
 
 var denyNotLogged = require('./deny_not_logged');
-var u2f = require('./u2f'); 
+var u2f = require('./u2f');
+var TOTPAuthenticator = require("./TOTPAuthenticator");
 
 module.exports = {
-  totp: denyNotLogged(require('./totp')),
+  totp: denyNotLogged(TOTPAuthenticator),
   u2f: {
     register_request: u2f.register_request,
     register: u2f.register,

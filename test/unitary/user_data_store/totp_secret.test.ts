@@ -4,6 +4,7 @@ import * as Promise from "bluebird";
 import * as sinon from "sinon";
 import * as MockDate from "mockdate";
 import UserDataStore from "../../../src/lib/UserDataStore";
+import nedb = require("nedb");
 
 describe("test user data store", function() {
   describe("test totp secrets store", test_totp_secrets);
@@ -15,7 +16,7 @@ function test_totp_secrets() {
       inMemoryOnly: true
     };
 
-    const data_store = new UserDataStore(options);
+    const data_store = new UserDataStore(options, nedb);
     const userid = "user";
     const secret = {
       ascii: "abc",
@@ -41,7 +42,7 @@ function test_totp_secrets() {
       inMemoryOnly: true
     };
 
-    const data_store = new UserDataStore(options);
+    const data_store = new UserDataStore(options, nedb);
     const userid = "user";
     const secret1 = {
       ascii: "abc",

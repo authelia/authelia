@@ -1,5 +1,5 @@
 
-import * as Promise from "bluebird";
+import * as BluebirdPromise from "bluebird";
 import * as fs from "fs";
 import * as ejs from "ejs";
 import nodemailer = require("nodemailer");
@@ -23,10 +23,10 @@ export class GMailNotifier extends INotifier {
         pass: options.password
       }
     });
-    this.transporter = Promise.promisifyAll(transporter);
+    this.transporter = BluebirdPromise.promisifyAll(transporter);
   }
 
-  notify(identity: Identity, subject: string, link: string): Promise<void> {
+  notify(identity: Identity, subject: string, link: string): BluebirdPromise<void> {
     const d = {
       url: link,
       button_title: "Continue",

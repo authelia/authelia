@@ -1,7 +1,7 @@
 
 var objectPath = require('object-path');
 var randomstring = require('randomstring');
-var Promise = require('bluebird');
+var BluebirdPromise = require('bluebird');
 var util = require('util');
 var exceptions = require('./Exceptions');
 var fs = require('fs');
@@ -27,7 +27,7 @@ IdentityCheck.prototype.issue_token = function(userid, content, logger) {
   this._logger.debug('identity_check: issue identity token %s for 5 minutes', token);
   return this._user_data_store.issue_identity_check_token(userid, token, content, five_minutes)
   .then(function() {
-    return Promise.resolve(token);
+    return BluebirdPromise.resolve(token);
   });
 }
 

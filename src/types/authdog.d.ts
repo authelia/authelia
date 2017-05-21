@@ -1,4 +1,6 @@
 
+import BluebirdPromise = require("bluebird");
+
 declare module "authdog" {
     interface RegisterRequest {
         challenge: string;
@@ -60,8 +62,8 @@ declare module "authdog" {
         counter: Uint32Array
     }
 
-    export function startRegistration(appId: AppId, registeredKeys: RegisteredKeys, options?: Options): Promise<RegistrationRequest>;
-    export function finishRegistration(registrationRequest: RegistrationRequest, registrationResponse: RegistrationResponse): Promise<Registration>;
-    export function startAuthentication(appId: AppId, registeredKeys: RegisteredKeys, options: Options): Promise<AuthenticationRequest>;
-    export function finishAuthentication(challenge: string, deviceResponse: AuthenticationResponse, registeredKeys: RegisteredKeys): Promise<Authentication>;
+    export function startRegistration(appId: AppId, registeredKeys: RegisteredKeys, options?: Options): BluebirdPromise<RegistrationRequest>;
+    export function finishRegistration(registrationRequest: RegistrationRequest, registrationResponse: RegistrationResponse): BluebirdPromise<Registration>;
+    export function startAuthentication(appId: AppId, registeredKeys: RegisteredKeys, options: Options): BluebirdPromise<AuthenticationRequest>;
+    export function finishAuthentication(challenge: string, deviceResponse: AuthenticationResponse, registeredKeys: RegisteredKeys): BluebirdPromise<Authentication>;
 }

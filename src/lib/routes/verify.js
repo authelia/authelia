@@ -2,31 +2,31 @@
 module.exports = verify;
 
 var objectPath = require('object-path');
-var Promise = require('bluebird');
+var BluebirdPromise = require('bluebird');
 
 function verify_filter(req, res) {
   var logger = req.app.get('logger');
 
   if(!objectPath.has(req, 'session.auth_session'))
-    return Promise.reject('No auth_session variable');
+    return BluebirdPromise.reject('No auth_session variable');
 
   if(!objectPath.has(req, 'session.auth_session.first_factor'))
-    return Promise.reject('No first factor variable');
+    return BluebirdPromise.reject('No first factor variable');
 
   if(!objectPath.has(req, 'session.auth_session.second_factor'))
-    return Promise.reject('No second factor variable');
+    return BluebirdPromise.reject('No second factor variable');
 
   if(!objectPath.has(req, 'session.auth_session.userid'))
-    return Promise.reject('No userid variable'); 
+    return BluebirdPromise.reject('No userid variable'); 
 
   var host = objectPath.get(req, 'headers.host');
   var domain = host.split(':')[0]; 
 
   if(!req.session.auth_session.first_factor || 
      !req.session.auth_session.second_factor)
-    return Promise.reject('First or second factor not validated');
+    return BluebirdPromise.reject('First or second factor not validated');
  
-  return Promise.resolve();
+  return BluebirdPromise.resolve();
 }
 
 function verify(req, res) {

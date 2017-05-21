@@ -18,6 +18,6 @@ export default class TOTPValidator {
     });
 
     if (token == real_token) return BluebirdPromise.resolve();
-    return BluebirdPromise.reject("Wrong challenge");
+    return BluebirdPromise.reject(new Error("Wrong challenge"));
   }
 }

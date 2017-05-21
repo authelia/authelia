@@ -9,6 +9,7 @@ import TOTPValidator from "./TOTPValidator";
 import TOTPGenerator from "./TOTPGenerator";
 import RestApi from "./RestApi";
 import { LdapClient } from "./LdapClient";
+import BluebirdPromise = require("bluebird");
 
 import * as Express from "express";
 import * as BodyParser from "body-parser";
@@ -20,7 +21,7 @@ import AccessController from "./access_control/AccessController";
 export default class Server {
   private httpServer: http.Server;
 
-  start(yaml_configuration: UserConfiguration, deps: GlobalDependencies): Promise<void> {
+  start(yaml_configuration: UserConfiguration, deps: GlobalDependencies): BluebirdPromise<void> {
     const config = ConfigurationAdapter.adapt(yaml_configuration);
 
     const view_directory = Path.resolve(__dirname, "../views");
@@ -54,7 +55,7 @@ export default class Server {
     deps.winston.level = config.logs_level || "info";
 
     const five_minutes = 5 * 60;
-    const data_store = new UserDataStore(datastore_options);
+    const data_store = new UserDataStore(datastore_options, deps.nedb);
     const regulator = new AuthenticationRegulator(data_store, five_minutes);
     const notifier = NotifierFactory.build(config.notifier, deps.nodemailer);
     const ldap = new LdapClient(config.ldap, deps.ldapjs, deps.winston);
@@ -75,7 +76,7 @@ export default class Server {
 
     RestApi.setup(app);
 
-    return new Promise<void>((resolve, reject) => {
+    return new BluebirdPromise<void>((resolve, reject) => {
       this.httpServer = app.listen(config.port, function (err: string) {
         console.log("Listening on %d...", config.port);
         resolve();

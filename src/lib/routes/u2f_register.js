@@ -10,7 +10,7 @@ module.exports = {
 
 var objectPath = require('object-path');
 var u2f_common = require('./u2f_common');
-var Promise = require('bluebird');
+var BluebirdPromise = require('bluebird');
 
 function register_request(req, res) {
   var logger = req.app.get('logger');

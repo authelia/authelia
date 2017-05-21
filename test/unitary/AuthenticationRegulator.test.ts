@@ -3,13 +3,14 @@ import AuthenticationRegulator from "../../src/lib/AuthenticationRegulator";
 import UserDataStore from "../../src/lib/UserDataStore";
 import MockDate = require("mockdate");
 import exceptions = require("../../src/lib/Exceptions");
+import nedb = require("nedb");
 
 describe("test authentication regulator", function() {
   it("should mark 2 authentication and regulate (resolve)", function() {
     const options = {
       inMemoryOnly: true
     };
-    const data_store = new UserDataStore(options);
+    const data_store = new UserDataStore(options, nedb);
     const regulator = new AuthenticationRegulator(data_store, 10);
     const user = "user";
 
@@ -26,7 +27,7 @@ describe("test authentication regulator", function() {
     const options = {
       inMemoryOnly: true
     };
-    const data_store = new UserDataStore(options);
+    const data_store = new UserDataStore(options, nedb);
     const regulator = new AuthenticationRegulator(data_store, 10);
     const user = "user";
 
@@ -49,7 +50,7 @@ describe("test authentication regulator", function() {
     const options = {
       inMemoryOnly: true
     };
-    const data_store = new UserDataStore(options);
+    const data_store = new UserDataStore(options, nedb);
     const regulator = new AuthenticationRegulator(data_store, 10);
     const user = "user";
 

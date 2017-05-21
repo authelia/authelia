@@ -1,8 +1,8 @@
-import * as Promise from "bluebird";
+import * as BluebirdPromise from "bluebird";
 import * as path from "path";
-import Nedb = require("nedb");
 import { NedbAsync } from "nedb";
 import { TOTPSecret } from "../types/TOTPSecret";
+import { Nedb } from "../types/Dependencies";
 
 // Constants
 
@@ -36,18 +36,20 @@ export default class UserDataStore {
   private _identity_check_tokens_collection: NedbAsync;
   private _authentication_traces_collection: NedbAsync;
   private _totp_secret_collection: NedbAsync;
+  private nedb: Nedb;
 
-  constructor(options?: Options) {
-    this._u2f_meta_collection = create_collection(U2F_META_COLLECTION_NAME, options);
+  constructor(options: Options, nedb: Nedb) {
+    this.nedb = nedb;
+    this._u2f_meta_collection = this.create_collection(U2F_META_COLLECTION_NAME, options);
     this._identity_check_tokens_collection =
-      create_collection(IDENTITY_CHECK_TOKENS_COLLECTION_NAME, options);
+      this.create_collection(IDENTITY_CHECK_TOKENS_COLLECTION_NAME, options);
     this._authentication_traces_collection =
-      create_collection(AUTHENTICATION_TRACES_COLLECTION_NAME, options);
+      this.create_collection(AUTHENTICATION_TRACES_COLLECTION_NAME, options);
     this._totp_secret_collection =
-      create_collection(TOTP_SECRETS_COLLECTION_NAME, options);
+      this.create_collection(TOTP_SECRETS_COLLECTION_NAME, options);
   }
 
-  set_u2f_meta(userid: string, appid: string, meta: Object): Promise<any> {
+  set_u2f_meta(userid: string, appid: string, meta: Object): BluebirdPromise<any> {
     const newDocument = {
       userid: userid,
       appid: appid,
@@ -62,7 +64,7 @@ export default class UserDataStore {
     return this._u2f_meta_collection.updateAsync(filter, newDocument, { upsert: true });
   }
 
-  get_u2f_meta(userid: string, appid: string): Promise<U2FMetaDocument> {
+  get_u2f_meta(userid: string, appid: string): BluebirdPromise<U2FMetaDocument> {
     const filter = {
       userid: userid,
       appid: appid
@@ -81,7 +83,7 @@ export default class UserDataStore {
     return this._authentication_traces_collection.insertAsync(newDocument);
   }
 
-  get_last_authentication_traces(userid: string, type: string, is_success: boolean, count: number): Promise<any> {
+  get_last_authentication_traces(userid: string, type: string, is_success: boolean, count: number): BluebirdPromise<any> {
     const q = {
       userid: userid,
       type: type,
@@ -90,11 +92,11 @@ export default class UserDataStore {
 
     const query = this._authentication_traces_collection.find(q)
       .sort({ date: -1 }).limit(count);
-    const query_promisified = Promise.promisify(query.exec, { context: query });
+    const query_promisified = BluebirdPromise.promisify(query.exec, { context: query });
     return query_promisified();
   }
 
-  issue_identity_check_token(userid: string, token: string, data: string | object, max_age: number): Promise<any> {
+  issue_identity_check_token(userid: string, token: string, data: string | object, max_age: number): BluebirdPromise<any> {
     const newDocument = {
       userid: userid,
       token: token,
@@ -108,7 +110,7 @@ export default class UserDataStore {
     return this._identity_check_tokens_collection.insertAsync(newDocument);
   }
 
-  consume_identity_check_token(token: string): Promise<any> {
+  consume_identity_check_token(token: string): BluebirdPromise<any> {
     const query = {
       token: token
     };
@@ -116,26 +118,26 @@ export default class UserDataStore {
     return this._identity_check_tokens_collection.findOneAsync(query)
       .then(function (doc) {
         if (!doc) {
-          return Promise.reject("Registration token does not exist");
+          return BluebirdPromise.reject("Registration token does not exist");
         }
 
         const max_date = doc.max_date;
         const current_date = new Date();
         if (current_date > max_date) {
-          return Promise.reject("Registration token is not valid anymore");
+          return BluebirdPromise.reject("Registration token is not valid anymore");
         }
-        return Promise.resolve(doc.content);
+        return BluebirdPromise.resolve(doc.content);
       })
       .then((content) => {
-        return Promise.join(this._identity_check_tokens_collection.removeAsync(query),
-          Promise.resolve(content));
+        return BluebirdPromise.join(this._identity_check_tokens_collection.removeAsync(query),
+          BluebirdPromise.resolve(content));
       })
       .then((v) => {
-        return Promise.resolve(v[1]);
+        return BluebirdPromise.resolve(v[1]);
       });
   }
 
-  set_totp_secret(userid: string, secret: TOTPSecret): Promise<any> {
+  set_totp_secret(userid: string, secret: TOTPSecret): BluebirdPromise<any> {
     const doc = {
       userid: userid,
       secret: secret
@@ -147,23 +149,23 @@ export default class UserDataStore {
     return this._totp_secret_collection.updateAsync(query, doc, { upsert: true });
   }
 
-  get_totp_secret(userid: string): Promise<TOTPSecretDocument> {
+  get_totp_secret(userid: string): BluebirdPromise<TOTPSecretDocument> {
     const query = {
       userid: userid
     };
     return this._totp_secret_collection.findOneAsync(query);
   }
-}
 
-function create_collection(name: string, options: any): NedbAsync {
-  const datastore_options = {
-    inMemoryOnly: options.inMemoryOnly || false,
-    autoload: true,
-    filename: ""
-  };
+  private create_collection(name: string, options: any): NedbAsync {
+    const datastore_options = {
+      inMemoryOnly: options.inMemoryOnly || false,
+      autoload: true,
+      filename: ""
+    };
 
-  if (options.directory)
-    datastore_options.filename = path.resolve(options.directory, name);
+    if (options.directory)
+      datastore_options.filename = path.resolve(options.directory, name);
 
-  return Promise.promisifyAll(new Nedb(datastore_options)) as NedbAsync;
+    return BluebirdPromise.promisifyAll(new this.nedb(datastore_options)) as NedbAsync;
+  }
 }

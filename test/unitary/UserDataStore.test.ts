@@ -2,7 +2,7 @@
 import UserDataStore from "../../src/lib/UserDataStore";
 import { U2FMetaDocument, Options } from "../../src/lib/UserDataStore";
 
-import DataStore = require("nedb");
+import nedb = require("nedb");
 import assert = require("assert");
 import Promise = require("bluebird");
 import sinon = require("sinon");
@@ -20,7 +20,7 @@ describe("test user data store", () => {
 
   describe("test u2f meta", () => {
     it("should save a u2f meta", function () {
-      const data_store = new UserDataStore(options);
+      const data_store = new UserDataStore(options, nedb);
 
       const userid = "user";
       const app_id = "https://localhost";
@@ -40,7 +40,7 @@ describe("test user data store", () => {
         inMemoryOnly: true
       };
 
-      const data_store = new UserDataStore(options);
+      const data_store = new UserDataStore(options, nedb);
 
       const userid = "user";
       const app_id = "https://localhost";
@@ -60,7 +60,7 @@ describe("test user data store", () => {
         inMemoryOnly: true
       };
 
-      const data_store = new UserDataStore(options);
+      const data_store = new UserDataStore(options, nedb);
 
       const userid = "user";
       const app_id = "https://localhost";
@@ -86,7 +86,7 @@ describe("test user data store", () => {
 
   describe("test u2f registration token", () => {
     it("should save u2f registration token", function () {
-      const data_store = new UserDataStore(options);
+      const data_store = new UserDataStore(options, nedb);
 
       const userid = "user";
       const token = "token";
@@ -109,7 +109,7 @@ describe("test user data store", () => {
     });
 
     it("should save u2f registration token and consume it", function (done) {
-      const data_store = new UserDataStore(options);
+      const data_store = new UserDataStore(options, nedb);
 
       const userid = "user";
       const token = "token";
@@ -128,7 +128,7 @@ describe("test user data store", () => {
     });
 
     it("should not be able to consume registration token twice", function (done) {
-      const data_store = new UserDataStore(options);
+      const data_store = new UserDataStore(options, nedb);
 
       const userid = "user";
       const token = "token";
@@ -148,7 +148,7 @@ describe("test user data store", () => {
     });
 
     it("should fail when token does not exist", function () {
-      const data_store = new UserDataStore(options);
+      const data_store = new UserDataStore(options, nedb);
 
       const token = "token";
 
@@ -162,7 +162,7 @@ describe("test user data store", () => {
     });
 
     it("should fail when token expired", function (done) {
-      const data_store = new UserDataStore(options);
+      const data_store = new UserDataStore(options, nedb);
 
       const userid = "user";
       const token = "token";
@@ -181,7 +181,7 @@ describe("test user data store", () => {
     });
 
     it("should save the userid and some data with the token", function (done) {
-      const data_store = new UserDataStore(options);
+      const data_store = new UserDataStore(options, nedb);
 
       const userid = "user";
       const token = "token";

@@ -4,6 +4,7 @@ import * as Promise from "bluebird";
 import * as sinon from "sinon";
 import * as MockDate from "mockdate";
 import UserDataStore from "../../../src/lib/UserDataStore";
+import nedb = require("nedb");
 
 describe("test user data store", function() {
   describe("test authentication traces", test_authentication_traces);
@@ -15,7 +16,7 @@ function test_authentication_traces() {
       inMemoryOnly: true
     };
 
-    const data_store = new UserDataStore(options);
+    const data_store = new UserDataStore(options, nedb);
     const userid = "user";
     const type = "1stfactor";
     const is_success = false;
@@ -34,7 +35,7 @@ function test_authentication_traces() {
       inMemoryOnly: true
     };
 
-    const data_store = new UserDataStore(options);
+    const data_store = new UserDataStore(options, nedb);
     const userid = "user";
     const type = "1stfactor";
     const is_success = false;

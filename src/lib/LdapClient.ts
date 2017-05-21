@@ -115,7 +115,7 @@ export class LdapClient {
           groups.push(docs[i].cn);
         }
         that.logger.debug("LDAP: got groups %s", groups);
-        return Promise.resolve(groups);
+        return BluebirdPromise.resolve(groups);
       });
   }
 
@@ -141,7 +141,7 @@ export class LdapClient {
           }
         }
         that.logger.debug("LDAP: got emails %s", emails);
-        return Promise.resolve(emails);
+        return BluebirdPromise.resolve(emails);
       });
   }
 

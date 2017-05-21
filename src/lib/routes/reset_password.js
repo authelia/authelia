@@ -1,5 +1,5 @@
 
-var Promise = require('bluebird');
+var BluebirdPromise = require('bluebird');
 var objectPath = require('object-path');
 var exceptions = require('../Exceptions');
 var CHALLENGE = 'reset-password';
@@ -19,7 +19,7 @@ module.exports = {
 function pre_check(req) {
   var userid = objectPath.get(req, 'body.userid');
   if(!userid) {
-    return Promise.reject(new exceptions.AccessDeniedError("No user id provided"));
+    return BluebirdPromise.reject(new exceptions.AccessDeniedError("No user id provided"));
   }
 
   var ldap = req.app.get('ldap');
@@ -30,7 +30,7 @@ function pre_check(req) {
     var identity = {}
     identity.email = emails[0];
     identity.userid = userid;
-    return Promise.resolve(identity);
+    return BluebirdPromise.resolve(identity);
   });
 }
 

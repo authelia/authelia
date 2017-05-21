@@ -12,14 +12,14 @@ import { LdapClientMock } from "../mocks/LdapClient";
 import ExpressMock = require("../mocks/express");
 
 describe("test the first factor validation route", function() {
-  let req: any;
-  let res: any;
+  let req: ExpressMock.RequestMock;
+  let res: ExpressMock.ResponseMock;
   let emails: string[];
   let groups: string[];
   let configuration;
   let ldapMock: LdapClientMock;
-  let regulator: any;
-  let accessController: any;
+  let regulator: AuthenticationRegulatorMock.AuthenticationRegulatorMock;
+  let accessController: AccessControllerMock.AccessControllerMock;
 
   beforeEach(function() {
     configuration = {
@@ -34,10 +34,10 @@ describe("test the first factor validation route", function() {
 
     ldapMock = LdapClientMock();
 
-    accessController = AccessControllerMock();
+    accessController = AccessControllerMock.AccessControllerMock();
     accessController.isDomainAllowedForUser.returns(true);
 
-    regulator = AuthenticationRegulatorMock();
+    regulator = AuthenticationRegulatorMock.AuthenticationRegulatorMock();
     regulator.regulate.returns(BluebirdPromise.resolve());
     regulator.mark.returns(BluebirdPromise.resolve());
 
@@ -75,15 +75,15 @@ describe("test the first factor validation route", function() {
       });
       ldapMock.bind.withArgs("username").returns(BluebirdPromise.resolve());
       ldapMock.get_emails.returns(BluebirdPromise.resolve(emails));
-      FirstFactor(req, res);
+      FirstFactor(req as any, res as any);
     });
   });
 
   it("should retrieve email from LDAP", function(done) {
     res.send = sinon.spy(function() { done(); });
     ldapMock.bind.returns(BluebirdPromise.resolve());
-    ldapMock.get_emails = sinon.stub().withArgs("usernam").returns(BluebirdPromise.resolve([{mail: ["test@example.com"] }]));
-    FirstFactor(req, res);
+    ldapMock.get_emails = sinon.stub().withArgs("username").returns(BluebirdPromise.resolve([{mail: ["test@example.com"] }]));
+    FirstFactor(req as any, res as any);
   });
 
   it("should set email as session variables", function() {
@@ -95,7 +95,7 @@ describe("test the first factor validation route", function() {
       const emails = [ "test_ok@example.com" ];
       ldapMock.bind.returns(BluebirdPromise.resolve());
       ldapMock.get_emails.returns(BluebirdPromise.resolve(emails));
-      FirstFactor(req, res);
+      FirstFactor(req as any, res as any);
     });
   });
 
@@ -105,8 +105,8 @@ describe("test the first factor validation route", function() {
       assert.equal(regulator.mark.getCall(0).args[0], "username");
       done();
     });
-    ldapMock.bind.throws(new exceptions.LdapBindError("Bad credentials"));
-    FirstFactor(req, res);
+    ldapMock.bind.returns(BluebirdPromise.reject(new exceptions.LdapBindError("Bad credentials")));
+    FirstFactor(req as any, res as any);
   });
 
   it("should return status code 500 when LDAP search throws", function(done) {
@@ -115,8 +115,8 @@ describe("test the first factor validation route", function() {
       done();
     });
     ldapMock.bind.returns(BluebirdPromise.resolve());
-    ldapMock.get_emails.throws(new exceptions.LdapSeachError("error while retrieving emails"));
-    FirstFactor(req, res);
+    ldapMock.get_emails.returns(BluebirdPromise.reject(new exceptions.LdapSeachError("error while retrieving emails")));
+    FirstFactor(req as any, res as any);
   });
 
   it("should return status code 403 when regulator rejects authentication", function(done) {
@@ -129,7 +129,7 @@ describe("test the first factor validation route", function() {
     });
     ldapMock.bind.returns(BluebirdPromise.resolve());
     ldapMock.get_emails.returns(BluebirdPromise.resolve());
-    FirstFactor(req, res);
+    FirstFactor(req as any, res as any);
   });
 });
 
