@@ -46,3 +46,11 @@ export class InvalidTOTPError extends Error {
     Object.setPrototypeOf(this, InvalidTOTPError.prototype);
   }
 }
+
+export class DomainAccessDenied extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "DomainAccessDenied";
+    Object.setPrototypeOf(this, DomainAccessDenied.prototype);
+  }
+}

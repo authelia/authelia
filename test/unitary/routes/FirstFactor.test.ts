@@ -11,7 +11,7 @@ import AccessControllerMock = require("../mocks/AccessController");
 import { LdapClientMock } from "../mocks/LdapClient";
 import ExpressMock = require("../mocks/express");
 
-describe("test the first factor validation route", function() {
+describe("test the first factor validation route", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
   let emails: string[];
@@ -21,7 +21,7 @@ describe("test the first factor validation route", function() {
   let regulator: AuthenticationRegulatorMock.AuthenticationRegulatorMock;
   let accessController: AccessControllerMock.AccessControllerMock;
 
-  beforeEach(function() {
+  beforeEach(function () {
     configuration = {
       ldap: {
         base_dn: "ou=users,dc=example,dc=com",
@@ -29,8 +29,8 @@ describe("test the first factor validation route", function() {
       }
     };
 
-    emails = [ "test_ok@example.com" ];
-    groups = [ "group1", "group2" ];
+    emails = ["test_ok@example.com"];
+    groups = ["group1", "group2" ];
 
     ldapMock = LdapClientMock();
 
@@ -61,14 +61,17 @@ describe("test the first factor validation route", function() {
           FirstFactor: false,
           second_factor: false
         }
+      },
+      headers: {
+        host: "home.example.com"
       }
     };
     res = ExpressMock.ResponseMock();
   });
 
-  it("should return status code 204 when LDAP binding succeeds", function() {
-    return new Promise(function(resolve, reject) {
-      res.send = sinon.spy(function() {
+  it("should return status code 204 when LDAP binding succeeds", function () {
+    return new Promise(function (resolve, reject) {
+      res.send = sinon.spy(function () {
         assert.equal("username", req.session.auth_session.userid);
         assert.equal(204, res.status.getCall(0).args[0]);
         resolve();
@@ -79,28 +82,28 @@ describe("test the first factor validation route", function() {
     });
   });
 
-  it("should retrieve email from LDAP", function(done) {
-    res.send = sinon.spy(function() { done(); });
+  it("should retrieve email from LDAP", function (done) {
+    res.send = sinon.spy(function () { done(); });
     ldapMock.bind.returns(BluebirdPromise.resolve());
-    ldapMock.get_emails = sinon.stub().withArgs("username").returns(BluebirdPromise.resolve([{mail: ["test@example.com"] }]));
+    ldapMock.get_emails = sinon.stub().withArgs("username").returns(BluebirdPromise.resolve([{ mail: ["test@example.com"] }]));
     FirstFactor(req as any, res as any);
   });
 
-  it("should set email as session variables", function() {
-    return new Promise(function(resolve, reject) {
-      res.send = sinon.spy(function() {
+  it("should set email as session variables", function () {
+    return new Promise(function (resolve, reject) {
+      res.send = sinon.spy(function () {
         assert.equal("test_ok@example.com", req.session.auth_session.email);
         resolve();
       });
-      const emails = [ "test_ok@example.com" ];
+      const emails = ["test_ok@example.com"];
       ldapMock.bind.returns(BluebirdPromise.resolve());
       ldapMock.get_emails.returns(BluebirdPromise.resolve(emails));
       FirstFactor(req as any, res as any);
     });
   });
 
-  it("should return status code 401 when LDAP binding throws", function(done) {
-    res.send = sinon.spy(function() {
+  it("should return status code 401 when LDAP binding throws", function (done) {
+    res.send = sinon.spy(function () {
       assert.equal(401, res.status.getCall(0).args[0]);
       assert.equal(regulator.mark.getCall(0).args[0], "username");
       done();
@@ -109,8 +112,8 @@ describe("test the first factor validation route", function() {
     FirstFactor(req as any, res as any);
   });
 
-  it("should return status code 500 when LDAP search throws", function(done) {
-    res.send = sinon.spy(function() {
+  it("should return status code 500 when LDAP search throws", function (done) {
+    res.send = sinon.spy(function () {
       assert.equal(500, res.status.getCall(0).args[0]);
       done();
     });
@@ -119,11 +122,11 @@ describe("test the first factor validation route", function() {
     FirstFactor(req as any, res as any);
   });
 
-  it("should return status code 403 when regulator rejects authentication", function(done) {
+  it("should return status code 403 when regulator rejects authentication", function (done) {
     const err = new exceptions.AuthenticationRegulationError("Authentication regulation...");
     regulator.regulate.returns(BluebirdPromise.reject(err));
 
-    res.send = sinon.spy(function() {
+    res.send = sinon.spy(function () {
       assert.equal(403, res.status.getCall(0).args[0]);
       done();
     });

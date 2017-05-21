@@ -105,6 +105,20 @@ describe("test authentication token verification", function () {
     it("should not be authenticated when session is partially initialized", function () {
       return test_unauthorized({ first_factor: true });
     });
+
+    it.only("should not be authenticated when domain is not allowed for user", function () {
+      req.headers.host = "test.example.com";
+
+      accessController.isDomainAllowedForUser.returns(false);
+      accessController.isDomainAllowedForUser.withArgs("test.example.com", "user", ["group1", "group2"]).returns(true);
+
+      return test_authorized({
+        first_factor: true,
+        second_factor: true,
+        userid: "user",
+        groups: ["group1", "group2"]
+      });
+    });
   });
 });
 
