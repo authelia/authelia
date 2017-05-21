@@ -15,7 +15,7 @@ export interface ResponseMock {
     sendStatus: sinon.SinonStub;
     sendFile: sinon.SinonStub;
     sendfile: sinon.SinonStub;
-    status: sinon.SinonStub;
+    status: sinon.SinonStub | sinon.SinonSpy;
     json: sinon.SinonStub;
     links: sinon.SinonStub;
     jsonp: sinon.SinonStub;
