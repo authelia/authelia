@@ -5,7 +5,7 @@ WORKDIR /usr/src
 COPY package.json /usr/src/package.json
 RUN npm install --production
 
-COPY dist/src /usr/src
+COPY dist/src/server /usr/src
 
 ENV PORT=80
 EXPOSE 80

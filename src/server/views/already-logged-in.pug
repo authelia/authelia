@@ -1,0 +1,9 @@
+extends layout/layout.pug 
+
+block form-header
+  <h1>Sign in</h1>
+  <img class="header-img" src="/img/success.png" alt="">
+
+block content
+    <p>You are already logged in.<br/>
+    | Click <a href="#{ logout_endpoint }">here</a> to log off.<p>

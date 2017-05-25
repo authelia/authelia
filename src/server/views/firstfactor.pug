@@ -1,0 +1,20 @@
+extends layout/layout.pug 
+
+block form-header
+  <h1>Sign in</h1>
+  <img class="header-img" src="/img/user.png" alt="">
+
+block content
+  <form class="form-signin">
+    <div class="form-inputs">
+      <input type="text" class="form-control" id="username" placeholder="Username" required autofocus>
+      <input type="password" class="form-control" id="password" placeholder="Password" required>
+    </div>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    <!-- <label class="checkbox pull-left"><input type="checkbox" value="remember-me">Remember me</label> -->
+    a(href=reset_password_request_endpoint, class="pull-right link") Forgot password?
+    <span class="clearfix"></span>
+  </form>
+
+block entrypoint
+    <script>authelia.firstfactor();</script>

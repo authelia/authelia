@@ -1,0 +1,12 @@
+.totp-register #secret {
+    background-color: white;
+    font-size: 0.9em;
+    font-weight: bold;
+    padding: 5px;
+    border: 1px solid #c7c7c7;
+    word-wrap: break-word;
+}
+
+.totp-register #qrcode img {
+    margin: 20px auto;
+}

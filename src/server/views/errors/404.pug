@@ -1,0 +1,11 @@
+extends ../layout/layout.pug
+
+block variables
+  - page_classname = "error-404";
+
+block form-header
+  <h1>Error 404</h1>
+  <img class="header-img" src="/img/warning.png" alt="">
+
+block content
+    <p>Page not found.</p>

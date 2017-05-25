@@ -4,8 +4,8 @@ services:
   auth:
     volumes:
       - ./test:/usr/src/test
-      - ./src/views:/usr/src/views
-      - ./src/public_html:/usr/src/public_html
+      - ./dist/src/server:/usr/src
+      - ./node_modules:/usr/src/node_modules
       - ./config.yml:/etc/auth-server/config.yml:ro
 
   ldap-admin:

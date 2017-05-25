@@ -1,67 +1,9 @@
 [
   {
-    "type": "post",
-    "url": "/authentication/2ndfactor/u2f/sign",
-    "title": "U2F Complete authentication",
-    "name": "CompleteU2FAuthentication",
-    "group": "Authentication",
-    "version": "1.0.0",
-    "success": {
-      "fields": {
-        "Success 204": [
-          {
-            "group": "Success 204",
-            "optional": false,
-            "field": "status",
-            "description": "<p>The U2F authentication succeeded.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 403": [
-          {
-            "group": "Error 403",
-            "type": "none",
-            "optional": false,
-            "field": "error",
-            "description": "<p>No authentication request has been provided.</p>"
-          }
-        ],
-        "Error 500": [
-          {
-            "group": "Error 500",
-            "type": "String",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Internal error message.</p>"
-          }
-        ]
-      }
-    },
-    "description": "<p>Complete authentication request of the U2F device.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Authentication",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
-          }
-        ]
-      }
-    }
-  },
-  {
     "type": "get",
-    "url": "/authentication/2ndfactor/u2f/sign_request",
-    "title": "U2F Start authentication",
-    "name": "StartU2FAuthentication",
+    "url": "/",
+    "title": "First factor page",
+    "name": "Login",
     "group": "Authentication",
     "version": "1.0.0",
     "success": {
@@ -69,56 +11,82 @@
         "Success 200": [
           {
             "group": "Success 200",
+            "type": "String",
             "optional": false,
-            "field": "authentication_request",
-            "description": "<p>The U2F authentication request.</p>"
+            "field": "Content",
+            "description": "<p>The content of the first factor page.</p>"
           }
         ]
       }
     },
-    "error": {
+    "description": "<p>Serves the login page and create a create a cookie for the client.</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "Authentication"
+  },
+  {
+    "type": "get",
+    "url": "/logout",
+    "title": "Serves logout page",
+    "name": "Logout",
+    "group": "Authentication",
+    "version": "1.0.0",
+    "parameter": {
       "fields": {
-        "Error 401": [
+        "Parameter": [
           {
-            "group": "Error 401",
-            "type": "none",
-            "optional": false,
-            "field": "error",
-            "description": "<p>There is no key registered for user in session.</p>"
-          }
-        ],
-        "Error 500": [
-          {
-            "group": "Error 500",
+            "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "error",
-            "description": "<p>Internal error message.</p>"
+            "field": "redirect",
+            "description": "<p>Redirect to this URL when user is deauthenticated.</p>"
           }
         ]
       }
     },
-    "description": "<p>Initiate an authentication request using a U2F device.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Authentication",
-    "header": {
+    "success": {
       "fields": {
-        "Header": [
+        "Success 302": [
           {
-            "group": "Header",
-            "type": "String",
+            "group": "Success 302",
             "optional": false,
-            "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
+            "field": "redirect",
+            "description": "<p>Redirect to the URL.</p>"
           }
         ]
       }
-    }
+    },
+    "description": "<p>Log out the user and redirect to the URL.</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "Authentication"
+  },
+  {
+    "type": "get",
+    "url": "/secondfactor",
+    "title": "Second factor page",
+    "name": "SecondFactor",
+    "group": "Authentication",
+    "version": "1.0.0",
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "Content",
+            "description": "<p>The content of second factor page.</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Serves the second factor page</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "Authentication"
   },
   {
     "type": "post",
-    "url": "/authentication/1stfactor",
-    "title": "LDAP authentication",
+    "url": "/1stfactor",
+    "title": "Bind user against LDAP",
     "name": "ValidateFirstFactor",
     "group": "Authentication",
     "version": "1.0.0",
@@ -165,15 +133,6 @@
             "description": "<p>1st factor is not validated.</p>"
           }
         ],
-        "Error 403": [
-          {
-            "group": "Error 403",
-            "type": "none",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Access has been restricted after too many authentication attempts</p>"
-          }
-        ],
         "Error 500": [
           {
             "group": "Error 500",
@@ -186,7 +145,7 @@
       }
     },
     "description": "<p>Verify credentials against the LDAP.</p>",
-    "filename": "src/lib/setup_endpoints.js",
+    "filename": "src/server/endpoints.ts",
     "groupTitle": "Authentication",
     "header": {
       "fields": {
@@ -196,7 +155,7 @@
             "type": "String",
             "optional": false,
             "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
           }
         ]
       }
@@ -204,10 +163,343 @@
   },
   {
     "type": "post",
-    "url": "/authentication/2ndfactor/totp",
-    "title": "TOTP authentication",
+    "url": "/reset-password/request",
+    "title": "Finish password reset request",
+    "name": "FinishPasswordResetRequest",
+    "group": "PasswordReset",
+    "version": "1.0.0",
+    "description": "<p>Start password reset request.</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "PasswordReset",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Cookie",
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "identity_token",
+            "description": "<p>The one-time identity validation token provided in the email.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "content",
+            "description": "<p>The content of the page.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 403": [
+          {
+            "group": "Error 403",
+            "optional": false,
+            "field": "AccessDenied",
+            "description": "<p>Access is denied.</p>"
+          }
+        ],
+        "Error 500": [
+          {
+            "group": "Error 500",
+            "type": "String",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Internal error message.</p>"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "get",
+    "url": "/password-reset/request",
+    "title": "Request username",
+    "name": "ServePasswordResetPage",
+    "group": "PasswordReset",
+    "version": "1.0.0",
+    "description": "<p>Serve a page that requires the username.</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "PasswordReset",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Cookie",
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "post",
+    "url": "/api/password-reset",
+    "title": "Set new password",
+    "name": "SetNewLDAPPassword",
+    "group": "PasswordReset",
+    "version": "1.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "password",
+            "description": "<p>New password</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Set a new password for the user.</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "PasswordReset",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Cookie",
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "get",
+    "url": "/password-reset/identity/start",
+    "title": "Start password reset request",
+    "name": "StartPasswordResetRequest",
+    "group": "PasswordReset",
+    "version": "1.0.0",
+    "description": "<p>Start password reset request.</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "PasswordReset",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Cookie",
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 204": [
+          {
+            "group": "Success 204",
+            "optional": false,
+            "field": "status",
+            "description": "<p>Identity validation has been initiated.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 403": [
+          {
+            "group": "Error 403",
+            "optional": false,
+            "field": "AccessDenied",
+            "description": "<p>Access is denied.</p>"
+          }
+        ],
+        "Error 400": [
+          {
+            "group": "Error 400",
+            "optional": false,
+            "field": "InvalidIdentity",
+            "description": "<p>User identity is invalid.</p>"
+          }
+        ],
+        "Error 500": [
+          {
+            "group": "Error 500",
+            "type": "String",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Internal error message.</p>"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "get",
+    "url": "/secondfactor/totp/identity/finish",
+    "title": "Finish TOTP registration identity validation",
+    "name": "FinishTOTPRegistration",
+    "group": "TOTP",
+    "version": "1.0.0",
+    "description": "<p>Serves the TOTP registration page that displays the secret. The secret is a QRCode and a base32 secret.</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "TOTP",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Cookie",
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "identity_token",
+            "description": "<p>The one-time identity validation token provided in the email.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "content",
+            "description": "<p>The content of the page.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 403": [
+          {
+            "group": "Error 403",
+            "optional": false,
+            "field": "AccessDenied",
+            "description": "<p>Access is denied.</p>"
+          }
+        ],
+        "Error 500": [
+          {
+            "group": "Error 500",
+            "type": "String",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Internal error message.</p>"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "get",
+    "url": "/secondfactor/totp/identity/start",
+    "title": "Start TOTP registration identity validation",
+    "name": "StartTOTPRegistration",
+    "group": "TOTP",
+    "version": "1.0.0",
+    "description": "<p>Initiates the identity validation</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "TOTP",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Cookie",
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 204": [
+          {
+            "group": "Success 204",
+            "optional": false,
+            "field": "status",
+            "description": "<p>Identity validation has been initiated.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 403": [
+          {
+            "group": "Error 403",
+            "optional": false,
+            "field": "AccessDenied",
+            "description": "<p>Access is denied.</p>"
+          }
+        ],
+        "Error 400": [
+          {
+            "group": "Error 400",
+            "optional": false,
+            "field": "InvalidIdentity",
+            "description": "<p>User identity is invalid.</p>"
+          }
+        ],
+        "Error 500": [
+          {
+            "group": "Error 500",
+            "type": "String",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Internal error message.</p>"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "post",
+    "url": "/api/totp",
+    "title": "Complete TOTP authentication",
     "name": "ValidateTOTPSecondFactor",
-    "group": "Authentication",
+    "group": "TOTP",
     "version": "1.0.0",
     "parameter": {
       "fields": {
@@ -224,12 +516,12 @@
     },
     "success": {
       "fields": {
-        "Success 204": [
+        "Success 302": [
           {
-            "group": "Success 204",
+            "group": "Success 302",
             "optional": false,
-            "field": "status",
-            "description": "<p>TOTP token is valid.</p>"
+            "field": "Redirect",
+            "description": "<p>to the URL that has been stored during last call to /verify.</p>"
           }
         ]
       }
@@ -257,8 +549,8 @@
       }
     },
     "description": "<p>Verify TOTP token. The user is authenticated upon success.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Authentication",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "TOTP",
     "header": {
       "fields": {
         "Header": [
@@ -267,222 +559,7 @@
             "type": "String",
             "optional": false,
             "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "get",
-    "url": "/authentication/login",
-    "title": "Serve login page",
-    "name": "Login",
-    "group": "Pages",
-    "version": "1.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "redirect",
-            "description": "<p>Redirect to this URL when user is authenticated.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "Content",
-            "description": "<p>The content of the login page.</p>"
-          }
-        ]
-      }
-    },
-    "description": "<p>Create a user session and serve the login page along with a cookie.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Pages"
-  },
-  {
-    "type": "get",
-    "url": "/authentication/logout",
-    "title": "Server logout page",
-    "name": "Logout",
-    "group": "Pages",
-    "version": "1.0.0",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "redirect",
-            "description": "<p>Redirect to this URL when user is deauthenticated.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 301": [
-          {
-            "group": "Success 301",
-            "optional": false,
-            "field": "redirect",
-            "description": "<p>Redirect to the URL.</p>"
-          }
-        ]
-      }
-    },
-    "description": "<p>Deauthenticate the user and redirect him.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Pages"
-  },
-  {
-    "type": "get",
-    "url": "/authentication/reset-password",
-    "title": "Serve password reset form.",
-    "name": "ServePasswordResetForm",
-    "group": "Pages",
-    "version": "1.0.0",
-    "description": "<p>Serves password reset form that allow the user to provide the new password.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Pages",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "identity_token",
-            "description": "<p>The one-time identity validation token provided in the email.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "content",
-            "description": "<p>The content of the page.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 403": [
-          {
-            "group": "Error 403",
-            "optional": false,
-            "field": "AccessDenied",
-            "description": "<p>Access is denied.</p>"
-          }
-        ],
-        "Error 500": [
-          {
-            "group": "Error 500",
-            "type": "String",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Internal error message.</p>"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "get",
-    "url": "/authentication/u2f-register",
-    "title": "Serve U2F registration page",
-    "name": "ServeU2FRegistrationPage",
-    "group": "Pages",
-    "version": "1.0.0",
-    "description": "<p>Serves the U2F registration page that asks the user to touch the token of the U2F device.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Pages",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "identity_token",
-            "description": "<p>The one-time identity validation token provided in the email.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "content",
-            "description": "<p>The content of the page.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 403": [
-          {
-            "group": "Error 403",
-            "optional": false,
-            "field": "AccessDenied",
-            "description": "<p>Access is denied.</p>"
-          }
-        ],
-        "Error 500": [
-          {
-            "group": "Error 500",
-            "type": "String",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Internal error message.</p>"
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
           }
         ]
       }
@@ -490,19 +567,19 @@
   },
   {
     "type": "post",
-    "url": "/authentication/2ndfactor/u2f/register",
-    "title": "U2F Complete device registration",
-    "name": "CompleteU2FRegistration",
-    "group": "Registration",
+    "url": "/api/u2f/sign",
+    "title": "Complete U2F authentication",
+    "name": "CompleteU2FAuthentication",
+    "group": "U2F",
     "version": "1.0.0",
     "success": {
       "fields": {
-        "Success 204": [
+        "Success 302": [
           {
-            "group": "Success 204",
+            "group": "Success 302",
             "optional": false,
-            "field": "status",
-            "description": "<p>The U2F registration succeeded.</p>"
+            "field": "Redirect",
+            "description": "<p>to the URL that has been stored during last call to /verify.</p>"
           }
         ]
       }
@@ -515,7 +592,7 @@
             "type": "none",
             "optional": false,
             "field": "error",
-            "description": "<p>Unexpected identity validation challenge.</p>"
+            "description": "<p>No authentication request has been provided.</p>"
           }
         ],
         "Error 500": [
@@ -525,13 +602,49 @@
             "optional": false,
             "field": "error",
             "description": "<p>Internal error message.</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Complete authentication request of the U2F device.</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "U2F",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Cookie",
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "post",
+    "url": "/api/secondfactor/u2f/register",
+    "title": "Complete U2F registration",
+    "name": "FinishU2FRegistration",
+    "group": "U2F",
+    "version": "1.0.0",
+    "success": {
+      "fields": {
+        "Success 302": [
+          {
+            "group": "Success 302",
+            "optional": false,
+            "field": "Redirect",
+            "description": "<p>to the URL that has been stored during last call to /verify.</p>"
           }
         ]
       }
     },
     "description": "<p>Complete U2F registration request.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Registration",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "U2F",
     "header": {
       "fields": {
         "Header": [
@@ -540,137 +653,13 @@
             "type": "String",
             "optional": false,
             "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "post",
-    "url": "/authentication/new-totp-secret",
-    "title": "Generate TOTP secret",
-    "name": "GenerateTOTPSecret",
-    "group": "Registration",
-    "version": "1.0.0",
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "base32",
-            "description": "<p>The base32 representation of the secret.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "ascii",
-            "description": "<p>The ASCII representation of the secret.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "qrcode",
-            "description": "<p>The QRCode of the secret in URI format.</p>"
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
           }
         ]
       }
     },
     "error": {
       "fields": {
-        "Error 403": [
-          {
-            "group": "Error 403",
-            "type": "String",
-            "optional": false,
-            "field": "error",
-            "description": "<p>No user provided in the session or unexpected identity validation challenge in the session.</p>"
-          }
-        ],
-        "Error 500": [
-          {
-            "group": "Error 500",
-            "type": "String",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Internal error message</p>"
-          }
-        ]
-      }
-    },
-    "description": "<p>Generate a new TOTP secret and returns it.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Registration",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "post",
-    "url": "/authentication/reset-password",
-    "title": "Request for password reset",
-    "name": "RequestPasswordReset",
-    "group": "Registration",
-    "version": "1.0.0",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Registration",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 204": [
-          {
-            "group": "Success 204",
-            "optional": false,
-            "field": "status",
-            "description": "<p>Identity validation has been initiated.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 403": [
-          {
-            "group": "Error 403",
-            "optional": false,
-            "field": "AccessDenied",
-            "description": "<p>Access is denied.</p>"
-          }
-        ],
-        "Error 400": [
-          {
-            "group": "Error 400",
-            "optional": false,
-            "field": "InvalidIdentity",
-            "description": "<p>User identity is invalid.</p>"
-          }
-        ],
         "Error 500": [
           {
             "group": "Error 500",
@@ -681,83 +670,17 @@
           }
         ]
       }
-    },
-    "description": "<p>This request issue an identity validation token for the user bound to the session. It sends a challenge to the email address set in the user LDAP entry. The user must visit the sent URL to complete the validation and continue the registration process.</p>"
+    }
   },
   {
-    "type": "post",
-    "url": "/authentication/totp-register",
-    "title": "Request TOTP registration",
-    "name": "RequestTOTPRegistration",
-    "group": "Registration",
-    "version": "1.0.0",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Registration",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 204": [
-          {
-            "group": "Success 204",
-            "optional": false,
-            "field": "status",
-            "description": "<p>Identity validation has been initiated.</p>"
-          }
-        ]
-      }
-    },
-    "error": {
-      "fields": {
-        "Error 403": [
-          {
-            "group": "Error 403",
-            "optional": false,
-            "field": "AccessDenied",
-            "description": "<p>Access is denied.</p>"
-          }
-        ],
-        "Error 400": [
-          {
-            "group": "Error 400",
-            "optional": false,
-            "field": "InvalidIdentity",
-            "description": "<p>User identity is invalid.</p>"
-          }
-        ],
-        "Error 500": [
-          {
-            "group": "Error 500",
-            "type": "String",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Internal error message.</p>"
-          }
-        ]
-      }
-    },
-    "description": "<p>This request issue an identity validation token for the user bound to the session. It sends a challenge to the email address set in the user LDAP entry. The user must visit the sent URL to complete the validation and continue the registration process.</p>"
-  },
-  {
-    "type": "post",
-    "url": "/authentication/u2f-register",
-    "title": "Request U2F registration",
+    "type": "get",
+    "url": "/secondfactor/u2f/identity/start",
+    "title": "Start U2F registration identity validation",
     "name": "RequestU2FRegistration",
-    "group": "Registration",
+    "group": "U2F",
     "version": "1.0.0",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Registration",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "U2F",
     "header": {
       "fields": {
         "Header": [
@@ -766,7 +689,7 @@
             "type": "String",
             "optional": false,
             "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
           }
         ]
       }
@@ -816,14 +739,14 @@
   },
   {
     "type": "get",
-    "url": "/authentication/totp-register",
-    "title": "Serve TOTP registration page",
-    "name": "ServeTOTPRegistrationPage",
-    "group": "Registration",
+    "url": "/secondfactor/u2f/identity/finish",
+    "title": "Finish U2F registration identity validation",
+    "name": "ServeU2FRegistrationPage",
+    "group": "U2F",
     "version": "1.0.0",
-    "description": "<p>Serves the TOTP registration page that displays the secret. The secret is a QRCode and a base32 secret.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Registration",
+    "description": "<p>Serves the U2F registration page that asks the user to touch the token of the U2F device.</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "U2F",
     "header": {
       "fields": {
         "Header": [
@@ -832,7 +755,7 @@
             "type": "String",
             "optional": false,
             "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
           }
         ]
       }
@@ -886,28 +809,49 @@
     }
   },
   {
-    "type": "post",
-    "url": "/authentication/new-password",
-    "title": "Set LDAP password",
-    "name": "SetLDAPPassword",
-    "group": "Registration",
+    "type": "get",
+    "url": "/api/u2f/sign_request",
+    "title": "Start U2F authentication",
+    "name": "StartU2FAuthentication",
+    "group": "U2F",
     "version": "1.0.0",
-    "parameter": {
+    "success": {
       "fields": {
-        "Parameter": [
+        "Success 200": [
           {
-            "group": "Parameter",
-            "type": "String",
+            "group": "Success 200",
             "optional": false,
-            "field": "password",
-            "description": "<p>New password</p>"
+            "field": "authentication_request",
+            "description": "<p>The U2F authentication request.</p>"
           }
         ]
       }
     },
-    "description": "<p>Set a new password for the user.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Registration",
+    "error": {
+      "fields": {
+        "Error 401": [
+          {
+            "group": "Error 401",
+            "type": "none",
+            "optional": false,
+            "field": "error",
+            "description": "<p>There is no key registered for user in session.</p>"
+          }
+        ],
+        "Error 500": [
+          {
+            "group": "Error 500",
+            "type": "String",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Internal error message.</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Initiate an authentication request using a U2F device.</p>",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "U2F",
     "header": {
       "fields": {
         "Header": [
@@ -916,7 +860,7 @@
             "type": "String",
             "optional": false,
             "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
           }
         ]
       }
@@ -924,10 +868,10 @@
   },
   {
     "type": "get",
-    "url": "/authentication/2ndfactor/u2f/register_request",
-    "title": "U2F Start device registration",
+    "url": "/api/u2f/register_request",
+    "title": "Start U2F registration",
     "name": "StartU2FRegistration",
-    "group": "Registration",
+    "group": "U2F",
     "version": "1.0.0",
     "success": {
       "fields": {
@@ -964,8 +908,8 @@
       }
     },
     "description": "<p>Initiate a U2F device registration request.</p>",
-    "filename": "src/lib/setup_endpoints.js",
-    "groupTitle": "Registration",
+    "filename": "src/server/endpoints.ts",
+    "groupTitle": "U2F",
     "header": {
       "fields": {
         "Header": [
@@ -974,7 +918,7 @@
             "type": "String",
             "optional": false,
             "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
           }
         ]
       }
@@ -982,7 +926,7 @@
   },
   {
     "type": "get",
-    "url": "/authentication/verify",
+    "url": "/verify",
     "title": "Verify user authentication",
     "name": "VerifyAuthentication",
     "group": "Verification",
@@ -1012,7 +956,7 @@
       }
     },
     "description": "<p>Verify that the user is authenticated, i.e., the two factors have been validated</p>",
-    "filename": "src/lib/setup_endpoints.js",
+    "filename": "src/server/endpoints.ts",
     "groupTitle": "Verification",
     "header": {
       "fields": {
@@ -1022,7 +966,7 @@
             "type": "String",
             "optional": false,
             "field": "Cookie",
-            "description": "<p>Cookie containing 'connect.sid', the user session token.</p>"
+            "description": "<p>Cookie containing &quot;connect.sid&quot;, the user session token.</p>"
           }
         ]
       }

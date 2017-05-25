@@ -1,0 +1,19 @@
+extends layout/layout.pug 
+
+block variables
+  - page_classname = "totp-register";
+
+block form-header
+  <h1>TOTP Secret</h1>
+  <p>Insert your secret in Google Authenticator</p>
+
+block content
+  p(id="secret") #{ base32_secret }
+  div(id="qrcode") #{ otpauth_url }
+  <p><a href="#{ login_endpoint }" id="login-button">Login</a></p>
+
+block entrypoint
+  <script src="/js/qrcode.min.js"></script>
+  <script>
+  |  authelia.register_totp();
+  </script>

@@ -1,0 +1,14 @@
+extends layout/layout.pug 
+
+block variables
+  - page_classname = "u2f-register";
+
+block form-header
+  <h1>U2F Registration</h1>
+  <p>Touch the token to register your U2F device.</p>
+
+block content
+  <img src="/img/pendrive.png" alt="pendrive" />
+
+block entrypoint
+  <script>window.authelia.register_u2f()</script>

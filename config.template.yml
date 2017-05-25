@@ -76,7 +76,7 @@ session:
 
 
 # The directory where the DB files will be saved
-store_directory: /var/lib/auth-server/store
+store_directory: /var/lib/authelia/store
 
 
 # Notifications are sent to users when they require a password reset, a u2f
