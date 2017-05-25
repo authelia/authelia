@@ -50,7 +50,9 @@ define([
       var paramType = {};
       $root.find(".sample-request-param:checked").each(function(i, element) {
           var group = $(element).data("sample-request-param-group-id");
-          $root.find("[data-sample-request-param-group=\"" + group + "\"]").each(function(i, element) {
+          $root.find("[data-sample-request-param-group=\"" + group + "\"]").not(function(){
+            return $(this).val() == "" && $(this).is("[data-sample-request-param-optional='true']");
+          }).each(function(i, element) {
             var key = $(element).data("sample-request-param-name");
             var value = element.value;
             if ( ! element.optional && element.defaultValue !== '') {

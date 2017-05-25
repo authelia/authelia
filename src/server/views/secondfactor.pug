@@ -1,0 +1,26 @@
+extends layout/layout.pug
+
+block form-header
+  <h1>Sign in</h1>
+  <img class="header-img" src="../img/padlock.png" alt="">
+
+block content
+    <form class="form-signin totp">
+        <div class="form-inputs">
+            <input type="text" class="form-control" id="token" placeholder="Token" required autofocus>
+        </div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">TOTP</button>
+        a(href=totp_identity_start_endpoint, class="pull-right link") Need to register?
+        <span class="clearfix"></span>
+    </form>
+    <hr>
+    <form class="form-signin u2f">
+        <button class="btn btn-lg btn-primary btn-block" type="submit">U2F</button>
+        a(href=u2f_identity_start_endpoint, class="pull-right link") Need to register?
+        <span class="clearfix"></span>
+    </form>
+
+block entrypoint
+    <script>
+    | authelia.secondfactor();
+    </script>

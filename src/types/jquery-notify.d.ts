@@ -1,0 +1,4 @@
+
+interface JQueryStatic {
+  notify: any;
+}

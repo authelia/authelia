@@ -25,7 +25,7 @@ dn: cn=john,ou=users,dc=example,dc=com
 cn: john
 objectclass: inetOrgPerson
 objectclass: top
-mail: john.doe@example.com
+mail: clement.michaud34@gmail.com
 sn: John Doe
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
 

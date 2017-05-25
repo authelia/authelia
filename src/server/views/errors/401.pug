@@ -1,0 +1,11 @@
+extends ../layout/layout.pug
+
+block variables
+  - page_classname = "error-401";
+
+block form-header
+  <h1>Error 401</h1>
+  <img class="header-img" src="/img/warning.png" alt="">
+
+block content
+    <p>You are not authorized.</p>

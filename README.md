@@ -115,6 +115,8 @@ email address. For the sake of the example, the email is delivered in the file
 ./notifications/notification.txt.
 Paste the link in your browser and you should be able to reset the password.
 
+![reset-password](https://raw.githubusercontent.com/clems4ever/authelia/master/images/reset_password.png)
+
 ### Access Control
 With **Authelia**, you can define your own access control rules for restricting 
 the access to certain subdomains to your users. Those rules are defined in the
