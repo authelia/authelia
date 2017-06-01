@@ -122,7 +122,8 @@ export class IdentityValidator {
         })
         .then(function (token: string) {
           const redirect_url = objectPath.get<express.Request, string>(req, "body.redirect");
-          const original_url = util.format("https://%s%s", req.headers.host, req.headers["x-original-uri"]);
+          const original_uri = objectPath.get<express.Request, string>(req, "headers.x-original-uri", "");
+          const original_url = util.format("https://%s%s", req.headers.host, original_uri);
           let link_url = util.format("%s?identity_token=%s", original_url, token);
           if (redirect_url) {
             link_url = util.format("%s&redirect=%s", link_url, redirect_url);

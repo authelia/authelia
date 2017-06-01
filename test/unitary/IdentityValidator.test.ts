@@ -14,7 +14,7 @@ import NotifierMock = require("./mocks/Notifier");
 import IdentityValidatorMock = require("./mocks/IdentityValidator");
 
 
-describe("test identity check process", function() {
+describe("test identity check process", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
   let userDataStore: UserDataStoreMock.UserDataStore;
@@ -24,7 +24,7 @@ describe("test identity check process", function() {
   let app_post: sinon.SinonStub;
   let identityValidable: IdentityValidatorMock.IdentityValidableMock;
 
-  beforeEach(function() {
+  beforeEach(function () {
     req = ExpressMock.RequestMock();
     res = ExpressMock.ResponseMock();
 
@@ -55,12 +55,12 @@ describe("test identity check process", function() {
     identityValidable = IdentityValidatorMock.IdentityValidableMock();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     app_get.restore();
     app_post.restore();
   });
 
-  it("should register a POST and GET endpoint", function() {
+  it("should register a POST and GET endpoint", function () {
     const endpoint = "/test";
     const icheck_interface = {};
 
@@ -77,13 +77,13 @@ describe("test identity check process", function() {
   describe("test GET", test_get_handler);
 
   function test_post_handler() {
-    it("should send 403 if pre check rejects", function(done) {
+    it("should send 403 if pre check rejects", function (done) {
       const endpoint = "/protected";
 
       identityValidable.preValidation.returns(Promise.reject("No access"));
       IdentityValidator.IdentityValidator.setup(app, endpoint, identityValidable, userDataStore as any, winston);
 
-      res.send = sinon.spy(function() {
+      res.send = sinon.spy(function () {
         assert.equal(res.status.getCall(0).args[0], 403);
         done();
       });
@@ -92,14 +92,14 @@ describe("test identity check process", function() {
       handler(req, res);
     });
 
-    it("should send 400 if email is missing in provided identity", function(done) {
+    it("should send 400 if email is missing in provided identity", function (done) {
       const endpoint = "/protected";
       const identity = { userid: "abc" };
 
       identityValidable.preValidation.returns(Promise.resolve(identity));
       IdentityValidator.IdentityValidator.setup(app, endpoint, identityValidable, userDataStore as any, winston);
 
-      res.send = sinon.spy(function() {
+      res.send = sinon.spy(function () {
         assert.equal(res.status.getCall(0).args[0], 400);
         done();
       });
@@ -108,14 +108,14 @@ describe("test identity check process", function() {
       handler(req, res);
     });
 
-    it("should send 400 if userid is missing in provided identity", function(done) {
+    it("should send 400 if userid is missing in provided identity", function (done) {
       const endpoint = "/protected";
       const identity = { email: "abc@example.com" };
 
       identityValidable.preValidation.returns(Promise.resolve(identity));
       IdentityValidator.IdentityValidator.setup(app, endpoint, identityValidable, userDataStore as any, winston);
 
-      res.send = sinon.spy(function() {
+      res.send = sinon.spy(function () {
         assert.equal(res.status.getCall(0).args[0], 400);
         done();
       });
@@ -123,35 +123,64 @@ describe("test identity check process", function() {
       handler(req, res);
     });
 
-    it("should issue a token, send an email and return 204", function(done) {
-      const endpoint = "/protected";
-      const identity = { userid: "user", email: "abc@example.com" };
-      req.headers.host = "localhost";
-      req.headers["x-original-uri"] = "/auth/test";
+    describe("should issue a token, send an email and return 204", () => {
+      function contains(str: string, pattern: string): boolean {
+        return str.indexOf(pattern) > -1;
+      }
 
-      identityValidable.preValidation.returns(Promise.resolve(identity));
-      IdentityValidator.IdentityValidator.setup(app, endpoint, identityValidable, userDataStore as any, winston);
+      it("with x-original-uri", function(done) {
+        const endpoint = "/protected";
+        const identity = { userid: "user", email: "abc@example.com" };
+        req.headers.host = "localhost";
+        req.headers["x-original-uri"] = "/auth/test";
 
-      res.send = sinon.spy(function() {
-        assert.equal(res.status.getCall(0).args[0], 204);
-        assert(notifier.notify.calledOnce);
-        assert(userDataStore.issue_identity_check_token.calledOnce);
-        assert.equal(userDataStore.issue_identity_check_token.getCall(0).args[0], "user");
-        assert.equal(userDataStore.issue_identity_check_token.getCall(0).args[3], 240000);
-        done();
+        identityValidable.preValidation.returns(Promise.resolve(identity));
+        IdentityValidator.IdentityValidator.setup(app, endpoint, identityValidable, userDataStore as any, winston);
+
+        res.send = sinon.spy(function () {
+          assert.equal(res.status.getCall(0).args[0], 204);
+          assert(notifier.notify.calledOnce);
+                    console.log(notifier.notify.getCall(0).args[2]);
+          assert(contains(notifier.notify.getCall(0).args[2], "https://localhost/auth/test?identity_token="));
+          assert(userDataStore.issue_identity_check_token.calledOnce);
+          assert.equal(userDataStore.issue_identity_check_token.getCall(0).args[0], "user");
+          assert.equal(userDataStore.issue_identity_check_token.getCall(0).args[3], 240000);
+          done();
+        });
+        const handler = app_post.getCall(0).args[1];
+        handler(req, res);
       });
-      const handler = app_post.getCall(0).args[1];
-      handler(req, res);
+
+      it("without x-original-uri", function(done) {
+        const endpoint = "/protected";
+        const identity = { userid: "user", email: "abc@example.com" };
+        req.headers.host = "localhost";
+
+        identityValidable.preValidation.returns(Promise.resolve(identity));
+        IdentityValidator.IdentityValidator.setup(app, endpoint, identityValidable, userDataStore as any, winston);
+
+        res.send = sinon.spy(function () {
+          assert.equal(res.status.getCall(0).args[0], 204);
+          assert(notifier.notify.calledOnce);
+          assert(contains(notifier.notify.getCall(0).args[2], "https://localhost?identity_token="));
+          assert(userDataStore.issue_identity_check_token.calledOnce);
+          assert.equal(userDataStore.issue_identity_check_token.getCall(0).args[0], "user");
+          assert.equal(userDataStore.issue_identity_check_token.getCall(0).args[3], 240000);
+          done();
+        });
+        const handler = app_post.getCall(0).args[1];
+        handler(req, res);
+      });
     });
   }
 
   function test_get_handler() {
-    it("should send 403 if no identity_token is provided", function(done) {
+    it("should send 403 if no identity_token is provided", function (done) {
       const endpoint = "/protected";
 
       IdentityValidator.IdentityValidator.setup(app, endpoint, identityValidable, userDataStore as any, winston);
 
-      res.send = sinon.spy(function() {
+      res.send = sinon.spy(function () {
         assert.equal(res.status.getCall(0).args[0], 403);
         done();
       });
@@ -159,14 +188,14 @@ describe("test identity check process", function() {
       handler(req, res);
     });
 
-    it("should render template if identity_token is provided and still valid", function(done) {
+    it("should render template if identity_token is provided and still valid", function (done) {
       req.query.identity_token = "token";
       const endpoint = "/protected";
       identityValidable.templateName.returns("template");
 
-     IdentityValidator.IdentityValidator.setup(app, endpoint, identityValidable, userDataStore as any, winston);
+      IdentityValidator.IdentityValidator.setup(app, endpoint, identityValidable, userDataStore as any, winston);
 
-      res.render = sinon.spy(function(template: string) {
+      res.render = sinon.spy(function (template: string) {
         assert.equal(template, "template");
         done();
       });
@@ -174,7 +203,7 @@ describe("test identity check process", function() {
       handler(req, res);
     });
 
-    it("should return 403 if identity_token is provided but invalid", function(done) {
+    it("should return 403 if identity_token is provided but invalid", function (done) {
       req.query.identity_token = "token";
       const endpoint = "/protected";
 
@@ -184,7 +213,7 @@ describe("test identity check process", function() {
 
       IdentityValidator.IdentityValidator.setup(app, endpoint, identityValidable, userDataStore as any, winston);
 
-      res.send = sinon.spy(function(template: string) {
+      res.send = sinon.spy(function (template: string) {
         assert.equal(res.status.getCall(0).args[0], 403);
         done();
       });
@@ -192,7 +221,7 @@ describe("test identity check process", function() {
       handler(req, res);
     });
 
-    it("should set the identity_check session object even if session does not exist yet", function(done) {
+    it("should set the identity_check session object even if session does not exist yet", function (done) {
       req.query.identity_token = "token";
       const endpoint = "/protected";
 
@@ -201,7 +230,7 @@ describe("test identity check process", function() {
 
       IdentityValidator.IdentityValidator.setup(app, endpoint, identityValidable, userDataStore as any, winston);
 
-      res.render = sinon.spy(function(template: string) {
+      res.render = sinon.spy(function (template: string) {
         assert.equal(req.session.auth_session.identity_check.userid, "user");
         assert.equal(template, "template");
         done();
