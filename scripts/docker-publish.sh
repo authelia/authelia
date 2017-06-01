@@ -6,7 +6,10 @@ if [ "$TRAVIS_BRANCH" == "master" ]; then
     TAG=$TRAVIS_TAG
   fi
 
+  IMAGE_NAME=clems4ever/authelia
+
   docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-  docker push clems4ever/authelia:$TAG;
+  docker tag $IMAGE_NAME $IMAGE_NAME:$TAG;
+  docker push $IMAGE_NAME:$TAG;
 fi
 
