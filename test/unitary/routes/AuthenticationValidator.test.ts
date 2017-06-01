@@ -106,7 +106,7 @@ describe("test authentication token verification", function () {
       return test_unauthorized({ first_factor: true });
     });
 
-    it.only("should not be authenticated when domain is not allowed for user", function () {
+    it("should not be authenticated when domain is not allowed for user", function () {
       req.headers.host = "test.example.com";
 
       accessController.isDomainAllowedForUser.returns(false);
