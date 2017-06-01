@@ -1,8 +1,12 @@
 #!/bin/bash
 
 if [ "$TRAVIS_BRANCH" == "master" ]; then
-  TAG=latest
+  echo "======================================="
+  echo "Authelia will be deployed on Dockerhub."
+  echo "======================================="
+  echo "TRAVIS_TAG='$TRAVIS_TAG'"
 
+  TAG=latest
   if [ ! -z "$TRAVIS_TAG" ]; then
     TAG=$TRAVIS_TAG
   fi
