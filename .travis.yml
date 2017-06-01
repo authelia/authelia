@@ -29,10 +29,7 @@ script:
 - npm run int-test
 
 after_success:
-  - if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-    docker push clems4ever/authelia;
-    fi
+  - ./scripts/docker-publish.sh
 
 deploy:
   provider: npm
