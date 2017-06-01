@@ -2,14 +2,23 @@
 
 if [ "$TRAVIS_BRANCH" == "master" ]; then
   TAG=latest
+
   if [ ! -z "$TRAVIS_TAG" ]; then
     TAG=$TRAVIS_TAG
   fi
 
   IMAGE_NAME=clems4ever/authelia
+  IMAGE_WITH_TAG=$IMAGE_NAME:$TAG
 
+  echo "Login to Dockerhub."
   docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-  docker tag $IMAGE_NAME $IMAGE_NAME:$TAG;
-  docker push $IMAGE_NAME:$TAG;
+
+  echo "Docker image $IMAGE_WITH_TAG will be deployed on Dockerhub."
+  docker tag $IMAGE_NAME $IMAGE_WITH_TAG;
+  docker push $IMAGE_WITH_TAG;
+  echo "Docker image deployed successfully."
+
+else
+  echo "Docker image will not be deployed on Dockerhub."
 fi
 
