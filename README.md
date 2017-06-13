@@ -47,6 +47,8 @@ Add the following lines to your /etc/hosts to simulate multiple subdomains
     
 Then, type the following command to build and deploy the services:
 
+    npm install --only=dev
+    grunt build
     docker-compose build
     docker-compose up -d
 
