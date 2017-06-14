@@ -18,7 +18,7 @@ export class LdapClient {
   private options: LdapConfiguration;
   private ldapjs: Ldapjs;
   private logger: Winston;
-  private client: ldapjs.ClientAsync;
+  private adminClient: ldapjs.ClientAsync;
 
   constructor(options: LdapConfiguration, ldapjs: Ldapjs, logger: Winston) {
     this.options = options;
@@ -28,100 +28,122 @@ export class LdapClient {
     this.connect();
   }
 
-  connect(): void {
-    const ldap_client = this.ldapjs.createClient({
+  private createClient(): ldapjs.ClientAsync {
+    const ldapClient = this.ldapjs.createClient({
       url: this.options.url,
       reconnect: true
     });
 
-    ldap_client.on("error", function (err: Error) {
+    ldapClient.on("error", function (err: Error) {
       console.error("LDAP Error:", err.message);
     });
 
-    this.client = BluebirdPromise.promisifyAll(ldap_client) as ldapjs.ClientAsync;
+    return BluebirdPromise.promisifyAll(ldapClient) as ldapjs.ClientAsync;
   }
 
-  private build_user_dn(username: string): string {
-    let user_name_attr = this.options.user_name_attribute;
-    // if not provided, default to cn
-    if (!user_name_attr) user_name_attr = "cn";
+  connect(): BluebirdPromise<void> {
+    const userDN = this.options.user;
+    const password = this.options.password;
 
-    const additional_user_dn = this.options.additional_user_dn;
+    this.adminClient = this.createClient();
+    return this.adminClient.bindAsync(userDN, password);
+  }
+
+  private buildUserDN(username: string): string {
+    let userNameAttribute = this.options.user_name_attribute;
+    // if not provided, default to cn
+    if (!userNameAttribute) userNameAttribute = "cn";
+
+    const additionalUserDN = this.options.additional_user_dn;
     const base_dn = this.options.base_dn;
 
-    let user_dn = util.format("%s=%s", user_name_attr, username);
-    if (additional_user_dn) user_dn += util.format(",%s", additional_user_dn);
-    user_dn += util.format(",%s", base_dn);
-    return user_dn;
+    let userDN = util.format("%s=%s", userNameAttribute, username);
+    if (additionalUserDN) userDN += util.format(",%s", additionalUserDN);
+    userDN += util.format(",%s", base_dn);
+    return userDN;
   }
 
-  bind(username: string, password: string): BluebirdPromise<void> {
-    const user_dn = this.build_user_dn(username);
+  checkPassword(username: string, password: string): BluebirdPromise<void> {
+    const userDN = this.buildUserDN(username);
+    const that = this;
+    const ldapClient = this.createClient();
 
-    this.logger.debug("LDAP: Bind user %s", user_dn);
-    return this.client.bindAsync(user_dn, password)
+    this.logger.debug("LDAP: Check password for user '%s'", userDN);
+    return ldapClient.bindAsync(userDN, password)
+      .then(function () {
+        return ldapClient.unbindAsync();
+      })
       .error(function (err: Error) {
-        throw new exceptions.LdapBindError(err.message);
+        return BluebirdPromise.reject(new exceptions.LdapBindError(err.message));
       });
   }
 
-  private search_in_ldap(base: string, query: ldapjs.SearchOptions): BluebirdPromise<any> {
-    this.logger.debug("LDAP: Search for %s in %s", JSON.stringify(query), base);
-    return new BluebirdPromise((resolve, reject) => {
-      this.client.searchAsync(base, query)
-        .then(function (res: EventEmitter) {
-          const doc: SearchEntry[] = [];
+  private search(base: string, query: ldapjs.SearchOptions): BluebirdPromise<any> {
+    const that = this;
+
+    that.logger.debug("LDAP: Search for '%s' in '%s'", JSON.stringify(query), base);
+    return that.adminClient.searchAsync(base, query)
+      .then(function (res: EventEmitter) {
+        const doc: SearchEntry[] = [];
+
+        return new BluebirdPromise((resolve, reject) => {
           res.on("searchEntry", function (entry: SearchEntry) {
+            that.logger.debug("Entry retrieved from LDAP is '%s'", JSON.stringify(entry.object));
             doc.push(entry.object);
           });
           res.on("error", function (err: Error) {
+            that.logger.error("LDAP: Error received during search '%s'.", JSON.stringify(err));
             reject(new exceptions.LdapSearchError(err.message));
           });
           res.on("end", function () {
+            that.logger.debug("LDAP: Result of search is '%s'.", JSON.stringify(doc));
             resolve(doc);
           });
-        })
-        .catch(function (err: Error) {
-          reject(new exceptions.LdapSearchError(err.message));
         });
-    });
+      })
+      .catch(function (err: Error) {
+        return BluebirdPromise.reject(new exceptions.LdapSearchError(err.message));
+      });
   }
 
-  get_groups(username: string): BluebirdPromise<string[]> {
-    const user_dn = this.build_user_dn(username);
+  retrieveGroups(username: string): BluebirdPromise<string[]> {
+    const userDN = this.buildUserDN(username);
+    const password = this.options.password;
 
-    let group_name_attr = this.options.group_name_attribute;
-    if (!group_name_attr) group_name_attr = "cn";
+    let groupNameAttribute = this.options.group_name_attribute;
+    if (!groupNameAttribute) groupNameAttribute = "cn";
 
-    const additional_group_dn = this.options.additional_group_dn;
+    const additionalGroupDN = this.options.additional_group_dn;
     const base_dn = this.options.base_dn;
 
-    let group_dn = base_dn;
-    if (additional_group_dn)
-      group_dn = util.format("%s,", additional_group_dn) + group_dn;
+    let groupDN = base_dn;
+    if (additionalGroupDN)
+      groupDN = util.format("%s,", additionalGroupDN) + groupDN;
 
     const query = {
       scope: "sub",
-      attributes: [group_name_attr],
-      filter: "member=" + user_dn
+      attributes: [groupNameAttribute],
+      filter: "member=" + userDN
     };
 
     const that = this;
     this.logger.debug("LDAP: get groups of user %s", username);
-    return this.search_in_ldap(group_dn, query)
+    const groups: string[] = [];
+    return that.search(groupDN, query)
       .then(function (docs) {
-        const groups = [];
         for (let i = 0; i < docs.length; ++i) {
           groups.push(docs[i].cn);
         }
-        that.logger.debug("LDAP: got groups %s", groups);
+        that.logger.debug("LDAP: got groups '%s'", groups);
+      })
+      .then(function () {
         return BluebirdPromise.resolve(groups);
       });
   }
 
-  get_emails(username: string): BluebirdPromise<string[]> {
+  retrieveEmails(username: string): BluebirdPromise<string[]> {
     const that = this;
-    const user_dn = this.build_user_dn(username);
+    const user_dn = this.buildUserDN(username);
 
     const query = {
       scope: "base",
@@ -129,8 +151,8 @@ export class LdapClient {
       attributes: ["mail"]
     };
 
-    this.logger.debug("LDAP: get emails of user %s", username);
-    return this.search_in_ldap(user_dn, query)
+    this.logger.debug("LDAP: get emails of user '%s'", username);
+    return this.search(user_dn, query)
       .then(function (docs) {
         const emails = [];
         for (let i = 0; i < docs.length; ++i) {
@@ -140,15 +162,15 @@ export class LdapClient {
             emails.concat(docs[i].mail);
           }
         }
-        that.logger.debug("LDAP: got emails %s", emails);
+        that.logger.debug("LDAP: got emails '%s'", emails);
         return BluebirdPromise.resolve(emails);
       });
   }
 
-  update_password(username: string, new_password: string): BluebirdPromise<void> {
-    const user_dn = this.build_user_dn(username);
+  updatePassword(username: string, newPassword: string): BluebirdPromise<void> {
+    const user_dn = this.buildUserDN(username);
 
-    const encoded_password = Dovehash.encode("SSHA", new_password);
+    const encoded_password = Dovehash.encode("SSHA", newPassword);
     const change = {
       operation: "replace",
       modification: {
@@ -157,13 +179,12 @@ export class LdapClient {
     };
 
     const that = this;
-    this.logger.debug("LDAP: update password of user %s", username);
+    this.logger.debug("LDAP: update password of user '%s'", username);
 
-    this.logger.debug("LDAP: bind admin");
-    return this.client.bindAsync(this.options.user, this.options.password)
+    that.logger.debug("LDAP: modify password");
+    return that.adminClient.modifyAsync(user_dn, change)
       .then(function () {
-        that.logger.debug("LDAP: modify password");
-        return that.client.modifyAsync(user_dn, change);
+        return that.adminClient.unbindAsync();
       });
   }
 }

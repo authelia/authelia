@@ -1,6 +1,6 @@
 
 import assert = require("assert");
-import sinon = require ("sinon");
+import sinon = require("sinon");
 import nedb = require("nedb");
 import express = require("express");
 import winston = require("winston");
@@ -36,7 +36,10 @@ describe("test server configuration", function () {
       winston: winston,
       ldapjs: {
         createClient: sinon.spy(function () {
-          return { on: sinon.spy() };
+          return {
+            on: sinon.spy(),
+            bind: sinon.spy()
+          };
         })
       },
       session: sessionMock as any

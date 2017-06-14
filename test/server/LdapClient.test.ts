@@ -14,22 +14,16 @@ import { LdapjsMock, LdapjsClientMock } from "./mocks/ldapjs";
 
 describe("test ldap validation", function () {
   let ldap: LdapClient.LdapClient;
-  let ldap_client: LdapjsClientMock;
+  let ldapClient: LdapjsClientMock;
   let ldapjs: LdapjsMock;
-  let ldap_config: LdapConfiguration;
+  let ldapConfig: LdapConfiguration;
 
   beforeEach(function () {
-    ldap_client = {
-      bind: sinon.stub(),
-      search: sinon.stub(),
-      modify: sinon.stub(),
-      on: sinon.stub()
-    } as any;
-
+    ldapClient = LdapjsClientMock();
     ldapjs = LdapjsMock();
-    ldapjs.createClient.returns(ldap_client);
+    ldapjs.createClient.returns(ldapClient);
 
-    ldap_config = {
+    ldapConfig = {
       url: "http://localhost:324",
       user: "admin",
       password: "password",
@@ -37,45 +31,47 @@ describe("test ldap validation", function () {
       additional_user_dn: "ou=users"
     };
 
-    ldap = new LdapClient.LdapClient(ldap_config, ldapjs, winston);
-    return ldap.connect();
+    ldap = new LdapClient.LdapClient(ldapConfig, ldapjs, winston);
   });
 
-  describe("test binding", test_binding);
+  describe("test checking password", test_checking_password);
   describe("test get emails from username", test_get_emails);
   describe("test get groups from username", test_get_groups);
   describe("test update password", test_update_password);
 
-  function test_binding() {
-    function test_bind() {
+  function test_checking_password() {
+    function test_check_password_internal() {
       const username = "username";
       const password = "password";
-      return ldap.bind(username, password);
+      return ldap.checkPassword(username, password);
     }
 
     it("should bind the user if good credentials provided", function () {
-      ldap_client.bind.yields();
-      return test_bind();
+      ldapClient.bind.yields();
+      ldapClient.unbind.yields();
+      return test_check_password_internal();
     });
 
     it("should bind the user with correct DN", function () {
-      ldap_config.user_name_attribute = "uid";
+      ldapConfig.user_name_attribute = "uid";
       const username = "user";
       const password = "password";
-      ldap_client.bind.withArgs("uid=user,ou=users,dc=example,dc=com").yields();
-      return ldap.bind(username, password);
+      ldapClient.bind.withArgs("uid=user,ou=users,dc=example,dc=com").yields();
+      ldapClient.unbind.yields();
+      return ldap.checkPassword(username, password);
     });
 
     it("should default to cn user search filter if no filter provided", function () {
       const username = "user";
       const password = "password";
-      ldap_client.bind.withArgs("cn=user,ou=users,dc=example,dc=com").yields();
-      return ldap.bind(username, password);
+      ldapClient.bind.withArgs("cn=user,ou=users,dc=example,dc=com").yields();
+      ldapClient.unbind.yields();
+      return ldap.checkPassword(username, password);
     });
 
     it("should not bind the user if wrong credentials provided", function () {
-      ldap_client.bind.yields("wrong credentials");
-      const promise = test_bind();
+      ldapClient.bind.yields("wrong credentials");
+      const promise = test_check_password_internal();
       return promise.catch(function () {
         return BluebirdPromise.resolve();
       });
@@ -101,9 +97,9 @@ describe("test ldap validation", function () {
     });
 
     it("should retrieve the email of an existing user", function () {
-      ldap_client.search.yields(undefined, res_emitter);
+      ldapClient.search.yields(undefined, res_emitter);
 
-      return ldap.get_emails("user")
+      return ldap.retrieveEmails("user")
         .then(function (emails) {
           assert.deepEqual(emails, [expected_doc.object.mail]);
           return BluebirdPromise.resolve();
@@ -111,9 +107,9 @@ describe("test ldap validation", function () {
     });
 
     it("should retrieve email for user with uid name attribute", function () {
-      ldap_config.user_name_attribute = "uid";
-      ldap_client.search.withArgs("uid=username,ou=users,dc=example,dc=com").yields(undefined, res_emitter);
-      return ldap.get_emails("username")
+      ldapConfig.user_name_attribute = "uid";
+      ldapClient.search.withArgs("uid=username,ou=users,dc=example,dc=com").yields(undefined, res_emitter);
+      return ldap.retrieveEmails("username")
         .then(function (emails) {
           assert.deepEqual(emails, ["user@example.com"]);
           return BluebirdPromise.resolve();
@@ -124,9 +120,9 @@ describe("test ldap validation", function () {
       const expected_doc = {
         mail: ["user@example.com"]
       };
-      ldap_client.search.yields("Error while searching mails");
+      ldapClient.search.yields("Error while searching mails");
 
-      return ldap.get_emails("user")
+      return ldap.retrieveEmails("user")
         .catch(function () {
           return BluebirdPromise.resolve();
         });
@@ -159,8 +155,8 @@ describe("test ldap validation", function () {
     });
 
     it("should retrieve the groups of an existing user", function () {
-      ldap_client.search.yields(undefined, res_emitter);
-      return ldap.get_groups("user")
+      ldapClient.search.yields(undefined, res_emitter);
+      return ldap.retrieveGroups("user")
         .then(function (groups) {
           assert.deepEqual(groups, ["group1", "group2"]);
           return BluebirdPromise.resolve();
@@ -168,29 +164,29 @@ describe("test ldap validation", function () {
     });
 
     it("should reduce the scope to additional_group_dn", function (done) {
-      ldap_config.additional_group_dn = "ou=groups";
-      ldap_client.search.yields(undefined, res_emitter);
-      ldap.get_groups("user")
+      ldapConfig.additional_group_dn = "ou=groups";
+      ldapClient.search.yields(undefined, res_emitter);
+      ldap.retrieveGroups("user")
       .then(function() {
-        assert.equal(ldap_client.search.getCall(0).args[0], "ou=groups,dc=example,dc=com");
+        assert.equal(ldapClient.search.getCall(0).args[0], "ou=groups,dc=example,dc=com");
         done();
       });
     });
 
     it("should use default group_name_attr if not provided", function (done) {
-      ldap_client.search.yields(undefined, res_emitter);
-      ldap.get_groups("user")
+      ldapClient.search.yields(undefined, res_emitter);
+      ldap.retrieveGroups("user")
       .then(function() {
-        assert.equal(ldap_client.search.getCall(0).args[0], "dc=example,dc=com");
-        assert.equal(ldap_client.search.getCall(0).args[1].filter, "member=cn=user,ou=users,dc=example,dc=com");
-        assert.deepEqual(ldap_client.search.getCall(0).args[1].attributes, ["cn"]);
+        assert.equal(ldapClient.search.getCall(0).args[0], "dc=example,dc=com");
+        assert.equal(ldapClient.search.getCall(0).args[1].filter, "member=cn=user,ou=users,dc=example,dc=com");
+        assert.deepEqual(ldapClient.search.getCall(0).args[1].attributes, ["cn"]);
         done();
       });
     });
 
     it("should fail on error with search method", function () {
-      ldap_client.search.yields("error");
-      return ldap.get_groups("user")
+      ldapClient.search.yields("error");
+      return ldap.retrieveGroups("user")
         .catch(function () {
           return BluebirdPromise.resolve();
         });
@@ -207,36 +203,39 @@ describe("test ldap validation", function () {
       };
       const userdn = "cn=user,ou=users,dc=example,dc=com";
 
-      ldap_client.bind.yields(undefined);
-      ldap_client.modify.yields(undefined);
+      ldapClient.bind.yields();
+      ldapClient.unbind.yields();
+      ldapClient.modify.yields();
 
-      return ldap.update_password("user", "new-password")
+      return ldap.updatePassword("user", "new-password")
         .then(function () {
-          assert.deepEqual(ldap_client.modify.getCall(0).args[0], userdn);
-          assert.deepEqual(ldap_client.modify.getCall(0).args[1].operation, change.operation);
+          assert.deepEqual(ldapClient.modify.getCall(0).args[0], userdn);
+          assert.deepEqual(ldapClient.modify.getCall(0).args[1].operation, change.operation);
 
-          const userPassword = ldap_client.modify.getCall(0).args[1].modification.userPassword;
+          const userPassword = ldapClient.modify.getCall(0).args[1].modification.userPassword;
           assert(/{SSHA}/.test(userPassword));
           return BluebirdPromise.resolve();
-        });
+        })
+        .catch(function(err) { return BluebirdPromise.reject(new Error("It should fail")); });
     });
 
     it("should fail when ldap throws an error", function () {
-      ldap_client.bind.yields(undefined);
-      ldap_client.modify.yields("Error");
+      ldapClient.bind.yields(undefined);
+      ldapClient.modify.yields("Error");
 
-      return ldap.update_password("user", "new-password")
+      return ldap.updatePassword("user", "new-password")
         .catch(function () {
           return BluebirdPromise.resolve();
         });
     });
 
     it("should update password of user using particular user name attribute", function () {
-      ldap_config.user_name_attribute = "uid";
+      ldapConfig.user_name_attribute = "uid";
 
-      ldap_client.bind.yields(undefined);
-      ldap_client.modify.withArgs("uid=username,ou=users,dc=example,dc=com").yields();
-      return ldap.update_password("username", "newpass");
+      ldapClient.bind.yields();
+      ldapClient.unbind.yields();
+      ldapClient.modify.withArgs("uid=username,ou=users,dc=example,dc=com").yields();
+      return ldap.updatePassword("username", "newpass");
     });
   }
 });

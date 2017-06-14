@@ -7,6 +7,7 @@ import { UserConfiguration } from "../../src/types/Configuration";
 import { GlobalDependencies } from "../../src/types/Dependencies";
 import * as tmp from "tmp";
 import U2FMock = require("./mocks/u2f");
+import { LdapjsClientMock } from "./mocks/ldapjs";
 
 
 const requestp = BluebirdPromise.promisifyAll(request) as request.Request;
@@ -23,14 +24,10 @@ const requests = require("./requests")(PORT);
 describe("test data persistence", function () {
   let u2f: U2FMock.U2FMock;
   let tmpDir: tmp.SynchrounousResult;
-  const ldap_client = {
-    bind: sinon.stub(),
-    search: sinon.stub(),
-    on: sinon.spy()
-  };
+  const ldapClient = LdapjsClientMock();
   const ldap = {
     createClient: sinon.spy(function () {
-      return ldap_client;
+      return ldapClient;
     })
   };
 
@@ -51,11 +48,12 @@ describe("test data persistence", function () {
       })
     };
 
-    ldap_client.bind.withArgs("cn=test_ok,ou=users,dc=example,dc=com",
-      "password").yields(undefined);
-    ldap_client.bind.withArgs("cn=test_nok,ou=users,dc=example,dc=com",
+    ldapClient.bind.withArgs("cn=test_ok,ou=users,dc=example,dc=com",
+      "password").yields();
+    ldapClient.bind.withArgs("cn=test_nok,ou=users,dc=example,dc=com",
       "password").yields("error");
-    ldap_client.search.yields(undefined, search_res);
+    ldapClient.search.yields(undefined, search_res);
+    ldapClient.unbind.yields();
 
     tmpDir = tmp.dirSync({ unsafeCleanup: true });
     config = {

@@ -1,6 +1,7 @@
 
 import Server from "../../src/server/lib/Server";
 import LdapClient = require("../../src/server/lib/LdapClient");
+import { LdapjsClientMock } from "./mocks/ldapjs";
 
 import BluebirdPromise = require("bluebird");
 import speakeasy = require("speakeasy");
@@ -51,16 +52,11 @@ describe("test the server", function () {
       }
     };
 
-    const ldap_client = {
-      bind: sinon.stub(),
-      search: sinon.stub(),
-      modify: sinon.stub(),
-      on: sinon.spy()
-    };
+    const ldapClient = LdapjsClientMock();
     const ldap = {
       Change: sinon.spy(),
       createClient: sinon.spy(function () {
-        return ldap_client;
+        return ldapClient;
       })
     };
 
@@ -76,7 +72,7 @@ describe("test the server", function () {
       })
     };
 
-    const ldap_document = {
+    const ldapDocument = {
       object: {
         mail: "test_ok@example.com",
       }
@@ -84,20 +80,21 @@ describe("test the server", function () {
 
     const search_res = {
       on: sinon.spy(function (event: string, fn: (s: any) => void) {
-        if (event != "error") fn(ldap_document);
+        if (event != "error") fn(ldapDocument);
       })
     };
 
-    ldap_client.bind.withArgs("cn=test_ok,ou=users,dc=example,dc=com",
-      "password").yields(undefined);
-    ldap_client.bind.withArgs("cn=admin,dc=example,dc=com",
-      "password").yields(undefined);
+    ldapClient.bind.withArgs("cn=test_ok,ou=users,dc=example,dc=com",
+      "password").yields();
+    ldapClient.bind.withArgs("cn=admin,dc=example,dc=com",
+      "password").yields();
 
-    ldap_client.bind.withArgs("cn=test_nok,ou=users,dc=example,dc=com",
+    ldapClient.bind.withArgs("cn=test_nok,ou=users,dc=example,dc=com",
       "password").yields("error");
 
-    ldap_client.modify.yields(undefined);
-    ldap_client.search.yields(undefined, search_res);
+    ldapClient.unbind.yields();
+    ldapClient.modify.yields();
+    ldapClient.search.yields(undefined, search_res);
 
     const deps = {
       u2f: u2f,
@@ -241,11 +238,11 @@ describe("test the server", function () {
           return requests.register_totp(j, transporter);
         })
         .then(function (base32_secret: string) {
-          const real_token = speakeasy.totp({
+          const realToken = speakeasy.totp({
             secret: base32_secret,
             encoding: "base32"
           });
-          return requests.totp(j, real_token);
+          return requests.totp(j, realToken);
         })
         .then(function (res: request.RequestResponse) {
           assert.equal(res.statusCode, 200, "second factor failed");
@@ -254,14 +251,11 @@ describe("test the server", function () {
         .then(function (res: request.RequestResponse) {
           assert.equal(res.statusCode, 204, "verify failed");
           return BluebirdPromise.resolve();
-        });
+        })
+        .catch(function (err: Error) { return BluebirdPromise.reject(err); });
     });
 
     it("should keep session variables when login page is reloaded", function () {
-      const real_token = speakeasy.totp({
-        secret: "totp_secret",
-        encoding: "base32"
-      });
       const j = requestp.jar();
       return requests.login(j)
         .then(function (res: request.RequestResponse) {
@@ -269,11 +263,18 @@ describe("test the server", function () {
           return requests.first_factor(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 204, "first factor failed");
-          return requests.totp(j, real_token);
+          assert.equal(res.statusCode, 302, "first factor failed");
+          return requests.register_totp(j, transporter);
+        })
+        .then(function (base32_secret: string) {
+          const realToken = speakeasy.totp({
+            secret: base32_secret,
+            encoding: "base32"
+          });
+          return requests.totp(j, realToken);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 204, "second factor failed");
+          assert.equal(res.statusCode, 200, "second factor failed");
           return requests.login(j);
         })
         .then(function (res: request.RequestResponse) {
@@ -284,9 +285,7 @@ describe("test the server", function () {
           assert.equal(res.statusCode, 204, "verify failed");
           return BluebirdPromise.resolve();
         })
-        .catch(function (err: Error) {
-          console.error(err);
-        });
+        .catch(function (err: Error) { return BluebirdPromise.reject(err); });
     });
 
     it("should return status code 204 when user is authenticated using u2f", function () {

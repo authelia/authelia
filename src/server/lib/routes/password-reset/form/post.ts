@@ -26,7 +26,7 @@ export default function (req: express.Request, res: express.Response): BluebirdP
 
     logger.info("POST reset-password: User %s wants to reset his/her password", userid);
 
-    return ldap.update_password(userid, new_password)
+    return ldap.updatePassword(userid, new_password)
         .then(function () {
             logger.info("POST reset-password: Password reset for user '%s'", userid);
             AuthenticationSession.reset(req);

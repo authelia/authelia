@@ -8,10 +8,3 @@ services:
       - ./node_modules:/usr/src/node_modules
       - ./config.yml:/etc/auth-server/config.yml:ro
 
-  ldap-admin:
-    image: osixia/phpldapadmin:0.6.11
-    ports:
-      - 9090:80
-    environment:
-      - PHPLDAPADMIN_LDAP_HOSTS=ldap 
-      - PHPLDAPADMIN_HTTPS=false

@@ -72,8 +72,8 @@ describe("test the first factor validation route", function () {
   });
 
   it("should redirect client to second factor page", function () {
-    ldapMock.bind.withArgs("username").returns(BluebirdPromise.resolve());
-    ldapMock.get_emails.returns(BluebirdPromise.resolve(emails));
+    ldapMock.checkPassword.withArgs("username").returns(BluebirdPromise.resolve());
+    ldapMock.retrieveEmails.returns(BluebirdPromise.resolve(emails));
     const authSession = AuthenticationSession.get(req as any);
     return FirstFactorPost.default(req as any, res as any)
       .then(function () {
@@ -82,55 +82,60 @@ describe("test the first factor validation route", function () {
       });
   });
 
-  it("should retrieve email from LDAP", function (done) {
-    res.redirect = sinon.spy(function () { done(); });
-    ldapMock.bind.returns(BluebirdPromise.resolve());
-    ldapMock.get_emails = sinon.stub().withArgs("username").returns(BluebirdPromise.resolve([{ mail: ["test@example.com"] }]));
-    FirstFactorPost.default(req as any, res as any);
+  it("should retrieve email from LDAP", function () {
+    ldapMock.checkPassword.returns(BluebirdPromise.resolve());
+    ldapMock.retrieveEmails = sinon.stub().withArgs("username").returns(BluebirdPromise.resolve([{ mail: ["test@example.com"] }]));
+    return FirstFactorPost.default(req as any, res as any);
   });
 
-  it("should set email as session variables", function () {
+  it("should set first email address as user session variable", function () {
     const emails = ["test_ok@example.com"];
     const authSession = AuthenticationSession.get(req as any);
-    ldapMock.bind.returns(BluebirdPromise.resolve());
-    ldapMock.get_emails.returns(BluebirdPromise.resolve(emails));
+    ldapMock.checkPassword.returns(BluebirdPromise.resolve());
+    ldapMock.retrieveEmails.returns(BluebirdPromise.resolve(emails));
     return FirstFactorPost.default(req as any, res as any)
       .then(function () {
         assert.equal("test_ok@example.com", authSession.email);
       });
   });
 
-  it("should return status code 401 when LDAP binding throws", function (done) {
-    res.send = sinon.spy(function () {
-      assert.equal(401, res.status.getCall(0).args[0]);
-      assert.equal(regulator.mark.getCall(0).args[0], "username");
-      done();
-    });
-    ldapMock.bind.returns(BluebirdPromise.reject(new exceptions.LdapBindError("Bad credentials")));
-    FirstFactorPost.default(req as any, res as any);
+  it("should return status code 401 when LDAP binding throws", function () {
+    ldapMock.checkPassword.returns(BluebirdPromise.reject(new exceptions.LdapBindError("Bad credentials")));
+    return FirstFactorPost.default(req as any, res as any)
+      .then(function () {
+        assert.equal(401, res.status.getCall(0).args[0]);
+        assert.equal(regulator.mark.getCall(0).args[0], "username");
+      });
   });
 
-  it("should return status code 500 when LDAP search throws", function (done) {
-    res.send = sinon.spy(function () {
-      assert.equal(500, res.status.getCall(0).args[0]);
-      done();
-    });
-    ldapMock.bind.returns(BluebirdPromise.resolve());
-    ldapMock.get_emails.returns(BluebirdPromise.reject(new exceptions.LdapSearchError("error while retrieving emails")));
-    FirstFactorPost.default(req as any, res as any);
+  it("should return status code 500 when LDAP search throws", function () {
+    ldapMock.checkPassword.returns(BluebirdPromise.resolve());
+    ldapMock.retrieveEmails.returns(BluebirdPromise.reject(new exceptions.LdapSearchError("error while retrieving emails")));
+    return FirstFactorPost.default(req as any, res as any)
+      .then(function () {
+        assert.equal(500, res.status.getCall(0).args[0]);
+      });
   });
 
-  it("should return status code 403 when regulator rejects authentication", function (done) {
+  it("should return status code 403 when regulator rejects authentication", function () {
     const err = new exceptions.AuthenticationRegulationError("Authentication regulation...");
     regulator.regulate.returns(BluebirdPromise.reject(err));
+    return FirstFactorPost.default(req as any, res as any)
+      .then(function () {
+        assert.equal(403, res.status.getCall(0).args[0]);
+        assert.equal(1, res.send.callCount);
+      });
+  });
 
-    res.send = sinon.spy(function () {
-      assert.equal(403, res.status.getCall(0).args[0]);
-      done();
-    });
-    ldapMock.bind.returns(BluebirdPromise.resolve());
-    ldapMock.get_emails.returns(BluebirdPromise.resolve());
-    FirstFactorPost.default(req as any, res as any);
+  it("should fail when admin user does not have rights to retrieve attribute mail", function () {
+    ldapMock.checkPassword.returns(BluebirdPromise.resolve());
+    ldapMock.retrieveEmails = sinon.stub().withArgs("username").returns(BluebirdPromise.resolve([]));
+    ldapMock.retrieveGroups = sinon.stub().withArgs("username").returns(BluebirdPromise.resolve(["group1"]));
+    return FirstFactorPost.default(req as any, res as any)
+      .then(function () {
+        assert.equal(500, res.status.getCall(0).args[0]);
+        assert.equal(1, res.send.callCount);
+      });
   });
 });
 
