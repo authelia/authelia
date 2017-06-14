@@ -31,6 +31,10 @@ module.exports = function (grunt) {
       "apidoc": {
         cmd: "./node_modules/.bin/apidoc",
         args: ["-i", "src/server", "-o", "doc"]
+      },
+      "make-dev-views": {
+        cmd: "sed",
+        args: ["-i", "s/authelia\.min/authelia/", `${buildDir}/src/server/views/layout/layout.pug`]
       }
     },
     copy: {
@@ -113,7 +117,7 @@ module.exports = function (grunt) {
       },
       server: {
         files: ['src/server/**/*.ts', 'test/server/**/*.ts'],
-        tasks: ['build', 'run:docker-restart'],
+        tasks: ['build', 'run:docker-restart', 'run:make-dev-views' ],
         options: {
           interrupt: true,
         }
@@ -141,11 +145,12 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-run');
 
-  grunt.registerTask('default', ['build']);
+  grunt.registerTask('default', ['build-dist']);
 
-  grunt.registerTask('build-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css', 'cssmin']);
-  grunt.registerTask('build', ['run:tslint', 'run:build', 'browserify:dist']);
-  grunt.registerTask('dist', ['build', 'build-resources', 'run:minify', 'cssmin']);
+  grunt.registerTask('build-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
+
+  grunt.registerTask('build-dev', ['run:tslint', 'run:build', 'browserify:dist', 'build-resources', 'run:make-dev-views']);
+  grunt.registerTask('build-dist', ['build-dev', 'run:minify', 'cssmin']);
 
   grunt.registerTask('docker-build', ['run:docker-build']);
   grunt.registerTask('docker-restart', ['run:docker-restart']);
