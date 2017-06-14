@@ -1,0 +1,12 @@
+
+.error-401 .header-img {
+    border-radius: 0%;
+}
+
+.error-403 .header-img {
+    border-radius: 0%;
+}
+
+.error-404 .header-img {
+    border-radius: 0%;
+}

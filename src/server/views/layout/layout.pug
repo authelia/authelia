@@ -1,0 +1,27 @@
+block variables
+
+html
+    head
+        title Authelia - 2FA
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")/
+        link(rel="icon", href="/img/icon.png" type="image/gif" sizes="32x32")/
+        link(rel="stylesheet", type="text/css", href="/css/authelia.min.css")/
+        if redirection_url
+            <meta http-equiv="refresh" content="5;url=#{redirection_url}"> 
+    body
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3 col-lg-6 col-lg-offset-3">
+                    <div class="account-wall #{page_classname}">
+                        block form-header
+                        <div class="row">
+                            <div class="form col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2 col-md-8 col-md-offset-2">
+                                block content
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        script(src="/js/authelia.min.js")
+        block entrypoint

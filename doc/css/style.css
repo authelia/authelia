@@ -172,6 +172,7 @@ pre {
   border-radius: 6px;
   position: relative;
   margin: 10px 0 20px 0;
+  overflow-x: auto;
 }
 
 pre.prettyprint {

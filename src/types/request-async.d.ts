@@ -1,8 +1,9 @@
 import * as BluebirdPromise from "bluebird";
-import * as request from "request";
 
 declare module "request" {
-    export interface RequestAsync extends RequestAPI<Request, CoreOptions, RequiredUriUrl> {
+    export interface RequestAPI<TRequest extends Request,
+        TOptions extends CoreOptions,
+        TUriUrlOptions> {
         getAsync(uri: string, options?: RequiredUriUrl): BluebirdPromise<RequestResponse>;
         getAsync(uri: string): BluebirdPromise<RequestResponse>;
         getAsync(options: RequiredUriUrl & CoreOptions): BluebirdPromise<RequestResponse>;
