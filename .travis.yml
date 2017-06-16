@@ -24,8 +24,9 @@ script:
 - docker-compose build
 - docker-compose up -d
 - sleep 5
-- ./scripts/check_services.sh
+- ./scripts/check-services.sh
 - npm run int-test
+- ./scripts/npm-deployment-test.sh
 
 after_success:
   - ./scripts/docker-publish.sh

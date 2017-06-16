@@ -29,3 +29,5 @@ notifications/
 dist/
 
 .nyc_output/
+
+*.tgz
