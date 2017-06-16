@@ -2,9 +2,9 @@
   "name": "authelia",
   "version": "3.0.0",
   "description": "2FA Single Sign-On server for nginx using LDAP, TOTP and U2F",
-  "main": "src/index.js",
+  "main": "dist/src/server/index.js",
   "bin": {
-    "authelia": "src/index.js"
+    "authelia": "dist/src/server/index.js"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --compilers ts:ts-node/register --recursive test/client test/server",
