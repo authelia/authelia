@@ -1,43 +1,11 @@
 version: '2'
 services:
-  auth:
+  authelia:
     build: .
     restart: always
     volumes:
-      - ./config.template.yml:/etc/auth-server/config.yml:ro
-      - ./notifications:/var/lib/auth-server/notifications
+      - ./config.template.yml:/etc/authelia/config.yml:ro
+      - ./notifications:/var/lib/authelia/notifications
+    networks:
+      - example-network
 
-  nginx:
-    image: nginx:alpine
-    volumes:
-      - ./example/nginx_conf/nginx.conf:/etc/nginx/nginx.conf
-      - ./example/nginx_conf/index.html:/usr/share/nginx/html/index.html
-      - ./example/nginx_conf/secret.html:/usr/share/nginx/html/secret.html
-      - ./example/nginx_conf/ssl:/etc/ssl
-    depends_on:
-      - auth
-    ports:
-      - "8080:443"
-
-  openldap:
-    image: clems4ever/openldap
-    ports:
-      - "389:389"
-    environment:
-      - SLAPD_ORGANISATION=MyCompany
-      - SLAPD_DOMAIN=example.com
-      - SLAPD_PASSWORD=password
-      - SLAPD_CONFIG_PASSWORD=password
-      - SLAPD_ADDITIONAL_MODULES=memberof
-      - SLAPD_ADDITIONAL_SCHEMAS=openldap
-      - SLAPD_FORCE_RECONFIGURE=true
-    volumes:
-      - ./example/ldap:/etc/ldap.dist/prepopulate
-
-  openldap-admin:
-    image: osixia/phpldapadmin:0.6.11
-    ports:
-      - 9090:80
-    environment:
-      - PHPLDAPADMIN_LDAP_HOSTS=openldap
-      - PHPLDAPADMIN_HTTPS=false

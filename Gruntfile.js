@@ -5,12 +5,12 @@ module.exports = function (grunt) {
     run: {
       options: {},
       "build": {
-        cmd: "npm",
-        args: ['run', 'build']
+        cmd: "./node_modules/.bin/tsc",
+        args: ['-p', 'tsconfig.json']
       },
       "tslint": {
-        cmd: "npm",
-        args: ['run', 'tslint']
+        cmd: "./node_modules/.bin/tslint",
+        args: ['-c', 'tslint.json', '-p', 'tsconfig.json']
       },
       "test": {
         cmd: "npm",

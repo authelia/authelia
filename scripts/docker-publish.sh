@@ -16,6 +16,7 @@ function deploy_on_dockerhub {
   docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
 
   echo "Docker image $IMAGE_WITH_TAG will be deployed on Dockerhub."
+  docker build -t $IMAGE_NAME .
   docker tag $IMAGE_NAME $IMAGE_WITH_TAG;
   docker push $IMAGE_WITH_TAG;
   echo "Docker image deployed successfully."

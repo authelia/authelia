@@ -10,7 +10,7 @@ COPY dist/src/server /usr/src
 ENV PORT=80
 EXPOSE 80
 
-VOLUME /etc/auth-server
-VOLUME /var/lib/auth-server
+VOLUME /etc/authelia
+VOLUME /var/lib/authelia
 
-CMD ["node", "index.js", "/etc/auth-server/config.yml"]
+CMD ["node", "index.js", "/etc/authelia/config.yml"]

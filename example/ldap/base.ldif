@@ -25,7 +25,7 @@ dn: cn=john,ou=users,dc=example,dc=com
 cn: john
 objectclass: inetOrgPerson
 objectclass: top
-mail: clement.michaud34@gmail.com
+mail: john.doe@example.com
 sn: John Doe
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
 
@@ -45,18 +45,3 @@ mail: bob.dylan@example.com
 sn: Bob Dylan
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
 
-# dn: uid=jack,ou=users,dc=example,dc=com
-# cn: jack
-# gidnumber: 501
-# givenname: Jack
-# homedirectory: /home/jack
-# loginshell: /bin/sh
-# objectclass: inetOrgPerson
-# objectclass: posixAccount
-# objectclass: top
-# mail: jack.daniels@example.com
-# sn: Jack Daniels
-# uid: jack
-# uidnumber: 1001
-# userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
-# 

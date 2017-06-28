@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 NPM_UNPACK_DIR=/tmp/npm-unpack
 
 echo "--- Packing npm package into a tarball"

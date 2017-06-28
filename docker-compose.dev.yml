@@ -1,10 +1,10 @@
-
 version: '2'
 services:
-  auth:
+  authelia:
     volumes:
       - ./test:/usr/src/test
       - ./dist/src/server:/usr/src
       - ./node_modules:/usr/src/node_modules
-      - ./config.yml:/etc/auth-server/config.yml:ro
-
+      - ./config.yml:/etc/authelia/config.yml:ro
+    networks:
+      - example-network

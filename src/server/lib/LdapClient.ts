@@ -68,9 +68,10 @@ export class LdapClient {
     const that = this;
     const ldapClient = this.createClient();
 
-    this.logger.debug("LDAP: Check password for user '%s'", userDN);
+    this.logger.debug("LDAP: Check password by binding user '%s'", userDN);
     return ldapClient.bindAsync(userDN, password)
       .then(function () {
+            that.logger.debug("LDAP: Unbind user '%s'", userDN);
         return ldapClient.unbindAsync();
       })
       .error(function (err: Error) {

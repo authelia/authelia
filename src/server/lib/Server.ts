@@ -50,6 +50,7 @@ export default class Server {
     // by default the level of logs is info
     deps.winston.level = config.logs_level;
     console.log("Log level = ", deps.winston.level);
+    deps.winston.debug("Authelia configuration is %s", JSON.stringify(config, undefined, 2));
 
     ServerVariables.fill(app, config, deps);
 

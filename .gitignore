@@ -13,9 +13,7 @@ src/.baseDir.ts
 
 *.swp
 
-*.sh
-
-config.yml
+/config.yml
 
 npm-debug.log
 
