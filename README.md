@@ -4,7 +4,7 @@
   [![Build](https://travis-ci.org/clems4ever/authelia.svg?branch=master)](https://travis-ci.org/clems4ever/authelia)
 
 **Authelia** is a complete HTTP 2-factor authentication server for proxies like 
-nginx. It has been made to work with NGINX auth_request module and is currently 
+nginx. It has been made to work with nginx [auth_request] module and is currently 
 used in production to secure internal services in a small docker swarm cluster.
 
 ## Features
@@ -17,25 +17,53 @@ address.
 
 ## Deployment
 
-If you don't have any LDAP and nginx setup yet, I advise you to follow the 
-Getting Started. That way, you will not require anything to start.
+If you don't have any LDAP and/or nginx setup yet, I advise you to follow the 
+[Getting Started](#Getting-started) section. That way, you can test it right away 
+without even configure anything.
 
-Otherwise here are the available steps to deploy on your machine.
+Otherwise here are the available steps to deploy **Authelia** on your machine given 
+your configuration file is **/path/to/your/config.yml**.
 
 ### With NPM
 
     npm install -g authelia
+    authelia /path/to/your/config.yml
 
 ### With Docker
 
     docker pull clems4ever/authelia
+    docker run -v /path/to/your/config.yml:/etc/authelia/config.yml -v /path/to/data/dir:/var/lib/authelia clems4ever/authelia
+
+where **/path/to/data/dir** is the directory where all user data will be stored.
 
 ## Getting started
 
 The provided example is docker-based so that you can deploy and test it very 
-quickly. First clone the repo make sure you don't have anything listening on 
-port 8080 before starting. 
-Add the following lines to your /etc/hosts to simulate multiple subdomains
+quickly.
+
+### Pre-requisites
+
+#### npm
+Make sure you have npm and node installed on your computer.
+
+#### Docker
+Make sure you have **docker** and **docker-compose** installed on your machine.
+For your information, here are the versions that have been used for testing:
+
+    docker --version
+
+gave *Docker version 17.03.1-ce, build c6d412e*.
+
+    docker-compose --version
+
+gave *docker-compose version 1.14.0, build c7bdf9e*.
+
+#### Available port
+Make sure you don't have anything listening on port 8080.
+
+#### Subdomain aliases
+
+Add the following lines to your **/etc/hosts** to alias multiple subdomains so that nginx can redirect request to the correct virtual host.
 
     127.0.0.1       secret.test.local
     127.0.0.1       secret1.test.local
@@ -44,23 +72,28 @@ Add the following lines to your /etc/hosts to simulate multiple subdomains
     127.0.0.1       mx1.mail.test.local
     127.0.0.1       mx2.mail.test.local
     127.0.0.1       auth.test.local
+
+### Deployment
     
-Then, type the following command to build and deploy the services:
+Deploy **Authelia** example with the following command:
 
     npm install --only=dev
-    grunt build-dist
-    docker-compose build
-    docker-compose up -d
+    ./node_modules/.bin/grunt build-dist
+    ./scripts/deploy-example.sh
 
 After few seconds the services should be running and you should be able to visit 
-[https://home.test.local:8080/](https://home.test.local:8080/). 
+[https://home.test.local:8080/](https://home.test.local:8080/).
 
-Normally, a self-signed certificate exception should appear, it has to be 
-accepted before getting to the login page:
+When accessing the login page, a self-signed certificate exception should appear, 
+it has to be trusted before you can get to the target page. The certificate
+must be trusted for each subdomain, therefore it is normal to see the exception
+ several times.
+
+Below is what the login page looks like:
 
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/first_factor.png" width="400">
 
-### 1st factor: LDAP and ACL 
+### First factor: LDAP and ACL 
 An LDAP server has been deployed for you with the following credentials and
 access control list:
 
@@ -76,54 +109,55 @@ any subdomain.
   - [secret1.test.local](https://secret1.test.local:8080/secret.html)
   - [home.test.local](https://home.test.local:8080/secret.html)
 
-Type them in the login page and validate. Then, the second factor page should 
-have appeared as shown below.
+You can use them in the login page. If everything is ok, the second factor 
+page should appear as shown below. Otherwise you'll get an error message notifying
+your credentials are wrong.
 
 
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/second_factor.png" width="400">
 
 
-### 2nd factor: TOTP (Time-Base One Time Password)
+### Second factor: TOTP (Time-Base One Time Password)
 In **Authelia**, you need to register a per user TOTP secret before 
 authenticating. To do that, you need to click on the register button. It will 
 send a link to the user email address. Since this is an example, no email will 
 be sent, the link is rather delivered in the file 
-./notifications/notification.txt. Paste the link in your browser and you'll get 
+**./notifications/notification.txt**. Paste the link in your browser and you'll get 
 your secret in QRCode and Base32 formats. You can use 
-[Google Authenticator](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en) 
-to store them and get the generated tokens required during authentication.
+[Google Authenticator] 
+to store them and get the generated tokens with the app.
 
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/totp.png" width="400">
 
 ### 2nd factor: U2F (Universal 2-Factor) with security keys
 **Authelia** also offers authentication using U2F devices like [Yubikey](Yubikey) 
 USB security keys. U2F is one of the most secure authentication protocol and is 
-already available for accounts on Google, Facebook, Github and more.
+already available for Google, Facebook, Github accounts and more.
 
-Like TOTP, U2F requires you register your security key before authenticating 
-with it. To do so, click on the register button. This will send a link to the 
+Like TOTP, U2F requires you register your security key before authenticating. 
+To do so, click on the register button. This will send a link to the 
 user email address. Since this is an example, no email will be sent, the 
-link is rather delivered in the file ./notifications/notification.txt. Paste 
+link is rather delivered in the file **./notifications/notification.txt**. Paste 
 the link in your browser and you'll be asking to touch the token of your device 
-to register it. You can now authenticate using your U2F device by simply 
-touching the token.
+to register. Upon successful registration, you can authenticate using your U2F 
+device by simply touching the token. Easy, right?!
 
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/u2f.png" width="400">
 
 ### Password reset
 With **Authelia**, you can also reset your password in no time. Click on the 
-according button in the login page, provide the username of the user requiring 
+**Forgot password?** link in the login page, provide the username of the user requiring 
 a password reset and **Authelia** will send an email with an link to the user 
 email address. For the sake of the example, the email is delivered in the file 
-./notifications/notification.txt.
+**./notifications/notification.txt**.
 Paste the link in your browser and you should be able to reset the password.
 
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/reset_password.png" width="400">
 
 ### Access Control
 With **Authelia**, you can define your own access control rules for restricting 
-the access to certain subdomains to your users. Those rules are defined in the
-configuration file and can be either default, per-user or per-group policies. 
+the user access to some subdomains. Those rules are defined in the
+configuration file and can be set either for everyone, per-user or per-group policies. 
 Check out the *config.template.yml* to see how they are defined.
 
 ## Documentation
@@ -172,4 +206,6 @@ Follow [contributing](CONTRIBUTORS.md) file.
 [TOTP]: https://en.wikipedia.org/wiki/Time-based_One-time_Password_Algorithm
 [U2F]: https://www.yubico.com/about/background/fido/
 [Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
+[auth_request]: http://nginx.org/en/docs/http/ngx_http_auth_request_module.html
+[Google Authenticator]: https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en
 
