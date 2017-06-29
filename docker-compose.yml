@@ -9,3 +9,7 @@ services:
     networks:
       - example-network
 
+  redis:
+    image: redis
+    networks:
+      - example-network

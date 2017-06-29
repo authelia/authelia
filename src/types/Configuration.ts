@@ -28,6 +28,10 @@ interface SessionCookieConfiguration {
     secret: string;
     expiration?: number;
     domain?: string;
+    redis?: {
+        host: string;
+        port: number;
+    };
 }
 
 export interface GmailNotifierConfiguration {

@@ -7,6 +7,7 @@ import BluebirdPromise = require("bluebird");
 import speakeasy = require("speakeasy");
 import request = require("request");
 import nedb = require("nedb");
+import { GlobalDependencies } from "../../src/types/Dependencies";
 import { TOTPSecret } from "../../src/types/TOTPSecret";
 import U2FMock = require("./mocks/u2f");
 import Endpoints = require("../../src/server/endpoints");
@@ -96,14 +97,15 @@ describe("test the server", function () {
     ldapClient.modify.yields();
     ldapClient.search.yields(undefined, search_res);
 
-    const deps = {
+    const deps: GlobalDependencies = {
       u2f: u2f,
       nedb: nedb,
       nodemailer: nodemailer,
       ldapjs: ldap,
       session: session,
       winston: winston,
-      speakeasy: speakeasy
+      speakeasy: speakeasy,
+      ConnectRedis: sinon.spy()
     };
 
     server = new Server();

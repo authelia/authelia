@@ -11,6 +11,7 @@ import RestApi from "./RestApi";
 import { LdapClient } from "./LdapClient";
 import BluebirdPromise = require("bluebird");
 import ServerVariables = require("./ServerVariables");
+import SessionConfigurationBuilder from "./SessionConfigurationBuilder";
 
 import * as Express from "express";
 import * as BodyParser from "body-parser";
@@ -33,16 +34,8 @@ export default class Server {
 
     app.set("trust proxy", 1); // trust first proxy
 
-    app.use(deps.session({
-      secret: config.session.secret,
-      resave: false,
-      saveUninitialized: true,
-      cookie: {
-        secure: false,
-        maxAge: config.session.expiration,
-        domain: config.session.domain
-      },
-    }));
+    const sessionOptions = SessionConfigurationBuilder.build(config, deps);
+    app.use(deps.session(sessionOptions));
 
     app.set("views", view_directory);
     app.set("view engine", "pug");

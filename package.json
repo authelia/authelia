@@ -27,6 +27,7 @@
     "@types/cors": "^2.8.1",
     "bluebird": "^3.4.7",
     "body-parser": "^1.15.2",
+    "connect-redis": "^3.3.0",
     "dovehash": "0.0.5",
     "ejs": "^2.5.5",
     "express": "^4.14.0",
@@ -45,6 +46,7 @@
   "devDependencies": {
     "@types/bluebird": "^3.5.4",
     "@types/body-parser": "^1.16.3",
+    "@types/connect-redis": "0.0.6",
     "@types/ejs": "^2.3.33",
     "@types/express": "^4.0.35",
     "@types/express-session": "0.0.32",
