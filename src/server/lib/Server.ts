@@ -21,14 +21,14 @@ import * as http from "http";
 export default class Server {
   private httpServer: http.Server;
 
-  start(yaml_configuration: UserConfiguration, deps: GlobalDependencies): BluebirdPromise<void> {
-    const config = ConfigurationAdapter.adapt(yaml_configuration);
+  start(yamlConfiguration: UserConfiguration, deps: GlobalDependencies): BluebirdPromise<void> {
+    const config = ConfigurationAdapter.adapt(yamlConfiguration);
 
-    const view_directory = Path.resolve(__dirname, "../views");
-    const public_html_directory = Path.resolve(__dirname, "../public_html");
+    const viewsDirectory = Path.resolve(__dirname, "../views");
+    const publicHtmlDirectory = Path.resolve(__dirname, "../public_html");
 
     const app = Express();
-    app.use(Express.static(public_html_directory));
+    app.use(Express.static(publicHtmlDirectory));
     app.use(BodyParser.urlencoded({ extended: false }));
     app.use(BodyParser.json());
 
@@ -37,7 +37,7 @@ export default class Server {
     const sessionOptions = SessionConfigurationBuilder.build(config, deps);
     app.use(deps.session(sessionOptions));
 
-    app.set("views", view_directory);
+    app.set("views", viewsDirectory);
     app.set("view engine", "pug");
 
     // by default the level of logs is info

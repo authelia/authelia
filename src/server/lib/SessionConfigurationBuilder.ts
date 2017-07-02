@@ -19,7 +19,8 @@ export default class SessionConfigurationBuilder {
 
         if (configuration.session.redis) {
             let redisOptions;
-            if (configuration.session.redis.host && configuration.session.redis.port) {
+            if (configuration.session.redis.host
+                && configuration.session.redis.port) {
                 redisOptions = {
                     host: configuration.session.redis.host,
                     port: configuration.session.redis.port
@@ -31,7 +32,6 @@ export default class SessionConfigurationBuilder {
                 sessionOptions.store = new RedisStore(redisOptions);
             }
         }
-
         return sessionOptions;
     }
 }

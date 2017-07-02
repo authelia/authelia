@@ -109,7 +109,7 @@ module.exports = function (grunt) {
       },
       client: {
         files: ['src/client/**/*.ts', 'test/client/**/*.ts'],
-        tasks: ['build'],
+        tasks: ['build-dev'],
         options: {
           interrupt: true,
           atBegin: true
@@ -117,9 +117,10 @@ module.exports = function (grunt) {
       },
       server: {
         files: ['src/server/**/*.ts', 'test/server/**/*.ts'],
-        tasks: ['build', 'run:docker-restart', 'run:make-dev-views' ],
+        tasks: ['build-dev', 'run:docker-restart', 'run:make-dev-views' ],
         options: {
           interrupt: true,
+          atBegin: true
         }
       }
     },
