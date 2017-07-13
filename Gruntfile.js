@@ -13,16 +13,20 @@ module.exports = function (grunt) {
         args: ['-c', 'tslint.json', '-p', 'tsconfig.json']
       },
       "test": {
-        cmd: "npm",
-        args: ['run', 'test']
+        cmd: "./node_modules/.bin/mocha",
+        args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/client', 'test/server']
+      },
+      "test-int": {
+        cmd: "./node_modules/.bin/mocha",
+        args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/integration']
       },
       "docker-build": {
         cmd: "docker",
         args: ['build', '-t', 'clems4ever/authelia', '.']
       },
       "docker-restart": {
-        cmd: "docker-compose",
-        args: ['-f', 'docker-compose.yml', '-f', 'docker-compose.dev.yml', 'restart', 'auth']
+        cmd: "./scripts/dc-example.sh",
+        args: ['up', '-d']
       },
       "minify": {
         cmd: "./node_modules/.bin/uglifyjs",

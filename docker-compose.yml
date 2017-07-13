@@ -6,10 +6,7 @@ services:
     volumes:
       - ./config.template.yml:/etc/authelia/config.yml:ro
       - ./notifications:/var/lib/authelia/notifications
-    networks:
-      - example-network
-
-  redis:
-    image: redis
+    depends_on: 
+      - redis
     networks:
       - example-network

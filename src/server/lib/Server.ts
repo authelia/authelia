@@ -5,7 +5,7 @@ import { GlobalDependencies } from "../../types/Dependencies";
 import { AuthenticationRegulator } from "./AuthenticationRegulator";
 import UserDataStore from "./UserDataStore";
 import ConfigurationAdapter from "./ConfigurationAdapter";
-import {  TOTPValidator } from "./TOTPValidator";
+import { TOTPValidator } from "./TOTPValidator";
 import { TOTPGenerator } from "./TOTPGenerator";
 import RestApi from "./RestApi";
 import { LdapClient } from "./LdapClient";
@@ -42,6 +42,8 @@ export default class Server {
     // by default the level of logs is info
     deps.winston.level = config.logs_level;
     console.log("Log level = ", deps.winston.level);
+
+    deps.winston.debug("Content of YAML configuration file is %s", JSON.stringify(yamlConfiguration, undefined, 2));
     deps.winston.debug("Authelia configuration is %s", JSON.stringify(config, undefined, 2));
 
     ServerVariables.fill(app, config, deps);

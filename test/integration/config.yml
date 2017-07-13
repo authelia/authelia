@@ -73,6 +73,9 @@ session:
   secret: unsecure_secret
   expiration: 3600000
   domain: test.local
+  redis:
+    host: redis
+    port: 6379
 
 
 # The directory where the DB files will be saved

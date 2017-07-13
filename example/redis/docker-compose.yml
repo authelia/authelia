@@ -1,0 +1,6 @@
+version: '2'
+services:
+  redis:
+    image: redis
+    networks:
+      - example-network

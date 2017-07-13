@@ -15,7 +15,7 @@ if (!configurationFilepath) {
 
 console.log("Parse configuration file: %s", configurationFilepath);
 
-const yaml_config = YAML.load(configurationFilepath);
+const yamlContent = YAML.load(configurationFilepath);
 
 const deps: GlobalDependencies = {
   u2f: require("u2f"),
@@ -29,7 +29,7 @@ const deps: GlobalDependencies = {
 };
 
 const server = new Server();
-server.start(yaml_config, deps)
+server.start(yamlContent, deps)
 .then(() => {
   console.log("The server is started!");
 });
