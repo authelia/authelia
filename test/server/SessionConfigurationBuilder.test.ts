@@ -6,7 +6,7 @@ import ConnectRedis = require("connect-redis");
 import sinon = require("sinon");
 import Assert = require("assert");
 
-describe.only("test session configuration builder", function () {
+describe("test session configuration builder", function () {
     it("should return session options without redis options", function () {
         const configuration: AppConfiguration = {
             access_control: {
@@ -94,8 +94,10 @@ describe.only("test session configuration builder", function () {
             store_in_memory: true
         };
 
+        const RedisStoreMock = sinon.spy();
+
         const deps: GlobalDependencies = {
-            ConnectRedis: sinon.stub().returns({ RedisStore: sinon.spy() }) as any,
+            ConnectRedis: sinon.stub().returns(RedisStoreMock) as any,
             ldapjs: sinon.spy() as any,
             nedb: sinon.spy() as any,
             nodemailer: sinon.spy() as any,
@@ -115,9 +117,15 @@ describe.only("test session configuration builder", function () {
                 secure: false,
                 maxAge: 3600,
                 domain: "example.com"
-            }
+            },
+            store: sinon.match.object as any
         };
 
-        Assert(expectedOptions.store != undefined);
+        Assert((deps.ConnectRedis as sinon.SinonStub).calledWith(deps.session));
+        Assert.equal(options.secret, expectedOptions.secret);
+        Assert.equal(options.resave, expectedOptions.resave);
+        Assert.equal(options.saveUninitialized, expectedOptions.saveUninitialized);
+        Assert.deepEqual(options.cookie, expectedOptions.cookie);
+        Assert(options.store != undefined);
     });
 });

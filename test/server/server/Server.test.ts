@@ -1,33 +1,34 @@
 
-import Server from "../../src/server/lib/Server";
-import LdapClient = require("../../src/server/lib/LdapClient");
-import { LdapjsClientMock } from "./mocks/ldapjs";
+
+import Server from "../../../src/server/lib/Server";
+import LdapClient = require("../../../src/server/lib/LdapClient");
+import { LdapjsClientMock } from "./../mocks/ldapjs";
 
 import BluebirdPromise = require("bluebird");
 import speakeasy = require("speakeasy");
 import request = require("request");
 import nedb = require("nedb");
-import { GlobalDependencies } from "../../src/types/Dependencies";
-import { TOTPSecret } from "../../src/types/TOTPSecret";
-import U2FMock = require("./mocks/u2f");
-import Endpoints = require("../../src/server/endpoints");
-
+import { GlobalDependencies } from "../../../src/types/Dependencies";
+import { TOTPSecret } from "../../../src/types/TOTPSecret";
+import U2FMock = require("./../mocks/u2f");
+import Endpoints = require("../../../src/server/endpoints");
+import Requests = require("../requests");
+import Assert = require("assert");
+import Sinon = require("sinon");
+import Winston = require("winston");
+import MockDate = require("mockdate");
+import ExpressSession = require("express-session");
+import ldapjs = require("ldapjs");
 
 const requestp = BluebirdPromise.promisifyAll(request) as typeof request;
-const assert = require("assert");
-const sinon = require("sinon");
-const MockDate = require("mockdate");
-const session = require("express-session");
-const winston = require("winston");
-const ldapjs = require("ldapjs");
 
 const PORT = 8090;
 const BASE_URL = "http://localhost:" + PORT;
-const requests = require("./requests")(PORT);
+const requests = Requests(PORT);
 
 describe("test the server", function () {
   let server: Server;
-  let transporter: object;
+  let transporter: any;
   let u2f: U2FMock.U2FMock;
 
   beforeEach(function () {
@@ -55,8 +56,8 @@ describe("test the server", function () {
 
     const ldapClient = LdapjsClientMock();
     const ldap = {
-      Change: sinon.spy(),
-      createClient: sinon.spy(function () {
+      Change: Sinon.spy(),
+      createClient: Sinon.spy(function () {
         return ldapClient;
       })
     };
@@ -64,11 +65,11 @@ describe("test the server", function () {
     u2f = U2FMock.U2FMock();
 
     transporter = {
-      sendMail: sinon.stub().yields()
+      sendMail: Sinon.stub().yields()
     };
 
     const nodemailer = {
-      createTransport: sinon.spy(function () {
+      createTransport: Sinon.spy(function () {
         return transporter;
       })
     };
@@ -80,7 +81,7 @@ describe("test the server", function () {
     };
 
     const search_res = {
-      on: sinon.spy(function (event: string, fn: (s: any) => void) {
+      on: Sinon.spy(function (event: string, fn: (s: any) => void) {
         if (event != "error") fn(ldapDocument);
       })
     };
@@ -102,10 +103,10 @@ describe("test the server", function () {
       nedb: nedb,
       nodemailer: nodemailer,
       ldapjs: ldap,
-      session: session,
-      winston: winston,
+      session: ExpressSession,
+      winston: Winston,
       speakeasy: speakeasy,
-      ConnectRedis: sinon.spy()
+      ConnectRedis: Sinon.spy()
     };
 
     server = new Server();
@@ -116,114 +117,17 @@ describe("test the server", function () {
     server.stop();
   });
 
-  describe("test GET " + Endpoints.FIRST_FACTOR_GET, function () {
-    test_login();
-  });
-
-  describe("test GET " + Endpoints.LOGOUT_GET, function () {
-    test_logout();
-  });
-
-  describe("test GET" + Endpoints.RESET_PASSWORD_REQUEST_GET, function () {
-    test_reset_password_form();
-  });
-
-  describe("Second factor endpoints must be protected if first factor is not validated", function () {
-    function should_post_and_reply_with(url: string, status_code: number): BluebirdPromise<void> {
-      return requestp.postAsync(url).then(function (response: request.RequestResponse) {
-        assert.equal(response.statusCode, status_code);
-        return BluebirdPromise.resolve();
-      });
-    }
-
-    function should_get_and_reply_with(url: string, status_code: number): BluebirdPromise<void> {
-      return requestp.getAsync(url).then(function (response: request.RequestResponse) {
-        assert.equal(response.statusCode, status_code);
-        return BluebirdPromise.resolve();
-      });
-    }
-
-    function should_post_and_reply_with_401(url: string): BluebirdPromise<void> {
-      return should_post_and_reply_with(url, 401);
-    }
-    function should_get_and_reply_with_401(url: string): BluebirdPromise<void> {
-      return should_get_and_reply_with(url, 401);
-    }
-
-    it("should block " + Endpoints.SECOND_FACTOR_GET, function () {
-      return should_get_and_reply_with_401(BASE_URL + Endpoints.SECOND_FACTOR_GET);
-    });
-
-    it("should block " + Endpoints.SECOND_FACTOR_U2F_IDENTITY_START_GET, function () {
-      return should_get_and_reply_with_401(BASE_URL + Endpoints.SECOND_FACTOR_U2F_IDENTITY_START_GET);
-    });
-
-    it("should block " + Endpoints.SECOND_FACTOR_U2F_IDENTITY_FINISH_GET, function () {
-      return should_get_and_reply_with_401(BASE_URL + Endpoints.SECOND_FACTOR_U2F_IDENTITY_FINISH_GET + "?identity_token=dummy");
-    });
-
-    it("should block " + Endpoints.SECOND_FACTOR_U2F_REGISTER_REQUEST_GET, function () {
-      return should_get_and_reply_with_401(BASE_URL + Endpoints.SECOND_FACTOR_U2F_REGISTER_REQUEST_GET);
-    });
-
-    it("should block " + Endpoints.SECOND_FACTOR_U2F_REGISTER_POST, function () {
-      return should_post_and_reply_with_401(BASE_URL + Endpoints.SECOND_FACTOR_U2F_REGISTER_POST);
-    });
-
-    it("should block " + Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET, function () {
-      return should_get_and_reply_with_401(BASE_URL + Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET);
-    });
-
-    it("should block " + Endpoints.SECOND_FACTOR_U2F_SIGN_POST, function () {
-      return should_post_and_reply_with_401(BASE_URL + Endpoints.SECOND_FACTOR_U2F_SIGN_POST);
-    });
-
-    it("should block " + Endpoints.SECOND_FACTOR_TOTP_POST, function () {
-      return should_post_and_reply_with_401(BASE_URL + Endpoints.SECOND_FACTOR_TOTP_POST);
-    });
-  });
-
   describe("test authentication and verification", function () {
     test_authentication();
     test_reset_password();
     test_regulation();
   });
 
-  function test_reset_password_form() {
-    it("should serve the reset password form page", function (done) {
-      requestp.getAsync(BASE_URL + Endpoints.RESET_PASSWORD_REQUEST_GET)
-        .then(function (response: request.RequestResponse) {
-          assert.equal(response.statusCode, 200);
-          done();
-        });
-    });
-  }
-
-  function test_login() {
-    it("should serve the login page", function (done) {
-      requestp.getAsync(BASE_URL + Endpoints.FIRST_FACTOR_GET)
-        .then(function (response: request.RequestResponse) {
-          assert.equal(response.statusCode, 200);
-          done();
-        });
-    });
-  }
-
-  function test_logout() {
-    it("should logout and redirect to /", function (done) {
-      requestp.getAsync(BASE_URL + Endpoints.LOGOUT_GET)
-        .then(function (response: any) {
-          assert.equal(response.req.path, "/");
-          done();
-        });
-    });
-  }
-
   function test_authentication() {
     it("should return status code 401 when user is not authenticated", function () {
       return requestp.getAsync({ url: BASE_URL + Endpoints.VERIFY_GET })
         .then(function (response: request.RequestResponse) {
-          assert.equal(response.statusCode, 401);
+          Assert.equal(response.statusCode, 401);
           return BluebirdPromise.resolve();
         });
     });
@@ -232,11 +136,11 @@ describe("test the server", function () {
       const j = requestp.jar();
       return requests.login(j)
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 200, "get login page failed");
+          Assert.equal(res.statusCode, 200, "get login page failed");
           return requests.first_factor(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 302, "first factor failed");
+          Assert.equal(res.statusCode, 302, "first factor failed");
           return requests.register_totp(j, transporter);
         })
         .then(function (base32_secret: string) {
@@ -247,11 +151,11 @@ describe("test the server", function () {
           return requests.totp(j, realToken);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 200, "second factor failed");
+          Assert.equal(res.statusCode, 200, "second factor failed");
           return requests.verify(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 204, "verify failed");
+          Assert.equal(res.statusCode, 204, "verify failed");
           return BluebirdPromise.resolve();
         })
         .catch(function (err: Error) { return BluebirdPromise.reject(err); });
@@ -261,11 +165,11 @@ describe("test the server", function () {
       const j = requestp.jar();
       return requests.login(j)
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 200, "get login page failed");
+          Assert.equal(res.statusCode, 200, "get login page failed");
           return requests.first_factor(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 302, "first factor failed");
+          Assert.equal(res.statusCode, 302, "first factor failed");
           return requests.register_totp(j, transporter);
         })
         .then(function (base32_secret: string) {
@@ -276,15 +180,15 @@ describe("test the server", function () {
           return requests.totp(j, realToken);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 200, "second factor failed");
+          Assert.equal(res.statusCode, 200, "second factor failed");
           return requests.login(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 200, "login page loading failed");
+          Assert.equal(res.statusCode, 200, "login page loading failed");
           return requests.verify(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 204, "verify failed");
+          Assert.equal(res.statusCode, 204, "verify failed");
           return BluebirdPromise.resolve();
         })
         .catch(function (err: Error) { return BluebirdPromise.reject(err); });
@@ -302,25 +206,25 @@ describe("test the server", function () {
       const j = requestp.jar();
       return requests.login(j)
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 200, "get login page failed");
+          Assert.equal(res.statusCode, 200, "get login page failed");
           return requests.first_factor(j);
         })
         .then(function (res: request.RequestResponse) {
           // console.log(res);
-          assert.equal(res.headers.location, Endpoints.SECOND_FACTOR_GET);
-          assert.equal(res.statusCode, 302, "first factor failed");
+          Assert.equal(res.headers.location, Endpoints.SECOND_FACTOR_GET);
+          Assert.equal(res.statusCode, 302, "first factor failed");
           return requests.u2f_registration(j, transporter);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 200, "second factor, finish register failed");
+          Assert.equal(res.statusCode, 200, "second factor, finish register failed");
           return requests.u2f_authentication(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 200, "second factor, finish sign failed");
+          Assert.equal(res.statusCode, 200, "second factor, finish sign failed");
           return requests.verify(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 204, "verify failed");
+          Assert.equal(res.statusCode, 204, "verify failed");
           return BluebirdPromise.resolve();
         });
     });
@@ -331,16 +235,16 @@ describe("test the server", function () {
       const j = requestp.jar();
       return requests.login(j)
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 200, "get login page failed");
+          Assert.equal(res.statusCode, 200, "get login page failed");
           return requests.first_factor(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.headers.location, Endpoints.SECOND_FACTOR_GET);
-          assert.equal(res.statusCode, 302, "first factor failed");
+          Assert.equal(res.headers.location, Endpoints.SECOND_FACTOR_GET);
+          Assert.equal(res.statusCode, 302, "first factor failed");
           return requests.reset_password(j, transporter, "user", "new-password");
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 204, "second factor, finish register failed");
+          Assert.equal(res.statusCode, 204, "second factor, finish register failed");
           return BluebirdPromise.resolve();
         });
     });
@@ -352,28 +256,28 @@ describe("test the server", function () {
       MockDate.set("1/2/2017 00:00:00");
       return requests.login(j)
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 200, "get login page failed");
+          Assert.equal(res.statusCode, 200, "get login page failed");
           return requests.failing_first_factor(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 401, "first factor failed");
+          Assert.equal(res.statusCode, 401, "first factor failed");
           return requests.failing_first_factor(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 401, "first factor failed");
+          Assert.equal(res.statusCode, 401, "first factor failed");
           return requests.failing_first_factor(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 401, "first factor failed");
+          Assert.equal(res.statusCode, 401, "first factor failed");
           return requests.failing_first_factor(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 403, "first factor failed");
+          Assert.equal(res.statusCode, 403, "first factor failed");
           MockDate.set("1/2/2017 00:30:00");
           return requests.failing_first_factor(j);
         })
         .then(function (res: request.RequestResponse) {
-          assert.equal(res.statusCode, 401, "first factor failed");
+          Assert.equal(res.statusCode, 401, "first factor failed");
           return BluebirdPromise.resolve();
         });
     });

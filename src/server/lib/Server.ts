@@ -27,16 +27,15 @@ export default class Server {
     const viewsDirectory = Path.resolve(__dirname, "../views");
     const publicHtmlDirectory = Path.resolve(__dirname, "../public_html");
 
+    const expressSessionOptions = SessionConfigurationBuilder.build(config, deps);
+
     const app = Express();
     app.use(Express.static(publicHtmlDirectory));
     app.use(BodyParser.urlencoded({ extended: false }));
     app.use(BodyParser.json());
+    app.use(deps.session(expressSessionOptions));
 
-    app.set("trust proxy", 1); // trust first proxy
-
-    const sessionOptions = SessionConfigurationBuilder.build(config, deps);
-    app.use(deps.session(sessionOptions));
-
+    app.set("trust proxy", 1);
     app.set("views", viewsDirectory);
     app.set("view engine", "pug");
 
@@ -46,7 +45,6 @@ export default class Server {
     deps.winston.debug("Authelia configuration is %s", JSON.stringify(config, undefined, 2));
 
     ServerVariables.fill(app, config, deps);
-
     RestApi.setup(app);
 
     return new BluebirdPromise<void>((resolve, reject) => {
