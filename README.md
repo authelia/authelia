@@ -7,13 +7,37 @@
 nginx. It has been made to work with nginx [auth_request] module and is currently 
 used in production to secure internal services in a small docker swarm cluster.
 
-## Features
+# Table of Contents
+1. [Features summary](#features-summary)
+2. [Deployment](#deployment)
+    1. [With NPM](#with-npm)
+    2. [With Docker](#with-docker)
+3. [Getting started](#getting-started)
+    1. [Pre-requisites](#pre-requisites)
+    2. [Run it!](#run-it)
+4. [Features in details](#features-in-details)
+    1. [First factor with LDAP and ACL](#first-factor-with-ldap-and-acl)
+    2. [Second factor with TOTP](#second-factor-with-totp)
+    3. [Second factor with U2F security keys](#second-factor-with-u2f-security-keys)
+    4. [Password reset](#password-reset)
+    5. [Access control](#access-control)
+    6. [Session management with Redis](#session-management-with-redis)
+4. [Documentation](#documentation)
+    1. [Authelia configuration](#authelia-configuration)
+    1. [API documentation](#api-documentation)
+5. [Contributing to Authelia](#contributing-to-authelia)
+6. [License](#license)
+
+---
+
+## Features summary
 * Two-factor authentication using either 
 **[TOTP] - Time-Base One Time password -** or **[U2F] - Universal 2-Factor -** 
 as 2nd factor.
 * Password reset with identity verification by sending links to user email 
 address.
 * Access restriction after too many authentication attempts.
+* Session management using Redis key/value store.
 
 ## Deployment
 
@@ -73,7 +97,7 @@ Add the following lines to your **/etc/hosts** to alias multiple subdomains so t
     127.0.0.1       mx2.mail.test.local
     127.0.0.1       auth.test.local
 
-### Deployment
+### Run it!
     
 Deploy **Authelia** example with the following command:
 
@@ -93,7 +117,9 @@ Below is what the login page looks like:
 
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/first_factor.png" width="400">
 
-### First factor: LDAP and ACL 
+## Features in details
+
+### First factor with LDAP and ACL 
 An LDAP server has been deployed for you with the following credentials and
 access control list:
 
@@ -117,8 +143,8 @@ your credentials are wrong.
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/second_factor.png" width="400">
 
 
-### Second factor: TOTP (Time-Base One Time Password)
-In **Authelia**, you need to register a per user TOTP secret before 
+### Second factor with TOTP
+In **Authelia**, you need to register a per user TOTP (Time-Based One Time Password) secret before 
 authenticating. To do that, you need to click on the register button. It will 
 send a link to the user email address. Since this is an example, no email will 
 be sent, the link is rather delivered in the file 
@@ -129,8 +155,8 @@ to store them and get the generated tokens with the app.
 
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/totp.png" width="400">
 
-### 2nd factor: U2F (Universal 2-Factor) with security keys
-**Authelia** also offers authentication using U2F devices like [Yubikey](Yubikey) 
+### Second factor with U2F security keys
+**Authelia** also offers authentication using U2F (Universal 2-Factor) devices like [Yubikey](Yubikey) 
 USB security keys. U2F is one of the most secure authentication protocol and is 
 already available for Google, Facebook, Github accounts and more.
 
@@ -160,8 +186,11 @@ the user access to some subdomains. Those rules are defined in the
 configuration file and can be set either for everyone, per-user or per-group policies. 
 Check out the *config.template.yml* to see how they are defined.
 
+### Session management with Redis
+When your users authenticate against Authelia, sessions are stored in a Redis key/value store. You can specify your own Redis instance in the [configuration file](#authelia-configuration).
+
 ## Documentation
-### Configuration
+### Authelia configuration
 The configuration of the server is defined in the file 
 **configuration.template.yml**. All the details are documented there.
 You can specify another configuration file by giving it as first argument of 
