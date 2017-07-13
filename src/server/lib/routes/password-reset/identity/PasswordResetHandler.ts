@@ -26,7 +26,7 @@ export default class PasswordResetHandler implements IdentityValidable {
             return BluebirdPromise.reject(new exceptions.AccessDeniedError("No user id provided"));
 
         const ldap = ServerVariables.getLdapClient(req.app);
-        return ldap.get_emails(userid)
+        return ldap.retrieveEmails(userid)
             .then(function (emails: string[]) {
                 if (!emails && emails.length <= 0) throw new Error("No email found");
 

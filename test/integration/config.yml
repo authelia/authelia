@@ -5,14 +5,14 @@ port: 80
 # Log level
 #
 # Level of verbosity for logs
-logs_level: info
+logs_level: debug
 
 # LDAP configuration
 #
 # Example: for user john, the DN will be cn=john,ou=users,dc=example,dc=com
 ldap:
   # The url of the ldap server
-  url: ldap://openldap-restriction
+  url: ldap://openldap
 
   # The base dn for every entries
   base_dn: dc=example,dc=com
@@ -89,6 +89,6 @@ notifier:
 
   # Use your gmail account to send the notifications. You can use an app password.
   # gmail:
-  #   username: user@example.com
-  #   password: yourpassword
+  #   username: user
+  #   password: password
   

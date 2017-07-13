@@ -1,8 +1,9 @@
 import express = require("express");
 import { Winston } from "winston";
+import BluebirdPromise = require("bluebird");
 
-function replyWithError(res: express.Response, code: number, logger: Winston) {
-  return function (err: Error) {
+function replyWithError(res: express.Response, code: number, logger: Winston): (err: Error) => void {
+  return function (err: Error): void {
     logger.error("Reply with error %d: %s", code, err);
     res.status(code);
     res.send();

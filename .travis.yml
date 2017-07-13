@@ -19,14 +19,7 @@ addons:
 
 before_install: npm install -g npm@'>=2.13.5'
 script:
-- grunt build-dist
-- grunt docker-build
-- docker-compose build
-- docker-compose up -d
-- sleep 5
-- ./scripts/check-services.sh
-- npm run int-test
-- ./scripts/npm-deployment-test.sh
+  - ./scripts/travis.sh
 
 after_success:
   - ./scripts/docker-publish.sh

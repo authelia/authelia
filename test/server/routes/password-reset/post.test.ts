@@ -16,7 +16,7 @@ describe("test reset password route", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
   let user_data_store: UserDataStore;
-  let ldap_client: LdapClientMock;
+  let ldapClient: LdapClientMock;
   let configuration: any;
   let authSession: AuthenticationSession.AuthenticationSession;
 
@@ -64,8 +64,8 @@ describe("test reset password route", function () {
     mocks.logger = winston;
     mocks.config = configuration;
 
-    ldap_client = LdapClientMock();
-    mocks.ldap = ldap_client;
+    ldapClient = LdapClientMock();
+    mocks.ldap = ldapClient;
 
     res = ExpressMock.ResponseMock();
   });
@@ -79,8 +79,8 @@ describe("test reset password route", function () {
       req.body = {};
       req.body.password = "new-password";
 
-      ldap_client.update_password.returns(BluebirdPromise.resolve());
-      ldap_client.bind.returns(BluebirdPromise.resolve());
+      ldapClient.updatePassword.returns(BluebirdPromise.resolve());
+      ldapClient.checkPassword.returns(BluebirdPromise.resolve());
       return PasswordResetFormPost.default(req as any, res as any)
         .then(function () {
           const authSession = AuthenticationSession.get(req as any);
@@ -111,8 +111,8 @@ describe("test reset password route", function () {
       req.body = {};
       req.body.password = "new-password";
 
-      ldap_client.bind.yields(undefined);
-      ldap_client.update_password.returns(BluebirdPromise.reject("Internal error with LDAP"));
+      ldapClient.checkPassword.yields(undefined);
+      ldapClient.updatePassword.returns(BluebirdPromise.reject("Internal error with LDAP"));
       res.send = sinon.spy(function () {
         assert.equal(res.status.getCall(0).args[0], 500);
         done();

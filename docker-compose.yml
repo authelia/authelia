@@ -1,37 +1,11 @@
-
 version: '2'
 services:
-  auth:
+  authelia:
     build: .
-    depends_on:
-      - ldap
     restart: always
     volumes:
-      - ./config.template.yml:/etc/auth-server/config.yml:ro
-      - ./notifications:/var/lib/auth-server/notifications
+      - ./config.template.yml:/etc/authelia/config.yml:ro
+      - ./notifications:/var/lib/authelia/notifications
+    networks:
+      - example-network
 
-  ldap:
-    image: dinkel/openldap
-    environment:
-      - SLAPD_ORGANISATION=MyCompany
-      - SLAPD_DOMAIN=example.com
-      - SLAPD_PASSWORD=password
-      - SLAPD_ADDITIONAL_MODULES=memberof
-      - SLAPD_ADDITIONAL_SCHEMAS=openldap
-      - SLAPD_FORCE_RECONFIGURE=true
-    expose:
-      - "389"
-    volumes:
-      - ./example/ldap:/etc/ldap.dist/prepopulate
-
-  nginx:
-    image: nginx:alpine
-    volumes:
-      - ./example/nginx_conf/nginx.conf:/etc/nginx/nginx.conf
-      - ./example/nginx_conf/index.html:/usr/share/nginx/html/index.html
-      - ./example/nginx_conf/secret.html:/usr/share/nginx/html/secret.html
-      - ./example/nginx_conf/ssl:/etc/ssl
-    depends_on:
-      - auth
-    ports:
-      - "8080:443"

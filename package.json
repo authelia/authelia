@@ -8,10 +8,7 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --compilers ts:ts-node/register --recursive test/client test/server",
-    "int-test": "./node_modules/.bin/mocha --compilers ts:ts-node/register --recursive test/integration",
     "cover": "NODE_ENV=test nyc npm t",
-    "build": "tsc",
-    "tslint": "tslint -c tslint.json -p tsconfig.json",
     "serve": "node dist/server/index.js"
   },
   "repository": {

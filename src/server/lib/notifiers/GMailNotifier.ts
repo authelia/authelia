@@ -35,7 +35,7 @@ export class GMailNotifier extends INotifier {
     };
 
     const mailOptions = {
-      from: "auth-server@open-intent.io",
+      from: "authelia@authelia.com",
       to: identity.email,
       subject: subject,
       html: ejs.render(email_template, d)

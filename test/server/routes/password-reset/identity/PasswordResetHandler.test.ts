@@ -82,7 +82,7 @@ describe("test reset password identity check", function () {
         });
 
         it("should fail if ldap fail", function (done) {
-            ldap_client.get_emails.returns(BluebirdPromise.reject("Internal error"));
+            ldap_client.retrieveEmails.returns(BluebirdPromise.reject("Internal error"));
             new PasswordResetHandler().preValidationInit(req as any)
                 .catch(function (err: Error) {
                     done();
@@ -91,16 +91,16 @@ describe("test reset password identity check", function () {
 
         it("should perform a search in ldap to find email address", function (done) {
             configuration.ldap.user_name_attribute = "uid";
-            ldap_client.get_emails.returns(BluebirdPromise.resolve([]));
+            ldap_client.retrieveEmails.returns(BluebirdPromise.resolve([]));
             new PasswordResetHandler().preValidationInit(req as any)
                 .then(function () {
-                    assert.equal("user", ldap_client.get_emails.getCall(0).args[0]);
+                    assert.equal("user", ldap_client.retrieveEmails.getCall(0).args[0]);
                     done();
                 });
         });
 
         it("should returns identity when ldap replies", function (done) {
-            ldap_client.get_emails.returns(BluebirdPromise.resolve(["test@example.com"]));
+            ldap_client.retrieveEmails.returns(BluebirdPromise.resolve(["test@example.com"]));
             new PasswordResetHandler().preValidationInit(req as any)
                 .then(function () {
                     done();

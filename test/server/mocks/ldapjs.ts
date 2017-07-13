@@ -7,6 +7,7 @@ export interface LdapjsMock {
 
 export interface LdapjsClientMock {
     bind: sinon.SinonStub;
+    unbind: sinon.SinonStub;
     search: sinon.SinonStub;
     modify: sinon.SinonStub;
     on: sinon.SinonStub;
@@ -21,6 +22,7 @@ export function LdapjsMock(): LdapjsMock {
 export function LdapjsClientMock(): LdapjsClientMock {
     return {
         bind: sinon.stub(),
+        unbind: sinon.stub(),
         search: sinon.stub(),
         modify: sinon.stub(),
         on: sinon.stub()
