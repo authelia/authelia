@@ -2,7 +2,7 @@
 
 service_count=`docker ps -a | grep "Up " | wc -l`
 
-if [ "${service_count}" -eq "4" ]
+if [ "${service_count}" -eq "5" ]
 then
   echo "Service are up and running."
   exit 0

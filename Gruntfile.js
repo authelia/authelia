@@ -154,8 +154,9 @@ module.exports = function (grunt) {
 
   grunt.registerTask('build-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
 
-  grunt.registerTask('build-dev', ['run:tslint', 'run:build', 'browserify:dist', 'build-resources', 'run:make-dev-views']);
-  grunt.registerTask('build-dist', ['build-dev', 'run:minify', 'cssmin']);
+  grunt.registerTask('build-common', ['run:tslint', 'run:build', 'browserify:dist', 'build-resources']);
+  grunt.registerTask('build-dev', ['build-common', 'run:make-dev-views']);
+  grunt.registerTask('build-dist', ['build-common', 'run:minify', 'cssmin']);
 
   grunt.registerTask('docker-build', ['run:docker-build']);
   grunt.registerTask('docker-restart', ['run:docker-restart']);

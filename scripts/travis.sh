@@ -11,11 +11,8 @@ grunt test
 # Build the app from Typescript and package
 grunt build-dist
 
-# Run integration tests
-./scripts/run-int-test.sh
-
-# Test staging environment
-./scripts/run-staging.sh
+# Run integration/example tests
+./scripts/integration-tests.sh
 
 # Test npm deployment before actual deployment
 ./scripts/npm-deployment-test.sh

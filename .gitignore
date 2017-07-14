@@ -13,9 +13,6 @@ src/.baseDir.ts
 
 *.swp
 
-/config.yml
-
-npm-debug.log
 
 # Directory used by example
 notifications/
@@ -29,3 +26,7 @@ dist/
 .nyc_output/
 
 *.tgz
+
+# Specific files
+/config.yml
+/test/integration/nginx.conf
