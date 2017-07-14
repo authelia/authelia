@@ -11,6 +11,7 @@ services:
 
   int-test:
     build: ./test/integration
+    command: ./node_modules/.bin/mocha --compilers ts:ts-node/register --recursive test/integration
     volumes:
       - ./:/usr/src
     networks:

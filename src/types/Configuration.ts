@@ -24,10 +24,16 @@ export interface ACLConfiguration {
     users: ACLUsersRules;
 }
 
+export interface SessionRedisOptions {
+    host: string;
+    port: number;
+}
+
 interface SessionCookieConfiguration {
     secret: string;
     expiration?: number;
     domain?: string;
+    redis?: SessionRedisOptions;
 }
 
 export interface GmailNotifierConfiguration {

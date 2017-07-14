@@ -13,16 +13,20 @@ module.exports = function (grunt) {
         args: ['-c', 'tslint.json', '-p', 'tsconfig.json']
       },
       "test": {
-        cmd: "npm",
-        args: ['run', 'test']
+        cmd: "./node_modules/.bin/mocha",
+        args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/client', 'test/server']
+      },
+      "test-int": {
+        cmd: "./node_modules/.bin/mocha",
+        args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/integration']
       },
       "docker-build": {
         cmd: "docker",
         args: ['build', '-t', 'clems4ever/authelia', '.']
       },
       "docker-restart": {
-        cmd: "docker-compose",
-        args: ['-f', 'docker-compose.yml', '-f', 'docker-compose.dev.yml', 'restart', 'auth']
+        cmd: "./scripts/dc-example.sh",
+        args: ['up', '-d']
       },
       "minify": {
         cmd: "./node_modules/.bin/uglifyjs",
@@ -109,7 +113,7 @@ module.exports = function (grunt) {
       },
       client: {
         files: ['src/client/**/*.ts', 'test/client/**/*.ts'],
-        tasks: ['build'],
+        tasks: ['build-dev'],
         options: {
           interrupt: true,
           atBegin: true
@@ -117,9 +121,10 @@ module.exports = function (grunt) {
       },
       server: {
         files: ['src/server/**/*.ts', 'test/server/**/*.ts'],
-        tasks: ['build', 'run:docker-restart', 'run:make-dev-views' ],
+        tasks: ['build-dev', 'run:docker-restart', 'run:make-dev-views' ],
         options: {
           interrupt: true,
+          atBegin: true
         }
       }
     },

@@ -38,11 +38,12 @@ describe("test server configuration", function () {
         createClient: sinon.spy(function () {
           return {
             on: sinon.spy(),
-            bind: sinon.spy()
+            bind: sinon.spy(),
           };
         })
       },
-      session: sessionMock as any
+      session: sessionMock as any,
+      ConnectRedis: sinon.spy()
     };
   });
 

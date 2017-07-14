@@ -6,7 +6,9 @@ echo "Build services images..."
 ./scripts/dc-test.sh build
 
 echo "Start services..."
-./scripts/dc-test.sh up -d authelia nginx openldap
+./scripts/dc-test.sh up -d redis openldap 
+sleep 2
+./scripts/dc-test.sh up -d authelia nginx 
 sleep 3
 docker ps -a
 

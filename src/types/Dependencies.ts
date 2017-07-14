@@ -5,6 +5,7 @@ import session = require("express-session");
 import nedb = require("nedb");
 import ldapjs = require("ldapjs");
 import u2f = require("u2f");
+import RedisSession = require("connect-redis");
 
 export type Nodemailer = typeof nodemailer;
 export type Speakeasy = typeof speakeasy;
@@ -13,12 +14,14 @@ export type Session = typeof session;
 export type Nedb = typeof nedb;
 export type Ldapjs = typeof ldapjs;
 export type U2f = typeof u2f;
+export type ConnectRedis = typeof RedisSession;
 
 export interface GlobalDependencies {
     u2f: U2f;
     nodemailer: Nodemailer;
     ldapjs: Ldapjs;
     session: Session;
+    ConnectRedis: ConnectRedis;
     winston: Winston;
     speakeasy: Speakeasy;
     nedb: Nedb;

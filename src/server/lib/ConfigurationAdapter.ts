@@ -1,6 +1,6 @@
 
 import * as ObjectPath from "object-path";
-import { AppConfiguration, UserConfiguration, NotifierConfiguration, ACLConfiguration, LdapConfiguration } from "./../../types/Configuration";
+import { AppConfiguration, UserConfiguration, NotifierConfiguration, ACLConfiguration, LdapConfiguration, SessionRedisOptions } from "./../../types/Configuration";
 
 const LDAP_URL_ENV_VARIABLE = "LDAP_URL";
 
@@ -32,6 +32,7 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration): AppCo
       domain: ObjectPath.get<object, string>(userConfiguration, "session.domain"),
       secret: ObjectPath.get<object, string>(userConfiguration, "session.secret"),
       expiration: get_optional<number>(userConfiguration, "session.expiration", 3600000), // in ms
+      redis: ObjectPath.get<object, SessionRedisOptions>(userConfiguration, "session.redis")
     },
     store_directory: get_optional<string>(userConfiguration, "store_directory", undefined),
     logs_level: get_optional<string>(userConfiguration, "logs_level", "info"),

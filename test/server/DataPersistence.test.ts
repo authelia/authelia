@@ -100,15 +100,16 @@ describe("test data persistence", function () {
       sendMail: sinon.stub().yields()
     };
 
-    const deps = {
+    const deps: GlobalDependencies = {
       u2f: u2f,
       nedb: nedb,
       nodemailer: nodemailer,
       session: session,
       winston: winston,
       ldapjs: ldap,
-      speakeasy: speakeasy
-    } as GlobalDependencies;
+      speakeasy: speakeasy,
+      ConnectRedis: sinon.spy()
+    };
 
     const j1 = request.jar();
     const j2 = request.jar();
