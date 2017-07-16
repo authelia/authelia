@@ -14,11 +14,15 @@ module.exports = function (grunt) {
       },
       "test": {
         cmd: "./node_modules/.bin/mocha",
-        args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/client', 'test/server']
+        args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/unit']
       },
       "test-int": {
         cmd: "./node_modules/.bin/mocha",
         args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/integration']
+      },
+      "test-system": {
+        cmd: "./node_modules/.bin/mocha",
+        args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/system']
       },
       "docker-build": {
         cmd: "docker",

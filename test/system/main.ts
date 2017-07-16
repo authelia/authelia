@@ -5,7 +5,6 @@ import Request = require("request");
 import Assert = require("assert");
 import BluebirdPromise = require("bluebird");
 import Util = require("util");
-import Redis = require("redis");
 import Endpoints = require("../../src/server/endpoints");
 
 const RequestAsync = BluebirdPromise.promisifyAll(Request) as typeof Request;
@@ -25,19 +24,7 @@ const FIRST_FACTOR_URL = Util.format("%s/api/firstfactor", BASE_AUTH_URL);
 const LOGOUT_URL = Util.format("%s/logout", BASE_AUTH_URL);
 
 
-const redisOptions = {
-    host: "redis",
-    port: 6379
-};
-
-
-describe("integration tests", function () {
-    let redisClient: Redis.RedisClient;
-
-    before(function () {
-        redisClient = Redis.createClient(redisOptions);
-    });
-
+describe("test example environment", function () {
     function str_contains(str: string, pattern: string) {
         return str.indexOf(pattern) != -1;
     }
@@ -93,13 +80,6 @@ describe("integration tests", function () {
             .then(function (response: Request.RequestResponse) {
                 Assert.equal(302, response.statusCode);
             });
-    });
-
-    it("should have registered four sessions in redis", function (done) {
-        redisClient.dbsize(function (err: Error, count: number) {
-            Assert.equal(3, count);
-            done();
-        });
     });
 
     it("should redirect to home page when logout is called", function () {
