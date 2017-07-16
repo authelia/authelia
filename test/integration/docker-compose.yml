@@ -11,8 +11,7 @@ services:
   nginx-tests:
     image: nginx:alpine
     volumes:
-      - ./example/nginx/index.html:/usr/share/nginx/html/index.html
-      - ./example/nginx/secret.html:/usr/share/nginx/html/secret.html
+      - ./example/nginx/html:/usr/share/nginx/html
       - ./example/nginx/ssl:/etc/ssl
       - ./test/integration/nginx.conf:/etc/nginx/nginx.conf
     expose:
