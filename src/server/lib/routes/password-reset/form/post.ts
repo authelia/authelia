@@ -11,10 +11,10 @@ import Constants = require("./../constants");
 
 export default function (req: express.Request, res: express.Response): BluebirdPromise<void> {
     const logger = ServerVariables.getLogger(req.app);
-    const ldap = ServerVariables.getLdapClient(req.app);
+    const ldapPasswordUpdater = ServerVariables.getLdapPasswordUpdater(req.app);
     const authSession = AuthenticationSession.get(req);
 
-    const new_password = objectPath.get<express.Request, string>(req, "body.password");
+    const newPassword = objectPath.get<express.Request, string>(req, "body.password");
 
     const userid = authSession.identity_check.userid;
     const challenge = authSession.identity_check.challenge;
@@ -26,7 +26,7 @@ export default function (req: express.Request, res: express.Response): BluebirdP
 
     logger.info("POST reset-password: User %s wants to reset his/her password", userid);
 
-    return ldap.updatePassword(userid, new_password)
+    return ldapPasswordUpdater.updatePassword(userid, newPassword)
         .then(function () {
             logger.info("POST reset-password: Password reset for user '%s'", userid);
             AuthenticationSession.reset(req);

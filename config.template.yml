@@ -5,7 +5,7 @@ port: 80
 # Log level
 #
 # Level of verbosity for logs
-logs_level: info
+logs_level: debug
 
 # LDAP configuration
 #

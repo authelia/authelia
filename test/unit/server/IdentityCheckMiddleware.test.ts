@@ -49,7 +49,7 @@ describe("test identity check process", function () {
     req.app = {};
     const mocks = ServerVariablesMock.mock(req.app);
     mocks.logger = winston;
-    mocks.userDataStore = userDataStore;
+    mocks.userDataStore = userDataStore as any;
     mocks.notifier = notifier;
 
     app = express();

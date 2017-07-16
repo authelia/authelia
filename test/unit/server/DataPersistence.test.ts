@@ -48,6 +48,8 @@ describe("test data persistence", function () {
       })
     };
 
+    ldapClient.bind.withArgs("cn=admin,dc=example,dc=com",
+      "password").yields();
     ldapClient.bind.withArgs("cn=test_ok,ou=users,dc=example,dc=com",
       "password").yields();
     ldapClient.bind.withArgs("cn=test_nok,ou=users,dc=example,dc=com",
@@ -61,7 +63,7 @@ describe("test data persistence", function () {
       ldap: {
         url: "ldap://127.0.0.1:389",
         base_dn: "ou=users,dc=example,dc=com",
-        user: "user",
+        user: "cn=admin,dc=example,dc=com",
         password: "password"
       },
       session: {
@@ -108,7 +110,8 @@ describe("test data persistence", function () {
       winston: winston,
       ldapjs: ldap,
       speakeasy: speakeasy,
-      ConnectRedis: sinon.spy()
+      ConnectRedis: sinon.spy(),
+      dovehash: sinon.spy()
     };
 
     const j1 = request.jar();

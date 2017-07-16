@@ -1,22 +1,22 @@
 
 import PasswordResetHandler from "../../../../../../src/server/lib/routes/password-reset/identity/PasswordResetHandler";
-import LdapClient = require("../../../../../../src/server/lib/LdapClient");
+import PasswordUpdater = require("../../../../../../src/server/lib/ldap/PasswordUpdater");
+import { ServerVariables }  from "../../../../../../src/server/lib/ServerVariables";
 import sinon = require("sinon");
 import winston = require("winston");
 import assert = require("assert");
 import BluebirdPromise = require("bluebird");
 
 import ExpressMock = require("../../../mocks/express");
-import { LdapClientMock } from "../../../mocks/LdapClient";
 import { UserDataStore } from "../../../mocks/UserDataStore";
 import ServerVariablesMock = require("../../../mocks/ServerVariablesMock");
 
 describe("test reset password identity check", function () {
     let req: ExpressMock.RequestMock;
     let res: ExpressMock.ResponseMock;
-    let user_data_store: UserDataStore;
-    let ldap_client: LdapClientMock;
+    let userDataStore: UserDataStore;
     let configuration: any;
+    let serverVariables: ServerVariables;
 
     beforeEach(function () {
         req = {
@@ -43,15 +43,15 @@ describe("test reset password identity check", function () {
             inMemoryOnly: true
         };
 
-        const mocks = ServerVariablesMock.mock(req.app);
+        serverVariables = ServerVariablesMock.mock(req.app);
 
 
-        user_data_store = UserDataStore();
-        user_data_store.set_u2f_meta.returns(BluebirdPromise.resolve({}));
-        user_data_store.get_u2f_meta.returns(BluebirdPromise.resolve({}));
-        user_data_store.issue_identity_check_token.returns(BluebirdPromise.resolve({}));
-        user_data_store.consume_identity_check_token.returns(BluebirdPromise.resolve({}));
-        mocks.userDataStore = user_data_store;
+        userDataStore = UserDataStore();
+        userDataStore.set_u2f_meta.returns(BluebirdPromise.resolve({}));
+        userDataStore.get_u2f_meta.returns(BluebirdPromise.resolve({}));
+        userDataStore.issue_identity_check_token.returns(BluebirdPromise.resolve({}));
+        userDataStore.consume_identity_check_token.returns(BluebirdPromise.resolve({}));
+        serverVariables.userDataStore = userDataStore as any;
 
 
         configuration = {
@@ -61,11 +61,11 @@ describe("test reset password identity check", function () {
             }
         };
 
-        mocks.logger = winston;
-        mocks.config = configuration;
-
-        ldap_client = LdapClientMock();
-        mocks.ldap = ldap_client;
+        serverVariables.logger = winston;
+        serverVariables.config = configuration;
+        serverVariables.ldapEmailsRetriever = {
+            retrieve: sinon.stub()
+        } as any;
 
         res = ExpressMock.ResponseMock();
     });
@@ -82,7 +82,7 @@ describe("test reset password identity check", function () {
         });
 
         it("should fail if ldap fail", function (done) {
-            ldap_client.retrieveEmails.returns(BluebirdPromise.reject("Internal error"));
+            (serverVariables.ldapEmailsRetriever as any).retrieve.returns(BluebirdPromise.reject("Internal error"));
             new PasswordResetHandler().preValidationInit(req as any)
                 .catch(function (err: Error) {
                     done();
@@ -91,16 +91,16 @@ describe("test reset password identity check", function () {
 
         it("should perform a search in ldap to find email address", function (done) {
             configuration.ldap.user_name_attribute = "uid";
-            ldap_client.retrieveEmails.returns(BluebirdPromise.resolve([]));
+            (serverVariables.ldapEmailsRetriever as any).retrieve.returns(BluebirdPromise.resolve([]));
             new PasswordResetHandler().preValidationInit(req as any)
                 .then(function () {
-                    assert.equal("user", ldap_client.retrieveEmails.getCall(0).args[0]);
+                    assert.equal("user", (serverVariables.ldapEmailsRetriever as any).retrieve.getCall(0).args[0]);
                     done();
                 });
         });
 
         it("should returns identity when ldap replies", function (done) {
-            ldap_client.retrieveEmails.returns(BluebirdPromise.resolve(["test@example.com"]));
+            (serverVariables.ldapEmailsRetriever as any).retrieve.returns(BluebirdPromise.resolve(["test@example.com"]));
             new PasswordResetHandler().preValidationInit(req as any)
                 .then(function () {
                     done();

@@ -1,7 +1,5 @@
 
 import Server from "../../../../src/server/lib/Server";
-import LdapClient = require("../../../../src/server/lib/LdapClient");
-
 import BluebirdPromise = require("bluebird");
 import speakeasy = require("speakeasy");
 import request = require("request");
@@ -108,7 +106,8 @@ describe("Private pages of the server must not be accessible without session", f
       session: ExpressSession,
       winston: Winston,
       speakeasy: speakeasy,
-      ConnectRedis: Sinon.spy()
+      ConnectRedis: Sinon.spy(),
+      dovehash: Sinon.spy() as any
     };
 
     server = new Server();

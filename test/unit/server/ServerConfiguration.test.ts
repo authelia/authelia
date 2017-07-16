@@ -1,6 +1,6 @@
 
 import assert = require("assert");
-import sinon = require("sinon");
+import Sinon = require("sinon");
 import nedb = require("nedb");
 import express = require("express");
 import winston = require("winston");
@@ -16,17 +16,17 @@ import Server from "../../../src/server/lib/Server";
 
 describe("test server configuration", function () {
   let deps: GlobalDependencies;
-  let sessionMock: sinon.SinonSpy;
+  let sessionMock: Sinon.SinonSpy;
 
   before(function () {
     const transporter = {
-      sendMail: sinon.stub().yields()
+      sendMail: Sinon.stub().yields()
     };
 
-    const createTransport = sinon.stub(nodemailer, "createTransport");
+    const createTransport = Sinon.stub(nodemailer, "createTransport");
     createTransport.returns(transporter);
 
-    sessionMock = sinon.spy(session);
+    sessionMock = Sinon.spy(session);
 
     deps = {
       nodemailer: nodemailer,
@@ -35,15 +35,16 @@ describe("test server configuration", function () {
       nedb: nedb,
       winston: winston,
       ldapjs: {
-        createClient: sinon.spy(function () {
+        createClient: Sinon.spy(function () {
           return {
-            on: sinon.spy(),
-            bind: sinon.spy(),
+            on: Sinon.spy(),
+            bind: Sinon.spy(),
           };
         })
       },
       session: sessionMock as any,
-      ConnectRedis: sinon.spy()
+      ConnectRedis: Sinon.spy(),
+      dovehash: Sinon.spy() as any
     };
   });
 

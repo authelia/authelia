@@ -8,7 +8,7 @@ import ConfigurationAdapter from "./ConfigurationAdapter";
 import { TOTPValidator } from "./TOTPValidator";
 import { TOTPGenerator } from "./TOTPGenerator";
 import RestApi from "./RestApi";
-import { LdapClient } from "./LdapClient";
+import { Client } from "./ldap/Client";
 import BluebirdPromise = require("bluebird");
 import ServerVariables = require("./ServerVariables");
 import SessionConfigurationBuilder from "./SessionConfigurationBuilder";

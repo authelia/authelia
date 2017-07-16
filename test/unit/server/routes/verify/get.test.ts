@@ -27,9 +27,9 @@ describe("test authentication token verification", function () {
     req.headers = {};
     req.headers.host = "secret.example.com";
     const mocks = ServerVariablesMock.mock(req.app);
-    mocks.config = {};
+    mocks.config = {} as any;
     mocks.logger = winston;
-    mocks.accessController = accessController;
+    mocks.accessController = accessController as any;
   });
 
   it("should be already authenticated", function (done) {
