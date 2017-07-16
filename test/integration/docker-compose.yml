@@ -1,15 +1,6 @@
 version: '2'
 services:
-  authelia:
-    image: node:7-alpine
-    command: node /usr/src/dist/src/server/index.js /etc/authelia/config.yml
-    volumes:
-      - ./:/usr/src
-      - ./test/integration/config.yml:/etc/authelia/config.yml:ro
-    networks:
-      - example-network
-
-  int-test:
+  integration-tests:
     build: ./test/integration
     command: ./node_modules/.bin/mocha --compilers ts:ts-node/register --recursive test/integration
     volumes:
@@ -17,8 +8,7 @@ services:
     networks:
       - example-network
 
-
-  nginx:
+  nginx-tests:
     image: nginx:alpine
     volumes:
       - ./example/nginx/index.html:/usr/share/nginx/html/index.html
@@ -39,4 +29,3 @@ services:
           - mx1.mail.test.local
           - mx2.mail.test.local
           - auth.test.local
-
