@@ -29,7 +29,7 @@ module.exports = function (grunt) {
         args: ['build', '-t', 'clems4ever/authelia', '.']
       },
       "docker-restart": {
-        cmd: "./scripts/dc-example.sh",
+        cmd: "./scripts/dc-dev.sh",
         args: ['up', '-d']
       },
       "minify": {
