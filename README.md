@@ -2,6 +2,7 @@
 
   [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)][MIT License]
   [![Build](https://travis-ci.org/clems4ever/authelia.svg?branch=master)](https://travis-ci.org/clems4ever/authelia)
+  [![Gitter](https://img.shields.io/gitter/room/badges/shields.svg)](https://gitter.im/authelia/general?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
 **Authelia** is a complete HTTP 2-factor authentication server for proxies like 
 nginx. It has been made to work with nginx [auth_request] module and is currently 
