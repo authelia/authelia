@@ -1,6 +1,7 @@
-import SessionConfigurationBuilder from "../../../src/server/lib/SessionConfigurationBuilder";
-import { AppConfiguration } from "../../../src/types/Configuration";
+import { SessionConfigurationBuilder } from "../../../src/server/lib/configuration/SessionConfigurationBuilder";
+import { AppConfiguration } from "../../../src/server/lib/configuration/Configuration";
 import { GlobalDependencies } from "../../../src/types/Dependencies";
+
 import ExpressSession = require("express-session");
 import ConnectRedis = require("connect-redis");
 import Sinon = require("sinon");
@@ -32,7 +33,11 @@ describe("test session configuration builder", function () {
                 expiration: 3600,
                 secret: "secret"
             },
-            store_in_memory: true
+            storage: {
+                local: {
+                    in_memory: true
+                }
+            }
         };
 
         const deps: GlobalDependencies = {
@@ -92,7 +97,11 @@ describe("test session configuration builder", function () {
                     port: 6379
                 }
             },
-            store_in_memory: true
+            storage: {
+                local: {
+                    in_memory: true
+                }
+            }
         };
 
         const RedisStoreMock = Sinon.spy();

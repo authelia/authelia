@@ -1,6 +1,6 @@
 
 import { Winston } from "../../../types/Dependencies";
-import { ACLConfiguration, ACLGroupsRules, ACLUsersRules, ACLDefaultRules } from "../../../types/Configuration";
+import { ACLConfiguration, ACLGroupsRules, ACLUsersRules, ACLDefaultRules } from "../configuration/Configuration";
 import objectPath = require("object-path");
 
 export default class AccessControlPatternBuilder {

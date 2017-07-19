@@ -13,7 +13,7 @@ import AuthenticationRegulatorMock = require("../../mocks/AuthenticationRegulato
 import AccessControllerMock = require("../../mocks/AccessController");
 import ExpressMock = require("../../mocks/express");
 import ServerVariablesMock = require("../../mocks/ServerVariablesMock");
-import { ServerVariables } from "../../../../../src/server/lib/ServerVariables";
+import { ServerVariables } from "../../../../../src/server/lib/ServerVariablesHandler";
 
 describe("test the first factor validation route", function () {
   let req: ExpressMock.RequestMock;

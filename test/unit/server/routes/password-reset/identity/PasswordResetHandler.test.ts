@@ -1,22 +1,21 @@
 
 import PasswordResetHandler from "../../../../../../src/server/lib/routes/password-reset/identity/PasswordResetHandler";
 import PasswordUpdater = require("../../../../../../src/server/lib/ldap/PasswordUpdater");
-import { ServerVariables }  from "../../../../../../src/server/lib/ServerVariables";
-import sinon = require("sinon");
+import { ServerVariablesHandler }  from "../../../../../../src/server/lib/ServerVariablesHandler";
+import { UserDataStore } from "../../../../../../src/server/lib/storage/UserDataStore";
+import Sinon = require("sinon");
 import winston = require("winston");
 import assert = require("assert");
 import BluebirdPromise = require("bluebird");
 
 import ExpressMock = require("../../../mocks/express");
-import { UserDataStore } from "../../../mocks/UserDataStore";
 import ServerVariablesMock = require("../../../mocks/ServerVariablesMock");
 
 describe("test reset password identity check", function () {
     let req: ExpressMock.RequestMock;
     let res: ExpressMock.ResponseMock;
-    let userDataStore: UserDataStore;
     let configuration: any;
-    let serverVariables: ServerVariables;
+    let serverVariables: ServerVariablesMock.ServerVariablesMock;
 
     beforeEach(function () {
         req = {
@@ -24,7 +23,7 @@ describe("test reset password identity check", function () {
                 userid: "user"
             },
             app: {
-                get: sinon.stub()
+                get: Sinon.stub()
             },
             session: {
                 auth_session: {
@@ -45,14 +44,10 @@ describe("test reset password identity check", function () {
 
         serverVariables = ServerVariablesMock.mock(req.app);
 
-
-        userDataStore = UserDataStore();
-        userDataStore.set_u2f_meta.returns(BluebirdPromise.resolve({}));
-        userDataStore.get_u2f_meta.returns(BluebirdPromise.resolve({}));
-        userDataStore.issue_identity_check_token.returns(BluebirdPromise.resolve({}));
-        userDataStore.consume_identity_check_token.returns(BluebirdPromise.resolve({}));
-        serverVariables.userDataStore = userDataStore as any;
-
+        serverVariables.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+        serverVariables.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+        serverVariables.userDataStore.produceIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
+        serverVariables.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
 
         configuration = {
             ldap: {
@@ -64,9 +59,8 @@ describe("test reset password identity check", function () {
         serverVariables.logger = winston;
         serverVariables.config = configuration;
         serverVariables.ldapEmailsRetriever = {
-            retrieve: sinon.stub()
+            retrieve: Sinon.stub()
         } as any;
-
         res = ExpressMock.ResponseMock();
     });
 

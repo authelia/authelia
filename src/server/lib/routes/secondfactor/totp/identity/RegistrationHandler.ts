@@ -9,7 +9,7 @@ import { PRE_VALIDATION_TEMPLATE } from "../../../../IdentityCheckPreValidationT
 import Constants = require("../constants");
 import Endpoints = require("../../../../../endpoints");
 import ErrorReplies = require("../../../../ErrorReplies");
-import ServerVariables = require("../../../../ServerVariables");
+import { ServerVariablesHandler } from "../../../../ServerVariablesHandler";
 import AuthenticationSession = require("../../../../AuthenticationSession");
 
 import FirstFactorValidator = require("../../../../FirstFactorValidator");
@@ -53,7 +53,7 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   postValidationResponse(req: express.Request, res: express.Response) {
-    const logger = ServerVariables.getLogger(req.app);
+    const logger = ServerVariablesHandler.getLogger(req.app);
     const authSession = AuthenticationSession.get(req);
 
     const userid = authSession.identity_check.userid;
@@ -65,12 +65,12 @@ export default class RegistrationHandler implements IdentityValidable {
       return;
     }
 
-    const userDataStore = ServerVariables.getUserDataStore(req.app);
-    const totpGenerator = ServerVariables.getTOTPGenerator(req.app);
+    const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
+    const totpGenerator = ServerVariablesHandler.getTOTPGenerator(req.app);
     const secret = totpGenerator.generate();
 
     logger.debug("POST new-totp-secret: save the TOTP secret in DB");
-    userDataStore.set_totp_secret(userid, secret)
+    userDataStore.saveTOTPSecret(userid, secret)
       .then(function () {
         objectPath.set(req, "session", undefined);
 

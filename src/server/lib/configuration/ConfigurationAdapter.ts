@@ -1,6 +1,10 @@
 
 import * as ObjectPath from "object-path";
-import { AppConfiguration, UserConfiguration, NotifierConfiguration, ACLConfiguration, LdapConfiguration, SessionRedisOptions } from "./../../types/Configuration";
+import {
+  AppConfiguration, UserConfiguration, NotifierConfiguration,
+  ACLConfiguration, LdapConfiguration, SessionRedisOptions,
+  MongoStorageConfiguration, LocalStorageConfiguration
+} from "./Configuration";
 
 const LDAP_URL_ENV_VARIABLE = "LDAP_URL";
 
@@ -34,14 +38,17 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration): AppCo
       expiration: get_optional<number>(userConfiguration, "session.expiration", 3600000), // in ms
       redis: ObjectPath.get<object, SessionRedisOptions>(userConfiguration, "session.redis")
     },
-    store_directory: get_optional<string>(userConfiguration, "store_directory", undefined),
+    storage: {
+      local: get_optional<LocalStorageConfiguration>(userConfiguration, "storage.local", undefined),
+      mongo: get_optional<MongoStorageConfiguration>(userConfiguration, "storage.mongo", undefined)
+    },
     logs_level: get_optional<string>(userConfiguration, "logs_level", "info"),
     notifier: ObjectPath.get<object, NotifierConfiguration>(userConfiguration, "notifier"),
     access_control: ObjectPath.get<object, ACLConfiguration>(userConfiguration, "access_control")
   };
 }
 
-export default class ConfigurationAdapter {
+export class ConfigurationAdapter {
   static adapt(userConfiguration: UserConfiguration): AppConfiguration {
     const appConfiguration = adaptFromUserConfiguration(userConfiguration);
 

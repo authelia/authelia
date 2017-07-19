@@ -77,9 +77,13 @@ session:
     host: redis
     port: 6379
 
-# The directory where the DB files will be saved
-store_directory: /var/lib/authelia/store
-
+storage:
+  # The directory where the DB files will be saved
+  # local: /var/lib/authelia/store
+  
+  # Settings to connect to mongo server
+  mongo:
+    url: mongodb://mongo/authelia
 
 # Notifications are sent to users when they require a password reset, a u2f
 # registration or a TOTP registration.

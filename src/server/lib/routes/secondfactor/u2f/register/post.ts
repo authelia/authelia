@@ -1,15 +1,16 @@
 
-import UserDataStore from "../../../../UserDataStore";
+import { UserDataStore } from "../../../../storage/UserDataStore";
 
 import objectPath = require("object-path");
 import u2f_common = require("../U2FCommon");
 import BluebirdPromise = require("bluebird");
 import express = require("express");
 import U2f = require("u2f");
+import { U2FRegistration } from "../../../../../../types/U2FRegistration";
 import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
-import ServerVariables = require("../../../../ServerVariables");
+import { ServerVariablesHandler } from "../../../../ServerVariablesHandler";
 import AuthenticationSession = require("../../../../AuthenticationSession");
 
 
@@ -34,11 +35,11 @@ function handler(req: express.Request, res: express.Response): BluebirdPromise<v
     }
 
 
-    const userDataStore = ServerVariables.getUserDataStore(req.app);
-    const u2f = ServerVariables.getU2F(req.app);
+    const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
+    const u2f = ServerVariablesHandler.getU2F(req.app);
     const userid = authSession.userid;
     const appid = u2f_common.extract_app_id(req);
-    const logger = ServerVariables.getLogger(req.app);
+    const logger = ServerVariablesHandler.getLogger(req.app);
 
     const registrationResponse: U2f.RegistrationData = req.body;
 
@@ -54,7 +55,11 @@ function handler(req: express.Request, res: express.Response): BluebirdPromise<v
             const registrationResult: U2f.RegistrationResult = u2fResult as U2f.RegistrationResult;
             logger.info("U2F register: Store regisutration and reply");
             logger.debug("U2F register: registration = %s", JSON.stringify(registrationResult));
-            return userDataStore.set_u2f_meta(userid, appid, registrationResult.keyHandle, registrationResult.publicKey);
+            const registration: U2FRegistration = {
+                keyHandle: registrationResult.keyHandle,
+                publicKey: registrationResult.publicKey
+            };
+            return userDataStore.saveU2FRegistration(userid, appid, registration);
         })
         .then(function () {
             authSession.identity_check = undefined;

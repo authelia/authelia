@@ -5,13 +5,12 @@ import * as fs from "fs";
 import { INotifier } from "./INotifier";
 import { Identity } from "../../../types/Identity";
 
-import { FileSystemNotifierConfiguration } from "../../../types/Configuration";
+import { FileSystemNotifierConfiguration } from "../configuration/Configuration";
 
-export class FileSystemNotifier extends INotifier {
+export class FileSystemNotifier implements INotifier {
   private filename: string;
 
   constructor(options: FileSystemNotifierConfiguration) {
-    super();
     this.filename = options.filename;
   }
 

@@ -44,7 +44,11 @@ describe("test the server", function () {
         secret: "session_secret",
         expiration: 50000,
       },
-      store_in_memory: true,
+      storage: {
+        local: {
+          in_memory: true
+        }
+      },
       notifier: {
         gmail: {
           username: "user@example.com",

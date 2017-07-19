@@ -1,6 +1,6 @@
 
 import express = require("express");
-import UserDataStore from "./UserDataStore";
+import { UserDataStore } from "./storage/UserDataStore";
 import { Winston } from "../../types/Dependencies";
 
 import FirstFactorGet = require("./routes/firstfactor/get");
@@ -34,7 +34,7 @@ import Error404Get = require("./routes/error/404/get");
 
 import Endpoints = require("../endpoints");
 
-export default class RestApi {
+export class RestApi {
   static setup(app: express.Application): void {
     app.get(Endpoints.FIRST_FACTOR_GET, FirstFactorGet.default);
     app.get(Endpoints.SECOND_FACTOR_GET, SecondFactorGet.default);

@@ -3,15 +3,15 @@ import express = require("express");
 import BluebirdPromise = require("bluebird");
 import objectPath = require("object-path");
 import exceptions = require("../../../Exceptions");
-import ServerVariables = require("../../../ServerVariables");
+import { ServerVariablesHandler } from "../../../ServerVariablesHandler";
 import AuthenticationSession = require("../../../AuthenticationSession");
 import ErrorReplies = require("../../../ErrorReplies");
 
 import Constants = require("./../constants");
 
 export default function (req: express.Request, res: express.Response): BluebirdPromise<void> {
-    const logger = ServerVariables.getLogger(req.app);
-    const ldapPasswordUpdater = ServerVariables.getLdapPasswordUpdater(req.app);
+    const logger = ServerVariablesHandler.getLogger(req.app);
+    const ldapPasswordUpdater = ServerVariablesHandler.getLdapPasswordUpdater(req.app);
     const authSession = AuthenticationSession.get(req);
 
     const newPassword = objectPath.get<express.Request, string>(req, "body.password");

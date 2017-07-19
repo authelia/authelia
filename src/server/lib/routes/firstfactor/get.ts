@@ -4,10 +4,10 @@ import objectPath = require("object-path");
 import winston = require("winston");
 import Endpoints = require("../../../endpoints");
 import AuthenticationValidator = require("../../AuthenticationValidator");
-import ServerVariables = require("../../ServerVariables");
+import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 
 export default function (req: express.Request, res: express.Response) {
-    const logger = ServerVariables.getLogger(req.app);
+    const logger = ServerVariablesHandler.getLogger(req.app);
 
     logger.debug("First factor: headers are %s", JSON.stringify(req.headers));
 

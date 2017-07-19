@@ -1,19 +1,18 @@
-import sinon = require("sinon");
+import Sinon = require("sinon");
 import winston = require("winston");
 import RegistrationHandler from "../../../../../../../src/server/lib/routes/secondfactor/totp/identity/RegistrationHandler";
 import { Identity } from "../../../../../../../src/types/Identity";
 import AuthenticationSession = require("../../../../../../../src/server/lib/AuthenticationSession");
+import { UserDataStore } from "../../../../../../../src/server/lib/storage/UserDataStore";
 import assert = require("assert");
 import BluebirdPromise = require("bluebird");
 
 import ExpressMock = require("../../../../mocks/express");
-import UserDataStoreMock = require("../../../../mocks/UserDataStore");
 import ServerVariablesMock = require("../../../../mocks/ServerVariablesMock");
 
 describe("test totp register", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
-  let userDataStore: UserDataStoreMock.UserDataStore;
   const registrationHandler: RegistrationHandler = new RegistrationHandler();
   let authSession: AuthenticationSession.AuthenticationSession;
 
@@ -37,13 +36,11 @@ describe("test totp register", function () {
       inMemoryOnly: true
     };
 
-    userDataStore = UserDataStoreMock.UserDataStore();
-    userDataStore.set_u2f_meta = sinon.stub().returns(BluebirdPromise.resolve({}));
-    userDataStore.get_u2f_meta = sinon.stub().returns(BluebirdPromise.resolve({}));
-    userDataStore.issue_identity_check_token = sinon.stub().returns(BluebirdPromise.resolve({}));
-    userDataStore.consume_identity_check_token = sinon.stub().returns(BluebirdPromise.resolve({}));
-    userDataStore.set_totp_secret = sinon.stub().returns(BluebirdPromise.resolve({}));
-    mocks.userDataStore = userDataStore as any;
+    mocks.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.produceIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.saveTOTPSecretStub.returns(BluebirdPromise.resolve({}));
 
     res = ExpressMock.ResponseMock();
   });

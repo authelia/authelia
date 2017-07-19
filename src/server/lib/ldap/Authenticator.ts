@@ -4,7 +4,7 @@ import ldapjs = require("ldapjs");
 import { Client, Attributes } from "./Client";
 import { buildUserDN } from "./common";
 
-import { LdapConfiguration } from "./../../../types/Configuration";
+import { LdapConfiguration } from "../configuration/Configuration";
 import { Winston, Ldapjs, Dovehash } from "../../../types/Dependencies";
 
 

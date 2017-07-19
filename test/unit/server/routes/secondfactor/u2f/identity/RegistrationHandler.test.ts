@@ -8,13 +8,12 @@ import RegistrationHandler from "../../../../../../../src/server/lib/routes/seco
 import AuthenticationSession = require("../../../../../../../src/server/lib/AuthenticationSession");
 
 import ExpressMock = require("../../../../mocks/express");
-import UserDataStoreMock = require("../../../../mocks/UserDataStore");
+import { UserDataStoreStub } from "../../../../mocks/storage/UserDataStoreStub";
 import ServerVariablesMock = require("../../../../mocks/ServerVariablesMock");
 
 describe("test register handler", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
-  let userDataStore: UserDataStoreMock.UserDataStore;
   let authSession: AuthenticationSession.AuthenticationSession;
 
   beforeEach(function () {
@@ -36,12 +35,10 @@ describe("test register handler", function () {
       inMemoryOnly: true
     };
 
-    userDataStore = UserDataStoreMock.UserDataStore();
-    userDataStore.set_u2f_meta = sinon.stub().returns(BluebirdPromise.resolve({}));
-    userDataStore.get_u2f_meta = sinon.stub().returns(BluebirdPromise.resolve({}));
-    userDataStore.issue_identity_check_token = sinon.stub().returns(BluebirdPromise.resolve({}));
-    userDataStore.consume_identity_check_token = sinon.stub().returns(BluebirdPromise.resolve({}));
-    mocks.userDataStore = userDataStore as any;
+    mocks.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.produceIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
 
     res = ExpressMock.ResponseMock();
     res.send = sinon.spy();

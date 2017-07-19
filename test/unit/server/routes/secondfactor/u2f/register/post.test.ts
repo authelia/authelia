@@ -4,11 +4,11 @@ import BluebirdPromise = require("bluebird");
 import assert = require("assert");
 import U2FRegisterPost = require("../../../../../../../src/server/lib/routes/secondfactor/u2f/register/post");
 import AuthenticationSession = require("../../../../../../../src/server/lib/AuthenticationSession");
-import { ServerVariables } from "../../../../../../../src/server/lib/ServerVariables";
+import { ServerVariablesHandler } from "../../../../../../../src/server/lib/ServerVariablesHandler";
 import winston = require("winston");
 
 import ExpressMock = require("../../../../mocks/express");
-import UserDataStoreMock = require("../../../../mocks/UserDataStore");
+import { UserDataStoreStub } from "../../../../mocks/storage/UserDataStoreStub";
 import U2FMock = require("../../../../mocks/u2f");
 import ServerVariablesMock = require("../../../../mocks/ServerVariablesMock");
 import U2f = require("u2f");
@@ -16,8 +16,7 @@ import U2f = require("u2f");
 describe("test u2f routes: register", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
-  let userDataStore: UserDataStoreMock.UserDataStore;
-  let mocks: ServerVariables;
+  let mocks: ServerVariablesMock.ServerVariablesMock;
   let authSession: AuthenticationSession.AuthenticationSession;
 
   beforeEach(function () {
@@ -44,10 +43,8 @@ describe("test u2f routes: register", function () {
       inMemoryOnly: true
     };
 
-    userDataStore = UserDataStoreMock.UserDataStore();
-    userDataStore.set_u2f_meta = sinon.stub().returns(BluebirdPromise.resolve({}));
-    userDataStore.get_u2f_meta = sinon.stub().returns(BluebirdPromise.resolve({}));
-    mocks.userDataStore = userDataStore as any;
+    mocks.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
 
     res = ExpressMock.ResponseMock();
     res.send = sinon.spy();
@@ -77,7 +74,7 @@ describe("test u2f routes: register", function () {
       mocks.u2f = u2f_mock;
       return U2FRegisterPost.default(req as any, res as any)
         .then(function () {
-          assert.equal("user", userDataStore.set_u2f_meta.getCall(0).args[0]);
+          assert.equal("user", mocks.userDataStore.saveU2FRegistrationStub.getCall(0).args[0]);
           assert.equal(authSession.identity_check, undefined);
         });
     });

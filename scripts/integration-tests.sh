@@ -1,9 +1,10 @@
 #!/bin/bash
 
 DC_SCRIPT=./scripts/example/dc-example.sh
+EXPECTED_SERVICES_COUNT=6
 
 start_services() {
-    $DC_SCRIPT up -d redis openldap authelia nginx nginx-tests
+    $DC_SCRIPT up -d mongo redis openldap authelia nginx nginx-tests
     sleep 3
 }
 
@@ -44,7 +45,7 @@ run_integration_tests() {
   $DC_SCRIPT logs authelia
   
   echo "Check number of services"
-  expect_services_count 5
+  expect_services_count $EXPECTED_SERVICES_COUNT
   
   echo "Run integration tests..."
   $DC_SCRIPT run --rm integration-tests
@@ -56,7 +57,7 @@ run_integration_tests() {
 run_system_tests() {
   echo "Start services..."
   start_services
-  expect_services_count 5
+  expect_services_count $EXPECTED_SERVICES_COUNT 
   
   ./node_modules/.bin/mocha --compilers ts:ts-node/register --recursive test/system
   shut_services  
@@ -67,7 +68,7 @@ run_other_tests() {
   npm install --only=dev
   ./node_modules/.bin/grunt build-dist
   ./scripts/example/deploy-example.sh
-  expect_services_count 4
+  expect_services_count 5
 }
 
 

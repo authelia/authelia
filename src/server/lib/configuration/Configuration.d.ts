@@ -50,12 +50,26 @@ export interface NotifierConfiguration {
     filesystem?: FileSystemNotifierConfiguration;
 }
 
+export interface MongoStorageConfiguration {
+    url: string;
+}
+
+export interface LocalStorageConfiguration {
+    path?: string;
+    in_memory?: boolean;
+}
+
+export interface StorageConfiguration {
+    local?: LocalStorageConfiguration;
+    mongo?: MongoStorageConfiguration;
+}
+
 export interface UserConfiguration {
     port?: number;
     logs_level?: string;
     ldap: LdapConfiguration;
     session: SessionCookieConfiguration;
-    store_directory?: string;
+    storage: StorageConfiguration;
     notifier: NotifierConfiguration;
     access_control?: ACLConfiguration;
 }
@@ -65,8 +79,7 @@ export interface AppConfiguration {
     logs_level: string;
     ldap: LdapConfiguration;
     session: SessionCookieConfiguration;
-    store_in_memory?: boolean;
-    store_directory?: string;
+    storage: StorageConfiguration;
     notifier: NotifierConfiguration;
     access_control?: ACLConfiguration;
 }

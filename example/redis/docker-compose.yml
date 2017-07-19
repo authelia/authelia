@@ -1,6 +1,6 @@
 version: '2'
 services:
   redis:
-    image: redis
+    image: redis:4.0-alpine
     networks:
       - example-network

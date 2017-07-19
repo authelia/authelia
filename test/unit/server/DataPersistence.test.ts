@@ -3,7 +3,7 @@ import * as BluebirdPromise from "bluebird";
 import * as request from "request";
 
 import Server from "../../../src/server/lib/Server";
-import { UserConfiguration } from "../../../src/types/Configuration";
+import { UserConfiguration } from "../../../src/server/lib/configuration/Configuration";
 import { GlobalDependencies } from "../../../src/types/Dependencies";
 import * as tmp from "tmp";
 import U2FMock = require("./mocks/u2f");
@@ -70,7 +70,11 @@ describe("test data persistence", function () {
         secret: "session_secret",
         expiration: 50000,
       },
-      store_directory: tmpDir.name,
+      storage: {
+        local: {
+          path: tmpDir.name
+        }
+      },
       notifier: {
         gmail: {
           username: "user@example.com",

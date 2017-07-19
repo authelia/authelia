@@ -3,7 +3,7 @@ import express = require("express");
 import objectPath = require("object-path");
 import winston = require("winston");
 import Endpoints = require("../../../endpoints");
-import ServerVariables = require("../../ServerVariables");
+import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 import AuthenticationSession = require("../../AuthenticationSession");
 
 export default function (req: express.Request, res: express.Response) {

@@ -9,7 +9,7 @@ import u2f = require("u2f");
 import nodemailer = require("nodemailer");
 import session = require("express-session");
 
-import { AppConfiguration, UserConfiguration } from "../../../src/types/Configuration";
+import { AppConfiguration, UserConfiguration } from "../../../src/server/lib/configuration/Configuration";
 import { GlobalDependencies, Nodemailer } from "../../../src/types/Dependencies";
 import Server from "../../../src/server/lib/Server";
 
@@ -50,7 +50,7 @@ describe("test server configuration", function () {
 
 
   it("should set cookie scope to domain set in the config", function () {
-    const config = {
+    const config: UserConfiguration = {
       session: {
         domain: "example.com",
         secret: "secret"
@@ -58,15 +58,21 @@ describe("test server configuration", function () {
       ldap: {
         url: "http://ldap",
         user: "user",
-        password: "password"
+        password: "password",
+        base_dn: "dc=example,dc=com"
       },
       notifier: {
         gmail: {
           username: "user@example.com",
           password: "password"
         }
+      },
+      storage: {
+        local: {
+          in_memory: true
+        }
       }
-    } as UserConfiguration;
+    };
 
     const server = new Server();
     server.start(config, deps);

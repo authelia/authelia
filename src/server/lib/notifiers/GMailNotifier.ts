@@ -7,16 +7,15 @@ import nodemailer = require("nodemailer");
 import { Nodemailer } from "../../../types/Dependencies";
 import { Identity } from "../../../types/Identity";
 import { INotifier } from "../notifiers/INotifier";
-import { GmailNotifierConfiguration } from "../../../types/Configuration";
+import { GmailNotifierConfiguration } from "../configuration/Configuration";
 import path = require("path");
 
 const email_template = fs.readFileSync(path.join(__dirname, "../../resources/email-template.ejs"), "UTF-8");
 
-export class GMailNotifier extends INotifier {
+export class GMailNotifier implements INotifier {
   private transporter: any;
 
   constructor(options: GmailNotifierConfiguration, nodemailer: Nodemailer) {
-    super();
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {

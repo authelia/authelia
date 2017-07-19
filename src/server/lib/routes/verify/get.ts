@@ -8,12 +8,12 @@ import exceptions = require("../../Exceptions");
 import winston = require("winston");
 import AuthenticationValidator = require("../../AuthenticationValidator");
 import ErrorReplies = require("../../ErrorReplies");
-import ServerVariables = require("../../ServerVariables");
+import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 import AuthenticationSession = require("../../AuthenticationSession");
 
 function verify_filter(req: express.Request, res: express.Response): BluebirdPromise<void> {
-  const logger = ServerVariables.getLogger(req.app);
-  const accessController = ServerVariables.getAccessController(req.app);
+  const logger = ServerVariablesHandler.getLogger(req.app);
+  const accessController = ServerVariablesHandler.getAccessController(req.app);
   const authSession = AuthenticationSession.get(req);
 
   logger.debug("Verify: headers are %s", JSON.stringify(req.headers));
@@ -40,7 +40,7 @@ function verify_filter(req: express.Request, res: express.Response): BluebirdPro
 }
 
 export default function (req: express.Request, res: express.Response) {
-  const logger = ServerVariables.getLogger(req.app);
+  const logger = ServerVariablesHandler.getLogger(req.app);
   verify_filter(req, res)
     .then(function () {
       res.status(204);
