@@ -15,6 +15,14 @@ export class LdapBindError extends Error {
   }
 }
 
+export class LdapError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "LdapError";
+    Object.setPrototypeOf(this, LdapError.prototype);
+  }
+}
+
 export class IdentityError extends Error {
   constructor(message?: string) {
     super(message);

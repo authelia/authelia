@@ -53,9 +53,9 @@ describe("test totp route", function () {
     userDataStore.get_totp_secret.returns(BluebirdPromise.resolve(doc));
 
     mocks.logger = winston;
-    mocks.totpValidator = totpValidator;
-    mocks.config = config;
-    mocks.userDataStore = userDataStore;
+    mocks.totpValidator = totpValidator as any;
+    mocks.config = config as any;
+    mocks.userDataStore = userDataStore as any;
   });
 
 

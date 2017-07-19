@@ -3,7 +3,7 @@ import { AppConfiguration } from "../../../src/types/Configuration";
 import { GlobalDependencies } from "../../../src/types/Dependencies";
 import ExpressSession = require("express-session");
 import ConnectRedis = require("connect-redis");
-import sinon = require("sinon");
+import Sinon = require("sinon");
 import Assert = require("assert");
 
 describe("test session configuration builder", function () {
@@ -36,14 +36,15 @@ describe("test session configuration builder", function () {
         };
 
         const deps: GlobalDependencies = {
-            ConnectRedis: sinon.spy() as any,
-            ldapjs: sinon.spy() as any,
-            nedb: sinon.spy() as any,
-            nodemailer: sinon.spy() as any,
-            session: sinon.spy() as any,
-            speakeasy: sinon.spy() as any,
-            u2f: sinon.spy() as any,
-            winston: sinon.spy() as any
+            ConnectRedis: Sinon.spy() as any,
+            ldapjs: Sinon.spy() as any,
+            nedb: Sinon.spy() as any,
+            nodemailer: Sinon.spy() as any,
+            session: Sinon.spy() as any,
+            speakeasy: Sinon.spy() as any,
+            u2f: Sinon.spy() as any,
+            winston: Sinon.spy() as any,
+            dovehash: Sinon.spy() as any
         };
 
         const options = SessionConfigurationBuilder.build(configuration, deps);
@@ -94,17 +95,18 @@ describe("test session configuration builder", function () {
             store_in_memory: true
         };
 
-        const RedisStoreMock = sinon.spy();
+        const RedisStoreMock = Sinon.spy();
 
         const deps: GlobalDependencies = {
-            ConnectRedis: sinon.stub().returns(RedisStoreMock) as any,
-            ldapjs: sinon.spy() as any,
-            nedb: sinon.spy() as any,
-            nodemailer: sinon.spy() as any,
-            session: sinon.spy() as any,
-            speakeasy: sinon.spy() as any,
-            u2f: sinon.spy() as any,
-            winston: sinon.spy() as any
+            ConnectRedis: Sinon.stub().returns(RedisStoreMock) as any,
+            ldapjs: Sinon.spy() as any,
+            nedb: Sinon.spy() as any,
+            nodemailer: Sinon.spy() as any,
+            session: Sinon.spy() as any,
+            speakeasy: Sinon.spy() as any,
+            u2f: Sinon.spy() as any,
+            winston: Sinon.spy() as any,
+            dovehash: Sinon.spy() as any
         };
 
         const options = SessionConfigurationBuilder.build(configuration, deps);
@@ -118,10 +120,10 @@ describe("test session configuration builder", function () {
                 maxAge: 3600,
                 domain: "example.com"
             },
-            store: sinon.match.object as any
+            store: Sinon.match.object as any
         };
 
-        Assert((deps.ConnectRedis as sinon.SinonStub).calledWith(deps.session));
+        Assert((deps.ConnectRedis as Sinon.SinonStub).calledWith(deps.session));
         Assert.equal(options.secret, expectedOptions.secret);
         Assert.equal(options.resave, expectedOptions.resave);
         Assert.equal(options.saveUninitialized, expectedOptions.saveUninitialized);

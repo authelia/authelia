@@ -4,6 +4,7 @@ import BluebirdPromise = require("bluebird");
 import assert = require("assert");
 import U2FRegisterRequestGet = require("../../../../../../../src/server/lib/routes/secondfactor/u2f/register_request/get");
 import AuthenticationSession = require("../../../../../../../src/server/lib/AuthenticationSession");
+import { ServerVariables } from "../../../../../../../src/server/lib/ServerVariables";
 import winston = require("winston");
 
 import ExpressMock = require("../../../../mocks/express");
@@ -16,7 +17,7 @@ describe("test u2f routes: register_request", function () {
     let req: ExpressMock.RequestMock;
     let res: ExpressMock.ResponseMock;
     let userDataStore: UserDataStoreMock.UserDataStore;
-    let mocks: ServerVariablesMock.ServerVariablesMock;
+    let mocks: ServerVariables;
     let authSession: AuthenticationSession.AuthenticationSession;
 
     beforeEach(function () {
@@ -46,7 +47,7 @@ describe("test u2f routes: register_request", function () {
         userDataStore = UserDataStoreMock.UserDataStore();
         userDataStore.set_u2f_meta = sinon.stub().returns(BluebirdPromise.resolve({}));
         userDataStore.get_u2f_meta = sinon.stub().returns(BluebirdPromise.resolve({}));
-        mocks.userDataStore = userDataStore;
+        mocks.userDataStore = userDataStore as any;
 
         res = ExpressMock.ResponseMock();
         res.send = sinon.spy();

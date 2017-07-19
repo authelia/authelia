@@ -41,7 +41,7 @@ describe("test register handler", function () {
     userDataStore.get_u2f_meta = sinon.stub().returns(BluebirdPromise.resolve({}));
     userDataStore.issue_identity_check_token = sinon.stub().returns(BluebirdPromise.resolve({}));
     userDataStore.consume_identity_check_token = sinon.stub().returns(BluebirdPromise.resolve({}));
-    mocks.userDataStore = userDataStore;
+    mocks.userDataStore = userDataStore as any;
 
     res = ExpressMock.ResponseMock();
     res.send = sinon.spy();

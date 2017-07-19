@@ -43,7 +43,7 @@ describe("test totp register", function () {
     userDataStore.issue_identity_check_token = sinon.stub().returns(BluebirdPromise.resolve({}));
     userDataStore.consume_identity_check_token = sinon.stub().returns(BluebirdPromise.resolve({}));
     userDataStore.set_totp_secret = sinon.stub().returns(BluebirdPromise.resolve({}));
-    mocks.userDataStore = userDataStore;
+    mocks.userDataStore = userDataStore as any;
 
     res = ExpressMock.ResponseMock();
   });

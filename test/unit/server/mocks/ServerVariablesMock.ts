@@ -16,18 +16,20 @@ export interface ServerVariablesMock {
 }
 
 
-export function mock(app: express.Application): ServerVariablesMock {
-    const mocks: ServerVariablesMock = {
-        accessController: sinon.stub(),
-        config: sinon.stub(),
-        ldap: sinon.stub(),
-        logger: sinon.stub(),
-        notifier: sinon.stub(),
-        regulator: sinon.stub(),
-        totpGenerator: sinon.stub(),
-        totpValidator: sinon.stub(),
-        u2f: sinon.stub(),
-        userDataStore: sinon.stub()
+export function mock(app: express.Application): ServerVariables {
+    const mocks: ServerVariables = {
+        accessController: sinon.stub() as any,
+        config: sinon.stub() as any,
+        ldapAuthenticator: sinon.stub() as any,
+        ldapEmailsRetriever: sinon.stub() as any,
+        ldapPasswordUpdater: sinon.stub() as any,
+        logger: sinon.stub() as any,
+        notifier: sinon.stub() as any,
+        regulator: sinon.stub() as any,
+        totpGenerator: sinon.stub() as any,
+        totpValidator: sinon.stub() as any,
+        u2f: sinon.stub() as any,
+        userDataStore: sinon.stub() as any,
     };
     app.get = sinon.stub().withArgs(VARIABLES_KEY).returns(mocks);
     return mocks;

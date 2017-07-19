@@ -1,7 +1,6 @@
 
 
 import Server from "../../../../src/server/lib/Server";
-import LdapClient = require("../../../../src/server/lib/LdapClient");
 import { LdapjsClientMock } from "./../mocks/ldapjs";
 
 import BluebirdPromise = require("bluebird");
@@ -92,7 +91,7 @@ describe("test the server", function () {
       "password").yields();
 
     ldapClient.bind.withArgs("cn=test_nok,ou=users,dc=example,dc=com",
-      "password").yields("error");
+      "password").yields("Bad credentials");
 
     ldapClient.unbind.yields();
     ldapClient.modify.yields();
@@ -106,7 +105,10 @@ describe("test the server", function () {
       session: ExpressSession,
       winston: Winston,
       speakeasy: speakeasy,
-      ConnectRedis: Sinon.spy()
+      ConnectRedis: Sinon.spy(),
+      dovehash: {
+        encode: Sinon.stub().returns("abc")
+      }
     };
 
     server = new Server();

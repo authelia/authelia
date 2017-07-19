@@ -5,7 +5,7 @@ import BluebirdPromise = require("bluebird");
 import express = require("express");
 import { AccessController } from "../../access_control/AccessController";
 import { AuthenticationRegulator } from "../../AuthenticationRegulator";
-import { LdapClient } from "../../LdapClient";
+import { Client, Attributes } from "../../ldap/Client";
 import Endpoint = require("../../../endpoints");
 import ErrorReplies = require("../../ErrorReplies");
 import ServerVariables = require("../../ServerVariables");
@@ -16,7 +16,7 @@ export default function (req: express.Request, res: express.Response): BluebirdP
     const password: string = req.body.password;
 
     const logger = ServerVariables.getLogger(req.app);
-    const ldap = ServerVariables.getLdapClient(req.app);
+    const ldap = ServerVariables.getLdapAuthenticator(req.app);
     const config = ServerVariables.getConfiguration(req.app);
 
     if (!username || !password) {
@@ -36,18 +36,15 @@ export default function (req: express.Request, res: express.Response): BluebirdP
     return regulator.regulate(username)
         .then(function () {
             logger.info("1st factor: No regulation applied.");
-            return ldap.checkPassword(username, password);
+            return ldap.authenticate(username, password);
         })
-        .then(function () {
-            logger.info("1st factor: LDAP binding successful");
+        .then(function (attributes: Attributes) {
+            logger.info("1st factor: LDAP binding successful. Retrieved information about user are %s", JSON.stringify(attributes));
             authSession.userid = username;
             authSession.first_factor = true;
-            logger.debug("1st factor: Retrieve email from LDAP");
-            return BluebirdPromise.join(ldap.retrieveEmails(username), ldap.retrieveGroups(username));
-        })
-        .then(function (data: [string[], string[]]) {
-            const emails: string[] = data[0];
-            const groups: string[] = data[1];
+
+            const emails: string[] = attributes.emails;
+            const groups: string[] = attributes.groups;
 
             if (!emails || emails.length <= 0) {
                 const errMessage = "No emails found. The user should have at least one email address to reset password.";
@@ -55,12 +52,12 @@ export default function (req: express.Request, res: express.Response): BluebirdP
                 return BluebirdPromise.reject(new Error(errMessage));
             }
 
-            logger.debug("1st factor: Retrieved email are %s", emails);
-            logger.debug("1st factor: Retrieved groups are %s", groups);
             authSession.email = emails[0];
             authSession.groups = groups;
 
+            logger.debug("1st factor: Mark successful authentication to regulator.");
             regulator.mark(username, true);
+
             logger.debug("1st factor: Redirect to  %s", Endpoint.SECOND_FACTOR_GET);
             res.redirect(Endpoint.SECOND_FACTOR_GET);
             return BluebirdPromise.resolve();

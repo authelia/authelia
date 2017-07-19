@@ -1,6 +1,9 @@
 
 import winston = require("winston");
-import { LdapClient } from "./LdapClient";
+import { Authenticator } from "./ldap/Authenticator";
+import { PasswordUpdater } from "./ldap/PasswordUpdater";
+import { EmailsRetriever } from "./ldap/EmailsRetriever";
+
 import { TOTPValidator } from "./TOTPValidator";
 import { TOTPGenerator } from "./TOTPGenerator";
 import U2F = require("u2f");
@@ -19,7 +22,9 @@ export const VARIABLES_KEY = "authelia-variables";
 
 export interface ServerVariables {
     logger: typeof winston;
-    ldap: LdapClient;
+    ldapAuthenticator: Authenticator;
+    ldapPasswordUpdater: PasswordUpdater;
+    ldapEmailsRetriever: EmailsRetriever;
     totpValidator: TOTPValidator;
     totpGenerator: TOTPGenerator;
     u2f: typeof U2F;
@@ -41,7 +46,9 @@ export function fill(app: express.Application, config: Configuration.AppConfigur
     const userDataStore = new UserDataStore(datastore_options, deps.nedb);
     const regulator = new AuthenticationRegulator(userDataStore, five_minutes);
     const notifier = NotifierFactory.build(config.notifier, deps.nodemailer);
-    const ldap = new LdapClient(config.ldap, deps.ldapjs, deps.winston);
+    const ldapAuthenticator = new Authenticator(config.ldap, deps.ldapjs, deps.winston);
+    const ldapPasswordUpdater = new PasswordUpdater(config.ldap, deps.ldapjs, deps.dovehash, deps.winston);
+    const ldapEmailsRetriever = new EmailsRetriever(config.ldap, deps.ldapjs, deps.winston);
     const accessController = new AccessController(config.access_control, deps.winston);
     const totpValidator = new TOTPValidator(deps.speakeasy);
     const totpGenerator = new TOTPGenerator(deps.speakeasy);
@@ -49,7 +56,9 @@ export function fill(app: express.Application, config: Configuration.AppConfigur
     const variables: ServerVariables = {
         accessController: accessController,
         config: config,
-        ldap: ldap,
+        ldapAuthenticator: ldapAuthenticator,
+        ldapPasswordUpdater: ldapPasswordUpdater,
+        ldapEmailsRetriever: ldapEmailsRetriever,
         logger: deps.winston,
         notifier: notifier,
         regulator: regulator,
@@ -74,8 +83,16 @@ export function getNotifier(app: express.Application): INotifier {
     return (app.get(VARIABLES_KEY) as ServerVariables).notifier;
 }
 
-export function getLdapClient(app: express.Application): LdapClient {
-    return (app.get(VARIABLES_KEY) as ServerVariables).ldap;
+export function getLdapAuthenticator(app: express.Application): Authenticator {
+    return (app.get(VARIABLES_KEY) as ServerVariables).ldapAuthenticator;
+}
+
+export function getLdapPasswordUpdater(app: express.Application): PasswordUpdater {
+    return (app.get(VARIABLES_KEY) as ServerVariables).ldapPasswordUpdater;
+}
+
+export function getLdapEmailsRetriever(app: express.Application): EmailsRetriever {
+    return (app.get(VARIABLES_KEY) as ServerVariables).ldapEmailsRetriever;
 }
 
 export function getConfiguration(app: express.Application): Configuration.AppConfiguration {
