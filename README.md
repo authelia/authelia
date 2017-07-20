@@ -47,7 +47,8 @@ If you don't have any LDAP and/or nginx setup yet, I advise you to follow the
 without even configure anything.
 
 Otherwise here are the available steps to deploy **Authelia** on your machine given 
-your configuration file is **/path/to/your/config.yml**.
+your configuration file is **/path/to/your/config.yml**. Note that you can create your 
+own the configuration file from **config.template.yml** at the root of the repo.
 
 ### With NPM
 
