@@ -42,7 +42,7 @@ describe("test FirstFactorValidator", function () {
         });
 
         it("should fail with error 401", () => {
-            return should_fail_first_factor_validation(401, "Authetication failed. Please check your credentials");
+            return should_fail_first_factor_validation(401, "Authetication failed. Please check your credentials.");
         });
     });
 });

@@ -48,7 +48,7 @@ ldap:
 # beginning of the pattern.
 access_control:
   default:
-    - home.test.local
+    - public.test.local
   groups:
     admin:
       - '*.test.local'

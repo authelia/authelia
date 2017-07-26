@@ -9,14 +9,14 @@ block content
         <div class="form-inputs">
             <input type="text" class="form-control" id="token" placeholder="Token" required autofocus>
         </div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">TOTP</button>
-        a(href=totp_identity_start_endpoint, class="pull-right link") Need to register?
+        <button class="btn btn-lg btn-primary btn-block totp-button" type="submit">TOTP</button>
+        a(href=totp_identity_start_endpoint, class="pull-right link register-totp") Need to register?
         <span class="clearfix"></span>
     </form>
     <hr>
     <form class="form-signin u2f">
-        <button class="btn btn-lg btn-primary btn-block" type="submit">U2F</button>
-        a(href=u2f_identity_start_endpoint, class="pull-right link") Need to register?
+        <button class="btn btn-lg btn-primary btn-block u2f-button" type="submit">U2F</button>
+        a(href=u2f_identity_start_endpoint, class="pull-right link register-u2f") Need to register?
         <span class="clearfix"></span>
     </form>
 

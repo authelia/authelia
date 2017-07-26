@@ -1,23 +1,37 @@
+dist: trusty
 language: node_js
+sudo: required
 node_js:
-- node
+  - "7"
 services:
-- docker
-- ntp
+  - docker
+  - ntp
 addons:
+  chrome: stable 
   apt:
+    sources:
+      - google-chrome
     packages:
-    - libgif-dev
+      - libgif-dev
+      - google-chrome-stable
   hosts:
     - auth.test.local 
     - home.test.local 
+    - public.test.local 
     - secret.test.local 
     - secret1.test.local 
     - secret2.test.local 
     - mx1.mail.test.local 
     - mx2.mail.test.local 
 
-before_install: npm install -g npm@'>=2.13.5'
+before_install: 
+  - npm install -g npm@'>=2.13.5'
+
+before_script:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - sleep 3
+
 script:
   - ./scripts/travis.sh
 

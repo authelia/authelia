@@ -41,10 +41,10 @@ export class Client {
       reconnect: true
     });
 
-    const clientLogger = (ldapClient as any).log;
+    /*const clientLogger = (ldapClient as any).log;
     if (clientLogger) {
       clientLogger.level("trace");
-    }
+    }*/
 
     this.client = BluebirdPromise.promisifyAll(ldapClient) as ldapjs.ClientAsync;
   }

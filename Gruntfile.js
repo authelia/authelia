@@ -12,17 +12,13 @@ module.exports = function (grunt) {
         cmd: "./node_modules/.bin/tslint",
         args: ['-c', 'tslint.json', '-p', 'tsconfig.json']
       },
-      "test": {
+      "unit-tests": {
         cmd: "./node_modules/.bin/mocha",
         args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/unit']
       },
-      "test-int": {
-        cmd: "./node_modules/.bin/mocha",
-        args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/integration']
-      },
-      "test-system": {
-        cmd: "./node_modules/.bin/mocha",
-        args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/system']
+      "integration-tests": {
+        cmd: "./node_modules/.bin/cucumber-js",
+        args: ["--compiler", "ts:ts-node/register", "./test/features"]
       },
       "docker-build": {
         cmd: "docker",
@@ -165,5 +161,8 @@ module.exports = function (grunt) {
   grunt.registerTask('docker-build', ['run:docker-build']);
   grunt.registerTask('docker-restart', ['run:docker-restart']);
 
-  grunt.registerTask('test', ['run:test']);
+  grunt.registerTask('unit-tests', ['run:unit-tests']);
+  grunt.registerTask('integration-tests', ['run:unit-tests']);
+
+  grunt.registerTask('test', ['unit-tests']);
 };

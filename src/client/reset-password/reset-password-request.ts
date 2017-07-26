@@ -30,7 +30,7 @@ export default function(window: Window, $: JQueryStatic) {
 
     requestPasswordReset(username)
       .then(function () {
-        $.notify("An email has been sent. Click on the link to change your password", "success");
+        $.notify("An email has been sent. Click on the link to change your password.", "success");
         setTimeout(function () {
           window.location.replace(Endpoints.FIRST_FACTOR_GET);
         }, 1000);

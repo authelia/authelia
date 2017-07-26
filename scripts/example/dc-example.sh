@@ -8,5 +8,4 @@ docker-compose \
   -f example/mongo/docker-compose.yml \
   -f example/redis/docker-compose.yml \
   -f example/nginx/docker-compose.yml \
-  -f example/ldap/docker-compose.yml \
-  -f test/integration/docker-compose.yml $*
+  -f example/ldap/docker-compose.yml $*
