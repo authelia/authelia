@@ -1,5 +1,5 @@
 
-import UserDataStore from "../../../../UserDataStore";
+import { UserDataStore } from "../../../../storage/UserDataStore";
 
 import objectPath = require("object-path");
 import u2f_common = require("../U2FCommon");
@@ -8,13 +8,13 @@ import express = require("express");
 import U2f = require("u2f");
 import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import ErrorReplies = require("../../../../ErrorReplies");
-import ServerVariables = require("../../../../ServerVariables");
+import { ServerVariablesHandler } from "../../../../ServerVariablesHandler";
 import AuthenticationSession = require("../../../../AuthenticationSession");
 
 export default FirstFactorBlocker(handler);
 
 function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
-    const logger = ServerVariables.getLogger(req.app);
+    const logger = ServerVariablesHandler.getLogger(req.app);
     const authSession = AuthenticationSession.get(req);
 
     if (!authSession.identity_check
@@ -24,7 +24,7 @@ function handler(req: express.Request, res: express.Response): BluebirdPromise<v
         return;
     }
 
-    const u2f = ServerVariables.getU2F(req.app);
+    const u2f = ServerVariablesHandler.getU2F(req.app);
     const appid: string = u2f_common.extract_app_id(req);
 
     logger.debug("U2F register_request: headers=%s", JSON.stringify(req.headers));

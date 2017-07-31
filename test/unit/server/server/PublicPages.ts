@@ -41,7 +41,11 @@ describe("Public pages of the server must be accessible without session", functi
         secret: "session_secret",
         expiration: 50000,
       },
-      store_in_memory: true,
+      storage: {
+        local: {
+          in_memory: true
+        }
+      },
       notifier: {
         gmail: {
           username: "user@example.com",

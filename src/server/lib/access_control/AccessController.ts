@@ -1,5 +1,5 @@
 
-import { ACLConfiguration } from "../../../types/Configuration";
+import { ACLConfiguration } from "../configuration/Configuration";
 import PatternBuilder from "./PatternBuilder";
 import { Winston } from "../../../types/Dependencies";
 

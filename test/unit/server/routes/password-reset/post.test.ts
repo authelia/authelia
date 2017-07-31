@@ -2,23 +2,22 @@
 import PasswordResetFormPost = require("../../../../../src/server/lib/routes/password-reset/form/post");
 import { PasswordUpdater } from "../../../../../src/server/lib/ldap/PasswordUpdater";
 import AuthenticationSession = require("../../../../../src/server/lib/AuthenticationSession");
-import { ServerVariables } from "../../../../../src/server/lib/ServerVariables";
-import sinon = require("sinon");
+import { ServerVariablesHandler } from "../../../../../src/server/lib/ServerVariablesHandler";
+import { UserDataStore } from "../../../../../src/server/lib/storage/UserDataStore";
+import Sinon = require("sinon");
 import winston = require("winston");
 import assert = require("assert");
 import BluebirdPromise = require("bluebird");
 
 import ExpressMock = require("../../mocks/express");
-import { UserDataStore } from "../../mocks/UserDataStore";
 import ServerVariablesMock = require("../../mocks/ServerVariablesMock");
 
 describe("test reset password route", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
-  let userDataStore: UserDataStore;
   let configuration: any;
   let authSession: AuthenticationSession.AuthenticationSession;
-  let serverVariables: ServerVariables;
+  let serverVariables: ServerVariablesMock.ServerVariablesMock;
 
   beforeEach(function () {
     req = {
@@ -26,7 +25,7 @@ describe("test reset password route", function () {
         userid: "user"
       },
       app: {
-        get: sinon.stub()
+        get: Sinon.stub()
       },
       session: {},
       headers: {
@@ -46,13 +45,10 @@ describe("test reset password route", function () {
     };
 
     serverVariables = ServerVariablesMock.mock(req.app);
-    userDataStore = UserDataStore();
-    userDataStore.set_u2f_meta.returns(BluebirdPromise.resolve({}));
-    userDataStore.get_u2f_meta.returns(BluebirdPromise.resolve({}));
-    userDataStore.issue_identity_check_token.returns(BluebirdPromise.resolve({}));
-    userDataStore.consume_identity_check_token.returns(BluebirdPromise.resolve({}));
-    serverVariables.userDataStore = userDataStore as any;
-
+    serverVariables.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+    serverVariables.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+    serverVariables.userDataStore.produceIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
+    serverVariables.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
 
     configuration = {
       ldap: {
@@ -65,7 +61,7 @@ describe("test reset password route", function () {
     serverVariables.config = configuration;
 
     serverVariables.ldapPasswordUpdater = {
-      updatePassword: sinon.stub()
+      updatePassword: Sinon.stub()
     } as any;
 
     res = ExpressMock.ResponseMock();
@@ -96,7 +92,7 @@ describe("test reset password route", function () {
         userid: "user",
         challenge: undefined
       };
-      res.send = sinon.spy(function () {
+      res.send = Sinon.spy(function () {
         assert.equal(res.status.getCall(0).args[0], 403);
         done();
       });
@@ -111,8 +107,8 @@ describe("test reset password route", function () {
       req.body = {};
       req.body.password = "new-password";
 
-      (serverVariables.ldapPasswordUpdater.updatePassword as sinon.SinonStub).returns(BluebirdPromise.reject("Internal error with LDAP"));
-      res.send = sinon.spy(function () {
+      (serverVariables.ldapPasswordUpdater.updatePassword as Sinon.SinonStub).returns(BluebirdPromise.reject("Internal error with LDAP"));
+      res.send = Sinon.spy(function () {
         assert.equal(res.status.getCall(0).args[0], 500);
         done();
       });

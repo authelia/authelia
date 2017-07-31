@@ -1,6 +1,6 @@
 import * as Assert from "assert";
-import { UserConfiguration } from "../../../src/types/Configuration";
-import ConfigurationAdapter from "../../../src/server/lib/ConfigurationAdapter";
+import { UserConfiguration } from "../../../src/server/lib/configuration/Configuration";
+import { ConfigurationAdapter } from "../../../src/server/lib/configuration/ConfigurationAdapter";
 
 describe("test config adapter", function() {
   function build_yaml_config(): UserConfiguration {
@@ -17,7 +17,11 @@ describe("test config adapter", function() {
         secret: "secret",
         max_age: 40000
       },
-      store_directory: "/mydirectory",
+      storage: {
+        local: {
+          path: "/mydirectory"
+        }
+      },
       logs_level: "debug",
       notifier: {
         gmail: {

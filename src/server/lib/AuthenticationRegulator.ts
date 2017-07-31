@@ -1,43 +1,40 @@
 
 import * as BluebirdPromise from "bluebird";
 import exceptions = require("./Exceptions");
+import { UserDataStore } from "./storage/UserDataStore";
+import { AuthenticationTraceDocument } from "./storage/AuthenticationTraceDocument";
 
-const REGULATION_TRACE_TYPE = "regulation";
 const MAX_AUTHENTICATION_COUNT_IN_TIME_RANGE = 3;
 
-interface DatedDocument {
-  date: Date;
-}
-
 export class AuthenticationRegulator {
-  private _user_data_store: any;
-  private _lock_time_in_seconds: number;
+  private userDataStore: UserDataStore;
+  private lockTimeInSeconds: number;
 
-  constructor(user_data_store: any, lock_time_in_seconds: number) {
-    this._user_data_store = user_data_store;
-    this._lock_time_in_seconds = lock_time_in_seconds;
+  constructor(userDataStore: any, lockTimeInSeconds: number) {
+    this.userDataStore = userDataStore;
+    this.lockTimeInSeconds = lockTimeInSeconds;
   }
 
   // Mark authentication
-  mark(userid: string, is_success: boolean): BluebirdPromise<void> {
-    return this._user_data_store.save_authentication_trace(userid, REGULATION_TRACE_TYPE, is_success);
+  mark(userId: string, isAuthenticationSuccessful: boolean): BluebirdPromise<void> {
+    return this.userDataStore.saveAuthenticationTrace(userId, isAuthenticationSuccessful);
   }
 
-  regulate(userid: string): BluebirdPromise<void> {
-    return this._user_data_store.get_last_authentication_traces(userid, REGULATION_TRACE_TYPE, false, 3)
-    .then((docs: Array<DatedDocument>) => {
-      if (docs.length < MAX_AUTHENTICATION_COUNT_IN_TIME_RANGE) {
-        // less than the max authorized number of authentication in time range, thus authorizing access
+  regulate(userId: string): BluebirdPromise<void> {
+    return this.userDataStore.retrieveLatestAuthenticationTraces(userId, false, 3)
+      .then((docs: AuthenticationTraceDocument[]) => {
+        if (docs.length < MAX_AUTHENTICATION_COUNT_IN_TIME_RANGE) {
+          // less than the max authorized number of authentication in time range, thus authorizing access
+          return BluebirdPromise.resolve();
+        }
+
+        const oldestDocument = docs[MAX_AUTHENTICATION_COUNT_IN_TIME_RANGE - 1];
+        const noLockMinDate = new Date(new Date().getTime() - this.lockTimeInSeconds * 1000);
+        if (oldestDocument.date > noLockMinDate) {
+          throw new exceptions.AuthenticationRegulationError("Max number of authentication. Please retry in few minutes.");
+        }
+
         return BluebirdPromise.resolve();
-      }
-
-      const oldest_doc = docs[MAX_AUTHENTICATION_COUNT_IN_TIME_RANGE - 1];
-      const no_lock_min_date = new Date(new Date().getTime() - this._lock_time_in_seconds * 1000);
-      if (oldest_doc.date > no_lock_min_date) {
-        throw new exceptions.AuthenticationRegulationError("Max number of authentication. Please retry in few minutes.");
-      }
-
-      return BluebirdPromise.resolve();
-    });
+      });
   }
 }

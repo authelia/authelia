@@ -3,7 +3,7 @@ import assert = require("assert");
 import winston = require("winston");
 
 import PatternBuilder from "../../../../src/server/lib/access_control/PatternBuilder";
-import { ACLConfiguration } from "../../../../src/types/Configuration";
+import { ACLConfiguration } from "../../../../src/server/lib/configuration/Configuration";
 
 describe("test access control manager", function () {
   describe("test access control pattern builder when no configuration is provided", () => {

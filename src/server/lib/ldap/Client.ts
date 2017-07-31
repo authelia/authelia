@@ -6,7 +6,7 @@ import ldapjs = require("ldapjs");
 import { buildUserDN } from "./common";
 
 import { EventEmitter } from "events";
-import { LdapConfiguration } from "./../../../types/Configuration";
+import { LdapConfiguration } from "../configuration/Configuration";
 import { Winston, Ldapjs, Dovehash } from "../../../types/Dependencies";
 
 interface SearchEntry {
@@ -41,10 +41,10 @@ export class Client {
       reconnect: true
     });
 
-    const clientLogger = (ldapClient as any).log;
+    /*const clientLogger = (ldapClient as any).log;
     if (clientLogger) {
       clientLogger.level("trace");
-    }
+    }*/
 
     this.client = BluebirdPromise.promisifyAll(ldapClient) as ldapjs.ClientAsync;
   }

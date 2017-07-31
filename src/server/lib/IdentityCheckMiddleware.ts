@@ -6,15 +6,15 @@ import util = require("util");
 import Exceptions = require("./Exceptions");
 import fs = require("fs");
 import ejs = require("ejs");
-import UserDataStore from "./UserDataStore";
+import { IUserDataStore } from "./storage/IUserDataStore";
 import { Winston } from "../../types/Dependencies";
 import express = require("express");
 import ErrorReplies = require("./ErrorReplies");
-import ServerVariables = require("./ServerVariables");
+import { ServerVariablesHandler } from "./ServerVariablesHandler";
 import AuthenticationSession = require("./AuthenticationSession");
 
 import Identity = require("../../types/Identity");
-import { IdentityValidationRequestContent } from "./UserDataStore";
+import { IdentityValidationDocument } from "./storage/IdentityValidationDocument";
 
 const filePath = __dirname + "/../resources/email-template.ejs";
 const email_template = fs.readFileSync(filePath, "utf8");
@@ -33,21 +33,21 @@ export interface IdentityValidable {
   mailSubject(): string;
 }
 
-function issue_token(userid: string, content: Object, userDataStore: UserDataStore, logger: Winston): BluebirdPromise<string> {
+function createAndSaveToken(userid: string, challenge: string, userDataStore: IUserDataStore, logger: Winston): BluebirdPromise<string> {
   const five_minutes = 4 * 60 * 1000;
   const token = randomstring.generate({ length: 64 });
   const that = this;
 
   logger.debug("identity_check: issue identity token %s for 5 minutes", token);
-  return userDataStore.issue_identity_check_token(userid, token, content, five_minutes)
+  return userDataStore.produceIdentityValidationToken(userid, token, challenge, five_minutes)
     .then(function () {
       return BluebirdPromise.resolve(token);
     });
 }
 
-function consume_token(token: string, userDataStore: UserDataStore, logger: Winston): BluebirdPromise<IdentityValidationRequestContent> {
+function consumeToken(token: string, challenge: string, userDataStore: IUserDataStore, logger: Winston): BluebirdPromise<IdentityValidationDocument> {
   logger.debug("identity_check: consume token %s", token);
-  return userDataStore.consume_identity_check_token(token);
+  return userDataStore.consumeIdentityValidationToken(token, challenge);
 }
 
 export function register(app: express.Application, pre_validation_endpoint: string, post_validation_endpoint: string, handler: IdentityValidable) {
@@ -63,8 +63,8 @@ function checkIdentityToken(req: express.Request, identityToken: string): Bluebi
 
 export function get_finish_validation(handler: IdentityValidable): express.RequestHandler {
   return function (req: express.Request, res: express.Response): BluebirdPromise<void> {
-    const logger = ServerVariables.getLogger(req.app);
-    const userDataStore = ServerVariables.getUserDataStore(req.app);
+    const logger = ServerVariablesHandler.getLogger(req.app);
+    const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
 
     const authSession = AuthenticationSession.get(req);
     const identityToken = objectPath.get<express.Request, string>(req, "query.identity_token");
@@ -75,12 +75,12 @@ export function get_finish_validation(handler: IdentityValidable): express.Reque
         return handler.postValidationInit(req);
       })
       .then(function () {
-        return consume_token(identityToken, userDataStore, logger);
+        return consumeToken(identityToken, handler.challenge(), userDataStore, logger);
       })
-      .then(function (content: IdentityValidationRequestContent) {
+      .then(function (doc: IdentityValidationDocument) {
         authSession.identity_check = {
           challenge: handler.challenge(),
-          userid: content.userid
+          userid: doc.userId
         };
         handler.postValidationResponse(req, res);
         return BluebirdPromise.resolve();
@@ -94,9 +94,9 @@ export function get_finish_validation(handler: IdentityValidable): express.Reque
 
 export function get_start_validation(handler: IdentityValidable, postValidationEndpoint: string): express.RequestHandler {
   return function (req: express.Request, res: express.Response): BluebirdPromise<void> {
-    const logger = ServerVariables.getLogger(req.app);
-    const notifier = ServerVariables.getNotifier(req.app);
-    const userDataStore = ServerVariables.getUserDataStore(req.app);
+    const logger = ServerVariablesHandler.getLogger(req.app);
+    const notifier = ServerVariablesHandler.getNotifier(req.app);
+    const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
     let identity: Identity.Identity;
     logger.info("Identity Validation: Start identity validation");
 
@@ -104,13 +104,13 @@ export function get_start_validation(handler: IdentityValidable, postValidationE
       .then(function (id: Identity.Identity) {
         logger.debug("Identity Validation: retrieved identity is %s", JSON.stringify(id));
         identity = id;
-        const email_address = objectPath.get<Identity.Identity, string>(identity, "email");
-        const userid = objectPath.get<Identity.Identity, string>(identity, "userid");
+        const email = identity.email;
+        const userid = identity.userid;
 
-        if (!(email_address && userid))
+        if (!(email && userid))
           return BluebirdPromise.reject(new Exceptions.IdentityError("Missing user id or email address"));
 
-        return issue_token(userid, undefined, userDataStore, logger);
+        return createAndSaveToken(userid, handler.challenge(), userDataStore, logger);
       })
       .then(function (token: string) {
         const host = req.get("Host");

@@ -8,7 +8,7 @@ import { IdentityValidable } from "../../../IdentityCheckMiddleware";
 import { PRE_VALIDATION_TEMPLATE } from "../../../IdentityCheckPreValidationTemplate";
 import Constants = require("../constants");
 import { Winston } from "winston";
-import ServerVariables = require("../../../ServerVariables");
+import { ServerVariablesHandler } from "../../../ServerVariablesHandler";
 
 export const TEMPLATE_NAME = "password-reset-form";
 
@@ -18,14 +18,14 @@ export default class PasswordResetHandler implements IdentityValidable {
     }
 
     preValidationInit(req: express.Request): BluebirdPromise<Identity> {
-        const logger = ServerVariables.getLogger(req.app);
+        const logger = ServerVariablesHandler.getLogger(req.app);
         const userid: string = objectPath.get<express.Request, string>(req, "query.userid");
 
         logger.debug("Reset Password: user '%s' requested a password reset", userid);
         if (!userid)
             return BluebirdPromise.reject(new exceptions.AccessDeniedError("No user id provided"));
 
-        const emailsRetriever = ServerVariables.getLdapEmailsRetriever(req.app);
+        const emailsRetriever = ServerVariablesHandler.getLdapEmailsRetriever(req.app);
         return emailsRetriever.retrieve(userid)
             .then(function (emails: string[]) {
                 if (!emails && emails.length <= 0) throw new Error("No email found");

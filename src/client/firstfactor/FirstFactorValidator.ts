@@ -13,7 +13,7 @@ export function validate(username: string, password: string, $: JQueryStatic): B
             })
             .fail(function (xhr: JQueryXHR, textStatus: string) {
                 if (xhr.status == 401)
-                    reject(new Error("Authetication failed. Please check your credentials"));
+                    reject(new Error("Authetication failed. Please check your credentials."));
                 reject(new Error(textStatus));
             });
     });

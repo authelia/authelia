@@ -8,16 +8,16 @@ import { AuthenticationRegulator } from "../../AuthenticationRegulator";
 import { Client, Attributes } from "../../ldap/Client";
 import Endpoint = require("../../../endpoints");
 import ErrorReplies = require("../../ErrorReplies");
-import ServerVariables = require("../../ServerVariables");
+import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 import AuthenticationSession = require("../../AuthenticationSession");
 
 export default function (req: express.Request, res: express.Response): BluebirdPromise<void> {
     const username: string = req.body.username;
     const password: string = req.body.password;
 
-    const logger = ServerVariables.getLogger(req.app);
-    const ldap = ServerVariables.getLdapAuthenticator(req.app);
-    const config = ServerVariables.getConfiguration(req.app);
+    const logger = ServerVariablesHandler.getLogger(req.app);
+    const ldap = ServerVariablesHandler.getLdapAuthenticator(req.app);
+    const config = ServerVariablesHandler.getConfiguration(req.app);
 
     if (!username || !password) {
         const err = new Error("No username or password");
@@ -25,8 +25,8 @@ export default function (req: express.Request, res: express.Response): BluebirdP
         return BluebirdPromise.reject(err);
     }
 
-    const regulator = ServerVariables.getAuthenticationRegulator(req.app);
-    const accessController = ServerVariables.getAccessController(req.app);
+    const regulator = ServerVariablesHandler.getAuthenticationRegulator(req.app);
+    const accessController = ServerVariablesHandler.getAccessController(req.app);
     const authSession = AuthenticationSession.get(req);
 
     logger.info("1st factor: Starting authentication of user \"%s\"", username);

@@ -91,6 +91,7 @@ Make sure you don't have anything listening on port 8080.
 
 Add the following lines to your **/etc/hosts** to alias multiple subdomains so that nginx can redirect request to the correct virtual host.
 
+    127.0.0.1       public.test.local
     127.0.0.1       secret.test.local
     127.0.0.1       secret1.test.local
     127.0.0.1       secret2.test.local

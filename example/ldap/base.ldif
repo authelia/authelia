@@ -45,3 +45,10 @@ mail: bob.dylan@example.com
 sn: Bob Dylan
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
 
+dn: cn=james,ou=users,dc=example,dc=com
+cn: james
+objectclass: inetOrgPerson
+objectclass: top
+mail: james.dean@example.com
+sn: James Dean
+userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=

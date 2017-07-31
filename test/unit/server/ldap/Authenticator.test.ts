@@ -1,6 +1,6 @@
 
 import { Authenticator } from "../../../../src/server/lib/ldap/Authenticator";
-import { LdapConfiguration } from "../../../../src/types/Configuration";
+import { LdapConfiguration } from "../../../../src/server/lib/configuration/Configuration";
 
 import sinon = require("sinon");
 import BluebirdPromise = require("bluebird");

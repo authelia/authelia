@@ -9,15 +9,14 @@ import AuthenticationSession = require("../../../../../../../src/server/lib/Auth
 import SignPost = require("../../../../../../../src/server/lib/routes/secondfactor/totp/sign/post");
 
 import ExpressMock = require("../../../../mocks/express");
-import UserDataStoreMock = require("../../../../mocks/UserDataStore");
 import TOTPValidatorMock = require("../../../../mocks/TOTPValidator");
 import ServerVariablesMock = require("../../../../mocks/ServerVariablesMock");
+import { UserDataStoreStub } from "../../../../mocks/storage/UserDataStoreStub";
 
 describe("test totp route", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
   let totpValidator: TOTPValidatorMock.TOTPValidatorMock;
-  let userDataStore: UserDataStoreMock.UserDataStore;
   let authSession: AuthenticationSession.AuthenticationSession;
 
   beforeEach(function () {
@@ -42,20 +41,17 @@ describe("test totp route", function () {
     const config = { totp_secret: "secret" };
     totpValidator = TOTPValidatorMock.TOTPValidatorMock();
 
-    userDataStore = UserDataStoreMock.UserDataStore();
-
     const doc = {
       userid: "user",
       secret: {
         base32: "ABCDEF"
       }
     };
-    userDataStore.get_totp_secret.returns(BluebirdPromise.resolve(doc));
+    mocks.userDataStore.retrieveTOTPSecretStub.returns(BluebirdPromise.resolve(doc));
 
     mocks.logger = winston;
-    mocks.totpValidator = totpValidator as any;
-    mocks.config = config as any;
-    mocks.userDataStore = userDataStore as any;
+    mocks.totpValidator = totpValidator;
+    mocks.config = config;
   });
 
 

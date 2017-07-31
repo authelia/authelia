@@ -1,6 +1,6 @@
 import util = require("util");
 
-import { LdapConfiguration } from "./../../../types/Configuration";
+import { LdapConfiguration } from "../configuration/Configuration";
 
 
 export function buildUserDN(username: string, options: LdapConfiguration): string {

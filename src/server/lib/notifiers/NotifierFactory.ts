@@ -1,5 +1,5 @@
 
-import { NotifierConfiguration } from "../../../types/Configuration";
+import { NotifierConfiguration } from "../configuration/Configuration";
 import { Nodemailer } from "../../../types/Dependencies";
 import { INotifier } from "./INotifier";
 

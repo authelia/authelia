@@ -2,24 +2,24 @@
 import sinon = require("sinon");
 import IdentityValidator = require("../../../src/server/lib/IdentityCheckMiddleware");
 import AuthenticationSession = require("../../../src/server/lib/AuthenticationSession");
+import { UserDataStore } from "../../../src/server/lib/storage/UserDataStore";
+
 import exceptions = require("../../../src/server/lib/Exceptions");
 import assert = require("assert");
-import winston = require("winston");
 import Promise = require("bluebird");
 import express = require("express");
 import BluebirdPromise = require("bluebird");
 
 import ExpressMock = require("./mocks/express");
-import UserDataStoreMock = require("./mocks/UserDataStore");
 import NotifierMock = require("./mocks/Notifier");
 import IdentityValidatorMock = require("./mocks/IdentityValidator");
 import ServerVariablesMock = require("./mocks/ServerVariablesMock");
 
 
 describe("test identity check process", function () {
+  let mocks: ServerVariablesMock.ServerVariablesMock;
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
-  let userDataStore: UserDataStoreMock.UserDataStore;
   let notifier: NotifierMock.NotifierMock;
   let app: express.Application;
   let app_get: sinon.SinonStub;
@@ -32,12 +32,6 @@ describe("test identity check process", function () {
 
     identityValidable = IdentityValidatorMock.IdentityValidableMock();
 
-    userDataStore = UserDataStoreMock.UserDataStore();
-    userDataStore.issue_identity_check_token = sinon.stub();
-    userDataStore.issue_identity_check_token.returns(Promise.resolve());
-    userDataStore.consume_identity_check_token = sinon.stub();
-    userDataStore.consume_identity_check_token.returns(Promise.resolve({ userid: "user" }));
-
     notifier = NotifierMock.NotifierMock();
     notifier.notify = sinon.stub().returns(Promise.resolve());
 
@@ -47,10 +41,12 @@ describe("test identity check process", function () {
 
     req.query = {};
     req.app = {};
-    const mocks = ServerVariablesMock.mock(req.app);
-    mocks.logger = winston;
-    mocks.userDataStore = userDataStore as any;
+
+    mocks = ServerVariablesMock.mock(req.app);
     mocks.notifier = notifier;
+
+    mocks.userDataStore.produceIdentityValidationTokenStub.returns(Promise.resolve());
+    mocks.userDataStore.consumeIdentityValidationTokenStub.returns(Promise.resolve({ userId: "user" }));
 
     app = express();
     app_get = sinon.stub(app, "get");
@@ -116,9 +112,9 @@ describe("test identity check process", function () {
       return callback(req as any, res as any, undefined)
         .then(function () {
           assert(notifier.notify.calledOnce);
-          assert(userDataStore.issue_identity_check_token.calledOnce);
-          assert.equal(userDataStore.issue_identity_check_token.getCall(0).args[0], "user");
-          assert.equal(userDataStore.issue_identity_check_token.getCall(0).args[3], 240000);
+          assert(mocks.userDataStore.produceIdentityValidationTokenStub.calledOnce);
+          assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub.getCall(0).args[0], "user");
+          assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub.getCall(0).args[3], 240000);
         });
     });
   }
@@ -145,8 +141,7 @@ describe("test identity check process", function () {
     it("should return 500 if identity_token is provided but invalid", function () {
       req.query.identity_token = "token";
 
-      userDataStore.consume_identity_check_token
-        .returns(BluebirdPromise.reject(new Error("Invalid token")));
+      mocks.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.reject(new Error("Invalid token")));
 
       const callback = IdentityValidator.get_finish_validation(identityValidable);
       return callback(req as any, res as any, undefined)
