@@ -39,13 +39,15 @@ function verify_filter(req: express.Request, res: express.Response): BluebirdPro
     });
 }
 
-export default function (req: express.Request, res: express.Response) {
+export default function (req: express.Request, res: express.Response): BluebirdPromise<void> {
   const logger = ServerVariablesHandler.getLogger(req.app);
-  verify_filter(req, res)
+  return verify_filter(req, res)
     .then(function () {
       res.status(204);
       res.send();
+      return BluebirdPromise.resolve();
     })
+    .catch(exceptions.DomainAccessDenied, ErrorReplies.replyWithError403(res, logger))
     .catch(ErrorReplies.replyWithError401(res, logger));
 }
 

@@ -21,6 +21,16 @@ function CustomWorld() {
       .sendKeys(content);
   };
 
+  this.clearField = function (fieldName: string) {
+    return this.driver.findElement(seleniumWebdriver.By.id(fieldName)).clear();
+  };
+
+  this.getErrorPage = function (code: number) {
+    return this.driver
+      .findElement(seleniumWebdriver.By.tagName("h1"))
+      .findElement(seleniumWebdriver.By.xpath("//h1[contains(.,'Error " + code + "')]"));
+  };
+
   this.clickOnButton = function (buttonText: string) {
     return this.driver
       .findElement(seleniumWebdriver.By.tagName("button"))
@@ -29,9 +39,11 @@ function CustomWorld() {
   };
 
   this.loginWithUserPassword = function (username: string, password: string) {
-    return this.driver
-      .findElement(seleniumWebdriver.By.id("username"))
-      .sendKeys(username)
+    return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.id("username")), 4000)
+      .then(function () {
+        return that.driver.findElement(seleniumWebdriver.By.id("username"))
+          .sendKeys(username);
+      })
       .then(function () {
         return that.driver.findElement(seleniumWebdriver.By.id("password"))
           .sendKeys(password);
@@ -39,14 +51,14 @@ function CustomWorld() {
       .then(function () {
         return that.driver.findElement(seleniumWebdriver.By.tagName("button"))
           .click();
-      })
-      .then(function () {
-        return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.className("register-totp")), 4000);
       });
   };
 
   this.registerTotpSecret = function (totpSecretHandle: string) {
-    return this.driver.findElement(seleniumWebdriver.By.className("register-totp")).click()
+    return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.className("register-totp")), 4000)
+      .then(function () {
+        return that.driver.findElement(seleniumWebdriver.By.className("register-totp")).click();
+      })
       .then(function () {
         const notif = Fs.readFileSync("./notifications/notification.txt").toString();
         const regexp = new RegExp(/Link: (.+)/);
@@ -75,8 +87,11 @@ function CustomWorld() {
   };
 
   this.useTotpToken = function (totpSecret: string) {
-    return this.driver.findElement(seleniumWebdriver.By.id("token"))
-      .sendKeys(totpSecret);
+    return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.className("register-totp")), 4000)
+      .then(function () {
+        return that.driver.findElement(seleniumWebdriver.By.id("token"))
+          .sendKeys(totpSecret);
+      });
   };
 
   this.registerTotpAndSignin = function (username: string, password: string) {
