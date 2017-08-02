@@ -14,6 +14,10 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
     return this.setFieldTo(fieldName, content);
   });
 
+  When("I clear field {stringInDoubleQuotes}", function (fieldName: string) {
+    return this.clearField(fieldName);
+  });
+
   When("I click on {stringInDoubleQuotes}", function (text: string) {
     return this.clickOnButton(text);
   });
@@ -55,20 +59,20 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
     return this.registerTotpAndSignin(username, password);
   });
 
-  function hasAccessToSecret(link: string, driver: any) {
-    return driver.get(link)
+  function hasAccessToSecret(link: string, that: any) {
+    return that.driver.get(link)
       .then(function () {
-        return driver.findElement(seleniumWebdriver.By.tagName("body")).getText()
+        return that.driver.findElement(seleniumWebdriver.By.tagName("body")).getText()
           .then(function (body: string) {
-            Assert(body.indexOf("This is a very important secret!") > -1);
+            Assert(body.indexOf("This is a very important secret!") > -1, body);
           });
       });
   }
 
-  function hasNoAccessToSecret(link: string, driver: any) {
-    return driver.get(link)
+  function hasNoAccessToSecret(link: string, that: any) {
+    return that.driver.get(link)
       .then(function () {
-        return driver.wait(seleniumWebdriver.until.urlIs("https://auth.test.local:8080/"));
+        return that.getErrorPage(403);
       });
   }
 
@@ -76,7 +80,7 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
     const promises = [];
     for (let i = 0; i < dataTable.rows().length; i++) {
       const url = (dataTable.hashes() as any)[i].url;
-      promises.push(hasAccessToSecret(url, this.driver));
+      promises.push(hasAccessToSecret(url, this));
     }
     return Promise.all(promises);
   });
@@ -85,7 +89,7 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
     const promises = [];
     for (let i = 0; i < dataTable.rows().length; i++) {
       const url = (dataTable.hashes() as any)[i].url;
-      promises.push(hasNoAccessToSecret(url, this.driver));
+      promises.push(hasNoAccessToSecret(url, this));
     }
     return Promise.all(promises);
   });

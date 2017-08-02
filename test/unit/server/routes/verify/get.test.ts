@@ -24,6 +24,8 @@ describe("test authentication token verification", function () {
 
     req = ExpressMock.RequestMock();
     res = ExpressMock.ResponseMock();
+    req.session = {};
+    AuthenticationSession.reset(req as any);
     req.headers = {};
     req.headers.host = "secret.example.com";
     const mocks = ServerVariablesMock.mock(req.app);
@@ -32,7 +34,7 @@ describe("test authentication token verification", function () {
     mocks.accessController = accessController as any;
   });
 
-  it("should be already authenticated", function (done) {
+  it("should be already authenticated", function () {
     req.session = {};
     AuthenticationSession.reset(req as any);
     const authSession = AuthenticationSession.get(req as any);
@@ -40,31 +42,26 @@ describe("test authentication token verification", function () {
     authSession.second_factor = true;
     authSession.userid = "myuser";
 
-    res.send = sinon.spy(function () {
-      assert.equal(204, res.status.getCall(0).args[0]);
-      done();
-    });
-
-    VerifyGet.default(req as express.Request, res as any);
+    return VerifyGet.default(req as express.Request, res as any)
+      .then(function () {
+        assert.equal(204, res.status.getCall(0).args[0]);
+      });
   });
 
   describe("given different cases of session", function () {
     function test_session(auth_session: AuthenticationSession.AuthenticationSession, status_code: number) {
-      return new BluebirdPromise(function (resolve, reject) {
-        req.session = {};
-        req.session.auth_session = auth_session;
-
-        res.send = sinon.spy(function () {
+      return VerifyGet.default(req as express.Request, res as any)
+        .then(function () {
           assert.equal(status_code, res.status.getCall(0).args[0]);
-          resolve();
         });
-
-        VerifyGet.default(req as express.Request, res as any);
-      });
     }
 
-    function test_unauthorized(auth_session: AuthenticationSession.AuthenticationSession) {
+    function test_non_authenticated_401(auth_session: AuthenticationSession.AuthenticationSession) {
       return test_session(auth_session, 401);
+    }
+
+    function test_unauthorized_403(auth_session: AuthenticationSession.AuthenticationSession) {
+      return test_session(auth_session, 403);
     }
 
     function test_authorized(auth_session: AuthenticationSession.AuthenticationSession) {
@@ -72,7 +69,7 @@ describe("test authentication token verification", function () {
     }
 
     it("should not be authenticated when second factor is missing", function () {
-      return test_unauthorized({
+      return test_non_authenticated_401({
         userid: "user",
         first_factor: true,
         second_factor: false,
@@ -82,7 +79,7 @@ describe("test authentication token verification", function () {
     });
 
     it("should not be authenticated when first factor is missing", function () {
-      return test_unauthorized({
+      return test_non_authenticated_401({
         userid: "user",
         first_factor: false,
         second_factor: true,
@@ -92,7 +89,7 @@ describe("test authentication token verification", function () {
     });
 
     it("should not be authenticated when userid is missing", function () {
-      return test_unauthorized({
+      return test_non_authenticated_401({
         userid: undefined,
         first_factor: true,
         second_factor: false,
@@ -102,26 +99,31 @@ describe("test authentication token verification", function () {
     });
 
     it("should not be authenticated when first and second factor are missing", function () {
-      return test_unauthorized({
+      return test_non_authenticated_401({
         userid: "user",
         first_factor: false,
         second_factor: false,
         email: undefined,
         groups: [],
-       });
+      });
     });
 
     it("should not be authenticated when session has not be initiated", function () {
-      return test_unauthorized(undefined);
+      return test_non_authenticated_401(undefined);
     });
 
     it("should not be authenticated when domain is not allowed for user", function () {
+      const authSession = AuthenticationSession.get(req as any);
+      authSession.first_factor = true;
+      authSession.second_factor = true;
+      authSession.userid = "myuser";
+
       req.headers.host = "test.example.com";
 
       accessController.isDomainAllowedForUser.returns(false);
       accessController.isDomainAllowedForUser.withArgs("test.example.com", "user", ["group1", "group2"]).returns(true);
 
-      return test_unauthorized({
+      return test_unauthorized_403({
         first_factor: true,
         second_factor: true,
         userid: "user",
