@@ -9,7 +9,7 @@ Feature: User is able to reset his password
     Given I'm on https://auth.test.local:8080/password-reset/request
     When I set field "username" to "james"
     And I click on "Reset Password"
-    Then I get a notification with message "An email has been sent. Click on the link to change your password."
+    Then I get a notification of type "success" with message "An email has been sent to you. Follow the link to change your password."
 
   Scenario: User resets his password
     Given I'm on https://auth.test.local:8080/password-reset/request
@@ -30,4 +30,4 @@ Feature: User is able to reset his password
     And I set field "password1" to "newpassword"
     And I set field "password2" to "newpassword2"
     And I click on "Reset Password"
-    Then I get a notification with message "The passwords are different"
+    Then I get a notification of type "warning" with message "The passwords are different."

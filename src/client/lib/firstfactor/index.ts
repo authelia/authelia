@@ -1,10 +1,15 @@
 import FirstFactorValidator = require("./FirstFactorValidator");
 import JSLogger = require("js-logger");
 import UISelectors = require("./UISelectors");
+import { Notifier } from "../Notifier";
 
-import Endpoints = require("../../server/endpoints");
+import Endpoints = require("../../../server/endpoints");
 
-export default function (window: Window, $: JQueryStatic, firstFactorValidator: typeof FirstFactorValidator, jslogger: typeof JSLogger) {
+export default function (window: Window, $: JQueryStatic,
+  firstFactorValidator: typeof FirstFactorValidator, jslogger: typeof JSLogger) {
+
+  const notifier = new Notifier(".notification", $);
+
   function onFormSubmitted() {
     const username: string = $(UISelectors.USERNAME_FIELD_ID).val();
     const password: string = $(UISelectors.PASSWORD_FIELD_ID).val();
@@ -27,7 +32,7 @@ export default function (window: Window, $: JQueryStatic, firstFactorValidator: 
     jslogger.debug("First factor failed.");
 
     $(UISelectors.PASSWORD_FIELD_ID).val("");
-    $.notify("Error during authentication: " + err.message, "error");
+    notifier.error("Authentication failed. Please double check your credentials.");
   }
 
 

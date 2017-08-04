@@ -1,12 +1,20 @@
 
-import U2FValidator = require("../../../../src/client/secondfactor/U2FValidator");
+import U2FValidator = require("../../../../src/client/lib/secondfactor/U2FValidator");
+import { INotifier } from "../../../../src/client/lib/INotifier";
 import JQueryMock = require("../mocks/jquery");
 import U2FApiMock = require("../mocks/u2f-api");
 import { SignMessage } from "../../../../src/server/lib/routes/secondfactor/u2f/sign_request/SignMessage";
 import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
+import { NotifierStub } from "../mocks/NotifierStub";
 
 describe("test U2F validation", function () {
+    let notifier: INotifier;
+
+    beforeEach(function() {
+        notifier = new NotifierStub();
+    });
+
     it("should validate the U2F device", () => {
         const signatureRequest: SignMessage = {
             keyHandle: "keyhandle",
@@ -28,10 +36,10 @@ describe("test U2F validation", function () {
         postPromise.done.returns(postPromise);
 
         const jqueryMock = JQueryMock.JQueryMock();
-        jqueryMock.get.returns(getPromise);
-        jqueryMock.ajax.returns(postPromise);
+        jqueryMock.jquery.get.returns(getPromise);
+        jqueryMock.jquery.ajax.returns(postPromise);
 
-        return U2FValidator.validate(jqueryMock as any, u2fClient as any);
+        return U2FValidator.validate(jqueryMock.jquery as any, notifier, u2fClient as any);
     });
 
     it("should fail during initial authentication request", () => {
@@ -42,9 +50,9 @@ describe("test U2F validation", function () {
         getPromise.fail.yields(undefined, "Error while issuing authentication request");
 
         const jqueryMock = JQueryMock.JQueryMock();
-        jqueryMock.get.returns(getPromise);
+        jqueryMock.jquery.get.returns(getPromise);
 
-        return U2FValidator.validate(jqueryMock as any, u2fClient as any)
+        return U2FValidator.validate(jqueryMock.jquery as any,  notifier, u2fClient as any)
         .catch(function(err: Error) {
             Assert.equal("Error while issuing authentication request", err.message);
             return BluebirdPromise.resolve();
@@ -68,9 +76,9 @@ describe("test U2F validation", function () {
         getPromise.done.returns(getPromise);
 
         const jqueryMock = JQueryMock.JQueryMock();
-        jqueryMock.get.returns(getPromise);
+        jqueryMock.jquery.get.returns(getPromise);
 
-        return U2FValidator.validate(jqueryMock as any, u2fClient as any)
+        return U2FValidator.validate(jqueryMock.jquery as any,  notifier, u2fClient as any)
         .catch(function(err: Error) {
             Assert.equal("Device unable to sign", err.message);
             return BluebirdPromise.resolve();
@@ -98,10 +106,10 @@ describe("test U2F validation", function () {
         postPromise.done.returns(postPromise);
 
         const jqueryMock = JQueryMock.JQueryMock();
-        jqueryMock.get.returns(getPromise);
-        jqueryMock.ajax.returns(postPromise);
+        jqueryMock.jquery.get.returns(getPromise);
+        jqueryMock.jquery.ajax.returns(postPromise);
 
-        return U2FValidator.validate(jqueryMock as any, u2fClient as any)
+        return U2FValidator.validate(jqueryMock.jquery as any,  notifier, u2fClient as any)
         .catch(function(err: Error) {
             Assert.equal("Error while finishing authentication", err.message);
             return BluebirdPromise.resolve();

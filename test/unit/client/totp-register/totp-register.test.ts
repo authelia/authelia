@@ -2,8 +2,8 @@
 import sinon = require("sinon");
 import assert = require("assert");
 
-import UISelector = require("../../../../src/client/totp-register/ui-selector");
-import TOTPRegister = require("../../../../src/client/totp-register/totp-register");
+import UISelector = require("../../../../src/client/lib/totp-register/ui-selector");
+import TOTPRegister = require("../../../../src/client/lib/totp-register/totp-register");
 
 describe("test totp-register", function() {
     let jqueryMock: any;

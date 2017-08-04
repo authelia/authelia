@@ -1,20 +1,18 @@
 
-import FirstFactorValidator = require("./firstfactor/FirstFactorValidator");
+import FirstFactorValidator = require("./lib/firstfactor/FirstFactorValidator");
 
-import FirstFactor from "./firstfactor/index";
-import SecondFactor from "./secondfactor/index";
-import TOTPRegister from "./totp-register/totp-register";
-import U2fRegister from "./u2f-register/u2f-register";
-import ResetPasswordRequest from "./reset-password/reset-password-request";
-import ResetPasswordForm from "./reset-password/reset-password-form";
+import FirstFactor from "./lib/firstfactor/index";
+import SecondFactor from "./lib/secondfactor/index";
+import TOTPRegister from "./lib/totp-register/totp-register";
+import U2fRegister from "./lib/u2f-register/u2f-register";
+import ResetPasswordRequest from "./lib/reset-password/reset-password-request";
+import ResetPasswordForm from "./lib/reset-password/reset-password-form";
 import jslogger = require("js-logger");
 import jQuery = require("jquery");
 import u2fApi = require("u2f-api");
 
 jslogger.useDefaults();
 jslogger.setLevel(jslogger.INFO);
-
-require("notifyjs-browser")(jQuery);
 
 export = {
     firstfactor: function () {

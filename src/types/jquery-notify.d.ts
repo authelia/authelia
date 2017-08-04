@@ -1,4 +1,0 @@
-
-interface JQueryStatic {
-  notify: any;
-}

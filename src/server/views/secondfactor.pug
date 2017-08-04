@@ -5,6 +5,7 @@ block form-header
   <img class="header-img" src="../img/padlock.png" alt="">
 
 block content
+    <div class="notification notification-totp"></div>
     <form class="form-signin totp">
         <div class="form-inputs">
             <input type="text" class="form-control" id="token" placeholder="Token" required autofocus>
@@ -14,6 +15,7 @@ block content
         <span class="clearfix"></span>
     </form>
     <hr>
+    <div class="notification notification-u2f"></div>
     <form class="form-signin u2f">
         <button class="btn btn-lg btn-primary btn-block u2f-button" type="submit">U2F</button>
         a(href=u2f_identity_start_endpoint, class="pull-right link register-u2f") Need to register?

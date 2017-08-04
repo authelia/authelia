@@ -20,3 +20,42 @@ body {
     font-size: 0.7em;
     color: #6b6b6b;
 }
+
+/* notifications */
+
+.notification {
+    padding: 10px;
+    border-radius: 6px;
+    display: none;
+}
+
+.notification img {
+    width: 24px;
+    margin-right: 10px;
+}
+
+.notification i,
+.notification span {
+    display:table-cell;
+    vertical-align:middle;
+}
+
+.info {
+    border: 1px solid #9cb1ff;
+    background-color: rgb(192, 220, 255);
+}
+
+.success {
+    border: 1px solid #65ec7c;
+    background-color: rgb(163, 255, 157);
+}
+
+.error {
+    border: 1px solid #ffa3a3;
+    background-color: rgb(255, 175, 175);
+}
+
+.warning {
+    border: 1px solid #ffd743;
+    background-color: rgb(255, 230, 143);
+}

@@ -1,6 +1,6 @@
 
 import BluebirdPromise = require("bluebird");
-import Endpoints = require("../../server/endpoints");
+import Endpoints = require("../../../server/endpoints");
 
 export function validate(token: string, $: JQueryStatic): BluebirdPromise<string> {
     return new BluebirdPromise<string>(function (resolve, reject) {
