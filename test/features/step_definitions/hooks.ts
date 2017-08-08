@@ -11,10 +11,10 @@ Cucumber.defineSupportCode(function({ After, Before }) {
   });
 
   Before({tags: "@needs-test-config", timeout: 15 * 1000}, function () {
-    return exec("./scripts/example/dc-example.sh -f docker-compose.test.yml up -d authelia && sleep 2");
+    return exec("./scripts/example-commit/dc-example.sh -f docker-compose.test.yml up -d authelia && sleep 2");
   });
 
   After({tags: "@needs-test-config", timeout: 15 * 1000}, function () {
-    return exec("./scripts/example/dc-example.sh up -d authelia && sleep 2");
+    return exec("./scripts/example-commit/dc-example.sh up -d authelia && sleep 2");
   });
 });

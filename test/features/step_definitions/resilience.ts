@@ -7,6 +7,6 @@ import BluebirdPromise = require("bluebird");
 Cucumber.defineSupportCode(function ({ Given, When, Then }) {
   When(/^the application restarts$/, {timeout: 15 * 1000}, function () {
     const exec = BluebirdPromise.promisify(ChildProcess.exec);
-    return exec("./scripts/example/dc-example.sh restart authelia && sleep 2");
+    return exec("./scripts/example-commit/dc-example.sh restart authelia && sleep 2");
   });
 });

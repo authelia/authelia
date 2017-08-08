@@ -1,0 +1,12 @@
+version: '2'
+services:
+  authelia:
+    image: clems4ever/authelia:latest
+    restart: always
+    volumes:
+      - ./config.template.yml:/etc/authelia/config.yml:ro
+      - ./notifications:/var/lib/authelia/notifications
+    depends_on: 
+      - redis
+    networks:
+      - example-network
