@@ -1,9 +1,7 @@
 
-import { Winston } from "winston";
 import objectPath = require("object-path");
 import BluebirdPromise = require("bluebird");
 import express = require("express");
-import { AccessController } from "../../access_control/AccessController";
 import exceptions = require("../../Exceptions");
 import winston = require("winston");
 import AuthenticationValidator = require("../../AuthenticationValidator");
@@ -34,6 +32,9 @@ function verify_filter(req: express.Request, res: express.Response): BluebirdPro
 
       if (!authSession.first_factor || !authSession.second_factor)
         return BluebirdPromise.reject(new exceptions.AccessDeniedError("First or second factor not validated"));
+
+      res.setHeader("Remote-User", username);
+      res.setHeader("Remote-Groups", groups.join(","));
 
       return BluebirdPromise.resolve();
     });

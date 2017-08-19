@@ -274,7 +274,10 @@ export const SECOND_FACTOR_GET = "/secondfactor";
  * @apiError (Error 401) status The user is not authenticated.
  *
  * @apiDescription Verify that the user is authenticated, i.e., the two
- * factors have been validated
+ * factors have been validated.
+ * If the user is authenticated the response headers Remote-User and Remote-Groups
+ * are set. Remote-User contains the user id of the currently logged in user and Remote-Groups
+ * a comma separated list of assigned groups.
  */
 export const VERIFY_GET = "/verify";
 
