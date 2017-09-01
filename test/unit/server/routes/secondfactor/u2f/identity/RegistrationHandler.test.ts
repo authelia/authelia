@@ -17,7 +17,7 @@ describe("test register handler", function () {
   let authSession: AuthenticationSession.AuthenticationSession;
 
   beforeEach(function () {
-    req = ExpressMock.RequestMock;
+    req = ExpressMock.RequestMock();
     req.app = {};
     const mocks = ServerVariablesMock.mock(req.app);
     mocks.logger = winston;
