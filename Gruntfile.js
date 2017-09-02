@@ -162,7 +162,7 @@ module.exports = function (grunt) {
   grunt.registerTask('docker-restart', ['run:docker-restart']);
 
   grunt.registerTask('unit-tests', ['run:unit-tests']);
-  grunt.registerTask('integration-tests', ['run:unit-tests']);
+  grunt.registerTask('integration-tests', ['run:integration-tests']);
 
   grunt.registerTask('test', ['unit-tests']);
 };

@@ -1,9 +1,12 @@
 import BluebirdPromise = require("bluebird");
 
-import Endpoints = require("../../server/endpoints");
+import Endpoints = require("../../../server/endpoints");
 import Constants = require("./constants");
+import { Notifier } from "../Notifier";
 
 export default function (window: Window, $: JQueryStatic) {
+  const notifier = new Notifier(".notification", $);
+
   function modifyPassword(newPassword: string) {
     return new BluebirdPromise(function (resolve, reject) {
       $.post(Endpoints.RESET_PASSWORD_FORM_POST, {
@@ -23,22 +26,22 @@ export default function (window: Window, $: JQueryStatic) {
     const password2 = $("#password2").val();
 
     if (!password1 || !password2) {
-      $.notify("You must enter your new password twice.", "warn");
+      notifier.warning("You must enter your new password twice.");
       return false;
     }
 
     if (password1 != password2) {
-      $.notify("The passwords are different", "warn");
+      notifier.warning("The passwords are different.");
       return false;
     }
 
     modifyPassword(password1)
       .then(function () {
-        $.notify("Your password has been changed. Please login again", "success");
+        notifier.success("Your password has been changed. Please log in again.");
         window.location.href = Endpoints.FIRST_FACTOR_GET;
       })
       .error(function () {
-        $.notify("An error occurred during password change.", "warn");
+        notifier.warning("An error occurred during password reset. Your password has not been changed.");
       });
     return false;
   }

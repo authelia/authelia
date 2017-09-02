@@ -3,6 +3,7 @@ import seleniumWebdriver = require("selenium-webdriver");
 import Cucumber = require("cucumber");
 import Fs = require("fs");
 import Speakeasy = require("speakeasy");
+import Assert = require("assert");
 
 function CustomWorld() {
   const that = this;
@@ -26,16 +27,26 @@ function CustomWorld() {
   };
 
   this.getErrorPage = function (code: number) {
-    return this.driver
-      .findElement(seleniumWebdriver.By.tagName("h1"))
-      .findElement(seleniumWebdriver.By.xpath("//h1[contains(.,'Error " + code + "')]"));
+    const that = this;
+    return this.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.tagName("h1")), 2000)
+      .then(function () {
+        return that.driver
+          .findElement(seleniumWebdriver.By.tagName("h1")).getText();
+      })
+      .then(function (txt: string) {
+        Assert.equal(txt, "Error " + code);
+      });
   };
 
   this.clickOnButton = function (buttonText: string) {
-    return this.driver
-      .findElement(seleniumWebdriver.By.tagName("button"))
-      .findElement(seleniumWebdriver.By.xpath("//button[contains(.,'" + buttonText + "')]"))
-      .click();
+    const that = this;
+    return this.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.tagName("button")), 2000)
+      .then(function () {
+        return that.driver
+          .findElement(seleniumWebdriver.By.tagName("button"))
+          .findElement(seleniumWebdriver.By.xpath("//button[contains(.,'" + buttonText + "')]"))
+          .click();
+      });
   };
 
   this.loginWithUserPassword = function (username: string, password: string) {
@@ -68,7 +79,7 @@ function CustomWorld() {
         return that.driver.get(link);
       })
       .then(function () {
-        return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.id("secret")), 1000);
+        return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.id("secret")), 5000);
       })
       .then(function () {
         return that.driver.findElement(seleniumWebdriver.By.id("secret")).getText();

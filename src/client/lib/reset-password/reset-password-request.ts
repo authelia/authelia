@@ -1,11 +1,14 @@
 
 import BluebirdPromise = require("bluebird");
 
-import Endpoints = require("../../server/endpoints");
+import Endpoints = require("../../../server/endpoints");
 import Constants = require("./constants");
 import jslogger = require("js-logger");
+import { Notifier } from "../Notifier";
 
 export default function(window: Window, $: JQueryStatic) {
+  const notifier = new Notifier(".notification", $);
+
   function requestPasswordReset(username: string) {
     return new BluebirdPromise(function (resolve, reject) {
       $.get(Endpoints.RESET_PASSWORD_IDENTITY_START_GET, {
@@ -24,19 +27,19 @@ export default function(window: Window, $: JQueryStatic) {
     const username = $("#username").val();
 
     if (!username) {
-      $.notify("You must provide your username to reset your password.", "warn");
+      notifier.warning("You must provide your username to reset your password.");
       return;
     }
 
     requestPasswordReset(username)
       .then(function () {
-        $.notify("An email has been sent. Click on the link to change your password.", "success");
+        notifier.success("An email has been sent to you. Follow the link to change your password.");
         setTimeout(function () {
           window.location.replace(Endpoints.FIRST_FACTOR_GET);
         }, 1000);
       })
       .error(function () {
-        $.notify("Are you sure this is your username?", "warn");
+        notifier.warning("Are you sure this is your username?");
       });
       return false;
   }

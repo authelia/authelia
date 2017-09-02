@@ -4,24 +4,25 @@ import jslogger = require("js-logger");
 
 import TOTPValidator = require("./TOTPValidator");
 import U2FValidator = require("./U2FValidator");
-
-import Endpoints = require("../../server/endpoints");
-
+import Endpoints = require("../../../server/endpoints");
 import Constants = require("./constants");
+import { Notifier } from "../Notifier";
 
 
 export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi) {
+    const notifierTotp = new Notifier(".notification-totp", $);
+    const notifierU2f = new Notifier(".notification-u2f", $);
+
     function onAuthenticationSuccess(data: any) {
         window.location.href = data.redirection_url;
     }
-
 
     function onSecondFactorTotpSuccess(data: any) {
         onAuthenticationSuccess(data);
     }
 
     function onSecondFactorTotpFailure(err: Error) {
-        $.notify("Error while validating TOTP token. Cause: " + err.message, "error");
+        notifierTotp.error("Problem with TOTP validation.");
     }
 
     function onU2fAuthenticationSuccess(data: any) {
@@ -29,9 +30,8 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
     }
 
     function onU2fAuthenticationFailure() {
-        $.notify("Problem with U2F authentication. Did you register before authenticating?", "warn");
+        notifierU2f.error("Problem with U2F validation. Did you register before authenticating?");
     }
-
 
     function onTOTPFormSubmitted(): boolean {
         const token = $(Constants.TOTP_TOKEN_SELECTOR).val();
@@ -45,7 +45,7 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
 
     function onU2FFormSubmitted(): boolean {
         jslogger.debug("Start U2F authentication");
-        U2FValidator.validate($, U2fApi)
+        U2FValidator.validate($, notifierU2f, U2fApi)
             .then(onU2fAuthenticationSuccess, onU2fAuthenticationFailure);
         return false;
     }

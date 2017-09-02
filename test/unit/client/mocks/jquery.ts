@@ -10,17 +10,32 @@ export interface JQueryMock extends sinon.SinonStub {
     notify: sinon.SinonStub;
 }
 
+export interface JQueryElementsMock {
+    ready: sinon.SinonStub;
+    show: sinon.SinonStub;
+    hide: sinon.SinonStub;
+    html: sinon.SinonStub;
+    addClass: sinon.SinonStub;
+    removeClass: sinon.SinonStub;
+    fadeIn: sinon.SinonStub;
+    on: sinon.SinonStub;
+}
+
 export interface JQueryDeferredMock {
     done: sinon.SinonStub;
     fail: sinon.SinonStub;
 }
 
-export function JQueryMock(): JQueryMock {
+export function JQueryMock(): { jquery: JQueryMock, element: JQueryElementsMock } {
     const jquery = sinon.stub() as any;
-    const jqueryInstance = {
+    const jqueryInstance: JQueryElementsMock = {
         ready: sinon.stub(),
         show: sinon.stub(),
         hide: sinon.stub(),
+        html: sinon.stub(),
+        addClass: sinon.stub(),
+        removeClass: sinon.stub(),
+        fadeIn: sinon.stub(),
         on: sinon.stub()
     };
     jquery.ajax = sinon.stub();
@@ -28,7 +43,10 @@ export function JQueryMock(): JQueryMock {
     jquery.post = sinon.stub();
     jquery.notify = sinon.stub();
     jquery.returns(jqueryInstance);
-    return jquery;
+    return {
+        jquery: jquery,
+        element: jqueryInstance
+    };
 }
 
 export function JQueryDeferredMock(): JQueryDeferredMock {

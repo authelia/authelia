@@ -14,4 +14,3 @@ Feature: Non authenticated users have no access to certain pages
       | https://auth.test.local:8080/secondfactor/totp/identity/finish | 403        |
       | https://auth.test.local:8080/password-reset/identity/start     | 403        |
       | https://auth.test.local:8080/password-reset/identity/finish    | 403        |
-  

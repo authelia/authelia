@@ -38,15 +38,6 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
     return this.useTotpTokenHandle(handle);
   });
 
-  Then("I get a notification with message {stringInDoubleQuotes}", function (notificationMessage: string) {
-    const that = this;
-    that.driver.sleep(500);
-    return this.driver
-      .findElement(seleniumWebdriver.By.className("notifyjs-corner"))
-      .findElement(seleniumWebdriver.By.tagName("span"))
-      .findElement(seleniumWebdriver.By.xpath("//span[contains(.,'" + notificationMessage + "')]"));
-  });
-
   When("I visit {stringInDoubleQuotes} and get redirected {stringInDoubleQuotes}", function (url: string, redirectUrl: string) {
     const that = this;
     return this.driver.get(url)

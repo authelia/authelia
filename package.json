@@ -88,7 +88,6 @@
     "jsdom": "^11.0.0",
     "mocha": "^3.4.2",
     "mockdate": "^2.0.1",
-    "notifyjs-browser": "^0.4.2",
     "nyc": "^10.3.2",
     "power-assert": "^1.4.4",
     "proxyquire": "^1.8.0",
