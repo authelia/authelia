@@ -67,6 +67,11 @@ describe("test server configuration", function () {
           password: "password"
         }
       },
+      regulation: {
+        max_retries: 3,
+        ban_time: 5 * 60,
+        find_time: 5 * 60
+      },
       storage: {
         local: {
           in_memory: true

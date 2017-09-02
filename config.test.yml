@@ -114,10 +114,10 @@ regulation:
   max_retries: 3
 
   # The length of time between login attempts before user is banned.
-  find_time: 120
+  find_time: 15 
 
   # The length of time before a banned user can login again.
-  ban_time: 300
+  ban_time: 4 
 
 # Configuration of the storage backend used to store data and secrets.
 #

@@ -13,6 +13,7 @@ export default function (window: Window, $: JQueryStatic,
   function onFormSubmitted() {
     const username: string = $(UISelectors.USERNAME_FIELD_ID).val();
     const password: string = $(UISelectors.PASSWORD_FIELD_ID).val();
+    $(UISelectors.PASSWORD_FIELD_ID).val("");
     jslogger.debug("Form submitted");
     firstFactorValidator.validate(username, password, $)
       .then(onFirstFactorSuccess, onFirstFactorFailure);
@@ -21,17 +22,12 @@ export default function (window: Window, $: JQueryStatic,
 
   function onFirstFactorSuccess() {
     jslogger.debug("First factor validated.");
-    $(UISelectors.USERNAME_FIELD_ID).val("");
-    $(UISelectors.PASSWORD_FIELD_ID).val("");
-
     // Redirect to second factor
     window.location.href = Endpoints.SECOND_FACTOR_GET;
   }
 
   function onFirstFactorFailure(err: Error) {
     jslogger.debug("First factor failed.");
-
-    $(UISelectors.PASSWORD_FIELD_ID).val("");
     notifier.error("Authentication failed. Please double check your credentials.");
   }
 

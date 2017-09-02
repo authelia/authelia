@@ -85,6 +85,12 @@ export interface StorageConfiguration {
     mongo?: MongoStorageConfiguration;
 }
 
+export interface RegulationConfiguration {
+    max_retries: number;
+    find_time: number;
+    ban_time: number;
+}
+
 export interface UserConfiguration {
     port?: number;
     logs_level?: string;
@@ -93,6 +99,7 @@ export interface UserConfiguration {
     storage: StorageConfiguration;
     notifier: NotifierConfiguration;
     access_control?: ACLConfiguration;
+    regulation: RegulationConfiguration;
 }
 
 export interface AppConfiguration {
@@ -103,4 +110,5 @@ export interface AppConfiguration {
     storage: StorageConfiguration;
     notifier: NotifierConfiguration;
     access_control?: ACLConfiguration;
+    regulation: RegulationConfiguration;
 }

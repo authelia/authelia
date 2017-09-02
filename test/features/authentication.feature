@@ -26,7 +26,7 @@ Feature: User validate first factor
 
   Scenario: User fails TOTP second factor
     When I visit "https://secret.test.local:8080/secret.html" and get redirected "https://auth.test.local:8080/"
-    And I login with user "john" and password "password" 
+    And I login with user "john" and password "password"
     And I use "BADTOKEN" as TOTP token
     And I click on "TOTP"
     Then I get a notification of type "error" with message "Problem with TOTP validation."

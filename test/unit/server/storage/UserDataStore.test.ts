@@ -141,29 +141,24 @@ describe("test user data store", function () {
         });
     });
 
-    function should_retrieve_latest_authentication_traces(count: number, status: boolean) {
+    function should_retrieve_latest_authentication_traces(count: number) {
       factory.buildStub.returns(collection);
       collection.findStub.withArgs().returns(BluebirdPromise.resolve());
 
       const dataStore = new UserDataStore(factory);
 
-      return dataStore.retrieveLatestAuthenticationTraces(userId, status, count)
+      return dataStore.retrieveLatestAuthenticationTraces(userId, count)
         .then(function (doc: AuthenticationTraceDocument[]) {
           Assert(collection.findStub.calledOnce);
           Assert(collection.findStub.calledWith({
             userId: userId,
-            isAuthenticationSuccessful: status,
           }, { date: -1 }, count));
           return BluebirdPromise.resolve();
         });
     }
 
     it("should retrieve 3 latest failed authentication traces", function () {
-      should_retrieve_latest_authentication_traces(3, false);
-    });
-
-    it("should retrieve 4 latest successful authentication traces", function () {
-      should_retrieve_latest_authentication_traces(4, true);
+      should_retrieve_latest_authentication_traces(3);
     });
   });
 

@@ -56,6 +56,7 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration): AppCo
   // ensure_key_existence(userConfiguration, "ldap.url");
   // ensure_key_existence(userConfiguration, "ldap.base_dn");
   ensure_key_existence(userConfiguration, "session.secret");
+  ensure_key_existence(userConfiguration, "regulation");
 
   const port = userConfiguration.port || 8080;
   const ldapConfiguration = adaptLdapConfiguration(userConfiguration.ldap);
@@ -75,7 +76,8 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration): AppCo
     },
     logs_level: get_optional<string>(userConfiguration, "logs_level", "info"),
     notifier: ObjectPath.get<object, NotifierConfiguration>(userConfiguration, "notifier"),
-    access_control: ObjectPath.get<object, ACLConfiguration>(userConfiguration, "access_control")
+    access_control: ObjectPath.get<object, ACLConfiguration>(userConfiguration, "access_control"),
+    regulation: userConfiguration.regulation
   };
 }
 

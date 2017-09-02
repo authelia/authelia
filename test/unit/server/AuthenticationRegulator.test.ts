@@ -1,120 +1,186 @@
 
 import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
+import Assert = require("assert");
 
 import { AuthenticationRegulator } from "../../../src/server/lib/AuthenticationRegulator";
-import { UserDataStore } from "../../../src/server/lib/storage/UserDataStore";
 import MockDate = require("mockdate");
 import exceptions = require("../../../src/server/lib/Exceptions");
-import { CollectionStub } from "./mocks/storage/CollectionStub";
-import { CollectionFactoryStub } from "./mocks/storage/CollectionFactoryStub";
+import { UserDataStoreStub } from "./mocks/storage/UserDataStoreStub";
 
 describe("test authentication regulator", function () {
-  let collectionFactory: CollectionFactoryStub;
-  let collection: CollectionStub;
+  const USER1 = "USER1";
+  const USER2 = "USER2";
+  let userDataStoreStub: UserDataStoreStub;
 
   beforeEach(function () {
-    collectionFactory = new CollectionFactoryStub();
-    collection = new CollectionStub();
+    userDataStoreStub = new UserDataStoreStub();
+    const dataStore: { [userId: string]: { userId: string, date: Date, isAuthenticationSuccessful: boolean }[] } = {
+      [USER1]: [],
+      [USER2]: []
+    };
 
-    collectionFactory.buildStub.returns(collection);
+    userDataStoreStub.saveAuthenticationTraceStub.callsFake(function (userId, isAuthenticationSuccessful) {
+      dataStore[userId].unshift({
+        userId: userId,
+        date: new Date(),
+        isAuthenticationSuccessful: isAuthenticationSuccessful,
+      });
+      return BluebirdPromise.resolve();
+    });
+
+    userDataStoreStub.retrieveLatestAuthenticationTracesStub.callsFake(function (userId, count) {
+      const ret = (dataStore[userId].length <= count) ? dataStore[userId] : dataStore[userId].slice(0, 3);
+      return BluebirdPromise.resolve(ret);
+    });
   });
 
-  it("should mark 2 authentication and regulate", function () {
-    const user = "USER";
+  afterEach(function () {
+    MockDate.reset();
+  });
 
-    collection.insertStub.returns(BluebirdPromise.resolve());
-    collection.findStub.returns(BluebirdPromise.resolve([{
-      userId: user,
-      date: new Date(),
-      isAuthenticationSuccessful: false
-    }, {
-      userId: user,
-      date: new Date(),
-      isAuthenticationSuccessful: true
-    }]));
+  function markAuthenticationAt(regulator: AuthenticationRegulator, user: string, time: string, success: boolean) {
+    MockDate.set(time);
+    return regulator.mark(user, success);
+  }
 
-    const dataStore = new UserDataStore(collectionFactory);
-    const regulator = new AuthenticationRegulator(dataStore, 10);
+  it("should mark 2 authentication and regulate (accept)", function () {
+    const regulator = new AuthenticationRegulator(userDataStoreStub, 3, 10, 10);
 
-    return regulator.mark(user, false)
+    return regulator.mark(USER1, false)
       .then(function () {
-        return regulator.mark(user, true);
+        return regulator.mark(USER1, true);
       })
       .then(function () {
-        return regulator.regulate(user);
+        return regulator.regulate(USER1);
       });
   });
 
-  it("should mark 3 authentications and regulate (reject)", function (done) {
-    const user = "USER";
-    collection.insertStub.returns(BluebirdPromise.resolve());
-    collection.findStub.returns(BluebirdPromise.resolve([{
-      userId: user,
-      date: new Date(),
-      isAuthenticationSuccessful: false
-    }, {
-      userId: user,
-      date: new Date(),
-      isAuthenticationSuccessful: false
-    }, {
-      userId: user,
-      date: new Date(),
-      isAuthenticationSuccessful: false
-    }]));
+  it("should mark 3 authentications and regulate (reject)", function () {
+    const regulator = new AuthenticationRegulator(userDataStoreStub, 3, 10, 10);
 
-    const dataStore = new UserDataStore(collectionFactory);
-    const regulator = new AuthenticationRegulator(dataStore, 10);
-
-    regulator.mark(user, false)
+    return regulator.mark(USER1, false)
       .then(function () {
-        return regulator.mark(user, false);
+        return regulator.mark(USER1, false);
       })
       .then(function () {
-        return regulator.mark(user, false);
+        return regulator.mark(USER1, false);
       })
       .then(function () {
-        return regulator.regulate(user);
+        return regulator.regulate(USER1);
       })
+      .then(function () { return BluebirdPromise.reject(new Error("should not be here!")); })
       .catch(exceptions.AuthenticationRegulationError, function () {
-        done();
+        return BluebirdPromise.resolve();
       });
   });
 
-  it("should mark 3 authentications separated by a lot of time and allow access to user", function (done) {
-    const user = "USER";
-    collection.insertStub.returns(BluebirdPromise.resolve());
-    collection.findStub.returns(BluebirdPromise.resolve([{
-      userId: user,
-      date: new Date("1/2/2000 06:00:15"),
-      isAuthenticationSuccessful: false
-    }, {
-      userId: user,
-      date: new Date("1/2/2000 00:00:15"),
-      isAuthenticationSuccessful: false
-    }, {
-      userId: user,
-      date: new Date("1/2/2000 00:00:00"),
-      isAuthenticationSuccessful: false
-    }]));
-    const data_store = new UserDataStore(collectionFactory);
-    const regulator = new AuthenticationRegulator(data_store, 10);
+  it("should mark 1 failed, 1 successful and 1 failed authentications within minimum time and regulate (accept)", function () {
+    const regulator = new AuthenticationRegulator(userDataStoreStub, 3, 60, 30);
 
-    MockDate.set("1/2/2000 00:00:00");
-    regulator.mark(user, false)
+    return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:00", false)
       .then(function () {
-        MockDate.set("1/2/2000 00:00:15");
-        return regulator.mark(user, false);
+        return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:10", true);
       })
       .then(function () {
-        MockDate.set("1/2/2000 06:00:15");
-        return regulator.mark(user, false);
+        return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:20", false);
       })
       .then(function () {
-        return regulator.regulate(user);
+        return regulator.regulate(USER1);
       })
       .then(function () {
-        done();
+        return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:30", false);
+      })
+      .then(function () {
+        return regulator.regulate(USER1);
+      })
+      .then(function () {
+        return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:39", false);
+      })
+      .then(function () {
+        return regulator.regulate(USER1);
+      })
+      .then(function () {
+        return BluebirdPromise.reject(new Error("should not be here!"));
+      },
+      function () {
+        return BluebirdPromise.resolve();
+      });
+  });
+
+  it("should regulate user if number of failures is greater than 3 in allowed time lapse", function () {
+    function markAuthentications(regulator: AuthenticationRegulator, user: string) {
+      return markAuthenticationAt(regulator, user, "1/2/2000 00:00:00", false)
+        .then(function () {
+          return markAuthenticationAt(regulator, user, "1/2/2000 00:00:45", false);
+        })
+        .then(function () {
+          return markAuthenticationAt(regulator, user, "1/2/2000 00:01:05", false);
+        })
+        .then(function () {
+          return regulator.regulate(user);
+        });
+    }
+
+    const regulator1 = new AuthenticationRegulator(userDataStoreStub, 3, 60, 60);
+    const regulator2 = new AuthenticationRegulator(userDataStoreStub, 3, 2 * 60, 60);
+
+    const p1 = markAuthentications(regulator1, USER1);
+    const p2 = markAuthentications(regulator2, USER2);
+
+    return BluebirdPromise.join(p1, p2)
+      .then(function () {
+        return BluebirdPromise.reject(new Error("should not be here..."));
+      }, function () {
+        Assert(p1.isFulfilled());
+        Assert(p2.isRejected());
+      });
+  });
+
+  it("should user wait after regulation to authenticate again", function () {
+    function markAuthentications(regulator: AuthenticationRegulator, user: string) {
+      return markAuthenticationAt(regulator, user, "1/2/2000 00:00:00", false)
+        .then(function () {
+          return markAuthenticationAt(regulator, user, "1/2/2000 00:00:10", false);
+        })
+        .then(function () {
+          return markAuthenticationAt(regulator, user, "1/2/2000 00:00:15", false);
+        })
+        .then(function () {
+          return markAuthenticationAt(regulator, user, "1/2/2000 00:00:25", false);
+        })
+        .then(function () {
+          MockDate.set("1/2/2000 00:00:54");
+          return regulator.regulate(user);
+        })
+        .then(function () {
+          return BluebirdPromise.reject(new Error("should fail at this time"));
+        }, function () {
+          MockDate.set("1/2/2000 00:00:56");
+          return regulator.regulate(user);
+        });
+    }
+
+    const regulator = new AuthenticationRegulator(userDataStoreStub, 4, 30, 30);
+    return markAuthentications(regulator, USER1);
+  });
+
+  it("should disable regulation when max_retries is set to 0", function () {
+    const maxRetries = 0;
+    const regulator = new AuthenticationRegulator(userDataStoreStub, maxRetries, 60, 30);
+    return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:00", false)
+      .then(function () {
+        return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:10", false);
+      })
+      .then(function () {
+        return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:15", false);
+      })
+      .then(function () {
+        return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:25", false);
+      })
+      .then(function () {
+        MockDate.set("1/2/2000 00:00:26");
+        return regulator.regulate(USER1);
       });
   });
 });

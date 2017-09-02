@@ -38,6 +38,11 @@ describe("test session configuration builder", function () {
                 expiration: 3600,
                 secret: "secret"
             },
+            regulation: {
+                max_retries: 3,
+                ban_time: 5 * 60,
+                find_time: 5 * 60
+            },
             storage: {
                 local: {
                     in_memory: true
@@ -106,6 +111,11 @@ describe("test session configuration builder", function () {
                     host: "redis.example.com",
                     port: 6379
                 }
+            },
+            regulation: {
+                max_retries: 3,
+                ban_time: 5 * 60,
+                find_time: 5 * 60
             },
             storage: {
                 local: {

@@ -11,7 +11,7 @@ export interface IUserDataStore {
     retrieveU2FRegistration(userId: string, appId: string): BluebirdPromise<U2FRegistrationDocument>;
 
     saveAuthenticationTrace(userId: string, isAuthenticationSuccessful: boolean): BluebirdPromise<void>;
-    retrieveLatestAuthenticationTraces(userId: string, isAuthenticationSuccessful: boolean, count: number): BluebirdPromise<AuthenticationTraceDocument[]>;
+    retrieveLatestAuthenticationTraces(userId: string, count: number): BluebirdPromise<AuthenticationTraceDocument[]>;
 
     produceIdentityValidationToken(userId: string, token: string, challenge: string, maxAge: number): BluebirdPromise<any>;
     consumeIdentityValidationToken(token: string, challenge: string): BluebirdPromise<IdentityValidationDocument>;

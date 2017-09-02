@@ -72,8 +72,6 @@ class UserDataStoreFactory {
 
 export class ServerVariablesHandler {
   static initialize(app: express.Application, config: Configuration.AppConfiguration, deps: GlobalDependencies): BluebirdPromise<void> {
-    const five_minutes = 5 * 60;
-
     const notifier = NotifierFactory.build(config.notifier, deps.nodemailer);
     const ldapClientFactory = new ClientFactory(config.ldap, deps.ldapjs, deps.dovehash, deps.winston);
 
@@ -86,7 +84,8 @@ export class ServerVariablesHandler {
 
     return UserDataStoreFactory.create(config)
       .then(function (userDataStore: UserDataStore) {
-        const regulator = new AuthenticationRegulator(userDataStore, five_minutes);
+        const regulator = new AuthenticationRegulator(userDataStore, config.regulation.max_retries,
+          config.regulation.find_time, config.regulation.ban_time);
 
         const variables: ServerVariables = {
           accessController: accessController,

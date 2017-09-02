@@ -12,6 +12,7 @@ function CustomWorld() {
     .build();
 
   this.totpSecrets = {};
+  this.configuration = {};
 
   this.visit = function (link: string) {
     return this.driver.get(link);
@@ -71,7 +72,7 @@ function CustomWorld() {
         return that.driver.findElement(seleniumWebdriver.By.className("register-totp")).click();
       })
       .then(function () {
-        const notif = Fs.readFileSync("./notifications/notification.txt").toString();
+        const notif = Fs.readFileSync("/tmp/notifications/notification.txt").toString();
         const regexp = new RegExp(/Link: (.+)/);
         const match = regexp.exec(notif);
         const link = match[1];
@@ -98,7 +99,7 @@ function CustomWorld() {
   };
 
   this.useTotpToken = function (totpSecret: string) {
-    return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.className("register-totp")), 4000)
+    return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.className("register-totp")), 5000)
       .then(function () {
         return that.driver.findElement(seleniumWebdriver.By.id("token"))
           .sendKeys(totpSecret);

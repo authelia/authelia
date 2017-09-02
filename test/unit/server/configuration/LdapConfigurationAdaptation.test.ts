@@ -4,7 +4,7 @@ import { ConfigurationAdapter } from "../../../../src/server/lib/configuration/C
 
 describe("test ldap configuration adaptation", function () {
   function build_yaml_config(): UserConfiguration {
-    const yaml_config = {
+    const yaml_config: UserConfiguration = {
       port: 8080,
       ldap: {
         url: "http://ldap",
@@ -17,12 +17,17 @@ describe("test ldap configuration adaptation", function () {
       session: {
         domain: "example.com",
         secret: "secret",
-        max_age: 40000
+        expiration: 40000
       },
       storage: {
         local: {
           path: "/mydirectory"
         }
+      },
+      regulation: {
+        max_retries: 3,
+        ban_time: 5 * 60,
+        find_time: 5 * 60,
       },
       logs_level: "debug",
       notifier: {

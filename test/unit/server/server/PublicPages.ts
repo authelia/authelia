@@ -5,6 +5,7 @@ import speakeasy = require("speakeasy");
 import Request = require("request");
 import nedb = require("nedb");
 import { GlobalDependencies } from "../../../../src/types/Dependencies";
+import { UserConfiguration } from "../../../../src/server/lib/configuration/Configuration";
 import { TOTPSecret } from "../../../../src/types/TOTPSecret";
 import U2FMock = require("./../mocks/u2f");
 import Endpoints = require("../../../../src/server/endpoints");
@@ -28,12 +29,11 @@ describe("Public pages of the server must be accessible without session", functi
   let u2f: U2FMock.U2FMock;
 
   beforeEach(function () {
-    const config = {
+    const config: UserConfiguration = {
       port: PORT,
       ldap: {
         url: "ldap://127.0.0.1:389",
         base_dn: "ou=users,dc=example,dc=com",
-        user_name_attribute: "cn",
         user: "cn=admin,dc=example,dc=com",
         password: "password",
       },
@@ -45,6 +45,11 @@ describe("Public pages of the server must be accessible without session", functi
         local: {
           in_memory: true
         }
+      },
+      regulation: {
+        max_retries: 3,
+        ban_time: 5 * 60,
+        find_time: 5 * 60
       },
       notifier: {
         gmail: {

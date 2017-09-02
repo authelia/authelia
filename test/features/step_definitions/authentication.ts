@@ -22,9 +22,20 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
     return this.clickOnButton(text);
   });
 
-  Given("I login with user {stringInDoubleQuotes} and password {stringInDoubleQuotes}", function (username: string, password: string) {
-    return this.loginWithUserPassword(username, password);
-  });
+  Given("I login with user {stringInDoubleQuotes} and password {stringInDoubleQuotes}",
+    function (username: string, password: string) {
+      return this.loginWithUserPassword(username, password);
+    });
+
+  Given("I login with user {stringInDoubleQuotes} and password {stringInDoubleQuotes} \
+and I use TOTP token handle {stringInDoubleQuotes}",
+    function (username: string, password: string, totpTokenHandle: string) {
+      const that = this;
+      return this.loginWithUserPassword(username, password)
+        .then(function () {
+          return that.useTotpTokenHandle(totpTokenHandle);
+        });
+    });
 
   Given("I register a TOTP secret called {stringInDoubleQuotes}", function (handle: string) {
     return this.registerTotpSecret(handle);
@@ -38,17 +49,19 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
     return this.useTotpTokenHandle(handle);
   });
 
-  When("I visit {stringInDoubleQuotes} and get redirected {stringInDoubleQuotes}", function (url: string, redirectUrl: string) {
-    const that = this;
-    return this.driver.get(url)
-      .then(function () {
-        return that.driver.wait(seleniumWebdriver.until.urlIs(redirectUrl), 2000);
-      });
-  });
+  When("I visit {stringInDoubleQuotes} and get redirected {stringInDoubleQuotes}",
+    function (url: string, redirectUrl: string) {
+      const that = this;
+      return this.driver.get(url)
+        .then(function () {
+          return that.driver.wait(seleniumWebdriver.until.urlIs(redirectUrl), 2000);
+        });
+    });
 
-  Given("I register TOTP and login with user {stringInDoubleQuotes} and password {stringInDoubleQuotes}", function (username: string, password: string) {
-    return this.registerTotpAndSignin(username, password);
-  });
+  Given("I register TOTP and login with user {stringInDoubleQuotes} and password {stringInDoubleQuotes}",
+    function (username: string, password: string) {
+      return this.registerTotpAndSignin(username, password);
+    });
 
   function hasAccessToSecret(link: string, that: any) {
     return that.driver.get(link)
