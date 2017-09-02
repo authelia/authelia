@@ -47,7 +47,7 @@ export default class Server {
     RestApi.setup(app);
   }
 
-  private transformConfiguration(yamlConfiguration: UserConfiguration, deps: GlobalDependencies): AppConfiguration {
+  private adaptConfiguration(yamlConfiguration: UserConfiguration, deps: GlobalDependencies): AppConfiguration {
     const config = ConfigurationAdapter.adapt(yamlConfiguration);
 
     // by default the level of logs is info
@@ -76,7 +76,7 @@ export default class Server {
   start(yamlConfiguration: UserConfiguration, deps: GlobalDependencies): BluebirdPromise<void> {
     const that = this;
     const app = Express();
-    const config = this.transformConfiguration(yamlConfiguration, deps);
+    const config = this.adaptConfiguration(yamlConfiguration, deps);
     return this.setup(config, app, deps)
       .then(function () {
         return that.startServer(app, config.port);

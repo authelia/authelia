@@ -1,14 +1,16 @@
 import * as Assert from "assert";
-import { UserConfiguration } from "../../../src/server/lib/configuration/Configuration";
-import { ConfigurationAdapter } from "../../../src/server/lib/configuration/ConfigurationAdapter";
+import { UserConfiguration, LdapConfiguration } from "../../../../src/server/lib/configuration/Configuration";
+import { ConfigurationAdapter } from "../../../../src/server/lib/configuration/ConfigurationAdapter";
 
-describe("test config adapter", function() {
+describe("test config adapter", function () {
   function build_yaml_config(): UserConfiguration {
     const yaml_config = {
       port: 8080,
       ldap: {
         url: "http://ldap",
-        base_dn: "cn=test,dc=example,dc=com",
+        base_dn: "dc=example,dc=com",
+        additional_users_dn: "ou=users",
+        additional_groups_dn: "ou=groups",
         user: "user",
         password: "pass"
       },
@@ -33,41 +35,21 @@ describe("test config adapter", function() {
     return yaml_config;
   }
 
-  it("should read the port from the yaml file", function() {
+  it("should read the port from the yaml file", function () {
     const yaml_config = build_yaml_config();
     yaml_config.port = 7070;
     const config = ConfigurationAdapter.adapt(yaml_config);
     Assert.equal(config.port, 7070);
   });
 
-  it("should default the port to 8080 if not provided", function() {
+  it("should default the port to 8080 if not provided", function () {
     const yaml_config = build_yaml_config();
     delete yaml_config.port;
     const config = ConfigurationAdapter.adapt(yaml_config);
     Assert.equal(config.port, 8080);
   });
 
-  it("should get the ldap attributes", function() {
-    const yaml_config = build_yaml_config();
-    yaml_config.ldap = {
-      url: "http://ldap",
-      base_dn: "cn=test,dc=example,dc=com",
-      additional_user_dn: "ou=users",
-      user_name_attribute: "uid",
-      user: "admin",
-      password: "pass"
-    };
-
-    const config = ConfigurationAdapter.adapt(yaml_config);
-
-    Assert.equal(config.ldap.url, "http://ldap");
-    Assert.equal(config.ldap.additional_user_dn, "ou=users");
-    Assert.equal(config.ldap.user_name_attribute, "uid");
-    Assert.equal(config.ldap.user, "admin");
-    Assert.equal(config.ldap.password, "pass");
-  });
-
-  it("should get the session attributes", function() {
+  it("should get the session attributes", function () {
     const yaml_config = build_yaml_config();
     yaml_config.session = {
       domain: "example.com",
@@ -80,14 +62,14 @@ describe("test config adapter", function() {
     Assert.equal(config.session.expiration, 3600);
   });
 
-  it("should get the log level", function() {
+  it("should get the log level", function () {
     const yaml_config = build_yaml_config();
     yaml_config.logs_level = "debug";
     const config = ConfigurationAdapter.adapt(yaml_config);
     Assert.equal(config.logs_level, "debug");
   });
 
-  it("should get the notifier config", function() {
+  it("should get the notifier config", function () {
     const yaml_config = build_yaml_config();
     yaml_config.notifier = {
       gmail: {
@@ -104,7 +86,7 @@ describe("test config adapter", function() {
     });
   });
 
-  it("should get the access_control config", function() {
+  it("should get the access_control config", function () {
     const yaml_config = build_yaml_config();
     yaml_config.access_control = {
       default: [],

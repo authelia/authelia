@@ -1,36 +1,38 @@
 import BluebirdPromise = require("bluebird");
 import exceptions = require("../Exceptions");
 import ldapjs = require("ldapjs");
-import { Client, Attributes } from "./Client";
-import { buildUserDN } from "./common";
+import { IClient } from "./IClient";
+import { IClientFactory } from "./IClientFactory";
+import { GroupsAndEmails } from "./IClient";
 
+import { IAuthenticator } from "./IAuthenticator";
 import { LdapConfiguration } from "../configuration/Configuration";
 import { Winston, Ldapjs, Dovehash } from "../../../types/Dependencies";
 
 
-export class Authenticator {
+export class Authenticator implements IAuthenticator {
   private options: LdapConfiguration;
-  private ldapjs: Ldapjs;
-  private logger: Winston;
+  private clientFactory: IClientFactory;
 
-  constructor(options: LdapConfiguration, ldapjs: Ldapjs, logger: Winston) {
+  constructor(options: LdapConfiguration, clientFactory: IClientFactory) {
     this.options = options;
-    this.ldapjs = ldapjs;
-    this.logger = logger;
+    this.clientFactory = clientFactory;
   }
 
-  private createClient(userDN: string, password: string): Client {
-    return new Client(userDN, password, this.options, this.ldapjs, undefined, this.logger);
-  }
+  authenticate(username: string, password: string): BluebirdPromise<GroupsAndEmails> {
+    const that = this;
+    let userClient: IClient;
+    const adminClient = this.clientFactory.create(this.options.user, this.options.password);
+    let groupsAndEmails: GroupsAndEmails;
 
-  authenticate(username: string, password: string): BluebirdPromise<Attributes> {
-    const self = this;
-    const userDN = buildUserDN(username, this.options);
-    const userClient = this.createClient(userDN, password);
-    const adminClient = this.createClient(this.options.user, this.options.password);
-    let attributes: Attributes;
-
-    return userClient.open()
+    return adminClient.open()
+      .then(function () {
+        return adminClient.searchUserDn(username);
+      })
+      .then(function (userDN: string) {
+        userClient = that.clientFactory.create(userDN, password);
+        return userClient.open();
+      })
       .then(function () {
         return userClient.close();
       })
@@ -40,12 +42,12 @@ export class Authenticator {
       .then(function () {
         return adminClient.searchEmailsAndGroups(username);
       })
-      .then(function (attr: Attributes) {
-        attributes = attr;
+      .then(function (gae: GroupsAndEmails) {
+        groupsAndEmails = gae;
         return adminClient.close();
       })
       .then(function () {
-        return BluebirdPromise.resolve(attributes);
+        return BluebirdPromise.resolve(groupsAndEmails);
       })
       .error(function (err: Error) {
         return BluebirdPromise.reject(new exceptions.LdapError(err.message));

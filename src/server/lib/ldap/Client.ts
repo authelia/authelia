@@ -2,33 +2,30 @@
 import util = require("util");
 import BluebirdPromise = require("bluebird");
 import exceptions = require("../Exceptions");
-import ldapjs = require("ldapjs");
-import { buildUserDN } from "./common";
+import Ldapjs = require("ldapjs");
+import Dovehash = require("dovehash");
 
 import { EventEmitter } from "events";
+import { IClient, GroupsAndEmails } from "./IClient";
 import { LdapConfiguration } from "../configuration/Configuration";
-import { Winston, Ldapjs, Dovehash } from "../../../types/Dependencies";
+import { Winston } from "../../../types/Dependencies";
 
 interface SearchEntry {
   object: any;
 }
 
-export interface Attributes {
-  groups: string[];
-  emails: string[];
-}
-
-export class Client {
+export class Client implements IClient {
   private userDN: string;
   private password: string;
-  private client: ldapjs.ClientAsync;
+  private client: Ldapjs.ClientAsync;
 
-  private ldapjs: Ldapjs;
+  private ldapjs: typeof Ldapjs;
   private logger: Winston;
-  private dovehash: Dovehash;
+  private dovehash: typeof Dovehash;
   private options: LdapConfiguration;
 
-  constructor(userDN: string, password: string, options: LdapConfiguration, ldapjs: Ldapjs, dovehash: Dovehash, logger: Winston) {
+  constructor(userDN: string, password: string, options: LdapConfiguration,
+    ldapjs: typeof Ldapjs, dovehash: typeof Dovehash, logger: Winston) {
     this.options = options;
     this.ldapjs = ldapjs;
     this.dovehash = dovehash;
@@ -46,7 +43,7 @@ export class Client {
       clientLogger.level("trace");
     }*/
 
-    this.client = BluebirdPromise.promisifyAll(ldapClient) as ldapjs.ClientAsync;
+    this.client = BluebirdPromise.promisifyAll(ldapClient) as Ldapjs.ClientAsync;
   }
 
   open(): BluebirdPromise<void> {
@@ -65,7 +62,7 @@ export class Client {
       });
   }
 
-  private search(base: string, query: ldapjs.SearchOptions): BluebirdPromise<any> {
+  private search(base: string, query: Ldapjs.SearchOptions): BluebirdPromise<any> {
     const that = this;
 
     that.logger.debug("LDAP: Search for '%s' in '%s'", JSON.stringify(query), base);
@@ -95,27 +92,18 @@ export class Client {
 
   private searchGroups(username: string): BluebirdPromise<string[]> {
     const that = this;
-    const userDN = buildUserDN(username, this.options);
-    const password = this.options.password;
-
-    let groupNameAttribute = this.options.group_name_attribute;
-    if (!groupNameAttribute) groupNameAttribute = "cn";
-
-    const additionalGroupDN = this.options.additional_group_dn;
-    const base_dn = this.options.base_dn;
-
-    let groupDN = base_dn;
-    if (additionalGroupDN)
-      groupDN = util.format("%s,", additionalGroupDN) + groupDN;
-
-    const query = {
-      scope: "sub",
-      attributes: [groupNameAttribute],
-      filter: "member=" + userDN
-    };
 
     const groups: string[] = [];
-    return that.search(groupDN, query)
+    return that.searchUserDn(username)
+      .then(function (userDN: string) {
+        const filter = that.options.groups_filter.replace("{0}", userDN);
+        const query = {
+          scope: "sub",
+          attributes: [that.options.group_name_attribute],
+          filter: filter
+        };
+        return that.search(that.options.groups_dn, query);
+      })
       .then(function (docs) {
         for (let i = 0; i < docs.length; ++i) {
           groups.push(docs[i].cn);
@@ -127,32 +115,49 @@ export class Client {
       });
   }
 
+  searchUserDn(username: string): BluebirdPromise<string> {
+    const that = this;
+    const filter = this.options.users_filter.replace("{0}", username);
+    const query = {
+      scope: "sub",
+      sizeLimit: 1,
+      attributes: ["dn"],
+      filter: filter
+    };
+
+    that.logger.debug("LDAP: searching for user dn of %s", username);
+    return that.search(this.options.users_dn, query)
+      .then(function (users: { dn: string }[]) {
+        that.logger.debug("LDAP: retrieved user dn is %s", users[0].dn);
+        return BluebirdPromise.resolve(users[0].dn);
+      });
+  }
+
   searchEmails(username: string): BluebirdPromise<string[]> {
     const that = this;
-    const userDN = buildUserDN(username, this.options);
-
     const query = {
       scope: "base",
       sizeLimit: 1,
-      attributes: ["mail"]
+      attributes: [this.options.mail_attribute]
     };
 
-    return this.search(userDN, query)
-      .then(function (docs) {
-        const emails = [];
-        for (let i = 0; i < docs.length; ++i) {
-          if (typeof docs[i].mail === "string")
-            emails.push(docs[i].mail);
-          else {
-            emails.concat(docs[i].mail);
-          }
+    return this.searchUserDn(username)
+      .then(function (userDN) {
+        return that.search(userDN, query);
+      })
+      .then(function (docs: { mail: string }[]) {
+        const emails: string[] = [];
+        if (typeof docs[0].mail === "string")
+          emails.push(docs[0].mail);
+        else {
+          emails.concat(docs[0].mail);
         }
         that.logger.debug("LDAP: emails of user '%s' are %s", username, emails);
         return BluebirdPromise.resolve(emails);
       });
   }
 
-  searchEmailsAndGroups(username: string): BluebirdPromise<Attributes> {
+  searchEmailsAndGroups(username: string): BluebirdPromise<GroupsAndEmails> {
     const that = this;
     let retrievedEmails: string[], retrievedGroups: string[];
 
@@ -172,8 +177,6 @@ export class Client {
 
   modifyPassword(username: string, newPassword: string): BluebirdPromise<void> {
     const that = this;
-    const userDN = buildUserDN(username, this.options);
-
     const encodedPassword = this.dovehash.encode("SSHA", newPassword);
     const change = {
       operation: "replace",
@@ -183,7 +186,10 @@ export class Client {
     };
 
     this.logger.debug("LDAP: update password of user '%s'", username);
-    return this.client.modifyAsync(userDN, change)
+    return this.searchUserDn(username)
+      .then(function (userDN: string) {
+        this.client.modifyAsync(userDN, change);
+      })
       .then(function () {
         return that.client.unbindAsync();
       });

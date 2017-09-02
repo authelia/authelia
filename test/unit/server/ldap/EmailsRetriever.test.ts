@@ -2,93 +2,74 @@
 import { EmailsRetriever } from "../../../../src/server/lib/ldap/EmailsRetriever";
 import { LdapConfiguration } from "../../../../src/server/lib/configuration/Configuration";
 
-import sinon = require("sinon");
+import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
-import assert = require("assert");
-import ldapjs = require("ldapjs");
-import winston = require("winston");
-import { EventEmitter } from "events";
+import Assert = require("assert");
 
-import { LdapjsMock, LdapjsClientMock } from "../mocks/ldapjs";
-
+import { ClientFactoryStub } from "../mocks/ldap/ClientFactoryStub";
+import { ClientStub } from "../mocks/ldap/ClientStub";
 
 describe("test emails retriever", function () {
+  const USERNAME = "username";
+  const ADMIN_USER_DN = "cn=admin,dc=example,dc=com";
+  const ADMIN_PASSWORD = "password";
+
+  let clientFactoryStub: ClientFactoryStub;
+  let adminClientStub: ClientStub;
+
   let emailsRetriever: EmailsRetriever;
-  let ldapClient: LdapjsClientMock;
-  let ldapjs: LdapjsMock;
   let ldapConfig: LdapConfiguration;
-  let adminUserDN: string;
-  let adminPassword: string;
 
   beforeEach(function () {
-    ldapClient = LdapjsClientMock();
-    ldapjs = LdapjsMock();
-    ldapjs.createClient.returns(ldapClient);
-
-    // winston.level = "debug";
-
-    adminUserDN = "cn=admin,dc=example,dc=com";
-    adminPassword = "password";
+    clientFactoryStub = new ClientFactoryStub();
+    adminClientStub = new ClientStub();
 
     ldapConfig = {
-      url: "http://localhost:324",
-      user: adminUserDN,
-      password: adminPassword,
-      base_dn: "dc=example,dc=com",
-      additional_user_dn: "ou=users"
+      url: "http://ldap",
+      user: ADMIN_USER_DN,
+      password: ADMIN_PASSWORD,
+      users_dn: "ou=users,dc=example,dc=com",
+      groups_dn: "ou=groups,dc=example,dc=com",
+      group_name_attribute: "cn",
+      groups_filter: "cn={0}",
+      mail_attribute: "mail",
+      users_filter: "cn={0}"
     };
 
-    emailsRetriever = new EmailsRetriever(ldapConfig, ldapjs, winston);
+    emailsRetriever = new EmailsRetriever(ldapConfig, clientFactoryStub);
   });
 
-  function retrieveEmails(ldapClient: LdapjsClientMock) {
-    const email0 = {
-      object: {
-        mail: "user@example.com"
-      }
-    };
-
-    const email1 = {
-      object: {
-        mail: "user@example1.com"
-      }
-    };
-
-    const emailsEmitter = {
-      on: sinon.spy(function (event: string, fn: (doc: any) => void) {
-        if (event != "error") fn(email0);
-        if (event != "error") fn(email1);
-      })
-    };
-
-    ldapClient.search.onCall(0).yields(undefined, emailsEmitter);
-  }
-
-  function test_emails_retrieval() {
-    const username = "username";
-    return emailsRetriever.retrieve(username);
-  }
-
   describe("success", function () {
-    beforeEach(function () {
-      ldapClient.bind.withArgs(adminUserDN, adminPassword).yields();
-      ldapClient.unbind.yields();
-    });
+    it("should retrieve emails successfully", function () {
+      clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
+        .returns(adminClientStub);
 
-    it("should update the password successfully", function () {
-      retrieveEmails(ldapClient);
-      return test_emails_retrieval();
+      // admin connects successfully
+      adminClientStub.openStub.returns(BluebirdPromise.resolve());
+      adminClientStub.closeStub.returns(BluebirdPromise.resolve());
+
+      adminClientStub.searchEmailsStub.withArgs(USERNAME)
+        .returns(BluebirdPromise.resolve(["user@example.com"]));
+
+      return emailsRetriever.retrieve(USERNAME);
     });
   });
 
   describe("failure", function () {
     it("should fail retrieving emails when search operation fails", function () {
-      ldapClient.bind.withArgs(adminUserDN, adminPassword).yields();
-      ldapClient.search.yields("wrong credentials");
-      return test_emails_retrieval()
-        .catch(function () {
-          return BluebirdPromise.resolve();
-        });
+      clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
+        .returns(adminClientStub);
+
+      // admin connects successfully
+      adminClientStub.openStub.returns(BluebirdPromise.resolve());
+      adminClientStub.closeStub.returns(BluebirdPromise.resolve());
+
+      adminClientStub.searchEmailsStub.withArgs(USERNAME)
+        .returns(BluebirdPromise.reject(new Error("Error while searching emails")));
+
+      return emailsRetriever.retrieve(USERNAME)
+        .then(function () { return BluebirdPromise.reject(new Error("Should not be here")); })
+        .catch(function () { return BluebirdPromise.resolve(); });
     });
   });
 });

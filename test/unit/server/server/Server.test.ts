@@ -1,5 +1,3 @@
-
-
 import Server from "../../../../src/server/lib/Server";
 import { LdapjsClientMock } from "./../mocks/ldapjs";
 
@@ -36,7 +34,6 @@ describe("test the server", function () {
       ldap: {
         url: "ldap://127.0.0.1:389",
         base_dn: "ou=users,dc=example,dc=com",
-        user_name_attribute: "cn",
         user: "cn=admin,dc=example,dc=com",
         password: "password",
       },
@@ -125,81 +122,10 @@ describe("test the server", function () {
 
   describe("test authentication and verification", function () {
     test_authentication();
-    test_reset_password();
     test_regulation();
   });
 
   function test_authentication() {
-    it("should return status code 401 when user is not authenticated", function () {
-      return requestp.getAsync({ url: BASE_URL + Endpoints.VERIFY_GET })
-        .then(function (response: request.RequestResponse) {
-          Assert.equal(response.statusCode, 401);
-          return BluebirdPromise.resolve();
-        });
-    });
-
-    it("should return status code 204 when user is authenticated using totp", function () {
-      const j = requestp.jar();
-      return requests.login(j)
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.statusCode, 200, "get login page failed");
-          return requests.first_factor(j);
-        })
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.statusCode, 302, "first factor failed");
-          return requests.register_totp(j, transporter);
-        })
-        .then(function (base32_secret: string) {
-          const realToken = speakeasy.totp({
-            secret: base32_secret,
-            encoding: "base32"
-          });
-          return requests.totp(j, realToken);
-        })
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.statusCode, 200, "second factor failed");
-          return requests.verify(j);
-        })
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.statusCode, 204, "verify failed");
-          return BluebirdPromise.resolve();
-        })
-        .catch(function (err: Error) { return BluebirdPromise.reject(err); });
-    });
-
-    it("should keep session variables when login page is reloaded", function () {
-      const j = requestp.jar();
-      return requests.login(j)
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.statusCode, 200, "get login page failed");
-          return requests.first_factor(j);
-        })
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.statusCode, 302, "first factor failed");
-          return requests.register_totp(j, transporter);
-        })
-        .then(function (base32_secret: string) {
-          const realToken = speakeasy.totp({
-            secret: base32_secret,
-            encoding: "base32"
-          });
-          return requests.totp(j, realToken);
-        })
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.statusCode, 200, "second factor failed");
-          return requests.login(j);
-        })
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.statusCode, 200, "login page loading failed");
-          return requests.verify(j);
-        })
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.statusCode, 204, "verify failed");
-          return BluebirdPromise.resolve();
-        })
-        .catch(function (err: Error) { return BluebirdPromise.reject(err); });
-    });
-
     it("should return status code 204 when user is authenticated using u2f", function () {
       const sign_request = {};
       const sign_status = {};
@@ -231,26 +157,6 @@ describe("test the server", function () {
         })
         .then(function (res: request.RequestResponse) {
           Assert.equal(res.statusCode, 204, "verify failed");
-          return BluebirdPromise.resolve();
-        });
-    });
-  }
-
-  function test_reset_password() {
-    it("should reset the password", function () {
-      const j = requestp.jar();
-      return requests.login(j)
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.statusCode, 200, "get login page failed");
-          return requests.first_factor(j);
-        })
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.headers.location, Endpoints.SECOND_FACTOR_GET);
-          Assert.equal(res.statusCode, 302, "first factor failed");
-          return requests.reset_password(j, transporter, "user", "new-password");
-        })
-        .then(function (res: request.RequestResponse) {
-          Assert.equal(res.statusCode, 204, "second factor, finish register failed");
           return BluebirdPromise.resolve();
         });
     });

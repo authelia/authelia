@@ -2,82 +2,78 @@
 import { PasswordUpdater } from "../../../../src/server/lib/ldap/PasswordUpdater";
 import { LdapConfiguration } from "../../../../src/server/lib/configuration/Configuration";
 
-import sinon = require("sinon");
+import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
-import assert = require("assert");
-import ldapjs = require("ldapjs");
-import winston = require("winston");
-import { EventEmitter } from "events";
+import Assert = require("assert");
 
-import { LdapjsMock, LdapjsClientMock } from "../mocks/ldapjs";
-
+import { ClientFactoryStub } from "../mocks/ldap/ClientFactoryStub";
+import { ClientStub } from "../mocks/ldap/ClientStub";
 
 describe("test password update", function () {
+  const USERNAME = "username";
+  const NEW_PASSWORD = "new-password";
+
+  const ADMIN_USER_DN = "cn=admin,dc=example,dc=com";
+  const ADMIN_PASSWORD = "password";
+
+  let clientFactoryStub: ClientFactoryStub;
+  let adminClientStub: ClientStub;
+
   let passwordUpdater: PasswordUpdater;
-  let ldapClient: LdapjsClientMock;
-  let ldapjs: LdapjsMock;
   let ldapConfig: LdapConfiguration;
-  let adminUserDN: string;
-  let adminPassword: string;
   let dovehash: any;
 
   beforeEach(function () {
-    ldapClient = LdapjsClientMock();
-    ldapjs = LdapjsMock();
-    ldapjs.createClient.returns(ldapClient);
-
-    // winston.level = "debug";
-
-    adminUserDN = "cn=admin,dc=example,dc=com";
-    adminPassword = "password";
+    clientFactoryStub = new ClientFactoryStub();
+    adminClientStub = new ClientStub();
 
     ldapConfig = {
-      url: "http://localhost:324",
-      user: adminUserDN,
-      password: adminPassword,
-      base_dn: "dc=example,dc=com",
-      additional_user_dn: "ou=users"
+      url: "http://ldap",
+      user: ADMIN_USER_DN,
+      password: ADMIN_PASSWORD,
+      users_dn: "ou=users,dc=example,dc=com",
+      groups_dn: "ou=groups,dc=example,dc=com",
+      group_name_attribute: "cn",
+      groups_filter: "cn={0}",
+      mail_attribute: "mail",
+      users_filter: "cn={0}"
     };
 
     dovehash = {
-      encode: sinon.stub()
+      encode: Sinon.stub()
     };
 
-    passwordUpdater = new PasswordUpdater(ldapConfig, ldapjs, dovehash, winston);
+    passwordUpdater = new PasswordUpdater(ldapConfig, clientFactoryStub);
   });
 
-  function test_update_password() {
-    const username = "username";
-    const newpassword = "newpassword";
-    return passwordUpdater.updatePassword(username, newpassword);
-  }
-
   describe("success", function () {
-    beforeEach(function () {
-      ldapClient.bind.withArgs(adminUserDN, adminPassword).yields();
-      ldapClient.unbind.yields();
-    });
-
     it("should update the password successfully", function () {
+      clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
+        .returns(adminClientStub);
+
       dovehash.encode.returns("{SSHA}AQmxaKfobGY9HSQa6aDYkAWOgPGNhGYn");
-      ldapClient.modify.withArgs("cn=username,ou=users,dc=example,dc=com", {
-        operation: "replace",
-        modification: {
-          userPassword: "{SSHA}AQmxaKfobGY9HSQa6aDYkAWOgPGNhGYn"
-        }
-      }).yields();
-      return test_update_password();
+      adminClientStub.modifyPasswordStub.withArgs(USERNAME, NEW_PASSWORD).returns(BluebirdPromise.resolve());
+      adminClientStub.openStub.returns(BluebirdPromise.resolve());
+      adminClientStub.closeStub.returns(BluebirdPromise.resolve());
+
+      return passwordUpdater.updatePassword(USERNAME, NEW_PASSWORD);
     });
   });
 
   describe("failure", function () {
     it("should fail updating password when modify operation fails", function () {
-      ldapClient.bind.withArgs(adminUserDN, adminPassword).yields();
-      ldapClient.modify.yields("wrong credentials");
-      return test_update_password()
-        .catch(function () {
-          return BluebirdPromise.resolve();
-        });
+      clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
+        .returns(adminClientStub);
+
+      dovehash.encode.returns("{SSHA}AQmxaKfobGY9HSQa6aDYkAWOgPGNhGYn");
+      adminClientStub.modifyPasswordStub.withArgs(USERNAME, NEW_PASSWORD)
+        .returns(BluebirdPromise.reject(new Error("Error while updating password")));
+      adminClientStub.openStub.returns(BluebirdPromise.resolve());
+      adminClientStub.closeStub.returns(BluebirdPromise.resolve());
+
+      return passwordUpdater.updatePassword(USERNAME, NEW_PASSWORD)
+        .then(function () { return BluebirdPromise.reject(new Error("should not be here")); })
+        .catch(function () { return BluebirdPromise.resolve(); });
     });
   });
 });

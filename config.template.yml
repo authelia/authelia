@@ -18,16 +18,26 @@ ldap:
   base_dn: dc=example,dc=com
 
   # An additional dn to define the scope to all users
-  additional_user_dn: ou=users
+  additional_users_dn: ou=users
 
-  # The user name attribute of users. Might uid for FreeIPA. 'cn' by default.
-  user_name_attribute: cn
+  # The users filter. 
+  # {0} is the matcher replaced by username.
+  # 'cn={0}' by default.
+  users_filter: cn={0}
 
   # An additional dn to define the scope of groups
-  additional_group_dn: ou=groups
+  additional_groups_dn: ou=groups
 
-  # The group name attribute of group. 'cn' by default.
+  # The groups filter.
+  # {0} is the matcher replaced by user dn.
+  # 'member={0}' by default.
+  groups_filter: (&(member={0})(objectclass=groupOfNames))
+
+  # The attribute holding the name of the group
   group_name_attribute: cn
+
+  # The attribute holding the mail address of the user
+  mail_attribute: mail
 
   # The username and password of the admin user.
   user: cn=admin,dc=example,dc=com

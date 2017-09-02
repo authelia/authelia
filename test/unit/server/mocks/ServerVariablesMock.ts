@@ -2,7 +2,7 @@ import sinon = require("sinon");
 import express = require("express");
 import winston = require("winston");
 import { UserDataStoreStub } from "./storage/UserDataStoreStub";
-import { ServerVariables, VARIABLES_KEY }  from "../../../../src/server/lib/ServerVariablesHandler";
+import { VARIABLES_KEY }  from "../../../../src/server/lib/ServerVariablesHandler";
 
 export interface ServerVariablesMock {
     logger: any;

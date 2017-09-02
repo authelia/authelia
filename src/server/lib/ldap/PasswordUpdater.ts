@@ -2,32 +2,23 @@ import BluebirdPromise = require("bluebird");
 import exceptions = require("../Exceptions");
 import ldapjs = require("ldapjs");
 import { Client } from "./Client";
-import { buildUserDN } from "./common";
 
+import { IPasswordUpdater } from "./IPasswordUpdater";
 import { LdapConfiguration } from "../configuration/Configuration";
-import { Winston, Ldapjs, Dovehash } from "../../../types/Dependencies";
+import { IClientFactory } from "./IClientFactory";
 
 
-export class PasswordUpdater {
+export class PasswordUpdater implements IPasswordUpdater {
   private options: LdapConfiguration;
-  private ldapjs: Ldapjs;
-  private logger: Winston;
-  private dovehash: Dovehash;
+  private clientFactory: IClientFactory;
 
-  constructor(options: LdapConfiguration, ldapjs: Ldapjs, dovehash: Dovehash, logger: Winston) {
+  constructor(options: LdapConfiguration, clientFactory: IClientFactory) {
     this.options = options;
-    this.ldapjs = ldapjs;
-    this.logger = logger;
-    this.dovehash = dovehash;
-  }
-
-  private createClient(userDN: string, password: string): Client {
-    return new Client(userDN, password, this.options, this.ldapjs, this.dovehash, this.logger);
+    this.clientFactory = clientFactory;
   }
 
   updatePassword(username: string, newPassword: string): BluebirdPromise<void> {
-    const userDN = buildUserDN(username, this.options);
-    const adminClient = this.createClient(this.options.user, this.options.password);
+    const adminClient = this.clientFactory.create(this.options.user, this.options.password);
 
     return adminClient.open()
       .then(function () {
