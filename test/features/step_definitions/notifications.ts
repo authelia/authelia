@@ -20,7 +20,7 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
         })
         .then(function (classes: string) {
           Assert(classes.indexOf(notificationType) > -1, "Class '" + notificationType + "' not found in notification element.");
-          // return that.driver.wait(seleniumWebdriver.until.elementIsNotVisible(notificationEl), 6000);
+          return that.driver.sleep(500);
         });
     });
 
