@@ -6,7 +6,7 @@ import exceptions = require("../../Exceptions");
 import winston = require("winston");
 import AuthenticationValidator = require("../../AuthenticationValidator");
 import ErrorReplies = require("../../ErrorReplies");
-import {  ServerVariablesHandler } from "../../ServerVariablesHandler";
+import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 import AuthenticationSession = require("../../AuthenticationSession");
 
 function verify_filter(req: express.Request, res: express.Response): BluebirdPromise<void> {
@@ -27,10 +27,11 @@ function verify_filter(req: express.Request, res: express.Response): BluebirdPro
       const groups = authSession.groups;
 
       const host = objectPath.get<express.Request, string>(req, "headers.host");
-      const domain = host.split(":")[0];
-      console.log(domain);
+      const path = objectPath.get<express.Request, string>(req, "headers.x-original-uri");
 
-      const isAllowed = accessController.isDomainAllowedForUser(domain, username, groups);
+      const domain = host.split(":")[0];
+
+      const isAllowed = accessController.isAccessAllowed(domain, path, username, groups);
       if (!isAllowed) return BluebirdPromise.reject(
         new exceptions.DomainAccessDenied("User '" + username + "' does not have access to " + domain));
 

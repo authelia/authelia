@@ -61,27 +61,53 @@ ldap:
 # Note 1: It must stand at the beginning of the pattern. (example: *.mydomain.com)
 # Note 2: You must put the pattern in simple quotes when using the wildcard.
 access_control:
-  # The default policy. Applies to any user
-  default:
-    - public.test.local
+  # Default policy can either be `allow` or `deny`.
+  # It is the policy applied to any resource if it has not been overriden
+  # in the `any`, `groups` or `users` category.
+  default_policy: deny
+
+  # The rules that apply to anyone.
+  # The value is a list of rules.
+  any:
+    - domain: public.test.local
+      policy: allow
   
-  # Group based policies. The key is a group name and the value
-  # is the domain to allow access to.
+  # Group-based rules. The key is a group name and the value
+  # is a list of rules.
   groups:
     admin:
-      - '*.test.local'
+      # All resources in all domains
+      - domain: '*.test.local'
+        policy: allow
+      # Except mx2.mail.test.local (it restricts the first rule)
+      - domain: 'mx2.mail.test.local'
+        policy: deny
     dev:
-      - secret.test.local
-      - secret2.test.local
+      - domain: dev.test.local
+        policy: allow
+        resources:
+          - '^/groups/dev/.*$'
   
-  # Group based policies. The key is a group name and the value
-  # is the domain to allow access to.
-  users: 
+  # User-based rules. The key is a user name and the value
+  # is a list of rules.
+  users:
+    john:
+      - domain: dev.test.local
+        policy: allow
+        resources:
+          - '^/users/john/.*$' 
     harry:
-      - secret1.test.local
+      - domain: dev.test.local
+        policy: allow
+        resources:
+          - '^/users/harry/.*$'
     bob:
-      - '*.mail.test.local'
-
+      - domain: '*.mail.test.local'
+        policy: allow
+      - domain: 'dev.test.local'
+        policy: allow
+        resources:
+          - '^/users/bob/.*$'
 
 # Configuration of session cookies
 # 

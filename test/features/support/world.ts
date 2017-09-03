@@ -47,6 +47,9 @@ function CustomWorld() {
           .findElement(seleniumWebdriver.By.tagName("button"))
           .findElement(seleniumWebdriver.By.xpath("//button[contains(.,'" + buttonText + "')]"))
           .click();
+      })
+      .then(function () {
+        return that.driver.sleep(500);
       });
   };
 

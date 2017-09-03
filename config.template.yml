@@ -49,38 +49,84 @@ ldap:
 
 # Access Control
 #
-# Access control is a set of rules you can use to restrict the user access.
-# Default (anyone), per-user or per-group rules can be defined.
+# Access control is a set of rules you can use to restrict user access to certain 
+# resources.
+# Any (apply to anyone), per-user or per-group rules can be defined.
 #
-# If 'access_control' is not defined, ACL rules are disabled and a default policy
-# is applied, i.e., access is allowed to anyone. Otherwise restrictions follow 
-# the rules defined below.
-# If no rule is provided, all domains are denied.
+# If 'access_control' is not defined, ACL rules are disabled and the `allow` default 
+# policy is applied, i.e., access is allowed to anyone. Otherwise restrictions follow 
+# the rules defined.
+# 
+# Note: One can use the wildcard * to match any subdomain. 
+# It must stand at the beginning of the pattern. (example: *.mydomain.com)
+# 
+# Note: You must put the pattern in simple quotes when using the wildcard for the YAML
+# to be syntaxically correct.
 #
-# One can use the wildcard * to match any subdomain. 
-# Note 1: It must stand at the beginning of the pattern. (example: *.mydomain.com)
-# Note 2: You must put the pattern in simple quotes when using the wildcard.
+# Definition: A `rule` is an object with the following keys: `domain`, `policy` 
+# and `resources`.
+# - `domain` defines which domain or set of domains the rule applies to.
+# - `policy` is the policy to apply to resources. It must be either `allow` or `deny`.
+# - `resources` is a list of regular expressions that matches a set of resources to 
+# apply the policy to.
+#
+# Note: Rules follow an order of priority defined as follows:
+# In each category (`any`, `groups`, `users`), the latest rules have the highest 
+# priority. In other words, it means that if a given resource matches two rules in the
+# same category, the latest one overrides the first one.
+# Each category has also its own priority. That is, `users` has the highest priority, then
+# `groups` and `any` has the lowest priority. It means if two rules in different categories
+# match a given resource, the one in the category with the highest priority overrides the
+# other one.
+#
 access_control:
-  # The default policy. Applies to any user
-  default:
-    - public.test.local
+  # Default policy can either be `allow` or `deny`.
+  # It is the policy applied to any resource if it has not been overriden
+  # in the `any`, `groups` or `users` category.
+  default_policy: deny
+
+  # The rules that apply to anyone.
+  # The value is a list of rules.
+  any:
+    - domain: public.test.local
+      policy: allow
   
-  # Group based policies. The key is a group name and the value
-  # is the domain to allow access to.
+  # Group-based rules. The key is a group name and the value
+  # is a list of rules.
   groups:
     admin:
-      - '*.test.local'
+      # All resources in all domains
+      - domain: '*.test.local'
+        policy: allow
+      # Except mx2.mail.test.local (it restricts the first rule)
+      - domain: 'mx2.mail.test.local'
+        policy: deny
     dev:
-      - secret.test.local
-      - secret2.test.local
+      - domain: dev.test.local
+        policy: allow
+        resources:
+          - '^/groups/dev/.*$'
   
-  # Group based policies. The key is a group name and the value
-  # is the domain to allow access to.
-  users: 
+  # User-based rules. The key is a user name and the value
+  # is a list of rules.
+  users:
+    john:
+      - domain: dev.test.local
+        policy: allow
+        resources:
+          - '^/users/john/.*$' 
     harry:
-      - secret1.test.local
+      - domain: dev.test.local
+        policy: allow
+        resources:
+          - '^/users/harry/.*$'
     bob:
-      - '*.mail.test.local'
+      - domain: '*.mail.test.local'
+        policy: allow
+      - domain: 'dev.test.local'
+        policy: allow
+        resources:
+          - '^/users/bob/.*$'
 
 
 # Configuration of session cookies

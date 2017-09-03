@@ -18,9 +18,8 @@ addons:
     - auth.test.local 
     - home.test.local 
     - public.test.local 
-    - secret.test.local 
-    - secret1.test.local 
-    - secret2.test.local 
+    - admin.test.local 
+    - dev.test.local 
     - mx1.mail.test.local 
     - mx2.mail.test.local 
 

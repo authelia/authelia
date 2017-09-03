@@ -7,13 +7,18 @@ Feature: User has access restricted access to domains
     And I use "REGISTERED" as TOTP token handle
     And I click on "TOTP"
     Then I have access to:
-      | url                                          |
-      | https://public.test.local:8080/secret.html   |
-      | https://secret.test.local:8080/secret.html   |
-      | https://secret1.test.local:8080/secret.html  |
-      | https://secret2.test.local:8080/secret.html  |
-      | https://mx1.mail.test.local:8080/secret.html |
-      | https://mx2.mail.test.local:8080/secret.html |
+      | url                                                    |
+      | https://public.test.local:8080/secret.html             |
+      | https://dev.test.local:8080/groups/admin/secret.html   |
+      | https://dev.test.local:8080/groups/dev/secret.html     |
+      | https://dev.test.local:8080/users/john/secret.html     |
+      | https://dev.test.local:8080/users/harry/secret.html    |
+      | https://dev.test.local:8080/users/bob/secret.html      |
+      | https://admin.test.local:8080/secret.html              |
+      | https://mx1.mail.test.local:8080/secret.html           |
+    And I have no access to:
+      | url                                                    |
+      | https://mx2.mail.test.local:8080/secret.html           |
 
   @need-registered-user-bob
   Scenario: User bob has restricted access
@@ -22,15 +27,18 @@ Feature: User has access restricted access to domains
     And I use "REGISTERED" as TOTP token handle
     And I click on "TOTP"
     Then I have access to:
-      | url                                          |
-      | https://public.test.local:8080/secret.html   |
-      | https://secret.test.local:8080/secret.html   |
-      | https://secret2.test.local:8080/secret.html  |
-      | https://mx1.mail.test.local:8080/secret.html |
-      | https://mx2.mail.test.local:8080/secret.html |
+      | url                                                    |
+      | https://public.test.local:8080/secret.html             |
+      | https://dev.test.local:8080/groups/dev/secret.html     |
+      | https://dev.test.local:8080/users/bob/secret.html      |
+      | https://mx1.mail.test.local:8080/secret.html           |
+      | https://mx2.mail.test.local:8080/secret.html           |
     And I have no access to:
-      | url                                          |
-      | https://secret1.test.local:8080/secret.html  |
+      | url                                                    |
+      | https://dev.test.local:8080/groups/admin/secret.html   |
+      | https://admin.test.local:8080/secret.html              |
+      | https://dev.test.local:8080/users/john/secret.html     |
+      | https://dev.test.local:8080/users/harry/secret.html    |
 
   @need-registered-user-harry
   Scenario: User harry has restricted access
@@ -39,12 +47,15 @@ Feature: User has access restricted access to domains
     And I use "REGISTERED" as TOTP token handle
     And I click on "TOTP"
     Then I have access to:
-      | url                                          |
-      | https://public.test.local:8080/secret.html   |
-      | https://secret1.test.local:8080/secret.html  |
+      | url                                                    |
+      | https://public.test.local:8080/secret.html             |
+      | https://dev.test.local:8080/users/harry/secret.html    |
     And I have no access to:
-      | url                                          |
-      | https://secret.test.local:8080/secret.html   |
-      | https://secret2.test.local:8080/secret.html  |
-      | https://mx1.mail.test.local:8080/secret.html |
-      | https://mx2.mail.test.local:8080/secret.html |
+      | url                                                    |
+      | https://dev.test.local:8080/groups/dev/secret.html     |
+      | https://dev.test.local:8080/users/bob/secret.html      |
+      | https://dev.test.local:8080/groups/admin/secret.html   |
+      | https://admin.test.local:8080/secret.html              |
+      | https://dev.test.local:8080/users/john/secret.html     |
+      | https://mx1.mail.test.local:8080/secret.html           |
+      | https://mx2.mail.test.local:8080/secret.html           |

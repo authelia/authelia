@@ -48,7 +48,7 @@ without even configure anything.
 
 Otherwise here are the available steps to deploy **Authelia** on your machine given 
 your configuration file is **/path/to/your/config.yml**. Note that you can create your 
-own the configuration file from **config.template.yml** at the root of the repo.
+own the configuration file from [config.template.yml] at the root of the repo.
 
 ### With NPM
 
@@ -91,11 +91,10 @@ Make sure you don't have anything listening on port 8080.
 
 Add the following lines to your **/etc/hosts** to alias multiple subdomains so that nginx can redirect request to the correct virtual host.
 
-    127.0.0.1       public.test.local
-    127.0.0.1       secret.test.local
-    127.0.0.1       secret1.test.local
-    127.0.0.1       secret2.test.local
     127.0.0.1       home.test.local
+    127.0.0.1       public.test.local
+    127.0.0.1       dev.test.local
+    127.0.0.1       admin.test.local
     127.0.0.1       mx1.mail.test.local
     127.0.0.1       mx2.mail.test.local
     127.0.0.1       auth.test.local
@@ -119,7 +118,7 @@ After few seconds the services should be running and you should be able to visit
 
 When accessing the login page, a self-signed certificate exception should appear, 
 it has to be trusted before you can get to the target page. The certificate
-must be trusted for each subdomain, therefore it is normal to see the exception
+must also be trusted for each subdomain, therefore it is normal to see the exception
  several times.
 
 Below is what the login page looks like:
@@ -128,37 +127,24 @@ Below is what the login page looks like:
 
 ## Features in details
 
-### First factor with LDAP and ACL 
-An LDAP server has been deployed for you with the following credentials and
-access control list:
+### First factor using an LDAP server
+**Authelia** uses an LDAP server as the backend for storing credentials.
+When authentication is needed, the user is redirected to the login page which
+corresponds to the first factor. Authelia tries to bind the username and password
+against the configured LDAP backend.
 
-- **john / password** is in the admin group and has access to the secret from
-any subdomain.
-- **bob / password** is in the dev group and has access to the secret from
-  - [secret.test.local](https://secret.test.local:8080/secret.html) 
-  - [secret2.test.local](https://secret2.test.local:8080/secret.html)
-  - [home.test.local](https://home.test.local:8080/secret.html)
-  - [\*.mail.test.local](https://mx1.mail.test.local:8080/secret.html)
-- **harry / password** is not in a group but has rules giving him has access to 
- the secret from 
-  - [secret1.test.local](https://secret1.test.local:8080/secret.html)
-  - [home.test.local](https://home.test.local:8080/secret.html)
-
-You can use them in the login page. If everything is ok, the second factor 
-page should appear as shown below. Otherwise you'll get an error message notifying
-your credentials are wrong.
-
+You can find an example of the configuration of the LDAP backend in [config.template.yml].
 
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/second_factor.png" width="400">
 
 
 ### Second factor with TOTP
-In **Authelia**, you need to register a per user TOTP (Time-Based One Time Password) secret before 
+In **Authelia**, you can register a per user TOTP (Time-Based One Time Password) secret before 
 authenticating. To do that, you need to click on the register button. It will 
-send a link to the user email address. Since this is an example, no email will 
-be sent, the link is rather delivered in the file 
+send a link to the user email address defined in the LDAP. 
+Since this is an example, no email will be sent, the link is rather delivered in the file 
 **/tmp/notifications/notification.txt**. Paste the link in your browser and you'll get 
-your secret in QRCode and Base32 formats. You can use 
+your secret in QRCode and Base32 format. You can use 
 [Google Authenticator] 
 to store them and get the generated tokens with the app.
 
@@ -169,8 +155,8 @@ to store them and get the generated tokens with the app.
 USB security keys. U2F is one of the most secure authentication protocol and is 
 already available for Google, Facebook, Github accounts and more.
 
-Like TOTP, U2F requires you register your security key before authenticating. 
-To do so, click on the register button. This will send a link to the 
+Like TOTP, U2F requires you register a security key before authenticating. 
+To do so, click on the register link. This will send a link to the 
 user email address. Since this is an example, no email will be sent, the 
 link is rather delivered in the file **/tmp/notifications/notification.txt**. Paste 
 the link in your browser and you'll be asking to touch the token of your device 
@@ -190,18 +176,18 @@ Paste the link in your browser and you should be able to reset the password.
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/reset_password.png" width="400">
 
 ### Access Control
-With **Authelia**, you can define your own access control rules for restricting 
-the user access to some subdomains. Those rules are defined in the
-configuration file and can be set either for everyone, per-user or per-group policies. 
-Check out the *config.template.yml* to see how they are defined.
+With **Authelia**, you can define your own access control rules for finely restricting 
+user access to some resources and subdomains. Those rules are defined and fully documented 
+in the configuration file. They can apply to users, groups or everyone.
+Check out [config.template.yml] to see how they are defined.
 
 ### Session management with Redis
-When your users authenticate against Authelia, sessions are stored in a Redis key/value store. You can specify your own Redis instance in the [configuration file](#authelia-configuration).
+When your users authenticate against Authelia, sessions are stored in a Redis key/value store. You can specify your own Redis instance in [config.template.yml].
 
 ## Documentation
 ### Authelia configuration
 The configuration of the server is defined in the file 
-**configuration.template.yml**. All the details are documented there.
+[config.template.yml]. All the details are documented there.
 You can specify another configuration file by giving it as first argument of 
 **Authelia**.
 
@@ -246,4 +232,5 @@ Follow [contributing](CONTRIBUTORS.md) file.
 [Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
 [auth_request]: http://nginx.org/en/docs/http/ngx_http_auth_request_module.html
 [Google Authenticator]: https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en
+[config.template.yml]: https://github.com/clems4ever/authelia/blob/master/config.template.yml
 

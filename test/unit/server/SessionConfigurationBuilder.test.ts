@@ -11,7 +11,8 @@ describe("test session configuration builder", function () {
     it("should return session options without redis options", function () {
         const configuration: AppConfiguration = {
             access_control: {
-                default: [],
+                default_policy: "deny",
+                any: [],
                 users: {},
                 groups: {}
             },
@@ -81,7 +82,8 @@ describe("test session configuration builder", function () {
     it("should return session options with redis options", function () {
         const configuration: AppConfiguration = {
             access_control: {
-                default: [],
+                default_policy: "deny",
+                any: [],
                 users: {},
                 groups: {}
             },

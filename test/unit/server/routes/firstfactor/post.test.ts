@@ -10,7 +10,7 @@ import AuthenticationSession = require("../../../../../src/server/lib/Authentica
 import Endpoints = require("../../../../../src/server/endpoints");
 
 import AuthenticationRegulatorMock = require("../../mocks/AuthenticationRegulator");
-import AccessControllerMock = require("../../mocks/AccessController");
+import { AccessControllerStub } from "../../mocks/AccessControllerStub";
 import ExpressMock = require("../../mocks/express");
 import ServerVariablesMock = require("../../mocks/ServerVariablesMock");
 import { ServerVariables } from "../../../../../src/server/lib/ServerVariablesHandler";
@@ -22,7 +22,7 @@ describe("test the first factor validation route", function () {
   let groups: string[];
   let configuration;
   let regulator: AuthenticationRegulatorMock.AuthenticationRegulatorMock;
-  let accessController: AccessControllerMock.AccessControllerMock;
+  let accessController: AccessControllerStub;
   let serverVariables: ServerVariables;
 
   beforeEach(function () {
@@ -36,8 +36,8 @@ describe("test the first factor validation route", function () {
     emails = ["test_ok@example.com"];
     groups = ["group1", "group2" ];
 
-    accessController = AccessControllerMock.AccessControllerMock();
-    accessController.isDomainAllowedForUser.returns(true);
+    accessController = new AccessControllerStub();
+    accessController.isAccessAllowedMock.returns(true);
 
     regulator = AuthenticationRegulatorMock.AuthenticationRegulatorMock();
     regulator.regulate.returns(BluebirdPromise.resolve());
