@@ -28,13 +28,15 @@ class NotificationEvent {
     this.element.html(html);
     this.element.addClass(this.statusType);
     this.element.fadeIn(FADE_TIME, function () {
-      handlers.onFadedIn();
+      if (handlers)
+        handlers.onFadedIn();
     });
 
     this.timeoutId = setTimeout(function () {
       that.element.fadeOut(FADE_TIME, function () {
         that.clearNotification();
-        handlers.onFadedOut();
+        if (handlers)
+          handlers.onFadedOut();
       });
     }, 4000);
   }
@@ -60,7 +62,7 @@ export class Notifier implements INotifier {
       this.onGoingEvent.interrupt();
 
     this.onGoingEvent = new NotificationEvent(this.element, msg, statusType);
-    this.onGoingEvent.start();
+    this.onGoingEvent.start(handlers);
   }
 
   success(msg: string, handlers?: Handlers) {
