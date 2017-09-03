@@ -151,7 +151,7 @@ In **Authelia**, you need to register a per user TOTP (Time-Based One Time Passw
 authenticating. To do that, you need to click on the register button. It will 
 send a link to the user email address. Since this is an example, no email will 
 be sent, the link is rather delivered in the file 
-**./notifications/notification.txt**. Paste the link in your browser and you'll get 
+**/tmp/notifications/notification.txt**. Paste the link in your browser and you'll get 
 your secret in QRCode and Base32 formats. You can use 
 [Google Authenticator] 
 to store them and get the generated tokens with the app.
@@ -166,7 +166,7 @@ already available for Google, Facebook, Github accounts and more.
 Like TOTP, U2F requires you register your security key before authenticating. 
 To do so, click on the register button. This will send a link to the 
 user email address. Since this is an example, no email will be sent, the 
-link is rather delivered in the file **./notifications/notification.txt**. Paste 
+link is rather delivered in the file **/tmp/notifications/notification.txt**. Paste 
 the link in your browser and you'll be asking to touch the token of your device 
 to register. Upon successful registration, you can authenticate using your U2F 
 device by simply touching the token. Easy, right?!
@@ -178,7 +178,7 @@ With **Authelia**, you can also reset your password in no time. Click on the
 **Forgot password?** link in the login page, provide the username of the user requiring 
 a password reset and **Authelia** will send an email with an link to the user 
 email address. For the sake of the example, the email is delivered in the file 
-**./notifications/notification.txt**.
+**/tmp/notifications/notification.txt**.
 Paste the link in your browser and you should be able to reset the password.
 
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/reset_password.png" width="400">

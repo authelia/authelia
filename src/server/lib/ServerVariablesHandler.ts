@@ -1,9 +1,13 @@
 
 import winston = require("winston");
 import BluebirdPromise = require("bluebird");
+import { IAuthenticator } from "./ldap/IAuthenticator";
+import { IPasswordUpdater } from "./ldap/IPasswordUpdater";
+import { IEmailsRetriever } from "./ldap/IEmailsRetriever";
 import { Authenticator } from "./ldap/Authenticator";
 import { PasswordUpdater } from "./ldap/PasswordUpdater";
 import { EmailsRetriever } from "./ldap/EmailsRetriever";
+import { ClientFactory } from "./ldap/ClientFactory";
 
 import { TOTPValidator } from "./TOTPValidator";
 import { TOTPGenerator } from "./TOTPGenerator";
@@ -29,9 +33,9 @@ export const VARIABLES_KEY = "authelia-variables";
 
 export interface ServerVariables {
   logger: typeof winston;
-  ldapAuthenticator: Authenticator;
-  ldapPasswordUpdater: PasswordUpdater;
-  ldapEmailsRetriever: EmailsRetriever;
+  ldapAuthenticator: IAuthenticator;
+  ldapPasswordUpdater: IPasswordUpdater;
+  ldapEmailsRetriever: IEmailsRetriever;
   totpValidator: TOTPValidator;
   totpGenerator: TOTPGenerator;
   u2f: typeof U2F;
@@ -68,19 +72,20 @@ class UserDataStoreFactory {
 
 export class ServerVariablesHandler {
   static initialize(app: express.Application, config: Configuration.AppConfiguration, deps: GlobalDependencies): BluebirdPromise<void> {
-    const five_minutes = 5 * 60;
-
     const notifier = NotifierFactory.build(config.notifier, deps.nodemailer);
-    const ldapAuthenticator = new Authenticator(config.ldap, deps.ldapjs, deps.winston);
-    const ldapPasswordUpdater = new PasswordUpdater(config.ldap, deps.ldapjs, deps.dovehash, deps.winston);
-    const ldapEmailsRetriever = new EmailsRetriever(config.ldap, deps.ldapjs, deps.winston);
+    const ldapClientFactory = new ClientFactory(config.ldap, deps.ldapjs, deps.dovehash, deps.winston);
+
+    const ldapAuthenticator = new Authenticator(config.ldap, ldapClientFactory);
+    const ldapPasswordUpdater = new PasswordUpdater(config.ldap, ldapClientFactory);
+    const ldapEmailsRetriever = new EmailsRetriever(config.ldap, ldapClientFactory);
     const accessController = new AccessController(config.access_control, deps.winston);
     const totpValidator = new TOTPValidator(deps.speakeasy);
     const totpGenerator = new TOTPGenerator(deps.speakeasy);
 
     return UserDataStoreFactory.create(config)
       .then(function (userDataStore: UserDataStore) {
-        const regulator = new AuthenticationRegulator(userDataStore, five_minutes);
+        const regulator = new AuthenticationRegulator(userDataStore, config.regulation.max_retries,
+          config.regulation.find_time, config.regulation.ban_time);
 
         const variables: ServerVariables = {
           accessController: accessController,
@@ -113,15 +118,15 @@ export class ServerVariablesHandler {
     return (app.get(VARIABLES_KEY) as ServerVariables).notifier;
   }
 
-  static getLdapAuthenticator(app: express.Application): Authenticator {
+  static getLdapAuthenticator(app: express.Application): IAuthenticator {
     return (app.get(VARIABLES_KEY) as ServerVariables).ldapAuthenticator;
   }
 
-  static getLdapPasswordUpdater(app: express.Application): PasswordUpdater {
+  static getLdapPasswordUpdater(app: express.Application): IPasswordUpdater {
     return (app.get(VARIABLES_KEY) as ServerVariables).ldapPasswordUpdater;
   }
 
-  static getLdapEmailsRetriever(app: express.Application): EmailsRetriever {
+  static getLdapEmailsRetriever(app: express.Application): IEmailsRetriever {
     return (app.get(VARIABLES_KEY) as ServerVariables).ldapEmailsRetriever;
   }
 

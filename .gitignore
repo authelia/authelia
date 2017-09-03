@@ -29,4 +29,3 @@ dist/
 
 # Specific files
 /config.yml
-/test/integration/nginx.conf

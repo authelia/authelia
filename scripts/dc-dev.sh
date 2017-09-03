@@ -9,4 +9,5 @@ docker-compose \
   -f example/mongo/docker-compose.yml \
   -f example/redis/docker-compose.yml \
   -f example/nginx/docker-compose.yml \
+  -f example/ldap/docker-compose.admin.yml \
   -f example/ldap/docker-compose.yml $*

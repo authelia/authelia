@@ -76,10 +76,9 @@ export class UserDataStore implements IUserDataStore {
     return this.authenticationTracesCollection.insert(newDocument);
   }
 
-  retrieveLatestAuthenticationTraces(userId: string, isAuthenticationSuccessful: boolean, count: number): BluebirdPromise<AuthenticationTraceDocument[]> {
+  retrieveLatestAuthenticationTraces(userId: string, count: number): BluebirdPromise<AuthenticationTraceDocument[]> {
     const q = {
-      userId: userId,
-      isAuthenticationSuccessful: isAuthenticationSuccessful
+      userId: userId
     };
 
     return this.authenticationTracesCollection.find(q, { date: -1 }, count);

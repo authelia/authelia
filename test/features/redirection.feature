@@ -1,4 +1,4 @@
-Feature: User is correctly redirected correctly 
+Feature: User is correctly redirected 
 
   Scenario: User is redirected to authelia when he is not authenticated
     Given I'm on https://home.test.local:8080

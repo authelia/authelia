@@ -5,7 +5,7 @@ import BluebirdPromise = require("bluebird");
 import express = require("express");
 import { AccessController } from "../../access_control/AccessController";
 import { AuthenticationRegulator } from "../../AuthenticationRegulator";
-import { Client, Attributes } from "../../ldap/Client";
+import { GroupsAndEmails } from "../../ldap/IClient";
 import Endpoint = require("../../../endpoints");
 import ErrorReplies = require("../../ErrorReplies");
 import { ServerVariablesHandler } from "../../ServerVariablesHandler";
@@ -38,13 +38,14 @@ export default function (req: express.Request, res: express.Response): BluebirdP
             logger.info("1st factor: No regulation applied.");
             return ldap.authenticate(username, password);
         })
-        .then(function (attributes: Attributes) {
-            logger.info("1st factor: LDAP binding successful. Retrieved information about user are %s", JSON.stringify(attributes));
+        .then(function (groupsAndEmails: GroupsAndEmails) {
+            logger.info("1st factor: LDAP binding successful. Retrieved information about user are %s",
+                JSON.stringify(groupsAndEmails));
             authSession.userid = username;
             authSession.first_factor = true;
 
-            const emails: string[] = attributes.emails;
-            const groups: string[] = attributes.groups;
+            const emails: string[] = groupsAndEmails.emails;
+            const groups: string[] = groupsAndEmails.groups;
 
             if (!emails || emails.length <= 0) {
                 const errMessage = "No emails found. The user should have at least one email address to reset password.";

@@ -1,11 +1,32 @@
+export interface UserLdapConfiguration {
+    url: string;
+    base_dn: string;
+    
+    additional_users_dn?: string;
+    users_filter?: string;
+
+    additional_groups_dn?: string;
+    groups_filter?: string;
+    
+    group_name_attribute?: string;
+    mail_attribute?: string;
+    
+    user: string; // admin username
+    password: string; // admin password
+}
 
 export interface LdapConfiguration {
     url: string;
-    base_dn: string;
-    additional_user_dn?: string;
-    user_name_attribute?: string; // cn by default
-    additional_group_dn?: string;
-    group_name_attribute?: string; // cn by default
+    
+    users_dn: string;
+    users_filter: string;
+
+    groups_dn: string;
+    groups_filter: string;
+    
+    group_name_attribute: string;
+    mail_attribute: string;
+    
     user: string; // admin username
     password: string; // admin password
 }
@@ -64,14 +85,21 @@ export interface StorageConfiguration {
     mongo?: MongoStorageConfiguration;
 }
 
+export interface RegulationConfiguration {
+    max_retries: number;
+    find_time: number;
+    ban_time: number;
+}
+
 export interface UserConfiguration {
     port?: number;
     logs_level?: string;
-    ldap: LdapConfiguration;
+    ldap: UserLdapConfiguration;
     session: SessionCookieConfiguration;
     storage: StorageConfiguration;
     notifier: NotifierConfiguration;
     access_control?: ACLConfiguration;
+    regulation: RegulationConfiguration;
 }
 
 export interface AppConfiguration {
@@ -82,4 +110,5 @@ export interface AppConfiguration {
     storage: StorageConfiguration;
     notifier: NotifierConfiguration;
     access_control?: ACLConfiguration;
+    regulation: RegulationConfiguration;
 }

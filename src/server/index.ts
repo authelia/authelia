@@ -4,7 +4,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 import Server from "./lib/Server";
 import { GlobalDependencies } from "../types/Dependencies";
-const YAML = require("yamljs");
+import YAML = require("yamljs");
 
 const configurationFilepath = process.argv[2];
 if (!configurationFilepath) {

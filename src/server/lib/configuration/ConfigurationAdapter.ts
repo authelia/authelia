@@ -3,7 +3,8 @@ import * as ObjectPath from "object-path";
 import {
   AppConfiguration, UserConfiguration, NotifierConfiguration,
   ACLConfiguration, LdapConfiguration, SessionRedisOptions,
-  MongoStorageConfiguration, LocalStorageConfiguration
+  MongoStorageConfiguration, LocalStorageConfiguration,
+  UserLdapConfiguration
 } from "./Configuration";
 
 const LDAP_URL_ENV_VARIABLE = "LDAP_URL";
@@ -23,15 +24,46 @@ function ensure_key_existence(config: object, path: string): void {
   }
 }
 
+function adaptLdapConfiguration(userConfig: UserLdapConfiguration): LdapConfiguration {
+  const DEFAULT_USERS_FILTER = "cn={0}";
+  const DEFAULT_GROUPS_FILTER = "member={0}";
+  const DEFAULT_GROUP_NAME_ATTRIBUTE = "cn";
+  const DEFAULT_MAIL_ATTRIBUTE = "mail";
+
+  let usersDN = userConfig.base_dn;
+  if (userConfig.additional_users_dn)
+    usersDN = userConfig.additional_users_dn + "," + usersDN;
+
+  let groupsDN = userConfig.base_dn;
+  if (userConfig.additional_groups_dn)
+    groupsDN = userConfig.additional_groups_dn + "," + groupsDN;
+
+  return {
+    url: userConfig.url,
+    users_dn: usersDN,
+    users_filter: userConfig.users_filter || DEFAULT_USERS_FILTER,
+    groups_dn: groupsDN,
+    groups_filter: userConfig.groups_filter || DEFAULT_GROUPS_FILTER,
+    group_name_attribute: userConfig.group_name_attribute || DEFAULT_GROUP_NAME_ATTRIBUTE,
+    mail_attribute: userConfig.mail_attribute || DEFAULT_MAIL_ATTRIBUTE,
+    password: userConfig.password,
+    user: userConfig.user
+  };
+}
+
 function adaptFromUserConfiguration(userConfiguration: UserConfiguration): AppConfiguration {
   ensure_key_existence(userConfiguration, "ldap");
+  // ensure_key_existence(userConfiguration, "ldap.url");
+  // ensure_key_existence(userConfiguration, "ldap.base_dn");
   ensure_key_existence(userConfiguration, "session.secret");
+  ensure_key_existence(userConfiguration, "regulation");
 
-  const port = ObjectPath.get(userConfiguration, "port", 8080);
+  const port = userConfiguration.port || 8080;
+  const ldapConfiguration = adaptLdapConfiguration(userConfiguration.ldap);
 
   return {
     port: port,
-    ldap: ObjectPath.get<object, LdapConfiguration>(userConfiguration, "ldap"),
+    ldap: ldapConfiguration,
     session: {
       domain: ObjectPath.get<object, string>(userConfiguration, "session.domain"),
       secret: ObjectPath.get<object, string>(userConfiguration, "session.secret"),
@@ -44,7 +76,8 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration): AppCo
     },
     logs_level: get_optional<string>(userConfiguration, "logs_level", "info"),
     notifier: ObjectPath.get<object, NotifierConfiguration>(userConfiguration, "notifier"),
-    access_control: ObjectPath.get<object, ACLConfiguration>(userConfiguration, "access_control")
+    access_control: ObjectPath.get<object, ACLConfiguration>(userConfiguration, "access_control"),
+    regulation: userConfiguration.regulation
   };
 }
 

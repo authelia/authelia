@@ -17,9 +17,14 @@ describe("test session configuration builder", function () {
             },
             ldap: {
                 url: "ldap://ldap",
-                base_dn: "dc=example,dc=com",
                 user: "user",
-                password: "password"
+                password: "password",
+                groups_dn: "ou=groups,dc=example,dc=com",
+                users_dn: "ou=users,dc=example,dc=com",
+                group_name_attribute: "",
+                groups_filter: "",
+                mail_attribute: "",
+                users_filter: ""
             },
             logs_level: "debug",
             notifier: {
@@ -32,6 +37,11 @@ describe("test session configuration builder", function () {
                 domain: "example.com",
                 expiration: 3600,
                 secret: "secret"
+            },
+            regulation: {
+                max_retries: 3,
+                ban_time: 5 * 60,
+                find_time: 5 * 60
             },
             storage: {
                 local: {
@@ -77,9 +87,14 @@ describe("test session configuration builder", function () {
             },
             ldap: {
                 url: "ldap://ldap",
-                base_dn: "dc=example,dc=com",
                 user: "user",
-                password: "password"
+                password: "password",
+                groups_dn: "ou=groups,dc=example,dc=com",
+                users_dn: "ou=users,dc=example,dc=com",
+                group_name_attribute: "",
+                groups_filter: "",
+                mail_attribute: "",
+                users_filter: ""
             },
             logs_level: "debug",
             notifier: {
@@ -96,6 +111,11 @@ describe("test session configuration builder", function () {
                     host: "redis.example.com",
                     port: 6379
                 }
+            },
+            regulation: {
+                max_retries: 3,
+                ban_time: 5 * 60,
+                find_time: 5 * 60
             },
             storage: {
                 local: {

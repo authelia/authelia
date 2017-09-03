@@ -52,3 +52,11 @@ objectclass: top
 mail: james.dean@example.com
 sn: James Dean
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+dn: cn=blackhat,ou=users,dc=example,dc=com
+cn: blackhat
+objectclass: inetOrgPerson
+objectclass: top
+mail: billy.blackhat@example.com
+sn: Billy BlackHat
+userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=

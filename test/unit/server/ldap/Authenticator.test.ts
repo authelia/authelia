@@ -2,121 +2,127 @@
 import { Authenticator } from "../../../../src/server/lib/ldap/Authenticator";
 import { LdapConfiguration } from "../../../../src/server/lib/configuration/Configuration";
 
-import sinon = require("sinon");
+import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
-import assert = require("assert");
-import ldapjs = require("ldapjs");
-import winston = require("winston");
-import { EventEmitter } from "events";
+import Assert = require("assert");
 
-import { LdapjsMock, LdapjsClientMock } from "../mocks/ldapjs";
+import { ClientFactoryStub } from "../mocks/ldap/ClientFactoryStub";
+import { ClientStub } from "../mocks/ldap/ClientStub";
 
 
 describe("test ldap authentication", function () {
+  const USERNAME = "username";
+  const PASSWORD = "password";
+
+  const ADMIN_USER_DN = "cn=admin,dc=example,dc=com";
+  const ADMIN_PASSWORD = "admin_password";
+
+  let clientFactoryStub: ClientFactoryStub;
+  let adminClientStub: ClientStub;
+  let userClientStub: ClientStub;
+
   let authenticator: Authenticator;
-  let ldapClient: LdapjsClientMock;
-  let ldapjs: LdapjsMock;
   let ldapConfig: LdapConfiguration;
-  let adminUserDN: string;
-  let adminPassword: string;
-
-  function retrieveEmailsAndGroups(ldapClient: LdapjsClientMock) {
-    const email0 = {
-      object: {
-        mail: "user@example.com"
-      }
-    };
-
-    const email1 = {
-      object: {
-        mail: "user@example1.com"
-      }
-    };
-
-    const group0 = {
-      object: {
-        group: "group0"
-      }
-    };
-
-    const emailsEmitter = {
-      on: sinon.spy(function (event: string, fn: (doc: any) => void) {
-        if (event != "error") fn(email0);
-        if (event != "error") fn(email1);
-      })
-    };
-
-    const groupsEmitter = {
-      on: sinon.spy(function (event: string, fn: (doc: any) => void) {
-        if (event != "error") fn(group0);
-      })
-    };
-
-    ldapClient.search.onCall(0).yields(undefined, emailsEmitter);
-    ldapClient.search.onCall(1).yields(undefined, groupsEmitter);
-  }
 
   beforeEach(function () {
-    ldapClient = LdapjsClientMock();
-    ldapjs = LdapjsMock();
-    ldapjs.createClient.returns(ldapClient);
-
-    // winston.level = "debug";
-
-    adminUserDN = "cn=admin,dc=example,dc=com";
-    adminPassword = "password";
+    clientFactoryStub = new ClientFactoryStub();
+    adminClientStub = new ClientStub();
+    userClientStub = new ClientStub();
 
     ldapConfig = {
       url: "http://localhost:324",
-      user: adminUserDN,
-      password: adminPassword,
-      base_dn: "dc=example,dc=com",
-      additional_user_dn: "ou=users"
+      users_dn: "ou=users,dc=example,dc=com",
+      users_filter: "cn={0}",
+      groups_dn: "ou=groups,dc=example,dc=com",
+      groups_filter: "member={0}",
+      mail_attribute: "mail",
+      group_name_attribute: "cn",
+      user: ADMIN_USER_DN,
+      password: ADMIN_PASSWORD
     };
 
-    authenticator = new Authenticator(ldapConfig, ldapjs, winston);
+    authenticator = new Authenticator(ldapConfig, clientFactoryStub);
   });
 
-  function test_check_password_internal() {
-    const username = "username";
-    const password = "password";
-    return authenticator.authenticate(username, password);
-  }
-
   describe("success", function () {
-    beforeEach(function () {
-      retrieveEmailsAndGroups(ldapClient);
-      ldapClient.bind.withArgs(adminUserDN, adminPassword).yields();
-      ldapClient.unbind.yields();
-    });
-
     it("should bind the user if good credentials provided", function () {
-      ldapClient.bind.withArgs("cn=username,ou=users,dc=example,dc=com", "password").yields();
-      return test_check_password_internal();
-    });
+      clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
+        .returns(adminClientStub);
+      clientFactoryStub.createStub.withArgs("cn=" + USERNAME + ",ou=users,dc=example,dc=com", PASSWORD)
+        .returns(userClientStub);
 
-    it("should bind the user with correct DN", function () {
-      ldapConfig.user_name_attribute = "uid";
-      ldapClient.bind.withArgs("uid=username,ou=users,dc=example,dc=com", "password").yields();
-      return test_check_password_internal();
+      // admin connects successfully
+      adminClientStub.openStub.returns(BluebirdPromise.resolve());
+      adminClientStub.closeStub.returns(BluebirdPromise.resolve());
+
+      // admin search for user dn of user
+      adminClientStub.searchUserDnStub.withArgs(USERNAME)
+        .returns(BluebirdPromise.resolve("cn=" + USERNAME + ",ou=users,dc=example,dc=com"));
+
+      // user connects successfully
+      userClientStub.openStub.returns(BluebirdPromise.resolve());
+      userClientStub.closeStub.returns(BluebirdPromise.resolve());
+
+      // admin retrieves emails and groups of user
+      adminClientStub.searchEmailsAndGroupsStub.returns(BluebirdPromise.resolve({
+        groups: ["group1"],
+        emails: ["user@example.com"]
+      }));
+
+      return authenticator.authenticate(USERNAME, PASSWORD);
     });
   });
 
   describe("failure", function () {
     it("should not bind the user if wrong credentials provided", function () {
-      ldapClient.bind.yields("wrong credentials");
-      return test_check_password_internal()
+      clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
+        .returns(adminClientStub);
+      clientFactoryStub.createStub.withArgs("cn=" + USERNAME + ",ou=users,dc=example,dc=com", PASSWORD)
+        .returns(userClientStub);
+
+      // admin connects successfully
+      adminClientStub.openStub.returns(BluebirdPromise.resolve());
+      adminClientStub.closeStub.returns(BluebirdPromise.resolve());
+
+      // admin search for user dn of user
+      adminClientStub.searchUserDnStub.withArgs(USERNAME)
+        .returns(BluebirdPromise.resolve("cn=" + USERNAME + ",ou=users,dc=example,dc=com"));
+
+      // user connects successfully
+      userClientStub.openStub.returns(BluebirdPromise.reject(new Error("Error while binding")));
+      userClientStub.closeStub.returns(BluebirdPromise.resolve());
+
+      return authenticator.authenticate(USERNAME, PASSWORD)
+        .then(function () { return BluebirdPromise.reject("Should not be here!"); })
         .catch(function () {
           return BluebirdPromise.resolve();
         });
     });
 
     it("should not bind the user if search of emails or group fails", function () {
-      ldapClient.bind.withArgs("cn=username,ou=users,dc=example,dc=com", "password").yields();
-      ldapClient.bind.withArgs(adminUserDN, adminPassword).yields();
-      ldapClient.unbind.yields();
-      ldapClient.search.yields("wrong credentials");
-      return test_check_password_internal()
+      clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
+        .returns(adminClientStub);
+      clientFactoryStub.createStub.withArgs("cn=" + USERNAME + ",ou=users,dc=example,dc=com", PASSWORD)
+        .returns(userClientStub);
+
+      // admin connects successfully
+      adminClientStub.openStub.returns(BluebirdPromise.resolve());
+      adminClientStub.closeStub.returns(BluebirdPromise.resolve());
+
+      // admin search for user dn of user
+      adminClientStub.searchUserDnStub.withArgs(USERNAME)
+        .returns(BluebirdPromise.resolve("cn=" + USERNAME + ",ou=users,dc=example,dc=com"));
+
+      // user connects successfully
+      userClientStub.openStub.returns(BluebirdPromise.resolve());
+      userClientStub.closeStub.returns(BluebirdPromise.resolve());
+
+      // admin retrieves emails and groups of user
+      adminClientStub.searchEmailsAndGroupsStub
+        .returns(BluebirdPromise.reject(new Error("Error while retrieving emails and groups")));
+
+      return authenticator.authenticate(USERNAME, PASSWORD)
+        .then(function () { return BluebirdPromise.reject("Should not be here!"); })
         .catch(function () {
           return BluebirdPromise.resolve();
         });

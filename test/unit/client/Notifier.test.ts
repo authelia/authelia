@@ -9,34 +9,34 @@ describe("test notifier", function() {
   const SELECTOR = "dummy-selector";
   const MESSAGE = "This is a message";
   let jqueryMock: { jquery: JQueryMock.JQueryMock, element: JQueryMock.JQueryElementsMock };
+  let clock: any;
 
   beforeEach(function() {
     jqueryMock = JQueryMock.JQueryMock();
+    clock = Sinon.useFakeTimers();
+  });
+
+  afterEach(function() {
+    clock.restore();
   });
 
   function should_fade_in_and_out_on_notification(notificationType: string): void {
-    const fadeInReturn = {
-      delay: Sinon.stub()
-    };
-
     const delayReturn = {
       fadeOut: Sinon.stub()
     };
 
-    jqueryMock.element.fadeIn.returns(fadeInReturn);
     jqueryMock.element.fadeIn.yields();
-    delayReturn.fadeOut.yields();
-
-    fadeInReturn.delay.returns(delayReturn);
 
     function onFadedInCallback() {
       Assert(jqueryMock.element.fadeIn.calledOnce);
       Assert(jqueryMock.element.addClass.calledWith(notificationType));
       Assert(!jqueryMock.element.removeClass.calledWith(notificationType));
+      clock.tick(10 * 1000);
     }
 
     function onFadedOutCallback() {
       Assert(jqueryMock.element.removeClass.calledWith(notificationType));
+      Assert(jqueryMock.element.fadeOut.calledOnce);
     }
 
     const notifier = new Notifier(SELECTOR, jqueryMock.jquery as any);
@@ -47,9 +47,9 @@ describe("test notifier", function() {
       onFadedOut: onFadedOutCallback
     });
 
+    clock.tick(510);
+
     Assert(jqueryMock.element.fadeIn.calledOnce);
-    Assert(fadeInReturn.delay.calledOnce);
-    Assert(delayReturn.fadeOut.calledOnce);
   }
 
 

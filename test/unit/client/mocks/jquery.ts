@@ -18,6 +18,7 @@ export interface JQueryElementsMock {
     addClass: sinon.SinonStub;
     removeClass: sinon.SinonStub;
     fadeIn: sinon.SinonStub;
+    fadeOut: sinon.SinonStub;
     on: sinon.SinonStub;
 }
 
@@ -36,6 +37,7 @@ export function JQueryMock(): { jquery: JQueryMock, element: JQueryElementsMock 
         addClass: sinon.stub(),
         removeClass: sinon.stub(),
         fadeIn: sinon.stub(),
+        fadeOut: sinon.stub(),
         on: sinon.stub()
     };
     jquery.ajax = sinon.stub();

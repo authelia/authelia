@@ -1,0 +1,5 @@
+version: '2'
+services:
+  authelia:
+    volumes:
+      - ./config.test.yml:/etc/authelia/config.yml:ro

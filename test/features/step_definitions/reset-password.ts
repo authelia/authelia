@@ -9,7 +9,7 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
   });
 
   When("I click on the link of the email", function () {
-    const notif = Fs.readFileSync("./notifications/notification.txt").toString();
+    const notif = Fs.readFileSync("/tmp/notifications/notification.txt").toString();
     const regexp = new RegExp(/Link: (.+)/);
     const match = regexp.exec(notif);
     const link = match[1];

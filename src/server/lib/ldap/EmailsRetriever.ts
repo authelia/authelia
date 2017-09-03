@@ -2,30 +2,23 @@ import BluebirdPromise = require("bluebird");
 import exceptions = require("../Exceptions");
 import ldapjs = require("ldapjs");
 import { Client } from "./Client";
-import { buildUserDN } from "./common";
 
+import { IClientFactory } from "./IClientFactory";
+import { IEmailsRetriever } from "./IEmailsRetriever";
 import { LdapConfiguration } from "../configuration/Configuration";
-import { Winston, Ldapjs, Dovehash } from "../../../types/Dependencies";
 
 
-export class EmailsRetriever {
+export class EmailsRetriever implements IEmailsRetriever {
   private options: LdapConfiguration;
-  private ldapjs: Ldapjs;
-  private logger: Winston;
+  private clientFactory: IClientFactory;
 
-  constructor(options: LdapConfiguration, ldapjs: Ldapjs, logger: Winston) {
+  constructor(options: LdapConfiguration, clientFactory: IClientFactory) {
     this.options = options;
-    this.ldapjs = ldapjs;
-    this.logger = logger;
-  }
-
-  private createClient(userDN: string, password: string): Client {
-    return new Client(userDN, password, this.options, this.ldapjs, undefined, this.logger);
+    this.clientFactory = clientFactory;
   }
 
   retrieve(username: string): BluebirdPromise<string[]> {
-    const userDN = buildUserDN(username, this.options);
-    const adminClient = this.createClient(this.options.user, this.options.password);
+    const adminClient = this.clientFactory.create(this.options.user, this.options.password);
     let emails: string[];
 
     return adminClient.open()
@@ -36,7 +29,7 @@ export class EmailsRetriever {
         emails = emails_;
         return adminClient.close();
       })
-      .then(function() {
+      .then(function () {
         return BluebirdPromise.resolve(emails);
       })
       .error(function (err: Error) {

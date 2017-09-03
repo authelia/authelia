@@ -43,8 +43,8 @@ export class UserDataStoreStub implements IUserDataStore {
         return this.saveAuthenticationTraceStub(userId, isAuthenticationSuccessful);
     }
 
-    retrieveLatestAuthenticationTraces(userId: string, isAuthenticationSuccessful: boolean, count: number): BluebirdPromise<AuthenticationTraceDocument[]> {
-        return this.retrieveLatestAuthenticationTracesStub(userId, isAuthenticationSuccessful, count);
+    retrieveLatestAuthenticationTraces(userId: string, count: number): BluebirdPromise<AuthenticationTraceDocument[]> {
+        return this.retrieveLatestAuthenticationTracesStub(userId, count);
     }
 
     produceIdentityValidationToken(userId: string, token: string, challenge: string, maxAge: number): BluebirdPromise<any> {
