@@ -2,9 +2,8 @@
   "name": "authelia",
   "version": "3.2.0",
   "description": "2FA Single Sign-On server for nginx using LDAP, TOTP and U2F",
-  "main": "dist/src/server/index.js",
   "bin": {
-    "authelia": "dist/src/server/index.js"
+    "authelia": "./dist/src/server/index.js"
   },
   "scripts": {
     "test": "./node_modules/.bin/grunt unit-tests",
@@ -104,6 +103,10 @@
     "u2f-api": "0.0.9",
     "uglify-es": "^3.0.15"
   },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
   "nyc": {
     "include": [
       "src/*.ts",
