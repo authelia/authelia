@@ -11,6 +11,7 @@ Feature: User is correctly redirected
     And I register a TOTP secret called "Sec0"
     And I visit "https://public.test.local:8080/secret.html"
     When I login with user "john" and password "badpassword"
+    And I get a notification of type "error" with message "Authentication failed. Please double check your credentials."
     And I clear field "username"
     And I login with user "john" and password "password" 
     And I use "Sec0" as TOTP token handle
