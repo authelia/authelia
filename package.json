@@ -104,10 +104,8 @@
     "uglify-es": "^3.0.15"
   },
   "files": [
+    "dist/src",
     "LICENSE"
-  ],
-  "directories": [
-    "dist"
   ],
   "nyc": {
     "include": [

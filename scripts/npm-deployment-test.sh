@@ -6,9 +6,6 @@ NPM_UNPACK_DIR=/tmp/npm-unpack
 
 pwd
 
-echo "--- Packing npm package into a tarball"
-npm pack
-
 AUTHELIA_PACKAGE=`ls | grep "authelia-\([0-9]\+.\)\{2\}[0-9]\+.tgz"`
 echo "--- Authelia package is ${AUTHELIA_PACKAGE}"
 
