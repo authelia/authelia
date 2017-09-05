@@ -3,10 +3,6 @@ import fs = require("fs");
 import BluebirdPromise = require("bluebird");
 import ChildProcess = require("child_process");
 
-Cucumber.defineSupportCode(function({ setDefaultTimeout }) {
-  setDefaultTimeout(60 * 1000);
-});
-
 Cucumber.defineSupportCode(function({ After, Before }) {
   const exec = BluebirdPromise.promisify(ChildProcess.exec);
 

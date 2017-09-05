@@ -5,7 +5,8 @@ import Fs = require("fs");
 import Speakeasy = require("speakeasy");
 import CustomWorld = require("../support/world");
 
-Cucumber.defineSupportCode(function ({ Given, When, Then }) {
+Cucumber.defineSupportCode(function ({ Given, When, Then, setDefaultTimeout }) {
+  setDefaultTimeout(15 * 1000);
   When(/^I visit "(https:\/\/[a-z0-9:.\/=?-]+)"$/, function (link: string) {
     return this.visit(link);
   });

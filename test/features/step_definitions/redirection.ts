@@ -2,7 +2,9 @@ import Cucumber = require("cucumber");
 import seleniumWebdriver = require("selenium-webdriver");
 import Assert = require("assert");
 
-Cucumber.defineSupportCode(function ({ Given, When, Then }) {
+Cucumber.defineSupportCode(function ({ Given, When, Then, setDefaultTimeout }) {
+  setDefaultTimeout(15 * 1000);
+
   Given("I'm on https://{string}", function (link: string) {
     return this.driver.get("https://" + link);
   });
@@ -11,7 +13,8 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
     return this.driver.findElement(seleniumWebdriver.By.linkText(link)).click();
   });
 
-  Then("I'm redirected to {stringInDoubleQuotes}", function (link: string) {
-    return this.driver.wait(seleniumWebdriver.until.urlContains(link), 5000);
-  });
+  Then("I'm redirected to {stringInDoubleQuotes}", { timeout: 15 * 1000 },
+    function (link: string) {
+      return this.driver.wait(seleniumWebdriver.until.urlContains(link), 5000);
+    });
 });
