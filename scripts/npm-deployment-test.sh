@@ -4,6 +4,8 @@ set -e
 
 NPM_UNPACK_DIR=/tmp/npm-unpack
 
+pwd
+
 echo "--- Packing npm package into a tarball"
 npm pack
 
