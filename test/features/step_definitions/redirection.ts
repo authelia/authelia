@@ -15,6 +15,6 @@ Cucumber.defineSupportCode(function ({ Given, When, Then, setDefaultTimeout }) {
 
   Then("I'm redirected to {stringInDoubleQuotes}", { timeout: 15 * 1000 },
     function (link: string) {
-      return this.driver.wait(seleniumWebdriver.until.urlContains(link), 5000);
+      return this.driver.wait(seleniumWebdriver.until.urlContains(link), 15000);
     });
 });
