@@ -1,19 +1,19 @@
 
-.nyc_output/
-.vscode/
-coverage/
-dist/test/
-doc/
-example/
-images/
-node_modules/
-src/
-test/
-scripts/
+.nyc_output
+.vscode
+coverage
+doc
+example
+images
+node_modules
+src
+test
+scripts
 
 *.tgz
 .travis.yml
-/config.*
+/config.yml
+/config.test.yml
 CONTRIBUTORS.md
 Dockerfile
 docker-compose.*
