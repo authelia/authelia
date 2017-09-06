@@ -17,7 +17,6 @@ scripts/
 CONTRIBUTORS.md
 Dockerfile
 docker-compose.*
-Gruntfile.js
 npm-debug.log*
 README.md
 tsconfig.json
