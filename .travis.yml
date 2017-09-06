@@ -25,7 +25,7 @@ addons:
     - mx2.mail.test.local 
 
 before_install: 
-  - npm install -g npm@'>=2.13.5'
+  - npm install -g npm
 
 before_script:
   - export DISPLAY=:99.0
