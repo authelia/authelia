@@ -3,3 +3,15 @@ src/
 
 # Test code
 test/
+
+# Doc
+doc/
+
+# Scripts
+scripts/
+
+# Images
+images/
+
+# Docker compose
+docker-compose.*
