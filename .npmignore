@@ -4,6 +4,7 @@ doc/
 scripts/
 images/
 example/
+dist/test/
 
 .travis.yml
 config.test.yml
@@ -12,3 +13,5 @@ docker-compose.*
 Gruntfile.js
 tslint.json
 tsconfig.json
+
+*.tgz
