@@ -1,6 +1,6 @@
 {
   "name": "authelia",
-  "version": "3.3.12",
+  "version": "3.3.13",
   "description": "2FA Single Sign-On server for nginx using LDAP, TOTP and U2F",
   "main": "dist/src/server/index.js",
   "bin": {
