@@ -1,17 +1,13 @@
-# Source code
 src/
-
-# Test code
 test/
-
-# Doc
 doc/
-
-# Scripts
 scripts/
-
-# Images
 images/
+example/
 
-# Docker compose
+config.test.yml
+Dockerfile
 docker-compose.*
+Gruntfile.js
+tslint.json
+tsconfig.json
