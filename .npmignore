@@ -5,6 +5,7 @@ scripts/
 images/
 example/
 
+.travis.yml
 config.test.yml
 Dockerfile
 docker-compose.*
