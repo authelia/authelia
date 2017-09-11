@@ -10,6 +10,8 @@ npm pack
 AUTHELIA_PACKAGE=`ls | grep "authelia-\([0-9]\+.\)\{2\}[0-9]\+.tgz"`
 echo "--- Authelia package is ${AUTHELIA_PACKAGE}"
 
+tar -tzvf ${AUTHELIA_PACKAGE}
+
 echo "--- Copy package into "${NPM_UNPACK_DIR}" to test unpacking"
 mkdir -p ${NPM_UNPACK_DIR}
 cp ${AUTHELIA_PACKAGE} ${NPM_UNPACK_DIR}
