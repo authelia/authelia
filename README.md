@@ -102,12 +102,18 @@ Add the following lines to your **/etc/hosts** to alias multiple subdomains so t
 
 ### Run it!
     
-Deploy **Authelia** example with the following command:
+Deploy the **Authelia** example with one of the following commands:
+
+Build Docker container from current commit:
 
     npm install --only=dev
     ./node_modules/.bin/grunt build-dist
-    ./scripts/example/deploy-example.sh
+    ./scripts/example-commit/deploy-example.sh
 
+Use provided container on [DockerHub](https://hub.docker.com/r/clems4ever/authelia/):
+
+    ./scripts/example-dockerhub/deploy-example.sh
+    
 After few seconds the services should be running and you should be able to visit 
 [https://home.test.local:8080/](https://home.test.local:8080/).
 

@@ -1,7 +1,15 @@
 version: '2'
 services:
   openldap:
-    build: ./example/ldap
+    image: clems4ever/openldap
+    environment:
+      - SLAPD_ORGANISATION=MyCompany
+      - SLAPD_DOMAIN=example.com
+      - SLAPD_PASSWORD=password
+      - SLAPD_CONFIG_PASSWORD=password
+      - SLAPD_ADDITIONAL_MODULES=memberof
+      - SLAPD_ADDITIONAL_SCHEMAS=openldap
+      - SLAPD_FORCE_RECONFIGURE=true
     volumes:
       - ./example/ldap/base.ldif:/etc/ldap.dist/prepopulate/base.ldif
       - ./example/ldap/access.rules:/etc/ldap.dist/prepopulate/access.rules

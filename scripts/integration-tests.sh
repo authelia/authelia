@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DC_SCRIPT=./scripts/example/dc-example.sh
+DC_SCRIPT=./scripts/example-commit/dc-example.sh
 EXPECTED_SERVICES_COUNT=5
 
 start_services() {
@@ -40,7 +40,13 @@ run_other_tests() {
   echo "Test dev environment deployment (commands in README)"
   npm install --only=dev
   ./node_modules/.bin/grunt build-dist
-  ./scripts/example/deploy-example.sh
+  ./scripts/example-commit/deploy-example.sh
+  expect_services_count 5
+}
+
+run_other_tests_docker() {
+  echo "Test dev docker deployment (commands in README)"
+  ./scripts/example-dockerhub/deploy-example.sh
   expect_services_count 5
 }
 
@@ -58,3 +64,6 @@ run_integration_tests
 
 # Other tests like executing the deployment script
 run_other_tests
+
+# Test example with precompiled container
+run_other_tests_docker
