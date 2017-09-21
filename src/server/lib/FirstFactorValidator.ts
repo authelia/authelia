@@ -6,9 +6,11 @@ import Exceptions = require("./Exceptions");
 import AuthenticationSession = require("./AuthenticationSession");
 
 export function validate(req: express.Request): BluebirdPromise<void> {
-  const authSession = AuthenticationSession.get(req);
-  if (!authSession.userid || !authSession.first_factor)
-    return BluebirdPromise.reject(new Exceptions.FirstFactorValidationError("First factor has not been validated yet."));
+  return AuthenticationSession.get(req)
+    .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+      if (!authSession.userid || !authSession.first_factor)
+        return BluebirdPromise.reject(new Exceptions.FirstFactorValidationError("First factor has not been validated yet."));
 
-  return BluebirdPromise.resolve();
+      return BluebirdPromise.resolve();
+    });
 }

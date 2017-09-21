@@ -112,7 +112,7 @@ module.exports = function (grunt) {
         }
       },
       client: {
-        files: ['src/client/**/*.ts', 'test/client/**/*.ts'],
+        files: ['src/client/**/*.ts'],
         tasks: ['build-dev'],
         options: {
           interrupt: true,
@@ -120,7 +120,7 @@ module.exports = function (grunt) {
         }
       },
       server: {
-        files: ['src/server/**/*.ts', 'test/server/**/*.ts'],
+        files: ['src/server/**/*.ts'],
         tasks: ['build-dev', 'run:docker-restart', 'run:make-dev-views' ],
         options: {
           interrupt: true,

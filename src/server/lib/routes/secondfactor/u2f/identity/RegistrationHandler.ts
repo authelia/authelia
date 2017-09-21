@@ -20,20 +20,22 @@ export default class RegistrationHandler implements IdentityValidable {
     return CHALLENGE;
   }
 
-  private retrieveIdentity(req: express.Request) {
-    const authSession = AuthenticationSession.get(req);
-    const userid = authSession.userid;
-    const email = authSession.email;
+  private retrieveIdentity(req: express.Request): BluebirdPromise<Identity> {
+    return AuthenticationSession.get(req)
+      .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+        const userid = authSession.userid;
+        const email = authSession.email;
 
-    if (!(userid && email)) {
-      return BluebirdPromise.reject("User ID or email is missing");
-    }
+        if (!(userid && email)) {
+          return BluebirdPromise.reject(new Error("User ID or email is missing"));
+        }
 
-    const identity = {
-      email: email,
-      userid: userid
-    };
-    return BluebirdPromise.resolve(identity);
+        const identity = {
+          email: email,
+          userid: userid
+        };
+        return BluebirdPromise.resolve(identity);
+      });
   }
 
   preValidationInit(req: express.Request): BluebirdPromise<Identity> {

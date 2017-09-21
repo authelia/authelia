@@ -16,7 +16,6 @@ describe("test reset password route", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
   let configuration: any;
-  let authSession: AuthenticationSession.AuthenticationSession;
   let serverVariables: ServerVariablesMock.ServerVariablesMock;
 
   beforeEach(function () {
@@ -25,7 +24,7 @@ describe("test reset password route", function () {
         userid: "user"
       },
       app: {
-        get: Sinon.stub()
+        get: Sinon.stub().returns({ logger: winston })
       },
       session: {},
       headers: {
@@ -34,11 +33,6 @@ describe("test reset password route", function () {
     };
 
     AuthenticationSession.reset(req as any);
-    authSession = AuthenticationSession.get(req as any);
-    authSession.userid = "user";
-    authSession.email = "user@example.com";
-    authSession.first_factor = true;
-    authSession.second_factor = false;
 
     const options = {
       inMemoryOnly: true
@@ -65,54 +59,72 @@ describe("test reset password route", function () {
     } as any;
 
     res = ExpressMock.ResponseMock();
+    AuthenticationSession.get(req as any)
+      .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+        authSession.userid = "user";
+        authSession.email = "user@example.com";
+        authSession.first_factor = true;
+        authSession.second_factor = false;
+      });
   });
 
   describe("test reset password post", () => {
     it("should update the password and reset auth_session for reauthentication", function () {
-      authSession.identity_check = {
-        userid: "user",
-        challenge: "reset-password"
-      };
       req.body = {};
       req.body.password = "new-password";
 
       (serverVariables.ldapPasswordUpdater.updatePassword as sinon.SinonStub).returns(BluebirdPromise.resolve());
-      return PasswordResetFormPost.default(req as any, res as any)
+
+      return AuthenticationSession.get(req as any)
+        .then(function (authSession) {
+          authSession.identity_check = {
+            userid: "user",
+            challenge: "reset-password"
+          };
+          return PasswordResetFormPost.default(req as any, res as any);
+        })
         .then(function () {
-          const authSession = AuthenticationSession.get(req as any);
+          return AuthenticationSession.get(req as any);
+        }).then(function (_authSession: AuthenticationSession.AuthenticationSession) {
           assert.equal(res.status.getCall(0).args[0], 204);
-          assert.equal(authSession.first_factor, false);
-          assert.equal(authSession.second_factor, false);
+          assert.equal(_authSession.first_factor, false);
+          assert.equal(_authSession.second_factor, false);
           return BluebirdPromise.resolve();
         });
     });
 
-    it("should fail if identity_challenge does not exist", function (done) {
-      authSession.identity_check = {
-        userid: "user",
-        challenge: undefined
-      };
-      res.send = Sinon.spy(function () {
-        assert.equal(res.status.getCall(0).args[0], 403);
-        done();
-      });
-      PasswordResetFormPost.default(req as any, res as any);
+    it("should fail if identity_challenge does not exist", function () {
+      return AuthenticationSession.get(req as any)
+        .then(function (authSession) {
+          authSession.identity_check = {
+            userid: "user",
+            challenge: undefined
+          };
+          return PasswordResetFormPost.default(req as any, res as any);
+        })
+        .then(function () {
+          assert.equal(res.status.getCall(0).args[0], 403);
+        });
     });
 
-    it("should fail when ldap fails", function (done) {
-      authSession.identity_check = {
-        challenge: "reset-password",
-        userid: "user"
-      };
+    it("should fail when ldap fails", function () {
       req.body = {};
       req.body.password = "new-password";
 
-      (serverVariables.ldapPasswordUpdater.updatePassword as Sinon.SinonStub).returns(BluebirdPromise.reject("Internal error with LDAP"));
-      res.send = Sinon.spy(function () {
-        assert.equal(res.status.getCall(0).args[0], 500);
-        done();
-      });
-      PasswordResetFormPost.default(req as any, res as any);
+      (serverVariables.ldapPasswordUpdater.updatePassword as Sinon.SinonStub)
+        .returns(BluebirdPromise.reject("Internal error with LDAP"));
+
+      return AuthenticationSession.get(req as any)
+        .then(function (authSession) {
+          authSession.identity_check = {
+            challenge: "reset-password",
+            userid: "user"
+          };
+          return PasswordResetFormPost.default(req as any, res as any);
+        }).then(function () {
+          assert.equal(res.status.getCall(0).args[0], 500);
+          return BluebirdPromise.resolve();
+        });
     });
   });
 });

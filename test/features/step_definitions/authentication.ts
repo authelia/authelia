@@ -6,7 +6,7 @@ import Speakeasy = require("speakeasy");
 import CustomWorld = require("../support/world");
 
 Cucumber.defineSupportCode(function ({ Given, When, Then }) {
-  When(/^I visit "(https:\/\/[a-z0-9:.\/=?-]+)"$/, function (link: string) {
+  When(/^I visit "(https:\/\/[a-zA-Z0-9:%.\/=?-]+)"$/, function (link: string) {
     return this.visit(link);
   });
 

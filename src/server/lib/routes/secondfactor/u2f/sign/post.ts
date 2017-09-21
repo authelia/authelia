@@ -11,7 +11,7 @@ import exceptions = require("../../../../Exceptions");
 import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
-import {  ServerVariablesHandler } from "../../../../ServerVariablesHandler";
+import { ServerVariablesHandler } from "../../../../ServerVariablesHandler";
 import AuthenticationSession = require("../../../../AuthenticationSession");
 
 export default FirstFactorBlocker(handler);
@@ -19,17 +19,21 @@ export default FirstFactorBlocker(handler);
 export function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
   const logger = ServerVariablesHandler.getLogger(req.app);
   const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
-  const authSession = AuthenticationSession.get(req);
+  let authSession: AuthenticationSession.AuthenticationSession;
 
-  if (!authSession.sign_request) {
-    const err = new Error("No sign request");
-    ErrorReplies.replyWithError401(res, logger)(err);
-    return BluebirdPromise.reject(err);
-  }
+  return AuthenticationSession.get(req)
+    .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+      authSession = _authSession;
+      if (!authSession.sign_request) {
+        const err = new Error("No sign request");
+        ErrorReplies.replyWithError401(res, logger)(err);
+        return BluebirdPromise.reject(err);
+      }
 
-  const userid = authSession.userid;
-  const appid = u2f_common.extract_app_id(req);
-  return userDataStore.retrieveU2FRegistration(userid, appid)
+      const userid = authSession.userid;
+      const appid = u2f_common.extract_app_id(req);
+      return userDataStore.retrieveU2FRegistration(userid, appid);
+    })
     .then(function (doc: U2FRegistrationDocument): BluebirdPromise<U2f.SignatureResult | U2f.Error> {
       const appId = u2f_common.extract_app_id(req);
       const u2f = ServerVariablesHandler.getU2F(req.app);

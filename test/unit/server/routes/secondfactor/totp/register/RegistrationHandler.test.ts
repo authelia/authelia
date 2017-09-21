@@ -23,11 +23,6 @@ describe("test totp register", function () {
     req.session = {};
 
     AuthenticationSession.reset(req as any);
-    authSession = AuthenticationSession.get(req as any);
-    authSession.userid = "user";
-    authSession.email = "user@example.com";
-    authSession.first_factor = true;
-    authSession.second_factor = false;
 
     req.headers = {};
     req.headers.host = "localhost";
@@ -43,6 +38,15 @@ describe("test totp register", function () {
     mocks.userDataStore.saveTOTPSecretStub.returns(BluebirdPromise.resolve({}));
 
     res = ExpressMock.ResponseMock();
+
+    return AuthenticationSession.get(req as any)
+      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+        authSession = _authSession;
+        authSession.userid = "user";
+        authSession.email = "user@example.com";
+        authSession.first_factor = true;
+        authSession.second_factor = false;
+      });
   });
 
   describe("test totp registration check", test_registration_check);

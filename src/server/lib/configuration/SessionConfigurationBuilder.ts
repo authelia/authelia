@@ -2,6 +2,7 @@
 import ExpressSession = require("express-session");
 import { AppConfiguration } from "./Configuration";
 import { GlobalDependencies } from "../../../types/Dependencies";
+import Redis = require("redis");
 
 export class SessionConfigurationBuilder {
 
@@ -21,9 +22,16 @@ export class SessionConfigurationBuilder {
       let redisOptions;
       if (configuration.session.redis.host
         && configuration.session.redis.port) {
-        redisOptions = {
+        const client = Redis.createClient({
           host: configuration.session.redis.host,
           port: configuration.session.redis.port
+        });
+        client.on("error", function (err: Error) {
+          console.error("Redis error:", err);
+        });
+        redisOptions = {
+          client: client,
+          logErrors: true
         };
       }
 

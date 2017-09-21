@@ -14,82 +14,84 @@ import ServerVariablesMock = require("../../../../mocks/ServerVariablesMock");
 import U2f = require("u2f");
 
 describe("test u2f routes: register_request", function () {
-    let req: ExpressMock.RequestMock;
-    let res: ExpressMock.ResponseMock;
-    let mocks: ServerVariablesMock.ServerVariablesMock;
-    let authSession: AuthenticationSession.AuthenticationSession;
+  let req: ExpressMock.RequestMock;
+  let res: ExpressMock.ResponseMock;
+  let mocks: ServerVariablesMock.ServerVariablesMock;
+  let authSession: AuthenticationSession.AuthenticationSession;
 
-    beforeEach(function () {
-        req = ExpressMock.RequestMock();
-        req.app = {};
-        mocks = ServerVariablesMock.mock(req.app);
-        mocks.logger = winston;
-        req.session = {};
-        AuthenticationSession.reset(req as any);
-        authSession = AuthenticationSession.get(req as any);
+  beforeEach(function () {
+    req = ExpressMock.RequestMock();
+    req.app = {};
+    mocks = ServerVariablesMock.mock(req.app);
+    mocks.logger = winston;
+    req.session = {};
+    AuthenticationSession.reset(req as any);
 
+    req.headers = {};
+    req.headers.host = "localhost";
+
+    const options = {
+      inMemoryOnly: true
+    };
+
+
+    mocks.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+
+    res = ExpressMock.ResponseMock();
+    res.send = sinon.spy();
+    res.json = sinon.spy();
+    res.status = sinon.spy();
+
+    return AuthenticationSession.get(req as any)
+      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+        authSession = _authSession;
         authSession.userid = "user";
         authSession.first_factor = true;
         authSession.second_factor = false;
         authSession.identity_check = {
-            challenge: "u2f-register",
-            userid: "user"
+          challenge: "u2f-register",
+          userid: "user"
         };
+      });
+  });
 
-        req.headers = {};
-        req.headers.host = "localhost";
+  describe("test registration request", () => {
+    it("should send back the registration request and save it in the session", function () {
+      const expectedRequest = {
+        test: "abc"
+      };
+      const user_key_container = {};
+      const u2f_mock = U2FMock.U2FMock();
+      u2f_mock.request.returns(BluebirdPromise.resolve(expectedRequest));
 
-        const options = {
-            inMemoryOnly: true
-        };
-
-
-        mocks.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
-        mocks.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
-
-        res = ExpressMock.ResponseMock();
-        res.send = sinon.spy();
-        res.json = sinon.spy();
-        res.status = sinon.spy();
+      mocks.u2f = u2f_mock;
+      return U2FRegisterRequestGet.default(req as any, res as any)
+        .then(function () {
+          assert.deepEqual(expectedRequest, res.json.getCall(0).args[0]);
+        });
     });
 
-    describe("test registration request", () => {
-        it("should send back the registration request and save it in the session", function () {
-            const expectedRequest = {
-                test: "abc"
-            };
-            const user_key_container = {};
-            const u2f_mock = U2FMock.U2FMock();
-            u2f_mock.request.returns(BluebirdPromise.resolve(expectedRequest));
+    it("should return internal error on registration request", function (done) {
+      res.send = sinon.spy(function (data: any) {
+        assert.equal(500, res.status.getCall(0).args[0]);
+        done();
+      });
+      const user_key_container = {};
+      const u2f_mock = U2FMock.U2FMock();
+      u2f_mock.request.returns(BluebirdPromise.reject("Internal error"));
 
-            mocks.u2f = u2f_mock;
-            return U2FRegisterRequestGet.default(req as any, res as any)
-                .then(function () {
-                    assert.deepEqual(expectedRequest, res.json.getCall(0).args[0]);
-                });
-        });
+      mocks.u2f = u2f_mock;
+      U2FRegisterRequestGet.default(req as any, res as any);
+    });
 
-        it("should return internal error on registration request", function (done) {
-            res.send = sinon.spy(function (data: any) {
-                assert.equal(500, res.status.getCall(0).args[0]);
-                done();
-            });
-            const user_key_container = {};
-            const u2f_mock = U2FMock.U2FMock();
-            u2f_mock.request.returns(BluebirdPromise.reject("Internal error"));
-
-            mocks.u2f = u2f_mock;
-            U2FRegisterRequestGet.default(req as any, res as any);
-        });
-
-        it("should return forbidden if identity has not been verified", function (done) {
-            res.send = sinon.spy(function (data: any) {
-                assert.equal(403, res.status.getCall(0).args[0]);
-                done();
-            });
-            authSession.identity_check = undefined;
-            U2FRegisterRequestGet.default(req as any, res as any);
+    it("should return forbidden if identity has not been verified", function () {
+      authSession.identity_check = undefined;
+      return U2FRegisterRequestGet.default(req as any, res as any)
+        .then(function () {
+          assert.equal(403, res.status.getCall(0).args[0]);
         });
     });
+  });
 });
 

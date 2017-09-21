@@ -155,9 +155,14 @@ describe("test identity check process", function () {
       req.query.identity_token = "token";
 
       req.session = {};
-      const authSession = AuthenticationSession.get(req as any);
+      let authSession: AuthenticationSession.AuthenticationSession;
       const callback = IdentityValidator.get_finish_validation(identityValidable);
-      return callback(req as any, res as any, undefined)
+
+      return AuthenticationSession.get(req as any)
+        .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+          authSession = _authSession;
+          return callback(req as any, res as any, undefined);
+        })
         .then(function () { return BluebirdPromise.reject("Should fail"); })
         .catch(function () {
           assert.equal(authSession.identity_check.userid, "user");

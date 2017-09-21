@@ -14,7 +14,7 @@ Feature: User validate first factor
     And I click on "Sign in"
     Then I get a notification of type "error" with message "Authentication failed. Please double check your credentials."
 
-  Scenario: User succeeds TOTP second factor
+  Scenario: User registers TOTP secret and succeeds authentication
     Given I visit "https://auth.test.local:8080/"
     And I login with user "john" and password "password"
     And I register a TOTP secret called "Sec0"
@@ -31,23 +31,6 @@ Feature: User validate first factor
     And I click on "TOTP"
     Then I get a notification of type "error" with message "Problem with TOTP validation."
 
-  Scenario: User logs out
-    Given I visit "https://auth.test.local:8080/"
-    And I login with user "john" and password "password"
-    And I register a TOTP secret called "Sec0"
-    And I visit "https://auth.test.local:8080/"
-    And I login with user "john" and password "password" 
-    And I use "Sec0" as TOTP token handle
-    When I visit "https://auth.test.local:8080/logout?redirect=https://www.google.fr"
-    And I visit "https://secret.test.local:8080/secret.html"
-    Then I'm redirected to "https://auth.test.local:8080/"
-
-  Scenario: Logout redirects user
-    Given I visit "https://auth.test.local:8080/"
-    And I login with user "john" and password "password"
-    And I register a TOTP secret called "Sec0"
-    And I visit "https://auth.test.local:8080/"
-    And I login with user "john" and password "password" 
-    And I use "Sec0" as TOTP token handle
+  Scenario: Logout redirects user to redirect URL given in parameter
     When I visit "https://auth.test.local:8080/logout?redirect=https://www.google.fr"
     Then I'm redirected to "https://www.google.fr"

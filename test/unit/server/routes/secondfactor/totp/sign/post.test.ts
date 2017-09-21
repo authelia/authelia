@@ -23,6 +23,7 @@ describe("test totp route", function () {
     const app_get = sinon.stub();
     req = {
       app: {
+        get: sinon.stub().returns({ logger:  winston })
       },
       body: {
         token: "abc"
@@ -30,11 +31,6 @@ describe("test totp route", function () {
       session: {}
     };
     AuthenticationSession.reset(req as any);
-    authSession = AuthenticationSession.get(req as any);
-    authSession.userid = "user";
-    authSession.first_factor = true;
-    authSession.second_factor = false;
-
     const mocks = ServerVariablesMock.mock(req.app);
     res = ExpressMock.ResponseMock();
 
@@ -52,6 +48,14 @@ describe("test totp route", function () {
     mocks.logger = winston;
     mocks.totpValidator = totpValidator;
     mocks.config = config;
+
+    return AuthenticationSession.get(req as any)
+      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+        authSession = _authSession;
+        authSession.userid = "user";
+        authSession.first_factor = true;
+        authSession.second_factor = false;
+      });
   });
 
 

@@ -10,7 +10,7 @@ import { IUserDataStore } from "./storage/IUserDataStore";
 import { Winston } from "../../types/Dependencies";
 import express = require("express");
 import ErrorReplies = require("./ErrorReplies");
-import { ServerVariablesHandler } from "./ServerVariablesHandler";
+import { ServerVariablesHandler } from "./ServerVariablesHandler";
 import AuthenticationSession = require("./AuthenticationSession");
 
 import Identity = require("../../types/Identity");
@@ -66,13 +66,19 @@ export function get_finish_validation(handler: IdentityValidable): express.Reque
     const logger = ServerVariablesHandler.getLogger(req.app);
     const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
 
-    const authSession = AuthenticationSession.get(req);
+    let authSession: AuthenticationSession.AuthenticationSession;
     const identityToken = objectPath.get<express.Request, string>(req, "query.identity_token");
     logger.info("GET identity_check: identity token provided is %s", identityToken);
 
     return checkIdentityToken(req, identityToken)
       .then(function () {
         return handler.postValidationInit(req);
+      })
+      .then(function () {
+        return AuthenticationSession.get(req);
+      })
+      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+        authSession = _authSession;
       })
       .then(function () {
         return consumeToken(identityToken, handler.challenge(), userDataStore, logger);

@@ -23,11 +23,6 @@ describe("test register handler", function () {
     mocks.logger = winston;
     req.session = {};
     AuthenticationSession.reset(req as any);
-    authSession = AuthenticationSession.get(req as any);
-    authSession.userid = "user";
-    authSession.email = "user@example.com";
-    authSession.first_factor = true;
-    authSession.second_factor = false;
     req.headers = {};
     req.headers.host = "localhost";
 
@@ -44,6 +39,15 @@ describe("test register handler", function () {
     res.send = sinon.spy();
     res.json = sinon.spy();
     res.status = sinon.spy();
+
+    return AuthenticationSession.get(req as any)
+      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+        authSession = _authSession;
+        authSession.userid = "user";
+        authSession.email = "user@example.com";
+        authSession.first_factor = true;
+        authSession.second_factor = false;
+      });
   });
 
   describe("test u2f registration check", test_registration_check);
