@@ -10,17 +10,17 @@ export interface NedbOptions {
 }
 
 export class NedbCollectionFactory implements ICollectionFactory {
-  private options: NedbOptions;
+  private options: Nedb.DataStoreOptions;
 
-  constructor(options: NedbOptions) {
+  constructor(options: Nedb.DataStoreOptions) {
     this.options = options;
   }
 
   build(collectionName: string): ICollection {
-    const datastoreOptions = {
+    const datastoreOptions: Nedb.DataStoreOptions = {
       inMemoryOnly: this.options.inMemoryOnly || false,
       autoload: true,
-      filename: (this.options.directory) ? path.resolve(this.options.directory, collectionName) : undefined
+      filename: (this.options.filename) ? path.resolve(this.options.filename, collectionName) : undefined
     };
 
     return new NedbCollection(datastoreOptions);

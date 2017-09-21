@@ -49,9 +49,9 @@ export interface ServerVariables {
 class UserDataStoreFactory {
   static create(config: Configuration.AppConfiguration): BluebirdPromise<UserDataStore> {
     if (config.storage.local) {
-      const nedbOptions = {
-        directory: config.storage.local.path,
-        inMemory: config.storage.local.in_memory
+      const nedbOptions: Nedb.DataStoreOptions = {
+        filename: config.storage.local.path,
+        inMemoryOnly: config.storage.local.in_memory
       };
       const collectionFactory = CollectionFactoryFactory.createNedb(nedbOptions);
       return BluebirdPromise.resolve(new UserDataStore(collectionFactory));
