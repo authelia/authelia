@@ -7,6 +7,7 @@ import U2FValidator = require("./U2FValidator");
 import Endpoints = require("../../../server/endpoints");
 import Constants = require("./constants");
 import { Notifier } from "../Notifier";
+import { QueryParametersRetriever } from "../QueryParametersRetriever";
 
 
 export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi) {
@@ -14,7 +15,11 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
     const notifierU2f = new Notifier(".notification-u2f", $);
 
     function onAuthenticationSuccess(data: any) {
-        window.location.href = data.redirection_url;
+        const redirectUrl = QueryParametersRetriever.get("redirect");
+        if (redirectUrl)
+            window.location.href = redirectUrl;
+        else
+            window.location.href = Endpoints.FIRST_FACTOR_GET;
     }
 
     function onSecondFactorTotpSuccess(data: any) {

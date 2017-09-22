@@ -71,7 +71,7 @@ describe("test the first factor validation route", function () {
     res = ExpressMock.ResponseMock();
   });
 
-  it("should redirect client to second factor page", function () {
+  it("should reply with 204 if success", function () {
     (serverVariables.ldapAuthenticator as any).authenticate.withArgs("username", "password")
       .returns(BluebirdPromise.resolve({
         emails: emails,
@@ -81,7 +81,8 @@ describe("test the first factor validation route", function () {
     return FirstFactorPost.default(req as any, res as any)
       .then(function () {
         assert.equal("username", authSession.userid);
-        assert.equal(Endpoints.SECOND_FACTOR_GET, res.redirect.getCall(0).args[0]);
+        assert(res.send.calledOnce);
+        assert(res.status.calledWith(204));
       });
   });
 

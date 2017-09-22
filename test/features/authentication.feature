@@ -18,14 +18,14 @@ Feature: User validate first factor
     Given I visit "https://auth.test.local:8080/"
     And I login with user "john" and password "password"
     And I register a TOTP secret called "Sec0"
-    When I visit "https://secret.test.local:8080/secret.html" and get redirected "https://auth.test.local:8080/"
+    When I visit "https://secret.test.local:8080/secret.html" and get redirected "https://auth.test.local:8080/?redirect=https%3A%2F%2Fsecret.test.local%3A8080%2Fsecret.html"
     And I login with user "john" and password "password" 
     And I use "Sec0" as TOTP token handle
     And I click on "TOTP"
     Then I'm redirected to "https://secret.test.local:8080/secret.html"
 
   Scenario: User fails TOTP second factor
-    When I visit "https://secret.test.local:8080/secret.html" and get redirected "https://auth.test.local:8080/"
+    When I visit "https://secret.test.local:8080/secret.html" and get redirected "https://auth.test.local:8080/?redirect=https%3A%2F%2Fsecret.test.local%3A8080%2Fsecret.html"
     And I login with user "john" and password "password"
     And I use "BADTOKEN" as TOTP token
     And I click on "TOTP"
