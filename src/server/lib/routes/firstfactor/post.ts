@@ -59,8 +59,8 @@ export default function (req: express.Request, res: express.Response): BluebirdP
             logger.debug("1st factor: Mark successful authentication to regulator.");
             regulator.mark(username, true);
 
-            logger.debug("1st factor: Redirect to  %s", Endpoint.SECOND_FACTOR_GET);
-            res.redirect(Endpoint.SECOND_FACTOR_GET);
+            res.status(204);
+            res.send();
             return BluebirdPromise.resolve();
         })
         .catch(exceptions.LdapSearchError, ErrorReplies.replyWithError500(res, logger))

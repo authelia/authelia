@@ -9,7 +9,7 @@ start_services() {
 }
 
 shut_services() {
-  $DC_SCRIPT down
+  $DC_SCRIPT down --remove-orphans
 }
 
 expect_services_count() {

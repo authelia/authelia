@@ -2,6 +2,7 @@ import FirstFactorValidator = require("./FirstFactorValidator");
 import JSLogger = require("js-logger");
 import UISelectors = require("./UISelectors");
 import { Notifier } from "../Notifier";
+import { QueryParametersRetriever } from "../QueryParametersRetriever";
 
 import Endpoints = require("../../../server/endpoints");
 
@@ -22,8 +23,12 @@ export default function (window: Window, $: JQueryStatic,
 
   function onFirstFactorSuccess() {
     jslogger.debug("First factor validated.");
-    // Redirect to second factor
-    window.location.href = Endpoints.SECOND_FACTOR_GET;
+    const redirectUrl = QueryParametersRetriever.get("redirect");
+    if (redirectUrl)
+      window.location.href = Endpoints.SECOND_FACTOR_GET + "?redirect="
+        + encodeURIComponent(redirectUrl);
+    else
+      window.location.href = Endpoints.SECOND_FACTOR_GET;
   }
 
   function onFirstFactorFailure(err: Error) {

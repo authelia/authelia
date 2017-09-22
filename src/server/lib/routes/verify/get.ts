@@ -17,7 +17,7 @@ function verify_filter(req: express.Request, res: express.Response): BluebirdPro
   const authSession = AuthenticationSession.get(req);
 
   logger.debug("Verify: headers are %s", JSON.stringify(req.headers));
-  authSession.redirect = "https://" + req.headers["host"] + req.headers["x-original-uri"];
+  res.set("Redirect", encodeURIComponent("https://" + req.headers["host"] + req.headers["x-original-uri"]));
 
   return AuthenticationValidator.validate(req)
     .then(function () {

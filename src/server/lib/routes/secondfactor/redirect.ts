@@ -8,7 +8,7 @@ import AuthenticationSession = require("../../AuthenticationSession");
 
 export default function (req: express.Request, res: express.Response) {
     const authSession = AuthenticationSession.get(req);
-    const redirectUrl = authSession.redirect || Endpoints.FIRST_FACTOR_GET;
+    const redirectUrl = req.query.redirect || Endpoints.FIRST_FACTOR_GET;
     res.json({
         redirection_url: redirectUrl
     });

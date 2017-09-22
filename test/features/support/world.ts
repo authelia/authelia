@@ -99,7 +99,7 @@ function CustomWorld() {
   };
 
   this.useTotpToken = function (totpSecret: string) {
-    return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.className("register-totp")), 5000)
+    return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.id("token")), 5000)
       .then(function () {
         return that.driver.findElement(seleniumWebdriver.By.id("token"))
           .sendKeys(totpSecret);
