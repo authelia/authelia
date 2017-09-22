@@ -45,9 +45,12 @@ describe("test authentication token verification", function () {
         authSession.first_factor = true;
         authSession.second_factor = true;
         authSession.userid = "myuser";
+        authSession.groups = ["mygroup", "othergroup"];
         return VerifyGet.default(req as express.Request, res as any);
       })
       .then(function () {
+        sinon.assert.calledWithExactly(res.setHeader, "Remote-User", "myuser");
+        sinon.assert.calledWithExactly(res.setHeader, "Remote-Groups", "mygroup,othergroup");
         assert.equal(204, res.status.getCall(0).args[0]);
       });
   });
