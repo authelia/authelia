@@ -45,6 +45,7 @@ describe("test the first factor validation route", function () {
 
     req = {
       app: {
+        get: sinon.stub().returns({ logger: winston })
       },
       body: {
         username: "username",
@@ -77,8 +78,12 @@ describe("test the first factor validation route", function () {
         emails: emails,
         groups: groups
       }));
-    const authSession = AuthenticationSession.get(req as any);
-    return FirstFactorPost.default(req as any, res as any)
+    let authSession: AuthenticationSession.AuthenticationSession;
+    return AuthenticationSession.get(req as any)
+      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+        authSession = _authSession;
+        return FirstFactorPost.default(req as any, res as any);
+      })
       .then(function () {
         assert.equal("username", authSession.userid);
         assert(res.send.calledOnce);
@@ -94,13 +99,18 @@ describe("test the first factor validation route", function () {
 
   it("should set first email address as user session variable", function () {
     const emails = ["test_ok@example.com"];
-    const authSession = AuthenticationSession.get(req as any);
+    let authSession: AuthenticationSession.AuthenticationSession;
     (serverVariables.ldapAuthenticator as any).authenticate.withArgs("username", "password")
       .returns(BluebirdPromise.resolve({
         emails: emails,
         groups: groups
       }));
-    return FirstFactorPost.default(req as any, res as any)
+
+    return AuthenticationSession.get(req as any)
+      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+        authSession = _authSession;
+        return FirstFactorPost.default(req as any, res as any);
+      })
       .then(function () {
         assert.equal("test_ok@example.com", authSession.email);
       });

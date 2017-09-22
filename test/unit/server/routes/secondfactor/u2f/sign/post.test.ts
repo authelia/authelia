@@ -27,14 +27,6 @@ describe("test u2f routes: sign", function () {
 
     req.session = {};
     AuthenticationSession.reset(req as any);
-    authSession = AuthenticationSession.get(req as any);
-    authSession.userid = "user";
-    authSession.first_factor = true;
-    authSession.second_factor = false;
-    authSession.identity_check = {
-      challenge: "u2f-register",
-      userid: "user"
-    };
     req.headers = {};
     req.headers.host = "localhost";
 
@@ -46,6 +38,18 @@ describe("test u2f routes: sign", function () {
     res.send = sinon.spy();
     res.json = sinon.spy();
     res.status = sinon.spy();
+
+    return AuthenticationSession.get(req as any)
+      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+        authSession = _authSession;
+        authSession.userid = "user";
+        authSession.first_factor = true;
+        authSession.second_factor = false;
+        authSession.identity_check = {
+          challenge: "u2f-register",
+          userid: "user"
+        };
+      });
   });
 
   it("should return status code 204", function () {

@@ -18,53 +18,54 @@ export default FirstFactorBlocker(handler);
 
 
 function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
-    const authSession = AuthenticationSession.get(req);
-    const registrationRequest = authSession.register_request;
+  let authSession: AuthenticationSession.AuthenticationSession;
+  const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
+  const u2f = ServerVariablesHandler.getU2F(req.app);
+  const appid = u2f_common.extract_app_id(req);
+  const logger = ServerVariablesHandler.getLogger(req.app);
+  const registrationResponse: U2f.RegistrationData = req.body;
 
-    if (!registrationRequest) {
+  return AuthenticationSession.get(req)
+    .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+      authSession = _authSession;
+      const registrationRequest = authSession.register_request;
+
+      if (!registrationRequest) {
         res.status(403);
         res.send();
         return BluebirdPromise.reject(new Error("No registration request"));
-    }
+      }
 
-    if (!authSession.identity_check
+      if (!authSession.identity_check
         || authSession.identity_check.challenge != "u2f-register") {
         res.status(403);
         res.send();
         return BluebirdPromise.reject(new Error("Bad challenge for registration request"));
-    }
+      }
 
+      logger.info("U2F register: Finishing registration");
+      logger.debug("U2F register: registrationRequest = %s", JSON.stringify(registrationRequest));
+      logger.debug("U2F register: registrationResponse = %s", JSON.stringify(registrationResponse));
 
-    const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
-    const u2f = ServerVariablesHandler.getU2F(req.app);
-    const userid = authSession.userid;
-    const appid = u2f_common.extract_app_id(req);
-    const logger = ServerVariablesHandler.getLogger(req.app);
+      return BluebirdPromise.resolve(u2f.checkRegistration(registrationRequest, registrationResponse));
+    })
+    .then(function (u2fResult: U2f.RegistrationResult | U2f.Error): BluebirdPromise<void> {
+      if (objectPath.has(u2fResult, "errorCode"))
+        return BluebirdPromise.reject(new Error("Error while registering."));
 
-    const registrationResponse: U2f.RegistrationData = req.body;
-
-    logger.info("U2F register: Finishing registration");
-    logger.debug("U2F register: registrationRequest = %s", JSON.stringify(registrationRequest));
-    logger.debug("U2F register: registrationResponse = %s", JSON.stringify(registrationResponse));
-
-    BluebirdPromise.resolve(u2f.checkRegistration(registrationRequest, registrationResponse))
-        .then(function (u2fResult: U2f.RegistrationResult | U2f.Error): BluebirdPromise<void> {
-            if (objectPath.has(u2fResult, "errorCode"))
-                return BluebirdPromise.reject(new Error("Error while registering."));
-
-            const registrationResult: U2f.RegistrationResult = u2fResult as U2f.RegistrationResult;
-            logger.info("U2F register: Store regisutration and reply");
-            logger.debug("U2F register: registration = %s", JSON.stringify(registrationResult));
-            const registration: U2FRegistration = {
-                keyHandle: registrationResult.keyHandle,
-                publicKey: registrationResult.publicKey
-            };
-            return userDataStore.saveU2FRegistration(userid, appid, registration);
-        })
-        .then(function () {
-            authSession.identity_check = undefined;
-            redirect(req, res);
-            return BluebirdPromise.resolve();
-        })
-        .catch(ErrorReplies.replyWithError500(res, logger));
+      const registrationResult: U2f.RegistrationResult = u2fResult as U2f.RegistrationResult;
+      logger.info("U2F register: Store regisutration and reply");
+      logger.debug("U2F register: registration = %s", JSON.stringify(registrationResult));
+      const registration: U2FRegistration = {
+        keyHandle: registrationResult.keyHandle,
+        publicKey: registrationResult.publicKey
+      };
+      return userDataStore.saveU2FRegistration(authSession.userid, appid, registration);
+    })
+    .then(function () {
+      authSession.identity_check = undefined;
+      redirect(req, res);
+      return BluebirdPromise.resolve();
+    })
+    .catch(ErrorReplies.replyWithError500(res, logger));
 }

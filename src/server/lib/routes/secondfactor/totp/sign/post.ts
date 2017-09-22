@@ -16,17 +16,18 @@ const UNAUTHORIZED_MESSAGE = "Unauthorized access";
 export default FirstFactorBlocker(handler);
 
 export function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
+  let authSession: AuthenticationSession.AuthenticationSession;
   const logger = ServerVariablesHandler.getLogger(req.app);
-  const authSession = AuthenticationSession.get(req);
-  const userid = authSession.userid;
-  logger.info("POST 2ndfactor totp: Initiate TOTP validation for user %s", userid);
-
   const token = req.body.token;
   const totpValidator = ServerVariablesHandler.getTOTPValidator(req.app);
   const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
 
-  logger.debug("POST 2ndfactor totp: Fetching secret for user %s", userid);
-  return userDataStore.retrieveTOTPSecret(userid)
+  return AuthenticationSession.get(req)
+    .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+      authSession = _authSession;
+      logger.info("POST 2ndfactor totp: Initiate TOTP validation for user %s", authSession.userid);
+      return userDataStore.retrieveTOTPSecret(authSession.userid);
+    })
     .then(function (doc: TOTPSecretDocument) {
       logger.debug("POST 2ndfactor totp: TOTP secret is %s", JSON.stringify(doc));
       return totpValidator.validate(token, doc.secret.base32);

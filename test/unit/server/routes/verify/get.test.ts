@@ -24,6 +24,9 @@ describe("test authentication token verification", function () {
 
     req = ExpressMock.RequestMock();
     res = ExpressMock.ResponseMock();
+    req.app = {
+      get: sinon.stub().returns({ logger: winston })
+    };
     req.session = {};
     AuthenticationSession.reset(req as any);
     req.headers = {};
@@ -37,12 +40,13 @@ describe("test authentication token verification", function () {
   it("should be already authenticated", function () {
     req.session = {};
     AuthenticationSession.reset(req as any);
-    const authSession = AuthenticationSession.get(req as any);
-    authSession.first_factor = true;
-    authSession.second_factor = true;
-    authSession.userid = "myuser";
-
-    return VerifyGet.default(req as express.Request, res as any)
+    return AuthenticationSession.get(req as any)
+      .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+        authSession.first_factor = true;
+        authSession.second_factor = true;
+        authSession.userid = "myuser";
+        return VerifyGet.default(req as express.Request, res as any);
+      })
       .then(function () {
         assert.equal(204, res.status.getCall(0).args[0]);
       });
@@ -113,23 +117,25 @@ describe("test authentication token verification", function () {
     });
 
     it("should not be authenticated when domain is not allowed for user", function () {
-      const authSession = AuthenticationSession.get(req as any);
-      authSession.first_factor = true;
-      authSession.second_factor = true;
-      authSession.userid = "myuser";
+      return AuthenticationSession.get(req as any)
+        .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+          authSession.first_factor = true;
+          authSession.second_factor = true;
+          authSession.userid = "myuser";
 
-      req.headers.host = "test.example.com";
+          req.headers.host = "test.example.com";
 
-      accessController.isDomainAllowedForUser.returns(false);
-      accessController.isDomainAllowedForUser.withArgs("test.example.com", "user", ["group1", "group2"]).returns(true);
+          accessController.isDomainAllowedForUser.returns(false);
+          accessController.isDomainAllowedForUser.withArgs("test.example.com", "user", ["group1", "group2"]).returns(true);
 
-      return test_unauthorized_403({
-        first_factor: true,
-        second_factor: true,
-        userid: "user",
-        groups: ["group1", "group2"],
-        email: undefined
-      });
+          return test_unauthorized_403({
+            first_factor: true,
+            second_factor: true,
+            userid: "user",
+            groups: ["group1", "group2"],
+            email: undefined
+          });
+        });
     });
   });
 });

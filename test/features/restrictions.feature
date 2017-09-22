@@ -1,6 +1,6 @@
 Feature: Non authenticated users have no access to certain pages
 
-  Scenario Outline: User has no access to protected pages
+  Scenario Outline: Anonymous user has no access to protected pages
     When I visit "<url>"
     Then I get an error <error code>
 

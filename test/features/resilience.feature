@@ -1,20 +1,18 @@
 Feature: Authelia keeps user sessions despite the application restart
 
+  @need-authenticated-user-john
   Scenario: Session is still valid after Authelia restarts
-    When I register TOTP and login with user "john" and password "password"
-    And the application restarts
+    When the application restarts
     Then I have access to:
       | url                                          |
       | https://secret.test.local:8080/secret.html   |
 
+  @need-registered-user-john
   Scenario: Secrets are stored even when Authelia restarts
-    Given I visit "https://auth.test.local:8080/"
-    And I login with user "john" and password "password"
-    And I register a TOTP secret called "Sec0"
     When the application restarts
     And I visit "https://secret.test.local:8080/secret.html" and get redirected "https://auth.test.local:8080/?redirect=https%3A%2F%2Fsecret.test.local%3A8080%2Fsecret.html"
     And I login with user "john" and password "password" 
-    And I use "Sec0" as TOTP token handle
+    And I use "REGISTERED" as TOTP token handle
     And I click on "TOTP"
     Then I have access to:
       | url                                          |

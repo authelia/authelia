@@ -91,6 +91,9 @@ function CustomWorld() {
   };
 
   this.useTotpTokenHandle = function (totpSecretHandle: string) {
+    if (!this.totpSecrets[totpSecretHandle])
+      throw new Error("No available TOTP token handle " + totpSecretHandle);
+
     const token = Speakeasy.totp({
       secret: this.totpSecrets[totpSecretHandle],
       encoding: "base32"

@@ -8,18 +8,22 @@ import exceptions = require("../../Exceptions");
 import winston = require("winston");
 import AuthenticationValidator = require("../../AuthenticationValidator");
 import ErrorReplies = require("../../ErrorReplies");
-import { ServerVariablesHandler } from "../../ServerVariablesHandler";
+import {  ServerVariablesHandler } from "../../ServerVariablesHandler";
 import AuthenticationSession = require("../../AuthenticationSession");
 
 function verify_filter(req: express.Request, res: express.Response): BluebirdPromise<void> {
   const logger = ServerVariablesHandler.getLogger(req.app);
   const accessController = ServerVariablesHandler.getAccessController(req.app);
-  const authSession = AuthenticationSession.get(req);
+  let authSession: AuthenticationSession.AuthenticationSession;
 
-  logger.debug("Verify: headers are %s", JSON.stringify(req.headers));
-  res.set("Redirect", encodeURIComponent("https://" + req.headers["host"] + req.headers["x-original-uri"]));
+  return AuthenticationSession.get(req)
+    .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+      authSession = _authSession;
+      logger.debug("Verify: headers are %s", JSON.stringify(req.headers));
+      res.set("Redirect", encodeURIComponent("https://" + req.headers["host"] + req.headers["x-original-uri"]));
 
-  return AuthenticationValidator.validate(req)
+      return AuthenticationValidator.validate(req);
+    })
     .then(function () {
       const username = authSession.userid;
       const groups = authSession.groups;
