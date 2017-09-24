@@ -182,12 +182,15 @@ storage:
 # registration or a TOTP registration.
 # Use only an available configuration: filesystem, gmail
 notifier:
-  # For testing purpose, notifications can be sent in a file
-  filesystem:
-    filename: /var/lib/authelia/notifications/notification.txt
-
   # Use your gmail account to send the notifications. You can use an app password.
   # gmail:
   #   username: user@example.com
   #   password: yourpassword
   
+  # Use a SMTP server for sending notifications
+  smtp:
+    username: test
+    password: test
+    secure: false
+    host: 'smtp'
+    port: 1025

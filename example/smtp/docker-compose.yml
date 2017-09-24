@@ -1,0 +1,8 @@
+version: '2'
+services:
+  smtp:
+    image: schickling/mailcatcher
+    ports:
+      - "8085:1080"
+    networks:
+      - example-network

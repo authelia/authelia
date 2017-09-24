@@ -9,12 +9,10 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
   });
 
   When("I click on the link of the email", function () {
-    const notif = Fs.readFileSync("/tmp/notifications/notification.txt").toString();
-    const regexp = new RegExp(/Link: (.+)/);
-    const match = regexp.exec(notif);
-    const link = match[1];
     const that = this;
-
-    return this.driver.get(link);
+    return this.retrieveLatestMail()
+      .then(function (link: string) {
+        return that.driver.get(link);
+      });
   });
 });

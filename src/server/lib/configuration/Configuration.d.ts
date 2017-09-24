@@ -71,12 +71,21 @@ export interface GmailNotifierConfiguration {
     password: string;
 }
 
+export interface SmtpNotifierConfiguration {
+    username: string;
+    password: string;
+    host: string;
+    port: number;
+    secure: boolean;
+}
+
 export interface FileSystemNotifierConfiguration {
     filename: string;
 }
 
 export interface NotifierConfiguration {
     gmail?: GmailNotifierConfiguration;
+    smtp?: SmtpNotifierConfiguration;
     filesystem?: FileSystemNotifierConfiguration;
 }
 

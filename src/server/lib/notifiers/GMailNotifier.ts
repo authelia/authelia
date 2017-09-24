@@ -1,21 +1,16 @@
 
 import * as BluebirdPromise from "bluebird";
-import * as fs from "fs";
-import * as ejs from "ejs";
 import nodemailer = require("nodemailer");
 
 import { Nodemailer } from "../../../types/Dependencies";
-import { Identity } from "../../../types/Identity";
-import { INotifier } from "../notifiers/INotifier";
+import { AbstractEmailNotifier } from "../notifiers/AbstractEmailNotifier";
 import { GmailNotifierConfiguration } from "../configuration/Configuration";
-import path = require("path");
 
-const email_template = fs.readFileSync(path.join(__dirname, "../../resources/email-template.ejs"), "UTF-8");
-
-export class GMailNotifier implements INotifier {
+export class GMailNotifier extends AbstractEmailNotifier {
   private transporter: any;
 
   constructor(options: GmailNotifierConfiguration, nodemailer: Nodemailer) {
+    super();
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -26,18 +21,12 @@ export class GMailNotifier implements INotifier {
     this.transporter = BluebirdPromise.promisifyAll(transporter);
   }
 
-  notify(identity: Identity, subject: string, link: string): BluebirdPromise<void> {
-    const d = {
-      url: link,
-      button_title: "Continue",
-      title: subject
-    };
-
+  sendEmail(email: string, subject: string, content: string) {
     const mailOptions = {
       from: "authelia@authelia.com",
-      to: identity.email,
+      to: email,
       subject: subject,
-      html: ejs.render(email_template, d)
+      html: content
     };
     return this.transporter.sendMailAsync(mailOptions);
   }

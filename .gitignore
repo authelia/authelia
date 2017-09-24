@@ -29,3 +29,5 @@ dist/
 
 # Specific files
 /config.yml
+
+example/ldap/private.ldif

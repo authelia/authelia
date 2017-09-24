@@ -1,10 +1,10 @@
 #!/bin/bash
 
 DC_SCRIPT=./scripts/example-commit/dc-example.sh
-EXPECTED_SERVICES_COUNT=5
+EXPECTED_SERVICES_COUNT=6
 
 start_services() {
-    $DC_SCRIPT up -d mongo redis openldap authelia nginx
+    $DC_SCRIPT up -d mongo redis openldap authelia nginx smtp
     sleep 3
 }
 
@@ -29,7 +29,7 @@ expect_services_count() {
 run_integration_tests() {
   echo "Start services..."
   start_services
-  expect_services_count $EXPECTED_SERVICES_COUNT 
+  expect_services_count $EXPECTED_SERVICES_COUNT
   
   sleep 5
   ./node_modules/.bin/grunt run:integration-tests
@@ -41,13 +41,13 @@ run_other_tests() {
   npm install --only=dev
   ./node_modules/.bin/grunt build-dist
   ./scripts/example-commit/deploy-example.sh
-  expect_services_count 5
+  expect_services_count $EXPECTED_SERVICES_COUNT
 }
 
 run_other_tests_docker() {
   echo "Test dev docker deployment (commands in README)"
   ./scripts/example-dockerhub/deploy-example.sh
-  expect_services_count 5
+  expect_services_count $EXPECTED_SERVICES_COUNT
 }
 
 

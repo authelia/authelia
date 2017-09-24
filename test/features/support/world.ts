@@ -4,6 +4,8 @@ import Cucumber = require("cucumber");
 import Fs = require("fs");
 import Speakeasy = require("speakeasy");
 import Assert = require("assert");
+import Request = require("request-promise");
+import BluebirdPromise = require("bluebird");
 
 function CustomWorld() {
   const that = this;
@@ -49,7 +51,7 @@ function CustomWorld() {
           .click();
       })
       .then(function () {
-        return that.driver.sleep(500);
+        return that.driver.sleep(1000);
       });
   };
 
@@ -69,18 +71,37 @@ function CustomWorld() {
       });
   };
 
+  this.retrieveLatestMail = function () {
+    return Request({
+      method: "GET",
+      uri: "http://localhost:8085/messages",
+      json: true
+    })
+      .then(function (data: any) {
+        const messageId = data[data.length - 1].id;
+        return Request({
+          method: "GET",
+          uri: `http://localhost:8085/messages/${messageId}.html`
+        });
+      })
+      .then(function (data: any) {
+        const regexp = new RegExp(/<a href="(.+)" class="button">Continue<\/a>/);
+        const match = regexp.exec(data);
+        const link = match[1];
+        return BluebirdPromise.resolve(link);
+      });
+  };
+
   this.registerTotpSecret = function (totpSecretHandle: string) {
     return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.className("register-totp")), 4000)
       .then(function () {
         return that.driver.findElement(seleniumWebdriver.By.className("register-totp")).click();
       })
       .then(function () {
-        const notif = Fs.readFileSync("/tmp/notifications/notification.txt").toString();
-        const regexp = new RegExp(/Link: (.+)/);
-        const match = regexp.exec(notif);
-        const link = match[1];
-        console.log("Link: " + link);
-        return that.driver.get(link);
+        return that.retrieveLatestMail();
+      })
+      .then(function (url: string) {
+        return that.driver.get(url);
       })
       .then(function () {
         return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.id("secret")), 5000);
