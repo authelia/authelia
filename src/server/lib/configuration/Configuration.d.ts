@@ -1,32 +1,32 @@
 export interface UserLdapConfiguration {
     url: string;
     base_dn: string;
-    
+
     additional_users_dn?: string;
     users_filter?: string;
 
     additional_groups_dn?: string;
     groups_filter?: string;
-    
+
     group_name_attribute?: string;
     mail_attribute?: string;
-    
+
     user: string; // admin username
     password: string; // admin password
 }
 
 export interface LdapConfiguration {
     url: string;
-    
+
     users_dn: string;
     users_filter: string;
 
     groups_dn: string;
     groups_filter: string;
-    
+
     group_name_attribute: string;
     mail_attribute: string;
-    
+
     user: string; // admin username
     password: string; // admin password
 }
@@ -35,12 +35,21 @@ type UserName = string;
 type GroupName = string;
 type DomainPattern = string;
 
-export type ACLDefaultRules = DomainPattern[];
-export type ACLGroupsRules = { [group: string]: string[]; };
-export type ACLUsersRules = { [user: string]: string[]; };
+export type ACLPolicy = 'deny' | 'allow';
+
+export type ACLRule = {
+    domain: string;
+    policy: ACLPolicy;
+    resources?: string[]; 
+}
+
+export type ACLDefaultRules = ACLRule[];
+export type ACLGroupsRules = { [group: string]: ACLRule[]; };
+export type ACLUsersRules = { [user: string]: ACLRule[]; };
 
 export interface ACLConfiguration {
-    default: ACLDefaultRules;
+    default_policy: ACLPolicy;
+    any: ACLDefaultRules;
     groups: ACLGroupsRules;
     users: ACLUsersRules;
 }

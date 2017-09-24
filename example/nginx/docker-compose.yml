@@ -14,10 +14,8 @@ services:
       - example-network
       #   aliases:
       #     - home.test.local
-      #     - secret.test.local
-      #     - secret1.test.local
-      #     - secret2.test.local
-      #     - mx1.mail.test.local
-      #     - mx2.mail.test.local
+      #     - public.test.local
+      #     - admin.test.local
+      #     - dev.test.local
       #     - auth.test.local
 

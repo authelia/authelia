@@ -1,5 +1,8 @@
 import * as Assert from "assert";
-import { UserConfiguration, LdapConfiguration } from "../../../../src/server/lib/configuration/Configuration";
+import {
+  UserConfiguration,
+  LdapConfiguration, ACLConfiguration
+} from "../../../../src/server/lib/configuration/Configuration";
 import { ConfigurationAdapter } from "../../../../src/server/lib/configuration/ConfigurationAdapter";
 
 describe("test config adapter", function () {
@@ -94,15 +97,17 @@ describe("test config adapter", function () {
   it("should get the access_control config", function () {
     const yaml_config = build_yaml_config();
     yaml_config.access_control = {
-      default: [],
+      default_policy: "deny",
+      any: [],
       users: {},
       groups: {}
     };
     const config = ConfigurationAdapter.adapt(yaml_config);
     Assert.deepEqual(config.access_control, {
-      default: [],
+      default_policy: "deny",
+      any: [],
       users: {},
       groups: {}
-    });
+    } as ACLConfiguration);
   });
 });

@@ -10,17 +10,17 @@ import BluebirdPromise = require("bluebird");
 import express = require("express");
 
 import ExpressMock = require("../../mocks/express");
-import AccessControllerMock = require("../../mocks/AccessController");
+import { AccessControllerStub } from "../../mocks/AccessControllerStub";
 import ServerVariablesMock = require("../../mocks/ServerVariablesMock");
 
 describe("test authentication token verification", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
-  let accessController: AccessControllerMock.AccessControllerMock;
+  let accessController: AccessControllerStub;
 
   beforeEach(function () {
-    accessController = AccessControllerMock.AccessControllerMock();
-    accessController.isDomainAllowedForUser.returns(true);
+    accessController = new AccessControllerStub();
+    accessController.isAccessAllowedMock.returns(true);
 
     req = ExpressMock.RequestMock();
     res = ExpressMock.ResponseMock();
@@ -128,8 +128,8 @@ describe("test authentication token verification", function () {
 
           req.headers.host = "test.example.com";
 
-          accessController.isDomainAllowedForUser.returns(false);
-          accessController.isDomainAllowedForUser.withArgs("test.example.com", "user", ["group1", "group2"]).returns(true);
+          accessController.isAccessAllowedMock.returns(false);
+          accessController.isAccessAllowedMock.withArgs("test.example.com", "user", ["group1", "group2"]).returns(true);
 
           return test_unauthorized_403({
             first_factor: true,

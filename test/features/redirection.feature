@@ -1,8 +1,7 @@
 Feature: User is correctly redirected 
 
   Scenario: User is redirected to authelia when he is not authenticated
-    Given I'm on https://home.test.local:8080
-    When I click on the link to secret.test.local
+    When I visit "https://public.test.local:8080"
     Then I'm redirected to "https://auth.test.local:8080/"
 
   @need-registered-user-john
@@ -15,9 +14,9 @@ Feature: User is correctly redirected
     And I click on "TOTP"
     Then I'm redirected to "https://public.test.local:8080/secret.html"
 
-  Scenario: User Harry does not have access to https://secret.test.local:8080/secret.html and thus he must get an error 403
+  Scenario: User Harry does not have access to admin domain and thus he must get an error 403
     When I register TOTP and login with user "harry" and password "password"
-    And I visit "https://secret.test.local:8080/secret.html"
+    And I visit "https://admin.test.local:8080/secret.html"
     Then I get an error 403
 
 

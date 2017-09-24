@@ -81,7 +81,7 @@ and I use TOTP token handle {stringInDoubleQuotes}",
   }
 
   Then("I have access to:", function (dataTable: Cucumber.TableDefinition) {
-    const promises = [];
+    const promises: any = [];
     for (let i = 0; i < dataTable.rows().length; i++) {
       const url = (dataTable.hashes() as any)[i].url;
       promises.push(hasAccessToSecret(url, this));

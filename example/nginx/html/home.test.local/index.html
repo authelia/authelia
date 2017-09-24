@@ -1,0 +1,132 @@
+<!DOCTYPE>
+<html>
+
+<head>
+  <title>Home page</title>
+  <link rel="icon" href="/icon.png" type="image/png" />
+</head>
+
+<body>
+  <h1>Access the secret</h1>
+  <span style="font-size: 1.2em; color: red">You need to log in to access the secret!</span><br/><br/>
+  Try to access it using one of the following links to test access control powered by Authelia.<br/>
+  <ul>
+    <li>
+      public.test.local <a href="https://public.test.local:8080/"> / index.html</a>
+    </li>
+    <li>
+      secret.test.local
+      <ul>
+        <li>Groups
+          <ul>
+            <li>
+              <a href="https://dev.test.local:8080/groups/admin/secret.html"> / groups / admins / secret.html</a>
+            </li>
+            <li>
+              <a href="https://dev.test.local:8080/groups/dev/secret.html"> / groups / dev / secret.html</a>
+            </li>
+          </ul>
+        </li>
+        <li>Users
+          <ul>
+            <li>
+              <a href="https://dev.test.local:8080/users/john/secret.html"> / users / john / secret.html</a>
+            </li>
+            <li>
+              <a href="https://dev.test.local:8080/users/harry/secret.html"> / users / harry / secret.html</a>
+            </li>
+            <li>
+              <a href="https://dev.test.local:8080/users/bob/secret.html"> / users / bob / secret.html</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li>
+      admin.test.local <a href="https://admin.test.local:8080/secret.html"> / secret.html</a>
+    </li>
+    <li>
+      mx1.main.test.local <a href="https://mx1.mail.test.local:8080/secret.html"> / secret.html</a>
+    </li>
+    <li>
+      mx2.main.test.local <a href="https://mx2.mail.test.local:8080/secret.html"> / secret.html</a>
+    </li>
+  </ul>
+
+  You can also log off by visiting the following <a href="https://auth.test.local:8080/logout?redirect=https://home.test.local:8080/">link</a>.
+
+  <h1>List of users</h1>
+  Here is the list of credentials you can log in with to test access control.<br/>
+  <br/>
+  Once first factor is passed, you will need to follow the links to register a secret for the second factor.<br/>
+  Authelia will send you a fictituous email that will be in the file
+  <strong>/tmp/notifications/notification.txt</strong>.<br/>
+  It will provide you with the link to complete the registration allowing you to authenticate with 2-factor.
+
+  <ul>
+    <li><strong>john / password</strong>: belongs to <em>admin</em> and <em>dev</em> groups.</li>
+    <li><strong>bob / password</strong>: belongs to <em>dev</em> group only.</li>
+    <li><strong>harry / password</strong>: does not belong to any group.</li>
+  </ul>
+
+  <h1>Access control rules</h1>
+  <p></p>These rules are extracted from the configuration file 
+  <a href="https://github.com/clems4ever/authelia/blob/master/config.template.yml">config.template.yml</a>.</p>
+  <pre id="rules" style="border: 1px grey solid; padding: 20px; display: inline-block;">
+# Default policy can either be `allow` or `deny`.
+# It is the policy applied to any resource if it has not been overriden
+# in the `any`, `groups` or `users` category.
+
+default_policy: deny
+
+# The rules that apply to anyone.
+# The value is a list of rules.
+
+any:
+  - domain: public.test.local
+    policy: allow
+
+# Group-based rules. The key is a group name and the value
+# is a list of rules.
+
+groups:
+  admin:
+    # All resources in all domains
+    - domain: '*.test.local'
+      policy: allow
+    # Except mx2.mail.test.local (it restricts the first rule)
+    - domain: 'mx2.mail.test.local'
+      policy: deny
+  dev:
+    - domain: dev.test.local
+      policy: allow
+      resources:
+        - '^/groups/dev/.*$'
+
+# User-based rules. The key is a user name and the value
+# is a list of rules.
+
+users:
+  john:
+    - domain: dev.test.local
+      policy: allow
+      resources:
+        - '^/users/john/.*$' 
+  harry:
+    - domain: dev.test.local
+      policy: allow
+      resources:
+        - '^/users/harry/.*$'
+  bob:
+    - domain: '*.mail.test.local'
+      policy: allow
+    - domain: 'dev.test.local'
+      policy: allow
+      resources:
+        - '^/users/bob/.*$'
+    - domain: 'dev.test.local'
+      policy: allow
+      resources:
+        - '^/users/harry/.*$'</pre>
+</body>
+</html>
