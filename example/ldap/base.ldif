@@ -25,7 +25,7 @@ dn: cn=john,ou=users,dc=example,dc=com
 cn: john
 objectclass: inetOrgPerson
 objectclass: top
-mail: john.doe@example.com
+mail: john.doe@authelia.com
 sn: John Doe
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
 
@@ -33,7 +33,7 @@ dn: cn=harry,ou=users,dc=example,dc=com
 cn: harry
 objectclass: inetOrgPerson
 objectclass: top
-mail: harry.potter@example.com
+mail: harry.potter@authelia.com
 sn: Harry Potter
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
 
@@ -41,7 +41,7 @@ dn: cn=bob,ou=users,dc=example,dc=com
 cn: bob
 objectclass: inetOrgPerson
 objectclass: top
-mail: bob.dylan@example.com
+mail: bob.dylan@authelia.com
 sn: Bob Dylan
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
 
@@ -49,7 +49,7 @@ dn: cn=james,ou=users,dc=example,dc=com
 cn: james
 objectclass: inetOrgPerson
 objectclass: top
-mail: james.dean@example.com
+mail: james.dean@authelia.com
 sn: James Dean
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
 
@@ -57,6 +57,6 @@ dn: cn=blackhat,ou=users,dc=example,dc=com
 cn: blackhat
 objectclass: inetOrgPerson
 objectclass: top
-mail: billy.blackhat@example.com
+mail: billy.blackhat@authelia.com
 sn: Billy BlackHat
 userpassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=

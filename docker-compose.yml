@@ -5,7 +5,6 @@ services:
     restart: always
     volumes:
       - ./config.template.yml:/etc/authelia/config.yml:ro
-      - /tmp/notifications:/var/lib/authelia/notifications
     depends_on: 
       - redis
     networks:
