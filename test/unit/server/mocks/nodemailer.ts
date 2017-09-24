@@ -13,10 +13,12 @@ export function NodemailerMock(): NodemailerMock {
 
 export interface NodemailerTransporterMock {
     sendMail: sinon.SinonStub;
+    verify: sinon.SinonStub;
 }
 
 export function NodemailerTransporterMock() {
     return {
-        sendMail: sinon.stub()
+        sendMail: sinon.stub(),
+        verify: sinon.stub()
     };
 }
