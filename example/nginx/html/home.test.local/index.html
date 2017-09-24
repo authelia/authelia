@@ -8,8 +8,8 @@
 
 <body>
   <h1>Access the secret</h1>
-  <span style="font-size: 1.2em; color: red">You need to log in to access the secret!</span><br/><br/>
-  Try to access it using one of the following links to test access control powered by Authelia.<br/>
+  <span style="font-size: 1.2em; color: red">You need to log in to access the secret!</span><br/><br/> Try to access it using
+  one of the following links to test access control powered by Authelia.<br/>
   <ul>
     <li>
       public.test.local <a href="https://public.test.local:8080/"> / index.html</a>
@@ -51,17 +51,19 @@
     <li>
       mx2.main.test.local <a href="https://mx2.mail.test.local:8080/secret.html"> / secret.html</a>
     </li>
+    <li>
+      basicauth.test.local <a href="https://basicauth.test.local:8080/secret.html"> / secret.html</a>
+    </li>
   </ul>
 
   You can also log off by visiting the following <a href="https://auth.test.local:8080/logout?redirect=https://home.test.local:8080/">link</a>.
 
   <h1>List of users</h1>
   Here is the list of credentials you can log in with to test access control.<br/>
-  <br/>
-  Once first factor is passed, you will need to follow the links to register a secret for the second factor.<br/>
-  Authelia will send you a fictituous email that will be in the file
-  <strong>/tmp/notifications/notification.txt</strong>.<br/>
-  It will provide you with the link to complete the registration allowing you to authenticate with 2-factor.
+  <br/> Once first factor is passed, you will need to follow the links to register a secret for the second factor.<br/> Authelia
+  will send you a fictituous email that will be in the file
+  <strong>/tmp/notifications/notification.txt</strong>.<br/> It will provide you with the link to complete the registration
+  allowing you to authenticate with 2-factor.
 
   <ul>
     <li><strong>john / password</strong>: belongs to <em>admin</em> and <em>dev</em> groups.</li>
@@ -70,7 +72,7 @@
   </ul>
 
   <h1>Access control rules</h1>
-  <p></p>These rules are extracted from the configuration file 
+  <p></p>These rules are extracted from the configuration file
   <a href="https://github.com/clems4ever/authelia/blob/master/config.template.yml">config.template.yml</a>.</p>
   <pre id="rules" style="border: 1px grey solid; padding: 20px; display: inline-block;">
 # Default policy can either be `allow` or `deny`.
@@ -129,4 +131,5 @@ users:
       resources:
         - '^/users/harry/.*$'</pre>
 </body>
+
 </html>

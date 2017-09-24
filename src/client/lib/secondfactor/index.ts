@@ -8,22 +8,23 @@ import Endpoints = require("../../../server/endpoints");
 import Constants = require("./constants");
 import { Notifier } from "../Notifier";
 import { QueryParametersRetriever } from "../QueryParametersRetriever";
+import ServerConstants = require("../../../server/constants");
 
 
 export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi) {
   const notifierTotp = new Notifier(".notification-totp", $);
   const notifierU2f = new Notifier(".notification-u2f", $);
 
-  function onAuthenticationSuccess(data: any) {
-    const redirectUrl = QueryParametersRetriever.get("redirect");
+  function onAuthenticationSuccess(data: any, notifier: Notifier) {
+    const redirectUrl = QueryParametersRetriever.get(ServerConstants.REDIRECT_QUERY_PARAM);
     if (redirectUrl)
       window.location.href = redirectUrl;
     else
-      window.location.href = Endpoints.FIRST_FACTOR_GET;
+      notifier.success("Authentication succeeded. You can now access your services.");
   }
 
   function onSecondFactorTotpSuccess(data: any) {
-    onAuthenticationSuccess(data);
+    onAuthenticationSuccess(data, notifierTotp);
   }
 
   function onSecondFactorTotpFailure(err: Error) {
@@ -31,7 +32,7 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
   }
 
   function onU2fAuthenticationSuccess(data: any) {
-    onAuthenticationSuccess(data);
+    onAuthenticationSuccess(data, notifierU2f);
   }
 
   function onU2fAuthenticationFailure() {

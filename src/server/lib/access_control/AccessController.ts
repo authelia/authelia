@@ -93,6 +93,8 @@ export class AccessController implements IAccessController {
   }
 
   isAccessAllowed(domain: string, resource: string, user: string, groups: string[]): boolean {
+    if (!this.configuration) return true;
+
     const allRules = this.getMatchingAllRules(domain, resource);
     const groupRules = this.getMatchingGroupRules(groups, domain, resource);
     const userRules = this.getMatchingUserRules(user, domain, resource);

@@ -55,6 +55,10 @@ function CustomWorld() {
       });
   };
 
+  this.waitUntilUrlContains = function(url: string) {
+    return this.driver.wait(seleniumWebdriver.until.urlIs(url), 15000);
+  };
+
   this.loginWithUserPassword = function (username: string, password: string) {
     return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.id("username")), 4000)
       .then(function () {

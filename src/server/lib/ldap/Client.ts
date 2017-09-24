@@ -188,7 +188,7 @@ export class Client implements IClient {
     this.logger.debug("LDAP: update password of user '%s'", username);
     return this.searchUserDn(username)
       .then(function (userDN: string) {
-        this.client.modifyAsync(userDN, change);
+        that.client.modifyAsync(userDN, change);
       })
       .then(function () {
         return that.client.unbindAsync();

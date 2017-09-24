@@ -15,13 +15,14 @@ addons:
       - libgif-dev
       - google-chrome-stable
   hosts:
-    - auth.test.local 
-    - home.test.local 
-    - public.test.local 
-    - admin.test.local 
-    - dev.test.local 
-    - mx1.mail.test.local 
-    - mx2.mail.test.local 
+    - admin.test.local
+    - auth.test.local
+    - basicauth.test.local
+    - dev.test.local
+    - home.test.local
+    - mx1.mail.test.local
+    - mx2.mail.test.local
+    - public.test.local
 
 before_install: 
   - npm install -g npm@'>=2.13.5'

@@ -51,6 +51,9 @@ describe("test the first factor validation route", function () {
         username: "username",
         password: "password"
       },
+      query: {
+        redirect: "http://redirect.url"
+      },
       session: {
       },
       headers: {
@@ -87,7 +90,6 @@ describe("test the first factor validation route", function () {
       .then(function () {
         assert.equal("username", authSession.userid);
         assert(res.send.calledOnce);
-        assert(res.status.calledWith(204));
       });
   });
 
