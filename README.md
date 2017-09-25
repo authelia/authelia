@@ -142,16 +142,9 @@ You can find an example of the configuration of the LDAP backend in [config.temp
 ### Second factor with TOTP
 In **Authelia**, you can register a per user TOTP (Time-Based One Time Password) secret before 
 authenticating. To do that, you need to click on the register button. It will 
-<<<<<<< 7a2b45a66fba8ad1862f25cfa727df03d218ba83
-send a link to the user email address defined in the LDAP. 
-Since this is an example, no email will be sent, the link is rather delivered in the file 
-**/tmp/notifications/notification.txt**. Paste the link in your browser and you'll get 
-your secret in QRCode and Base32 format. You can use 
-=======
 send a link to the user email address stored in LDAP. Since this is an example, the email is sent 
 to a fake email address you can access from the webmail at [http://localhost:8085](http://localhost:8085). 
 Click on **Continue** and you'll get your secret in QRCode and Base32 formats. You can use 
->>>>>>> Add SMTP notifier as an available option in configuration
 [Google Authenticator] 
 to store them and get the generated tokens with the app.
 
@@ -162,19 +155,11 @@ to store them and get the generated tokens with the app.
 USB security keys. U2F is one of the most secure authentication protocol and is 
 already available for Google, Facebook, Github accounts and more.
 
-<<<<<<< 7a2b45a66fba8ad1862f25cfa727df03d218ba83
-Like TOTP, U2F requires you register a security key before authenticating. 
-To do so, click on the register link. This will send a link to the 
-user email address. Since this is an example, no email will be sent, the 
-link is rather delivered in the file **/tmp/notifications/notification.txt**. Paste 
-the link in your browser and you'll be asking to touch the token of your device 
-=======
 Like TOTP, U2F requires you register your security key before authenticating. 
 To do so, click on the register button. This will send a link to the 
 user email address. Since this is an example, the email is sent 
 to a fake email address you can access from the webmail at [http://localhost:8085](http://localhost:8085).
 Click on **Continue** and you'll be asking to touch the token of your device 
->>>>>>> Add SMTP notifier as an available option in configuration
 to register. Upon successful registration, you can authenticate using your U2F 
 device by simply touching the token. Easy, right?!
 
