@@ -4,7 +4,7 @@ import BluebirdPromise = require("bluebird");
 
 function replyWithError(res: express.Response, code: number, logger: Winston): (err: Error) => void {
   return function (err: Error): void {
-    logger.error("Reply with error %d: %s", code, err);
+    logger.error("Reply with error %d: %s", code, err.stack);
     res.status(code);
     res.send();
   };

@@ -10,6 +10,7 @@ import Endpoint = require("../../../endpoints");
 import ErrorReplies = require("../../ErrorReplies");
 import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 import AuthenticationSession = require("../../AuthenticationSession");
+import Constants = require("../../../constants");
 
 export default function (req: express.Request, res: express.Response): BluebirdPromise<void> {
   const username: string = req.body.username;
@@ -47,6 +48,8 @@ export default function (req: express.Request, res: express.Response): BluebirdP
         JSON.stringify(groupsAndEmails));
       authSession.userid = username;
       authSession.first_factor = true;
+      const redirectUrl = req.query[Constants.REDIRECT_QUERY_PARAM];
+      const onlyBasicAuth = req.query[Constants.ONLY_BASIC_AUTH_QUERY_PARAM] === "true";
 
       const emails: string[] = groupsAndEmails.emails;
       const groups: string[] = groupsAndEmails.groups;
@@ -63,8 +66,25 @@ export default function (req: express.Request, res: express.Response): BluebirdP
       logger.debug("1st factor: Mark successful authentication to regulator.");
       regulator.mark(username, true);
 
-      res.status(204);
-      res.send();
+      logger.debug("1st factor: Redirect URL is %s", redirectUrl);
+      logger.debug("1st factor: %s? %s", Constants.ONLY_BASIC_AUTH_QUERY_PARAM, onlyBasicAuth);
+
+      if (onlyBasicAuth) {
+        res.send({
+          redirect: redirectUrl
+        });
+        logger.debug("1st factor: redirect to '%s'", redirectUrl);
+      }
+      else {
+        let newRedirectUrl = Endpoint.SECOND_FACTOR_GET;
+        if (redirectUrl !== "undefined") {
+          newRedirectUrl += "?redirect=" + encodeURIComponent(redirectUrl);
+        }
+        logger.debug("1st factor: redirect to '%s'", newRedirectUrl, typeof redirectUrl);
+        res.send({
+          redirect: newRedirectUrl
+        });
+      }
       return BluebirdPromise.resolve();
     })
     .catch(exceptions.LdapSearchError, ErrorReplies.replyWithError500(res, logger))

@@ -2,7 +2,7 @@ Feature: User is correctly redirected
 
   Scenario: User is redirected to authelia when he is not authenticated
     When I visit "https://public.test.local:8080"
-    Then I'm redirected to "https://auth.test.local:8080/"
+    Then I'm redirected to "https://auth.test.local:8080/?redirect=https%3A%2F%2Fpublic.test.local%3A8080%2F"
 
   @need-registered-user-john
   Scenario: User is redirected to home page after several authentication tries

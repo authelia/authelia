@@ -6,7 +6,7 @@ import Speakeasy = require("speakeasy");
 import CustomWorld = require("../support/world");
 
 Cucumber.defineSupportCode(function ({ Given, When, Then }) {
-  When(/^I visit "(https:\/\/[a-zA-Z0-9:%.\/=?-]+)"$/, function (link: string) {
+  When(/^I visit "(https:\/\/[a-zA-Z0-9:%&._\/=?-]+)"$/, function (link: string) {
     return this.visit(link);
   });
 
@@ -66,10 +66,7 @@ and I use TOTP token handle {stringInDoubleQuotes}",
   function hasAccessToSecret(link: string, that: any) {
     return that.driver.get(link)
       .then(function () {
-        return that.driver.findElement(seleniumWebdriver.By.tagName("body")).getText()
-          .then(function (body: string) {
-            Assert(body.indexOf("This is a very important secret!") > -1, body);
-          });
+        return that.waitUntilUrlContains(link);
       });
   }
 

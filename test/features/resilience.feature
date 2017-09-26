@@ -14,6 +14,4 @@ Feature: Authelia keeps user sessions despite the application restart
     And I login with user "john" and password "password" 
     And I use "REGISTERED" as TOTP token handle
     And I click on "TOTP"
-    Then I have access to:
-      | url                                          |
-      | https://admin.test.local:8080/secret.html   |
+    Then I'm redirected to "https://admin.test.local:8080/secret.html"

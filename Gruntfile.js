@@ -26,7 +26,7 @@ module.exports = function (grunt) {
       },
       "docker-restart": {
         cmd: "./scripts/dc-dev.sh",
-        args: ['up', '-d']
+        args: ['restart', 'authelia']
       },
       "minify": {
         cmd: "./node_modules/.bin/uglifyjs",

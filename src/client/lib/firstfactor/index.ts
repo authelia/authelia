@@ -3,7 +3,7 @@ import JSLogger = require("js-logger");
 import UISelectors = require("./UISelectors");
 import { Notifier } from "../Notifier";
 import { QueryParametersRetriever } from "../QueryParametersRetriever";
-
+import Constants = require("../../../server/constants");
 import Endpoints = require("../../../server/endpoints");
 
 export default function (window: Window, $: JQueryStatic,
@@ -15,20 +15,17 @@ export default function (window: Window, $: JQueryStatic,
     const username: string = $(UISelectors.USERNAME_FIELD_ID).val();
     const password: string = $(UISelectors.PASSWORD_FIELD_ID).val();
     $(UISelectors.PASSWORD_FIELD_ID).val("");
-    jslogger.debug("Form submitted");
-    firstFactorValidator.validate(username, password, $)
+
+    const redirectUrl = QueryParametersRetriever.get(Constants.REDIRECT_QUERY_PARAM);
+    const onlyBasicAuth = QueryParametersRetriever.get(Constants.ONLY_BASIC_AUTH_QUERY_PARAM) ? true : false;
+    firstFactorValidator.validate(username, password, redirectUrl, onlyBasicAuth, $)
       .then(onFirstFactorSuccess, onFirstFactorFailure);
     return false;
   }
 
-  function onFirstFactorSuccess() {
+  function onFirstFactorSuccess(redirectUrl: string) {
     jslogger.debug("First factor validated.");
-    const redirectUrl = QueryParametersRetriever.get("redirect");
-    if (redirectUrl)
-      window.location.href = Endpoints.SECOND_FACTOR_GET + "?redirect="
-        + encodeURIComponent(redirectUrl);
-    else
-      window.location.href = Endpoints.SECOND_FACTOR_GET;
+      window.location.href = redirectUrl;
   }
 
   function onFirstFactorFailure(err: Error) {

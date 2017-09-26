@@ -5,6 +5,6 @@ services:
       - ./test:/usr/src/test
       - ./dist/src/server:/usr/src
       - ./node_modules:/usr/src/node_modules
-      - ./config.yml:/etc/authelia/config.yml:ro
+      - ./config.template.yml:/etc/authelia/config.yml:ro
     networks:
       - example-network
