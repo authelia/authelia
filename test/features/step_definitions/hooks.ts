@@ -2,11 +2,11 @@ import Cucumber = require("cucumber");
 import fs = require("fs");
 import BluebirdPromise = require("bluebird");
 import ChildProcess = require("child_process");
-import { UserDataStore } from "../../../src/server/lib/storage/UserDataStore";
-import { CollectionFactoryFactory } from "../../../src/server/lib/storage/CollectionFactoryFactory";
-import { MongoConnector } from "../../../src/server/lib/connectors/mongo/MongoConnector";
-import { IMongoClient } from "../../../src/server/lib/connectors/mongo/IMongoClient";
-import { TOTPGenerator } from "../../../src/server/lib/TOTPGenerator";
+import { UserDataStore } from "../../../server/src/lib/storage/UserDataStore";
+import { CollectionFactoryFactory } from "../../../server/src/lib/storage/CollectionFactoryFactory";
+import { MongoConnector } from "../../../server/src/lib/connectors/mongo/MongoConnector";
+import { IMongoClient } from "../../../server/src/lib/connectors/mongo/IMongoClient";
+import { TOTPGenerator } from "../../../server/src/lib/TOTPGenerator";
 import Speakeasy = require("speakeasy");
 
 Cucumber.defineSupportCode(function ({ setDefaultTimeout }) {

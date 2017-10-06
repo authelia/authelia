@@ -3,7 +3,8 @@ services:
   authelia:
     volumes:
       - ./test:/usr/src/test
-      - ./dist/src/server:/usr/src
+      - ./dist/server:/usr/src/server
+      - ./dist/shared:/usr/src/shared
       - ./node_modules:/usr/src/node_modules
       - ./config.template.yml:/etc/authelia/config.yml:ro
     networks:

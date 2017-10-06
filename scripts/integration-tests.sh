@@ -3,6 +3,10 @@
 DC_SCRIPT=./scripts/example-commit/dc-example.sh
 EXPECTED_SERVICES_COUNT=6
 
+build_services() {
+    $DC_SCRIPT build authelia
+}
+
 start_services() {
     $DC_SCRIPT up -d mongo redis openldap authelia nginx smtp
     sleep 3
@@ -32,7 +36,7 @@ run_integration_tests() {
   expect_services_count $EXPECTED_SERVICES_COUNT
   
   sleep 5
-  ./node_modules/.bin/grunt run:integration-tests
+  ./node_modules/.bin/grunt run:test-int
   shut_services  
 }
 
@@ -58,6 +62,9 @@ set -e
 
 echo "Make sure services are not already running"
 shut_services
+
+# Build the container
+build_services
 
 # Prepare & test example from end user perspective
 run_integration_tests

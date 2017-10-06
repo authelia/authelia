@@ -6,7 +6,7 @@ docker --version
 docker-compose --version
 
 # Run unit tests
-grunt test
+grunt test-unit
 
 # Build the app from Typescript and package
 grunt build-dist
