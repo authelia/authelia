@@ -20,12 +20,10 @@ export class SmtpNotifier extends AbstractEmailNotifier {
         pass: options.password
       }
     };
-    console.log(smtpOptions);
     const transporter = nodemailer.createTransport(smtpOptions);
     this.transporter = BluebirdPromise.promisifyAll(transporter);
 
     // verify connection configuration
-    console.log("Checking SMTP server connection.");
     transporter.verify(function (error, success) {
       if (error) {
         throw new Error("Unable to connect to SMTP server. \
