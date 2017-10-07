@@ -109,6 +109,14 @@ export interface RegulationConfiguration {
     ban_time: number;
 }
 
+declare type AuthenticationMethod = 'two_factor' | 'basic_auth';
+declare type AuthenticationMethodPerSubdomain = { [subdomain: string]: AuthenticationMethod }
+
+export interface AuthenticationMethodsConfiguration {
+    default_method: AuthenticationMethod;
+    per_subdomain_methods: AuthenticationMethodPerSubdomain;
+}
+
 export interface UserConfiguration {
     port?: number;
     logs_level?: string;
@@ -116,6 +124,7 @@ export interface UserConfiguration {
     session: SessionCookieConfiguration;
     storage: StorageConfiguration;
     notifier: NotifierConfiguration;
+    authentication_methods?: AuthenticationMethodsConfiguration;
     access_control?: ACLConfiguration;
     regulation: RegulationConfiguration;
 }
@@ -127,6 +136,7 @@ export interface AppConfiguration {
     session: SessionCookieConfiguration;
     storage: StorageConfiguration;
     notifier: NotifierConfiguration;
+    authentication_methods: AuthenticationMethodsConfiguration;
     access_control?: ACLConfiguration;
     regulation: RegulationConfiguration;
 }

@@ -11,6 +11,7 @@ import ErrorReplies = require("../../ErrorReplies");
 import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 import AuthenticationSession = require("../../AuthenticationSession");
 import Constants = require("../../../../../shared/constants");
+import { DomainExtractor } from "../../utils/DomainExtractor";
 
 export default function (req: express.Request, res: express.Response): BluebirdPromise<void> {
   const username: string = req.body.username;
@@ -28,6 +29,8 @@ export default function (req: express.Request, res: express.Response): BluebirdP
 
   const regulator = ServerVariablesHandler.getAuthenticationRegulator(req.app);
   const accessController = ServerVariablesHandler.getAccessController(req.app);
+  const authenticationMethodsCalculator =
+    ServerVariablesHandler.getAuthenticationMethodCalculator(req.app);
   let authSession: AuthenticationSession.AuthenticationSession;
 
   logger.info(req, "Starting authentication of user \"%s\"", username);
@@ -46,10 +49,12 @@ export default function (req: express.Request, res: express.Response): BluebirdP
       authSession.userid = username;
       authSession.first_factor = true;
       const redirectUrl = req.query[Constants.REDIRECT_QUERY_PARAM];
-      const onlyBasicAuth = req.query[Constants.ONLY_BASIC_AUTH_QUERY_PARAM] === "true";
 
       const emails: string[] = groupsAndEmails.emails;
       const groups: string[] = groupsAndEmails.groups;
+      const redirectHost: string = DomainExtractor.fromUrl(redirectUrl);
+      const authMethod = authenticationMethodsCalculator.compute(redirectHost);
+      logger.debug(req, "Authentication method for \"%s\" is \"%s\"", redirectHost, authMethod);
 
       if (!emails || emails.length <= 0) {
         const errMessage = "No emails found. The user should have at least one email address to reset password.";
@@ -63,13 +68,13 @@ export default function (req: express.Request, res: express.Response): BluebirdP
       logger.debug(req, "Mark successful authentication to regulator.");
       regulator.mark(username, true);
 
-      if (onlyBasicAuth) {
+      if (authMethod == "basic_auth") {
         res.send({
           redirect: redirectUrl
         });
         logger.debug(req, "Redirect to '%s'", redirectUrl);
       }
-      else {
+      else if (authMethod == "two_factor") {
         let newRedirectUrl = Endpoint.SECOND_FACTOR_GET;
         if (redirectUrl !== "undefined") {
           newRedirectUrl += "?redirect=" + encodeURIComponent(redirectUrl);
@@ -78,6 +83,9 @@ export default function (req: express.Request, res: express.Response): BluebirdP
         res.send({
           redirect: newRedirectUrl
         });
+      }
+      else {
+        return BluebirdPromise.reject(new Error("Unknown authentication method for this domain."));
       }
       return BluebirdPromise.resolve();
     })

@@ -1,5 +1,3 @@
-
-
 import U2F = require("u2f");
 
 import { IRequestLogger } from "./logging/IRequestLogger";
@@ -14,6 +12,8 @@ import { INotifier } from "./notifiers/INotifier";
 import { AuthenticationRegulator } from "./AuthenticationRegulator";
 import Configuration = require("./configuration/Configuration");
 import { AccessController } from "./access_control/AccessController";
+import { AuthenticationMethodCalculator } from "./AuthenticationMethodCalculator";
+
 
 
 export interface ServerVariables {
@@ -29,4 +29,5 @@ export interface ServerVariables {
   regulator: AuthenticationRegulator;
   config: Configuration.AppConfiguration;
   accessController: AccessController;
+  authenticationMethodsCalculator: AuthenticationMethodCalculator;
 }

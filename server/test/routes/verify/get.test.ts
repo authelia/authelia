@@ -2,6 +2,8 @@
 import Assert = require("assert");
 import VerifyGet = require("../../../src/lib/routes/verify/get");
 import AuthenticationSession = require("../../../src/lib/AuthenticationSession");
+import { AuthenticationMethodCalculator } from "../../../src/lib/AuthenticationMethodCalculator";
+import { AuthenticationMethodsConfiguration } from "../../../src/lib/configuration/Configuration";
 
 import Sinon = require("sinon");
 import winston = require("winston");
@@ -17,6 +19,7 @@ describe("test authentication token verification", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
   let accessController: AccessControllerStub;
+  let mocks: any;
 
   beforeEach(function () {
     accessController = new AccessControllerStub();
@@ -34,9 +37,16 @@ describe("test authentication token verification", function () {
     AuthenticationSession.reset(req as any);
     req.headers = {};
     req.headers.host = "secret.example.com";
-    const mocks = ServerVariablesMock.mock(req.app);
+    mocks = ServerVariablesMock.mock(req.app);
     mocks.config = {} as any;
     mocks.accessController = accessController as any;
+    const options: AuthenticationMethodsConfiguration = {
+      default_method: "two_factor",
+      per_subdomain_methods: {
+        "redirect.url": "basic_auth"
+      }
+    };
+    mocks.authenticationMethodsCalculator = new AuthenticationMethodCalculator(options);
   });
 
   it("should be already authenticated", function () {
@@ -153,9 +163,9 @@ describe("test authentication token verification", function () {
   describe("given user tries to access a basic auth endpoint", function () {
     beforeEach(function () {
       req.query = {
-        redirect: "http://redirect.url",
-        only_basic_auth: "true"
+        redirect: "http://redirect.url"
       };
+      req.headers["host"] = "redirect.url";
     });
 
     it("should be authenticated when first factor is validated and not second factor", function () {
