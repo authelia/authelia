@@ -1,0 +1,45 @@
+
+import { LdapConfiguration } from "../../src/lib/configuration/Configuration";
+import { Client } from "../../src/lib/ldap/Client";
+import { LdapClientFactoryStub } from "../mocks/ldap/LdapClientFactoryStub";
+import { LdapClientStub } from "../mocks/ldap/LdapClientStub";
+
+import Sinon = require("sinon");
+import BluebirdPromise = require("bluebird");
+import Assert = require("assert");
+import Dovehash = require("dovehash");
+import Winston = require("winston");
+
+describe("test authelia ldap client", function () {
+  const USERNAME = "username";
+  const ADMIN_USER_DN = "cn=admin,dc=example,dc=com";
+  const ADMIN_PASSWORD = "password";
+
+  it("should replace {0} by username when searching for groups in LDAP", function () {
+    const options: LdapConfiguration = {
+      url: "ldap://ldap",
+      users_dn: "ou=users,dc=example,dc=com",
+      users_filter: "cn={0}",
+      groups_dn: "ou=groups,dc=example,dc=com",
+      groups_filter: "member=cn={0},ou=users,dc=example,dc=com",
+      group_name_attribute: "cn",
+      mail_attribute: "mail",
+      user: "cn=admin,dc=example,dc=com",
+      password: "password"
+    };
+    const factory = new LdapClientFactoryStub();
+    const ldapClient = new LdapClientStub();
+
+    factory.createStub.returns(ldapClient);
+    ldapClient.searchAsyncStub.returns(BluebirdPromise.resolve([
+      "group1"
+    ]));
+    const client = new Client(ADMIN_USER_DN, ADMIN_PASSWORD, options, factory, Dovehash, Winston);
+
+    return client.searchGroups("user1")
+      .then(function () {
+        Assert.equal(ldapClient.searchAsyncStub.getCall(0).args[1].filter,
+          "member=cn=user1,ou=users,dc=example,dc=com");
+      });
+  });
+});

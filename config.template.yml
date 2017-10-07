@@ -23,18 +23,18 @@ ldap:
   # An additional dn to define the scope to all users
   additional_users_dn: ou=users
 
-  # The users filter. 
-  # {0} is the matcher replaced by username.
+  # The users filter used to find the user DN
+  # {0} is a matcher replaced by username.
   # 'cn={0}' by default.
   users_filter: cn={0}
 
   # An additional dn to define the scope of groups
   additional_groups_dn: ou=groups
 
-  # The groups filter.
-  # {0} is the matcher replaced by user dn.
-  # 'member={0}' by default.
-  groups_filter: (&(member={0})(objectclass=groupOfNames))
+  # The groups filter used for retrieving groups of a given user.
+  # {0} is a matcher replaced by username.
+  # 'member=cn={0},<additional_users_dn>,<base_dn>' by default.
+  groups_filter: (&(member=cn={0},ou=users,dc=example,dc=com)(objectclass=groupOfNames))
 
   # The attribute holding the name of the group
   group_name_attribute: cn

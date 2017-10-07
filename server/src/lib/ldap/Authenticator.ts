@@ -7,7 +7,7 @@ import { GroupsAndEmails } from "./IClient";
 
 import { IAuthenticator } from "./IAuthenticator";
 import { LdapConfiguration } from "../configuration/Configuration";
-import { Winston, Ldapjs, Dovehash } from "../../../types/Dependencies";
+import { EmailsAndGroupsRetriever } from "./EmailsAndGroupsRetriever";
 
 
 export class Authenticator implements IAuthenticator {
@@ -23,7 +23,7 @@ export class Authenticator implements IAuthenticator {
     const that = this;
     let userClient: IClient;
     const adminClient = this.clientFactory.create(this.options.user, this.options.password);
-    let groupsAndEmails: GroupsAndEmails;
+    const emailsAndGroupsRetriever = new EmailsAndGroupsRetriever(this.options, this.clientFactory);
 
     return adminClient.open()
       .then(function () {
@@ -37,16 +37,9 @@ export class Authenticator implements IAuthenticator {
         return userClient.close();
       })
       .then(function () {
-        return adminClient.open();
+        return emailsAndGroupsRetriever.retrieve(username);
       })
-      .then(function () {
-        return adminClient.searchEmailsAndGroups(username);
-      })
-      .then(function (gae: GroupsAndEmails) {
-        groupsAndEmails = gae;
-        return adminClient.close();
-      })
-      .then(function () {
+      .then(function (groupsAndEmails: GroupsAndEmails) {
         return BluebirdPromise.resolve(groupsAndEmails);
       })
       .error(function (err: Error) {

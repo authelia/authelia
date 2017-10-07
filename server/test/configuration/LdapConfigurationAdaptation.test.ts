@@ -55,7 +55,7 @@ describe("test ldap configuration adaptation", function () {
       users_dn: "dc=example,dc=com",
       users_filter: "cn={0}",
       groups_dn: "dc=example,dc=com",
-      groups_filter: "member={0}",
+      groups_filter: "member=cn={0},dc=example,dc=com",
       group_name_attribute: "cn",
       mail_attribute: "mail",
       user: "admin",

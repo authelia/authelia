@@ -64,10 +64,8 @@ describe("test ldap authentication", function () {
       userClientStub.closeStub.returns(BluebirdPromise.resolve());
 
       // admin retrieves emails and groups of user
-      adminClientStub.searchEmailsAndGroupsStub.returns(BluebirdPromise.resolve({
-        groups: ["group1"],
-        emails: ["user@example.com"]
-      }));
+      adminClientStub.searchEmailsStub.returns(BluebirdPromise.resolve(["group1"]));
+      adminClientStub.searchGroupsStub.returns(BluebirdPromise.resolve(["user@example.com"]));
 
       return authenticator.authenticate(USERNAME, PASSWORD);
     });
@@ -117,8 +115,9 @@ describe("test ldap authentication", function () {
       userClientStub.openStub.returns(BluebirdPromise.resolve());
       userClientStub.closeStub.returns(BluebirdPromise.resolve());
 
+      adminClientStub.searchEmailsStub.returns(BluebirdPromise.resolve(["group1"]));
       // admin retrieves emails and groups of user
-      adminClientStub.searchEmailsAndGroupsStub
+      adminClientStub.searchGroupsStub
         .returns(BluebirdPromise.reject(new Error("Error while retrieving emails and groups")));
 
       return authenticator.authenticate(USERNAME, PASSWORD)

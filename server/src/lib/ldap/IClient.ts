@@ -11,6 +11,6 @@ export interface IClient {
   close(): BluebirdPromise<void>;
   searchUserDn(username: string): BluebirdPromise<string>;
   searchEmails(username: string): BluebirdPromise<string[]>;
-  searchEmailsAndGroups(username: string): BluebirdPromise<GroupsAndEmails>;
+  searchGroups(username: string): BluebirdPromise<string[]>;
   modifyPassword(username: string, newPassword: string): BluebirdPromise<void>;
 }
