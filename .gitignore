@@ -15,7 +15,7 @@ src/.baseDir.ts
 
 
 # Directory used by example
-notifications/
+/notifications/
 
 # VSCode user configuration
 .vscode/
