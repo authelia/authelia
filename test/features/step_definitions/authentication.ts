@@ -4,6 +4,7 @@ import Assert = require("assert");
 import Fs = require("fs");
 import Speakeasy = require("speakeasy");
 import CustomWorld = require("../support/world");
+import BluebirdPromise = require("bluebird");
 
 Cucumber.defineSupportCode(function ({ Given, When, Then }) {
   When(/^I visit "(https:\/\/[a-zA-Z0-9:%&._\/=?-]+)"$/, function (link: string) {
@@ -83,7 +84,7 @@ and I use TOTP token handle {stringInDoubleQuotes}",
       const url = (dataTable.hashes() as any)[i].url;
       promises.push(hasAccessToSecret(url, this));
     }
-    return Promise.all(promises);
+    return BluebirdPromise.all(promises);
   });
 
   Then("I have no access to:", function (dataTable: Cucumber.TableDefinition) {
@@ -92,6 +93,6 @@ and I use TOTP token handle {stringInDoubleQuotes}",
       const url = (dataTable.hashes() as any)[i].url;
       promises.push(hasNoAccessToSecret(url, this));
     }
-    return Promise.all(promises);
+    return BluebirdPromise.all(promises);
   });
 });

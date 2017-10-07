@@ -31,3 +31,5 @@ dist/
 /config.yml
 
 example/ldap/private.ldif
+
+package-lock.json

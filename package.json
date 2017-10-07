@@ -3,7 +3,7 @@
   "version": "3.4.0",
   "description": "2FA Single Sign-On server for nginx using LDAP, TOTP and U2F",
   "bin": {
-    "authelia": "./dist/src/server/index.js"
+    "authelia": "./dist/server/src/index.js"
   },
   "scripts": {
     "test": "./node_modules/.bin/grunt unit-tests",
@@ -83,6 +83,7 @@
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-cssmin": "^2.2.0",
     "grunt-contrib-watch": "^1.0.0",
+    "grunt-env": "^0.4.4",
     "grunt-run": "^0.6.0",
     "istanbul": "^0.4.5",
     "jquery": "^3.2.1",

@@ -2,75 +2,90 @@ module.exports = function (grunt) {
   const buildDir = "dist";
 
   grunt.initConfig({
+    env: {
+      "env-test-server-unit": {
+        TS_NODE_PROJECT: "server"
+      },
+      "env-test-client-unit": {
+        TS_NODE_PROJECT: "client"
+      }
+    },
     run: {
-      options: {},
-      "build": {
+      "compile-server": {
         cmd: "./node_modules/.bin/tsc",
-        args: ['-p', 'tsconfig.json']
+        args: ['-p', 'server/tsconfig.json']
       },
-      "tslint": {
+      "compile-client": {
+        cmd: "./node_modules/.bin/tsc",
+        args: ['-p', 'client/tsconfig.json']
+      },
+      "lint-server": {
         cmd: "./node_modules/.bin/tslint",
-        args: ['-c', 'tslint.json', '-p', 'tsconfig.json']
+        args: ['-c', 'server/tslint.json', '-p', 'server/tsconfig.json']
       },
-      "unit-tests": {
+      "lint-client": {
+        cmd: "./node_modules/.bin/tslint",
+        args: ['-c', 'client/tslint.json', '-p', 'client/tsconfig.json']
+      },
+      "test-server-unit": {
         cmd: "./node_modules/.bin/mocha",
-        args: ['--compilers', 'ts:ts-node/register', '--recursive', 'test/unit']
+        args: ['--colors', '--compilers', 'ts:ts-node/register', '--recursive', 'server/test']
       },
-      "integration-tests": {
+      "test-client-unit": {
+        cmd: "./node_modules/.bin/mocha",
+        args: ['--colors', '--compilers', 'ts:ts-node/register', '--recursive', 'client/test']
+      },
+      "test-int": {
         cmd: "./node_modules/.bin/cucumber-js",
-        args: ["--compiler", "ts:ts-node/register", "./test/features"]
+        args: ["--colors", "--compiler", "ts:ts-node/register", "./test/features"]
       },
       "docker-build": {
         cmd: "docker",
         args: ['build', '-t', 'clems4ever/authelia', '.']
       },
-      "docker-restart": {
-        cmd: "./scripts/dc-dev.sh",
-        args: ['restart', 'authelia']
-      },
       "minify": {
         cmd: "./node_modules/.bin/uglifyjs",
-        args: [`${buildDir}/src/server/public_html/js/authelia.js`, '-o', `${buildDir}/src/server/public_html/js/authelia.min.js`]
+        args: [`${buildDir}/server/src/public_html/js/authelia.js`, '-o', `${buildDir}/server/src/public_html/js/authelia.min.js`]
       },
       "apidoc": {
         cmd: "./node_modules/.bin/apidoc",
         args: ["-i", "src/server", "-o", "doc"]
       },
-      "make-dev-views": {
+      "include-minified-script": {
         cmd: "sed",
-        args: ["-i", "s/authelia\.min/authelia/", `${buildDir}/src/server/views/layout/layout.pug`]
+        args: ["-i", "s/authelia\.min/authelia/", `${buildDir}/server/src/views/layout/layout.pug`]
       }
     },
     copy: {
       resources: {
         expand: true,
-        cwd: 'src/server/resources/',
+        cwd: 'server/src/resources/',
         src: '**',
-        dest: `${buildDir}/src/server/resources/`
+        dest: `${buildDir}/server/src/resources/`
       },
       views: {
         expand: true,
-        cwd: 'src/server/views/',
+        cwd: 'server/src/views/',
         src: '**',
-        dest: `${buildDir}/src/server/views/`
+        dest: `${buildDir}/server/src/views/`
       },
       images: {
         expand: true,
-        cwd: 'src/client/img',
+        cwd: 'client/src/img',
         src: '**',
-        dest: `${buildDir}/src/server/public_html/img/`
+        dest: `${buildDir}/server/src/public_html/img/`
       },
       thirdparties: {
         expand: true,
-        cwd: 'src/client/thirdparties',
+        cwd: 'client/src/thirdparties',
         src: '**',
-        dest: `${buildDir}/src/server/public_html/js/`
+        dest: `${buildDir}/server/src/public_html/js/`
       },
     },
     browserify: {
       dist: {
-        src: ['dist/src/client/index.js'],
-        dest: `${buildDir}/src/server/public_html/js/authelia.js`,
+        src: ['dist/client/src/index.js'],
+        dest: `${buildDir}/server/src/public_html/js/authelia.js`,
         options: {
           browserifyOptions: {
             standalone: 'authelia'
@@ -80,7 +95,7 @@ module.exports = function (grunt) {
     },
     watch: {
       views: {
-        files: ['src/server/views/**/*.pug'],
+        files: ['server/src/views/**/*.pug'],
         tasks: ['copy:views'],
         options: {
           interrupt: false,
@@ -88,7 +103,7 @@ module.exports = function (grunt) {
         }
       },
       resources: {
-        files: ['src/server/resources/*.ejs'],
+        files: ['server/src/resources/*.ejs'],
         tasks: ['copy:resources'],
         options: {
           interrupt: false,
@@ -96,7 +111,7 @@ module.exports = function (grunt) {
         }
       },
       images: {
-        files: ['src/client/img/**'],
+        files: ['client/src/img/**'],
         tasks: ['copy:images'],
         options: {
           interrupt: false,
@@ -104,7 +119,7 @@ module.exports = function (grunt) {
         }
       },
       css: {
-        files: ['src/client/**/*.css'],
+        files: ['client/src/**/*.css'],
         tasks: ['concat:css', 'cssmin'],
         options: {
           interrupt: true,
@@ -112,7 +127,7 @@ module.exports = function (grunt) {
         }
       },
       client: {
-        files: ['src/client/**/*.ts'],
+        files: ['client/src/**/*.ts'],
         tasks: ['build-dev'],
         options: {
           interrupt: true,
@@ -120,7 +135,7 @@ module.exports = function (grunt) {
         }
       },
       server: {
-        files: ['src/server/**/*.ts'],
+        files: ['server/src/**/*.ts'],
         tasks: ['build-dev', 'run:docker-restart', 'run:make-dev-views' ],
         options: {
           interrupt: true,
@@ -130,14 +145,14 @@ module.exports = function (grunt) {
     },
     concat: {
       css: {
-        src: ['src/client/css/*.css'],
-        dest: `${buildDir}/src/server/public_html/css/authelia.css`
+        src: ['client/src/css/*.css'],
+        dest: `${buildDir}/server/src/public_html/css/authelia.css`
       },
     },
     cssmin: {
       target: {
         files: {
-          [`${buildDir}/src/server/public_html/css/authelia.min.css`]: [`${buildDir}/src/server/public_html/css/authelia.css`]
+          [`${buildDir}/server/src/public_html/css/authelia.min.css`]: [`${buildDir}/server/src/public_html/css/authelia.css`]
         }
       }
     }
@@ -149,20 +164,26 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-run');
+  grunt.loadNpmTasks('grunt-env');
 
-  grunt.registerTask('default', ['build-dist']);
 
-  grunt.registerTask('build-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
+  grunt.registerTask('compile-server', ['run:lint-server', 'run:compile-server'])
+  grunt.registerTask('compile-client', ['run:lint-client', 'run:compile-client'])
 
-  grunt.registerTask('build-common', ['run:tslint', 'run:build', 'browserify:dist', 'build-resources']);
-  grunt.registerTask('build-dev', ['build-common', 'run:make-dev-views']);
-  grunt.registerTask('build-dist', ['build-common', 'run:minify', 'cssmin']);
+  grunt.registerTask('test-server', ['env:env-test-server-unit', 'run:test-server-unit'])
+  grunt.registerTask('test-client', ['env:env-test-client-unit', 'run:test-client-unit'])
+  grunt.registerTask('test-unit', ['test-server', 'test-client']);
+  grunt.registerTask('test-int', ['run:test-int']);
+
+  grunt.registerTask('copy-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
+
+  grunt.registerTask('build-client', ['compile-client', 'browserify']);
+  grunt.registerTask('build-server', ['compile-server', 'copy-resources']);
+
+  grunt.registerTask('build', ['build-client', 'build-server']);
+  grunt.registerTask('build-dist', ['build', 'run:minify', 'cssmin', 'run:include-minified-script']);
 
   grunt.registerTask('docker-build', ['run:docker-build']);
-  grunt.registerTask('docker-restart', ['run:docker-restart']);
 
-  grunt.registerTask('unit-tests', ['run:unit-tests']);
-  grunt.registerTask('integration-tests', ['run:integration-tests']);
-
-  grunt.registerTask('test', ['unit-tests']);
+  grunt.registerTask('default', ['build-dist']);
 };
