@@ -9,7 +9,6 @@ import RedisSession = require("connect-redis");
 import dovehash = require("dovehash");
 
 export type Dovehash = typeof dovehash;
-export type Nodemailer = typeof nodemailer;
 export type Speakeasy = typeof speakeasy;
 export type Winston = typeof winston;
 export type Session = typeof session;
@@ -21,7 +20,6 @@ export type ConnectRedis = typeof RedisSession;
 export interface GlobalDependencies {
     u2f: U2f;
     dovehash: Dovehash;
-    nodemailer: Nodemailer;
     ldapjs: Ldapjs;
     session: Session;
     ConnectRedis: ConnectRedis;

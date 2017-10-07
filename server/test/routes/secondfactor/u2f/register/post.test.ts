@@ -22,8 +22,6 @@ describe("test u2f routes: register", function () {
     req = ExpressMock.RequestMock();
     req.app = {};
     mocks = ServerVariablesMock.mock(req.app);
-    mocks.logger = winston;
-
     req.session = {};
     req.headers = {};
     req.headers.host = "localhost";

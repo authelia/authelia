@@ -26,7 +26,7 @@ export function handler(req: express.Request, res: express.Response): BluebirdPr
       authSession = _authSession;
       if (!authSession.sign_request) {
         const err = new Error("No sign request");
-        ErrorReplies.replyWithError401(res, logger)(err);
+        ErrorReplies.replyWithError401(req, res, logger)(err);
         return BluebirdPromise.reject(err);
       }
 
@@ -39,17 +39,17 @@ export function handler(req: express.Request, res: express.Response): BluebirdPr
       const u2f = ServerVariablesHandler.getU2F(req.app);
       const signRequest = authSession.sign_request;
       const signData: U2f.SignatureData = req.body;
-      logger.info("U2F sign: Finish authentication");
+      logger.info(req, "Finish authentication");
       return BluebirdPromise.resolve(u2f.checkSignature(signRequest, signData, doc.registration.publicKey));
     })
     .then(function (result: U2f.SignatureResult | U2f.Error): BluebirdPromise<void> {
       if (objectPath.has(result, "errorCode"))
         return BluebirdPromise.reject(new Error("Error while signing"));
-      logger.info("U2F sign: Authentication successful");
+      logger.info(req, "Successful authentication");
       authSession.second_factor = true;
       redirect(req, res);
       return BluebirdPromise.resolve();
     })
-    .catch(ErrorReplies.replyWithError500(res, logger));
+    .catch(ErrorReplies.replyWithError500(req, res, logger));
 }
 

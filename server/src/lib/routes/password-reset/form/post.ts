@@ -18,9 +18,9 @@ export default function (req: express.Request, res: express.Response): BluebirdP
   return AuthenticationSession.get(req)
     .then(function (_authSession) {
       authSession = _authSession;
-      logger.info("POST reset-password: User %s wants to reset his/her password.",
+      logger.info(req, "User %s wants to reset his/her password.",
         authSession.identity_check.userid);
-      logger.info("POST reset-password: Challenge %s", authSession.identity_check.challenge);
+      logger.debug(req, "Challenge %s", authSession.identity_check.challenge);
 
       if (authSession.identity_check.challenge != Constants.CHALLENGE) {
         res.status(403);
@@ -30,12 +30,12 @@ export default function (req: express.Request, res: express.Response): BluebirdP
       return ldapPasswordUpdater.updatePassword(authSession.identity_check.userid, newPassword);
     })
     .then(function () {
-      logger.info("POST reset-password: Password reset for user '%s'",
+      logger.info(req, "Password reset for user '%s'",
         authSession.identity_check.userid);
       AuthenticationSession.reset(req);
       res.status(204);
       res.send();
       return BluebirdPromise.resolve();
     })
-    .catch(ErrorReplies.replyWithError500(res, logger));
+    .catch(ErrorReplies.replyWithError500(req, res, logger));
 }

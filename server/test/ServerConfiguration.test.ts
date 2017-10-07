@@ -6,11 +6,10 @@ import express = require("express");
 import winston = require("winston");
 import speakeasy = require("speakeasy");
 import u2f = require("u2f");
-import nodemailer = require("nodemailer");
 import session = require("express-session");
 
 import { AppConfiguration, UserConfiguration } from "../src/lib/configuration/Configuration";
-import { GlobalDependencies, Nodemailer } from "../types/Dependencies";
+import { GlobalDependencies } from "../types/Dependencies";
 import Server from "../src/lib/Server";
 
 
@@ -19,17 +18,9 @@ describe("test server configuration", function () {
   let sessionMock: Sinon.SinonSpy;
 
   before(function () {
-    const transporter = {
-      sendMail: Sinon.stub().yields()
-    };
-
-    const createTransport = Sinon.stub(nodemailer, "createTransport");
-    createTransport.returns(transporter);
-
     sessionMock = Sinon.spy(session);
 
     deps = {
-      nodemailer: nodemailer,
       speakeasy: speakeasy,
       u2f: u2f,
       nedb: nedb,
@@ -79,7 +70,7 @@ describe("test server configuration", function () {
       }
     };
 
-    const server = new Server();
+    const server = new Server(deps);
     server.start(config, deps);
 
     assert(sessionMock.calledOnce);

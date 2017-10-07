@@ -43,9 +43,9 @@ function handler(req: express.Request, res: express.Response): BluebirdPromise<v
         return BluebirdPromise.reject(new Error("Bad challenge for registration request"));
       }
 
-      logger.info("U2F register: Finishing registration");
-      logger.debug("U2F register: registrationRequest = %s", JSON.stringify(registrationRequest));
-      logger.debug("U2F register: registrationResponse = %s", JSON.stringify(registrationResponse));
+      logger.info(req, "Finishing registration");
+      logger.debug(req, "RegistrationRequest = %s", JSON.stringify(registrationRequest));
+      logger.debug(req, "RegistrationResponse = %s", JSON.stringify(registrationResponse));
 
       return BluebirdPromise.resolve(u2f.checkRegistration(registrationRequest, registrationResponse));
     })
@@ -54,8 +54,8 @@ function handler(req: express.Request, res: express.Response): BluebirdPromise<v
         return BluebirdPromise.reject(new Error("Error while registering."));
 
       const registrationResult: U2f.RegistrationResult = u2fResult as U2f.RegistrationResult;
-      logger.info("U2F register: Store regisutration and reply");
-      logger.debug("U2F register: registration = %s", JSON.stringify(registrationResult));
+      logger.info(req, "Store registration and reply");
+      logger.debug(req, "RegistrationResult = %s", JSON.stringify(registrationResult));
       const registration: U2FRegistration = {
         keyHandle: registrationResult.keyHandle,
         publicKey: registrationResult.publicKey
@@ -67,5 +67,5 @@ function handler(req: express.Request, res: express.Response): BluebirdPromise<v
       redirect(req, res);
       return BluebirdPromise.resolve();
     })
-    .catch(ErrorReplies.replyWithError500(res, logger));
+    .catch(ErrorReplies.replyWithError500(req, res, logger));
 }

@@ -23,7 +23,6 @@ describe("test u2f routes: register_request", function () {
     req = ExpressMock.RequestMock();
     req.app = {};
     mocks = ServerVariablesMock.mock(req.app);
-    mocks.logger = winston;
     req.session = {};
     AuthenticationSession.reset(req as any);
 

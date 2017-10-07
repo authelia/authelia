@@ -26,7 +26,6 @@ describe("test u2f routes: sign_request", function () {
     req.app = {};
 
     mocks = ServerVariablesMock.mock(req.app);
-    mocks.logger = winston;
 
     req.session = {};
 

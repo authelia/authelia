@@ -19,7 +19,6 @@ describe("test totp register", function () {
   beforeEach(function () {
     req = ExpressMock.RequestMock();
     const mocks = ServerVariablesMock.mock(req.app);
-    mocks.logger = winston;
     req.session = {};
 
     AuthenticationSession.reset(req as any);

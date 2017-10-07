@@ -1,27 +1,33 @@
 import express = require("express");
-import { Winston } from "winston";
 import BluebirdPromise = require("bluebird");
+import { IRequestLogger } from "./logging/IRequestLogger";
 
-function replyWithError(res: express.Response, code: number, logger: Winston): (err: Error) => void {
+function replyWithError(req: express.Request, res: express.Response,
+  code: number, logger: IRequestLogger): (err: Error) => void {
   return function (err: Error): void {
-    logger.error("Reply with error %d: %s", code, err.stack);
+    logger.error(req, "Reply with error %d: %s", code, err.message);
+    logger.debug(req, "%s", err.stack);
     res.status(code);
     res.send();
   };
 }
 
-export function replyWithError400(res: express.Response, logger: Winston) {
-  return replyWithError(res, 400, logger);
+export function replyWithError400(req: express.Request,
+  res: express.Response, logger: IRequestLogger) {
+  return replyWithError(req, res, 400, logger);
 }
 
-export function replyWithError401(res: express.Response, logger: Winston) {
-  return replyWithError(res, 401, logger);
+export function replyWithError401(req: express.Request,
+  res: express.Response, logger: IRequestLogger) {
+  return replyWithError(req, res, 401, logger);
 }
 
-export function replyWithError403(res: express.Response, logger: Winston) {
-  return replyWithError(res, 403, logger);
+export function replyWithError403(req: express.Request,
+  res: express.Response, logger: IRequestLogger) {
+  return replyWithError(req, res, 403, logger);
 }
 
-export function replyWithError500(res: express.Response, logger: Winston) {
-  return replyWithError(res, 500, logger);
+export function replyWithError500(req: express.Request,
+  res: express.Response, logger: IRequestLogger) {
+  return replyWithError(req, res, 500, logger);
 }

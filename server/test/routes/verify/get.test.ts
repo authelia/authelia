@@ -36,7 +36,6 @@ describe("test authentication token verification", function () {
     req.headers.host = "secret.example.com";
     const mocks = ServerVariablesMock.mock(req.app);
     mocks.config = {} as any;
-    mocks.logger = winston;
     mocks.accessController = accessController as any;
   });
 
@@ -163,6 +162,7 @@ describe("test authentication token verification", function () {
       return AuthenticationSession.get(req as any)
         .then(function (authSession: AuthenticationSession.AuthenticationSession) {
           authSession.first_factor = true;
+          authSession.userid = "user1";
           return VerifyGet.default(req as express.Request, res as any);
         })
         .then(function () {

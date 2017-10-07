@@ -13,14 +13,11 @@ if (!configurationFilepath) {
   process.exit(0);
 }
 
-console.log("Parse configuration file: %s", configurationFilepath);
-
 const yamlContent = YAML.load(configurationFilepath);
 
 const deps: GlobalDependencies = {
   u2f: require("u2f"),
   dovehash: require("dovehash"),
-  nodemailer: require("nodemailer"),
   ldapjs: require("ldapjs"),
   session: require("express-session"),
   winston: require("winston"),
@@ -29,8 +26,5 @@ const deps: GlobalDependencies = {
   ConnectRedis: require("connect-redis")
 };
 
-const server = new Server();
-server.start(yamlContent, deps)
-.then(() => {
-  console.log("The server is started!");
-});
+const server = new Server(deps);
+server.start(yamlContent, deps);

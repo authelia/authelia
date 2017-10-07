@@ -31,16 +31,15 @@ function handler(req: express.Request, res: express.Response): BluebirdPromise<v
             const u2f = ServerVariablesHandler.getU2F(req.app);
             const appid: string = u2f_common.extract_app_id(req);
 
-            logger.debug("U2F register_request: headers=%s", JSON.stringify(req.headers));
-            logger.info("U2F register_request: Starting registration for appId %s", appid);
+            logger.info(req, "Starting registration for appId '%s'", appid);
 
             return BluebirdPromise.resolve(u2f.request(appid));
         })
         .then(function (registrationRequest: U2f.Request) {
-            logger.debug("U2F register_request: registrationRequest = %s", JSON.stringify(registrationRequest));
+            logger.debug(req, "RegistrationRequest = %s", JSON.stringify(registrationRequest));
             authSession.register_request = registrationRequest;
             res.json(registrationRequest);
             return BluebirdPromise.resolve();
         })
-        .catch(ErrorReplies.replyWithError500(res, logger));
+        .catch(ErrorReplies.replyWithError500(req, res, logger));
 }

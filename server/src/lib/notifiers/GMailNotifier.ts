@@ -1,24 +1,16 @@
 
 import * as BluebirdPromise from "bluebird";
-import nodemailer = require("nodemailer");
 
-import { Nodemailer } from "../../../types/Dependencies";
 import { AbstractEmailNotifier } from "../notifiers/AbstractEmailNotifier";
 import { GmailNotifierConfiguration } from "../configuration/Configuration";
+import { IMailSender } from "./IMailSender";
 
 export class GMailNotifier extends AbstractEmailNotifier {
-  private transporter: any;
+  private mailSender: IMailSender;
 
-  constructor(options: GmailNotifierConfiguration, nodemailer: Nodemailer) {
+  constructor(options: GmailNotifierConfiguration, mailSender: IMailSender) {
     super();
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: options.username,
-        pass: options.password
-      }
-    });
-    this.transporter = BluebirdPromise.promisifyAll(transporter);
+    this.mailSender = mailSender;
   }
 
   sendEmail(email: string, subject: string, content: string) {
@@ -28,6 +20,6 @@ export class GMailNotifier extends AbstractEmailNotifier {
       subject: subject,
       html: content
     };
-    return this.transporter.sendMailAsync(mailOptions);
+    return this.mailSender.send(mailOptions);
   }
 }

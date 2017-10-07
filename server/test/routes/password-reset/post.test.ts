@@ -51,7 +51,6 @@ describe("test reset password route", function () {
       }
     };
 
-    serverVariables.logger = winston;
     serverVariables.config = configuration;
 
     serverVariables.ldapPasswordUpdater = {

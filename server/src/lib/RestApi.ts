@@ -36,7 +36,7 @@ import Endpoints = require("../../../shared/api");
 function withLog(fn: (req: Express.Request, res: Express.Response) => void) {
   return function(req: Express.Request, res: Express.Response) {
     const logger = ServerVariablesHandler.getLogger(req.app);
-    logger.info("Request %s handled on %s", req.method, req.originalUrl);
+    logger.debug(req, "Headers = %s", JSON.stringify(req.headers));
     fn(req, res);
   };
 }

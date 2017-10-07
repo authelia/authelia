@@ -9,6 +9,10 @@ import ErrorReplies = require("../../ErrorReplies");
 import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 import AuthenticationSession = require("../../AuthenticationSession");
 import Constants = require("../../../../../shared/constants");
+import Util = require("util");
+
+const FIRST_FACTOR_NOT_VALIDATED_MESSAGE = "First factor not yet validated";
+const SECOND_FACTOR_NOT_VALIDATED_MESSAGE = "Second factor not yet validated";
 
 function verify_filter(req: express.Request, res: express.Response): BluebirdPromise<void> {
   const logger = ServerVariablesHandler.getLogger(req.app);
@@ -16,30 +20,36 @@ function verify_filter(req: express.Request, res: express.Response): BluebirdPro
 
   return AuthenticationSession.get(req)
     .then(function (authSession) {
-      logger.debug("Verify: headers are %s", JSON.stringify(req.headers));
-      res.set("Redirect", encodeURIComponent("https://" + req.headers["host"] + req.headers["x-original-uri"]));
+      res.set("Redirect", encodeURIComponent("https://" + req.headers["host"] +
+        req.headers["x-original-uri"]));
 
       const username = authSession.userid;
       const groups = authSession.groups;
+      if (!authSession.userid)
+        return BluebirdPromise.reject(
+          new exceptions.AccessDeniedError(FIRST_FACTOR_NOT_VALIDATED_MESSAGE));
+
       const onlyBasicAuth = req.query[Constants.ONLY_BASIC_AUTH_QUERY_PARAM] === "true";
-      logger.debug("Verify: %s=%s", Constants.ONLY_BASIC_AUTH_QUERY_PARAM, onlyBasicAuth);
 
       const host = objectPath.get<express.Request, string>(req, "headers.host");
       const path = objectPath.get<express.Request, string>(req, "headers.x-original-uri");
 
       const domain = host.split(":")[0];
-      logger.debug("Verify: domain=%s, path=%s", domain, path);
-      logger.debug("Verify: user=%s, groups=%s", username, groups.join(","));
+      logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s", domain, path,
+        username, groups.join(","));
 
       if (!authSession.first_factor)
-        return BluebirdPromise.reject(new exceptions.AccessDeniedError("First factor not validated."));
+        return BluebirdPromise.reject(
+          new exceptions.AccessDeniedError(FIRST_FACTOR_NOT_VALIDATED_MESSAGE));
 
       const isAllowed = accessController.isAccessAllowed(domain, path, username, groups);
       if (!isAllowed) return BluebirdPromise.reject(
-          new exceptions.DomainAccessDenied("User '" + username + "' does not have access to " + domain));
+        new exceptions.DomainAccessDenied(Util.format("User '%s' does not have access to '%'",
+          username, domain)));
 
       if (!onlyBasicAuth && !authSession.second_factor)
-        return BluebirdPromise.reject(new exceptions.AccessDeniedError("Second factor not validated."));
+        return BluebirdPromise.reject(
+          new exceptions.AccessDeniedError(SECOND_FACTOR_NOT_VALIDATED_MESSAGE));
 
       res.setHeader("Remote-User", username);
       res.setHeader("Remote-Groups", groups.join(","));
@@ -56,7 +66,7 @@ export default function (req: express.Request, res: express.Response): BluebirdP
       res.send();
       return BluebirdPromise.resolve();
     })
-    .catch(exceptions.DomainAccessDenied, ErrorReplies.replyWithError403(res, logger))
-    .catch(ErrorReplies.replyWithError401(res, logger));
+    .catch(exceptions.DomainAccessDenied, ErrorReplies.replyWithError403(req, res, logger))
+    .catch(ErrorReplies.replyWithError401(req, res, logger));
 }
 

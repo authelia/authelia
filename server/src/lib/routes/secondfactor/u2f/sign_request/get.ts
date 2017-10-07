@@ -33,8 +33,8 @@ export function handler(req: express.Request, res: express.Response): BluebirdPr
 
       const u2f = ServerVariablesHandler.getU2F(req.app);
       const appId: string = u2f_common.extract_app_id(req);
-      logger.info("U2F sign_request: Start authentication to app %s", appId);
-      logger.debug("U2F sign_request: appId=%s, keyHandle=%s", appId, JSON.stringify(doc.registration.keyHandle));
+      logger.info(req, "Start authentication of app '%s'", appId);
+      logger.debug(req, "AppId = %s, keyHandle = %s", appId, JSON.stringify(doc.registration.keyHandle));
 
       const request = u2f.request(appId, doc.registration.keyHandle);
       const authenticationMessage: SignMessage = {
@@ -44,13 +44,13 @@ export function handler(req: express.Request, res: express.Response): BluebirdPr
       return BluebirdPromise.resolve(authenticationMessage);
     })
     .then(function (authenticationMessage: SignMessage) {
-      logger.info("U2F sign_request: Store authentication request and reply");
-      logger.debug("U2F sign_request: authenticationRequest=%s", authenticationMessage);
+      logger.info(req, "Store authentication request and reply");
+      logger.debug(req, "AuthenticationRequest = %s", authenticationMessage);
       authSession.sign_request = authenticationMessage.request;
       res.json(authenticationMessage);
       return BluebirdPromise.resolve();
     })
-    .catch(exceptions.AccessDeniedError, ErrorReplies.replyWithError401(res, logger))
-    .catch(ErrorReplies.replyWithError500(res, logger));
+    .catch(exceptions.AccessDeniedError, ErrorReplies.replyWithError401(req, res, logger))
+    .catch(ErrorReplies.replyWithError500(req, res, logger));
 }
 

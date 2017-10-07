@@ -108,9 +108,8 @@ describe("Public pages of the server must be accessible without session", functi
     ldap_client.search.yields(undefined, search_res);
 
     const deps: GlobalDependencies = {
-      u2f: u2f,
+      u2f: u2f as any,
       nedb: nedb,
-      nodemailer: nodemailer,
       ldapjs: ldap,
       session: ExpressSession,
       winston: Winston,
@@ -119,7 +118,7 @@ describe("Public pages of the server must be accessible without session", functi
       dovehash: Sinon.spy() as any
     };
 
-    server = new Server();
+    server = new Server(deps);
     return server.start(config, deps);
   });
 

@@ -33,20 +33,20 @@ export interface IdentityValidable {
   mailSubject(): string;
 }
 
-function createAndSaveToken(userid: string, challenge: string, userDataStore: IUserDataStore, logger: Winston): BluebirdPromise<string> {
+function createAndSaveToken(userid: string, challenge: string, userDataStore: IUserDataStore)
+  : BluebirdPromise<string> {
   const five_minutes = 4 * 60 * 1000;
   const token = randomstring.generate({ length: 64 });
   const that = this;
 
-  logger.debug("identity_check: issue identity token %s for 5 minutes", token);
   return userDataStore.produceIdentityValidationToken(userid, token, challenge, five_minutes)
     .then(function () {
       return BluebirdPromise.resolve(token);
     });
 }
 
-function consumeToken(token: string, challenge: string, userDataStore: IUserDataStore, logger: Winston): BluebirdPromise<IdentityValidationDocument> {
-  logger.debug("identity_check: consume token %s", token);
+function consumeToken(token: string, challenge: string, userDataStore: IUserDataStore)
+  : BluebirdPromise<IdentityValidationDocument> {
   return userDataStore.consumeIdentityValidationToken(token, challenge);
 }
 
@@ -68,7 +68,7 @@ export function get_finish_validation(handler: IdentityValidable): express.Reque
 
     let authSession: AuthenticationSession.AuthenticationSession;
     const identityToken = objectPath.get<express.Request, string>(req, "query.identity_token");
-    logger.info("GET identity_check: identity token provided is %s", identityToken);
+    logger.debug(req, "Identity token provided is %s", identityToken);
 
     return checkIdentityToken(req, identityToken)
       .then(function () {
@@ -81,7 +81,7 @@ export function get_finish_validation(handler: IdentityValidable): express.Reque
         authSession = _authSession;
       })
       .then(function () {
-        return consumeToken(identityToken, handler.challenge(), userDataStore, logger);
+        return consumeToken(identityToken, handler.challenge(), userDataStore);
       })
       .then(function (doc: IdentityValidationDocument) {
         authSession.identity_check = {
@@ -91,9 +91,9 @@ export function get_finish_validation(handler: IdentityValidable): express.Reque
         handler.postValidationResponse(req, res);
         return BluebirdPromise.resolve();
       })
-      .catch(Exceptions.FirstFactorValidationError, ErrorReplies.replyWithError401(res, logger))
-      .catch(Exceptions.AccessDeniedError, ErrorReplies.replyWithError403(res, logger))
-      .catch(ErrorReplies.replyWithError500(res, logger));
+      .catch(Exceptions.FirstFactorValidationError, ErrorReplies.replyWithError401(req, res, logger))
+      .catch(Exceptions.AccessDeniedError, ErrorReplies.replyWithError403(req, res, logger))
+      .catch(ErrorReplies.replyWithError500(req, res, logger));
   };
 }
 
@@ -104,33 +104,32 @@ export function get_start_validation(handler: IdentityValidable, postValidationE
     const notifier = ServerVariablesHandler.getNotifier(req.app);
     const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
     let identity: Identity.Identity;
-    logger.info("Identity Validation: Start identity validation");
 
     return handler.preValidationInit(req)
       .then(function (id: Identity.Identity) {
-        logger.debug("Identity Validation: retrieved identity is %s", JSON.stringify(id));
         identity = id;
         const email = identity.email;
         const userid = identity.userid;
+        logger.info(req, "Start identity validation of user \"%s\"", userid);
 
         if (!(email && userid))
           return BluebirdPromise.reject(new Exceptions.IdentityError("Missing user id or email address"));
 
-        return createAndSaveToken(userid, handler.challenge(), userDataStore, logger);
+        return createAndSaveToken(userid, handler.challenge(), userDataStore);
       })
       .then(function (token: string) {
         const host = req.get("Host");
         const link_url = util.format("https://%s%s?identity_token=%s", host, postValidationEndpoint, token);
-        logger.info("POST identity_check: notification sent to user %s", identity.userid);
+        logger.info(req, "Notification sent to user \"%s\"", identity.userid);
         return notifier.notify(identity, handler.mailSubject(), link_url);
       })
       .then(function () {
         handler.preValidationResponse(req, res);
         return BluebirdPromise.resolve();
       })
-      .catch(Exceptions.FirstFactorValidationError, ErrorReplies.replyWithError401(res, logger))
-      .catch(Exceptions.IdentityError, ErrorReplies.replyWithError400(res, logger))
-      .catch(Exceptions.AccessDeniedError, ErrorReplies.replyWithError403(res, logger))
-      .catch(ErrorReplies.replyWithError500(res, logger));
+      .catch(Exceptions.FirstFactorValidationError, ErrorReplies.replyWithError401(req, res, logger))
+      .catch(Exceptions.IdentityError, ErrorReplies.replyWithError400(req, res, logger))
+      .catch(Exceptions.AccessDeniedError, ErrorReplies.replyWithError403(req, res, logger))
+      .catch(ErrorReplies.replyWithError500(req, res, logger));
   };
 }

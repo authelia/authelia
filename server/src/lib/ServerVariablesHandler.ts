@@ -2,6 +2,10 @@
 import winston = require("winston");
 import BluebirdPromise = require("bluebird");
 import U2F = require("u2f");
+import Nodemailer = require("nodemailer");
+
+import { IRequestLogger } from "./logging/IRequestLogger";
+import { RequestLogger } from "./logging/RequestLogger";
 
 import { IAuthenticator } from "./ldap/IAuthenticator";
 import { IPasswordUpdater } from "./ldap/IPasswordUpdater";
@@ -14,39 +18,27 @@ import { LdapClientFactory } from "./ldap/LdapClientFactory";
 
 import { TOTPValidator } from "./TOTPValidator";
 import { TOTPGenerator } from "./TOTPGenerator";
+
+import { NotifierFactory } from "./notifiers/NotifierFactory";
+import { MailSenderBuilder } from "./notifiers/MailSenderBuilder";
+
 import { IUserDataStore } from "./storage/IUserDataStore";
 import { UserDataStore } from "./storage/UserDataStore";
 import { INotifier } from "./notifiers/INotifier";
 import { AuthenticationRegulator } from "./AuthenticationRegulator";
 import Configuration = require("./configuration/Configuration");
 import { AccessController } from "./access_control/AccessController";
-import { NotifierFactory } from "./notifiers/NotifierFactory";
 import { CollectionFactoryFactory } from "./storage/CollectionFactoryFactory";
 import { ICollectionFactory } from "./storage/ICollectionFactory";
 import { MongoCollectionFactory } from "./storage/mongo/MongoCollectionFactory";
 import { MongoConnectorFactory } from "./connectors/mongo/MongoConnectorFactory";
 import { IMongoClient } from "./connectors/mongo/IMongoClient";
-
 import { GlobalDependencies } from "../../types/Dependencies";
+import { ServerVariables } from "./ServerVariables";
 
 import express = require("express");
 
 export const VARIABLES_KEY = "authelia-variables";
-
-export interface ServerVariables {
-  logger: typeof winston;
-  ldapAuthenticator: IAuthenticator;
-  ldapPasswordUpdater: IPasswordUpdater;
-  ldapEmailsRetriever: IEmailsRetriever;
-  totpValidator: TOTPValidator;
-  totpGenerator: TOTPGenerator;
-  u2f: typeof U2F;
-  userDataStore: IUserDataStore;
-  notifier: INotifier;
-  regulator: AuthenticationRegulator;
-  config: Configuration.AppConfiguration;
-  accessController: AccessController;
-}
 
 class UserDataStoreFactory {
   static create(config: Configuration.AppConfiguration): BluebirdPromise<UserDataStore> {
@@ -73,8 +65,10 @@ class UserDataStoreFactory {
 }
 
 export class ServerVariablesHandler {
-  static initialize(app: express.Application, config: Configuration.AppConfiguration, deps: GlobalDependencies): BluebirdPromise<void> {
-    const notifier = NotifierFactory.build(config.notifier, deps.nodemailer);
+  static initialize(app: express.Application, config: Configuration.AppConfiguration, requestLogger: IRequestLogger,
+    deps: GlobalDependencies): BluebirdPromise<void> {
+    const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
+    const notifier = NotifierFactory.build(config.notifier, mailSenderBuilder);
     const ldapClientFactory = new LdapClientFactory(config.ldap, deps.ldapjs);
     const clientFactory = new ClientFactory(config.ldap, ldapClientFactory, deps.dovehash, deps.winston);
 
@@ -96,20 +90,20 @@ export class ServerVariablesHandler {
           ldapAuthenticator: ldapAuthenticator,
           ldapPasswordUpdater: ldapPasswordUpdater,
           ldapEmailsRetriever: ldapEmailsRetriever,
-          logger: deps.winston,
+          logger: requestLogger,
           notifier: notifier,
           regulator: regulator,
           totpGenerator: totpGenerator,
           totpValidator: totpValidator,
           u2f: deps.u2f,
-          userDataStore: userDataStore
+          userDataStore: userDataStore,
         };
 
         app.set(VARIABLES_KEY, variables);
       });
   }
 
-  static getLogger(app: express.Application): typeof winston {
+  static getLogger(app: express.Application): IRequestLogger {
     return (app.get(VARIABLES_KEY) as ServerVariables).logger;
   }
 
