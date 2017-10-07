@@ -1,6 +1,7 @@
 import { IClientFactory } from "./IClientFactory";
 import { IClient } from "./IClient";
 import { Client } from "./Client";
+import { ILdapClientFactory } from "./ILdapClientFactory";
 import { LdapConfiguration } from "../configuration/Configuration";
 
 import Ldapjs = require("ldapjs");
@@ -9,19 +10,20 @@ import Winston = require("winston");
 
 export class ClientFactory implements IClientFactory {
   private config: LdapConfiguration;
-  private ldapjs: typeof Ldapjs;
+  private ldapClientFactory: ILdapClientFactory;
   private dovehash: typeof Dovehash;
   private logger: typeof Winston;
 
-  constructor(ldapConfiguration: LdapConfiguration, ldapjs: typeof Ldapjs,
+  constructor(ldapConfiguration: LdapConfiguration, ldapClientFactory: ILdapClientFactory,
     dovehash: typeof Dovehash, logger: typeof Winston) {
     this.config = ldapConfiguration;
-    this.ldapjs = ldapjs;
+    this.ldapClientFactory = ldapClientFactory;
     this.dovehash = dovehash;
     this.logger = logger;
   }
 
   create(userDN: string, password: string): IClient {
-    return new Client(userDN, password, this.config, this.ldapjs, this.dovehash, this.logger);
+    return new Client(userDN, password, this.config, this.ldapClientFactory,
+      this.dovehash, this.logger);
   }
 }

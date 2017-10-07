@@ -8,7 +8,7 @@ export class ClientStub implements IClient {
   closeStub: Sinon.SinonStub;
   searchUserDnStub: Sinon.SinonStub;
   searchEmailsStub: Sinon.SinonStub;
-  searchEmailsAndGroupsStub: Sinon.SinonStub;
+  searchGroupsStub: Sinon.SinonStub;
   modifyPasswordStub: Sinon.SinonStub;
 
   constructor() {
@@ -16,7 +16,7 @@ export class ClientStub implements IClient {
     this.closeStub = Sinon.stub();
     this.searchUserDnStub = Sinon.stub();
     this.searchEmailsStub = Sinon.stub();
-    this.searchEmailsAndGroupsStub = Sinon.stub();
+    this.searchGroupsStub = Sinon.stub();
     this.modifyPasswordStub = Sinon.stub();
   }
 
@@ -36,8 +36,8 @@ export class ClientStub implements IClient {
     return this.searchEmailsStub(username);
   }
 
-  searchEmailsAndGroups(username: string): BluebirdPromise<GroupsAndEmails> {
-    return this.searchEmailsAndGroupsStub(username);
+  searchGroups(username: string): BluebirdPromise<string[]> {
+    return this.searchGroupsStub(username);
   }
 
   modifyPassword(username: string, newPassword: string): BluebirdPromise<void> {

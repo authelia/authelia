@@ -1,6 +1,8 @@
 
 import winston = require("winston");
 import BluebirdPromise = require("bluebird");
+import U2F = require("u2f");
+
 import { IAuthenticator } from "./ldap/IAuthenticator";
 import { IPasswordUpdater } from "./ldap/IPasswordUpdater";
 import { IEmailsRetriever } from "./ldap/IEmailsRetriever";
@@ -8,10 +10,10 @@ import { Authenticator } from "./ldap/Authenticator";
 import { PasswordUpdater } from "./ldap/PasswordUpdater";
 import { EmailsRetriever } from "./ldap/EmailsRetriever";
 import { ClientFactory } from "./ldap/ClientFactory";
+import { LdapClientFactory } from "./ldap/LdapClientFactory";
 
 import { TOTPValidator } from "./TOTPValidator";
 import { TOTPGenerator } from "./TOTPGenerator";
-import U2F = require("u2f");
 import { IUserDataStore } from "./storage/IUserDataStore";
 import { UserDataStore } from "./storage/UserDataStore";
 import { INotifier } from "./notifiers/INotifier";
@@ -73,11 +75,12 @@ class UserDataStoreFactory {
 export class ServerVariablesHandler {
   static initialize(app: express.Application, config: Configuration.AppConfiguration, deps: GlobalDependencies): BluebirdPromise<void> {
     const notifier = NotifierFactory.build(config.notifier, deps.nodemailer);
-    const ldapClientFactory = new ClientFactory(config.ldap, deps.ldapjs, deps.dovehash, deps.winston);
+    const ldapClientFactory = new LdapClientFactory(config.ldap, deps.ldapjs);
+    const clientFactory = new ClientFactory(config.ldap, ldapClientFactory, deps.dovehash, deps.winston);
 
-    const ldapAuthenticator = new Authenticator(config.ldap, ldapClientFactory);
-    const ldapPasswordUpdater = new PasswordUpdater(config.ldap, ldapClientFactory);
-    const ldapEmailsRetriever = new EmailsRetriever(config.ldap, ldapClientFactory);
+    const ldapAuthenticator = new Authenticator(config.ldap, clientFactory);
+    const ldapPasswordUpdater = new PasswordUpdater(config.ldap, clientFactory);
+    const ldapEmailsRetriever = new EmailsRetriever(config.ldap, clientFactory);
     const accessController = new AccessController(config.access_control, deps.winston);
     const totpValidator = new TOTPValidator(deps.speakeasy);
     const totpGenerator = new TOTPGenerator(deps.speakeasy);

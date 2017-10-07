@@ -2,13 +2,12 @@ import BluebirdPromise = require("bluebird");
 import exceptions = require("../Exceptions");
 import ldapjs = require("ldapjs");
 import { Client } from "./Client";
-
 import { IClientFactory } from "./IClientFactory";
-import { IEmailsRetriever } from "./IEmailsRetriever";
 import { LdapConfiguration } from "../configuration/Configuration";
+import { GroupsAndEmails } from "./IClient";
 
 
-export class EmailsRetriever implements IEmailsRetriever {
+export class EmailsAndGroupsRetriever {
   private options: LdapConfiguration;
   private clientFactory: IClientFactory;
 
@@ -17,9 +16,10 @@ export class EmailsRetriever implements IEmailsRetriever {
     this.clientFactory = clientFactory;
   }
 
-  retrieve(username: string): BluebirdPromise<string[]> {
+  retrieve(username: string): BluebirdPromise<GroupsAndEmails> {
     const adminClient = this.clientFactory.create(this.options.user, this.options.password);
     let emails: string[];
+    let groups: string[];
 
     return adminClient.open()
       .then(function () {
@@ -27,13 +27,20 @@ export class EmailsRetriever implements IEmailsRetriever {
       })
       .then(function (emails_: string[]) {
         emails = emails_;
+        return adminClient.searchGroups(username);
+      })
+      .then(function (groups_: string[]) {
+        groups = groups_;
         return adminClient.close();
       })
       .then(function () {
-        return BluebirdPromise.resolve(emails);
+        return BluebirdPromise.resolve({
+          emails: emails,
+          groups: groups
+        });
       })
-      .catch(function (err: Error) {
-        return BluebirdPromise.reject(new exceptions.LdapError("Failed during email retrieval: " + err.message));
+      .error(function (err: Error) {
+        return BluebirdPromise.reject(new exceptions.LdapError("Failed during emails and groups retrieval: " + err.message));
       });
   }
 }
