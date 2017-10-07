@@ -39,6 +39,7 @@ export default class Server {
     app.use(BodyParser.urlencoded({ extended: false }));
     app.use(BodyParser.json());
     app.use(deps.session(expressSessionOptions));
+    app.disable("x-powered-by");
 
     app.set(TRUST_PROXY, 1);
     app.set(VIEWS, viewsDirectory);
