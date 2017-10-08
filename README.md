@@ -148,6 +148,8 @@ Click on **Continue** and you'll get your secret in QRCode and Base32 formats. Y
 [Google Authenticator] 
 to store them and get the generated tokens with the app.
 
+**Note:** If you're testing with **npm**, you will not have access to the fake webmail. You can use the filesystem notifier (option available [config.template.yml]) that will create a file containing the validation URL instead of sending an email. Please only use it for testing.
+
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/totp.png" width="400">
 
 ### Second factor with U2F security keys
@@ -163,6 +165,8 @@ Click on **Continue** and you'll be asking to touch the token of your device
 to register. Upon successful registration, you can authenticate using your U2F 
 device by simply touching the token. Easy, right?!
 
+**Note:** If you're testing with **npm**, you will not have access to the fake webmail. You can use the filesystem notifier (option available [config.template.yml]) that will create a file containing the validation URL instead of sending an email. Please only use it for testing.
+
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/u2f.png" width="400">
 
 ### Password reset
@@ -172,6 +176,8 @@ a password reset and **Authelia** will send an email with an link to the user
 email address. For the sake of the example, the email is delivered in a fake webmail deployed
 for you and accessible at [http://localhost:8085](http://localhost:8085).
 Paste the link in your browser and you should be able to reset the password.
+
+**Note:** If you're testing with **npm**, you will not have access to the fake webmail. You can use the filesystem notifier (option available [config.template.yml]) that will create a file containing the validation URL instead of sending an email. Please only use it for testing.
 
 <img src="https://raw.githubusercontent.com/clems4ever/authelia/master/images/reset_password.png" width="400">
 

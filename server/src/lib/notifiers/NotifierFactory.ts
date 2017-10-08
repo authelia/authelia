@@ -3,6 +3,7 @@ import { NotifierConfiguration } from "../configuration/Configuration";
 import Nodemailer = require("nodemailer");
 import { INotifier } from "./INotifier";
 
+import { FileSystemNotifier } from "./FileSystemNotifier";
 import { GMailNotifier } from "./GMailNotifier";
 import { SmtpNotifier } from "./SmtpNotifier";
 import { IMailSender } from "./IMailSender";
@@ -17,6 +18,9 @@ export class NotifierFactory {
     else if ("smtp" in options) {
       const mailSender = mailSenderBuilder.buildSmtp(options.smtp);
       return new SmtpNotifier(options.smtp, mailSender);
+    }
+    else if ("filesystem" in options) {
+      return new FileSystemNotifier(options.filesystem);
     }
     else {
       throw new Error("No available notifier option detected.");
