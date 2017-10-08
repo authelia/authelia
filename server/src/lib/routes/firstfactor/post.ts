@@ -48,7 +48,7 @@ export default function (req: express.Request, res: express.Response): BluebirdP
         JSON.stringify(groupsAndEmails));
       authSession.userid = username;
       authSession.first_factor = true;
-      const redirectUrl = req.query[Constants.REDIRECT_QUERY_PARAM] != "undefined"
+      const redirectUrl = req.query[Constants.REDIRECT_QUERY_PARAM] !== "undefined"
         // Fuck, don't know why it is a string!
         ? req.query[Constants.REDIRECT_QUERY_PARAM]
         : undefined;
@@ -79,8 +79,9 @@ export default function (req: express.Request, res: express.Response): BluebirdP
       }
       else if (authMethod == "two_factor") {
         let newRedirectUrl = Endpoint.SECOND_FACTOR_GET;
-        if (redirectUrl !== "undefined") {
-          newRedirectUrl += "?redirect=" + encodeURIComponent(redirectUrl);
+        if (redirectUrl) {
+          newRedirectUrl += "?" + Constants.REDIRECT_QUERY_PARAM + "="
+            + encodeURIComponent(redirectUrl);
         }
         logger.debug(req, "Redirect to '%s'", newRedirectUrl, typeof redirectUrl);
         res.send({

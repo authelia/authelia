@@ -13,7 +13,7 @@ describe("test FirstFactorValidator", function () {
         const jqueryMock = JQueryMock.JQueryMock();
         jqueryMock.jquery.ajax.returns(postPromise);
 
-        return FirstFactorValidator.validate("username", "password", "http://redirect", false, jqueryMock.jquery as any);
+        return FirstFactorValidator.validate("username", "password", "http://redirect", jqueryMock.jquery as any);
     });
 
     function should_fail_first_factor_validation(errorMessage: string) {
@@ -27,7 +27,7 @@ describe("test FirstFactorValidator", function () {
         const jqueryMock = JQueryMock.JQueryMock();
         jqueryMock.jquery.ajax.returns(postPromise);
 
-        return FirstFactorValidator.validate("username", "password", "http://redirect", false, jqueryMock.jquery as any)
+        return FirstFactorValidator.validate("username", "password", "http://redirect", jqueryMock.jquery as any)
             .then(function () {
                 return BluebirdPromise.reject(new Error("First factor validation successfully finished while it should have not."));
             }, function (err: Error) {

@@ -17,8 +17,7 @@ export default function (window: Window, $: JQueryStatic,
     $(UISelectors.PASSWORD_FIELD_ID).val("");
 
     const redirectUrl = QueryParametersRetriever.get(Constants.REDIRECT_QUERY_PARAM);
-    const onlyBasicAuth = QueryParametersRetriever.get(Constants.ONLY_BASIC_AUTH_QUERY_PARAM) ? true : false;
-    firstFactorValidator.validate(username, password, redirectUrl, onlyBasicAuth, $)
+    firstFactorValidator.validate(username, password, redirectUrl, $)
       .then(onFirstFactorSuccess, onFirstFactorFailure);
     return false;
   }
