@@ -2,16 +2,8 @@
 
 # Parameters:
 # TAG - The name of the tag to use for publishing in Dockerhub
-#
-function deploy_on_dockerhub {
-  echo "======================================="
-  echo "Authelia will be deployed on Dockerhub."
-  echo "======================================="
 
-  TAG=$1
-  IMAGE_NAME=clems4ever/authelia
-  IMAGE_WITH_TAG=$IMAGE_NAME:$TAG
-
+function login_to_dockerhub {
   echo "Logging in to Dockerhub as $DOCKER_USERNAME."
   docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
   if [ "$?" -ne "0" ];
@@ -19,8 +11,16 @@ function deploy_on_dockerhub {
     echo "Logging in to Dockerhub failed.";
     exit 1
   fi
+}
 
+function deploy_on_dockerhub {
+  TAG=$1
+  IMAGE_NAME=clems4ever/authelia
+  IMAGE_WITH_TAG=$IMAGE_NAME:$TAG
+
+  echo "==========================================================="
   echo "Docker image $IMAGE_WITH_TAG will be deployed on Dockerhub."
+  echo "==========================================================="
   docker build -t $IMAGE_NAME .
   docker tag $IMAGE_NAME $IMAGE_WITH_TAG;
   docker push $IMAGE_WITH_TAG;
@@ -29,9 +29,12 @@ function deploy_on_dockerhub {
 
 
 if [ "$TRAVIS_BRANCH" == "master" ]; then
-  deploy_on_dockerhub latest
+  login_to_dockerhub
+  deploy_on_dockerhub master
 elif [ ! -z "$TRAVIS_TAG" ]; then
+  login_to_dockerhub
   deploy_on_dockerhub $TRAVIS_TAG
+  deploy_on_dockerhub latest
 else
   echo "Docker image will not be deployed on Dockerhub."
 fi
