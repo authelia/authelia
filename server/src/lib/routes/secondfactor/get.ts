@@ -19,6 +19,7 @@ function handler(req: Express.Request, res: Express.Response): BluebirdPromise<v
             }
 
             res.render(TEMPLATE_NAME, {
+                username: authSession.userid,
                 totp_identity_start_endpoint: Endpoints.SECOND_FACTOR_TOTP_IDENTITY_START_GET,
                 u2f_identity_start_endpoint: Endpoints.SECOND_FACTOR_U2F_IDENTITY_START_GET
             });
