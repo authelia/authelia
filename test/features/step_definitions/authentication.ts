@@ -11,6 +11,15 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
     return this.visit(link);
   });
 
+  When("I wait for notification to disappear", function() {
+    const that = this;
+    const notificationEl = this.driver.findElement(seleniumWebdriver.By.className("notification"));
+    return this.driver.wait(seleniumWebdriver.until.elementIsVisible(notificationEl), 15000)
+    .then(function() {
+      return that.driver.wait(seleniumWebdriver.until.elementIsNotVisible(notificationEl), 15000);
+    })
+  })
+
   When("I set field {stringInDoubleQuotes} to {stringInDoubleQuotes}", function (fieldName: string, content: string) {
     return this.setFieldTo(fieldName, content);
   });

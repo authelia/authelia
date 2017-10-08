@@ -43,18 +43,20 @@ describe("test config adapter", function () {
     return yaml_config;
   }
 
-  it("should read the port from the yaml file", function () {
-    const yaml_config = build_yaml_config();
-    yaml_config.port = 7070;
-    const config = ConfigurationAdapter.adapt(yaml_config);
-    Assert.equal(config.port, 7070);
-  });
+  describe("port", function () {
+    it("should read the port from the yaml file", function () {
+      const yaml_config = build_yaml_config();
+      yaml_config.port = 7070;
+      const config = ConfigurationAdapter.adapt(yaml_config);
+      Assert.equal(config.port, 7070);
+    });
 
-  it("should default the port to 8080 if not provided", function () {
-    const yaml_config = build_yaml_config();
-    delete yaml_config.port;
-    const config = ConfigurationAdapter.adapt(yaml_config);
-    Assert.equal(config.port, 8080);
+    it("should default the port to 8080 if not provided", function () {
+      const yaml_config = build_yaml_config();
+      delete yaml_config.port;
+      const config = ConfigurationAdapter.adapt(yaml_config);
+      Assert.equal(config.port, 8080);
+    });
   });
 
   it("should get the session attributes", function () {
@@ -94,20 +96,51 @@ describe("test config adapter", function () {
     });
   });
 
-  it("should get the access_control config", function () {
-    const yaml_config = build_yaml_config();
-    yaml_config.access_control = {
-      default_policy: "deny",
-      any: [],
-      users: {},
-      groups: {}
-    };
-    const config = ConfigurationAdapter.adapt(yaml_config);
-    Assert.deepEqual(config.access_control, {
-      default_policy: "deny",
-      any: [],
-      users: {},
-      groups: {}
-    } as ACLConfiguration);
+  describe("access_control", function() {
+    it("should adapt access_control when it is already ok", function () {
+      const yaml_config = build_yaml_config();
+      yaml_config.access_control = {
+        default_policy: "deny",
+        any: [{
+          domain: "public.example.com",
+          policy: "allow"
+        }],
+        users: {
+          "user": [{
+            domain: "www.example.com",
+            policy: "allow"
+          }]
+        },
+        groups: {}
+      };
+      const config = ConfigurationAdapter.adapt(yaml_config);
+      Assert.deepEqual(config.access_control, {
+        default_policy: "deny",
+        any: [{
+          domain: "public.example.com",
+          policy: "allow"
+        }],
+        users: {
+          "user": [{
+            domain: "www.example.com",
+            policy: "allow"
+          }]
+        },
+        groups: {}
+      } as ACLConfiguration);
+    });
+
+
+    it("should adapt access_control when it is empty", function () {
+      const yaml_config = build_yaml_config();
+      yaml_config.access_control = {} as any;
+      const config = ConfigurationAdapter.adapt(yaml_config);
+      Assert.deepEqual(config.access_control, {
+        default_policy: "deny",
+        any: [],
+        users: {},
+        groups: {}
+      } as ACLConfiguration);
+    });
   });
 });

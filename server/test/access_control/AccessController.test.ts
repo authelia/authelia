@@ -173,8 +173,8 @@ describe("test access control manager", function () {
       });
     });
 
-    describe("check all rules", function () {
-      it("should control access when all rules are defined", function () {
+    describe("check any rules", function () {
+      it("should control access when any rules are defined", function () {
         configuration.any = [{
           domain: "home.example.com",
           policy: "allow",
@@ -307,7 +307,7 @@ describe("test access control manager", function () {
         Assert(!accessController.isAccessAllowed("home.example.com", "/dev/bob", "john", ["dev"]));
       });
 
-      it("should control access when allowed at all level and denied at user level", function () {
+      it("should control access when allowed at 'any' level and denied at user level", function () {
         configuration.any = [{
           domain: "home.example.com",
           policy: "allow",
@@ -323,7 +323,7 @@ describe("test access control manager", function () {
         Assert(!accessController.isAccessAllowed("home.example.com", "/dev/bob", "john", ["dev"]));
       });
 
-      it("should control access when allowed at all level and denied at group level", function () {
+      it("should control access when allowed at 'any' level and denied at group level", function () {
         configuration.any = [{
           domain: "home.example.com",
           policy: "allow",

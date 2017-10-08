@@ -8,6 +8,7 @@ Feature: User is correctly redirected
   Scenario: User is redirected to home page after several authentication tries
     When I visit "https://public.test.local:8080/secret.html"
     And I login with user "john" and password "badpassword"
+    And I wait for notification to disappear
     And I clear field "username"
     And I login with user "john" and password "password" 
     And I use "REGISTERED" as TOTP token handle

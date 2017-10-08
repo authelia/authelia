@@ -10,7 +10,7 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
     function (notificationType: string, notificationMessage: string) {
       const that = this;
       const notificationEl = this.driver.findElement(seleniumWebdriver.By.className("notification"));
-      return this.driver.wait(seleniumWebdriver.until.elementIsVisible(notificationEl), 2000)
+      return this.driver.wait(seleniumWebdriver.until.elementIsVisible(notificationEl), 5000)
         .then(function () {
           return notificationEl.getText();
         })
