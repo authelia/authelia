@@ -29,6 +29,9 @@ import ResetPasswordRequestPost = require("./routes/password-reset/request/get")
 import Error401Get = require("./routes/error/401/get");
 import Error403Get = require("./routes/error/403/get");
 import Error404Get = require("./routes/error/404/get");
+
+import LoggedIn = require("./routes/loggedin/get");
+
 import { ServerVariablesHandler } from "./ServerVariablesHandler";
 
 import Endpoints = require("../../../shared/api");
@@ -72,5 +75,6 @@ export class RestApi {
     app.get(Endpoints.ERROR_401_GET, withLog(Error401Get.default));
     app.get(Endpoints.ERROR_403_GET, withLog(Error403Get.default));
     app.get(Endpoints.ERROR_404_GET, withLog(Error404Get.default));
+    app.get(Endpoints.LOGGED_IN, withLog(LoggedIn.default));
   }
 }

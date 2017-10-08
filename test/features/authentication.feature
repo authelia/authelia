@@ -1,4 +1,4 @@
-Feature: User validate first factor
+Feature: Authentication scenarii
 
   Scenario: User succeeds first factor
     Given I visit "https://auth.test.local:8080/"

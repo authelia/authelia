@@ -297,3 +297,5 @@ export const LOGOUT_GET = "/logout";
 export const ERROR_401_GET = "/error/401";
 export const ERROR_403_GET = "/error/403";
 export const ERROR_404_GET = "/error/404";
+
+export const LOGGED_IN = "/loggedin";

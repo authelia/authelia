@@ -48,7 +48,10 @@ export default function (req: express.Request, res: express.Response): BluebirdP
         JSON.stringify(groupsAndEmails));
       authSession.userid = username;
       authSession.first_factor = true;
-      const redirectUrl = req.query[Constants.REDIRECT_QUERY_PARAM];
+      const redirectUrl = req.query[Constants.REDIRECT_QUERY_PARAM] != "undefined"
+        // Fuck, don't know why it is a string!
+        ? req.query[Constants.REDIRECT_QUERY_PARAM]
+        : undefined;
 
       const emails: string[] = groupsAndEmails.emails;
       const groups: string[] = groupsAndEmails.groups;
