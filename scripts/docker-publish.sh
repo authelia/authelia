@@ -12,8 +12,13 @@ function deploy_on_dockerhub {
   IMAGE_NAME=clems4ever/authelia
   IMAGE_WITH_TAG=$IMAGE_NAME:$TAG
 
-  echo "Login to Dockerhub."
-  docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+  echo "Logging in to Dockerhub as $DOCKER_USERNAME."
+  docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  if [ "$?" -ne "0" ];
+  then
+    echo "Logging in to Dockerhub failed.";
+    exit 1
+  fi
 
   echo "Docker image $IMAGE_WITH_TAG will be deployed on Dockerhub."
   docker build -t $IMAGE_NAME .
