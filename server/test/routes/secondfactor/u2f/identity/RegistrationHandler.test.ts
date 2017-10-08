@@ -20,7 +20,6 @@ describe("test register handler", function () {
     req = ExpressMock.RequestMock();
     req.app = {};
     const mocks = ServerVariablesMock.mock(req.app);
-    mocks.logger = winston;
     req.session = {};
     AuthenticationSession.reset(req as any);
     req.headers = {};

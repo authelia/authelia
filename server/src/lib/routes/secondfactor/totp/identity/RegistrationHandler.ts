@@ -71,10 +71,10 @@ export default class RegistrationHandler implements IdentityValidable {
         const totpGenerator = ServerVariablesHandler.getTOTPGenerator(req.app);
         const secret = totpGenerator.generate();
 
-        logger.debug("POST new-totp-secret: save the TOTP secret in DB");
+        logger.debug(req, "Save the TOTP secret in DB");
         return userDataStore.saveTOTPSecret(userid, secret)
           .then(function () {
-            objectPath.set(req, "session", undefined);
+            AuthenticationSession.reset(req);
 
             res.render(Constants.TEMPLATE_NAME, {
               base32_secret: secret.base32,
@@ -83,7 +83,7 @@ export default class RegistrationHandler implements IdentityValidable {
             });
           });
       })
-      .catch(ErrorReplies.replyWithError500(res, logger));
+      .catch(ErrorReplies.replyWithError500(req, res, logger));
   }
 
   mailSubject(): string {

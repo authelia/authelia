@@ -13,7 +13,7 @@ import AuthenticationRegulatorMock = require("../../mocks/AuthenticationRegulato
 import { AccessControllerStub } from "../../mocks/AccessControllerStub";
 import ExpressMock = require("../../mocks/express");
 import ServerVariablesMock = require("../../mocks/ServerVariablesMock");
-import { ServerVariables } from "../../../src/lib/ServerVariablesHandler";
+import { ServerVariables } from "../../../src/lib/ServerVariables";
 
 describe("test the first factor validation route", function () {
   let req: ExpressMock.RequestMock;
@@ -68,7 +68,6 @@ describe("test the first factor validation route", function () {
       authenticate: sinon.stub()
     } as any;
     serverVariables.config = configuration as any;
-    serverVariables.logger = winston as any;
     serverVariables.regulator = regulator as any;
     serverVariables.accessController = accessController as any;
 

@@ -1,37 +1,18 @@
 
 
 import * as BluebirdPromise from "bluebird";
-import Nodemailer = require("nodemailer");
 
+import { IMailSender } from "./IMailSender";
 import { AbstractEmailNotifier } from "../notifiers/AbstractEmailNotifier";
 import { SmtpNotifierConfiguration } from "../configuration/Configuration";
 
 export class SmtpNotifier extends AbstractEmailNotifier {
-  private transporter: any;
+  private mailSender: IMailSender;
 
-  constructor(options: SmtpNotifierConfiguration, nodemailer: typeof Nodemailer) {
+  constructor(options: SmtpNotifierConfiguration,
+    mailSender: IMailSender) {
     super();
-    const smtpOptions = {
-      host: options.host,
-      port: options.port,
-      secure: options.secure, // upgrade later with STARTTLS
-      auth: {
-        user: options.username,
-        pass: options.password
-      }
-    };
-    const transporter = nodemailer.createTransport(smtpOptions);
-    this.transporter = BluebirdPromise.promisifyAll(transporter);
-
-    // verify connection configuration
-    transporter.verify(function (error, success) {
-      if (error) {
-        throw new Error("Unable to connect to SMTP server. \
-Please check the service is running and your credentials are correct.");
-      } else {
-        console.log("SMTP Server is ready to take our messages");
-      }
-    });
+    this.mailSender = mailSender;
   }
 
   sendEmail(email: string, subject: string, content: string) {
@@ -41,11 +22,7 @@ Please check the service is running and your credentials are correct.");
       subject: subject,
       html: content
     };
-    return this.transporter.sendMail(mailOptions, (error: Error, data: string) => {
-      if (error) {
-        return console.log(error);
-      }
-      console.log("Message sent: %s", JSON.stringify(data));
-    });
+    const that = this;
+    return this.mailSender.send(mailOptions);
   }
 }

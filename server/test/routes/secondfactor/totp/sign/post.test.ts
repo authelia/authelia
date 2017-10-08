@@ -44,8 +44,6 @@ describe("test totp route", function () {
       }
     };
     mocks.userDataStore.retrieveTOTPSecretStub.returns(BluebirdPromise.resolve(doc));
-
-    mocks.logger = winston;
     mocks.totpValidator = totpValidator;
     mocks.config = config;
 

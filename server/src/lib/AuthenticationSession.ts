@@ -34,7 +34,7 @@ const INITIAL_AUTHENTICATION_SESSION: AuthenticationSession = {
 
 export function reset(req: express.Request): void {
   const logger = ServerVariablesHandler.getLogger(req.app);
-  logger.debug("Authentication session %s is being reset.", req.sessionID);
+  logger.debug(req, "Authentication session %s is being reset.", req.sessionID);
   req.session.auth = Object.assign({}, INITIAL_AUTHENTICATION_SESSION, {});
 }
 
@@ -42,12 +42,12 @@ export function get(req: express.Request): BluebirdPromise<AuthenticationSession
   const logger = ServerVariablesHandler.getLogger(req.app);
   if (!req.session) {
     const errorMsg = "Something is wrong with session cookies. Please check Redis is running and Authelia can contact it.";
-    logger.error(errorMsg);
+    logger.error(req, errorMsg);
     return BluebirdPromise.reject(new Error(errorMsg));
   }
 
   if (!req.session.auth) {
-    logger.debug("Authentication session %s was undefined. Resetting.", req.sessionID);
+    logger.debug(req, "Authentication session %s was undefined. Resetting.", req.sessionID);
     reset(req);
   }
 

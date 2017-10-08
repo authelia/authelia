@@ -25,19 +25,19 @@ export function handler(req: express.Request, res: express.Response): BluebirdPr
   return AuthenticationSession.get(req)
     .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
       authSession = _authSession;
-      logger.info("POST 2ndfactor totp: Initiate TOTP validation for user %s", authSession.userid);
+      logger.info(req, "Initiate TOTP validation for user '%s'", authSession.userid);
       return userDataStore.retrieveTOTPSecret(authSession.userid);
     })
     .then(function (doc: TOTPSecretDocument) {
-      logger.debug("POST 2ndfactor totp: TOTP secret is %s", JSON.stringify(doc));
+      logger.debug(req, "TOTP secret is %s", JSON.stringify(doc));
       return totpValidator.validate(token, doc.secret.base32);
     })
     .then(function () {
-      logger.debug("POST 2ndfactor totp: TOTP validation succeeded");
+      logger.debug(req, "TOTP validation succeeded");
       authSession.second_factor = true;
       redirect(req, res);
       return BluebirdPromise.resolve();
     })
-    .catch(exceptions.InvalidTOTPError, ErrorReplies.replyWithError401(res, logger))
-    .catch(ErrorReplies.replyWithError500(res, logger));
+    .catch(exceptions.InvalidTOTPError, ErrorReplies.replyWithError401(req, res, logger))
+    .catch(ErrorReplies.replyWithError500(req, res, logger));
 }

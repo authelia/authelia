@@ -134,7 +134,7 @@ access_control:
 # The session cookies identify the user once logged in.
 session:
   # The secret to encrypt the session cookie.
-  secret: unsecure_secret
+  secret: unsecure_session_secret
   
   # The time before the cookie expires.
   expiration: 3600000
@@ -190,7 +190,7 @@ notifier:
   # Use a SMTP server for sending notifications
   smtp:
     username: test
-    password: test
+    password: password
     secure: false
     host: 'smtp'
     port: 1025

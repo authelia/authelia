@@ -1,4 +1,5 @@
 import BluebirdPromise = require("bluebird");
+import ObjectPath = require("object-path");
 
 import { AccessController } from "./access_control/AccessController";
 import { AppConfiguration, UserConfiguration } from "./configuration/Configuration";
@@ -12,11 +13,15 @@ import { RestApi } from "./RestApi";
 import { Client } from "./ldap/Client";
 import { ServerVariablesHandler } from "./ServerVariablesHandler";
 import { SessionConfigurationBuilder } from "./configuration/SessionConfigurationBuilder";
+import { GlobalLogger } from "./logging/GlobalLogger";
+import { RequestLogger } from "./logging/RequestLogger";
 
 import * as Express from "express";
 import * as BodyParser from "body-parser";
 import * as Path from "path";
 import * as http from "http";
+
+const addRequestId = require("express-request-id")();
 
 // Constants
 
@@ -25,9 +30,19 @@ const VIEWS = "views";
 const VIEW_ENGINE = "view engine";
 const PUG = "pug";
 
+function clone(obj: any) {
+  return JSON.parse(JSON.stringify(obj));
+}
 
 export default class Server {
   private httpServer: http.Server;
+  private globalLogger: GlobalLogger;
+  private requestLogger: RequestLogger;
+
+  constructor(deps: GlobalDependencies) {
+    this.globalLogger = new GlobalLogger(deps.winston);
+    this.requestLogger = new RequestLogger(deps.winston);
+  }
 
   private setupExpressApplication(config: AppConfiguration, app: Express.Application, deps: GlobalDependencies): void {
     const viewsDirectory = Path.resolve(__dirname, "../views");
@@ -39,6 +54,7 @@ export default class Server {
     app.use(BodyParser.urlencoded({ extended: false }));
     app.use(BodyParser.json());
     app.use(deps.session(expressSessionOptions));
+    app.use(addRequestId);
     app.disable("x-powered-by");
 
     app.set(TRUST_PROXY, 1);
@@ -48,39 +64,61 @@ export default class Server {
     RestApi.setup(app);
   }
 
-  private adaptConfiguration(yamlConfiguration: UserConfiguration, deps: GlobalDependencies): AppConfiguration {
-    const config = ConfigurationAdapter.adapt(yamlConfiguration);
+  private displayConfigurations(userConfiguration: UserConfiguration,
+    appConfiguration: AppConfiguration) {
+    const displayableUserConfiguration = clone(userConfiguration);
+    const displayableAppConfiguration = clone(appConfiguration);
+    const STARS = "*****";
 
-    // by default the level of logs is info
-    deps.winston.level = config.logs_level;
-    console.log("Log level = ", deps.winston.level);
+    displayableUserConfiguration.ldap.password = STARS;
+    displayableUserConfiguration.session.secret = STARS;
+    if (displayableUserConfiguration.notifier && displayableUserConfiguration.notifier.gmail)
+      displayableUserConfiguration.notifier.gmail.password = STARS;
+    if (displayableUserConfiguration.notifier && displayableUserConfiguration.notifier.smtp)
+      displayableUserConfiguration.notifier.smtp.password = STARS;
 
-    deps.winston.debug("Content of YAML configuration file is %s", JSON.stringify(yamlConfiguration, undefined, 2));
-    deps.winston.debug("Authelia configuration is %s", JSON.stringify(config, undefined, 2));
-    return config;
+    displayableAppConfiguration.ldap.password = STARS;
+    displayableAppConfiguration.session.secret = STARS;
+    if (displayableAppConfiguration.notifier && displayableAppConfiguration.notifier.gmail)
+      displayableAppConfiguration.notifier.gmail.password = STARS;
+    if (displayableAppConfiguration.notifier && displayableAppConfiguration.notifier.smtp)
+      displayableAppConfiguration.notifier.smtp.password = STARS;
+
+    this.globalLogger.debug("User configuration is %s",
+      JSON.stringify(displayableUserConfiguration, undefined, 2));
+    this.globalLogger.debug("Adapted configuration is %s",
+      JSON.stringify(displayableAppConfiguration, undefined, 2));
   }
 
   private setup(config: AppConfiguration, app: Express.Application, deps: GlobalDependencies): BluebirdPromise<void> {
     this.setupExpressApplication(config, app, deps);
-    return ServerVariablesHandler.initialize(app, config, deps);
+    return ServerVariablesHandler.initialize(app, config, this.requestLogger, deps);
   }
 
   private startServer(app: Express.Application, port: number) {
+    const that = this;
     return new BluebirdPromise<void>((resolve, reject) => {
       this.httpServer = app.listen(port, function (err: string) {
-        console.log("Listening on %d...", port);
+        that.globalLogger.info("Listening on port %d...", port);
         resolve();
       });
     });
   }
 
-  start(yamlConfiguration: UserConfiguration, deps: GlobalDependencies): BluebirdPromise<void> {
+  start(userConfiguration: UserConfiguration, deps: GlobalDependencies)
+    : BluebirdPromise<void> {
     const that = this;
     const app = Express();
-    const config = this.adaptConfiguration(yamlConfiguration, deps);
-    return this.setup(config, app, deps)
+
+    const appConfiguration = ConfigurationAdapter.adapt(userConfiguration);
+
+    // by default the level of logs is info
+    deps.winston.level = userConfiguration.logs_level;
+    this.displayConfigurations(userConfiguration, appConfiguration);
+
+    return this.setup(appConfiguration, app, deps)
       .then(function () {
-        return that.startServer(app, config.port);
+        return that.startServer(app, appConfiguration.port);
       });
   }
 

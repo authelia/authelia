@@ -56,7 +56,6 @@ describe("test reset password identity check", function () {
             }
         };
 
-        serverVariables.logger = winston;
         serverVariables.config = configuration;
         serverVariables.ldapEmailsRetriever = {
             retrieve: Sinon.stub()

@@ -21,7 +21,7 @@ export default class PasswordResetHandler implements IdentityValidable {
         const logger = ServerVariablesHandler.getLogger(req.app);
         const userid: string = objectPath.get<express.Request, string>(req, "query.userid");
 
-        logger.debug("Reset Password: user '%s' requested a password reset", userid);
+        logger.debug(req, "User '%s' requested a password reset", userid);
         if (!userid)
             return BluebirdPromise.reject(new exceptions.AccessDeniedError("No user id provided"));
 
@@ -29,7 +29,6 @@ export default class PasswordResetHandler implements IdentityValidable {
         return emailsRetriever.retrieve(userid)
             .then(function (emails: string[]) {
                 if (!emails && emails.length <= 0) throw new Error("No email found");
-
                 const identity = {
                     email: emails[0],
                     userid: userid

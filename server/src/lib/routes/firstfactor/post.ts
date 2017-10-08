@@ -22,7 +22,7 @@ export default function (req: express.Request, res: express.Response): BluebirdP
 
   if (!username || !password) {
     const err = new Error("No username or password");
-    ErrorReplies.replyWithError401(res, logger)(err);
+    ErrorReplies.replyWithError401(req, res, logger)(err);
     return BluebirdPromise.reject(err);
   }
 
@@ -30,21 +30,18 @@ export default function (req: express.Request, res: express.Response): BluebirdP
   const accessController = ServerVariablesHandler.getAccessController(req.app);
   let authSession: AuthenticationSession.AuthenticationSession;
 
-  logger.info("1st factor: Starting authentication of user \"%s\"", username);
-  logger.debug("1st factor: Start bind operation against LDAP");
-  logger.debug("1st factor: username=%s", username);
-
+  logger.info(req, "Starting authentication of user \"%s\"", username);
   return AuthenticationSession.get(req)
     .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
       authSession = _authSession;
       return regulator.regulate(username);
     })
     .then(function () {
-      logger.info("1st factor: No regulation applied.");
+      logger.info(req, "No regulation applied.");
       return ldap.authenticate(username, password);
     })
     .then(function (groupsAndEmails: GroupsAndEmails) {
-      logger.info("1st factor: LDAP binding successful. Retrieved information about user are %s",
+      logger.info(req, "LDAP binding successful. Retrieved information about user are %s",
         JSON.stringify(groupsAndEmails));
       authSession.userid = username;
       authSession.first_factor = true;
@@ -56,43 +53,40 @@ export default function (req: express.Request, res: express.Response): BluebirdP
 
       if (!emails || emails.length <= 0) {
         const errMessage = "No emails found. The user should have at least one email address to reset password.";
-        logger.error("1s factor: %s", errMessage);
+        logger.error(req, "%s", errMessage);
         return BluebirdPromise.reject(new Error(errMessage));
       }
 
       authSession.email = emails[0];
       authSession.groups = groups;
 
-      logger.debug("1st factor: Mark successful authentication to regulator.");
+      logger.debug(req, "Mark successful authentication to regulator.");
       regulator.mark(username, true);
-
-      logger.debug("1st factor: Redirect URL is %s", redirectUrl);
-      logger.debug("1st factor: %s? %s", Constants.ONLY_BASIC_AUTH_QUERY_PARAM, onlyBasicAuth);
 
       if (onlyBasicAuth) {
         res.send({
           redirect: redirectUrl
         });
-        logger.debug("1st factor: redirect to '%s'", redirectUrl);
+        logger.debug(req, "Redirect to '%s'", redirectUrl);
       }
       else {
         let newRedirectUrl = Endpoint.SECOND_FACTOR_GET;
         if (redirectUrl !== "undefined") {
           newRedirectUrl += "?redirect=" + encodeURIComponent(redirectUrl);
         }
-        logger.debug("1st factor: redirect to '%s'", newRedirectUrl, typeof redirectUrl);
+        logger.debug(req, "Redirect to '%s'", newRedirectUrl, typeof redirectUrl);
         res.send({
           redirect: newRedirectUrl
         });
       }
       return BluebirdPromise.resolve();
     })
-    .catch(exceptions.LdapSearchError, ErrorReplies.replyWithError500(res, logger))
+    .catch(exceptions.LdapSearchError, ErrorReplies.replyWithError500(req, res, logger))
     .catch(exceptions.LdapBindError, function (err: Error) {
       regulator.mark(username, false);
-      return ErrorReplies.replyWithError401(res, logger)(err);
+      return ErrorReplies.replyWithError401(req, res, logger)(err);
     })
-    .catch(exceptions.AuthenticationRegulationError, ErrorReplies.replyWithError403(res, logger))
-    .catch(exceptions.DomainAccessDenied, ErrorReplies.replyWithError401(res, logger))
-    .catch(ErrorReplies.replyWithError500(res, logger));
+    .catch(exceptions.AuthenticationRegulationError, ErrorReplies.replyWithError403(req, res, logger))
+    .catch(exceptions.DomainAccessDenied, ErrorReplies.replyWithError401(req, res, logger))
+    .catch(ErrorReplies.replyWithError500(req, res, logger));
 }

@@ -21,6 +21,6 @@ export default function (callback: Handler): Handler {
       .then(function () {
         return callback(req, res);
       })
-      .catch(Exceptions.FirstFactorValidationError, ErrorReplies.replyWithError401(res, logger));
+      .catch(Exceptions.FirstFactorValidationError, ErrorReplies.replyWithError401(req, res, logger));
   };
 }

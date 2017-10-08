@@ -1,6 +1,6 @@
 import Sinon = require("sinon");
 import express = require("express");
-import winston = require("winston");
+import { RequestLoggerStub } from "./RequestLoggerStub";
 import { UserDataStoreStub } from "./storage/UserDataStoreStub";
 import { VARIABLES_KEY } from "../../src/lib/ServerVariablesHandler";
 
@@ -27,7 +27,7 @@ export function mock(app: express.Application): ServerVariablesMock {
     ldapAuthenticator: Sinon.stub() as any,
     ldapEmailsRetriever: Sinon.stub() as any,
     ldapPasswordUpdater: Sinon.stub() as any,
-    logger: winston,
+    logger: new RequestLoggerStub(),
     notifier: Sinon.stub(),
     regulator: Sinon.stub(),
     totpGenerator: Sinon.stub(),
