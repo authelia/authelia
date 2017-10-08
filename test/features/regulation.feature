@@ -37,6 +37,4 @@ Feature: Authelia regulates authentication to avoid brute force
     And I click on "Sign in"
     And I use "REGISTERED" as TOTP token handle
     And I click on "TOTP"
-    Then I have access to:
-      | url                                          |
-      | https://public.test.local:8080/secret.html   |
+    Then I'm redirected to "https://public.test.local:8080/secret.html"
