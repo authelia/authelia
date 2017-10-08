@@ -7,9 +7,9 @@ import {
   UserLdapConfiguration
 } from "./Configuration";
 import Util = require("util");
+import { ACLAdapter } from "./adapters/ACLAdapter";
 
 const LDAP_URL_ENV_VARIABLE = "LDAP_URL";
-
 
 function get_optional<T>(config: object, path: string, default_value: T): T {
   let entry = default_value;
@@ -80,7 +80,7 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration): AppCo
     },
     logs_level: get_optional<string>(userConfiguration, "logs_level", "info"),
     notifier: ObjectPath.get<object, NotifierConfiguration>(userConfiguration, "notifier"),
-    access_control: ObjectPath.get<object, ACLConfiguration>(userConfiguration, "access_control"),
+    access_control: ACLAdapter.adapt(userConfiguration.access_control),
     regulation: userConfiguration.regulation
   };
 }
