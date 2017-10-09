@@ -2,12 +2,19 @@
 import BluebirdPromise = require("bluebird");
 import Endpoints = require("../../../../shared/api");
 import Constants = require("../../../../shared/constants");
+import Util = require("util");
 
 export function validate(username: string, password: string,
-  redirectUrl: string, onlyBasicAuth: boolean, $: JQueryStatic): BluebirdPromise<string> {
+  redirectUrl: string, $: JQueryStatic): BluebirdPromise<string> {
   return new BluebirdPromise<string>(function (resolve, reject) {
-    const url = Endpoints.FIRST_FACTOR_POST + "?" + Constants.REDIRECT_QUERY_PARAM + "=" + redirectUrl
-      + "&" + Constants.ONLY_BASIC_AUTH_QUERY_PARAM + "=" + onlyBasicAuth;
+    let url: string;
+    if (redirectUrl != undefined) {
+      const redirectParam = Util.format("%s=%s", Constants.REDIRECT_QUERY_PARAM, redirectUrl);
+      url = Util.format("%s?%s", Endpoints.FIRST_FACTOR_POST, redirectParam);
+    }
+    else {
+      url = Util.format("%s", Endpoints.FIRST_FACTOR_POST);
+    }
 
     $.ajax({
       method: "POST",

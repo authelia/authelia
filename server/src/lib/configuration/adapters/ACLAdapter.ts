@@ -1,8 +1,5 @@
 import { ACLConfiguration } from "../Configuration";
-
-function clone(obj: any): any {
-  return JSON.parse(JSON.stringify(obj));
-}
+import { ObjectCloner } from "../../utils/ObjectCloner";
 
 const DEFAULT_POLICY = "deny";
 
@@ -32,7 +29,7 @@ export class ACLAdapter {
   static adapt(configuration: ACLConfiguration): ACLConfiguration {
     if (!configuration) return;
 
-    const newConfiguration: ACLConfiguration = clone(configuration);
+    const newConfiguration: ACLConfiguration = ObjectCloner.clone(configuration);
     adaptDefaultPolicy(newConfiguration);
     adaptAny(newConfiguration);
     adaptGroups(newConfiguration);

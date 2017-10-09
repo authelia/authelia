@@ -2,7 +2,7 @@
 import { ACLConfiguration, ACLPolicy, ACLRule } from "../configuration/Configuration";
 import { IAccessController } from "./IAccessController";
 import { Winston } from "../../../types/Dependencies";
-import { DomainMatcher } from "./DomainMatcher";
+import { MultipleDomainMatcher } from "./MultipleDomainMatcher";
 
 
 enum AccessReturn {
@@ -17,7 +17,7 @@ function AllowedRule(rule: ACLRule) {
 
 function MatchDomain(actualDomain: string) {
   return function (rule: ACLRule): boolean {
-    return DomainMatcher.match(actualDomain, rule.domain);
+    return MultipleDomainMatcher.match(actualDomain, rule.domain);
   };
 }
 

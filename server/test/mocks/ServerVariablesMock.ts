@@ -2,6 +2,7 @@ import Sinon = require("sinon");
 import express = require("express");
 import { RequestLoggerStub } from "./RequestLoggerStub";
 import { UserDataStoreStub } from "./storage/UserDataStoreStub";
+import { AuthenticationMethodCalculator } from "../../src/lib/AuthenticationMethodCalculator";
 import { VARIABLES_KEY } from "../../src/lib/ServerVariablesHandler";
 
 export interface ServerVariablesMock {
@@ -17,6 +18,7 @@ export interface ServerVariablesMock {
   regulator: any;
   config: any;
   accessController: any;
+  authenticationMethodsCalculator: any;
 }
 
 
@@ -33,7 +35,11 @@ export function mock(app: express.Application): ServerVariablesMock {
     totpGenerator: Sinon.stub(),
     totpValidator: Sinon.stub(),
     u2f: Sinon.stub(),
-    userDataStore: new UserDataStoreStub()
+    userDataStore: new UserDataStoreStub(),
+    authenticationMethodsCalculator: new AuthenticationMethodCalculator({
+      default_method: "two_factor",
+      per_subdomain_methods: {}
+    })
   };
   app.get = Sinon.stub().withArgs(VARIABLES_KEY).returns(mocks);
   return mocks;

@@ -5,6 +5,7 @@ block form-header
   <img class="header-img" src="../img/padlock.png" alt="">
 
 block content
+    p Hi <b>#{username}</b>, please complete second factor or <a href="/logout">logout</a>.
     <div class="notification notification-totp"></div>
     <form class="form-signin totp">
         <div class="form-inputs">

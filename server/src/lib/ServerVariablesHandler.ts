@@ -33,8 +33,11 @@ import { ICollectionFactory } from "./storage/ICollectionFactory";
 import { MongoCollectionFactory } from "./storage/mongo/MongoCollectionFactory";
 import { MongoConnectorFactory } from "./connectors/mongo/MongoConnectorFactory";
 import { IMongoClient } from "./connectors/mongo/IMongoClient";
+
 import { GlobalDependencies } from "../../types/Dependencies";
 import { ServerVariables } from "./ServerVariables";
+import { AuthenticationMethodCalculator } from "./AuthenticationMethodCalculator";
+
 
 import express = require("express");
 
@@ -78,6 +81,7 @@ export class ServerVariablesHandler {
     const accessController = new AccessController(config.access_control, deps.winston);
     const totpValidator = new TOTPValidator(deps.speakeasy);
     const totpGenerator = new TOTPGenerator(deps.speakeasy);
+    const authenticationMethodCalculator = new AuthenticationMethodCalculator(config.authentication_methods);
 
     return UserDataStoreFactory.create(config)
       .then(function (userDataStore: UserDataStore) {
@@ -97,6 +101,7 @@ export class ServerVariablesHandler {
           totpValidator: totpValidator,
           u2f: deps.u2f,
           userDataStore: userDataStore,
+          authenticationMethodsCalculator: authenticationMethodCalculator
         };
 
         app.set(VARIABLES_KEY, variables);
@@ -149,5 +154,9 @@ export class ServerVariablesHandler {
 
   static getU2F(app: express.Application): typeof U2F {
     return (app.get(VARIABLES_KEY) as ServerVariables).u2f;
+  }
+
+  static getAuthenticationMethodCalculator(app: express.Application): AuthenticationMethodCalculator {
+    return (app.get(VARIABLES_KEY) as ServerVariables).authenticationMethodsCalculator;
   }
 }

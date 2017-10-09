@@ -22,7 +22,8 @@ used in production to secure internal services in a small docker swarm cluster.
     3. [Second factor with U2F security keys](#second-factor-with-u2f-security-keys)
     4. [Password reset](#password-reset)
     5. [Access control](#access-control)
-    6. [Session management with Redis](#session-management-with-redis)
+    6. [Basic authentication](#basic-authentication)
+    7. [Session management with Redis](#session-management-with-redis)
 4. [Documentation](#documentation)
     1. [Authelia configuration](#authelia-configuration)
     1. [API documentation](#api-documentation)
@@ -37,6 +38,7 @@ used in production to secure internal services in a small docker swarm cluster.
 as 2nd factor.
 * Password reset with identity verification by sending links to user email 
 address.
+* Two-factor and basic authentication methods available. 
 * Access restriction after too many authentication attempts.
 * Session management using Redis key/value store.
 * User-defined access control per subdomain and resource.
@@ -186,6 +188,11 @@ With **Authelia**, you can define your own access control rules for finely restr
 user access to some resources and subdomains. Those rules are defined and fully documented 
 in the configuration file. They can apply to users, groups or everyone.
 Check out [config.template.yml] to see how they are defined.
+
+### Basic Authentication
+Authelia allows you to customize the authentication method to use for each sub-domain.
+The supported methods are either "basic_auth" and "two_factor". 
+Please see [config.template.yml] to see an example of configuration.
 
 ### Session management with Redis
 When your users authenticate against Authelia, sessions are stored in a Redis key/value store. You can specify your own Redis instance in [config.template.yml].

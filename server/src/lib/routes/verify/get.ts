@@ -10,6 +10,7 @@ import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 import AuthenticationSession = require("../../AuthenticationSession");
 import Constants = require("../../../../../shared/constants");
 import Util = require("util");
+import { DomainExtractor } from "../../utils/DomainExtractor";
 
 const FIRST_FACTOR_NOT_VALIDATED_MESSAGE = "First factor not yet validated";
 const SECOND_FACTOR_NOT_VALIDATED_MESSAGE = "Second factor not yet validated";
@@ -17,6 +18,7 @@ const SECOND_FACTOR_NOT_VALIDATED_MESSAGE = "Second factor not yet validated";
 function verify_filter(req: express.Request, res: express.Response): BluebirdPromise<void> {
   const logger = ServerVariablesHandler.getLogger(req.app);
   const accessController = ServerVariablesHandler.getAccessController(req.app);
+  const authenticationMethodsCalculator = ServerVariablesHandler.getAuthenticationMethodCalculator(req.app);
 
   return AuthenticationSession.get(req)
     .then(function (authSession) {
@@ -29,12 +31,11 @@ function verify_filter(req: express.Request, res: express.Response): BluebirdPro
         return BluebirdPromise.reject(
           new exceptions.AccessDeniedError(FIRST_FACTOR_NOT_VALIDATED_MESSAGE));
 
-      const onlyBasicAuth = req.query[Constants.ONLY_BASIC_AUTH_QUERY_PARAM] === "true";
-
       const host = objectPath.get<express.Request, string>(req, "headers.host");
       const path = objectPath.get<express.Request, string>(req, "headers.x-original-uri");
 
-      const domain = host.split(":")[0];
+      const domain = DomainExtractor.fromHostHeader(host);
+      const authenticationMethod = authenticationMethodsCalculator.compute(domain);
       logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s", domain, path,
         username, groups.join(","));
 
@@ -47,7 +48,7 @@ function verify_filter(req: express.Request, res: express.Response): BluebirdPro
         new exceptions.DomainAccessDenied(Util.format("User '%s' does not have access to '%'",
           username, domain)));
 
-      if (!onlyBasicAuth && !authSession.second_factor)
+      if (authenticationMethod == "two_factor" && !authSession.second_factor)
         return BluebirdPromise.reject(
           new exceptions.AccessDeniedError(SECOND_FACTOR_NOT_VALIDATED_MESSAGE));
 

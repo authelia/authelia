@@ -8,6 +8,7 @@ import {
 } from "./Configuration";
 import Util = require("util");
 import { ACLAdapter } from "./adapters/ACLAdapter";
+import { AuthenticationMethodsAdapter } from "./adapters/AuthenticationMethodsAdapter";
 
 const LDAP_URL_ENV_VARIABLE = "LDAP_URL";
 
@@ -55,15 +56,16 @@ function adaptLdapConfiguration(userConfig: UserLdapConfiguration): LdapConfigur
   };
 }
 
-function adaptFromUserConfiguration(userConfiguration: UserConfiguration): AppConfiguration {
+function adaptFromUserConfiguration(userConfiguration: UserConfiguration)
+  : AppConfiguration {
   ensure_key_existence(userConfiguration, "ldap");
-  // ensure_key_existence(userConfiguration, "ldap.url");
-  // ensure_key_existence(userConfiguration, "ldap.base_dn");
   ensure_key_existence(userConfiguration, "session.secret");
   ensure_key_existence(userConfiguration, "regulation");
 
   const port = userConfiguration.port || 8080;
   const ldapConfiguration = adaptLdapConfiguration(userConfiguration.ldap);
+  const authenticationMethods = AuthenticationMethodsAdapter
+    .adapt(userConfiguration.authentication_methods);
 
   return {
     port: port,
@@ -81,7 +83,8 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration): AppCo
     logs_level: get_optional<string>(userConfiguration, "logs_level", "info"),
     notifier: ObjectPath.get<object, NotifierConfiguration>(userConfiguration, "notifier"),
     access_control: ACLAdapter.adapt(userConfiguration.access_control),
-    regulation: userConfiguration.regulation
+    regulation: userConfiguration.regulation,
+    authentication_methods: authenticationMethods
   };
 }
 
