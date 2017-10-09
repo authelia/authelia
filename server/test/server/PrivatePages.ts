@@ -54,7 +54,8 @@ describe("Private pages of the server must not be accessible without session", f
       notifier: {
         gmail: {
           username: "user@example.com",
-          password: "password"
+          password: "password",
+          sender: "admin@example.com"
         }
       }
     };

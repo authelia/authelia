@@ -36,7 +36,8 @@ describe("test config adapter", function () {
       notifier: {
         gmail: {
           username: "user",
-          password: "password"
+          password: "password",
+          sender: "admin@example.com"
         }
       }
     };
@@ -84,14 +85,16 @@ describe("test config adapter", function () {
     yaml_config.notifier = {
       gmail: {
         username: "user",
-        password: "pass"
+        password: "pass",
+        sender: "admin@example.com"
       }
     };
     const config = ConfigurationAdapter.adapt(yaml_config);
     Assert.deepEqual(config.notifier, {
       gmail: {
         username: "user",
-        password: "pass"
+        password: "pass",
+        sender: "admin@example.com"
       }
     });
   });

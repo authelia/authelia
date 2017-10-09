@@ -7,16 +7,18 @@ import { IMailSender } from "./IMailSender";
 
 export class GMailNotifier extends AbstractEmailNotifier {
   private mailSender: IMailSender;
+  private sender: string;
 
   constructor(options: GmailNotifierConfiguration, mailSender: IMailSender) {
     super();
     this.mailSender = mailSender;
+    this.sender = options.sender;
   }
 
-  sendEmail(email: string, subject: string, content: string) {
+  sendEmail(to: string, subject: string, content: string) {
     const mailOptions = {
-      from: "authelia@authelia.com",
-      to: email,
+      from: this.sender,
+      to: to,
       subject: subject,
       html: content
     };

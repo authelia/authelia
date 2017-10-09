@@ -69,6 +69,7 @@ interface SessionCookieConfiguration {
 export interface GmailNotifierConfiguration {
     username: string;
     password: string;
+    sender: string;
 }
 
 export interface SmtpNotifierConfiguration {
@@ -77,6 +78,7 @@ export interface SmtpNotifierConfiguration {
     host: string;
     port: number;
     secure: boolean;
+    sender: string;
 }
 
 export interface FileSystemNotifierConfiguration {

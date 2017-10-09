@@ -166,6 +166,7 @@ notifier:
   # gmail:
   #   username: user@example.com
   #   password: yourpassword
+  #   sender: admin@example.com
   
   # Use a SMTP server for sending notifications
   smtp:
@@ -174,4 +175,4 @@ notifier:
     secure: false
     host: 'smtp'
     port: 1025
-  
+    sender: admin@example.com

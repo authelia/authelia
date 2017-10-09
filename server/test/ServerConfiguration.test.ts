@@ -55,7 +55,8 @@ describe("test server configuration", function () {
       notifier: {
         gmail: {
           username: "user@example.com",
-          password: "password"
+          password: "password",
+          sender: "test@authelia.com"
         }
       },
       regulation: {

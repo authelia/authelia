@@ -33,7 +33,8 @@ describe("test ldap configuration adaptation", function () {
       notifier: {
         gmail: {
           username: "user",
-          password: "password"
+          password: "password",
+          sender: "admin@example.com"
         }
       }
     };
