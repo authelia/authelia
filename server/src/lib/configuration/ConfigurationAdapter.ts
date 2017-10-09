@@ -4,10 +4,11 @@ import {
   AppConfiguration, UserConfiguration, NotifierConfiguration,
   ACLConfiguration, LdapConfiguration, SessionRedisOptions,
   MongoStorageConfiguration, LocalStorageConfiguration,
-  UserLdapConfiguration, AuthenticationMethodsConfiguration
+  UserLdapConfiguration
 } from "./Configuration";
 import Util = require("util");
 import { ACLAdapter } from "./adapters/ACLAdapter";
+import { AuthenticationMethodsAdapter } from "./adapters/AuthenticationMethodsAdapter";
 
 const LDAP_URL_ENV_VARIABLE = "LDAP_URL";
 
@@ -55,25 +56,16 @@ function adaptLdapConfiguration(userConfig: UserLdapConfiguration): LdapConfigur
   };
 }
 
-function adaptAuthenticationMethods(authentication_methods: AuthenticationMethodsConfiguration)
-  : AuthenticationMethodsConfiguration {
-  if (!authentication_methods) {
-    return {
-      default_method: "two_factor",
-      per_subdomain_methods: {}
-    };
-  }
-  return authentication_methods;
-}
-
-function adaptFromUserConfiguration(userConfiguration: UserConfiguration): AppConfiguration {
+function adaptFromUserConfiguration(userConfiguration: UserConfiguration)
+  : AppConfiguration {
   ensure_key_existence(userConfiguration, "ldap");
   ensure_key_existence(userConfiguration, "session.secret");
   ensure_key_existence(userConfiguration, "regulation");
 
   const port = userConfiguration.port || 8080;
   const ldapConfiguration = adaptLdapConfiguration(userConfiguration.ldap);
-  const authenticationMethods = adaptAuthenticationMethods(userConfiguration.authentication_methods);
+  const authenticationMethods = AuthenticationMethodsAdapter
+    .adapt(userConfiguration.authentication_methods);
 
   return {
     port: port,
