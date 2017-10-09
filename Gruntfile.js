@@ -15,6 +15,11 @@ module.exports = function (grunt) {
         cmd: "./node_modules/.bin/tsc",
         args: ['-p', 'server/tsconfig.json']
       },
+      "generate-config-schema": {
+        cmd: "./node_modules/.bin/typescript-json-schema",
+        args: ["-o", `${buildDir}/server/src/lib/configuration/Configuration.schema.json`, "--strictNullChecks",
+               "--required", "server/tsconfig.json", "UserConfiguration"]
+      },
       "compile-client": {
         cmd: "./node_modules/.bin/tsc",
         args: ['-p', 'client/tsconfig.json']
@@ -178,7 +183,7 @@ module.exports = function (grunt) {
   grunt.registerTask('copy-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
 
   grunt.registerTask('build-client', ['compile-client', 'browserify']);
-  grunt.registerTask('build-server', ['compile-server', 'copy-resources']);
+  grunt.registerTask('build-server', ['compile-server', 'copy-resources', 'run:generate-config-schema']);
 
   grunt.registerTask('build', ['build-client', 'build-server']);
   grunt.registerTask('build-dist', ['build', 'run:minify', 'cssmin', 'run:include-minified-script']);
