@@ -88,8 +88,13 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration)
   };
 }
 
-export class ConfigurationAdapter {
-  static adapt(userConfiguration: UserConfiguration): AppConfiguration {
+export class ConfigurationParser {
+  static parse(userConfiguration: UserConfiguration): AppConfiguration {
+    const errors = Validator.isValid(userConfiguration);
+    if (errors.length > 0) {
+      errors.forEach((e: string) => { console.log(e); });
+      throw new Error("Malformed configuration. Please double-check your configuration file.");
+    }
     const appConfiguration = adaptFromUserConfiguration(userConfiguration);
 
     const ldapUrl = process.env[LDAP_URL_ENV_VARIABLE];

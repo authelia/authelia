@@ -1,6 +1,6 @@
 import * as Assert from "assert";
 import { UserConfiguration, LdapConfiguration } from "../../src/lib/configuration/Configuration";
-import { ConfigurationAdapter } from "../../src/lib/configuration/ConfigurationAdapter";
+import { ConfigurationParser } from "../../src/lib/configuration/ConfigurationParser";
 
 describe("test ldap configuration adaptation", function () {
   function build_yaml_config(): UserConfiguration {
@@ -42,15 +42,15 @@ describe("test ldap configuration adaptation", function () {
   }
 
   it("should adapt correctly while user only specify mandatory fields", function () {
-    const yaml_config = build_yaml_config();
-    yaml_config.ldap = {
+    const userConfig = build_yaml_config();
+    userConfig.ldap = {
       url: "http://ldap",
       base_dn: "dc=example,dc=com",
       user: "admin",
       password: "password"
     };
 
-    const config = ConfigurationAdapter.adapt(yaml_config);
+    const config = ConfigurationParser.parse(userConfig);
     const expectedConfig: LdapConfiguration = {
       url: "http://ldap",
       users_dn: "dc=example,dc=com",
@@ -67,8 +67,8 @@ describe("test ldap configuration adaptation", function () {
   });
 
   it("should adapt correctly while user specify every fields", function () {
-    const yaml_config = build_yaml_config();
-    yaml_config.ldap = {
+    const userConfig = build_yaml_config();
+    userConfig.ldap = {
       url: "http://ldap-server",
       base_dn: "dc=example,dc=com",
       additional_users_dn: "ou=users",
@@ -81,7 +81,7 @@ describe("test ldap configuration adaptation", function () {
       password: "password2"
     };
 
-    const config = ConfigurationAdapter.adapt(yaml_config);
+    const config = ConfigurationParser.parse(userConfig);
     const expectedConfig: LdapConfiguration = {
       url: "http://ldap-server",
       users_dn: "ou=users,dc=example,dc=com",

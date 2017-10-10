@@ -48,10 +48,10 @@ export type ACLGroupsRules = { [group: string]: ACLRule[]; };
 export type ACLUsersRules = { [user: string]: ACLRule[]; };
 
 export interface ACLConfiguration {
-    default_policy: ACLPolicy;
-    any: ACLDefaultRules;
-    groups: ACLGroupsRules;
-    users: ACLUsersRules;
+    default_policy?: ACLPolicy;
+    any?: ACLDefaultRules;
+    groups?: ACLGroupsRules;
+    users?: ACLUsersRules;
 }
 
 export interface SessionRedisOptions {

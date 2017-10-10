@@ -85,12 +85,6 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "any",
-                "default_policy",
-                "groups",
-                "users"
-            ],
             "type": "object"
         },
         "ACLPolicy": {

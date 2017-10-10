@@ -6,7 +6,7 @@ import { AppConfiguration, UserConfiguration } from "./configuration/Configurati
 import { GlobalDependencies } from "../../types/Dependencies";
 import { AuthenticationRegulator } from "./AuthenticationRegulator";
 import { UserDataStore } from "./storage/UserDataStore";
-import { ConfigurationAdapter } from "./configuration/ConfigurationAdapter";
+import { ConfigurationParser } from "./configuration/ConfigurationParser";
 import { TOTPValidator } from "./TOTPValidator";
 import { TOTPGenerator } from "./TOTPGenerator";
 import { RestApi } from "./RestApi";
@@ -110,7 +110,7 @@ export default class Server {
     const that = this;
     const app = Express();
 
-    const appConfiguration = ConfigurationAdapter.adapt(userConfiguration);
+    const appConfiguration = ConfigurationParser.parse(userConfiguration);
 
     // by default the level of logs is info
     deps.winston.level = userConfiguration.logs_level;
