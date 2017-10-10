@@ -18,7 +18,8 @@ describe("test MailSenderBuilder", function() {
     const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
     mailSenderBuilder.buildGmail({
       username: "user_gmail",
-      password: "pass_gmail"
+      password: "pass_gmail",
+      sender: "admin@example.com"
     });
     Assert.equal(createTransportStub.getCall(0).args[0].auth.user, "user_gmail");
     Assert.equal(createTransportStub.getCall(0).args[0].auth.pass, "pass_gmail");
@@ -31,7 +32,8 @@ describe("test MailSenderBuilder", function() {
       password: "password",
       port: 25,
       secure: true,
-      username: "user"
+      username: "user",
+      sender: "admin@example.com"
     });
     Assert.deepStrictEqual(createTransportStub.getCall(0).args[0], {
       host: "mail.example.com",

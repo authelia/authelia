@@ -1,5 +1,5 @@
 import * as sinon from "sinon";
-import * as assert from "assert";
+import * as Assert from "assert";
 import BluebirdPromise = require("bluebird");
 
 import { MailSenderStub } from "../mocks/notifiers/MailSenderStub";
@@ -11,24 +11,19 @@ describe("test gmail notifier", function () {
     const mailSender = new MailSenderStub();
     const options = {
       username: "user_gmail",
-      password: "pass_gmail"
+      password: "pass_gmail",
+      sender: "admin@example.com"
     };
 
     mailSender.sendStub.returns(BluebirdPromise.resolve());
     const sender = new GMailNotifier.GMailNotifier(options, mailSender);
     const subject = "subject";
-
-    const identity = {
-      userid: "user",
-      email: "user@example.com"
-    };
-
     const url = "http://test.com";
 
-    return sender.notify(identity, subject, url)
+    return sender.notify("user@example.com", subject, url)
       .then(function () {
-        assert.equal(mailSender.sendStub.getCall(0).args[0].to, "user@example.com");
-        assert.equal(mailSender.sendStub.getCall(0).args[0].subject, "subject");
+        Assert.equal(mailSender.sendStub.getCall(0).args[0].to, "user@example.com");
+        Assert.equal(mailSender.sendStub.getCall(0).args[0].subject, "subject");
         return BluebirdPromise.resolve();
       });
   });
@@ -37,24 +32,20 @@ describe("test gmail notifier", function () {
     const mailSender = new MailSenderStub();
     const options = {
       username: "user_gmail",
-      password: "pass_gmail"
+      password: "pass_gmail",
+      sender: "admin@example.com"
     };
 
     mailSender.sendStub.returns(BluebirdPromise.reject(new Error("Failed to send mail")));
     const sender = new GMailNotifier.GMailNotifier(options, mailSender);
     const subject = "subject";
-
-    const identity = {
-      userid: "user",
-      email: "user@example.com"
-    };
-
     const url = "http://test.com";
 
-    return sender.notify(identity, subject, url)
+    return sender.notify("user@example.com", subject, url)
       .then(function () {
         return BluebirdPromise.reject(new Error());
       }, function() {
+        Assert.equal(mailSender.sendStub.getCall(0).args[0].from, "admin@example.com");
         return BluebirdPromise.resolve();
       });
   });

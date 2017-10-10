@@ -48,10 +48,10 @@ export type ACLGroupsRules = { [group: string]: ACLRule[]; };
 export type ACLUsersRules = { [user: string]: ACLRule[]; };
 
 export interface ACLConfiguration {
-    default_policy: ACLPolicy;
-    any: ACLDefaultRules;
-    groups: ACLGroupsRules;
-    users: ACLUsersRules;
+    default_policy?: ACLPolicy;
+    any?: ACLDefaultRules;
+    groups?: ACLGroupsRules;
+    users?: ACLUsersRules;
 }
 
 export interface SessionRedisOptions {
@@ -69,6 +69,7 @@ interface SessionCookieConfiguration {
 export interface GmailNotifierConfiguration {
     username: string;
     password: string;
+    sender: string;
 }
 
 export interface SmtpNotifierConfiguration {
@@ -77,6 +78,7 @@ export interface SmtpNotifierConfiguration {
     host: string;
     port: number;
     secure: boolean;
+    sender: string;
 }
 
 export interface FileSystemNotifierConfiguration {

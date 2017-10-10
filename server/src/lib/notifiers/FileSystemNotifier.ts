@@ -13,9 +13,9 @@ export class FileSystemNotifier implements INotifier {
     this.filename = options.filename;
   }
 
-  notify(identity: Identity, subject: string, link: string): BluebirdPromise<void> {
-    const content = util.format("Date: %s\nUser: %s\nSubject: %s\nLink: %s", new Date().toString(), identity.userid,
-      subject, link);
+  notify(to: string, subject: string, link: string): BluebirdPromise<void> {
+    const content = util.format("Date: %s\nEmail: %s\nSubject: %s\nLink: %s",
+      new Date().toString(), to, subject, link);
     const writeFilePromised: any = BluebirdPromise.promisify(Fs.writeFile);
     return writeFilePromised(this.filename, content);
   }

@@ -15,7 +15,8 @@ describe("test notifier factory", function () {
     const options = {
       gmail: {
         username: "abc",
-        password: "password"
+        password: "password",
+        sender: "admin@example.com"
       }
     };
     mailSenderBuilderStub = new MailSenderBuilderStub();
@@ -29,7 +30,8 @@ describe("test notifier factory", function () {
         password: "pass",
         secure: true,
         host: "localhost",
-        port: 25
+        port: 25,
+        sender: "admin@example.com"
       }
     };
 

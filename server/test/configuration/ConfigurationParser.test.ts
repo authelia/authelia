@@ -3,10 +3,10 @@ import {
   UserConfiguration,
   LdapConfiguration, ACLConfiguration
 } from "../../src/lib/configuration/Configuration";
-import { ConfigurationAdapter } from "../../src/lib/configuration/ConfigurationAdapter";
+import { ConfigurationParser } from "../../src/lib/configuration/ConfigurationParser";
 
-describe("test config adapter", function () {
-  function build_yaml_config(): UserConfiguration {
+describe("test config parser", function () {
+  function buildYamlConfig(): UserConfiguration {
     const yaml_config: UserConfiguration = {
       port: 8080,
       ldap: {
@@ -36,7 +36,8 @@ describe("test config adapter", function () {
       notifier: {
         gmail: {
           username: "user",
-          password: "password"
+          password: "password",
+          sender: "admin@example.com"
         }
       }
     };
@@ -45,61 +46,63 @@ describe("test config adapter", function () {
 
   describe("port", function () {
     it("should read the port from the yaml file", function () {
-      const yaml_config = build_yaml_config();
+      const yaml_config = buildYamlConfig();
       yaml_config.port = 7070;
-      const config = ConfigurationAdapter.adapt(yaml_config);
+      const config = ConfigurationParser.parse(yaml_config);
       Assert.equal(config.port, 7070);
     });
 
     it("should default the port to 8080 if not provided", function () {
-      const yaml_config = build_yaml_config();
+      const yaml_config = buildYamlConfig();
       delete yaml_config.port;
-      const config = ConfigurationAdapter.adapt(yaml_config);
+      const config = ConfigurationParser.parse(yaml_config);
       Assert.equal(config.port, 8080);
     });
   });
 
   it("should get the session attributes", function () {
-    const yaml_config = build_yaml_config();
+    const yaml_config = buildYamlConfig();
     yaml_config.session = {
       domain: "example.com",
       secret: "secret",
       expiration: 3600
     };
-    const config = ConfigurationAdapter.adapt(yaml_config);
+    const config = ConfigurationParser.parse(yaml_config);
     Assert.equal(config.session.domain, "example.com");
     Assert.equal(config.session.secret, "secret");
     Assert.equal(config.session.expiration, 3600);
   });
 
   it("should get the log level", function () {
-    const yaml_config = build_yaml_config();
+    const yaml_config = buildYamlConfig();
     yaml_config.logs_level = "debug";
-    const config = ConfigurationAdapter.adapt(yaml_config);
+    const config = ConfigurationParser.parse(yaml_config);
     Assert.equal(config.logs_level, "debug");
   });
 
   it("should get the notifier config", function () {
-    const yaml_config = build_yaml_config();
-    yaml_config.notifier = {
+    const userConfig = buildYamlConfig();
+    userConfig.notifier = {
       gmail: {
         username: "user",
-        password: "pass"
+        password: "pass",
+        sender: "admin@example.com"
       }
     };
-    const config = ConfigurationAdapter.adapt(yaml_config);
+    const config = ConfigurationParser.parse(userConfig);
     Assert.deepEqual(config.notifier, {
       gmail: {
         username: "user",
-        password: "pass"
+        password: "pass",
+        sender: "admin@example.com"
       }
     });
   });
 
   describe("access_control", function() {
     it("should adapt access_control when it is already ok", function () {
-      const yaml_config = build_yaml_config();
-      yaml_config.access_control = {
+      const userConfig = buildYamlConfig();
+      userConfig.access_control = {
         default_policy: "deny",
         any: [{
           domain: "public.example.com",
@@ -113,7 +116,7 @@ describe("test config adapter", function () {
         },
         groups: {}
       };
-      const config = ConfigurationAdapter.adapt(yaml_config);
+      const config = ConfigurationParser.parse(userConfig);
       Assert.deepEqual(config.access_control, {
         default_policy: "deny",
         any: [{
@@ -132,9 +135,9 @@ describe("test config adapter", function () {
 
 
     it("should adapt access_control when it is empty", function () {
-      const yaml_config = build_yaml_config();
-      yaml_config.access_control = {} as any;
-      const config = ConfigurationAdapter.adapt(yaml_config);
+      const userConfig = buildYamlConfig();
+      userConfig.access_control = {} as any;
+      const config = ConfigurationParser.parse(userConfig);
       Assert.deepEqual(config.access_control, {
         default_policy: "deny",
         any: [],

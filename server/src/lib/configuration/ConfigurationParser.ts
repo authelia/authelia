@@ -9,6 +9,7 @@ import {
 import Util = require("util");
 import { ACLAdapter } from "./adapters/ACLAdapter";
 import { AuthenticationMethodsAdapter } from "./adapters/AuthenticationMethodsAdapter";
+import { Validator } from "./Validator";
 
 const LDAP_URL_ENV_VARIABLE = "LDAP_URL";
 
@@ -58,9 +59,8 @@ function adaptLdapConfiguration(userConfig: UserLdapConfiguration): LdapConfigur
 
 function adaptFromUserConfiguration(userConfiguration: UserConfiguration)
   : AppConfiguration {
-  ensure_key_existence(userConfiguration, "ldap");
-  ensure_key_existence(userConfiguration, "session.secret");
-  ensure_key_existence(userConfiguration, "regulation");
+  if (!Validator.isValid(userConfiguration))
+    throw new Error("Configuration is malformed. Please double check your configuration file.");
 
   const port = userConfiguration.port || 8080;
   const ldapConfiguration = adaptLdapConfiguration(userConfiguration.ldap);
@@ -88,8 +88,13 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration)
   };
 }
 
-export class ConfigurationAdapter {
-  static adapt(userConfiguration: UserConfiguration): AppConfiguration {
+export class ConfigurationParser {
+  static parse(userConfiguration: UserConfiguration): AppConfiguration {
+    const errors = Validator.isValid(userConfiguration);
+    if (errors.length > 0) {
+      errors.forEach((e: string) => { console.log(e); });
+      throw new Error("Malformed configuration. Please double-check your configuration file.");
+    }
     const appConfiguration = adaptFromUserConfiguration(userConfiguration);
 
     const ldapUrl = process.env[LDAP_URL_ENV_VARIABLE];

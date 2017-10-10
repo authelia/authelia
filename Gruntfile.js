@@ -1,5 +1,6 @@
 module.exports = function (grunt) {
   const buildDir = "dist";
+  const schemaDir = "server/src/lib/configuration/Configuration.schema.json"
 
   grunt.initConfig({
     env: {
@@ -14,6 +15,11 @@ module.exports = function (grunt) {
       "compile-server": {
         cmd: "./node_modules/.bin/tsc",
         args: ['-p', 'server/tsconfig.json']
+      },
+      "generate-config-schema": {
+        cmd: "./node_modules/.bin/typescript-json-schema",
+        args: ["-o", schemaDir, "--strictNullChecks",
+               "--required", "server/tsconfig.json", "UserConfiguration"]
       },
       "compile-client": {
         cmd: "./node_modules/.bin/tsc",
@@ -81,6 +87,10 @@ module.exports = function (grunt) {
         src: '**',
         dest: `${buildDir}/server/src/public_html/js/`
       },
+      schema: {
+        src: schemaDir,
+        dest: `${buildDir}/${schemaDir}`
+      }
     },
     browserify: {
       dist: {
@@ -176,9 +186,10 @@ module.exports = function (grunt) {
   grunt.registerTask('test-int', ['run:test-int']);
 
   grunt.registerTask('copy-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
+  grunt.registerTask('generate-config-schema', ['run:generate-config-schema', 'copy:schema']);
 
   grunt.registerTask('build-client', ['compile-client', 'browserify']);
-  grunt.registerTask('build-server', ['compile-server', 'copy-resources']);
+  grunt.registerTask('build-server', ['compile-server', 'copy-resources', 'generate-config-schema']);
 
   grunt.registerTask('build', ['build-client', 'build-server']);
   grunt.registerTask('build-dist', ['build', 'run:minify', 'cssmin', 'run:include-minified-script']);

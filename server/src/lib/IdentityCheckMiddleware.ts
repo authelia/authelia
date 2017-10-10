@@ -121,7 +121,7 @@ export function get_start_validation(handler: IdentityValidable, postValidationE
         const host = req.get("Host");
         const link_url = util.format("https://%s%s?identity_token=%s", host, postValidationEndpoint, token);
         logger.info(req, "Notification sent to user \"%s\"", identity.userid);
-        return notifier.notify(identity, handler.mailSubject(), link_url);
+        return notifier.notify(identity.email, handler.mailSubject(), link_url);
       })
       .then(function () {
         handler.preValidationResponse(req, res);
