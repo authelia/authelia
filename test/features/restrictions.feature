@@ -9,8 +9,8 @@ Feature: Non authenticated users have no access to certain pages
       | https://auth.test.local:8080/secondfactor                      | 401        |
       | https://auth.test.local:8080/verify                            | 401        |
       | https://auth.test.local:8080/secondfactor/u2f/identity/start   | 401        |
-      | https://auth.test.local:8080/secondfactor/u2f/identity/finish  | 403        |
+      | https://auth.test.local:8080/secondfactor/u2f/identity/finish  | 401        |
       | https://auth.test.local:8080/secondfactor/totp/identity/start  | 401        |
-      | https://auth.test.local:8080/secondfactor/totp/identity/finish | 403        |
-      | https://auth.test.local:8080/password-reset/identity/start     | 403        |
-      | https://auth.test.local:8080/password-reset/identity/finish    | 403        |
+      | https://auth.test.local:8080/secondfactor/totp/identity/finish | 401        |
+      | https://auth.test.local:8080/password-reset/identity/start     | 401        |
+      | https://auth.test.local:8080/password-reset/identity/finish    | 401        |

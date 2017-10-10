@@ -5,6 +5,7 @@ import u2fApi = require("u2f-api");
 import jslogger = require("js-logger");
 import { Notifier } from "../Notifier";
 import Endpoints = require("../../../../shared/api");
+import UserMessages = require("../../../../shared/UserMessages");
 
 export default function (window: Window, $: JQueryStatic) {
   const notifier = new Notifier(".notification", $);
@@ -16,8 +17,12 @@ export default function (window: Window, $: JQueryStatic) {
 
     return new BluebirdPromise<string>(function (resolve, reject) {
       $.post(Endpoints.SECOND_FACTOR_U2F_REGISTER_POST, registrationData, undefined, "json")
-        .done(function (data) {
-          resolve(data.redirection_url);
+        .done(function (body: any) {
+          if (body && body.error) {
+            reject(new Error(body.error));
+            return;
+          }
+          resolve(body.redirection_url);
         })
         .fail(function (xhr, status) {
           reject();
@@ -29,8 +34,6 @@ export default function (window: Window, $: JQueryStatic) {
     return new BluebirdPromise<string>(function (resolve, reject) {
       $.get(Endpoints.SECOND_FACTOR_U2F_REGISTER_REQUEST_GET, {}, undefined, "json")
         .done(function (registrationRequest: U2f.Request) {
-          jslogger.debug("registrationRequest = %s", JSON.stringify(registrationRequest));
-
           const registerRequest: u2fApi.RegisterRequest = registrationRequest;
           u2fApi.register([registerRequest], [], 120)
             .then(function (res: u2fApi.RegisterResponse) {
@@ -47,7 +50,7 @@ export default function (window: Window, $: JQueryStatic) {
   }
 
   function onRegisterFailure(err: Error) {
-    notifier.error("Problem while registering your U2F device.");
+    notifier.error(UserMessages.REGISTRATION_U2F_FAILED);
   }
 
   $(document).ready(function () {

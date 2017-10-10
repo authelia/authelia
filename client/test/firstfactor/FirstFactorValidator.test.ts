@@ -38,7 +38,7 @@ describe("test FirstFactorValidator", function () {
 
     describe("should fail first factor validation", () => {
         it("should fail with error", () => {
-            return should_fail_first_factor_validation("Authetication failed. Please check your credentials.");
+            return should_fail_first_factor_validation("Authentication failed. Please check your credentials.");
         });
     });
 });

@@ -28,8 +28,10 @@ export interface IdentityValidable {
   preValidationInit(req: express.Request): BluebirdPromise<Identity.Identity>;
   postValidationInit(req: express.Request): BluebirdPromise<void>;
 
-  preValidationResponse(req: express.Request, res: express.Response): void; // Serves a page after identity check request
-  postValidationResponse(req: express.Request, res: express.Response): void; // Serves the page if identity validated
+  // Serves a page after identity check request
+  preValidationResponse(req: express.Request, res: express.Response): void;
+  // Serves the page if identity validated
+  postValidationResponse(req: express.Request, res: express.Response): void;
   mailSubject(): string;
 }
 
@@ -50,7 +52,8 @@ function consumeToken(token: string, challenge: string, userDataStore: IUserData
   return userDataStore.consumeIdentityValidationToken(token, challenge);
 }
 
-export function register(app: express.Application, pre_validation_endpoint: string, post_validation_endpoint: string, handler: IdentityValidable) {
+export function register(app: express.Application, pre_validation_endpoint: string,
+  post_validation_endpoint: string, handler: IdentityValidable) {
   app.get(pre_validation_endpoint, get_start_validation(handler, post_validation_endpoint));
   app.get(post_validation_endpoint, get_finish_validation(handler));
 }
@@ -91,14 +94,13 @@ export function get_finish_validation(handler: IdentityValidable): express.Reque
         handler.postValidationResponse(req, res);
         return BluebirdPromise.resolve();
       })
-      .catch(Exceptions.FirstFactorValidationError, ErrorReplies.replyWithError401(req, res, logger))
-      .catch(Exceptions.AccessDeniedError, ErrorReplies.replyWithError403(req, res, logger))
-      .catch(ErrorReplies.replyWithError500(req, res, logger));
+      .catch(ErrorReplies.replyWithError401(req, res, logger));
   };
 }
 
 
-export function get_start_validation(handler: IdentityValidable, postValidationEndpoint: string): express.RequestHandler {
+export function get_start_validation(handler: IdentityValidable, postValidationEndpoint: string)
+  : express.RequestHandler {
   return function (req: express.Request, res: express.Response): BluebirdPromise<void> {
     const logger = ServerVariablesHandler.getLogger(req.app);
     const notifier = ServerVariablesHandler.getNotifier(req.app);
@@ -113,13 +115,15 @@ export function get_start_validation(handler: IdentityValidable, postValidationE
         logger.info(req, "Start identity validation of user \"%s\"", userid);
 
         if (!(email && userid))
-          return BluebirdPromise.reject(new Exceptions.IdentityError("Missing user id or email address"));
+          return BluebirdPromise.reject(new Exceptions.IdentityError(
+            "Missing user id or email address"));
 
         return createAndSaveToken(userid, handler.challenge(), userDataStore);
       })
       .then(function (token: string) {
         const host = req.get("Host");
-        const link_url = util.format("https://%s%s?identity_token=%s", host, postValidationEndpoint, token);
+        const link_url = util.format("https://%s%s?identity_token=%s", host,
+          postValidationEndpoint, token);
         logger.info(req, "Notification sent to user \"%s\"", identity.userid);
         return notifier.notify(identity, handler.mailSubject(), link_url);
       })
@@ -127,9 +131,6 @@ export function get_start_validation(handler: IdentityValidable, postValidationE
         handler.preValidationResponse(req, res);
         return BluebirdPromise.resolve();
       })
-      .catch(Exceptions.FirstFactorValidationError, ErrorReplies.replyWithError401(req, res, logger))
-      .catch(Exceptions.IdentityError, ErrorReplies.replyWithError400(req, res, logger))
-      .catch(Exceptions.AccessDeniedError, ErrorReplies.replyWithError403(req, res, logger))
-      .catch(ErrorReplies.replyWithError500(req, res, logger));
+      .catch(ErrorReplies.replyWithError401(req, res, logger));
   };
 }

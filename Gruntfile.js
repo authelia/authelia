@@ -53,7 +53,7 @@ module.exports = function (grunt) {
       },
       "include-minified-script": {
         cmd: "sed",
-        args: ["-i", "s/authelia\.js/authelia.min.js/", `${buildDir}/server/src/views/layout/layout.pug`]
+        args: ["-i", "s/authelia.\(js\|css\)/authelia.min.\1/", `${buildDir}/server/src/views/layout/layout.pug`]
       }
     },
     copy: {

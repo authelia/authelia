@@ -12,6 +12,7 @@ import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 import AuthenticationSession = require("../../AuthenticationSession");
 import Constants = require("../../../../../shared/constants");
 import { DomainExtractor } from "../../utils/DomainExtractor";
+import UserMessages = require("../../../../../shared/UserMessages");
 
 export default function (req: express.Request, res: express.Response): BluebirdPromise<void> {
   const username: string = req.body.username;
@@ -22,9 +23,7 @@ export default function (req: express.Request, res: express.Response): BluebirdP
   const config = ServerVariablesHandler.getConfiguration(req.app);
 
   if (!username || !password) {
-    const err = new Error("No username or password");
-    ErrorReplies.replyWithError401(req, res, logger)(err);
-    return BluebirdPromise.reject(err);
+    return BluebirdPromise.reject(new Error("No username or password."));
   }
 
   const regulator = ServerVariablesHandler.getAuthenticationRegulator(req.app);
@@ -93,12 +92,9 @@ export default function (req: express.Request, res: express.Response): BluebirdP
       }
       return BluebirdPromise.resolve();
     })
-    .catch(exceptions.LdapSearchError, ErrorReplies.replyWithError500(req, res, logger))
     .catch(exceptions.LdapBindError, function (err: Error) {
       regulator.mark(username, false);
-      return ErrorReplies.replyWithError401(req, res, logger)(err);
+      return ErrorReplies.replyWithError200(req, res, logger, UserMessages.OPERATION_FAILED)(err);
     })
-    .catch(exceptions.AuthenticationRegulationError, ErrorReplies.replyWithError403(req, res, logger))
-    .catch(exceptions.DomainAccessDenied, ErrorReplies.replyWithError401(req, res, logger))
-    .catch(ErrorReplies.replyWithError500(req, res, logger));
+    .catch(ErrorReplies.replyWithError200(req, res, logger, UserMessages.OPERATION_FAILED));
 }

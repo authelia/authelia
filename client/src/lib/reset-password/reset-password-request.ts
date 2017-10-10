@@ -2,11 +2,12 @@
 import BluebirdPromise = require("bluebird");
 
 import Endpoints = require("../../../../shared/api");
+import UserMessages = require("../../../../shared/UserMessages");
 import Constants = require("./constants");
 import jslogger = require("js-logger");
 import { Notifier } from "../Notifier";
 
-export default function(window: Window, $: JQueryStatic) {
+export default function (window: Window, $: JQueryStatic) {
   const notifier = new Notifier(".notification", $);
 
   function requestPasswordReset(username: string) {
@@ -14,7 +15,11 @@ export default function(window: Window, $: JQueryStatic) {
       $.get(Endpoints.RESET_PASSWORD_IDENTITY_START_GET, {
         userid: username,
       })
-        .done(function () {
+        .done(function (body: any) {
+          if (body && body.error) {
+            reject(new Error(body.error));
+            return;
+          }
           resolve();
         })
         .fail(function (xhr: JQueryXHR, textStatus: string) {
@@ -27,25 +32,24 @@ export default function(window: Window, $: JQueryStatic) {
     const username = $("#username").val();
 
     if (!username) {
-      notifier.warning("You must provide your username to reset your password.");
+      notifier.warning(UserMessages.MISSING_USERNAME);
       return;
     }
 
     requestPasswordReset(username)
       .then(function () {
-        notifier.success("An email has been sent to you. Follow the link to change your password.");
+        notifier.success(UserMessages.MAIL_SENT);
         setTimeout(function () {
           window.location.replace(Endpoints.FIRST_FACTOR_GET);
         }, 1000);
       })
       .error(function () {
-        notifier.warning("Are you sure this is your username?");
+        notifier.error(UserMessages.MAIL_NOT_SENT);
       });
-      return false;
+    return false;
   }
 
   $(document).ready(function () {
-    jslogger.debug("Reset password request form setup");
     $(Constants.FORM_SELECTOR).on("submit", onFormSubmitted);
   });
 }

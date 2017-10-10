@@ -6,6 +6,7 @@ import exceptions = require("../../../Exceptions");
 import { ServerVariablesHandler } from "../../../ServerVariablesHandler";
 import AuthenticationSession = require("../../../AuthenticationSession");
 import ErrorReplies = require("../../../ErrorReplies");
+import UserMessages = require("../../../../../../shared/UserMessages");
 
 import Constants = require("./../constants");
 
@@ -23,8 +24,6 @@ export default function (req: express.Request, res: express.Response): BluebirdP
       logger.debug(req, "Challenge %s", authSession.identity_check.challenge);
 
       if (authSession.identity_check.challenge != Constants.CHALLENGE) {
-        res.status(403);
-        res.send();
         return BluebirdPromise.reject(new Error("Bad challenge."));
       }
       return ldapPasswordUpdater.updatePassword(authSession.identity_check.userid, newPassword);
@@ -37,5 +36,5 @@ export default function (req: express.Request, res: express.Response): BluebirdP
       res.send();
       return BluebirdPromise.resolve();
     })
-    .catch(ErrorReplies.replyWithError500(req, res, logger));
+    .catch(ErrorReplies.replyWithError200(req, res, logger, UserMessages.RESET_PASSWORD_FAILED));
 }

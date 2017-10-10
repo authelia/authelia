@@ -11,6 +11,7 @@ import Endpoints = require("../../../../../../../shared/api");
 import ErrorReplies = require("../../../../ErrorReplies");
 import { ServerVariablesHandler } from "../../../../ServerVariablesHandler";
 import AuthenticationSession = require("../../../../AuthenticationSession");
+import UserMessages = require("../../../../../../../shared/UserMessages");
 
 import FirstFactorValidator = require("../../../../FirstFactorValidator");
 
@@ -62,8 +63,6 @@ export default class RegistrationHandler implements IdentityValidable {
         const challenge = authSession.identity_check.challenge;
 
         if (challenge != Constants.CHALLENGE || !userid) {
-          res.status(403);
-          res.send();
           return BluebirdPromise.reject(new Error("Bad challenge."));
         }
 
@@ -83,7 +82,7 @@ export default class RegistrationHandler implements IdentityValidable {
             });
           });
       })
-      .catch(ErrorReplies.replyWithError500(req, res, logger));
+      .catch(ErrorReplies.replyWithError200(req, res, logger, UserMessages.OPERATION_FAILED));
   }
 
   mailSubject(): string {

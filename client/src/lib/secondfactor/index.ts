@@ -9,7 +9,7 @@ import { Notifier } from "../Notifier";
 import { QueryParametersRetriever } from "../QueryParametersRetriever";
 import Endpoints = require("../../../../shared/api");
 import ServerConstants = require("../../../../shared/constants");
-
+import UserMessages = require("../../../../shared/UserMessages");
 
 export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi) {
   const notifierTotp = new Notifier(".notification-totp", $);
@@ -20,7 +20,7 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
     if (redirectUrl)
       window.location.href = redirectUrl;
     else
-      notifier.success("Authentication succeeded. You can now access your services.");
+      notifier.success(UserMessages.AUTHENTICATION_SUCCEEDED);
   }
 
   function onSecondFactorTotpSuccess(data: any) {
@@ -28,7 +28,7 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
   }
 
   function onSecondFactorTotpFailure(err: Error) {
-    notifierTotp.error("Problem with TOTP validation.");
+    notifierTotp.error(UserMessages.AUTHENTICATION_TOTP_FAILED);
   }
 
   function onU2fAuthenticationSuccess(data: any) {
@@ -36,13 +36,11 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
   }
 
   function onU2fAuthenticationFailure() {
-    notifierU2f.error("Problem with U2F validation. Did you register before authenticating?");
+    notifierU2f.error(UserMessages.AUTHENTICATION_U2F_FAILED);
   }
 
   function onTOTPFormSubmitted(): boolean {
     const token = $(Constants.TOTP_TOKEN_SELECTOR).val();
-    jslogger.debug("TOTP token is %s", token);
-
     TOTPValidator.validate(token, $)
       .then(onSecondFactorTotpSuccess)
       .catch(onSecondFactorTotpFailure);
@@ -50,7 +48,6 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
   }
 
   function onU2FFormSubmitted(): boolean {
-    jslogger.debug("Start U2F authentication");
     U2FValidator.validate($, notifierU2f, U2fApi)
       .then(onU2fAuthenticationSuccess, onU2fAuthenticationFailure);
     return false;

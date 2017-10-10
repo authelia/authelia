@@ -10,6 +10,7 @@ import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import ErrorReplies = require("../../../../ErrorReplies");
 import {  ServerVariablesHandler } from "../../../../ServerVariablesHandler";
 import AuthenticationSession = require("../../../../AuthenticationSession");
+import UserMessages = require("../../../../../../../shared/UserMessages");
 
 export default FirstFactorBlocker(handler);
 
@@ -41,5 +42,6 @@ function handler(req: express.Request, res: express.Response): BluebirdPromise<v
             res.json(registrationRequest);
             return BluebirdPromise.resolve();
         })
-        .catch(ErrorReplies.replyWithError500(req, res, logger));
+        .catch(ErrorReplies.replyWithError200(req, res, logger,
+            UserMessages.OPERATION_FAILED));
 }

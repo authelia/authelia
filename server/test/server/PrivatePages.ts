@@ -127,25 +127,18 @@ describe("Private pages of the server must not be accessible without session", f
   });
 
   describe("Second factor endpoints must be protected if first factor is not validated", function () {
-    function should_post_and_reply_with(url: string, status_code: number): BluebirdPromise<void> {
-      return requestp.postAsync(url).then(function (response: request.RequestResponse) {
-        Assert.equal(response.statusCode, status_code);
-        return BluebirdPromise.resolve();
-      });
-    }
-
-    function should_get_and_reply_with(url: string, status_code: number): BluebirdPromise<void> {
-      return requestp.getAsync(url).then(function (response: request.RequestResponse) {
-        Assert.equal(response.statusCode, status_code);
-        return BluebirdPromise.resolve();
-      });
-    }
-
     function should_post_and_reply_with_401(url: string): BluebirdPromise<void> {
-      return should_post_and_reply_with(url, 401);
+      return requestp.postAsync(url).then(function (response: request.RequestResponse) {
+        Assert.equal(response.statusCode, 401);
+        return BluebirdPromise.resolve();
+      });
     }
+
     function should_get_and_reply_with_401(url: string): BluebirdPromise<void> {
-      return should_get_and_reply_with(url, 401);
+      return requestp.getAsync(url).then(function (response: request.RequestResponse) {
+        Assert.equal(response.statusCode, 401);
+        return BluebirdPromise.resolve();
+      });
     }
 
     it("should block " + Endpoints.SECOND_FACTOR_GET, function () {

@@ -67,7 +67,10 @@ export default function (req: express.Request, res: express.Response): BluebirdP
       res.send();
       return BluebirdPromise.resolve();
     })
-    .catch(exceptions.DomainAccessDenied, ErrorReplies.replyWithError403(req, res, logger))
+    // The user is authenticated but has restricted access -> 403
+    .catch(exceptions.DomainAccessDenied, ErrorReplies
+      .replyWithError403(req, res, logger))
+    // The user is not yet authenticated -> 401
     .catch(ErrorReplies.replyWithError401(req, res, logger));
 }
 
