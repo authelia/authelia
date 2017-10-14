@@ -56,7 +56,15 @@ function CustomWorld() {
   };
 
   this.waitUntilUrlContains = function(url: string) {
-    return this.driver.wait(seleniumWebdriver.until.urlIs(url), 15000);
+    const that = this;
+    return this.driver.wait(seleniumWebdriver.until.urlIs(url), 15000)
+    .then(function() {}, function(err: Error) {
+      that.driver.getCurrentUrl()
+      .then(function(current: string) {
+        console.error("====> Error due to: %s (current) != %s (expected)", current, url);
+      });
+      return BluebirdPromise.reject(err);
+    });
   };
 
   this.loginWithUserPassword = function (username: string, password: string) {
