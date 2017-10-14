@@ -1,16 +1,24 @@
 
-import * as speakeasy from "speakeasy";
-import { Speakeasy } from "../../types/Dependencies";
+import Speakeasy = require("speakeasy");
 import BluebirdPromise = require("bluebird");
+import { TOTPSecret } from "../../types/TOTPSecret";
+
+interface GenerateSecretOptions {
+  length?: number;
+  symbols?: boolean;
+  otpauth_url?: boolean;
+  name?: string;
+  issuer?: string;
+}
 
 export class TOTPGenerator {
-  private speakeasy: Speakeasy;
+  private speakeasy: typeof Speakeasy;
 
-  constructor(speakeasy: Speakeasy) {
+  constructor(speakeasy: typeof Speakeasy) {
     this.speakeasy = speakeasy;
   }
 
-  generate(options?: speakeasy.GenerateOptions): speakeasy.Key {
+  generate(options?: GenerateSecretOptions): TOTPSecret {
     return this.speakeasy.generateSecret(options);
   }
 }

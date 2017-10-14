@@ -1,14 +1,14 @@
 #!/bin/bash
 
 DC_SCRIPT=./scripts/example-commit/dc-example.sh
-EXPECTED_SERVICES_COUNT=6
+EXPECTED_SERVICES_COUNT=7
 
 build_services() {
     $DC_SCRIPT build authelia
 }
 
 start_services() {
-    $DC_SCRIPT up -d mongo redis openldap authelia nginx smtp
+    $DC_SCRIPT up -d httpbin mongo redis openldap authelia nginx smtp
     sleep 3
 }
 
