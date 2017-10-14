@@ -18,5 +18,6 @@ export default function (req: express.Request, res: express.Response): BluebirdP
             });
             return BluebirdPromise.resolve();
         })
-        .catch(ErrorReplies.replyWithError500(req, res, logger));
+        .catch(ErrorReplies.replyWithError200(req, res, logger,
+            "Unexpected error."));
 }

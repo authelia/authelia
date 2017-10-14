@@ -1,7 +1,7 @@
 
 import sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
-import assert = require("assert");
+import Assert = require("assert");
 import winston = require("winston");
 
 import FirstFactorPost = require("../../../src/lib/routes/firstfactor/post");
@@ -87,8 +87,8 @@ describe("test the first factor validation route", function () {
         return FirstFactorPost.default(req as any, res as any);
       })
       .then(function () {
-        assert.equal("username", authSession.userid);
-        assert(res.send.calledOnce);
+        Assert.equal("username", authSession.userid);
+        Assert(res.send.calledOnce);
       });
   });
 
@@ -113,27 +113,32 @@ describe("test the first factor validation route", function () {
         return FirstFactorPost.default(req as any, res as any);
       })
       .then(function () {
-        assert.equal("test_ok@example.com", authSession.email);
+        Assert.equal("test_ok@example.com", authSession.email);
       });
   });
 
-  it("should return status code 401 when LDAP authenticator throws", function () {
+  it("should return error message when LDAP authenticator throws", function () {
     (serverVariables.ldapAuthenticator as any).authenticate.withArgs("username", "password")
       .returns(BluebirdPromise.reject(new exceptions.LdapBindError("Bad credentials")));
     return FirstFactorPost.default(req as any, res as any)
       .then(function () {
-        assert.equal(401, res.status.getCall(0).args[0]);
-        assert.equal(regulator.mark.getCall(0).args[0], "username");
+        Assert.equal(res.status.getCall(0).args[0], 200);
+        Assert.equal(regulator.mark.getCall(0).args[0], "username");
+        Assert.deepEqual(res.send.getCall(0).args[0], {
+          error: "Operation failed."
+        });
       });
   });
 
-  it("should return status code 403 when regulator rejects authentication", function () {
+  it("should return error message when regulator rejects authentication", function () {
     const err = new exceptions.AuthenticationRegulationError("Authentication regulation...");
     regulator.regulate.returns(BluebirdPromise.reject(err));
     return FirstFactorPost.default(req as any, res as any)
       .then(function () {
-        assert.equal(403, res.status.getCall(0).args[0]);
-        assert.equal(1, res.send.callCount);
+        Assert.equal(res.status.getCall(0).args[0], 200);
+        Assert.deepEqual(res.send.getCall(0).args[0], {
+          error: "Operation failed."
+        });
       });
   });
 });

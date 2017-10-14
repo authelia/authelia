@@ -97,7 +97,9 @@ describe("test u2f routes: sign", function () {
     mocks.u2f = u2f_mock;
     return U2FSignPost.default(req as any, res as any)
       .then(function () {
-        Assert.equal(500, res.status.getCall(0).args[0]);
+        Assert.equal(res.status.getCall(0).args[0], 200);
+        Assert.deepEqual(res.send.getCall(0).args[0],
+          { error: "Operation failed." });
       });
   });
 });

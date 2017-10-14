@@ -13,6 +13,7 @@ import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import ErrorReplies = require("../../../../ErrorReplies");
 import { ServerVariablesHandler } from "../../../../ServerVariablesHandler";
 import AuthenticationSession = require("../../../../AuthenticationSession");
+import UserMessages = require("../../../../../../../shared/UserMessages");
 
 export default FirstFactorBlocker(handler);
 
@@ -50,7 +51,7 @@ export function handler(req: express.Request, res: express.Response): BluebirdPr
       res.json(authenticationMessage);
       return BluebirdPromise.resolve();
     })
-    .catch(exceptions.AccessDeniedError, ErrorReplies.replyWithError401(req, res, logger))
-    .catch(ErrorReplies.replyWithError500(req, res, logger));
+    .catch(ErrorReplies.replyWithError200(req, res, logger,
+      UserMessages.OPERATION_FAILED));
 }
 

@@ -1,7 +1,7 @@
 
 import sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
-import assert = require("assert");
+import Assert = require("assert");
 import U2FRegisterRequestGet = require("../../../../../src/lib/routes/secondfactor/u2f/register_request/get");
 import AuthenticationSession = require("../../../../../src/lib/AuthenticationSession");
 import { ServerVariablesHandler } from "../../../../../src/lib/ServerVariablesHandler";
@@ -67,28 +67,31 @@ describe("test u2f routes: register_request", function () {
       mocks.u2f = u2f_mock;
       return U2FRegisterRequestGet.default(req as any, res as any)
         .then(function () {
-          assert.deepEqual(expectedRequest, res.json.getCall(0).args[0]);
+          Assert.deepEqual(expectedRequest, res.json.getCall(0).args[0]);
         });
     });
 
-    it("should return internal error on registration request", function (done) {
-      res.send = sinon.spy(function (data: any) {
-        assert.equal(500, res.status.getCall(0).args[0]);
-        done();
-      });
+    it("should return internal error on registration request", function () {
+      res.send = sinon.spy();
       const user_key_container = {};
       const u2f_mock = U2FMock.U2FMock();
       u2f_mock.request.returns(BluebirdPromise.reject("Internal error"));
 
       mocks.u2f = u2f_mock;
-      U2FRegisterRequestGet.default(req as any, res as any);
+      return U2FRegisterRequestGet.default(req as any, res as any)
+      .then(function() {
+        Assert.equal(res.status.getCall(0).args[0], 200);
+        Assert.deepEqual(res.send.getCall(0).args[0], {
+          error: "Operation failed."
+        });
+      });
     });
 
     it("should return forbidden if identity has not been verified", function () {
       authSession.identity_check = undefined;
       return U2FRegisterRequestGet.default(req as any, res as any)
         .then(function () {
-          assert.equal(403, res.status.getCall(0).args[0]);
+          Assert.equal(403, res.status.getCall(0).args[0]);
         });
     });
   });

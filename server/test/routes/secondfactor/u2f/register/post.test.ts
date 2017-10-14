@@ -84,7 +84,7 @@ describe("test u2f routes: register", function () {
         });
     });
 
-    it("should return unauthorized on finishRegistration error", function () {
+    it("should return error message on finishRegistration error", function () {
       const user_key_container = {};
       const u2f_mock = U2FMock.U2FMock();
       u2f_mock.checkRegistration.returns({ errorCode: 500 });
@@ -103,12 +103,15 @@ describe("test u2f routes: register", function () {
         })
         .then(function () { return BluebirdPromise.reject(new Error("It should fail")); })
         .catch(function () {
-          assert.equal(500, res.status.getCall(0).args[0]);
+          assert.equal(200, res.status.getCall(0).args[0]);
+          assert.deepEqual(res.send.getCall(0).args[0], {
+            error: "Operation failed."
+          });
           return BluebirdPromise.resolve();
         });
     });
 
-    it("should return 403 when register_request is not provided", function () {
+    it("should return error message when register_request is not provided", function () {
       const user_key_container = {};
       const u2f_mock = U2FMock.U2FMock();
       u2f_mock.checkRegistration.returns(BluebirdPromise.resolve());
@@ -121,12 +124,15 @@ describe("test u2f routes: register", function () {
         })
         .then(function () { return BluebirdPromise.reject(new Error("It should fail")); })
         .catch(function () {
-          assert.equal(403, res.status.getCall(0).args[0]);
+          assert.equal(200, res.status.getCall(0).args[0]);
+          assert.deepEqual(res.send.getCall(0).args[0], {
+            error: "Operation failed."
+          });
           return BluebirdPromise.resolve();
         });
     });
 
-    it("should return forbidden error when no auth request has been initiated", function () {
+    it("should return error message when no auth request has been initiated", function () {
       const user_key_container = {};
       const u2f_mock = U2FMock.U2FMock();
       u2f_mock.checkRegistration.returns(BluebirdPromise.resolve());
@@ -139,12 +145,15 @@ describe("test u2f routes: register", function () {
         })
         .then(function () { return BluebirdPromise.reject(new Error("It should fail")); })
         .catch(function () {
-          assert.equal(403, res.status.getCall(0).args[0]);
+          assert.equal(200, res.status.getCall(0).args[0]);
+          assert.deepEqual(res.send.getCall(0).args[0], {
+            error: "Operation failed."
+          });
           return BluebirdPromise.resolve();
         });
     });
 
-    it("should return forbidden error when identity has not been verified", function () {
+    it("should return error message when identity has not been verified", function () {
       return AuthenticationSession.get(req as any)
         .then(function (authSession) {
           authSession.identity_check = undefined;
@@ -152,7 +161,10 @@ describe("test u2f routes: register", function () {
         })
         .then(function () { return BluebirdPromise.reject(new Error("It should fail")); })
         .catch(function () {
-          assert.equal(403, res.status.getCall(0).args[0]);
+          assert.equal(200, res.status.getCall(0).args[0]);
+          assert.deepEqual(res.send.getCall(0).args[0], {
+            error: "Operation failed."
+          });
           return BluebirdPromise.resolve();
         });
     });

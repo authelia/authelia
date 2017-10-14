@@ -6,7 +6,7 @@ import { ServerVariablesHandler } from "../../../src/lib/ServerVariablesHandler"
 import { UserDataStore } from "../../../src/lib/storage/UserDataStore";
 import Sinon = require("sinon");
 import winston = require("winston");
-import assert = require("assert");
+import Assert = require("assert");
 import BluebirdPromise = require("bluebird");
 
 import ExpressMock = require("../../mocks/express");
@@ -85,9 +85,9 @@ describe("test reset password route", function () {
         .then(function () {
           return AuthenticationSession.get(req as any);
         }).then(function (_authSession: AuthenticationSession.AuthenticationSession) {
-          assert.equal(res.status.getCall(0).args[0], 204);
-          assert.equal(_authSession.first_factor, false);
-          assert.equal(_authSession.second_factor, false);
+          Assert.equal(res.status.getCall(0).args[0], 204);
+          Assert.equal(_authSession.first_factor, false);
+          Assert.equal(_authSession.second_factor, false);
           return BluebirdPromise.resolve();
         });
     });
@@ -102,7 +102,10 @@ describe("test reset password route", function () {
           return PasswordResetFormPost.default(req as any, res as any);
         })
         .then(function () {
-          assert.equal(res.status.getCall(0).args[0], 403);
+          Assert.equal(res.status.getCall(0).args[0], 200);
+          Assert.deepEqual(res.send.getCall(0).args[0], {
+            error: "An error occurred during password reset. Your password has not been changed."
+          });
         });
     });
 
@@ -121,7 +124,10 @@ describe("test reset password route", function () {
           };
           return PasswordResetFormPost.default(req as any, res as any);
         }).then(function () {
-          assert.equal(res.status.getCall(0).args[0], 500);
+          Assert.equal(res.status.getCall(0).args[0], 200);
+          Assert.deepEqual(res.send.getCall(0).args[0], {
+            error: "An error occurred during password reset. Your password has not been changed."
+          });
           return BluebirdPromise.resolve();
         });
     });

@@ -12,6 +12,7 @@ import redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
 import { ServerVariablesHandler } from "../../../../ServerVariablesHandler";
 import AuthenticationSession = require("../../../../AuthenticationSession");
+import UserMessages = require("../../../../../../../shared/UserMessages");
 
 
 export default FirstFactorBlocker(handler);
@@ -31,15 +32,11 @@ function handler(req: express.Request, res: express.Response): BluebirdPromise<v
       const registrationRequest = authSession.register_request;
 
       if (!registrationRequest) {
-        res.status(403);
-        res.send();
         return BluebirdPromise.reject(new Error("No registration request"));
       }
 
       if (!authSession.identity_check
         || authSession.identity_check.challenge != "u2f-register") {
-        res.status(403);
-        res.send();
         return BluebirdPromise.reject(new Error("Bad challenge for registration request"));
       }
 
@@ -67,5 +64,6 @@ function handler(req: express.Request, res: express.Response): BluebirdPromise<v
       redirect(req, res);
       return BluebirdPromise.resolve();
     })
-    .catch(ErrorReplies.replyWithError500(req, res, logger));
+    .catch(ErrorReplies.replyWithError200(req, res, logger,
+      UserMessages.OPERATION_FAILED));
 }

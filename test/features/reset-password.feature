@@ -11,6 +11,12 @@ Feature: User is able to reset his password
     And I click on "Reset Password"
     Then I get a notification of type "success" with message "An email has been sent to you. Follow the link to change your password."
 
+  Scenario: Request password for unexisting user should behave like existing user
+    Given I'm on https://auth.test.local:8080/password-reset/request
+    When I set field "username" to "fake_user"
+    And I click on "Reset Password"
+    Then I get a notification of type "success" with message "An email has been sent to you. Follow the link to change your password."
+
   Scenario: User resets his password
     Given I'm on https://auth.test.local:8080/password-reset/request
     And I set field "username" to "james"

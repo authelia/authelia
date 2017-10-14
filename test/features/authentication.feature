@@ -12,7 +12,7 @@ Feature: Authentication scenarii
     When I set field "username" to "john"
     And I set field "password" to "bad-password"
     And I click on "Sign in"
-    Then I get a notification of type "error" with message "Authentication failed. Please double check your credentials."
+    Then I get a notification of type "error" with message "Authentication failed. Please check your credentials."
 
   Scenario: User registers TOTP secret and succeeds authentication
     Given I visit "https://auth.test.local:8080/"
@@ -31,7 +31,7 @@ Feature: Authentication scenarii
     And I login with user "john" and password "password"
     And I use "BADTOKEN" as TOTP token
     And I click on "TOTP"
-    Then I get a notification of type "error" with message "Problem with TOTP validation."
+    Then I get a notification of type "error" with message "Authentication failed. Have you already registered your secret?"
 
   Scenario: Logout redirects user to redirect URL given in parameter
     When I visit "https://auth.test.local:8080/logout?redirect=https://home.test.local:8080/"

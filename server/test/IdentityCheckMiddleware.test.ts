@@ -5,7 +5,7 @@ import AuthenticationSession = require("../src/lib/AuthenticationSession");
 import { UserDataStore } from "../src/lib/storage/UserDataStore";
 
 import exceptions = require("../src/lib/Exceptions");
-import assert = require("assert");
+import Assert = require("assert");
 import Promise = require("bluebird");
 import express = require("express");
 import BluebirdPromise = require("bluebird");
@@ -69,11 +69,11 @@ describe("test identity check process", function () {
       return callback(req as any, res as any, undefined)
         .then(function () { return BluebirdPromise.reject("Should fail"); })
         .catch(function () {
-          assert.equal(res.status.getCall(0).args[0], 401);
+          Assert.equal(res.status.getCall(0).args[0], 401);
         });
     });
 
-    it("should send 400 if email is missing in provided identity", function () {
+    it("should send 401 if email is missing in provided identity", function () {
       const identity = { userid: "abc" };
 
       identityValidable.preValidationInit.returns(BluebirdPromise.resolve(identity));
@@ -82,11 +82,11 @@ describe("test identity check process", function () {
       return callback(req as any, res as any, undefined)
         .then(function () { return BluebirdPromise.reject("Should fail"); })
         .catch(function () {
-          assert.equal(res.status.getCall(0).args[0], 400);
+          Assert.equal(res.status.getCall(0).args[0], 401);
         });
     });
 
-    it("should send 400 if userid is missing in provided identity", function () {
+    it("should send 401 if userid is missing in provided identity", function () {
       const endpoint = "/protected";
       const identity = { email: "abc@example.com" };
 
@@ -96,7 +96,7 @@ describe("test identity check process", function () {
       return callback(req as any, res as any, undefined)
         .then(function () { return BluebirdPromise.reject(new Error("It should fail")); })
         .catch(function (err: Error) {
-          assert.equal(res.status.getCall(0).args[0], 400);
+          Assert.equal(res.status.getCall(0).args[0], 401);
           return BluebirdPromise.resolve();
         });
     });
@@ -111,23 +111,23 @@ describe("test identity check process", function () {
 
       return callback(req as any, res as any, undefined)
         .then(function () {
-          assert(notifier.notify.calledOnce);
-          assert(mocks.userDataStore.produceIdentityValidationTokenStub.calledOnce);
-          assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub.getCall(0).args[0], "user");
-          assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub.getCall(0).args[3], 240000);
+          Assert(notifier.notify.calledOnce);
+          Assert(mocks.userDataStore.produceIdentityValidationTokenStub.calledOnce);
+          Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub.getCall(0).args[0], "user");
+          Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub.getCall(0).args[3], 240000);
         });
     });
   }
 
   function test_finish_get_handler() {
-    it("should send 403 if no identity_token is provided", function () {
+    it("should send 401 if no identity_token is provided", function () {
 
       const callback = IdentityValidator.get_finish_validation(identityValidable);
 
       return callback(req as any, res as any, undefined)
         .then(function () { return BluebirdPromise.reject("Should fail"); })
         .catch(function () {
-          assert.equal(res.status.getCall(0).args[0], 403);
+          Assert.equal(res.status.getCall(0).args[0], 401);
         });
     });
 
@@ -138,7 +138,7 @@ describe("test identity check process", function () {
       return callback(req as any, res as any, undefined);
     });
 
-    it("should return 500 if identity_token is provided but invalid", function () {
+    it("should return 401 if identity_token is provided but invalid", function () {
       req.query.identity_token = "token";
 
       mocks.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.reject(new Error("Invalid token")));
@@ -147,7 +147,7 @@ describe("test identity check process", function () {
       return callback(req as any, res as any, undefined)
         .then(function () { return BluebirdPromise.reject("Should fail"); })
         .catch(function () {
-          assert.equal(res.status.getCall(0).args[0], 500);
+          Assert.equal(res.status.getCall(0).args[0], 401);
         });
     });
 
@@ -165,7 +165,7 @@ describe("test identity check process", function () {
         })
         .then(function () { return BluebirdPromise.reject("Should fail"); })
         .catch(function () {
-          assert.equal(authSession.identity_check.userid, "user");
+          Assert.equal(authSession.identity_check.userid, "user");
           return BluebirdPromise.resolve();
         });
     });

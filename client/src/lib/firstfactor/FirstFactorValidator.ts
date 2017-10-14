@@ -3,6 +3,7 @@ import BluebirdPromise = require("bluebird");
 import Endpoints = require("../../../../shared/api");
 import Constants = require("../../../../shared/constants");
 import Util = require("util");
+import UserMessages = require("../../../../shared/UserMessages");
 
 export function validate(username: string, password: string,
   redirectUrl: string, $: JQueryStatic): BluebirdPromise<string> {
@@ -24,11 +25,15 @@ export function validate(username: string, password: string,
         password: password,
       }
     })
-      .done(function (data: { redirect: string }) {
-        resolve(data.redirect);
+      .done(function (body: any) {
+        if (body && body.error) {
+          reject(new Error(body.error));
+          return;
+        }
+        resolve(body.redirect);
       })
       .fail(function (xhr: JQueryXHR, textStatus: string) {
-        reject(new Error("Authetication failed. Please check your credentials."));
+        reject(new Error(UserMessages.AUTHENTICATION_FAILED));
       });
   });
 }
