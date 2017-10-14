@@ -120,6 +120,7 @@ describe("test the first factor validation route", function () {
   it("should return error message when LDAP authenticator throws", function () {
     (serverVariables.ldapAuthenticator as any).authenticate.withArgs("username", "password")
       .returns(BluebirdPromise.reject(new exceptions.LdapBindError("Bad credentials")));
+
     return FirstFactorPost.default(req as any, res as any)
       .then(function () {
         Assert.equal(res.status.getCall(0).args[0], 200);

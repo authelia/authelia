@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "ajv": "^5.2.3",
-    "bluebird": "^3.4.7",
+    "bluebird": "3.5.0",
     "body-parser": "^1.15.2",
     "connect-redis": "^3.3.0",
     "dovehash": "0.0.5",

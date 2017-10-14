@@ -23,7 +23,7 @@ describe("test totp route", function () {
     const app_get = sinon.stub();
     req = {
       app: {
-        get: sinon.stub().returns({ logger:  winston })
+        get: sinon.stub().returns({ logger: winston })
       },
       body: {
         token: "abc"
@@ -66,13 +66,15 @@ describe("test totp route", function () {
       });
   });
 
-  it("should send status code 401 when totp is not valid", function () {
+  it("should send error message when totp is not valid", function () {
     totpValidator.validate.returns(BluebirdPromise.reject(new exceptions.InvalidTOTPError("Bad TOTP token")));
-    SignPost.default(req as any, res as any)
-      .then(function () { return BluebirdPromise.reject(new Error("It should fail")); })
-      .catch(function () {
+    return SignPost.default(req as any, res as any)
+      .then(function () {
         assert.equal(false, authSession.second_factor);
-        assert.equal(401, res.status.getCall(0).args[0]);
+        assert.equal(res.status.getCall(0).args[0], 200);
+        assert.deepEqual(res.send.getCall(0).args[0], {
+          error: "Operation failed."
+        });
         return BluebirdPromise.resolve();
       });
   });

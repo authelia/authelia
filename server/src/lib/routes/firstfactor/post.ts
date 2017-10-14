@@ -1,5 +1,5 @@
 
-import exceptions = require("../../Exceptions");
+import Exceptions = require("../../Exceptions");
 import objectPath = require("object-path");
 import BluebirdPromise = require("bluebird");
 import express = require("express");
@@ -21,19 +21,20 @@ export default function (req: express.Request, res: express.Response): BluebirdP
   const logger = ServerVariablesHandler.getLogger(req.app);
   const ldap = ServerVariablesHandler.getLdapAuthenticator(req.app);
   const config = ServerVariablesHandler.getConfiguration(req.app);
-
-  if (!username || !password) {
-    return BluebirdPromise.reject(new Error("No username or password."));
-  }
-
   const regulator = ServerVariablesHandler.getAuthenticationRegulator(req.app);
   const accessController = ServerVariablesHandler.getAccessController(req.app);
   const authenticationMethodsCalculator =
     ServerVariablesHandler.getAuthenticationMethodCalculator(req.app);
   let authSession: AuthenticationSession.AuthenticationSession;
 
-  logger.info(req, "Starting authentication of user \"%s\"", username);
-  return AuthenticationSession.get(req)
+  return BluebirdPromise.resolve()
+    .then(function () {
+      if (!username || !password) {
+        return BluebirdPromise.reject(new Error("No username or password."));
+      }
+      logger.info(req, "Starting authentication of user \"%s\"", username);
+      return AuthenticationSession.get(req);
+    })
     .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
       authSession = _authSession;
       return regulator.regulate(username);
@@ -92,7 +93,7 @@ export default function (req: express.Request, res: express.Response): BluebirdP
       }
       return BluebirdPromise.resolve();
     })
-    .catch(exceptions.LdapBindError, function (err: Error) {
+    .catch(Exceptions.LdapBindError, function (err: Error) {
       regulator.mark(username, false);
       return ErrorReplies.replyWithError200(req, res, logger, UserMessages.OPERATION_FAILED)(err);
     })
