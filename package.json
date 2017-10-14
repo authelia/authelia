@@ -71,7 +71,6 @@
     "@types/request-promise": "^4.1.38",
     "@types/selenium-webdriver": "^3.0.4",
     "@types/sinon": "^2.2.1",
-    "@types/speakeasy": "^2.0.1",
     "@types/tmp": "0.0.33",
     "@types/winston": "^2.3.2",
     "@types/yamljs": "^0.2.30",

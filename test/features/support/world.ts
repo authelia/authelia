@@ -21,6 +21,7 @@ function CustomWorld() {
   };
 
   this.setFieldTo = function (fieldName: string, content: string) {
+    const that = this;
     return this.driver.findElement(seleniumWebdriver.By.id(fieldName))
       .sendKeys(content);
   };
@@ -49,22 +50,19 @@ function CustomWorld() {
           .findElement(seleniumWebdriver.By.tagName("button"))
           .findElement(seleniumWebdriver.By.xpath("//button[contains(.,'" + buttonText + "')]"))
           .click();
-      })
-      .then(function () {
-        return that.driver.sleep(1000);
       });
   };
 
-  this.waitUntilUrlContains = function(url: string) {
+  this.waitUntilUrlContains = function (url: string) {
     const that = this;
     return this.driver.wait(seleniumWebdriver.until.urlIs(url), 15000)
-    .then(function() {}, function(err: Error) {
-      that.driver.getCurrentUrl()
-      .then(function(current: string) {
-        console.error("====> Error due to: %s (current) != %s (expected)", current, url);
+      .then(function () { }, function (err: Error) {
+        that.driver.getCurrentUrl()
+          .then(function (current: string) {
+            console.error("====> Error due to: %s (current) != %s (expected)", current, url);
+          });
+        return BluebirdPromise.reject(err);
       });
-      return BluebirdPromise.reject(err);
-    });
   };
 
   this.loginWithUserPassword = function (username: string, password: string) {

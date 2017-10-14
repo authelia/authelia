@@ -29,7 +29,12 @@ describe("test user data store", function () {
     totpSecret = {
       ascii: "abc",
       base32: "ABCDKZLEFZGREJK",
-      otpauth_url: "totp://test"
+      otpauth_url: "totp://test",
+      google_auth_qr: "dummy",
+      hex: "dummy",
+      qr_code_ascii: "dummy",
+      qr_code_base32: "dummy",
+      qr_code_hex: "dummy"
     };
 
     u2fRegistration = {
