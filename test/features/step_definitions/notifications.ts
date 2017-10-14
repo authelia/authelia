@@ -23,5 +23,4 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
           return that.driver.sleep(500);
         });
     });
-
 });

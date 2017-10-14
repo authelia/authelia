@@ -1,0 +1,6 @@
+version: '2'
+services:
+  httpbin:
+    image: citizenstig/httpbin
+    networks:
+      - example-network
