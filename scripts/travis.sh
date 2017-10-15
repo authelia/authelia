@@ -5,6 +5,8 @@ set -e
 docker --version
 docker-compose --version
 
+grunt run:generate-config-schema
+
 # Run unit tests
 grunt test-unit
 
