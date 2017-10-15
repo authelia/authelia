@@ -31,6 +31,9 @@ function deploy_on_dockerhub {
 if [ "$TRAVIS_BRANCH" == "master" ]; then
   login_to_dockerhub
   deploy_on_dockerhub master
+elif [ "$TRAVIS_BRANCH" == "develop" ]; then
+  login_to_dockerhub
+  deploy_on_dockerhub develop
 elif [ ! -z "$TRAVIS_TAG" ]; then
   login_to_dockerhub
   deploy_on_dockerhub $TRAVIS_TAG
