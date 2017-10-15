@@ -33,8 +33,9 @@ ldap:
 
   # The groups filter used for retrieving groups of a given user.
   # {0} is a matcher replaced by username.
-  # 'member=cn={0},<additional_users_dn>,<base_dn>' by default.
-  groups_filter: (&(member=cn={0},ou=users,dc=example,dc=com)(objectclass=groupOfNames))
+  # {dn} is a matcher replaced by user DN.
+  # 'member={dn}' by default.
+  groups_filter: (&(member={dn})(objectclass=groupOfNames))
 
   # The attribute holding the name of the group
   group_name_attribute: cn

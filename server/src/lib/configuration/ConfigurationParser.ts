@@ -29,10 +29,7 @@ function ensure_key_existence(config: object, path: string): void {
 
 function adaptLdapConfiguration(userConfig: UserLdapConfiguration): LdapConfiguration {
   const DEFAULT_USERS_FILTER = "cn={0}";
-  const DEFAULT_GROUPS_FILTER =
-    userConfig.additional_users_dn
-      ? Util.format("member=cn={0},%s,%s", userConfig.additional_groups_dn, userConfig.base_dn)
-      : Util.format("member=cn={0},%s", userConfig.base_dn);
+  const DEFAULT_GROUPS_FILTER = "member={dn}";
   const DEFAULT_GROUP_NAME_ATTRIBUTE = "cn";
   const DEFAULT_MAIL_ATTRIBUTE = "mail";
 

@@ -45,7 +45,7 @@ function verify_filter(req: express.Request, res: express.Response): BluebirdPro
 
       const isAllowed = accessController.isAccessAllowed(domain, path, username, groups);
       if (!isAllowed) return BluebirdPromise.reject(
-        new exceptions.DomainAccessDenied(Util.format("User '%s' does not have access to '%'",
+        new exceptions.DomainAccessDenied(Util.format("User '%s' does not have access to '%s'",
           username, domain)));
 
       if (authenticationMethod == "two_factor" && !authSession.second_factor)
