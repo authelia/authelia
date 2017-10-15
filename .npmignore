@@ -1,10 +1,10 @@
-src/
+client/
+server/
 test/
 doc/
 scripts/
 images/
 example/
-dist/test/
 
 .travis.yml
 config.test.yml
