@@ -116,7 +116,7 @@ declare type AuthenticationMethodPerSubdomain = { [subdomain: string]: Authentic
 
 export interface AuthenticationMethodsConfiguration {
     default_method: AuthenticationMethod;
-    per_subdomain_methods: AuthenticationMethodPerSubdomain;
+    per_subdomain_methods?: AuthenticationMethodPerSubdomain;
 }
 
 export interface UserConfiguration {
