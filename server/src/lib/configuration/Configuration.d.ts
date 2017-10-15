@@ -73,8 +73,8 @@ export interface GmailNotifierConfiguration {
 }
 
 export interface SmtpNotifierConfiguration {
-    username: string;
-    password: string;
+    username?: string;
+    password?: string;
     host: string;
     port: number;
     secure: boolean;
