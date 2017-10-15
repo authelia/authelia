@@ -1,6 +1,7 @@
 import { IClientFactory } from "./IClientFactory";
 import { IClient } from "./IClient";
 import { Client } from "./Client";
+import { SanitizedClient } from "./SanitizedClient";
 import { ILdapClientFactory } from "./ILdapClientFactory";
 import { LdapConfiguration } from "../configuration/Configuration";
 
@@ -23,7 +24,7 @@ export class ClientFactory implements IClientFactory {
   }
 
   create(userDN: string, password: string): IClient {
-    return new Client(userDN, password, this.config, this.ldapClientFactory,
-      this.dovehash, this.logger);
+    return new SanitizedClient(new Client(userDN, password, this.config, this.ldapClientFactory,
+      this.dovehash, this.logger));
   }
 }

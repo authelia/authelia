@@ -10,7 +10,6 @@ import { ConfigurationParser } from "./configuration/ConfigurationParser";
 import { TOTPValidator } from "./TOTPValidator";
 import { TOTPGenerator } from "./TOTPGenerator";
 import { RestApi } from "./RestApi";
-import { Client } from "./ldap/Client";
 import { ServerVariablesHandler } from "./ServerVariablesHandler";
 import { SessionConfigurationBuilder } from "./configuration/SessionConfigurationBuilder";
 import { GlobalLogger } from "./logging/GlobalLogger";

@@ -10,6 +10,7 @@ import { ILdapClient } from "./ILdapClient";
 import { ILdapClientFactory } from "./ILdapClientFactory";
 import { LdapConfiguration } from "../configuration/Configuration";
 import { Winston } from "../../../types/Dependencies";
+import Util = require("util");
 
 
 export class Client implements IClient {
@@ -75,8 +76,12 @@ export class Client implements IClient {
     that.logger.debug("LDAP: searching for user dn of %s", username);
     return that.ldapClient.searchAsync(this.options.users_dn, query)
       .then(function (users: { dn: string }[]) {
-        that.logger.debug("LDAP: retrieved user dn is %s", users[0].dn);
-        return BluebirdPromise.resolve(users[0].dn);
+        if (users.length > 0) {
+          that.logger.debug("LDAP: retrieved user dn is %s", users[0].dn);
+          return BluebirdPromise.resolve(users[0].dn);
+        }
+        return BluebirdPromise.reject(new Error(
+          Util.format("No user DN found for user '%s'", username)));
       });
   }
 
