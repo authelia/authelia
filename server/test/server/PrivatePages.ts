@@ -173,6 +173,10 @@ describe("Private pages of the server must not be accessible without session", f
     it("should block " + Endpoints.SECOND_FACTOR_TOTP_POST, function () {
       return should_post_and_reply_with_401(BASE_URL + Endpoints.SECOND_FACTOR_TOTP_POST);
     });
+
+    it("should block " + Endpoints.LOGGED_IN, function () {
+      return should_get_and_reply_with_401(BASE_URL + Endpoints.LOGGED_IN);
+    });
   });
 });
 
