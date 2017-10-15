@@ -47,18 +47,34 @@ export class Client implements IClient {
       });
   }
 
+  private createGroupsFilter(userGroupsFilter: string, username: string): BluebirdPromise<string> {
+    if (userGroupsFilter.indexOf("{0}") > 0) {
+      return BluebirdPromise.resolve(userGroupsFilter.replace("{0}", username));
+    }
+    else if (userGroupsFilter.indexOf("{dn}") > 0) {
+      return this.searchUserDn(username)
+        .then(function (userDN: string) {
+          return BluebirdPromise.resolve(userGroupsFilter.replace("{dn}", userDN));
+        });
+    }
+    return BluebirdPromise.resolve(userGroupsFilter);
+  }
+
   searchGroups(username: string): BluebirdPromise<string[]> {
     const that = this;
-    const filter = that.options.groups_filter.replace("{0}", username);
-    const query = {
-      scope: "sub",
-      attributes: [that.options.group_name_attribute],
-      filter: filter
-    };
-    return this.ldapClient.searchAsync(that.options.groups_dn, query)
+    return this.createGroupsFilter(this.options.groups_filter, username)
+      .then(function (groupsFilter: string) {
+        that.logger.debug("Computed groups filter is %s", groupsFilter);
+        const query = {
+          scope: "sub",
+          attributes: [that.options.group_name_attribute],
+          filter: groupsFilter
+        };
+        return that.ldapClient.searchAsync(that.options.groups_dn, query);
+      })
       .then(function (docs: { cn: string }[]) {
         const groups = docs.map((doc: any) => { return doc.cn; });
-        that.logger.debug("LDAP: groups of user %s are %s", username, groups);
+        that.logger.debug("LDAP: groups of user %s are [%s]", username, groups.join(","));
         return BluebirdPromise.resolve(groups);
       });
   }
@@ -66,6 +82,7 @@ export class Client implements IClient {
   searchUserDn(username: string): BluebirdPromise<string> {
     const that = this;
     const filter = this.options.users_filter.replace("{0}", username);
+    this.logger.debug("Computed users filter is %s", filter);
     const query = {
       scope: "sub",
       sizeLimit: 1,
