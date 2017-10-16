@@ -9,6 +9,7 @@ export interface AuthenticationSession {
   userid: string;
   first_factor: boolean;
   second_factor: boolean;
+  last_activity_datetime: Date;
   identity_check?: {
     challenge: string;
     userid: string;
@@ -23,6 +24,7 @@ export interface AuthenticationSession {
 const INITIAL_AUTHENTICATION_SESSION: AuthenticationSession = {
   first_factor: false,
   second_factor: false,
+  last_activity_datetime: undefined,
   userid: undefined,
   email: undefined,
   groups: [],
@@ -36,6 +38,9 @@ export function reset(req: express.Request): void {
   const logger = ServerVariablesHandler.getLogger(req.app);
   logger.debug(req, "Authentication session %s is being reset.", req.sessionID);
   req.session.auth = Object.assign({}, INITIAL_AUTHENTICATION_SESSION, {});
+
+  // Initialize last activity with current time
+  req.session.auth.last_activity_datetime = new Date();
 }
 
 export function get(req: express.Request): BluebirdPromise<AuthenticationSession> {

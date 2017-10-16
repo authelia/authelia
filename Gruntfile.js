@@ -194,6 +194,8 @@ module.exports = function (grunt) {
   grunt.registerTask('build', ['build-client', 'build-server']);
   grunt.registerTask('build-dist', ['build', 'run:minify', 'cssmin', 'run:include-minified-script']);
 
+  grunt.registerTask('schema', ['run:generate-config-schema'])
+
   grunt.registerTask('docker-build', ['run:docker-build']);
 
   grunt.registerTask('default', ['build-dist']);

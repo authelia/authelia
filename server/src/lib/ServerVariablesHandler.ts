@@ -16,18 +16,19 @@ import { EmailsRetriever } from "./ldap/EmailsRetriever";
 import { ClientFactory } from "./ldap/ClientFactory";
 import { LdapClientFactory } from "./ldap/LdapClientFactory";
 
-import { TOTPValidator } from "./TOTPValidator";
-import { TOTPGenerator } from "./TOTPGenerator";
-
+import { TotpHandler } from "./authentication/totp/TotpHandler";
+import { ITotpHandler } from "./authentication/totp/ITotpHandler";
 import { NotifierFactory } from "./notifiers/NotifierFactory";
 import { MailSenderBuilder } from "./notifiers/MailSenderBuilder";
 
 import { IUserDataStore } from "./storage/IUserDataStore";
 import { UserDataStore } from "./storage/UserDataStore";
 import { INotifier } from "./notifiers/INotifier";
-import { AuthenticationRegulator } from "./AuthenticationRegulator";
+import { Regulator } from "./regulation/Regulator";
+import { IRegulator } from "./regulation/IRegulator";
 import Configuration = require("./configuration/Configuration");
 import { AccessController } from "./access_control/AccessController";
+import { IAccessController } from "./access_control/IAccessController";
 import { CollectionFactoryFactory } from "./storage/CollectionFactoryFactory";
 import { ICollectionFactory } from "./storage/ICollectionFactory";
 import { MongoCollectionFactory } from "./storage/mongo/MongoCollectionFactory";
@@ -67,9 +68,9 @@ class UserDataStoreFactory {
   }
 }
 
-export class ServerVariablesHandler {
-  static initialize(app: express.Application, config: Configuration.AppConfiguration, requestLogger: IRequestLogger,
-    deps: GlobalDependencies): BluebirdPromise<void> {
+export class ServerVariablesInitializer {
+  static initialize(config: Configuration.AppConfiguration, requestLogger: IRequestLogger,
+    deps: GlobalDependencies): BluebirdPromise<ServerVariables> {
     const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
     const notifier = NotifierFactory.build(config.notifier, mailSenderBuilder);
     const ldapClientFactory = new LdapClientFactory(config.ldap, deps.ldapjs);
@@ -79,13 +80,11 @@ export class ServerVariablesHandler {
     const ldapPasswordUpdater = new PasswordUpdater(config.ldap, clientFactory);
     const ldapEmailsRetriever = new EmailsRetriever(config.ldap, clientFactory);
     const accessController = new AccessController(config.access_control, deps.winston);
-    const totpValidator = new TOTPValidator(deps.speakeasy);
-    const totpGenerator = new TOTPGenerator(deps.speakeasy);
-    const authenticationMethodCalculator = new AuthenticationMethodCalculator(config.authentication_methods);
+    const totpHandler = new TotpHandler(deps.speakeasy);
 
     return UserDataStoreFactory.create(config)
       .then(function (userDataStore: UserDataStore) {
-        const regulator = new AuthenticationRegulator(userDataStore, config.regulation.max_retries,
+        const regulator = new Regulator(userDataStore, config.regulation.max_retries,
           config.regulation.find_time, config.regulation.ban_time);
 
         const variables: ServerVariables = {
@@ -97,15 +96,18 @@ export class ServerVariablesHandler {
           logger: requestLogger,
           notifier: notifier,
           regulator: regulator,
-          totpGenerator: totpGenerator,
-          totpValidator: totpValidator,
+          totpHandler: totpHandler,
           u2f: deps.u2f,
-          userDataStore: userDataStore,
-          authenticationMethodsCalculator: authenticationMethodCalculator
+          userDataStore: userDataStore
         };
-
-        app.set(VARIABLES_KEY, variables);
+        return BluebirdPromise.resolve(variables);
       });
+    }
+}
+
+export class ServerVariablesHandler {
+  static setup(app: express.Application, variables: ServerVariables): void {
+     app.set(VARIABLES_KEY, variables);
   }
 
   static getLogger(app: express.Application): IRequestLogger {
@@ -136,27 +138,19 @@ export class ServerVariablesHandler {
     return (app.get(VARIABLES_KEY) as ServerVariables).config;
   }
 
-  static getAuthenticationRegulator(app: express.Application): AuthenticationRegulator {
+  static getAuthenticationRegulator(app: express.Application): IRegulator {
     return (app.get(VARIABLES_KEY) as ServerVariables).regulator;
   }
 
-  static getAccessController(app: express.Application): AccessController {
+  static getAccessController(app: express.Application): IAccessController {
     return (app.get(VARIABLES_KEY) as ServerVariables).accessController;
   }
 
-  static getTOTPGenerator(app: express.Application): TOTPGenerator {
-    return (app.get(VARIABLES_KEY) as ServerVariables).totpGenerator;
-  }
-
-  static getTOTPValidator(app: express.Application): TOTPValidator {
-    return (app.get(VARIABLES_KEY) as ServerVariables).totpValidator;
+  static getTotpHandler(app: express.Application): ITotpHandler {
+    return (app.get(VARIABLES_KEY) as ServerVariables).totpHandler;
   }
 
   static getU2F(app: express.Application): typeof U2F {
     return (app.get(VARIABLES_KEY) as ServerVariables).u2f;
-  }
-
-  static getAuthenticationMethodCalculator(app: express.Application): AuthenticationMethodCalculator {
-    return (app.get(VARIABLES_KEY) as ServerVariables).authenticationMethodsCalculator;
   }
 }

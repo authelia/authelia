@@ -133,7 +133,7 @@ session:
   secret: unsecure_secret
   
   # The time before the cookie expires.
-  expiration: 3600000
+  expiration: 10000
 
   # The domain to protect.
   # Note: the authenticator must also be in that domain. If empty, the cookie

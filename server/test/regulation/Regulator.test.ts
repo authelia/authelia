@@ -3,10 +3,10 @@ import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
 
-import { AuthenticationRegulator } from "../src/lib/AuthenticationRegulator";
+import { Regulator } from "../../src/lib/regulation/Regulator";
 import MockDate = require("mockdate");
-import exceptions = require("../src/lib/Exceptions");
-import { UserDataStoreStub } from "./mocks/storage/UserDataStoreStub";
+import exceptions = require("../../src/lib/Exceptions");
+import { UserDataStoreStub } from "../mocks/storage/UserDataStoreStub";
 
 describe("test authentication regulator", function () {
   const USER1 = "USER1";
@@ -39,13 +39,13 @@ describe("test authentication regulator", function () {
     MockDate.reset();
   });
 
-  function markAuthenticationAt(regulator: AuthenticationRegulator, user: string, time: string, success: boolean) {
+  function markAuthenticationAt(regulator: Regulator, user: string, time: string, success: boolean) {
     MockDate.set(time);
     return regulator.mark(user, success);
   }
 
   it("should mark 2 authentication and regulate (accept)", function () {
-    const regulator = new AuthenticationRegulator(userDataStoreStub, 3, 10, 10);
+    const regulator = new Regulator(userDataStoreStub, 3, 10, 10);
 
     return regulator.mark(USER1, false)
       .then(function () {
@@ -57,7 +57,7 @@ describe("test authentication regulator", function () {
   });
 
   it("should mark 3 authentications and regulate (reject)", function () {
-    const regulator = new AuthenticationRegulator(userDataStoreStub, 3, 10, 10);
+    const regulator = new Regulator(userDataStoreStub, 3, 10, 10);
 
     return regulator.mark(USER1, false)
       .then(function () {
@@ -76,7 +76,7 @@ describe("test authentication regulator", function () {
   });
 
   it("should mark 1 failed, 1 successful and 1 failed authentications within minimum time and regulate (accept)", function () {
-    const regulator = new AuthenticationRegulator(userDataStoreStub, 3, 60, 30);
+    const regulator = new Regulator(userDataStoreStub, 3, 60, 30);
 
     return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:00", false)
       .then(function () {
@@ -109,7 +109,7 @@ describe("test authentication regulator", function () {
   });
 
   it("should regulate user if number of failures is greater than 3 in allowed time lapse", function () {
-    function markAuthentications(regulator: AuthenticationRegulator, user: string) {
+    function markAuthentications(regulator: Regulator, user: string) {
       return markAuthenticationAt(regulator, user, "1/2/2000 00:00:00", false)
         .then(function () {
           return markAuthenticationAt(regulator, user, "1/2/2000 00:00:45", false);
@@ -122,8 +122,8 @@ describe("test authentication regulator", function () {
         });
     }
 
-    const regulator1 = new AuthenticationRegulator(userDataStoreStub, 3, 60, 60);
-    const regulator2 = new AuthenticationRegulator(userDataStoreStub, 3, 2 * 60, 60);
+    const regulator1 = new Regulator(userDataStoreStub, 3, 60, 60);
+    const regulator2 = new Regulator(userDataStoreStub, 3, 2 * 60, 60);
 
     const p1 = markAuthentications(regulator1, USER1);
     const p2 = markAuthentications(regulator2, USER2);
@@ -138,7 +138,7 @@ describe("test authentication regulator", function () {
   });
 
   it("should user wait after regulation to authenticate again", function () {
-    function markAuthentications(regulator: AuthenticationRegulator, user: string) {
+    function markAuthentications(regulator: Regulator, user: string) {
       return markAuthenticationAt(regulator, user, "1/2/2000 00:00:00", false)
         .then(function () {
           return markAuthenticationAt(regulator, user, "1/2/2000 00:00:10", false);
@@ -161,13 +161,13 @@ describe("test authentication regulator", function () {
         });
     }
 
-    const regulator = new AuthenticationRegulator(userDataStoreStub, 4, 30, 30);
+    const regulator = new Regulator(userDataStoreStub, 4, 30, 30);
     return markAuthentications(regulator, USER1);
   });
 
   it("should disable regulation when max_retries is set to 0", function () {
     const maxRetries = 0;
-    const regulator = new AuthenticationRegulator(userDataStoreStub, maxRetries, 60, 30);
+    const regulator = new Regulator(userDataStoreStub, maxRetries, 60, 30);
     return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:00", false)
       .then(function () {
         return markAuthenticationAt(regulator, USER1, "1/2/2000 00:00:10", false);
