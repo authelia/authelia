@@ -55,8 +55,10 @@ ldap:
 #
 # Note: by default a domain uses "two_factor" method.
 #
-# Note: 'overriden_methods' is a dictionary where keys must be subdomains and 
+# Note: 'per_subdomain_methods' is a dictionary where keys must be subdomains and
 # values must be one of the two possible methods.
+#
+# Note: 'per_subdomain_methods' is optional.
 authentication_methods:
   default_method: two_factor
   per_subdomain_methods:

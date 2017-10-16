@@ -28,11 +28,15 @@ export class MailSenderBuilder implements IMailSenderBuilder {
       host: options.host,
       port: options.port,
       secure: options.secure, // upgrade later with STARTTLS
-      auth: {
+    };
+
+    if (options.username && options.password) {
+      smtpOptions.auth = {
         user: options.username,
         pass: options.password
-      }
-    };
+      };
+    }
+
     return new MailSender(smtpOptions, this.nodemailer);
   }
 }

@@ -25,24 +25,41 @@ describe("test MailSenderBuilder", function() {
     Assert.equal(createTransportStub.getCall(0).args[0].auth.pass, "pass_gmail");
   });
 
-  it("should create a smtp mail sender", function() {
-    const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
-    mailSenderBuilder.buildSmtp({
-      host: "mail.example.com",
-      password: "password",
-      port: 25,
-      secure: true,
-      username: "user",
-      sender: "admin@example.com"
+  describe("build smtp mail sender", function() {
+    it("should create a smtp mail sender with authenticated user", function() {
+      const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
+      mailSenderBuilder.buildSmtp({
+        host: "mail.example.com",
+        password: "password",
+        port: 25,
+        secure: true,
+        username: "user",
+        sender: "admin@example.com"
+      });
+      Assert.deepStrictEqual(createTransportStub.getCall(0).args[0], {
+        host: "mail.example.com",
+        auth: {
+          pass: "password",
+          user: "user"
+        },
+        port: 25,
+        secure: true,
+      });
     });
-    Assert.deepStrictEqual(createTransportStub.getCall(0).args[0], {
-      host: "mail.example.com",
-      auth: {
-        pass: "password",
-        user: "user"
-      },
-      port: 25,
-      secure: true,
+
+    it("should create a smtp mail sender with anonymous user", function() {
+      const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
+      mailSenderBuilder.buildSmtp({
+        host: "mail.example.com",
+        port: 25,
+        secure: true,
+        sender: "admin@example.com"
+      });
+      Assert.deepStrictEqual(createTransportStub.getCall(0).args[0], {
+        host: "mail.example.com",
+        port: 25,
+        secure: true,
+      });
     });
   });
 });

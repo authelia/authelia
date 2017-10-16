@@ -73,8 +73,8 @@ export interface GmailNotifierConfiguration {
 }
 
 export interface SmtpNotifierConfiguration {
-    username: string;
-    password: string;
+    username?: string;
+    password?: string;
     host: string;
     port: number;
     secure: boolean;
@@ -116,7 +116,7 @@ declare type AuthenticationMethodPerSubdomain = { [subdomain: string]: Authentic
 
 export interface AuthenticationMethodsConfiguration {
     default_method: AuthenticationMethod;
-    per_subdomain_methods: AuthenticationMethodPerSubdomain;
+    per_subdomain_methods?: AuthenticationMethodPerSubdomain;
 }
 
 export interface UserConfiguration {

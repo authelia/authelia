@@ -23,8 +23,8 @@ import * as http from "http";
 const addRequestId = require("express-request-id")();
 
 // Constants
-
 const TRUST_PROXY = "trust proxy";
+const X_POWERED_BY = "x-powered-by";
 const VIEWS = "views";
 const VIEW_ENGINE = "view engine";
 const PUG = "pug";
@@ -54,9 +54,9 @@ export default class Server {
     app.use(BodyParser.json());
     app.use(deps.session(expressSessionOptions));
     app.use(addRequestId);
-    app.disable("x-powered-by");
+    app.disable(X_POWERED_BY);
+    app.enable(TRUST_PROXY);
 
-    app.set(TRUST_PROXY, 1);
     app.set(VIEWS, viewsDirectory);
     app.set(VIEW_ENGINE, PUG);
 
