@@ -20,8 +20,6 @@ Feature: User is correctly redirected
     And I visit "https://admin.test.local:8080/secret.html"
     Then I get an error 403
 
-
-
   Scenario: Redirection URL is propagated from restricted page to first factor
     When I visit "https://public.test.local:8080/secret.html"
     Then I'm redirected to "https://auth.test.local:8080/?redirect=https%3A%2F%2Fpublic.test.local%3A8080%2Fsecret.html"

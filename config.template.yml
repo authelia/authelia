@@ -156,6 +156,9 @@ session:
   # The time in ms before the cookie expires and session is reset.
   expiration: 3600000 # 1 hour
 
+  # The inactivity time in ms before the session is reset.
+  inactivity: 300000 # 5 minutes
+
   # The domain to protect.
   # Note: the authenticator must also be in that domain. If empty, the cookie
   # is restricted to the subdomain of the issuer. 

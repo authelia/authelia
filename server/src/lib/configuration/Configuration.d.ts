@@ -62,6 +62,7 @@ export interface SessionRedisOptions {
 interface SessionCookieConfiguration {
     secret: string;
     expiration?: number;
+    inactivity?: number;
     domain?: string;
     redis?: SessionRedisOptions;
 }
