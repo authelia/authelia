@@ -24,11 +24,12 @@ used in production to secure internal services in a small docker swarm cluster.
     5. [Access control](#access-control)
     6. [Basic authentication](#basic-authentication)
     7. [Session management with Redis](#session-management-with-redis)
-4. [Documentation](#documentation)
+4. [Security](#security)
+5. [Documentation](#documentation)
     1. [Authelia configuration](#authelia-configuration)
-    1. [API documentation](#api-documentation)
-5. [Contributing to Authelia](#contributing-to-authelia)
-6. [License](#license)
+    2. [API documentation](#api-documentation)
+6. [Contributing to Authelia](#contributing-to-authelia)
+7. [License](#license)
 
 ---
 
@@ -197,6 +198,29 @@ Please see [config.template.yml] to see an example of configuration.
 ### Session management with Redis
 When your users authenticate against Authelia, sessions are stored in a Redis key/value store. You can specify your own Redis instance in [config.template.yml].
 
+## Security
+
+### Protection against cookie theft
+
+Authelia uses two mechanism to protect against cookie theft:
+1. session attribute `httpOnly` set to true make client-side code unable to
+read the cookie.
+2. session attribute `secure` ensure the cookie will never be sent over an
+unsecure HTTP connections.
+
+### Protection against multi-domain cookie attacks
+
+Since Authelia uses multi-domain cookies to perform single sign-on, an
+attacker who poisonned a user's DNS cache can easily retrieve the user's
+cookies by making the user send a request to one of the attacker's IPs.
+
+To mitigate this risk, it's advisable to only use HTTPS connections with valid
+certificates and enforce it with HTTP Strict Transport Security ([HSTS]) so
+that the attacker must also require the certificate to retrieve the cookies.
+
+Note that using [HSTS] has consequences. That's why you should read the blog
+post nginx has written on [HSTS].
+
 ## Documentation
 ### Authelia configuration
 The configuration of the server is defined in the file 
@@ -246,4 +270,4 @@ Follow [contributing](CONTRIBUTORS.md) file.
 [auth_request]: http://nginx.org/en/docs/http/ngx_http_auth_request_module.html
 [Google Authenticator]: https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en
 [config.template.yml]: https://github.com/clems4ever/authelia/blob/master/config.template.yml
-
+[HSTS]: https://www.nginx.com/blog/http-strict-transport-security-hsts-and-nginx/

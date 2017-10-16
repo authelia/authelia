@@ -12,7 +12,8 @@ export class SessionConfigurationBuilder {
       resave: false,
       saveUninitialized: true,
       cookie: {
-        secure: false,
+        secure: true,
+        httpOnly: true,
         maxAge: configuration.session.expiration,
         domain: configuration.session.domain
       },

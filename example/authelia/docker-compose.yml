@@ -6,6 +6,8 @@ services:
     volumes:
       - ./config.template.yml:/etc/authelia/config.yml:ro
       - ./notifications:/var/lib/authelia/notifications
+    environment:
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
     depends_on: 
       - redis
     networks:

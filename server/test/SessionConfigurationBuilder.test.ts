@@ -73,7 +73,8 @@ describe("test session configuration builder", function () {
       resave: false,
       saveUninitialized: true,
       cookie: {
-        secure: false,
+        secure: true,
+        httpOnly: true,
         maxAge: 3600,
         domain: "example.com"
       }
@@ -153,7 +154,8 @@ describe("test session configuration builder", function () {
       resave: false,
       saveUninitialized: true,
       cookie: {
-        secure: false,
+        secure: true,
+        httpOnly: true,
         maxAge: 3600,
         domain: "example.com"
       },
