@@ -33,6 +33,7 @@ import Error404Get = require("./routes/error/404/get");
 import LoggedIn = require("./routes/loggedin/get");
 
 import { ServerVariablesHandler } from "./ServerVariablesHandler";
+import { ServerVariables } from "./ServerVariables";
 
 import Endpoints = require("../../../shared/api");
 
@@ -45,7 +46,7 @@ function withLog(fn: (req: Express.Request, res: Express.Response) => void) {
 }
 
 export class RestApi {
-  static setup(app: Express.Application): void {
+  static setup(app: Express.Application, vars: ServerVariables): void {
     app.get(Endpoints.FIRST_FACTOR_GET, withLog(FirstFactorGet.default));
     app.get(Endpoints.SECOND_FACTOR_GET, withLog(SecondFactorGet.default));
     app.get(Endpoints.LOGOUT_GET, withLog(LogoutGet.default));
@@ -62,9 +63,9 @@ export class RestApi {
     app.get(Endpoints.RESET_PASSWORD_REQUEST_GET, withLog(ResetPasswordRequestPost.default));
     app.post(Endpoints.RESET_PASSWORD_FORM_POST, withLog(ResetPasswordFormPost.default));
 
-    app.get(Endpoints.VERIFY_GET, withLog(VerifyGet.default));
-    app.post(Endpoints.FIRST_FACTOR_POST, withLog(FirstFactorPost.default));
-    app.post(Endpoints.SECOND_FACTOR_TOTP_POST, withLog(TOTPSignGet.default));
+    app.get(Endpoints.VERIFY_GET, withLog(VerifyGet.default(vars)));
+    app.post(Endpoints.FIRST_FACTOR_POST, withLog(FirstFactorPost.default(vars)));
+    app.post(Endpoints.SECOND_FACTOR_TOTP_POST, withLog(TOTPSignGet.default(vars)));
 
     app.get(Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET, withLog(U2FSignRequestGet.default));
     app.post(Endpoints.SECOND_FACTOR_U2F_SIGN_POST, withLog(U2FSignPost.default));

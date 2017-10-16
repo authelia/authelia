@@ -67,8 +67,8 @@ export default class RegistrationHandler implements IdentityValidable {
         }
 
         const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
-        const totpGenerator = ServerVariablesHandler.getTOTPGenerator(req.app);
-        const secret = totpGenerator.generate();
+        const totpHandler = ServerVariablesHandler.getTotpHandler(req.app);
+        const secret = totpHandler.generate();
 
         logger.debug(req, "Save the TOTP secret in DB");
         return userDataStore.saveTOTPSecret(userid, secret)

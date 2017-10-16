@@ -153,8 +153,8 @@ session:
   # The secret to encrypt the session cookie.
   secret: unsecure_session_secret
   
-  # The time before the cookie expires.
-  expiration: 3600000
+  # The time in ms before the cookie expires and session is reset.
+  expiration: 3600000 # 1 hour
 
   # The domain to protect.
   # Note: the authenticator must also be in that domain. If empty, the cookie
