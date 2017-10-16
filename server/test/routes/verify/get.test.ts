@@ -79,7 +79,7 @@ describe("test /verify endpoint", function () {
   }
 
   describe("given user tries to access a 2-factor endpoint", function () {
-    before(function() {
+    before(function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
     });
 
@@ -91,7 +91,7 @@ describe("test /verify endpoint", function () {
           second_factor: false,
           email: undefined,
           groups: [],
-          last_activity_datetime: new Date()
+          last_activity_datetime: new Date().getTime()
         });
       });
 
@@ -102,7 +102,7 @@ describe("test /verify endpoint", function () {
           second_factor: true,
           email: undefined,
           groups: [],
-          last_activity_datetime: new Date()
+          last_activity_datetime: new Date().getTime()
         });
       });
 
@@ -113,7 +113,7 @@ describe("test /verify endpoint", function () {
           second_factor: false,
           email: undefined,
           groups: [],
-          last_activity_datetime: new Date()
+          last_activity_datetime: new Date().getTime()
         });
       });
 
@@ -124,7 +124,7 @@ describe("test /verify endpoint", function () {
           second_factor: false,
           email: undefined,
           groups: [],
-          last_activity_datetime: new Date()
+          last_activity_datetime: new Date().getTime()
         });
       });
 
@@ -147,7 +147,7 @@ describe("test /verify endpoint", function () {
               userid: "user",
               groups: ["group1", "group2"],
               email: undefined,
-              last_activity_datetime: new Date()
+              last_activity_datetime: new Date().getTime()
             });
           });
       });
@@ -188,6 +188,54 @@ describe("test /verify endpoint", function () {
         })
         .then(function () {
           Assert(res.status.calledWith(401));
+        });
+    });
+  });
+
+  describe("inactivity period", function () {
+    it("should update last inactivity period on requests on /verify", function () {
+      mocks.config.session.inactivity = 200000;
+      mocks.accessController.isAccessAllowedMock.returns(true);
+      const currentTime = new Date().getTime() - 1000;
+      AuthenticationSession.reset(req as any);
+      return AuthenticationSession.get(req as any)
+        .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+          authSession.first_factor = true;
+          authSession.second_factor = true;
+          authSession.userid = "myuser";
+          authSession.groups = ["mygroup", "othergroup"];
+          authSession.last_activity_datetime = currentTime;
+          return VerifyGet.default(vars)(req as express.Request, res as any);
+        })
+        .then(function () {
+          return AuthenticationSession.get(req as any);
+        })
+        .then(function (authSession) {
+          Assert(authSession.last_activity_datetime > currentTime);
+        });
+    });
+
+    it("should reset session when max inactivity period has been reached", function () {
+      mocks.config.session.inactivity = 1;
+      mocks.accessController.isAccessAllowedMock.returns(true);
+      const currentTime = new Date().getTime() - 1000;
+      AuthenticationSession.reset(req as any);
+      return AuthenticationSession.get(req as any)
+        .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+          authSession.first_factor = true;
+          authSession.second_factor = true;
+          authSession.userid = "myuser";
+          authSession.groups = ["mygroup", "othergroup"];
+          authSession.last_activity_datetime = currentTime;
+          return VerifyGet.default(vars)(req as express.Request, res as any);
+        })
+        .then(function () {
+          return AuthenticationSession.get(req as any);
+        })
+        .then(function (authSession) {
+          Assert.equal(authSession.first_factor, false);
+          Assert.equal(authSession.second_factor, false);
+          Assert.equal(authSession.userid, undefined);
         });
     });
   });

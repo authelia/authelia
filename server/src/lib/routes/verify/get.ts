@@ -13,6 +13,7 @@ import Util = require("util");
 import { DomainExtractor } from "../../utils/DomainExtractor";
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationMethodCalculator } from "../../AuthenticationMethodCalculator";
+import { IRequestLogger } from "../../logging/IRequestLogger";
 
 const FIRST_FACTOR_NOT_VALIDATED_MESSAGE = "First factor not yet validated";
 const SECOND_FACTOR_NOT_VALIDATED_MESSAGE = "Second factor not yet validated";
@@ -20,17 +21,48 @@ const SECOND_FACTOR_NOT_VALIDATED_MESSAGE = "Second factor not yet validated";
 const REMOTE_USER = "Remote-User";
 const REMOTE_GROUPS = "Remote-Groups";
 
+function verify_inactivity(req: express.Request,
+  authSession: AuthenticationSession.AuthenticationSession,
+  configuration: AppConfiguration, logger: IRequestLogger)
+  : BluebirdPromise<void> {
+
+  const lastActivityTime = authSession.last_activity_datetime;
+  const currentTime = new Date().getTime();
+  authSession.last_activity_datetime = currentTime;
+
+  // If inactivity is not specified, then inactivity timeout does not apply
+  if (!configuration.session.inactivity) {
+    return BluebirdPromise.resolve();
+  }
+
+  const inactivityPeriodMs = currentTime - lastActivityTime;
+  logger.debug(req, "Inactivity period was %s s and max period was %s.",
+    inactivityPeriodMs / 1000, configuration.session.inactivity / 1000);
+  if (inactivityPeriodMs < configuration.session.inactivity) {
+    return BluebirdPromise.resolve();
+  }
+
+  logger.debug(req, "Session has been reset after too long inactivity period.");
+  AuthenticationSession.reset(req);
+  return BluebirdPromise.reject(new Error("Inactivity period exceeded."));
+}
+
 function verify_filter(req: express.Request, res: express.Response,
   vars: ServerVariables): BluebirdPromise<void> {
+  let _authSession: AuthenticationSession.AuthenticationSession;
+  let username: string;
+  let groups: string[];
 
   return AuthenticationSession.get(req)
     .then(function (authSession) {
+      _authSession = authSession;
+      username = _authSession.userid;
+      groups = _authSession.groups;
+
       res.set("Redirect", encodeURIComponent("https://" + req.headers["host"] +
         req.headers["x-original-uri"]));
 
-      const username = authSession.userid;
-      const groups = authSession.groups;
-      if (!authSession.userid)
+      if (!_authSession.userid)
         return BluebirdPromise.reject(
           new exceptions.AccessDeniedError(FIRST_FACTOR_NOT_VALIDATED_MESSAGE));
 
@@ -44,23 +76,27 @@ function verify_filter(req: express.Request, res: express.Response,
       vars.logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s", domain, path,
         username, groups.join(","));
 
-      if (!authSession.first_factor)
+      if (!_authSession.first_factor)
         return BluebirdPromise.reject(
           new exceptions.AccessDeniedError(FIRST_FACTOR_NOT_VALIDATED_MESSAGE));
+
+      if (authenticationMethod == "two_factor" && !_authSession.second_factor)
+        return BluebirdPromise.reject(
+          new exceptions.AccessDeniedError(SECOND_FACTOR_NOT_VALIDATED_MESSAGE));
 
       const isAllowed = vars.accessController.isAccessAllowed(domain, path, username, groups);
       if (!isAllowed) return BluebirdPromise.reject(
         new exceptions.DomainAccessDenied(Util.format("User '%s' does not have access to '%s'",
           username, domain)));
-
-      if (authenticationMethod == "two_factor" && !authSession.second_factor)
-        return BluebirdPromise.reject(
-          new exceptions.AccessDeniedError(SECOND_FACTOR_NOT_VALIDATED_MESSAGE));
-
+      return BluebirdPromise.resolve();
+    })
+    .then(function () {
+      return verify_inactivity(req, _authSession,
+        vars.config, vars.logger);
+    })
+    .then(function () {
       res.setHeader(REMOTE_USER, username);
       res.setHeader(REMOTE_GROUPS, groups.join(","));
-
-      return BluebirdPromise.resolve();
     });
 }
 

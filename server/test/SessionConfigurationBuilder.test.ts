@@ -113,6 +113,7 @@ describe("test session configuration builder", function () {
         domain: "example.com",
         expiration: 3600,
         secret: "secret",
+        inactivity: 4000,
         redis: {
           host: "redis.example.com",
           port: 6379

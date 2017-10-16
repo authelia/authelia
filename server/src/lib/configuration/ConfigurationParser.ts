@@ -71,6 +71,7 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration)
       domain: ObjectPath.get<object, string>(userConfiguration, "session.domain"),
       secret: ObjectPath.get<object, string>(userConfiguration, "session.secret"),
       expiration: get_optional<number>(userConfiguration, "session.expiration", 3600000), // in ms
+      inactivity: get_optional<number>(userConfiguration, "session.inactivity", undefined),
       redis: ObjectPath.get<object, SessionRedisOptions>(userConfiguration, "session.redis")
     },
     storage: {
