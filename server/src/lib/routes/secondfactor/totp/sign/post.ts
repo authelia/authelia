@@ -23,12 +23,10 @@ export default function (vars: ServerVariables) {
     return AuthenticationSession.get(req)
       .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
         authSession = _authSession;
-        vars.logger.info(req, "Initiate TOTP validation for user '%s'.", authSession.userid);
+        vars.logger.info(req, "Initiate TOTP validation for user \"%s\".", authSession.userid);
         return vars.userDataStore.retrieveTOTPSecret(authSession.userid);
       })
       .then(function (doc: TOTPSecretDocument) {
-        vars.logger.debug(req, "TOTP secret is %s", JSON.stringify(doc));
-
         if (!vars.totpHandler.validate(token, doc.secret.base32))
           return BluebirdPromise.reject(new Error("Invalid TOTP token."));
 
