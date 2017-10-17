@@ -1,6 +1,8 @@
 
 import BluebirdPromise = require("bluebird");
 import Endpoints = require("../../../../shared/api");
+import { RedirectionMessage } from "../../../../shared/RedirectionMessage";
+import { ErrorMessage } from "../../../../shared/ErrorMessage";
 
 export function validate(token: string, $: JQueryStatic): BluebirdPromise<string> {
   return new BluebirdPromise<string>(function (resolve, reject) {
@@ -12,12 +14,12 @@ export function validate(token: string, $: JQueryStatic): BluebirdPromise<string
       method: "POST",
       dataType: "json"
     } as JQueryAjaxSettings)
-      .done(function (body: any) {
-        if (body && body.error) {
-          reject(new Error(body.error));
+      .done(function (body: RedirectionMessage | ErrorMessage) {
+        if (body && "error" in body) {
+          reject(new Error((body as ErrorMessage).error));
           return;
         }
-        resolve(body);
+        resolve((body as RedirectionMessage).redirect);
       })
       .fail(function (xhr: JQueryXHR, textStatus: string) {
         reject(new Error(textStatus));

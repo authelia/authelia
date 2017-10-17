@@ -1,39 +1,41 @@
 
 import sinon = require("sinon");
 import IdentityValidator = require("../src/lib/IdentityCheckMiddleware");
-import AuthenticationSession = require("../src/lib/AuthenticationSession");
+import AuthenticationSessionHandler = require("../src/lib/AuthenticationSession");
+import { AuthenticationSession } from "../types/AuthenticationSession";
 import { UserDataStore } from "../src/lib/storage/UserDataStore";
-
 import exceptions = require("../src/lib/Exceptions");
+import { ServerVariables } from "../src/lib/ServerVariables";
 import Assert = require("assert");
-import Promise = require("bluebird");
 import express = require("express");
 import BluebirdPromise = require("bluebird");
-
 import ExpressMock = require("./mocks/express");
 import NotifierMock = require("./mocks/Notifier");
 import IdentityValidatorMock = require("./mocks/IdentityValidator");
-import ServerVariablesMock = require("./mocks/ServerVariablesMock");
+import { RequestLoggerStub } from "./mocks/RequestLoggerStub";
+import { ServerVariablesMock, ServerVariablesMockBuilder } from "./mocks/ServerVariablesMockBuilder";
 
 
 describe("test identity check process", function () {
-  let mocks: ServerVariablesMock.ServerVariablesMock;
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
-  let notifier: NotifierMock.NotifierMock;
   let app: express.Application;
   let app_get: sinon.SinonStub;
   let app_post: sinon.SinonStub;
   let identityValidable: IdentityValidatorMock.IdentityValidableMock;
+  let mocks: ServerVariablesMock;
+  let vars: ServerVariables;
 
   beforeEach(function () {
+    const s = ServerVariablesMockBuilder.build();
+    mocks = s.mocks;
+    vars = s.variables;
+
     req = ExpressMock.RequestMock();
     res = ExpressMock.ResponseMock();
 
     identityValidable = IdentityValidatorMock.IdentityValidableMock();
 
-    notifier = NotifierMock.NotifierMock();
-    notifier.notify = sinon.stub().returns(Promise.resolve());
 
     req.headers = {};
     req.session = {};
@@ -42,9 +44,7 @@ describe("test identity check process", function () {
     req.query = {};
     req.app = {};
 
-    mocks = ServerVariablesMock.mock(req.app);
-    mocks.notifier = notifier;
-
+    mocks.notifier.notifyStub.returns(BluebirdPromise.resolve());
     mocks.userDataStore.produceIdentityValidationTokenStub.returns(Promise.resolve());
     mocks.userDataStore.consumeIdentityValidationTokenStub.returns(Promise.resolve({ userId: "user" }));
 
@@ -64,7 +64,7 @@ describe("test identity check process", function () {
   function test_start_get_handler() {
     it("should send 401 if pre validation initialization throws a first factor error", function () {
       identityValidable.preValidationInit.returns(BluebirdPromise.reject(new exceptions.FirstFactorValidationError("Error during prevalidation")));
-      const callback = IdentityValidator.get_start_validation(identityValidable, "/endpoint");
+      const callback = IdentityValidator.get_start_validation(identityValidable, "/endpoint", vars);
 
       return callback(req as any, res as any, undefined)
         .then(function () { return BluebirdPromise.reject("Should fail"); })
@@ -77,7 +77,7 @@ describe("test identity check process", function () {
       const identity = { userid: "abc" };
 
       identityValidable.preValidationInit.returns(BluebirdPromise.resolve(identity));
-      const callback = IdentityValidator.get_start_validation(identityValidable, "/endpoint");
+      const callback = IdentityValidator.get_start_validation(identityValidable, "/endpoint", vars);
 
       return callback(req as any, res as any, undefined)
         .then(function () { return BluebirdPromise.reject("Should fail"); })
@@ -91,7 +91,7 @@ describe("test identity check process", function () {
       const identity = { email: "abc@example.com" };
 
       identityValidable.preValidationInit.returns(BluebirdPromise.resolve(identity));
-      const callback = IdentityValidator.get_start_validation(identityValidable, "/endpoint");
+      const callback = IdentityValidator.get_start_validation(identityValidable, "/endpoint", vars);
 
       return callback(req as any, res as any, undefined)
         .then(function () { return BluebirdPromise.reject(new Error("It should fail")); })
@@ -107,11 +107,11 @@ describe("test identity check process", function () {
       req.get = sinon.stub().withArgs("Host").returns("localhost");
 
       identityValidable.preValidationInit.returns(BluebirdPromise.resolve(identity));
-      const callback = IdentityValidator.get_start_validation(identityValidable, "/finish_endpoint");
+      const callback = IdentityValidator.get_start_validation(identityValidable, "/finish_endpoint", vars);
 
       return callback(req as any, res as any, undefined)
         .then(function () {
-          Assert(notifier.notify.calledOnce);
+          Assert(mocks.notifier.notifyStub.calledOnce);
           Assert(mocks.userDataStore.produceIdentityValidationTokenStub.calledOnce);
           Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub.getCall(0).args[0], "user");
           Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub.getCall(0).args[3], 240000);
@@ -122,7 +122,7 @@ describe("test identity check process", function () {
   function test_finish_get_handler() {
     it("should send 401 if no identity_token is provided", function () {
 
-      const callback = IdentityValidator.get_finish_validation(identityValidable);
+      const callback = IdentityValidator.get_finish_validation(identityValidable, vars);
 
       return callback(req as any, res as any, undefined)
         .then(function () { return BluebirdPromise.reject("Should fail"); })
@@ -134,7 +134,7 @@ describe("test identity check process", function () {
     it("should call postValidation if identity_token is provided and still valid", function () {
       req.query.identity_token = "token";
 
-      const callback = IdentityValidator.get_finish_validation(identityValidable);
+      const callback = IdentityValidator.get_finish_validation(identityValidable, vars);
       return callback(req as any, res as any, undefined);
     });
 
@@ -143,7 +143,7 @@ describe("test identity check process", function () {
 
       mocks.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.reject(new Error("Invalid token")));
 
-      const callback = IdentityValidator.get_finish_validation(identityValidable);
+      const callback = IdentityValidator.get_finish_validation(identityValidable, vars);
       return callback(req as any, res as any, undefined)
         .then(function () { return BluebirdPromise.reject("Should fail"); })
         .catch(function () {
@@ -155,11 +155,11 @@ describe("test identity check process", function () {
       req.query.identity_token = "token";
 
       req.session = {};
-      let authSession: AuthenticationSession.AuthenticationSession;
-      const callback = IdentityValidator.get_finish_validation(identityValidable);
+      let authSession: AuthenticationSession;
+      const callback = IdentityValidator.get_finish_validation(identityValidable, vars);
 
-      return AuthenticationSession.get(req as any)
-        .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+      return AuthenticationSessionHandler.get(req as any, vars.logger)
+        .then(function (_authSession) {
           authSession = _authSession;
           return callback(req as any, res as any, undefined);
         })

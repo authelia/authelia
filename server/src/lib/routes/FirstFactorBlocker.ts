@@ -5,19 +5,17 @@ import FirstFactorValidator = require("../FirstFactorValidator");
 import Exceptions = require("../Exceptions");
 import ErrorReplies = require("../ErrorReplies");
 import objectPath = require("object-path");
-import { ServerVariablesHandler } from "../ServerVariablesHandler";
 import AuthenticationSession = require("../AuthenticationSession");
 import UserMessages = require("../../../../shared/UserMessages");
+import { IRequestLogger } from "../logging/IRequestLogger";
 
 type Handler = (req: express.Request, res: express.Response) => BluebirdPromise<void>;
 
-export default function (callback: Handler): Handler {
+export default function (callback: Handler, logger: IRequestLogger): Handler {
   return function (req: express.Request, res: express.Response): BluebirdPromise<void> {
-    const logger = ServerVariablesHandler.getLogger(req.app);
-
-    return AuthenticationSession.get(req)
+    return AuthenticationSession.get(req, logger)
       .then(function (authSession) {
-        return FirstFactorValidator.validate(req);
+        return FirstFactorValidator.validate(req, logger);
       })
       .then(function () {
         return callback(req, res);

@@ -82,7 +82,8 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration)
     notifier: ObjectPath.get<object, NotifierConfiguration>(userConfiguration, "notifier"),
     access_control: ACLAdapter.adapt(userConfiguration.access_control),
     regulation: userConfiguration.regulation,
-    authentication_methods: authenticationMethods
+    authentication_methods: authenticationMethods,
+    default_redirection_url: userConfiguration.default_redirection_url
   };
 }
 

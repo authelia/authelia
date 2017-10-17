@@ -130,6 +130,7 @@ export interface UserConfiguration {
     authentication_methods?: AuthenticationMethodsConfiguration;
     access_control?: ACLConfiguration;
     regulation: RegulationConfiguration;
+    default_redirection_url?: string;
 }
 
 export interface AppConfiguration {
@@ -142,4 +143,5 @@ export interface AppConfiguration {
     authentication_methods: AuthenticationMethodsConfiguration;
     access_control?: ACLConfiguration;
     regulation: RegulationConfiguration;
+    default_redirection_url?: string;
 }

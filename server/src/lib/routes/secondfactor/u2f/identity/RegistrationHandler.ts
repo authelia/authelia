@@ -8,6 +8,7 @@ import { Identity } from "../../../../../../types/Identity";
 import { PRE_VALIDATION_TEMPLATE } from "../../../../IdentityCheckPreValidationTemplate";
 import FirstFactorValidator = require("../../../../FirstFactorValidator");
 import AuthenticationSession = require("../../../../AuthenticationSession");
+import { IRequestLogger } from "../../../../logging/IRequestLogger";
 
 const CHALLENGE = "u2f-register";
 const MAIL_SUBJECT = "Register your U2F device";
@@ -16,13 +17,19 @@ const POST_VALIDATION_TEMPLATE_NAME = "u2f-register";
 
 
 export default class RegistrationHandler implements IdentityValidable {
+  private logger: IRequestLogger;
+
+  constructor(logger: IRequestLogger) {
+    this.logger = logger;
+  }
+
   challenge(): string {
     return CHALLENGE;
   }
 
   private retrieveIdentity(req: express.Request): BluebirdPromise<Identity> {
-    return AuthenticationSession.get(req)
-      .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+    return AuthenticationSession.get(req, this.logger)
+      .then(function (authSession) {
         const userid = authSession.userid;
         const email = authSession.email;
 
@@ -40,7 +47,7 @@ export default class RegistrationHandler implements IdentityValidable {
 
   preValidationInit(req: express.Request): BluebirdPromise<Identity> {
     const that = this;
-    return FirstFactorValidator.validate(req)
+    return FirstFactorValidator.validate(req, this.logger)
       .then(function () {
         return that.retrieveIdentity(req);
       });
@@ -51,7 +58,7 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   postValidationInit(req: express.Request) {
-    return FirstFactorValidator.validate(req);
+    return FirstFactorValidator.validate(req, this.logger);
   }
 
   postValidationResponse(req: express.Request, res: express.Response) {

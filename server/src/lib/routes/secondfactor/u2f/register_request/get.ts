@@ -8,40 +8,40 @@ import express = require("express");
 import U2f = require("u2f");
 import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import ErrorReplies = require("../../../../ErrorReplies");
-import {  ServerVariablesHandler } from "../../../../ServerVariablesHandler";
-import AuthenticationSession = require("../../../../AuthenticationSession");
+import AuthenticationSessionHandler = require("../../../../AuthenticationSession");
+import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import UserMessages = require("../../../../../../../shared/UserMessages");
+import { ServerVariables } from "../../../../ServerVariables";
 
-export default FirstFactorBlocker(handler);
+export default function (vars: ServerVariables) {
+  function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
+    let authSession: AuthenticationSession;
+    const appid: string = u2f_common.extract_app_id(req);
 
-function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
-    const logger = ServerVariablesHandler.getLogger(req.app);
-    let authSession: AuthenticationSession.AuthenticationSession;
+    return AuthenticationSessionHandler.get(req, vars.logger)
+      .then(function (_authSession) {
+        authSession = _authSession;
 
-    return AuthenticationSession.get(req)
-        .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
-            authSession = _authSession;
+        if (!authSession.identity_check
+          || authSession.identity_check.challenge != "u2f-register") {
+          res.status(403);
+          res.send();
+          return BluebirdPromise.reject(new Error("Bad challenge."));
+        }
 
-            if (!authSession.identity_check
-                || authSession.identity_check.challenge != "u2f-register") {
-                res.status(403);
-                res.send();
-                return BluebirdPromise.reject(new Error("Bad challenge."));
-            }
+        vars.logger.info(req, "Starting registration for appId '%s'", appid);
 
-            const u2f = ServerVariablesHandler.getU2F(req.app);
-            const appid: string = u2f_common.extract_app_id(req);
+        return BluebirdPromise.resolve(vars.u2f.request(appid));
+      })
+      .then(function (registrationRequest: U2f.Request) {
+        vars.logger.debug(req, "RegistrationRequest = %s", JSON.stringify(registrationRequest));
+        authSession.register_request = registrationRequest;
+        res.json(registrationRequest);
+        return BluebirdPromise.resolve();
+      })
+      .catch(ErrorReplies.replyWithError200(req, res, vars.logger,
+        UserMessages.OPERATION_FAILED));
+  }
 
-            logger.info(req, "Starting registration for appId '%s'", appid);
-
-            return BluebirdPromise.resolve(u2f.request(appid));
-        })
-        .then(function (registrationRequest: U2f.Request) {
-            logger.debug(req, "RegistrationRequest = %s", JSON.stringify(registrationRequest));
-            authSession.register_request = registrationRequest;
-            res.json(registrationRequest);
-            return BluebirdPromise.resolve();
-        })
-        .catch(ErrorReplies.replyWithError200(req, res, logger,
-            UserMessages.OPERATION_FAILED));
+  return FirstFactorBlocker(handler, vars.logger);
 }

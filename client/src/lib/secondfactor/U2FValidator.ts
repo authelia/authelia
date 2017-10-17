@@ -6,21 +6,23 @@ import { SignMessage } from "../../../../shared/SignMessage";
 import Endpoints = require("../../../../shared/api");
 import UserMessages = require("../../../../shared/UserMessages");
 import { INotifier } from "../INotifier";
+import { RedirectionMessage } from "../../../../shared/RedirectionMessage";
+import { ErrorMessage } from "../../../../shared/ErrorMessage";
 
-function finishU2fAuthentication(responseData: U2fApi.SignResponse, $: JQueryStatic): BluebirdPromise<void> {
-  return new BluebirdPromise<void>(function (resolve, reject) {
+function finishU2fAuthentication(responseData: U2fApi.SignResponse, $: JQueryStatic): BluebirdPromise<string> {
+  return new BluebirdPromise<string>(function (resolve, reject) {
     $.ajax({
       url: Endpoints.SECOND_FACTOR_U2F_SIGN_POST,
       data: responseData,
       method: "POST",
       dataType: "json"
     } as JQueryAjaxSettings)
-      .done(function (body: any) {
-        if (body && body.error) {
-          reject(new Error(body.error));
+      .done(function (body: RedirectionMessage | ErrorMessage) {
+        if (body && "error" in body) {
+          reject(new Error((body as ErrorMessage).error));
           return;
         }
-        resolve(body);
+        resolve((body as RedirectionMessage).redirect);
       })
       .fail(function (xhr: JQueryXHR, textStatus: string) {
         reject(new Error(textStatus));
@@ -28,8 +30,8 @@ function finishU2fAuthentication(responseData: U2fApi.SignResponse, $: JQuerySta
   });
 }
 
-function startU2fAuthentication($: JQueryStatic, notifier: INotifier, u2fApi: typeof U2fApi): BluebirdPromise<void> {
-  return new BluebirdPromise<void>(function (resolve, reject) {
+function startU2fAuthentication($: JQueryStatic, notifier: INotifier, u2fApi: typeof U2fApi): BluebirdPromise<string> {
+  return new BluebirdPromise<string>(function (resolve, reject) {
     $.get(Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET, {}, undefined, "json")
       .done(function (signResponse: SignMessage) {
         notifier.info(UserMessages.PLEASE_TOUCH_TOKEN);
@@ -44,8 +46,8 @@ function startU2fAuthentication($: JQueryStatic, notifier: INotifier, u2fApi: ty
         u2fApi.sign([signRequest], 60)
           .then(function (signResponse: U2fApi.SignResponse) {
             finishU2fAuthentication(signResponse, $)
-              .then(function (data) {
-                resolve(data);
+              .then(function (redirect: string) {
+                resolve(redirect);
               }, function (err) {
                 notifier.error(UserMessages.U2F_TRANSACTION_FINISH_FAILED);
                 reject(err);
@@ -62,6 +64,6 @@ function startU2fAuthentication($: JQueryStatic, notifier: INotifier, u2fApi: ty
 }
 
 
-export function validate($: JQueryStatic, notifier: INotifier, u2fApi: typeof U2fApi): BluebirdPromise<void> {
+export function validate($: JQueryStatic, notifier: INotifier, u2fApi: typeof U2fApi): BluebirdPromise<string> {
   return startU2fAuthentication($, notifier, u2fApi);
 }

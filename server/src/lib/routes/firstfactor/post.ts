@@ -8,20 +8,20 @@ import { Regulator } from "../../regulation/Regulator";
 import { GroupsAndEmails } from "../../ldap/IClient";
 import Endpoint = require("../../../../../shared/api");
 import ErrorReplies = require("../../ErrorReplies");
-import { ServerVariablesHandler } from "../../ServerVariablesHandler";
-import AuthenticationSession = require("../../AuthenticationSession");
+import AuthenticationSessionHandler = require("../../AuthenticationSession");
 import Constants = require("../../../../../shared/constants");
 import { DomainExtractor } from "../../utils/DomainExtractor";
 import UserMessages = require("../../../../../shared/UserMessages");
 import { AuthenticationMethodCalculator } from "../../AuthenticationMethodCalculator";
 import { ServerVariables } from "../../ServerVariables";
+import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)
     : BluebirdPromise<void> {
     const username: string = req.body.username;
     const password: string = req.body.password;
-    let authSession: AuthenticationSession.AuthenticationSession;
+    let authSession: AuthenticationSession;
 
     return BluebirdPromise.resolve()
       .then(function () {
@@ -29,9 +29,9 @@ export default function (vars: ServerVariables) {
           return BluebirdPromise.reject(new Error("No username or password."));
         }
         vars.logger.info(req, "Starting authentication of user \"%s\"", username);
-        return AuthenticationSession.get(req);
+        return AuthenticationSessionHandler.get(req, vars.logger);
       })
-      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+      .then(function (_authSession) {
         authSession = _authSession;
         return vars.regulator.regulate(username);
       })

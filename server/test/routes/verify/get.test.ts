@@ -1,7 +1,8 @@
 
 import Assert = require("assert");
 import VerifyGet = require("../../../src/lib/routes/verify/get");
-import AuthenticationSession = require("../../../src/lib/AuthenticationSession");
+import AuthenticationSessionHandler = require("../../../src/lib/AuthenticationSession");
+import { AuthenticationSession } from "../../../types/AuthenticationSession";
 import { AuthenticationMethodCalculator } from "../../../src/lib/AuthenticationMethodCalculator";
 import { AuthenticationMethodsConfiguration } from "../../../src/lib/configuration/Configuration";
 import Sinon = require("sinon");
@@ -28,7 +29,7 @@ describe("test /verify endpoint", function () {
     req.app = {
       get: Sinon.stub().returns({ logger: winston })
     };
-    AuthenticationSession.reset(req as any);
+    AuthenticationSessionHandler.reset(req as any);
     req.headers = {};
     req.headers.host = "secret.example.com";
     const s = ServerVariablesMockBuilder.build();
@@ -39,9 +40,9 @@ describe("test /verify endpoint", function () {
   it("should be already authenticated", function () {
     req.session = {};
     mocks.accessController.isAccessAllowedMock.returns(true);
-    AuthenticationSession.reset(req as any);
-    return AuthenticationSession.get(req as any)
-      .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+    AuthenticationSessionHandler.reset(req as any);
+    return AuthenticationSessionHandler.get(req as any, vars.logger)
+      .then(function (authSession) {
         authSession.first_factor = true;
         authSession.second_factor = true;
         authSession.userid = "myuser";
@@ -55,8 +56,8 @@ describe("test /verify endpoint", function () {
       });
   });
 
-  function test_session(_authSession: AuthenticationSession.AuthenticationSession, status_code: number) {
-    return AuthenticationSession.get(req as any)
+  function test_session(_authSession: AuthenticationSession, status_code: number) {
+    return AuthenticationSessionHandler.get(req as any, vars.logger)
       .then(function (authSession) {
         authSession = _authSession;
         return VerifyGet.default(vars)(req as express.Request, res as any);
@@ -66,15 +67,15 @@ describe("test /verify endpoint", function () {
       });
   }
 
-  function test_non_authenticated_401(authSession: AuthenticationSession.AuthenticationSession) {
+  function test_non_authenticated_401(authSession: AuthenticationSession) {
     return test_session(authSession, 401);
   }
 
-  function test_unauthorized_403(authSession: AuthenticationSession.AuthenticationSession) {
+  function test_unauthorized_403(authSession: AuthenticationSession) {
     return test_session(authSession, 403);
   }
 
-  function test_authorized(authSession: AuthenticationSession.AuthenticationSession) {
+  function test_authorized(authSession: AuthenticationSession) {
     return test_session(authSession, 204);
   }
 
@@ -133,7 +134,7 @@ describe("test /verify endpoint", function () {
       });
 
       it("should not be authenticated when domain is not allowed for user", function () {
-        return AuthenticationSession.get(req as any)
+        return AuthenticationSessionHandler.get(req as any, vars.logger)
           .then(function (authSession) {
             authSession.first_factor = true;
             authSession.second_factor = true;
@@ -167,7 +168,7 @@ describe("test /verify endpoint", function () {
 
     it("should be authenticated when first factor is validated and second factor is not", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
-      return AuthenticationSession.get(req as any)
+      return AuthenticationSessionHandler.get(req as any, vars.logger)
         .then(function (authSession) {
           authSession.first_factor = true;
           authSession.userid = "user1";
@@ -181,7 +182,7 @@ describe("test /verify endpoint", function () {
 
     it("should be rejected with 401 when first factor is not validated", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
-      return AuthenticationSession.get(req as any)
+      return AuthenticationSessionHandler.get(req as any, vars.logger)
         .then(function (authSession) {
           authSession.first_factor = false;
           return VerifyGet.default(vars)(req as express.Request, res as any);
@@ -197,9 +198,9 @@ describe("test /verify endpoint", function () {
       mocks.config.session.inactivity = 200000;
       mocks.accessController.isAccessAllowedMock.returns(true);
       const currentTime = new Date().getTime() - 1000;
-      AuthenticationSession.reset(req as any);
-      return AuthenticationSession.get(req as any)
-        .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+      AuthenticationSessionHandler.reset(req as any);
+      return AuthenticationSessionHandler.get(req as any, vars.logger)
+        .then(function (authSession) {
           authSession.first_factor = true;
           authSession.second_factor = true;
           authSession.userid = "myuser";
@@ -208,7 +209,7 @@ describe("test /verify endpoint", function () {
           return VerifyGet.default(vars)(req as express.Request, res as any);
         })
         .then(function () {
-          return AuthenticationSession.get(req as any);
+          return AuthenticationSessionHandler.get(req as any, vars.logger);
         })
         .then(function (authSession) {
           Assert(authSession.last_activity_datetime > currentTime);
@@ -219,9 +220,9 @@ describe("test /verify endpoint", function () {
       mocks.config.session.inactivity = 1;
       mocks.accessController.isAccessAllowedMock.returns(true);
       const currentTime = new Date().getTime() - 1000;
-      AuthenticationSession.reset(req as any);
-      return AuthenticationSession.get(req as any)
-        .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+      AuthenticationSessionHandler.reset(req as any);
+      return AuthenticationSessionHandler.get(req as any, vars.logger)
+        .then(function (authSession) {
           authSession.first_factor = true;
           authSession.second_factor = true;
           authSession.userid = "myuser";
@@ -230,7 +231,7 @@ describe("test /verify endpoint", function () {
           return VerifyGet.default(vars)(req as express.Request, res as any);
         })
         .then(function () {
-          return AuthenticationSession.get(req as any);
+          return AuthenticationSessionHandler.get(req as any, vars.logger);
         })
         .then(function (authSession) {
           Assert.equal(authSession.first_factor, false);

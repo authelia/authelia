@@ -41,3 +41,11 @@ Feature: User is correctly redirected
     And I use "Sec0" as TOTP token handle
     And I click on "TOTP"
     Then I'm redirected to "https://public.test.local:8080/secret.html"
+
+  @need-registered-user-john
+  Scenario: User is redirected to default URL defined in configuration when authentication is successful
+    When I visit "https://auth.test.local:8080"
+    And I login with user "john" and password "password" 
+    And I use "REGISTERED" as TOTP token handle
+    And I click on "TOTP"
+    Then I'm redirected to "https://home.test.local:8080/"

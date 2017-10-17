@@ -2,16 +2,16 @@
 import BluebirdPromise = require("bluebird");
 import express = require("express");
 import objectPath = require("object-path");
-
 import FirstFactorValidator = require("./FirstFactorValidator");
-import AuthenticationSession = require("./AuthenticationSession");
+import AuthenticationSessionHandler = require("./AuthenticationSession");
+import { IRequestLogger } from "./logging/IRequestLogger";
 
-export function validate(req: express.Request): BluebirdPromise<void> {
-    return FirstFactorValidator.validate(req)
+export function validate(req: express.Request, logger: IRequestLogger): BluebirdPromise<void> {
+    return FirstFactorValidator.validate(req, logger)
         .then(function () {
-            return AuthenticationSession.get(req);
+            return AuthenticationSessionHandler.get(req, logger);
         })
-        .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+        .then(function (authSession) {
             if (!authSession.second_factor)
                 return BluebirdPromise.reject("No second factor variable.");
             return BluebirdPromise.resolve();
