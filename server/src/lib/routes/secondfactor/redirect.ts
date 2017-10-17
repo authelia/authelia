@@ -7,6 +7,7 @@ import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 import AuthenticationSession = require("../../AuthenticationSession");
 import BluebirdPromise = require("bluebird");
 import ErrorReplies = require("../../ErrorReplies");
+import UserMessages = require("../../../../../shared/UserMessages");
 
 export default function (req: express.Request, res: express.Response): BluebirdPromise<void> {
     const logger = ServerVariablesHandler.getLogger(req.app);
@@ -19,5 +20,5 @@ export default function (req: express.Request, res: express.Response): BluebirdP
             return BluebirdPromise.resolve();
         })
         .catch(ErrorReplies.replyWithError200(req, res, logger,
-            "Unexpected error."));
+            UserMessages.OPERATION_FAILED));
 }

@@ -6,7 +6,7 @@ import { UserDataStore } from "../../../server/src/lib/storage/UserDataStore";
 import { CollectionFactoryFactory } from "../../../server/src/lib/storage/CollectionFactoryFactory";
 import { MongoConnector } from "../../../server/src/lib/connectors/mongo/MongoConnector";
 import { IMongoClient } from "../../../server/src/lib/connectors/mongo/IMongoClient";
-import { TOTPGenerator } from "../../../server/src/lib/TOTPGenerator";
+import { TotpHandler } from "../../../server/src/lib/authentication/totp/TotpHandler";
 import Speakeasy = require("speakeasy");
 
 Cucumber.defineSupportCode(function ({ setDefaultTimeout }) {
@@ -14,19 +14,46 @@ Cucumber.defineSupportCode(function ({ setDefaultTimeout }) {
 });
 
 Cucumber.defineSupportCode(function ({ After, Before }) {
-  const exec = BluebirdPromise.promisify(ChildProcess.exec);
+  const exec = BluebirdPromise.promisify<any, any>(ChildProcess.exec);
 
   After(function () {
     return this.driver.quit();
   });
 
-  Before({ tags: "@needs-test-config", timeout: 20 * 1000 }, function () {
-    return exec("./scripts/example-commit/dc-example.sh -f docker-compose.test.yml up -d authelia && sleep 2");
-  });
+  function createRegulationConfiguration(): BluebirdPromise<void> {
+    return exec("\
+    cat config.template.yml | \
+    sed 's/find_time: [0-9]\\+/find_time: 15/' | \
+    sed 's/ban_time: [0-9]\\+/ban_time: 4/' > config.test.yml \
+    ");
+  }
 
-  After({ tags: "@needs-test-config", timeout: 20 * 1000 }, function () {
-    return exec("./scripts/example-commit/dc-example.sh up -d authelia && sleep 2");
-  });
+  function createInactivityConfiguration(): BluebirdPromise<void> {
+    return exec("\
+    cat config.template.yml | \
+    sed 's/expiration: [0-9]\\+/expiration: 10000/' | \
+    sed 's/inactivity: [0-9]\\+/inactivity: 5000/' > config.test.yml \
+    ");
+  }
+
+  function declareNeedsConfiguration(tag: string, cb: () => BluebirdPromise<void>) {
+    Before({ tags: "@needs-" + tag + "-config", timeout: 20 * 1000 }, function () {
+      return cb()
+        .then(function () {
+          return exec("./scripts/example-commit/dc-example.sh -f docker-compose.test.yml up -d authelia && sleep 1");
+        })
+    });
+
+    After({ tags: "@needs-" + tag + "-config", timeout: 20 * 1000 }, function () {
+      return exec("rm config.test.yml")
+        .then(function () {
+          return exec("./scripts/example-commit/dc-example.sh up -d authelia && sleep 1");
+        });
+    });
+  }
+
+  declareNeedsConfiguration("regulation", createRegulationConfiguration);
+  declareNeedsConfiguration("inactivity", createInactivityConfiguration);
 
   function registerUser(context: any, username: string) {
     let secret: Speakeasy.Key;
@@ -36,7 +63,7 @@ Cucumber.defineSupportCode(function ({ After, Before }) {
         const collectionFactory = CollectionFactoryFactory.createMongo(mongoClient);
         const userDataStore = new UserDataStore(collectionFactory);
 
-        const generator = new TOTPGenerator(Speakeasy);
+        const generator = new TotpHandler(Speakeasy);
         secret = generator.generate();
         return userDataStore.saveTOTPSecret(username, secret);
       })
@@ -56,7 +83,10 @@ Cucumber.defineSupportCode(function ({ After, Before }) {
   }
 
   function needAuthenticatedUser(context: any, username: string): BluebirdPromise<void> {
-    return context.visit("https://auth.test.local:8080/")
+    return context.visit("https://auth.test.local:8080/logout")
+      .then(function () {
+        return context.visit("https://auth.test.local:8080/");
+      })
       .then(function () {
         return registerUser(context, username);
       })
@@ -66,7 +96,7 @@ Cucumber.defineSupportCode(function ({ After, Before }) {
       .then(function () {
         return context.useTotpTokenHandle("REGISTERED");
       })
-      .then(function() {
+      .then(function () {
         return context.clickOnButton("TOTP");
       });
   }

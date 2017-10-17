@@ -60,17 +60,35 @@ describe("test config parser", function () {
     });
   });
 
-  it("should get the session attributes", function () {
-    const yaml_config = buildYamlConfig();
-    yaml_config.session = {
-      domain: "example.com",
-      secret: "secret",
-      expiration: 3600
-    };
-    const config = ConfigurationParser.parse(yaml_config);
-    Assert.equal(config.session.domain, "example.com");
-    Assert.equal(config.session.secret, "secret");
-    Assert.equal(config.session.expiration, 3600);
+  describe("test session configuration", function() {
+    it("should get the session attributes", function () {
+      const yaml_config = buildYamlConfig();
+      yaml_config.session = {
+        domain: "example.com",
+        secret: "secret",
+        expiration: 3600,
+        inactivity: 4000
+      };
+      const config = ConfigurationParser.parse(yaml_config);
+      Assert.equal(config.session.domain, "example.com");
+      Assert.equal(config.session.secret, "secret");
+      Assert.equal(config.session.expiration, 3600);
+      Assert.equal(config.session.inactivity, 4000);
+    });
+
+    it("should be ok not specifying inactivity", function () {
+      const yaml_config = buildYamlConfig();
+      yaml_config.session = {
+        domain: "example.com",
+        secret: "secret",
+        expiration: 3600
+      };
+      const config = ConfigurationParser.parse(yaml_config);
+      Assert.equal(config.session.domain, "example.com");
+      Assert.equal(config.session.secret, "secret");
+      Assert.equal(config.session.expiration, 3600);
+      Assert.equal(config.session.inactivity, undefined);
+    });
   });
 
   it("should get the log level", function () {

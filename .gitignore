@@ -29,6 +29,7 @@ dist/
 
 # Specific files
 /config.yml
+/config.test.yml
 
 example/ldap/private.ldif
 

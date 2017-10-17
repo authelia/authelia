@@ -4,16 +4,14 @@ import ObjectPath = require("object-path");
 import { AccessController } from "./access_control/AccessController";
 import { AppConfiguration, UserConfiguration } from "./configuration/Configuration";
 import { GlobalDependencies } from "../../types/Dependencies";
-import { AuthenticationRegulator } from "./AuthenticationRegulator";
 import { UserDataStore } from "./storage/UserDataStore";
 import { ConfigurationParser } from "./configuration/ConfigurationParser";
-import { TOTPValidator } from "./TOTPValidator";
-import { TOTPGenerator } from "./TOTPGenerator";
 import { RestApi } from "./RestApi";
-import { ServerVariablesHandler } from "./ServerVariablesHandler";
+import { ServerVariablesHandler, ServerVariablesInitializer } from "./ServerVariablesHandler";
 import { SessionConfigurationBuilder } from "./configuration/SessionConfigurationBuilder";
 import { GlobalLogger } from "./logging/GlobalLogger";
 import { RequestLogger } from "./logging/RequestLogger";
+import { ServerVariables } from "./ServerVariables";
 
 import * as Express from "express";
 import * as BodyParser from "body-parser";
@@ -37,13 +35,16 @@ export default class Server {
   private httpServer: http.Server;
   private globalLogger: GlobalLogger;
   private requestLogger: RequestLogger;
+  private serverVariables: ServerVariables;
 
   constructor(deps: GlobalDependencies) {
     this.globalLogger = new GlobalLogger(deps.winston);
     this.requestLogger = new RequestLogger(deps.winston);
   }
 
-  private setupExpressApplication(config: AppConfiguration, app: Express.Application, deps: GlobalDependencies): void {
+  private setupExpressApplication(config: AppConfiguration,
+    app: Express.Application,
+    deps: GlobalDependencies): void {
     const viewsDirectory = Path.resolve(__dirname, "../views");
     const publicHtmlDirectory = Path.resolve(__dirname, "../public_html");
 
@@ -60,7 +61,7 @@ export default class Server {
     app.set(VIEWS, viewsDirectory);
     app.set(VIEW_ENGINE, PUG);
 
-    RestApi.setup(app);
+    RestApi.setup(app, this.serverVariables);
   }
 
   private displayConfigurations(userConfiguration: UserConfiguration,
@@ -90,8 +91,14 @@ export default class Server {
   }
 
   private setup(config: AppConfiguration, app: Express.Application, deps: GlobalDependencies): BluebirdPromise<void> {
-    this.setupExpressApplication(config, app, deps);
-    return ServerVariablesHandler.initialize(app, config, this.requestLogger, deps);
+    const that = this;
+    return ServerVariablesInitializer.initialize(config, this.requestLogger, deps)
+      .then(function (vars: ServerVariables) {
+        that.serverVariables = vars;
+        that.setupExpressApplication(config, app, deps);
+        ServerVariablesHandler.setup(app, vars);
+        return BluebirdPromise.resolve();
+      });
   }
 
   private startServer(app: Express.Application, port: number) {

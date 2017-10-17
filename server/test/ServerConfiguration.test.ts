@@ -1,5 +1,5 @@
 
-import assert = require("assert");
+import Assert = require("assert");
 import Sinon = require("sinon");
 import nedb = require("nedb");
 import express = require("express");
@@ -72,9 +72,10 @@ describe("test server configuration", function () {
     };
 
     const server = new Server(deps);
-    server.start(config, deps);
-
-    assert(sessionMock.calledOnce);
-    assert.equal(sessionMock.getCall(0).args[0].cookie.domain, "example.com");
+    server.start(config, deps)
+      .then(function () {
+        Assert(sessionMock.calledOnce);
+        Assert.equal(sessionMock.getCall(0).args[0].cookie.domain, "example.com");
+      });
   });
 });

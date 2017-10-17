@@ -1,10 +1,11 @@
 
 import * as BluebirdPromise from "bluebird";
-import exceptions = require("./Exceptions");
-import { IUserDataStore } from "./storage/IUserDataStore";
-import { AuthenticationTraceDocument } from "./storage/AuthenticationTraceDocument";
+import exceptions = require("../Exceptions");
+import { IUserDataStore } from "../storage/IUserDataStore";
+import { AuthenticationTraceDocument } from "../storage/AuthenticationTraceDocument";
+import { IRegulator } from "./IRegulator";
 
-export class AuthenticationRegulator {
+export class Regulator implements IRegulator {
   private userDataStore: IUserDataStore;
   private banTime: number;
   private findTime: number;

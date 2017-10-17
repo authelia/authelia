@@ -42,8 +42,8 @@ module.exports = function (grunt) {
         args: ['--colors', '--compilers', 'ts:ts-node/register', '--recursive', 'client/test']
       },
       "test-int": {
-        cmd: "./node_modules/.bin/cucumber-js",
-        args: ["--colors", "--compiler", "ts:ts-node/register", "./test/features"]
+        cmd: "./scripts/run-cucumber.sh",
+        args: ["./test/features"]
       },
       "docker-build": {
         cmd: "docker",
@@ -193,6 +193,8 @@ module.exports = function (grunt) {
 
   grunt.registerTask('build', ['build-client', 'build-server']);
   grunt.registerTask('build-dist', ['build', 'run:minify', 'cssmin', 'run:include-minified-script']);
+
+  grunt.registerTask('schema', ['run:generate-config-schema'])
 
   grunt.registerTask('docker-build', ['run:docker-build']);
 

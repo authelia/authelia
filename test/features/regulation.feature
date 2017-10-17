@@ -1,6 +1,6 @@
+@needs-regulation-config
 Feature: Authelia regulates authentication to avoid brute force
 
-  @needs-test-config
   @need-registered-user-blackhat
   Scenario: Attacker tries too many authentication in a short period of time and get banned
     Given I visit "https://auth.test.local:8080/"
@@ -18,7 +18,6 @@ Feature: Authelia regulates authentication to avoid brute force
     And I click on "Sign in"
     Then I get a notification of type "error" with message "Authentication failed. Please check your credentials."
 
-  @needs-test-config
   @need-registered-user-blackhat
   Scenario: User is unbanned after a configured amount of time
     Given I visit "https://auth.test.local:8080/?redirect=https%3A%2F%2Fpublic.test.local%3A8080%2Fsecret.html"
