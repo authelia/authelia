@@ -39,11 +39,6 @@ import { GlobalDependencies } from "../../types/Dependencies";
 import { ServerVariables } from "./ServerVariables";
 import { AuthenticationMethodCalculator } from "./AuthenticationMethodCalculator";
 
-
-import express = require("express");
-
-export const VARIABLES_KEY = "authelia-variables";
-
 class UserDataStoreFactory {
   static create(config: Configuration.AppConfiguration): BluebirdPromise<UserDataStore> {
     if (config.storage.local) {
@@ -103,54 +98,4 @@ export class ServerVariablesInitializer {
         return BluebirdPromise.resolve(variables);
       });
     }
-}
-
-export class ServerVariablesHandler {
-  static setup(app: express.Application, variables: ServerVariables): void {
-     app.set(VARIABLES_KEY, variables);
-  }
-
-  static getLogger(app: express.Application): IRequestLogger {
-    return (app.get(VARIABLES_KEY) as ServerVariables).logger;
-  }
-
-  static getUserDataStore(app: express.Application): IUserDataStore {
-    return (app.get(VARIABLES_KEY) as ServerVariables).userDataStore;
-  }
-
-  static getNotifier(app: express.Application): INotifier {
-    return (app.get(VARIABLES_KEY) as ServerVariables).notifier;
-  }
-
-  static getLdapAuthenticator(app: express.Application): IAuthenticator {
-    return (app.get(VARIABLES_KEY) as ServerVariables).ldapAuthenticator;
-  }
-
-  static getLdapPasswordUpdater(app: express.Application): IPasswordUpdater {
-    return (app.get(VARIABLES_KEY) as ServerVariables).ldapPasswordUpdater;
-  }
-
-  static getLdapEmailsRetriever(app: express.Application): IEmailsRetriever {
-    return (app.get(VARIABLES_KEY) as ServerVariables).ldapEmailsRetriever;
-  }
-
-  static getConfiguration(app: express.Application): Configuration.AppConfiguration {
-    return (app.get(VARIABLES_KEY) as ServerVariables).config;
-  }
-
-  static getAuthenticationRegulator(app: express.Application): IRegulator {
-    return (app.get(VARIABLES_KEY) as ServerVariables).regulator;
-  }
-
-  static getAccessController(app: express.Application): IAccessController {
-    return (app.get(VARIABLES_KEY) as ServerVariables).accessController;
-  }
-
-  static getTotpHandler(app: express.Application): ITotpHandler {
-    return (app.get(VARIABLES_KEY) as ServerVariables).totpHandler;
-  }
-
-  static getU2F(app: express.Application): typeof U2F {
-    return (app.get(VARIABLES_KEY) as ServerVariables).u2f;
-  }
 }

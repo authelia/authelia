@@ -6,23 +6,30 @@ import AuthenticationSession = require("../../../../../src/lib/AuthenticationSes
 import { UserDataStore } from "../../../../../src/lib/storage/UserDataStore";
 import assert = require("assert");
 import BluebirdPromise = require("bluebird");
-
 import ExpressMock = require("../../../../mocks/express");
-import ServerVariablesMock = require("../../../../mocks/ServerVariablesMock");
+import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../../../mocks/ServerVariablesMockBuilder";
+import { ServerVariables } from "../../../../../src/lib/ServerVariables";
 
 describe("test totp register", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
-  const registrationHandler: RegistrationHandler = new RegistrationHandler();
-  let authSession: AuthenticationSession.AuthenticationSession;
+  let mocks: ServerVariablesMock;
+  let vars: ServerVariables;
 
   beforeEach(function () {
+    const s = ServerVariablesMockBuilder.build();
+    mocks = s.mocks;
+    vars = s.variables;
+
     req = ExpressMock.RequestMock();
-    const mocks = ServerVariablesMock.mock(req.app);
-    req.session = {};
-
-    AuthenticationSession.reset(req as any);
-
+    req.session = {
+      auth: {
+        userid: "user",
+        email: "user@example.com",
+        first_factor: true,
+        second_factor: false
+      }
+    };
     req.headers = {};
     req.headers.host = "localhost";
 
@@ -37,23 +44,15 @@ describe("test totp register", function () {
     mocks.userDataStore.saveTOTPSecretStub.returns(BluebirdPromise.resolve({}));
 
     res = ExpressMock.ResponseMock();
-
-    return AuthenticationSession.get(req as any)
-      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
-        authSession = _authSession;
-        authSession.userid = "user";
-        authSession.email = "user@example.com";
-        authSession.first_factor = true;
-        authSession.second_factor = false;
-      });
   });
 
   describe("test totp registration check", test_registration_check);
 
   function test_registration_check() {
     it("should fail if first_factor has not been passed", function () {
-      authSession.first_factor = false;
-      return registrationHandler.preValidationInit(req as any)
+      req.session.auth.first_factor = false;
+      return new RegistrationHandler(vars.logger, vars.userDataStore, vars.totpHandler)
+        .preValidationInit(req as any)
         .then(function () { return BluebirdPromise.reject(new Error("It should fail")); })
         .catch(function (err: Error) {
           return BluebirdPromise.resolve();
@@ -61,27 +60,30 @@ describe("test totp register", function () {
     });
 
     it("should fail if userid is missing", function (done) {
-      authSession.first_factor = false;
-      authSession.userid = undefined;
+      req.session.auth.first_factor = false;
+      req.session.auth.userid = undefined;
 
-      registrationHandler.preValidationInit(req as any)
+      new RegistrationHandler(vars.logger, vars.userDataStore, vars.totpHandler)
+        .preValidationInit(req as any)
         .catch(function (err: Error) {
           done();
         });
     });
 
     it("should fail if email is missing", function (done) {
-      authSession.first_factor = false;
-      authSession.email = undefined;
+      req.session.auth.first_factor = false;
+      req.session.auth.email = undefined;
 
-      registrationHandler.preValidationInit(req as any)
+      new RegistrationHandler(vars.logger, vars.userDataStore, vars.totpHandler)
+        .preValidationInit(req as any)
         .catch(function (err: Error) {
           done();
         });
     });
 
     it("should succeed if first factor passed, userid and email are provided", function (done) {
-      registrationHandler.preValidationInit(req as any)
+      new RegistrationHandler(vars.logger, vars.userDataStore, vars.totpHandler)
+        .preValidationInit(req as any)
         .then(function (identity: Identity) {
           done();
         });

@@ -167,4 +167,13 @@ describe("test config parser", function () {
       } as ACLConfiguration);
     });
   });
+
+  describe("default_redirection_url", function() {
+    it("should parse default_redirection_url", function() {
+      const userConfig = buildYamlConfig();
+      userConfig.default_redirection_url = "dummy_url";
+      const config = ConfigurationParser.parse(userConfig);
+      Assert.deepEqual(config.default_redirection_url, "dummy_url");
+    });
+  });
 });

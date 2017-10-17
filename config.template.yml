@@ -10,6 +10,18 @@ port: 80
 # Level of verbosity for logs
 logs_level: debug
 
+# Default redirection URL
+#
+# If user tries to authenticate without any referer, Authelia
+# does not know where to redirect the user to at the end of the
+# authentication process.
+# This parameter allows you to specify the default redirection
+# URL Authelia will use in such a case.
+#
+# Note: this parameter is optional. If not provided, user won't
+# be redirected upon successful authentication.
+default_redirection_url: https://home.test.local:8080/
+
 # LDAP configuration
 #
 # Example: for user john, the DN will be cn=john,ou=users,dc=example,dc=com

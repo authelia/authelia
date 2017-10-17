@@ -6,6 +6,8 @@ import jslogger = require("js-logger");
 import { Notifier } from "../Notifier";
 import Endpoints = require("../../../../shared/api");
 import UserMessages = require("../../../../shared/UserMessages");
+import { RedirectionMessage } from "../../../../shared/RedirectionMessage";
+import { ErrorMessage } from "../../../../shared/ErrorMessage";
 
 export default function (window: Window, $: JQueryStatic) {
   const notifier = new Notifier(".notification", $);
@@ -17,12 +19,12 @@ export default function (window: Window, $: JQueryStatic) {
 
     return new BluebirdPromise<string>(function (resolve, reject) {
       $.post(Endpoints.SECOND_FACTOR_U2F_REGISTER_POST, registrationData, undefined, "json")
-        .done(function (body: any) {
-          if (body && body.error) {
-            reject(new Error(body.error));
+        .done(function (body: RedirectionMessage | ErrorMessage) {
+          if (body && "error" in body) {
+            reject(new Error((body as ErrorMessage).error));
             return;
           }
-          resolve(body.redirection_url);
+          resolve((body as RedirectionMessage).redirect);
         })
         .fail(function (xhr, status) {
           reject();

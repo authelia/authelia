@@ -32,7 +32,7 @@ describe("test U2F validation", function () {
         getPromise.done.returns(getPromise);
 
         const postPromise = JQueryMock.JQueryDeferredMock();
-        postPromise.done.yields();
+        postPromise.done.yields({ redirect: "https://home.test.url" });
         postPromise.done.returns(postPromise);
 
         const jqueryMock = JQueryMock.JQueryMock();

@@ -7,7 +7,7 @@ import Assert = require("assert");
 describe("test TOTPValidator", function () {
   it("should initiate an identity check successfully", () => {
     const postPromise = JQueryMock.JQueryDeferredMock();
-    postPromise.done.yields();
+    postPromise.done.yields({ redirect: "https://home.test.url" });
     postPromise.done.returns(postPromise);
 
     const jqueryMock = JQueryMock.JQueryMock();

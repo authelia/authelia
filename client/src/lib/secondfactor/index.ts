@@ -4,35 +4,37 @@ import jslogger = require("js-logger");
 
 import TOTPValidator = require("./TOTPValidator");
 import U2FValidator = require("./U2FValidator");
-import Constants = require("./constants");
+import ClientConstants = require("./constants");
 import { Notifier } from "../Notifier";
 import { QueryParametersRetriever } from "../QueryParametersRetriever";
 import Endpoints = require("../../../../shared/api");
 import ServerConstants = require("../../../../shared/constants");
 import UserMessages = require("../../../../shared/UserMessages");
+import SharedConstants = require("../../../../shared/constants");
 
 export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi) {
   const notifierTotp = new Notifier(".notification-totp", $);
   const notifierU2f = new Notifier(".notification-u2f", $);
 
-  function onAuthenticationSuccess(data: any, notifier: Notifier) {
-    const redirectUrl = QueryParametersRetriever.get(ServerConstants.REDIRECT_QUERY_PARAM);
-    if (redirectUrl)
-      window.location.href = redirectUrl;
+  function onAuthenticationSuccess(serverRedirectUrl: string, notifier: Notifier) {
+    if (QueryParametersRetriever.get(SharedConstants.REDIRECT_QUERY_PARAM))
+      window.location.href = QueryParametersRetriever.get(SharedConstants.REDIRECT_QUERY_PARAM);
+    else if (serverRedirectUrl)
+      window.location.href = serverRedirectUrl;
     else
       notifier.success(UserMessages.AUTHENTICATION_SUCCEEDED);
   }
 
-  function onSecondFactorTotpSuccess(data: any) {
-    onAuthenticationSuccess(data, notifierTotp);
+  function onSecondFactorTotpSuccess(redirectUrl: string) {
+    onAuthenticationSuccess(redirectUrl, notifierTotp);
   }
 
   function onSecondFactorTotpFailure(err: Error) {
     notifierTotp.error(UserMessages.AUTHENTICATION_TOTP_FAILED);
   }
 
-  function onU2fAuthenticationSuccess(data: any) {
-    onAuthenticationSuccess(data, notifierU2f);
+  function onU2fAuthenticationSuccess(redirectUrl: string) {
+    onAuthenticationSuccess(redirectUrl, notifierU2f);
   }
 
   function onU2fAuthenticationFailure() {
@@ -40,7 +42,7 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
   }
 
   function onTOTPFormSubmitted(): boolean {
-    const token = $(Constants.TOTP_TOKEN_SELECTOR).val();
+    const token = $(ClientConstants.TOTP_TOKEN_SELECTOR).val();
     TOTPValidator.validate(token, $)
       .then(onSecondFactorTotpSuccess)
       .catch(onSecondFactorTotpFailure);
@@ -54,7 +56,7 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
   }
 
   $(window.document).ready(function () {
-    $(Constants.TOTP_FORM_SELECTOR).on("submit", onTOTPFormSubmitted);
-    $(Constants.U2F_FORM_SELECTOR).on("submit", onU2FFormSubmitted);
+    $(ClientConstants.TOTP_FORM_SELECTOR).on("submit", onTOTPFormSubmitted);
+    $(ClientConstants.U2F_FORM_SELECTOR).on("submit", onU2FFormSubmitted);
   });
 }
