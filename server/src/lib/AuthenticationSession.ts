@@ -2,24 +2,9 @@
 
 import express = require("express");
 import U2f = require("u2f");
-import { ServerVariablesHandler } from "./ServerVariablesHandler";
 import BluebirdPromise = require("bluebird");
-
-export interface AuthenticationSession {
-  userid: string;
-  first_factor: boolean;
-  second_factor: boolean;
-  last_activity_datetime: number;
-  identity_check?: {
-    challenge: string;
-    userid: string;
-  };
-  register_request?: U2f.Request;
-  sign_request?: U2f.Request;
-  email: string;
-  groups: string[];
-  redirect?: string;
-}
+import { AuthenticationSession } from "../../types/AuthenticationSession";
+import { IRequestLogger } from "./logging/IRequestLogger";
 
 const INITIAL_AUTHENTICATION_SESSION: AuthenticationSession = {
   first_factor: false,
@@ -35,16 +20,13 @@ const INITIAL_AUTHENTICATION_SESSION: AuthenticationSession = {
 };
 
 export function reset(req: express.Request): void {
-  const logger = ServerVariablesHandler.getLogger(req.app);
-  logger.debug(req, "Authentication session %s is being reset.", req.sessionID);
   req.session.auth = Object.assign({}, INITIAL_AUTHENTICATION_SESSION, {});
 
   // Initialize last activity with current time
   req.session.auth.last_activity_datetime = new Date().getTime();
 }
 
-export function get(req: express.Request): BluebirdPromise<AuthenticationSession> {
-  const logger = ServerVariablesHandler.getLogger(req.app);
+export function get(req: express.Request, logger: IRequestLogger): BluebirdPromise<AuthenticationSession> {
   if (!req.session) {
     const errorMsg = "Something is wrong with session cookies. Please check Redis is running and Authelia can contact it.";
     logger.error(req, errorMsg);

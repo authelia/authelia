@@ -11,47 +11,46 @@ import exceptions = require("../../../../Exceptions");
 import { SignMessage } from "../../../../../../../shared/SignMessage";
 import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import ErrorReplies = require("../../../../ErrorReplies");
-import { ServerVariablesHandler } from "../../../../ServerVariablesHandler";
-import AuthenticationSession = require("../../../../AuthenticationSession");
+import AuthenticationSessionHandler = require("../../../../AuthenticationSession");
 import UserMessages = require("../../../../../../../shared/UserMessages");
+import { ServerVariables } from "../../../../ServerVariables";
+import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 
-export default FirstFactorBlocker(handler);
+export default function (vars: ServerVariables) {
+  function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
+    let authSession: AuthenticationSession;
+    const appId = u2f_common.extract_app_id(req);
 
-export function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
-  const logger = ServerVariablesHandler.getLogger(req.app);
-  const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
-  let authSession: AuthenticationSession.AuthenticationSession;
-  const appId = u2f_common.extract_app_id(req);
+    return AuthenticationSessionHandler.get(req, vars.logger)
+      .then(function (_authSession) {
+        authSession = _authSession;
+        return vars.userDataStore.retrieveU2FRegistration(authSession.userid, appId);
+      })
+      .then(function (doc: U2FRegistrationDocument): BluebirdPromise<SignMessage> {
+        if (!doc)
+          return BluebirdPromise.reject(new exceptions.AccessDeniedError("No U2F registration found"));
 
-  return AuthenticationSession.get(req)
-    .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
-      authSession = _authSession;
-      return userDataStore.retrieveU2FRegistration(authSession.userid, appId);
-    })
-    .then(function (doc: U2FRegistrationDocument): BluebirdPromise<SignMessage> {
-      if (!doc)
-        return BluebirdPromise.reject(new exceptions.AccessDeniedError("No U2F registration found"));
+        const appId: string = u2f_common.extract_app_id(req);
+        vars.logger.info(req, "Start authentication of app '%s'", appId);
+        vars.logger.debug(req, "AppId = %s, keyHandle = %s", appId, JSON.stringify(doc.registration.keyHandle));
 
-      const u2f = ServerVariablesHandler.getU2F(req.app);
-      const appId: string = u2f_common.extract_app_id(req);
-      logger.info(req, "Start authentication of app '%s'", appId);
-      logger.debug(req, "AppId = %s, keyHandle = %s", appId, JSON.stringify(doc.registration.keyHandle));
+        const request = vars.u2f.request(appId, doc.registration.keyHandle);
+        const authenticationMessage: SignMessage = {
+          request: request,
+          keyHandle: doc.registration.keyHandle
+        };
+        return BluebirdPromise.resolve(authenticationMessage);
+      })
+      .then(function (authenticationMessage: SignMessage) {
+        vars.logger.info(req, "Store authentication request and reply");
+        vars.logger.debug(req, "AuthenticationRequest = %s", authenticationMessage);
+        authSession.sign_request = authenticationMessage.request;
+        res.json(authenticationMessage);
+        return BluebirdPromise.resolve();
+      })
+      .catch(ErrorReplies.replyWithError200(req, res, vars.logger,
+        UserMessages.OPERATION_FAILED));
+  }
 
-      const request = u2f.request(appId, doc.registration.keyHandle);
-      const authenticationMessage: SignMessage = {
-        request: request,
-        keyHandle: doc.registration.keyHandle
-      };
-      return BluebirdPromise.resolve(authenticationMessage);
-    })
-    .then(function (authenticationMessage: SignMessage) {
-      logger.info(req, "Store authentication request and reply");
-      logger.debug(req, "AuthenticationRequest = %s", authenticationMessage);
-      authSession.sign_request = authenticationMessage.request;
-      res.json(authenticationMessage);
-      return BluebirdPromise.resolve();
-    })
-    .catch(ErrorReplies.replyWithError200(req, res, logger,
-      UserMessages.OPERATION_FAILED));
+  return FirstFactorBlocker(handler, vars.logger);
 }
-

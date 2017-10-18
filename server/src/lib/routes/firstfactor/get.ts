@@ -4,11 +4,11 @@ import objectPath = require("object-path");
 import winston = require("winston");
 import Endpoints = require("../../../../../shared/api");
 import AuthenticationValidator = require("../../AuthenticationValidator");
-import { ServerVariablesHandler } from "../../ServerVariablesHandler";
 import BluebirdPromise = require("bluebird");
 import AuthenticationSession = require("../../AuthenticationSession");
 import Constants = require("../../../../../shared/constants");
 import Util = require("util");
+import { ServerVariables } from "../../ServerVariables";
 
 function getRedirectParam(req: express.Request) {
   return req.query[Constants.REDIRECT_QUERY_PARAM] != "undefined"
@@ -40,18 +40,20 @@ function renderFirstFactor(res: express.Response) {
   });
 }
 
-export default function (req: express.Request, res: express.Response): BluebirdPromise<void> {
-  return AuthenticationSession.get(req)
-    .then(function (authSession) {
-      if (authSession.first_factor) {
-        if (authSession.second_factor)
-          redirectToService(req, res);
-        else
-          redirectToSecondFactorPage(req, res);
-        return BluebirdPromise.resolve();
-      }
+export default function (vars: ServerVariables) {
+  return function (req: express.Request, res: express.Response): BluebirdPromise<void> {
+    return AuthenticationSession.get(req, vars.logger)
+      .then(function (authSession) {
+        if (authSession.first_factor) {
+          if (authSession.second_factor)
+            redirectToService(req, res);
+          else
+            redirectToSecondFactorPage(req, res);
+          return BluebirdPromise.resolve();
+        }
 
-      renderFirstFactor(res);
-      return BluebirdPromise.resolve();
-    });
+        renderFirstFactor(res);
+        return BluebirdPromise.resolve();
+      });
+  };
 }

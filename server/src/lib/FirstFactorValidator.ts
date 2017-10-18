@@ -3,11 +3,12 @@ import BluebirdPromise = require("bluebird");
 import express = require("express");
 import objectPath = require("object-path");
 import Exceptions = require("./Exceptions");
-import AuthenticationSession = require("./AuthenticationSession");
+import AuthenticationSessionHandler = require("./AuthenticationSession");
+import { IRequestLogger } from "./logging/IRequestLogger";
 
-export function validate(req: express.Request): BluebirdPromise<void> {
-  return AuthenticationSession.get(req)
-    .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+export function validate(req: express.Request, logger: IRequestLogger): BluebirdPromise<void> {
+  return AuthenticationSessionHandler.get(req, logger)
+    .then(function (authSession) {
       if (!authSession.userid || !authSession.first_factor)
         return BluebirdPromise.reject(
           new Exceptions.FirstFactorValidationError(

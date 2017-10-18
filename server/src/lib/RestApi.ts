@@ -32,14 +32,14 @@ import Error404Get = require("./routes/error/404/get");
 
 import LoggedIn = require("./routes/loggedin/get");
 
-import { ServerVariablesHandler } from "./ServerVariablesHandler";
 import { ServerVariables } from "./ServerVariables";
+import { IRequestLogger } from "./logging/IRequestLogger";
 
 import Endpoints = require("../../../shared/api");
 
-function withLog(fn: (req: Express.Request, res: Express.Response) => void) {
-  return function(req: Express.Request, res: Express.Response) {
-    const logger = ServerVariablesHandler.getLogger(req.app);
+function withHeadersLogged(fn: (req: Express.Request, res: Express.Response) => void,
+  logger: IRequestLogger) {
+  return function (req: Express.Request, res: Express.Response) {
     logger.debug(req, "Headers = %s", JSON.stringify(req.headers));
     fn(req, res);
   };
@@ -47,35 +47,38 @@ function withLog(fn: (req: Express.Request, res: Express.Response) => void) {
 
 export class RestApi {
   static setup(app: Express.Application, vars: ServerVariables): void {
-    app.get(Endpoints.FIRST_FACTOR_GET, withLog(FirstFactorGet.default));
-    app.get(Endpoints.SECOND_FACTOR_GET, withLog(SecondFactorGet.default));
-    app.get(Endpoints.LOGOUT_GET, withLog(LogoutGet.default));
+    app.get(Endpoints.FIRST_FACTOR_GET, withHeadersLogged(FirstFactorGet.default(vars), vars.logger));
+    app.get(Endpoints.SECOND_FACTOR_GET, withHeadersLogged(SecondFactorGet.default(vars), vars.logger));
+    app.get(Endpoints.LOGOUT_GET, withHeadersLogged(LogoutGet.default, vars.logger));
 
     IdentityCheckMiddleware.register(app, Endpoints.SECOND_FACTOR_TOTP_IDENTITY_START_GET,
-      Endpoints.SECOND_FACTOR_TOTP_IDENTITY_FINISH_GET, new TOTPRegistrationIdentityHandler());
+      Endpoints.SECOND_FACTOR_TOTP_IDENTITY_FINISH_GET,
+      new TOTPRegistrationIdentityHandler(vars.logger, vars.userDataStore, vars.totpHandler), vars);
 
     IdentityCheckMiddleware.register(app, Endpoints.SECOND_FACTOR_U2F_IDENTITY_START_GET,
-      Endpoints.SECOND_FACTOR_U2F_IDENTITY_FINISH_GET, new U2FRegistrationIdentityHandler());
+      Endpoints.SECOND_FACTOR_U2F_IDENTITY_FINISH_GET,
+      new U2FRegistrationIdentityHandler(vars.logger), vars);
 
     IdentityCheckMiddleware.register(app, Endpoints.RESET_PASSWORD_IDENTITY_START_GET,
-      Endpoints.RESET_PASSWORD_IDENTITY_FINISH_GET, new ResetPasswordIdentityHandler());
+      Endpoints.RESET_PASSWORD_IDENTITY_FINISH_GET,
+      new ResetPasswordIdentityHandler(vars.logger, vars.ldapEmailsRetriever), vars);
 
-    app.get(Endpoints.RESET_PASSWORD_REQUEST_GET, withLog(ResetPasswordRequestPost.default));
-    app.post(Endpoints.RESET_PASSWORD_FORM_POST, withLog(ResetPasswordFormPost.default));
+    app.get(Endpoints.RESET_PASSWORD_REQUEST_GET, withHeadersLogged(ResetPasswordRequestPost.default, vars.logger));
+    app.post(Endpoints.RESET_PASSWORD_FORM_POST, withHeadersLogged(ResetPasswordFormPost.default(vars), vars.logger));
 
-    app.get(Endpoints.VERIFY_GET, withLog(VerifyGet.default(vars)));
-    app.post(Endpoints.FIRST_FACTOR_POST, withLog(FirstFactorPost.default(vars)));
-    app.post(Endpoints.SECOND_FACTOR_TOTP_POST, withLog(TOTPSignGet.default(vars)));
+    app.get(Endpoints.VERIFY_GET, withHeadersLogged(VerifyGet.default(vars), vars.logger));
+    app.post(Endpoints.FIRST_FACTOR_POST, withHeadersLogged(FirstFactorPost.default(vars), vars.logger));
+    app.post(Endpoints.SECOND_FACTOR_TOTP_POST, withHeadersLogged(TOTPSignGet.default(vars), vars.logger));
 
-    app.get(Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET, withLog(U2FSignRequestGet.default));
-    app.post(Endpoints.SECOND_FACTOR_U2F_SIGN_POST, withLog(U2FSignPost.default));
+    app.get(Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET, withHeadersLogged(U2FSignRequestGet.default(vars), vars.logger));
+    app.post(Endpoints.SECOND_FACTOR_U2F_SIGN_POST, withHeadersLogged(U2FSignPost.default(vars), vars.logger));
 
-    app.get(Endpoints.SECOND_FACTOR_U2F_REGISTER_REQUEST_GET, withLog(U2FRegisterRequestGet.default));
-    app.post(Endpoints.SECOND_FACTOR_U2F_REGISTER_POST, withLog(U2FRegisterPost.default));
+    app.get(Endpoints.SECOND_FACTOR_U2F_REGISTER_REQUEST_GET, withHeadersLogged(U2FRegisterRequestGet.default(vars), vars.logger));
+    app.post(Endpoints.SECOND_FACTOR_U2F_REGISTER_POST, withHeadersLogged(U2FRegisterPost.default(vars), vars.logger));
 
-    app.get(Endpoints.ERROR_401_GET, withLog(Error401Get.default));
-    app.get(Endpoints.ERROR_403_GET, withLog(Error403Get.default));
-    app.get(Endpoints.ERROR_404_GET, withLog(Error404Get.default));
-    app.get(Endpoints.LOGGED_IN, withLog(LoggedIn.default));
+    app.get(Endpoints.ERROR_401_GET, withHeadersLogged(Error401Get.default, vars.logger));
+    app.get(Endpoints.ERROR_403_GET, withHeadersLogged(Error403Get.default, vars.logger));
+    app.get(Endpoints.ERROR_404_GET, withHeadersLogged(Error404Get.default, vars.logger));
+    app.get(Endpoints.LOGGED_IN, withHeadersLogged(LoggedIn.default(vars), vars.logger));
   }
 }

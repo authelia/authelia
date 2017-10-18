@@ -8,8 +8,8 @@ import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import Endpoints = require("../../../../../../../shared/api");
 import redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
-import { ServerVariablesHandler } from "./../../../../ServerVariablesHandler";
-import AuthenticationSession = require("../../../../AuthenticationSession");
+import AuthenticationSessionHandler = require("../../../../AuthenticationSession");
+import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import UserMessages = require("../../../../../../../shared/UserMessages");
 import { ServerVariables } from "../../../../ServerVariables";
 
@@ -17,11 +17,11 @@ const UNAUTHORIZED_MESSAGE = "Unauthorized access";
 
 export default function (vars: ServerVariables) {
   function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
-    let authSession: AuthenticationSession.AuthenticationSession;
+    let authSession: AuthenticationSession;
     const token = req.body.token;
 
-    return AuthenticationSession.get(req)
-      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+    return AuthenticationSessionHandler.get(req, vars.logger)
+      .then(function (_authSession) {
         authSession = _authSession;
         vars.logger.info(req, "Initiate TOTP validation for user \"%s\".", authSession.userid);
         return vars.userDataStore.retrieveTOTPSecret(authSession.userid);
@@ -32,11 +32,11 @@ export default function (vars: ServerVariables) {
 
         vars.logger.debug(req, "TOTP validation succeeded.");
         authSession.second_factor = true;
-        redirect(req, res);
+        redirect(vars)(req, res);
         return BluebirdPromise.resolve();
       })
       .catch(ErrorReplies.replyWithError200(req, res, vars.logger,
         UserMessages.OPERATION_FAILED));
   }
-  return FirstFactorBlocker(handler);
+  return FirstFactorBlocker(handler, vars.logger);
 }

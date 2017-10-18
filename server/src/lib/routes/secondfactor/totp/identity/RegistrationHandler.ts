@@ -9,21 +9,34 @@ import { PRE_VALIDATION_TEMPLATE } from "../../../../IdentityCheckPreValidationT
 import Constants = require("../constants");
 import Endpoints = require("../../../../../../../shared/api");
 import ErrorReplies = require("../../../../ErrorReplies");
-import { ServerVariablesHandler } from "../../../../ServerVariablesHandler";
 import AuthenticationSession = require("../../../../AuthenticationSession");
 import UserMessages = require("../../../../../../../shared/UserMessages");
-
 import FirstFactorValidator = require("../../../../FirstFactorValidator");
+import { IRequestLogger } from "../../../../logging/IRequestLogger";
+import { IUserDataStore } from "../../../../storage/IUserDataStore";
+import { ITotpHandler } from "../../../../authentication/totp/ITotpHandler";
 
 
 export default class RegistrationHandler implements IdentityValidable {
+  private logger: IRequestLogger;
+  private userDataStore: IUserDataStore;
+  private totp: ITotpHandler;
+
+  constructor(logger: IRequestLogger,
+    userDataStore: IUserDataStore,
+    totp: ITotpHandler) {
+    this.logger = logger;
+    this.userDataStore = userDataStore;
+    this.totp = totp;
+  }
+
   challenge(): string {
     return Constants.CHALLENGE;
   }
 
   private retrieveIdentity(req: express.Request): BluebirdPromise<Identity> {
-    return AuthenticationSession.get(req)
-      .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+    return AuthenticationSession.get(req, this.logger)
+      .then(function (authSession) {
         const userid = authSession.userid;
         const email = authSession.email;
 
@@ -41,7 +54,7 @@ export default class RegistrationHandler implements IdentityValidable {
 
   preValidationInit(req: express.Request): BluebirdPromise<Identity> {
     const that = this;
-    return FirstFactorValidator.validate(req)
+    return FirstFactorValidator.validate(req, this.logger)
       .then(function () {
         return that.retrieveIdentity(req);
       });
@@ -52,26 +65,22 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   postValidationInit(req: express.Request) {
-    return FirstFactorValidator.validate(req);
+    return FirstFactorValidator.validate(req, this.logger);
   }
 
   postValidationResponse(req: express.Request, res: express.Response): BluebirdPromise<void> {
-    const logger = ServerVariablesHandler.getLogger(req.app);
-    return AuthenticationSession.get(req)
-      .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+    const that = this;
+    return AuthenticationSession.get(req, this.logger)
+      .then(function (authSession) {
         const userid = authSession.identity_check.userid;
         const challenge = authSession.identity_check.challenge;
 
         if (challenge != Constants.CHALLENGE || !userid) {
           return BluebirdPromise.reject(new Error("Bad challenge."));
         }
-
-        const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
-        const totpHandler = ServerVariablesHandler.getTotpHandler(req.app);
-        const secret = totpHandler.generate();
-
-        logger.debug(req, "Save the TOTP secret in DB");
-        return userDataStore.saveTOTPSecret(userid, secret)
+        const secret = that.totp.generate();
+        that.logger.debug(req, "Save the TOTP secret in DB");
+        return that.userDataStore.saveTOTPSecret(userid, secret)
           .then(function () {
             AuthenticationSession.reset(req);
 
@@ -82,7 +91,7 @@ export default class RegistrationHandler implements IdentityValidable {
             });
           });
       })
-      .catch(ErrorReplies.replyWithError200(req, res, logger, UserMessages.OPERATION_FAILED));
+      .catch(ErrorReplies.replyWithError200(req, res, that.logger, UserMessages.OPERATION_FAILED));
   }
 
   mailSubject(): string {

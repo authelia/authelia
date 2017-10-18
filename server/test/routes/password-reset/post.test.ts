@@ -1,30 +1,25 @@
 
 import PasswordResetFormPost = require("../../../src/lib/routes/password-reset/form/post");
 import { PasswordUpdater } from "../../../src/lib/ldap/PasswordUpdater";
-import AuthenticationSession = require("../../../src/lib/AuthenticationSession");
-import { ServerVariablesHandler } from "../../../src/lib/ServerVariablesHandler";
+import AuthenticationSessionHandler = require("../../../src/lib/AuthenticationSession");
 import { UserDataStore } from "../../../src/lib/storage/UserDataStore";
 import Sinon = require("sinon");
-import winston = require("winston");
 import Assert = require("assert");
 import BluebirdPromise = require("bluebird");
-
 import ExpressMock = require("../../mocks/express");
-import ServerVariablesMock = require("../../mocks/ServerVariablesMock");
+import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../mocks/ServerVariablesMockBuilder";
+import { ServerVariables } from "../../../src/lib/ServerVariables";
 
 describe("test reset password route", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
-  let configuration: any;
-  let serverVariables: ServerVariablesMock.ServerVariablesMock;
+  let vars: ServerVariables;
+  let mocks: ServerVariablesMock;
 
   beforeEach(function () {
     req = {
       body: {
         userid: "user"
-      },
-      app: {
-        get: Sinon.stub().returns({ logger: winston })
       },
       session: {},
       headers: {
@@ -32,34 +27,34 @@ describe("test reset password route", function () {
       }
     };
 
-    AuthenticationSession.reset(req as any);
+    const s = ServerVariablesMockBuilder.build();
+    mocks = s.mocks;
+    vars = s.variables;
 
     const options = {
       inMemoryOnly: true
     };
 
-    serverVariables = ServerVariablesMock.mock(req.app);
-    serverVariables.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
-    serverVariables.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
-    serverVariables.userDataStore.produceIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
-    serverVariables.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.produceIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
 
-    configuration = {
-      ldap: {
-        base_dn: "dc=example,dc=com",
-        user_name_attribute: "cn"
-      }
+    mocks.config.ldap = {
+      url: "ldap://ldapjs",
+      mail_attribute: "mail",
+      user: "user",
+      password: "password",
+      users_dn: "ou=users,dc=example,dc=com",
+      groups_dn: "ou=groups,dc=example,dc=com",
+      users_filter: "user",
+      group_name_attribute: "cn",
+      groups_filter: "groups"
     };
 
-    serverVariables.config = configuration;
-
-    serverVariables.ldapPasswordUpdater = {
-      updatePassword: Sinon.stub()
-    } as any;
-
     res = ExpressMock.ResponseMock();
-    AuthenticationSession.get(req as any)
-      .then(function (authSession: AuthenticationSession.AuthenticationSession) {
+    AuthenticationSessionHandler.get(req as any, vars.logger)
+      .then(function (authSession) {
         authSession.userid = "user";
         authSession.email = "user@example.com";
         authSession.first_factor = true;
@@ -72,19 +67,19 @@ describe("test reset password route", function () {
       req.body = {};
       req.body.password = "new-password";
 
-      (serverVariables.ldapPasswordUpdater.updatePassword as sinon.SinonStub).returns(BluebirdPromise.resolve());
+      mocks.ldapPasswordUpdater.updatePasswordStub.returns(BluebirdPromise.resolve());
 
-      return AuthenticationSession.get(req as any)
+      return AuthenticationSessionHandler.get(req as any, vars.logger)
         .then(function (authSession) {
           authSession.identity_check = {
             userid: "user",
             challenge: "reset-password"
           };
-          return PasswordResetFormPost.default(req as any, res as any);
+          return PasswordResetFormPost.default(vars)(req as any, res as any);
         })
         .then(function () {
-          return AuthenticationSession.get(req as any);
-        }).then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+          return AuthenticationSessionHandler.get(req as any, vars.logger);
+        }).then(function (_authSession) {
           Assert.equal(res.status.getCall(0).args[0], 204);
           Assert.equal(_authSession.first_factor, false);
           Assert.equal(_authSession.second_factor, false);
@@ -93,13 +88,13 @@ describe("test reset password route", function () {
     });
 
     it("should fail if identity_challenge does not exist", function () {
-      return AuthenticationSession.get(req as any)
+      return AuthenticationSessionHandler.get(req as any, vars.logger)
         .then(function (authSession) {
           authSession.identity_check = {
             userid: "user",
             challenge: undefined
           };
-          return PasswordResetFormPost.default(req as any, res as any);
+          return PasswordResetFormPost.default(vars)(req as any, res as any);
         })
         .then(function () {
           Assert.equal(res.status.getCall(0).args[0], 200);
@@ -113,16 +108,16 @@ describe("test reset password route", function () {
       req.body = {};
       req.body.password = "new-password";
 
-      (serverVariables.ldapPasswordUpdater.updatePassword as Sinon.SinonStub)
+      mocks.ldapPasswordUpdater.updatePasswordStub
         .returns(BluebirdPromise.reject("Internal error with LDAP"));
 
-      return AuthenticationSession.get(req as any)
+      return AuthenticationSessionHandler.get(req as any, vars.logger)
         .then(function (authSession) {
           authSession.identity_check = {
             challenge: "reset-password",
             userid: "user"
           };
-          return PasswordResetFormPost.default(req as any, res as any);
+          return PasswordResetFormPost.default(vars)(req as any, res as any);
         }).then(function () {
           Assert.equal(res.status.getCall(0).args[0], 200);
           Assert.deepEqual(res.send.getCall(0).args[0], {

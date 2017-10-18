@@ -10,8 +10,9 @@ import { IUserDataStore } from "./storage/IUserDataStore";
 import { Winston } from "../../types/Dependencies";
 import express = require("express");
 import ErrorReplies = require("./ErrorReplies");
-import { ServerVariablesHandler } from "./ServerVariablesHandler";
-import AuthenticationSession = require("./AuthenticationSession");
+import AuthenticationSessionHandler = require("./AuthenticationSession");
+import { AuthenticationSession } from "../../types/AuthenticationSession";
+import { ServerVariables } from "./ServerVariables";
 
 import Identity = require("../../types/Identity");
 import { IdentityValidationDocument } from "./storage/IdentityValidationDocument";
@@ -53,9 +54,9 @@ function consumeToken(token: string, challenge: string, userDataStore: IUserData
 }
 
 export function register(app: express.Application, pre_validation_endpoint: string,
-  post_validation_endpoint: string, handler: IdentityValidable) {
-  app.get(pre_validation_endpoint, get_start_validation(handler, post_validation_endpoint));
-  app.get(post_validation_endpoint, get_finish_validation(handler));
+  post_validation_endpoint: string, handler: IdentityValidable, vars: ServerVariables) {
+  app.get(pre_validation_endpoint, get_start_validation(handler, post_validation_endpoint, vars));
+  app.get(post_validation_endpoint, get_finish_validation(handler, vars));
 }
 
 function checkIdentityToken(req: express.Request, identityToken: string): BluebirdPromise<void> {
@@ -64,27 +65,26 @@ function checkIdentityToken(req: express.Request, identityToken: string): Bluebi
   return BluebirdPromise.resolve();
 }
 
-export function get_finish_validation(handler: IdentityValidable): express.RequestHandler {
+export function get_finish_validation(handler: IdentityValidable,
+  vars: ServerVariables)
+  : express.RequestHandler {
   return function (req: express.Request, res: express.Response): BluebirdPromise<void> {
-    const logger = ServerVariablesHandler.getLogger(req.app);
-    const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
-
-    let authSession: AuthenticationSession.AuthenticationSession;
+    let authSession: AuthenticationSession;
     const identityToken = objectPath.get<express.Request, string>(req, "query.identity_token");
-    logger.debug(req, "Identity token provided is %s", identityToken);
+    vars.logger.debug(req, "Identity token provided is %s", identityToken);
 
     return checkIdentityToken(req, identityToken)
       .then(function () {
         return handler.postValidationInit(req);
       })
       .then(function () {
-        return AuthenticationSession.get(req);
+        return AuthenticationSessionHandler.get(req, vars.logger);
       })
-      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+      .then(function (_authSession) {
         authSession = _authSession;
       })
       .then(function () {
-        return consumeToken(identityToken, handler.challenge(), userDataStore);
+        return consumeToken(identityToken, handler.challenge(), vars.userDataStore);
       })
       .then(function (doc: IdentityValidationDocument) {
         authSession.identity_check = {
@@ -94,17 +94,16 @@ export function get_finish_validation(handler: IdentityValidable): express.Reque
         handler.postValidationResponse(req, res);
         return BluebirdPromise.resolve();
       })
-      .catch(ErrorReplies.replyWithError401(req, res, logger));
+      .catch(ErrorReplies.replyWithError401(req, res, vars.logger));
   };
 }
 
 
-export function get_start_validation(handler: IdentityValidable, postValidationEndpoint: string)
+export function get_start_validation(handler: IdentityValidable,
+  postValidationEndpoint: string,
+  vars: ServerVariables)
   : express.RequestHandler {
   return function (req: express.Request, res: express.Response): BluebirdPromise<void> {
-    const logger = ServerVariablesHandler.getLogger(req.app);
-    const notifier = ServerVariablesHandler.getNotifier(req.app);
-    const userDataStore = ServerVariablesHandler.getUserDataStore(req.app);
     let identity: Identity.Identity;
 
     return handler.preValidationInit(req)
@@ -112,25 +111,25 @@ export function get_start_validation(handler: IdentityValidable, postValidationE
         identity = id;
         const email = identity.email;
         const userid = identity.userid;
-        logger.info(req, "Start identity validation of user \"%s\"", userid);
+        vars.logger.info(req, "Start identity validation of user \"%s\"", userid);
 
         if (!(email && userid))
           return BluebirdPromise.reject(new Exceptions.IdentityError(
             "Missing user id or email address"));
 
-        return createAndSaveToken(userid, handler.challenge(), userDataStore);
+        return createAndSaveToken(userid, handler.challenge(), vars.userDataStore);
       })
       .then(function (token: string) {
         const host = req.get("Host");
         const link_url = util.format("https://%s%s?identity_token=%s", host,
           postValidationEndpoint, token);
-        logger.info(req, "Notification sent to user \"%s\"", identity.userid);
-        return notifier.notify(identity.email, handler.mailSubject(), link_url);
+        vars.logger.info(req, "Notification sent to user \"%s\"", identity.userid);
+        return vars.notifier.notify(identity.email, handler.mailSubject(), link_url);
       })
       .then(function () {
         handler.preValidationResponse(req, res);
         return BluebirdPromise.resolve();
       })
-      .catch(ErrorReplies.replyWithError401(req, res, logger));
+      .catch(ErrorReplies.replyWithError401(req, res, vars.logger));
   };
 }

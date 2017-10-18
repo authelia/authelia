@@ -5,7 +5,8 @@ import assert = require("assert");
 import winston = require("winston");
 
 import exceptions = require("../../../../../src/lib/Exceptions");
-import AuthenticationSession = require("../../../../../src/lib/AuthenticationSession");
+import AuthenticationSessionHandler = require("../../../../../src/lib/AuthenticationSession");
+import { AuthenticationSession } from "../../../../../types/AuthenticationSession";
 import SignPost = require("../../../../../src/lib/routes/secondfactor/totp/sign/post");
 import { ServerVariables } from "../../../../../src/lib/ServerVariables";
 
@@ -16,7 +17,7 @@ import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../../../moc
 describe("test totp route", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
-  let authSession: AuthenticationSession.AuthenticationSession;
+  let authSession: AuthenticationSession;
   let vars: ServerVariables;
   let mocks: ServerVariablesMock;
 
@@ -38,7 +39,6 @@ describe("test totp route", function () {
       }
     };
     res = ExpressMock.ResponseMock();
-    AuthenticationSession.reset(req as any);
 
     const doc = {
       userid: "user",
@@ -47,8 +47,8 @@ describe("test totp route", function () {
       }
     };
     mocks.userDataStore.retrieveTOTPSecretStub.returns(BluebirdPromise.resolve(doc));
-    return AuthenticationSession.get(req as any)
-      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+    return AuthenticationSessionHandler.get(req as any, vars.logger)
+      .then(function (_authSession) {
         authSession = _authSession;
         authSession.userid = "user";
         authSession.first_factor = true;

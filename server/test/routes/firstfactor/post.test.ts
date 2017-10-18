@@ -2,13 +2,11 @@
 import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
-import Winston = require("winston");
-
 import FirstFactorPost = require("../../../src/lib/routes/firstfactor/post");
 import exceptions = require("../../../src/lib/Exceptions");
-import AuthenticationSession = require("../../../src/lib/AuthenticationSession");
+import AuthenticationSessionHandler = require("../../../src/lib/AuthenticationSession");
+import { AuthenticationSession } from "../../../types/AuthenticationSession";
 import Endpoints = require("../../../../shared/api");
-
 import AuthenticationRegulatorMock = require("../../mocks/AuthenticationRegulator");
 import { AccessControllerStub } from "../../mocks/AccessControllerStub";
 import ExpressMock = require("../../mocks/express");
@@ -35,9 +33,6 @@ describe("test the first factor validation route", function () {
     mocks.regulator.markStub.returns(BluebirdPromise.resolve());
 
     req = {
-      app: {
-        get: Sinon.stub().returns({ logger: Winston })
-      },
       body: {
         username: "username",
         password: "password"
@@ -52,7 +47,6 @@ describe("test the first factor validation route", function () {
       }
     };
 
-    AuthenticationSession.reset(req as any);
     res = ExpressMock.ResponseMock();
   });
 
@@ -62,9 +56,9 @@ describe("test the first factor validation route", function () {
         emails: emails,
         groups: groups
       }));
-    let authSession: AuthenticationSession.AuthenticationSession;
-    return AuthenticationSession.get(req as any)
-      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+    let authSession: AuthenticationSession;
+    return AuthenticationSessionHandler.get(req as any, vars.logger)
+      .then(function (_authSession) {
         authSession = _authSession;
         return FirstFactorPost.default(vars)(req as any, res as any);
       })
@@ -82,15 +76,15 @@ describe("test the first factor validation route", function () {
 
   it("should set first email address as user session variable", function () {
     const emails = ["test_ok@example.com"];
-    let authSession: AuthenticationSession.AuthenticationSession;
+    let authSession: AuthenticationSession;
     mocks.ldapAuthenticator.authenticateStub.withArgs("username", "password")
       .returns(BluebirdPromise.resolve({
         emails: emails,
         groups: groups
       }));
 
-    return AuthenticationSession.get(req as any)
-      .then(function (_authSession: AuthenticationSession.AuthenticationSession) {
+    return AuthenticationSessionHandler.get(req as any, vars.logger)
+      .then(function (_authSession) {
         authSession = _authSession;
         return FirstFactorPost.default(vars)(req as any, res as any);
       })

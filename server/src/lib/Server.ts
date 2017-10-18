@@ -7,11 +7,11 @@ import { GlobalDependencies } from "../../types/Dependencies";
 import { UserDataStore } from "./storage/UserDataStore";
 import { ConfigurationParser } from "./configuration/ConfigurationParser";
 import { RestApi } from "./RestApi";
-import { ServerVariablesHandler, ServerVariablesInitializer } from "./ServerVariablesHandler";
 import { SessionConfigurationBuilder } from "./configuration/SessionConfigurationBuilder";
 import { GlobalLogger } from "./logging/GlobalLogger";
 import { RequestLogger } from "./logging/RequestLogger";
 import { ServerVariables } from "./ServerVariables";
+import { ServerVariablesInitializer } from "./ServerVariablesInitializer";
 
 import * as Express from "express";
 import * as BodyParser from "body-parser";
@@ -96,7 +96,6 @@ export default class Server {
       .then(function (vars: ServerVariables) {
         that.serverVariables = vars;
         that.setupExpressApplication(config, app, deps);
-        ServerVariablesHandler.setup(app, vars);
         return BluebirdPromise.resolve();
       });
   }

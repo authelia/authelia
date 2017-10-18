@@ -7,7 +7,8 @@ import winston = require("winston");
 import AuthenticationValidator = require("../../AuthenticationValidator");
 import ErrorReplies = require("../../ErrorReplies");
 import { AppConfiguration } from "../../configuration/Configuration";
-import AuthenticationSession = require("../../AuthenticationSession");
+import AuthenticationSessionHandler = require("../../AuthenticationSession");
+import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import Constants = require("../../../../../shared/constants");
 import Util = require("util");
 import { DomainExtractor } from "../../utils/DomainExtractor";
@@ -22,7 +23,7 @@ const REMOTE_USER = "Remote-User";
 const REMOTE_GROUPS = "Remote-Groups";
 
 function verify_inactivity(req: express.Request,
-  authSession: AuthenticationSession.AuthenticationSession,
+  authSession: AuthenticationSession,
   configuration: AppConfiguration, logger: IRequestLogger)
   : BluebirdPromise<void> {
 
@@ -43,17 +44,17 @@ function verify_inactivity(req: express.Request,
   }
 
   logger.debug(req, "Session has been reset after too long inactivity period.");
-  AuthenticationSession.reset(req);
+  AuthenticationSessionHandler.reset(req);
   return BluebirdPromise.reject(new Error("Inactivity period exceeded."));
 }
 
 function verify_filter(req: express.Request, res: express.Response,
   vars: ServerVariables): BluebirdPromise<void> {
-  let _authSession: AuthenticationSession.AuthenticationSession;
+  let _authSession: AuthenticationSession;
   let username: string;
   let groups: string[];
 
-  return AuthenticationSession.get(req)
+  return AuthenticationSessionHandler.get(req, vars.logger)
     .then(function (authSession) {
       _authSession = authSession;
       username = _authSession.userid;
@@ -97,6 +98,7 @@ function verify_filter(req: express.Request, res: express.Response,
     .then(function () {
       res.setHeader(REMOTE_USER, username);
       res.setHeader(REMOTE_GROUPS, groups.join(","));
+      return BluebirdPromise.resolve();
     });
 }
 
