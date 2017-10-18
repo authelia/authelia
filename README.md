@@ -192,7 +192,7 @@ Check out [config.template.yml] to see how they are defined.
 
 ### Basic Authentication
 Authelia allows you to customize the authentication method to use for each sub-domain.
-The supported methods are either "basic_auth" and "two_factor". 
+The supported methods are either "single_factor" and "two_factor". 
 Please see [config.template.yml] to see an example of configuration.
 
 ### Session management with Redis

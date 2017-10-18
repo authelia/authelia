@@ -51,7 +51,7 @@ ldap:
 # Authentication methods
 #
 # Authentication methods can be defined per subdomain.
-# There are currently two available methods: "basic_auth" and "two_factor"
+# There are currently two available methods: "single_factor" and "two_factor"
 #
 # Note: by default a domain uses "two_factor" method.
 #
@@ -62,7 +62,7 @@ ldap:
 authentication_methods:
   default_method: two_factor
   per_subdomain_methods:
-    basicauth.test.local: basic_auth
+    basicauth.test.local: single_factor
 
 # Access Control
 #
