@@ -162,7 +162,7 @@ describe("test /verify endpoint", function () {
       };
       req.headers["host"] = "redirect.url";
       mocks.config.authentication_methods.per_subdomain_methods = {
-        "redirect.url": "basic_auth"
+        "redirect.url": "single_factor"
       };
     });
 

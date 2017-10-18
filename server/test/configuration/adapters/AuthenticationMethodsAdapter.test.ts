@@ -18,7 +18,7 @@ describe("test authentication methods configuration adapter", function () {
     it("should adapt a configuration when default_method is not defined", function () {
       const userConfiguration: any = {
         per_subdomain_methods: {
-          "example.com": "basic_auth"
+          "example.com": "single_factor"
         }
       };
 
@@ -26,32 +26,32 @@ describe("test authentication methods configuration adapter", function () {
       Assert.deepStrictEqual(appConfiguration, {
         default_method: "two_factor",
         per_subdomain_methods: {
-          "example.com": "basic_auth"
+          "example.com": "single_factor"
         }
       });
     });
 
     it("should adapt a configuration when per_subdomain_methods is not defined", function () {
       const userConfiguration: any = {
-        default_method: "basic_auth"
+        default_method: "single_factor"
       };
 
       const appConfiguration = AuthenticationMethodsAdapter.adapt(userConfiguration);
       Assert.deepStrictEqual(appConfiguration, {
-        default_method: "basic_auth",
+        default_method: "single_factor",
         per_subdomain_methods: {}
       });
     });
 
     it("should adapt a configuration when per_subdomain_methods has wrong type", function () {
       const userConfiguration: any = {
-        default_method: "basic_auth",
+        default_method: "single_factor",
         per_subdomain_methods: []
       };
 
       const appConfiguration = AuthenticationMethodsAdapter.adapt(userConfiguration);
       Assert.deepStrictEqual(appConfiguration, {
-        default_method: "basic_auth",
+        default_method: "single_factor",
         per_subdomain_methods: {}
       });
     });

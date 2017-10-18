@@ -9,23 +9,23 @@ describe("test authentication method calculator", function() {
       per_subdomain_methods: {}
     };
     const options2: AuthenticationMethodsConfiguration = {
-      default_method: "basic_auth",
+      default_method: "single_factor",
       per_subdomain_methods: {}
     };
     const calculator1 = new AuthenticationMethodCalculator(options1);
     const calculator2 = new AuthenticationMethodCalculator(options2);
     Assert.equal(calculator1.compute("www.example.com"), "two_factor");
-    Assert.equal(calculator2.compute("www.example.com"), "basic_auth");
+    Assert.equal(calculator2.compute("www.example.com"), "single_factor");
   });
 
   it("should return overridden method when sub domain method is defined", function() {
     const options1: AuthenticationMethodsConfiguration = {
       default_method: "two_factor",
       per_subdomain_methods: {
-        "www.example.com": "basic_auth"
+        "www.example.com": "single_factor"
       }
     };
     const calculator1 = new AuthenticationMethodCalculator(options1);
-    Assert.equal(calculator1.compute("www.example.com"), "basic_auth");
+    Assert.equal(calculator1.compute("www.example.com"), "single_factor");
   });
 });
