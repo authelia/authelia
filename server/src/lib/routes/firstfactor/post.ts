@@ -70,7 +70,7 @@ export default function (vars: ServerVariables) {
         vars.logger.debug(req, "Mark successful authentication to regulator.");
         vars.regulator.mark(username, true);
 
-        if (authMethod == "basic_auth") {
+        if (authMethod == "single_factor") {
           res.send({
             redirect: redirectUrl
           });

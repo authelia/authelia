@@ -112,7 +112,7 @@ export interface RegulationConfiguration {
     ban_time: number;
 }
 
-declare type AuthenticationMethod = 'two_factor' | 'basic_auth';
+declare type AuthenticationMethod = 'two_factor' | 'single_factor';
 declare type AuthenticationMethodPerSubdomain = { [subdomain: string]: AuthenticationMethod }
 
 export interface AuthenticationMethodsConfiguration {
