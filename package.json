@@ -27,7 +27,7 @@
     "bluebird": "3.5.0",
     "body-parser": "^1.15.2",
     "connect-redis": "^3.3.0",
-    "dovehash": "0.0.5",
+    "crypt3": "^1.0.0",
     "ejs": "^2.5.5",
     "express": "^4.14.0",
     "express-request-id": "^1.4.0",
