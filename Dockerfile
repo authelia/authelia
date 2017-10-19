@@ -1,9 +1,13 @@
-FROM node:7-alpine
+FROM node:8.7.0-alpine
 
 WORKDIR /usr/src
 
 COPY package.json /usr/src/package.json
-RUN npm install --production
+
+RUN apk --update add --no-cache --virtual \
+      .build-deps make g++ python && \
+    npm install --production && \
+    apk del .build-deps
 
 COPY dist/server /usr/src/server
 COPY dist/shared /usr/src/shared
