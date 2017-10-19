@@ -7,7 +7,6 @@ import winston = require("winston");
 import speakeasy = require("speakeasy");
 import u2f = require("u2f");
 import session = require("express-session");
-
 import { AppConfiguration, UserConfiguration } from "../src/lib/configuration/Configuration";
 import { GlobalDependencies } from "../types/Dependencies";
 import Server from "../src/lib/Server";
@@ -34,8 +33,7 @@ describe("test server configuration", function () {
         })
       },
       session: sessionMock as any,
-      ConnectRedis: Sinon.spy(),
-      dovehash: Sinon.spy() as any
+      ConnectRedis: Sinon.spy()
     };
   });
 

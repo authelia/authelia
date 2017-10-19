@@ -7,7 +7,6 @@ import Exceptions = require("./Exceptions");
 import fs = require("fs");
 import ejs = require("ejs");
 import { IUserDataStore } from "./storage/IUserDataStore";
-import { Winston } from "../../types/Dependencies";
 import express = require("express");
 import ErrorReplies = require("./ErrorReplies");
 import AuthenticationSessionHandler = require("./AuthenticationSession");

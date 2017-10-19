@@ -69,7 +69,8 @@ export class ServerVariablesInitializer {
     const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
     const notifier = NotifierFactory.build(config.notifier, mailSenderBuilder);
     const ldapClientFactory = new LdapClientFactory(config.ldap, deps.ldapjs);
-    const clientFactory = new ClientFactory(config.ldap, ldapClientFactory, deps.dovehash, deps.winston);
+    const clientFactory = new ClientFactory(config.ldap, ldapClientFactory,
+      deps.winston);
 
     const ldapAuthenticator = new Authenticator(config.ldap, clientFactory);
     const ldapPasswordUpdater = new PasswordUpdater(config.ldap, clientFactory);
@@ -97,5 +98,5 @@ export class ServerVariablesInitializer {
         };
         return BluebirdPromise.resolve(variables);
       });
-    }
+  }
 }
