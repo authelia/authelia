@@ -101,6 +101,7 @@ Add the following lines to your **/etc/hosts** to alias multiple subdomains so t
     127.0.0.1       admin.test.local
     127.0.0.1       mx1.mail.test.local
     127.0.0.1       mx2.mail.test.local
+    127.0.0.1       single_factor.test.local
     127.0.0.1       auth.test.local
 
 ### Run it!

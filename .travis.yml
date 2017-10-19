@@ -17,7 +17,7 @@ addons:
   hosts:
     - admin.test.local
     - auth.test.local
-    - basicauth.test.local
+    - single_factor.test.local
     - dev.test.local
     - home.test.local
     - mx1.mail.test.local
