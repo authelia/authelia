@@ -221,6 +221,28 @@ that the attacker must also require the certificate to retrieve the cookies.
 Note that using [HSTS] has consequences. That's why you should read the blog
 post nginx has written on [HSTS].
 
+### More protections measures
+
+You can also apply the following headers to your nginx configuration for
+improving security. Please read the documentation of those headers before
+applying them blindly.
+
+```
+# We don't want any credentials / TOTP secret key / QR code to be cached by
+# the client
+add_header Cache-Control "no-store";
+add_header Pragma "no-cache";
+
+# Clickjacking / XSS protection
+
+# We don't want Authelia's login page to be rendered within a <frame>, 
+# <iframe> or <object> from an external website.
+add_header X-Frame-Options "SAMEORIGIN";
+
+# Block pages from loading when they detect reflected XSS attacks.
+add_header X-XSS-Protection "1; mode=block";
+```
+
 ## Documentation
 ### Authelia configuration
 The configuration of the server is defined in the file 
