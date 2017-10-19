@@ -10,27 +10,22 @@ import ResetPasswordForm from "./lib/reset-password/reset-password-form";
 import jslogger = require("js-logger");
 import jQuery = require("jquery");
 import U2fApi = require("u2f-api");
+import Endpoints = require("../../shared/api");
 
 jslogger.useDefaults();
 jslogger.setLevel(jslogger.INFO);
 
-export = {
-    firstfactor: function () {
-        FirstFactor(window, jQuery, FirstFactorValidator, jslogger);
-    },
-    secondfactor: function () {
-        SecondFactor(window, jQuery, U2fApi);
-    },
-    register_totp: function() {
-        TOTPRegister(window, jQuery);
-    },
-    register_u2f: function () {
-        U2fRegister(window, jQuery);
-    },
-    reset_password_request: function () {
-        ResetPasswordRequest(window, jQuery);
-    },
-    reset_password_form: function () {
-        ResetPasswordForm(window, jQuery);
-    }
-};
+(function () {
+  if (window.location.pathname == Endpoints.FIRST_FACTOR_GET)
+    FirstFactor(window, jQuery, FirstFactorValidator, jslogger);
+  else if (window.location.pathname == Endpoints.SECOND_FACTOR_GET)
+    SecondFactor(window, jQuery, U2fApi);
+  else if (window.location.pathname == Endpoints.SECOND_FACTOR_TOTP_IDENTITY_FINISH_GET)
+    TOTPRegister(window, jQuery);
+  else if (window.location.pathname == Endpoints.SECOND_FACTOR_U2F_IDENTITY_FINISH_GET)
+    U2fRegister(window, jQuery);
+  else if (window.location.pathname == Endpoints.RESET_PASSWORD_IDENTITY_FINISH_GET)
+    ResetPasswordForm(window, jQuery);
+  else if (window.location.pathname == Endpoints.RESET_PASSWORD_REQUEST_GET)
+    ResetPasswordRequest(window, jQuery);
+})();

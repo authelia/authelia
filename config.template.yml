@@ -74,7 +74,7 @@ ldap:
 authentication_methods:
   default_method: two_factor
   per_subdomain_methods:
-    basicauth.test.local: single_factor
+    single_factor.test.local: single_factor
 
 # Access Control
 #
