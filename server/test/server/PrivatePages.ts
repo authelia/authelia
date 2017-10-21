@@ -115,8 +115,7 @@ describe("Private pages of the server must not be accessible without session", f
       session: ExpressSession,
       winston: Winston,
       speakeasy: speakeasy,
-      ConnectRedis: Sinon.spy(),
-      dovehash: Sinon.spy() as any
+      ConnectRedis: Sinon.spy()
     };
 
     server = new Server(deps);

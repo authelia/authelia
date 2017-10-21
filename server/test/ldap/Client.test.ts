@@ -7,7 +7,6 @@ import { LdapClientStub } from "../mocks/ldap/LdapClientStub";
 import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
-import Dovehash = require("dovehash");
 import Winston = require("winston");
 
 describe("test authelia ldap client", function () {
@@ -34,7 +33,7 @@ describe("test authelia ldap client", function () {
     ldapClient.searchAsyncStub.returns(BluebirdPromise.resolve([{
       cn: "group1"
     }]));
-    const client = new Client(ADMIN_USER_DN, ADMIN_PASSWORD, options, factory, Dovehash, Winston);
+    const client = new Client(ADMIN_USER_DN, ADMIN_PASSWORD, options, factory, Winston);
 
     return client.searchGroups("user1")
       .then(function () {
@@ -80,7 +79,7 @@ describe("test authelia ldap client", function () {
       cn: "group1"
     }]));
 
-    const client = new Client(ADMIN_USER_DN, ADMIN_PASSWORD, options, factory, Dovehash, Winston);
+    const client = new Client(ADMIN_USER_DN, ADMIN_PASSWORD, options, factory, Winston);
 
     return client.searchGroups("user1")
       .then(function (groups: string[]) {
