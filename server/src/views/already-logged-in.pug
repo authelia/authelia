@@ -1,10 +1,10 @@
 extends layout/layout.pug 
 
 block form-header
-  <h1>Sign in</h1>
-  <img class="header-img" src="/img/success.png" alt="">
+  h1 Sign in
 
 block content
-    <p>You are already logged in as <b>#{ username }</b>.<br/><br/>
+  img(class="header-img" src="/img/success.png" alt="success")
+  p You are already logged in as <b>#{ username }</b>.<br/><br/>
     | If you are not redirected in few seconds, click <a href="#{ redirection_url }">here</a>.<br/><br/>
-    | Otherwise, click <a href="#{ logout_endpoint }">here</a> to log off.<p>
+    | Otherwise, click <a href="#{ logout_endpoint }">here</a> to log off.
