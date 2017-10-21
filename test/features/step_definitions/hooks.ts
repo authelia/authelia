@@ -97,7 +97,7 @@ Cucumber.defineSupportCode(function ({ After, Before }) {
         return context.useTotpTokenHandle("REGISTERED");
       })
       .then(function () {
-        return context.clickOnButton("TOTP");
+        return context.clickOnButton("Sign in");
       });
   }
 

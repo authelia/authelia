@@ -35,5 +35,5 @@ Feature: Authelia regulates authentication to avoid brute force
     And I set field "password" to "password"
     And I click on "Sign in"
     And I use "REGISTERED" as TOTP token handle
-    And I click on "TOTP"
+    And I click on "Sign in"
     Then I'm redirected to "https://public.test.local:8080/secret.html"

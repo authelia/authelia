@@ -41,7 +41,7 @@ export default class RegistrationHandler implements IdentityValidable {
         const email = authSession.email;
 
         if (!(userid && email)) {
-          return BluebirdPromise.reject(new Error("User ID or email is missing"));
+          return BluebirdPromise.reject(new Error("User ID or email is missing."));
         }
 
         const identity = {
@@ -79,7 +79,7 @@ export default class RegistrationHandler implements IdentityValidable {
           return BluebirdPromise.reject(new Error("Bad challenge."));
         }
         const secret = that.totp.generate();
-        that.logger.debug(req, "Save the TOTP secret in DB");
+        that.logger.debug(req, "Save the TOTP secret in DB.");
         return that.userDataStore.saveTOTPSecret(userid, secret)
           .then(function () {
             AuthenticationSession.reset(req);
@@ -95,6 +95,6 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   mailSubject(): string {
-    return "Register your TOTP secret key";
+    return "Set up Authelia's one-time password";
   }
 }

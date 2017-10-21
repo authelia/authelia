@@ -49,14 +49,9 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
     return false;
   }
 
-  function onU2FFormSubmitted(): boolean {
-    U2FValidator.validate($, notifierU2f, U2fApi)
-      .then(onU2fAuthenticationSuccess, onU2fAuthenticationFailure);
-    return false;
-  }
-
   $(window.document).ready(function () {
     $(ClientConstants.TOTP_FORM_SELECTOR).on("submit", onTOTPFormSubmitted);
-    $(ClientConstants.U2F_FORM_SELECTOR).on("submit", onU2FFormSubmitted);
+    U2FValidator.validate($, notifierU2f, U2fApi)
+      .then(onU2fAuthenticationSuccess, onU2fAuthenticationFailure);
   });
 }

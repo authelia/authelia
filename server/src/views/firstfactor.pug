@@ -1,17 +1,20 @@
 extends layout/layout.pug 
 
+block variables
+  - page_classname = "firstfactor";
+
 block form-header
-  <h1>Sign in</h1>
-  <img class="header-img" src="/img/user.png" alt="">
+  h1 Sign in
 
 block content
-  <div class="notification"></div>
-  <form class="form-signin">
-    <div class="form-inputs">
-      <input type="text" class="form-control" id="username" placeholder="Username" required autofocus>
-      <input type="password" class="form-control" id="password" placeholder="Password" required>
-    </div>
-    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-    a(href=reset_password_request_endpoint, class="pull-right link forgot-password") Forgot password?
-    <span class="clearfix"></span>
-  </form>
+  img(class="header-img" src="/img/user.png" alt="user profile")
+  p Enter your credentials to sign in
+  div(class="notification")
+  form(class="form-signin")
+    div(class="form-inputs")
+      input(type="text" class="form-control" id="username" placeholder="Username" required autofocus)
+      input(type="password" class="form-control" id="password" placeholder="Password" required)
+    button(class="btn btn-lg btn-primary btn-block" type="submit") Sign in
+    div(class="bottom-right-links pull-right")
+      a(href=reset_password_request_endpoint, class="link forgot-password") Forgot password?
+    span(class="clearfix")

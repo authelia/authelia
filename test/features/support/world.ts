@@ -164,7 +164,7 @@ function CustomWorld() {
         return that.useTotpTokenHandle(totpHandle);
       })
       .then(function () {
-        return that.clickOnButton("TOTP");
+        return that.clickOnButton("Sign in");
       });
   };
 }

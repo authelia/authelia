@@ -22,7 +22,7 @@ Feature: Authentication scenarii
     And I'm redirected to "https://auth.test.local:8080/?redirect=https%3A%2F%2Fadmin.test.local%3A8080%2Fsecret.html"
     And I login with user "john" and password "password" 
     And I use "Sec0" as TOTP token handle
-    And I click on "TOTP"
+    And I click on "Sign in"
     Then I'm redirected to "https://admin.test.local:8080/secret.html"
 
   Scenario: User fails TOTP second factor
@@ -30,7 +30,7 @@ Feature: Authentication scenarii
     And I'm redirected to "https://auth.test.local:8080/?redirect=https%3A%2F%2Fadmin.test.local%3A8080%2Fsecret.html"
     And I login with user "john" and password "password"
     And I use "BADTOKEN" as TOTP token
-    And I click on "TOTP"
+    And I click on "Sign in"
     Then I get a notification of type "error" with message "Authentication failed. Have you already registered your secret?"
 
   Scenario: Logout redirects user to redirect URL given in parameter
