@@ -1,9 +1,5 @@
-
-import util = require("util");
 import BluebirdPromise = require("bluebird");
 import exceptions = require("../Exceptions");
-import Dovehash = require("dovehash");
-
 import { EventEmitter } from "events";
 import { IClient, GroupsAndEmails } from "./IClient";
 import { ILdapClient } from "./ILdapClient";
@@ -11,20 +7,18 @@ import { ILdapClientFactory } from "./ILdapClientFactory";
 import { LdapConfiguration } from "../configuration/Configuration";
 import { Winston } from "../../../types/Dependencies";
 import Util = require("util");
-
+import { HashGenerator } from "../utils/HashGenerator";
 
 export class Client implements IClient {
   private userDN: string;
   private password: string;
   private ldapClient: ILdapClient;
   private logger: Winston;
-  private dovehash: typeof Dovehash;
   private options: LdapConfiguration;
 
   constructor(userDN: string, password: string, options: LdapConfiguration,
-    ldapClientFactory: ILdapClientFactory, dovehash: typeof Dovehash, logger: Winston) {
+    ldapClientFactory: ILdapClientFactory, logger: Winston) {
     this.options = options;
-    this.dovehash = dovehash;
     this.logger = logger;
     this.userDN = userDN;
     this.password = password;
@@ -128,18 +122,22 @@ export class Client implements IClient {
 
   modifyPassword(username: string, newPassword: string): BluebirdPromise<void> {
     const that = this;
-    const encodedPassword = this.dovehash.encode("SSHA", newPassword);
-    const change = {
-      operation: "replace",
-      modification: {
-        userPassword: encodedPassword
-      }
-    };
-
     this.logger.debug("LDAP: update password of user '%s'", username);
     return this.searchUserDn(username)
       .then(function (userDN: string) {
-        that.ldapClient.modifyAsync(userDN, change);
+        return BluebirdPromise.join(
+          HashGenerator.ssha512(newPassword),
+          BluebirdPromise.resolve(userDN));
+      })
+      .then(function (res: string[]) {
+        const change = {
+          operation: "replace",
+          modification: {
+            userPassword: res[0]
+          }
+        };
+        that.logger.debug("Password new='%s'", change.modification.userPassword);
+        return that.ldapClient.modifyAsync(res[1], change);
       })
       .then(function () {
         return that.ldapClient.unbindAsync();

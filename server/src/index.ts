@@ -15,7 +15,6 @@ const yamlContent = YAML.load(configurationFilepath);
 
 const deps: GlobalDependencies = {
   u2f: require("u2f"),
-  dovehash: require("dovehash"),
   ldapjs: require("ldapjs"),
   session: require("express-session"),
   winston: require("winston"),

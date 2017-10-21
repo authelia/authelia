@@ -1,13 +1,11 @@
-
-import { PasswordUpdater } from "../../src/lib/ldap/PasswordUpdater";
-import { LdapConfiguration } from "../../src/lib/configuration/Configuration";
-
 import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
-
+import { PasswordUpdater } from "../../src/lib/ldap/PasswordUpdater";
+import { LdapConfiguration } from "../../src/lib/configuration/Configuration";
 import { ClientFactoryStub } from "../mocks/ldap/ClientFactoryStub";
 import { ClientStub } from "../mocks/ldap/ClientStub";
+import { HashGenerator } from "../../src/lib/utils/HashGenerator";
 
 describe("test password update", function () {
   const USERNAME = "username";
@@ -18,10 +16,9 @@ describe("test password update", function () {
 
   let clientFactoryStub: ClientFactoryStub;
   let adminClientStub: ClientStub;
-
   let passwordUpdater: PasswordUpdater;
   let ldapConfig: LdapConfiguration;
-  let dovehash: any;
+  let ssha512HashGenerator: Sinon.SinonStub;
 
   beforeEach(function () {
     clientFactoryStub = new ClientFactoryStub();
@@ -39,11 +36,12 @@ describe("test password update", function () {
       users_filter: "cn={0}"
     };
 
-    dovehash = {
-      encode: Sinon.stub()
-    };
-
+    ssha512HashGenerator = Sinon.stub(HashGenerator, "ssha512");
     passwordUpdater = new PasswordUpdater(ldapConfig, clientFactoryStub);
+  });
+
+  afterEach(function () {
+    ssha512HashGenerator.restore();
   });
 
   describe("success", function () {
@@ -51,7 +49,7 @@ describe("test password update", function () {
       clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
         .returns(adminClientStub);
 
-      dovehash.encode.returns("{SSHA}AQmxaKfobGY9HSQa6aDYkAWOgPGNhGYn");
+      ssha512HashGenerator.returns("{CRYPT}$6$abcdefghijklm$AQmxaKfobGY9HSQa6aDYkAWOgPGNhGYn");
       adminClientStub.modifyPasswordStub.withArgs(USERNAME, NEW_PASSWORD).returns(BluebirdPromise.resolve());
       adminClientStub.openStub.returns(BluebirdPromise.resolve());
       adminClientStub.closeStub.returns(BluebirdPromise.resolve());
@@ -65,7 +63,7 @@ describe("test password update", function () {
       clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
         .returns(adminClientStub);
 
-      dovehash.encode.returns("{SSHA}AQmxaKfobGY9HSQa6aDYkAWOgPGNhGYn");
+      ssha512HashGenerator.returns("{CRYPT}$6$abcdefghijklm$AQmxaKfobGY9HSQa6aDYkAWOgPGNhGYn");
       adminClientStub.modifyPasswordStub.withArgs(USERNAME, NEW_PASSWORD)
         .returns(BluebirdPromise.reject(new Error("Error while updating password")));
       adminClientStub.openStub.returns(BluebirdPromise.resolve());
