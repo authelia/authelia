@@ -9,7 +9,7 @@ import ejs = require("ejs");
 import { IUserDataStore } from "./storage/IUserDataStore";
 import express = require("express");
 import ErrorReplies = require("./ErrorReplies");
-import AuthenticationSessionHandler = require("./AuthenticationSession");
+import { AuthenticationSessionHandler } from "./AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../types/AuthenticationSession";
 import { ServerVariables } from "./ServerVariables";
 
@@ -74,13 +74,8 @@ export function get_finish_validation(handler: IdentityValidable,
 
     return checkIdentityToken(req, identityToken)
       .then(function () {
+        authSession = AuthenticationSessionHandler.get(req, vars.logger);
         return handler.postValidationInit(req);
-      })
-      .then(function () {
-        return AuthenticationSessionHandler.get(req, vars.logger);
-      })
-      .then(function (_authSession) {
-        authSession = _authSession;
       })
       .then(function () {
         return consumeToken(identityToken, handler.challenge(), vars.userDataStore);
@@ -96,7 +91,6 @@ export function get_finish_validation(handler: IdentityValidable,
       .catch(ErrorReplies.replyWithError401(req, res, vars.logger));
   };
 }
-
 
 export function get_start_validation(handler: IdentityValidable,
   postValidationEndpoint: string,

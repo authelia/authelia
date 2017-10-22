@@ -37,7 +37,7 @@ import { IMongoClient } from "./connectors/mongo/IMongoClient";
 
 import { GlobalDependencies } from "../../types/Dependencies";
 import { ServerVariables } from "./ServerVariables";
-import { AuthenticationMethodCalculator } from "./AuthenticationMethodCalculator";
+import { MethodCalculator } from "./authentication/MethodCalculator";
 
 class UserDataStoreFactory {
   static create(config: Configuration.AppConfiguration): BluebirdPromise<UserDataStore> {

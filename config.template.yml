@@ -71,6 +71,9 @@ ldap:
 # values must be one of the two possible methods.
 #
 # Note: 'per_subdomain_methods' is optional.
+#
+# Note: authentication_methods is optional. If it is not set all sub-domains
+# are protected by two factors.
 authentication_methods:
   default_method: two_factor
   per_subdomain_methods:

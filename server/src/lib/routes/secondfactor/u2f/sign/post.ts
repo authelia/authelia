@@ -8,11 +8,10 @@ import { U2FRegistrationDocument } from "../../../../storage/U2FRegistrationDocu
 import { Winston } from "../../../../../../types/Dependencies";
 import U2f = require("u2f");
 import exceptions = require("../../../../Exceptions");
-import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
 import { ServerVariables } from "../../../../ServerVariables";
-import AuthenticationSessionHandler = require("../../../../AuthenticationSession");
+import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import UserMessages = require("../../../../../../../shared/UserMessages");
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 
@@ -21,14 +20,16 @@ export default function (vars: ServerVariables) {
     let authSession: AuthenticationSession;
     const appId = u2f_common.extract_app_id(req);
 
-    return AuthenticationSessionHandler.get(req, vars.logger)
-      .then(function (_authSession) {
-        authSession = _authSession;
-        if (!authSession.sign_request) {
-          const err = new Error("No sign request");
-          ErrorReplies.replyWithError401(req, res, vars.logger)(err);
-          return BluebirdPromise.reject(err);
-        }
+    return new BluebirdPromise(function (resolve, reject) {
+      authSession = AuthenticationSessionHandler.get(req, vars.logger);
+      if (!authSession.sign_request) {
+        const err = new Error("No sign request");
+        ErrorReplies.replyWithError401(req, res, vars.logger)(err);
+        return reject(err);
+      }
+      resolve();
+    })
+      .then(function () {
         const userid = authSession.userid;
         return vars.userDataStore.retrieveU2FRegistration(userid, appId);
       })
@@ -50,6 +51,6 @@ export default function (vars: ServerVariables) {
         UserMessages.OPERATION_FAILED));
   }
 
-  return FirstFactorBlocker(handler, vars.logger);
+  return handler;
 }
 

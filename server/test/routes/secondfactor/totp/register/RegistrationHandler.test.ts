@@ -2,7 +2,6 @@ import Sinon = require("sinon");
 import winston = require("winston");
 import RegistrationHandler from "../../../../../src/lib/routes/secondfactor/totp/identity/RegistrationHandler";
 import { Identity } from "../../../../../types/Identity";
-import AuthenticationSession = require("../../../../../src/lib/AuthenticationSession");
 import { UserDataStore } from "../../../../../src/lib/storage/UserDataStore";
 import assert = require("assert");
 import BluebirdPromise = require("bluebird");

@@ -1,7 +1,7 @@
 
 import sinon = require("sinon");
 import IdentityValidator = require("../src/lib/IdentityCheckMiddleware");
-import AuthenticationSessionHandler = require("../src/lib/AuthenticationSession");
+import { AuthenticationSessionHandler } from "../src/lib/AuthenticationSessionHandler";
 import { AuthenticationSession } from "../types/AuthenticationSession";
 import { UserDataStore } from "../src/lib/storage/UserDataStore";
 import exceptions = require("../src/lib/Exceptions");
@@ -155,14 +155,10 @@ describe("test identity check process", function () {
       req.query.identity_token = "token";
 
       req.session = {};
-      let authSession: AuthenticationSession;
+      const authSession: AuthenticationSession = AuthenticationSessionHandler.get(req as any, vars.logger);
       const callback = IdentityValidator.get_finish_validation(identityValidable, vars);
 
-      return AuthenticationSessionHandler.get(req as any, vars.logger)
-        .then(function (_authSession) {
-          authSession = _authSession;
-          return callback(req as any, res as any, undefined);
-        })
+      return callback(req as any, res as any, undefined)
         .then(function () { return BluebirdPromise.reject("Should fail"); })
         .catch(function () {
           Assert.equal(authSession.identity_check.userid, "user");

@@ -7,6 +7,8 @@ import Assert = require("assert");
 import Request = require("request-promise");
 import BluebirdPromise = require("bluebird");
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+
 function CustomWorld() {
   const that = this;
   this.driver = new seleniumWebdriver.Builder()
@@ -38,8 +40,13 @@ function CustomWorld() {
           .findElement(seleniumWebdriver.By.tagName("h1")).getText();
       })
       .then(function (txt: string) {
-        Assert.equal(txt, "Error " + code);
-      });
+        try {
+          Assert.equal(txt, "Error " + code);
+        } catch (e) {
+          console.log(txt);
+          throw e;
+        }
+      })
   };
 
   this.clickOnButton = function (buttonText: string) {

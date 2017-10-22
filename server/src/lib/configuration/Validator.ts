@@ -3,8 +3,9 @@ import Path = require("path");
 import Util = require("util");
 import {
   UserConfiguration, StorageConfiguration,
-  NotifierConfiguration
+  NotifierConfiguration, AuthenticationMethodsConfiguration
 } from "./Configuration";
+import { MethodCalculator } from "../authentication/MethodCalculator";
 
 function validateSchema(configuration: UserConfiguration): string[] {
   const schema = require(Path.resolve(__dirname, "./Configuration.schema.json"));
@@ -34,7 +35,7 @@ function validateUnknownKeys(path: string, obj: any, knownKeys: string[]) {
   return [];
 }
 
-function validateStorage(storage: any) {
+function validateStorage(storage: any): string[] {
   const ERROR = "Storage must be either 'local' or 'mongo'";
 
   if (!storage)
@@ -53,21 +54,27 @@ function validateStorage(storage: any) {
   return [];
 }
 
-function validateNotifier(notifier: NotifierConfiguration) {
+function validateNotifier(notifier: NotifierConfiguration,
+  authenticationMethods: AuthenticationMethodsConfiguration): string[] {
   const ERROR = "Notifier must be either 'filesystem', 'email' or 'smtp'";
 
   if (!notifier)
     return [];
 
+  if (!MethodCalculator.isSingleFactorOnlyMode(authenticationMethods)) {
+    if (Object.keys(notifier).length != 1)
+      return ["A notifier needs to be declared when server is used with two-factor"];
+
+    if (notifier && notifier.filesystem && notifier.email && notifier.smtp)
+      return [ERROR];
+
+    if (notifier && !notifier.filesystem && !notifier.email && !notifier.smtp)
+      return [ERROR];
+  }
+
   const errors = validateUnknownKeys("notifier", notifier, ["filesystem", "email", "smtp"]);
   if (errors.length > 0)
     return errors;
-
-  if (notifier && notifier.filesystem && notifier.email && notifier.smtp)
-    return [ERROR];
-
-  if (notifier && !notifier.filesystem && !notifier.email && !notifier.smtp)
-    return [ERROR];
 
   return [];
 }
@@ -76,7 +83,8 @@ export class Validator {
   static isValid(configuration: any): string[] {
     const schemaErrors = validateSchema(configuration);
     const storageErrors = validateStorage(configuration.storage);
-    const notifierErrors = validateNotifier(configuration.notifier);
+    const notifierErrors = validateNotifier(configuration.notifier,
+      configuration.authentication_methods);
 
     return schemaErrors
       .concat(storageErrors)

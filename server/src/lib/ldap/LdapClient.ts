@@ -32,7 +32,7 @@ export class LdapClient implements ILdapClient {
       clientLogger.level("trace");
     }*/
 
-    this.client = BluebirdPromise.promisifyAll(ldapClient) as LdapJs.ClientAsync;
+    this.client = BluebirdPromise.promisifyAll(ldapClient) as any;
   }
 
   bindAsync(username: string, password: string): BluebirdPromise<void> {

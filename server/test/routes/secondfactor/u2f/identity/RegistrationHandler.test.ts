@@ -1,18 +1,15 @@
-import sinon = require("sinon");
-import winston = require("winston");
-import assert = require("assert");
+import Sinon = require("sinon");
+import Assert = require("assert");
 import BluebirdPromise = require("bluebird");
 
 import { Identity } from "../../../../../types/Identity";
 import RegistrationHandler from "../../../../../src/lib/routes/secondfactor/u2f/identity/RegistrationHandler";
-import AuthenticationSession = require("../../../../../src/lib/AuthenticationSession");
-
 import ExpressMock = require("../../../../mocks/express");
 import { UserDataStoreStub } from "../../../../mocks/storage/UserDataStoreStub";
 import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../../../mocks/ServerVariablesMockBuilder";
 import { ServerVariables } from "../../../../../src/lib/ServerVariables";
 
-describe("test register handler", function () {
+describe("test U2F register handler", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
   let mocks: ServerVariablesMock;
@@ -46,9 +43,9 @@ describe("test register handler", function () {
     mocks.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
 
     res = ExpressMock.ResponseMock();
-    res.send = sinon.spy();
-    res.json = sinon.spy();
-    res.status = sinon.spy();
+    res.send = Sinon.spy();
+    res.json = Sinon.spy();
+    res.status = Sinon.spy();
   });
 
   describe("test u2f registration check", test_registration_check);
@@ -63,31 +60,37 @@ describe("test register handler", function () {
         });
     });
 
-    it("should fail if userid is missing", function (done) {
+    it("should fail if userid is missing", function () {
       req.session.auth.first_factor = false;
       req.session.auth.userid = undefined;
 
-      new RegistrationHandler(vars.logger).preValidationInit(req as any)
-        .catch(function (err: Error) {
-          done();
+      return new RegistrationHandler(vars.logger).preValidationInit(req as any)
+        .then(function () {
+          return BluebirdPromise.reject(new Error("should not be here"));
+        },
+        function (err: Error) {
+          return BluebirdPromise.resolve();
         });
     });
 
-    it("should fail if email is missing", function (done) {
+    it("should fail if email is missing", function () {
       req.session.auth.first_factor = false;
       req.session.auth.email = undefined;
 
-      new RegistrationHandler(vars.logger).preValidationInit(req as any)
-        .catch(function (err: Error) {
-          done();
+      return new RegistrationHandler(vars.logger).preValidationInit(req as any)
+        .then(function () {
+          return BluebirdPromise.reject(new Error("should not be here"));
+        },
+        function (err: Error) {
+          return BluebirdPromise.resolve();
         });
     });
 
-    it("should succeed if first factor passed, userid and email are provided", function (done) {
-      new RegistrationHandler(vars.logger).preValidationInit(req as any)
-        .then(function (identity: Identity) {
-          done();
-        });
+    it("should succeed if first factor passed, userid and email are provided", function () {
+      req.session.auth.first_factor = true;
+      req.session.auth.email = "admin@example.com";
+      req.session.auth.userid = "user";
+      return new RegistrationHandler(vars.logger).preValidationInit(req as any);
     });
   }
 });
