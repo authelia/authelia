@@ -9,12 +9,13 @@ import { PRE_VALIDATION_TEMPLATE } from "../../../../IdentityCheckPreValidationT
 import Constants = require("../constants");
 import Endpoints = require("../../../../../../../shared/api");
 import ErrorReplies = require("../../../../ErrorReplies");
-import AuthenticationSession = require("../../../../AuthenticationSession");
+import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import UserMessages = require("../../../../../../../shared/UserMessages");
 import FirstFactorValidator = require("../../../../FirstFactorValidator");
 import { IRequestLogger } from "../../../../logging/IRequestLogger";
 import { IUserDataStore } from "../../../../storage/IUserDataStore";
 import { ITotpHandler } from "../../../../authentication/totp/ITotpHandler";
+import { TOTPSecret } from "../../../../../../types/TOTPSecret";
 
 
 export default class RegistrationHandler implements IdentityValidable {
@@ -35,21 +36,22 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   private retrieveIdentity(req: express.Request): BluebirdPromise<Identity> {
-    return AuthenticationSession.get(req, this.logger)
-      .then(function (authSession) {
-        const userid = authSession.userid;
-        const email = authSession.email;
+    const that = this;
+    return new BluebirdPromise(function (resolve, reject) {
+      const authSession = AuthenticationSessionHandler.get(req, that.logger);
+      const userid = authSession.userid;
+      const email = authSession.email;
 
-        if (!(userid && email)) {
-          return BluebirdPromise.reject(new Error("User ID or email is missing."));
-        }
+      if (!(userid && email)) {
+        return reject(new Error("User ID or email is missing"));
+      }
 
-        const identity = {
-          email: email,
-          userid: userid
-        };
-        return BluebirdPromise.resolve(identity);
-      });
+      const identity = {
+        email: email,
+        userid: userid
+      };
+      return resolve(identity);
+    });
   }
 
   preValidationInit(req: express.Request): BluebirdPromise<Identity> {
@@ -70,26 +72,31 @@ export default class RegistrationHandler implements IdentityValidable {
 
   postValidationResponse(req: express.Request, res: express.Response): BluebirdPromise<void> {
     const that = this;
-    return AuthenticationSession.get(req, this.logger)
-      .then(function (authSession) {
-        const userid = authSession.identity_check.userid;
-        const challenge = authSession.identity_check.challenge;
+    let secret: TOTPSecret;
+    let userId: string;
+    return new BluebirdPromise(function (resolve, reject) {
+      const authSession = AuthenticationSessionHandler.get(req, that.logger);
+      const challenge = authSession.identity_check.challenge;
+      userId = authSession.identity_check.userid;
 
-        if (challenge != Constants.CHALLENGE || !userid) {
-          return BluebirdPromise.reject(new Error("Bad challenge."));
-        }
-        const secret = that.totp.generate();
-        that.logger.debug(req, "Save the TOTP secret in DB.");
-        return that.userDataStore.saveTOTPSecret(userid, secret)
-          .then(function () {
-            AuthenticationSession.reset(req);
+      if (challenge != Constants.CHALLENGE || !userId) {
+        return reject(new Error("Bad challenge."));
+      }
+      resolve();
+    })
+      .then(function () {
+        secret = that.totp.generate();
+        that.logger.debug(req, "Save the TOTP secret in DB");
+        return that.userDataStore.saveTOTPSecret(userId, secret);
+      })
+      .then(function () {
+        AuthenticationSessionHandler.reset(req);
 
-            res.render(Constants.TEMPLATE_NAME, {
-              base32_secret: secret.base32,
-              otpauth_url: secret.otpauth_url,
-              login_endpoint: Endpoints.FIRST_FACTOR_GET
-            });
-          });
+        res.render(Constants.TEMPLATE_NAME, {
+          base32_secret: secret.base32,
+          otpauth_url: secret.otpauth_url,
+          login_endpoint: Endpoints.FIRST_FACTOR_GET
+        });
       })
       .catch(ErrorReplies.replyWithError200(req, res, that.logger, UserMessages.OPERATION_FAILED));
   }

@@ -3,8 +3,6 @@ import sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import assert = require("assert");
 import U2FSignRequestGet = require("../../../../../src/lib/routes/secondfactor/u2f/sign_request/get");
-import AuthenticationSessionHandler = require("../../../../../src/lib/AuthenticationSession");
-import { AuthenticationSession } from "../../../../../types/AuthenticationSession";
 import ExpressMock = require("../../../../mocks/express");
 import { UserDataStoreStub } from "../../../../mocks/storage/UserDataStoreStub";
 import U2FMock = require("../../../../mocks/u2f");

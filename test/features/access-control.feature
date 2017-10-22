@@ -17,7 +17,7 @@ Feature: User has access restricted access to domains
       | https://dev.test.local:8080/users/bob/secret.html      |
       | https://admin.test.local:8080/secret.html              |
       | https://mx1.mail.test.local:8080/secret.html           |
-      | https://single_factor.test.local:8080/secret.html          |
+      | https://single_factor.test.local:8080/secret.html      |
     And I have no access to:
       | url                                                    |
       | https://mx2.mail.test.local:8080/secret.html           |
@@ -42,7 +42,7 @@ Feature: User has access restricted access to domains
       | https://admin.test.local:8080/secret.html              |
       | https://dev.test.local:8080/users/john/secret.html     |
       | https://dev.test.local:8080/users/harry/secret.html    |
-      | https://single_factor.test.local:8080/secret.html          |
+      | https://single_factor.test.local:8080/secret.html      |
 
   @need-registered-user-harry
   Scenario: User harry has restricted access
@@ -64,4 +64,4 @@ Feature: User has access restricted access to domains
       | https://dev.test.local:8080/users/john/secret.html     |
       | https://mx1.mail.test.local:8080/secret.html           |
       | https://mx2.mail.test.local:8080/secret.html           |
-      | https://single_factor.test.local:8080/secret.html          |
+      | https://single_factor.test.local:8080/secret.html      |

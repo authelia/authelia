@@ -1,9 +1,8 @@
 
 import Assert = require("assert");
 import VerifyGet = require("../../../src/lib/routes/verify/get");
-import AuthenticationSessionHandler = require("../../../src/lib/AuthenticationSession");
+import { AuthenticationSessionHandler } from "../../../src/lib/AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../types/AuthenticationSession";
-import { AuthenticationMethodCalculator } from "../../../src/lib/AuthenticationMethodCalculator";
 import { AuthenticationMethodsConfiguration } from "../../../src/lib/configuration/Configuration";
 import Sinon = require("sinon");
 import winston = require("winston");
@@ -18,37 +17,31 @@ describe("test /verify endpoint", function () {
   let res: ExpressMock.ResponseMock;
   let mocks: ServerVariablesMock;
   let vars: ServerVariables;
+  let authSession: AuthenticationSession;
 
   beforeEach(function () {
     req = ExpressMock.RequestMock();
     res = ExpressMock.ResponseMock();
-    req.session = {};
     req.query = {
       redirect: "http://redirect.url"
     };
-    req.app = {
-      get: Sinon.stub().returns({ logger: winston })
-    };
     AuthenticationSessionHandler.reset(req as any);
-    req.headers = {};
     req.headers.host = "secret.example.com";
     const s = ServerVariablesMockBuilder.build();
     mocks = s.mocks;
     vars = s.variables;
+    vars.config.authentication_methods.default_method = "two_factor";
+
+    authSession = AuthenticationSessionHandler.get(req as any, vars.logger);
   });
 
   it("should be already authenticated", function () {
-    req.session = {};
     mocks.accessController.isAccessAllowedMock.returns(true);
-    AuthenticationSessionHandler.reset(req as any);
-    return AuthenticationSessionHandler.get(req as any, vars.logger)
-      .then(function (authSession) {
-        authSession.first_factor = true;
-        authSession.second_factor = true;
-        authSession.userid = "myuser";
-        authSession.groups = ["mygroup", "othergroup"];
-        return VerifyGet.default(vars)(req as express.Request, res as any);
-      })
+    authSession.first_factor = true;
+    authSession.second_factor = true;
+    authSession.userid = "myuser";
+    authSession.groups = ["mygroup", "othergroup"];
+    return VerifyGet.default(vars)(req as express.Request, res as any)
       .then(function () {
         Sinon.assert.calledWithExactly(res.setHeader, "Remote-User", "myuser");
         Sinon.assert.calledWithExactly(res.setHeader, "Remote-Groups", "mygroup,othergroup");
@@ -57,11 +50,7 @@ describe("test /verify endpoint", function () {
   });
 
   function test_session(_authSession: AuthenticationSession, status_code: number) {
-    return AuthenticationSessionHandler.get(req as any, vars.logger)
-      .then(function (authSession) {
-        authSession = _authSession;
-        return VerifyGet.default(vars)(req as express.Request, res as any);
-      })
+    return VerifyGet.default(vars)(req as express.Request, res as any)
       .then(function () {
         Assert.equal(status_code, res.status.getCall(0).args[0]);
       });
@@ -134,23 +123,20 @@ describe("test /verify endpoint", function () {
       });
 
       it("should not be authenticated when domain is not allowed for user", function () {
-        return AuthenticationSessionHandler.get(req as any, vars.logger)
-          .then(function (authSession) {
-            authSession.first_factor = true;
-            authSession.second_factor = true;
-            authSession.userid = "myuser";
-            req.headers.host = "test.example.com";
-            mocks.accessController.isAccessAllowedMock.returns(false);
+        authSession.first_factor = true;
+        authSession.second_factor = true;
+        authSession.userid = "myuser";
+        req.headers.host = "test.example.com";
+        mocks.accessController.isAccessAllowedMock.returns(false);
 
-            return test_unauthorized_403({
-              first_factor: true,
-              second_factor: true,
-              userid: "user",
-              groups: ["group1", "group2"],
-              email: undefined,
-              last_activity_datetime: new Date().getTime()
-            });
-          });
+        return test_unauthorized_403({
+          first_factor: true,
+          second_factor: true,
+          userid: "user",
+          groups: ["group1", "group2"],
+          email: undefined,
+          last_activity_datetime: new Date().getTime()
+        });
       });
     });
   });
@@ -168,12 +154,9 @@ describe("test /verify endpoint", function () {
 
     it("should be authenticated when first factor is validated and second factor is not", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
-      return AuthenticationSessionHandler.get(req as any, vars.logger)
-        .then(function (authSession) {
-          authSession.first_factor = true;
-          authSession.userid = "user1";
-          return VerifyGet.default(vars)(req as express.Request, res as any);
-        })
+      authSession.first_factor = true;
+      authSession.userid = "user1";
+      return VerifyGet.default(vars)(req as express.Request, res as any)
         .then(function () {
           Assert(res.status.calledWith(204));
           Assert(res.send.calledOnce);
@@ -182,11 +165,8 @@ describe("test /verify endpoint", function () {
 
     it("should be rejected with 401 when first factor is not validated", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
-      return AuthenticationSessionHandler.get(req as any, vars.logger)
-        .then(function (authSession) {
-          authSession.first_factor = false;
-          return VerifyGet.default(vars)(req as express.Request, res as any);
-        })
+      authSession.first_factor = false;
+      return VerifyGet.default(vars)(req as express.Request, res as any)
         .then(function () {
           Assert(res.status.calledWith(401));
         });
@@ -199,15 +179,12 @@ describe("test /verify endpoint", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
       const currentTime = new Date().getTime() - 1000;
       AuthenticationSessionHandler.reset(req as any);
-      return AuthenticationSessionHandler.get(req as any, vars.logger)
-        .then(function (authSession) {
-          authSession.first_factor = true;
-          authSession.second_factor = true;
-          authSession.userid = "myuser";
-          authSession.groups = ["mygroup", "othergroup"];
-          authSession.last_activity_datetime = currentTime;
-          return VerifyGet.default(vars)(req as express.Request, res as any);
-        })
+      authSession.first_factor = true;
+      authSession.second_factor = true;
+      authSession.userid = "myuser";
+      authSession.groups = ["mygroup", "othergroup"];
+      authSession.last_activity_datetime = currentTime;
+      return VerifyGet.default(vars)(req as express.Request, res as any)
         .then(function () {
           return AuthenticationSessionHandler.get(req as any, vars.logger);
         })
@@ -221,15 +198,12 @@ describe("test /verify endpoint", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
       const currentTime = new Date().getTime() - 1000;
       AuthenticationSessionHandler.reset(req as any);
-      return AuthenticationSessionHandler.get(req as any, vars.logger)
-        .then(function (authSession) {
-          authSession.first_factor = true;
-          authSession.second_factor = true;
-          authSession.userid = "myuser";
-          authSession.groups = ["mygroup", "othergroup"];
-          authSession.last_activity_datetime = currentTime;
-          return VerifyGet.default(vars)(req as express.Request, res as any);
-        })
+      authSession.first_factor = true;
+      authSession.second_factor = true;
+      authSession.userid = "myuser";
+      authSession.groups = ["mygroup", "othergroup"];
+      authSession.last_activity_datetime = currentTime;
+      return VerifyGet.default(vars)(req as express.Request, res as any)
         .then(function () {
           return AuthenticationSessionHandler.get(req as any, vars.logger);
         })

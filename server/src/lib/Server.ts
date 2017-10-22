@@ -6,26 +6,16 @@ import { AppConfiguration, UserConfiguration } from "./configuration/Configurati
 import { GlobalDependencies } from "../../types/Dependencies";
 import { UserDataStore } from "./storage/UserDataStore";
 import { ConfigurationParser } from "./configuration/ConfigurationParser";
-import { RestApi } from "./RestApi";
 import { SessionConfigurationBuilder } from "./configuration/SessionConfigurationBuilder";
 import { GlobalLogger } from "./logging/GlobalLogger";
 import { RequestLogger } from "./logging/RequestLogger";
 import { ServerVariables } from "./ServerVariables";
 import { ServerVariablesInitializer } from "./ServerVariablesInitializer";
+import { Configurator } from "./web_server/Configurator";
 
 import * as Express from "express";
-import * as BodyParser from "body-parser";
 import * as Path from "path";
 import * as http from "http";
-
-const addRequestId = require("express-request-id")();
-
-// Constants
-const TRUST_PROXY = "trust proxy";
-const X_POWERED_BY = "x-powered-by";
-const VIEWS = "views";
-const VIEW_ENGINE = "view engine";
-const PUG = "pug";
 
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));
@@ -35,33 +25,10 @@ export default class Server {
   private httpServer: http.Server;
   private globalLogger: GlobalLogger;
   private requestLogger: RequestLogger;
-  private serverVariables: ServerVariables;
 
   constructor(deps: GlobalDependencies) {
     this.globalLogger = new GlobalLogger(deps.winston);
     this.requestLogger = new RequestLogger(deps.winston);
-  }
-
-  private setupExpressApplication(config: AppConfiguration,
-    app: Express.Application,
-    deps: GlobalDependencies): void {
-    const viewsDirectory = Path.resolve(__dirname, "../views");
-    const publicHtmlDirectory = Path.resolve(__dirname, "../public_html");
-
-    const expressSessionOptions = SessionConfigurationBuilder.build(config, deps);
-
-    app.use(Express.static(publicHtmlDirectory));
-    app.use(BodyParser.urlencoded({ extended: false }));
-    app.use(BodyParser.json());
-    app.use(deps.session(expressSessionOptions));
-    app.use(addRequestId);
-    app.disable(X_POWERED_BY);
-    app.enable(TRUST_PROXY);
-
-    app.set(VIEWS, viewsDirectory);
-    app.set(VIEW_ENGINE, PUG);
-
-    RestApi.setup(app, this.serverVariables);
   }
 
   private displayConfigurations(userConfiguration: UserConfiguration,
@@ -94,8 +61,7 @@ export default class Server {
     const that = this;
     return ServerVariablesInitializer.initialize(config, this.requestLogger, deps)
       .then(function (vars: ServerVariables) {
-        that.serverVariables = vars;
-        that.setupExpressApplication(config, app, deps);
+        Configurator.configure(config, app, vars, deps);
         return BluebirdPromise.resolve();
       });
   }

@@ -1,6 +1,7 @@
 client/
 server/
 test/
+shared/
 doc/
 scripts/
 images/

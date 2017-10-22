@@ -27,7 +27,7 @@ export interface ServerVariablesMock {
 }
 
 export class ServerVariablesMockBuilder {
-  static build(): { variables: ServerVariables, mocks: ServerVariablesMock} {
+  static build(enableLogging?: boolean): { variables: ServerVariables, mocks: ServerVariablesMock} {
     const mocks: ServerVariablesMock = {
       accessController: new AccessControllerStub(),
       config: {
@@ -62,7 +62,7 @@ export class ServerVariablesMockBuilder {
       ldapAuthenticator: new AuthenticatorStub(),
       ldapEmailsRetriever: new EmailsRetrieverStub(),
       ldapPasswordUpdater: new PasswordUpdaterStub(),
-      logger: new RequestLoggerStub(),
+      logger: new RequestLoggerStub(enableLogging),
       notifier: new NotifierStub(),
       regulator: new RegulatorStub(),
       totpHandler: new TotpHandlerStub(),

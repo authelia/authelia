@@ -6,9 +6,8 @@ import u2f_common = require("../U2FCommon");
 import BluebirdPromise = require("bluebird");
 import express = require("express");
 import U2f = require("u2f");
-import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import ErrorReplies = require("../../../../ErrorReplies");
-import AuthenticationSessionHandler = require("../../../../AuthenticationSession");
+import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import UserMessages = require("../../../../../../../shared/UserMessages");
 import { ServerVariables } from "../../../../ServerVariables";
@@ -18,21 +17,18 @@ export default function (vars: ServerVariables) {
     let authSession: AuthenticationSession;
     const appid: string = u2f_common.extract_app_id(req);
 
-    return AuthenticationSessionHandler.get(req, vars.logger)
-      .then(function (_authSession) {
-        authSession = _authSession;
+    return new BluebirdPromise(function (resolve, reject) {
+      authSession = AuthenticationSessionHandler.get(req, vars.logger);
+      if (!authSession.identity_check
+        || authSession.identity_check.challenge != "u2f-register") {
+        res.status(403);
+        res.send();
+        return reject(new Error("Bad challenge."));
+      }
 
-        if (!authSession.identity_check
-          || authSession.identity_check.challenge != "u2f-register") {
-          res.status(403);
-          res.send();
-          return BluebirdPromise.reject(new Error("Bad challenge."));
-        }
-
-        vars.logger.info(req, "Starting registration for appId '%s'", appid);
-
-        return BluebirdPromise.resolve(vars.u2f.request(appid));
-      })
+      vars.logger.info(req, "Starting registration for appId '%s'", appid);
+      return resolve(vars.u2f.request(appid));
+    })
       .then(function (registrationRequest: U2f.Request) {
         vars.logger.debug(req, "RegistrationRequest = %s", JSON.stringify(registrationRequest));
         authSession.register_request = registrationRequest;
@@ -43,5 +39,5 @@ export default function (vars: ServerVariables) {
         UserMessages.OPERATION_FAILED));
   }
 
-  return FirstFactorBlocker(handler, vars.logger);
+  return handler;
 }

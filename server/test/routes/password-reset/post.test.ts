@@ -1,7 +1,8 @@
 
 import PasswordResetFormPost = require("../../../src/lib/routes/password-reset/form/post");
 import { PasswordUpdater } from "../../../src/lib/ldap/PasswordUpdater";
-import AuthenticationSessionHandler = require("../../../src/lib/AuthenticationSession");
+import { AuthenticationSessionHandler } from "../../../src/lib/AuthenticationSessionHandler";
+import { AuthenticationSession } from "../../../types/AuthenticationSession";
 import { UserDataStore } from "../../../src/lib/storage/UserDataStore";
 import Sinon = require("sinon");
 import Assert = require("assert");
@@ -15,6 +16,7 @@ describe("test reset password route", function () {
   let res: ExpressMock.ResponseMock;
   let vars: ServerVariables;
   let mocks: ServerVariablesMock;
+  let authSession: AuthenticationSession;
 
   beforeEach(function () {
     req = {
@@ -53,13 +55,11 @@ describe("test reset password route", function () {
     };
 
     res = ExpressMock.ResponseMock();
-    AuthenticationSessionHandler.get(req as any, vars.logger)
-      .then(function (authSession) {
-        authSession.userid = "user";
-        authSession.email = "user@example.com";
-        authSession.first_factor = true;
-        authSession.second_factor = false;
-      });
+    authSession = AuthenticationSessionHandler.get(req as any, vars.logger);
+    authSession.userid = "user";
+    authSession.email = "user@example.com";
+    authSession.first_factor = true;
+    authSession.second_factor = false;
   });
 
   describe("test reset password post", () => {
@@ -69,14 +69,11 @@ describe("test reset password route", function () {
 
       mocks.ldapPasswordUpdater.updatePasswordStub.returns(BluebirdPromise.resolve());
 
-      return AuthenticationSessionHandler.get(req as any, vars.logger)
-        .then(function (authSession) {
-          authSession.identity_check = {
-            userid: "user",
-            challenge: "reset-password"
-          };
-          return PasswordResetFormPost.default(vars)(req as any, res as any);
-        })
+      authSession.identity_check = {
+        userid: "user",
+        challenge: "reset-password"
+      };
+      return PasswordResetFormPost.default(vars)(req as any, res as any)
         .then(function () {
           return AuthenticationSessionHandler.get(req as any, vars.logger);
         }).then(function (_authSession) {
@@ -88,14 +85,11 @@ describe("test reset password route", function () {
     });
 
     it("should fail if identity_challenge does not exist", function () {
-      return AuthenticationSessionHandler.get(req as any, vars.logger)
-        .then(function (authSession) {
-          authSession.identity_check = {
-            userid: "user",
-            challenge: undefined
-          };
-          return PasswordResetFormPost.default(vars)(req as any, res as any);
-        })
+      authSession.identity_check = {
+        userid: "user",
+        challenge: undefined
+      };
+      return PasswordResetFormPost.default(vars)(req as any, res as any)
         .then(function () {
           Assert.equal(res.status.getCall(0).args[0], 200);
           Assert.deepEqual(res.send.getCall(0).args[0], {
@@ -111,14 +105,12 @@ describe("test reset password route", function () {
       mocks.ldapPasswordUpdater.updatePasswordStub
         .returns(BluebirdPromise.reject("Internal error with LDAP"));
 
-      return AuthenticationSessionHandler.get(req as any, vars.logger)
-        .then(function (authSession) {
-          authSession.identity_check = {
-            challenge: "reset-password",
-            userid: "user"
-          };
-          return PasswordResetFormPost.default(vars)(req as any, res as any);
-        }).then(function () {
+      authSession.identity_check = {
+        challenge: "reset-password",
+        userid: "user"
+      };
+      return PasswordResetFormPost.default(vars)(req as any, res as any)
+        .then(function () {
           Assert.equal(res.status.getCall(0).args[0], 200);
           Assert.deepEqual(res.send.getCall(0).args[0], {
             error: "An error occurred during password reset. Your password has not been changed."

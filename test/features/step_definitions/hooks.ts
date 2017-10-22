@@ -36,6 +36,13 @@ Cucumber.defineSupportCode(function ({ After, Before }) {
     ");
   }
 
+  function createSingleFactorConfiguration(): BluebirdPromise<void> {
+    return exec("\
+    cat config.template.yml | \
+    sed 's/default_method: two_factor/default_method: single_factor/' > config.test.yml \
+    ");
+  }
+
   function declareNeedsConfiguration(tag: string, cb: () => BluebirdPromise<void>) {
     Before({ tags: "@needs-" + tag + "-config", timeout: 20 * 1000 }, function () {
       return cb()
@@ -54,6 +61,7 @@ Cucumber.defineSupportCode(function ({ After, Before }) {
 
   declareNeedsConfiguration("regulation", createRegulationConfiguration);
   declareNeedsConfiguration("inactivity", createInactivityConfiguration);
+  declareNeedsConfiguration("single_factor", createSingleFactorConfiguration);
 
   function registerUser(context: any, username: string) {
     let secret: Speakeasy.Key;

@@ -1,17 +1,15 @@
 
 import { UserDataStore } from "../../../../storage/UserDataStore";
-
 import objectPath = require("object-path");
 import u2f_common = require("../U2FCommon");
 import BluebirdPromise = require("bluebird");
 import express = require("express");
 import U2f = require("u2f");
 import { U2FRegistration } from "../../../../../../types/U2FRegistration";
-import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
 import { ServerVariables } from "../../../../ServerVariables";
-import AuthenticationSessionHandler = require("../../../../AuthenticationSession");
+import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import UserMessages = require("../../../../../../../shared/UserMessages");
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 
@@ -22,26 +20,25 @@ export default function (vars: ServerVariables) {
     const appid = u2f_common.extract_app_id(req);
     const registrationResponse: U2f.RegistrationData = req.body;
 
-    return AuthenticationSessionHandler.get(req, vars.logger)
-      .then(function (_authSession) {
-        authSession = _authSession;
-        const registrationRequest = authSession.register_request;
+    return new BluebirdPromise(function (resolve, reject) {
+      authSession = AuthenticationSessionHandler.get(req, vars.logger);
+      const registrationRequest = authSession.register_request;
 
-        if (!registrationRequest) {
-          return BluebirdPromise.reject(new Error("No registration request"));
-        }
+      if (!registrationRequest) {
+        return reject(new Error("No registration request"));
+      }
 
-        if (!authSession.identity_check
-          || authSession.identity_check.challenge != "u2f-register") {
-          return BluebirdPromise.reject(new Error("Bad challenge for registration request"));
-        }
+      if (!authSession.identity_check
+        || authSession.identity_check.challenge != "u2f-register") {
+        return reject(new Error("Bad challenge for registration request"));
+      }
 
-        vars.logger.info(req, "Finishing registration");
-        vars.logger.debug(req, "RegistrationRequest = %s", JSON.stringify(registrationRequest));
-        vars.logger.debug(req, "RegistrationResponse = %s", JSON.stringify(registrationResponse));
+      vars.logger.info(req, "Finishing registration");
+      vars.logger.debug(req, "RegistrationRequest = %s", JSON.stringify(registrationRequest));
+      vars.logger.debug(req, "RegistrationResponse = %s", JSON.stringify(registrationResponse));
 
-        return BluebirdPromise.resolve(vars.u2f.checkRegistration(registrationRequest, registrationResponse));
-      })
+      return resolve(vars.u2f.checkRegistration(registrationRequest, registrationResponse));
+    })
       .then(function (u2fResult: U2f.RegistrationResult | U2f.Error): BluebirdPromise<void> {
         if (objectPath.has(u2fResult, "errorCode"))
           return BluebirdPromise.reject(new Error("Error while registering."));
@@ -63,6 +60,5 @@ export default function (vars: ServerVariables) {
       .catch(ErrorReplies.replyWithError200(req, res, vars.logger,
         UserMessages.OPERATION_FAILED));
   }
-
-  return FirstFactorBlocker(handler, vars.logger);
+  return handler;
 }
