@@ -3,7 +3,6 @@ import sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
 import U2FSignPost = require("../../../../../src/lib/routes/secondfactor/u2f/sign/post");
-import AuthenticationSession = require("../../../../../src/lib/AuthenticationSession");
 import { ServerVariables } from "../../../../../src/lib/ServerVariables";
 import winston = require("winston");
 

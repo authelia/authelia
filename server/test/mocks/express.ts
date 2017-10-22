@@ -53,7 +53,11 @@ export function RequestMock(): RequestMock {
     return {
         app: {
             get: sinon.stub()
-        }
+        },
+        headers: {
+            "x-forwarded-for": "127.0.0.1"
+        },
+        session: {}
     };
 }
 export function ResponseMock(): ResponseMock {

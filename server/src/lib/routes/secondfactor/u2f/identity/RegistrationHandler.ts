@@ -7,7 +7,7 @@ import { IdentityValidable } from "../../../../IdentityCheckMiddleware";
 import { Identity } from "../../../../../../types/Identity";
 import { PRE_VALIDATION_TEMPLATE } from "../../../../IdentityCheckPreValidationTemplate";
 import FirstFactorValidator = require("../../../../FirstFactorValidator");
-import AuthenticationSession = require("../../../../AuthenticationSession");
+import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import { IRequestLogger } from "../../../../logging/IRequestLogger";
 
 const CHALLENGE = "u2f-register";
@@ -28,21 +28,22 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   private retrieveIdentity(req: express.Request): BluebirdPromise<Identity> {
-    return AuthenticationSession.get(req, this.logger)
-      .then(function (authSession) {
-        const userid = authSession.userid;
-        const email = authSession.email;
+    const that = this;
+    return new BluebirdPromise(function(resolve, reject) {
+      const authSession = AuthenticationSessionHandler.get(req, that.logger);
+      const userid = authSession.userid;
+      const email = authSession.email;
 
-        if (!(userid && email)) {
-          return BluebirdPromise.reject(new Error("User ID or email is missing"));
-        }
+      if (!(userid && email)) {
+        return reject(new Error("User ID or email is missing"));
+      }
 
-        const identity = {
-          email: email,
-          userid: userid
-        };
-        return BluebirdPromise.resolve(identity);
-      });
+      const identity = {
+        email: email,
+        userid: userid
+      };
+      return resolve(identity);
+    });
   }
 
   preValidationInit(req: express.Request): BluebirdPromise<Identity> {

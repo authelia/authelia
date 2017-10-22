@@ -9,9 +9,8 @@ import { U2FRegistrationDocument } from "../../../../storage/U2FRegistrationDocu
 import { Winston } from "../../../../../../types/Dependencies";
 import exceptions = require("../../../../Exceptions");
 import { SignMessage } from "../../../../../../../shared/SignMessage";
-import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import ErrorReplies = require("../../../../ErrorReplies");
-import AuthenticationSessionHandler = require("../../../../AuthenticationSession");
+import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import UserMessages = require("../../../../../../../shared/UserMessages");
 import { ServerVariables } from "../../../../ServerVariables";
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
@@ -21,9 +20,11 @@ export default function (vars: ServerVariables) {
     let authSession: AuthenticationSession;
     const appId = u2f_common.extract_app_id(req);
 
-    return AuthenticationSessionHandler.get(req, vars.logger)
-      .then(function (_authSession) {
-        authSession = _authSession;
+    return new BluebirdPromise(function (resolve, reject) {
+      authSession = AuthenticationSessionHandler.get(req, vars.logger);
+      resolve();
+    })
+      .then(function () {
         return vars.userDataStore.retrieveU2FRegistration(authSession.userid, appId);
       })
       .then(function (doc: U2FRegistrationDocument): BluebirdPromise<SignMessage> {
@@ -51,6 +52,5 @@ export default function (vars: ServerVariables) {
       .catch(ErrorReplies.replyWithError200(req, res, vars.logger,
         UserMessages.OPERATION_FAILED));
   }
-
-  return FirstFactorBlocker(handler, vars.logger);
+  return handler;
 }

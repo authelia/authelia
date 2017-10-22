@@ -4,11 +4,10 @@ import objectPath = require("object-path");
 import express = require("express");
 import { TOTPSecretDocument } from "../../../../storage/TOTPSecretDocument";
 import BluebirdPromise = require("bluebird");
-import FirstFactorBlocker from "../../../FirstFactorBlocker";
 import Endpoints = require("../../../../../../../shared/api");
 import redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
-import AuthenticationSessionHandler = require("../../../../AuthenticationSession");
+import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import UserMessages = require("../../../../../../../shared/UserMessages");
 import { ServerVariables } from "../../../../ServerVariables";
@@ -20,10 +19,12 @@ export default function (vars: ServerVariables) {
     let authSession: AuthenticationSession;
     const token = req.body.token;
 
-    return AuthenticationSessionHandler.get(req, vars.logger)
-      .then(function (_authSession) {
-        authSession = _authSession;
-        vars.logger.info(req, "Initiate TOTP validation for user \"%s\".", authSession.userid);
+    return new BluebirdPromise(function (resolve, reject) {
+      authSession = AuthenticationSessionHandler.get(req, vars.logger);
+      vars.logger.info(req, "Initiate TOTP validation for user \"%s\".", authSession.userid);
+      resolve();
+    })
+      .then(function () {
         return vars.userDataStore.retrieveTOTPSecret(authSession.userid);
       })
       .then(function (doc: TOTPSecretDocument) {
@@ -38,5 +39,5 @@ export default function (vars: ServerVariables) {
       .catch(ErrorReplies.replyWithError200(req, res, vars.logger,
         UserMessages.OPERATION_FAILED));
   }
-  return FirstFactorBlocker(handler, vars.logger);
+  return handler;
 }

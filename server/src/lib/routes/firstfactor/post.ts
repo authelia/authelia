@@ -8,11 +8,11 @@ import { Regulator } from "../../regulation/Regulator";
 import { GroupsAndEmails } from "../../ldap/IClient";
 import Endpoint = require("../../../../../shared/api");
 import ErrorReplies = require("../../ErrorReplies");
-import AuthenticationSessionHandler = require("../../AuthenticationSession");
+import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import Constants = require("../../../../../shared/constants");
 import { DomainExtractor } from "../../utils/DomainExtractor";
 import UserMessages = require("../../../../../shared/UserMessages");
-import { AuthenticationMethodCalculator } from "../../AuthenticationMethodCalculator";
+import { MethodCalculator } from "../../authentication/MethodCalculator";
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 
@@ -29,10 +29,7 @@ export default function (vars: ServerVariables) {
           return BluebirdPromise.reject(new Error("No username or password."));
         }
         vars.logger.info(req, "Starting authentication of user \"%s\"", username);
-        return AuthenticationSessionHandler.get(req, vars.logger);
-      })
-      .then(function (_authSession) {
-        authSession = _authSession;
+        authSession = AuthenticationSessionHandler.get(req, vars.logger);
         return vars.regulator.regulate(username);
       })
       .then(function () {
@@ -40,7 +37,8 @@ export default function (vars: ServerVariables) {
         return vars.ldapAuthenticator.authenticate(username, password);
       })
       .then(function (groupsAndEmails: GroupsAndEmails) {
-        vars.logger.info(req, "LDAP binding successful. Retrieved information about user are %s",
+        vars.logger.info(req,
+          "LDAP binding successful. Retrieved information about user are %s",
           JSON.stringify(groupsAndEmails));
         authSession.userid = username;
         authSession.first_factor = true;
@@ -52,27 +50,24 @@ export default function (vars: ServerVariables) {
         const emails: string[] = groupsAndEmails.emails;
         const groups: string[] = groupsAndEmails.groups;
         const redirectHost: string = DomainExtractor.fromUrl(redirectUrl);
-        const authMethod =
-          new AuthenticationMethodCalculator(vars.config.authentication_methods)
-            .compute(redirectHost);
-        vars.logger.debug(req, "Authentication method for \"%s\" is \"%s\"", redirectHost, authMethod);
+        const authMethod = MethodCalculator.compute(
+          vars.config.authentication_methods, redirectHost);
+        vars.logger.debug(req, "Authentication method for \"%s\" is \"%s\"",
+          redirectHost, authMethod);
 
-        if (!emails || emails.length <= 0) {
-          const errMessage =
-            "No emails found. The user should have at least one email address to reset password.";
-          vars.logger.error(req, "%s", errMessage);
-          return BluebirdPromise.reject(new Error(errMessage));
-        }
-
-        authSession.email = emails[0];
+        if (emails.length > 0)
+          authSession.email = emails[0];
         authSession.groups = groups;
 
         vars.logger.debug(req, "Mark successful authentication to regulator.");
         vars.regulator.mark(username, true);
 
         if (authMethod == "single_factor") {
+          let newRedirectionUrl: string = redirectUrl;
+          if (!newRedirectionUrl)
+            newRedirectionUrl = Endpoint.LOGGED_IN;
           res.send({
-            redirect: redirectUrl
+            redirect: newRedirectionUrl
           });
           vars.logger.debug(req, "Redirect to '%s'", redirectUrl);
         }
@@ -82,7 +77,7 @@ export default function (vars: ServerVariables) {
             newRedirectUrl += "?" + Constants.REDIRECT_QUERY_PARAM + "="
               + encodeURIComponent(redirectUrl);
           }
-          vars.logger.debug(req, "Redirect to '%s'", newRedirectUrl, typeof redirectUrl);
+          vars.logger.debug(req, "Redirect to '%s'", newRedirectUrl);
           res.send({
             redirect: newRedirectUrl
           });

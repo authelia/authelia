@@ -5,19 +5,20 @@ import Fs = require("fs");
 import Speakeasy = require("speakeasy");
 import CustomWorld = require("../support/world");
 import BluebirdPromise = require("bluebird");
+import Request = require("request-promise");
 
 Cucumber.defineSupportCode(function ({ Given, When, Then }) {
   When(/^I visit "(https:\/\/[a-zA-Z0-9:%&._\/=?-]+)"$/, function (link: string) {
     return this.visit(link);
   });
 
-  When("I wait for notification to disappear", function() {
+  When("I wait for notification to disappear", function () {
     const that = this;
     const notificationEl = this.driver.findElement(seleniumWebdriver.By.className("notification"));
     return this.driver.wait(seleniumWebdriver.until.elementIsVisible(notificationEl), 15000)
-    .then(function() {
-      return that.driver.wait(seleniumWebdriver.until.elementIsNotVisible(notificationEl), 15000);
-    })
+      .then(function () {
+        return that.driver.wait(seleniumWebdriver.until.elementIsNotVisible(notificationEl), 15000);
+      })
   })
 
   When("I set field {stringInDoubleQuotes} to {stringInDoubleQuotes}", function (fieldName: string, content: string) {
@@ -101,6 +102,31 @@ and I use TOTP token handle {stringInDoubleQuotes}",
     for (let i = 0; i < dataTable.rows().length; i++) {
       const url = (dataTable.hashes() as any)[i].url;
       promises.push(hasNoAccessToSecret(url, this));
+    }
+    return BluebirdPromise.all(promises);
+  });
+
+  function endpointReplyWith(context: any, link: string, method: string,
+    returnCode: number) {
+    return Request(link, {
+      method: method
+    })
+      .then(function (response: string) {
+        Assert(response.indexOf("Error " + returnCode) >= 0);
+        return BluebirdPromise.resolve();
+      }, function (response: any) {
+        Assert.equal(response.statusCode, returnCode);
+        return BluebirdPromise.resolve();
+      });
+  }
+
+  Then("the following endpoints reply with:", function (dataTable: Cucumber.TableDefinition) {
+    const promises = [];
+    for (let i = 0; i < dataTable.rows().length; i++) {
+      const url: string = (dataTable.hashes() as any)[i].url;
+      const method: string = (dataTable.hashes() as any)[i].method;
+      const code: number = (dataTable.hashes() as any)[i].code;
+      promises.push(endpointReplyWith(this, url, method, code));
     }
     return BluebirdPromise.all(promises);
   });
