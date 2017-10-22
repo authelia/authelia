@@ -12,7 +12,7 @@ Feature: User is correctly redirected
     And I clear field "username"
     And I login with user "john" and password "password" 
     And I use "REGISTERED" as TOTP token handle
-    And I click on "TOTP"
+    And I click on "Sign in"
     Then I'm redirected to "https://public.test.local:8080/secret.html"
 
   Scenario: User Harry does not have access to admin domain and thus he must get an error 403
@@ -39,7 +39,7 @@ Feature: User is correctly redirected
     When I visit "https://public.test.local:8080/secret.html"
     And I login with user "john" and password "password"
     And I use "Sec0" as TOTP token handle
-    And I click on "TOTP"
+    And I click on "Sign in"
     Then I'm redirected to "https://public.test.local:8080/secret.html"
 
   @need-registered-user-john
@@ -47,5 +47,5 @@ Feature: User is correctly redirected
     When I visit "https://auth.test.local:8080"
     And I login with user "john" and password "password" 
     And I use "REGISTERED" as TOTP token handle
-    And I click on "TOTP"
+    And I click on "Sign in"
     Then I'm redirected to "https://home.test.local:8080/"

@@ -15,7 +15,7 @@ Feature: User is redirected when factors are already validated
     And I'm redirected to "https://auth.test.local:8080/?redirect=https%3A%2F%2Fpublic.test.local%3A8080%2Fsecret.html"
     And I login with user "john" and password "password"
     And I use "REGISTERED" as TOTP token handle
-    And I click on "TOTP"
+    And I click on "Sign in"
     And I'm redirected to "https://public.test.local:8080/secret.html"
     And I visit "https://auth.test.local:8080"
     Then I'm redirected to "https://auth.test.local:8080/loggedin"
@@ -28,7 +28,7 @@ Feature: User is redirected when factors are already validated
     And I'm redirected to "https://auth.test.local:8080/?redirect=https%3A%2F%2Fpublic.test.local%3A8080%2Fsecret.html"
     And I login with user "john" and password "password"
     And I use "REGISTERED" as TOTP token handle
-    And I click on "TOTP"
+    And I click on "Sign in"
     And I'm redirected to "https://public.test.local:8080/secret.html"
     And I visit "https://auth.test.local:8080?redirect=https://public.test.local:8080/secret.html"
     Then I'm redirected to "https://public.test.local:8080/secret.html"

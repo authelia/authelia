@@ -11,7 +11,7 @@ import AuthenticationSession = require("../../../../AuthenticationSession");
 import { IRequestLogger } from "../../../../logging/IRequestLogger";
 
 const CHALLENGE = "u2f-register";
-const MAIL_SUBJECT = "Register your U2F device";
+const MAIL_SUBJECT = "Register your security key with Authelia";
 
 const POST_VALIDATION_TEMPLATE_NAME = "u2f-register";
 
