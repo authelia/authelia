@@ -33,6 +33,4 @@ dist/
 
 example/ldap/private.ldif
 
-package-lock.json
-
 Configuration.schema.json
