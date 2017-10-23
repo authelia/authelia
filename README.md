@@ -110,8 +110,7 @@ Deploy the **Authelia** example with one of the following commands:
 
 Build Docker container from current commit:
 
-    npm install --only=dev
-    ./node_modules/.bin/grunt build-dist
+    ./scripts/build-dev.sh
     ./scripts/example-commit/deploy-example.sh
 
 Use provided container on [DockerHub](https://hub.docker.com/r/clems4ever/authelia/):
