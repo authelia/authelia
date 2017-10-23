@@ -55,7 +55,7 @@ function setupTotp(app: Express.Application, vars: ServerVariables) {
     Endpoints.SECOND_FACTOR_TOTP_IDENTITY_START_GET,
     Endpoints.SECOND_FACTOR_TOTP_IDENTITY_FINISH_GET,
     new TOTPRegistrationIdentityHandler(vars.logger,
-      vars.userDataStore, vars.totpHandler),
+      vars.userDataStore, vars.totpHandler, vars.config.totp),
     vars);
 }
 

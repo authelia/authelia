@@ -16,19 +16,22 @@ import { IRequestLogger } from "../../../../logging/IRequestLogger";
 import { IUserDataStore } from "../../../../storage/IUserDataStore";
 import { ITotpHandler } from "../../../../authentication/totp/ITotpHandler";
 import { TOTPSecret } from "../../../../../../types/TOTPSecret";
+import { TOTPConfiguration } from "../../../../configuration/Configuration";
 
 
 export default class RegistrationHandler implements IdentityValidable {
   private logger: IRequestLogger;
   private userDataStore: IUserDataStore;
   private totp: ITotpHandler;
+  private configuration: TOTPConfiguration;
 
   constructor(logger: IRequestLogger,
     userDataStore: IUserDataStore,
-    totp: ITotpHandler) {
+    totp: ITotpHandler, configuration: TOTPConfiguration) {
     this.logger = logger;
     this.userDataStore = userDataStore;
     this.totp = totp;
+    this.configuration = configuration;
   }
 
   challenge(): string {
@@ -70,22 +73,24 @@ export default class RegistrationHandler implements IdentityValidable {
     return FirstFactorValidator.validate(req, this.logger);
   }
 
-  postValidationResponse(req: express.Request, res: express.Response): BluebirdPromise<void> {
+  postValidationResponse(req: express.Request, res: express.Response)
+    : BluebirdPromise<void> {
     const that = this;
     let secret: TOTPSecret;
     let userId: string;
     return new BluebirdPromise(function (resolve, reject) {
       const authSession = AuthenticationSessionHandler.get(req, that.logger);
-      const challenge = authSession.identity_check.challenge;
-      userId = authSession.identity_check.userid;
+      userId = authSession.userid;
 
-      if (challenge != Constants.CHALLENGE || !userId) {
+      if (authSession.identity_check.challenge != Constants.CHALLENGE
+        || !userId)
         return reject(new Error("Bad challenge."));
-      }
+
       resolve();
     })
       .then(function () {
-        secret = that.totp.generate();
+        secret = that.totp.generate(userId,
+          that.configuration.issuer);
         that.logger.debug(req, "Save the TOTP secret in DB");
         return that.userDataStore.saveTOTPSecret(userId, secret);
       })

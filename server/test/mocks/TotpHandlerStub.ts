@@ -1,6 +1,6 @@
 import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
-import { ITotpHandler, GenerateSecretOptions } from "../../src/lib/authentication/totp/ITotpHandler";
+import { ITotpHandler } from "../../src/lib/authentication/totp/ITotpHandler";
 import { TOTPSecret } from "../../types/TOTPSecret";
 
 export class TotpHandlerStub implements ITotpHandler {
@@ -12,8 +12,8 @@ export class TotpHandlerStub implements ITotpHandler {
     this.validateStub = Sinon.stub();
   }
 
-  generate(options?: GenerateSecretOptions): TOTPSecret {
-    return this.generateStub(options);
+  generate(label: string, issuer: string): TOTPSecret {
+    return this.generateStub(label, issuer);
   }
 
   validate(token: string, secret: string): boolean {

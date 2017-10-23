@@ -1,13 +1,13 @@
 import Sinon = require("sinon");
-import winston = require("winston");
 import RegistrationHandler from "../../../../../src/lib/routes/secondfactor/totp/identity/RegistrationHandler";
 import { Identity } from "../../../../../types/Identity";
 import { UserDataStore } from "../../../../../src/lib/storage/UserDataStore";
-import assert = require("assert");
 import BluebirdPromise = require("bluebird");
 import ExpressMock = require("../../../../mocks/express");
-import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../../../mocks/ServerVariablesMockBuilder";
+import { ServerVariablesMock, ServerVariablesMockBuilder }
+  from "../../../../mocks/ServerVariablesMockBuilder";
 import { ServerVariables } from "../../../../../src/lib/ServerVariables";
+import Assert = require("assert");
 
 describe("test totp register", function () {
   let req: ExpressMock.RequestMock;
@@ -26,7 +26,11 @@ describe("test totp register", function () {
         userid: "user",
         email: "user@example.com",
         first_factor: true,
-        second_factor: false
+        second_factor: false,
+        identity_check: {
+          userid: "user",
+          challenge: "totp-register"
+        }
       }
     };
     req.headers = {};
@@ -36,23 +40,29 @@ describe("test totp register", function () {
       inMemoryOnly: true
     };
 
-    mocks.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
-    mocks.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
-    mocks.userDataStore.produceIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
-    mocks.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
-    mocks.userDataStore.saveTOTPSecretStub.returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.saveU2FRegistrationStub
+      .returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.retrieveU2FRegistrationStub
+      .returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.produceIdentityValidationTokenStub
+      .returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.consumeIdentityValidationTokenStub
+      .returns(BluebirdPromise.resolve({}));
+    mocks.userDataStore.saveTOTPSecretStub
+      .returns(BluebirdPromise.resolve({}));
 
     res = ExpressMock.ResponseMock();
   });
 
-  describe("test totp registration check", test_registration_check);
-
-  function test_registration_check() {
+  describe("test totp registration pre validation", function () {
     it("should fail if first_factor has not been passed", function () {
       req.session.auth.first_factor = false;
-      return new RegistrationHandler(vars.logger, vars.userDataStore, vars.totpHandler)
+      return new RegistrationHandler(vars.logger, vars.userDataStore,
+        vars.totpHandler, vars.config.totp)
         .preValidationInit(req as any)
-        .then(function () { return BluebirdPromise.reject(new Error("It should fail")); })
+        .then(function () {
+          return BluebirdPromise.reject(new Error("It should fail"));
+        })
         .catch(function (err: Error) {
           return BluebirdPromise.resolve();
         });
@@ -62,7 +72,8 @@ describe("test totp register", function () {
       req.session.auth.first_factor = false;
       req.session.auth.userid = undefined;
 
-      new RegistrationHandler(vars.logger, vars.userDataStore, vars.totpHandler)
+      new RegistrationHandler(vars.logger, vars.userDataStore, vars.totpHandler,
+        vars.config.totp)
         .preValidationInit(req as any)
         .catch(function (err: Error) {
           done();
@@ -73,19 +84,33 @@ describe("test totp register", function () {
       req.session.auth.first_factor = false;
       req.session.auth.email = undefined;
 
-      new RegistrationHandler(vars.logger, vars.userDataStore, vars.totpHandler)
+      new RegistrationHandler(vars.logger, vars.userDataStore, vars.totpHandler,
+        vars.config.totp)
         .preValidationInit(req as any)
         .catch(function (err: Error) {
           done();
         });
     });
 
-    it("should succeed if first factor passed, userid and email are provided", function (done) {
-      new RegistrationHandler(vars.logger, vars.userDataStore, vars.totpHandler)
-        .preValidationInit(req as any)
-        .then(function (identity: Identity) {
-          done();
+    it("should succeed if first factor passed, userid and email are provided",
+      function () {
+        return new RegistrationHandler(vars.logger, vars.userDataStore,
+          vars.totpHandler, vars.config.totp)
+          .preValidationInit(req as any);
+      });
+  });
+
+  describe("test totp registration post validation", function () {
+    it("should generate a secret using userId as label and issuer defined in config", function () {
+      vars.config.totp = {
+        issuer: "issuer"
+      };
+      return new RegistrationHandler(vars.logger, vars.userDataStore,
+        vars.totpHandler, vars.config.totp)
+        .postValidationResponse(req as any, res as any)
+        .then(function() {
+          Assert(mocks.totpHandler.generateStub.calledWithExactly("user", "issuer"));
         });
     });
-  }
+  });
 });
