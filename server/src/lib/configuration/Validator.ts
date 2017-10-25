@@ -54,19 +54,19 @@ function validateStorage(storage: any) {
 }
 
 function validateNotifier(notifier: NotifierConfiguration) {
-  const ERROR = "Notifier must be either 'filesystem', 'gmail' or 'smtp'";
+  const ERROR = "Notifier must be either 'filesystem', 'email' or 'smtp'";
 
   if (!notifier)
     return [];
 
-  const errors = validateUnknownKeys("notifier", notifier, ["filesystem", "gmail", "smtp"]);
+  const errors = validateUnknownKeys("notifier", notifier, ["filesystem", "email", "smtp"]);
   if (errors.length > 0)
     return errors;
 
-  if (notifier && notifier.filesystem && notifier.gmail && notifier.smtp)
+  if (notifier && notifier.filesystem && notifier.email && notifier.smtp)
     return [ERROR];
 
-  if (notifier && !notifier.filesystem && !notifier.gmail && !notifier.smtp)
+  if (notifier && !notifier.filesystem && !notifier.email && !notifier.smtp)
     return [ERROR];
 
   return [];

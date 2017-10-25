@@ -3,7 +3,7 @@ import { IMailSenderBuilder } from "./IMailSenderBuilder";
 import { MailSender } from "./MailSender";
 import Nodemailer = require("nodemailer");
 import NodemailerSmtpTransport = require("nodemailer-smtp-transport");
-import { SmtpNotifierConfiguration, GmailNotifierConfiguration } from "../configuration/Configuration";
+import { SmtpNotifierConfiguration, EmailNotifierConfiguration } from "../configuration/Configuration";
 
 export class MailSenderBuilder implements IMailSenderBuilder {
   private nodemailer: typeof Nodemailer;
@@ -12,15 +12,15 @@ export class MailSenderBuilder implements IMailSenderBuilder {
     this.nodemailer = nodemailer;
   }
 
-  buildGmail(options: GmailNotifierConfiguration): IMailSender {
-    const gmailOptions = {
-      service: "gmail",
+  buildEmail(options: EmailNotifierConfiguration): IMailSender {
+    const emailOptions = {
+      service: options.service,
       auth: {
         user: options.username,
         pass: options.password
       }
     };
-    return new MailSender(gmailOptions, this.nodemailer);
+    return new MailSender(emailOptions, this.nodemailer);
   }
 
   buildSmtp(options: SmtpNotifierConfiguration): IMailSender {

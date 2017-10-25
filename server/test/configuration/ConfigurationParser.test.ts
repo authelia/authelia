@@ -34,10 +34,11 @@ describe("test config parser", function () {
       },
       logs_level: "debug",
       notifier: {
-        gmail: {
+        email: {
           username: "user",
           password: "password",
-          sender: "admin@example.com"
+          sender: "admin@example.com",
+          service: "gmail"
         }
       }
     };
@@ -83,18 +84,20 @@ describe("test config parser", function () {
   it("should get the notifier config", function () {
     const userConfig = buildYamlConfig();
     userConfig.notifier = {
-      gmail: {
+      email: {
         username: "user",
         password: "pass",
-        sender: "admin@example.com"
+        sender: "admin@example.com",
+        service: "gmail"
       }
     };
     const config = ConfigurationParser.parse(userConfig);
     Assert.deepEqual(config.notifier, {
-      gmail: {
+      email: {
         username: "user",
         password: "pass",
-        sender: "admin@example.com"
+        sender: "admin@example.com",
+        service: "gmail"
       }
     });
   });

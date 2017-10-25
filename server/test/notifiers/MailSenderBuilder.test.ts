@@ -14,15 +14,17 @@ describe("test MailSenderBuilder", function() {
     createTransportStub.restore();
   });
 
-  it("should create a gmail mail sender", function() {
+  it("should create a email mail sender", function() {
     const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
-    mailSenderBuilder.buildGmail({
+    mailSenderBuilder.buildEmail({
       username: "user_gmail",
       password: "pass_gmail",
-      sender: "admin@example.com"
+      sender: "admin@example.com",
+      service: "gmail"
     });
     Assert.equal(createTransportStub.getCall(0).args[0].auth.user, "user_gmail");
     Assert.equal(createTransportStub.getCall(0).args[0].auth.pass, "pass_gmail");
+    Assert.equal(createTransportStub.getCall(0).args[0].service, "gmail");
   });
 
   describe("build smtp mail sender", function() {

@@ -178,11 +178,13 @@ storage:
 # registration or a TOTP registration.
 # Use only an available configuration: filesystem, gmail
 notifier:
-  # Use your gmail account to send the notifications. You can use an app password.
-  # gmail:
+  # Use your email account to send the notifications. You can use an app password.
+  # List of valid services can be found here: https://nodemailer.com/smtp/well-known/  
+  # email:
   #   username: user@example.com
   #   password: yourpassword
   #   sender: admin@example.com
+  #   service: gmail
   
   # Use a SMTP server for sending notifications
   smtp:

@@ -71,15 +71,15 @@ export default class Server {
 
     displayableUserConfiguration.ldap.password = STARS;
     displayableUserConfiguration.session.secret = STARS;
-    if (displayableUserConfiguration.notifier && displayableUserConfiguration.notifier.gmail)
-      displayableUserConfiguration.notifier.gmail.password = STARS;
+    if (displayableUserConfiguration.notifier && displayableUserConfiguration.notifier.email)
+      displayableUserConfiguration.notifier.email.password = STARS;
     if (displayableUserConfiguration.notifier && displayableUserConfiguration.notifier.smtp)
       displayableUserConfiguration.notifier.smtp.password = STARS;
 
     displayableAppConfiguration.ldap.password = STARS;
     displayableAppConfiguration.session.secret = STARS;
-    if (displayableAppConfiguration.notifier && displayableAppConfiguration.notifier.gmail)
-      displayableAppConfiguration.notifier.gmail.password = STARS;
+    if (displayableAppConfiguration.notifier && displayableAppConfiguration.notifier.email)
+      displayableAppConfiguration.notifier.email.password = STARS;
     if (displayableAppConfiguration.notifier && displayableAppConfiguration.notifier.smtp)
       displayableAppConfiguration.notifier.smtp.password = STARS;
 

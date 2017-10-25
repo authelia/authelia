@@ -3,20 +3,21 @@ import * as Assert from "assert";
 import BluebirdPromise = require("bluebird");
 
 import { MailSenderStub } from "../mocks/notifiers/MailSenderStub";
-import GMailNotifier = require("../../src/lib/notifiers/GMailNotifier");
+import EMailNotifier = require("../../src/lib/notifiers/EMailNotifier");
 
 
-describe("test gmail notifier", function () {
+describe("test email notifier", function () {
   it("should send an email to given user", function () {
     const mailSender = new MailSenderStub();
     const options = {
       username: "user_gmail",
       password: "pass_gmail",
-      sender: "admin@example.com"
+      sender: "admin@example.com",
+      service: "gmail"
     };
 
     mailSender.sendStub.returns(BluebirdPromise.resolve());
-    const sender = new GMailNotifier.GMailNotifier(options, mailSender);
+    const sender = new EMailNotifier.EMailNotifier(options, mailSender);
     const subject = "subject";
     const url = "http://test.com";
 
@@ -33,11 +34,12 @@ describe("test gmail notifier", function () {
     const options = {
       username: "user_gmail",
       password: "pass_gmail",
-      sender: "admin@example.com"
+      sender: "admin@example.com",
+      service: "gmail"
     };
 
     mailSender.sendStub.returns(BluebirdPromise.reject(new Error("Failed to send mail")));
-    const sender = new GMailNotifier.GMailNotifier(options, mailSender);
+    const sender = new EMailNotifier.EMailNotifier(options, mailSender);
     const subject = "subject";
     const url = "http://test.com";
 

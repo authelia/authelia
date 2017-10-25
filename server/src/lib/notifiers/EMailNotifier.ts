@@ -2,14 +2,14 @@
 import * as BluebirdPromise from "bluebird";
 
 import { AbstractEmailNotifier } from "../notifiers/AbstractEmailNotifier";
-import { GmailNotifierConfiguration } from "../configuration/Configuration";
+import { EmailNotifierConfiguration } from "../configuration/Configuration";
 import { IMailSender } from "./IMailSender";
 
-export class GMailNotifier extends AbstractEmailNotifier {
+export class EMailNotifier extends AbstractEmailNotifier {
   private mailSender: IMailSender;
   private sender: string;
 
-  constructor(options: GmailNotifierConfiguration, mailSender: IMailSender) {
+  constructor(options: EmailNotifierConfiguration, mailSender: IMailSender) {
     super();
     this.mailSender = mailSender;
     this.sender = options.sender;

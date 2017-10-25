@@ -53,10 +53,11 @@ describe("test server configuration", function () {
         base_dn: "dc=example,dc=com"
       },
       notifier: {
-        gmail: {
+        email: {
           username: "user@example.com",
           password: "password",
-          sender: "test@authelia.com"
+          sender: "test@authelia.com",
+          service: "gmail"
         }
       },
       regulation: {

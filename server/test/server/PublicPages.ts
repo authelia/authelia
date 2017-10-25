@@ -52,10 +52,11 @@ describe("Public pages of the server must be accessible without session", functi
         find_time: 5 * 60
       },
       notifier: {
-        gmail: {
+        email: {
           username: "user@example.com",
           password: "password",
-          sender: "admin@example.com"
+          sender: "admin@example.com",
+          service: "gmail"
         }
       }
     };
