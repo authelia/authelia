@@ -8,6 +8,7 @@ import {
 } from "./Configuration";
 import Util = require("util");
 import { ACLAdapter } from "./adapters/ACLAdapter";
+import { TOTPAdapter } from "./adapters/TOTPAdapter";
 import { AuthenticationMethodsAdapter } from "./adapters/AuthenticationMethodsAdapter";
 import { Validator } from "./Validator";
 
@@ -63,6 +64,7 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration)
   const ldapConfiguration = adaptLdapConfiguration(userConfiguration.ldap);
   const authenticationMethods = AuthenticationMethodsAdapter
     .adapt(userConfiguration.authentication_methods);
+  const totpConfiguration = TOTPAdapter.adapt(userConfiguration.totp);
 
   return {
     port: port,
@@ -83,7 +85,8 @@ function adaptFromUserConfiguration(userConfiguration: UserConfiguration)
     access_control: ACLAdapter.adapt(userConfiguration.access_control),
     regulation: userConfiguration.regulation,
     authentication_methods: authenticationMethods,
-    default_redirection_url: userConfiguration.default_redirection_url
+    default_redirection_url: userConfiguration.default_redirection_url,
+    totp: totpConfiguration
   };
 }
 

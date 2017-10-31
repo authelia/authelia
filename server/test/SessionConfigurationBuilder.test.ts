@@ -16,6 +16,9 @@ describe("test session configuration builder", function () {
         users: {},
         groups: {}
       },
+      totp: {
+        issuer: "authelia.com"
+      },
       ldap: {
         url: "ldap://ldap",
         user: "user",
@@ -89,6 +92,9 @@ describe("test session configuration builder", function () {
         any: [],
         users: {},
         groups: {}
+      },
+      totp: {
+        issuer: "authelia.com"
       },
       ldap: {
         url: "ldap://ldap",

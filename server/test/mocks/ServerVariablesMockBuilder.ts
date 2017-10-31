@@ -35,6 +35,9 @@ export class ServerVariablesMockBuilder {
         authentication_methods: {
           default_method: "two_factor"
         },
+        totp: {
+          issuer: "authelia.com"
+        },
         ldap: {
           url: "ldap://ldap",
           user: "user",

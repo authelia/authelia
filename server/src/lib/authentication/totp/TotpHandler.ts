@@ -1,4 +1,4 @@
-import { ITotpHandler, GenerateSecretOptions } from "./ITotpHandler";
+import { ITotpHandler } from "./ITotpHandler";
 import { TOTPSecret } from "../../../../types/TOTPSecret";
 import Speakeasy = require("speakeasy");
 
@@ -12,8 +12,17 @@ export class TotpHandler implements ITotpHandler {
     this.speakeasy = speakeasy;
   }
 
-  generate(options?: GenerateSecretOptions): TOTPSecret {
-    return this.speakeasy.generateSecret(options);
+  generate(label: string, issuer: string): TOTPSecret {
+    const secret = this.speakeasy.generateSecret({
+      otpauth_url: false
+    });
+
+    secret.otpauth_url = this.speakeasy.otpauthURL({
+      secret: secret.ascii,
+      label: label,
+      issuer: issuer
+    });
+    return secret;
   }
 
   validate(token: string, secret: string): boolean {
@@ -22,6 +31,6 @@ export class TotpHandler implements ITotpHandler {
       encoding: TOTP_ENCODING,
       token: token,
       window: WINDOW
-    } as any);
+    });
   }
 }

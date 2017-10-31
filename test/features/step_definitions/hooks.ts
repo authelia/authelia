@@ -43,6 +43,14 @@ Cucumber.defineSupportCode(function ({ After, Before }) {
     ");
   }
 
+  function createCustomTotpIssuerConfiguration(): BluebirdPromise<void> {
+    return exec("\
+    cat config.template.yml > config.test.yml && \
+    echo 'totp:' >> config.test.yml && \
+    echo '  issuer: custom.com' >> config.test.yml \
+    ");
+  }
+
   function declareNeedsConfiguration(tag: string, cb: () => BluebirdPromise<void>) {
     Before({ tags: "@needs-" + tag + "-config", timeout: 20 * 1000 }, function () {
       return cb()
@@ -62,6 +70,7 @@ Cucumber.defineSupportCode(function ({ After, Before }) {
   declareNeedsConfiguration("regulation", createRegulationConfiguration);
   declareNeedsConfiguration("inactivity", createInactivityConfiguration);
   declareNeedsConfiguration("single_factor", createSingleFactorConfiguration);
+  declareNeedsConfiguration("totp_issuer", createCustomTotpIssuerConfiguration);
 
   function registerUser(context: any, username: string) {
     let secret: Speakeasy.Key;
@@ -72,7 +81,7 @@ Cucumber.defineSupportCode(function ({ After, Before }) {
         const userDataStore = new UserDataStore(collectionFactory);
 
         const generator = new TotpHandler(Speakeasy);
-        secret = generator.generate();
+        secret = generator.generate("user", "authelia.com");
         return userDataStore.saveTOTPSecret(username, secret);
       })
       .then(function () {
