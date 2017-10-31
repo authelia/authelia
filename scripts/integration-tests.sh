@@ -42,8 +42,8 @@ run_integration_tests() {
 
 run_other_tests() {
   echo "Test dev environment deployment (commands in README)"
-  npm install --only=dev
-  ./node_modules/.bin/grunt build-dist
+  rm -rf node_modules
+  ./scripts/build-dev.sh
   ./scripts/example-commit/deploy-example.sh
   expect_services_count $EXPECTED_SERVICES_COUNT
 }
