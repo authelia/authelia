@@ -66,10 +66,11 @@ interface SessionCookieConfiguration {
     redis?: SessionRedisOptions;
 }
 
-export interface GmailNotifierConfiguration {
+export interface EmailNotifierConfiguration {
     username: string;
     password: string;
     sender: string;
+    service: string;
 }
 
 export interface SmtpNotifierConfiguration {
@@ -86,7 +87,7 @@ export interface FileSystemNotifierConfiguration {
 }
 
 export interface NotifierConfiguration {
-    gmail?: GmailNotifierConfiguration;
+    email?: EmailNotifierConfiguration;
     smtp?: SmtpNotifierConfiguration;
     filesystem?: FileSystemNotifierConfiguration;
 }

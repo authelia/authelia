@@ -31,10 +31,11 @@ describe("test ldap configuration adaptation", function () {
       },
       logs_level: "debug",
       notifier: {
-        gmail: {
+        email: {
           username: "user",
           password: "password",
-          sender: "admin@example.com"
+          sender: "admin@example.com",
+          service: "email"
         }
       }
     };

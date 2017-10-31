@@ -52,10 +52,11 @@ describe("Private pages of the server must not be accessible without session", f
         }
       },
       notifier: {
-        gmail: {
+        email: {
           username: "user@example.com",
           password: "password",
-          sender: "admin@example.com"
+          sender: "admin@example.com",
+          service: "gmail"
         }
       }
     };

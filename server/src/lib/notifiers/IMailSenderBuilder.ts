@@ -1,7 +1,7 @@
 import { IMailSender } from "./IMailSender";
-import { SmtpNotifierConfiguration, GmailNotifierConfiguration } from "../configuration/Configuration";
+import { SmtpNotifierConfiguration, EmailNotifierConfiguration } from "../configuration/Configuration";
 
 export interface IMailSenderBuilder {
-  buildGmail(options: GmailNotifierConfiguration): IMailSender;
+  buildEmail(options: EmailNotifierConfiguration): IMailSender;
   buildSmtp(options: SmtpNotifierConfiguration): IMailSender;
 }

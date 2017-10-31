@@ -4,23 +4,24 @@ import * as BluebirdPromise from "bluebird";
 import * as assert from "assert";
 
 import { NotifierFactory } from "../../src/lib/notifiers/NotifierFactory";
-import { GMailNotifier } from "../../src/lib/notifiers/GMailNotifier";
+import { EMailNotifier } from "../../src/lib/notifiers/EMailNotifier";
 import { SmtpNotifier } from "../../src/lib/notifiers/SmtpNotifier";
 import { MailSenderBuilderStub } from "../mocks/notifiers/MailSenderBuilderStub";
 
 
 describe("test notifier factory", function () {
   let mailSenderBuilderStub: MailSenderBuilderStub;
-  it("should build a Gmail Notifier", function () {
+  it("should build a Email Notifier", function () {
     const options = {
-      gmail: {
+      email: {
         username: "abc",
         password: "password",
-        sender: "admin@example.com"
+        sender: "admin@example.com",
+        service: "gmail"
       }
     };
     mailSenderBuilderStub = new MailSenderBuilderStub();
-    assert(NotifierFactory.build(options, mailSenderBuilderStub) instanceof GMailNotifier);
+    assert(NotifierFactory.build(options, mailSenderBuilderStub) instanceof EMailNotifier);
   });
 
   it("should build a SMTP Notifier", function () {

@@ -28,7 +28,7 @@ describe("test validator", function () {
         "data.regulation should have required property 'max_retries'",
         "data.session should have required property 'secret'",
         "Storage must be either 'local' or 'mongo'",
-        "Notifier must be either 'filesystem', 'gmail' or 'smtp'"
+        "Notifier must be either 'filesystem', 'email' or 'smtp'"
       ]);
 
     Assert.deepStrictEqual(Validator.isValid({
@@ -67,10 +67,11 @@ describe("test validator", function () {
         user: "user"
       },
       notifier: {
-        gmail: {
+        email: {
           username: "user@gmail.com",
           password: "pass",
-          sender: "admin@example.com"
+          sender: "admin@example.com",
+          service: "gmail"
         }
       },
       regulation: {
