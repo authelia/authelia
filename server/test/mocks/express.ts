@@ -9,6 +9,7 @@ export interface RequestMock {
     headers?: any;
     get?: any;
     query?: any;
+    originalUrl: string;
 }
 
 export interface ResponseMock {
@@ -51,6 +52,7 @@ export interface ResponseMock {
 
 export function RequestMock(): RequestMock {
     return {
+        originalUrl: "/non-api/xxx",
         app: {
             get: sinon.stub()
         },

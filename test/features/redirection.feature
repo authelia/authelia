@@ -49,3 +49,22 @@ Feature: User is correctly redirected
     And I use "REGISTERED" as TOTP token handle
     And I click on "Sign in"
     Then I'm redirected to "https://home.test.local:8080/"
+
+
+  Scenario: User is redirected when hitting an error 401
+    When I visit "https://auth.test.local:8080/secondfactor/u2f/identity/finish"
+    Then I'm redirected to "https://auth.test.local:8080/error/401"
+    And I sleep for 5 seconds
+    And I'm redirected to "https://home.test.local:8080/"
+
+  @need-registered-user-harry
+  Scenario: User is redirected when hitting an error 403
+    When I visit "https://auth.test.local:8080"
+    And I login with user "harry" and password "password" 
+    And I use "REGISTERED" as TOTP token handle
+    And I click on "Sign in"
+    And I'm redirected to "https://home.test.local:8080/"
+    When I visit "https://admin.test.local:8080/secret.html"
+    Then I'm redirected to "https://auth.test.local:8080/error/403"
+    And I sleep for 5 seconds
+    And I'm redirected to "https://home.test.local:8080/"

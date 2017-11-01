@@ -20,6 +20,7 @@ describe("test reset password route", function () {
 
   beforeEach(function () {
     req = {
+      originalUrl: "/api/password-reset",
       body: {
         userid: "user"
       },

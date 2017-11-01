@@ -34,6 +34,7 @@ describe("test the first factor validation route", function () {
     mocks.regulator.markStub.returns(BluebirdPromise.resolve());
 
     req = {
+      originalUrl: "/api/firstfactor",
       body: {
         username: "username",
         password: "password"

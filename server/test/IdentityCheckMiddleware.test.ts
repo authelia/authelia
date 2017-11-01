@@ -1,7 +1,8 @@
 
 import sinon = require("sinon");
 import IdentityValidator = require("../src/lib/IdentityCheckMiddleware");
-import { AuthenticationSessionHandler } from "../src/lib/AuthenticationSessionHandler";
+import { AuthenticationSessionHandler }
+  from "../src/lib/AuthenticationSessionHandler";
 import { AuthenticationSession } from "../types/AuthenticationSession";
 import { UserDataStore } from "../src/lib/storage/UserDataStore";
 import exceptions = require("../src/lib/Exceptions");
@@ -13,7 +14,8 @@ import ExpressMock = require("./mocks/express");
 import NotifierMock = require("./mocks/Notifier");
 import IdentityValidatorMock = require("./mocks/IdentityValidator");
 import { RequestLoggerStub } from "./mocks/RequestLoggerStub";
-import { ServerVariablesMock, ServerVariablesMockBuilder } from "./mocks/ServerVariablesMockBuilder";
+import { ServerVariablesMock, ServerVariablesMockBuilder }
+  from "./mocks/ServerVariablesMockBuilder";
 
 
 describe("test identity check process", function () {
@@ -36,17 +38,18 @@ describe("test identity check process", function () {
 
     identityValidable = IdentityValidatorMock.IdentityValidableMock();
 
-
     req.headers = {};
-    req.session = {};
+    req.originalUrl = "/non-api/xxx";
     req.session = {};
 
     req.query = {};
     req.app = {};
 
     mocks.notifier.notifyStub.returns(BluebirdPromise.resolve());
-    mocks.userDataStore.produceIdentityValidationTokenStub.returns(Promise.resolve());
-    mocks.userDataStore.consumeIdentityValidationTokenStub.returns(Promise.resolve({ userId: "user" }));
+    mocks.userDataStore.produceIdentityValidationTokenStub
+      .returns(Promise.resolve());
+    mocks.userDataStore.consumeIdentityValidationTokenStub
+      .returns(Promise.resolve({ userId: "user" }));
 
     app = express();
     app_get = sinon.stub(app, "get");
@@ -58,112 +61,142 @@ describe("test identity check process", function () {
     app_post.restore();
   });
 
-  describe("test start GET", test_start_get_handler);
-  describe("test finish GET", test_finish_get_handler);
+  describe("test start GET", function () {
+    it("should redirect to error 401 if pre validation initialization \
+throws a first factor error", function () {
+        identityValidable.preValidationInit.returns(BluebirdPromise.reject(
+          new exceptions.FirstFactorValidationError(
+            "Error during prevalidation")));
+        const callback = IdentityValidator.get_start_validation(
+          identityValidable, "/endpoint", vars);
 
-  function test_start_get_handler() {
-    it("should send 401 if pre validation initialization throws a first factor error", function () {
-      identityValidable.preValidationInit.returns(BluebirdPromise.reject(new exceptions.FirstFactorValidationError("Error during prevalidation")));
-      const callback = IdentityValidator.get_start_validation(identityValidable, "/endpoint", vars);
-
-      return callback(req as any, res as any, undefined)
-        .then(function () { return BluebirdPromise.reject("Should fail"); })
-        .catch(function () {
-          Assert.equal(res.status.getCall(0).args[0], 401);
-        });
-    });
+        return callback(req as any, res as any, undefined)
+          .then(function () { return BluebirdPromise.reject("Should fail"); })
+          .catch(function () {
+            Assert(res.redirect.calledWith("/error/401"));
+          });
+      });
 
     it("should send 401 if email is missing in provided identity", function () {
       const identity = { userid: "abc" };
 
-      identityValidable.preValidationInit.returns(BluebirdPromise.resolve(identity));
-      const callback = IdentityValidator.get_start_validation(identityValidable, "/endpoint", vars);
+      identityValidable.preValidationInit
+        .returns(BluebirdPromise.resolve(identity));
+      const callback = IdentityValidator
+        .get_start_validation(identityValidable, "/endpoint", vars);
 
       return callback(req as any, res as any, undefined)
-        .then(function () { return BluebirdPromise.reject("Should fail"); })
+        .then(function () {
+          return BluebirdPromise.reject("Should fail");
+        })
         .catch(function () {
-          Assert.equal(res.status.getCall(0).args[0], 401);
+          Assert(res.redirect.calledWith("/error/401"));
         });
     });
 
-    it("should send 401 if userid is missing in provided identity", function () {
-      const endpoint = "/protected";
-      const identity = { email: "abc@example.com" };
+    it("should send 401 if userid is missing in provided identity",
+      function () {
+        const endpoint = "/protected";
+        const identity = { email: "abc@example.com" };
 
-      identityValidable.preValidationInit.returns(BluebirdPromise.resolve(identity));
-      const callback = IdentityValidator.get_start_validation(identityValidable, "/endpoint", vars);
+        identityValidable.preValidationInit
+          .returns(BluebirdPromise.resolve(identity));
+        const callback = IdentityValidator
+          .get_start_validation(identityValidable, "/endpoint", vars);
 
-      return callback(req as any, res as any, undefined)
-        .then(function () { return BluebirdPromise.reject(new Error("It should fail")); })
-        .catch(function (err: Error) {
-          Assert.equal(res.status.getCall(0).args[0], 401);
-          return BluebirdPromise.resolve();
-        });
-    });
+        return callback(req as any, res as any, undefined)
+          .then(function () {
+            return BluebirdPromise.reject(new Error("It should fail"));
+          })
+          .catch(function (err: Error) {
+            Assert(res.redirect.calledWith("/error/401"));
+          });
+      });
 
     it("should issue a token, send an email and return 204", function () {
       const endpoint = "/protected";
       const identity = { userid: "user", email: "abc@example.com" };
       req.get = sinon.stub().withArgs("Host").returns("localhost");
 
-      identityValidable.preValidationInit.returns(BluebirdPromise.resolve(identity));
-      const callback = IdentityValidator.get_start_validation(identityValidable, "/finish_endpoint", vars);
+      identityValidable.preValidationInit
+        .returns(BluebirdPromise.resolve(identity));
+      const callback = IdentityValidator
+        .get_start_validation(identityValidable, "/finish_endpoint", vars);
 
       return callback(req as any, res as any, undefined)
         .then(function () {
           Assert(mocks.notifier.notifyStub.calledOnce);
-          Assert(mocks.userDataStore.produceIdentityValidationTokenStub.calledOnce);
-          Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub.getCall(0).args[0], "user");
-          Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub.getCall(0).args[3], 240000);
+          Assert(mocks.userDataStore.produceIdentityValidationTokenStub
+            .calledOnce);
+          Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub
+            .getCall(0).args[0], "user");
+          Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub
+            .getCall(0).args[3], 240000);
         });
     });
-  }
+  });
 
-  function test_finish_get_handler() {
+
+
+  describe("test finish GET", function () {
     it("should send 401 if no identity_token is provided", function () {
 
-      const callback = IdentityValidator.get_finish_validation(identityValidable, vars);
+      const callback = IdentityValidator
+        .get_finish_validation(identityValidable, vars);
 
       return callback(req as any, res as any, undefined)
-        .then(function () { return BluebirdPromise.reject("Should fail"); })
+        .then(function () {
+          return BluebirdPromise.reject("Should fail");
+        })
         .catch(function () {
-          Assert.equal(res.status.getCall(0).args[0], 401);
+          Assert(res.redirect.calledWith("/error/401"));
         });
     });
 
-    it("should call postValidation if identity_token is provided and still valid", function () {
-      req.query.identity_token = "token";
+    it("should call postValidation if identity_token is provided and still \
+valid", function () {
+        req.query.identity_token = "token";
 
-      const callback = IdentityValidator.get_finish_validation(identityValidable, vars);
-      return callback(req as any, res as any, undefined);
-    });
+        const callback = IdentityValidator
+          .get_finish_validation(identityValidable, vars);
+        return callback(req as any, res as any, undefined);
+      });
 
-    it("should return 401 if identity_token is provided but invalid", function () {
-      req.query.identity_token = "token";
+    it("should return 401 if identity_token is provided but invalid",
+      function () {
+        req.query.identity_token = "token";
 
-      mocks.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.reject(new Error("Invalid token")));
+        mocks.userDataStore.consumeIdentityValidationTokenStub
+          .returns(BluebirdPromise.reject(new Error("Invalid token")));
 
-      const callback = IdentityValidator.get_finish_validation(identityValidable, vars);
-      return callback(req as any, res as any, undefined)
-        .then(function () { return BluebirdPromise.reject("Should fail"); })
-        .catch(function () {
-          Assert.equal(res.status.getCall(0).args[0], 401);
-        });
-    });
+        const callback = IdentityValidator
+          .get_finish_validation(identityValidable, vars);
+        return callback(req as any, res as any, undefined)
+          .then(function () {
+            return BluebirdPromise.reject("Should fail");
+          })
+          .catch(function () {
+            Assert(res.redirect.calledWith("/error/401"));
+          });
+      });
 
-    it("should set the identity_check session object even if session does not exist yet", function () {
-      req.query.identity_token = "token";
+    it("should set the identity_check session object even if session does \
+not exist yet", function () {
+        req.query.identity_token = "token";
 
-      req.session = {};
-      const authSession: AuthenticationSession = AuthenticationSessionHandler.get(req as any, vars.logger);
-      const callback = IdentityValidator.get_finish_validation(identityValidable, vars);
+        req.session = {};
+        const authSession =
+          AuthenticationSessionHandler.get(req as any, vars.logger);
+        const callback = IdentityValidator
+          .get_finish_validation(identityValidable, vars);
 
-      return callback(req as any, res as any, undefined)
-        .then(function () { return BluebirdPromise.reject("Should fail"); })
-        .catch(function () {
-          Assert.equal(authSession.identity_check.userid, "user");
-          return BluebirdPromise.resolve();
-        });
-    });
-  }
+        return callback(req as any, res as any, undefined)
+          .then(function () {
+            return BluebirdPromise.reject("Should fail");
+          })
+          .catch(function () {
+            Assert.equal(authSession.identity_check.userid, "user");
+          });
+      });
+  });
 });

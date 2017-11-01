@@ -101,17 +101,21 @@ function setupU2f(app: Express.Application, vars: ServerVariables) {
 }
 
 function setupResetPassword(app: Express.Application, vars: ServerVariables) {
-  IdentityCheckMiddleware.register(app, Endpoints.RESET_PASSWORD_IDENTITY_START_GET,
+  IdentityCheckMiddleware.register(app,
+    Endpoints.RESET_PASSWORD_IDENTITY_START_GET,
     Endpoints.RESET_PASSWORD_IDENTITY_FINISH_GET,
-    new ResetPasswordIdentityHandler(vars.logger, vars.ldapEmailsRetriever), vars);
+    new ResetPasswordIdentityHandler(vars.logger, vars.ldapEmailsRetriever),
+    vars);
 
-  app.get(Endpoints.RESET_PASSWORD_REQUEST_GET, ResetPasswordRequestPost.default);
-  app.post(Endpoints.RESET_PASSWORD_FORM_POST, ResetPasswordFormPost.default(vars));
+  app.get(Endpoints.RESET_PASSWORD_REQUEST_GET,
+    ResetPasswordRequestPost.default);
+  app.post(Endpoints.RESET_PASSWORD_FORM_POST,
+    ResetPasswordFormPost.default(vars));
 }
 
-function setupErrors(app: Express.Application) {
-  app.get(Endpoints.ERROR_401_GET, Error401Get.default);
-  app.get(Endpoints.ERROR_403_GET, Error403Get.default);
+function setupErrors(app: Express.Application, vars: ServerVariables) {
+  app.get(Endpoints.ERROR_401_GET, Error401Get.default(vars));
+  app.get(Endpoints.ERROR_403_GET, Error403Get.default(vars));
   app.get(Endpoints.ERROR_404_GET, Error404Get.default);
 }
 
@@ -124,6 +128,7 @@ export class RestApi {
         vars.config.authentication_methods),
       RequireValidatedFirstFactor.middleware(vars.logger),
       SecondFactorGet.default(vars));
+
     app.get(Endpoints.LOGOUT_GET, LogoutGet.default);
 
     app.get(Endpoints.VERIFY_GET, VerifyGet.default(vars));
@@ -132,8 +137,10 @@ export class RestApi {
     setupTotp(app, vars);
     setupU2f(app, vars);
     setupResetPassword(app, vars);
-    setupErrors(app);
+    setupErrors(app, vars);
 
-    app.get(Endpoints.LOGGED_IN, LoggedIn.default(vars));
+    app.get(Endpoints.LOGGED_IN,
+      RequireValidatedFirstFactor.middleware(vars.logger),
+      LoggedIn.default(vars));
   }
 }

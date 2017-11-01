@@ -20,6 +20,7 @@ describe("test u2f routes: sign", function () {
   beforeEach(function () {
     req = ExpressMock.RequestMock();
     req.app = {};
+    req.originalUrl = "/api/xxxx";
 
     const s = ServerVariablesMockBuilder.build();
     mocks = s.mocks;

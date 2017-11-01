@@ -25,6 +25,7 @@ describe("test totp route", function () {
     mocks = s.mocks;
     const app_get = Sinon.stub();
     req = {
+      originalUrl: "/api/totp-register",
       app: {},
       body: {
         token: "abc"

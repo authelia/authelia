@@ -12,7 +12,7 @@ import ExpressMock = require("../../mocks/express");
 import { ServerVariables } from "../../../src/lib/ServerVariables";
 import { ServerVariablesMockBuilder, ServerVariablesMock } from "../../mocks/ServerVariablesMockBuilder";
 
-describe("test /verify endpoint", function () {
+describe("test /api/verify endpoint", function () {
   let req: ExpressMock.RequestMock;
   let res: ExpressMock.ResponseMock;
   let mocks: ServerVariablesMock;
@@ -22,6 +22,7 @@ describe("test /verify endpoint", function () {
   beforeEach(function () {
     req = ExpressMock.RequestMock();
     res = ExpressMock.ResponseMock();
+    req.originalUrl = "/api/xxxx";
     req.query = {
       redirect: "http://redirect.url"
     };
@@ -174,7 +175,7 @@ describe("test /verify endpoint", function () {
   });
 
   describe("inactivity period", function () {
-    it("should update last inactivity period on requests on /verify", function () {
+    it("should update last inactivity period on requests on /api/verify", function () {
       mocks.config.session.inactivity = 200000;
       mocks.accessController.isAccessAllowedMock.returns(true);
       const currentTime = new Date().getTime() - 1000;
