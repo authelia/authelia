@@ -3,8 +3,8 @@
 set -e
 
 docker-compose \
-  -f docker-compose.base.yml \
-  -f example/authelia/docker-compose.yml \
+  -f example/docker-compose.base.yml \
+  -f example/authelia/docker-compose.dockerhub.yml \
   -f example/mongo/docker-compose.yml \
   -f example/redis/docker-compose.yml \
   -f example/nginx/docker-compose.yml \

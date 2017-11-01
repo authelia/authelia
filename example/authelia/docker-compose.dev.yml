@@ -2,9 +2,7 @@ version: '2'
 services:
   authelia:
     volumes:
-      - ./test:/usr/src/test
       - ./dist/server:/usr/src/server
       - ./dist/shared:/usr/src/shared
-      - ./config.template.yml:/etc/authelia/config.yml:ro
     networks:
       - example-network
