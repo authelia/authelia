@@ -3,7 +3,6 @@ import express = require("express");
 import objectPath = require("object-path");
 import winston = require("winston");
 import Endpoints = require("../../../../../shared/api");
-import AuthenticationValidator = require("../../AuthenticationValidator");
 import BluebirdPromise = require("bluebird");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import Constants = require("../../../../../shared/constants");

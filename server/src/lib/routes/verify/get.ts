@@ -4,7 +4,6 @@ import BluebirdPromise = require("bluebird");
 import express = require("express");
 import exceptions = require("../../Exceptions");
 import winston = require("winston");
-import AuthenticationValidator = require("../../AuthenticationValidator");
 import ErrorReplies = require("../../ErrorReplies");
 import { AppConfiguration } from "../../configuration/Configuration";
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
