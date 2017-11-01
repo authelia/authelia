@@ -28,190 +28,284 @@ describe("test /api/verify endpoint", function () {
     };
     AuthenticationSessionHandler.reset(req as any);
     req.headers.host = "secret.example.com";
-    const s = ServerVariablesMockBuilder.build();
+    const s = ServerVariablesMockBuilder.build(true);
     mocks = s.mocks;
     vars = s.variables;
-    vars.config.authentication_methods.default_method = "two_factor";
-
     authSession = AuthenticationSessionHandler.get(req as any, vars.logger);
   });
 
-  it("should be already authenticated", function () {
-    mocks.accessController.isAccessAllowedMock.returns(true);
-    authSession.first_factor = true;
-    authSession.second_factor = true;
-    authSession.userid = "myuser";
-    authSession.groups = ["mygroup", "othergroup"];
-    return VerifyGet.default(vars)(req as express.Request, res as any)
-      .then(function () {
-        Sinon.assert.calledWithExactly(res.setHeader, "Remote-User", "myuser");
-        Sinon.assert.calledWithExactly(res.setHeader, "Remote-Groups", "mygroup,othergroup");
-        Assert.equal(204, res.status.getCall(0).args[0]);
-      });
-  });
-
-  function test_session(_authSession: AuthenticationSession, status_code: number) {
-    return VerifyGet.default(vars)(req as express.Request, res as any)
-      .then(function () {
-        Assert.equal(status_code, res.status.getCall(0).args[0]);
-      });
-  }
-
-  function test_non_authenticated_401(authSession: AuthenticationSession) {
-    return test_session(authSession, 401);
-  }
-
-  function test_unauthorized_403(authSession: AuthenticationSession) {
-    return test_session(authSession, 403);
-  }
-
-  function test_authorized(authSession: AuthenticationSession) {
-    return test_session(authSession, 204);
-  }
-
-  describe("given user tries to access a 2-factor endpoint", function () {
-    before(function () {
-      mocks.accessController.isAccessAllowedMock.returns(true);
+  describe("with session cookie", function () {
+    beforeEach(function () {
+      vars.config.authentication_methods.default_method = "two_factor";
     });
 
-    describe("given different cases of session", function () {
-      it("should not be authenticated when second factor is missing", function () {
-        return test_non_authenticated_401({
-          userid: "user",
-          first_factor: true,
-          second_factor: false,
-          email: undefined,
-          groups: [],
-          last_activity_datetime: new Date().getTime()
+    it("should be already authenticated", function () {
+      mocks.accessController.isAccessAllowedMock.returns(true);
+      authSession.first_factor = true;
+      authSession.second_factor = true;
+      authSession.userid = "myuser";
+      authSession.groups = ["mygroup", "othergroup"];
+      return VerifyGet.default(vars)(req as express.Request, res as any)
+        .then(function () {
+          Sinon.assert.calledWithExactly(res.setHeader, "Remote-User", "myuser");
+          Sinon.assert.calledWithExactly(res.setHeader, "Remote-Groups", "mygroup,othergroup");
+          Assert.equal(204, res.status.getCall(0).args[0]);
+        });
+    });
+
+    function test_session(_authSession: AuthenticationSession, status_code: number) {
+      return VerifyGet.default(vars)(req as express.Request, res as any)
+        .then(function () {
+          Assert.equal(status_code, res.status.getCall(0).args[0]);
+        });
+    }
+
+    function test_non_authenticated_401(authSession: AuthenticationSession) {
+      return test_session(authSession, 401);
+    }
+
+    function test_unauthorized_403(authSession: AuthenticationSession) {
+      return test_session(authSession, 403);
+    }
+
+    function test_authorized(authSession: AuthenticationSession) {
+      return test_session(authSession, 204);
+    }
+
+    describe("given user tries to access a 2-factor endpoint", function () {
+      before(function () {
+        mocks.accessController.isAccessAllowedMock.returns(true);
+      });
+
+      describe("given different cases of session", function () {
+        it("should not be authenticated when second factor is missing", function () {
+          return test_non_authenticated_401({
+            userid: "user",
+            first_factor: true,
+            second_factor: false,
+            email: undefined,
+            groups: [],
+            last_activity_datetime: new Date().getTime()
+          });
+        });
+
+        it("should not be authenticated when first factor is missing", function () {
+          return test_non_authenticated_401({
+            userid: "user",
+            first_factor: false,
+            second_factor: true,
+            email: undefined,
+            groups: [],
+            last_activity_datetime: new Date().getTime()
+          });
+        });
+
+        it("should not be authenticated when userid is missing", function () {
+          return test_non_authenticated_401({
+            userid: undefined,
+            first_factor: true,
+            second_factor: false,
+            email: undefined,
+            groups: [],
+            last_activity_datetime: new Date().getTime()
+          });
+        });
+
+        it("should not be authenticated when first and second factor are missing", function () {
+          return test_non_authenticated_401({
+            userid: "user",
+            first_factor: false,
+            second_factor: false,
+            email: undefined,
+            groups: [],
+            last_activity_datetime: new Date().getTime()
+          });
+        });
+
+        it("should not be authenticated when session has not be initiated", function () {
+          return test_non_authenticated_401(undefined);
+        });
+
+        it("should not be authenticated when domain is not allowed for user", function () {
+          authSession.first_factor = true;
+          authSession.second_factor = true;
+          authSession.userid = "myuser";
+          req.headers.host = "test.example.com";
+          mocks.accessController.isAccessAllowedMock.returns(false);
+
+          return test_unauthorized_403({
+            first_factor: true,
+            second_factor: true,
+            userid: "user",
+            groups: ["group1", "group2"],
+            email: undefined,
+            last_activity_datetime: new Date().getTime()
+          });
         });
       });
+    });
 
-      it("should not be authenticated when first factor is missing", function () {
-        return test_non_authenticated_401({
-          userid: "user",
-          first_factor: false,
-          second_factor: true,
-          email: undefined,
-          groups: [],
-          last_activity_datetime: new Date().getTime()
-        });
+    describe("given user tries to access a single factor endpoint", function () {
+      beforeEach(function () {
+        req.query = {
+          redirect: "http://redirect.url"
+        };
+        req.headers["host"] = "redirect.url";
+        mocks.config.authentication_methods.per_subdomain_methods = {
+          "redirect.url": "single_factor"
+        };
       });
 
-      it("should not be authenticated when userid is missing", function () {
-        return test_non_authenticated_401({
-          userid: undefined,
-          first_factor: true,
-          second_factor: false,
-          email: undefined,
-          groups: [],
-          last_activity_datetime: new Date().getTime()
-        });
+      it("should be authenticated when first factor is validated and second factor is not", function () {
+        mocks.accessController.isAccessAllowedMock.returns(true);
+        authSession.first_factor = true;
+        authSession.userid = "user1";
+        return VerifyGet.default(vars)(req as express.Request, res as any)
+          .then(function () {
+            Assert(res.status.calledWith(204));
+            Assert(res.send.calledOnce);
+          });
       });
 
-      it("should not be authenticated when first and second factor are missing", function () {
-        return test_non_authenticated_401({
-          userid: "user",
-          first_factor: false,
-          second_factor: false,
-          email: undefined,
-          groups: [],
-          last_activity_datetime: new Date().getTime()
-        });
+      it("should be rejected with 401 when first factor is not validated", function () {
+        mocks.accessController.isAccessAllowedMock.returns(true);
+        authSession.first_factor = false;
+        return VerifyGet.default(vars)(req as express.Request, res as any)
+          .then(function () {
+            Assert(res.status.calledWith(401));
+          });
       });
+    });
 
-      it("should not be authenticated when session has not be initiated", function () {
-        return test_non_authenticated_401(undefined);
-      });
-
-      it("should not be authenticated when domain is not allowed for user", function () {
+    describe("inactivity period", function () {
+      it("should update last inactivity period on requests on /api/verify", function () {
+        mocks.config.session.inactivity = 200000;
+        mocks.accessController.isAccessAllowedMock.returns(true);
+        const currentTime = new Date().getTime() - 1000;
+        AuthenticationSessionHandler.reset(req as any);
         authSession.first_factor = true;
         authSession.second_factor = true;
         authSession.userid = "myuser";
-        req.headers.host = "test.example.com";
-        mocks.accessController.isAccessAllowedMock.returns(false);
+        authSession.groups = ["mygroup", "othergroup"];
+        authSession.last_activity_datetime = currentTime;
+        return VerifyGet.default(vars)(req as express.Request, res as any)
+          .then(function () {
+            return AuthenticationSessionHandler.get(req as any, vars.logger);
+          })
+          .then(function (authSession) {
+            Assert(authSession.last_activity_datetime > currentTime);
+          });
+      });
 
-        return test_unauthorized_403({
-          first_factor: true,
-          second_factor: true,
-          userid: "user",
-          groups: ["group1", "group2"],
-          email: undefined,
-          last_activity_datetime: new Date().getTime()
-        });
+      it("should reset session when max inactivity period has been reached", function () {
+        mocks.config.session.inactivity = 1;
+        mocks.accessController.isAccessAllowedMock.returns(true);
+        const currentTime = new Date().getTime() - 1000;
+        AuthenticationSessionHandler.reset(req as any);
+        authSession.first_factor = true;
+        authSession.second_factor = true;
+        authSession.userid = "myuser";
+        authSession.groups = ["mygroup", "othergroup"];
+        authSession.last_activity_datetime = currentTime;
+        return VerifyGet.default(vars)(req as express.Request, res as any)
+          .then(function () {
+            return AuthenticationSessionHandler.get(req as any, vars.logger);
+          })
+          .then(function (authSession) {
+            Assert.equal(authSession.first_factor, false);
+            Assert.equal(authSession.second_factor, false);
+            Assert.equal(authSession.userid, undefined);
+          });
       });
     });
   });
 
-  describe("given user tries to access a basic auth endpoint", function () {
-    beforeEach(function () {
-      req.query = {
-        redirect: "http://redirect.url"
-      };
-      req.headers["host"] = "redirect.url";
+  describe("with basic auth", function () {
+    it("should authenticate correctly", function () {
+      mocks.accessController.isAccessAllowedMock.returns(true);
+      mocks.config.authentication_methods.default_method = "single_factor";
+      mocks.ldapAuthenticator.authenticateStub.returns({
+        groups: ["mygroup", "othergroup"],
+      });
+      req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
+
+      return VerifyGet.default(vars)(req as express.Request, res as any)
+        .then(function () {
+          Sinon.assert.calledWithExactly(res.setHeader, "Remote-User", "john");
+          Sinon.assert.calledWithExactly(res.setHeader, "Remote-Groups", "mygroup,othergroup");
+          Assert.equal(204, res.status.getCall(0).args[0]);
+        });
+    });
+
+    it("should fail when endpoint is protected by two factors", function () {
+      mocks.accessController.isAccessAllowedMock.returns(true);
+      mocks.config.authentication_methods.default_method = "single_factor";
       mocks.config.authentication_methods.per_subdomain_methods = {
-        "redirect.url": "single_factor"
+        "secret.example.com": "two_factor"
       };
-    });
+      mocks.ldapAuthenticator.authenticateStub.resolves({
+        groups: ["mygroup", "othergroup"],
+      });
+      req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
 
-    it("should be authenticated when first factor is validated and second factor is not", function () {
-      mocks.accessController.isAccessAllowedMock.returns(true);
-      authSession.first_factor = true;
-      authSession.userid = "user1";
       return VerifyGet.default(vars)(req as express.Request, res as any)
         .then(function () {
-          Assert(res.status.calledWith(204));
-          Assert(res.send.calledOnce);
+          Assert(res.status.calledWithExactly(401));
         });
     });
 
-    it("should be rejected with 401 when first factor is not validated", function () {
+    it("should fail when base64 token is not valid", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
-      authSession.first_factor = false;
-      return VerifyGet.default(vars)(req as express.Request, res as any)
-        .then(function () {
-          Assert(res.status.calledWith(401));
-        });
-    });
-  });
+      mocks.config.authentication_methods.default_method = "single_factor";
+      mocks.ldapAuthenticator.authenticateStub.resolves({
+        groups: ["mygroup", "othergroup"],
+      });
+      req.headers["proxy-authorization"] = "Basic i_m*not_a_base64*token";
 
-  describe("inactivity period", function () {
-    it("should update last inactivity period on requests on /api/verify", function () {
-      mocks.config.session.inactivity = 200000;
-      mocks.accessController.isAccessAllowedMock.returns(true);
-      const currentTime = new Date().getTime() - 1000;
-      AuthenticationSessionHandler.reset(req as any);
-      authSession.first_factor = true;
-      authSession.second_factor = true;
-      authSession.userid = "myuser";
-      authSession.groups = ["mygroup", "othergroup"];
-      authSession.last_activity_datetime = currentTime;
       return VerifyGet.default(vars)(req as express.Request, res as any)
         .then(function () {
-          return AuthenticationSessionHandler.get(req as any, vars.logger);
-        })
-        .then(function (authSession) {
-          Assert(authSession.last_activity_datetime > currentTime);
+          Assert(res.status.calledWithExactly(401));
         });
     });
 
-    it("should reset session when max inactivity period has been reached", function () {
-      mocks.config.session.inactivity = 1;
+    it("should fail when base64 token has not format user:psswd", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
-      const currentTime = new Date().getTime() - 1000;
-      AuthenticationSessionHandler.reset(req as any);
-      authSession.first_factor = true;
-      authSession.second_factor = true;
-      authSession.userid = "myuser";
-      authSession.groups = ["mygroup", "othergroup"];
-      authSession.last_activity_datetime = currentTime;
+      mocks.config.authentication_methods.default_method = "single_factor";
+      mocks.ldapAuthenticator.authenticateStub.resolves({
+        groups: ["mygroup", "othergroup"],
+      });
+      req.headers["proxy-authorization"] = "Basic am9objpwYXNzOmJhZA==";
+
       return VerifyGet.default(vars)(req as express.Request, res as any)
         .then(function () {
-          return AuthenticationSessionHandler.get(req as any, vars.logger);
-        })
-        .then(function (authSession) {
-          Assert.equal(authSession.first_factor, false);
-          Assert.equal(authSession.second_factor, false);
-          Assert.equal(authSession.userid, undefined);
+          Assert(res.status.calledWithExactly(401));
+        });
+    });
+
+    it("should fail when bad user password is provided", function () {
+      mocks.accessController.isAccessAllowedMock.returns(true);
+      mocks.config.authentication_methods.default_method = "single_factor";
+      mocks.ldapAuthenticator.authenticateStub.rejects(new Error(
+        "Invalid credentials"));
+      req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
+
+      return VerifyGet.default(vars)(req as express.Request, res as any)
+        .then(function () {
+          Assert(res.status.calledWithExactly(401));
+        });
+    });
+
+    it("should fail when resource is restricted", function () {
+      mocks.accessController.isAccessAllowedMock.returns(false);
+      mocks.config.authentication_methods.default_method = "single_factor";
+      mocks.ldapAuthenticator.authenticateStub.resolves({
+        groups: ["mygroup", "othergroup"],
+      });
+      req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
+
+      return VerifyGet.default(vars)(req as express.Request, res as any)
+        .then(function () {
+          Assert(res.status.calledWithExactly(401));
         });
     });
   });
