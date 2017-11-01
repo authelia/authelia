@@ -56,20 +56,25 @@ describe("test emails retriever", function () {
   });
 
   describe("failure", function () {
-    it("should fail retrieving emails when search operation fails", function () {
-      clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
-        .returns(adminClientStub);
+    it("should fail retrieving emails when search operation fails",
+      function () {
+        clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
+          .returns(adminClientStub);
 
-      // admin connects successfully
-      adminClientStub.openStub.returns(BluebirdPromise.resolve());
-      adminClientStub.closeStub.returns(BluebirdPromise.resolve());
+        // admin connects successfully
+        adminClientStub.openStub.returns(BluebirdPromise.resolve());
+        adminClientStub.closeStub.returns(BluebirdPromise.resolve());
 
-      adminClientStub.searchEmailsStub.withArgs(USERNAME)
-        .returns(BluebirdPromise.reject(new Error("Error while searching emails")));
+        adminClientStub.searchEmailsStub.withArgs(USERNAME)
+          .rejects(new Error("Error while searching emails"));
 
-      return emailsRetriever.retrieve(USERNAME)
-        .then(function () { return BluebirdPromise.reject(new Error("Should not be here")); })
-        .catch(function () { return BluebirdPromise.resolve(); });
-    });
+        return emailsRetriever.retrieve(USERNAME)
+          .then(function () {
+            return BluebirdPromise.reject(new Error("Should not be here"));
+          })
+          .catch(function () {
+            return BluebirdPromise.resolve();
+          });
+      });
   });
 });

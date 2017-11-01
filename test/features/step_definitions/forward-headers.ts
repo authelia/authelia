@@ -10,7 +10,7 @@ Cucumber.defineSupportCode(function ({ Given, When, Then }) {
     function (expectedHeaderName: string, expectedValue: string) {
       return this.driver.findElement(seleniumWebdriver.By.tagName("body")).getText()
         .then(function (txt: string) {
-          const expectedLine = Util.format("\"%s\": \"%s\"", expectedHeaderName, expectedValue);          
+          const expectedLine = Util.format("\"%s\": \"%s\"", expectedHeaderName, expectedValue);
           if (txt.indexOf(expectedLine) > 0)
             return BluebirdPromise.resolve();
           else

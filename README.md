@@ -22,7 +22,7 @@ used in production to secure internal services in a small docker swarm cluster.
     3. [Second factor with U2F security keys](#second-factor-with-u2f-security-keys)
     4. [Password reset](#password-reset)
     5. [Access control](#access-control)
-    6. [Basic authentication](#basic-authentication)
+    6. [Single factor authentication](#single-factor-authentication)
     7. [Session management with Redis](#session-management-with-redis)
 4. [Security](#security)
 5. [Documentation](#documentation)
@@ -37,12 +37,12 @@ used in production to secure internal services in a small docker swarm cluster.
 * Two-factor authentication using either 
 **[TOTP] - Time-Base One Time password -** or **[U2F] - Universal 2-Factor -** 
 as 2nd factor.
-* Password reset with identity verification by sending links to user email 
-address.
-* Two-factor and basic authentication methods available. 
+* Password reset with identity verification using email.
+* Single and two factors authentication methods available. 
 * Access restriction after too many authentication attempts.
-* Session management using Redis key/value store.
 * User-defined access control per subdomain and resource.
+* Support of [basic authentication] for endpoints protected by single factor.
+* High-availability using a highly-available distributed database and KV store.
 
 ## Deployment
 
@@ -190,10 +190,13 @@ user access to some resources and subdomains. Those rules are defined and fully 
 in the configuration file. They can apply to users, groups or everyone.
 Check out [config.template.yml] to see how they are defined.
 
-### Basic Authentication
-Authelia allows you to customize the authentication method to use for each sub-domain.
-The supported methods are either "single_factor" and "two_factor". 
+### Single factor authentication
+Authelia allows you to customize the authentication method to use for each 
+sub-domain.The supported methods are either "single_factor" or "two_factor". 
 Please see [config.template.yml] to see an example of configuration.
+
+It is also possible to use [basic authentication] to access a resource 
+protected by a single factor.
 
 ### Session management with Redis
 When your users authenticate against Authelia, sessions are stored in a Redis key/value store. You can specify your own Redis instance in [config.template.yml].
@@ -293,3 +296,4 @@ Follow [contributing](CONTRIBUTORS.md) file.
 [Google Authenticator]: https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en
 [config.template.yml]: https://github.com/clems4ever/authelia/blob/master/config.template.yml
 [HSTS]: https://www.nginx.com/blog/http-strict-transport-security-hsts-and-nginx/
+[basic authentication]: https://en.wikipedia.org/wiki/Basic_access_authentication
