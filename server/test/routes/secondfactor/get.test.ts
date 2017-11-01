@@ -15,7 +15,7 @@ describe("test second factor GET endpoint handler", function () {
   let res: ExpressMock.ResponseMock;
 
   beforeEach(function () {
-    const s = ServerVariablesMockBuilder.build(true);
+    const s = ServerVariablesMockBuilder.build();
     mocks = s.mocks;
     vars = s.variables;
 
