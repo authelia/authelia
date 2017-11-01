@@ -1,7 +1,10 @@
-This file contains a list of people who've made non-trivial
-contribution to **Authelia**. People
-who commit code to the project are encouraged to add their names
-here. Please keep the list sorted by first names
+This file contains a list of people who've made non-trivial contribution to 
+**Authelia** both with code or documentation. People who commit code to the 
+project are encouraged to add their names here. Please keep the list sorted by 
+first names.
 
-Clement Michaud <clement.michaud34@gmail.com>
 Antoine Favre <@n4kre>
+Clement Michaud <clement.michaud34@gmail.com>
+Dylan Smith <@Chemsmith>
+FrozenDragoon <@FrozenDragoon>
+Paul Casto <@pccasto>
