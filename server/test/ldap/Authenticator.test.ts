@@ -87,11 +87,13 @@ describe("test ldap authentication", function () {
         .returns(BluebirdPromise.resolve("cn=" + USERNAME + ",ou=users,dc=example,dc=com"));
 
       // user connects successfully
-      userClientStub.openStub.returns(BluebirdPromise.reject(new Error("Error while binding")));
+      userClientStub.openStub.rejects(new Error("Error while binding"));
       userClientStub.closeStub.returns(BluebirdPromise.resolve());
 
       return authenticator.authenticate(USERNAME, PASSWORD)
-        .then(function () { return BluebirdPromise.reject("Should not be here!"); })
+        .then(function () {
+          return BluebirdPromise.reject("Should not be here!");
+        })
         .catch(function () {
           return BluebirdPromise.resolve();
         });
@@ -118,10 +120,12 @@ describe("test ldap authentication", function () {
       adminClientStub.searchEmailsStub.returns(BluebirdPromise.resolve(["group1"]));
       // admin retrieves emails and groups of user
       adminClientStub.searchGroupsStub
-        .returns(BluebirdPromise.reject(new Error("Error while retrieving emails and groups")));
+        .rejects(new Error("Error while retrieving emails and groups"));
 
       return authenticator.authenticate(USERNAME, PASSWORD)
-        .then(function () { return BluebirdPromise.reject("Should not be here!"); })
+        .then(function () {
+          return BluebirdPromise.reject("Should not be here!");
+        })
         .catch(function () {
           return BluebirdPromise.resolve();
         });

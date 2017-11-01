@@ -37,6 +37,9 @@ describe("test password update", function () {
     };
 
     ssha512HashGenerator = Sinon.stub(HashGenerator, "ssha512");
+    clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
+      .returns(adminClientStub);
+
     passwordUpdater = new PasswordUpdater(ldapConfig, clientFactoryStub);
   });
 
@@ -46,11 +49,10 @@ describe("test password update", function () {
 
   describe("success", function () {
     it("should update the password successfully", function () {
-      clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
-        .returns(adminClientStub);
-
-      ssha512HashGenerator.returns("{CRYPT}$6$abcdefghijklm$AQmxaKfobGY9HSQa6aDYkAWOgPGNhGYn");
-      adminClientStub.modifyPasswordStub.withArgs(USERNAME, NEW_PASSWORD).returns(BluebirdPromise.resolve());
+      ssha512HashGenerator
+        .returns("{CRYPT}$6$abcdefghijklm$AQmxaKfobGY9HSQa6aDYkAWOgPGNhGYn");
+      adminClientStub.modifyPasswordStub.withArgs(USERNAME, NEW_PASSWORD)
+        .returns(BluebirdPromise.resolve());
       adminClientStub.openStub.returns(BluebirdPromise.resolve());
       adminClientStub.closeStub.returns(BluebirdPromise.resolve());
 
@@ -59,19 +61,22 @@ describe("test password update", function () {
   });
 
   describe("failure", function () {
-    it("should fail updating password when modify operation fails", function () {
-      clientFactoryStub.createStub.withArgs(ADMIN_USER_DN, ADMIN_PASSWORD)
-        .returns(adminClientStub);
+    it("should fail updating password when modify operation fails",
+      function () {
+        ssha512HashGenerator
+          .returns("{CRYPT}$6$abcdefghijklm$AQmxaKfobGY9HSQa6aDYkAWOgPGNhGYn");
+        adminClientStub.modifyPasswordStub.withArgs(USERNAME, NEW_PASSWORD)
+          .rejects(new Error("Error while updating password"));
+        adminClientStub.openStub.returns(BluebirdPromise.resolve());
+        adminClientStub.closeStub.returns(BluebirdPromise.resolve());
 
-      ssha512HashGenerator.returns("{CRYPT}$6$abcdefghijklm$AQmxaKfobGY9HSQa6aDYkAWOgPGNhGYn");
-      adminClientStub.modifyPasswordStub.withArgs(USERNAME, NEW_PASSWORD)
-        .returns(BluebirdPromise.reject(new Error("Error while updating password")));
-      adminClientStub.openStub.returns(BluebirdPromise.resolve());
-      adminClientStub.closeStub.returns(BluebirdPromise.resolve());
-
-      return passwordUpdater.updatePassword(USERNAME, NEW_PASSWORD)
-        .then(function () { return BluebirdPromise.reject(new Error("should not be here")); })
-        .catch(function () { return BluebirdPromise.resolve(); });
-    });
+        return passwordUpdater.updatePassword(USERNAME, NEW_PASSWORD)
+          .then(function () {
+            return BluebirdPromise.reject(new Error("should not be here"));
+          })
+          .catch(function(err: Error) {
+            return BluebirdPromise.resolve();
+          });
+      });
   });
 });

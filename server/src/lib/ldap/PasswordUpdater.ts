@@ -17,8 +17,10 @@ export class PasswordUpdater implements IPasswordUpdater {
     this.clientFactory = clientFactory;
   }
 
-  updatePassword(username: string, newPassword: string): BluebirdPromise<void> {
-    const adminClient = this.clientFactory.create(this.options.user, this.options.password);
+  updatePassword(username: string, newPassword: string)
+    : BluebirdPromise<void> {
+    const adminClient = this.clientFactory.create(this.options.user,
+      this.options.password);
 
     return adminClient.open()
       .then(function () {
@@ -27,8 +29,10 @@ export class PasswordUpdater implements IPasswordUpdater {
       .then(function () {
         return adminClient.close();
       })
-      .error(function (err: Error) {
-        return BluebirdPromise.reject(new exceptions.LdapError("Failed during password update: " + err.message));
+      .catch(function (err: Error) {
+        return BluebirdPromise.reject(
+          new exceptions.LdapError(
+            "Error while updating password: " + err.message));
       });
   }
 }
