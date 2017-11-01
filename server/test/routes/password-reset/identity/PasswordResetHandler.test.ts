@@ -18,6 +18,7 @@ describe("test reset password identity check", function () {
 
   beforeEach(function () {
     req = {
+      originalUrl: "/non-api/xxx",
       query: {
         userid: "user"
       },

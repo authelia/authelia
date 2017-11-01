@@ -16,6 +16,7 @@ describe("test u2f routes: register_request", function () {
 
   beforeEach(function () {
     req = ExpressMock.RequestMock();
+    req.originalUrl = "/api/xxxx";
     req.app = {};
     req.session = {
       auth: {

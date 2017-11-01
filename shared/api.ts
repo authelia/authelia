@@ -264,7 +264,7 @@ export const FIRST_FACTOR_GET = "/";
 export const SECOND_FACTOR_GET = "/secondfactor";
 
 /**
- * @api {get} /verify Verify user authentication
+ * @api {get} /api/verify Verify user authentication
  * @apiName VerifyAuthentication
  * @apiGroup Verification
  * @apiVersion 1.0.0
@@ -279,7 +279,7 @@ export const SECOND_FACTOR_GET = "/secondfactor";
  * are set. Remote-User contains the user id of the currently logged in user and Remote-Groups
  * a comma separated list of assigned groups.
  */
-export const VERIFY_GET = "/verify";
+export const VERIFY_GET = "/api/verify";
 
 /**
  * @api {get} /logout Serves logout page

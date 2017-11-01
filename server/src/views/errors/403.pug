@@ -8,4 +8,9 @@ block form-header
 
 block content
   img(class="header-img" src="/img/warning.png" alt="warning")
-  p You are not authorized to access this resource.
+  if redirection_url
+    p You don't have enough privileges to access this resource.<br/><br/>
+      | Please click <a href=#{redirection_url}>here</a> if you are not 
+      | redirected in few seconds.
+  else
+    p You don't have enough privileges to access this resource.
