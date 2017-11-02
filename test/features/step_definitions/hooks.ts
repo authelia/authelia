@@ -55,7 +55,9 @@ Cucumber.defineSupportCode(function ({ After, Before }) {
     Before({ tags: "@needs-" + tag + "-config", timeout: 20 * 1000 }, function () {
       return cb()
         .then(function () {
-          return exec("./scripts/example-commit/dc-example.sh -f docker-compose.test.yml up -d authelia && sleep 1");
+          return exec("./scripts/example-commit/dc-example.sh -f " +
+            "./example/authelia/docker-compose.test.yml up -d authelia &&" +
+            " sleep 1");
         })
     });
 
@@ -100,9 +102,9 @@ Cucumber.defineSupportCode(function ({ After, Before }) {
   }
 
   function needAuthenticatedUser(context: any, username: string): BluebirdPromise<void> {
-    return context.visit("https://auth.test.local:8080/logout")
+    return context.visit("https://login.example.com:8080/logout")
       .then(function () {
-        return context.visit("https://auth.test.local:8080/");
+        return context.visit("https://login.example.com:8080/");
       })
       .then(function () {
         return registerUser(context, username);

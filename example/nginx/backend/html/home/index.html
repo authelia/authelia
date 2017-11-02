@@ -12,51 +12,51 @@
   one of the following links to test access control powered by Authelia.<br/>
   <ul>
     <li>
-      public.test.local <a href="https://public.test.local:8080/"> / index.html</a>
+      public.example.com <a href="https://public.example.com:8080/"> / index.html</a>
     </li>
     <li>
-      secret.test.local
+      secret.example.com
       <ul>
         <li>Groups
           <ul>
             <li>
-              <a href="https://dev.test.local:8080/groups/admin/secret.html"> / groups / admins / secret.html</a>
+              <a href="https://dev.example.com:8080/groups/admin/secret.html"> / groups / admins / secret.html</a>
             </li>
             <li>
-              <a href="https://dev.test.local:8080/groups/dev/secret.html"> / groups / dev / secret.html</a>
+              <a href="https://dev.example.com:8080/groups/dev/secret.html"> / groups / dev / secret.html</a>
             </li>
           </ul>
         </li>
         <li>Users
           <ul>
             <li>
-              <a href="https://dev.test.local:8080/users/john/secret.html"> / users / john / secret.html</a>
+              <a href="https://dev.example.com:8080/users/john/secret.html"> / users / john / secret.html</a>
             </li>
             <li>
-              <a href="https://dev.test.local:8080/users/harry/secret.html"> / users / harry / secret.html</a>
+              <a href="https://dev.example.com:8080/users/harry/secret.html"> / users / harry / secret.html</a>
             </li>
             <li>
-              <a href="https://dev.test.local:8080/users/bob/secret.html"> / users / bob / secret.html</a>
+              <a href="https://dev.example.com:8080/users/bob/secret.html"> / users / bob / secret.html</a>
             </li>
           </ul>
         </li>
       </ul>
     </li>
     <li>
-      admin.test.local <a href="https://admin.test.local:8080/secret.html"> / secret.html</a>
+      admin.example.com <a href="https://admin.example.com:8080/secret.html"> / secret.html</a>
     </li>
     <li>
-      mx1.main.test.local <a href="https://mx1.mail.test.local:8080/secret.html"> / secret.html</a>
+      mx1.main.example.com <a href="https://mx1.mail.example.com:8080/secret.html"> / secret.html</a>
     </li>
     <li>
-      mx2.main.test.local <a href="https://mx2.mail.test.local:8080/secret.html"> / secret.html</a>
+      mx2.main.example.com <a href="https://mx2.mail.example.com:8080/secret.html"> / secret.html</a>
     </li>
     <li>
-      single_factor.test.local <a href="https://single_factor.test.local:8080/secret.html"> / secret.html</a>
+      single_factor.example.com <a href="https://single_factor.example.com:8080/secret.html"> / secret.html</a>
     </li>
   </ul>
 
-  You can also log off by visiting the following <a href="https://auth.test.local:8080/logout?redirect=https://home.test.local:8080/">link</a>.
+  You can also log off by visiting the following <a href="https://login.example.com:8080/logout?redirect=https://home.example.com:8080/">link</a>.
 
   <h1>List of users</h1>
   Here is the list of credentials you can log in with to test access control.<br/>
@@ -84,7 +84,7 @@ default_policy: deny
 # The value is a list of rules.
 
 any:
-  - domain: public.test.local
+  - domain: public.example.com
     policy: allow
 
 # Group-based rules. The key is a group name and the value
@@ -93,13 +93,13 @@ any:
 groups:
   admin:
     # All resources in all domains
-    - domain: '*.test.local'
+    - domain: '*.example.com'
       policy: allow
-    # Except mx2.mail.test.local (it restricts the first rule)
-    - domain: 'mx2.mail.test.local'
+    # Except mx2.mail.example.com (it restricts the first rule)
+    - domain: 'mx2.mail.example.com'
       policy: deny
   dev:
-    - domain: dev.test.local
+    - domain: dev.example.com
       policy: allow
       resources:
         - '^/groups/dev/.*$'
@@ -109,23 +109,23 @@ groups:
 
 users:
   john:
-    - domain: dev.test.local
+    - domain: dev.example.com
       policy: allow
       resources:
         - '^/users/john/.*$' 
   harry:
-    - domain: dev.test.local
+    - domain: dev.example.com
       policy: allow
       resources:
         - '^/users/harry/.*$'
   bob:
-    - domain: '*.mail.test.local'
+    - domain: '*.mail.example.com'
       policy: allow
-    - domain: 'dev.test.local'
+    - domain: 'dev.example.com'
       policy: allow
       resources:
         - '^/users/bob/.*$'
-    - domain: 'dev.test.local'
+    - domain: 'dev.example.com'
       policy: allow
       resources:
         - '^/users/harry/.*$'</pre>

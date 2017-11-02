@@ -1,13 +1,14 @@
 block variables
 
+doctype html
 html
   head
     title Authelia - 2FA
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")/
-    meta(name="robots", content="noindex, nofollow, nosnippet, noarchive")/
-    meta(http-equiv="Content-Security-Policy", content="default-src 'self'; img-src 'self' data:;")/
-    link(rel="icon", href="/img/icon.png" type="image/png" sizes="32x32")/
-    link(rel="stylesheet", type="text/css", href="/css/authelia.css")/
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    meta(name="robots", content="noindex, nofollow, nosnippet, noarchive")
+    meta(http-equiv="Content-Security-Policy", content="default-src 'self'; img-src 'self' data:;")
+    link(rel="icon", href="/img/icon.png" type="image/png" sizes="32x32")
+    link(rel="stylesheet", type="text/css", href="/css/authelia.css")
     if redirection_url
       meta(http-equiv="refresh" content="4;url=" + redirection_url) 
   body
@@ -24,4 +25,4 @@ html
               div(class="poweredby col-xs-6 col-xs-offset-4 col-sm-6 col-sm-offset-4 col-md-6 col-md-offset-4")
                 | Powered by <a class="authelia-brand" href="https://github.com/clems4ever/authelia">Authelia</a>
     block entrypoint
-    script(src="/js/authelia.js")
+    script(src="/js/authelia.js", type="text/javascript" )

@@ -13,10 +13,10 @@ describe("test access control manager", function () {
       configuration = undefined;
       accessController = new AccessController(configuration, winston);
 
-      Assert(accessController.isAccessAllowed("home.test.local", "/", "user1", ["group1", "group2"]));
-      Assert(accessController.isAccessAllowed("home.test.local", "/abc", "user1", ["group1", "group2"]));
-      Assert(accessController.isAccessAllowed("home.test.local", "/", "user2", ["group1", "group2"]));
-      Assert(accessController.isAccessAllowed("admin.test.local", "/", "user3", ["group3"]));
+      Assert(accessController.isAccessAllowed("home.example.com", "/", "user1", ["group1", "group2"]));
+      Assert(accessController.isAccessAllowed("home.example.com", "/abc", "user1", ["group1", "group2"]));
+      Assert(accessController.isAccessAllowed("home.example.com", "/", "user2", ["group1", "group2"]));
+      Assert(accessController.isAccessAllowed("admin.example.com", "/", "user3", ["group3"]));
     });
   });
 
