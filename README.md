@@ -95,14 +95,14 @@ Make sure you don't have anything listening on port 8080 (webserver) and 8085 (w
 
 Add the following lines to your **/etc/hosts** to alias multiple subdomains so that nginx can redirect request to the correct virtual host.
 
-    127.0.0.1       home.test.local
-    127.0.0.1       public.test.local
-    127.0.0.1       dev.test.local
-    127.0.0.1       admin.test.local
-    127.0.0.1       mx1.mail.test.local
-    127.0.0.1       mx2.mail.test.local
-    127.0.0.1       single_factor.test.local
-    127.0.0.1       auth.test.local
+    127.0.0.1       home.example.com
+    127.0.0.1       public.example.com
+    127.0.0.1       dev.example.com
+    127.0.0.1       admin.example.com
+    127.0.0.1       mx1.mail.example.com
+    127.0.0.1       mx2.mail.example.com
+    127.0.0.1       single_factor.example.com
+    127.0.0.1       login.example.com
 
 ### Run it!
     
@@ -118,7 +118,7 @@ Use provided container on [DockerHub](https://hub.docker.com/r/clems4ever/authel
     ./scripts/example-dockerhub/deploy-example.sh
     
 After few seconds the services should be running and you should be able to visit 
-[https://home.test.local:8080/](https://home.test.local:8080/).
+[https://home.example.com:8080/](https://home.example.com:8080/).
 
 When accessing the login page, a self-signed certificate exception should appear, 
 it has to be trusted before you can get to the target page. The certificate

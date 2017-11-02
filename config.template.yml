@@ -20,7 +20,7 @@ logs_level: debug
 #
 # Note: this parameter is optional. If not provided, user won't
 # be redirected upon successful authentication.
-default_redirection_url: https://home.test.local:8080/
+default_redirection_url: https://home.example.com:8080/
 
 # LDAP configuration
 #
@@ -77,7 +77,7 @@ ldap:
 authentication_methods:
   default_method: two_factor
   per_subdomain_methods:
-    single_factor.test.local: single_factor
+    single_factor.example.com: single_factor
 
 # Access Control
 #
@@ -120,7 +120,7 @@ access_control:
   # The rules that apply to anyone.
   # The value is a list of rules.
   any:
-    - domain: public.test.local
+    - domain: public.example.com
       policy: allow
   
   # Group-based rules. The key is a group name and the value
@@ -128,13 +128,13 @@ access_control:
   groups:
     admin:
       # All resources in all domains
-      - domain: '*.test.local'
+      - domain: '*.example.com'
         policy: allow
-      # Except mx2.mail.test.local (it restricts the first rule)
-      - domain: 'mx2.mail.test.local'
+      # Except mx2.mail.example.com (it restricts the first rule)
+      - domain: 'mx2.mail.example.com'
         policy: deny
     dev:
-      - domain: dev.test.local
+      - domain: dev.example.com
         policy: allow
         resources:
           - '^/groups/dev/.*$'
@@ -143,19 +143,19 @@ access_control:
   # is a list of rules.
   users:
     john:
-      - domain: dev.test.local
+      - domain: dev.example.com
         policy: allow
         resources:
           - '^/users/john/.*$' 
     harry:
-      - domain: dev.test.local
+      - domain: dev.example.com
         policy: allow
         resources:
           - '^/users/harry/.*$'
     bob:
-      - domain: '*.mail.test.local'
+      - domain: '*.mail.example.com'
         policy: allow
-      - domain: 'dev.test.local'
+      - domain: 'dev.example.com'
         policy: allow
         resources:
           - '^/users/bob/.*$'
@@ -177,7 +177,7 @@ session:
   # The domain to protect.
   # Note: the authenticator must also be in that domain. If empty, the cookie
   # is restricted to the subdomain of the issuer. 
-  domain: test.local
+  domain: example.com
   
   # The redis connection details
   redis:

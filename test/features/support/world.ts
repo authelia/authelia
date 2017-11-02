@@ -152,7 +152,7 @@ function CustomWorld() {
 
   this.registerTotpAndSignin = function (username: string, password: string) {
     const totpHandle = "HANDLE";
-    const authUrl = "https://auth.test.local:8080/";
+    const authUrl = "https://login.example.com:8080/";
     const that = this;
     return this.visit(authUrl)
       .then(function () {

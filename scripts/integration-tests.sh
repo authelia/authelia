@@ -1,19 +1,23 @@
 #!/bin/bash
 
 DC_SCRIPT=./scripts/example-commit/dc-example.sh
-EXPECTED_SERVICES_COUNT=7
+EXPECTED_SERVICES_COUNT=9
 
 build_services() {
     $DC_SCRIPT build authelia
 }
 
 start_services() {
-    $DC_SCRIPT up -d httpbin mongo redis openldap authelia nginx smtp
+    $DC_SCRIPT up -d httpbin mongo redis openldap authelia smtp nginx-authelia nginx-portal nginx-backend
     sleep 3
 }
 
 shut_services() {
-  $DC_SCRIPT down --remove-orphans
+    containers_exist=`docker ps -aq | wc -l`
+    if [ "$containers_exist" -ne "0" ]
+    then
+        docker rm -f $(docker ps -aq)
+    fi
 }
 
 expect_services_count() {
@@ -42,16 +46,18 @@ run_integration_tests() {
 
 run_other_tests() {
   echo "Test dev environment deployment (commands in README)"
-  rm -rf node_modules
-  ./scripts/build-dev.sh
+  # rm -rf node_modules
+  # ./scripts/build-dev.sh
   ./scripts/example-commit/deploy-example.sh
   expect_services_count $EXPECTED_SERVICES_COUNT
+  ./scripts/example-commit/undeploy-example.sh
 }
 
 run_other_tests_docker() {
   echo "Test dev docker deployment (commands in README)"
   ./scripts/example-dockerhub/deploy-example.sh
   expect_services_count $EXPECTED_SERVICES_COUNT
+  ./scripts/example-dockerhub/undeploy-example.sh
 }
 
 

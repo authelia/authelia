@@ -3,7 +3,7 @@ Feature: Authelia regulates authentication to avoid brute force
 
   @need-registered-user-blackhat
   Scenario: Attacker tries too many authentication in a short period of time and get banned
-    Given I visit "https://auth.test.local:8080/"
+    Given I visit "https://login.example.com:8080/"
     And I set field "username" to "blackhat"
     And I set field "password" to "bad-password"
     And I click on "Sign in"
@@ -20,7 +20,7 @@ Feature: Authelia regulates authentication to avoid brute force
 
   @need-registered-user-blackhat
   Scenario: User is unbanned after a configured amount of time
-    Given I visit "https://auth.test.local:8080/?redirect=https%3A%2F%2Fpublic.test.local%3A8080%2Fsecret.html"
+    Given I visit "https://login.example.com:8080/?redirect=https%3A%2F%2Fpublic.example.com%3A8080%2Fsecret.html"
     And I set field "username" to "blackhat"
     And I set field "password" to "bad-password"
     And I click on "Sign in"
@@ -36,4 +36,4 @@ Feature: Authelia regulates authentication to avoid brute force
     And I click on "Sign in"
     And I use "REGISTERED" as TOTP token handle
     And I click on "Sign in"
-    Then I'm redirected to "https://public.test.local:8080/secret.html"
+    Then I'm redirected to "https://public.example.com:8080/secret.html"
