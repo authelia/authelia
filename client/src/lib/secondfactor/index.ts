@@ -1,7 +1,5 @@
-
-import U2fApi = require("u2f-api");
 import jslogger = require("js-logger");
-
+import U2fApi = require("../../../types/u2f-api");
 import TOTPValidator = require("./TOTPValidator");
 import U2FValidator = require("./U2FValidator");
 import ClientConstants = require("./constants");
@@ -12,7 +10,7 @@ import ServerConstants = require("../../../../shared/constants");
 import UserMessages = require("../../../../shared/UserMessages");
 import SharedConstants = require("../../../../shared/constants");
 
-export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi) {
+export default function (window: Window, $: JQueryStatic, u2fApi: U2fApi.U2fApi) {
   const notifierTotp = new Notifier(".notification-totp", $);
   const notifierU2f = new Notifier(".notification-u2f", $);
 
@@ -51,7 +49,7 @@ export default function (window: Window, $: JQueryStatic, u2fApi: typeof U2fApi)
 
   $(window.document).ready(function () {
     $(ClientConstants.TOTP_FORM_SELECTOR).on("submit", onTOTPFormSubmitted);
-    U2FValidator.validate($, notifierU2f, U2fApi)
+    U2FValidator.validate($, notifierU2f, u2fApi)
       .then(onU2fAuthenticationSuccess, onU2fAuthenticationFailure);
   });
 }

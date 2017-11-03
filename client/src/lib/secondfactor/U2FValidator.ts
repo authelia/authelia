@@ -1,6 +1,5 @@
-
-import U2fApi = require("u2f-api");
 import U2f = require("u2f");
+import U2fApi = require("../../../types/u2f-api");
 import BluebirdPromise = require("bluebird");
 import { SignMessage } from "../../../../shared/SignMessage";
 import Endpoints = require("../../../../shared/api");
@@ -8,8 +7,10 @@ import UserMessages = require("../../../../shared/UserMessages");
 import { INotifier } from "../INotifier";
 import { RedirectionMessage } from "../../../../shared/RedirectionMessage";
 import { ErrorMessage } from "../../../../shared/ErrorMessage";
+import GetPromised from "../GetPromised";
 
-function finishU2fAuthentication(responseData: U2fApi.SignResponse, $: JQueryStatic): BluebirdPromise<string> {
+function finishU2fAuthentication(responseData: U2fApi.SignResponse,
+  $: JQueryStatic): BluebirdPromise<string> {
   return new BluebirdPromise<string>(function (resolve, reject) {
     $.ajax({
       url: Endpoints.SECOND_FACTOR_U2F_SIGN_POST,
@@ -30,40 +31,50 @@ function finishU2fAuthentication(responseData: U2fApi.SignResponse, $: JQuerySta
   });
 }
 
-function startU2fAuthentication($: JQueryStatic, notifier: INotifier, u2fApi: typeof U2fApi): BluebirdPromise<string> {
-  return new BluebirdPromise<string>(function (resolve, reject) {
-    $.get(Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET, {}, undefined, "json")
-      .done(function (signResponse: SignMessage) {
-        notifier.info(UserMessages.PLEASE_TOUCH_TOKEN);
+function u2fApiSign(u2fApi: U2fApi.U2fApi, appId: string, challenge: string,
+  registeredKey: U2fApi.RegisteredKey, timeout: number)
+  : BluebirdPromise<U2fApi.SignResponse> {
 
-        const signRequest: U2fApi.SignRequest = {
-          appId: signResponse.request.appId,
-          challenge: signResponse.request.challenge,
-          keyHandle: signResponse.keyHandle, // linked to the client session cookie
-          version: "U2F_V2"
-        };
-
-        u2fApi.sign([signRequest], 60)
-          .then(function (signResponse: U2fApi.SignResponse) {
-            finishU2fAuthentication(signResponse, $)
-              .then(function (redirect: string) {
-                resolve(redirect);
-              }, function (err) {
-                notifier.error(UserMessages.U2F_TRANSACTION_FINISH_FAILED);
-                reject(err);
-              });
-          })
-          .catch(function (err: Error) {
-            reject(err);
-          });
-      })
-      .fail(function (xhr: JQueryXHR, textStatus: string) {
-        reject(new Error(textStatus));
-      });
+  return new BluebirdPromise<U2fApi.SignResponse>(function (resolve, reject) {
+    u2fApi.sign(appId, challenge, [registeredKey],
+      function (signResponse: U2fApi.SignResponse | U2fApi.Error) {
+        if ("errorCode" in signResponse) {
+          reject(new Error((signResponse as U2fApi.Error).errorMessage));
+          return;
+        }
+        resolve(signResponse as U2fApi.SignResponse);
+      }, timeout);
   });
 }
 
+function startU2fAuthentication($: JQueryStatic, notifier: INotifier,
+  u2fApi: U2fApi.U2fApi): BluebirdPromise<string> {
 
-export function validate($: JQueryStatic, notifier: INotifier, u2fApi: typeof U2fApi): BluebirdPromise<string> {
-  return startU2fAuthentication($, notifier, u2fApi);
+  return GetPromised($, Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET, {},
+    undefined, "json")
+    .then(function (signResponse: SignMessage) {
+      notifier.info(UserMessages.PLEASE_TOUCH_TOKEN);
+
+      const registeredKey: U2fApi.RegisteredKey = {
+        keyHandle: signResponse.keyHandle,
+        version: "U2F_V2",
+        appId: signResponse.request.appId
+      };
+
+      return u2fApiSign(u2fApi, signResponse.request.appId,
+        signResponse.request.challenge, registeredKey, 60);
+    })
+    .then(function (signResponse: U2fApi.SignResponse) {
+      return finishU2fAuthentication(signResponse, $);
+    });
+}
+
+
+export function validate($: JQueryStatic, notifier: INotifier,
+  u2fApi: U2fApi.U2fApi) {
+  return startU2fAuthentication($, notifier, u2fApi)
+    .catch(function (err: Error) {
+      notifier.error(UserMessages.U2F_TRANSACTION_FINISH_FAILED);
+      return BluebirdPromise.reject(err);
+    });
 }
