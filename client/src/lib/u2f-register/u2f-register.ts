@@ -1,21 +1,20 @@
 
 import BluebirdPromise = require("bluebird");
 import U2f = require("u2f");
-import u2fApi = require("u2f-api");
+import U2fApi = require("u2f-api");
 import jslogger = require("js-logger");
 import { Notifier } from "../Notifier";
+import GetPromised from "../GetPromised";
 import Endpoints = require("../../../../shared/api");
 import UserMessages = require("../../../../shared/UserMessages");
 import { RedirectionMessage } from "../../../../shared/RedirectionMessage";
 import { ErrorMessage } from "../../../../shared/ErrorMessage";
 
-export default function (window: Window, $: JQueryStatic) {
+export default function (window: Window, $: JQueryStatic, u2fApi: U2fApi.U2fApi) {
   const notifier = new Notifier(".notification", $);
 
-  function checkRegistration(regResponse: u2fApi.RegisterResponse): BluebirdPromise<string> {
+  function checkRegistration(regResponse: U2fApi.RegisterResponse): BluebirdPromise<string> {
     const registrationData: U2f.RegistrationData = regResponse;
-
-    jslogger.debug("registrationResponse = %s", JSON.stringify(registrationData));
 
     return new BluebirdPromise<string>(function (resolve, reject) {
       $.post(Endpoints.SECOND_FACTOR_U2F_REGISTER_POST, registrationData, undefined, "json")
@@ -32,23 +31,32 @@ export default function (window: Window, $: JQueryStatic) {
     });
   }
 
-  function requestRegistration(): BluebirdPromise<string> {
-    return new BluebirdPromise<string>(function (resolve, reject) {
-      $.get(Endpoints.SECOND_FACTOR_U2F_REGISTER_REQUEST_GET, {}, undefined, "json")
-        .done(function (registrationRequest: U2f.Request) {
-          const registerRequest: u2fApi.RegisterRequest = registrationRequest;
-          u2fApi.register([registerRequest], [], 120)
-            .then(function (res: u2fApi.RegisterResponse) {
-              return checkRegistration(res);
-            })
-            .then(function (redirectionUrl: string) {
-              resolve(redirectionUrl);
-            })
-            .catch(function (err: Error) {
-              reject(err);
-            });
-        });
+  function u2fApiRegister(u2fApi: U2fApi.U2fApi, appId: string,
+    registerRequest: U2fApi.RegisterRequest, timeout: number) {
+
+    return new BluebirdPromise(function (resolve, reject) {
+      u2fApi.register(appId, [registerRequest], [],
+        function (res: U2fApi.RegisterResponse | U2fApi.Error) {
+          if ("errorCode" in res) {
+            reject(new Error((res as U2fApi.Error).errorMessage));
+            return;
+          }
+          resolve(res);
+        }, timeout);
     });
+  }
+
+  function requestRegistration(): BluebirdPromise<string> {
+    return GetPromised($, Endpoints.SECOND_FACTOR_U2F_REGISTER_REQUEST_GET, {},
+      undefined, "json")
+      .then(function (registrationRequest: U2f.Request) {
+        const registerRequest: U2fApi.RegisterRequest = registrationRequest;
+        const appId = registrationRequest.appId;
+        return u2fApiRegister(u2fApi, appId, registerRequest, 60);
+      })
+      .then(function (res: U2fApi.RegisterResponse) {
+        return checkRegistration(res);
+      });
   }
 
   function onRegisterFailure(err: Error) {

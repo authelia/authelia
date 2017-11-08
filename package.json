@@ -107,7 +107,6 @@
     "tslint": "^5.2.0",
     "typescript": "^2.3.2",
     "typescript-json-schema": "^0.17.0",
-    "u2f-api": "0.0.9",
     "uglify-es": "^3.0.15"
   },
   "nyc": {
