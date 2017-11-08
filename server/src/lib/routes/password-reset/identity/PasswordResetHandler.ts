@@ -26,13 +26,18 @@ export default class PasswordResetHandler implements IdentityValidable {
   }
 
   preValidationInit(req: express.Request): BluebirdPromise<Identity> {
-    const userid: string = objectPath.get<express.Request, string>(req, "query.userid");
+    const that = this;
+    const userid: string =
+      objectPath.get<express.Request, string>(req, "query.userid");
+    return BluebirdPromise.resolve()
+      .then(function () {
+        that.logger.debug(req, "User '%s' requested a password reset", userid);
+        if (!userid)
+          return BluebirdPromise.reject(
+            new exceptions.AccessDeniedError("No user id provided"));
 
-    this.logger.debug(req, "User '%s' requested a password reset", userid);
-    if (!userid)
-      return BluebirdPromise.reject(new exceptions.AccessDeniedError("No user id provided"));
-
-    return this.emailsRetriever.retrieve(userid)
+        return that.emailsRetriever.retrieve(userid);
+      })
       .then(function (emails: string[]) {
         if (!emails && emails.length <= 0) throw new Error("No email found");
         const identity = {
@@ -40,6 +45,9 @@ export default class PasswordResetHandler implements IdentityValidable {
           userid: userid
         };
         return BluebirdPromise.resolve(identity);
+      })
+      .catch(function (err: Error) {
+        return BluebirdPromise.reject(new exceptions.IdentityError(err.message));
       });
   }
 

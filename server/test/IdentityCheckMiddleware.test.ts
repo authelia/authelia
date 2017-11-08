@@ -16,6 +16,8 @@ import IdentityValidatorMock = require("./mocks/IdentityValidator");
 import { RequestLoggerStub } from "./mocks/RequestLoggerStub";
 import { ServerVariablesMock, ServerVariablesMockBuilder }
   from "./mocks/ServerVariablesMockBuilder";
+import { PRE_VALIDATION_TEMPLATE }
+  from "../src/lib/IdentityCheckPreValidationTemplate";
 
 
 describe("test identity check process", function () {
@@ -77,7 +79,8 @@ throws a first factor error", function () {
           });
       });
 
-    it("should send 401 if email is missing in provided identity", function () {
+    // In that case we answer with 200 to avoid user enumeration.
+    it("should send 200 if email is missing in provided identity", function () {
       const identity = { userid: "abc" };
 
       identityValidable.preValidationInit
@@ -87,14 +90,12 @@ throws a first factor error", function () {
 
       return callback(req as any, res as any, undefined)
         .then(function () {
-          return BluebirdPromise.reject("Should fail");
-        })
-        .catch(function () {
-          Assert(res.redirect.calledWith("/error/401"));
+          Assert(identityValidable.preValidationResponse.called);
         });
     });
 
-    it("should send 401 if userid is missing in provided identity",
+    // In that case we answer with 200 to avoid user enumeration.
+    it("should send 200 if userid is missing in provided identity",
       function () {
         const endpoint = "/protected";
         const identity = { email: "abc@example.com" };
@@ -106,10 +107,7 @@ throws a first factor error", function () {
 
         return callback(req as any, res as any, undefined)
           .then(function () {
-            return BluebirdPromise.reject(new Error("It should fail"));
-          })
-          .catch(function (err: Error) {
-            Assert(res.redirect.calledWith("/error/401"));
+            Assert(identityValidable.preValidationResponse.called);
           });
       });
 
