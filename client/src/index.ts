@@ -15,6 +15,10 @@ jslogger.useDefaults();
 jslogger.setLevel(jslogger.INFO);
 
 (function () {
+  (<any>window).jQuery = jQuery;
+  require("bootstrap");
+
+  jQuery('[data-toggle="tooltip"]').tooltip();
   if (window.location.pathname == Endpoints.FIRST_FACTOR_GET)
     FirstFactor(window, jQuery, FirstFactorValidator, jslogger);
   else if (window.location.pathname == Endpoints.SECOND_FACTOR_GET)

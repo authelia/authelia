@@ -48,6 +48,7 @@
   "devDependencies": {
     "@types/bluebird": "^3.5.4",
     "@types/body-parser": "^1.16.3",
+    "@types/bootstrap": "^3.3.36",
     "@types/connect-redis": "0.0.6",
     "@types/cors": "^2.8.1",
     "@types/cucumber": "^2.0.1",
@@ -75,6 +76,7 @@
     "@types/winston": "^2.3.2",
     "@types/yamljs": "^0.2.30",
     "apidoc": "^0.17.6",
+    "bootstrap": "^3.3.7",
     "browserify": "^14.3.0",
     "chromedriver": "^2.31.0",
     "cucumber": "^2.3.1",

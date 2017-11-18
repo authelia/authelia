@@ -13,9 +13,9 @@ block content
     div(class="u2f-token")
       img(src="/img/pendrive.png", alt="security key")
     p 
-      | touch your U2F device<br/>
+      | Please, touch your <a href="https://www.yubico.com/products/yubikey-hardware/fido-u2f-security-key/">security key</a><br/>
       b Or<br/>
-      | get a one-time password
+      | Get a one-time password
     div(class="notification notification-totp")
     form(class="form-signin totp")
       div(class="form-inputs")
@@ -24,7 +24,7 @@ block content
       div(class="pull-right bottom-right-links")
         div Need to register?
         div
-          a(href=u2f_identity_start_endpoint, class="link register-u2f") U2F
+          a(href=u2f_identity_start_endpoint, class="link register-u2f", data-toggle="tooltip", title="A security key is required to register.") Security key
           |  | 
           a(href=totp_identity_start_endpoint, class="link register-totp") Google Authenticator
           span(class="clearfix")
