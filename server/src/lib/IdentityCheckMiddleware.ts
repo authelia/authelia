@@ -144,6 +144,10 @@ export function get_start_validation(handler: IdentityValidable,
         handler.preValidationResponse(req, res);
         return BluebirdPromise.resolve();
       })
+      .catch(Exceptions.IdentityError, function (err: Error) {
+        handler.preValidationResponse(req, res);
+        return BluebirdPromise.resolve();
+      })
       .catch(ErrorReplies.replyWithError401(req, res, vars.logger));
   };
 }
