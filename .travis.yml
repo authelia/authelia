@@ -2,7 +2,7 @@ dist: trusty
 language: node_js
 sudo: required
 node_js:
-  - "7"
+  - "8"
 services:
   - docker
   - ntp
