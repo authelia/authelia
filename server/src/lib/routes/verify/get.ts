@@ -5,6 +5,7 @@ import ErrorReplies = require("../../ErrorReplies");
 import { ServerVariables } from "../../ServerVariables";
 import GetWithSessionCookieMethod from "./get_session_cookie";
 import GetWithBasicAuthMethod from "./get_basic_auth";
+import Constants = require("../../../../../shared/constants");
 
 import { AuthenticationSessionHandler }
   from "../../AuthenticationSessionHandler";
@@ -50,6 +51,12 @@ function replyWith200(res: Express.Response) {
   };
 }
 
+function getRedirectParam(req: Express.Request) {
+  return req.query[Constants.REDIRECT_QUERY_PARAM] != "undefined"
+    ? req.query[Constants.REDIRECT_QUERY_PARAM]
+    : undefined;
+}
+
 export default function (vars: ServerVariables) {
   return function (req: Express.Request, res: Express.Response)
     : BluebirdPromise<void> {
@@ -66,7 +73,15 @@ export default function (vars: ServerVariables) {
       .catch(Exceptions.DomainAccessDenied, ErrorReplies
         .replyWithError403(req, res, vars.logger))
       // The user is not yet authenticated -> 401
-      .catch(ErrorReplies.replyWithError401(req, res, vars.logger));
+      .catch(function (err) {
+        const redirectUrl = getRedirectParam(req);
+        if (redirectUrl) {
+          ErrorReplies.redirectTo(redirectUrl, req, res, vars.logger)(err);
+        }
+        else {
+          ErrorReplies.replyWithError401(req, res, vars.logger)(err);
+        }
+      });
   };
 }
 

@@ -19,6 +19,15 @@ function replyWithError(req: express.Request, res: express.Response,
   };
 }
 
+export function redirectTo(redirectUrl: string, req: express.Request,
+  res: express.Response, logger: IRequestLogger) {
+  return function(err: Error) {
+    logger.error(req, "Error: %s", err.message);
+    logger.debug(req, "Redirecting to %s", redirectUrl);
+    res.redirect(redirectUrl);
+  };
+}
+
 export function replyWithError400(req: express.Request,
   res: express.Response, logger: IRequestLogger) {
   return replyWithError(req, res, 400, logger);

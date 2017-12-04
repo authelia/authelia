@@ -4,9 +4,9 @@
   [![Build](https://travis-ci.org/clems4ever/authelia.svg?branch=master)](https://travis-ci.org/clems4ever/authelia)
   [![Gitter](https://img.shields.io/gitter/room/badges/shields.svg)](https://gitter.im/authelia/general?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
-**Authelia** is a complete HTTP 2-factor authentication server for proxies like 
-nginx. It has been made to work with nginx [auth_request] module and is currently 
-used in production to secure internal services in a small docker swarm cluster.
+**Authelia** is a complete HTTP 2-factor authentication server for proxies like
+Nginx or Traefik. It has been designed to be proxy agnostic so that you can 
+use whichever proxy supporting authentication forwarding.
 
 # Table of Contents
 1. [Features summary](#features-summary)

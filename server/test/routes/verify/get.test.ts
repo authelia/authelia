@@ -24,11 +24,11 @@ describe("test /api/verify endpoint", function () {
     res = ExpressMock.ResponseMock();
     req.originalUrl = "/api/xxxx";
     req.query = {
-      redirect: "http://redirect.url"
+      redirect: "undefined"
     };
     AuthenticationSessionHandler.reset(req as any);
     req.headers.host = "secret.example.com";
-    const s = ServerVariablesMockBuilder.build(true);
+    const s = ServerVariablesMockBuilder.build(false);
     mocks = s.mocks;
     vars = s.variables;
     authSession = AuthenticationSessionHandler.get(req as any, vars.logger);
@@ -147,9 +147,6 @@ describe("test /api/verify endpoint", function () {
 
     describe("given user tries to access a single factor endpoint", function () {
       beforeEach(function () {
-        req.query = {
-          redirect: "http://redirect.url"
-        };
         req.headers["host"] = "redirect.url";
         mocks.config.authentication_methods.per_subdomain_methods = {
           "redirect.url": "single_factor"
@@ -217,6 +214,36 @@ describe("test /api/verify endpoint", function () {
             Assert.equal(authSession.userid, undefined);
           });
       });
+    });
+  });
+
+  describe("response type 401 | 302", function() {
+    it("should return error code 401", function() {
+      mocks.accessController.isAccessAllowedMock.returns(true);
+      mocks.config.authentication_methods.default_method = "single_factor";
+      mocks.ldapAuthenticator.authenticateStub.rejects(new Error(
+        "Invalid credentials"));
+      req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
+
+      return VerifyGet.default(vars)(req as express.Request, res as any)
+        .then(function () {
+          Assert(res.status.calledWithExactly(401));
+        });
+    });
+
+    it("should redirect to provided redirection url", function() {
+      const REDIRECT_URL = "http://redirection_url.com";
+      mocks.accessController.isAccessAllowedMock.returns(true);
+      mocks.config.authentication_methods.default_method = "single_factor";
+      mocks.ldapAuthenticator.authenticateStub.rejects(new Error(
+        "Invalid credentials"));
+      req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
+      req.query["redirect"] = REDIRECT_URL;
+
+      return VerifyGet.default(vars)(req as express.Request, res as any)
+        .then(function () {
+          Assert(res.redirect.calledWithExactly(REDIRECT_URL));
+        });
     });
   });
 

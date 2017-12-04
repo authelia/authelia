@@ -20,7 +20,7 @@
       }
     },
     "description": "<p>Serves the login page and create a create a cookie for the client.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "Authentication"
   },
   {
@@ -56,7 +56,7 @@
       }
     },
     "description": "<p>Log out the user and redirect to the URL.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "Authentication"
   },
   {
@@ -80,7 +80,7 @@
       }
     },
     "description": "<p>Serves the second factor page</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "Authentication"
   },
   {
@@ -145,7 +145,7 @@
       }
     },
     "description": "<p>Verify credentials against the LDAP.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "Authentication",
     "header": {
       "fields": {
@@ -169,7 +169,7 @@
     "group": "PasswordReset",
     "version": "1.0.0",
     "description": "<p>Start password reset request.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "PasswordReset",
     "header": {
       "fields": {
@@ -240,7 +240,7 @@
     "group": "PasswordReset",
     "version": "1.0.0",
     "description": "<p>Serve a page that requires the username.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "PasswordReset",
     "header": {
       "fields": {
@@ -277,7 +277,7 @@
       }
     },
     "description": "<p>Set a new password for the user.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "PasswordReset",
     "header": {
       "fields": {
@@ -301,7 +301,7 @@
     "group": "PasswordReset",
     "version": "1.0.0",
     "description": "<p>Start password reset request.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "PasswordReset",
     "header": {
       "fields": {
@@ -366,7 +366,7 @@
     "group": "TOTP",
     "version": "1.0.0",
     "description": "<p>Serves the TOTP registration page that displays the secret. The secret is a QRCode and a base32 secret.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "TOTP",
     "header": {
       "fields": {
@@ -437,7 +437,7 @@
     "group": "TOTP",
     "version": "1.0.0",
     "description": "<p>Initiates the identity validation</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "TOTP",
     "header": {
       "fields": {
@@ -521,7 +521,7 @@
             "group": "Success 302",
             "optional": false,
             "field": "Redirect",
-            "description": "<p>to the URL that has been stored during last call to /verify.</p>"
+            "description": "<p>to the URL that has been stored during last call to /api/verify.</p>"
           }
         ]
       }
@@ -549,7 +549,7 @@
       }
     },
     "description": "<p>Verify TOTP token. The user is authenticated upon success.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "TOTP",
     "header": {
       "fields": {
@@ -579,7 +579,7 @@
             "group": "Success 302",
             "optional": false,
             "field": "Redirect",
-            "description": "<p>to the URL that has been stored during last call to /verify.</p>"
+            "description": "<p>to the URL that has been stored during last call to /api/verify.</p>"
           }
         ]
       }
@@ -607,7 +607,7 @@
       }
     },
     "description": "<p>Complete authentication request of the U2F device.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "U2F",
     "header": {
       "fields": {
@@ -637,13 +637,13 @@
             "group": "Success 302",
             "optional": false,
             "field": "Redirect",
-            "description": "<p>to the URL that has been stored during last call to /verify.</p>"
+            "description": "<p>to the URL that has been stored during last call to /api/verify.</p>"
           }
         ]
       }
     },
     "description": "<p>Complete U2F registration request.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "U2F",
     "header": {
       "fields": {
@@ -679,7 +679,7 @@
     "name": "RequestU2FRegistration",
     "group": "U2F",
     "version": "1.0.0",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "U2F",
     "header": {
       "fields": {
@@ -745,7 +745,7 @@
     "group": "U2F",
     "version": "1.0.0",
     "description": "<p>Serves the U2F registration page that asks the user to touch the token of the U2F device.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "U2F",
     "header": {
       "fields": {
@@ -850,7 +850,7 @@
       }
     },
     "description": "<p>Initiate an authentication request using a U2F device.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "U2F",
     "header": {
       "fields": {
@@ -908,7 +908,7 @@
       }
     },
     "description": "<p>Initiate a U2F device registration request.</p>",
-    "filename": "src/server/endpoints.ts",
+    "filename": "shared/api.ts",
     "groupTitle": "U2F",
     "header": {
       "fields": {
@@ -926,11 +926,24 @@
   },
   {
     "type": "get",
-    "url": "/verify",
+    "url": "/api/verify",
     "title": "Verify user authentication",
     "name": "VerifyAuthentication",
     "group": "Verification",
     "version": "1.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "redirect",
+            "description": "<p>Optional parameter set to the url where the user is redirected if access is refused. It is mainly used by Traefik that does not control the redirection itself.</p>"
+          }
+        ]
+      }
+    },
     "success": {
       "fields": {
         "Success 204": [
@@ -945,18 +958,26 @@
     },
     "error": {
       "fields": {
+        "Error 302": [
+          {
+            "group": "Error 302",
+            "optional": false,
+            "field": "redirect",
+            "description": "<p>The user is redirected if redirect parameter is provided.</p>"
+          }
+        ],
         "Error 401": [
           {
             "group": "Error 401",
             "optional": false,
             "field": "status",
-            "description": "<p>The user is not authenticated.</p>"
+            "description": "<p>The user get an error if access failed</p>"
           }
         ]
       }
     },
-    "description": "<p>Verify that the user is authenticated, i.e., the two factors have been validated</p>",
-    "filename": "src/server/endpoints.ts",
+    "description": "<p>Verify that the user is authenticated, i.e., the two factors have been validated. If the user is authenticated the response headers Remote-User and Remote-Groups are set. Remote-User contains the user id of the currently logged in user and Remote-Groups a comma separated list of assigned groups.</p>",
+    "filename": "shared/api.ts",
     "groupTitle": "Verification",
     "header": {
       "fields": {

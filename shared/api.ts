@@ -39,7 +39,7 @@
  * @apiUse UserSession
  * @apiUse InternalError
  *
- * @apiSuccess (Success 302) Redirect to the URL that has been stored during last call to /verify.
+ * @apiSuccess (Success 302) Redirect to the URL that has been stored during last call to /api/verify.
  *
  * @apiDescription Complete U2F registration request.
  */
@@ -68,7 +68,7 @@ export const SECOND_FACTOR_U2F_REGISTER_REQUEST_GET = "/api/u2f/register_request
  * @apiUse UserSession
  * @apiUse InternalError
  *
- * @apiSuccess (Success 302) Redirect to the URL that has been stored during last call to /verify.
+ * @apiSuccess (Success 302) Redirect to the URL that has been stored during last call to /api/verify.
  * @apiError (Error 403) {none} error No authentication request has been provided.
  *
  * @apiDescription Complete authentication request of the U2F device.
@@ -100,7 +100,7 @@ export const SECOND_FACTOR_U2F_SIGN_REQUEST_GET = "/api/u2f/sign_request";
  *
  * @apiParam {String} token TOTP token.
  *
- * @apiSuccess (Success 302) Redirect to the URL that has been stored during last call to /verify.
+ * @apiSuccess (Success 302) Redirect to the URL that has been stored during last call to /api/verify.
  * @apiError (Error 401) {none} error TOTP token is invalid.
  *
  * @apiDescription Verify TOTP token. The user is authenticated upon success.
@@ -270,8 +270,13 @@ export const SECOND_FACTOR_GET = "/secondfactor";
  * @apiVersion 1.0.0
  * @apiUse UserSession
  *
+ * @apiParam {String} redirect Optional parameter set to the url where the user
+ * is redirected if access is refused. It is mainly used by Traefik that does
+ * not control the redirection itself.
+ *
  * @apiSuccess (Success 204) status The user is authenticated.
- * @apiError (Error 401) status The user is not authenticated.
+ * @apiError (Error 302) redirect The user is redirected if redirect parameter is provided.
+ * @apiError (Error 401) status The user get an error if access failed
  *
  * @apiDescription Verify that the user is authenticated, i.e., the two
  * factors have been validated.
