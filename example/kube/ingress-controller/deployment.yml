@@ -1,0 +1,54 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-ingress-controller-external
+  namespace: authelia
+  labels:
+    k8s-app: nginx-ingress-controller-external
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  template:
+    metadata:
+      labels:
+        k8s-app: nginx-ingress-controller-external
+        name: nginx-ingress-controller-external
+      annotations:
+        prometheus.io/port: '10254'
+        prometheus.io/scrape: 'true'
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+      - image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.9.0-beta.19
+        name: nginx-ingress-controller-external
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        volumeMounts:
+          - mountPath: /etc/nginx/template
+            name: nginx-template-volume
+            readOnly: true
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        args:
+        - /nginx-ingress-controller
+        - --ingress-class=nginx
+        - --election-id=ingress-controller-leader-external
+        - --default-backend-service=$(POD_NAMESPACE)/default-http-backend
+        - --configmap=$(POD_NAMESPACE)/authelia-ingress-controller-config
+      volumes:
+        - name: nginx-template-volume
+          configMap:
+            name: authelia-ingress-controller-config
+            items:
+            - key: nginx.tmpl
+              path: nginx.tmpl

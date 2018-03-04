@@ -1,0 +1,23 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: secure-ingress
+  namespace: authelia
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/auth-url: "http://authelia-service.authelia.svc.cluster.local/api/verify"
+    nginx.ingress.kubernetes.io/auth-signin: "https://login.kube.example.com?redirect=$redirect"
+spec:
+  tls:
+  - secretName: app2-tls
+    hosts:
+    - app2.kube.example.com
+  rules:
+  - host: app2.kube.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: test-app2-service
+          servicePort: 80

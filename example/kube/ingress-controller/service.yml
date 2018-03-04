@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ingress-controller-external-service
+  namespace: authelia
+  labels:
+    k8s-app: nginx-ingress-controller-external
+spec:
+  selector:
+    k8s-app: nginx-ingress-controller-external
+  ports:
+    - port: 80
+      name: http
+    - port: 443
+      name: https
+  externalIPs:
+    - 192.168.39.26

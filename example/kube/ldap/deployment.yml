@@ -1,0 +1,23 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: ldap
+  namespace: authelia
+  labels:
+    app: ldap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ldap
+  template:
+    metadata:
+      labels:
+        app: ldap
+    spec:
+      containers:
+      - name: ldap
+        image: clems4ever/authelia-test-ldap
+        ports:
+        - containerPort: 389

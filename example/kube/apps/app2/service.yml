@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-app2-service
+  namespace: authelia
+spec:
+  selector:
+    app: test-app2
+  ports:
+  - protocol: TCP
+    port: 80

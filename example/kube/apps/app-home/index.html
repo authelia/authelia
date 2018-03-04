@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>Authelia Home</title>
+  </head>
+  <body>
+    <h1>Authelia on Kube</h1>
+
+    In this example, two applications have been deployed along with Authelia and a fake mailbox in order to confirm your secret registration to Authelia:
+    <ul>
+      <li><a href="https://app1.kube.example.com">https://app1.kube.example.com</a></li>
+      <li><a href="https://app2.kube.example.com">https://app2.kube.example.com</a></li>
+      <li><a href="http://mail.kube.example.com">http://mail.kube.example.com</a></li>
+    </ul>
+    <p>
+      Please note that <b>app1</b> is publicly available and <b>app2</b> is protected by Authelia.<br/>
+      <br/>
+      You can start by visiting <b>app1</b> and then try to access <b>app2</b>. Since <b>app2</b> is protected by Authelia, you will be redirected to Authelia's portal.<br/>
+      <br/>
+      If it's the first time you login in this cluster, you'll need to choose your authentication method and follow Authelia's instructions.<br/>
+      <br/>
+      Once done, you'll be able to authenticate with your selected second factor method.
+    </p>
+    <p>
+      Here is the list of available users in the LDAP
+      <ul>
+        <li><strong>john / password</strong>
+        <li><strong>bob / password</strong>
+        <li><strong>harry / password</strong>
+      </ul>
+    </p>
+    <p>
+      You can always log off by clicking <a href="https://login.kube.example.com/logout?redirect=http://home.kube.example.com">here</a>
+    </p>
+  </body>
+</html>
