@@ -1,9 +1,0 @@
-version: '2'
-services:
-  nginx-backend:
-    image: nginx:alpine
-    volumes:
-      - ./example/nginx/backend/html:/usr/share/nginx/html
-      - ./example/nginx/backend/nginx.conf:/etc/nginx/nginx.conf
-    networks:
-      - example-network
