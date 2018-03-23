@@ -28,8 +28,8 @@ export default function (window: Window, $: JQueryStatic) {
   }
 
   function onFormSubmitted() {
-    const password1 = $("#password1").val();
-    const password2 = $("#password2").val();
+    const password1 = $("#password1").val() as string;
+    const password2 = $("#password2").val() as string;
 
     if (!password1 || !password2) {
       notifier.warning(UserMessages.MISSING_PASSWORD);

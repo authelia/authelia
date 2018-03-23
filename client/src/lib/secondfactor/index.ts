@@ -40,7 +40,7 @@ export default function (window: Window, $: JQueryStatic, u2fApi: U2fApi.U2fApi)
   }
 
   function onTOTPFormSubmitted(): boolean {
-    const token = $(ClientConstants.TOTP_TOKEN_SELECTOR).val();
+    const token = $(ClientConstants.TOTP_TOKEN_SELECTOR).val() as string;
     TOTPValidator.validate(token, $)
       .then(onSecondFactorTotpSuccess)
       .catch(onSecondFactorTotpFailure);

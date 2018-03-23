@@ -7,8 +7,8 @@ export default function ($: JQueryStatic, url: string, data: Object, fn: any,
       .done(function (data: any) {
         resolve(data);
       })
-      .fail(function (err: Error) {
-        reject(err);
+      .fail(function (xhr: JQueryXHR, textStatus: string) {
+        reject(textStatus);
       });
   });
 }
