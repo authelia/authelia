@@ -6,7 +6,7 @@
     "authelia": "./dist/server/src/index.js"
   },
   "scripts": {
-    "test": "./node_modules/.bin/grunt unit-tests",
+    "test": "./node_modules/.bin/grunt test-unit",
     "cover": "NODE_ENV=test nyc npm t",
     "serve": "node dist/server/index.js"
   },
@@ -33,7 +33,7 @@
     "express-request-id": "^1.4.0",
     "express-session": "^1.14.2",
     "ldapjs": "^1.0.2",
-    "mongodb": "^3.0.4",
+    "mongodb": "^3.0.5",
     "nedb": "^1.8.0",
     "nodemailer": "^4.0.1",
     "nodemailer-direct-transport": "^3.3.2",
@@ -53,7 +53,7 @@
     "@types/bootstrap": "^4.0.1",
     "@types/connect-redis": "0.0.7",
     "@types/cors": "^2.8.1",
-    "@types/cucumber": "^2.3.1",
+    "@types/cucumber": "^4.0.1",
     "@types/ejs": "^2.3.33",
     "@types/express": "^4.0.35",
     "@types/express-session": "1.15.8",

@@ -1,8 +1,6 @@
-import Cucumber = require("cucumber");
+import {When} from "cucumber";
 import seleniumWebdriver = require("selenium-webdriver");
 
-Cucumber.defineSupportCode(function ({ Given, When, Then }) {
-  When("I sleep for {number} seconds", function (seconds: number) {
-    return this.driver.sleep(seconds * 1000);
-  });
+When("I sleep for {int} seconds", function (seconds: number) {
+  return this.driver.sleep(seconds * 1000);
 });

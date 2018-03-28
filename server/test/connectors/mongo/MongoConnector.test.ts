@@ -7,6 +7,7 @@ import { MongoConnector } from "../../../src/lib/connectors/mongo/MongoConnector
 
 describe("MongoConnector", function () {
   let mongoClientConnectStub: Sinon.SinonStub;
+
   describe("create", function () {
     before(function () {
       mongoClientConnectStub = Sinon.stub(MongoDB.MongoClient, "connect");
@@ -17,11 +18,12 @@ describe("MongoConnector", function () {
     });
 
     it("should create a connector", function () {
-      mongoClientConnectStub.yields(undefined);
+      const client = { db: Sinon.mock() };
+      mongoClientConnectStub.yields(undefined, client);
 
       const url = "mongodb://test.url";
       const connector = new MongoConnector(url);
-      return connector.connect()
+      return connector.connect("database")
         .then(function (client: IMongoClient) {
           Assert(client);
           Assert(mongoClientConnectStub.calledWith(url));
@@ -33,7 +35,7 @@ describe("MongoConnector", function () {
 
       const url = "mongodb://test.url";
       const connector = new MongoConnector(url);
-      return connector.connect()
+      return connector.connect("database")
         .then(function () { return BluebirdPromise.reject(new Error("It should not be here")); })
         .error(function (client: IMongoClient) {
           Assert(client);

@@ -95,6 +95,7 @@ export interface NotifierConfiguration {
 
 export interface MongoStorageConfiguration {
   url: string;
+  database: string;
 }
 
 export interface LocalStorageConfiguration {
