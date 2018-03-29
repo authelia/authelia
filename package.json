@@ -82,7 +82,7 @@
     "apidoc": "^0.17.6",
     "bootstrap": "^4.0.0",
     "browserify": "^16.1.1",
-    "chromedriver": "^2.31.0",
+    "chromedriver": "^2.37.0",
     "cucumber": "^4.0.0",
     "grunt": "^1.0.1",
     "grunt-browserify": "^5.0.0",
