@@ -205,7 +205,8 @@ regulation:
 # You must use only an available configuration: local, mongo
 storage:
   # The directory where the DB files will be saved
-  # local: /var/lib/authelia/store
+  # local:
+  #   path: /var/lib/authelia/store
   
   # Settings to connect to mongo server
   mongo:
