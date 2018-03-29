@@ -3,9 +3,7 @@ Feature: Authelia keeps user sessions despite the application restart
   @need-authenticated-user-john
   Scenario: Session is still valid after Authelia restarts
     When the application restarts
-    Then I have access to:
-      | url                                          |
-      | https://admin.example.com:8080/secret.html   |
+    Then I have access to "https://admin.example.com:8080/secret.html"
 
   @need-registered-user-john
   Scenario: Secrets are stored even when Authelia restarts

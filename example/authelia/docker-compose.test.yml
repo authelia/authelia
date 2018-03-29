@@ -3,3 +3,7 @@ services:
   authelia:
     volumes:
       - ./config.test.yml:/etc/authelia/config.yml:ro
+      - ./dist/server:/usr/src/server
+      - ./dist/shared:/usr/src/shared
+    networks:
+      - example-network

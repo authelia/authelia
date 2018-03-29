@@ -1,17 +1,15 @@
-import Cucumber = require("cucumber");
+import {Given, When, Then} from "cucumber";
 import seleniumWebdriver = require("selenium-webdriver");
 import Assert = require("assert");
 
-Cucumber.defineSupportCode(function ({ Given, When, Then }) {
-  Given("I'm on https://{string}", function (link: string) {
-    return this.driver.get("https://" + link);
-  });
+Given("I'm on {string}", function (link: string) {
+  return this.driver.get(link);
+});
 
-  When("I click on the link to {string}", function (link: string) {
-    return this.driver.findElement(seleniumWebdriver.By.linkText(link)).click();
-  });
+When("I click on the link to {string}", function (link: string) {
+  return this.driver.findElement(seleniumWebdriver.By.linkText(link)).click();
+});
 
-  Then("I'm redirected to {stringInDoubleQuotes}", function (link: string) {
-    return this.waitUntilUrlContains(link);
-  });
+Then("I'm redirected to {string}", function (link: string) {
+  return this.waitUntilUrlContains(link);
 });

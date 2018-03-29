@@ -29,7 +29,7 @@ export default function (window: Window, $: JQueryStatic) {
   }
 
   function onFormSubmitted() {
-    const username = $("#username").val();
+    const username = $("#username").val() as string;
 
     if (!username) {
       notifier.warning(UserMessages.MISSING_USERNAME);

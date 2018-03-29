@@ -13,8 +13,8 @@ export default function (window: Window, $: JQueryStatic,
   const notifier = new Notifier(".notification", $);
 
   function onFormSubmitted() {
-    const username: string = $(UISelectors.USERNAME_FIELD_ID).val();
-    const password: string = $(UISelectors.PASSWORD_FIELD_ID).val();
+    const username: string = $(UISelectors.USERNAME_FIELD_ID).val() as string;
+    const password: string = $(UISelectors.PASSWORD_FIELD_ID).val() as string;
     $(UISelectors.PASSWORD_FIELD_ID).val("");
 
     const redirectUrl = QueryParametersRetriever.get(Constants.REDIRECT_QUERY_PARAM);

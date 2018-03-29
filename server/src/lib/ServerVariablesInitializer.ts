@@ -52,7 +52,7 @@ class UserDataStoreFactory {
     else if (config.storage.mongo) {
       const mongoConnectorFactory = new MongoConnectorFactory();
       const mongoConnector = mongoConnectorFactory.create(config.storage.mongo.url);
-      return mongoConnector.connect()
+      return mongoConnector.connect(config.storage.mongo.database)
         .then(function (client: IMongoClient) {
           const collectionFactory = CollectionFactoryFactory.createMongo(client);
           return BluebirdPromise.resolve(new UserDataStore(collectionFactory));

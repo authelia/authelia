@@ -141,6 +141,7 @@ describe("test session configuration builder", function () {
     };
 
     const RedisStoreMock = Sinon.spy();
+    const redisClient = Sinon.mock().returns({ on: Sinon.spy() });
 
     const deps: GlobalDependencies = {
       ConnectRedis: Sinon.stub().returns(RedisStoreMock) as any,
@@ -149,7 +150,10 @@ describe("test session configuration builder", function () {
       session: Sinon.spy() as any,
       speakeasy: Sinon.spy() as any,
       u2f: Sinon.spy() as any,
-      winston: Sinon.spy() as any
+      winston: Sinon.spy() as any,
+      Redis: {
+        createClient: Sinon.mock().returns(redisClient)
+      } as any
     };
 
     const options = SessionConfigurationBuilder.build(configuration, deps);

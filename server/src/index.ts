@@ -20,7 +20,8 @@ const deps: GlobalDependencies = {
   winston: require("winston"),
   speakeasy: require("speakeasy"),
   nedb: require("nedb"),
-  ConnectRedis: require("connect-redis")
+  ConnectRedis: require("connect-redis"),
+  Redis: require("redis")
 };
 
 const server = new Server(deps);

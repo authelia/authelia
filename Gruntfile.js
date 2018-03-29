@@ -180,8 +180,8 @@ module.exports = function (grunt) {
   grunt.registerTask('compile-server', ['run:lint-server', 'run:compile-server'])
   grunt.registerTask('compile-client', ['run:lint-client', 'run:compile-client'])
 
-  grunt.registerTask('test-server', ['env:env-test-server-unit', 'run:test-server-unit'])
-  grunt.registerTask('test-client', ['env:env-test-client-unit', 'run:test-client-unit'])
+  grunt.registerTask('test-server', ['run:test-server-unit'])
+  grunt.registerTask('test-client', ['run:test-client-unit'])
   grunt.registerTask('test-unit', ['test-server', 'test-client']);
   grunt.registerTask('test-int', ['run:test-int']);
 

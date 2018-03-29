@@ -13,7 +13,7 @@ function validateSchema(configuration: UserConfiguration): string[] {
     allErrors: true,
     missingRefs: "fail"
   });
-  ajv.addMetaSchema(require("ajv/lib/refs/json-schema-draft-04.json"));
+  ajv.addMetaSchema(require("ajv/lib/refs/json-schema-draft-06.json"));
   const valid = ajv.validate(schema, configuration);
   if (!valid)
     return ajv.errors.map(
@@ -21,14 +21,15 @@ function validateSchema(configuration: UserConfiguration): string[] {
   return [];
 }
 
+function diff(a: string[], b: string[]) {
+  return a.filter(function(i) {return b.indexOf(i) < 0; });
+}
+
 function validateUnknownKeys(path: string, obj: any, knownKeys: string[]) {
-  const keysSet = new Set(Object.keys(obj));
-  const knownKeysSet = new Set(knownKeys);
+  const keysSet = Object.keys(obj);
 
-  const unknownKeysSet = new Set(
-    [...keysSet].filter(x => !knownKeysSet.has(x)));
-
-  if (unknownKeysSet.size > 0) {
+  const unknownKeysSet = diff(keysSet, knownKeys);
+  if (unknownKeysSet.length > 0) {
     const unknownKeys = Array.from(unknownKeysSet);
     return unknownKeys.map((k: string) => { return Util.format("data.%s has unknown key '%s'", path, k); });
   }

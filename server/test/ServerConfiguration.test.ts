@@ -75,6 +75,7 @@ describe("test server configuration", function () {
       .then(function () {
         Assert(sessionMock.calledOnce);
         Assert.equal(sessionMock.getCall(0).args[0].cookie.domain, "example.com");
+        server.stop();
       });
   });
 });

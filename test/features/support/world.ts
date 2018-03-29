@@ -1,6 +1,6 @@
 require("chromedriver");
 import seleniumWebdriver = require("selenium-webdriver");
-import Cucumber = require("cucumber");
+import {setWorldConstructor, After} from "cucumber";
 import Fs = require("fs");
 import Speakeasy = require("speakeasy");
 import Assert = require("assert");
@@ -63,7 +63,7 @@ function CustomWorld() {
   this.waitUntilUrlContains = function (url: string) {
     const that = this;
     return this.driver.wait(seleniumWebdriver.until.urlIs(url), 15000)
-      .then(function () { }, function (err: Error) {
+      .then(function () {return BluebirdPromise.resolve(); }, function (err: Error) {
         that.driver.getCurrentUrl()
           .then(function (current: string) {
             console.error("====> Error due to: %s (current) != %s (expected)", current, url);
@@ -176,6 +176,4 @@ function CustomWorld() {
   };
 }
 
-Cucumber.defineSupportCode(function ({ setWorldConstructor }) {
-  setWorldConstructor(CustomWorld);
-});
+setWorldConstructor(CustomWorld);
