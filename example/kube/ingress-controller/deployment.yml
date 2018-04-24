@@ -26,10 +26,6 @@ spec:
         ports:
         - containerPort: 80
         - containerPort: 443
-        # volumeMounts:
-        #   - mountPath: /etc/nginx/template
-        #     name: nginx-template-volume
-        #     readOnly: true
         env:
         - name: POD_NAME
           valueFrom:
@@ -44,11 +40,3 @@ spec:
         - --ingress-class=nginx
         - --election-id=ingress-controller-leader-external
         - --default-backend-service=$(POD_NAMESPACE)/default-http-backend
-        # - --configmap=$(POD_NAMESPACE)/authelia-ingress-controller-config
-      volumes:
-        - name: nginx-template-volume
-          configMap:
-            name: authelia-ingress-controller-config
-            items:
-            - key: nginx.tmpl
-              path: nginx.tmpl

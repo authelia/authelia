@@ -14,12 +14,12 @@ export default function (req: Express.Request, res: Express.Response,
   let username: string;
   let groups: string[];
   let domain: string;
-  let path: string;
+  let originalUri: string;
 
   return new BluebirdPromise<[string, string]>(function (resolve, reject) {
-    const host = ObjectPath.get<Express.Request, string>(req, "headers.host");
-    domain = DomainExtractor.fromHostHeader(host);
-    path =
+    const originalUrl = ObjectPath.get<Express.Request, string>(req, "headers.x-original-url");
+    domain = DomainExtractor.fromUrl(originalUrl);
+    originalUri =
       ObjectPath.get<Express.Request, string>(req, "headers.x-original-uri");
     const authenticationMethod =
       MethodCalculator.compute(vars.config.authentication_methods, domain);
@@ -59,7 +59,7 @@ export default function (req: Express.Request, res: Express.Response,
     })
     .then(function (groupsAndEmails) {
       groups = groupsAndEmails.groups;
-      return AccessControl(req, vars, domain, path, username, groups);
+      return AccessControl(req, vars, domain, originalUri, username, groups);
     })
     .then(function () {
       return BluebirdPromise.resolve({

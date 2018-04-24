@@ -18,7 +18,8 @@ spec:
     spec:
       containers:
       - name: authelia
-        image: clems4ever/authelia:v3.7.0
+        image: localhost:5000/authelia:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         volumeMounts:

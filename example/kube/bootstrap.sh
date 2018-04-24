@@ -19,7 +19,6 @@ start_apps() {
 }
 
 start_ingress_controller() {
-  kubectl create configmap authelia-ingress-controller-config --namespace=authelia --from-file=ingress-controller/configs/nginx.tmpl
   kubectl apply -f ingress-controller
 }
 
@@ -43,12 +42,17 @@ start_ldap() {
   kubectl apply -f ldap
 }
 
+start_docker_registry() {
+  kubectl apply -f docker-registry
+}
+
 # Create the Authelia namespace in the cluster
 create_namespace() {
   kubectl apply -f namespace.yml
 }
 
 create_namespace
+start_docker_registry
 start_storage
 start_ldap
 start_mailcatcher

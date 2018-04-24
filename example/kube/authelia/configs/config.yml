@@ -180,7 +180,8 @@ storage:
   
   # Settings to connect to mongo server
   mongo:
-    url: mongodb://mongo-service/authelia
+    url: mongodb://mongo-service
+    database: authelia
 
 # Configuration of the notification system.
 #
