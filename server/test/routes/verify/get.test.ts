@@ -27,7 +27,7 @@ describe("test /api/verify endpoint", function () {
       redirect: "undefined"
     };
     AuthenticationSessionHandler.reset(req as any);
-    req.headers.host = "secret.example.com";
+    req.headers["x-original-url"] = "https://secret.example.com/";
     const s = ServerVariablesMockBuilder.build(false);
     mocks = s.mocks;
     vars = s.variables;
@@ -130,7 +130,7 @@ describe("test /api/verify endpoint", function () {
           authSession.first_factor = true;
           authSession.second_factor = true;
           authSession.userid = "myuser";
-          req.headers.host = "test.example.com";
+          req.headers["x-original-url"] = "https://test.example.com/";
           mocks.accessController.isAccessAllowedMock.returns(false);
 
           return test_unauthorized_403({
@@ -147,7 +147,7 @@ describe("test /api/verify endpoint", function () {
 
     describe("given user tries to access a single factor endpoint", function () {
       beforeEach(function () {
-        req.headers["host"] = "redirect.url";
+        req.headers["x-original-url"] = "https://redirect.url/";
         mocks.config.authentication_methods.per_subdomain_methods = {
           "redirect.url": "single_factor"
         };
@@ -238,7 +238,7 @@ describe("test /api/verify endpoint", function () {
       mocks.ldapAuthenticator.authenticateStub.rejects(new Error(
         "Invalid credentials"));
       req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
-      req.query["redirect"] = REDIRECT_URL;
+      req.query["rd"] = REDIRECT_URL;
 
       return VerifyGet.default(vars)(req as express.Request, res as any)
         .then(function () {

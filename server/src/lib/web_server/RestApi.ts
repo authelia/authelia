@@ -129,7 +129,7 @@ export class RestApi {
       RequireValidatedFirstFactor.middleware(vars.logger),
       SecondFactorGet.default(vars));
 
-    app.get(Endpoints.LOGOUT_GET, LogoutGet.default);
+    app.get(Endpoints.LOGOUT_GET, LogoutGet.default(vars));
 
     app.get(Endpoints.VERIFY_GET, VerifyGet.default(vars));
     app.post(Endpoints.FIRST_FACTOR_POST, FirstFactorPost.default(vars));

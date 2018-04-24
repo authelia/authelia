@@ -18,16 +18,4 @@ describe("test DomainExtractor", function () {
       Assert.equal(domain, "www.example.com");
     });
   });
-
-  describe("test fromHostHeader", function () {
-    it("should return domain when default port is used", function () {
-      const domain = DomainExtractor.fromHostHeader("www.example.com");
-      Assert.equal(domain, "www.example.com");
-    });
-
-    it("should return domain when non default port is used", function () {
-      const domain = DomainExtractor.fromHostHeader("www.example.com:8080");
-      Assert.equal(domain, "www.example.com");
-    });
-  });
 });
