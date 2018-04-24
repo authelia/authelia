@@ -108,10 +108,10 @@ export class Client implements IClient {
       .then(function (userDN) {
         return that.ldapClient.searchAsync(userDN, query);
       })
-      .then(function (docs: { mail: string }[]) {
+      .then(function (docs: { [mail_attribute: string]: string }[]) {
         const emails: string[] = docs
-          .filter((d) => { return typeof d.mail === "string"; })
-          .map((d) => { return d.mail; });
+          .filter((d) => { return typeof d[that.options.mail_attribute] === "string"; })
+          .map((d) => { return d[that.options.mail_attribute]; });
         that.logger.debug("LDAP: emails of user '%s' are %s", username, emails);
         return BluebirdPromise.resolve(emails);
       })
