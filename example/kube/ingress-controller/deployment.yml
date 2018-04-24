@@ -20,16 +20,16 @@ spec:
     spec:
       terminationGracePeriodSeconds: 60
       containers:
-      - image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.9.0-beta.19
+      - image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.13.0
         name: nginx-ingress-controller-external
         imagePullPolicy: Always
         ports:
         - containerPort: 80
         - containerPort: 443
-        volumeMounts:
-          - mountPath: /etc/nginx/template
-            name: nginx-template-volume
-            readOnly: true
+        # volumeMounts:
+        #   - mountPath: /etc/nginx/template
+        #     name: nginx-template-volume
+        #     readOnly: true
         env:
         - name: POD_NAME
           valueFrom:
@@ -44,7 +44,7 @@ spec:
         - --ingress-class=nginx
         - --election-id=ingress-controller-leader-external
         - --default-backend-service=$(POD_NAMESPACE)/default-http-backend
-        - --configmap=$(POD_NAMESPACE)/authelia-ingress-controller-config
+        # - --configmap=$(POD_NAMESPACE)/authelia-ingress-controller-config
       volumes:
         - name: nginx-template-volume
           configMap:

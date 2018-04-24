@@ -7,7 +7,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/auth-url: "http://authelia-service.authelia.svc.cluster.local/api/verify"
-    nginx.ingress.kubernetes.io/auth-signin: "https://login.kube.example.com?redirect=$redirect"
+    nginx.ingress.kubernetes.io/auth-signin: "https://login.kube.example.com"
 spec:
   tls:
   - secretName: app2-tls

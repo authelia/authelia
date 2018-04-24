@@ -2,7 +2,7 @@ Feature: User is correctly redirected
 
   Scenario: User is redirected to authelia when he is not authenticated
     When I visit "https://public.example.com:8080"
-    Then I'm redirected to "https://login.example.com:8080/?redirect=https%3A%2F%2Fpublic.example.com%3A8080%2F"
+    Then I'm redirected to "https://login.example.com:8080/?rd=https%3A%2F%2Fpublic.example.com%3A8080%2F"
 
   @need-registered-user-john
   Scenario: User is redirected to home page after several authentication tries
@@ -22,7 +22,7 @@ Feature: User is correctly redirected
 
   Scenario: Redirection URL is propagated from restricted page to first factor
     When I visit "https://public.example.com:8080/secret.html"
-    Then I'm redirected to "https://login.example.com:8080/?redirect=https%3A%2F%2Fpublic.example.com%3A8080%2Fsecret.html"
+    Then I'm redirected to "https://login.example.com:8080/?rd=https%3A%2F%2Fpublic.example.com%3A8080%2Fsecret.html"
 
   Scenario: Redirection URL is propagated from first factor to second factor
     Given I visit "https://login.example.com:8080/"
@@ -30,7 +30,7 @@ Feature: User is correctly redirected
     And I register a TOTP secret called "Sec0"
     When I visit "https://public.example.com:8080/secret.html"
     And I login with user "john" and password "password"
-    Then I'm redirected to "https://login.example.com:8080/secondfactor?redirect=https%3A%2F%2Fpublic.example.com%3A8080%2Fsecret.html"
+    Then I'm redirected to "https://login.example.com:8080/secondfactor?rd=https%3A%2F%2Fpublic.example.com%3A8080%2Fsecret.html"
 
   Scenario: Redirection URL is used to send user from second factor to target page
     Given I visit "https://login.example.com:8080/"

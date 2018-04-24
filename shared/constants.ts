@@ -1,1 +1,1 @@
-export const REDIRECT_QUERY_PARAM = "redirect";
+export const REDIRECT_QUERY_PARAM = "rd";

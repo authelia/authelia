@@ -20,7 +20,7 @@ Feature: Authelia regulates authentication to avoid brute force
 
   @need-registered-user-blackhat
   Scenario: User is unbanned after a configured amount of time
-    Given I visit "https://login.example.com:8080/?redirect=https%3A%2F%2Fpublic.example.com%3A8080%2Fsecret.html"
+    Given I visit "https://login.example.com:8080/?rd=https%3A%2F%2Fpublic.example.com%3A8080%2Fsecret.html"
     And I set field "username" to "blackhat"
     And I set field "password" to "bad-password"
     And I click on "Sign in"
