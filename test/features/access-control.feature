@@ -2,7 +2,7 @@ Feature: User has access restricted access to domains
 
   @need-registered-user-john
   Scenario: User john has admin access
-    When I visit "https://login.example.com:8080?rd=https%3A%2F%2Fhome.example.com%3A8080%2F"
+    When I visit "https://login.example.com:8080?rd=https://home.example.com:8080/"
     And I login with user "john" and password "password"
     And I use "REGISTERED" as TOTP token handle
     And I click on "Sign in"
@@ -20,7 +20,7 @@ Feature: User has access restricted access to domains
 
   @need-registered-user-bob
   Scenario: User bob has restricted access
-    When I visit "https://login.example.com:8080?rd=https%3A%2F%2Fhome.example.com%3A8080%2F"
+    When I visit "https://login.example.com:8080?rd=https://home.example.com:8080/"
     And I login with user "bob" and password "password"
     And I use "REGISTERED" as TOTP token handle
     And I click on "Sign in"
@@ -38,7 +38,7 @@ Feature: User has access restricted access to domains
 
   @need-registered-user-harry
   Scenario: User harry has restricted access
-    When I visit "https://login.example.com:8080?rd=https%3A%2F%2Fhome.example.com%3A8080%2F"
+    When I visit "https://login.example.com:8080?rd=https://home.example.com:8080/"
     And I login with user "harry" and password "password"
     And I use "REGISTERED" as TOTP token handle
     And I click on "Sign in"

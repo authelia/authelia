@@ -19,7 +19,7 @@ Feature: Authentication scenarii
     And I login with user "john" and password "password"
     And I register a TOTP secret called "Sec0"
     When I visit "https://admin.example.com:8080/secret.html"
-    And I'm redirected to "https://login.example.com:8080/?rd=https%3A%2F%2Fadmin.example.com%3A8080%2Fsecret.html"
+    And I'm redirected to "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html"
     And I login with user "john" and password "password" 
     And I use "Sec0" as TOTP token handle
     And I click on "Sign in"
@@ -27,7 +27,7 @@ Feature: Authentication scenarii
 
   Scenario: User fails TOTP second factor
     When I visit "https://admin.example.com:8080/secret.html"
-    And I'm redirected to "https://login.example.com:8080/?rd=https%3A%2F%2Fadmin.example.com%3A8080%2Fsecret.html"
+    And I'm redirected to "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html"
     And I login with user "john" and password "password"
     And I use "BADTOKEN" as TOTP token
     And I click on "Sign in"

@@ -6,6 +6,7 @@ import { ServerVariables } from "../../ServerVariables";
 import GetWithSessionCookieMethod from "./get_session_cookie";
 import GetWithBasicAuthMethod from "./get_basic_auth";
 import Constants = require("../../../../../shared/constants");
+import ObjectPath = require("object-path");
 
 import { AuthenticationSessionHandler }
   from "../../AuthenticationSessionHandler";
@@ -30,8 +31,9 @@ function verifyWithSelectedMethod(req: Express.Request, res: Express.Response,
 
 function setRedirectHeader(req: Express.Request, res: Express.Response) {
   return function () {
-    res.set("Redirect", encodeURIComponent("https://" + req.headers["host"] +
-      req.headers["x-original-uri"]));
+    const originalUrl = ObjectPath.get<Express.Request, string>(
+      req, "headers.x-original-url");
+    res.set("Redirect", originalUrl);
     return BluebirdPromise.resolve();
   };
 }

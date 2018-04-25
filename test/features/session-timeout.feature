@@ -6,7 +6,7 @@ Feature: Session is closed after a certain amount of time
     Given I have access to "https://public.example.com:8080/secret.html"
     When I sleep for 6 seconds
     And I visit "https://public.example.com:8080/secret.html"
-    Then I'm redirected to "https://login.example.com:8080/?rd=https%3A%2F%2Fpublic.example.com%3A8080%2Fsecret.html"
+    Then I'm redirected to "https://login.example.com:8080/?rd=https://public.example.com:8080/secret.html"
 
   @need-authenticated-user-john
   Scenario: An authenticated user is disconnected after session expiration period
@@ -17,4 +17,4 @@ Feature: Session is closed after a certain amount of time
     And I visit "https://public.example.com:8080/secret.html"
     And I sleep for 4 seconds
     And I visit "https://public.example.com:8080/secret.html"
-    Then I'm redirected to "https://login.example.com:8080/?rd=https%3A%2F%2Fpublic.example.com%3A8080%2Fsecret.html"
+    Then I'm redirected to "https://login.example.com:8080/?rd=https://public.example.com:8080/secret.html"

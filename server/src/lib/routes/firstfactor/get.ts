@@ -22,7 +22,7 @@ function redirectToSecondFactorPage(req: express.Request, res: express.Response)
   else
     res.redirect(Util.format("%s?%s=%s", Endpoints.SECOND_FACTOR_GET,
       Constants.REDIRECT_QUERY_PARAM,
-      encodeURIComponent(redirectUrl)));
+      redirectUrl));
 }
 
 function redirectToService(req: express.Request, res: express.Response) {
