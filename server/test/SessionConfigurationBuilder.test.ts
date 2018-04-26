@@ -65,7 +65,8 @@ describe("test session configuration builder", function () {
       session: Sinon.spy() as any,
       speakeasy: Sinon.spy() as any,
       u2f: Sinon.spy() as any,
-      winston: Sinon.spy() as any
+      winston: Sinon.spy() as any,
+      Redis: Sinon.spy() as any
     };
 
     const options = SessionConfigurationBuilder.build(configuration, deps);
