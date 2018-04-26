@@ -58,7 +58,7 @@ function declareNeedsConfiguration(tag: string, cb: () => BluebirdPromise<void>)
     return cb()
       .then(function () {
         return exec("./scripts/example-commit/dc-example.sh -f " +
-          "./example/authelia/docker-compose.test.yml up -d authelia &&" +
+          "./example/compose/authelia/docker-compose.test.yml up -d authelia &&" +
           " sleep 1");
       })
   });

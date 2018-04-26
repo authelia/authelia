@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: test-app-home
+  namespace: authelia
+  labels:
+    app: test-app-home
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-app-home
+  template:
+    metadata:
+      labels:
+        app: test-app-home
+    spec:
+      containers:
+      - name: test-app-home
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: app-home-page
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: app-home-page
+        configMap:
+          name: app-home-page
+          items:
+          - key: index.html
+            path: index.html

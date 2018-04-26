@@ -51,7 +51,7 @@ export default function (req: Express.Request, res: Express.Response,
   let username: string;
   let groups: string[];
   let domain: string;
-  let path: string;
+  let originalUri: string;
 
   return new BluebirdPromise(function (resolve, reject) {
     username = authSession.userid;
@@ -64,15 +64,15 @@ export default function (req: Express.Request, res: Express.Response,
       return;
     }
 
-    const host = ObjectPath.get<Express.Request, string>(req, "headers.host");
-    path =
+    const originalUrl = ObjectPath.get<Express.Request, string>(req, "headers.x-original-url");
+    originalUri =
       ObjectPath.get<Express.Request, string>(req, "headers.x-original-uri");
 
-    domain = DomainExtractor.fromHostHeader(host);
+    domain = DomainExtractor.fromUrl(originalUrl);
     const authenticationMethod =
       MethodCalculator.compute(vars.config.authentication_methods, domain);
-    vars.logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s", domain,
-      path, username, groups.join(","));
+    vars.logger.debug(req, "domain=%s, request_uri=%s, user=%s, groups=%s", domain,
+      originalUri, username, groups.join(","));
 
     if (!authSession.first_factor)
       return reject(new Exceptions.AccessDeniedError(
@@ -87,7 +87,7 @@ export default function (req: Express.Request, res: Express.Response,
     resolve();
   })
     .then(function () {
-      return AccessControl(req, vars, domain, path, username, groups);
+      return AccessControl(req, vars, domain, originalUri, username, groups);
     })
     .then(function () {
       return verify_inactivity(req, authSession,

@@ -20,8 +20,9 @@ function redirectToSecondFactorPage(req: express.Request, res: express.Response)
   if (!redirectUrl)
     res.redirect(Endpoints.SECOND_FACTOR_GET);
   else
-    res.redirect(Util.format("%s?redirect=%s", Endpoints.SECOND_FACTOR_GET,
-      encodeURIComponent(redirectUrl)));
+    res.redirect(Util.format("%s?%s=%s", Endpoints.SECOND_FACTOR_GET,
+      Constants.REDIRECT_QUERY_PARAM,
+      redirectUrl));
 }
 
 function redirectToService(req: express.Request, res: express.Response) {

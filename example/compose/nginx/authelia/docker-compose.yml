@@ -3,6 +3,6 @@ services:
   nginx-authelia:
     image: nginx:alpine
     volumes:
-      - ./example/nginx/authelia/nginx.conf:/etc/nginx/nginx.conf
+      - ./example/compose/nginx/authelia/nginx.conf:/etc/nginx/nginx.conf
     networks:
       - example-network

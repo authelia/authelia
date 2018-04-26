@@ -11,8 +11,8 @@ services:
       - SLAPD_ADDITIONAL_SCHEMAS=openldap
       - SLAPD_FORCE_RECONFIGURE=true
     volumes:
-      - ./example/ldap/base.ldif:/etc/ldap.dist/prepopulate/base.ldif
-      - ./example/ldap/access.rules:/etc/ldap.dist/prepopulate/access.rules
+      - ./example/compose/ldap/base.ldif:/etc/ldap.dist/prepopulate/base.ldif
+      - ./example/compose/ldap/access.rules:/etc/ldap.dist/prepopulate/access.rules
     networks:
       - example-network
 

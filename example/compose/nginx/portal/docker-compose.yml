@@ -3,8 +3,8 @@ services:
   nginx-portal:
     image: nginx:alpine
     volumes:
-      - ./example/nginx/portal/nginx.conf:/etc/nginx/nginx.conf
-      - ./example/nginx/portal/ssl:/etc/ssl
+      - ./example/compose/nginx/portal/nginx.conf:/etc/nginx/nginx.conf
+      - ./example/compose/nginx/portal/ssl:/etc/ssl
     ports:
       - "8080:443"
     networks:

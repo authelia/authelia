@@ -43,6 +43,7 @@ as 2nd factor.
 * User-defined access control per subdomain and resource.
 * Support of [basic authentication] for endpoints protected by single factor.
 * High-availability using a highly-available distributed database and KV store.
+* Compatible with Kubernetes ingress-nginx controller out of the box.
 
 ## Deployment
 
@@ -65,6 +66,12 @@ own the configuration file from [config.template.yml] at the root of the repo.
     docker run -v /path/to/your/config.yml:/etc/authelia/config.yml -v /path/to/data/dir:/var/lib/authelia clems4ever/authelia
 
 where **/path/to/data/dir** is the directory where all user data will be stored.
+
+### With Kubernetes
+
+<img src="/images/kube-logo.png" width="24" align="left">
+
+Please refer to the following [README](./example/kube/README.md).
 
 ## Getting started
 

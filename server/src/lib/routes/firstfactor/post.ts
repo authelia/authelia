@@ -75,7 +75,7 @@ export default function (vars: ServerVariables) {
           let newRedirectUrl = Endpoint.SECOND_FACTOR_GET;
           if (redirectUrl) {
             newRedirectUrl += "?" + Constants.REDIRECT_QUERY_PARAM + "="
-              + encodeURIComponent(redirectUrl);
+              + redirectUrl;
           }
           vars.logger.debug(req, "Redirect to '%s'", newRedirectUrl);
           res.send({

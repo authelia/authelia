@@ -1,0 +1,48 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: mongo
+  namespace: authelia
+  labels:
+    app: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo:3.4
+        ports:
+        - containerPort: 27017
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data/db
+        - name: config-volume
+          mountPath: /data/configdb
+      volumes:
+      - name: data-volume
+        hostPath:
+          path: /data/storage/mongo/data
+      - name: config-volume
+        hostPath:
+          path: /data/storage/mongo/config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+  namespace: authelia
+spec:
+  selector:
+    app: mongo
+  ports:
+  - protocol: TCP
+    port: 27017

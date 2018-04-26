@@ -1,0 +1,18 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: registry-ingress
+  namespace: kube-system
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m # Avoid 413 Request entity too large
+spec:
+  rules:
+  - host: registry.kube.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: kube-registry 
+          servicePort: 5000
