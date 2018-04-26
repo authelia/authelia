@@ -8,6 +8,7 @@ import * as BodyParser from "body-parser";
 import { RestApi } from "./RestApi";
 import { WithHeadersLogged } from "./middlewares/WithHeadersLogged";
 import { ServerVariables } from "../ServerVariables";
+import Helmet = require("helmet");
 
 const addRequestId = require("express-request-id")();
 
@@ -36,6 +37,7 @@ export class Configurator {
     app.use(WithHeadersLogged.middleware(vars.logger));
     app.disable(X_POWERED_BY);
     app.enable(TRUST_PROXY);
+    app.use(Helmet());
 
     app.set(VIEWS, viewsDirectory);
     app.set(VIEW_ENGINE, PUG);
