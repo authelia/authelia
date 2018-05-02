@@ -4,15 +4,25 @@
   [![Build](https://travis-ci.org/clems4ever/authelia.svg?branch=master)](https://travis-ci.org/clems4ever/authelia)
   [![Gitter](https://img.shields.io/gitter/room/badges/shields.svg)](https://gitter.im/authelia/general?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
-**Authelia** is a complete HTTP 2-factor authentication server for proxies like
-Nginx or Traefik. It has been designed to be proxy agnostic so that you can 
-use whichever proxy supporting authentication forwarding.
+**Authelia** is an open-source authentication and authorization server.
+Authelia brings 2-factor authentication and single sign-on to secure web
+applications and ease authentication. It has been designed to be a companion
+of any reverse proxy by helping it handle authentication and authorization
+requests.
+
+**Authelia** can be installed on bare-metal using Docker or npm but can also
+be deployed easily on a Kubernetes cluster and leverages ingress controller
+and ingress configuration concepts to easily configure authentication and
+authorization for specific services in your cluster by simply editing your
+ingress configuration.
+
 
 # Table of Contents
 1. [Features summary](#features-summary)
 2. [Deployment](#deployment)
     1. [With NPM](#with-npm)
     2. [With Docker](#with-docker)
+    3. [With Kubernetes](#with-docker)
 3. [Getting started](#getting-started)
     1. [Pre-requisites](#pre-requisites)
     2. [Run it!](#run-it)
@@ -27,7 +37,8 @@ use whichever proxy supporting authentication forwarding.
 4. [Security](#security)
 5. [Documentation](#documentation)
     1. [Authelia configuration](#authelia-configuration)
-    2. [API documentation](#api-documentation)
+    2. [Wiki](#wiki)
+    3. [API documentation](#api-documentation)
 6. [Contributing to Authelia](#contributing-to-authelia)
 7. [License](#license)
 
@@ -261,6 +272,9 @@ You can specify another configuration file by giving it as first argument of
 **Authelia**.
 
     authelia config.custom.yml
+
+### Wiki
+A [wiki](../../wiki) is available if you need more details about Authelia.
 
 ### API documentation
 There is a complete API documentation generated with 
