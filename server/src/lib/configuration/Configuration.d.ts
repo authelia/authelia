@@ -63,7 +63,7 @@ interface SessionCookieConfiguration {
   secret: string;
   expiration?: number;
   inactivity?: number;
-  domain?: string;
+  domain: string;
   redis?: SessionRedisOptions;
 }
 
