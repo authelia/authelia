@@ -37,6 +37,7 @@ describe("test server configuration", function () {
 
   it("should set cookie scope to domain set in the config", function () {
     const config: UserConfiguration = {
+      port: 8081,
       session: {
         domain: "example.com",
         secret: "secret"

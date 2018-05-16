@@ -9,6 +9,7 @@ import { IMongoClient } from "../../../server/src/lib/connectors/mongo/IMongoCli
 import { TotpHandler } from "../../../server/src/lib/authentication/totp/TotpHandler";
 import Speakeasy = require("speakeasy");
 import Request = require("request-promise");
+import { TOTPSecret } from "../../../server/types/TOTPSecret";
 
 setDefaultTimeout(20 * 1000);
 
@@ -77,7 +78,7 @@ declareNeedsConfiguration("single_factor", createSingleFactorConfiguration);
 declareNeedsConfiguration("totp_issuer", createCustomTotpIssuerConfiguration);
 
 function registerUser(context: any, username: string) {
-  let secret: Speakeasy.Key;
+  let secret: TOTPSecret;
   const mongoConnector = new MongoConnector("mongodb://localhost:27017");
   return mongoConnector.connect("authelia")
     .then(function (mongoClient: IMongoClient) {
