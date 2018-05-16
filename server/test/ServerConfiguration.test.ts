@@ -10,36 +10,34 @@ import session = require("express-session");
 import { AppConfiguration, UserConfiguration } from "../src/lib/configuration/Configuration";
 import { GlobalDependencies } from "../types/Dependencies";
 import Server from "../src/lib/Server";
+import { LdapjsMock, LdapjsClientMock } from "./mocks/ldapjs";
 
 
 describe("test server configuration", function () {
   let deps: GlobalDependencies;
   let sessionMock: Sinon.SinonSpy;
+  let ldapjsMock: LdapjsMock;
 
   before(function () {
     sessionMock = Sinon.spy(session);
+    ldapjsMock = new LdapjsMock();
 
     deps = {
       speakeasy: speakeasy,
       u2f: u2f,
       nedb: nedb,
       winston: winston,
-      ldapjs: {
-        createClient: Sinon.spy(function () {
-          return {
-            on: Sinon.spy(),
-            bind: Sinon.spy(),
-          };
-        })
-      },
+      ldapjs: ldapjsMock as any,
       session: sessionMock as any,
-      ConnectRedis: Sinon.spy()
+      ConnectRedis: Sinon.spy(),
+      Redis: Sinon.spy() as any
     };
   });
 
 
   it("should set cookie scope to domain set in the config", function () {
     const config: UserConfiguration = {
+      port: 8081,
       session: {
         domain: "example.com",
         secret: "secret"

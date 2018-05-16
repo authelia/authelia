@@ -49,9 +49,9 @@ describe("test identity check process", function () {
 
     mocks.notifier.notifyStub.returns(BluebirdPromise.resolve());
     mocks.userDataStore.produceIdentityValidationTokenStub
-      .returns(Promise.resolve());
+      .returns(BluebirdPromise.resolve());
     mocks.userDataStore.consumeIdentityValidationTokenStub
-      .returns(Promise.resolve({ userId: "user" }));
+      .returns(BluebirdPromise.resolve({ userId: "user" }));
 
     app = express();
     app_get = sinon.stub(app, "get");

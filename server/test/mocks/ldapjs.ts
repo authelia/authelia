@@ -1,30 +1,50 @@
 
-import sinon = require("sinon");
+import Sinon = require("sinon");
 
-export interface LdapjsMock {
-    createClient: sinon.SinonStub;
+export class LdapjsMock {
+    createClientStub: sinon.SinonStub;
+
+    constructor() {
+        this.createClientStub = Sinon.stub();
+    }
+
+    createClient(params: any) {
+        return this.createClientStub(params);
+    }
 }
 
-export interface LdapjsClientMock {
-    bind: sinon.SinonStub;
-    unbind: sinon.SinonStub;
-    search: sinon.SinonStub;
-    modify: sinon.SinonStub;
-    on: sinon.SinonStub;
-}
+export class LdapjsClientMock {
+    bindStub: sinon.SinonStub;
+    unbindStub: sinon.SinonStub;
+    searchStub: sinon.SinonStub;
+    modifyStub: sinon.SinonStub;
+    onStub: sinon.SinonStub;
 
-export function LdapjsMock(): LdapjsMock {
-    return {
-        createClient: sinon.stub()
-    };
-}
+    constructor() {
+        this.bindStub = Sinon.stub();
+        this.unbindStub = Sinon.stub();
+        this.searchStub = Sinon.stub();
+        this.modifyStub = Sinon.stub();
+        this.onStub = Sinon.stub();
+    }
 
-export function LdapjsClientMock(): LdapjsClientMock {
-    return {
-        bind: sinon.stub(),
-        unbind: sinon.stub(),
-        search: sinon.stub(),
-        modify: sinon.stub(),
-        on: sinon.stub()
-    };
+    bind() {
+        return this.bindStub();
+    }
+
+    unbind() {
+        return this.unbindStub();
+    }
+
+    search() {
+        return this.searchStub();
+    }
+
+    modify() {
+        return this.modifyStub();
+    }
+
+    on() {
+        return this.onStub();
+    }
 }
