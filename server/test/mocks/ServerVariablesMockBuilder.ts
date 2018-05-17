@@ -58,7 +58,8 @@ export class ServerVariablesMockBuilder {
           max_retries: 3
         },
         session: {
-          secret: "my_secret"
+          secret: "my_secret",
+          domain: "mydomain"
         },
         storage: {}
       },

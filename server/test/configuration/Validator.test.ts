@@ -26,6 +26,7 @@ describe("test validator", function () {
         "data.regulation should have required property 'ban_time'",
         "data.regulation should have required property 'find_time'",
         "data.regulation should have required property 'max_retries'",
+        "data.session should have required property 'domain'",
         "data.session should have required property 'secret'",
         "Storage must be either 'local' or 'mongo'",
         "A notifier needs to be declared when server is used with two-factor"
@@ -47,7 +48,8 @@ describe("test validator", function () {
         max_retries: 3
       },
       session: {
-        secret: "unsecure_secret"
+        secret: "unsecure_secret",
+        domain: "mydomain"
       },
       storage: {
         abc: {}
@@ -80,7 +82,8 @@ describe("test validator", function () {
         max_retries: 3
       },
       session: {
-        secret: "unsecure_secret"
+        secret: "unsecure_secret",
+        domain: "mydomain"
       },
       storage: {
         local: {
@@ -109,7 +112,8 @@ one second factor enabled sub-domain", function () {
           max_retries: 3
         },
         session: {
-          secret: "unsecure_secret"
+          secret: "unsecure_secret",
+          domain: "mydomain"
         },
         storage: {
           local: {
@@ -141,7 +145,8 @@ one second factor enabled sub-domain", function () {
           max_retries: 3
         },
         session: {
-          secret: "unsecure_secret"
+          secret: "unsecure_secret",
+          domain: "mydomain"
         },
         storage: {
           local: {
@@ -166,7 +171,8 @@ one second factor enabled sub-domain", function () {
           max_retries: 3
         },
         session: {
-          secret: "unsecure_secret"
+          secret: "unsecure_secret",
+          domain: "mydomain"
         },
         storage: {
           local: {
