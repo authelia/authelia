@@ -1,4 +1,4 @@
-import { AppConfiguration } from "../configuration/Configuration";
+import { Configuration } from "../configuration/schema/Configuration";
 import { GlobalDependencies } from "../../../types/Dependencies";
 import { SessionConfigurationBuilder } from
   "../configuration/SessionConfigurationBuilder";
@@ -20,7 +20,7 @@ const VIEW_ENGINE = "view engine";
 const PUG = "pug";
 
 export class Configurator {
-  static configure(config: AppConfiguration,
+  static configure(config: Configuration,
     app: Express.Application,
     vars: ServerVariables,
     deps: GlobalDependencies): void {

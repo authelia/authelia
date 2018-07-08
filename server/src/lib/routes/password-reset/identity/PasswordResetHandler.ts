@@ -4,7 +4,7 @@ import objectPath = require("object-path");
 
 import exceptions = require("../../../Exceptions");
 import { Identity } from "../../../../../types/Identity";
-import { IdentityValidable } from "../../../IdentityCheckMiddleware";
+import { IdentityValidable } from "../../../IdentityValidable";
 import { PRE_VALIDATION_TEMPLATE } from "../../../IdentityCheckPreValidationTemplate";
 import Constants = require("../constants");
 import { IRequestLogger } from "../../../logging/IRequestLogger";

@@ -3,7 +3,7 @@ import BluebirdPromise = require("bluebird");
 import express = require("express");
 import objectPath = require("object-path");
 
-import { IdentityValidable } from "../../../../IdentityCheckMiddleware";
+import { IdentityValidable } from "../../../../IdentityValidable";
 import { Identity } from "../../../../../../types/Identity";
 import { PRE_VALIDATION_TEMPLATE } from "../../../../IdentityCheckPreValidationTemplate";
 import FirstFactorValidator = require("../../../../FirstFactorValidator");

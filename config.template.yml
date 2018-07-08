@@ -191,10 +191,11 @@ session:
 # time.
 regulation:
   # The number of failed login attempts before user is banned. 
-  # Set it to 0 for disabling regulation.
+  # Set it to 0 to disable regulation.
   max_retries: 3
 
-  # The length of time between login attempts before user is banned.
+  # The time range during which the user can attempt login before being banned.
+  # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window. 
   find_time: 120
 
   # The length of time before a banned user can login again.

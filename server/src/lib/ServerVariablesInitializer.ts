@@ -26,7 +26,7 @@ import { UserDataStore } from "./storage/UserDataStore";
 import { INotifier } from "./notifiers/INotifier";
 import { Regulator } from "./regulation/Regulator";
 import { IRegulator } from "./regulation/IRegulator";
-import Configuration = require("./configuration/Configuration");
+import Configuration = require("./configuration/schema/Configuration");
 import { AccessController } from "./access_control/AccessController";
 import { IAccessController } from "./access_control/IAccessController";
 import { CollectionFactoryFactory } from "./storage/CollectionFactoryFactory";
@@ -40,7 +40,7 @@ import { ServerVariables } from "./ServerVariables";
 import { MethodCalculator } from "./authentication/MethodCalculator";
 
 class UserDataStoreFactory {
-  static create(config: Configuration.AppConfiguration): BluebirdPromise<UserDataStore> {
+  static create(config: Configuration.Configuration): BluebirdPromise<UserDataStore> {
     if (config.storage.local) {
       const nedbOptions: Nedb.DataStoreOptions = {
         filename: config.storage.local.path,
@@ -64,7 +64,7 @@ class UserDataStoreFactory {
 }
 
 export class ServerVariablesInitializer {
-  static initialize(config: Configuration.AppConfiguration, requestLogger: IRequestLogger,
+  static initialize(config: Configuration.Configuration, requestLogger: IRequestLogger,
     deps: GlobalDependencies): BluebirdPromise<ServerVariables> {
     const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
     const notifier = NotifierFactory.build(config.notifier, mailSenderBuilder);

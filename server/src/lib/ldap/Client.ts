@@ -4,7 +4,7 @@ import { EventEmitter } from "events";
 import { IClient, GroupsAndEmails } from "./IClient";
 import { ILdapClient } from "./ILdapClient";
 import { ILdapClientFactory } from "./ILdapClientFactory";
-import { LdapConfiguration } from "../configuration/Configuration";
+import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
 import { Winston } from "../../../types/Dependencies";
 import Util = require("util");
 import { HashGenerator } from "../utils/HashGenerator";
@@ -16,6 +16,9 @@ export class Client implements IClient {
   private logger: Winston;
   private options: LdapConfiguration;
 
+  private groupsSearchBase: string;
+  private usersSearchBase: string;
+
   constructor(userDN: string, password: string, options: LdapConfiguration,
     ldapClientFactory: ILdapClientFactory, logger: Winston) {
     this.options = options;
@@ -23,6 +26,14 @@ export class Client implements IClient {
     this.userDN = userDN;
     this.password = password;
     this.ldapClient = ldapClientFactory.create();
+
+    this.groupsSearchBase = (this.options.additional_groups_dn)
+      ? Util.format("%s,%s", this.options.additional_groups_dn, this.options.base_dn)
+      : this.options.base_dn;
+
+    this.usersSearchBase = (this.options.additional_users_dn)
+      ? Util.format("%s,%s", this.options.additional_users_dn, this.options.base_dn)
+      : this.options.base_dn;
   }
 
   open(): BluebirdPromise<void> {
@@ -64,7 +75,7 @@ export class Client implements IClient {
           attributes: [that.options.group_name_attribute],
           filter: groupsFilter
         };
-        return that.ldapClient.searchAsync(that.options.groups_dn, query);
+        return that.ldapClient.searchAsync(that.groupsSearchBase, query);
       })
       .then(function (docs: { cn: string }[]) {
         const groups = docs.map((doc: any) => { return doc.cn; });
@@ -85,7 +96,7 @@ export class Client implements IClient {
     };
 
     that.logger.debug("LDAP: searching for user dn of %s", username);
-    return that.ldapClient.searchAsync(this.options.users_dn, query)
+    return that.ldapClient.searchAsync(this.usersSearchBase, query)
       .then(function (users: { dn: string }[]) {
         if (users.length > 0) {
           that.logger.debug("LDAP: retrieved user dn is %s", users[0].dn);

@@ -6,7 +6,7 @@ import { IClientFactory } from "./IClientFactory";
 import { GroupsAndEmails } from "./IClient";
 
 import { IAuthenticator } from "./IAuthenticator";
-import { LdapConfiguration } from "../configuration/Configuration";
+import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
 import { EmailsAndGroupsRetriever } from "./EmailsAndGroupsRetriever";
 
 

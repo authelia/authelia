@@ -5,7 +5,7 @@ import { Client } from "./Client";
 
 import { IClientFactory } from "./IClientFactory";
 import { IEmailsRetriever } from "./IEmailsRetriever";
-import { LdapConfiguration } from "../configuration/Configuration";
+import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
 
 
 export class EmailsRetriever implements IEmailsRetriever {

@@ -3,7 +3,7 @@ import { IClient } from "./IClient";
 import { Client } from "./Client";
 import { SanitizedClient } from "./SanitizedClient";
 import { ILdapClientFactory } from "./ILdapClientFactory";
-import { LdapConfiguration } from "../configuration/Configuration";
+import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
 import Ldapjs = require("ldapjs");
 import Winston = require("winston");
 

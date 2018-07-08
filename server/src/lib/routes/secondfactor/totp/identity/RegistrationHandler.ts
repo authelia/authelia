@@ -4,7 +4,7 @@ import BluebirdPromise = require("bluebird");
 import objectPath = require("object-path");
 
 import { Identity } from "../../../../../../types/Identity";
-import { IdentityValidable } from "../../../../IdentityCheckMiddleware";
+import { IdentityValidable } from "../../../../IdentityValidable";
 import { PRE_VALIDATION_TEMPLATE } from "../../../../IdentityCheckPreValidationTemplate";
 import Constants = require("../constants");
 import Endpoints = require("../../../../../../../shared/api");
@@ -16,18 +16,18 @@ import { IRequestLogger } from "../../../../logging/IRequestLogger";
 import { IUserDataStore } from "../../../../storage/IUserDataStore";
 import { ITotpHandler } from "../../../../authentication/totp/ITotpHandler";
 import { TOTPSecret } from "../../../../../../types/TOTPSecret";
-import { TOTPConfiguration } from "../../../../configuration/Configuration";
+import { TotpConfiguration } from "../../../../configuration/schema/TotpConfiguration";
 
 
 export default class RegistrationHandler implements IdentityValidable {
   private logger: IRequestLogger;
   private userDataStore: IUserDataStore;
   private totp: ITotpHandler;
-  private configuration: TOTPConfiguration;
+  private configuration: TotpConfiguration;
 
   constructor(logger: IRequestLogger,
     userDataStore: IUserDataStore,
-    totp: ITotpHandler, configuration: TOTPConfiguration) {
+    totp: ITotpHandler, configuration: TotpConfiguration) {
     this.logger = logger;
     this.userDataStore = userDataStore;
     this.totp = totp;

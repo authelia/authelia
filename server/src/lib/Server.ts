@@ -2,7 +2,7 @@ import BluebirdPromise = require("bluebird");
 import ObjectPath = require("object-path");
 
 import { AccessController } from "./access_control/AccessController";
-import { AppConfiguration, UserConfiguration } from "./configuration/Configuration";
+import { Configuration } from "./configuration/schema/Configuration";
 import { GlobalDependencies } from "../../types/Dependencies";
 import { UserDataStore } from "./storage/UserDataStore";
 import { ConfigurationParser } from "./configuration/ConfigurationParser";
@@ -31,33 +31,22 @@ export default class Server {
     this.requestLogger = new RequestLogger(deps.winston);
   }
 
-  private displayConfigurations(userConfiguration: UserConfiguration,
-    appConfiguration: AppConfiguration) {
-    const displayableUserConfiguration = clone(userConfiguration);
-    const displayableAppConfiguration = clone(appConfiguration);
+  private displayConfigurations(configuration: Configuration) {
+    const displayableConfiguration: Configuration = clone(configuration);
     const STARS = "*****";
 
-    displayableUserConfiguration.ldap.password = STARS;
-    displayableUserConfiguration.session.secret = STARS;
-    if (displayableUserConfiguration.notifier && displayableUserConfiguration.notifier.email)
-      displayableUserConfiguration.notifier.email.password = STARS;
-    if (displayableUserConfiguration.notifier && displayableUserConfiguration.notifier.smtp)
-      displayableUserConfiguration.notifier.smtp.password = STARS;
-
-    displayableAppConfiguration.ldap.password = STARS;
-    displayableAppConfiguration.session.secret = STARS;
-    if (displayableAppConfiguration.notifier && displayableAppConfiguration.notifier.email)
-      displayableAppConfiguration.notifier.email.password = STARS;
-    if (displayableAppConfiguration.notifier && displayableAppConfiguration.notifier.smtp)
-      displayableAppConfiguration.notifier.smtp.password = STARS;
+    displayableConfiguration.ldap.password = STARS;
+    displayableConfiguration.session.secret = STARS;
+    if (displayableConfiguration.notifier && displayableConfiguration.notifier.email)
+      displayableConfiguration.notifier.email.password = STARS;
+    if (displayableConfiguration.notifier && displayableConfiguration.notifier.smtp)
+      displayableConfiguration.notifier.smtp.password = STARS;
 
     this.globalLogger.debug("User configuration is %s",
-      JSON.stringify(displayableUserConfiguration, undefined, 2));
-    this.globalLogger.debug("Adapted configuration is %s",
-      JSON.stringify(displayableAppConfiguration, undefined, 2));
+      JSON.stringify(displayableConfiguration, undefined, 2));
   }
 
-  private setup(config: AppConfiguration, app: Express.Application, deps: GlobalDependencies): BluebirdPromise<void> {
+  private setup(config: Configuration, app: Express.Application, deps: GlobalDependencies): BluebirdPromise<void> {
     const that = this;
     return ServerVariablesInitializer.initialize(config, this.requestLogger, deps)
       .then(function (vars: ServerVariables) {
@@ -76,16 +65,16 @@ export default class Server {
     });
   }
 
-  start(userConfiguration: UserConfiguration, deps: GlobalDependencies)
+  start(configuration: Configuration, deps: GlobalDependencies)
     : BluebirdPromise<void> {
     const that = this;
     const app = Express();
 
-    const appConfiguration = ConfigurationParser.parse(userConfiguration);
+    const appConfiguration = ConfigurationParser.parse(configuration);
 
     // by default the level of logs is info
-    deps.winston.level = userConfiguration.logs_level;
-    this.displayConfigurations(userConfiguration, appConfiguration);
+    deps.winston.level = configuration.logs_level;
+    this.displayConfigurations(configuration);
 
     return this.setup(appConfiguration, app, deps)
       .then(function () {

@@ -1,7 +1,7 @@
 import { ILdapClientFactory } from "./ILdapClientFactory";
 import { ILdapClient } from "./ILdapClient";
 import { LdapClient } from "./LdapClient";
-import { LdapConfiguration } from "../configuration/Configuration";
+import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
 
 import Ldapjs = require("ldapjs");
 

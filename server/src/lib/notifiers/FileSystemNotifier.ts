@@ -4,7 +4,7 @@ import * as Fs from "fs";
 import { INotifier } from "./INotifier";
 import { Identity } from "../../../types/Identity";
 
-import { FileSystemNotifierConfiguration } from "../configuration/Configuration";
+import { FileSystemNotifierConfiguration } from "../configuration/schema/NotifierConfiguration";
 
 export class FileSystemNotifier implements INotifier {
   private filename: string;
