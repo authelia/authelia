@@ -19,9 +19,10 @@ body {
 /* notifications */
 .notification {
   padding: 10px;
-  margin: 10px 0px;
+  margin: 15px 0px;
   border-radius: 6px;
   display: none;
+  position: absolute;
 }
 .notification img {
   width: 24px;

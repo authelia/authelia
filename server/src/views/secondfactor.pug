@@ -7,16 +7,16 @@ block form-header
   h1 Sign in
 
 block content
-  div 
+  div
+    div(class="notification notification-totp")
     h3 Hi <b>#{username}</b>
   div(class="row")
     div(class="u2f-token")
       img(src="/img/pendrive.png", alt="security key")
-    p 
+    p
       | Please, touch your <a href="https://www.yubico.com/products/yubikey-hardware/fido-u2f-security-key/">security key</a><br/>
       b Or<br/>
       | Get a one-time password
-    div(class="notification notification-totp")
     form(class="form-signin totp")
       div(class="form-inputs")
         input(type="text" autocomplete="off" class="form-control" id="token" placeholder="Token" required autofocus)
@@ -25,7 +25,7 @@ block content
         div Need to register?
         div
           a(href=u2f_identity_start_endpoint, class="link register-u2f", data-toggle="tooltip", title="A security key is required to register.") Security key
-          |  | 
+          |  |
           a(href=totp_identity_start_endpoint, class="link register-totp") Google Authenticator
           span(class="clearfix")
   script(src="/js/u2f-api.js", type="text/javascript")
