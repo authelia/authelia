@@ -31,10 +31,10 @@ export default function (window: Window, $: JQueryStatic,
   }
 
   function onFirstFactorFailure(err: Error) {
+    $("input,button").removeAttr("disabled");
+    $("form").css("opacity", 1);
     notifier.error(UserMessages.AUTHENTICATION_FAILED);
     $(UISelectors.PASSWORD_FIELD_ID).select();
-    $("form").css("opacity", 1);
-    $("input,button").removeAttr("disabled");
     $(UISelectors.SIGN_IN_BUTTON_ID).text("Sign in");
   }
 
