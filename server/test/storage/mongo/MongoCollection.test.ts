@@ -6,7 +6,7 @@ import { MongoClientStub } from "../../mocks/connectors/mongo/MongoClientStub";
 import { MongoCollection } from "../../../src/lib/storage/mongo/MongoCollection";
 
 describe("MongoCollection", function () {
-  let mongoCollectionStub: MongoDB.Collection<any>;
+  let mongoCollectionStub: any;
   let findStub: Sinon.SinonStub;
   let findOneStub: Sinon.SinonStub;
   let insertStub: Sinon.SinonStub;
@@ -15,8 +15,7 @@ describe("MongoCollection", function () {
   let countStub: Sinon.SinonStub;
 
   before(function () {
-    const Collection = require("mongodb").Collection;
-    mongoCollectionStub = Sinon.createStubInstance(Collection);
+    mongoCollectionStub = Sinon.createStubInstance(require("mongodb").Collection as any);
     findStub = mongoCollectionStub.find as Sinon.SinonStub;
     findOneStub = mongoCollectionStub.findOne as Sinon.SinonStub;
     insertStub = mongoCollectionStub.insert as Sinon.SinonStub;
