@@ -6,5 +6,5 @@ import BluebirdPromise = require("bluebird");
 
 When(/^the application restarts$/, {timeout: 15 * 1000}, function () {
   const exec = BluebirdPromise.promisify(ChildProcess.exec);
-  return exec("./scripts/example-commit/dc-example.sh restart authelia && sleep 1");
+  return exec("./scripts/example-commit/dc-example.sh restart authelia && sleep 3");
 });
