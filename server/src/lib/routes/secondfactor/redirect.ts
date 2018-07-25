@@ -1,7 +1,6 @@
 
 import express = require("express");
 import objectPath = require("object-path");
-import winston = require("winston");
 import Endpoints = require("../../../../../shared/api");
 import { ServerVariables } from "../../ServerVariables";
 import BluebirdPromise = require("bluebird");

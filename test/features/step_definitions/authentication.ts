@@ -64,7 +64,7 @@ When("I visit {string} and get redirected {string}",
     const that = this;
     return this.driver.get(url)
       .then(function () {
-        return that.driver.wait(seleniumWebdriver.until.urlIs(redirectUrl), 2000);
+        return that.driver.wait(seleniumWebdriver.until.urlIs(redirectUrl), 6000);
       });
   });
 

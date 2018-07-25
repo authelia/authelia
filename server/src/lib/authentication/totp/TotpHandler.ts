@@ -15,7 +15,7 @@ export class TotpHandler implements ITotpHandler {
   generate(label: string, issuer: string): TOTPSecret {
     const secret = this.speakeasy.generateSecret({
       otpauth_url: false
-    });
+    }) as TOTPSecret;
 
     secret.otpauth_url = this.speakeasy.otpauthURL({
       secret: secret.ascii,
