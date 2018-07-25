@@ -60,14 +60,14 @@ function declareNeedsConfiguration(tag: string, cb: () => BluebirdPromise<void>)
       .then(function () {
         return exec("./scripts/example-commit/dc-example.sh -f " +
           "./example/compose/authelia/docker-compose.test.yml up -d authelia &&" +
-          " sleep 1");
+          " sleep 3");
       })
   });
 
   After({ tags: "@needs-" + tag + "-config", timeout: 20 * 1000 }, function () {
     return exec("rm config.test.yml")
       .then(function () {
-        return exec("./scripts/example-commit/dc-example.sh up -d authelia && sleep 1");
+        return exec("./scripts/example-commit/dc-example.sh up -d authelia && sleep 3");
       });
   });
 }
