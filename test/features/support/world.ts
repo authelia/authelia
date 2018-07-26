@@ -80,6 +80,10 @@ function CustomWorld() {
       })
       .then(function () {
         return that.driver.findElement(seleniumWebdriver.By.id("password"))
+          .clear();
+      })
+      .then(function () {
+        return that.driver.findElement(seleniumWebdriver.By.id("password"))
           .sendKeys(password);
       })
       .then(function () {
