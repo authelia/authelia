@@ -28,6 +28,9 @@ export interface NotifierConfiguration {
 export function complete(configuration: NotifierConfiguration): [NotifierConfiguration, string] {
   const newConfiguration: NotifierConfiguration = (configuration) ? JSON.parse(JSON.stringify(configuration)) : {};
 
+  if (Object.keys(newConfiguration).length == 0)
+    newConfiguration.filesystem = { filename: '/tmp/authelia-notification.txt' };
+
   const ERROR = "Notifier must have one of the following keys: 'filesystem', 'email' or 'smtp'";
 
   if (Object.keys(newConfiguration).length != 1)

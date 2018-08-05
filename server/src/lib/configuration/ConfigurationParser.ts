@@ -24,14 +24,14 @@ export class ConfigurationParser {
     const validationErrors = this.parseTypes(configuration);
     if (validationErrors.length > 0) {
       validationErrors.forEach((e: string) => { console.log(e); });
-      throw new Error("Malformed configuration. Please double-check your configuration file.");
+      throw new Error("Malformed configuration (schema). Please double-check your configuration file.");
     }
 
     const [newConfiguration, completionErrors] = complete(configuration);
 
     if (completionErrors.length > 0) {
       completionErrors.forEach((e: string) => { console.log(e); });
-      throw new Error("Malformed configuration. Please double-check your configuration file.");
+      throw new Error("Malformed configuration (validator). Please double-check your configuration file.");
     }
     return newConfiguration;
   }
