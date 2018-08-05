@@ -57,6 +57,7 @@ export default class Server {
 
   private startServer(app: Express.Application, port: number) {
     const that = this;
+    that.globalLogger.info("Starting Authelia...");
     return new BluebirdPromise<void>((resolve, reject) => {
       this.httpServer = app.listen(port, function (err: string) {
         that.globalLogger.info("Listening on port %d...", port);
@@ -73,8 +74,8 @@ export default class Server {
     const appConfiguration = ConfigurationParser.parse(configuration);
 
     // by default the level of logs is info
-    deps.winston.level = configuration.logs_level;
-    this.displayConfigurations(configuration);
+    deps.winston.level = appConfiguration.logs_level;
+    this.displayConfigurations(appConfiguration);
 
     return this.setup(appConfiguration, app, deps)
       .then(function () {
