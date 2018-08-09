@@ -22,23 +22,36 @@ export interface Configuration {
   totp?: TotpConfiguration;
 }
 
-export function complete(configuration: Configuration): [Configuration, string[]] {
-  const newConfiguration: Configuration = JSON.parse(JSON.stringify(configuration));
+export function complete(
+  configuration: Configuration):
+  [Configuration, string[]] {
+
+  const newConfiguration: Configuration = JSON.parse(
+    JSON.stringify(configuration));
   const errors: string[] = [];
 
-  newConfiguration.access_control = AclConfigurationComplete(newConfiguration.access_control);
-  newConfiguration.ldap = LdapConfigurationComplete(newConfiguration.ldap);
+  newConfiguration.access_control = AclConfigurationComplete(
+    newConfiguration.access_control);
+  newConfiguration.ldap = LdapConfigurationComplete(
+    newConfiguration.ldap);
 
-  newConfiguration.authentication_methods = AuthenticationMethodsConfigurationComplete(newConfiguration.authentication_methods);
+  newConfiguration.authentication_methods =
+    AuthenticationMethodsConfigurationComplete(
+      newConfiguration.authentication_methods);
 
   if (!newConfiguration.logs_level) {
     newConfiguration.logs_level = "info";
   }
 
   // In single factor mode, notifier section is optional.
-  if (!MethodCalculator.isSingleFactorOnlyMode(newConfiguration.authentication_methods)) {
-    const [notifier, error] = NotifierConfigurationComplete(newConfiguration.notifier);
+  if (!MethodCalculator.isSingleFactorOnlyMode(
+      newConfiguration.authentication_methods) ||
+      newConfiguration.notifier) {
+
+    const [notifier, error] = NotifierConfigurationComplete(
+      newConfiguration.notifier);
     newConfiguration.notifier = notifier;
+
     if (error) errors.push(error);
   }
 
@@ -46,10 +59,14 @@ export function complete(configuration: Configuration): [Configuration, string[]
     newConfiguration.port = 8080;
   }
 
-  newConfiguration.regulation = RegulationConfigurationComplete(newConfiguration.regulation);
-  newConfiguration.session = SessionConfigurationComplete(newConfiguration.session);
-  newConfiguration.storage = StorageConfigurationComplete(newConfiguration.storage);
-  newConfiguration.totp = TotpConfigurationComplete(newConfiguration.totp);
+  newConfiguration.regulation = RegulationConfigurationComplete(
+    newConfiguration.regulation);
+  newConfiguration.session = SessionConfigurationComplete(
+    newConfiguration.session);
+  newConfiguration.storage = StorageConfigurationComplete(
+    newConfiguration.storage);
+  newConfiguration.totp = TotpConfigurationComplete(
+    newConfiguration.totp);
 
   return [newConfiguration, errors];
 }

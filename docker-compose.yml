@@ -9,5 +9,6 @@ services:
       - NODE_TLS_REJECT_UNAUTHORIZED=0
     depends_on: 
       - redis
+      - mongo
     networks:
       - example-network

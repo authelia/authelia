@@ -1,8 +1,0 @@
-version: '2'
-services:
-  authelia:
-    volumes:
-      - ./dist/server:/usr/src/server
-      - ./dist/shared:/usr/src/shared
-    networks:
-      - example-network

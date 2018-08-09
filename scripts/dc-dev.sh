@@ -3,12 +3,10 @@
 set -e
 
 docker-compose \
-  -f docker-compose.yml \
+  -f docker-compose.dev.yml \
   -f example/compose/docker-compose.base.yml \
-  -f example/compose/authelia/docker-compose.dev.yml \
   -f example/compose/mongo/docker-compose.yml \
   -f example/compose/redis/docker-compose.yml \
-  -f example/compose/nginx/authelia/docker-compose.yml \
   -f example/compose/nginx/backend/docker-compose.yml \
   -f example/compose/nginx/portal/docker-compose.yml \
   -f example/compose/smtp/docker-compose.yml \

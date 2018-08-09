@@ -1,13 +1,12 @@
 version: '2'
 services:
   authelia:
-    image: clems4ever/authelia:latest
+    build: .
     restart: always
     volumes:
-      - ./config.template.yml:/etc/authelia/config.yml:ro
+      - ./config.minimal.yml:/etc/authelia/config.yml:ro
+      - /tmp/authelia:/tmp/authelia
     environment:
       - NODE_TLS_REJECT_UNAUTHORIZED=0
-    depends_on: 
-      - redis
     networks:
       - example-network

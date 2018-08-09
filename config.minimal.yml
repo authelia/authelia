@@ -15,10 +15,9 @@ ldap:
   password: password
 
 session:
-  # The secret to encrypt the session cookies.
+  # The secret to encrypt the session cookies with.
   secret: unsecure_session_secret
 
   # The domain to protect.
-  # Note: the authenticator must also be in that domain. If empty, the cookie
-  # is restricted to the subdomain of the issuer. 
+  # Note: Authelia must also be served by that domain.
   domain: example.com

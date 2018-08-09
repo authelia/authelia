@@ -1,0 +1,32 @@
+<!DOCTYPE>
+<html>
+  <head>
+    <title>Home page</title>
+    <link rel="icon" href="/icon.png" type="image/png" />
+  </head>
+  
+  <body>
+    <h1>Access the secret</h1>
+    <span style="font-size: 1.2em; color: red">You need to log in to access the secret!</span><br/><br/> Try to access it using
+    the following links to test Authelia.<br/>
+    <ul>
+      <li>
+        admin.example.com <a href="https://admin.example.com:8080/secret.html"> / secret.html</a>
+      </li>
+    </ul>
+  
+    You can also log off by visiting the following <a href="https://login.example.com:8080/logout?rd=https://home.example.com:8080/">link</a>.
+  
+    <h1>List of users</h1>
+    Here is the list of credentials you can log in with.<br/>
+    <br/> Once first factor is passed, you will need to follow the links to register a secret for the second factor.<br/> Authelia
+    will send you a fictituous email stored in a <strong>local file</strong> called <strong>/tmp/authelia/notification.txt</strong>.<br/> 
+    It will provide you with the link to complete the registration allowing you to authenticate with 2-factor.
+  
+    <ul>
+      <li><strong>john / password</strong>: belongs to <em>admin</em> and <em>dev</em> groups.</li>
+      <li><strong>bob / password</strong>: belongs to <em>dev</em> group only.</li>
+      <li><strong>harry / password</strong>: does not belong to any group.</li>
+    </ul>
+  </body>
+</html>

@@ -8,7 +8,6 @@ When("I query {string}", function (url: string) {
   const that = this;
   return Request(url, { followRedirect: false })
     .then(function(response) {
-      console.log(response);
       that.response = response;
     })
     .catch(function(err: Error) {
@@ -26,7 +25,7 @@ Then("I get error code 401", function() {
       if(that.response) 
         reject(new Error("No error thrown"));
       else if(that.error.statusCode != 401)
-        reject(new Error("Error code != 401"));
+        reject(new Error(`Error code (${that.error.statusCode}) != 401`));
     }
   });
 });

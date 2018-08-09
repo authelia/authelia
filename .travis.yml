@@ -22,6 +22,7 @@ addons:
     - mx2.mail.example.com
     - public.example.com
     - authelia.example.com
+    - admin.example.com
 
 before_install: 
   - npm install -g npm@'>=2.13.5'

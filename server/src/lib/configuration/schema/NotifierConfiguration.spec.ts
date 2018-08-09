@@ -2,9 +2,18 @@ import Assert = require("assert");
 import { NotifierConfiguration, complete } from "./NotifierConfiguration";
 
 describe("configuration/schema/NotifierConfiguration", function() {
-  it("should ensure at least one key is provided", function() {
+  it("should use a default notifier when none is provided", function() {
     const configuration: NotifierConfiguration = {};
     const [newConfiguration, error] = complete(configuration);
+
+    Assert.deepEqual(newConfiguration.filesystem, {filename: "/tmp/authelia/notification.txt"})
+  });
+
+  it("should ensure correct key is provided", function() {
+    const configuration = {
+      abc: 'badvalue'
+    };
+    const [newConfiguration, error] = complete(configuration as any);
 
     Assert.equal(error, "Notifier must have one of the following keys: 'filesystem', 'email' or 'smtp'");
   });
