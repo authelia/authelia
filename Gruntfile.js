@@ -19,7 +19,7 @@ module.exports = function (grunt) {
       "generate-config-schema": {
         cmd: "./node_modules/.bin/typescript-json-schema",
         args: ["-o", schemaDir, "--strictNullChecks",
-               "--required", "server/tsconfig.json", "UserConfiguration"]
+               "--required", "server/tsconfig.json", "Configuration"]
       },
       "compile-client": {
         cmd: "./node_modules/.bin/tsc",
@@ -35,15 +35,19 @@ module.exports = function (grunt) {
       },
       "test-server-unit": {
         cmd: "./node_modules/.bin/mocha",
-        args: ['--colors', '--compilers', 'ts:ts-node/register', '--recursive', 'server/test']
+        args: ['--colors', '--require', 'ts-node/register', 'server/src/**/*.spec.ts']
       },
       "test-client-unit": {
         cmd: "./node_modules/.bin/mocha",
-        args: ['--colors', '--compilers', 'ts:ts-node/register', '--recursive', 'client/test']
+        args: ['--colors', '--require', 'ts-node/register', 'client/test/**/*.test.ts']
       },
-      "test-int": {
+      "test-cucumber": {
         cmd: "./scripts/run-cucumber.sh",
         args: ["./test/features"]
+      },
+      "test-minimal-config": {
+        cmd: "./node_modules/.bin/mocha",
+        args: ['--colors', '--require', 'ts-node/register', 'test/minimal-config/**/*.ts']
       },
       "docker-build": {
         cmd: "docker",
@@ -183,7 +187,7 @@ module.exports = function (grunt) {
   grunt.registerTask('test-server', ['env:env-test-server-unit', 'run:test-server-unit'])
   grunt.registerTask('test-client', ['env:env-test-client-unit', 'run:test-client-unit'])
   grunt.registerTask('test-unit', ['test-server', 'test-client']);
-  grunt.registerTask('test-int', ['run:test-int']);
+  grunt.registerTask('test-int', ['run:test-cucumber', 'run:test-minimal-config']);
 
   grunt.registerTask('copy-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
   grunt.registerTask('generate-config-schema', ['run:generate-config-schema', 'copy:schema']);

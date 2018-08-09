@@ -1,11 +1,9 @@
+import Bluebird = require("bluebird");
+import Express = require("express");
 
-import exceptions = require("../../../../Exceptions");
-import objectPath = require("object-path");
-import express = require("express");
 import { TOTPSecretDocument } from "../../../../storage/TOTPSecretDocument";
-import BluebirdPromise = require("bluebird");
 import Endpoints = require("../../../../../../../shared/api");
-import redirect from "../../redirect";
+import Redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
@@ -15,11 +13,11 @@ import { ServerVariables } from "../../../../ServerVariables";
 const UNAUTHORIZED_MESSAGE = "Unauthorized access";
 
 export default function (vars: ServerVariables) {
-  function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
+  function handler(req: Express.Request, res: Express.Response): Bluebird<void> {
     let authSession: AuthenticationSession;
     const token = req.body.token;
 
-    return new BluebirdPromise(function (resolve, reject) {
+    return new Bluebird(function (resolve, reject) {
       authSession = AuthenticationSessionHandler.get(req, vars.logger);
       vars.logger.info(req, "Initiate TOTP validation for user \"%s\".", authSession.userid);
       resolve();
@@ -29,12 +27,12 @@ export default function (vars: ServerVariables) {
       })
       .then(function (doc: TOTPSecretDocument) {
         if (!vars.totpHandler.validate(token, doc.secret.base32))
-          return BluebirdPromise.reject(new Error("Invalid TOTP token."));
+          return Bluebird.reject(new Error("Invalid TOTP token."));
 
         vars.logger.debug(req, "TOTP validation succeeded.");
         authSession.second_factor = true;
-        redirect(vars)(req, res);
-        return BluebirdPromise.resolve();
+        Redirect(vars)(req, res);
+        return Bluebird.resolve();
       })
       .catch(ErrorReplies.replyWithError200(req, res, vars.logger,
         UserMessages.OPERATION_FAILED));

@@ -4,7 +4,7 @@ import ErrorReplies = require("../../ErrorReplies");
 import { IRequestLogger } from "../../logging/IRequestLogger";
 import { MethodCalculator } from "../../authentication/MethodCalculator";
 import { AuthenticationMethodsConfiguration } from
-  "../../configuration/Configuration";
+  "../../configuration/schema/AuthenticationMethodsConfiguration";
 
 export class RequireTwoFactorEnabled {
   static middleware(logger: IRequestLogger,

@@ -1,11 +1,11 @@
 
 import ExpressSession = require("express-session");
-import { AppConfiguration } from "./Configuration";
+import { Configuration } from "./schema/Configuration";
 import { GlobalDependencies } from "../../../types/Dependencies";
 
 export class SessionConfigurationBuilder {
 
-  static build(configuration: AppConfiguration, deps: GlobalDependencies): ExpressSession.SessionOptions {
+  static build(configuration: Configuration, deps: GlobalDependencies): ExpressSession.SessionOptions {
     const sessionOptions: ExpressSession.SessionOptions = {
       secret: configuration.session.secret,
       resave: false,

@@ -34,7 +34,7 @@ function CustomWorld() {
 
   this.getErrorPage = function (code: number) {
     const that = this;
-    return this.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.tagName("h1")), 2000)
+    return this.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.tagName("h1")), 5000)
       .then(function () {
         return that.driver
           .findElement(seleniumWebdriver.By.tagName("h1")).getText();
@@ -51,7 +51,7 @@ function CustomWorld() {
 
   this.clickOnButton = function (buttonText: string) {
     const that = this;
-    return this.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.tagName("button")), 2000)
+    return this.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.tagName("button")), 5000)
       .then(function () {
         return that.driver
           .findElement(seleniumWebdriver.By.tagName("button"))
@@ -73,7 +73,7 @@ function CustomWorld() {
   };
 
   this.loginWithUserPassword = function (username: string, password: string) {
-    return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.id("username")), 4000)
+    return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.id("username")), 5000)
       .then(function () {
         return that.driver.findElement(seleniumWebdriver.By.id("username"))
           .sendKeys(username);
@@ -114,7 +114,7 @@ function CustomWorld() {
   };
 
   this.registerTotpSecret = function (totpSecretHandle: string) {
-    return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.className("register-totp")), 4000)
+    return that.driver.wait(seleniumWebdriver.until.elementLocated(seleniumWebdriver.By.className("register-totp")), 5000)
       .then(function () {
         return that.driver.findElement(seleniumWebdriver.By.className("register-totp")).click();
       })

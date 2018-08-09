@@ -7,7 +7,7 @@ import { IU2fHandler } from "./authentication/u2f/IU2fHandler";
 import { IUserDataStore } from "./storage/IUserDataStore";
 import { INotifier } from "./notifiers/INotifier";
 import { IRegulator } from "./regulation/IRegulator";
-import { AppConfiguration } from "./configuration/Configuration";
+import { Configuration } from "./configuration/schema/Configuration";
 import { IAccessController } from "./access_control/IAccessController";
 
 export interface ServerVariables {
@@ -20,6 +20,6 @@ export interface ServerVariables {
   userDataStore: IUserDataStore;
   notifier: INotifier;
   regulator: IRegulator;
-  config: AppConfiguration;
+  config: Configuration;
   accessController: IAccessController;
 }

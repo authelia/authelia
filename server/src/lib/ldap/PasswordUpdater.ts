@@ -4,7 +4,7 @@ import ldapjs = require("ldapjs");
 import { Client } from "./Client";
 
 import { IPasswordUpdater } from "./IPasswordUpdater";
-import { LdapConfiguration } from "../configuration/Configuration";
+import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
 import { IClientFactory } from "./IClientFactory";
 
 

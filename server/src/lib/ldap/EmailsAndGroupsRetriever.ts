@@ -3,7 +3,7 @@ import exceptions = require("../Exceptions");
 import ldapjs = require("ldapjs");
 import { Client } from "./Client";
 import { IClientFactory } from "./IClientFactory";
-import { LdapConfiguration } from "../configuration/Configuration";
+import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
 import { GroupsAndEmails } from "./IClient";
 
 

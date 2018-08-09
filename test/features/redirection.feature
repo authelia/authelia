@@ -10,6 +10,7 @@ Feature: User is correctly redirected
     And I login with user "john" and password "badpassword"
     And I wait for notification to disappear
     And I clear field "username"
+    And I clear field "password"
     And I login with user "john" and password "password" 
     And I use "REGISTERED" as TOTP token handle
     And I click on "Sign in"

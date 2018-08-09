@@ -4,6 +4,8 @@ set -e
 
 docker --version
 docker-compose --version
+echo "node `node -v`"
+echo "npm `npm -v`"
 
 # Generate configuration schema
 grunt schema

@@ -1,0 +1,12 @@
+version: '2'
+services:
+  authelia:
+    build: .
+    restart: always
+    volumes:
+      - ./config.minimal.yml:/etc/authelia/config.yml:ro
+      - /tmp/authelia:/tmp/authelia
+    environment:
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+    networks:
+      - example-network

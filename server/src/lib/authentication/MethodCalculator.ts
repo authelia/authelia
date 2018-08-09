@@ -1,7 +1,7 @@
 import {
   AuthenticationMethod,
   AuthenticationMethodsConfiguration
-} from "../configuration/Configuration";
+} from "../configuration/schema/AuthenticationMethodsConfiguration";
 
 function computeIsSingleFactorOnlyMode(
   configuration: AuthenticationMethodsConfiguration): boolean {

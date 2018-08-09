@@ -1,4 +1,3 @@
-
 import objectPath = require("object-path");
 import randomstring = require("randomstring");
 import BluebirdPromise = require("bluebird");
@@ -12,6 +11,7 @@ import ErrorReplies = require("./ErrorReplies");
 import { AuthenticationSessionHandler } from "./AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../types/AuthenticationSession";
 import { ServerVariables } from "./ServerVariables";
+import { IdentityValidable } from "./IdentityValidable";
 
 import Identity = require("../../types/Identity");
 import { IdentityValidationDocument }
@@ -20,26 +20,9 @@ import { IdentityValidationDocument }
 const filePath = __dirname + "/../resources/email-template.ejs";
 const email_template = fs.readFileSync(filePath, "utf8");
 
-// IdentityValidator allows user to go through a identity validation process
-// in two steps:
-// - Request an operation to be performed (password reset, registration).
-// - Confirm operation with email.
-
-export interface IdentityValidable {
-  challenge(): string;
-  preValidationInit(req: Express.Request): BluebirdPromise<Identity.Identity>;
-  postValidationInit(req: Express.Request): BluebirdPromise<void>;
-
-  // Serves a page after identity check request
-  preValidationResponse(req: Express.Request, res: Express.Response): void;
-  // Serves the page if identity validated
-  postValidationResponse(req: Express.Request, res: Express.Response): void;
-  mailSubject(): string;
-}
-
 function createAndSaveToken(userid: string, challenge: string,
-  userDataStore: IUserDataStore)
-  : BluebirdPromise<string> {
+  userDataStore: IUserDataStore): BluebirdPromise<string> {
+
   const five_minutes = 4 * 60 * 1000;
   const token = randomstring.generate({ length: 64 });
   const that = this;
@@ -80,8 +63,10 @@ function checkIdentityToken(req: Express.Request, identityToken: string)
 export function get_finish_validation(handler: IdentityValidable,
   vars: ServerVariables)
   : Express.RequestHandler {
+
   return function (req: Express.Request, res: Express.Response)
     : BluebirdPromise<void> {
+
     let authSession: AuthenticationSession;
     const identityToken = objectPath.get<Express.Request, string>(
       req, "query.identity_token");

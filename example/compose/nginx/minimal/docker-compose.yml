@@ -1,0 +1,12 @@
+version: '2'
+services:
+  nginx-portal:
+    image: nginx:alpine
+    volumes:
+      - ./example/compose/nginx/minimal/nginx.conf:/etc/nginx/nginx.conf
+      - ./example/compose/nginx/minimal/html:/usr/share/nginx/html
+      - ./example/compose/nginx/minimal/ssl:/etc/ssl
+    ports:
+      - "8080:443"
+    networks:
+      - example-network

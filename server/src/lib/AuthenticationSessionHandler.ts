@@ -29,7 +29,7 @@ export class AuthenticationSessionHandler {
 
   static get(req: express.Request, logger: IRequestLogger): AuthenticationSession {
     if (!req.session) {
-      const errorMsg = "Something is wrong with session cookies. Please check Redis is running and Authelia can contact it.";
+      const errorMsg = "Something is wrong with session cookies. Please check Redis is running and Authelia can connect to it.";
       logger.error(req, errorMsg);
       throw new Error(errorMsg);
     }

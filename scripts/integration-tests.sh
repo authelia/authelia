@@ -1,23 +1,10 @@
 #!/bin/bash
 
 DC_SCRIPT=./scripts/example-commit/dc-example.sh
-EXPECTED_SERVICES_COUNT=9
+EXPECTED_SERVICES_COUNT=8
 
 build_services() {
     $DC_SCRIPT build authelia
-}
-
-start_services() {
-    $DC_SCRIPT up -d httpbin mongo redis openldap authelia smtp nginx-authelia nginx-portal nginx-backend
-    sleep 3
-}
-
-shut_services() {
-    containers_exist=`docker ps -aq | wc -l`
-    if [ "$containers_exist" -ne "0" ]
-    then
-        docker rm -f $(docker ps -aq)
-    fi
 }
 
 expect_services_count() {
@@ -35,19 +22,11 @@ expect_services_count() {
 }
 
 run_integration_tests() {
-  echo "Start services..."
-  start_services
-  expect_services_count $EXPECTED_SERVICES_COUNT
-  
-  sleep 5
-  ./node_modules/.bin/grunt run:test-int
-  shut_services  
+  ./node_modules/.bin/grunt test-int
 }
 
 run_other_tests() {
   echo "Test dev environment deployment (commands in README)"
-  # rm -rf node_modules
-  # ./scripts/build-dev.sh
   ./scripts/example-commit/deploy-example.sh
   expect_services_count $EXPECTED_SERVICES_COUNT
   ./scripts/example-commit/undeploy-example.sh
@@ -60,17 +39,13 @@ run_other_tests_docker() {
   ./scripts/example-dockerhub/undeploy-example.sh
 }
 
-
-
-
-
 set -e
-
-echo "Make sure services are not already running"
-shut_services
 
 # Build the container
 build_services
+
+# Pull all images
+$DC_SCRIPT pull
 
 # Prepare & test example from end user perspective
 run_integration_tests

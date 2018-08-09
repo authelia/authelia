@@ -3,7 +3,7 @@ import { IMailSenderBuilder } from "./IMailSenderBuilder";
 import { MailSender } from "./MailSender";
 import Nodemailer = require("nodemailer");
 import NodemailerSmtpTransport = require("nodemailer-smtp-transport");
-import { SmtpNotifierConfiguration, EmailNotifierConfiguration } from "../configuration/Configuration";
+import { SmtpNotifierConfiguration, EmailNotifierConfiguration } from "../configuration/schema/NotifierConfiguration";
 
 export class MailSenderBuilder implements IMailSenderBuilder {
   private nodemailer: typeof Nodemailer;

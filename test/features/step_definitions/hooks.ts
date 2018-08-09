@@ -1,4 +1,4 @@
-import {setDefaultTimeout, After, Before} from "cucumber";
+import {setDefaultTimeout, After, Before, BeforeAll, AfterAll} from "cucumber";
 import fs = require("fs");
 import BluebirdPromise = require("bluebird");
 import ChildProcess = require("child_process");
@@ -10,10 +10,31 @@ import { TotpHandler } from "../../../server/src/lib/authentication/totp/TotpHan
 import Speakeasy = require("speakeasy");
 import Request = require("request-promise");
 import { TOTPSecret } from "../../../server/types/TOTPSecret";
+import Environment = require("../../environment");
 
-setDefaultTimeout(20 * 1000);
+setDefaultTimeout(30 * 1000);
 
 const exec = BluebirdPromise.promisify<any, any>(ChildProcess.exec);
+
+const includes = [
+  "docker-compose.yml",
+  "example/compose/docker-compose.base.yml",
+  "example/compose/mongo/docker-compose.yml",
+  "example/compose/redis/docker-compose.yml",
+  "example/compose/nginx/backend/docker-compose.yml",
+  "example/compose/nginx/portal/docker-compose.yml",
+  "example/compose/smtp/docker-compose.yml",
+  "example/compose/httpbin/docker-compose.yml",
+  "example/compose/ldap/docker-compose.yml"
+]
+
+BeforeAll(function() {
+  return Environment.setup(includes, 10000);
+});
+
+AfterAll(function() {
+  return Environment.cleanup(includes)
+});
 
 Before(function () {
   this.jar = Request.jar();

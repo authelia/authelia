@@ -1,0 +1,23 @@
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+ldap:
+  url: ldap://openldap
+  base_dn: dc=example,dc=com
+
+  additional_users_dn: ou=users
+  additional_groups_dn: ou=groups
+  
+  groups_filter: (&(member={dn})(objectclass=groupOfNames))
+  
+  user: cn=admin,dc=example,dc=com
+  password: password
+
+session:
+  # The secret to encrypt the session cookies with.
+  secret: unsecure_session_secret
+
+  # The domain to protect.
+  # Note: Authelia must also be served by that domain.
+  domain: example.com

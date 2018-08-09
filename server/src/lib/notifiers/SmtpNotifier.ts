@@ -4,7 +4,7 @@ import * as BluebirdPromise from "bluebird";
 
 import { IMailSender } from "./IMailSender";
 import { AbstractEmailNotifier } from "../notifiers/AbstractEmailNotifier";
-import { SmtpNotifierConfiguration } from "../configuration/Configuration";
+import { SmtpNotifierConfiguration } from "../configuration/schema/NotifierConfiguration";
 
 export class SmtpNotifier extends AbstractEmailNotifier {
   private mailSender: IMailSender;

@@ -4,7 +4,7 @@ import Util = require("util");
 import ObjectPath = require("object-path");
 
 import Exceptions = require("../../Exceptions");
-import { AppConfiguration } from "../../configuration/Configuration";
+import { Configuration } from "../../configuration/schema/Configuration";
 import Constants = require("../../../../../shared/constants");
 import { DomainExtractor } from "../../utils/DomainExtractor";
 import { ServerVariables } from "../../ServerVariables";
@@ -21,7 +21,7 @@ const SECOND_FACTOR_NOT_VALIDATED_MESSAGE = "Second factor not yet validated";
 
 function verify_inactivity(req: Express.Request,
   authSession: AuthenticationSession,
-  configuration: AppConfiguration, logger: IRequestLogger)
+  configuration: Configuration, logger: IRequestLogger)
   : BluebirdPromise<void> {
 
   // If inactivity is not specified, then inactivity timeout does not apply

@@ -12,8 +12,7 @@ RUN apk --update add --no-cache --virtual \
 COPY dist/server /usr/src/server
 COPY dist/shared /usr/src/shared
 
-ENV PORT=80
-EXPOSE 80
+EXPOSE 8080
 
 VOLUME /etc/authelia
 VOLUME /var/lib/authelia
