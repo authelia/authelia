@@ -22,6 +22,14 @@ logs_level: debug
 # be redirected upon successful authentication.
 default_redirection_url: https://home.example.com:8080/
 
+# TOTP Issuer Name
+#
+# This will be the issuer name displayed in Google Authenticator
+# See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
+totp:
+  issuer: authelia.com
+
+
 # LDAP configuration
 #
 # Example: for user john, the DN will be cn=john,ou=users,dc=example,dc=com
