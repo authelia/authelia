@@ -48,7 +48,8 @@ export default class Server {
 
   private setup(config: Configuration, app: Express.Application, deps: GlobalDependencies): BluebirdPromise<void> {
     const that = this;
-    return ServerVariablesInitializer.initialize(config, this.requestLogger, deps)
+    return ServerVariablesInitializer.initialize(
+      config, this.globalLogger, this.requestLogger, deps)
       .then(function (vars: ServerVariables) {
         Configurator.configure(config, app, vars, deps);
         return BluebirdPromise.resolve();

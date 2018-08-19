@@ -6,36 +6,54 @@ function docker_compose(includes: string[]) {
   return `docker-compose ${compose_args}`;
 }
 
-export function setup(includes: string[], setupTime: number = 2000): Bluebird<void> {
-  const command = docker_compose(includes) + ' up -d'
-  console.log('Starting up environment.');
-  console.log('Running: %s', command);
+export class Environment {
+  private includes: string[];
+  constructor(includes: string[]) {
+    this.includes = includes;
+  }
 
-  return new Bluebird<void>(function(resolve, reject) {
+  private runCommand(command: string, timeout?: number): Bluebird<void> {
+    return new Bluebird<void>(function(resolve, reject) {
+      console.log('[ENVIRONMENT] Running: %s', command);
       exec(command, function(err, stdout, stderr) {
-      if(err) {
-        reject(err);
-        return;
-      }
-      setTimeout(function() {
-        resolve();
-      }, setupTime);
+        if(err) {
+          reject(err);
+          return;
+        }
+        if(!timeout) resolve();
+        else setTimeout(resolve, timeout);
+      });
     });
-  });
-}
+  }
+  
 
-export function cleanup(includes: string[]): Bluebird<void> {
-  const command = docker_compose(includes) + ' down'; 
-  console.log('Shutting down environment.');
-  console.log('Running: %s', command);
+  setup(timeout?: number): Bluebird<void> {
+    const command = docker_compose(this.includes) + ' up -d'
+    console.log('[ENVIRONMENT] Starting up...');
+    return this.runCommand(command, timeout);
+  }
 
-  return new Bluebird<void>(function(resolve, reject) {
-    exec(command, function(err, stdout, stderr) {
-      if(err) {
-        reject(err);
-        return;
-      }
-      resolve();
-    });
-  });
+  cleanup(): Bluebird<void> {
+    const command = docker_compose(this.includes) + ' down'
+    console.log('[ENVIRONMENT] Cleaning up...');
+    return this.runCommand(command);
+  }
+
+  stop_service(serviceName: string): Bluebird<void> {
+    const command = docker_compose(this.includes) + ' stop ' + serviceName;
+    console.log('[ENVIRONMENT] Stopping service %s...', serviceName);
+    return this.runCommand(command);
+  }
+  
+  start_service(serviceName: string): Bluebird<void> {
+    const command = docker_compose(this.includes) + ' start ' + serviceName;
+    console.log('[ENVIRONMENT] Starting service %s...', serviceName);
+    return this.runCommand(command);
+  }
+  
+  restart_service(serviceName: string, timeout?: number): Bluebird<void> {
+    const command = docker_compose(this.includes) + ' restart ' + serviceName;
+    console.log('[ENVIRONMENT] Restarting service %s...', serviceName);
+    return this.runCommand(command, timeout);
+  }
 }

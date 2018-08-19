@@ -1,44 +1,50 @@
-
-import BluebirdPromise = require("bluebird");
+import Bluebird = require("bluebird");
 import { ICollection } from "../ICollection";
 import MongoDB = require("mongodb");
+import { IMongoClient } from "../../connectors/mongo/IMongoClient";
 
 
 export class MongoCollection implements ICollection {
-  private collection: MongoDB.Collection;
+  private mongoClient: IMongoClient;
+  private collectionName: string;
 
-  constructor(collection: MongoDB.Collection) {
-    this.collection = collection;
+  constructor(collectionName: string, mongoClient: IMongoClient) {
+    this.collectionName = collectionName;
+    this.mongoClient = mongoClient;
   }
 
-  find(query: any, sortKeys?: any, count?: number): BluebirdPromise<any> {
-    const q = this.collection.find(query).sort(sortKeys).limit(count);
-    const toArrayAsync = BluebirdPromise.promisify(q.toArray, { context: q });
-    return toArrayAsync();
+  private collection(): Bluebird<MongoDB.Collection> {
+    return this.mongoClient.collection(this.collectionName);
   }
 
-  findOne(query: any): BluebirdPromise<any> {
-    const findOneAsync = BluebirdPromise.promisify<any, any>(this.collection.findOne, { context: this.collection });
-    return findOneAsync(query);
+  find(query: any, sortKeys?: any, count?: number): Bluebird<any> {
+    return this.collection()
+      .then((collection) => collection.find(query).sort(sortKeys).limit(count))
+      .then((query) => query.toArray());
   }
 
-  update(query: any, updateQuery: any, options?: any): BluebirdPromise<any> {
-    const updateAsync = BluebirdPromise.promisify<any, any, any, any>(this.collection.update, { context: this.collection });
-    return updateAsync(query, updateQuery, options);
+  findOne(query: any): Bluebird<any> {
+    return this.collection()
+      .then((collection) => collection.findOne(query));
   }
 
-  remove(query: any): BluebirdPromise<any> {
-    const removeAsync = BluebirdPromise.promisify<any, any>(this.collection.remove, { context: this.collection });
-    return removeAsync(query);
+  update(query: any, updateQuery: any, options?: any): Bluebird<any> {
+    return this.collection()
+      .then((collection) => collection.update(query, updateQuery, options));
   }
 
-  insert(document: any): BluebirdPromise<any> {
-    const insertAsync = BluebirdPromise.promisify<any, any>(this.collection.insert, { context: this.collection });
-    return insertAsync(document);
+  remove(query: any): Bluebird<any> {
+    return this.collection()
+      .then((collection) => collection.remove(query));
   }
 
-  count(query: any): BluebirdPromise<number> {
-    const countAsync = BluebirdPromise.promisify<any, any>(this.collection.count, { context: this.collection });
-    return countAsync(query);
+  insert(document: any): Bluebird<any> {
+    return this.collection()
+      .then((collection) => collection.insert(document));
+  }
+
+  count(query: any): Bluebird<number> {
+    return this.collection()
+      .then((collection) => collection.count(query));
   }
 }

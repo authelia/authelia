@@ -1,5 +1,6 @@
 import Sinon = require("sinon");
 import MongoDB = require("mongodb");
+import Bluebird = require("bluebird");
 import { IMongoClient } from "../../../../src/lib/connectors/mongo/IMongoClient";
 
 export class MongoClientStub implements IMongoClient {
@@ -9,7 +10,7 @@ export class MongoClientStub implements IMongoClient {
     this.collectionStub = Sinon.stub();
   }
 
-  collection(name: string): MongoDB.Collection {
+  collection(name: string): Bluebird<MongoDB.Collection> {
     return this.collectionStub(name);
   }
 }
