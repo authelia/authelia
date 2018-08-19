@@ -69,9 +69,8 @@ function createSingleFactorConfiguration(): BluebirdPromise<void> {
 
 function createCustomTotpIssuerConfiguration(): BluebirdPromise<void> {
   return exec("\
-  cat config.template.yml > config.test.yml && \
-  echo 'totp:' >> config.test.yml && \
-  echo '  issuer: custom.com' >> config.test.yml \
+  cat config.template.yml | \
+  sed 's/issuer: authelia.com/issuer: custom.com/' > config.test.yml \
   ");
 }
 
