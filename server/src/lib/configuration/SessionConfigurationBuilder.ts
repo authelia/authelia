@@ -7,6 +7,7 @@ export class SessionConfigurationBuilder {
 
   static build(configuration: Configuration, deps: GlobalDependencies): ExpressSession.SessionOptions {
     const sessionOptions: ExpressSession.SessionOptions = {
+      name: configuration.session.name,
       secret: configuration.session.secret,
       resave: false,
       saveUninitialized: true,

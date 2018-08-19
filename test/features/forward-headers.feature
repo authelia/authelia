@@ -1,4 +1,4 @@
-Feature: User and groups headers are correctly forwarded to backend
+Feature: Headers are correctly forwarded to backend
   @need-authenticated-user-john
   Scenario: Custom-Forwarded-User and Custom-Forwarded-Groups are correctly forwarded to protected backend
     When I visit "https://public.example.com:8080/headers"
