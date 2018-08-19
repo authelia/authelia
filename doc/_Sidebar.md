@@ -1,0 +1,6 @@
+* [Home](./)
+* [Deployment methods](./Deployment-methods)
+  * [Docker](./Docker)
+  * [Kubernetes](./Kubernetes)
+  * [Npm with fail2ban](./npm-and-Fail2Ban)
+* [Browsers support](./Browser-support-for-U2F)
