@@ -4,6 +4,7 @@ export interface SessionRedisOptions {
 }
 
 export interface SessionConfiguration {
+  name?: string;
   domain: string;
   secret: string;
   expiration?: number;
@@ -13,6 +14,10 @@ export interface SessionConfiguration {
 
 export function complete(configuration: SessionConfiguration): SessionConfiguration {
   const newConfiguration: SessionConfiguration = (configuration) ? JSON.parse(JSON.stringify(configuration)) : {};
+
+  if (!newConfiguration.name) {
+    newConfiguration.name = "authelia_session";
+  }
 
   if (!newConfiguration.expiration) {
     newConfiguration.expiration = 3600000; // 1 hour

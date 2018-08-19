@@ -173,6 +173,9 @@ access_control:
 # 
 # The session cookies identify the user once logged in.
 session:
+  # The name of the session cookie. (default: authelia_session).
+  name: authelia_session
+
   # The secret to encrypt the session cookie.
   secret: unsecure_session_secret
   

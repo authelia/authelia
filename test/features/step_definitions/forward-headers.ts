@@ -2,7 +2,8 @@ import {Then} from "cucumber";
 import seleniumWebdriver = require("selenium-webdriver");
 import CustomWorld = require("../support/world");
 import Util = require("util");
-import BluebirdPromise = require("bluebird");
+import Bluebird = require("bluebird");
+import Request = require("request-promise");
 
 Then("I see header {string} set to {string}",
   { timeout: 5000 },
@@ -11,8 +12,8 @@ Then("I see header {string} set to {string}",
       .then(function (txt: string) {
         const expectedLine = Util.format("\"%s\": \"%s\"", expectedHeaderName, expectedValue);
         if (txt.indexOf(expectedLine) > 0)
-          return BluebirdPromise.resolve();
+          return Bluebird.resolve();
         else
-          return BluebirdPromise.reject(new Error(Util.format("No such header or with unexpected value.")));
+          return Bluebird.reject(new Error(Util.format("No such header or with unexpected value.")));
       });
   })

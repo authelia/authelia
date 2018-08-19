@@ -39,6 +39,7 @@ describe("configuration/SessionConfigurationBuilder", function () {
       },
       port: 8080,
       session: {
+        name: "authelia_session",
         domain: "example.com",
         expiration: 3600,
         secret: "secret"
@@ -73,6 +74,7 @@ describe("configuration/SessionConfigurationBuilder", function () {
     const options = SessionConfigurationBuilder.build(configuration, deps);
 
     const expectedOptions = {
+      name: "authelia_session",
       secret: "secret",
       resave: false,
       saveUninitialized: true,
@@ -118,6 +120,7 @@ describe("configuration/SessionConfigurationBuilder", function () {
       },
       port: 8080,
       session: {
+        name: "authelia_session",
         domain: "example.com",
         expiration: 3600,
         secret: "secret",
@@ -165,6 +168,7 @@ describe("configuration/SessionConfigurationBuilder", function () {
       secret: "secret",
       resave: false,
       saveUninitialized: true,
+      name: "authelia_session",
       cookie: {
         secure: true,
         httpOnly: true,
