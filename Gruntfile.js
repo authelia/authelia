@@ -45,6 +45,10 @@ module.exports = function (grunt) {
         cmd: "./scripts/run-cucumber.sh",
         args: ["./test/features"]
       },
+      "test-complete-config": {
+        cmd: "./node_modules/.bin/mocha",
+        args: ['--colors', '--require', 'ts-node/register', 'test/complete-config/**/*.ts']
+      },
       "test-minimal-config": {
         cmd: "./node_modules/.bin/mocha",
         args: ['--colors', '--require', 'ts-node/register', 'test/minimal-config/**/*.ts']
@@ -187,7 +191,7 @@ module.exports = function (grunt) {
   grunt.registerTask('test-server', ['env:env-test-server-unit', 'run:test-server-unit'])
   grunt.registerTask('test-client', ['env:env-test-client-unit', 'run:test-client-unit'])
   grunt.registerTask('test-unit', ['test-server', 'test-client']);
-  grunt.registerTask('test-int', ['run:test-cucumber', 'run:test-minimal-config']);
+  grunt.registerTask('test-int', ['run:test-cucumber', 'run:test-minimal-config', 'run:test-complete-config']);
 
   grunt.registerTask('copy-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
   grunt.registerTask('generate-config-schema', ['run:generate-config-schema', 'copy:schema']);

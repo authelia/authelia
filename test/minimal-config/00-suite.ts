@@ -11,10 +11,11 @@ const includes = [
 
 before(function() {
   this.timeout(20000);
-  return Environment.setup(includes);
+  this.environment = new Environment.Environment(includes);
+  return this.environment.setup(2000);
 });
 
 after(function() {
   this.timeout(30000);
-  return Environment.cleanup(includes);
+  return this.environment.cleanup();
 });

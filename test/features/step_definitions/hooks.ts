@@ -4,13 +4,15 @@ import BluebirdPromise = require("bluebird");
 import ChildProcess = require("child_process");
 import { UserDataStore } from "../../../server/src/lib/storage/UserDataStore";
 import { CollectionFactoryFactory } from "../../../server/src/lib/storage/CollectionFactoryFactory";
-import { MongoConnector } from "../../../server/src/lib/connectors/mongo/MongoConnector";
 import { IMongoClient } from "../../../server/src/lib/connectors/mongo/IMongoClient";
 import { TotpHandler } from "../../../server/src/lib/authentication/totp/TotpHandler";
 import Speakeasy = require("speakeasy");
 import Request = require("request-promise");
 import { TOTPSecret } from "../../../server/types/TOTPSecret";
 import Environment = require("../../environment");
+import { MongoClient } from "../../../server/src/lib/connectors/mongo/MongoClient";
+import { GlobalLogger } from "../../../server/src/lib/logging/GlobalLogger";
+import { GlobalLoggerStub } from "../../../server/src/lib/logging/GlobalLoggerStub.spec";
 
 setDefaultTimeout(30 * 1000);
 
@@ -28,12 +30,14 @@ const includes = [
   "example/compose/ldap/docker-compose.yml"
 ]
 
+const environment = new Environment.Environment(includes);
+
 BeforeAll(function() {
-  return Environment.setup(includes, 10000);
+  return environment.setup(10000);
 });
 
 AfterAll(function() {
-  return Environment.cleanup(includes)
+  return environment.cleanup()
 });
 
 Before(function () {
@@ -99,19 +103,16 @@ declareNeedsConfiguration("totp_issuer", createCustomTotpIssuerConfiguration);
 
 function registerUser(context: any, username: string) {
   let secret: TOTPSecret;
-  const mongoConnector = new MongoConnector("mongodb://localhost:27017");
-  return mongoConnector.connect("authelia")
-    .then(function (mongoClient: IMongoClient) {
-      const collectionFactory = CollectionFactoryFactory.createMongo(mongoClient);
-      const userDataStore = new UserDataStore(collectionFactory);
+  const mongoClient = new MongoClient("mongodb://localhost:27017", "authelia", new GlobalLoggerStub());
+  const collectionFactory = CollectionFactoryFactory.createMongo(mongoClient);
+  const userDataStore = new UserDataStore(collectionFactory);
 
-      const generator = new TotpHandler(Speakeasy);
-      secret = generator.generate("user", "authelia.com");
-      return userDataStore.saveTOTPSecret(username, secret);
-    })
+  const generator = new TotpHandler(Speakeasy);
+  secret = generator.generate("user", "authelia.com");
+  return userDataStore.saveTOTPSecret(username, secret)
     .then(function () {
       context.totpSecrets["REGISTERED"] = secret.base32;
-      return mongoConnector.close();
+      return mongoClient.close();
     });
 }
 

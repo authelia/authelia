@@ -32,15 +32,16 @@ import { IAccessController } from "./access_control/IAccessController";
 import { CollectionFactoryFactory } from "./storage/CollectionFactoryFactory";
 import { ICollectionFactory } from "./storage/ICollectionFactory";
 import { MongoCollectionFactory } from "./storage/mongo/MongoCollectionFactory";
-import { MongoConnectorFactory } from "./connectors/mongo/MongoConnectorFactory";
 import { IMongoClient } from "./connectors/mongo/IMongoClient";
 
 import { GlobalDependencies } from "../../types/Dependencies";
 import { ServerVariables } from "./ServerVariables";
 import { MethodCalculator } from "./authentication/MethodCalculator";
+import { MongoClient } from "./connectors/mongo/MongoClient";
+import { IGlobalLogger } from "./logging/IGlobalLogger";
 
 class UserDataStoreFactory {
-  static create(config: Configuration.Configuration): BluebirdPromise<UserDataStore> {
+  static create(config: Configuration.Configuration, globalLogger: IGlobalLogger): BluebirdPromise<UserDataStore> {
     if (config.storage.local) {
       const nedbOptions: Nedb.DataStoreOptions = {
         filename: config.storage.local.path,
@@ -50,13 +51,12 @@ class UserDataStoreFactory {
       return BluebirdPromise.resolve(new UserDataStore(collectionFactory));
     }
     else if (config.storage.mongo) {
-      const mongoConnectorFactory = new MongoConnectorFactory();
-      const mongoConnector = mongoConnectorFactory.create(config.storage.mongo.url);
-      return mongoConnector.connect(config.storage.mongo.database)
-        .then(function (client: IMongoClient) {
-          const collectionFactory = CollectionFactoryFactory.createMongo(client);
-          return BluebirdPromise.resolve(new UserDataStore(collectionFactory));
-        });
+      const mongoClient = new MongoClient(
+        config.storage.mongo.url,
+        config.storage.mongo.database,
+        globalLogger);
+      const collectionFactory = CollectionFactoryFactory.createMongo(mongoClient);
+      return BluebirdPromise.resolve(new UserDataStore(collectionFactory));
     }
 
     return BluebirdPromise.reject(new Error("Storage backend incorrectly configured."));
@@ -64,8 +64,12 @@ class UserDataStoreFactory {
 }
 
 export class ServerVariablesInitializer {
-  static initialize(config: Configuration.Configuration, requestLogger: IRequestLogger,
+  static initialize(
+    config: Configuration.Configuration,
+    globalLogger: IGlobalLogger,
+    requestLogger: IRequestLogger,
     deps: GlobalDependencies): BluebirdPromise<ServerVariables> {
+
     const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
     const notifier = NotifierFactory.build(config.notifier, mailSenderBuilder);
     const ldapClientFactory = new LdapClientFactory(config.ldap, deps.ldapjs);
@@ -78,7 +82,7 @@ export class ServerVariablesInitializer {
     const accessController = new AccessController(config.access_control, deps.winston);
     const totpHandler = new TotpHandler(deps.speakeasy);
 
-    return UserDataStoreFactory.create(config)
+    return UserDataStoreFactory.create(config, globalLogger)
       .then(function (userDataStore: UserDataStore) {
         const regulator = new Regulator(userDataStore, config.regulation.max_retries,
           config.regulation.find_time, config.regulation.ban_time);

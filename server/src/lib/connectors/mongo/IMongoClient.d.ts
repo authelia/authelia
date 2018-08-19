@@ -1,5 +1,6 @@
 import MongoDB = require("mongodb");
+import Bluebird = require("bluebird");
 
 export interface IMongoClient {
-    collection(name: string): MongoDB.Collection;
+    collection(name: string): Bluebird<MongoDB.Collection>
 }

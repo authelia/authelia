@@ -14,6 +14,6 @@ export class MongoCollectionFactory implements ICollectionFactory {
   }
 
   build(collectionName: string): ICollection {
-    return new MongoCollection(this.mongoClient.collection(collectionName));
+    return new MongoCollection(collectionName, this.mongoClient);
   }
 }
