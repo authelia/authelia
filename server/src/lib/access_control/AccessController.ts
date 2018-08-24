@@ -1,11 +1,9 @@
 
-import { ACLConfiguration, ACLPolicy, ACLRule, ACLWhitelisted } from "../configuration/schema/AclConfiguration";
+import { ACLConfiguration, ACLPolicy, ACLRule } from "../configuration/schema/AclConfiguration";
 import { IAccessController } from "./IAccessController";
 import { Winston } from "../../../types/Dependencies";
 import { MultipleDomainMatcher } from "./MultipleDomainMatcher";
-
 import ipRangeCheck = require("ip-range-check");
-
 
 enum AccessReturn {
   NO_MATCHING_RULES,
