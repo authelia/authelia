@@ -1,8 +1,8 @@
 import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
-import { ILdapClient } from "./ILdapClient";
+import { IConnector } from "./IConnector";
 
-export class LdapClientStub implements ILdapClient {
+export class ConnectorStub implements IConnector {
   bindAsyncStub: Sinon.SinonStub;
   unbindAsyncStub: Sinon.SinonStub;
   searchAsyncStub: Sinon.SinonStub;

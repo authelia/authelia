@@ -1,15 +1,15 @@
 
 import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
-import { Client } from "./Client";
-import { LdapClientFactoryStub } from "./LdapClientFactoryStub.spec";
-import { LdapClientStub } from "./LdapClientStub.spec";
+import { Session } from "./Session";
+import { ConnectorFactoryStub } from "./connector/ConnectorFactoryStub.spec";
+import { ConnectorStub } from "./connector/ConnectorStub.spec";
 
 import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
 import Winston = require("winston");
 
-describe("ldap/Client", function () {
+describe("ldap/Session", function () {
   const USERNAME = "username";
   const ADMIN_USER_DN = "cn=admin,dc=example,dc=com";
   const ADMIN_PASSWORD = "password";
@@ -27,18 +27,15 @@ describe("ldap/Client", function () {
       user: "cn=admin,dc=example,dc=com",
       password: "password"
     };
-    const factory = new LdapClientFactoryStub();
-    const ldapClient = new LdapClientStub();
-
-    factory.createStub.returns(ldapClient);
-    ldapClient.searchAsyncStub.returns(BluebirdPromise.resolve([{
+    const connectorStub = new ConnectorStub();
+    connectorStub.searchAsyncStub.returns(BluebirdPromise.resolve([{
       cn: "group1"
     }]));
-    const client = new Client(ADMIN_USER_DN, ADMIN_PASSWORD, options, factory, Winston);
+    const client = new Session(ADMIN_USER_DN, ADMIN_PASSWORD, options, connectorStub, Winston);
 
     return client.searchGroups("user1")
       .then(function () {
-        Assert.equal(ldapClient.searchAsyncStub.getCall(0).args[1].filter,
+        Assert.equal(connectorStub.searchAsyncStub.getCall(0).args[1].filter,
           "member=cn=user1,ou=users,dc=example,dc=com");
       });
   });
@@ -57,10 +54,7 @@ describe("ldap/Client", function () {
       user: "cn=admin,dc=example,dc=com",
       password: "password"
     };
-    const factory = new LdapClientFactoryStub();
-    const ldapClient = new LdapClientStub();
-
-    factory.createStub.returns(ldapClient);
+    const ldapClient = new ConnectorStub();
 
     // Retrieve user DN
     ldapClient.searchAsyncStub.withArgs("ou=users,dc=example,dc=com", {
@@ -81,7 +75,7 @@ describe("ldap/Client", function () {
       cn: "group1"
     }]));
 
-    const client = new Client(ADMIN_USER_DN, ADMIN_PASSWORD, options, factory, Winston);
+    const client = new Session(ADMIN_USER_DN, ADMIN_PASSWORD, options, ldapClient, Winston);
 
     return client.searchGroups("user1")
       .then(function (groups: string[]) {
@@ -103,13 +97,9 @@ describe("ldap/Client", function () {
       user: "cn=admin,dc=example,dc=com",
       password: "password"
     };
-    const factory = new LdapClientFactoryStub();
-    const ldapClient = new LdapClientStub();
-
-    factory.createStub.returns(ldapClient);
-
+    const connector = new ConnectorStub();
     // Retrieve user DN
-    ldapClient.searchAsyncStub.withArgs("ou=users,dc=example,dc=com", {
+    connector.searchAsyncStub.withArgs("ou=users,dc=example,dc=com", {
       scope: "sub",
       sizeLimit: 1,
       attributes: ["dn"],
@@ -119,7 +109,7 @@ describe("ldap/Client", function () {
     }]));
 
     // Retrieve email
-    ldapClient.searchAsyncStub.withArgs("cn=user1,ou=users,dc=example,dc=com", {
+    connector.searchAsyncStub.withArgs("cn=user1,ou=users,dc=example,dc=com", {
       scope: "base",
       sizeLimit: 1,
       attributes: ["custom_mail"],
@@ -127,7 +117,7 @@ describe("ldap/Client", function () {
       custom_mail: "user1@example.com"
     }]));
 
-    const client = new Client(ADMIN_USER_DN, ADMIN_PASSWORD, options, factory, Winston);
+    const client = new Session(ADMIN_USER_DN, ADMIN_PASSWORD, options, connector, Winston);
 
     return client.searchEmails("user1")
       .then(function (emails: string[]) {

@@ -1,30 +1,29 @@
 import BluebirdPromise = require("bluebird");
-import { IClient, GroupsAndEmails } from "./IClient";
-import { Client } from "./Client";
-import { InputsSanitizer } from "./InputsSanitizer";
+import { ISession, GroupsAndEmails } from "./ISession";
+import { Sanitizer } from "./Sanitizer";
 
 const SPECIAL_CHAR_USED_MESSAGE = "Special character used in LDAP query.";
 
 
-export class SanitizedClient implements IClient {
-  private client: IClient;
+export class SafeSession implements ISession {
+  private sesion: ISession;
 
-  constructor(client: IClient) {
-    this.client = client;
+  constructor(sesion: ISession) {
+    this.sesion = sesion;
   }
 
   open(): BluebirdPromise<void> {
-    return this.client.open();
+    return this.sesion.open();
   }
 
   close(): BluebirdPromise<void> {
-    return this.client.close();
+    return this.sesion.close();
   }
 
   searchGroups(username: string): BluebirdPromise<string[]> {
     try {
-      const sanitizedUsername = InputsSanitizer.sanitize(username);
-      return this.client.searchGroups(sanitizedUsername);
+      const sanitizedUsername = Sanitizer.sanitize(username);
+      return this.sesion.searchGroups(sanitizedUsername);
     }
     catch (e) {
       return BluebirdPromise.reject(new Error(SPECIAL_CHAR_USED_MESSAGE));
@@ -33,8 +32,8 @@ export class SanitizedClient implements IClient {
 
   searchUserDn(username: string): BluebirdPromise<string> {
     try {
-      const sanitizedUsername = InputsSanitizer.sanitize(username);
-      return this.client.searchUserDn(sanitizedUsername);
+      const sanitizedUsername = Sanitizer.sanitize(username);
+      return this.sesion.searchUserDn(sanitizedUsername);
     }
     catch (e) {
       return BluebirdPromise.reject(new Error(SPECIAL_CHAR_USED_MESSAGE));
@@ -43,8 +42,8 @@ export class SanitizedClient implements IClient {
 
   searchEmails(username: string): BluebirdPromise<string[]> {
     try {
-      const sanitizedUsername = InputsSanitizer.sanitize(username);
-      return this.client.searchEmails(sanitizedUsername);
+      const sanitizedUsername = Sanitizer.sanitize(username);
+      return this.sesion.searchEmails(sanitizedUsername);
     }
     catch (e) {
       return BluebirdPromise.reject(new Error(SPECIAL_CHAR_USED_MESSAGE));
@@ -53,8 +52,8 @@ export class SanitizedClient implements IClient {
 
   modifyPassword(username: string, newPassword: string): BluebirdPromise<void> {
     try {
-      const sanitizedUsername = InputsSanitizer.sanitize(username);
-      return this.client.modifyPassword(sanitizedUsername, newPassword);
+      const sanitizedUsername = Sanitizer.sanitize(username);
+      return this.sesion.modifyPassword(sanitizedUsername, newPassword);
     }
     catch (e) {
       return BluebirdPromise.reject(new Error(SPECIAL_CHAR_USED_MESSAGE));

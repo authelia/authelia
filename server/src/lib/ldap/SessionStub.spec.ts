@@ -1,9 +1,9 @@
-
-import BluebirdPromise = require("bluebird");
-import { IClient, GroupsAndEmails } from "./IClient";
+import Bluebird = require("bluebird");
 import Sinon = require("sinon");
 
-export class ClientStub implements IClient {
+import { ISession, GroupsAndEmails } from "./ISession";
+
+export class SessionStub implements ISession {
   openStub: Sinon.SinonStub;
   closeStub: Sinon.SinonStub;
   searchUserDnStub: Sinon.SinonStub;
@@ -20,27 +20,27 @@ export class ClientStub implements IClient {
     this.modifyPasswordStub = Sinon.stub();
   }
 
-  open(): BluebirdPromise<void> {
+  open(): Bluebird<void> {
     return this.openStub();
   }
 
-  close(): BluebirdPromise<void> {
+  close(): Bluebird<void> {
     return this.closeStub();
   }
 
-  searchUserDn(username: string): BluebirdPromise<string> {
+  searchUserDn(username: string): Bluebird<string> {
     return this.searchUserDnStub(username);
   }
 
-  searchEmails(username: string): BluebirdPromise<string[]> {
+  searchEmails(username: string): Bluebird<string[]> {
     return this.searchEmailsStub(username);
   }
 
-  searchGroups(username: string): BluebirdPromise<string[]> {
+  searchGroups(username: string): Bluebird<string[]> {
     return this.searchGroupsStub(username);
   }
 
-  modifyPassword(username: string, newPassword: string): BluebirdPromise<void> {
+  modifyPassword(username: string, newPassword: string): Bluebird<void> {
     return this.modifyPasswordStub(username, newPassword);
   }
 }

@@ -1,17 +1,17 @@
 import BluebirdPromise = require("bluebird");
-import { ClientStub } from "./ClientStub.spec";
-import { SanitizedClient } from "./SanitizedClient";
+import { SessionStub } from "./SessionStub.spec";
+import { SafeSession } from "./SafeSession";
 
 describe("ldap/SanitizedClient", function () {
-  let client: SanitizedClient;
+  let client: SafeSession;
 
   beforeEach(function () {
-    const clientStub = new ClientStub();
+    const clientStub = new SessionStub();
     clientStub.searchUserDnStub.onCall(0).returns(BluebirdPromise.resolve());
     clientStub.searchGroupsStub.onCall(0).returns(BluebirdPromise.resolve());
     clientStub.searchEmailsStub.onCall(0).returns(BluebirdPromise.resolve());
     clientStub.modifyPasswordStub.onCall(0).returns(BluebirdPromise.resolve());
-    client = new SanitizedClient(clientStub);
+    client = new SafeSession(clientStub);
   });
 
   describe("special chars are used", function () {
