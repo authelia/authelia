@@ -12,60 +12,51 @@ export default function (req: Express.Request, res: Express.Response,
   vars: ServerVariables, authorizationHeader: string)
   : BluebirdPromise<{ username: string, groups: string[] }> {
   let username: string;
-  let groups: string[];
   let domain: string;
   let originalUri: string;
 
-  return new BluebirdPromise<[string, string]>(function (resolve, reject) {
-    const originalUrl = ObjectPath.get<Express.Request, string>(req, "headers.x-original-url");
-    domain = DomainExtractor.fromUrl(originalUrl);
-    originalUri =
-      ObjectPath.get<Express.Request, string>(req, "headers.x-original-uri");
-    const authenticationMethod =
-      MethodCalculator.compute(vars.config.authentication_methods, domain);
+  return BluebirdPromise.resolve()
+    .then(() => {
+      const originalUrl = ObjectPath.get<Express.Request, string>(req, "headers.x-original-url");
+      domain = DomainExtractor.fromUrl(originalUrl);
+      originalUri =
+        ObjectPath.get<Express.Request, string>(req, "headers.x-original-uri");
+      const authenticationMethod =
+        MethodCalculator.compute(vars.config.authentication_methods, domain);
 
-    if (authenticationMethod != "single_factor") {
-      reject(new Error("This domain is not protected with single factor. " +
-        "You cannot log in with basic authentication."));
-      return;
-    }
+      if (authenticationMethod != "single_factor") {
+        return BluebirdPromise.reject(new Error("This domain is not protected with single factor. " +
+          "You cannot log in with basic authentication."));
+      }
 
-    const base64Re = new RegExp("^Basic ((?:[A-Za-z0-9+/]{4})*" +
-      "(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?)$");
-    const isTokenValidBase64 = base64Re.test(authorizationHeader);
+      const base64Re = new RegExp("^Basic ((?:[A-Za-z0-9+/]{4})*" +
+        "(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?)$");
+      const isTokenValidBase64 = base64Re.test(authorizationHeader);
 
-    if (!isTokenValidBase64) {
-      reject(new Error("No valid base64 token found in the header"));
-      return;
-    }
+      if (!isTokenValidBase64) {
+        return BluebirdPromise.reject(new Error("No valid base64 token found in the header"));
+      }
 
-    const tokenMatches = authorizationHeader.match(base64Re);
-    const base64Token = tokenMatches[1];
-    const decodedToken = Buffer.from(base64Token, "base64").toString();
-    const splittedToken = decodedToken.split(":");
+      const tokenMatches = authorizationHeader.match(base64Re);
+      const base64Token = tokenMatches[1];
+      const decodedToken = Buffer.from(base64Token, "base64").toString();
+      const splittedToken = decodedToken.split(":");
 
-    if (splittedToken.length != 2) {
-      reject(new Error(
-        "The authorization token is invalid. Expecting 'userid:password'"));
-      return;
-    }
+      if (splittedToken.length != 2) {
+        return BluebirdPromise.reject(new Error(
+          "The authorization token is invalid. Expecting 'userid:password'"));
+      }
 
-    username = splittedToken[0];
-    const password = splittedToken[1];
-    resolve([username, password]);
-  })
-    .then(function ([userid, password]) {
-      return vars.ldapAuthenticator.authenticate(userid, password);
+      username = splittedToken[0];
+      const password = splittedToken[1];
+      return vars.usersDatabase.checkUserPassword(username, password);
     })
     .then(function (groupsAndEmails) {
-      groups = groupsAndEmails.groups;
-      return AccessControl(req, vars, domain, originalUri, username, groups);
-    })
-    .then(function () {
-      return BluebirdPromise.resolve({
-        username: username,
-        groups: groups
-      });
+      return AccessControl(req, vars, domain, originalUri, username, groupsAndEmails.groups)
+        .then(() => BluebirdPromise.resolve({
+          username: username,
+          groups: groupsAndEmails.groups
+        }));
     })
     .catch(function (err: Error) {
       return BluebirdPromise.reject(

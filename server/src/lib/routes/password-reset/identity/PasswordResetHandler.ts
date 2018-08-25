@@ -8,17 +8,17 @@ import { IdentityValidable } from "../../../IdentityValidable";
 import { PRE_VALIDATION_TEMPLATE } from "../../../IdentityCheckPreValidationTemplate";
 import Constants = require("../constants");
 import { IRequestLogger } from "../../../logging/IRequestLogger";
-import { IEmailsRetriever } from "../../../ldap/IEmailsRetriever";
+import { IUsersDatabase } from "../../../ldap/IUsersDatabase";
 
 export const TEMPLATE_NAME = "password-reset-form";
 
 export default class PasswordResetHandler implements IdentityValidable {
   private logger: IRequestLogger;
-  private emailsRetriever: IEmailsRetriever;
+  private usersDatabase: IUsersDatabase;
 
-  constructor(logger: IRequestLogger, emailsRetriever: IEmailsRetriever) {
+  constructor(logger: IRequestLogger, usersDatabase: IUsersDatabase) {
     this.logger = logger;
-    this.emailsRetriever = emailsRetriever;
+    this.usersDatabase = usersDatabase;
   }
 
   challenge(): string {
@@ -36,7 +36,7 @@ export default class PasswordResetHandler implements IdentityValidable {
           return BluebirdPromise.reject(
             new exceptions.AccessDeniedError("No user id provided"));
 
-        return that.emailsRetriever.retrieve(userid);
+        return that.usersDatabase.getEmails(userid);
       })
       .then(function (emails: string[]) {
         if (!emails && emails.length <= 0) throw new Error("No email found");

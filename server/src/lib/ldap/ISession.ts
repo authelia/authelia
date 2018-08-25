@@ -6,9 +6,10 @@ export interface GroupsAndEmails {
   emails: string[];
 }
 
-export interface IClient {
+export interface ISession {
   open(): BluebirdPromise<void>;
   close(): BluebirdPromise<void>;
+
   searchUserDn(username: string): BluebirdPromise<string>;
   searchEmails(username: string): BluebirdPromise<string[]>;
   searchGroups(username: string): BluebirdPromise<string[]>;

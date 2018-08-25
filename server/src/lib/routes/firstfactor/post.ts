@@ -5,7 +5,6 @@ import BluebirdPromise = require("bluebird");
 import express = require("express");
 import { AccessController } from "../../access_control/AccessController";
 import { Regulator } from "../../regulation/Regulator";
-import { GroupsAndEmails } from "../../ldap/IClient";
 import Endpoint = require("../../../../../shared/api");
 import ErrorReplies = require("../../ErrorReplies");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
@@ -15,6 +14,7 @@ import UserMessages = require("../../../../../shared/UserMessages");
 import { MethodCalculator } from "../../authentication/MethodCalculator";
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
+import { GroupsAndEmails } from "../../ldap/ISession";
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)
@@ -34,7 +34,7 @@ export default function (vars: ServerVariables) {
       })
       .then(function () {
         vars.logger.info(req, "No regulation applied.");
-        return vars.ldapAuthenticator.authenticate(username, password);
+        return vars.usersDatabase.checkUserPassword(username, password);
       })
       .then(function (groupsAndEmails: GroupsAndEmails) {
         vars.logger.info(req,

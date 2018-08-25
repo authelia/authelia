@@ -1,18 +1,17 @@
 import BluebirdPromise = require("bluebird");
 import exceptions = require("../Exceptions");
 import { EventEmitter } from "events";
-import { IClient, GroupsAndEmails } from "./IClient";
-import { ILdapClient } from "./ILdapClient";
-import { ILdapClientFactory } from "./ILdapClientFactory";
+import { ISession, GroupsAndEmails } from "./ISession";
 import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
 import { Winston } from "../../../types/Dependencies";
 import Util = require("util");
 import { HashGenerator } from "../utils/HashGenerator";
+import { IConnector } from "./connector/IConnector";
 
-export class Client implements IClient {
+export class Session implements ISession {
   private userDN: string;
   private password: string;
-  private ldapClient: ILdapClient;
+  private connector: IConnector;
   private logger: Winston;
   private options: LdapConfiguration;
 
@@ -20,12 +19,12 @@ export class Client implements IClient {
   private usersSearchBase: string;
 
   constructor(userDN: string, password: string, options: LdapConfiguration,
-    ldapClientFactory: ILdapClientFactory, logger: Winston) {
+    connector: IConnector, logger: Winston) {
     this.options = options;
     this.logger = logger;
     this.userDN = userDN;
     this.password = password;
-    this.ldapClient = ldapClientFactory.create();
+    this.connector = connector;
 
     this.groupsSearchBase = (this.options.additional_groups_dn)
       ? Util.format("%s,%s", this.options.additional_groups_dn, this.options.base_dn)
@@ -38,7 +37,7 @@ export class Client implements IClient {
 
   open(): BluebirdPromise<void> {
     this.logger.debug("LDAP: Bind user '%s'", this.userDN);
-    return this.ldapClient.bindAsync(this.userDN, this.password)
+    return this.connector.bindAsync(this.userDN, this.password)
       .error(function (err: Error) {
         return BluebirdPromise.reject(new exceptions.LdapBindError(err.message));
       });
@@ -46,7 +45,7 @@ export class Client implements IClient {
 
   close(): BluebirdPromise<void> {
     this.logger.debug("LDAP: Unbind user '%s'", this.userDN);
-    return this.ldapClient.unbindAsync()
+    return this.connector.unbindAsync()
       .error(function (err: Error) {
         return BluebirdPromise.reject(new exceptions.LdapBindError(err.message));
       });
@@ -75,7 +74,7 @@ export class Client implements IClient {
           attributes: [that.options.group_name_attribute],
           filter: groupsFilter
         };
-        return that.ldapClient.searchAsync(that.groupsSearchBase, query);
+        return that.connector.searchAsync(that.groupsSearchBase, query);
       })
       .then(function (docs: { cn: string }[]) {
         const groups = docs.map((doc: any) => { return doc.cn; });
@@ -96,7 +95,7 @@ export class Client implements IClient {
     };
 
     that.logger.debug("LDAP: searching for user dn of %s", username);
-    return that.ldapClient.searchAsync(this.usersSearchBase, query)
+    return that.connector.searchAsync(this.usersSearchBase, query)
       .then(function (users: { dn: string }[]) {
         if (users.length > 0) {
           that.logger.debug("LDAP: retrieved user dn is %s", users[0].dn);
@@ -117,7 +116,7 @@ export class Client implements IClient {
 
     return this.searchUserDn(username)
       .then(function (userDN) {
-        return that.ldapClient.searchAsync(userDN, query);
+        return that.connector.searchAsync(userDN, query);
       })
       .then(function (docs: { [mail_attribute: string]: string }[]) {
         const emails: string[] = docs
@@ -148,10 +147,10 @@ export class Client implements IClient {
           }
         };
         that.logger.debug("Password new='%s'", change.modification.userPassword);
-        return that.ldapClient.modifyAsync(res[1], change);
+        return that.connector.modifyAsync(res[1], change);
       })
       .then(function () {
-        return that.ldapClient.unbindAsync();
+        return that.connector.unbindAsync();
       });
   }
 }

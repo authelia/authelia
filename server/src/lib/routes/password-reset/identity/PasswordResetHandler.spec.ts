@@ -1,7 +1,6 @@
 
 import PasswordResetHandler
   from "./PasswordResetHandler";
-import PasswordUpdater = require("../../../ldap/PasswordUpdater");
 import { UserDataStore } from "../../../storage/UserDataStore";
 import Sinon = require("sinon");
 import winston = require("winston");
@@ -60,7 +59,7 @@ describe("routes/password-reset/identity/PasswordResetHandler", function () {
     it("should fail when no userid is provided", function () {
       req.query.userid = undefined;
       const handler = new PasswordResetHandler(vars.logger,
-        vars.ldapEmailsRetriever);
+        vars.usersDatabase);
       return handler.preValidationInit(req as any)
         .then(function () {
           return BluebirdPromise.reject("It should fail");
@@ -71,9 +70,9 @@ describe("routes/password-reset/identity/PasswordResetHandler", function () {
     });
 
     it("should fail if ldap fail", function () {
-      mocks.ldapEmailsRetriever.retrieveStub
+      mocks.usersDatabase.getEmailsStub
         .returns(BluebirdPromise.reject("Internal error"));
-      new PasswordResetHandler(vars.logger, vars.ldapEmailsRetriever)
+      new PasswordResetHandler(vars.logger, vars.usersDatabase)
         .preValidationInit(req as any)
         .then(function () {
           return BluebirdPromise.reject(new Error("should not be here"));
@@ -84,9 +83,9 @@ describe("routes/password-reset/identity/PasswordResetHandler", function () {
     });
 
     it("should returns identity when ldap replies", function () {
-      mocks.ldapEmailsRetriever.retrieveStub
+      mocks.usersDatabase.getEmailsStub
         .returns(BluebirdPromise.resolve(["test@example.com"]));
-      return new PasswordResetHandler(vars.logger, vars.ldapEmailsRetriever)
+      return new PasswordResetHandler(vars.logger, vars.usersDatabase)
         .preValidationInit(req as any);
     });
   });

@@ -104,7 +104,7 @@ function setupResetPassword(app: Express.Application, vars: ServerVariables) {
   IdentityCheckMiddleware.register(app,
     Endpoints.RESET_PASSWORD_IDENTITY_START_GET,
     Endpoints.RESET_PASSWORD_IDENTITY_FINISH_GET,
-    new ResetPasswordIdentityHandler(vars.logger, vars.ldapEmailsRetriever),
+    new ResetPasswordIdentityHandler(vars.logger, vars.usersDatabase),
     vars);
 
   app.get(Endpoints.RESET_PASSWORD_REQUEST_GET,

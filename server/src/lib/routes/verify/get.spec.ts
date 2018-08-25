@@ -1,12 +1,13 @@
 
 import Assert = require("assert");
+import BluebirdPromise = require("bluebird");
+import Express = require("express");
+import Sinon = require("sinon");
+import winston = require("winston");
+
 import VerifyGet = require("./get");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
-import Sinon = require("sinon");
-import winston = require("winston");
-import BluebirdPromise = require("bluebird");
-import express = require("express");
 import ExpressMock = require("../../stubs/express.spec");
 import { ServerVariables } from "../../ServerVariables";
 import { ServerVariablesMockBuilder, ServerVariablesMock } from "../../ServerVariablesMockBuilder.spec";
@@ -44,7 +45,7 @@ describe("routes/verify/get", function () {
       authSession.second_factor = true;
       authSession.userid = "myuser";
       authSession.groups = ["mygroup", "othergroup"];
-      return VerifyGet.default(vars)(req as express.Request, res as any)
+      return VerifyGet.default(vars)(req as Express.Request, res as any)
         .then(function () {
           Sinon.assert.calledWithExactly(res.setHeader, "Remote-User", "myuser");
           Sinon.assert.calledWithExactly(res.setHeader, "Remote-Groups", "mygroup,othergroup");
@@ -53,7 +54,7 @@ describe("routes/verify/get", function () {
     });
 
     function test_session(_authSession: AuthenticationSession, status_code: number) {
-      return VerifyGet.default(vars)(req as express.Request, res as any)
+      return VerifyGet.default(vars)(req as Express.Request, res as any)
         .then(function () {
           Assert.equal(status_code, res.status.getCall(0).args[0]);
         });
@@ -156,7 +157,7 @@ describe("routes/verify/get", function () {
         mocks.accessController.isAccessAllowedMock.returns(true);
         authSession.first_factor = true;
         authSession.userid = "user1";
-        return VerifyGet.default(vars)(req as express.Request, res as any)
+        return VerifyGet.default(vars)(req as Express.Request, res as any)
           .then(function () {
             Assert(res.status.calledWith(204));
             Assert(res.send.calledOnce);
@@ -166,7 +167,7 @@ describe("routes/verify/get", function () {
       it("should be rejected with 401 when first factor is not validated", function () {
         mocks.accessController.isAccessAllowedMock.returns(true);
         authSession.first_factor = false;
-        return VerifyGet.default(vars)(req as express.Request, res as any)
+        return VerifyGet.default(vars)(req as Express.Request, res as any)
           .then(function () {
             Assert(res.status.calledWith(401));
           });
@@ -184,7 +185,7 @@ describe("routes/verify/get", function () {
         authSession.userid = "myuser";
         authSession.groups = ["mygroup", "othergroup"];
         authSession.last_activity_datetime = currentTime;
-        return VerifyGet.default(vars)(req as express.Request, res as any)
+        return VerifyGet.default(vars)(req as Express.Request, res as any)
           .then(function () {
             return AuthenticationSessionHandler.get(req as any, vars.logger);
           })
@@ -203,7 +204,7 @@ describe("routes/verify/get", function () {
         authSession.userid = "myuser";
         authSession.groups = ["mygroup", "othergroup"];
         authSession.last_activity_datetime = currentTime;
-        return VerifyGet.default(vars)(req as express.Request, res as any)
+        return VerifyGet.default(vars)(req as Express.Request, res as any)
           .then(function () {
             return AuthenticationSessionHandler.get(req as any, vars.logger);
           })
@@ -220,11 +221,11 @@ describe("routes/verify/get", function () {
     it("should return error code 401", function() {
       mocks.accessController.isAccessAllowedMock.returns(true);
       mocks.config.authentication_methods.default_method = "single_factor";
-      mocks.ldapAuthenticator.authenticateStub.rejects(new Error(
+      mocks.usersDatabase.checkUserPasswordStub.rejects(new Error(
         "Invalid credentials"));
       req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
 
-      return VerifyGet.default(vars)(req as express.Request, res as any)
+      return VerifyGet.default(vars)(req as Express.Request, res as any)
         .then(function () {
           Assert(res.status.calledWithExactly(401));
         });
@@ -234,12 +235,12 @@ describe("routes/verify/get", function () {
       const REDIRECT_URL = "http://redirection_url.com";
       mocks.accessController.isAccessAllowedMock.returns(true);
       mocks.config.authentication_methods.default_method = "single_factor";
-      mocks.ldapAuthenticator.authenticateStub.rejects(new Error(
+      mocks.usersDatabase.checkUserPasswordStub.rejects(new Error(
         "Invalid credentials"));
       req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
       req.query["rd"] = REDIRECT_URL;
 
-      return VerifyGet.default(vars)(req as express.Request, res as any)
+      return VerifyGet.default(vars)(req as Express.Request, res as any)
         .then(function () {
           Assert(res.redirect.calledWithExactly(REDIRECT_URL));
         });
@@ -250,12 +251,12 @@ describe("routes/verify/get", function () {
     it("should authenticate correctly", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
       mocks.config.authentication_methods.default_method = "single_factor";
-      mocks.ldapAuthenticator.authenticateStub.returns({
+      mocks.usersDatabase.checkUserPasswordStub.returns({
         groups: ["mygroup", "othergroup"],
       });
       req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
 
-      return VerifyGet.default(vars)(req as express.Request, res as any)
+      return VerifyGet.default(vars)(req as Express.Request, res as any)
         .then(function () {
           Sinon.assert.calledWithExactly(res.setHeader, "Remote-User", "john");
           Sinon.assert.calledWithExactly(res.setHeader, "Remote-Groups", "mygroup,othergroup");
@@ -269,12 +270,12 @@ describe("routes/verify/get", function () {
       mocks.config.authentication_methods.per_subdomain_methods = {
         "secret.example.com": "two_factor"
       };
-      mocks.ldapAuthenticator.authenticateStub.resolves({
+      mocks.usersDatabase.checkUserPasswordStub.resolves({
         groups: ["mygroup", "othergroup"],
       });
       req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
 
-      return VerifyGet.default(vars)(req as express.Request, res as any)
+      return VerifyGet.default(vars)(req as Express.Request, res as any)
         .then(function () {
           Assert(res.status.calledWithExactly(401));
         });
@@ -283,12 +284,12 @@ describe("routes/verify/get", function () {
     it("should fail when base64 token is not valid", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
       mocks.config.authentication_methods.default_method = "single_factor";
-      mocks.ldapAuthenticator.authenticateStub.resolves({
+      mocks.usersDatabase.checkUserPasswordStub.resolves({
         groups: ["mygroup", "othergroup"],
       });
       req.headers["proxy-authorization"] = "Basic i_m*not_a_base64*token";
 
-      return VerifyGet.default(vars)(req as express.Request, res as any)
+      return VerifyGet.default(vars)(req as Express.Request, res as any)
         .then(function () {
           Assert(res.status.calledWithExactly(401));
         });
@@ -297,12 +298,12 @@ describe("routes/verify/get", function () {
     it("should fail when base64 token has not format user:psswd", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
       mocks.config.authentication_methods.default_method = "single_factor";
-      mocks.ldapAuthenticator.authenticateStub.resolves({
+      mocks.usersDatabase.checkUserPasswordStub.resolves({
         groups: ["mygroup", "othergroup"],
       });
       req.headers["proxy-authorization"] = "Basic am9objpwYXNzOmJhZA==";
 
-      return VerifyGet.default(vars)(req as express.Request, res as any)
+      return VerifyGet.default(vars)(req as Express.Request, res as any)
         .then(function () {
           Assert(res.status.calledWithExactly(401));
         });
@@ -311,11 +312,11 @@ describe("routes/verify/get", function () {
     it("should fail when bad user password is provided", function () {
       mocks.accessController.isAccessAllowedMock.returns(true);
       mocks.config.authentication_methods.default_method = "single_factor";
-      mocks.ldapAuthenticator.authenticateStub.rejects(new Error(
+      mocks.usersDatabase.checkUserPasswordStub.rejects(new Error(
         "Invalid credentials"));
       req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
 
-      return VerifyGet.default(vars)(req as express.Request, res as any)
+      return VerifyGet.default(vars)(req as Express.Request, res as any)
         .then(function () {
           Assert(res.status.calledWithExactly(401));
         });
@@ -324,12 +325,12 @@ describe("routes/verify/get", function () {
     it("should fail when resource is restricted", function () {
       mocks.accessController.isAccessAllowedMock.returns(false);
       mocks.config.authentication_methods.default_method = "single_factor";
-      mocks.ldapAuthenticator.authenticateStub.resolves({
+      mocks.usersDatabase.checkUserPasswordStub.resolves({
         groups: ["mygroup", "othergroup"],
       });
       req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
 
-      return VerifyGet.default(vars)(req as express.Request, res as any)
+      return VerifyGet.default(vars)(req as Express.Request, res as any)
         .then(function () {
           Assert(res.status.calledWithExactly(401));
         });
