@@ -1,11 +1,11 @@
 import BluebirdPromise = require("bluebird");
-import exceptions = require("../Exceptions");
+import exceptions = require("../../../Exceptions");
 import { EventEmitter } from "events";
-import { ISession, GroupsAndEmails } from "./ISession";
-import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
-import { Winston } from "../../../types/Dependencies";
+import { ISession } from "./ISession";
+import { LdapConfiguration } from "../../../configuration/schema/LdapConfiguration";
+import { Winston } from "../../../../../types/Dependencies";
 import Util = require("util");
-import { HashGenerator } from "../utils/HashGenerator";
+import { HashGenerator } from "../../../utils/HashGenerator";
 import { IConnector } from "./connector/IConnector";
 
 export class Session implements ISession {

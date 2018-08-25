@@ -1,4 +1,3 @@
-
 import Bluebird = require("bluebird");
 import EventEmitter = require("events");
 

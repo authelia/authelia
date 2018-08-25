@@ -1,6 +1,6 @@
 import { IConnector } from "./IConnector";
 import { Connector } from "./Connector";
-import { LdapConfiguration } from "../../configuration/schema/LdapConfiguration";
+import { LdapConfiguration } from "../../../../configuration/schema/LdapConfiguration";
 import { Ldapjs } from "Dependencies";
 
 export class ConnectorFactory {

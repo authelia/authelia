@@ -8,7 +8,7 @@ import { IdentityValidable } from "../../../IdentityValidable";
 import { PRE_VALIDATION_TEMPLATE } from "../../../IdentityCheckPreValidationTemplate";
 import Constants = require("../constants");
 import { IRequestLogger } from "../../../logging/IRequestLogger";
-import { IUsersDatabase } from "../../../ldap/IUsersDatabase";
+import { IUsersDatabase } from "../../../authentication/backends/IUsersDatabase";
 
 export const TEMPLATE_NAME = "password-reset-form";
 

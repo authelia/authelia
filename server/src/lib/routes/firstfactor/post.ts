@@ -14,7 +14,7 @@ import UserMessages = require("../../../../../shared/UserMessages");
 import { MethodCalculator } from "../../authentication/MethodCalculator";
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
-import { GroupsAndEmails } from "../../ldap/ISession";
+import { GroupsAndEmails } from "../../authentication/backends/GroupsAndEmails";
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)

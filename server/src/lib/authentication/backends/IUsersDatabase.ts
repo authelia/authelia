@@ -1,5 +1,6 @@
 import Bluebird = require("bluebird");
-import { GroupsAndEmails } from "./ISession";
+
+import { GroupsAndEmails } from "./GroupsAndEmails";
 
 export interface IUsersDatabase {
   checkUserPassword(username: string, password: string): Bluebird<GroupsAndEmails>;

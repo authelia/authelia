@@ -1,6 +1,6 @@
 import { ACLConfiguration, complete as AclConfigurationComplete } from "./AclConfiguration";
 import { AuthenticationMethodsConfiguration, complete as AuthenticationMethodsConfigurationComplete } from "./AuthenticationMethodsConfiguration";
-import { LdapConfiguration, complete as LdapConfigurationComplete } from "./LdapConfiguration";
+import { AuthenticationBackendConfiguration, complete as AuthenticationBackendComplete } from "./AuthenticationBackendConfiguration";
 import { NotifierConfiguration, complete as NotifierConfigurationComplete } from "./NotifierConfiguration";
 import { RegulationConfiguration, complete as RegulationConfigurationComplete } from "./RegulationConfiguration";
 import { SessionConfiguration, complete as SessionConfigurationComplete } from "./SessionConfiguration";
@@ -10,7 +10,7 @@ import { MethodCalculator } from "../../authentication/MethodCalculator";
 
 export interface Configuration {
   access_control?: ACLConfiguration;
-  ldap: LdapConfiguration;
+  authentication_backend: AuthenticationBackendConfiguration;
   authentication_methods?: AuthenticationMethodsConfiguration;
   default_redirection_url?: string;
   logs_level?: string;
@@ -30,10 +30,16 @@ export function complete(
     JSON.stringify(configuration));
   const errors: string[] = [];
 
-  newConfiguration.access_control = AclConfigurationComplete(
-    newConfiguration.access_control);
-  newConfiguration.ldap = LdapConfigurationComplete(
-    newConfiguration.ldap);
+  newConfiguration.access_control =
+    AclConfigurationComplete(
+      newConfiguration.access_control);
+
+  const [backend, error] =
+    AuthenticationBackendComplete(
+      newConfiguration.authentication_backend);
+
+  if (error) errors.push(error);
+  newConfiguration.authentication_backend = backend;
 
   newConfiguration.authentication_methods =
     AuthenticationMethodsConfigurationComplete(

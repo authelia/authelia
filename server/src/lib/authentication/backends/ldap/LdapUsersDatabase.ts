@@ -1,9 +1,10 @@
 import Bluebird = require("bluebird");
-import { IUsersDatabase } from "./IUsersDatabase";
+import { IUsersDatabase } from "../IUsersDatabase";
 import { ISessionFactory } from "./ISessionFactory";
-import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
-import { ISession, GroupsAndEmails } from "./ISession";
-import Exceptions = require("../Exceptions");
+import { LdapConfiguration } from "../../../configuration/schema/LdapConfiguration";
+import { ISession } from "./ISession";
+import { GroupsAndEmails } from "../GroupsAndEmails";
+import Exceptions = require("../../../Exceptions");
 
 type SessionCallback<T> = (session: ISession) => Bluebird<T>;
 

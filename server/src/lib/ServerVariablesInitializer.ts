@@ -11,8 +11,8 @@ import { TotpHandler } from "./authentication/totp/TotpHandler";
 import { ITotpHandler } from "./authentication/totp/ITotpHandler";
 import { NotifierFactory } from "./notifiers/NotifierFactory";
 import { MailSenderBuilder } from "./notifiers/MailSenderBuilder";
-import { LdapUsersDatabase } from "./ldap/LdapUsersDatabase";
-import { ConnectorFactory } from "./ldap/connector/ConnectorFactory";
+import { LdapUsersDatabase } from "./authentication/backends/ldap/LdapUsersDatabase";
+import { ConnectorFactory } from "./authentication/backends/ldap/connector/ConnectorFactory";
 
 import { IUserDataStore } from "./storage/IUserDataStore";
 import { UserDataStore } from "./storage/UserDataStore";
@@ -32,7 +32,9 @@ import { ServerVariables } from "./ServerVariables";
 import { MethodCalculator } from "./authentication/MethodCalculator";
 import { MongoClient } from "./connectors/mongo/MongoClient";
 import { IGlobalLogger } from "./logging/IGlobalLogger";
-import { SessionFactory } from "./ldap/SessionFactory";
+import { SessionFactory } from "./authentication/backends/ldap/SessionFactory";
+import { IUsersDatabase } from "./authentication/backends/IUsersDatabase";
+import { FileUsersDatabase } from "./authentication/backends/file/FileUsersDatabase";
 
 class UserDataStoreFactory {
   static create(config: Configuration.Configuration, globalLogger: IGlobalLogger): BluebirdPromise<UserDataStore> {
@@ -58,24 +60,44 @@ class UserDataStoreFactory {
 }
 
 export class ServerVariablesInitializer {
+  static createUsersDatabase(
+    config: Configuration.Configuration,
+    deps: GlobalDependencies)
+    : IUsersDatabase {
+
+    if (config.authentication_backend.ldap) {
+      const ldapConfig = config.authentication_backend.ldap;
+      return new LdapUsersDatabase(
+        new SessionFactory(
+          ldapConfig,
+          new ConnectorFactory(ldapConfig, deps.ldapjs),
+          deps.winston
+        ),
+        ldapConfig
+      );
+    }
+    else if (config.authentication_backend.file) {
+      return new FileUsersDatabase(config.authentication_backend.file);
+    }
+  }
+
   static initialize(
     config: Configuration.Configuration,
     globalLogger: IGlobalLogger,
     requestLogger: IRequestLogger,
-    deps: GlobalDependencies): BluebirdPromise<ServerVariables> {
+    deps: GlobalDependencies)
+    : BluebirdPromise<ServerVariables> {
 
-    const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
-    const notifier = NotifierFactory.build(config.notifier, mailSenderBuilder);
-    const ldapUsersDatabase = new LdapUsersDatabase(
-      new SessionFactory(
-        config.ldap,
-        new ConnectorFactory(config.ldap, deps.ldapjs),
-        deps.winston
-      ),
-      config.ldap
-    );
-    const accessController = new AccessController(config.access_control, deps.winston);
-    const totpHandler = new TotpHandler(deps.speakeasy);
+    const mailSenderBuilder =
+      new MailSenderBuilder(Nodemailer);
+    const notifier = NotifierFactory.build(
+      config.notifier, mailSenderBuilder);
+    const accessController = new AccessController(
+      config.access_control, deps.winston);
+    const totpHandler = new TotpHandler(
+      deps.speakeasy);
+    const usersDatabase = this.createUsersDatabase(
+      config, deps);
 
     return UserDataStoreFactory.create(config, globalLogger)
       .then(function (userDataStore: UserDataStore) {
@@ -85,7 +107,7 @@ export class ServerVariablesInitializer {
         const variables: ServerVariables = {
           accessController: accessController,
           config: config,
-          usersDatabase: ldapUsersDatabase,
+          usersDatabase: usersDatabase,
           logger: requestLogger,
           notifier: notifier,
           regulator: regulator,

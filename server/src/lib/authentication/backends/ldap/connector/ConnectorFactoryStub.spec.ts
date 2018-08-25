@@ -1,5 +1,6 @@
-import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
+import Sinon = require("sinon");
+
 import { IConnectorFactory } from "./IConnectorFactory";
 import { IConnector } from "./IConnector";
 

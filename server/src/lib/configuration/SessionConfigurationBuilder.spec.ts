@@ -19,17 +19,19 @@ describe("configuration/SessionConfigurationBuilder", function () {
       totp: {
         issuer: "authelia.com"
       },
-      ldap: {
-        url: "ldap://ldap",
-        user: "user",
-        base_dn: "dc=example,dc=com",
-        password: "password",
-        additional_groups_dn: "ou=groups",
-        additional_users_dn: "ou=users",
-        group_name_attribute: "",
-        groups_filter: "",
-        mail_attribute: "",
-        users_filter: ""
+      authentication_backend: {
+        ldap: {
+          url: "ldap://ldap",
+          user: "user",
+          base_dn: "dc=example,dc=com",
+          password: "password",
+          additional_groups_dn: "ou=groups",
+          additional_users_dn: "ou=users",
+          group_name_attribute: "",
+          groups_filter: "",
+          mail_attribute: "",
+          users_filter: ""
+        },
       },
       logs_level: "debug",
       notifier: {
@@ -100,17 +102,19 @@ describe("configuration/SessionConfigurationBuilder", function () {
       totp: {
         issuer: "authelia.com"
       },
-      ldap: {
-        url: "ldap://ldap",
-        user: "user",
-        password: "password",
-        base_dn: "dc=example,dc=com",
-        additional_groups_dn: "ou=groups",
-        additional_users_dn: "ou=users",
-        group_name_attribute: "",
-        groups_filter: "",
-        mail_attribute: "",
-        users_filter: ""
+      authentication_backend: {
+        ldap: {
+          url: "ldap://ldap",
+          user: "user",
+          password: "password",
+          base_dn: "dc=example,dc=com",
+          additional_groups_dn: "ou=groups",
+          additional_users_dn: "ou=users",
+          group_name_attribute: "",
+          groups_filter: "",
+          mail_attribute: "",
+          users_filter: ""
+        },
       },
       logs_level: "debug",
       notifier: {

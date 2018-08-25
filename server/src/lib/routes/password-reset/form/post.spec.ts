@@ -42,7 +42,7 @@ describe("routes/password-reset/form/post", function () {
     mocks.userDataStore.produceIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
     mocks.userDataStore.consumeIdentityValidationTokenStub.returns(BluebirdPromise.resolve({}));
 
-    mocks.config.ldap = {
+    mocks.config.authentication_backend.ldap = {
       url: "ldap://ldapjs",
       mail_attribute: "mail",
       user: "user",
