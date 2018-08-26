@@ -1,9 +1,11 @@
 import Assert = require("assert");
-import Sinon = require("sinon");
-import MongoDB = require("mongodb");
 import Bluebird = require("bluebird");
+import MongoDB = require("mongodb");
+import Sinon = require("sinon");
+
 import { MongoClient } from "./MongoClient";
 import { GlobalLoggerStub } from "../../logging/GlobalLoggerStub.spec";
+import { MongoStorageConfiguration } from "../../configuration/schema/StorageConfiguration";
 
 describe("connectors/mongo/MongoClient", function () {
   let MongoClientStub: any;
@@ -11,7 +13,52 @@ describe("connectors/mongo/MongoClient", function () {
   let mongoDatabaseStub: any;
   let logger: GlobalLoggerStub = new GlobalLoggerStub();
 
-  describe("collection", function () {
+  const configuration: MongoStorageConfiguration = {
+    url: "mongo://url",
+    database: "databasename"
+  };
+
+  describe("connection", () => {
+    before(() => {
+      mongoClientStub = {
+        db: Sinon.stub()
+      };
+      mongoDatabaseStub = {
+        on: Sinon.stub(),
+        collection: Sinon.stub()
+      }
+      MongoClientStub = Sinon.stub(
+        MongoDB.MongoClient, "connect");
+      MongoClientStub.yields(
+        undefined, mongoClientStub);
+      mongoClientStub.db.returns(
+        mongoDatabaseStub);
+    });
+
+    after(() => {
+      MongoClientStub.restore();
+    });
+
+    it("should use credentials from configuration", () => {
+      configuration.auth = {
+        username: "authelia",
+        password: "authelia_pass"
+      };
+
+      const client = new MongoClient(configuration, logger);
+      return client.collection("test")
+        .then(() => {
+          Assert(MongoClientStub.calledWith("mongo://url", {
+            auth: {
+              user: "authelia",
+              password: "authelia_pass"
+            }
+          }))
+        });
+    });
+  });
+
+  describe("collection", () => {
     before(function() {
       mongoClientStub = {
         db: Sinon.stub()
@@ -38,7 +85,7 @@ describe("connectors/mongo/MongoClient", function () {
   
       it("should create a collection", function () {
         const COLLECTION_NAME = "mycollection";
-        const client = new MongoClient("mongo://url", "databasename", logger);
+        const client = new MongoClient(configuration, logger);
   
         mongoDatabaseStub.collection.returns("COL");
         return client.collection(COLLECTION_NAME)
@@ -60,12 +107,12 @@ describe("connectors/mongo/MongoClient", function () {
 
       it("should fail creating the collection", function() {
         const COLLECTION_NAME = "mycollection";
-        const client = new MongoClient("mongo://url", "databasename", logger);
+        const client = new MongoClient(configuration, logger);
   
         mongoDatabaseStub.collection.returns("COL");
         return client.collection(COLLECTION_NAME)
-          .then((collection) => Bluebird.reject(new Error("should not be here")))
-          .error((err) => Bluebird.resolve());
+          .then((collection) => Bluebird.reject(new Error("should not be here.")))
+          .catch((err) => Bluebird.resolve());
       });
     })
   });

@@ -243,6 +243,9 @@ storage:
   mongo:
     url: mongodb://mongo
     database: authelia
+    auth:
+      username: authelia
+      password: authelia
 
 # Configuration of the notification system.
 #
