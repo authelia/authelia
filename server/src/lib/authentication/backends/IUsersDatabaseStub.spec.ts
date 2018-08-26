@@ -2,9 +2,9 @@ import Bluebird = require("bluebird");
 import Sinon = require("sinon");
 
 import { IUsersDatabase } from "./IUsersDatabase";
-import { GroupsAndEmails } from "./ISession";
+import { GroupsAndEmails } from "./GroupsAndEmails";
 
-export class UsersDatabaseStub implements IUsersDatabase {
+export class IUsersDatabaseStub implements IUsersDatabase {
   checkUserPasswordStub: Sinon.SinonStub;
   getEmailsStub: Sinon.SinonStub;
   getGroupsStub: Sinon.SinonStub;

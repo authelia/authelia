@@ -4,7 +4,7 @@ import Winston = require("winston");
 import { IConnectorFactory } from "./connector/IConnectorFactory";
 import { ISessionFactory } from "./ISessionFactory";
 import { ISession } from "./ISession";
-import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
+import { LdapConfiguration } from "../../../configuration/schema/LdapConfiguration";
 import { Session } from "./Session";
 import { SafeSession } from "./SafeSession";
 

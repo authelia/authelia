@@ -1,5 +1,5 @@
 import BluebirdPromise = require("bluebird");
-import { ISession, GroupsAndEmails } from "./ISession";
+import { ISession } from "./ISession";
 import { Sanitizer } from "./Sanitizer";
 
 const SPECIAL_CHAR_USED_MESSAGE = "Special character used in LDAP query.";

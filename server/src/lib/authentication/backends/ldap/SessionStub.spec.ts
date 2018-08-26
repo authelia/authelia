@@ -1,7 +1,7 @@
 import Bluebird = require("bluebird");
 import Sinon = require("sinon");
 
-import { ISession, GroupsAndEmails } from "./ISession";
+import { ISession } from "./ISession";
 
 export class SessionStub implements ISession {
   openStub: Sinon.SinonStub;

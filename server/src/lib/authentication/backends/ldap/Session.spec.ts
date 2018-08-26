@@ -1,5 +1,5 @@
 
-import { LdapConfiguration } from "../configuration/schema/LdapConfiguration";
+import { LdapConfiguration } from "../../../configuration/schema/LdapConfiguration";
 import { Session } from "./Session";
 import { ConnectorFactoryStub } from "./connector/ConnectorFactoryStub.spec";
 import { ConnectorStub } from "./connector/ConnectorStub.spec";

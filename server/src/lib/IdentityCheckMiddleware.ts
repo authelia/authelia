@@ -73,15 +73,15 @@ export function get_finish_validation(handler: IdentityValidable,
     vars.logger.debug(req, "Identity token provided is %s", identityToken);
 
     return checkIdentityToken(req, identityToken)
-      .then(function () {
+      .then(() => {
         authSession = AuthenticationSessionHandler.get(req, vars.logger);
         return handler.postValidationInit(req);
       })
-      .then(function () {
+      .then(() => {
         return consumeToken(identityToken, handler.challenge(),
           vars.userDataStore);
       })
-      .then(function (doc: IdentityValidationDocument) {
+      .then((doc: IdentityValidationDocument) => {
         authSession.identity_check = {
           challenge: handler.challenge(),
           userid: doc.userId

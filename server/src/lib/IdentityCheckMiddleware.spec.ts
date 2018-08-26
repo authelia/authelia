@@ -73,8 +73,7 @@ throws a first factor error", function () {
           identityValidable, "/endpoint", vars);
 
         return callback(req as any, res as any, undefined)
-          .then(function () { return BluebirdPromise.reject("Should fail"); })
-          .catch(function () {
+          .then(() => {
             Assert(res.redirect.calledWith("/error/401"));
           });
       });
@@ -137,16 +136,12 @@ throws a first factor error", function () {
 
 
   describe("test finish GET", function () {
-    it("should send 401 if no identity_token is provided", function () {
-
+    it("should send 401 if no identity_token is provided", () => {
       const callback = IdentityValidator
         .get_finish_validation(identityValidable, vars);
 
       return callback(req as any, res as any, undefined)
         .then(function () {
-          return BluebirdPromise.reject("Should fail");
-        })
-        .catch(function () {
           Assert(res.redirect.calledWith("/error/401"));
         });
     });
@@ -164,16 +159,16 @@ valid", function () {
       function () {
         req.query.identity_token = "token";
 
+        identityValidable.postValidationInitStub
+          .returns(BluebirdPromise.resolve());
+        mocks.userDataStore.consumeIdentityValidationTokenStub.reset();
         mocks.userDataStore.consumeIdentityValidationTokenStub
           .returns(BluebirdPromise.reject(new Error("Invalid token")));
 
         const callback = IdentityValidator
           .get_finish_validation(identityValidable, vars);
         return callback(req as any, res as any, undefined)
-          .then(function () {
-            return BluebirdPromise.reject("Should fail");
-          })
-          .catch(function () {
+          .then(() => {
             Assert(res.redirect.calledWith("/error/401"));
           });
       });

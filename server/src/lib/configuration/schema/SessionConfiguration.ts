@@ -1,6 +1,7 @@
 export interface SessionRedisOptions {
   host: string;
   port: number;
+  password?: string;
 }
 
 export interface SessionConfiguration {
