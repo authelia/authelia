@@ -35,7 +35,10 @@ export default class Server {
     const displayableConfiguration: Configuration = clone(configuration);
     const STARS = "*****";
 
-    displayableConfiguration.ldap.password = STARS;
+    if (displayableConfiguration.authentication_backend.ldap) {
+      displayableConfiguration.authentication_backend.ldap.password = STARS;
+    }
+
     displayableConfiguration.session.secret = STARS;
     if (displayableConfiguration.notifier && displayableConfiguration.notifier.email)
       displayableConfiguration.notifier.email.password = STARS;

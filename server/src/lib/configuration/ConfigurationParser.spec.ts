@@ -7,13 +7,15 @@ describe("configuration/ConfigurationParser", function () {
   function buildYamlConfig(): Configuration {
     const yaml_config: Configuration = {
       port: 8080,
-      ldap: {
-        url: "http://ldap",
-        base_dn: "dc=example,dc=com",
-        additional_users_dn: "ou=users",
-        additional_groups_dn: "ou=groups",
-        user: "user",
-        password: "pass"
+      authentication_backend: {
+        ldap: {
+          url: "http://ldap",
+          base_dn: "dc=example,dc=com",
+          additional_users_dn: "ou=users",
+          additional_groups_dn: "ou=groups",
+          user: "user",
+          password: "pass"
+        },
       },
       session: {
         domain: "example.com",

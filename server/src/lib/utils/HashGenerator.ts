@@ -4,8 +4,10 @@ import Util = require("util");
 const crypt = require("crypt3");
 
 export class HashGenerator {
-  static ssha512(password: string, salt?: string): BluebirdPromise<string> {
-    const rounds = 500000;
+  static ssha512(
+    password: string,
+    rounds: number = 500000,
+    salt?: string): BluebirdPromise<string> {
     const saltSize = 16;
     // $6 means SHA512
     const _salt = Util.format("$6$rounds=%d$%s", rounds,

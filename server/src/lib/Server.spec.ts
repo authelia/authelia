@@ -42,11 +42,13 @@ describe("Server", function () {
         domain: "example.com",
         secret: "secret"
       },
-      ldap: {
-        url: "http://ldap",
-        user: "user",
-        password: "password",
-        base_dn: "dc=example,dc=com"
+      authentication_backend: {
+        ldap: {
+          url: "http://ldap",
+          user: "user",
+          password: "password",
+          base_dn: "dc=example,dc=com"
+        },
       },
       notifier: {
         email: {

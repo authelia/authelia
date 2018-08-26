@@ -2,7 +2,7 @@ import LdapJs = require("ldapjs");
 import EventEmitter = require("events");
 import Bluebird = require("bluebird");
 import { IConnector } from "./IConnector";
-import Exceptions = require("../../Exceptions");
+import Exceptions = require("../../../../Exceptions");
 
 interface SearchEntry {
   object: any;

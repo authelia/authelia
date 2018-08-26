@@ -1,7 +1,7 @@
 import { ServerVariables } from "./ServerVariables";
 
 import { Configuration } from "./configuration/schema/Configuration";
-import { UsersDatabaseStub } from "./ldap/UsersDatabaseStub.spec";
+import { IUsersDatabaseStub } from "./authentication/backends/IUsersDatabaseStub.spec";
 import { AccessControllerStub } from "./access_control/AccessControllerStub.spec";
 import { RequestLoggerStub } from "./logging/RequestLoggerStub.spec";
 import { NotifierStub } from "./notifiers/NotifierStub.spec";
@@ -13,7 +13,7 @@ import { U2fHandlerStub } from "./authentication/u2f/U2fHandlerStub.spec";
 export interface ServerVariablesMock {
   accessController: AccessControllerStub;
   config: Configuration;
-  usersDatabase: UsersDatabaseStub;
+  usersDatabase: IUsersDatabaseStub;
   logger: RequestLoggerStub;
   notifier: NotifierStub;
   regulator: RegulatorStub;
@@ -34,17 +34,19 @@ export class ServerVariablesMockBuilder {
         totp: {
           issuer: "authelia.com"
         },
-        ldap: {
-          url: "ldap://ldap",
-          base_dn: "dc=example,dc=com",
-          user: "user",
-          password: "password",
-          mail_attribute: "mail",
-          additional_users_dn: "ou=users",
-          additional_groups_dn: "ou=groups",
-          users_filter: "cn={0}",
-          groups_filter: "member={dn}",
-          group_name_attribute: "cn"
+        authentication_backend: {
+          ldap: {
+            url: "ldap://ldap",
+            base_dn: "dc=example,dc=com",
+            user: "user",
+            password: "password",
+            mail_attribute: "mail",
+            additional_users_dn: "ou=users",
+            additional_groups_dn: "ou=groups",
+            users_filter: "cn={0}",
+            groups_filter: "member={dn}",
+            group_name_attribute: "cn"
+          },
         },
         logs_level: "debug",
         notifier: {},
@@ -60,7 +62,7 @@ export class ServerVariablesMockBuilder {
         },
         storage: {}
       },
-      usersDatabase: new UsersDatabaseStub(),
+      usersDatabase: new IUsersDatabaseStub(),
       logger: new RequestLoggerStub(enableLogging),
       notifier: new NotifierStub(),
       regulator: new RegulatorStub(),

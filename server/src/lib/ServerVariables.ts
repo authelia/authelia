@@ -6,7 +6,7 @@ import { INotifier } from "./notifiers/INotifier";
 import { IRegulator } from "./regulation/IRegulator";
 import { Configuration } from "./configuration/schema/Configuration";
 import { IAccessController } from "./access_control/IAccessController";
-import { IUsersDatabase } from "./ldap/IUsersDatabase";
+import { IUsersDatabase } from "./authentication/backends/IUsersDatabase";
 
 export interface ServerVariables {
   logger: IRequestLogger;

@@ -1,11 +1,6 @@
 
 import BluebirdPromise = require("bluebird");
 
-export interface GroupsAndEmails {
-  groups: string[];
-  emails: string[];
-}
-
 export interface ISession {
   open(): BluebirdPromise<void>;
   close(): BluebirdPromise<void>;
