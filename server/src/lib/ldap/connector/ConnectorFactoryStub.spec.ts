@@ -1,16 +1,16 @@
 import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
-import { ILdapClientFactory } from "./ILdapClientFactory";
-import { ILdapClient } from "./ILdapClient";
+import { IConnectorFactory } from "./IConnectorFactory";
+import { IConnector } from "./IConnector";
 
-export class LdapClientFactoryStub implements ILdapClientFactory {
+export class ConnectorFactoryStub implements IConnectorFactory {
   createStub: Sinon.SinonStub;
 
   constructor() {
     this.createStub = Sinon.stub();
   }
 
-  create(): ILdapClient {
+  create(): IConnector {
     return this.createStub();
   }
 }

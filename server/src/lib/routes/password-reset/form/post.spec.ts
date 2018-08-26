@@ -1,6 +1,5 @@
 
 import PasswordResetFormPost = require("./post");
-import { PasswordUpdater } from "../../../ldap/PasswordUpdater";
 import { AuthenticationSessionHandler } from "../../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../../types/AuthenticationSession";
 import { UserDataStore } from "../../../storage/UserDataStore";
@@ -69,7 +68,7 @@ describe("routes/password-reset/form/post", function () {
       req.body = {};
       req.body.password = "new-password";
 
-      mocks.ldapPasswordUpdater.updatePasswordStub.returns(BluebirdPromise.resolve());
+      mocks.usersDatabase.updatePasswordStub.returns(BluebirdPromise.resolve());
 
       authSession.identity_check = {
         userid: "user",
@@ -104,7 +103,7 @@ describe("routes/password-reset/form/post", function () {
       req.body = {};
       req.body.password = "new-password";
 
-      mocks.ldapPasswordUpdater.updatePasswordStub
+      mocks.usersDatabase.updatePasswordStub
         .returns(BluebirdPromise.reject("Internal error with LDAP"));
 
       authSession.identity_check = {

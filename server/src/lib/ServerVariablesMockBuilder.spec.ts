@@ -1,9 +1,7 @@
 import { ServerVariables } from "./ServerVariables";
 
 import { Configuration } from "./configuration/schema/Configuration";
-import { AuthenticatorStub } from "./ldap/AuthenticatorStub.spec";
-import { EmailsRetrieverStub } from "./ldap/EmailsRetrieverStub.spec";
-import { PasswordUpdaterStub } from "./ldap/PasswordUpdaterStub.spec";
+import { UsersDatabaseStub } from "./ldap/UsersDatabaseStub.spec";
 import { AccessControllerStub } from "./access_control/AccessControllerStub.spec";
 import { RequestLoggerStub } from "./logging/RequestLoggerStub.spec";
 import { NotifierStub } from "./notifiers/NotifierStub.spec";
@@ -15,9 +13,7 @@ import { U2fHandlerStub } from "./authentication/u2f/U2fHandlerStub.spec";
 export interface ServerVariablesMock {
   accessController: AccessControllerStub;
   config: Configuration;
-  ldapAuthenticator: AuthenticatorStub;
-  ldapEmailsRetriever: EmailsRetrieverStub;
-  ldapPasswordUpdater: PasswordUpdaterStub;
+  usersDatabase: UsersDatabaseStub;
   logger: RequestLoggerStub;
   notifier: NotifierStub;
   regulator: RegulatorStub;
@@ -64,9 +60,7 @@ export class ServerVariablesMockBuilder {
         },
         storage: {}
       },
-      ldapAuthenticator: new AuthenticatorStub(),
-      ldapEmailsRetriever: new EmailsRetrieverStub(),
-      ldapPasswordUpdater: new PasswordUpdaterStub(),
+      usersDatabase: new UsersDatabaseStub(),
       logger: new RequestLoggerStub(enableLogging),
       notifier: new NotifierStub(),
       regulator: new RegulatorStub(),
@@ -77,9 +71,7 @@ export class ServerVariablesMockBuilder {
     const vars: ServerVariables = {
       accessController: mocks.accessController,
       config: mocks.config,
-      ldapAuthenticator: mocks.ldapAuthenticator,
-      ldapEmailsRetriever: mocks.ldapEmailsRetriever,
-      ldapPasswordUpdater: mocks.ldapPasswordUpdater,
+      usersDatabase: mocks.usersDatabase,
       logger: mocks.logger,
       notifier: mocks.notifier,
       regulator: mocks.regulator,

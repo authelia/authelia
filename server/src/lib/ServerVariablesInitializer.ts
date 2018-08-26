@@ -7,19 +7,12 @@ import Nodemailer = require("nodemailer");
 import { IRequestLogger } from "./logging/IRequestLogger";
 import { RequestLogger } from "./logging/RequestLogger";
 
-import { IAuthenticator } from "./ldap/IAuthenticator";
-import { IPasswordUpdater } from "./ldap/IPasswordUpdater";
-import { IEmailsRetriever } from "./ldap/IEmailsRetriever";
-import { Authenticator } from "./ldap/Authenticator";
-import { PasswordUpdater } from "./ldap/PasswordUpdater";
-import { EmailsRetriever } from "./ldap/EmailsRetriever";
-import { ClientFactory } from "./ldap/ClientFactory";
-import { LdapClientFactory } from "./ldap/LdapClientFactory";
-
 import { TotpHandler } from "./authentication/totp/TotpHandler";
 import { ITotpHandler } from "./authentication/totp/ITotpHandler";
 import { NotifierFactory } from "./notifiers/NotifierFactory";
 import { MailSenderBuilder } from "./notifiers/MailSenderBuilder";
+import { LdapUsersDatabase } from "./ldap/LdapUsersDatabase";
+import { ConnectorFactory } from "./ldap/connector/ConnectorFactory";
 
 import { IUserDataStore } from "./storage/IUserDataStore";
 import { UserDataStore } from "./storage/UserDataStore";
@@ -39,6 +32,7 @@ import { ServerVariables } from "./ServerVariables";
 import { MethodCalculator } from "./authentication/MethodCalculator";
 import { MongoClient } from "./connectors/mongo/MongoClient";
 import { IGlobalLogger } from "./logging/IGlobalLogger";
+import { SessionFactory } from "./ldap/SessionFactory";
 
 class UserDataStoreFactory {
   static create(config: Configuration.Configuration, globalLogger: IGlobalLogger): BluebirdPromise<UserDataStore> {
@@ -72,13 +66,14 @@ export class ServerVariablesInitializer {
 
     const mailSenderBuilder = new MailSenderBuilder(Nodemailer);
     const notifier = NotifierFactory.build(config.notifier, mailSenderBuilder);
-    const ldapClientFactory = new LdapClientFactory(config.ldap, deps.ldapjs);
-    const clientFactory = new ClientFactory(config.ldap, ldapClientFactory,
-      deps.winston);
-
-    const ldapAuthenticator = new Authenticator(config.ldap, clientFactory);
-    const ldapPasswordUpdater = new PasswordUpdater(config.ldap, clientFactory);
-    const ldapEmailsRetriever = new EmailsRetriever(config.ldap, clientFactory);
+    const ldapUsersDatabase = new LdapUsersDatabase(
+      new SessionFactory(
+        config.ldap,
+        new ConnectorFactory(config.ldap, deps.ldapjs),
+        deps.winston
+      ),
+      config.ldap
+    );
     const accessController = new AccessController(config.access_control, deps.winston);
     const totpHandler = new TotpHandler(deps.speakeasy);
 
@@ -90,9 +85,7 @@ export class ServerVariablesInitializer {
         const variables: ServerVariables = {
           accessController: accessController,
           config: config,
-          ldapAuthenticator: ldapAuthenticator,
-          ldapPasswordUpdater: ldapPasswordUpdater,
-          ldapEmailsRetriever: ldapEmailsRetriever,
+          usersDatabase: ldapUsersDatabase,
           logger: requestLogger,
           notifier: notifier,
           regulator: regulator,

@@ -54,7 +54,7 @@ describe("routes/firstfactor/post", function () {
   });
 
   it("should reply with 204 if success", function () {
-    mocks.ldapAuthenticator.authenticateStub.withArgs("username", "password")
+    mocks.usersDatabase.checkUserPasswordStub.withArgs("username", "password")
       .returns(BluebirdPromise.resolve({
         emails: emails,
         groups: groups
@@ -67,14 +67,14 @@ describe("routes/firstfactor/post", function () {
   });
 
   it("should retrieve email from LDAP", function () {
-    mocks.ldapAuthenticator.authenticateStub.withArgs("username", "password")
+    mocks.usersDatabase.checkUserPasswordStub.withArgs("username", "password")
       .returns(BluebirdPromise.resolve([{ mail: ["test@example.com"] }]));
     return FirstFactorPost.default(vars)(req as any, res as any);
   });
 
   it("should set first email address as user session variable", function () {
     const emails = ["test_ok@example.com"];
-    mocks.ldapAuthenticator.authenticateStub.withArgs("username", "password")
+    mocks.usersDatabase.checkUserPasswordStub.withArgs("username", "password")
       .returns(BluebirdPromise.resolve({
         emails: emails,
         groups: groups
@@ -87,7 +87,7 @@ describe("routes/firstfactor/post", function () {
   });
 
   it("should return error message when LDAP authenticator throws", function () {
-    mocks.ldapAuthenticator.authenticateStub.withArgs("username", "password")
+    mocks.usersDatabase.checkUserPasswordStub.withArgs("username", "password")
       .returns(BluebirdPromise.reject(new exceptions.LdapBindError("Bad credentials")));
 
     return FirstFactorPost.default(vars)(req as any, res as any)

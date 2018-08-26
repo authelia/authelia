@@ -34,7 +34,7 @@ export default function (vars: ServerVariables) {
       resolve();
     })
       .then(function () {
-        return vars.ldapPasswordUpdater.updatePassword(authSession.identity_check.userid, newPassword);
+        return vars.usersDatabase.updatePassword(authSession.identity_check.userid, newPassword);
       })
       .then(function () {
         vars.logger.info(req, "Password reset for user '%s'",

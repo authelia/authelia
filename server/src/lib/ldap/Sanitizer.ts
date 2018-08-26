@@ -11,7 +11,7 @@ function containsOneOf(s: string, characters: string[]) {
     .reduce((acc: boolean, current: boolean) => { return acc || current; }, false);
 }
 
-export class InputsSanitizer {
+export class Sanitizer {
   static sanitize(input: string): string {
     const forbiddenChars = [",", "\\", "'", "#", "+", "<", ">", ";", "\"", "="];
     if (containsOneOf(input, forbiddenChars))
