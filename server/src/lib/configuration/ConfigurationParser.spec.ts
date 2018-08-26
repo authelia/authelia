@@ -140,6 +140,7 @@ describe("configuration/ConfigurationParser", function () {
       const config = ConfigurationParser.parse(userConfig);
       Assert.deepEqual(config.access_control, {
         default_policy: "deny",
+        whitelisted: {},
         any: [{
           domain: "public.example.com",
           policy: "allow"
@@ -161,6 +162,7 @@ describe("configuration/ConfigurationParser", function () {
       const config = ConfigurationParser.parse(userConfig);
       Assert.deepEqual(config.access_control, {
         default_policy: "allow",
+        whitelisted: {},
         any: [],
         users: {},
         groups: {}

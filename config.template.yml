@@ -144,6 +144,15 @@ access_control:
   # in the `any`, `groups` or `users` category.
   default_policy: deny
 
+  # Network-based rules. The key is the domain and the value
+  # is a list of IP addresses or CIDR notated ranges.
+  # This will allow bypassing of all authentication on specified
+  # domains for respective addresses.
+  whitelisted:
+    whitelisted.example.com:
+    - 10.10.10.1
+    - 10.10.10.0/24
+
   # The rules that apply to anyone.
   # The value is a list of rules.
   any:

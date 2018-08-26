@@ -33,6 +33,7 @@
     "express-request-id": "^1.4.0",
     "express-session": "^1.14.2",
     "helmet": "^3.12.0",
+    "ip-range-check": "0.0.2",
     "ldapjs": "^1.0.2",
     "mongodb": "^3.0.5",
     "nedb": "^1.8.0",

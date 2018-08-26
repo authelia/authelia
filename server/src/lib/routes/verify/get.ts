@@ -6,6 +6,7 @@ import { ServerVariables } from "../../ServerVariables";
 import GetWithSessionCookieMethod from "./get_session_cookie";
 import GetWithBasicAuthMethod from "./get_basic_auth";
 import Constants = require("../../../../../shared/constants");
+import { DomainExtractor } from "../../utils/DomainExtractor";
 import ObjectPath = require("object-path");
 
 import { AuthenticationSessionHandler }
@@ -63,6 +64,16 @@ export default function (vars: ServerVariables) {
   return function (req: Express.Request, res: Express.Response)
     : BluebirdPromise<void> {
     let authSession: AuthenticationSession;
+
+    const originalUrl = ObjectPath.get<Express.Request, string>(req, "headers.x-original-url");
+    const domain = DomainExtractor.fromUrl(originalUrl);
+
+    if (vars.accessController.isWhitelisted(domain, req.ip)) {
+      vars.logger.debug(req, `Access is whitelisted against domain: ${domain}`);
+      return BluebirdPromise.resolve()
+        .then(replyWith200(res));
+    }
+
     return new BluebirdPromise(function (resolve, reject) {
       authSession = AuthenticationSessionHandler.get(req, vars.logger);
       resolve();

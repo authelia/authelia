@@ -3,6 +3,7 @@ import { ACLConfiguration, ACLPolicy, ACLRule } from "../configuration/schema/Ac
 import { IAccessController } from "./IAccessController";
 import { Winston } from "../../../types/Dependencies";
 import { MultipleDomainMatcher } from "./MultipleDomainMatcher";
+import ipRangeCheck = require("ip-range-check");
 
 
 enum AccessReturn {
@@ -18,6 +19,12 @@ function AllowedRule(rule: ACLRule) {
 function MatchDomain(actualDomain: string) {
   return function (rule: ACLRule): boolean {
     return MultipleDomainMatcher.match(actualDomain, rule.domain);
+  };
+}
+
+function MatchWhitelistDomain(actualDomain: string) {
+  return function (rule: string): boolean {
+    return MultipleDomainMatcher.match(actualDomain, rule);
   };
 }
 
@@ -88,8 +95,26 @@ export class AccessController implements IAccessController {
     return rules.filter(MatchDomain(domain)).filter(MatchResource(resource));
   }
 
+  private getMatchingWhitelistRules(domain: string): string[][] {
+    const rules = this.configuration.whitelisted;
+    if (!rules) return [];
+    return Object.keys(rules).filter(MatchWhitelistDomain(domain)).map(key => rules[key]);
+  }
+
   private isAccessAllowedDefaultPolicy(): boolean {
     return this.configuration.default_policy == "allow";
+  }
+
+  isWhitelisted(domain: string, ip: string): boolean {
+    const rules = this.getMatchingWhitelistRules(domain);
+    if (rules.length > 0) {
+      for (let i = 0; i < rules.length; ++i) {
+        if (ipRangeCheck(ip, rules[i])) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   isAccessAllowed(domain: string, resource: string, user: string, groups: string[]): boolean {
