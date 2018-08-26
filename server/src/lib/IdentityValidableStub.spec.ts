@@ -18,7 +18,7 @@ export class IdentityValidableStub implements IdentityValidable {
         this.challengeStub = Sinon.stub();
 
         this.preValidationInitStub = Sinon.stub();
-        this.postValidationResponseStub = Sinon.stub();
+        this.postValidationInitStub = Sinon.stub();
 
         this.preValidationResponseStub = Sinon.stub();
         this.postValidationResponseStub = Sinon.stub();
