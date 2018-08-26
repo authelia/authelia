@@ -103,7 +103,14 @@ declareNeedsConfiguration("totp_issuer", createCustomTotpIssuerConfiguration);
 
 function registerUser(context: any, username: string) {
   let secret: TOTPSecret;
-  const mongoClient = new MongoClient("mongodb://localhost:27017", "authelia", new GlobalLoggerStub());
+  const mongoClient = new MongoClient({
+    url: "mongodb://localhost:27017",
+    database: "authelia",
+    auth: {
+      username: "authelia",
+      password: "authelia"
+    }
+  }, new GlobalLoggerStub());
   const collectionFactory = CollectionFactoryFactory.createMongo(mongoClient);
   const userDataStore = new UserDataStore(collectionFactory);
 

@@ -4,31 +4,47 @@ import { IMongoClient } from "./IMongoClient";
 import Bluebird = require("bluebird");
 import { AUTHENTICATION_FAILED } from "../../../../../shared/UserMessages";
 import { IGlobalLogger } from "../../logging/IGlobalLogger";
+import { MongoStorageConfiguration } from "../../configuration/schema/StorageConfiguration";
 
 export class MongoClient implements IMongoClient {
-  private url: string;
-  private databaseName: string;
+  private configuration: MongoStorageConfiguration;
 
   private database: MongoDB.Db;
   private client: MongoDB.MongoClient;
   private logger: IGlobalLogger;
 
   constructor(
-    url: string,
-    databaseName: string,
+    configuration: MongoStorageConfiguration,
     logger: IGlobalLogger) {
 
-    this.url = url;
-    this.databaseName = databaseName;
+    this.configuration = configuration;
     this.logger = logger;
   }
 
   connect(): Bluebird<void> {
     const that = this;
-    const connectAsync = Bluebird.promisify(MongoDB.MongoClient.connect);
-    return connectAsync(this.url)
+    const options: MongoDB.MongoClientOptions = {};
+    if (that.configuration.auth) {
+      options["auth"] = {
+        user: that.configuration.auth.username,
+        password: that.configuration.auth.password
+      };
+    }
+
+    return new Bluebird((resolve, reject) => {
+        MongoDB.MongoClient.connect(
+          this.configuration.url,
+          options,
+          function(err, client) {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(client);
+        });
+      })
       .then(function (client: MongoDB.MongoClient) {
-        that.database = client.db(that.databaseName);
+        that.database = client.db(that.configuration.database);
         that.database.on("close", () => {
           that.logger.info("[MongoClient] Lost connection.");
         });

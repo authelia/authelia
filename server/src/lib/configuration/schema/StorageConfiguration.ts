@@ -1,6 +1,10 @@
 export interface MongoStorageConfiguration {
   url: string;
   database: string;
+  auth?: {
+    username: string;
+    password: string;
+  };
 }
 
 export interface LocalStorageConfiguration {
@@ -21,5 +25,6 @@ export function complete(configuration: StorageConfiguration): StorageConfigurat
       in_memory: true
     };
   }
+
   return newConfiguration;
 }

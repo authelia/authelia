@@ -2,5 +2,6 @@ version: '2'
 services:
   redis:
     image: redis:4.0-alpine
+    command: redis-server --requirepass authelia
     networks:
       - example-network

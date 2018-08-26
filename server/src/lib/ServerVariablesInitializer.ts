@@ -48,8 +48,7 @@ class UserDataStoreFactory {
     }
     else if (config.storage.mongo) {
       const mongoClient = new MongoClient(
-        config.storage.mongo.url,
-        config.storage.mongo.database,
+        config.storage.mongo,
         globalLogger);
       const collectionFactory = CollectionFactoryFactory.createMongo(mongoClient);
       return BluebirdPromise.resolve(new UserDataStore(collectionFactory));
