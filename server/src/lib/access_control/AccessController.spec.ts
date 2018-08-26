@@ -362,6 +362,26 @@ describe("access_control/AccessController", function () {
         Assert(accessController.isAccessAllowed("home.example.com", "/dev/john", "john", ["dev"]));
         Assert(accessController.isAccessAllowed("home.example.com", "/dev/bob", "john", ["dev"]));
       });
+
+      it("should control whitelisting multiple networks to bypass authentication (real use case)", function () {
+        configuration.whitelisted["home.example.com"] =
+            ["10.10.10.1", "192.168.0.0/24"];
+        configuration.whitelisted["*.mail.example.com"] =
+            ["192.168.0.1/24"];
+
+        Assert(accessController.isWhitelisted("home.example.com", "10.10.10.1"));
+        Assert(!accessController.isWhitelisted("home.example.com", "10.10.10.50"));
+        Assert(accessController.isWhitelisted("home.example.com", "192.168.0.1"));
+        Assert(accessController.isWhitelisted("home.example.com", "192.168.0.2"));
+        Assert(accessController.isWhitelisted("home.example.com", "192.168.0.254"));
+        Assert(!accessController.isWhitelisted("home.example.com", "192.168.1.1"));
+        Assert(!accessController.isWhitelisted("home1.example.com", "10.10.10.1"));
+        Assert(!accessController.isWhitelisted("home2.example.com", "10.10.10.1"));
+        Assert(accessController.isWhitelisted("mx1.mail.example.com", "192.168.0.120"));
+        Assert(accessController.isWhitelisted("mx1.server.mail.example.com", "192.168.0.40"));
+        Assert(!accessController.isWhitelisted("mail.example.com", "192.168.0.200"));
+        Assert(!accessController.isWhitelisted("mx1.mail.example.com", "10.20.0.1"));
+      });
     });
   });
 });
