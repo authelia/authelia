@@ -1,3 +1,15 @@
+Release Notes - Version 3.9.0
+-----------------------------
+Features:
+* Add support for file users database to replace LDAP in development
+environments.
+* Add authentication configuration options for mongo and redis.
+
+Configuration changes:
+* [BREAKING] `ldap` key has been nested in `authentication_backend`.
+* New `username` and `password` options for mongo storage.
+* New `password` option for redis.
+
 Release Notes - Version 3.8.3
 -----------------------------
 * Fix ECONNRESET issues when LDAP queries failed. (#261)
