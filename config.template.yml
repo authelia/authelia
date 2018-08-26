@@ -213,6 +213,7 @@ session:
   redis:
     host: redis
     port: 6379
+    password: authelia
 
 # Configuration of the authentication regulation mechanism.
 #
