@@ -1,3 +1,8 @@
+Release Notes - Version 3.9.1
+-----------------------------
+* Split the README in several parts.
+* Fix Kubernetes configuration file for Authelia.
+
 Release Notes - Version 3.9.0
 -----------------------------
 Features:
