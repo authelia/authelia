@@ -59,11 +59,11 @@ Follow [Build](./docs/build.md).
 
 ## Changelog
 
-See [Changelog](CHANGELOG.md).
+See [CHANGELOG.md](CHANGELOG.md).
 
-## Contributing
+## Contributors
 
-Follow [Contributing](CONTRIBUTORS.md).
+See the list of contributors in [CONTRIBUTORS.md](CONTRIBUTORS.md).
 
 ## Donation
 
