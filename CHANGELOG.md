@@ -1,3 +1,7 @@
+Release Notes - Version 3.9.2
+-----------------------------
+* Put back link to Gitter instead of Slack.
+
 Release Notes - Version 3.9.1
 -----------------------------
 * Split the README in several parts.
