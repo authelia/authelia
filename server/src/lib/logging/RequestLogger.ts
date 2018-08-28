@@ -17,9 +17,9 @@ export class RequestLogger implements IRequestLogger {
   }
 
   private formatHeader(req: Express.Request) {
-    const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    const clientIP = req.ip; // The IP of the original client going through the proxy chain.
     return Util.format("date='%s' method='%s', path='%s' requestId='%s' sessionId='%s' ip='%s'",
-      new Date(), req.method, req.path, req.id, req.sessionID, ip);
+      new Date(), req.method, req.path, req.id, req.sessionID, clientIP);
   }
 
   private formatBody(message: string) {
