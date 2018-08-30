@@ -1,3 +1,7 @@
+Release Notes - Version 3.9.5
+-----------------------------
+* Fix images in README in NPM.
+
 Release Notes - Version 3.9.4
 -----------------------------
 * Update Authelia icon & add documentation image.
