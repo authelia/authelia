@@ -1,3 +1,14 @@
+Release Notes - Version 3.9.4
+-----------------------------
+* Update Authelia icon & add documentation image.
+* Add snyk badge
+
+Release Notes - Version 3.9.3
+-----------------------------
+* Fix npm publication.
+* Use IP coming from X-Forwarded-For header in logs.
+* Fix CONTRIBUTORS.md
+
 Release Notes - Version 3.9.2
 -----------------------------
 * Put back link to Gitter instead of Slack.
