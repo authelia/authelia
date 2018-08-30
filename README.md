@@ -19,8 +19,8 @@ leverage ingress configuration to set up authentication and authorizations
 for specific services in only few seconds.
 
 <p align="center">
-  <img src="images/first_factor.png" width="400">
-  <img src="images/second_factor.png" width="400">
+  <img src="images/first_factor.png" width="400" />
+  <img src="images/second_factor.png" width="400" />
 </p>
 
 ## Features summary
