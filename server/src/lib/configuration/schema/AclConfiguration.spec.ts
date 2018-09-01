@@ -7,6 +7,7 @@ describe("configuration/schema/AclConfiguration", function() {
     const newConfiguration = complete(configuration);
 
     Assert.deepEqual(newConfiguration.default_policy, "allow");
+    Assert.deepEqual(newConfiguration.default_whitelist_policy, "allow");
     Assert.deepEqual(newConfiguration.any, []);
     Assert.deepEqual(newConfiguration.groups, {});
     Assert.deepEqual(newConfiguration.users, {});

@@ -120,7 +120,7 @@ authentication_methods:
 # It must stand at the beginning of the pattern. (example: *.mydomain.com)
 # 
 # Note: You must put the pattern in simple quotes when using the wildcard for the YAML
-# to be syntaxically correct.
+# to be syntactically correct.
 #
 # Definition: A `rule` is an object with the following keys: `domain`, `policy` 
 # and `resources`.
@@ -140,9 +140,15 @@ authentication_methods:
 #
 access_control:
   # Default policy can either be `allow` or `deny`.
-  # It is the policy applied to any resource if it has not been overriden
+  # It is the policy applied to any resource if it has not been overridden
   # in the `any`, `groups` or `users` category.
   default_policy: deny
+
+  # Default whitelist policy can either be `allow` or `deny`.
+  # It is the whitelist policy applied to any resource which will
+  # if it has not been overridden in the `any`, `groups` or `users` category.
+  # This will bypass all authentication
+  default_whitelist_policy: deny
 
   # The rules that apply to anyone.
   # The value is a list of rules.
@@ -157,12 +163,14 @@ access_control:
       # All resources in all domains
       - domain: '*.example.com'
         policy: allow
+        whitelist_policy: allow
       # Except mx2.mail.example.com (it restricts the first rule)
       - domain: 'mx2.mail.example.com'
         policy: deny
     dev:
       - domain: dev.example.com
         policy: allow
+        whitelist_policy: allow
         resources:
           - '^/groups/dev/.*$'
   
@@ -172,6 +180,7 @@ access_control:
     john:
       - domain: dev.example.com
         policy: allow
+        whitelist_policy: allow
         resources:
           - '^/users/john/.*$' 
     harry:
