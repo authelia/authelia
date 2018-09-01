@@ -112,6 +112,22 @@ export class FileUsersDatabase implements IUsersDatabase {
       database.users[username].groups);
   }
 
+  private retrieveWhitelist(
+    database: any)
+    : Bluebird<object[]> {
+    if (!("users" in database)) {
+      return Bluebird.reject(
+        new Error("No users found in database"));
+    }
+    const users = Object.keys(database.users)
+      .filter((user) => ( Array.isArray( database.users[user].network_addresses )))
+      .map((user) => ({
+        user,
+        network_addresses: database.users[user].network_addresses,
+      }));
+    return Bluebird.resolve(users);
+  }
+
   private replacePassword(
     database: any,
     username: string,
@@ -170,6 +186,13 @@ export class FileUsersDatabase implements IUsersDatabase {
         return this.checkUserExists(database, username)
           .then(() => this.retrieveGroups(database, username));
       });
+  }
+
+  getUsersWithNetworkAddresses(): Bluebird<object[]> {
+    return this.readDatabase()
+    .then((database) => {
+      return this.retrieveWhitelist(database);
+    });
   }
 
   updatePassword(username: string, newPassword: string): Bluebird<void> {

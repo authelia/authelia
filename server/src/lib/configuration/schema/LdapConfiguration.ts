@@ -12,6 +12,7 @@ export interface LdapConfiguration {
 
   group_name_attribute?: string;
   mail_attribute?: string;
+  whitelist_attribute?: string;
 
   user: string; // admin username
   password: string; // admin password
@@ -34,6 +35,10 @@ export function complete(configuration: LdapConfiguration): LdapConfiguration {
 
   if (!newConfiguration.mail_attribute) {
     newConfiguration.mail_attribute = "mail";
+  }
+
+  if (!newConfiguration.whitelist_attribute) {
+    newConfiguration.whitelist_attribute = "networkAddresses";
   }
 
   return newConfiguration;

@@ -106,6 +106,31 @@ export class Session implements ISession {
       });
   }
 
+  searchWhitelist(): BluebirdPromise<object[]> {
+    const that = this;
+    const users_filter = this.options.users_filter.substr(0, this.options.users_filter.indexOf("="));
+
+    const query = {
+      scope: "sub",
+      attributes: [users_filter, this.options.whitelist_attribute],
+      filter: `(${this.options.whitelist_attribute}=*)`,
+    };
+
+    return that.connector.searchAsync(that.usersSearchBase, query)
+      .then((users) => {
+        const normalisedUsers = users.map((user) => {
+          return {
+            user: user[users_filter],
+            network_addresses: user[that.options.whitelist_attribute],
+          };
+        });
+        return BluebirdPromise.resolve(normalisedUsers);
+      })
+      .catch((err: Error) => {
+        return BluebirdPromise.reject(new exceptions.LdapError("Error while searching whitelist. " + err.stack));
+      });
+  }
+
   searchEmails(username: string): BluebirdPromise<string[]> {
     const that = this;
     const query = {

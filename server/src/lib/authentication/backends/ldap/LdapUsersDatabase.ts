@@ -89,6 +89,20 @@ export class LdapUsersDatabase implements IUsersDatabase {
     );
   }
 
+  getUsersWithNetworkAddresses(): Bluebird<object[]> {
+    const that = this;
+    return that.withSession(
+      that.configuration.user,
+      that.configuration.password,
+      (session) => {
+        return session.searchWhitelist();
+      }
+    )
+      .catch((err) =>
+        Bluebird.reject(new Exceptions.LdapError("Failed during email retrieval: " + err.message))
+      );
+  }
+
   updatePassword(username: string, newPassword: string): Bluebird<void> {
     const that = this;
     return that.withSession(

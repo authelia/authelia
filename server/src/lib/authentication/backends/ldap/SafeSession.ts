@@ -50,6 +50,10 @@ export class SafeSession implements ISession {
     }
   }
 
+  searchWhitelist(): BluebirdPromise<any> {
+    return this.sesion.searchWhitelist();
+  }
+
   modifyPassword(username: string, newPassword: string): BluebirdPromise<void> {
     try {
       const sanitizedUsername = Sanitizer.sanitize(username);
