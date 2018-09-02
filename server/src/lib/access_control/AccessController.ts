@@ -34,20 +34,12 @@ function MatchResource(actualResource: string) {
   };
 }
 
-function MatchWhitelist(whitelisted: boolean) {
-  return function (rule: ACLRule): boolean {
-    // If not a whitelisted user ignore this filter
-    if (!whitelisted) return true;
-
-    // If not whitelist_policy defined for the user, fall back to the default_whitelist_policy
-    if (!rule.whitelist_policy) return false;
-
-    return rule.whitelist_policy === "allow";
+function SelectPolicy(whitelisted: boolean) {
+  return function (rule: ACLRule): ("allow" | "deny") {
+    if (whitelisted && rule.whitelist_policy === "deny")
+      return "deny";
+    return rule.policy;
   };
-}
-
-function SelectPolicy(rule: ACLRule): ("allow" | "deny") {
-  return rule.policy;
 }
 
 export class AccessController implements IAccessController {
@@ -59,11 +51,11 @@ export class AccessController implements IAccessController {
     this.configuration = configuration;
   }
 
-  private isAccessAllowedInRules(rules: ACLRule[], domain: string, resource: string): AccessReturn {
+  private isAccessAllowedInRules(rules: ACLRule[], whitelisted: boolean): AccessReturn {
     if (!rules)
       return AccessReturn.NO_MATCHING_RULES;
 
-    const policies = rules.map(SelectPolicy);
+    const policies = rules.map(SelectPolicy(whitelisted));
 
     if (rules.length > 0) {
       if (policies[0] == "allow") {
@@ -76,13 +68,13 @@ export class AccessController implements IAccessController {
     return AccessReturn.NO_MATCHING_RULES;
   }
 
-  private getMatchingUserRules(user: string, domain: string, resource: string, whitelisted: boolean): ACLRule[] {
+  private getMatchingUserRules(user: string, domain: string, resource: string): ACLRule[] {
     const userRules = this.configuration.users[user];
     if (!userRules) return [];
-    return userRules.filter(MatchDomain(domain)).filter(MatchResource(resource)).filter(MatchWhitelist(whitelisted));
+    return userRules.filter(MatchDomain(domain)).filter(MatchResource(resource));
   }
 
-  private getMatchingGroupRules(groups: string[], domain: string, resource: string, whitelisted: boolean): ACLRule[] {
+  private getMatchingGroupRules(groups: string[], domain: string, resource: string): ACLRule[] {
     const that = this;
     // There is no ordering between group rules. That is, when a user belongs to 2 groups, there is no
     // guarantee one set of rules has precedence on the other one.
@@ -91,13 +83,13 @@ export class AccessController implements IAccessController {
       if (groupRules) rules = rules.concat(groupRules);
       return rules;
     }, []);
-    return groupRules.filter(MatchDomain(domain)).filter(MatchResource(resource)).filter(MatchWhitelist(whitelisted));
+    return groupRules.filter(MatchDomain(domain)).filter(MatchResource(resource));
   }
 
-  private getMatchingAllRules(domain: string, resource: string, whitelisted: boolean): ACLRule[] {
+  private getMatchingAllRules(domain: string, resource: string): ACLRule[] {
     const rules = this.configuration.any;
     if (!rules) return [];
-    return rules.filter(MatchDomain(domain)).filter(MatchResource(resource)).filter(MatchWhitelist(whitelisted));
+    return rules.filter(MatchDomain(domain)).filter(MatchResource(resource));
   }
 
   private isAccessAllowedDefaultPolicy(): boolean {
@@ -111,12 +103,12 @@ export class AccessController implements IAccessController {
   isAccessAllowed(domain: string, resource: string, user: string, groups: string[], whitelisted: boolean): boolean {
     if (!this.configuration) return true;
 
-    const allRules = this.getMatchingAllRules(domain, resource, whitelisted);
-    const groupRules = this.getMatchingGroupRules(groups, domain, resource, whitelisted);
-    const userRules = this.getMatchingUserRules(user, domain, resource, whitelisted);
+    const allRules = this.getMatchingAllRules(domain, resource);
+    const groupRules = this.getMatchingGroupRules(groups, domain, resource);
+    const userRules = this.getMatchingUserRules(user, domain, resource);
     const rules = allRules.concat(groupRules).concat(userRules).reverse();
 
-    const access = this.isAccessAllowedInRules(rules, domain, resource);
+    const access = this.isAccessAllowedInRules(rules, whitelisted);
     if (access == AccessReturn.MATCHING_RULES_AND_ACCESS)
       return true;
     else if (access == AccessReturn.MATCHING_RULES_AND_NO_ACCESS)

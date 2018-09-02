@@ -3,6 +3,7 @@ import express = require("express");
 import objectPath = require("object-path");
 import Endpoints = require("../../../../../shared/api");
 import BluebirdPromise = require("bluebird");
+import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import Constants = require("../../../../../shared/constants");
 import Endpoint = require("../../../../../shared/api");
@@ -40,10 +41,27 @@ function renderFirstFactor(res: express.Response) {
   });
 }
 
+function redirect(req: express.Request, res: express.Response, authSession: AuthenticationSession) {
+  if (authSession.first_factor) {
+    if (authSession.second_factor)
+      redirectToService(req, res);
+    else
+      redirectToSecondFactorPage(req, res);
+    return;
+  }
+  renderFirstFactor(res);
+  return;
+}
+
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response): BluebirdPromise<void> {
     return new BluebirdPromise(function (resolve, reject) {
       const authSession = AuthenticationSessionHandler.get(req, vars.logger);
+      // If cookie has userid and is whitelisted, user probably doesn't have whitelist access control
+      // or is deliberately navigating to the auth page
+      if (authSession.userid && authSession.whitelisted)
+        return redirect(req, res, authSession);
+
       // Check for whitelisted user on request and handle auto-login
       vars.whitelist.isWhitelisted(req.ip, vars.usersDatabase)
         .then((user) => {
@@ -55,15 +73,7 @@ export default function (vars: ServerVariables) {
                 return resolve();
               });
           } else {
-            if (authSession.first_factor) {
-              if (authSession.second_factor)
-                redirectToService(req, res);
-              else
-                redirectToSecondFactorPage(req, res);
-              return resolve();
-            }
-            renderFirstFactor(res);
-            resolve();
+            redirect(req, res, authSession);
           }
         })
         .catch(() => {
