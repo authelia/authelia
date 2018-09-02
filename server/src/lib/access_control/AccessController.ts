@@ -34,6 +34,18 @@ function MatchResource(actualResource: string) {
   };
 }
 
+function MatchWhitelist(whitelisted: boolean) {
+  return function (rule: ACLRule): boolean {
+    // If not a whitelisted user ignore this filter
+    if (!whitelisted) return true;
+
+    // If not whitelist_policy defined for the user, fall back to the default_whitelist_policy
+    if (!rule.whitelist_policy) return false;
+
+    return rule.whitelist_policy === "allow";
+  };
+}
+
 function SelectPolicy(rule: ACLRule): ("allow" | "deny") {
   return rule.policy;
 }
@@ -64,13 +76,13 @@ export class AccessController implements IAccessController {
     return AccessReturn.NO_MATCHING_RULES;
   }
 
-  private getMatchingUserRules(user: string, domain: string, resource: string): ACLRule[] {
+  private getMatchingUserRules(user: string, domain: string, resource: string, whitelisted: boolean): ACLRule[] {
     const userRules = this.configuration.users[user];
     if (!userRules) return [];
-    return userRules.filter(MatchDomain(domain)).filter(MatchResource(resource));
+    return userRules.filter(MatchDomain(domain)).filter(MatchResource(resource)).filter(MatchWhitelist(whitelisted));
   }
 
-  private getMatchingGroupRules(groups: string[], domain: string, resource: string): ACLRule[] {
+  private getMatchingGroupRules(groups: string[], domain: string, resource: string, whitelisted: boolean): ACLRule[] {
     const that = this;
     // There is no ordering between group rules. That is, when a user belongs to 2 groups, there is no
     // guarantee one set of rules has precedence on the other one.
@@ -79,25 +91,29 @@ export class AccessController implements IAccessController {
       if (groupRules) rules = rules.concat(groupRules);
       return rules;
     }, []);
-    return groupRules.filter(MatchDomain(domain)).filter(MatchResource(resource));
+    return groupRules.filter(MatchDomain(domain)).filter(MatchResource(resource)).filter(MatchWhitelist(whitelisted));
   }
 
-  private getMatchingAllRules(domain: string, resource: string): ACLRule[] {
+  private getMatchingAllRules(domain: string, resource: string, whitelisted: boolean): ACLRule[] {
     const rules = this.configuration.any;
     if (!rules) return [];
-    return rules.filter(MatchDomain(domain)).filter(MatchResource(resource));
+    return rules.filter(MatchDomain(domain)).filter(MatchResource(resource)).filter(MatchWhitelist(whitelisted));
   }
 
   private isAccessAllowedDefaultPolicy(): boolean {
     return this.configuration.default_policy == "allow";
   }
 
-  isAccessAllowed(domain: string, resource: string, user: string, groups: string[]): boolean {
+  private isAccessAllowedDefaultWhitelistPolicy(): boolean {
+    return this.configuration.default_whitelist_policy == "allow";
+  }
+
+  isAccessAllowed(domain: string, resource: string, user: string, groups: string[], whitelisted: boolean): boolean {
     if (!this.configuration) return true;
 
-    const allRules = this.getMatchingAllRules(domain, resource);
-    const groupRules = this.getMatchingGroupRules(groups, domain, resource);
-    const userRules = this.getMatchingUserRules(user, domain, resource);
+    const allRules = this.getMatchingAllRules(domain, resource, whitelisted);
+    const groupRules = this.getMatchingGroupRules(groups, domain, resource, whitelisted);
+    const userRules = this.getMatchingUserRules(user, domain, resource, whitelisted);
     const rules = allRules.concat(groupRules).concat(userRules).reverse();
 
     const access = this.isAccessAllowedInRules(rules, domain, resource);
@@ -105,6 +121,10 @@ export class AccessController implements IAccessController {
       return true;
     else if (access == AccessReturn.MATCHING_RULES_AND_NO_ACCESS)
       return false;
+
+    if (whitelisted) {
+      return this.isAccessAllowedDefaultWhitelistPolicy();
+    }
 
     return this.isAccessAllowedDefaultPolicy();
   }
