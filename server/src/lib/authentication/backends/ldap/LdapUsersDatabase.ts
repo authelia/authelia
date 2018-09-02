@@ -4,6 +4,7 @@ import { ISessionFactory } from "./ISessionFactory";
 import { LdapConfiguration } from "../../../configuration/schema/LdapConfiguration";
 import { ISession } from "./ISession";
 import { GroupsAndEmails } from "../GroupsAndEmails";
+import { UsersWithNetworkAddresses } from "../UsersWithNetworkAddresses";
 import Exceptions = require("../../../Exceptions");
 
 type SessionCallback<T> = (session: ISession) => Bluebird<T>;
@@ -89,7 +90,7 @@ export class LdapUsersDatabase implements IUsersDatabase {
     );
   }
 
-  getUsersWithNetworkAddresses(): Bluebird<object[]> {
+  getUsersWithNetworkAddresses(): Bluebird<UsersWithNetworkAddresses[]> {
     const that = this;
     return that.withSession(
       that.configuration.user,
