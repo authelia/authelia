@@ -5,6 +5,7 @@ import Endpoints = require("../../../../../shared/api");
 import BluebirdPromise = require("bluebird");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import Constants = require("../../../../../shared/constants");
+import Endpoint = require("../../../../../shared/api");
 import Util = require("util");
 import { ServerVariables } from "../../ServerVariables";
 
@@ -43,16 +44,32 @@ export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response): BluebirdPromise<void> {
     return new BluebirdPromise(function (resolve, reject) {
       const authSession = AuthenticationSessionHandler.get(req, vars.logger);
-      if (authSession.first_factor) {
-        if (authSession.second_factor)
-          redirectToService(req, res);
-        else
-          redirectToSecondFactorPage(req, res);
-        resolve();
-        return;
-      }
-      renderFirstFactor(res);
-      resolve();
+      // Check for whitelisted user on request and handle auto-login
+      vars.whitelist.isWhitelisted(req.ip, vars.usersDatabase)
+        .then((user) => {
+          if (user) {
+            vars.logger.info(req, "Whitelisted IP matched to user \"%s\"", user);
+            vars.whitelist.loginWhitelistUser(user, req, vars)
+              .then(() => {
+                redirectToService(req, res);
+                return resolve();
+              });
+          } else {
+            if (authSession.first_factor) {
+              if (authSession.second_factor)
+                redirectToService(req, res);
+              else
+                redirectToSecondFactorPage(req, res);
+              return resolve();
+            }
+            renderFirstFactor(res);
+            resolve();
+          }
+        })
+        .catch(() => {
+          renderFirstFactor(res);
+          resolve();
+        });
     });
   };
 }

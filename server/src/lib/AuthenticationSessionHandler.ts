@@ -9,6 +9,7 @@ import { IRequestLogger } from "./logging/IRequestLogger";
 const INITIAL_AUTHENTICATION_SESSION: AuthenticationSession = {
   first_factor: false,
   second_factor: false,
+  whitelisted: false,
   last_activity_datetime: undefined,
   userid: undefined,
   email: undefined,

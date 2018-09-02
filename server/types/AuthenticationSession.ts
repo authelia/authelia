@@ -4,6 +4,7 @@ export interface AuthenticationSession {
   userid: string;
   first_factor: boolean;
   second_factor: boolean;
+  whitelisted: boolean;
   last_activity_datetime: number;
   identity_check?: {
     challenge: string;

@@ -10,10 +10,8 @@ import { DomainExtractor } from "../../utils/DomainExtractor";
 import { ServerVariables } from "../../ServerVariables";
 import { MethodCalculator } from "../../authentication/MethodCalculator";
 import { IRequestLogger } from "../../logging/IRequestLogger";
-import { AuthenticationSession }
-  from "../../../../types/AuthenticationSession";
-import { AuthenticationSessionHandler }
-  from "../../AuthenticationSessionHandler";
+import { AuthenticationSession } from "../../../../types/AuthenticationSession";
+import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import AccessControl from "./access_control";
 
 const FIRST_FACTOR_NOT_VALIDATED_MESSAGE = "First factor not yet validated";
@@ -58,10 +56,9 @@ export default function (req: Express.Request, res: Express.Response,
     groups = authSession.groups;
 
     if (!authSession.userid) {
-      reject(new Exceptions.AccessDeniedError(
+      return reject(new Exceptions.AccessDeniedError(
         Util.format("%s: %s.", FIRST_FACTOR_NOT_VALIDATED_MESSAGE,
           "userid is missing")));
-      return;
     }
 
     const originalUrl = ObjectPath.get<Express.Request, string>(req, "headers.x-original-url");
@@ -73,6 +70,9 @@ export default function (req: Express.Request, res: Express.Response,
       MethodCalculator.compute(vars.config.authentication_methods, domain);
     vars.logger.debug(req, "domain=%s, request_uri=%s, user=%s, groups=%s", domain,
       originalUri, username, groups.join(","));
+
+    if (authSession.whitelisted)
+      return resolve();
 
     if (!authSession.first_factor)
       return reject(new Exceptions.AccessDeniedError(
@@ -87,7 +87,7 @@ export default function (req: Express.Request, res: Express.Response,
     resolve();
   })
     .then(function () {
-      return AccessControl(req, vars, domain, originalUri, username, groups);
+      return AccessControl(req, vars, domain, originalUri, username, groups, authSession.whitelisted);
     })
     .then(function () {
       return verify_inactivity(req, authSession,

@@ -6,11 +6,11 @@ import { ServerVariables } from "../../ServerVariables";
 import Exceptions = require("../../Exceptions");
 
 export default function (req: Express.Request, vars: ServerVariables,
-  domain: string, path: string, username: string, groups: string[]) {
+  domain: string, path: string, username: string, groups: string[], whitelisted: boolean) {
 
   return new BluebirdPromise(function (resolve, reject) {
     const isAllowed = vars.accessController
-      .isAccessAllowed(domain, path, username, groups);
+      .isAccessAllowed(domain, path, username, groups, whitelisted);
 
     if (!isAllowed) {
       reject(new Exceptions.DomainAccessDenied(Util.format(

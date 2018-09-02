@@ -52,7 +52,7 @@ export default function (req: Express.Request, res: Express.Response,
       return vars.usersDatabase.checkUserPassword(username, password);
     })
     .then(function (groupsAndEmails) {
-      return AccessControl(req, vars, domain, originalUri, username, groupsAndEmails.groups)
+      return AccessControl(req, vars, domain, originalUri, username, groupsAndEmails.groups, false)
         .then(() => BluebirdPromise.resolve({
           username: username,
           groups: groupsAndEmails.groups

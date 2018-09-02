@@ -35,6 +35,7 @@ import { IGlobalLogger } from "./logging/IGlobalLogger";
 import { SessionFactory } from "./authentication/backends/ldap/SessionFactory";
 import { IUsersDatabase } from "./authentication/backends/IUsersDatabase";
 import { FileUsersDatabase } from "./authentication/backends/file/FileUsersDatabase";
+import { WhitelistHandler } from "./authentication/whitelist/WhitelistHandler";
 
 class UserDataStoreFactory {
   static create(config: Configuration.Configuration, globalLogger: IGlobalLogger): BluebirdPromise<UserDataStore> {
@@ -97,6 +98,7 @@ export class ServerVariablesInitializer {
       deps.speakeasy);
     const usersDatabase = this.createUsersDatabase(
       config, deps);
+    const whitelistHandler = new WhitelistHandler();
 
     return UserDataStoreFactory.create(config, globalLogger)
       .then(function (userDataStore: UserDataStore) {
@@ -112,7 +114,8 @@ export class ServerVariablesInitializer {
           regulator: regulator,
           totpHandler: totpHandler,
           u2f: deps.u2f,
-          userDataStore: userDataStore
+          userDataStore: userDataStore,
+          whitelist: whitelistHandler,
         };
         return BluebirdPromise.resolve(variables);
       });
