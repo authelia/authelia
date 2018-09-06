@@ -2,10 +2,10 @@ import Express = require("express");
 import BluebirdPromise = require("bluebird");
 import ObjectPath = require("object-path");
 import { ServerVariables } from "../../ServerVariables";
-import { AuthenticationSession }
-  from "../../../../types/AuthenticationSession";
+import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import { DomainExtractor } from "../../utils/DomainExtractor";
 import { MethodCalculator } from "../../authentication/MethodCalculator";
+import { WhitelistValue } from "../../authentication/whitelist/WhitelistHandler";
 import AccessControl from "./access_control";
 
 export default function (req: Express.Request, res: Express.Response,
@@ -52,7 +52,7 @@ export default function (req: Express.Request, res: Express.Response,
       return vars.usersDatabase.checkUserPassword(username, password);
     })
     .then(function (groupsAndEmails) {
-      return AccessControl(req, vars, domain, originalUri, username, groupsAndEmails.groups, false)
+      return AccessControl(req, vars, domain, originalUri, username, groupsAndEmails.groups, WhitelistValue.NOT_WHITELISTED)
         .then(() => BluebirdPromise.resolve({
           username: username,
           groups: groupsAndEmails.groups

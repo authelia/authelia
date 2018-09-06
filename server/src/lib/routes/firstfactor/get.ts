@@ -5,6 +5,7 @@ import Endpoints = require("../../../../../shared/api");
 import BluebirdPromise = require("bluebird");
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
+import { WhitelistValue } from "../../authentication/whitelist/WhitelistHandler";
 import Constants = require("../../../../../shared/constants");
 import Endpoint = require("../../../../../shared/api");
 import Util = require("util");
@@ -59,8 +60,9 @@ export default function (vars: ServerVariables) {
       const authSession = AuthenticationSessionHandler.get(req, vars.logger);
       // If cookie has userid and is whitelisted, user probably doesn't have whitelist access control
       // or is deliberately navigating to the auth page
-      if (authSession.userid && authSession.whitelisted)
+      if (authSession.userid && authSession.whitelisted > WhitelistValue.NOT_WHITELISTED) {
         return redirect(req, res, authSession);
+      }
 
       // Check for whitelisted user on request and handle auto-login
       vars.whitelist.isWhitelisted(req.ip, vars.usersDatabase)

@@ -9,6 +9,7 @@ import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionH
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import UserMessages = require("../../../../../../../shared/UserMessages");
 import { ServerVariables } from "../../../../ServerVariables";
+import { WhitelistValue } from "../../../../authentication/whitelist/WhitelistHandler";
 
 const UNAUTHORIZED_MESSAGE = "Unauthorized access";
 
@@ -31,6 +32,8 @@ export default function (vars: ServerVariables) {
 
         vars.logger.debug(req, "TOTP validation succeeded.");
         authSession.second_factor = true;
+        if (authSession.whitelisted > WhitelistValue.NOT_WHITELISTED)
+          authSession.whitelisted = WhitelistValue.WHITELISTED_AND_AUTHENTICATED_SECONDFACTOR;
         Redirect(vars)(req, res);
         return Bluebird.resolve();
       })

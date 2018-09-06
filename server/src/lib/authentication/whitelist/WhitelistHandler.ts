@@ -8,6 +8,13 @@ import Bluebird = require("bluebird");
 import express = require("express");
 import ipRangeCheck = require("ip-range-check");
 
+export const enum WhitelistValue {
+  NOT_WHITELISTED,
+  WHITELISTED,
+  WHITELISTED_AND_AUTHENTICATED_FIRSTFACTOR,
+  WHITELISTED_AND_AUTHENTICATED_SECONDFACTOR
+}
+
 export class WhitelistHandler implements IWhitelistHandler {
   isWhitelisted(ip: string, usersDatabase: IUsersDatabase): Bluebird<string> {
     // Get Users & Network Addresses
@@ -24,7 +31,7 @@ export class WhitelistHandler implements IWhitelistHandler {
     let authSession: AuthenticationSession;
     authSession = AuthenticationSessionHandler.get(req, vars.logger);
     authSession.userid = user;
-    authSession.whitelisted = true;
+    authSession.whitelisted = WhitelistValue.WHITELISTED;
 
     // Do we need to do this?
     vars.regulator.mark(user, true);

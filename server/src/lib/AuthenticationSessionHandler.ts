@@ -5,11 +5,12 @@ import U2f = require("u2f");
 import BluebirdPromise = require("bluebird");
 import { AuthenticationSession } from "../../types/AuthenticationSession";
 import { IRequestLogger } from "./logging/IRequestLogger";
+import { WhitelistValue } from "./authentication/whitelist/WhitelistHandler";
 
 const INITIAL_AUTHENTICATION_SESSION: AuthenticationSession = {
   first_factor: false,
   second_factor: false,
-  whitelisted: false,
+  whitelisted: WhitelistValue.NOT_WHITELISTED,
   last_activity_datetime: undefined,
   userid: undefined,
   email: undefined,

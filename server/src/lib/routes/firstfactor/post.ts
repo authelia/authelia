@@ -15,6 +15,7 @@ import { MethodCalculator } from "../../authentication/MethodCalculator";
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import { GroupsAndEmails } from "../../authentication/backends/GroupsAndEmails";
+import { WhitelistValue } from "../../authentication/whitelist/WhitelistHandler";
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)
@@ -63,6 +64,8 @@ export default function (vars: ServerVariables) {
         vars.regulator.mark(username, true);
 
         if (authMethod == "single_factor") {
+          if (authSession.whitelisted > WhitelistValue.NOT_WHITELISTED)
+            authSession.whitelisted = WhitelistValue.WHITELISTED_AND_AUTHENTICATED_FIRSTFACTOR;
           let newRedirectionUrl: string = redirectUrl;
           if (!newRedirectionUrl)
             newRedirectionUrl = Endpoint.LOGGED_IN;

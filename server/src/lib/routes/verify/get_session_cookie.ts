@@ -12,6 +12,7 @@ import { MethodCalculator } from "../../authentication/MethodCalculator";
 import { IRequestLogger } from "../../logging/IRequestLogger";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
+import { WhitelistValue } from "../../authentication/whitelist/WhitelistHandler";
 import AccessControl from "./access_control";
 
 const FIRST_FACTOR_NOT_VALIDATED_MESSAGE = "First factor not yet validated";
@@ -71,7 +72,7 @@ export default function (req: Express.Request, res: Express.Response,
     vars.logger.debug(req, "domain=%s, request_uri=%s, user=%s, groups=%s", domain,
       originalUri, username, groups.join(","));
 
-    if (authSession.whitelisted)
+    if (authSession.whitelisted > WhitelistValue.NOT_WHITELISTED)
       return resolve();
 
     if (!authSession.first_factor)
