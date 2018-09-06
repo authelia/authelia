@@ -1,0 +1,13 @@
+attributetype ( 2.25.256754748294849754094923264705854485209.1
+    NAME 'networkAddresses'
+    DESC 'Whitelisted network addresses or CIDR ranges'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} )
+
+objectclass ( 2.25.256754748294849754094923264705854485209.2
+    NAME 'whitelistedPerson'
+    DESC 'whitelistedPerson'
+    SUP inetOrgPerson
+    STRUCTURAL MAY ( networkAddresses )
+    )
