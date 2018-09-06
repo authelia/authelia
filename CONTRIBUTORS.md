@@ -3,8 +3,10 @@ This file contains a list of people who've made non-trivial contribution to
 project are encouraged to add their names here. Please keep the list sorted by 
 first names.
 
+    Amir Zarrinkafsh <@nightah>
     Antoine Favre <@n4kre>
     Clement Michaud <@clems4ever>
     Dylan Smith <@Chemsmith>
     FrozenDragoon <@FrozenDragoon>
     Paul Casto <@pccasto>
+    Rowan Taubitz <@RowanTaubitz>
