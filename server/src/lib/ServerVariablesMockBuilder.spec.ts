@@ -9,6 +9,7 @@ import { RegulatorStub } from "./regulation/RegulatorStub.spec";
 import { TotpHandlerStub } from "./authentication/totp/TotpHandlerStub.spec";
 import { UserDataStoreStub } from "./storage/UserDataStoreStub.spec";
 import { U2fHandlerStub } from "./authentication/u2f/U2fHandlerStub.spec";
+import { WhitelistHandlerStub } from "./authentication/whitelist/WhitelistHandler.spec";
 
 export interface ServerVariablesMock {
   accessController: AccessControllerStub;
@@ -20,6 +21,7 @@ export interface ServerVariablesMock {
   totpHandler: TotpHandlerStub;
   userDataStore: UserDataStoreStub;
   u2f: U2fHandlerStub;
+  whitelist: WhitelistHandlerStub;
 }
 
 export class ServerVariablesMockBuilder {
@@ -68,7 +70,8 @@ export class ServerVariablesMockBuilder {
       regulator: new RegulatorStub(),
       totpHandler: new TotpHandlerStub(),
       userDataStore: new UserDataStoreStub(),
-      u2f: new U2fHandlerStub()
+      u2f: new U2fHandlerStub(),
+      whitelist: new WhitelistHandlerStub()
     };
     const vars: ServerVariables = {
       accessController: mocks.accessController,
@@ -79,7 +82,8 @@ export class ServerVariablesMockBuilder {
       regulator: mocks.regulator,
       totpHandler: mocks.totpHandler,
       userDataStore: mocks.userDataStore,
-      u2f: mocks.u2f
+      u2f: mocks.u2f,
+      whitelist: mocks.whitelist
     };
 
     return {

@@ -163,7 +163,7 @@ describe("configuration/ConfigurationParser", function () {
       const config = ConfigurationParser.parse(userConfig);
       Assert.deepEqual(config.access_control, {
         default_policy: "allow",
-        default_whitelist_policy: "deny",
+        default_whitelist_policy: "allow",
         any: [],
         users: {},
         groups: {}

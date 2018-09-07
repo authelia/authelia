@@ -1,16 +1,14 @@
-
 import Assert = require("assert");
-import BluebirdPromise = require("bluebird");
 import Express = require("express");
 import Sinon = require("sinon");
-import winston = require("winston");
 
 import VerifyGet = require("./get");
+import ExpressMock = require("../../stubs/express.spec");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
-import ExpressMock = require("../../stubs/express.spec");
 import { ServerVariables } from "../../ServerVariables";
-import { ServerVariablesMockBuilder, ServerVariablesMock } from "../../ServerVariablesMockBuilder.spec";
+import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../ServerVariablesMockBuilder.spec";
+import { WhitelistValue } from "../../authentication/whitelist/WhitelistHandler";
 
 describe("routes/verify/get", function () {
   let req: ExpressMock.RequestMock;
@@ -83,6 +81,7 @@ describe("routes/verify/get", function () {
             userid: "user",
             first_factor: true,
             second_factor: false,
+            whitelisted: WhitelistValue.NOT_WHITELISTED,
             email: undefined,
             groups: [],
             last_activity_datetime: new Date().getTime()
@@ -94,6 +93,7 @@ describe("routes/verify/get", function () {
             userid: "user",
             first_factor: false,
             second_factor: true,
+            whitelisted: WhitelistValue.NOT_WHITELISTED,
             email: undefined,
             groups: [],
             last_activity_datetime: new Date().getTime()
@@ -105,6 +105,7 @@ describe("routes/verify/get", function () {
             userid: undefined,
             first_factor: true,
             second_factor: false,
+            whitelisted: WhitelistValue.NOT_WHITELISTED,
             email: undefined,
             groups: [],
             last_activity_datetime: new Date().getTime()
@@ -116,6 +117,7 @@ describe("routes/verify/get", function () {
             userid: "user",
             first_factor: false,
             second_factor: false,
+            whitelisted: WhitelistValue.NOT_WHITELISTED,
             email: undefined,
             groups: [],
             last_activity_datetime: new Date().getTime()
@@ -136,6 +138,7 @@ describe("routes/verify/get", function () {
           return test_unauthorized_403({
             first_factor: true,
             second_factor: true,
+            whitelisted: WhitelistValue.NOT_WHITELISTED,
             userid: "user",
             groups: ["group1", "group2"],
             email: undefined,

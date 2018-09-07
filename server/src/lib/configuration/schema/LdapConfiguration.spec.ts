@@ -19,7 +19,8 @@ describe("configuration/schema/AuthenticationMethodsConfiguration", function() {
       users_filter: "cn={0}",
       group_name_attribute: "cn",
       groups_filter: "member={dn}",
-      mail_attribute: "mail"
+      mail_attribute: "mail",
+      whitelist_attribute: "networkAddresses"
     });
   });
 });
