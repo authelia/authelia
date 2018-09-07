@@ -86,7 +86,7 @@ export class LdapUsersDatabase implements IUsersDatabase {
       }
     )
     .catch((err) =>
-      Bluebird.reject(new Exceptions.LdapError("Failed during email retrieval: " + err.message))
+      Bluebird.reject(new Exceptions.LdapError("Failed during groups retrieval: " + err.message))
     );
   }
 
@@ -100,7 +100,7 @@ export class LdapUsersDatabase implements IUsersDatabase {
       }
     )
       .catch((err) =>
-        Bluebird.reject(new Exceptions.LdapError("Failed during email retrieval: " + err.message))
+        Bluebird.reject(new Exceptions.LdapError("Failed during whitelisted users retrieval: " + err.message))
       );
   }
 
