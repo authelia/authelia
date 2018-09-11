@@ -13,10 +13,10 @@ export default function (req: Express.Request, vars: ServerVariables,
     const authenticationMethod =
       MethodCalculator.compute(vars.config.authentication_methods, domain);
 
-    const secondFactorAuth = authenticationMethod === "two_factor";
+    const isSecondFactorRequired = authenticationMethod === "two_factor";
 
     const isAllowed = vars.accessController
-      .isAccessAllowed(domain, path, username, groups, whitelisted, secondFactorAuth);
+      .isAccessAllowed(domain, path, username, groups, whitelisted, isSecondFactorRequired);
 
     if (!isAllowed) {
       if (authenticationMethod === "two_factor" && whitelisted)

@@ -9,7 +9,7 @@ export class AccessControllerStub implements IAccessController {
     this.isAccessAllowedMock = Sinon.stub();
   }
 
-  isAccessAllowed(domain: string, resource: string, user: string, groups: string[], whitelisted: WhitelistValue, secondFactorAuth: boolean): boolean {
-    return this.isAccessAllowedMock(domain, resource, user, groups, whitelisted, secondFactorAuth);
+  isAccessAllowed(domain: string, resource: string, user: string, groups: string[], whitelisted: WhitelistValue, isSecondFactorRequired: boolean): boolean {
+    return this.isAccessAllowedMock(domain, resource, user, groups, whitelisted, isSecondFactorRequired);
   }
 }

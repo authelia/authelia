@@ -43,13 +43,13 @@ export class AccessController implements IAccessController {
     this.configuration = configuration;
   }
 
-  private SelectPolicy(whitelisted: WhitelistValue, secondFactorAuth: boolean) {
+  private SelectPolicy(whitelisted: WhitelistValue, isSecondFactorRequired: boolean) {
     const that = this;
     return function (rule: ACLRule): ("allow" | "deny") {
       if (whitelisted > WhitelistValue.NOT_WHITELISTED) {
         const whitelistPolicy = rule.whitelist_policy || that.configuration.default_whitelist_policy;
         if (whitelistPolicy == "deny" &&
-          whitelisted > (secondFactorAuth ? WhitelistValue.WHITELISTED_AND_AUTHENTICATED_FIRSTFACTOR : WhitelistValue.WHITELISTED))
+          whitelisted > (isSecondFactorRequired ? WhitelistValue.WHITELISTED_AND_AUTHENTICATED_FIRSTFACTOR : WhitelistValue.WHITELISTED))
           return rule.policy;
         return whitelistPolicy;
       }
@@ -57,11 +57,11 @@ export class AccessController implements IAccessController {
     };
   }
 
-  private isAccessAllowedInRules(rules: ACLRule[], whitelisted: WhitelistValue, secondFactorAuth: boolean): AccessReturn {
+  private isAccessAllowedInRules(rules: ACLRule[], whitelisted: WhitelistValue, isSecondFactorRequired: boolean): AccessReturn {
     if (!rules)
       return AccessReturn.NO_MATCHING_RULES;
 
-    const policies = rules.map(this.SelectPolicy(whitelisted, secondFactorAuth));
+    const policies = rules.map(this.SelectPolicy(whitelisted, isSecondFactorRequired));
 
     if (rules.length > 0) {
       if (policies[0] == "allow") {
@@ -106,7 +106,7 @@ export class AccessController implements IAccessController {
     return this.configuration.default_whitelist_policy == "allow";
   }
 
-  isAccessAllowed(domain: string, resource: string, user: string, groups: string[], whitelisted: WhitelistValue, secondFactorAuth: boolean): boolean {
+  isAccessAllowed(domain: string, resource: string, user: string, groups: string[], whitelisted: WhitelistValue, isSecondFactorRequired: boolean): boolean {
     if (!this.configuration) return true;
 
     const allRules = this.getMatchingAllRules(domain, resource);
@@ -114,7 +114,7 @@ export class AccessController implements IAccessController {
     const userRules = this.getMatchingUserRules(user, domain, resource);
     const rules = allRules.concat(groupRules).concat(userRules).reverse();
 
-    const access = this.isAccessAllowedInRules(rules, whitelisted, secondFactorAuth);
+    const access = this.isAccessAllowedInRules(rules, whitelisted, isSecondFactorRequired);
     if (access == AccessReturn.MATCHING_RULES_AND_ACCESS)
       return true;
     else if (access == AccessReturn.MATCHING_RULES_AND_NO_ACCESS)
