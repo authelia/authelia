@@ -19,5 +19,5 @@ export interface ServerVariables {
   regulator: IRegulator;
   config: Configuration;
   accessController: IAccessController;
-  whitelist: IWhitelistHandler;
+  whitelistHandler: IWhitelistHandler;
 }

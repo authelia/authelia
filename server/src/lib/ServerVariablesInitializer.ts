@@ -106,16 +106,16 @@ export class ServerVariablesInitializer {
           config.regulation.find_time, config.regulation.ban_time);
 
         const variables: ServerVariables = {
-          accessController: accessController,
-          config: config,
-          usersDatabase: usersDatabase,
+          accessController,
+          config,
+          usersDatabase,
           logger: requestLogger,
-          notifier: notifier,
-          regulator: regulator,
-          totpHandler: totpHandler,
+          notifier,
+          regulator,
+          totpHandler,
           u2f: deps.u2f,
-          userDataStore: userDataStore,
-          whitelist: whitelistHandler,
+          userDataStore,
+          whitelistHandler,
         };
         return BluebirdPromise.resolve(variables);
       });

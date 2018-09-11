@@ -65,11 +65,11 @@ export default function (vars: ServerVariables) {
       }
 
       // Check for whitelisted user on request and handle auto-login
-      vars.whitelist.isWhitelisted(req.ip, vars.usersDatabase)
+      vars.whitelistHandler.isWhitelisted(req.ip, vars.usersDatabase)
         .then((user) => {
           if (user) {
             vars.logger.info(req, "Whitelisted IP matched to user \"%s\"", user);
-            vars.whitelist.loginWhitelistUser(user, req, vars)
+            vars.whitelistHandler.loginWhitelistUser(user, req, vars)
               .then(() => {
                 redirectToService(req, res);
                 return resolve();
