@@ -33,9 +33,6 @@ export class WhitelistHandler implements IWhitelistHandler {
     authSession.userid = user;
     authSession.whitelisted = WhitelistValue.WHITELISTED;
 
-    // Do we need to do this?
-    vars.regulator.mark(user, true);
-
     return vars.usersDatabase.getEmails(user)
       .then((emails) => {
         if (emails.length > 0)
