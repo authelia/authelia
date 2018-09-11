@@ -71,7 +71,7 @@ authentication_backend:
     mail_attribute: mail
 
     # The attribute holding the whitelisted addresses of the user
-    whitelist_attribute: networkAddresses
+    network_whitelist_attribute: networkAddresses
 
     # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com

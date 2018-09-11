@@ -113,8 +113,8 @@ export class Session implements ISession {
 
     const query = {
       scope: "sub",
-      attributes: [users_filter, this.options.whitelist_attribute],
-      filter: `(${this.options.whitelist_attribute}=*)`,
+      attributes: [users_filter, this.options.network_whitelist_attribute],
+      filter: `(${this.options.network_whitelist_attribute}=*)`,
     };
 
     return that.connector.searchAsync(that.usersSearchBase, query)
@@ -122,7 +122,7 @@ export class Session implements ISession {
         const normalisedUsers = users.map((user) => {
           return {
             user: user[users_filter],
-            network_addresses: user[that.options.whitelist_attribute],
+            network_addresses: user[that.options.network_whitelist_attribute],
           };
         });
         return BluebirdPromise.resolve(normalisedUsers);

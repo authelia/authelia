@@ -20,7 +20,7 @@ describe("configuration/schema/AuthenticationMethodsConfiguration", function() {
       group_name_attribute: "cn",
       groups_filter: "member={dn}",
       mail_attribute: "mail",
-      whitelist_attribute: "networkAddresses"
+      network_whitelist_attribute: "networkAddresses"
     });
   });
 });
