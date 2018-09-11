@@ -19,13 +19,14 @@ export default function (req: Express.Request, vars: ServerVariables,
       .isAccessAllowed(domain, path, username, groups, whitelisted, isSecondFactorRequired);
 
     if (!isAllowed) {
-      if (authenticationMethod === "two_factor" && whitelisted)
-        return reject(new Exceptions.AccessDeniedError(Util.format(
-          "Whitelisted user \"%s\" must perform second factor authentication for \"%s\"", username, domain)));
-
-      if (whitelisted)
+      if (whitelisted) {
+        if (isSecondFactorRequired) {
+          return reject(new Exceptions.AccessDeniedError(Util.format(
+            "Whitelisted user \"%s\" must perform second factor authentication for \"%s\"", username, domain)));
+        }
         return reject(new Exceptions.AccessDeniedError(Util.format(
           "Whitelisted user \"%s\" must perform authentication on \"%s\"", username, domain)));
+      }
 
       return reject(new Exceptions.DomainAccessDenied(Util.format(
         "User '%s' does not have access to '%s'", username, domain)));
