@@ -18,7 +18,7 @@ export const enum WhitelistValue {
 export class WhitelistHandler implements IWhitelistHandler {
   isWhitelisted(ip: string, usersDatabase: IUsersDatabase): Bluebird<string> {
     // Get Users & Network Addresses
-    return usersDatabase.getUsersWithNetworkAddresses()
+    return usersDatabase.getUserAndNetworkAddresses()
       .then((users) => {
           // Search through users for a matching ip
           const user = users.find((user) => ipRangeCheck(ip, user.network_addresses));

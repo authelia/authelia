@@ -7,7 +7,7 @@ import { Winston } from "../../../../../types/Dependencies";
 import Util = require("util");
 import { HashGenerator } from "../../../utils/HashGenerator";
 import { IConnector } from "./connector/IConnector";
-import { UsersWithNetworkAddresses } from "../UsersWithNetworkAddresses";
+import { UserAndNetworkAddresses } from "../UserAndNetworkAddresses";
 
 export class Session implements ISession {
   private userDN: string;
@@ -107,7 +107,7 @@ export class Session implements ISession {
       });
   }
 
-  searchWhitelist(): BluebirdPromise<UsersWithNetworkAddresses[]> {
+  searchWhitelist(): BluebirdPromise<UserAndNetworkAddresses[]> {
     const that = this;
     const users_filter = this.options.users_filter.substr(0, this.options.users_filter.indexOf("="));
 

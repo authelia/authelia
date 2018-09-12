@@ -3,20 +3,20 @@ import Sinon = require("sinon");
 
 import { IUsersDatabase } from "./IUsersDatabase";
 import { GroupsAndEmails } from "./GroupsAndEmails";
-import { UsersWithNetworkAddresses } from "./UsersWithNetworkAddresses";
+import { UserAndNetworkAddresses } from "./UserAndNetworkAddresses";
 
 export class IUsersDatabaseStub implements IUsersDatabase {
   checkUserPasswordStub: Sinon.SinonStub;
   getEmailsStub: Sinon.SinonStub;
   getGroupsStub: Sinon.SinonStub;
-  getUsersWithNetworkAddressesStub: Sinon.SinonStub;
+  getUserAndNetworkAddressesStub: Sinon.SinonStub;
   updatePasswordStub: Sinon.SinonStub;
 
   constructor() {
     this.checkUserPasswordStub = Sinon.stub();
     this.getEmailsStub = Sinon.stub();
     this.getGroupsStub = Sinon.stub();
-    this.getUsersWithNetworkAddressesStub = Sinon.stub();
+    this.getUserAndNetworkAddressesStub = Sinon.stub();
     this.updatePasswordStub = Sinon.stub();
   }
 
@@ -32,8 +32,8 @@ export class IUsersDatabaseStub implements IUsersDatabase {
     return this.getGroupsStub(username);
   }
 
-  getUsersWithNetworkAddresses(): Bluebird<UsersWithNetworkAddresses[]> {
-    return this.getUsersWithNetworkAddressesStub();
+  getUserAndNetworkAddresses(): Bluebird<UserAndNetworkAddresses[]> {
+    return this.getUserAndNetworkAddressesStub();
   }
 
   updatePassword(username: string, newPassword: string): Bluebird<void> {

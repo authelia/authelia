@@ -5,7 +5,7 @@ import Yaml = require("yamljs");
 import { FileUsersDatabaseConfiguration }
   from "../../../configuration/schema/FileUsersDatabaseConfiguration";
 import { GroupsAndEmails } from "../GroupsAndEmails";
-import { UsersWithNetworkAddresses } from "../UsersWithNetworkAddresses";
+import { UserAndNetworkAddresses } from "../UserAndNetworkAddresses";
 import { IUsersDatabase } from "../IUsersDatabase";
 import { HashGenerator } from "../../../utils/HashGenerator";
 import { ReadWriteQueue } from "./ReadWriteQueue";
@@ -115,7 +115,7 @@ export class FileUsersDatabase implements IUsersDatabase {
 
   private retrieveWhitelist(
     database: any)
-    : Bluebird<UsersWithNetworkAddresses[]> {
+    : Bluebird<UserAndNetworkAddresses[]> {
     if (!("users" in database)) {
       return Bluebird.reject(
         new Error("No users found in database"));
@@ -189,7 +189,7 @@ export class FileUsersDatabase implements IUsersDatabase {
       });
   }
 
-  getUsersWithNetworkAddresses(): Bluebird<UsersWithNetworkAddresses[]> {
+  getUserAndNetworkAddresses(): Bluebird<UserAndNetworkAddresses[]> {
     return this.readDatabase()
     .then((database) => {
       return this.retrieveWhitelist(database);
