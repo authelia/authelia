@@ -21,7 +21,7 @@ export interface ServerVariablesMock {
   totpHandler: TotpHandlerStub;
   userDataStore: UserDataStoreStub;
   u2f: U2fHandlerStub;
-  whitelist: WhitelistHandlerStub;
+  whitelistHandler: WhitelistHandlerStub;
 }
 
 export class ServerVariablesMockBuilder {
@@ -71,7 +71,7 @@ export class ServerVariablesMockBuilder {
       totpHandler: new TotpHandlerStub(),
       userDataStore: new UserDataStoreStub(),
       u2f: new U2fHandlerStub(),
-      whitelist: new WhitelistHandlerStub()
+      whitelistHandler: new WhitelistHandlerStub()
     };
     const vars: ServerVariables = {
       accessController: mocks.accessController,
@@ -83,7 +83,7 @@ export class ServerVariablesMockBuilder {
       totpHandler: mocks.totpHandler,
       userDataStore: mocks.userDataStore,
       u2f: mocks.u2f,
-      whitelist: mocks.whitelist
+      whitelistHandler: mocks.whitelistHandler
     };
 
     return {
