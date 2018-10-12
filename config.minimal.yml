@@ -14,3 +14,103 @@ session:
   # The domain to protect.
   # Note: Authelia must also be served by that domain.
   domain: example.com
+
+# Configuration of the storage backend used to store data and secrets.
+# i.e 2FA data
+# You must use only an available configuration: local, mongo
+storage:
+  # The directory where the DB files will be saved
+  local:
+    path: /etc/authelia/volume
+
+totp:
+  issuer: example.com
+
+authentication_methods:
+  default_method: two_factor
+  per_subdomain_methods:
+    single_factor.example.com: single_factor
+
+access_control:
+  # Default policy can either be `allow` or `deny`.
+  # It is the policy applied to any resource if it has not been overriden
+  # in the `any`, `groups` or `users` category.
+  default_policy: deny
+  groups:
+    admins:
+      # All resources in all domains
+      - domain: '*.example.com'
+        policy: allow
+      # Except mx2.mail.example.com (it restricts the first rule)
+      #- domain: 'mx2.mail.example.com'
+      #  policy: deny
+
+  # User-based rules. The key is a user name and the value
+  # is a list of rules.
+  users:
+    john:
+      - domain: dev.example.com
+        policy: allow
+        resources:
+          - '^/users/john/.*$' 
+    harry:
+      - domain: dev.example.com
+        policy: allow
+        resources:
+          - '^/users/harry/.*$'
+    bob:
+      - domain: '*.mail.example.com'
+        policy: allow
+      - domain: 'dev.example.com'
+        policy: allow
+        resources:
+- '^/users/bob/.*$'      
+
+
+regulation:
+  # The number of failed login attempts before user is banned. 
+  # Set it to 0 to disable regulation.
+  max_retries: 3
+
+  # The time range during which the user can attempt login before being banned.
+  # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window. 
+  find_time: 120
+
+  # The length of time before a banned user can login again.
+  ban_time: 300
+
+# Default redirection URL
+#
+# If user tries to authenticate without any referer, Authelia
+# does not know where to redirect the user to at the end of the
+# authentication process.
+# This parameter allows you to specify the default redirection
+# URL Authelia will use in such a case.
+#
+# Note: this parameter is optional. If not provided, user won't
+# be redirected upon successful authentication.
+#default_redirection_url: https://authelia.example.domain
+
+notifier:
+  # For testing purpose, notifications can be sent in a file
+  ## filesystem:
+  ##   filename: /tmp/authelia/notification.txt
+
+  # Use your email account to send the notifications. You can use an app password.
+  # List of valid services can be found here: https://nodemailer.com/smtp/well-known/  
+  ## email:
+  ##   username: user@example.com
+  ##   password: yourpassword
+  ##   sender: admin@example.com
+  ##   service: gmail
+  
+  # Use a SMTP server for sending notifications
+  # Use a SMTP server for sending notifications
+  smtp:
+    username: test
+    password: password
+    secure: false
+    host: 'smtp'
+    port: 1025
+    sender: admin@example.com
+
