@@ -114,7 +114,7 @@ access_control:
       - domain: 'dev.example.com'
         policy: allow
         resources:
-- '^/users/bob/.*$'      
+          - '^/users/bob/.*$'      
 
 # Configuration of the authentication regulation mechanism.
 #
