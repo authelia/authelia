@@ -23,14 +23,64 @@ storage:
   local:
     path: /etc/authelia/volume
 
+# TOTP Issuer Name
+#
+# This will be the issuer name displayed in Google Authenticator
+# See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
 totp:
   issuer: example.com
 
+# Authentication methods
+#
+# Authentication methods can be defined per subdomain.
+# There are currently two available methods: "single_factor" and "two_factor"
+#
+# Note: by default a domain uses "two_factor" method.
+#
+# Note: 'per_subdomain_methods' is a dictionary where keys must be subdomains and
+# values must be one of the two possible methods.
+#
+# Note: 'per_subdomain_methods' is optional.
+#
+# Note: authentication_methods is optional. If it is not set all sub-domains
+# are protected by two factors.
 authentication_methods:
   default_method: two_factor
   per_subdomain_methods:
     single_factor.example.com: single_factor
 
+# Access Control
+#
+# Access control is a set of rules you can use to restrict user access to certain 
+# resources.
+# Any (apply to anyone), per-user or per-group rules can be defined.
+#
+# If 'access_control' is not defined, ACL rules are disabled and the `allow` default 
+# policy is applied, i.e., access is allowed to anyone. Otherwise restrictions follow 
+# the rules defined.
+# 
+# Note: One can use the wildcard * to match any subdomain. 
+# It must stand at the beginning of the pattern. (example: *.mydomain.com)
+# 
+# Note: You must put the pattern in simple quotes when using the wildcard for the YAML
+# to be syntaxically correct.
+#
+# Definition: A `rule` is an object with the following keys: `domain`, `policy` 
+# and `resources`.
+# - `domain` defines which domain or set of domains the rule applies to.
+# - `policy` is the policy to apply to resources. It must be either `allow` or `deny`.
+# - `resources` is a list of regular expressions that matches a set of resources to 
+# apply the policy to.
+#
+# Note: Rules follow an order of priority defined as follows:
+# In each category (`any`, `groups`, `users`), the latest rules have the highest 
+# priority. In other words, it means that if a given resource matches two rules in the
+# same category, the latest one overrides the first one.
+# Each category has also its own priority. That is, `users` has the highest priority, then
+# `groups` and `any` has the lowest priority. It means if two rules in different categories
+# match a given resource, the one in the category with the highest priority overrides the
+# other one.
+#
 access_control:
   # Default policy can either be `allow` or `deny`.
   # It is the policy applied to any resource if it has not been overriden
@@ -66,7 +116,11 @@ access_control:
         resources:
 - '^/users/bob/.*$'      
 
-
+# Configuration of the authentication regulation mechanism.
+#
+# This mechanism prevents attackers from brute forcing the first factor.
+# It bans the user if too many attempts are done in a short period of
+# time.
 regulation:
   # The number of failed login attempts before user is banned. 
   # Set it to 0 to disable regulation.
