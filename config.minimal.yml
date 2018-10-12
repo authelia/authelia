@@ -5,7 +5,7 @@
 authentication_backend:
   file:
     # The path to the database file. The file is at the root of the repo.
-    path: /etc/authelia/users_database.yml
+    path: /etc/authelia/volume/users_database.yml
 
 session:
   # The secret to encrypt the session cookies with.
