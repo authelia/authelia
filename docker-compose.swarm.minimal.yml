@@ -4,7 +4,7 @@ services:
     image: clems4ever/authelia:latest
     # Used for Docker configs
     configs:
-      - source: authelia.v3
+      - source: authelia
         target: /etc/authelia/config.yml
         uid: '0'
         gid: '0'
