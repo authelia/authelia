@@ -107,7 +107,7 @@
     "proxyquire": "^2.0.1",
     "query-string": "^6.0.0",
     "readable-stream": "^2.3.3",
-    "request": "^2.83.0",
+    "request": "^2.88.0",
     "request-promise": "^4.2.2",
     "selenium-webdriver": "^4.0.0-alpha.1",
     "should": "^13.2.1",
