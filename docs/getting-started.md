@@ -1,4 +1,4 @@
-# Getting started
+# Getting Started
 
 **Authelia** can be tested in a matter of seconds with docker-compose based
 on the latest image available on [Dockerhub] or by building the latest version
@@ -62,7 +62,7 @@ following command:
 
 ## From source
 
-To deploy **Authelia** from source, follow the [Build] manual and run the
+To deploy **Authelia** from source, follow the [build] manual and run the
 following commands:
 
     ./scripts/example-commit/deploy-example.sh
@@ -96,5 +96,6 @@ for testing only.
 
 Enjoy!
 
+[config.template.yml]: ../config.template.yml
 [DockerHub]: https://hub.docker.com/r/clems4ever/authelia/
-[Build]: ./docs/build.md
+[Build]: ./build.md

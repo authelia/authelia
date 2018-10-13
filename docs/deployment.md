@@ -33,11 +33,11 @@ environment.
 
 <img src="/images/kube-logo.png" width="24" align="left">
 
-**Authelia** can also be used on top of  Kubernetes using the nginx ingress
+**Authelia** can also be used on top of Kubernetes using the nginx ingress
 controller.
 
 Please refer to the following [README](../example/kube/README.md) for more
 information.
 
-
 [config.template.yml]: ../config.template.yml
+[Getting Started]: ./getting-started.md
