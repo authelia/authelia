@@ -108,3 +108,25 @@
 .u2f-token img {
     width: 70px;
 }
+
+.keep-me-logged-in {
+    margin-top: 10px;
+    font-size: 0.8em;
+}
+
+.keep-me-logged-in input[type=checkbox] {
+    transform: scale(0.8);
+    margin: 0;
+    margin-right: 4px;
+}
+
+.keep-me-logged-in label {
+    font-weight: 300;
+}
+
+.keep-me-logged-in input,
+.keep-me-logged-in label {
+    display: inline-block;
+    margin-bottom: 0; /* I added this after I posted my reply */
+    vertical-align: middle; /* Fixes any weird issues in Firefox and IE */
+}
