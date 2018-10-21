@@ -6,7 +6,8 @@ import Util = require("util");
 import UserMessages = require("../../../../shared/UserMessages");
 
 export function validate(username: string, password: string,
-  redirectUrl: string, $: JQueryStatic): BluebirdPromise<string> {
+  keepMeLoggedIn: boolean, redirectUrl: string, $: JQueryStatic)
+  : BluebirdPromise<string> {
   return new BluebirdPromise<string>(function (resolve, reject) {
     let url: string;
     if (redirectUrl != undefined) {
@@ -17,13 +18,19 @@ export function validate(username: string, password: string,
       url = Util.format("%s", Endpoints.FIRST_FACTOR_POST);
     }
 
+    const data: any = {
+      username: username,
+      password: password,
+    };
+
+    if (keepMeLoggedIn) {
+      data.keepMeLoggedIn = "true";
+    }
+
     $.ajax({
       method: "POST",
       url: url,
-      data: {
-        username: username,
-        password: password,
-      }
+      data: data
     })
       .done(function (body: any) {
         if (body && body.error) {

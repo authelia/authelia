@@ -21,7 +21,15 @@ export default function (vars: ServerVariables) {
     : BluebirdPromise<void> {
     const username: string = req.body.username;
     const password: string = req.body.password;
+    const keepMeLoggedIn: boolean = req.body.keepMeLoggedIn &&
+      req.body.keepMeLoggedIn === "true";
     let authSession: AuthenticationSession;
+
+    if (keepMeLoggedIn) {
+      // Stay connected for 1 year.
+      vars.logger.debug(req, "User requested to stay logged in for one year.");
+      req.session.cookie.maxAge = 365 * 24 * 60 * 60 * 1000;
+    }
 
     return BluebirdPromise.resolve()
       .then(function () {
@@ -41,6 +49,7 @@ export default function (vars: ServerVariables) {
           "LDAP binding successful. Retrieved information about user are %s",
           JSON.stringify(groupsAndEmails));
         authSession.userid = username;
+        authSession.keep_me_logged_in = keepMeLoggedIn;
         authSession.first_factor = true;
         const redirectUrl = req.query[Constants.REDIRECT_QUERY_PARAM] !== "undefined"
           // Fuck, don't know why it is a string!

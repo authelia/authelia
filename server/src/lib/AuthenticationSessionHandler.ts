@@ -7,6 +7,7 @@ import { AuthenticationSession } from "../../types/AuthenticationSession";
 import { IRequestLogger } from "./logging/IRequestLogger";
 
 const INITIAL_AUTHENTICATION_SESSION: AuthenticationSession = {
+  keep_me_logged_in: false,
   first_factor: false,
   second_factor: false,
   last_activity_datetime: undefined,

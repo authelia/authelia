@@ -80,6 +80,7 @@ describe("routes/verify/get", function () {
       describe("given different cases of session", function () {
         it("should not be authenticated when second factor is missing", function () {
           return test_non_authenticated_401({
+            keep_me_logged_in: false,
             userid: "user",
             first_factor: true,
             second_factor: false,
@@ -91,6 +92,7 @@ describe("routes/verify/get", function () {
 
         it("should not be authenticated when first factor is missing", function () {
           return test_non_authenticated_401({
+            keep_me_logged_in: false,
             userid: "user",
             first_factor: false,
             second_factor: true,
@@ -102,6 +104,7 @@ describe("routes/verify/get", function () {
 
         it("should not be authenticated when userid is missing", function () {
           return test_non_authenticated_401({
+            keep_me_logged_in: false,
             userid: undefined,
             first_factor: true,
             second_factor: false,
@@ -113,6 +116,7 @@ describe("routes/verify/get", function () {
 
         it("should not be authenticated when first and second factor are missing", function () {
           return test_non_authenticated_401({
+            keep_me_logged_in: false,
             userid: "user",
             first_factor: false,
             second_factor: false,
@@ -134,6 +138,7 @@ describe("routes/verify/get", function () {
           mocks.accessController.isAccessAllowedMock.returns(false);
 
           return test_unauthorized_403({
+            keep_me_logged_in: false,
             first_factor: true,
             second_factor: true,
             userid: "user",

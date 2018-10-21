@@ -43,6 +43,7 @@ describe("routes/firstfactor/post", function () {
         redirect: "http://redirect.url"
       },
       session: {
+        cookie: {}
       },
       headers: {
         host: "home.example.com"
@@ -64,6 +65,26 @@ describe("routes/firstfactor/post", function () {
         Assert.equal("username", authSession.userid);
         Assert(res.send.calledOnce);
       });
+  });
+
+  describe("keep me logged in", () => {
+    beforeEach(() => {
+      mocks.usersDatabase.checkUserPasswordStub.withArgs("username", "password")
+        .returns(BluebirdPromise.resolve({
+          emails: emails,
+          groups: groups
+        }));
+      req.body.keepMeLoggedIn = "true";
+      return FirstFactorPost.default(vars)(req as any, res as any);
+    });
+
+    it("should set keep_me_logged_in session variable to true", function () {
+      Assert.equal(authSession.keep_me_logged_in, true);
+    });
+
+    it("should set cookie maxAge to one year", function () {
+      Assert.equal(req.session.cookie.maxAge, 365 * 24 * 60 * 60 * 1000);
+    });
   });
 
   it("should retrieve email from LDAP", function () {

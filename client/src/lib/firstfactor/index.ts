@@ -15,13 +15,14 @@ export default function (window: Window, $: JQueryStatic,
   function onFormSubmitted() {
     const username: string = $(UISelectors.USERNAME_FIELD_ID).val() as string;
     const password: string = $(UISelectors.PASSWORD_FIELD_ID).val() as string;
+    const keepMeLoggedIn: boolean = $(UISelectors.KEEP_ME_LOGGED_IN_ID).is(":checked");
 
     $("form").css("opacity", 0.5);
     $("input,button").attr("disabled", "true");
     $(UISelectors.SIGN_IN_BUTTON_ID).text("Please wait...");
 
     const redirectUrl = QueryParametersRetriever.get(Constants.REDIRECT_QUERY_PARAM);
-    firstFactorValidator.validate(username, password, redirectUrl, $)
+    firstFactorValidator.validate(username, password, keepMeLoggedIn, redirectUrl, $)
       .then(onFirstFactorSuccess, onFirstFactorFailure);
     return false;
   }
