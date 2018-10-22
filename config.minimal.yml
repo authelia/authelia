@@ -2,8 +2,6 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
-logs_level: debug
-
 authentication_backend:
   file:
     path: /etc/authelia/users_database.yml
@@ -11,7 +9,6 @@ authentication_backend:
 session:
   secret: unsecure_session_secret
   domain: example.com
-  inactivity: 30000
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
