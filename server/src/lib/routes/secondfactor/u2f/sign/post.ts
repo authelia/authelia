@@ -14,6 +14,7 @@ import { ServerVariables } from "../../../../ServerVariables";
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import UserMessages = require("../../../../../../../shared/UserMessages");
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
+import { Level } from "../../../../authentication/Level";
 
 export default function (vars: ServerVariables) {
   function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
@@ -43,7 +44,7 @@ export default function (vars: ServerVariables) {
         if (objectPath.has(result, "errorCode"))
           return BluebirdPromise.reject(new Error("Error while signing"));
         vars.logger.info(req, "Successful authentication");
-        authSession.second_factor = true;
+        authSession.authentication_level = Level.TWO_FACTOR;
         redirect(vars)(req, res);
         return BluebirdPromise.resolve();
       })

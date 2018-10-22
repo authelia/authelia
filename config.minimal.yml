@@ -22,27 +22,21 @@ storage:
 totp:
   issuer: example.com
 
-# Authentication methods
-#
-# Authentication methods can be defined per subdomain.
-# There are currently two available methods: "single_factor" and "two_factor"
-authentication_methods:
-  default_method: two_factor
-  per_subdomain_methods:
-    single_factor.example.com: single_factor
-
 # Access Control
 #
 # Access control is a set of rules you can use to restrict user access to certain 
 # resources.
 access_control:
-  # Default policy can either be `allow` or `deny`.
+  # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
   default_policy: deny
+  any:
+    - domain: single_factor.example.com
+      policy: one_factor
   groups:
     admins:
       # All resources in all domains
       - domain: '*.example.com'
-        policy: allow
+        policy: two_factor
       # Except mx2.mail.example.com (it restricts the first rule)
       #- domain: 'mx2.mail.example.com'
       #  policy: deny
@@ -51,19 +45,19 @@ access_control:
   users:
     john:
       - domain: dev.example.com
-        policy: allow
+        policy: two_factor
         resources:
           - '^/users/john/.*$' 
     harry:
       - domain: dev.example.com
-        policy: allow
+        policy: two_factor
         resources:
           - '^/users/harry/.*$'
     bob:
       - domain: '*.mail.example.com'
-        policy: allow
+        policy: two_factor
       - domain: 'dev.example.com'
-        policy: allow
+        policy: two_factor
         resources:
           - '^/users/bob/.*$'      
 

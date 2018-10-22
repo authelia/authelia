@@ -1,9 +1,9 @@
 import U2f = require("u2f");
+import { Level } from "../src/lib/authentication/Level";
 
 export interface AuthenticationSession {
   userid: string;
-  first_factor: boolean;
-  second_factor: boolean;
+  authentication_level: Level;
   keep_me_logged_in: boolean;
   last_activity_datetime: number;
   identity_check?: {

@@ -127,12 +127,12 @@ describe("configuration/ConfigurationParser", function () {
         default_policy: "deny",
         any: [{
           domain: "public.example.com",
-          policy: "allow"
+          policy: "two_factor"
         }],
         users: {
           "user": [{
             domain: "www.example.com",
-            policy: "allow"
+            policy: "two_factor"
           }]
         },
         groups: {}
@@ -142,12 +142,12 @@ describe("configuration/ConfigurationParser", function () {
         default_policy: "deny",
         any: [{
           domain: "public.example.com",
-          policy: "allow"
+          policy: "two_factor"
         }],
         users: {
           "user": [{
             domain: "www.example.com",
-            policy: "allow"
+            policy: "two_factor"
           }]
         },
         groups: {}
@@ -160,7 +160,7 @@ describe("configuration/ConfigurationParser", function () {
       userConfig.access_control = {} as any;
       const config = ConfigurationParser.parse(userConfig);
       Assert.deepEqual(config.access_control, {
-        default_policy: "allow",
+        default_policy: "bypass",
         any: [],
         users: {},
         groups: {}

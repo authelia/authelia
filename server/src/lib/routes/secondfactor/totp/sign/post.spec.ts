@@ -11,6 +11,7 @@ import { ServerVariables } from "../../../../ServerVariables";
 import ExpressMock = require("../../../../stubs/express.spec");
 import { UserDataStoreStub } from "../../../../storage/UserDataStoreStub.spec";
 import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../../../ServerVariablesMockBuilder.spec";
+import { Level } from "../../../../authentication/Level";
 
 describe("routes/secondfactor/totp/sign/post", function () {
   let req: ExpressMock.RequestMock;
@@ -46,8 +47,7 @@ describe("routes/secondfactor/totp/sign/post", function () {
     mocks.userDataStore.retrieveTOTPSecretStub.returns(BluebirdPromise.resolve(doc));
     authSession = AuthenticationSessionHandler.get(req as any, vars.logger);
     authSession.userid = "user";
-    authSession.first_factor = true;
-    authSession.second_factor = false;
+    authSession.authentication_level = Level.ONE_FACTOR;
   });
 
 
@@ -55,7 +55,7 @@ describe("routes/secondfactor/totp/sign/post", function () {
     mocks.totpHandler.validateStub.returns(true);
     return SignPost.default(vars)(req as any, res as any)
       .then(function () {
-        Assert.equal(true, authSession.second_factor);
+        Assert.equal(authSession.authentication_level, Level.TWO_FACTOR);
         return BluebirdPromise.resolve();
       });
   });
@@ -64,7 +64,7 @@ describe("routes/secondfactor/totp/sign/post", function () {
     mocks.totpHandler.validateStub.returns(false);
     return SignPost.default(vars)(req as any, res as any)
       .then(function () {
-        Assert.equal(false, authSession.second_factor);
+        Assert.notEqual(authSession.authentication_level, Level.TWO_FACTOR);
         Assert.equal(res.status.getCall(0).args[0], 200);
         Assert.deepEqual(res.send.getCall(0).args[0], {
           error: "Operation failed."

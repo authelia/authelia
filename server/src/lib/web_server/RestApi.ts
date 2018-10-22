@@ -32,23 +32,16 @@ import LoggedIn = require("../routes/loggedin/get");
 import { ServerVariables } from "../ServerVariables";
 import Endpoints = require("../../../../shared/api");
 import { RequireValidatedFirstFactor } from "./middlewares/RequireValidatedFirstFactor";
-import { RequireTwoFactorEnabled } from "./middlewares/RequireTwoFactorEnabled";
 
 function setupTotp(app: Express.Application, vars: ServerVariables) {
   app.post(Endpoints.SECOND_FACTOR_TOTP_POST,
-    RequireTwoFactorEnabled.middleware(vars.logger,
-      vars.config.authentication_methods),
     RequireValidatedFirstFactor.middleware(vars.logger),
     TOTPSignGet.default(vars));
 
   app.get(Endpoints.SECOND_FACTOR_TOTP_IDENTITY_START_GET,
-    RequireTwoFactorEnabled.middleware(vars.logger,
-      vars.config.authentication_methods),
     RequireValidatedFirstFactor.middleware(vars.logger));
 
   app.get(Endpoints.SECOND_FACTOR_TOTP_IDENTITY_FINISH_GET,
-    RequireTwoFactorEnabled.middleware(vars.logger,
-      vars.config.authentication_methods),
     RequireValidatedFirstFactor.middleware(vars.logger));
 
   IdentityCheckMiddleware.register(app,
@@ -61,37 +54,25 @@ function setupTotp(app: Express.Application, vars: ServerVariables) {
 
 function setupU2f(app: Express.Application, vars: ServerVariables) {
   app.get(Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET,
-    RequireTwoFactorEnabled.middleware(vars.logger,
-      vars.config.authentication_methods),
     RequireValidatedFirstFactor.middleware(vars.logger),
     U2FSignRequestGet.default(vars));
 
   app.post(Endpoints.SECOND_FACTOR_U2F_SIGN_POST,
-    RequireTwoFactorEnabled.middleware(vars.logger,
-      vars.config.authentication_methods),
     RequireValidatedFirstFactor.middleware(vars.logger),
     U2FSignPost.default(vars));
 
   app.get(Endpoints.SECOND_FACTOR_U2F_REGISTER_REQUEST_GET,
-    RequireTwoFactorEnabled.middleware(vars.logger,
-      vars.config.authentication_methods),
     RequireValidatedFirstFactor.middleware(vars.logger),
     U2FRegisterRequestGet.default(vars));
 
   app.post(Endpoints.SECOND_FACTOR_U2F_REGISTER_POST,
-    RequireTwoFactorEnabled.middleware(vars.logger,
-      vars.config.authentication_methods),
     RequireValidatedFirstFactor.middleware(vars.logger),
     U2FRegisterPost.default(vars));
 
   app.get(Endpoints.SECOND_FACTOR_U2F_IDENTITY_START_GET,
-    RequireTwoFactorEnabled.middleware(vars.logger,
-      vars.config.authentication_methods),
     RequireValidatedFirstFactor.middleware(vars.logger));
 
   app.get(Endpoints.SECOND_FACTOR_U2F_IDENTITY_FINISH_GET,
-    RequireTwoFactorEnabled.middleware(vars.logger,
-      vars.config.authentication_methods),
     RequireValidatedFirstFactor.middleware(vars.logger));
 
   IdentityCheckMiddleware.register(app,
@@ -124,8 +105,6 @@ export class RestApi {
     app.get(Endpoints.FIRST_FACTOR_GET, FirstFactorGet.default(vars));
 
     app.get(Endpoints.SECOND_FACTOR_GET,
-      RequireTwoFactorEnabled.middleware(vars.logger,
-        vars.config.authentication_methods),
       RequireValidatedFirstFactor.middleware(vars.logger),
       SecondFactorGet.default(vars));
 

@@ -9,6 +9,7 @@ import BluebirdPromise = require("bluebird");
 import ExpressMock = require("../../../stubs/express.spec");
 import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../../ServerVariablesMockBuilder.spec";
 import { ServerVariables } from "../../../ServerVariables";
+import { Level } from "../../../authentication/Level";
 
 describe("routes/password-reset/form/post", function () {
   let req: ExpressMock.RequestMock;
@@ -59,8 +60,7 @@ describe("routes/password-reset/form/post", function () {
     authSession = AuthenticationSessionHandler.get(req as any, vars.logger);
     authSession.userid = "user";
     authSession.email = "user@example.com";
-    authSession.first_factor = true;
-    authSession.second_factor = false;
+    authSession.authentication_level = Level.ONE_FACTOR;
   });
 
   describe("test reset password post", () => {
@@ -79,8 +79,7 @@ describe("routes/password-reset/form/post", function () {
           return AuthenticationSessionHandler.get(req as any, vars.logger);
         }).then(function (_authSession) {
           Assert.equal(res.status.getCall(0).args[0], 204);
-          Assert.equal(_authSession.first_factor, false);
-          Assert.equal(_authSession.second_factor, false);
+          Assert.equal(_authSession.authentication_level, Level.NOT_AUTHENTICATED);
           return BluebirdPromise.resolve();
         });
     });

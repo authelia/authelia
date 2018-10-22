@@ -1,5 +1,5 @@
 
-export type ACLPolicy = "deny" | "allow";
+export type ACLPolicy = "deny" | "bypass" | "one_factor" | "two_factor";
 
 export type ACLRule = {
   domain: string;
@@ -23,7 +23,7 @@ export function complete(configuration: ACLConfiguration): ACLConfiguration {
     ? JSON.parse(JSON.stringify(configuration)) : {};
 
   if (!newConfiguration.default_policy) {
-    newConfiguration.default_policy = "allow";
+    newConfiguration.default_policy = "bypass";
   }
 
   if (!newConfiguration.any) {

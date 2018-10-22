@@ -1,17 +1,14 @@
 import { ACLConfiguration, complete as AclConfigurationComplete } from "./AclConfiguration";
-import { AuthenticationMethodsConfiguration, complete as AuthenticationMethodsConfigurationComplete } from "./AuthenticationMethodsConfiguration";
 import { AuthenticationBackendConfiguration, complete as AuthenticationBackendComplete } from "./AuthenticationBackendConfiguration";
 import { NotifierConfiguration, complete as NotifierConfigurationComplete } from "./NotifierConfiguration";
 import { RegulationConfiguration, complete as RegulationConfigurationComplete } from "./RegulationConfiguration";
 import { SessionConfiguration, complete as SessionConfigurationComplete } from "./SessionConfiguration";
 import { StorageConfiguration, complete as StorageConfigurationComplete } from "./StorageConfiguration";
 import { TotpConfiguration, complete as TotpConfigurationComplete } from "./TotpConfiguration";
-import { MethodCalculator } from "../../authentication/MethodCalculator";
 
 export interface Configuration {
   access_control?: ACLConfiguration;
   authentication_backend: AuthenticationBackendConfiguration;
-  authentication_methods?: AuthenticationMethodsConfiguration;
   default_redirection_url?: string;
   logs_level?: string;
   notifier?: NotifierConfiguration;
@@ -41,25 +38,14 @@ export function complete(
   if (error) errors.push(error);
   newConfiguration.authentication_backend = backend;
 
-  newConfiguration.authentication_methods =
-    AuthenticationMethodsConfigurationComplete(
-      newConfiguration.authentication_methods);
-
   if (!newConfiguration.logs_level) {
     newConfiguration.logs_level = "info";
   }
 
-  // In single factor mode, notifier section is optional.
-  if (!MethodCalculator.isSingleFactorOnlyMode(
-      newConfiguration.authentication_methods) ||
-      newConfiguration.notifier) {
-
-    const [notifier, error] = NotifierConfigurationComplete(
-      newConfiguration.notifier);
-    newConfiguration.notifier = notifier;
-
-    if (error) errors.push(error);
-  }
+  const [notifier, notifierError] = NotifierConfigurationComplete(
+    newConfiguration.notifier);
+  newConfiguration.notifier = notifier;
+  if (notifierError) errors.push(notifierError);
 
   if (!newConfiguration.port) {
     newConfiguration.port = 8080;

@@ -4,31 +4,24 @@ import ObjectPath = require("object-path");
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession }
   from "../../../../types/AuthenticationSession";
+<<<<<<< HEAD
 import { DomainExtractor } from "../../../../../shared/DomainExtractor";
 import { MethodCalculator } from "../../authentication/MethodCalculator";
+=======
+>>>>>>> Integrate more policy options in ACL rules.
 import AccessControl from "./access_control";
+import { URLDecomposer } from "../../utils/URLDecomposer";
+import { Level } from "../../authentication/Level";
 
 export default function (req: Express.Request, res: Express.Response,
   vars: ServerVariables, authorizationHeader: string)
   : BluebirdPromise<{ username: string, groups: string[] }> {
   let username: string;
-  let domain: string;
-  let originalUri: string;
+  const uri = ObjectPath.get<Express.Request, string>(req, "headers.x-original-url");
+  const urlDecomposition = URLDecomposer.fromUrl(uri);
 
   return BluebirdPromise.resolve()
     .then(() => {
-      const originalUrl = ObjectPath.get<Express.Request, string>(req, "headers.x-original-url");
-      domain = DomainExtractor.fromUrl(originalUrl);
-      originalUri =
-        ObjectPath.get<Express.Request, string>(req, "headers.x-original-uri");
-      const authenticationMethod =
-        MethodCalculator.compute(vars.config.authentication_methods, domain);
-
-      if (authenticationMethod != "single_factor") {
-        return BluebirdPromise.reject(new Error("This domain is not protected with single factor. " +
-          "You cannot log in with basic authentication."));
-      }
-
       const base64Re = new RegExp("^Basic ((?:[A-Za-z0-9+/]{4})*" +
         "(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?)$");
       const isTokenValidBase64 = base64Re.test(authorizationHeader);
@@ -52,7 +45,8 @@ export default function (req: Express.Request, res: Express.Response,
       return vars.usersDatabase.checkUserPassword(username, password);
     })
     .then(function (groupsAndEmails) {
-      return AccessControl(req, vars, domain, originalUri, username, groupsAndEmails.groups)
+      return AccessControl(req, vars, urlDecomposition.domain, urlDecomposition.path,
+        username, groupsAndEmails.groups, Level.ONE_FACTOR)
         .then(() => BluebirdPromise.resolve({
           username: username,
           groups: groupsAndEmails.groups

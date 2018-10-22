@@ -8,7 +8,6 @@ import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import Endpoints = require("../../../../../shared/api");
 import AuthenticationRegulatorMock = require("../../regulation/RegulatorStub.spec");
-import { AccessControllerStub } from "../../access_control/AccessControllerStub.spec";
 import ExpressMock = require("../../stubs/express.spec");
 import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../ServerVariablesMockBuilder.spec";
 import { ServerVariables } from "../../ServerVariables";
@@ -29,7 +28,7 @@ describe("routes/firstfactor/post", function () {
     mocks = s.mocks;
     vars = s.variables;
 
-    mocks.accessController.isAccessAllowedMock.returns(true);
+    mocks.authorizer.authorizationMock.returns(true);
     mocks.regulator.regulateStub.returns(BluebirdPromise.resolve());
     mocks.regulator.markStub.returns(BluebirdPromise.resolve());
 

@@ -103,7 +103,7 @@ authentication_backend:
 authentication_methods:
   default_method: two_factor
   per_subdomain_methods:
-    single_factor.example.com: single_factor
+    
 
 
 # Access Control
@@ -148,7 +148,9 @@ access_control:
   # The value is a list of rules.
   any:
     - domain: public.example.com
-      policy: allow
+      policy: two_factor
+    - domain: single_factor.example.com
+      policy: one_factor
   
   # Group-based rules. The key is a group name and the value
   # is a list of rules.
@@ -156,13 +158,13 @@ access_control:
     admin:
       # All resources in all domains
       - domain: '*.example.com'
-        policy: allow
+        policy: two_factor
       # Except mx2.mail.example.com (it restricts the first rule)
       - domain: 'mx2.mail.example.com'
         policy: deny
     dev:
       - domain: dev.example.com
-        policy: allow
+        policy: two_factor
         resources:
           - '^/groups/dev/.*$'
   
@@ -171,19 +173,19 @@ access_control:
   users:
     john:
       - domain: dev.example.com
-        policy: allow
+        policy: two_factor
         resources:
           - '^/users/john/.*$' 
     harry:
       - domain: dev.example.com
-        policy: allow
+        policy: two_factor
         resources:
           - '^/users/harry/.*$'
     bob:
       - domain: '*.mail.example.com'
-        policy: allow
+        policy: two_factor
       - domain: 'dev.example.com'
-        policy: allow
+        policy: two_factor
         resources:
           - '^/users/bob/.*$'
 
