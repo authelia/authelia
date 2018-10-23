@@ -13,9 +13,9 @@ export class Environment {
   }
 
   private runCommand(command: string, timeout?: number): Bluebird<void> {
-    return new Bluebird<void>(function(resolve, reject) {
+    return new Bluebird<void>((resolve, reject) => {
       console.log('[ENVIRONMENT] Running: %s', command);
-      exec(command, function(err, stdout, stderr) {
+      exec(command, (err, stdout, stderr) => {
         if(err) {
           reject(err);
           return;
@@ -34,9 +34,12 @@ export class Environment {
   }
 
   cleanup(): Bluebird<void> {
-    const command = docker_compose(this.includes) + ' down'
-    console.log('[ENVIRONMENT] Cleaning up...');
-    return this.runCommand(command);
+    if(process.env.KEEP_ENV != "true") {
+      const command = docker_compose(this.includes) + ' down'
+      console.log('[ENVIRONMENT] Cleaning up...');
+      return this.runCommand(command);
+    }
+    return Bluebird.resolve();
   }
 
   stop_service(serviceName: string): Bluebird<void> {

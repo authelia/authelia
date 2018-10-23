@@ -25,7 +25,7 @@ function verify_inactivity(req: Express.Request,
   : BluebirdPromise<void> {
 
   // If inactivity is not specified, then inactivity timeout does not apply
-  if (!configuration.session.inactivity) {
+  if (!configuration.session.inactivity || authSession.keep_me_logged_in) {
     return BluebirdPromise.resolve();
   }
 
