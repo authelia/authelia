@@ -1,6 +1,6 @@
 version: '2'
 services:
-  authelia-dev:
+  authelia:
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -10,15 +10,15 @@ services:
       - ./dist/server/src/public_html:/usr/src/server/src/public_html
       - ./client:/usr/src/client
       - ./shared:/usr/src/shared
-      - ./config.template.yml:/etc/authelia/config.yml:ro
+      - ./config.minimal.yml:/etc/authelia/config.yml:ro
+      - /tmp/authelia:/tmp/authelia
+      - ./users_database.yml:/etc/authelia/users_database.yml
     environment:
       - NODE_TLS_REJECT_UNAUTHORIZED=0
     depends_on: 
       - redis
     networks:
-      example-network:
-        aliases:
-          - authelia
+      - example-network
     command:
       - "./node_modules/.bin/ts-node"
       - "-P"
