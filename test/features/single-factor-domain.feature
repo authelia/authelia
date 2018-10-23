@@ -13,3 +13,4 @@ Feature: User can access certain subdomains with single factor
   Scenario: User can login using basic authentication
     When I request "https://single_factor.example.com:8080/secret.html" with username "john" and password "password" using basic authentication
     Then I receive the secret page
+

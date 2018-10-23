@@ -11,9 +11,7 @@ describe("configuration/SessionConfigurationBuilder", function () {
   const configuration: Configuration = {
     access_control: {
       default_policy: "deny",
-      any: [],
-      users: {},
-      groups: {}
+      rules: []
     },
     totp: {
       issuer: "authelia.com"

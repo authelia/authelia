@@ -10,7 +10,7 @@ describe("storage/mongo/MongoCollection", function () {
   let mongoClientStub: MongoClientStub;
   let findStub: Sinon.SinonStub;
   let findOneStub: Sinon.SinonStub;
-  let insertStub: Sinon.SinonStub;
+  let insertOneStub: Sinon.SinonStub;
   let updateStub: Sinon.SinonStub;
   let removeStub: Sinon.SinonStub;
   let countStub: Sinon.SinonStub;
@@ -21,7 +21,7 @@ describe("storage/mongo/MongoCollection", function () {
     mongoCollectionStub = Sinon.createStubInstance(require("mongodb").Collection as any);
     findStub = mongoCollectionStub.find as Sinon.SinonStub;
     findOneStub = mongoCollectionStub.findOne as Sinon.SinonStub;
-    insertStub = mongoCollectionStub.insert as Sinon.SinonStub;
+    insertOneStub = mongoCollectionStub.insertOne as Sinon.SinonStub;
     updateStub = mongoCollectionStub.update as Sinon.SinonStub;
     removeStub = mongoCollectionStub.remove as Sinon.SinonStub;
     countStub = mongoCollectionStub.count as Sinon.SinonStub;
@@ -63,11 +63,11 @@ describe("storage/mongo/MongoCollection", function () {
   describe("insert", function () {
     it("should insert a document in the collection", function () {
       const collection = new MongoCollection(COLLECTION_NAME, mongoClientStub);
-      insertStub.returns(BluebirdPromise.resolve({}));
+      insertOneStub.returns(BluebirdPromise.resolve({}));
 
       return collection.insert({ key: "KEY" })
         .then(function () {
-          Assert(insertStub.calledWith({ key: "KEY" }));
+          Assert(insertOneStub.calledWith({ key: "KEY" }));
         });
     });
   });

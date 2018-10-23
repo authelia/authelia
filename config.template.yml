@@ -86,112 +86,96 @@ authentication_backend:
   ##   path: ./users_database.yml
 
 
-# Authentication methods
-#
-# Authentication methods can be defined per subdomain.
-# There are currently two available methods: "single_factor" and "two_factor"
-#
-# Note: by default a domain uses "two_factor" method.
-#
-# Note: 'per_subdomain_methods' is a dictionary where keys must be subdomains and
-# values must be one of the two possible methods.
-#
-# Note: 'per_subdomain_methods' is optional.
-#
-# Note: authentication_methods is optional. If it is not set all sub-domains
-# are protected by two factors.
-authentication_methods:
-  default_method: two_factor
-  per_subdomain_methods:
-    
-
-
 # Access Control
 #
-# Access control is a set of rules you can use to restrict user access to certain 
-# resources.
-# Any (apply to anyone), per-user or per-group rules can be defined.
+# Access control is a list of rules defining the authorizations applied for one
+# resource to users or group of users.
 #
-# If 'access_control' is not defined, ACL rules are disabled and the `allow` default 
-# policy is applied, i.e., access is allowed to anyone. Otherwise restrictions follow 
+# If 'access_control' is not defined, ACL rules are disabled and the `bypass`
+# rule is applied, i.e., access is allowed to anyone. Otherwise restrictions follow
 # the rules defined.
-# 
-# Note: One can use the wildcard * to match any subdomain. 
+#
+# Note: One can use the wildcard * to match any subdomain.
 # It must stand at the beginning of the pattern. (example: *.mydomain.com)
-# 
-# Note: You must put the pattern in simple quotes when using the wildcard for the YAML
+#
+# Note: You must put patterns containing wildcards between simple quotes for the YAML
 # to be syntaxically correct.
 #
-# Definition: A `rule` is an object with the following keys: `domain`, `policy` 
-# and `resources`.
+# Definition: A `rule` is an object with the following keys: `domain`, `subject`,
+# `policy` and `resources`.
+#
 # - `domain` defines which domain or set of domains the rule applies to.
-# - `policy` is the policy to apply to resources. It must be either `allow` or `deny`.
-# - `resources` is a list of regular expressions that matches a set of resources to 
-# apply the policy to.
 #
-# Note: Rules follow an order of priority defined as follows:
-# In each category (`any`, `groups`, `users`), the latest rules have the highest 
-# priority. In other words, it means that if a given resource matches two rules in the
-# same category, the latest one overrides the first one.
-# Each category has also its own priority. That is, `users` has the highest priority, then
-# `groups` and `any` has the lowest priority. It means if two rules in different categories
-# match a given resource, the one in the category with the highest priority overrides the
-# other one.
+# - `subject` defines the subject to apply authorizations to. This parameter is
+#    optional and matching any user if not provided. If provided, the parameter
+#    represents either a user or a group. It should be of the form 'user:<username>'
+#    or 'group:<groupname>'.
 #
+# - `policy` is the policy to apply to resources. It must be either `bypass`,
+#   `one_factor`, `two_factor` or `deny`.
+#
+# - `resources` is a list of regular expressions that matches a set of resources to
+#    apply the policy to. This parameter is optional and matches any resource if not
+#    provided.
+#
+# Note: the order of the rules is important. The first policy matching
+# (domain, resource, subject) applies.
 access_control:
-  # Default policy can either be `allow` or `deny`.
-  # It is the policy applied to any resource if it has not been overriden
-  # in the `any`, `groups` or `users` category.
+  # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
+  # It is the policy applied to any resource if there is no policy to be applied
+  # to the user.
   default_policy: deny
 
-  # The rules that apply to anyone.
-  # The value is a list of rules.
-  any:
+  rules:
+    # Rules applied to everyone
     - domain: public.example.com
       policy: two_factor
     - domain: single_factor.example.com
       policy: one_factor
-  
-  # Group-based rules. The key is a group name and the value
-  # is a list of rules.
-  groups:
-    admin:
-      # All resources in all domains
-      - domain: '*.example.com'
-        policy: two_factor
-      # Except mx2.mail.example.com (it restricts the first rule)
-      - domain: 'mx2.mail.example.com'
-        policy: deny
-    dev:
-      - domain: dev.example.com
-        policy: two_factor
-        resources:
-          - '^/groups/dev/.*$'
-  
-  # User-based rules. The key is a user name and the value
-  # is a list of rules.
-  users:
-    john:
-      - domain: dev.example.com
-        policy: two_factor
-        resources:
-          - '^/users/john/.*$' 
-    harry:
-      - domain: dev.example.com
-        policy: two_factor
-        resources:
-          - '^/users/harry/.*$'
-    bob:
-      - domain: '*.mail.example.com'
-        policy: two_factor
-      - domain: 'dev.example.com'
-        policy: two_factor
-        resources:
-          - '^/users/bob/.*$'
+
+    # Rules applied to 'admin' group
+    - domain: 'mx2.mail.example.com'
+      subject: 'group:admin'
+      policy: deny
+    - domain: '*.example.com'
+      subject: 'group:admin'
+      policy: two_factor
+
+    # Rules applied to 'dev' group
+    - domain: dev.example.com
+      resources:
+        - '^/groups/dev/.*$'
+      subject: 'group:dev'
+      policy: two_factor
+
+    # Rules applied to user 'john'
+    - domain: dev.example.com
+      resources:
+        - '^/users/john/.*$'
+      subject: 'user:john'
+      policy: two_factor
+
+
+    # Rules applied to user 'harry'
+    - domain: dev.example.com
+      resources:
+        - '^/users/harry/.*$'
+      subject: 'user:harry'
+      policy: two_factor
+
+    # Rules applied to user 'bob'
+    - domain: '*.mail.example.com'
+      subject: 'user:bob'
+      policy: two_factor
+    - domain: 'dev.example.com'
+      resources:
+        - '^/users/bob/.*$'
+      subject: 'user:bob'
+      policy: two_factor
 
 
 # Configuration of session cookies
-# 
+#
 # The session cookies identify the user once logged in.
 session:
   # The name of the session cookie. (default: authelia_session).
@@ -199,7 +183,7 @@ session:
 
   # The secret to encrypt the session cookie.
   secret: unsecure_session_secret
-  
+
   # The time in ms before the cookie expires and session is reset.
   expiration: 3600000 # 1 hour
 
@@ -208,9 +192,9 @@ session:
 
   # The domain to protect.
   # Note: the authenticator must also be in that domain. If empty, the cookie
-  # is restricted to the subdomain of the issuer. 
+  # is restricted to the subdomain of the issuer.
   domain: example.com
-  
+
   # The redis connection details
   redis:
     host: redis
@@ -223,12 +207,12 @@ session:
 # It bans the user if too many attempts are done in a short period of
 # time.
 regulation:
-  # The number of failed login attempts before user is banned. 
+  # The number of failed login attempts before user is banned.
   # Set it to 0 to disable regulation.
   max_retries: 3
 
   # The time range during which the user can attempt login before being banned.
-  # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window. 
+  # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window.
   find_time: 120
 
   # The length of time before a banned user can login again.
@@ -241,7 +225,7 @@ storage:
   # The directory where the DB files will be saved
   ## local:
   ##   path: /var/lib/authelia/store
-  
+
   # Settings to connect to mongo server
   mongo:
     url: mongodb://mongo
@@ -261,13 +245,13 @@ notifier:
   ##   filename: /tmp/authelia/notification.txt
 
   # Use your email account to send the notifications. You can use an app password.
-  # List of valid services can be found here: https://nodemailer.com/smtp/well-known/  
+  # List of valid services can be found here: https://nodemailer.com/smtp/well-known/
   ## email:
   ##   username: user@example.com
   ##   password: yourpassword
   ##   sender: admin@example.com
   ##   service: gmail
-  
+
   # Use a SMTP server for sending notifications
   smtp:
     username: test

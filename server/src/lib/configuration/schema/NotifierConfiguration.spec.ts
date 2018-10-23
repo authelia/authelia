@@ -6,12 +6,12 @@ describe("configuration/schema/NotifierConfiguration", function() {
     const configuration: NotifierConfiguration = {};
     const [newConfiguration, error] = complete(configuration);
 
-    Assert.deepEqual(newConfiguration.filesystem, {filename: "/tmp/authelia/notification.txt"})
+    Assert.deepEqual(newConfiguration.filesystem, {filename: "/tmp/authelia/notification.txt"});
   });
 
   it("should ensure correct key is provided", function() {
     const configuration = {
-      abc: 'badvalue'
+      abc: "badvalue"
     };
     const [newConfiguration, error] = complete(configuration as any);
 

@@ -40,7 +40,7 @@ export class MongoCollection implements ICollection {
 
   insert(document: any): Bluebird<any> {
     return this.collection()
-      .then((collection) => collection.insert(document));
+      .then((collection) => collection.insertOne(document));
   }
 
   count(query: any): Bluebird<any> {

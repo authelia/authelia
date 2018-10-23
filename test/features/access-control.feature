@@ -33,7 +33,7 @@ Feature: User has access restricted access to domains
     And I have access to "https://dev.example.com:8080/users/bob/secret.html"
     And I have no access to "https://admin.example.com:8080/secret.html"
     And I have access to "https://mx1.mail.example.com:8080/secret.html"
-    And I have no access to "https://single_factor.example.com:8080/secret.html"
+    And I have access to "https://single_factor.example.com:8080/secret.html"
     And I have access to "https://mx2.mail.example.com:8080/secret.html"
 
   @need-registered-user-harry
@@ -51,5 +51,5 @@ Feature: User has access restricted access to domains
     And I have no access to "https://dev.example.com:8080/users/bob/secret.html"
     And I have no access to "https://admin.example.com:8080/secret.html"
     And I have no access to "https://mx1.mail.example.com:8080/secret.html"
-    And I have no access to "https://single_factor.example.com:8080/secret.html"
+    And I have access to "https://single_factor.example.com:8080/secret.html"
     And I have no access to "https://mx2.mail.example.com:8080/secret.html"

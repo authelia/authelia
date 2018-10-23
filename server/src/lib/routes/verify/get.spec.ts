@@ -246,7 +246,7 @@ describe("routes/verify/get", function () {
     it("should fail when endpoint is protected by two factors", function () {
       mocks.authorizer.authorizationMock.returns(AuthorizationLevel.TWO_FACTOR);
       mocks.config.access_control.default_policy = "one_factor";
-      mocks.config.access_control.any = [{
+      mocks.config.access_control.rules = [{
         domain: "secret.example.com",
         policy: "two_factor"
       }];

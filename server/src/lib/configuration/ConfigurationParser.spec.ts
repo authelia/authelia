@@ -125,32 +125,26 @@ describe("configuration/ConfigurationParser", function () {
       const userConfig = buildYamlConfig();
       userConfig.access_control = {
         default_policy: "deny",
-        any: [{
+        rules: [{
+          domain: "www.example.com",
+          policy: "two_factor",
+          subject: "user:user"
+        }, {
           domain: "public.example.com",
           policy: "two_factor"
-        }],
-        users: {
-          "user": [{
-            domain: "www.example.com",
-            policy: "two_factor"
-          }]
-        },
-        groups: {}
+        }]
       };
       const config = ConfigurationParser.parse(userConfig);
       Assert.deepEqual(config.access_control, {
         default_policy: "deny",
-        any: [{
+        rules: [{
+          domain: "www.example.com",
+          policy: "two_factor",
+          subject: "user:user"
+        }, {
           domain: "public.example.com",
           policy: "two_factor"
-        }],
-        users: {
-          "user": [{
-            domain: "www.example.com",
-            policy: "two_factor"
-          }]
-        },
-        groups: {}
+        }]
       } as ACLConfiguration);
     });
 
@@ -161,9 +155,7 @@ describe("configuration/ConfigurationParser", function () {
       const config = ConfigurationParser.parse(userConfig);
       Assert.deepEqual(config.access_control, {
         default_policy: "bypass",
-        any: [],
-        users: {},
-        groups: {}
+        rules: []
       });
     });
   });

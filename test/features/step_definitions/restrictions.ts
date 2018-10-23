@@ -33,7 +33,6 @@ function requestAndExpectStatusCode(ctx: any, url: string, method: string,
         Assert.equal(statusCode, expectedStatusCode);
       }
       catch (e) {
-        console.log(url);
         console.log("%s (actual) != %s (expected)", statusCode,
           expectedStatusCode);
         throw e;

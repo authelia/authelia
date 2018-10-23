@@ -27,9 +27,13 @@ export function complete(
     JSON.stringify(configuration));
   const errors: string[] = [];
 
-  newConfiguration.access_control =
-    AclConfigurationComplete(
-      newConfiguration.access_control);
+  const [acls, aclsErrors] = AclConfigurationComplete(
+    newConfiguration.access_control);
+
+  newConfiguration.access_control = acls;
+  if (aclsErrors.length > 0) {
+    errors.concat(aclsErrors);
+  }
 
   const [backend, error] =
     AuthenticationBackendComplete(

@@ -102,7 +102,7 @@ export function get_start_validation(handler: IdentityValidable,
     let identity: Identity.Identity;
 
     return handler.preValidationInit(req)
-      .then(function (id: Identity.Identity) {
+      .then((id: Identity.Identity) => {
         identity = id;
         const email = identity.email;
         const userid = identity.userid;
@@ -116,7 +116,7 @@ export function get_start_validation(handler: IdentityValidable,
         return createAndSaveToken(userid, handler.challenge(),
           vars.userDataStore);
       })
-      .then(function (token: string) {
+      .then((token) => {
         const host = req.get("Host");
         const link_url = util.format("https://%s%s?identity_token=%s", host,
           postValidationEndpoint, token);
@@ -125,11 +125,11 @@ export function get_start_validation(handler: IdentityValidable,
         return vars.notifier.notify(identity.email, handler.mailSubject(),
           link_url);
       })
-      .then(function () {
+      .then(() => {
         handler.preValidationResponse(req, res);
         return BluebirdPromise.resolve();
       })
-      .catch(Exceptions.IdentityError, function (err: Error) {
+      .catch(Exceptions.IdentityError, (err: Error) => {
         handler.preValidationResponse(req, res);
         return BluebirdPromise.resolve();
       })
