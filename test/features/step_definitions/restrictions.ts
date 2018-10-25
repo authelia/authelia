@@ -12,11 +12,6 @@ Then("I get an error {int}", function (code: number) {
   return this.getErrorPage(code);
 });
 
-When("I request {string} with method {string}",
-  function (url: string, method: string) {
-    const that = this;
-  });
-
 function requestAndExpectStatusCode(ctx: any, url: string, method: string,
   expectedStatusCode: number) {
   return Request(url, {

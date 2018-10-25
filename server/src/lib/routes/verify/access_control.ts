@@ -28,22 +28,22 @@ function isAuthorized(
 export default function (
   req: Express.Request,
   vars: ServerVariables,
-  domain: string, path: string,
-  username: string, groups: string[],
+  domain: string, resource: string,
+  user: string, groups: string[],
   authenticationLevel: AuthenticationLevel) {
 
   return new BluebirdPromise(function (resolve, reject) {
     const authorizationLevel = vars.authorizer
-      .authorization(domain, path, username, groups);
+      .authorization({domain, resource}, {user, groups});
 
     if (!isAuthorized(authorizationLevel, authenticationLevel)) {
       if (authorizationLevel == AuthorizationLevel.DENY) {
         reject(new Exceptions.NotAuthorizedError(
-          Util.format("User %s is unauthorized to access %s%s", username, domain, path)));
+          Util.format("User %s is not authorized to access %s%s", user, domain, resource)));
         return;
       }
       reject(new Exceptions.NotAuthenticatedError(Util.format(
-        "User '%s' is not sufficiently authenticated.", username, domain, path)));
+        "User '%s' is not sufficiently authorized to access %s%s.", user, domain, resource)));
       return;
     }
     resolve();

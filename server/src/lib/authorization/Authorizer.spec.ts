@@ -14,10 +14,10 @@ describe("authorization/Authorizer", function () {
       configuration = undefined;
       authorizer = new Authorizer(configuration, winston);
 
-      Assert.equal(authorizer.authorization("home.example.com", "/", "user1", ["group1", "group2"]), Level.BYPASS);
-      Assert.equal(authorizer.authorization("home.example.com", "/abc", "user1", ["group1", "group2"]), Level.BYPASS);
-      Assert.equal(authorizer.authorization("home.example.com", "/", "user2", ["group1", "group2"]), Level.BYPASS);
-      Assert.equal(authorizer.authorization("admin.example.com", "/", "user3", ["group3"]), Level.BYPASS);
+      Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "user1", groups: ["group1", "group2"]}), Level.BYPASS);
+      Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/abc"}, {user: "user1", groups: ["group1", "group2"]}), Level.BYPASS);
+      Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "user2", groups: ["group1", "group2"]}), Level.BYPASS);
+      Assert.equal(authorizer.authorization({domain: "admin.example.com", resource: "/"}, {user: "user3", groups: ["group3"]}), Level.BYPASS);
     });
   });
 
@@ -36,7 +36,7 @@ describe("authorization/Authorizer", function () {
       });
 
       it("should deny access when no rule is provided", function () {
-        Assert.equal(authorizer.authorization("home.example.com", "/", "user1", ["group1"]), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.DENY);
       });
 
       it("should control access when multiple domain matcher is provided", function () {
@@ -46,10 +46,10 @@ describe("authorization/Authorizer", function () {
           subject: "user:user1",
           resources: [".*"]
         }];
-        Assert.equal(authorizer.authorization("home.example.com", "/", "user1", ["group1"]), Level.DENY);
-        Assert.equal(authorizer.authorization("mx1.mail.example.com", "/", "user1", ["group1"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("mx1.server.mail.example.com", "/", "user1", ["group1"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("mail.example.com", "/", "user1", ["group1"]), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "mx1.mail.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "mx1.server.mail.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "mail.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.DENY);
       });
 
       it("should allow access to all resources when resources is not provided", function () {
@@ -58,10 +58,10 @@ describe("authorization/Authorizer", function () {
           policy: "two_factor",
           subject: "user:user1"
         }];
-        Assert.equal(authorizer.authorization("home.example.com", "/", "user1", ["group1"]), Level.DENY);
-        Assert.equal(authorizer.authorization("mx1.mail.example.com", "/", "user1", ["group1"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("mx1.server.mail.example.com", "/", "user1", ["group1"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("mail.example.com", "/", "user1", ["group1"]), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "mx1.mail.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "mx1.server.mail.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "mail.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.DENY);
       });
 
       describe("check user rules", function () {
@@ -72,9 +72,9 @@ describe("authorization/Authorizer", function () {
             resources: [".*"],
             subject: "user:user1"
           }];
-          Assert.equal(authorizer.authorization("home.example.com", "/", "user1", ["group1"]), Level.TWO_FACTOR);
-          Assert.equal(authorizer.authorization("home.example.com", "/another/resource", "user1", ["group1"]), Level.TWO_FACTOR);
-          Assert.equal(authorizer.authorization("another.home.example.com", "/", "user1", ["group1"]), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/another/resource"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "another.home.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.DENY);
         });
 
         it("should deny to other users", function () {
@@ -84,9 +84,9 @@ describe("authorization/Authorizer", function () {
             resources: [".*"],
             subject: "user:user1"
           }];
-          Assert.equal(authorizer.authorization("home.example.com", "/", "user2", ["group1"]), Level.DENY);
-          Assert.equal(authorizer.authorization("home.example.com", "/another/resource", "user2", ["group1"]), Level.DENY);
-          Assert.equal(authorizer.authorization("another.home.example.com", "/", "user2", ["group1"]), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "user2", groups: ["group1"]}), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/another/resource"}, {user: "user2", groups: ["group1"]}), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "another.home.example.com", resource: "/"}, {user: "user2", groups: ["group1"]}), Level.DENY);
         });
 
         it("should allow user access only to specific resources", function () {
@@ -96,16 +96,16 @@ describe("authorization/Authorizer", function () {
             resources: ["/private/.*", "^/begin", "/end$"],
             subject: "user:user1"
           }];
-          Assert.equal(authorizer.authorization("home.example.com", "/", "user1", ["group1"]), Level.DENY);
-          Assert.equal(authorizer.authorization("home.example.com", "/private", "user1", ["group1"]), Level.DENY);
-          Assert.equal(authorizer.authorization("home.example.com", "/private/class", "user1", ["group1"]), Level.TWO_FACTOR);
-          Assert.equal(authorizer.authorization("home.example.com", "/middle/private/class", "user1", ["group1"]), Level.TWO_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private"}, {user: "user1", groups: ["group1"]}), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private/class"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/middle/private/class"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
 
-          Assert.equal(authorizer.authorization("home.example.com", "/begin", "user1", ["group1"]), Level.TWO_FACTOR);
-          Assert.equal(authorizer.authorization("home.example.com", "/not/begin", "user1", ["group1"]), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/begin"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/not/begin"}, {user: "user1", groups: ["group1"]}), Level.DENY);
 
-          Assert.equal(authorizer.authorization("home.example.com", "/abc/end", "user1", ["group1"]), Level.TWO_FACTOR);
-          Assert.equal(authorizer.authorization("home.example.com", "/abc/end/x", "user1", ["group1"]), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/abc/end"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/abc/end/x"}, {user: "user1", groups: ["group1"]}), Level.DENY);
         });
 
         it("should allow access to multiple domains", function () {
@@ -125,10 +125,10 @@ describe("authorization/Authorizer", function () {
             resources: [".*"],
             subject: "user:user1"
           }];
-          Assert.equal(authorizer.authorization("home.example.com", "/", "user1", ["group1"]), Level.TWO_FACTOR);
-          Assert.equal(authorizer.authorization("home1.example.com", "/", "user1", ["group1"]), Level.ONE_FACTOR);
-          Assert.equal(authorizer.authorization("home2.example.com", "/", "user1", ["group1"]), Level.DENY);
-          Assert.equal(authorizer.authorization("home3.example.com", "/", "user1", ["group1"]), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "home1.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.ONE_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "home2.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "home3.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.DENY);
         });
 
         it("should apply rules in order", function () {
@@ -149,9 +149,9 @@ describe("authorization/Authorizer", function () {
             subject: "user:user1"
           }];
 
-          Assert.equal(authorizer.authorization("home.example.com", "/my/poney", "user1", ["group1"]), Level.TWO_FACTOR);
-          Assert.equal(authorizer.authorization("home.example.com", "/my/private/duck", "user1", ["group1"]), Level.DENY);
-          Assert.equal(authorizer.authorization("home.example.com", "/my/private/resource", "user1", ["group1"]), Level.ONE_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/my/poney"}, {user: "user1", groups: ["group1"]}), Level.TWO_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/my/private/duck"}, {user: "user1", groups: ["group1"]}), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/my/private/resource"}, {user: "user1", groups: ["group1"]}), Level.ONE_FACTOR);
         });
       });
 
@@ -173,14 +173,14 @@ describe("authorization/Authorizer", function () {
             resources: ["^/private$"],
             subject: "group:group2"
           }];
-          Assert.equal(authorizer.authorization("home.example.com", "/", "user1",
-            ["group1", "group2", "group3"]), Level.TWO_FACTOR);
-          Assert.equal(authorizer.authorization("home.example.com", "/test", "user1",
-            ["group1", "group2", "group3"]), Level.ONE_FACTOR);
-          Assert.equal(authorizer.authorization("home.example.com", "/private", "user1",
-            ["group1", "group2", "group3"]), Level.DENY);
-          Assert.equal(authorizer.authorization("another.home.example.com", "/", "user1",
-            ["group1", "group2", "group3"]), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"},
+            {user: "user1", groups: ["group1", "group2", "group3"]}), Level.TWO_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/test"},
+            {user: "user1", groups: ["group1", "group2", "group3"]}), Level.ONE_FACTOR);
+          Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private"},
+            {user: "user1", groups: ["group1", "group2", "group3"]}), Level.DENY);
+          Assert.equal(authorizer.authorization({domain: "another.home.example.com", resource: "/"},
+            {user: "user1", groups: ["group1", "group2", "group3"]}), Level.DENY);
         });
       });
     });
@@ -196,14 +196,14 @@ describe("authorization/Authorizer", function () {
           policy: "deny",
           resources: ["^/private$"]
         }];
-        Assert.equal(authorizer.authorization("home.example.com", "/public", "user1",
-          ["group1", "group2", "group3"]), Level.BYPASS);
-        Assert.equal(authorizer.authorization("home.example.com", "/private", "user1",
-          ["group1", "group2", "group3"]), Level.DENY);
-        Assert.equal(authorizer.authorization("home.example.com", "/public", "user4",
-          ["group5"]), Level.BYPASS);
-        Assert.equal(authorizer.authorization("home.example.com", "/private", "user4",
-          ["group5"]), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/public"},
+          {user: "user1", groups: ["group1", "group2", "group3"]}), Level.BYPASS);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private"},
+          {user: "user1", groups: ["group1", "group2", "group3"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/public"},
+          {user: "user4", groups: ["group5"]}), Level.BYPASS);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private"},
+          {user: "user4", groups: ["group5"]}), Level.DENY);
       });
     });
 
@@ -213,9 +213,9 @@ describe("authorization/Authorizer", function () {
       });
 
       it("should allow access to anything when no rule is provided", function () {
-        Assert.equal(authorizer.authorization("home.example.com", "/", "user1", ["group1"]), Level.BYPASS);
-        Assert.equal(authorizer.authorization("home.example.com", "/test", "user1", ["group1"]), Level.BYPASS);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev", "user1", ["group1"]), Level.BYPASS);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.BYPASS);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/test"}, {user: "user1", groups: ["group1"]}), Level.BYPASS);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev"}, {user: "user1", groups: ["group1"]}), Level.BYPASS);
       });
 
       it("should deny access to one resource when defined", function () {
@@ -225,9 +225,9 @@ describe("authorization/Authorizer", function () {
           resources: ["/test"],
           subject: "user:user1"
         }];
-        Assert.equal(authorizer.authorization("home.example.com", "/", "user1", ["group1"]), Level.BYPASS);
-        Assert.equal(authorizer.authorization("home.example.com", "/test", "user1", ["group1"]), Level.DENY);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev", "user1", ["group1"]), Level.BYPASS);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "user1", groups: ["group1"]}), Level.BYPASS);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/test"}, {user: "user1", groups: ["group1"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev"}, {user: "user1", groups: ["group1"]}), Level.BYPASS);
       });
     });
 
@@ -267,32 +267,32 @@ describe("authorization/Authorizer", function () {
           subject: "user:harry"
         }];
 
-        Assert.equal(authorizer.authorization("home.example.com", "/", "admin", ["admins"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/public", "admin", ["admins"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev", "admin", ["admins"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev/bob", "admin", ["admins"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/admin", "admin", ["admins"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/private/josh", "admin", ["admins"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/private/john", "admin", ["admins"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/private/harry", "admin", ["admins"]), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "admin", groups: ["admins"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/public"}, {user: "admin", groups: ["admins"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev"}, {user: "admin", groups: ["admins"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev/bob"}, {user: "admin", groups: ["admins"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/admin"}, {user: "admin", groups: ["admins"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private/josh"}, {user: "admin", groups: ["admins"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private/john"}, {user: "admin", groups: ["admins"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private/harry"}, {user: "admin", groups: ["admins"]}), Level.TWO_FACTOR);
 
-        Assert.equal(authorizer.authorization("home.example.com", "/", "john", ["dev", "admin-private"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/public", "john", ["dev", "admin-private"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev", "john", ["dev", "admin-private"]), Level.DENY);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev/bob", "john", ["dev", "admin-private"]), Level.DENY);
-        Assert.equal(authorizer.authorization("home.example.com", "/admin", "john", ["dev", "admin-private"]), Level.DENY);
-        Assert.equal(authorizer.authorization("home.example.com", "/private/josh", "john", ["dev", "admin-private"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/private/john", "john", ["dev", "admin-private"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/private/harry", "john", ["dev", "admin-private"]), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "john", groups: ["dev", "admin-private"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/public"}, {user: "john", groups: ["dev", "admin-private"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev"}, {user: "john", groups: ["dev", "admin-private"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev/bob"}, {user: "john", groups: ["dev", "admin-private"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/admin"}, {user: "john", groups: ["dev", "admin-private"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private/josh"}, {user: "john", groups: ["dev", "admin-private"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private/john"}, {user: "john", groups: ["dev", "admin-private"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private/harry"}, {user: "john", groups: ["dev", "admin-private"]}), Level.TWO_FACTOR);
 
-        Assert.equal(authorizer.authorization("home.example.com", "/", "harry", ["dev"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/public", "harry", ["dev"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev", "harry", ["dev"]), Level.DENY);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev/bob", "harry", ["dev"]), Level.DENY);
-        Assert.equal(authorizer.authorization("home.example.com", "/admin", "harry", ["dev"]), Level.DENY);
-        Assert.equal(authorizer.authorization("home.example.com", "/private/josh", "harry", ["dev"]), Level.DENY);
-        Assert.equal(authorizer.authorization("home.example.com", "/private/john", "harry", ["dev"]), Level.DENY);
-        Assert.equal(authorizer.authorization("home.example.com", "/private/harry", "harry", ["dev"]), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/"}, {user: "harry", groups: ["dev"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/public"}, {user: "harry", groups: ["dev"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev"}, {user: "harry", groups: ["dev"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev/bob"}, {user: "harry", groups: ["dev"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/admin"}, {user: "harry", groups: ["dev"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private/josh"}, {user: "harry", groups: ["dev"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private/john"}, {user: "harry", groups: ["dev"]}), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/private/harry"}, {user: "harry", groups: ["dev"]}), Level.TWO_FACTOR);
       });
 
       it("should allow when allowed at group level and denied at user level", function () {
@@ -308,8 +308,8 @@ describe("authorization/Authorizer", function () {
           subject: "group:dev"
         }];
 
-        Assert.equal(authorizer.authorization("home.example.com", "/dev/john", "john", ["dev"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev/bob", "john", ["dev"]), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev/john"}, {user: "john", groups: ["dev"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev/bob"}, {user: "john", groups: ["dev"]}), Level.DENY);
       });
 
       it("should allow access when allowed at 'any' level and denied at user level", function () {
@@ -324,8 +324,8 @@ describe("authorization/Authorizer", function () {
           resources: ["^/dev/?.*$"]
         }];
 
-        Assert.equal(authorizer.authorization("home.example.com", "/dev/john", "john", ["dev"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev/bob", "john", ["dev"]), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev/john"}, {user: "john", groups: ["dev"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev/bob"}, {user: "john", groups: ["dev"]}), Level.DENY);
       });
 
       it("should allow access when allowed at 'any' level and denied at group level", function () {
@@ -340,8 +340,8 @@ describe("authorization/Authorizer", function () {
           resources: ["^/dev/?.*$"]
         }];
 
-        Assert.equal(authorizer.authorization("home.example.com", "/dev/john", "john", ["dev"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev/bob", "john", ["dev"]), Level.DENY);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev/john"}, {user: "john", groups: ["dev"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev/bob"}, {user: "john", groups: ["dev"]}), Level.DENY);
       });
 
       it("should respect rules precedence", function () {
@@ -364,8 +364,8 @@ describe("authorization/Authorizer", function () {
           resources: ["^/dev/?.*$"]
         }];
 
-        Assert.equal(authorizer.authorization("home.example.com", "/dev/john", "john", ["dev"]), Level.TWO_FACTOR);
-        Assert.equal(authorizer.authorization("home.example.com", "/dev/bob", "john", ["dev"]), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev/john"}, {user: "john", groups: ["dev"]}), Level.TWO_FACTOR);
+        Assert.equal(authorizer.authorization({domain: "home.example.com", resource: "/dev/bob"}, {user: "john", groups: ["dev"]}), Level.TWO_FACTOR);
       });
     });
   });

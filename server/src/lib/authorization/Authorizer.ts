@@ -4,6 +4,8 @@ import { IAuthorizer } from "./IAuthorizer";
 import { Winston } from "../../../types/Dependencies";
 import { MultipleDomainMatcher } from "./MultipleDomainMatcher";
 import { Level } from "./Level";
+import { Object } from "./Object";
+import { Subject } from "./Subject";
 
 function MatchDomain(actualDomain: string) {
   return function (rule: ACLRule): boolean {
@@ -24,19 +26,19 @@ function MatchResource(actualResource: string) {
   };
 }
 
-function MatchSubject(user: string, groups: string[]) {
+function MatchSubject(subject: Subject) {
   return (rule: ACLRule) => {
     // If no subject, matches anybody
     if (!rule.subject) return true;
 
     if (rule.subject.startsWith("user:")) {
       const ruleUser = rule.subject.split(":")[1];
-      if (user == ruleUser) return true;
+      if (subject.user == ruleUser) return true;
     }
 
     if (rule.subject.startsWith("group:")) {
       const ruleGroup = rule.subject.split(":")[1];
-      if (groups.indexOf(ruleGroup) > -1) return true;
+      if (subject.groups.indexOf(ruleGroup) > -1) return true;
     }
     return false;
   };
@@ -51,13 +53,13 @@ export class Authorizer implements IAuthorizer {
     this.configuration = configuration;
   }
 
-  private getMatchingRules(domain: string, resource: string, user: string, groups: string[]): ACLRule[] {
+  private getMatchingRules(object: Object, subject: Subject): ACLRule[] {
     const rules = this.configuration.rules;
     if (!rules) return [];
     return rules
-      .filter(MatchDomain(domain))
-      .filter(MatchResource(resource))
-      .filter(MatchSubject(user, groups));
+      .filter(MatchDomain(object.domain))
+      .filter(MatchResource(object.resource))
+      .filter(MatchSubject(subject));
   }
 
   private ruleToLevel(policy: string): Level {
@@ -71,10 +73,10 @@ export class Authorizer implements IAuthorizer {
     return Level.DENY;
   }
 
-  authorization(domain: string, resource: string, user: string, groups: string[]): Level {
+  authorization(object: Object, subject: Subject): Level {
     if (!this.configuration) return Level.BYPASS;
 
-    const rules = this.getMatchingRules(domain, resource, user, groups);
+    const rules = this.getMatchingRules(object, subject);
 
     return (rules.length > 0)
       ? this.ruleToLevel(rules[0].policy) // extract the policy of the first matching rule

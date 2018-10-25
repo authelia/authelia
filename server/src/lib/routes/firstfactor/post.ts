@@ -59,7 +59,8 @@ export default function (vars: ServerVariables) {
         const decomposition = URLDecomposer.fromUrl(redirectUrl);
         const authorizationLevel = (decomposition)
           ? vars.authorizer.authorization(
-            decomposition.domain, decomposition.path, username, groups)
+            {domain: decomposition.domain, resource: decomposition.path},
+            {user: username, groups: groups})
           : AuthorizationLevel.TWO_FACTOR;
 
         if (emails.length > 0)

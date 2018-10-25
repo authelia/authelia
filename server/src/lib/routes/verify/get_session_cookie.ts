@@ -14,9 +14,6 @@ import { AuthenticationSessionHandler }
 import AccessControl from "./access_control";
 import { URLDecomposer } from "../../utils/URLDecomposer";
 
-const FIRST_FACTOR_NOT_VALIDATED_MESSAGE = "First factor not yet validated";
-const SECOND_FACTOR_NOT_VALIDATED_MESSAGE = "Second factor not yet validated";
-
 function verify_inactivity(req: Express.Request,
   authSession: AuthenticationSession,
   configuration: Configuration, logger: IRequestLogger)
@@ -54,18 +51,19 @@ export default function (req: Express.Request, res: Express.Response,
 
     if (!authSession.userid) {
       return BluebirdPromise.reject(new Exceptions.AccessDeniedError(
-        Util.format("%s: %s.", FIRST_FACTOR_NOT_VALIDATED_MESSAGE,
-          "userid is missing")));
+        "userid is missing"));
     }
 
-    const originalUrl = ObjectPath.get<Express.Request, string>(req, "headers.x-original-url");
+    const originalUrl = ObjectPath.get<Express.Request, string>(
+      req, "headers.x-original-url");
     const originalUri =
       ObjectPath.get<Express.Request, string>(req, "headers.x-original-uri");
 
     const d = URLDecomposer.fromUrl(originalUrl);
     vars.logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s", d.domain,
       d.path, username, groups.join(","));
-    return AccessControl(req, vars, d.domain, d.path, username, groups, authSession.authentication_level);
+    return AccessControl(req, vars, d.domain, d.path, username, groups,
+      authSession.authentication_level);
   })
     .then(() => {
       return verify_inactivity(req, authSession,

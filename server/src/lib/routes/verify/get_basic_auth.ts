@@ -4,11 +4,6 @@ import ObjectPath = require("object-path");
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession }
   from "../../../../types/AuthenticationSession";
-<<<<<<< HEAD
-import { DomainExtractor } from "../../../../../shared/DomainExtractor";
-import { MethodCalculator } from "../../authentication/MethodCalculator";
-=======
->>>>>>> Integrate more policy options in ACL rules.
 import AccessControl from "./access_control";
 import { URLDecomposer } from "../../utils/URLDecomposer";
 import { Level } from "../../authentication/Level";

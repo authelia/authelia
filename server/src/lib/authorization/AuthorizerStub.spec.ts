@@ -1,6 +1,8 @@
 import Sinon = require("sinon");
 import { IAuthorizer } from "./IAuthorizer";
 import { Level } from "./Level";
+import { Object } from "./Object";
+import { Subject } from "./Subject";
 
 export class AuthorizerStub implements IAuthorizer {
   authorizationMock: Sinon.SinonStub;
@@ -9,7 +11,7 @@ export class AuthorizerStub implements IAuthorizer {
     this.authorizationMock = Sinon.stub();
   }
 
-  authorization(domain: string, resource: string, user: string, groups: string[]): Level {
-    return this.authorizationMock(domain, resource, user, groups);
+  authorization(object: Object, subject: Subject): Level {
+    return this.authorizationMock(object, subject);
   }
 }
