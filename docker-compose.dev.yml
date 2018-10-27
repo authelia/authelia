@@ -1,6 +1,6 @@
 version: '2'
 services:
-  authelia:
+  authelia-dev:
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -18,7 +18,9 @@ services:
     depends_on: 
       - redis
     networks:
-      - example-network
+      example-network:
+        aliases:
+          - authelia
     command:
       - "./node_modules/.bin/ts-node"
       - "-P"

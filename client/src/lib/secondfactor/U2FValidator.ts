@@ -1,5 +1,5 @@
 import U2f = require("u2f");
-import U2fApi = require("../../../types/u2f-api");
+import U2fApi = require("u2f-api-polyfill");
 import BluebirdPromise = require("bluebird");
 import { SignMessage } from "../../../../shared/SignMessage";
 import Endpoints = require("../../../../shared/api");
@@ -31,15 +31,15 @@ function finishU2fAuthentication(responseData: U2fApi.SignResponse,
   });
 }
 
-function u2fApiSign(u2fApi: U2fApi.U2fApi, appId: string, challenge: string,
+function u2fApiSign(appId: string, challenge: string,
   registeredKey: U2fApi.RegisteredKey, timeout: number)
   : BluebirdPromise<U2fApi.SignResponse> {
 
   return new BluebirdPromise<U2fApi.SignResponse>(function (resolve, reject) {
-    u2fApi.sign(appId, challenge, [registeredKey],
-      function (signResponse: U2fApi.SignResponse | U2fApi.Error) {
-        if ("errorCode" in signResponse) {
-          reject(new Error((signResponse as U2fApi.Error).errorMessage));
+    (<any>window).u2f.sign(appId, challenge, [registeredKey],
+      function (signResponse: U2fApi.SignResponse | U2fApi.U2FError) {
+        if ((<U2fApi.U2FError>signResponse).errorCode != 0) {
+          reject(new Error((signResponse as U2fApi.U2FError).errorMessage));
           return;
         }
         resolve(signResponse as U2fApi.SignResponse);
@@ -47,8 +47,8 @@ function u2fApiSign(u2fApi: U2fApi.U2fApi, appId: string, challenge: string,
   });
 }
 
-function startU2fAuthentication($: JQueryStatic, notifier: INotifier,
-  u2fApi: U2fApi.U2fApi): BluebirdPromise<string> {
+function startU2fAuthentication($: JQueryStatic, notifier: INotifier)
+  : BluebirdPromise<string> {
 
   return GetPromised($, Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET, {},
     undefined, "json")
@@ -58,10 +58,11 @@ function startU2fAuthentication($: JQueryStatic, notifier: INotifier,
       const registeredKey: U2fApi.RegisteredKey = {
         keyHandle: signResponse.keyHandle,
         version: "U2F_V2",
-        appId: signResponse.request.appId
+        appId: signResponse.request.appId,
+        transports: []
       };
 
-      return u2fApiSign(u2fApi, signResponse.request.appId,
+      return u2fApiSign(signResponse.request.appId,
         signResponse.request.challenge, registeredKey, 60);
     })
     .then(function (signResponse: U2fApi.SignResponse) {
@@ -70,9 +71,8 @@ function startU2fAuthentication($: JQueryStatic, notifier: INotifier,
 }
 
 
-export function validate($: JQueryStatic, notifier: INotifier,
-  u2fApi: U2fApi.U2fApi) {
-  return startU2fAuthentication($, notifier, u2fApi)
+export function validate($: JQueryStatic, notifier: INotifier) {
+  return startU2fAuthentication($, notifier)
     .catch(function (err: Error) {
       notifier.error(UserMessages.U2F_TRANSACTION_FINISH_FAILED);
       return BluebirdPromise.reject(err);
