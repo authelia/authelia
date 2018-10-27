@@ -4,7 +4,7 @@ import ObjectPath = require("object-path");
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession }
   from "../../../../types/AuthenticationSession";
-import { DomainExtractor } from "../../utils/DomainExtractor";
+import { DomainExtractor } from "../../../../../shared/DomainExtractor";
 import { MethodCalculator } from "../../authentication/MethodCalculator";
 import AccessControl from "./access_control";
 

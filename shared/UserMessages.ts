@@ -2,6 +2,8 @@
 export const AUTHENTICATION_FAILED = "Authentication failed. Please check your credentials.";
 export const AUTHENTICATION_SUCCEEDED = "Authentication succeeded. You can now access your services.";
 
+export const CANNOT_REDIRECT_TO_EXTERNAL_DOMAIN = "Cannot redirect to an external domain.";
+
 export const AUTHENTICATION_U2F_FAILED = "Authentication failed. Have you already registered your device?";
 export const AUTHENTICATION_TOTP_FAILED = "Authentication failed. Have you already registered your secret?";
 

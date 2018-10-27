@@ -1,7 +1,6 @@
 import U2f = require("u2f");
 import U2fApi from "u2f-api";
 import BluebirdPromise = require("bluebird");
-import { SignMessage } from "../../../../shared/SignMessage";
 import Endpoints = require("../../../../shared/api");
 import UserMessages = require("../../../../shared/UserMessages");
 import { INotifier } from "../INotifier";
@@ -31,24 +30,13 @@ function finishU2fAuthentication(responseData: U2fApi.SignResponse,
   });
 }
 
-function startU2fAuthentication($: JQueryStatic, notifier: INotifier)
-  : BluebirdPromise<string> {
-
+export function validate($: JQueryStatic): BluebirdPromise<string> {
   return GetPromised($, Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET, {},
     undefined, "json")
     .then(function (signRequest: U2f.Request) {
-      notifier.info(UserMessages.PLEASE_TOUCH_TOKEN);
       return U2fApi.sign(signRequest, 60);
     })
     .then(function (signResponse: U2fApi.SignResponse) {
       return finishU2fAuthentication(signResponse, $);
-    });
-}
-
-export function validate($: JQueryStatic, notifier: INotifier) {
-  return startU2fAuthentication($, notifier)
-    .catch(function (err: Error) {
-      notifier.error(UserMessages.U2F_TRANSACTION_FINISH_FAILED);
-      return BluebirdPromise.reject(err);
     });
 }

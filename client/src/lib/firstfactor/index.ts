@@ -6,6 +6,7 @@ import { QueryParametersRetriever } from "../QueryParametersRetriever";
 import Constants = require("../../../../shared/constants");
 import Endpoints = require("../../../../shared/api");
 import UserMessages = require("../../../../shared/UserMessages");
+import { SafeRedirect } from "../SafeRedirect";
 
 export default function (window: Window, $: JQueryStatic,
   firstFactorValidator: typeof FirstFactorValidator, jslogger: typeof JSLogger) {
@@ -28,7 +29,9 @@ export default function (window: Window, $: JQueryStatic,
   }
 
   function onFirstFactorSuccess(redirectUrl: string) {
-    window.location.href = redirectUrl;
+    SafeRedirect(redirectUrl, () => {
+      notifier.error("Cannot redirect to an external domain.");
+    });
   }
 
   function onFirstFactorFailure(err: Error) {

@@ -1,17 +1,11 @@
 require("chromedriver");
-import Bluebird = require("bluebird");
-import SeleniumWebdriver = require("selenium-webdriver");
-import Fs = require("fs");
-import Speakeasy = require("speakeasy");
 import WithDriver from '../helpers/with-driver';
 import FillLoginPageWithUserAndPasswordAndClick from '../helpers/fill-login-page-and-click';
-import WaitRedirected from '../helpers/wait-redirected';
 import VisitPage from '../helpers/visit-page';
-import RegisterTotp from '../helpers/register-totp';
 import ValidateTotp from '../helpers/validate-totp';
-import AccessSecret from "../helpers/access-secret";
 import LoginAndRegisterTotp from '../helpers/login-and-register-totp';
 import seeNotification from "../helpers/see-notification";
+import {AUTHENTICATION_TOTP_FAILED} from '../../shared/UserMessages';
 
 /**
  * Given john has registered a TOTP secret,
@@ -24,7 +18,6 @@ describe('Fail TOTP challenge', function() {
 
   describe('successfully login as john', function() {
     before(function() {
-      const that = this;
       return LoginAndRegisterTotp(this.driver, "john", true);
     });
 
@@ -39,7 +32,7 @@ describe('Fail TOTP challenge', function() {
       });
 
       it("get a notification message", function() {
-        return seeNotification(this.driver, "error", "Authentication failed. Have you already registered your secret?");
+        return seeNotification(this.driver, "error", AUTHENTICATION_TOTP_FAILED);
       });
     });
   });

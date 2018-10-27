@@ -1,13 +1,9 @@
 require("chromedriver");
 import Bluebird = require("bluebird");
-import SeleniumWebdriver = require("selenium-webdriver");
-import Fs = require("fs");
-import Speakeasy = require("speakeasy");
 import WithDriver from '../helpers/with-driver';
 import FillLoginPageWithUserAndPasswordAndClick from '../helpers/fill-login-page-and-click';
 import WaitRedirected from '../helpers/wait-redirected';
 import VisitPage from '../helpers/visit-page';
-import RegisterTotp from '../helpers/register-totp';
 import ValidateTotp from '../helpers/validate-totp';
 import AccessSecret from "../helpers/access-secret";
 import LoginAndRegisterTotp from '../helpers/login-and-register-totp';
@@ -37,15 +33,9 @@ describe('Validate TOTP factor', function() {
         const driver = this.driver;
         
         return VisitPage(driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html")
-          .then(() => {
-            return FillLoginPageWithUserAndPasswordAndClick(driver, 'john', 'password');
-          })
-          .then(() => {
-            return ValidateTotp(driver, secret);
-          })
-          .then(() => {
-            return WaitRedirected(driver, "https://admin.example.com:8080/secret.html")
-          });
+          .then(() => FillLoginPageWithUserAndPasswordAndClick(driver, 'john', 'password'))
+          .then(() => ValidateTotp(driver, secret))
+          .then(() => WaitRedirected(driver, "https://admin.example.com:8080/secret.html"));
       });
 
       it("should access the secret", function() {

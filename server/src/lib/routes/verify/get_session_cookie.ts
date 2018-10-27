@@ -6,7 +6,7 @@ import ObjectPath = require("object-path");
 import Exceptions = require("../../Exceptions");
 import { Configuration } from "../../configuration/schema/Configuration";
 import Constants = require("../../../../../shared/constants");
-import { DomainExtractor } from "../../utils/DomainExtractor";
+import { DomainExtractor } from "../../../../../shared/DomainExtractor";
 import { ServerVariables } from "../../ServerVariables";
 import { MethodCalculator } from "../../authentication/MethodCalculator";
 import { IRequestLogger } from "../../logging/IRequestLogger";

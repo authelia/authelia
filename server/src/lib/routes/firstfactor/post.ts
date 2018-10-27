@@ -9,7 +9,7 @@ import Endpoint = require("../../../../../shared/api");
 import ErrorReplies = require("../../ErrorReplies");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import Constants = require("../../../../../shared/constants");
-import { DomainExtractor } from "../../utils/DomainExtractor";
+import { DomainExtractor } from "../../../../../shared/DomainExtractor";
 import UserMessages = require("../../../../../shared/UserMessages");
 import { MethodCalculator } from "../../authentication/MethodCalculator";
 import { ServerVariables } from "../../ServerVariables";
@@ -51,14 +51,16 @@ export default function (vars: ServerVariables) {
         authSession.userid = username;
         authSession.keep_me_logged_in = keepMeLoggedIn;
         authSession.first_factor = true;
-        const redirectUrl = req.query[Constants.REDIRECT_QUERY_PARAM] !== "undefined"
+        const redirectUrl: string = req.query[Constants.REDIRECT_QUERY_PARAM] !== "undefined"
           // Fuck, don't know why it is a string!
           ? req.query[Constants.REDIRECT_QUERY_PARAM]
           : undefined;
 
         const emails: string[] = groupsAndEmails.emails;
         const groups: string[] = groupsAndEmails.groups;
-        const redirectHost: string = DomainExtractor.fromUrl(redirectUrl);
+
+        const domain = DomainExtractor.fromUrl(redirectUrl);
+        const redirectHost = (domain) ? domain : "";
         const authMethod = MethodCalculator.compute(
           vars.config.authentication_methods, redirectHost);
         vars.logger.debug(req, "Authentication method for \"%s\" is \"%s\"",
@@ -72,7 +74,7 @@ export default function (vars: ServerVariables) {
         vars.regulator.mark(username, true);
 
         if (authMethod == "single_factor") {
-          let newRedirectionUrl: string = redirectUrl;
+          let newRedirectionUrl = redirectUrl;
           if (!newRedirectionUrl)
             newRedirectionUrl = Endpoint.LOGGED_IN;
           res.send({
