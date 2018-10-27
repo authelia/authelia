@@ -1,7 +1,7 @@
 
 import BluebirdPromise = require("bluebird");
 import U2f = require("u2f");
-import U2fApi = require("u2f-api");
+import U2fApi = require("u2f-api-polyfill");
 import jslogger = require("js-logger");
 import { Notifier } from "../Notifier";
 import GetPromised from "../GetPromised";
@@ -10,38 +10,35 @@ import UserMessages = require("../../../../shared/UserMessages");
 import { RedirectionMessage } from "../../../../shared/RedirectionMessage";
 import { ErrorMessage } from "../../../../shared/ErrorMessage";
 
-export default function (window: Window, $: JQueryStatic, u2fApi: U2fApi.U2fApi) {
+export default function (window: Window, $: JQueryStatic) {
   const notifier = new Notifier(".notification", $);
 
   function checkRegistration(regResponse: U2fApi.RegisterResponse): BluebirdPromise<string> {
-    const registrationData: U2f.RegistrationData = regResponse;
-
     return new BluebirdPromise<string>(function (resolve, reject) {
-      $.post(Endpoints.SECOND_FACTOR_U2F_REGISTER_POST, registrationData, undefined, "json")
-        .done(function (body: RedirectionMessage | ErrorMessage) {
+      $.post(Endpoints.SECOND_FACTOR_U2F_REGISTER_POST, regResponse, undefined, "json")
+        .done((body: RedirectionMessage | ErrorMessage) => {
           if (body && "error" in body) {
             reject(new Error((body as ErrorMessage).error));
             return;
           }
           resolve((body as RedirectionMessage).redirect);
         })
-        .fail(function (xhr, status) {
-          reject();
+        .fail((xhr, status) => {
+          reject(new Error("Failed to register device."));
         });
     });
   }
 
-  function u2fApiRegister(u2fApi: U2fApi.U2fApi, appId: string,
-    registerRequest: U2fApi.RegisterRequest, timeout: number) {
-
-    return new BluebirdPromise(function (resolve, reject) {
-      u2fApi.register(appId, [registerRequest], [],
-        function (res: U2fApi.RegisterResponse | U2fApi.Error) {
-          if ("errorCode" in res) {
-            reject(new Error((res as U2fApi.Error).errorMessage));
+  function register(appId: string, registerRequest: U2fApi.RegisterRequest,
+    timeout: number): BluebirdPromise<U2fApi.RegisterResponse> {
+    return new BluebirdPromise((resolve, reject) => {
+      (window as any).u2f.register(appId, [registerRequest], [],
+        (res: U2fApi.RegisterResponse | U2fApi.U2FError) => {
+          if ((<U2fApi.U2FError>res).errorCode != 0) {
+            reject(new Error((<U2fApi.U2FError>res).errorMessage));
             return;
           }
-          resolve(res);
+          resolve(<U2fApi.RegisterResponse>res);
         }, timeout);
     });
   }
@@ -49,14 +46,10 @@ export default function (window: Window, $: JQueryStatic, u2fApi: U2fApi.U2fApi)
   function requestRegistration(): BluebirdPromise<string> {
     return GetPromised($, Endpoints.SECOND_FACTOR_U2F_REGISTER_REQUEST_GET, {},
       undefined, "json")
-      .then(function (registrationRequest: U2f.Request) {
-        const registerRequest: U2fApi.RegisterRequest = registrationRequest;
-        const appId = registrationRequest.appId;
-        return u2fApiRegister(u2fApi, appId, registerRequest, 60);
+      .then((registrationRequest: U2f.Request) => {
+        return register(registrationRequest.appId, registrationRequest, 60);
       })
-      .then(function (res: U2fApi.RegisterResponse) {
-        return checkRegistration(res);
-      });
+      .then((res) => checkRegistration(res));
   }
 
   function onRegisterFailure(err: Error) {
@@ -65,10 +58,10 @@ export default function (window: Window, $: JQueryStatic, u2fApi: U2fApi.U2fApi)
 
   $(document).ready(function () {
     requestRegistration()
-      .then(function (redirectionUrl: string) {
+      .then((redirectionUrl: string) => {
         document.location.href = redirectionUrl;
       })
-      .error(function (err) {
+      .catch((err) => {
         onRegisterFailure(err);
       });
   });

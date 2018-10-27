@@ -22,11 +22,11 @@ jslogger.setLevel(jslogger.INFO);
   if (window.location.pathname == Endpoints.FIRST_FACTOR_GET)
     FirstFactor(window, jQuery, FirstFactorValidator, jslogger);
   else if (window.location.pathname == Endpoints.SECOND_FACTOR_GET)
-    SecondFactor(window, jQuery, (global as any).u2f);
+    SecondFactor(window, jQuery);
   else if (window.location.pathname == Endpoints.SECOND_FACTOR_TOTP_IDENTITY_FINISH_GET)
     TOTPRegister(window, jQuery);
   else if (window.location.pathname == Endpoints.SECOND_FACTOR_U2F_IDENTITY_FINISH_GET)
-    U2fRegister(window, jQuery, (global as any).u2f);
+    U2fRegister(window, jQuery);
   else if (window.location.pathname == Endpoints.RESET_PASSWORD_IDENTITY_FINISH_GET)
     ResetPasswordForm(window, jQuery);
   else if (window.location.pathname == Endpoints.RESET_PASSWORD_REQUEST_GET)
