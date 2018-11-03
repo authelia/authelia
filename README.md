@@ -41,7 +41,7 @@ For more details about the features, follow [Features](./docs/features.md).
 
 ## Getting Started
 
-Follow [Getting Started](./docs/getting_started.md).
+Follow [Getting Started](./docs/getting-started.md).
 
 ## Security
 
