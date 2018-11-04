@@ -1,8 +1,7 @@
 
 import BluebirdPromise = require("bluebird");
 import U2f = require("u2f");
-import U2fApi = require("u2f-api-polyfill");
-import jslogger = require("js-logger");
+import * as U2fApi from "u2f-api";
 import { Notifier } from "../Notifier";
 import GetPromised from "../GetPromised";
 import Endpoints = require("../../../../shared/api");
@@ -29,25 +28,11 @@ export default function (window: Window, $: JQueryStatic) {
     });
   }
 
-  function register(appId: string, registerRequest: U2fApi.RegisterRequest,
-    timeout: number): BluebirdPromise<U2fApi.RegisterResponse> {
-    return new BluebirdPromise((resolve, reject) => {
-      (window as any).u2f.register(appId, [registerRequest], [],
-        (res: U2fApi.RegisterResponse | U2fApi.U2FError) => {
-          if ((<U2fApi.U2FError>res).errorCode != 0) {
-            reject(new Error((<U2fApi.U2FError>res).errorMessage));
-            return;
-          }
-          resolve(<U2fApi.RegisterResponse>res);
-        }, timeout);
-    });
-  }
-
   function requestRegistration(): BluebirdPromise<string> {
     return GetPromised($, Endpoints.SECOND_FACTOR_U2F_REGISTER_REQUEST_GET, {},
       undefined, "json")
       .then((registrationRequest: U2f.Request) => {
-        return register(registrationRequest.appId, registrationRequest, 60);
+        return U2fApi.register(registrationRequest, [], 60);
       })
       .then((res) => checkRegistration(res));
   }

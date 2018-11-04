@@ -46,7 +46,7 @@
     "redis": "^2.8.0",
     "speakeasy": "^2.0.0",
     "u2f": "^0.1.2",
-    "u2f-api-polyfill": "^0.4.4",
+    "u2f-api": "^1.0.7",
     "winston": "^2.3.1",
     "yamljs": "^0.3.0"
   },

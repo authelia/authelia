@@ -1,5 +1,5 @@
 import U2f = require("u2f");
-import U2fApi = require("u2f-api-polyfill");
+import U2fApi from "u2f-api";
 import BluebirdPromise = require("bluebird");
 import { SignMessage } from "../../../../shared/SignMessage";
 import Endpoints = require("../../../../shared/api");
@@ -31,45 +31,19 @@ function finishU2fAuthentication(responseData: U2fApi.SignResponse,
   });
 }
 
-function u2fApiSign(appId: string, challenge: string,
-  registeredKey: U2fApi.RegisteredKey, timeout: number)
-  : BluebirdPromise<U2fApi.SignResponse> {
-
-  return new BluebirdPromise<U2fApi.SignResponse>(function (resolve, reject) {
-    (<any>window).u2f.sign(appId, challenge, [registeredKey],
-      function (signResponse: U2fApi.SignResponse | U2fApi.U2FError) {
-        if ((<U2fApi.U2FError>signResponse).errorCode != 0) {
-          reject(new Error((signResponse as U2fApi.U2FError).errorMessage));
-          return;
-        }
-        resolve(signResponse as U2fApi.SignResponse);
-      }, timeout);
-  });
-}
-
 function startU2fAuthentication($: JQueryStatic, notifier: INotifier)
   : BluebirdPromise<string> {
 
   return GetPromised($, Endpoints.SECOND_FACTOR_U2F_SIGN_REQUEST_GET, {},
     undefined, "json")
-    .then(function (signResponse: SignMessage) {
+    .then(function (signRequest: U2f.Request) {
       notifier.info(UserMessages.PLEASE_TOUCH_TOKEN);
-
-      const registeredKey: U2fApi.RegisteredKey = {
-        keyHandle: signResponse.keyHandle,
-        version: "U2F_V2",
-        appId: signResponse.request.appId,
-        transports: []
-      };
-
-      return u2fApiSign(signResponse.request.appId,
-        signResponse.request.challenge, registeredKey, 60);
+      return U2fApi.sign(signRequest, 60);
     })
     .then(function (signResponse: U2fApi.SignResponse) {
       return finishU2fAuthentication(signResponse, $);
     });
 }
-
 
 export function validate($: JQueryStatic, notifier: INotifier) {
   return startU2fAuthentication($, notifier)

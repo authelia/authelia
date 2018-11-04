@@ -4,9 +4,7 @@ import BluebirdPromise = require("bluebird");
 import assert = require("assert");
 import U2FSignRequestGet = require("./get");
 import ExpressMock = require("../../../../stubs/express.spec");
-import { UserDataStoreStub } from "../../../../storage/UserDataStoreStub.spec";
-import U2FMock = require("../../../../stubs/u2f.spec");
-import U2f = require("u2f");
+import { Request } from "u2f";
 import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../../../ServerVariablesMockBuilder.spec";
 import { ServerVariables } from "../../../../ServerVariables";
 
@@ -40,10 +38,6 @@ describe("routes/secondfactor/u2f/sign_request/get", function () {
     mocks = s.mocks;
     vars = s.variables;
 
-    const options = {
-      inMemoryOnly: true
-    };
-
     res = ExpressMock.ResponseMock();
     res.send = sinon.spy();
     res.json = sinon.spy();
@@ -51,24 +45,23 @@ describe("routes/secondfactor/u2f/sign_request/get", function () {
   });
 
   it("should send back the sign request and save it in the session", function () {
-    const expectedRequest: U2f.RegistrationResult = {
-      keyHandle: "keyHandle",
-      publicKey: "publicKey",
-      certificate: "Certificate",
-      successful: true
+    const expectedRequest: Request = {
+      version: "U2F_V2",
+      appId: 'app',
+      challenge: 'challenge!'
     };
     mocks.u2f.requestStub.returns(expectedRequest);
-    mocks.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({
-      registration: {
-        publicKey: "PUBKEY",
-        keyHandle: "KeyHandle"
-      }
-    }));
+    mocks.userDataStore.retrieveU2FRegistrationStub
+      .returns(BluebirdPromise.resolve({
+        registration: {
+          keyHandle: "KeyHandle"
+        }
+      }));
 
     return U2FSignRequestGet.default(vars)(req as any, res as any)
-      .then(function () {
+      .then(() => {
         assert.deepEqual(expectedRequest, req.session.auth.sign_request);
-        assert.deepEqual(expectedRequest, res.json.getCall(0).args[0].request);
+        assert.deepEqual(expectedRequest, res.json.getCall(0).args[0]);
       });
   });
 });

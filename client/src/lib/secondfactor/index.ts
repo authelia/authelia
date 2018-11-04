@@ -1,5 +1,3 @@
-import jslogger = require("js-logger");
-import U2fApi = require("u2f-api-polyfill");
 import TOTPValidator = require("./TOTPValidator");
 import U2FValidator = require("./U2FValidator");
 import ClientConstants = require("./constants");
