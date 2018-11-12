@@ -1,0 +1,80 @@
+
+.mainContent {
+  width: 440px;
+  margin: 0 auto;
+  padding: 1.5em 3em 3em 3em;
+}
+
+/* HEADER */
+
+.header {
+  margin-bottom: 2em;
+  text-align: center;
+}
+
+/* MAIN */
+
+.frame {
+  box-shadow: rgba(0,0,0,0.14902) 0px 1px 1px 0px,rgba(0,0,0,0.09804) 0px 1px 2px 0px;
+  background-color: white;
+  border-radius: 5px;
+  padding: 0.5em 3em 3em 3em;
+}
+
+.innerFrame {
+  width: 100%;
+}
+
+.field {
+  width: 100%;
+  margin: 20px 0px;
+}
+
+.field .input {
+  width: 100%;
+}
+
+.controls {
+  display: inline-block;
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.controls .rememberMe {
+  float: left;
+}
+
+.controls .resetPassword {
+  padding: 12px 0px;
+  float: right;
+}
+
+.controls .resetPassword a {
+  color: black;
+}
+
+.buttons {
+  margin-top: 20px;
+}
+
+.buttons button {
+  width: 100%;
+}
+
+/* FOOTER */
+
+.footer {
+  margin-top: 1em;
+  text-align: center;
+  font-size: 0.75em;
+  color: grey;
+}
+
+.footer img {
+  width: 64px;
+  margin: 20px;
+}
+
+.footer a {
+  color: grey;
+}
