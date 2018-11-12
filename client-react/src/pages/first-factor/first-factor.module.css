@@ -1,0 +1,39 @@
+.main {
+  padding: 2em 3em 2em 3em;
+}
+
+.field {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.field .input {
+  width: 100%;
+}
+
+.controls {
+  display: inline-block;
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.controls .rememberMe {
+  float: left;
+}
+
+.controls .resetPassword {
+  padding: 12px 0px;
+  float: right;
+}
+
+.controls .resetPassword a {
+  color: black;
+}
+
+.buttons {
+  margin-top: 20px;
+}
+
+.buttons button {
+  width: 100%;
+}

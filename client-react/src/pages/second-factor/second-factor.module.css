@@ -1,0 +1,37 @@
+.main {
+  text-align: center;
+  padding: 2em 3em 2em 3em;
+  min-height: 350px;
+}
+
+.authenticate {
+  margin: 1em;
+}
+
+.authenticate hr {
+  width: 100%;
+}
+
+.authenticate .u2f img {
+  width: 128px;
+  margin-top: 1em;
+}
+
+.authenticate .totpField {
+  margin: 1em 0em;
+}
+
+
+
+.register {
+  margin: 1em;
+}
+
+.register .buttons {
+  margin: 2em 0em;
+}
+
+.register .buttons button {
+  margin: 0.8em 0em;
+  width: 100%;
+}

@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import './App.css';
 
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
-import { FirstFactor } from './first-factor';
-import { SecondFactor } from './second-factor';
+import { FirstFactor } from './pages/first-factor/first-factor';
+import { SecondFactor } from './pages/second-factor/second-factor';
 
 class App extends Component {
   render() {
