@@ -62,13 +62,19 @@ Follow [Build](./docs/build.md).
 
 See [CHANGELOG.md](CHANGELOG.md).
 
-## Contributors
+## Contribute
 
-See the list of contributors in [CONTRIBUTORS.md](CONTRIBUTORS.md).
+Anybody willing to contribute to the project either with code, 
+documentation, security reviews or whatever, are very welcome to issue
+or review pull requests and take part to discussions in
+[Gitter](https://gitter.im/authelia/general?utm_source=share-link&utm_medium=link&utm_campaign=share-link).
+
+We are already greatful to contributors listed in
+[CONTRIBUTORS.md](CONTRIBUTORS.md) for their contributions to the project.
 
 ## Donation
 
-Wanna see more features? Then fuel me with a few beers!
+Wanna see more features? Then fuel us with a few beers!
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=clement%2emichaud34%40gmail%2ecom&lc=FR&item_name=Authelia&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted)
 
