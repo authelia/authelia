@@ -1,5 +1,5 @@
 import Bluebird = require("bluebird");
-import loginAndRegisterTotp from "../helpers/login-and-register-totp";
+import LoginAndRegisterTotp from "../helpers/login-and-register-totp";
 import VisitPage from "../helpers/visit-page";
 import FillLoginPageWithUserAndPasswordAndClick from "../helpers/fill-login-page-and-click";
 import WithDriver from "../helpers/with-driver";
@@ -12,7 +12,7 @@ describe("Keep me logged in", function() {
 
   before(function() {
     const that = this;
-    return loginAndRegisterTotp(this.driver, "john")
+    return LoginAndRegisterTotp(this.driver, "john", true)
       .then(function(secret: string) {
         that.secret = secret;
         if(!secret) return Bluebird.reject(new Error("No secret!"));

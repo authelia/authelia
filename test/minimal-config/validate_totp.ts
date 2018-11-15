@@ -24,7 +24,7 @@ describe('Validate TOTP factor', function() {
   describe('successfully login as john', function() {
     before(function() {
       const that = this;
-      return LoginAndRegisterTotp(this.driver, "john")
+      return LoginAndRegisterTotp(this.driver, "john", true)
         .then(function(secret: string) {
           that.secret = secret;
         })
