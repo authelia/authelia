@@ -9,7 +9,7 @@ import ClickOnLink from '../helpers/click-on-link';
 import ClickOnButton from '../helpers/click-on-button';
 import WaitRedirect from '../helpers/wait-redirected';
 import FillField from "../helpers/fill-field";
-import {GetLinkFromFile} from "../helpers/get-identity-link";
+import {GetLinkFromEmail} from "../helpers/get-identity-link";
 import FillLoginPageAndClick from "../helpers/fill-login-page-and-click";
 
 const execAsync = Bluebird.promisify(ChildProcess.exec);
@@ -30,7 +30,7 @@ describe('Reset password', function() {
         .then(() => FillField(this.driver, "username", "john"))
         .then(() => ClickOnButton(this.driver, "Reset Password"))
         .then(() => this.driver.sleep(1000)) // Simulate the time to read it from mailbox.
-        .then(() => GetLinkFromFile())
+        .then(() => GetLinkFromEmail())
         .then((link) => VisitPage(this.driver, link))
         .then(() => FillField(this.driver, "password1", "newpass"))
         .then(() => FillField(this.driver, "password2", "newpass"))

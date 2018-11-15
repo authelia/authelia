@@ -10,6 +10,7 @@ const includes = [
   "docker-compose.test.yml",
   "example/compose/docker-compose.base.yml",
   "example/compose/nginx/minimal/docker-compose.yml",
+  "example/compose/smtp/docker-compose.yml",
 ]
 
 

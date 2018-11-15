@@ -31,8 +31,8 @@ export default function (vars: ServerVariables) {
         vars.logger.debug(req, "AppId = %s, keyHandle = %s", appId, JSON.stringify(doc.registration.keyHandle));
 
         const request = vars.u2f.request(appId, doc.registration.keyHandle);
-        res.json(request);
         authSession.sign_request = request;
+        res.json(request);
         return BluebirdPromise.resolve();
       })
       .catch(ErrorReplies.replyWithError200(req, res, vars.logger,
