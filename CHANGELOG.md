@@ -1,3 +1,11 @@
+Release Notes - Version 3.10.0
+------------------------------
+* Add docker-compose for deploying Authelia on Swarm*.
+* Add "keep me logged in" checkbox in first factor page.
+* Fix U2F compatiblity with Firefox.
+* Bump dependencies to fix vulnerabilities reported by snyk.
+* Improve documentation for dev setup.
+
 Release Notes - Version 3.9.5
 -----------------------------
 * Fix images in README in NPM.
@@ -11,7 +19,7 @@ Release Notes - Version 3.9.3
 -----------------------------
 * Fix npm publication.
 * Use IP coming from X-Forwarded-For header in logs.
-* Fix CONTRIBUTORS.md
+* Fix CONTRIBUTORS.md.
 
 Release Notes - Version 3.9.2
 -----------------------------
@@ -36,7 +44,7 @@ Configuration changes:
 
 Release Notes - Version 3.8.3
 -----------------------------
-* Fix ECONNRESET issues when LDAP queries failed. (#261)
+* Fix ECONNRESET issues when LDAP queries failed. (#261).
 
 Release Notes - Version 3.8.2
 -----------------------------
