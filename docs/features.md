@@ -11,7 +11,7 @@ You can find an example of the configuration of the LDAP backend in
 [config.template.yml].
 
 <p align="center">
-  <img src="../images/second_factor.png" width="400">
+  <img src="../images/first_factor.png" width="400">
 </p>
 
 

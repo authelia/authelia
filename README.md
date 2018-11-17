@@ -41,22 +41,20 @@ For more details about the features, follow [Features](./docs/features.md).
 
 ## Getting Started
 
-Follow [Getting Started](./docs/getting-started.md).
+If you want to quickly test Authelia with Docker, we recommend you read
+[Getting Started](./docs/getting-started.md).
+
+## Deployment
+
+Now that you have tested **Authelia** and you want to try it out in your own infrastructure, you can learn how to deploy and use it with
+[Deployment](./docs/deployment-production.md). This guide will show you how to deploy
+it on bare metal as well as on Kubernetes.
 
 ## Security
 
 If you want more information about the security measures applied by
 **Authelia** and some tips on how to set up **Authelia** in a secure way,
 refer to [Security](./docs/security.md).
-
-## Deployment
-
-To learn how to deploy **Authelia** or use it on Kubernetes, please follow
-[Deployment](./docs/deployment.md).
-
-## Build Authelia
-
-Follow [Build](./docs/build.md).
 
 ## Changelog
 
@@ -71,6 +69,11 @@ or review pull requests and take part to discussions in
 
 We are already greatful to contributors listed in
 [CONTRIBUTORS.md](CONTRIBUTORS.md) for their contributions to the project.
+Be the next in the list!
+
+## Build Authelia
+
+If you want to contribute with code, you should follow the documentation explaining how to [build](./docs/build.md) the application.
 
 ## Donation
 
