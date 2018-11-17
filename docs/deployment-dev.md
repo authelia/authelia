@@ -9,7 +9,7 @@
     3. [Discard LDAP](#discard-ldap)
 5. [FAQ](#faq)
 
-***WARNING:** the instructions given in this documentation are not meant
+**WARNING:** *the instructions given in this documentation are not meant
 to be used for production environments since it will make **Authelia**
 non resilient to failures.*
 
