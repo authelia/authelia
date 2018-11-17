@@ -8,6 +8,7 @@ import Endpoints = require("../../../../shared/api");
 import UserMessages = require("../../../../shared/UserMessages");
 import { RedirectionMessage } from "../../../../shared/RedirectionMessage";
 import { ErrorMessage } from "../../../../shared/ErrorMessage";
+import { SafeRedirect } from "../SafeRedirect";
 
 export default function (window: Window, $: JQueryStatic) {
   const notifier = new Notifier(".notification", $);
@@ -44,7 +45,9 @@ export default function (window: Window, $: JQueryStatic) {
   $(document).ready(function () {
     requestRegistration()
       .then((redirectionUrl: string) => {
-        document.location.href = redirectionUrl;
+        SafeRedirect(redirectionUrl, () => {
+          notifier.error(UserMessages.CANNOT_REDIRECT_TO_EXTERNAL_DOMAIN);
+        });
       })
       .catch((err) => {
         onRegisterFailure(err);

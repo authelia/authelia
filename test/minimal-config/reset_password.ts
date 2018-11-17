@@ -1,7 +1,6 @@
 require("chromedriver");
 import Bluebird = require("bluebird");
 import ChildProcess = require("child_process");
-import SeleniumWebdriver = require("selenium-webdriver");
 
 import WithDriver from '../helpers/with-driver';
 import VisitPage from '../helpers/visit-page';

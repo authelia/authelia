@@ -15,7 +15,7 @@ export class Environment {
   private runCommand(command: string, timeout?: number): Bluebird<void> {
     return new Bluebird<void>((resolve, reject) => {
       console.log('[ENVIRONMENT] Running: %s', command);
-      exec(command, (err, stdout, stderr) => {
+      exec(command, (err: any, stdout: any, stderr: any) => {
         if(err) {
           reject(err);
           return;

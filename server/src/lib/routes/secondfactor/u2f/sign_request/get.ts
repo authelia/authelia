@@ -24,7 +24,7 @@ export default function (vars: ServerVariables) {
       })
       .then(function (doc: U2FRegistrationDocument): BluebirdPromise<void> {
         if (!doc)
-          return BluebirdPromise.reject(new exceptions.AccessDeniedError("No U2F registration found"));
+          return BluebirdPromise.reject(new exceptions.AccessDeniedError("No U2F registration document found."));
 
         const appId: string = u2f_common.extract_app_id(req);
         vars.logger.info(req, "Start authentication of app '%s'", appId);

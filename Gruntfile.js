@@ -9,6 +9,9 @@ module.exports = function (grunt) {
       },
       "env-test-client-unit": {
         TS_NODE_PROJECT: "client/tsconfig.json"
+      },
+      "env-test-shared-unit": {
+        TS_NODE_PROJECT: "server/tsconfig.json"
       }
     },
     run: {
@@ -36,6 +39,10 @@ module.exports = function (grunt) {
       "test-server-unit": {
         cmd: "./node_modules/.bin/mocha",
         args: ['--colors', '--require', 'ts-node/register', 'server/src/**/*.spec.ts']
+      },
+      "test-shared-unit": {
+        cmd: "./node_modules/.bin/mocha",
+        args: ['--colors', '--require', 'ts-node/register', 'shared/**/*.spec.ts']
       },
       "test-client-unit": {
         cmd: "./node_modules/.bin/mocha",
@@ -193,8 +200,9 @@ module.exports = function (grunt) {
   grunt.registerTask('compile-client', ['run:lint-client', 'run:compile-client'])
 
   grunt.registerTask('test-server', ['env:env-test-server-unit', 'run:test-server-unit'])
+  grunt.registerTask('test-shared', ['env:env-test-shared-unit', 'run:test-shared-unit'])
   grunt.registerTask('test-client', ['env:env-test-client-unit', 'run:test-client-unit'])
-  grunt.registerTask('test-unit', ['test-server', 'test-client']);
+  grunt.registerTask('test-unit', ['test-server', 'test-client', 'test-shared']);
   grunt.registerTask('test-int', ['run:test-cucumber', 'run:test-minimal-config', 'run:test-complete-config', 'run:test-inactivity']);
 
   grunt.registerTask('copy-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
