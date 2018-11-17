@@ -72,10 +72,12 @@ export default function (vars: ServerVariables) {
       .then(setUserAndGroupsHeaders(res))
       .then(replyWith200(res))
       // The user is authenticated but has restricted access -> 403
-      .catch(Exceptions.DomainAccessDenied, ErrorReplies
-        .replyWithError403(req, res, vars.logger))
+      .catch(Exceptions.NotAuthorizedError,
+        ErrorReplies.replyWithError403(req, res, vars.logger))
+      .catch(Exceptions.NotAuthenticatedError,
+        ErrorReplies.replyWithError401(req, res, vars.logger))
       // The user is not yet authenticated -> 401
-      .catch(function (err) {
+      .catch((err) => {
         const redirectUrl = getRedirectParam(req);
         if (redirectUrl) {
           ErrorReplies.redirectTo(redirectUrl, req, res, vars.logger)(err);

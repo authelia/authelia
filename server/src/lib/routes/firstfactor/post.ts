@@ -1,20 +1,18 @@
 
 import Exceptions = require("../../Exceptions");
-import objectPath = require("object-path");
 import BluebirdPromise = require("bluebird");
 import express = require("express");
-import { AccessController } from "../../access_control/AccessController";
-import { Regulator } from "../../regulation/Regulator";
 import Endpoint = require("../../../../../shared/api");
 import ErrorReplies = require("../../ErrorReplies");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import Constants = require("../../../../../shared/constants");
-import { DomainExtractor } from "../../../../../shared/DomainExtractor";
 import UserMessages = require("../../../../../shared/UserMessages");
-import { MethodCalculator } from "../../authentication/MethodCalculator";
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import { GroupsAndEmails } from "../../authentication/backends/GroupsAndEmails";
+import { Level as AuthenticationLevel } from "../../authentication/Level";
+import { Level as AuthorizationLevel } from "../../authorization/Level";
+import { URLDecomposer } from "../../utils/URLDecomposer";
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)
@@ -50,21 +48,20 @@ export default function (vars: ServerVariables) {
           JSON.stringify(groupsAndEmails));
         authSession.userid = username;
         authSession.keep_me_logged_in = keepMeLoggedIn;
-        authSession.first_factor = true;
+        authSession.authentication_level = AuthenticationLevel.ONE_FACTOR;
         const redirectUrl: string = req.query[Constants.REDIRECT_QUERY_PARAM] !== "undefined"
           // Fuck, don't know why it is a string!
           ? req.query[Constants.REDIRECT_QUERY_PARAM]
-          : undefined;
+          : "";
 
         const emails: string[] = groupsAndEmails.emails;
         const groups: string[] = groupsAndEmails.groups;
-
-        const domain = DomainExtractor.fromUrl(redirectUrl);
-        const redirectHost = (domain) ? domain : "";
-        const authMethod = MethodCalculator.compute(
-          vars.config.authentication_methods, redirectHost);
-        vars.logger.debug(req, "Authentication method for \"%s\" is \"%s\"",
-          redirectHost, authMethod);
+        const decomposition = URLDecomposer.fromUrl(redirectUrl);
+        const authorizationLevel = (decomposition)
+          ? vars.authorizer.authorization(
+            {domain: decomposition.domain, resource: decomposition.path},
+            {user: username, groups: groups})
+          : AuthorizationLevel.TWO_FACTOR;
 
         if (emails.length > 0)
           authSession.email = emails[0];
@@ -73,8 +70,8 @@ export default function (vars: ServerVariables) {
         vars.logger.debug(req, "Mark successful authentication to regulator.");
         vars.regulator.mark(username, true);
 
-        if (authMethod == "single_factor") {
-          let newRedirectionUrl = redirectUrl;
+        if (authorizationLevel <= AuthorizationLevel.ONE_FACTOR) {
+          let newRedirectionUrl: string = redirectUrl;
           if (!newRedirectionUrl)
             newRedirectionUrl = Endpoint.LOGGED_IN;
           res.send({
@@ -82,7 +79,7 @@ export default function (vars: ServerVariables) {
           });
           vars.logger.debug(req, "Redirect to '%s'", redirectUrl);
         }
-        else if (authMethod == "two_factor") {
+        else {
           let newRedirectUrl = Endpoint.SECOND_FACTOR_GET;
           if (redirectUrl) {
             newRedirectUrl += "?" + Constants.REDIRECT_QUERY_PARAM + "="
@@ -92,9 +89,6 @@ export default function (vars: ServerVariables) {
           res.send({
             redirect: newRedirectUrl
           });
-        }
-        else {
-          return BluebirdPromise.reject(new Error("Unknown authentication method for this domain."));
         }
         return BluebirdPromise.resolve();
       })

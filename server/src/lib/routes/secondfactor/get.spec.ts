@@ -31,28 +31,8 @@ describe("routes/secondfactor/get", function () {
     };
   });
 
-  describe("test redirection", function () {
-    it("should redirect to already logged in page if server is in single_factor mode", function () {
-      vars.config.authentication_methods.default_method = "single_factor";
-      return SecondFactorGet(vars)(req as any, res as any)
-        .then(function () {
-          Assert(res.redirect.calledWith(Endpoints.LOGGED_IN));
-          return BluebirdPromise.resolve();
-        });
-    });
-
-    it("should redirect to already logged in page if user already authenticated", function () {
-      vars.config.authentication_methods.default_method = "two_factor";
-      req.session.auth.second_factor = true;
-      return SecondFactorGet(vars)(req as any, res as any)
-        .then(function () {
-          Assert(res.redirect.calledWith(Endpoints.LOGGED_IN));
-          return BluebirdPromise.resolve();
-        });
-    });
-
+  describe("test rendering", function () {
     it("should render second factor page", function () {
-      vars.config.authentication_methods.default_method = "two_factor";
       req.session.auth.second_factor = false;
       return SecondFactorGet(vars)(req as any, res as any)
         .then(function () {

@@ -55,11 +55,19 @@ export class InvalidTOTPError extends Error {
   }
 }
 
-export class DomainAccessDenied extends Error {
+export class NotAuthenticatedError extends Error {
   constructor(message?: string) {
     super(message);
-    this.name = "DomainAccessDenied";
-    (<any>Object).setPrototypeOf(this, DomainAccessDenied.prototype);
+    this.name = "NotAuthenticatedError";
+    (<any>Object).setPrototypeOf(this, NotAuthenticatedError.prototype);
+  }
+}
+
+export class NotAuthorizedError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "NotAuthanticatedError";
+    (<any>Object).setPrototypeOf(this, NotAuthorizedError.prototype);
   }
 }
 

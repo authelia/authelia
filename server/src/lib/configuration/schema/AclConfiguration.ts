@@ -1,42 +1,41 @@
 
-export type ACLPolicy = "deny" | "allow";
+export type ACLPolicy = "deny" | "bypass" | "one_factor" | "two_factor";
 
 export type ACLRule = {
   domain: string;
-  policy: ACLPolicy;
   resources?: string[];
+  subject?: string;
+  policy: ACLPolicy;
 };
-
-export type ACLDefaultRules = ACLRule[];
-export type ACLGroupsRules = { [group: string]: ACLRule[]; };
-export type ACLUsersRules = { [user: string]: ACLRule[]; };
 
 export interface ACLConfiguration {
   default_policy?: ACLPolicy;
-  any?: ACLDefaultRules;
-  groups?: ACLGroupsRules;
-  users?: ACLUsersRules;
+  rules?: ACLRule[];
 }
 
-export function complete(configuration: ACLConfiguration): ACLConfiguration {
+export function complete(configuration: ACLConfiguration): [ACLConfiguration, string[]] {
   const newConfiguration: ACLConfiguration = (configuration)
     ? JSON.parse(JSON.stringify(configuration)) : {};
 
   if (!newConfiguration.default_policy) {
-    newConfiguration.default_policy = "allow";
+    newConfiguration.default_policy = "bypass";
   }
 
-  if (!newConfiguration.any) {
-    newConfiguration.any = [];
+  if (!newConfiguration.rules) {
+    newConfiguration.rules = [];
   }
 
-  if (!newConfiguration.groups) {
-    newConfiguration.groups = {};
+  if (newConfiguration.rules.length > 0) {
+    const errors: string[] = [];
+    newConfiguration.rules.forEach((r, idx) => {
+      if (r.subject && !r.subject.match(/^(user|group):[a-zA-Z0-9]+$/)) {
+        errors.push(`Rule ${idx} has wrong subject. It should be starting with user: or group:.`);
+      }
+    });
+    if (errors.length > 0) {
+      return [newConfiguration, errors];
+    }
   }
 
-  if (!newConfiguration.users) {
-    newConfiguration.users = {};
-  }
-
-  return newConfiguration;
+  return [newConfiguration, []];
 }

@@ -1,6 +1,5 @@
 
 import express = require("express");
-import objectPath = require("object-path");
 import Endpoints = require("../../../../../shared/api");
 import BluebirdPromise = require("bluebird");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
@@ -8,6 +7,7 @@ import Constants = require("../../../../../shared/constants");
 import Util = require("util");
 import { ServerVariables } from "../../ServerVariables";
 import { SafeRedirector } from "../../utils/SafeRedirection";
+import { Level } from "../../authentication/Level";
 
 function getRedirectParam(
   req: express.Request) {
@@ -59,15 +59,13 @@ export default function (
   return function (req: express.Request, res: express.Response): BluebirdPromise<void> {
     return new BluebirdPromise(function (resolve, reject) {
       const authSession = AuthenticationSessionHandler.get(req, vars.logger);
-      if (authSession.first_factor) {
-        if (authSession.second_factor)
-          redirectToService(req, res, redirector);
-        else
-          redirectToSecondFactorPage(req, res);
-        resolve();
-        return;
+      if (authSession.authentication_level == Level.ONE_FACTOR) {
+        redirectToSecondFactorPage(req, res);
+      } else if (authSession.authentication_level == Level.TWO_FACTOR) {
+        redirectToService(req, res, redirector);
+      } else {
+        renderFirstFactor(res);
       }
-      renderFirstFactor(res);
       resolve();
     });
   };

@@ -9,6 +9,7 @@ import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionH
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import UserMessages = require("../../../../../../../shared/UserMessages");
 import { ServerVariables } from "../../../../ServerVariables";
+import { Level } from "../../../../authentication/Level";
 
 const UNAUTHORIZED_MESSAGE = "Unauthorized access";
 
@@ -30,7 +31,7 @@ export default function (vars: ServerVariables) {
           return Bluebird.reject(new Error("Invalid TOTP token."));
 
         vars.logger.debug(req, "TOTP validation succeeded.");
-        authSession.second_factor = true;
+        authSession.authentication_level = Level.TWO_FACTOR;
         Redirect(vars)(req, res);
         return Bluebird.resolve();
       })

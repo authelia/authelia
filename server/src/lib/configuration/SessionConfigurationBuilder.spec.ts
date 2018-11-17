@@ -11,9 +11,7 @@ describe("configuration/SessionConfigurationBuilder", function () {
   const configuration: Configuration = {
     access_control: {
       default_policy: "deny",
-      any: [],
-      users: {},
-      groups: {}
+      rules: []
     },
     totp: {
       issuer: "authelia.com"
@@ -54,10 +52,6 @@ describe("configuration/SessionConfigurationBuilder", function () {
       local: {
         in_memory: true
       }
-    },
-    authentication_methods: {
-      default_method: "two_factor",
-      per_subdomain_methods: {}
     }
   };
 

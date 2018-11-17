@@ -20,8 +20,6 @@ import { INotifier } from "./notifiers/INotifier";
 import { Regulator } from "./regulation/Regulator";
 import { IRegulator } from "./regulation/IRegulator";
 import Configuration = require("./configuration/schema/Configuration");
-import { AccessController } from "./access_control/AccessController";
-import { IAccessController } from "./access_control/IAccessController";
 import { CollectionFactoryFactory } from "./storage/CollectionFactoryFactory";
 import { ICollectionFactory } from "./storage/ICollectionFactory";
 import { MongoCollectionFactory } from "./storage/mongo/MongoCollectionFactory";
@@ -29,12 +27,12 @@ import { IMongoClient } from "./connectors/mongo/IMongoClient";
 
 import { GlobalDependencies } from "../../types/Dependencies";
 import { ServerVariables } from "./ServerVariables";
-import { MethodCalculator } from "./authentication/MethodCalculator";
 import { MongoClient } from "./connectors/mongo/MongoClient";
 import { IGlobalLogger } from "./logging/IGlobalLogger";
 import { SessionFactory } from "./authentication/backends/ldap/SessionFactory";
 import { IUsersDatabase } from "./authentication/backends/IUsersDatabase";
 import { FileUsersDatabase } from "./authentication/backends/file/FileUsersDatabase";
+import { Authorizer } from "./authorization/Authorizer";
 
 class UserDataStoreFactory {
   static create(config: Configuration.Configuration, globalLogger: IGlobalLogger): BluebirdPromise<UserDataStore> {
@@ -91,10 +89,8 @@ export class ServerVariablesInitializer {
       new MailSenderBuilder(Nodemailer);
     const notifier = NotifierFactory.build(
       config.notifier, mailSenderBuilder);
-    const accessController = new AccessController(
-      config.access_control, deps.winston);
-    const totpHandler = new TotpHandler(
-      deps.speakeasy);
+    const authorizer = new Authorizer(config.access_control, deps.winston);
+    const totpHandler = new TotpHandler(deps.speakeasy);
     const usersDatabase = this.createUsersDatabase(
       config, deps);
 
@@ -104,7 +100,7 @@ export class ServerVariablesInitializer {
           config.regulation.find_time, config.regulation.ban_time);
 
         const variables: ServerVariables = {
-          accessController: accessController,
+          authorizer: authorizer,
           config: config,
           usersDatabase: usersDatabase,
           logger: requestLogger,

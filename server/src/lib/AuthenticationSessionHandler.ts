@@ -5,11 +5,11 @@ import U2f = require("u2f");
 import BluebirdPromise = require("bluebird");
 import { AuthenticationSession } from "../../types/AuthenticationSession";
 import { IRequestLogger } from "./logging/IRequestLogger";
+import { Level } from "./authentication/Level";
 
 const INITIAL_AUTHENTICATION_SESSION: AuthenticationSession = {
   keep_me_logged_in: false,
-  first_factor: false,
-  second_factor: false,
+  authentication_level: Level.NOT_AUTHENTICATED,
   last_activity_datetime: undefined,
   userid: undefined,
   email: undefined,

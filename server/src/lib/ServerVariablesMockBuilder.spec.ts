@@ -2,7 +2,7 @@ import { ServerVariables } from "./ServerVariables";
 
 import { Configuration } from "./configuration/schema/Configuration";
 import { IUsersDatabaseStub } from "./authentication/backends/IUsersDatabaseStub.spec";
-import { AccessControllerStub } from "./access_control/AccessControllerStub.spec";
+import { AuthorizerStub } from "./authorization/AuthorizerStub.spec";
 import { RequestLoggerStub } from "./logging/RequestLoggerStub.spec";
 import { NotifierStub } from "./notifiers/NotifierStub.spec";
 import { RegulatorStub } from "./regulation/RegulatorStub.spec";
@@ -11,7 +11,7 @@ import { UserDataStoreStub } from "./storage/UserDataStoreStub.spec";
 import { U2fHandlerStub } from "./authentication/u2f/U2fHandlerStub.spec";
 
 export interface ServerVariablesMock {
-  accessController: AccessControllerStub;
+  authorizer: AuthorizerStub;
   config: Configuration;
   usersDatabase: IUsersDatabaseStub;
   logger: RequestLoggerStub;
@@ -25,12 +25,9 @@ export interface ServerVariablesMock {
 export class ServerVariablesMockBuilder {
   static build(enableLogging?: boolean): { variables: ServerVariables, mocks: ServerVariablesMock} {
     const mocks: ServerVariablesMock = {
-      accessController: new AccessControllerStub(),
+      authorizer: new AuthorizerStub(),
       config: {
         access_control: {},
-        authentication_methods: {
-          default_method: "two_factor"
-        },
         totp: {
           issuer: "authelia.com"
         },
@@ -71,7 +68,7 @@ export class ServerVariablesMockBuilder {
       u2f: new U2fHandlerStub()
     };
     const vars: ServerVariables = {
-      accessController: mocks.accessController,
+      authorizer: mocks.authorizer,
       config: mocks.config,
       usersDatabase: mocks.usersDatabase,
       logger: mocks.logger,

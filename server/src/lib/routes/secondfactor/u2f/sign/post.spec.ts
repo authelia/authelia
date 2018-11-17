@@ -10,6 +10,7 @@ import { ServerVariablesMockBuilder, ServerVariablesMock } from "../../../../Ser
 import ExpressMock = require("../../../../stubs/express.spec");
 import U2FMock = require("../../../../stubs/u2f.spec");
 import U2f = require("u2f");
+import { Level } from "../../../../authentication/Level";
 
 describe("routes/secondfactor/u2f/sign/post", function () {
   let req: ExpressMock.RequestMock;
@@ -29,8 +30,7 @@ describe("routes/secondfactor/u2f/sign/post", function () {
     req.session = {
       auth: {
         userid: "user",
-        first_factor: true,
-        second_factor: false,
+        authentication_level: Level.ONE_FACTOR,
         identity_check: {
           challenge: "u2f-register",
           userid: "user"
@@ -72,7 +72,7 @@ describe("routes/secondfactor/u2f/sign/post", function () {
     };
     return U2FSignPost.default(vars)(req as any, res as any)
       .then(function () {
-        Assert(req.session.auth.second_factor);
+        Assert.equal(req.session.auth.authentication_level, Level.TWO_FACTOR);
       });
   });
 

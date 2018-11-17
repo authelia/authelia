@@ -4,7 +4,6 @@ import Endpoints = require("../../../../../shared/api");
 import BluebirdPromise = require("bluebird");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import { ServerVariables } from "../../ServerVariables";
-import { MethodCalculator } from "../../authentication/MethodCalculator";
 
 const TEMPLATE_NAME = "secondfactor";
 
@@ -13,15 +12,7 @@ export default function (vars: ServerVariables) {
     : BluebirdPromise<void> {
 
     return new BluebirdPromise(function (resolve, reject) {
-      const isSingleFactorMode: boolean = MethodCalculator.isSingleFactorOnlyMode(
-        vars.config.authentication_methods);
       const authSession = AuthenticationSessionHandler.get(req, vars.logger);
-      if (isSingleFactorMode
-        || (authSession.first_factor && authSession.second_factor)) {
-        res.redirect(Endpoints.LOGGED_IN);
-        resolve();
-        return;
-      }
 
       res.render(TEMPLATE_NAME, {
         username: authSession.userid,

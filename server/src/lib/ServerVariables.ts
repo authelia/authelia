@@ -5,7 +5,7 @@ import { IUserDataStore } from "./storage/IUserDataStore";
 import { INotifier } from "./notifiers/INotifier";
 import { IRegulator } from "./regulation/IRegulator";
 import { Configuration } from "./configuration/schema/Configuration";
-import { IAccessController } from "./access_control/IAccessController";
+import { IAuthorizer } from "./authorization/IAuthorizer";
 import { IUsersDatabase } from "./authentication/backends/IUsersDatabase";
 
 export interface ServerVariables {
@@ -17,5 +17,5 @@ export interface ServerVariables {
   notifier: INotifier;
   regulator: IRegulator;
   config: Configuration;
-  accessController: IAccessController;
+  authorizer: IAuthorizer;
 }

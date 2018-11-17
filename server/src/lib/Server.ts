@@ -1,7 +1,6 @@
 import BluebirdPromise = require("bluebird");
 import ObjectPath = require("object-path");
 
-import { AccessController } from "./access_control/AccessController";
 import { Configuration } from "./configuration/schema/Configuration";
 import { GlobalDependencies } from "../../types/Dependencies";
 import { UserDataStore } from "./storage/UserDataStore";
