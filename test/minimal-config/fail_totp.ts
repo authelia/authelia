@@ -25,7 +25,7 @@ describe('Fail TOTP challenge', function() {
   describe('successfully login as john', function() {
     before(function() {
       const that = this;
-      return LoginAndRegisterTotp(this.driver, "john");
+      return LoginAndRegisterTotp(this.driver, "john", true);
     });
 
     describe('fail second factor', function() {

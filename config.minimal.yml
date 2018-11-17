@@ -86,8 +86,8 @@ regulation:
 
 notifier:
   # For testing purpose, notifications can be sent in a file
-   filesystem:
-     filename: /tmp/authelia/notification.txt
+  # filesystem:
+  #   filename: /tmp/authelia/notification.txt
 
   # Use your email account to send the notifications. You can use an app password.
   # List of valid services can be found here: https://nodemailer.com/smtp/well-known/  
@@ -98,11 +98,11 @@ notifier:
   ##   service: gmail
   
   # Use a SMTP server for sending notifications
-  #smtp:
-  #  username: test
-  #  password: password
-  #  secure: false
-  #  host: 'smtp'
-  #  port: 1025
-  #  sender: admin@example.com
+  smtp:
+    username: test
+    password: password
+    secure: false
+    host: 'smtp'
+    port: 1025
+    sender: admin@example.com
 

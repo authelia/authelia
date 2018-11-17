@@ -14,7 +14,7 @@ describe('Registering TOTP', function() {
   describe('successfully login as john', function() {
     before('register successfully', function() {
       this.timeout(10000);
-      return LoginAndRegisterTotp(this.driver, "john");
+      return LoginAndRegisterTotp(this.driver, "john", true);
     })
 
     it("should see generated qrcode", function() {
