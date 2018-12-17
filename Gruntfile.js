@@ -82,34 +82,58 @@ module.exports = function (grunt) {
       }
     },
     copy: {
-      resources: {
-        expand: true,
-        cwd: 'server/src/resources/',
-        src: '**',
-        dest: `${buildDir}/server/src/resources/`
-      },
-      views: {
-        expand: true,
-        cwd: 'server/src/views/',
-        src: '**',
-        dest: `${buildDir}/server/src/views/`
-      },
-      images: {
-        expand: true,
-        cwd: 'client/src/img',
-        src: '**',
-        dest: `${buildDir}/server/src/public_html/img/`
-      },
-      thirdparties: {
-        expand: true,
-        cwd: 'client/src/thirdparties',
-        src: '**',
-        dest: `${buildDir}/server/src/public_html/js/`
-      },
-      schema: {
-        src: schemaDir,
-        dest: `${buildDir}/${schemaDir}`
-      }
+        main_resources: {
+            expand: true,
+            cwd: 'themes/main/server/src/resources',
+            src: '**',
+            dest: `${buildDir}/server/src/resources/`
+        },
+        main_views: {
+            expand: true,
+            cwd: 'themes/main/server/src/views',
+            src: '**',
+            dest: `${buildDir}/server/src/views/`
+        },
+        main_images: {
+            expand: true,
+            cwd: 'themes/main/client/src/img',
+            src: '**',
+            dest: `${buildDir}/server/src/public_html/img/`
+        },
+        main_thirdparties: {
+            expand: true,
+            cwd: 'themes/main/client/src/thirdparties',
+            src: '**',
+            dest: `${buildDir}/server/src/public_html/js/`
+        },
+        matrix_resources: {
+            expand: true,
+            cwd: 'themes/matrix/server/src/resources',
+            src: '**',
+            dest: `${buildDir}/server/src/resources/`
+        },
+        matrix_views: {
+            expand: true,
+            cwd: 'themes/matrix/server/src/views',
+            src: '**',
+            dest: `${buildDir}/server/src/views/`
+        },
+        matrix_images: {
+            expand: true,
+            cwd: 'themes/matrix/client/src/img',
+            src: '**',
+            dest: `${buildDir}/server/src/public_html/img/`
+        },
+        matrix_thirdparties: {
+            expand: true,
+            cwd: 'themes/matrix/client/src/thirdparties',
+            src: '**',
+            dest: `${buildDir}/server/src/public_html/js/`
+        },
+        schema: {
+            src: schemaDir,
+            dest: `${buildDir}/${schemaDir}`
+        }
     },
     browserify: {
       dist: {
@@ -173,8 +197,14 @@ module.exports = function (grunt) {
       }
     },
     concat: {
-      css: {
-        src: ['client/src/css/*.css'],
+      main_css: {
+        src: ['themes/main/client/src/css/*.css'],
+        dest: `${buildDir}/server/src/public_html/css/authelia.css`
+      },
+    },
+    concat: {
+      matrix_css: {
+        src: ['themes/matrix/client/src/css/*.css'],
         dest: `${buildDir}/server/src/public_html/css/authelia.css`
       },
     },
@@ -187,6 +217,8 @@ module.exports = function (grunt) {
     }
   });
 
+  var target = grunt.option('target') || 'main';
+  
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
@@ -205,13 +237,17 @@ module.exports = function (grunt) {
   grunt.registerTask('test-unit', ['test-server', 'test-client', 'test-shared']);
   grunt.registerTask('test-int', ['run:test-cucumber', 'run:test-minimal-config', 'run:test-complete-config', 'run:test-inactivity']);
 
-  grunt.registerTask('copy-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
+  grunt.registerTask('copy-resources-main', ['copy:main_resources', 'copy:main_views', 'copy:main_images', 'copy:main_thirdparties', 'concat:main_css']);
+  
   grunt.registerTask('generate-config-schema', ['run:generate-config-schema', 'copy:schema']);
 
+  grunt.registerTask('copy-resources-matrix', ['copy:matrix_resources', 'copy:matrix_views', 'copy:matrix_images', 'copy:matrix_thirdparties', 'concat:matrix_css']);
+  
   grunt.registerTask('build-client', ['compile-client', 'browserify']);
-  grunt.registerTask('build-server', ['compile-server', 'copy-resources', 'generate-config-schema']);
-
-  grunt.registerTask('build', ['build-client', 'build-server']);
+  grunt.registerTask('build-server-main', ['compile-server', 'copy-resources-main', 'generate-config-schema']);
+  grunt.registerTask('build-server-matrix', ['compile-server', 'copy-resources-matrix', 'generate-config-schema']);
+  
+  grunt.registerTask('build', ['build-client', 'build-server-'+target]);
   grunt.registerTask('build-dist', ['build', 'run:minify', 'cssmin', 'run:include-minified-script']);
 
   grunt.registerTask('schema', ['run:generate-config-schema'])
