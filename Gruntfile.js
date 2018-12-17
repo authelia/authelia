@@ -14,6 +14,7 @@ module.exports = function (grunt) {
         TS_NODE_PROJECT: "server/tsconfig.json"
       }
     },
+    clean: ['dist'],
     run: {
       "compile-server": {
         cmd: "./node_modules/.bin/tsc",
@@ -201,8 +202,6 @@ module.exports = function (grunt) {
         src: ['themes/main/client/src/css/*.css'],
         dest: `${buildDir}/server/src/public_html/css/authelia.css`
       },
-    },
-    concat: {
       matrix_css: {
         src: ['themes/matrix/client/src/css/*.css'],
         dest: `${buildDir}/server/src/public_html/css/authelia.css`
@@ -224,6 +223,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-run');
   grunt.loadNpmTasks('grunt-env');
 
@@ -248,8 +248,8 @@ module.exports = function (grunt) {
   grunt.registerTask('build-server-matrix', ['compile-server', 'copy-resources-matrix', 'generate-config-schema']);
   
   grunt.registerTask('build', ['build-client', 'build-server-'+target]);
-  grunt.registerTask('build-dist', ['build', 'run:minify', 'cssmin', 'run:include-minified-script']);
-
+  grunt.registerTask('build-dist', ['clean', 'build', 'run:minify', 'cssmin', 'run:include-minified-script']);
+  
   grunt.registerTask('schema', ['run:generate-config-schema'])
 
   grunt.registerTask('docker-build', ['run:docker-build']);
