@@ -37,7 +37,7 @@ it with a configuration file passed as argument.
 
 ## Deploy Nginx
 
-You also need to install nginx and take [example/nginx/minimal/nginx.conf](./example/nginx/minimal/nginx.conf) as an example of configuration.
+You also need to install nginx and take [example/nginx/minimal/nginx.conf](../example/nginx/minimal/nginx.conf) as an example of configuration.
 
 ## Discard components
 
