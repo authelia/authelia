@@ -233,11 +233,8 @@ module.exports = function (grunt) {
   grunt.registerTask('docker-build', ['run:docker-build']);
   
   grunt.registerTask('check', function() {
-      if (grunt.option('theme') == 'undefined') {
-        grunt.log.writeln('1- Valid argmuents are just "grunt" (will use default) or "grunt --theme=|default|black|matrix|squares|triangles"');
-    }
       if ((theme != 'default') && (theme != 'black') && (theme != 'matrix') && (theme != 'squares') && (theme != 'triangles')) {
-        grunt.warn('2- Valid argmuents are just "grunt" (will use default) or "grunt --theme=|default|black|matrix|squares|triangles"');
+        grunt.warn('Valid argmuents are just "grunt" (will use default) or "grunt --theme=|default|black|matrix|squares|triangles"');
     }
       if (grunt.option('theme') == 'default' || 'black' || 'matrix' || 'squares' || 'triangles') {
         grunt.log.ok();
