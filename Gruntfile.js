@@ -155,6 +155,54 @@ module.exports = function (grunt) {
             src: '**',
             dest: `${buildDir}/server/src/public_html/js/`
         },
+        squares_resources: {
+            expand: true,
+            cwd: 'themes/squares/server/src/resources',
+            src: '**',
+            dest: `${buildDir}/server/src/resources/`
+        },
+        squares_views: {
+            expand: true,
+            cwd: 'themes/squares/server/src/views',
+            src: '**',
+            dest: `${buildDir}/server/src/views/`
+        },
+        squares_images: {
+            expand: true,
+            cwd: 'themes/squares/client/src/img',
+            src: '**',
+            dest: `${buildDir}/server/src/public_html/img/`
+        },
+        squares_thirdparties: {
+            expand: true,
+            cwd: 'themes/squares/client/src/thirdparties',
+            src: '**',
+            dest: `${buildDir}/server/src/public_html/js/`
+        },
+        triangles_resources: {
+            expand: true,
+            cwd: 'themes/triangles/server/src/resources',
+            src: '**',
+            dest: `${buildDir}/server/src/resources/`
+        },
+        triangles_views: {
+            expand: true,
+            cwd: 'themes/triangles/server/src/views',
+            src: '**',
+            dest: `${buildDir}/server/src/views/`
+        },
+        triangles_images: {
+            expand: true,
+            cwd: 'themes/triangles/client/src/img',
+            src: '**',
+            dest: `${buildDir}/server/src/public_html/img/`
+        },
+        triangles_thirdparties: {
+            expand: true,
+            cwd: 'themes/triangles/client/src/thirdparties',
+            src: '**',
+            dest: `${buildDir}/server/src/public_html/js/`
+        },
         schema: {
             src: schemaDir,
             dest: `${buildDir}/${schemaDir}`
@@ -234,6 +282,14 @@ module.exports = function (grunt) {
         src: ['themes/black/client/src/css/*.css'],
         dest: `${buildDir}/server/src/public_html/css/authelia.css`
       },
+      squares_css: {
+        src: ['themes/squares/client/src/css/*.css'],
+        dest: `${buildDir}/server/src/public_html/css/authelia.css`
+      },
+      triangles_css: {
+        src: ['themes/triangles/client/src/css/*.css'],
+        dest: `${buildDir}/server/src/public_html/css/authelia.css`
+      },
     },
     cssmin: {
       target: {
@@ -266,18 +322,24 @@ module.exports = function (grunt) {
   grunt.registerTask('test-int', ['run:test-cucumber', 'run:test-minimal-config', 'run:test-complete-config', 'run:test-inactivity']);
 
   grunt.registerTask('copy-resources-main', ['copy:main_resources', 'copy:main_views', 'copy:main_images', 'copy:main_thirdparties', 'concat:main_css']);
-  
-  grunt.registerTask('generate-config-schema', ['run:generate-config-schema', 'copy:schema']);
 
   grunt.registerTask('copy-resources-matrix', ['copy:matrix_resources', 'copy:matrix_views', 'copy:matrix_images', 'copy:matrix_thirdparties', 'concat:matrix_css']);
   
   grunt.registerTask('copy-resources-black', ['copy:black_resources', 'copy:black_views', 'copy:black_images', 'copy:black_thirdparties', 'concat:black_css']);
+
+  grunt.registerTask('copy-resources-squares', ['copy:squares_resources', 'copy:squares_views', 'copy:squares_images', 'copy:squares_thirdparties', 'concat:squares_css']);
+  
+  grunt.registerTask('copy-resources-triangles', ['copy:triangles_resources', 'copy:triangles_views', 'copy:triangles_images', 'copy:triangles_thirdparties', 'concat:triangles_css']);
+  
+  grunt.registerTask('generate-config-schema', ['run:generate-config-schema', 'copy:schema']);
   
   grunt.registerTask('build-client', ['compile-client', 'browserify']);
   grunt.registerTask('build-server-main', ['compile-server', 'copy-resources-main', 'generate-config-schema']);
   grunt.registerTask('build-server-matrix', ['compile-server', 'copy-resources-matrix', 'generate-config-schema']);
   grunt.registerTask('build-server-black', ['compile-server', 'copy-resources-black', 'generate-config-schema']);
-    
+  grunt.registerTask('build-server-squares', ['compile-server', 'copy-resources-squares', 'generate-config-schema']);
+  grunt.registerTask('build-server-triangles', ['compile-server', 'copy-resources-triangles', 'generate-config-schema']);
+  
   grunt.registerTask('build', ['build-client', 'build-server-'+target]);
   grunt.registerTask('build-dist', ['clean', 'build', 'run:minify', 'cssmin', 'run:include-minified-script']);
   
