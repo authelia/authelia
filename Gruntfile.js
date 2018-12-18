@@ -1,7 +1,8 @@
 module.exports = function (grunt) {
   const buildDir = "dist";
   const schemaDir = "server/src/lib/configuration/Configuration.schema.json"
-
+  var theme = grunt.option('theme') || 'default';
+    
   grunt.initConfig({
     env: {
       "env-test-server-unit": {
@@ -14,7 +15,10 @@ module.exports = function (grunt) {
         TS_NODE_PROJECT: "server/tsconfig.json"
       }
     },
-    clean: ['dist'],
+    clean: {
+        dist: ['dist'],
+        backup: ['backup'],
+    },
     run: {
       "compile-server": {
         cmd: "./node_modules/.bin/tsc",
@@ -83,123 +87,34 @@ module.exports = function (grunt) {
       }
     },
     copy: {
-        main_resources: {
+        backup: {
+          files: [{
             expand: true,
-            cwd: 'themes/main/server/src/resources',
+            src: ['dist/**'],
+            dest: 'backup'
+            }]
+        },
+        resources: {
+            expand: true,
+            cwd: 'themes/' + theme + '/server/src/resources',
             src: '**',
             dest: `${buildDir}/server/src/resources/`
         },
-        main_views: {
+        views: {
             expand: true,
-            cwd: 'themes/main/server/src/views',
+            cwd: 'themes/' + theme + '/server/src/views',
             src: '**',
             dest: `${buildDir}/server/src/views/`
         },
-        main_images: {
+        images: {
             expand: true,
-            cwd: 'themes/main/client/src/img',
+            cwd: 'themes/' + theme + '/client/src/img',
             src: '**',
             dest: `${buildDir}/server/src/public_html/img/`
         },
-        main_thirdparties: {
+        thirdparties: {
             expand: true,
-            cwd: 'themes/main/client/src/thirdparties',
-            src: '**',
-            dest: `${buildDir}/server/src/public_html/js/`
-        },
-        matrix_resources: {
-            expand: true,
-            cwd: 'themes/matrix/server/src/resources',
-            src: '**',
-            dest: `${buildDir}/server/src/resources/`
-        },
-        matrix_views: {
-            expand: true,
-            cwd: 'themes/matrix/server/src/views',
-            src: '**',
-            dest: `${buildDir}/server/src/views/`
-        },
-        matrix_images: {
-            expand: true,
-            cwd: 'themes/matrix/client/src/img',
-            src: '**',
-            dest: `${buildDir}/server/src/public_html/img/`
-        },
-        matrix_thirdparties: {
-            expand: true,
-            cwd: 'themes/matrix/client/src/thirdparties',
-            src: '**',
-            dest: `${buildDir}/server/src/public_html/js/`
-        },
-        black_resources: {
-            expand: true,
-            cwd: 'themes/black/server/src/resources',
-            src: '**',
-            dest: `${buildDir}/server/src/resources/`
-        },
-        black_views: {
-            expand: true,
-            cwd: 'themes/black/server/src/views',
-            src: '**',
-            dest: `${buildDir}/server/src/views/`
-        },
-        black_images: {
-            expand: true,
-            cwd: 'themes/black/client/src/img',
-            src: '**',
-            dest: `${buildDir}/server/src/public_html/img/`
-        },
-        black_thirdparties: {
-            expand: true,
-            cwd: 'themes/black/client/src/thirdparties',
-            src: '**',
-            dest: `${buildDir}/server/src/public_html/js/`
-        },
-        squares_resources: {
-            expand: true,
-            cwd: 'themes/squares/server/src/resources',
-            src: '**',
-            dest: `${buildDir}/server/src/resources/`
-        },
-        squares_views: {
-            expand: true,
-            cwd: 'themes/squares/server/src/views',
-            src: '**',
-            dest: `${buildDir}/server/src/views/`
-        },
-        squares_images: {
-            expand: true,
-            cwd: 'themes/squares/client/src/img',
-            src: '**',
-            dest: `${buildDir}/server/src/public_html/img/`
-        },
-        squares_thirdparties: {
-            expand: true,
-            cwd: 'themes/squares/client/src/thirdparties',
-            src: '**',
-            dest: `${buildDir}/server/src/public_html/js/`
-        },
-        triangles_resources: {
-            expand: true,
-            cwd: 'themes/triangles/server/src/resources',
-            src: '**',
-            dest: `${buildDir}/server/src/resources/`
-        },
-        triangles_views: {
-            expand: true,
-            cwd: 'themes/triangles/server/src/views',
-            src: '**',
-            dest: `${buildDir}/server/src/views/`
-        },
-        triangles_images: {
-            expand: true,
-            cwd: 'themes/triangles/client/src/img',
-            src: '**',
-            dest: `${buildDir}/server/src/public_html/img/`
-        },
-        triangles_thirdparties: {
-            expand: true,
-            cwd: 'themes/triangles/client/src/thirdparties',
+            cwd: 'themes/' + theme + '/client/src/thirdparties',
             src: '**',
             dest: `${buildDir}/server/src/public_html/js/`
         },
@@ -270,24 +185,8 @@ module.exports = function (grunt) {
       }
     },
     concat: {
-      main_css: {
-        src: ['themes/main/client/src/css/*.css'],
-        dest: `${buildDir}/server/src/public_html/css/authelia.css`
-      },
-      matrix_css: {
-        src: ['themes/matrix/client/src/css/*.css'],
-        dest: `${buildDir}/server/src/public_html/css/authelia.css`
-      },
-      black_css: {
-        src: ['themes/black/client/src/css/*.css'],
-        dest: `${buildDir}/server/src/public_html/css/authelia.css`
-      },
-      squares_css: {
-        src: ['themes/squares/client/src/css/*.css'],
-        dest: `${buildDir}/server/src/public_html/css/authelia.css`
-      },
-      triangles_css: {
-        src: ['themes/triangles/client/src/css/*.css'],
+      css: {
+        src: ['themes/' + theme + '/client/src/css/*.css'],
         dest: `${buildDir}/server/src/public_html/css/authelia.css`
       },
     },
@@ -299,8 +198,6 @@ module.exports = function (grunt) {
       }
     }
   });
-
-  var target = grunt.option('target') || 'main';
   
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-concat');
@@ -311,7 +208,6 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-run');
   grunt.loadNpmTasks('grunt-env');
 
-
   grunt.registerTask('compile-server', ['run:lint-server', 'run:compile-server'])
   grunt.registerTask('compile-client', ['run:lint-client', 'run:compile-client'])
 
@@ -321,31 +217,33 @@ module.exports = function (grunt) {
   grunt.registerTask('test-unit', ['test-server', 'test-client', 'test-shared']);
   grunt.registerTask('test-int', ['run:test-cucumber', 'run:test-minimal-config', 'run:test-complete-config', 'run:test-inactivity']);
 
-  grunt.registerTask('copy-resources-main', ['copy:main_resources', 'copy:main_views', 'copy:main_images', 'copy:main_thirdparties', 'concat:main_css']);
-
-  grunt.registerTask('copy-resources-matrix', ['copy:matrix_resources', 'copy:matrix_views', 'copy:matrix_images', 'copy:matrix_thirdparties', 'concat:matrix_css']);
-  
-  grunt.registerTask('copy-resources-black', ['copy:black_resources', 'copy:black_views', 'copy:black_images', 'copy:black_thirdparties', 'concat:black_css']);
-
-  grunt.registerTask('copy-resources-squares', ['copy:squares_resources', 'copy:squares_views', 'copy:squares_images', 'copy:squares_thirdparties', 'concat:squares_css']);
-  
-  grunt.registerTask('copy-resources-triangles', ['copy:triangles_resources', 'copy:triangles_views', 'copy:triangles_images', 'copy:triangles_thirdparties', 'concat:triangles_css']);
+  grunt.registerTask('copy-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
   
   grunt.registerTask('generate-config-schema', ['run:generate-config-schema', 'copy:schema']);
   
   grunt.registerTask('build-client', ['compile-client', 'browserify']);
-  grunt.registerTask('build-server-main', ['compile-server', 'copy-resources-main', 'generate-config-schema']);
-  grunt.registerTask('build-server-matrix', ['compile-server', 'copy-resources-matrix', 'generate-config-schema']);
-  grunt.registerTask('build-server-black', ['compile-server', 'copy-resources-black', 'generate-config-schema']);
-  grunt.registerTask('build-server-squares', ['compile-server', 'copy-resources-squares', 'generate-config-schema']);
-  grunt.registerTask('build-server-triangles', ['compile-server', 'copy-resources-triangles', 'generate-config-schema']);
+
+  grunt.registerTask('build-server', ['compile-server', 'copy-resources', 'generate-config-schema']);
   
-  grunt.registerTask('build', ['build-client', 'build-server-'+target]);
-  grunt.registerTask('build-dist', ['clean', 'build', 'run:minify', 'cssmin', 'run:include-minified-script']);
+  grunt.registerTask('build', ['build-client', 'build-server']);
+  grunt.registerTask('build-dist', ['clean:backup', 'copy:backup', 'clean:dist', 'build', 'run:minify', 'cssmin', 'run:include-minified-script']);
   
   grunt.registerTask('schema', ['run:generate-config-schema'])
 
   grunt.registerTask('docker-build', ['run:docker-build']);
+  
+  grunt.registerTask('check', function() {
+      if (grunt.option('theme') == 'undefined') {
+        grunt.log.writeln('1- Valid argmuents are just "grunt" (will use default) or "grunt --theme=|default|black|matrix|squares|triangles"');
+    }
+      if ((theme != 'default') && (theme != 'black') && (theme != 'matrix') && (theme != 'squares') && (theme != 'triangles')) {
+        grunt.warn('2- Valid argmuents are just "grunt" (will use default) or "grunt --theme=|default|black|matrix|squares|triangles"');
+    }
+      if (grunt.option('theme') == 'default' || 'black' || 'matrix' || 'squares' || 'triangles') {
+        grunt.log.ok();
+        grunt.log.writeln('Building "'+ theme +'" theme');
+    }
+  });
 
-  grunt.registerTask('default', ['build-dist']);
+  grunt.registerTask('default', ['check', 'build-dist']);
 };
