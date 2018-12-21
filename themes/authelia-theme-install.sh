@@ -189,7 +189,7 @@ authelia_local_install()
                     echo "Using port: 8080"
                 else
                     echo "Using port: "$port
-                    sed -i 's6/8080/'$port'/g' ./themes/config.minimal.port.yml
+                    sed -i 's/8080/'$port'/' ./themes/config.minimal.port.yml
                 fi
 
                 node package/dist/server/src/index.js ./themes/config.minimal.port.yml
@@ -234,7 +234,7 @@ authelia_local_install()
                     echo "Using port: 8080"
                 else
                     echo "Using port: "$port
-                    sed -i 's6/8080/'$port'/g' ./themes/config.minimal.port.yml
+                    sed -i 's/8080/'$port'/' ./themes/config.minimal.port.yml
                 fi
 
                 node package/dist/server/src/index.js ./themes/config.minimal.port.yml
@@ -281,7 +281,7 @@ authelia_local_install()
                     echo "Using port: 8080"
                 else
                     echo "Using port: "$port
-                    sed -i 's6/8080/'$port'/g' ./themes/config.minimal.port.yml
+                    sed -i 's/8080/'$port'/' ./themes/config.minimal.port.yml
                 fi
 
                 node package/dist/server/src/index.js ./themes/config.minimal.port.yml
