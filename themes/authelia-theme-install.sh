@@ -1,21 +1,22 @@
 #!/bin/bash
 
+# Colors to use for output
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+ORANGE='\033[1;166;4m'
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+LIGHTBLUE='\033[1;36m'
+NC='\033[0m' # No Color
+
 # Check if user is root or sudo
-if ! [ $(id -u) = 0 ]; then echo "Please run this script as sudo or root"; exit 1 ; fi
+if ! [ $(id -u) = 0 ]; then echo -e "${ORANGE}Please run this script as sudo or root${NC}"; exit 1 ; fi
 
 #Authelia Requirements
 authelia_req=('wget' 'unzip' 'nginx' 'nodejs' 'curl')
 authelia_reqname=('WGET' 'UNZIP' 'NGINX' 'NODEJS' 'CURL')
 node_debian=('curl -sL https://deb.nodesource.com/setup_8.x | bash - && apt-get install -y nodejs')
 interactive=""
-
-# Colors to use for output
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-LIGHTBLUE='\033[1;36m'
-NC='\033[0m' # No Color
 
 # Get script arguments for non-interactive mode
 

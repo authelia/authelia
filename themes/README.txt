@@ -17,11 +17,16 @@ If you want to create a new theme:
 <src>/<theme_name> contains the source files, before build.
 <full>/<theme_name> contains the built files.
 
-authelia-theme-install.sh is meant for npm install, either locally (temp) or globally.
-usage is just running the script or giving parameters:
--t or --theme <theme_name>
--m or --mode <local|global>
+authelia-theme-install.sh is meant for npm install, either locally (/tmp) or globally.
+                                                                       
+Default usage:                                                         
+authelia-theme-install.sh -i | --interactive                           
+                                                                       
+or adding parameters to default usage:                                 
+   -t or --theme <default|black|matrix|squares|triangles>              
+   -m or --mode <local|global>                                         
+   -p or --port <port number>  
 
-Ex. chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global
+Ex. chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88
 
 That's it!
