@@ -1,7 +1,8 @@
 module.exports = function (grunt) {
   const buildDir = "dist";
   const schemaDir = "server/src/lib/configuration/Configuration.schema.json"
-
+  var theme = grunt.option('theme') || 'default';
+    
   grunt.initConfig({
     env: {
       "env-test-server-unit": {
@@ -13,6 +14,10 @@ module.exports = function (grunt) {
       "env-test-shared-unit": {
         TS_NODE_PROJECT: "server/tsconfig.json"
       }
+    },
+    clean: {
+        dist: ['dist'],
+        backup: ['backup'],
     },
     run: {
       "compile-server": {
@@ -82,34 +87,41 @@ module.exports = function (grunt) {
       }
     },
     copy: {
-      resources: {
-        expand: true,
-        cwd: 'server/src/resources/',
-        src: '**',
-        dest: `${buildDir}/server/src/resources/`
-      },
-      views: {
-        expand: true,
-        cwd: 'server/src/views/',
-        src: '**',
-        dest: `${buildDir}/server/src/views/`
-      },
-      images: {
-        expand: true,
-        cwd: 'client/src/img',
-        src: '**',
-        dest: `${buildDir}/server/src/public_html/img/`
-      },
-      thirdparties: {
-        expand: true,
-        cwd: 'client/src/thirdparties',
-        src: '**',
-        dest: `${buildDir}/server/src/public_html/js/`
-      },
-      schema: {
-        src: schemaDir,
-        dest: `${buildDir}/${schemaDir}`
-      }
+        backup: {
+          files: [{
+            expand: true,
+            src: ['dist/**'],
+            dest: 'backup'
+            }]
+        },
+        resources: {
+            expand: true,
+            cwd: 'themes/' + theme + '/server/src/resources',
+            src: '**',
+            dest: `${buildDir}/server/src/resources/`
+        },
+        views: {
+            expand: true,
+            cwd: 'themes/' + theme + '/server/src/views',
+            src: '**',
+            dest: `${buildDir}/server/src/views/`
+        },
+        images: {
+            expand: true,
+            cwd: 'themes/' + theme + '/client/src/img',
+            src: '**',
+            dest: `${buildDir}/server/src/public_html/img/`
+        },
+        thirdparties: {
+            expand: true,
+            cwd: 'themes/' + theme + '/client/src/thirdparties',
+            src: '**',
+            dest: `${buildDir}/server/src/public_html/js/`
+        },
+        schema: {
+            src: schemaDir,
+            dest: `${buildDir}/${schemaDir}`
+        }
     },
     browserify: {
       dist: {
@@ -174,7 +186,7 @@ module.exports = function (grunt) {
     },
     concat: {
       css: {
-        src: ['client/src/css/*.css'],
+        src: ['themes/' + theme + '/client/src/css/*.css'],
         dest: `${buildDir}/server/src/public_html/css/authelia.css`
       },
     },
@@ -186,15 +198,15 @@ module.exports = function (grunt) {
       }
     }
   });
-
+  
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-run');
   grunt.loadNpmTasks('grunt-env');
-
 
   grunt.registerTask('compile-server', ['run:lint-server', 'run:compile-server'])
   grunt.registerTask('compile-client', ['run:lint-client', 'run:compile-client'])
@@ -206,17 +218,29 @@ module.exports = function (grunt) {
   grunt.registerTask('test-int', ['run:test-cucumber', 'run:test-minimal-config', 'run:test-complete-config', 'run:test-inactivity']);
 
   grunt.registerTask('copy-resources', ['copy:resources', 'copy:views', 'copy:images', 'copy:thirdparties', 'concat:css']);
+  
   grunt.registerTask('generate-config-schema', ['run:generate-config-schema', 'copy:schema']);
-
+  
   grunt.registerTask('build-client', ['compile-client', 'browserify']);
+
   grunt.registerTask('build-server', ['compile-server', 'copy-resources', 'generate-config-schema']);
-
+  
   grunt.registerTask('build', ['build-client', 'build-server']);
-  grunt.registerTask('build-dist', ['build', 'run:minify', 'cssmin', 'run:include-minified-script']);
-
+  grunt.registerTask('build-dist', ['clean:backup', 'copy:backup', 'clean:dist', 'build', 'run:minify', 'cssmin', 'run:include-minified-script']);
+  
   grunt.registerTask('schema', ['run:generate-config-schema'])
 
   grunt.registerTask('docker-build', ['run:docker-build']);
+  
+  grunt.registerTask('check', function() {
+      if ((theme != 'default') && (theme != 'black') && (theme != 'matrix') && (theme != 'squares') && (theme != 'triangles')) {
+        grunt.warn('Valid argmuents are just "grunt" (will use default) or "grunt --theme=|default|black|matrix|squares|triangles"');
+    }
+      if (grunt.option('theme') == 'default' || 'black' || 'matrix' || 'squares' || 'triangles') {
+        grunt.log.ok();
+        grunt.log.writeln('Building "'+ theme +'" theme');
+    }
+  });
 
-  grunt.registerTask('default', ['build-dist']);
+  grunt.registerTask('default', ['check', 'build-dist']);
 };
