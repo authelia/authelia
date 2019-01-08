@@ -68,7 +68,7 @@ export class FileUsersDatabase implements IUsersDatabase {
     password: string)
     : Bluebird<void> {
     const storedHash: string = database.users[username].password;
-    const matches = storedHash.match(/rounds=([0-9]+)\$([a-zA-z0-9.]+)\$/);
+    const matches = storedHash.match(/rounds=([0-9]+)\$([a-zA-z0-9./]+)\$/);
     if (!(matches && matches.length == 3)) {
       return Bluebird.reject(new Error("Unable to detect the hash salt and rounds. " +
         "Make sure the password is hashed with SSHA512."));
