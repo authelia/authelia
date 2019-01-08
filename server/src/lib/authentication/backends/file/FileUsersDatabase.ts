@@ -36,13 +36,13 @@ export class FileUsersDatabase implements IUsersDatabase {
         this.queue.next();
       });
     })
-    .then((content) => {
-      const database = Yaml.parse(content);
-      if (!database) {
-        return Bluebird.reject(new Error("Unable to parse YAML file."));
-      }
-      return Bluebird.resolve(database);
-    });
+      .then((content) => {
+        const database = Yaml.parse(content);
+        if (!database) {
+          return Bluebird.reject(new Error("Unable to parse YAML file."));
+        }
+        return Bluebird.resolve(database);
+      });
   }
 
   /**
@@ -68,7 +68,7 @@ export class FileUsersDatabase implements IUsersDatabase {
     password: string)
     : Bluebird<void> {
     const storedHash: string = database.users[username].password;
-    const matches = storedHash.match(/rounds=([0-9]+)\$([a-zA-z0-9]+)\$/);
+    const matches = storedHash.match(/rounds=([0-9]+)\$([a-zA-z0-9.]+)\$/);
     if (!(matches && matches.length == 3)) {
       return Bluebird.reject(new Error("Unable to detect the hash salt and rounds. " +
         "Make sure the password is hashed with SSHA512."));
@@ -153,7 +153,7 @@ export class FileUsersDatabase implements IUsersDatabase {
               return { emails: emails, groups: groups };
             });
           });
-        });
+      });
   }
 
   getEmails(username: string): Bluebird<string[]> {
