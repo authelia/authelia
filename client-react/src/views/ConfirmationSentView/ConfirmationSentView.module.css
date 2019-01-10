@@ -1,0 +1,26 @@
+
+.image {
+  width: 100%;
+  display: inline-block
+}
+
+.image img {
+  width: 64px;
+  display: block;
+}
+
+
+.left {
+  width: 24%;
+  display: inline-block;
+}
+
+.right {
+  width: 76%;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.buttonContainer {
+  padding-top: 20px;
+}

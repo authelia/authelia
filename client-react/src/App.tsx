@@ -1,19 +1,22 @@
 import React, { Component } from 'react';
 import './App.css';
 
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
-import { FirstFactor } from './pages/first-factor/first-factor';
-import { SecondFactor } from './pages/second-factor/second-factor';
-import ConfirmationSent from './pages/confirmation-sent/confirmation-sent';
+import { Router, Route, Switch } from "react-router-dom";
+import { routes } from './routes/index';
+import { createBrowserHistory } from 'history';
+
+const history = createBrowserHistory();
 
 class App extends Component {
   render() {
     return (
-      <Router>
+      <Router history={history}>
         <div className="App">
-          <Route exact path="/" component={FirstFactor} />
-          <Route exact path="/2fa" component={SecondFactor} />
-          <Route exact path="/confirmation" component={ConfirmationSent} />
+          <Switch>
+            {routes.map((r, key) => {
+              return <Route path={r.path} component={r.component} key={key}/>
+            })}
+          </Switch>
         </div>
       </Router>
     );
