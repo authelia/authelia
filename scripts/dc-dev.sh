@@ -4,6 +4,7 @@ set -e
 
 docker-compose \
   -f docker-compose.dev.yml \
+  -f client-react/docker-compose.yml \
   -f example/compose/docker-compose.base.yml \
   -f example/compose/mongo/docker-compose.yml \
   -f example/compose/redis/docker-compose.yml \

@@ -6,11 +6,10 @@ services:
       dockerfile: Dockerfile.dev
     restart: always
     volumes:
-      - ./server:/usr/src/server
-      - ./dist/server/src/public_html:/usr/src/server/src/public_html
-      - ./client:/usr/src/client
-      - ./shared:/usr/src/shared
-      - ./config.template.yml:/etc/authelia/config.yml:ro
+      - ./scripts:/usr/app/scripts
+      - ./server:/usr/app/server
+      - ./shared:/usr/app/shared
+      - ./config.template.yml:/usr/app/config.yml:ro
     environment:
       - NODE_TLS_REJECT_UNAUTHORIZED=0
     depends_on: 
@@ -19,9 +18,3 @@ services:
       example-network:
         aliases:
           - authelia
-    command:
-      - "./node_modules/.bin/ts-node"
-      - "-P"
-      - "server/tsconfig.json"
-      - "server/src/index.ts"
-      - "/etc/authelia/config.yml"

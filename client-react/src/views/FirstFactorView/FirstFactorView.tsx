@@ -1,4 +1,4 @@
-import React, { Component, KeyboardEvent } from "react";
+import React, { Component, KeyboardEvent, ChangeEvent } from "react";
 
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
@@ -16,13 +16,19 @@ interface Props extends RouterProps, WithStyles {}
 
 interface State {
   rememberMe: boolean;
+  username: string;
+  password: string;
+  loginButtonDisabled: boolean;
 }
 
 class FirstFactorView extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      rememberMe: false
+      rememberMe: false,
+      username: '',
+      password: '',
+      loginButtonDisabled: false,
     }
   }
 
@@ -30,6 +36,14 @@ class FirstFactorView extends Component<Props, State> {
     this.setState({
       rememberMe: !(this.state.rememberMe)
     })
+  }
+
+  onUsernameChanged = (e: ChangeEvent<HTMLInputElement>) => {
+    this.setState({username: e.target.value});
+  }
+
+  onPasswordChanged = (e: ChangeEvent<HTMLInputElement>) => {
+    this.setState({password: e.target.value});
   }
 
   onLoginClicked = () => {
@@ -52,7 +66,8 @@ class FirstFactorView extends Component<Props, State> {
               className={classes.input}
               variant="outlined"
               id="username"
-              label="Username">
+              label="Username"
+              onChange={this.onUsernameChanged}>
             </TextField>
           </div>
           <div className={classes.field}>
@@ -62,6 +77,7 @@ class FirstFactorView extends Component<Props, State> {
               variant="outlined"
               label="Password"
               type="password"
+              onChange={this.onPasswordChanged}
               onKeyPress={this.onPasswordKeyPressed}>
             </TextField>
           </div>
@@ -71,7 +87,8 @@ class FirstFactorView extends Component<Props, State> {
             <Button
               onClick={this.onLoginClicked}
               variant="contained"
-              color="primary">
+              color="primary"
+              disabled={this.state.loginButtonDisabled}>
               Login
             </Button>
           </div>
@@ -98,7 +115,26 @@ class FirstFactorView extends Component<Props, State> {
   }
 
   private authenticate() {
-    this.props.history.push('/2fa');
+    this.setState({loginButtonDisabled: true})
+    fetch('/api/firstfactor', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: this.state.username,
+        password: this.state.password,
+      })
+    }).then(async (res) => {
+      const json = await res.json();
+      if ('error' in json) {
+        console.log('ERROR!');
+        this.setState({loginButtonDisabled: false});
+        return;
+      }
+      this.props.history.push('/2fa');
+    });
   }
 }
 

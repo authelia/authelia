@@ -10,7 +10,7 @@ port: 8080
 # Level of verbosity for logs
 logs_level: debug
 
-# Default redirection URL
+# Default redirection URL
 #
 # If user tries to authenticate without any referer, Authelia
 # does not know where to redirect the user to at the end of the
@@ -75,15 +75,15 @@ authentication_backend:
     user: cn=admin,dc=example,dc=com
     password: password
 
-  # File backend configuration.
+  # File backend configuration.
   #
   # With this backend, the users database is stored in a file
   # which is updated when users reset their passwords.
-  # Therefore, this backend is meant to be used in a dev environment
+  # Therefore, this backend is meant to be used in a dev environment
   # and not in production since it prevents Authelia to be scaled to
-  # more than one instance.
+  # more than one instance.
   #
-  ## file:
+  ## file:
   ##   path: ./users_database.yml
 
 
@@ -93,13 +93,13 @@ authentication_backend:
 # resource to users or group of users.
 #
 # If 'access_control' is not defined, ACL rules are disabled and the `bypass`
-# rule is applied, i.e., access is allowed to anyone. Otherwise restrictions follow
+# rule is applied, i.e., access is allowed to anyone. Otherwise restrictions follow
 # the rules defined.
 #
 # Note: One can use the wildcard * to match any subdomain.
-# It must stand at the beginning of the pattern. (example: *.mydomain.com)
+# It must stand at the beginning of the pattern. (example: *.mydomain.com)
 #
-# Note: You must put patterns containing wildcards between simple quotes for the YAML
+# Note: You must put patterns containing wildcards between simple quotes for the YAML
 # to be syntaxically correct.
 #
 # Definition: A `rule` is an object with the following keys: `domain`, `subject`,
@@ -116,7 +116,7 @@ authentication_backend:
 #   `one_factor`, `two_factor` or `deny`.
 #
 # - `resources` is a list of regular expressions that matches a set of resources to
-#    apply the policy to. This parameter is optional and matches any resource if not
+#    apply the policy to. This parameter is optional and matches any resource if not
 #    provided.
 #
 # Note: the order of the rules is important. The first policy matching
@@ -196,7 +196,7 @@ session:
   # is restricted to the subdomain of the issuer.
   domain: example.com
 
-  # The redis connection details
+  # The redis connection details
   redis:
     host: redis
     port: 6379
@@ -212,7 +212,7 @@ regulation:
   # Set it to 0 to disable regulation.
   max_retries: 3
 
-  # The time range during which the user can attempt login before being banned.
+  # The time range during which the user can attempt login before being banned.
   # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window.
   find_time: 120
 
@@ -224,7 +224,7 @@ regulation:
 # You must use only an available configuration: local, mongo
 storage:
   # The directory where the DB files will be saved
-  ## local:
+  ## local:
   ##   path: /var/lib/authelia/store
 
   # Settings to connect to mongo server

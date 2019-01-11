@@ -1,20 +1,18 @@
 FROM node:8.7.0-alpine
 
-WORKDIR /usr/src
+WORKDIR /usr/app
 
-COPY package.json /usr/src/package.json
+ADD package.json package.json
 
 RUN apk --update add --no-cache --virtual \
       .build-deps make g++ python && \
-    npm install && \
-    apk del .build-deps
-
-COPY dist/server /usr/src/server
-COPY dist/shared /usr/src/shared
+      npm install && \
+      apk del .build-deps
 
 EXPOSE 8080
 
+VOLUME /usr/app/src
 VOLUME /etc/authelia
 VOLUME /var/lib/authelia
 
-CMD ["node", "server/src/index.js", "/etc/authelia/config.yml"]
+CMD ["npm", "run-script", "start"]

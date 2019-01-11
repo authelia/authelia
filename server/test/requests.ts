@@ -2,8 +2,6 @@
 import BluebirdPromise = require("bluebird");
 import request = require("request");
 import assert = require("assert");
-import express = require("express");
-import nodemailer = require("nodemailer");
 import Endpoints = require("../../shared/api");
 
 declare module "request" {

@@ -13,7 +13,7 @@ session:
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
   local:
-    path: /etc/authelia/storage
+    path: /var/lib/authelia
 
 # TOTP Issuer Name
 #

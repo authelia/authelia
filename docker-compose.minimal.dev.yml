@@ -6,11 +6,10 @@ services:
       dockerfile: Dockerfile.dev
     restart: always
     volumes:
-      - ./server:/usr/src/server
-      - ./dist/server/src/public_html:/usr/src/server/src/public_html
-      - ./client:/usr/src/client
-      - ./shared:/usr/src/shared
-      - ./config.minimal.yml:/etc/authelia/config.yml:ro
+      - ./package.json:/usr/app/package.json
+      - ./server:/usr/app/server
+      - ./shared:/usr/app/shared
+      - ./config.template.yml:/usr/app/config.yml:ro
       - /tmp/authelia:/tmp/authelia
       - ./users_database.yml:/etc/authelia/users_database.yml
     environment:
@@ -19,9 +18,3 @@ services:
       - redis
     networks:
       - example-network
-    command:
-      - "./node_modules/.bin/ts-node"
-      - "-P"
-      - "server/tsconfig.json"
-      - "server/src/index.ts"
-      - "/etc/authelia/config.yml"
