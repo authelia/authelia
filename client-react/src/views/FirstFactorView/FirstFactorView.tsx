@@ -11,14 +11,24 @@ import { RouterProps } from "react-router";
 import { WithStyles, withStyles } from "@material-ui/core";
 
 import firstFactorViewStyles from '../../assets/jss/views/FirstFactorView/FirstFactorView';
+import FormNotification from "../../components/FormNotification/FormNotification";
 
-interface Props extends RouterProps, WithStyles {}
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import StateSynchronizer from "../../containers/components/StateSynchronizer/StateSynchronizer";
+import RemoteState from "../../reducers/Portal/RemoteState";
+
+export interface Props extends RouterProps, WithStyles {
+  onAuthenticationRequested(username: string, password: string): void;
+}
 
 interface State {
   rememberMe: boolean;
   username: string;
   password: string;
   loginButtonDisabled: boolean;
+  errorMessage: string | null;
+  remoteState: RemoteState | null;
 }
 
 class FirstFactorView extends Component<Props, State> {
@@ -29,6 +39,8 @@ class FirstFactorView extends Component<Props, State> {
       username: '',
       password: '',
       loginButtonDisabled: false,
+      errorMessage: null,
+      remoteState: null,
     }
   }
 
@@ -56,10 +68,14 @@ class FirstFactorView extends Component<Props, State> {
     }
   }
 
-  render() {
+  private renderWithState(state: RemoteState) {
     const { classes } = this.props;
     return (
       <div>
+        <FormNotification
+          show={this.state.errorMessage != null}>
+          {this.state.errorMessage || ''}
+        </FormNotification>
         <div className={classes.fields}>
           <div className={classes.field}>
             <TextField
@@ -97,6 +113,8 @@ class FirstFactorView extends Component<Props, State> {
               <FormControlLabel
                 control={
                   <Checkbox
+                    icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
+                    checkedIcon={<CheckBoxIcon fontSize="small" />}
                     checked={this.state.rememberMe}
                     onChange={this.toggleRememberMe}
                     color="primary"
@@ -114,27 +132,33 @@ class FirstFactorView extends Component<Props, State> {
     )
   }
 
+  render() {
+    return (
+      <div>
+        <StateSynchronizer
+          onLoaded={(remoteState) => this.setState({remoteState})}/>
+        {this.state.remoteState ? this.renderWithState(this.state.remoteState) : null}
+      </div>
+    )
+  }
+
   private authenticate() {
-    this.setState({loginButtonDisabled: true})
-    fetch('/api/firstfactor', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: this.state.username,
-        password: this.state.password,
-      })
-    }).then(async (res) => {
-      const json = await res.json();
-      if ('error' in json) {
-        console.log('ERROR!');
-        this.setState({loginButtonDisabled: false});
-        return;
-      }
-      this.props.history.push('/2fa');
+    this.setState({loginButtonDisabled: true});
+    this.props.onAuthenticationRequested(
+      this.state.username,
+      this.state.password);
+    this.setState({errorMessage: null});
+  }
+
+  onFailure = (error: string) => {
+    this.setState({
+      loginButtonDisabled: false,
+      errorMessage: 'An error occured. Your username/password are probably wrong.'
     });
+  }
+
+  onSuccess = () => {
+    this.props.history.push('/2fa');
   }
 }
 

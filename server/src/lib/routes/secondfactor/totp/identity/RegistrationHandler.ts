@@ -97,7 +97,7 @@ export default class RegistrationHandler implements IdentityValidable {
       .then(function () {
         AuthenticationSessionHandler.reset(req);
 
-        res.render(Constants.TEMPLATE_NAME, {
+        res.json({
           base32_secret: secret.base32,
           otpauth_url: secret.otpauth_url,
           login_endpoint: Endpoints.FIRST_FACTOR_GET
@@ -108,5 +108,9 @@ export default class RegistrationHandler implements IdentityValidable {
 
   mailSubject(): string {
     return "Set up Authelia's one-time password";
+  }
+
+  destinationPath(): string {
+    return "/one-time-password-registration";
   }
 }

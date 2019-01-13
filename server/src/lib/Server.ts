@@ -1,11 +1,8 @@
 import BluebirdPromise = require("bluebird");
-import ObjectPath = require("object-path");
 
 import { Configuration } from "./configuration/schema/Configuration";
 import { GlobalDependencies } from "../../types/Dependencies";
-import { UserDataStore } from "./storage/UserDataStore";
 import { ConfigurationParser } from "./configuration/ConfigurationParser";
-import { SessionConfigurationBuilder } from "./configuration/SessionConfigurationBuilder";
 import { GlobalLogger } from "./logging/GlobalLogger";
 import { RequestLogger } from "./logging/RequestLogger";
 import { ServerVariables } from "./ServerVariables";
@@ -13,7 +10,6 @@ import { ServerVariablesInitializer } from "./ServerVariablesInitializer";
 import { Configurator } from "./web_server/Configurator";
 
 import * as Express from "express";
-import * as Path from "path";
 import * as http from "http";
 
 function clone(obj: any) {

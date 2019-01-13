@@ -4,13 +4,24 @@ import { WithStyles, withStyles, Button, TextField } from '@material-ui/core';
 
 import styles from '../../assets/jss/views/SecondFactorView/SecondFactorView';
 import securityKeyImage from '../../assets/images/security-key-hand.png';
+import StateSynchronizer from '../../containers/components/StateSynchronizer/StateSynchronizer';
+import { RouterProps, Redirect } from 'react-router';
+import RemoteState from '../../reducers/Portal/RemoteState';
+import AuthenticationLevel from '../../types/AuthenticationLevel';
+import { WithState } from '../../components/StateSynchronizer/WithState';
 
 type Mode = 'u2f' | 'totp';
 
-interface Props extends WithStyles {};
+export interface Props extends WithStyles, RouterProps, WithState {
+  onLogoutClicked: () => void;
+  onRegisterSecurityKeyClicked: () => void;
+  onRegisterOneTimePasswordClicked: () => void;
+  onStateLoaded: (state: RemoteState) => void;
+};
 
 interface State {
   mode: Mode;
+  remoteState: RemoteState | null;
 }
 
 class SecondFactorView extends Component<Props, State> {
@@ -18,6 +29,7 @@ class SecondFactorView extends Component<Props, State> {
     super(props);
     this.state = {
       mode: 'u2f',
+      remoteState: null,
     }
   }
 
@@ -71,14 +83,32 @@ class SecondFactorView extends Component<Props, State> {
     }
   }
 
-  render() {
+  private onRegisterClicked = () => {
+    const mode = this.state.mode;
+    if (mode === 'u2f') {
+      this.props.onRegisterSecurityKeyClicked();
+    } else {
+      this.props.onRegisterOneTimePasswordClicked();
+    }
+  }
+
+  private renderWithState(state: RemoteState) {
+    if (state.authentication_level < AuthenticationLevel.ONE_FACTOR) {
+      return <Redirect to='/' key='redirect' />;
+    }
+
     const { classes } = this.props;
     return (
       <div className={classes.container}>
+        <div className={classes.header}>
+          <div className={classes.hello}>Hello <b>{state.username}</b></div>
+          <div className={classes.logout}>
+            <a onClick={this.props.onLogoutClicked} href="#">Logout</a>
+          </div>
+        </div>
         <div className={classes.body}>
           {this.renderMode()}
         </div>
-        <hr />
         <div className={classes.footer}>
           <a 
             className={classes.otherMethod}
@@ -86,8 +116,25 @@ class SecondFactorView extends Component<Props, State> {
             onClick={this.toggleMode}>
             {this.state.mode === 'u2f' ? 'Use one-time password' : 'Use security key'}
           </a>
-          <a className={classes.registerDevice} href="/security-key-registration">Register device</a>
+          <a className={classes.registerDevice} href="#" onClick={this.onRegisterClicked}>
+            Register device
+          </a>
         </div>
+      </div>
+    )
+  }
+
+  onStateLoaded = (remoteState: RemoteState) => {
+    this.setState({remoteState});
+    this.props.onStateLoaded(remoteState);
+  }
+
+  render() {
+    return (
+      <div>
+        <StateSynchronizer
+          onLoaded={this.onStateLoaded}/>
+        {this.state.remoteState ? this.renderWithState(this.state.remoteState) : null}
       </div>
     )
   }

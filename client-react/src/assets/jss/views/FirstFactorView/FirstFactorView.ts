@@ -2,7 +2,7 @@ import { createStyles, Theme } from "@material-ui/core";
 
 const styles = createStyles((theme: Theme) => ({
   fields: {
-    marginTop: theme.spacing.unit * 3,
+    marginTop: theme.spacing.unit * 2,
     marginBottom: theme.spacing.unit,
   },
   field: {
@@ -23,6 +23,7 @@ const styles = createStyles((theme: Theme) => ({
   },
   rememberMe: {
     float: 'left',
+    fontSize: theme.typography.fontSize * 0.8,
   },
   resetPassword: {
     padding: '12px 0px',
@@ -30,7 +31,7 @@ const styles = createStyles((theme: Theme) => ({
     '& a': {
       color: 'black',
     },
-  },  
+  },
 }));
 
 export default styles;

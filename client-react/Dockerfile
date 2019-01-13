@@ -1,6 +1,6 @@
 FROM node:10.15.0-jessie
 
-WORKDIR /usr/app
+WORKDIR /usr/app/client
 
 ADD package.json package.json
 

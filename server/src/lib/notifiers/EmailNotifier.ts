@@ -1,6 +1,3 @@
-
-import * as BluebirdPromise from "bluebird";
-
 import { AbstractEmailNotifier } from "../notifiers/AbstractEmailNotifier";
 import { EmailNotifierConfiguration } from "../configuration/schema/NotifierConfiguration";
 import { IMailSender } from "./IMailSender";

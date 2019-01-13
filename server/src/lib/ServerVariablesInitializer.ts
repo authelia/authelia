@@ -1,29 +1,19 @@
 
-import winston = require("winston");
 import BluebirdPromise = require("bluebird");
-import U2F = require("u2f");
 import Nodemailer = require("nodemailer");
 
 import { IRequestLogger } from "./logging/IRequestLogger";
-import { RequestLogger } from "./logging/RequestLogger";
 
 import { TotpHandler } from "./authentication/totp/TotpHandler";
-import { ITotpHandler } from "./authentication/totp/ITotpHandler";
 import { NotifierFactory } from "./notifiers/NotifierFactory";
 import { MailSenderBuilder } from "./notifiers/MailSenderBuilder";
 import { LdapUsersDatabase } from "./authentication/backends/ldap/LdapUsersDatabase";
 import { ConnectorFactory } from "./authentication/backends/ldap/connector/ConnectorFactory";
 
-import { IUserDataStore } from "./storage/IUserDataStore";
 import { UserDataStore } from "./storage/UserDataStore";
-import { INotifier } from "./notifiers/INotifier";
 import { Regulator } from "./regulation/Regulator";
-import { IRegulator } from "./regulation/IRegulator";
 import Configuration = require("./configuration/schema/Configuration");
 import { CollectionFactoryFactory } from "./storage/CollectionFactoryFactory";
-import { ICollectionFactory } from "./storage/ICollectionFactory";
-import { MongoCollectionFactory } from "./storage/mongo/MongoCollectionFactory";
-import { IMongoClient } from "./connectors/mongo/IMongoClient";
 
 import { GlobalDependencies } from "../../types/Dependencies";
 import { ServerVariables } from "./ServerVariables";

@@ -1,5 +1,4 @@
 import express = require("express");
-import BluebirdPromise = require("bluebird");
 import { IRequestLogger } from "./logging/IRequestLogger";
 
 function replyWithError(req: express.Request, res: express.Response,

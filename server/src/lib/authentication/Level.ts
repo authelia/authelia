@@ -1,5 +1,3 @@
-export enum Level {
-  NOT_AUTHENTICATED = 0,
-  ONE_FACTOR = 1,
-  TWO_FACTOR = 2
-}
+import { default as Level } from '../../../../shared/AuthenticationLevel';
+
+export {Level};

@@ -1,8 +1,6 @@
 
 
 import express = require("express");
-import U2f = require("u2f");
-import BluebirdPromise = require("bluebird");
 import { AuthenticationSession } from "../../types/AuthenticationSession";
 import { IRequestLogger } from "./logging/IRequestLogger";
 import { Level } from "./authentication/Level";
@@ -36,7 +34,8 @@ export class AuthenticationSessionHandler {
     }
 
     if (!req.session.auth) {
-      logger.debug(req, "Authentication session %s was undefined. Resetting.", req.sessionID);
+      logger.debug(req, "Authentication session %s was undefined. Resetting..." +
+        " If it's unexpected, make sure you are visiting the expected domain.", req.sessionID);
       AuthenticationSessionHandler.reset(req);
     }
 

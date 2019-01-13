@@ -10,7 +10,7 @@ export default function (vars: ServerVariables) {
     return new BluebirdPromise<void>(function (resolve, reject) {
       const authSession = AuthenticationSessionHandler.get(req, vars.logger);
       res.render("already-logged-in", {
-        logout_endpoint: Endpoints.LOGOUT_GET,
+        logout_endpoint: Endpoints.LOGOUT_POST,
         username: authSession.userid,
         redirection_url: vars.config.default_redirection_url
       });

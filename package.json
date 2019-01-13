@@ -24,7 +24,6 @@
     "title": "Authelia API documentation"
   },
   "dependencies": {
-    "@types/react-redux": "^6.0.12",
     "ajv": "^6.3.0",
     "bluebird": "^3.5.0",
     "body-parser": "^1.15.2",
@@ -45,7 +44,6 @@
     "pug": "^2.0.0-rc.2",
     "randomatic": "^3.1.0",
     "randomstring": "^1.1.5",
-    "react-redux": "^6.0.0",
     "redis": "^2.8.0",
     "speakeasy": "^2.0.0",
     "u2f": "^0.1.2",

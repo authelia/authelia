@@ -1,10 +1,8 @@
 import Express = require("express");
 
-import FirstFactorGet = require("../routes/firstfactor/get");
-import SecondFactorGet = require("../routes/secondfactor/get");
-
 import FirstFactorPost = require("../routes/firstfactor/post");
-import LogoutGet = require("../routes/logout/get");
+import LogoutPost from "../routes/logout/post";
+import StateGet from "../routes/state/get";
 import VerifyGet = require("../routes/verify/get");
 import TOTPSignGet = require("../routes/secondfactor/totp/sign/post");
 
@@ -69,15 +67,15 @@ function setupU2f(app: Express.Application, vars: ServerVariables) {
     RequireValidatedFirstFactor.middleware(vars.logger),
     U2FRegisterPost.default(vars));
 
-  app.get(Endpoints.SECOND_FACTOR_U2F_IDENTITY_START_GET,
+  app.post(Endpoints.SECOND_FACTOR_U2F_IDENTITY_START_POST,
     RequireValidatedFirstFactor.middleware(vars.logger));
 
-  app.get(Endpoints.SECOND_FACTOR_U2F_IDENTITY_FINISH_GET,
+  app.post(Endpoints.SECOND_FACTOR_U2F_IDENTITY_FINISH_POST,
     RequireValidatedFirstFactor.middleware(vars.logger));
 
   IdentityCheckMiddleware.register(app,
-    Endpoints.SECOND_FACTOR_U2F_IDENTITY_START_GET,
-    Endpoints.SECOND_FACTOR_U2F_IDENTITY_FINISH_GET,
+    Endpoints.SECOND_FACTOR_U2F_IDENTITY_START_POST,
+    Endpoints.SECOND_FACTOR_U2F_IDENTITY_FINISH_POST,
     new U2FRegistrationIdentityHandler(vars.logger), vars);
 }
 
@@ -102,13 +100,9 @@ function setupErrors(app: Express.Application, vars: ServerVariables) {
 
 export class RestApi {
   static setup(app: Express.Application, vars: ServerVariables): void {
-    app.get(Endpoints.FIRST_FACTOR_GET, FirstFactorGet.default(vars));
+    app.get(Endpoints.STATE_GET, StateGet(vars));
 
-    app.get(Endpoints.SECOND_FACTOR_GET,
-      RequireValidatedFirstFactor.middleware(vars.logger),
-      SecondFactorGet.default(vars));
-
-    app.get(Endpoints.LOGOUT_GET, LogoutGet.default(vars));
+    app.post(Endpoints.LOGOUT_POST, LogoutPost(vars));
 
     app.get(Endpoints.VERIFY_GET, VerifyGet.default(vars));
     app.post(Endpoints.FIRST_FACTOR_POST, FirstFactorPost.default(vars));

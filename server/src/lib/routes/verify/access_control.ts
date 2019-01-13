@@ -6,7 +6,6 @@ import Exceptions = require("../../Exceptions");
 
 import { Level as AuthorizationLevel } from "../../authorization/Level";
 import { Level as AuthenticationLevel } from "../../authentication/Level";
-import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import { ServerVariables } from "../../ServerVariables";
 
 function isAuthorized(

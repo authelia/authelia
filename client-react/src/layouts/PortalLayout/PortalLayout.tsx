@@ -1,15 +1,19 @@
 import React, { Component } from "react";
 
-import styles from "./PortalLayout.module.css"
 import { Route, Switch, Redirect, RouterProps, RouteProps } from "react-router";
 
 import { routes } from '../../routes/routes';
 import { AUTHELIA_GITHUB_URL } from "../../constants";
+import { WithStyles, withStyles } from "@material-ui/core";
 
-interface Props extends RouterProps, RouteProps {}
+import styles from '../../assets/jss/layouts/PortalLayout/PortalLayout';
+import AuthenticationLevel from "../../types/AuthenticationLevel";
 
-export default class PortalLayout extends Component<Props> {
+interface Props extends RouterProps, RouteProps, WithStyles {
+  authenticationLevel: AuthenticationLevel;
+}
 
+class PortalLayout extends Component<Props> {
   private renderTitle() {
     if (!this.props.location) return;
 
@@ -24,14 +28,15 @@ export default class PortalLayout extends Component<Props> {
 
 
   render() {
+    const { classes } = this.props;
     return (
-      <div className={styles.mainContent}>
-        <div className={styles.frame}>
-          <div className={styles.innerFrame}>
-            <div className={styles.title}>
+      <div className={classes.mainContent}>
+        <div className={classes.frame}>
+          <div className={classes.innerFrame}>
+            <div className={classes.title}>
               {this.renderTitle()}
             </div>
-            <div className={styles.content}>
+            <div className={classes.content}>
               <Switch>
                 {routes.map((r, key) => {
                   return <Route path={r.path} component={r.component} exact={true} key={key} />
@@ -41,10 +46,12 @@ export default class PortalLayout extends Component<Props> {
             </div>
           </div>
         </div>
-        <div className={styles.footer}>
+        <div className={classes.footer}>
           <div>Powered by <a href={AUTHELIA_GITHUB_URL}>Authelia</a></div>
         </div>
       </div>
     )
   }
 }
+
+export default withStyles(styles)(PortalLayout);

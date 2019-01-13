@@ -66,4 +66,8 @@ export default class PasswordResetHandler implements IdentityValidable {
   mailSubject(): string {
     return "Reset your password";
   }
+
+  destinationPath(): string {
+    return "/reset-password";
+  }
 }

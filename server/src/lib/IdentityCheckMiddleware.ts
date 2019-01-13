@@ -3,8 +3,6 @@ import randomstring = require("randomstring");
 import BluebirdPromise = require("bluebird");
 import util = require("util");
 import Exceptions = require("./Exceptions");
-import fs = require("fs");
-import ejs = require("ejs");
 import { IUserDataStore } from "./storage/IUserDataStore";
 import Express = require("express");
 import ErrorReplies = require("./ErrorReplies");
@@ -16,16 +14,13 @@ import { IdentityValidable } from "./IdentityValidable";
 import Identity = require("../../types/Identity");
 import { IdentityValidationDocument }
   from "./storage/IdentityValidationDocument";
-
-const filePath = __dirname + "/../resources/email-template.ejs";
-const email_template = fs.readFileSync(filePath, "utf8");
+import { OPERATION_FAILED } from "../../../shared/UserMessages";
 
 function createAndSaveToken(userid: string, challenge: string,
   userDataStore: IUserDataStore): BluebirdPromise<string> {
 
   const five_minutes = 4 * 60 * 1000;
   const token = randomstring.generate({ length: 64 });
-  const that = this;
 
   return userDataStore.produceIdentityValidationToken(userid, token, challenge,
     five_minutes)
@@ -46,9 +41,9 @@ export function register(app: Express.Application,
   handler: IdentityValidable,
   vars: ServerVariables) {
 
-  app.get(pre_validation_endpoint,
+  app.post(pre_validation_endpoint,
     get_start_validation(handler, post_validation_endpoint, vars));
-  app.get(post_validation_endpoint,
+  app.post(post_validation_endpoint,
     get_finish_validation(handler, vars));
 }
 
@@ -69,7 +64,7 @@ export function get_finish_validation(handler: IdentityValidable,
 
     let authSession: AuthenticationSession;
     const identityToken = objectPath.get<Express.Request, string>(
-      req, "query.identity_token");
+      req, "query.token");
     vars.logger.debug(req, "Identity token provided is %s", identityToken);
 
     return checkIdentityToken(req, identityToken)
@@ -89,7 +84,7 @@ export function get_finish_validation(handler: IdentityValidable,
         handler.postValidationResponse(req, res);
         return BluebirdPromise.resolve();
       })
-      .catch(ErrorReplies.replyWithError401(req, res, vars.logger));
+      .catch(ErrorReplies.replyWithError200(req, res, vars.logger, OPERATION_FAILED));
   };
 }
 
@@ -118,8 +113,8 @@ export function get_start_validation(handler: IdentityValidable,
       })
       .then((token) => {
         const host = req.get("Host");
-        const link_url = util.format("https://%s%s?identity_token=%s", host,
-          postValidationEndpoint, token);
+        const link_url = util.format("https://%s%s?token=%s", host,
+          handler.destinationPath(), token);
         vars.logger.info(req, "Notification sent to user \"%s\"",
           identity.userid);
         return vars.notifier.notify(identity.email, handler.mailSubject(),

@@ -69,5 +69,9 @@ export default class RegistrationHandler implements IdentityValidable {
   mailSubject(): string {
     return MAIL_SUBJECT;
   }
+
+  destinationPath(): string {
+    return "/security-key-registration";
+  }
 }
 

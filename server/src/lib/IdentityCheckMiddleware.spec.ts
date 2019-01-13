@@ -1,24 +1,15 @@
 
 import sinon = require("sinon");
 import IdentityValidator = require("./IdentityCheckMiddleware");
-import { AuthenticationSessionHandler }
-  from "./AuthenticationSessionHandler";
-import { AuthenticationSession } from "../../types/AuthenticationSession";
-import { UserDataStore } from "./storage/UserDataStore";
 import exceptions = require("./Exceptions");
 import { ServerVariables } from "./ServerVariables";
 import Assert = require("assert");
 import express = require("express");
 import BluebirdPromise = require("bluebird");
 import ExpressMock = require("./stubs/express.spec");
-import NotifierMock = require("./notifiers/NotifierStub.spec");
 import { IdentityValidableStub } from "./IdentityValidableStub.spec";
-import { RequestLoggerStub } from "./logging/RequestLoggerStub.spec";
 import { ServerVariablesMock, ServerVariablesMockBuilder }
   from "./ServerVariablesMockBuilder.spec";
-import { PRE_VALIDATION_TEMPLATE }
-  from "./IdentityCheckPreValidationTemplate";
-
 
 describe("IdentityCheckMiddleware", function () {
   let req: ExpressMock.RequestMock;

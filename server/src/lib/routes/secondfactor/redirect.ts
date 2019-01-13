@@ -1,13 +1,10 @@
 
 import express = require("express");
-import objectPath = require("object-path");
-import Endpoints = require("../../../../../shared/api");
 import { ServerVariables } from "../../ServerVariables";
 import BluebirdPromise = require("bluebird");
 import ErrorReplies = require("../../ErrorReplies");
 import UserMessages = require("../../../../../shared/UserMessages");
 import { RedirectionMessage } from "../../../../../shared/RedirectionMessage";
-import Constants = require("../../../../../shared/constants");
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)

@@ -10,7 +10,7 @@ import UserMessages = require("../../../../../shared/UserMessages");
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import { GroupsAndEmails } from "../../authentication/backends/GroupsAndEmails";
-import { Level as AuthenticationLevel } from "../../authentication/Level";
+import {Level} from "../../authentication/Level";
 import { Level as AuthorizationLevel } from "../../authorization/Level";
 import { URLDecomposer } from "../../utils/URLDecomposer";
 
@@ -48,7 +48,7 @@ export default function (vars: ServerVariables) {
           JSON.stringify(groupsAndEmails));
         authSession.userid = username;
         authSession.keep_me_logged_in = keepMeLoggedIn;
-        authSession.authentication_level = AuthenticationLevel.ONE_FACTOR;
+        authSession.authentication_level = Level.ONE_FACTOR;
         const redirectUrl: string = req.query[Constants.REDIRECT_QUERY_PARAM] !== "undefined"
           // Fuck, don't know why it is a string!
           ? req.query[Constants.REDIRECT_QUERY_PARAM]
@@ -80,7 +80,7 @@ export default function (vars: ServerVariables) {
           vars.logger.debug(req, "Redirect to '%s'", redirectUrl);
         }
         else {
-          let newRedirectUrl = Endpoint.SECOND_FACTOR_GET;
+          let newRedirectUrl = '/2fa';
           if (redirectUrl) {
             newRedirectUrl += "?" + Constants.REDIRECT_QUERY_PARAM + "="
               + redirectUrl;

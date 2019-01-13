@@ -9,7 +9,7 @@ import { RouterProps } from "react-router";
 
 interface Props extends RouterProps {}
 
-export default class ConfirmationSent extends Component<Props> {
+class ConfirmationSentView extends Component<Props> {
   render() {
     return (
       <div className={styles.main}>
@@ -20,11 +20,11 @@ export default class ConfirmationSent extends Component<Props> {
           Please check your e-mails and follow the instructions to confirm the operation.
           <div className={styles.buttonContainer}>
               <Button
-                onClick={() => this.props.history.push('/')}
+                onClick={() => this.props.history.goBack()}
                 className={styles.button}
                 variant="contained"
                 color="primary">
-                Back to login
+                Back
               </Button>
             </div>
         </div>
@@ -32,3 +32,5 @@ export default class ConfirmationSent extends Component<Props> {
     )
   }
 }
+
+export default ConfirmationSentView;
