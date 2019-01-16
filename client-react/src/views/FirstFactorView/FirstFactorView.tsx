@@ -7,7 +7,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 
 import { Link } from "react-router-dom";
-import { RouterProps } from "react-router";
+import { RouterProps, RouteProps } from "react-router";
 import { WithStyles, withStyles } from "@material-ui/core";
 
 import firstFactorViewStyles from '../../assets/jss/views/FirstFactorView/FirstFactorView';
@@ -18,7 +18,7 @@ import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import StateSynchronizer from "../../containers/components/StateSynchronizer/StateSynchronizer";
 import RemoteState from "../../reducers/Portal/RemoteState";
 
-export interface Props extends RouterProps, WithStyles {
+export interface Props extends RouteProps, RouterProps, WithStyles {
   onAuthenticationRequested(username: string, password: string): void;
 }
 
@@ -68,7 +68,7 @@ class FirstFactorView extends Component<Props, State> {
     }
   }
 
-  private renderWithState(state: RemoteState) {
+  private renderWithState() {
     const { classes } = this.props;
     return (
       <div>
@@ -137,7 +137,7 @@ class FirstFactorView extends Component<Props, State> {
       <div>
         <StateSynchronizer
           onLoaded={(remoteState) => this.setState({remoteState})}/>
-        {this.state.remoteState ? this.renderWithState(this.state.remoteState) : null}
+        {this.state.remoteState ? this.renderWithState() : null}
       </div>
     )
   }
@@ -155,10 +155,6 @@ class FirstFactorView extends Component<Props, State> {
       loginButtonDisabled: false,
       errorMessage: 'An error occured. Your username/password are probably wrong.'
     });
-  }
-
-  onSuccess = () => {
-    this.props.history.push('/2fa');
   }
 }
 

@@ -20,7 +20,7 @@ class ForgotPasswordView extends Component<Props> {
             label="E-mail">
           </TextField>
           <Button
-              onClick={() => this.props.history.push('/reset-password')}
+              onClick={() => this.props.history.push('/confirmation-sent')}
               variant="contained"
               color="primary"
               className={classes.button}>

@@ -1,16 +1,20 @@
 import { connect } from 'react-redux';
+import QueryString from 'query-string';
 import SecondFactorView, {Props} from '../../../views/SecondFactorView/SecondFactorView';
 import { RootState } from '../../../reducers';
 import { Dispatch } from 'redux';
 import u2fApi, { SignResponse } from 'u2f-api';
 import to from 'await-to-js';
-import { logoutSuccess, logoutFailure, logout } from '../../../reducers/Portal/actions';
+import { logoutSuccess, logoutFailure, logout, securityKeySignSuccess, securityKeySign, securityKeySignFailure, setSecurityKeySupported } from '../../../reducers/Portal/SecondFactor/actions';
 import AuthenticationLevel from '../../../types/AuthenticationLevel';
 import RemoteState from '../../../reducers/Portal/RemoteState';
 
 const mapStateToProps = (state: RootState) => ({
-  state: state.remoteState,
-  stateError: state.remoteStateError,
+  state: state.firstFactor.remoteState,
+  stateError: state.firstFactor.remoteStateError,
+  securityKeySupported: state.secondFactor.securityKeySupported,
+  securityKeyVerified: state.secondFactor.securityKeySignSuccess || false,
+  securityKeyError: state.secondFactor.error,
 });
 
 async function requestSigning() {
@@ -23,7 +27,7 @@ async function requestSigning() {
     });
 }
 
-async function completeSigning(response: u2fApi.SignResponse) {
+async function completeSecurityKeySigning(response: u2fApi.SignResponse) {
   return fetch('/api/u2f/sign', {
     method: 'POST',
     headers: {
@@ -39,24 +43,36 @@ async function completeSigning(response: u2fApi.SignResponse) {
     });
 }
 
-async function triggerSecurityKeySigning() {
+async function triggerSecurityKeySigning(dispatch: Dispatch, props: Props) {
   let err, result;
+  dispatch(securityKeySign());
   [err, result] = await to(requestSigning());
   if (err) {
-    console.error(err);
+    dispatch(securityKeySignFailure(err.message));
     return;
   }
 
   [err, result] = await to(u2fApi.sign(result, 60));
   if (err) {
-    console.error(err);
+    dispatch(securityKeySignFailure(err.message));
     return;
   }
 
-  [err, result] = await to(completeSigning(result as SignResponse));
+  [err, result] = await to(completeSecurityKeySigning(result as SignResponse));
   if (err) {
-    console.error(err);
+    dispatch(securityKeySignFailure(err.message));
     return;
+  }
+  dispatch(securityKeySignSuccess());
+  await redirectUponAuthentication(props);
+}
+
+async function redirectUponAuthentication(props: Props) {
+  const params = QueryString.parse(props.history.location.search);
+  if ('rd' in params) {
+    setTimeout(() => {
+      window.location.replace(params['rd'] as string);
+    }, 1500);
   }
 }
 
@@ -108,7 +124,11 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => {
         ownProps.history.push('/');
         return;
       }
-      await triggerSecurityKeySigning();
+      const isU2FSupported = await u2fApi.isSupported();
+      if (isU2FSupported) {
+        await dispatch(setSecurityKeySupported(true));
+        await triggerSecurityKeySigning(dispatch, ownProps);
+      }
     }
   }
 }

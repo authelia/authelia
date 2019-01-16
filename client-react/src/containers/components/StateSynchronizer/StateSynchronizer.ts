@@ -1,14 +1,14 @@
 import { connect } from 'react-redux';
 import StateSynchronizer, { OnLoaded, OnError } from '../../../components/StateSynchronizer/StateSynchronizer';
 import { RootState } from '../../../reducers';
-import { fetchStateSuccess, fetchState, fetchStateFailure } from '../../../reducers/Portal/actions';
+import { fetchStateSuccess, fetchState, fetchStateFailure } from '../../../reducers/Portal/FirstFactor/actions';
 import RemoteState from '../../../reducers/Portal/RemoteState';
 import { Dispatch } from 'redux';
 
 const mapStateToProps = (state: RootState) => ({
-  state: state.remoteState,
-  stateError: state.remoteStateError,
-  stateLoading: state.remoteStateLoading,
+  state: state.firstFactor.remoteState,
+  stateError: state.firstFactor.remoteStateError,
+  stateLoading: state.firstFactor.remoteStateLoading,
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => {

@@ -25,11 +25,24 @@ const styles = createStyles((theme: Theme) => ({
   body: {
     paddingTop: theme.spacing.unit * 2,
     paddingBottom: theme.spacing.unit * 2,
-    paddingLeft: theme.spacing.unit,
-    paddingRight: theme.spacing.unit,
+    paddingLeft: theme.spacing.unit * 2,
+    paddingRight: theme.spacing.unit * 2,
     border: '1px solid #e0e0e0',
     borderRadius: '2px',
     textAlign: 'justify',
+  },
+  methodName: {
+    fontSize: theme.typography.fontSize * 1.2,
+    fontWeight: 'bold',
+    marginBottom: theme.spacing.unit,
+  },
+  methodU2f: {
+    borderBottom: '1px solid #e0e0e0',
+    padding: theme.spacing.unit,
+  },
+  methodTotp: {
+    padding: theme.spacing.unit,
+    paddingTop: theme.spacing.unit * 2,
   },
   image: {
     width: '120px',
@@ -39,19 +52,17 @@ const styles = createStyles((theme: Theme) => ({
     marginTop: theme.spacing.unit * 2,
     marginBottom: theme.spacing.unit * 2,
   },
-  footer: {
-    paddingTop: theme.spacing.unit,
-    fontSize: theme.typography.fontSize * 0.9,
+  registerDeviceContainer: {
+    textAlign: 'right',
+    fontSize: theme.typography.fontSize * 0.8,
   },
-  registerDevice: {
-    float: 'right',
-  },
+  registerDevice: {},
   totpField: {
     marginTop: theme.spacing.unit * 2,
-    marginBottom: theme.spacing.unit * 2,
     width: '100%',
   },
   totpButton: {
+    marginTop: theme.spacing.unit * 2,
     width: '100%',
   }
 }));

@@ -16,12 +16,14 @@ class ResetPasswordView extends Component<Props> {
           <TextField
             className={classes.field}
             variant="outlined"
+            type="password"
             id="password1"
             label="New password">
           </TextField>
           <TextField
             className={classes.field}
             variant="outlined"
+            type="password"
             id="password2"
             label="Confirm password">
           </TextField>

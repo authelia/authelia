@@ -3,16 +3,18 @@ import React, { Component } from 'react';
 import { WithStyles, withStyles, Button, TextField } from '@material-ui/core';
 
 import styles from '../../assets/jss/views/SecondFactorView/SecondFactorView';
-import securityKeyImage from '../../assets/images/security-key-hand.png';
 import StateSynchronizer from '../../containers/components/StateSynchronizer/StateSynchronizer';
 import { RouterProps, Redirect } from 'react-router';
 import RemoteState from '../../reducers/Portal/RemoteState';
 import AuthenticationLevel from '../../types/AuthenticationLevel';
 import { WithState } from '../../components/StateSynchronizer/WithState';
-
-type Mode = 'u2f' | 'totp';
+import CircleLoader, { Status } from '../../components/CircleLoader/CircleLoader';
 
 export interface Props extends WithStyles, RouterProps, WithState {
+  securityKeySupported: boolean;
+  securityKeyVerified: boolean;
+  securityKeyError: string | null;
+
   onLogoutClicked: () => void;
   onRegisterSecurityKeyClicked: () => void;
   onRegisterOneTimePasswordClicked: () => void;
@@ -20,7 +22,6 @@ export interface Props extends WithStyles, RouterProps, WithState {
 };
 
 interface State {
-  mode: Mode;
   remoteState: RemoteState | null;
 }
 
@@ -28,43 +29,53 @@ class SecondFactorView extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      mode: 'u2f',
       remoteState: null,
     }
   }
 
-  private toggleMode = () => {
-    if (this.state.mode === 'u2f') {
-      this.setState({mode: 'totp'});
-    } else if (this.state.mode === 'totp') {
-      this.setState({mode: 'u2f'});
-    }
-  }
-
-  private renderU2f() {
+  private renderU2f(n: number) {
     const { classes } = this.props;
+    let u2fStatus = Status.LOADING;
+    if (this.props.securityKeyVerified) {
+      u2fStatus = Status.SUCCESSFUL;
+    } else if (this.props.securityKeyError) {
+      u2fStatus = Status.FAILURE;
+    }
     return (
-      <div>
-        <div className={classes.imageContainer}>
-          <img src={securityKeyImage} alt='security key' className={classes.image}/>
-        </div>
+      <div className={classes.methodU2f} key='u2f-method'>
+        <div className={classes.methodName}>Option {n} - Security Key</div>
         <div>Insert your security key into a USB port and touch the gold disk.</div>
+        <div className={classes.imageContainer}>
+          <CircleLoader status={u2fStatus}></CircleLoader>
+        </div>
+        <div className={classes.registerDeviceContainer}>
+          <a className={classes.registerDevice} href="#"
+            onClick={this.props.onRegisterSecurityKeyClicked}>
+            Register device
+          </a>
+        </div>
       </div>
     )
   }
 
-  private renderTotp() {
+  private renderTotp(n: number) {
     const { classes } = this.props;
     return (
-      <div>
-        <div>Provide a one-time password.</div>
+      <div className={classes.methodTotp} key='totp-method'>
+        <div className={classes.methodName}>Option {n} - One-Time Password</div>
         <TextField
           className={classes.totpField}
           name="password"
           id="password"
           variant="outlined"
-          label="Password">
+          label="One-Time Password">
         </TextField>
+        <div className={classes.registerDeviceContainer}>
+          <a className={classes.registerDevice} href="#"
+            onClick={this.props.onRegisterOneTimePasswordClicked}>
+            Register device
+          </a>
+        </div>
         <Button
           className={classes.totpButton}
           variant="contained"
@@ -76,20 +87,20 @@ class SecondFactorView extends Component<Props, State> {
   }
 
   private renderMode() {
-    if (this.state.mode === 'u2f') {
-      return this.renderU2f();
-    } else if (this.state.mode === 'totp') {
-      return this.renderTotp();
+    const { classes } = this.props;
+    const methods = [];
+    let n = 1;
+    if (this.props.securityKeySupported) {
+      methods.push(this.renderU2f(n));
+      n++;
     }
-  }
+    methods.push(this.renderTotp(n));
 
-  private onRegisterClicked = () => {
-    const mode = this.state.mode;
-    if (mode === 'u2f') {
-      this.props.onRegisterSecurityKeyClicked();
-    } else {
-      this.props.onRegisterOneTimePasswordClicked();
-    }
+    return (
+      <div className={classes.methodsContainer}>
+        {methods}
+      </div>
+    );
   }
 
   private renderWithState(state: RemoteState) {
@@ -108,17 +119,6 @@ class SecondFactorView extends Component<Props, State> {
         </div>
         <div className={classes.body}>
           {this.renderMode()}
-        </div>
-        <div className={classes.footer}>
-          <a 
-            className={classes.otherMethod}
-            href="#"
-            onClick={this.toggleMode}>
-            {this.state.mode === 'u2f' ? 'Use one-time password' : 'Use security key'}
-          </a>
-          <a className={classes.registerDevice} href="#" onClick={this.onRegisterClicked}>
-            Register device
-          </a>
         </div>
       </div>
     )

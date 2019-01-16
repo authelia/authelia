@@ -1,10 +1,15 @@
 import { connect } from 'react-redux';
-import OneTimePasswordRegistrationView, { OnSuccess, OnFailure } from '../../../views/OneTimePasswordRegistrationView/OneTimePasswordRegistrationView';
+import OneTimePasswordRegistrationView from '../../../views/OneTimePasswordRegistrationView/OneTimePasswordRegistrationView';
 import { RootState } from '../../../reducers';
 import { Dispatch } from 'redux';
 import {to} from 'await-to-js';
+import { generateTotpSecret, generateTotpSecretSuccess, generateTotpSecretFailure } from '../../../reducers/Portal/OneTimePasswordRegistration/actions';
+import { Props } from '../../../views/OneTimePasswordRegistrationView/OneTimePasswordRegistrationView';
 
-const mapStateToProps = (state: RootState) => ({});
+const mapStateToProps = (state: RootState) => ({
+  error: state.oneTimePasswordRegistration.error,
+  secret: state.oneTimePasswordRegistration.secret,
+});
 
 async function checkIdentity(token: string) {
   return fetch(`/api/secondfactor/totp/identity/finish?token=${token}`, {
@@ -27,16 +32,35 @@ async function checkIdentity(token: string) {
     });
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
+async function tryGenerateTotpSecret(dispatch: Dispatch, token: string) {
+  let err, result;
+  dispatch(generateTotpSecret());
+  [err, result] = await to(checkIdentity(token));
+  if (err) {
+    const e = err;
+    setTimeout(() => {
+      dispatch(generateTotpSecretFailure(e.message));
+    }, 2000);
+    return;
+  }
+  dispatch(generateTotpSecretSuccess(result));
+}
+
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => {
+  let internalToken: string;
   return {
-    componentDidMount: async (token: string, onSuccess: OnSuccess, onFailure: OnFailure) => {
-      let err, result;
-      [err, result] = await to(checkIdentity(token));
-      if (err) {
-        onFailure(err);
-        return;
-      }
-      onSuccess(result.otpauth_url);
+    onInit: async (token: string) => {
+      internalToken = token;
+      await tryGenerateTotpSecret(dispatch, internalToken);
+    },
+    onRetryClicked: async () => {
+      await tryGenerateTotpSecret(dispatch, internalToken);
+    },
+    onCancelClicked: () => {
+      ownProps.history.push('/2fa');
+    },
+    onLoginClicked: () => {
+      ownProps.history.push('/2fa');
     }
   }
 }

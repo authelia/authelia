@@ -2,13 +2,13 @@ import { createStyles, Theme } from "@material-ui/core";
 
 const styles = createStyles((theme: Theme) => ({
   form: {
-    padding: '20px 0px',
+    paddingTop: theme.spacing.unit * 2,
   },
   field: {
     width: '100%',
   },
   button: {
-    marginTop: '20px',
+    marginTop: theme.spacing.unit * 2,
     width: '100%',
   }
 }));

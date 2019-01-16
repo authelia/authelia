@@ -3,8 +3,6 @@ import { createStyles, Theme } from "@material-ui/core";
 const styles = createStyles((theme: Theme) => ({
   messageOuter: {
     position: 'relative',
-    paddingTop: theme.spacing.unit * 2,
-    paddingBottom: theme.spacing.unit,
   },
   messageInner: {
     width: '100%',

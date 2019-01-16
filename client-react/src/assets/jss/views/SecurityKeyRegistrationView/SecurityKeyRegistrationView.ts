@@ -10,6 +10,10 @@ const styles = createStyles((theme: Theme) => ({
       width: '120px',
     },
   },
+  retryButtonContainer: {
+    textAlign: 'center',
+    paddingTop: theme.spacing.unit * 2,
+  },
 }));
 
 export default styles;

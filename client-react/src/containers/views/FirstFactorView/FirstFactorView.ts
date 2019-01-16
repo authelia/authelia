@@ -1,11 +1,27 @@
 import { connect } from 'react-redux';
+import QueryString from 'query-string';
 import FirstFactorView, { Props } from '../../../views/FirstFactorView/FirstFactorView';
 import { Dispatch } from 'redux';
-import { authenticateFailure, authenticateSuccess, authenticate } from '../../../reducers/Portal/actions';
+import { authenticateFailure, authenticateSuccess, authenticate } from '../../../reducers/Portal/FirstFactor/actions';
 import { RootState } from '../../../reducers';
 
 
 const mapStateToProps = (state: RootState) => ({});
+
+function redirect2FA(props: Props) {
+  if (!props.location) {
+    props.history.push('/2fa');
+    return;
+  }
+  const params = QueryString.parse(props.location.search);
+
+  if ('rd' in params) {
+    const rd = params['rd'] as string;
+    props.history.push(`/2fa?rd=${rd}`);
+    return;
+  }
+  props.history.push('/2fa');
+}
 
 function onAuthenticationRequested(dispatch: Dispatch, ownProps: Props) {
   return async (username: string, password: string) => {
@@ -27,7 +43,7 @@ function onAuthenticationRequested(dispatch: Dispatch, ownProps: Props) {
         return;
       }
       dispatch(authenticateSuccess());
-      ownProps.history.push('/2fa');
+      redirect2FA(ownProps);
     });
   }
 }

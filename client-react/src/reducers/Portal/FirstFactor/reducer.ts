@@ -1,7 +1,7 @@
 
 import * as Actions from './actions';
 import { ActionType, getType, StateType } from 'typesafe-actions';
-import RemoteState from './RemoteState';
+import RemoteState from '../RemoteState';
 
 export type FirstFactorAction = ActionType<typeof Actions>;
 
@@ -19,10 +19,6 @@ interface State {
   remoteState: RemoteState | null;
   remoteStateLoading: boolean;
   remoteStateError: string | null;
-
-  logoutLoading: boolean;
-  logoutSuccess: boolean | null;
-  logoutError: string | null;
 }
 
 const initialState: State = {
@@ -32,9 +28,6 @@ const initialState: State = {
   remoteState: null,
   remoteStateLoading: false,
   remoteStateError: null,
-  logoutLoading: false,
-  logoutError: null,
-  logoutSuccess: null,
 }
 
 export type PortalState = StateType<State>;
@@ -81,26 +74,6 @@ export default (state = initialState, action: FirstFactorAction) => {
         remoteStateError: action.payload,
         remoteStateLoading: false,
       };
-
-    case getType(Actions.logout):
-      return {
-        ...state,
-        logoutLoading: true,
-        logoutSuccess: null,
-        logoutError: null,
-      };
-    case getType(Actions.logoutSuccess):
-      return {
-        ...state,
-        logoutLoading: false,
-        logoutSuccess: true,
-      };
-    case getType(Actions.logoutFailure):
-      return {
-        ...state,
-        logoutLoading: false,
-        logoutError: action.payload,
-      }
   }
   return state;
 }
