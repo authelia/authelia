@@ -18,7 +18,7 @@ const styles = createStyles((theme: Theme) => ({
   title: {
     fontSize: '1.4em',
     fontWeight: 'bold',
-    borderBottom: '1px solid #c7c7c7',
+    borderBottom: '5px solid ' + theme.palette.primary.main,
     display: 'inline-block',
     paddingRight: '10px',
     paddingBottom: '5px',

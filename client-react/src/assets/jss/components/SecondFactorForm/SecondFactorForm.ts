@@ -29,7 +29,6 @@ const styles = createStyles((theme: Theme) => ({
     paddingRight: theme.spacing.unit * 2,
     border: '1px solid #e0e0e0',
     borderRadius: '2px',
-    textAlign: 'justify',
   },
   methodName: {
     fontSize: theme.typography.fontSize * 1.2,

@@ -34,7 +34,7 @@ export default function (vars: ServerVariables) {
         return Bluebird.resolve();
       })
       .catch(ErrorReplies.replyWithError200(req, res, vars.logger,
-        UserMessages.OPERATION_FAILED));
+        UserMessages.AUTHENTICATION_TOTP_FAILED));
   }
   return handler;
 }

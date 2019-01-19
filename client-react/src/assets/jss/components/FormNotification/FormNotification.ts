@@ -9,7 +9,7 @@ const styles = createStyles((theme: Theme) => ({
   },
   messageContainer: {
     color: 'white',
-    fontSize: theme.typography.fontSize * 0.9,
+    fontSize: theme.typography.fontSize,
     padding: theme.spacing.unit * 2,
     border: '1px solid red',
     borderRadius: '5px',

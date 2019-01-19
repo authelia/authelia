@@ -4,22 +4,28 @@ import './App.css';
 import { Router, Route, Switch } from "react-router-dom";
 import { routes } from './routes/index';
 import { createBrowserHistory } from 'history';
-import { createStore, applyMiddleware } from 'redux';
+import { createStore, applyMiddleware, compose } from 'redux';
 import reducer from './reducers';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
+import { routerMiddleware, ConnectedRouter } from 'connected-react-router';
 
 const history = createBrowserHistory();
 const store = createStore(
-  reducer,
-  applyMiddleware(thunk)
+  reducer(history),
+  compose(
+    applyMiddleware(
+      routerMiddleware(history),
+      thunk
+    )
+  )
 );
 
 class App extends Component {
   render() {
     return (
       <Provider store={store}>
-        <Router history={history}>
+        <ConnectedRouter history={history}>
           <div className="App">
             <Switch>
               {routes.map((r, key) => {
@@ -27,7 +33,7 @@ class App extends Component {
               })}
             </Switch>
           </div>
-        </Router>
+        </ConnectedRouter>
       </Provider>
     );
   }

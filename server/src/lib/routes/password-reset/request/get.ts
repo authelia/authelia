@@ -1,10 +1,5 @@
 
 import express = require("express");
-import BluebirdPromise = require("bluebird");
-import objectPath = require("object-path");
-import exceptions = require("../../../Exceptions");
-
-import Constants = require("./../constants");
 
 const TEMPLATE_NAME = "password-reset-request";
 

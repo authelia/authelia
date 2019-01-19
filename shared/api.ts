@@ -187,7 +187,7 @@ export const RESET_PASSWORD_FORM_POST = "/api/password-reset";
  *
  * @apiDescription Serve a page that requires the username.
  */
-export const RESET_PASSWORD_REQUEST_GET = "/password-reset/request";
+export const RESET_PASSWORD_REQUEST_GET = "/api/password-reset/request";
 
 
 
@@ -201,7 +201,7 @@ export const RESET_PASSWORD_REQUEST_GET = "/password-reset/request";
  *
  * @apiDescription Start password reset request.
  */
-export const RESET_PASSWORD_IDENTITY_START_GET = "/password-reset/identity/start";
+export const RESET_PASSWORD_IDENTITY_START_GET = "/api/password-reset/identity/start";
 
 
 
@@ -215,7 +215,7 @@ export const RESET_PASSWORD_IDENTITY_START_GET = "/password-reset/identity/start
  *
  * @apiDescription Start password reset request.
  */
-export const RESET_PASSWORD_IDENTITY_FINISH_GET = "/password-reset/identity/finish";
+export const RESET_PASSWORD_IDENTITY_FINISH_GET = "/api/password-reset/identity/finish";
 
 
 

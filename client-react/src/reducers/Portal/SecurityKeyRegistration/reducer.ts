@@ -3,17 +3,17 @@ import * as Actions from './actions';
 
 type SecurityKeyRegistrationAction = ActionType<typeof Actions>
 
-export interface State {
+export interface SecurityKeyRegistrationState {
   error: string | null;
   success: boolean | null;
 }
 
-let initialState: State = {
+let securityKeyRegistrationInitialState: SecurityKeyRegistrationState = {
   error: null,
   success: null,
 }
 
-export default (state = initialState, action: SecurityKeyRegistrationAction): State => {
+export default (state = securityKeyRegistrationInitialState, action: SecurityKeyRegistrationAction): SecurityKeyRegistrationState => {
   switch(action.type) {
     case getType(Actions.registerSecurityKey):
       return {

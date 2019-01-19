@@ -4,28 +4,19 @@ import { Secret } from "../../../views/OneTimePasswordRegistrationView/Secret";
 
 type OneTimePasswordRegistrationAction = ActionType<typeof Actions>
 
-export interface State {
+export interface OneTimePasswordRegistrationState {
   loading: boolean;
   error: string | null;
   secret: Secret | null;
 }
 
-let initialState: State = {
+let oneTimePasswordRegistrationInitialState: OneTimePasswordRegistrationState = {
   loading: true,
   error: null,
   secret: null,
 }
 
-initialState = {
-  secret: {
-    base32_secret: 'PBSFWU2RM42HG3TNIRHUQMKSKVUW6NCNOBNFOLCFJZATS6CTI47A',
-    otpauth_url: 'PBSFWU2RM42HG3TNIRHUQMKSKVUW6NCNOBNFOLCFJZATS6CTI47A',
-  },
-  error: null,
-  loading: false,
-}
-
-export default (state = initialState, action: OneTimePasswordRegistrationAction) => {
+export default (state = oneTimePasswordRegistrationInitialState, action: OneTimePasswordRegistrationAction): OneTimePasswordRegistrationState => {
   switch(action.type) {
     case getType(Actions.generateTotpSecret):
       return {

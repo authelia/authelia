@@ -4,7 +4,7 @@ import { RootState } from '../../../reducers';
 import { Dispatch } from 'redux';
 import {to} from 'await-to-js';
 import { generateTotpSecret, generateTotpSecretSuccess, generateTotpSecretFailure } from '../../../reducers/Portal/OneTimePasswordRegistration/actions';
-import { Props } from '../../../views/OneTimePasswordRegistrationView/OneTimePasswordRegistrationView';
+import { push } from 'connected-react-router';
 
 const mapStateToProps = (state: RootState) => ({
   error: state.oneTimePasswordRegistration.error,
@@ -46,7 +46,7 @@ async function tryGenerateTotpSecret(dispatch: Dispatch, token: string) {
   dispatch(generateTotpSecretSuccess(result));
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => {
+const mapDispatchToProps = (dispatch: Dispatch) => {
   let internalToken: string;
   return {
     onInit: async (token: string) => {
@@ -57,10 +57,10 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => {
       await tryGenerateTotpSecret(dispatch, internalToken);
     },
     onCancelClicked: () => {
-      ownProps.history.push('/2fa');
+      dispatch(push('/'));
     },
     onLoginClicked: () => {
-      ownProps.history.push('/2fa');
+      dispatch(push('/'));
     }
   }
 }

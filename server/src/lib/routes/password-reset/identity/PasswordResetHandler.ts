@@ -28,7 +28,7 @@ export default class PasswordResetHandler implements IdentityValidable {
   preValidationInit(req: express.Request): BluebirdPromise<Identity> {
     const that = this;
     const userid: string =
-      objectPath.get<express.Request, string>(req, "query.userid");
+      objectPath.get<express.Request, string>(req, "body.username");
     return BluebirdPromise.resolve()
       .then(function () {
         that.logger.debug(req, "User '%s' requested a password reset", userid);

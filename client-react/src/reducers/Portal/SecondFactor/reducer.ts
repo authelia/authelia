@@ -4,7 +4,7 @@ import { ActionType, getType, StateType } from 'typesafe-actions';
 
 export type SecondFactorAction = ActionType<typeof Actions>;
 
-interface State {
+interface SecondFactorState {
   logoutLoading: boolean;
   logoutSuccess: boolean | null;
   error: string | null;
@@ -12,9 +12,13 @@ interface State {
   securityKeySupported: boolean;
   securityKeySignLoading: boolean;
   securityKeySignSuccess: boolean | null;
+
+  oneTimePasswordVerificationLoading: boolean,
+  oneTimePasswordVerificationSuccess: boolean | null,
+  oneTimePasswordVerificationError: string | null,
 }
 
-const initialState: State = {
+const secondFactorInitialState: SecondFactorState = {
   logoutLoading: false,
   logoutSuccess: null,
   error: null,
@@ -22,11 +26,15 @@ const initialState: State = {
   securityKeySupported: false,
   securityKeySignLoading: false,
   securityKeySignSuccess: null,
+
+  oneTimePasswordVerificationLoading: false,
+  oneTimePasswordVerificationError: null,
+  oneTimePasswordVerificationSuccess: null,
 }
 
-export type PortalState = StateType<State>;
+export type PortalState = StateType<SecondFactorState>;
 
-export default (state = initialState, action: SecondFactorAction): State => {
+export default (state = secondFactorInitialState, action: SecondFactorAction): SecondFactorState => {
   switch(action.type) {
     case getType(Actions.logout):
       return {
@@ -47,6 +55,7 @@ export default (state = initialState, action: SecondFactorAction): State => {
         logoutLoading: false,
         error: action.payload,
       }
+      
     case getType(Actions.securityKeySign):
       return {
         ...state,
@@ -65,11 +74,31 @@ export default (state = initialState, action: SecondFactorAction): State => {
         securityKeySignLoading: false,
         securityKeySignSuccess: false,
       };
+
     case getType(Actions.setSecurityKeySupported):
       return {
         ...state,
         securityKeySupported: action.payload,
       };
+
+    case getType(Actions.oneTimePasswordVerification):
+      return {
+        ...state,
+        oneTimePasswordVerificationLoading: true,
+        oneTimePasswordVerificationError: null,
+      }
+    case getType(Actions.oneTimePasswordVerificationSuccess):
+      return {
+        ...state,
+        oneTimePasswordVerificationLoading: false,
+        oneTimePasswordVerificationSuccess: true,
+      }
+    case getType(Actions.oneTimePasswordVerificationFailure):
+      return {
+        ...state,
+        oneTimePasswordVerificationLoading: false,
+        oneTimePasswordVerificationError: action.payload,
+      }
   }
   return state;
 }

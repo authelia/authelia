@@ -1,7 +1,6 @@
 
 import * as Actions from './actions';
-import { ActionType, getType, StateType } from 'typesafe-actions';
-import RemoteState from '../RemoteState';
+import { ActionType, getType } from 'typesafe-actions';
 
 export type FirstFactorAction = ActionType<typeof Actions>;
 
@@ -11,28 +10,19 @@ enum Result {
   FAILURE,
 }
 
-interface State {
+interface FirstFactorState {
   lastResult: Result;
   loading: boolean;
   error: string | null;
-
-  remoteState: RemoteState | null;
-  remoteStateLoading: boolean;
-  remoteStateError: string | null;
 }
 
-const initialState: State = {
+const firstFactorInitialState: FirstFactorState = {
   lastResult: Result.NONE,
   loading: false,
   error: null,
-  remoteState: null,
-  remoteStateLoading: false,
-  remoteStateError: null,
 }
 
-export type PortalState = StateType<State>;
-
-export default (state = initialState, action: FirstFactorAction) => {
+export default (state = firstFactorInitialState, action: FirstFactorAction): FirstFactorState => {
   switch(action.type) {
     case getType(Actions.authenticate):
       return {
@@ -53,26 +43,6 @@ export default (state = initialState, action: FirstFactorAction) => {
         lastResult: Result.FAILURE,
         loading: false,
         error: action.payload,
-      };
-
-    case getType(Actions.fetchState):
-      return {
-        ...state,
-        remoteState: null,
-        remoteStateError: null,
-        remoteStateLoading: true,
-      };
-    case getType(Actions.fetchStateSuccess):
-      return {
-        ...state,
-        remoteState: action.payload,
-        remoteStateLoading: false,
-      };
-    case getType(Actions.fetchStateFailure):
-      return {
-        ...state,
-        remoteStateError: action.payload,
-        remoteStateLoading: false,
       };
   }
   return state;

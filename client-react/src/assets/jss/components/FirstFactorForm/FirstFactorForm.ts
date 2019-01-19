@@ -3,7 +3,6 @@ import { createStyles, Theme } from "@material-ui/core";
 const styles = createStyles((theme: Theme) => ({
   fields: {
     marginTop: theme.spacing.unit * 2,
-    marginBottom: theme.spacing.unit,
   },
   field: {
     paddingBottom: theme.spacing.unit * 2,

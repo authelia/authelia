@@ -49,7 +49,7 @@ export default function (vars: ServerVariables) {
         return BluebirdPromise.resolve();
       })
       .catch(ErrorReplies.replyWithError200(req, res, vars.logger,
-        UserMessages.OPERATION_FAILED));
+        UserMessages.AUTHENTICATION_U2F_FAILED));
   }
 
   return handler;

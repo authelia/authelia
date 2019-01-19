@@ -7,40 +7,38 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 
 import { Link } from "react-router-dom";
-import { RouterProps, RouteProps } from "react-router";
 import { WithStyles, withStyles } from "@material-ui/core";
 
-import firstFactorViewStyles from '../../assets/jss/views/FirstFactorView/FirstFactorView';
+import styles from '../../assets/jss/components/FirstFactorForm/FirstFactorForm';
 import FormNotification from "../../components/FormNotification/FormNotification";
 
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
-import StateSynchronizer from "../../containers/components/StateSynchronizer/StateSynchronizer";
-import RemoteState from "../../reducers/Portal/RemoteState";
 
-export interface Props extends RouteProps, RouterProps, WithStyles {
+export interface StateProps {
+  formDisabled: boolean;
+  error: string | null;
+}
+
+export interface DispatchProps {
   onAuthenticationRequested(username: string, password: string): void;
 }
 
+export type Props = StateProps & DispatchProps & WithStyles;
+
 interface State {
-  rememberMe: boolean;
   username: string;
   password: string;
-  loginButtonDisabled: boolean;
-  errorMessage: string | null;
-  remoteState: RemoteState | null;
+  rememberMe: boolean;
 }
 
-class FirstFactorView extends Component<Props, State> {
+class FirstFactorForm extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      rememberMe: false,
       username: '',
       password: '',
-      loginButtonDisabled: false,
-      errorMessage: null,
-      remoteState: null,
+      rememberMe: false,
     }
   }
 
@@ -68,13 +66,13 @@ class FirstFactorView extends Component<Props, State> {
     }
   }
 
-  private renderWithState() {
+  render() {
     const { classes } = this.props;
     return (
       <div>
         <FormNotification
-          show={this.state.errorMessage != null}>
-          {this.state.errorMessage || ''}
+          show={this.props.error != null}>
+          {this.props.error || ''}
         </FormNotification>
         <div className={classes.fields}>
           <div className={classes.field}>
@@ -83,6 +81,7 @@ class FirstFactorView extends Component<Props, State> {
               variant="outlined"
               id="username"
               label="Username"
+              disabled={this.props.formDisabled}
               onChange={this.onUsernameChanged}>
             </TextField>
           </div>
@@ -93,6 +92,7 @@ class FirstFactorView extends Component<Props, State> {
               variant="outlined"
               label="Password"
               type="password"
+              disabled={this.props.formDisabled}
               onChange={this.onPasswordChanged}
               onKeyPress={this.onPasswordKeyPressed}>
             </TextField>
@@ -104,7 +104,7 @@ class FirstFactorView extends Component<Props, State> {
               onClick={this.onLoginClicked}
               variant="contained"
               color="primary"
-              disabled={this.state.loginButtonDisabled}>
+              disabled={this.props.formDisabled}>
               Login
             </Button>
           </div>
@@ -132,30 +132,11 @@ class FirstFactorView extends Component<Props, State> {
     )
   }
 
-  render() {
-    return (
-      <div>
-        <StateSynchronizer
-          onLoaded={(remoteState) => this.setState({remoteState})}/>
-        {this.state.remoteState ? this.renderWithState() : null}
-      </div>
-    )
-  }
-
   private authenticate() {
-    this.setState({loginButtonDisabled: true});
     this.props.onAuthenticationRequested(
       this.state.username,
       this.state.password);
-    this.setState({errorMessage: null});
-  }
-
-  onFailure = (error: string) => {
-    this.setState({
-      loginButtonDisabled: false,
-      errorMessage: 'An error occured. Your username/password are probably wrong.'
-    });
   }
 }
 
-export default withStyles(firstFactorViewStyles)(FirstFactorView);
+export default withStyles(styles)(FirstFactorForm);

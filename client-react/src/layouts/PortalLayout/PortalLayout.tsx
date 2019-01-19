@@ -7,11 +7,8 @@ import { AUTHELIA_GITHUB_URL } from "../../constants";
 import { WithStyles, withStyles } from "@material-ui/core";
 
 import styles from '../../assets/jss/layouts/PortalLayout/PortalLayout';
-import AuthenticationLevel from "../../types/AuthenticationLevel";
 
-interface Props extends RouterProps, RouteProps, WithStyles {
-  authenticationLevel: AuthenticationLevel;
-}
+interface Props extends RouterProps, RouteProps, WithStyles {}
 
 class PortalLayout extends Component<Props> {
   private renderTitle() {

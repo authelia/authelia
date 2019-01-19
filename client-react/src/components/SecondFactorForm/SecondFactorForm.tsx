@@ -1,36 +1,50 @@
-import React, { Component } from 'react';
+import React, { Component, KeyboardEvent, ChangeEvent } from 'react';
 
 import { WithStyles, withStyles, Button, TextField } from '@material-ui/core';
 
-import styles from '../../assets/jss/views/SecondFactorView/SecondFactorView';
-import StateSynchronizer from '../../containers/components/StateSynchronizer/StateSynchronizer';
-import { RouterProps, Redirect } from 'react-router';
-import RemoteState from '../../reducers/Portal/RemoteState';
-import AuthenticationLevel from '../../types/AuthenticationLevel';
-import { WithState } from '../../components/StateSynchronizer/WithState';
+import styles from '../../assets/jss/components/SecondFactorForm/SecondFactorForm';
 import CircleLoader, { Status } from '../../components/CircleLoader/CircleLoader';
+import FormNotification from '../FormNotification/FormNotification';
 
-export interface Props extends WithStyles, RouterProps, WithState {
+export interface OwnProps {
+  username: string;
+  redirection: string | null;
+}
+
+export interface StateProps {
   securityKeySupported: boolean;
   securityKeyVerified: boolean;
   securityKeyError: string | null;
 
+  oneTimePasswordVerificationInProgress: boolean,
+  oneTimePasswordVerificationError: string | null;
+}
+
+export interface DispatchProps {
+  onInit: () => void;
   onLogoutClicked: () => void;
   onRegisterSecurityKeyClicked: () => void;
   onRegisterOneTimePasswordClicked: () => void;
-  onStateLoaded: (state: RemoteState) => void;
-};
+
+  onOneTimePasswordValidationRequested: (token: string) => void;
+}
+
+export type Props = OwnProps & StateProps & DispatchProps & WithStyles;
 
 interface State {
-  remoteState: RemoteState | null;
+  oneTimePassword: string;
 }
 
 class SecondFactorView extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      remoteState: null,
+      oneTimePassword: '',
     }
+  }
+
+  componentWillMount() {
+    this.props.onInit();
   }
 
   private renderU2f(n: number) {
@@ -58,17 +72,37 @@ class SecondFactorView extends Component<Props, State> {
     )
   }
 
+  private onOneTimePasswordChanged = (e: ChangeEvent<HTMLInputElement>) => {
+    this.setState({oneTimePassword: e.target.value});
+  }
+
+  private onTotpKeyPressed = (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      this.onOneTimePasswordValidationRequested();
+    }
+  }
+
+  private onOneTimePasswordValidationRequested = () => {
+    if (this.props.oneTimePasswordVerificationInProgress) return;
+    this.props.onOneTimePasswordValidationRequested(this.state.oneTimePassword);
+  }
+
   private renderTotp(n: number) {
     const { classes } = this.props;
     return (
       <div className={classes.methodTotp} key='totp-method'>
         <div className={classes.methodName}>Option {n} - One-Time Password</div>
+        <FormNotification show={this.props.oneTimePasswordVerificationError !== null}>
+          {this.props.oneTimePasswordVerificationError}
+        </FormNotification>
         <TextField
           className={classes.totpField}
-          name="password"
-          id="password"
+          name="totp-token"
+          id="totp-token"
           variant="outlined"
-          label="One-Time Password">
+          label="One-Time Password"
+          onChange={this.onOneTimePasswordChanged}
+          onKeyPress={this.onTotpKeyPressed}>
         </TextField>
         <div className={classes.registerDeviceContainer}>
           <a className={classes.registerDevice} href="#"
@@ -79,7 +113,9 @@ class SecondFactorView extends Component<Props, State> {
         <Button
           className={classes.totpButton}
           variant="contained"
-          color="primary">
+          color="primary"
+          onClick={this.onOneTimePasswordValidationRequested}
+          disabled={this.props.oneTimePasswordVerificationInProgress}>
           OK
         </Button>
       </div>
@@ -103,16 +139,12 @@ class SecondFactorView extends Component<Props, State> {
     );
   }
 
-  private renderWithState(state: RemoteState) {
-    if (state.authentication_level < AuthenticationLevel.ONE_FACTOR) {
-      return <Redirect to='/' key='redirect' />;
-    }
-
+  render() {
     const { classes } = this.props;
     return (
       <div className={classes.container}>
         <div className={classes.header}>
-          <div className={classes.hello}>Hello <b>{state.username}</b></div>
+          <div className={classes.hello}>Hello <b>{this.props.username}</b></div>
           <div className={classes.logout}>
             <a onClick={this.props.onLogoutClicked} href="#">Logout</a>
           </div>
@@ -120,21 +152,6 @@ class SecondFactorView extends Component<Props, State> {
         <div className={classes.body}>
           {this.renderMode()}
         </div>
-      </div>
-    )
-  }
-
-  onStateLoaded = (remoteState: RemoteState) => {
-    this.setState({remoteState});
-    this.props.onStateLoaded(remoteState);
-  }
-
-  render() {
-    return (
-      <div>
-        <StateSynchronizer
-          onLoaded={this.onStateLoaded}/>
-        {this.state.remoteState ? this.renderWithState(this.state.remoteState) : null}
       </div>
     )
   }
