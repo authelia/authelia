@@ -14,8 +14,8 @@ If you want to create a new theme:
 - Add your theme folder name on line 237,239 and 242
 - And then build as above, with your theme folder/name.
 
-<src>/<theme_name> contains the source files, before build.
-<full>/<theme_name> contains the built files.
+Folder <src>/<theme_name> contains the source files, before build.
+Folder <full>/<theme_name> contains the pre-built files.
 
 authelia-theme-install.sh is meant for npm install, either locally (/tmp) or globally.
                                                                        
@@ -28,6 +28,6 @@ or adding parameters to default usage:
    -p or --port <port number>  
    -v or --verbose
 
-Ex. chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88
+Ex. chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88 -v
 
 That's it!
