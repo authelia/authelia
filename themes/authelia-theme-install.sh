@@ -62,6 +62,7 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             echo -e "${LIGHTBLUE}|  -t or --theme <default|black|matrix|squares|triangles>                                  |"
             echo -e "${LIGHTBLUE}|  -m or --mode <local|global>                                                             |"
             echo -e "${LIGHTBLUE}|  -p or --port <port number>                                                              |"
+            echo -e "${LIGHTBLUE}|  -v or --verbose                                                                         |"
             echo -e "${LIGHTBLUE}--------------------------------------------------------------------------------------------${NC}"
             exit 0
             ;;
@@ -160,6 +161,8 @@ authelia_mod()
 			apt-get update
 		fi
         echo
+                if test -z "$verbose"
+                then
 		echo -e "${LIGHTBLUE}> Adding nodejs...\e[0m${NC}"
 		apt-get -y install ${node_debian} >/dev/null 2>&1
 		for ((i=0; i < "${#authelia_reqname[@]}"; i++))
@@ -168,6 +171,16 @@ authelia_mod()
 		    apt-get -y install ${authelia_req[$i]} >/dev/null 2>&1
 		done
 		echo
+		else
+                echo -e "${LIGHTBLUE}> Adding nodejs...\e[0m${NC}"
+                apt-get -y install ${node_debian}
+                for ((i=0; i < "${#authelia_reqname[@]}"; i++))
+                do
+                    echo -e "${LIGHTBLUE}> Installing ${authelia_reqname[$i]}...\e[0m${NC}"
+                    apt-get -y install ${authelia_req[$i]}
+                done
+                echo
+		fi
     }
 
 if test "$verbose"
