@@ -43,6 +43,13 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             ;;
     esac
     case $1 in
+        -v | --verbose )
+            shift
+	    verbose="yes"
+            interactive="yes"
+            ;;
+    esac
+    case $1 in
         -h | --help )
             shift
             echo -e "${LIGHTBLUE}--------------------------------------------------------------------------------------------"
@@ -86,6 +93,13 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             interactive="yes"
             ;;
     esac
+    case $2 in
+        -v | --verbose )
+            shift
+            verbose="yes"
+            interactive="yes"
+            ;;
+    esac
     case $3 in
         -t | --theme )
             shift
@@ -107,6 +121,20 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             interactive="yes"
             ;;
     esac
+    case $3 in
+        -v | --verbose )
+            shift
+            verbose="yes"
+            interactive="yes"
+            ;;
+    esac
+    case $4 in
+        -v | --verbose )
+            shift
+            verbose="yes"
+            interactive="yes"
+            ;;
+    esac
     shift
 done
 
@@ -125,7 +153,12 @@ authelia_mod()
 	{
         echo
         echo -e "${LIGHTBLUE}> Updating apt repositories...\e[0m${NC}"
-		apt-get update >/dev/null 2>&1
+		if test -z "$verbose"
+		then
+			apt-get update >/dev/null 2>&1
+		else
+			apt-get update
+		fi
         echo
 		echo -e "${LIGHTBLUE}> Adding nodejs...\e[0m${NC}"
 		apt-get -y install ${node_debian} >/dev/null 2>&1
@@ -136,6 +169,12 @@ authelia_mod()
 		done
 		echo
     }
+
+if test "$verbose"
+then
+   echo -e "${YELLOW}> Using Verbose mode...${NC}"
+fi
+
 
 authelia_mod
 
@@ -359,7 +398,7 @@ npm install >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
 grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
 
 echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-cp -r dist $dest"/authelia" 
+cp -r dist $dest_global"/authelia" 
 
 echo -e "${LIGHTBLUE}> Starting server...${NC}"
 echo -e "${LIGHTBLUE}> Stop with CTRL-C, run with \"authelia config.file\"${NC}"
