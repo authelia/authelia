@@ -240,18 +240,6 @@ export const RESET_PASSWORD_IDENTITY_FINISH_GET = "/api/password-reset/identity/
 export const FIRST_FACTOR_POST = "/api/firstfactor";
 
 /**
- * @api {get} / First factor page
- * @apiName Login
- * @apiGroup Authentication
- * @apiVersion 1.0.0
- *
- * @apiSuccess (Success 200) {String} Content The content of the first factor page.
- *
- * @apiDescription Serves the login page and create a create a cookie for the client.
- */
-export const FIRST_FACTOR_GET = "/";
-
-/**
  * @api {get} /state Authentication state
  * @apiName State
  * @apiGroup Authentication
@@ -299,8 +287,3 @@ export const VERIFY_GET = "/api/verify";
  */
 export const LOGOUT_POST = "/api/logout";
 
-export const ERROR_401_GET = "/error/401";
-export const ERROR_403_GET = "/error/403";
-export const ERROR_404_GET = "/error/404";
-
-export const LOGGED_IN = "/loggedin";

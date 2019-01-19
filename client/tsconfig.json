@@ -1,24 +1,25 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "target": "es6",
-        "moduleResolution": "node",
-        "noImplicitAny": true,
-        "sourceMap": true,
-        "removeComments": true,
-        "outDir": "../dist",
-        "baseUrl": ".",
-        "paths": {
-            "*": [
-                "./types/*",
-                "../shared/types/*"
-            ]
-        }
-    },
-    "include": [
-        "src/**/*"
-    ],
-    "exclude": [
-        "test/**/*"
+  "compilerOptions": {
+    "target": "es6",
+    "allowJs": true,
+    "skipLibCheck": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
     ]
+  },
+  "include": [
+    "src"
+  ]
 }

@@ -19,13 +19,6 @@ import U2FRegisterPost = require("../routes/secondfactor/u2f/register/post");
 import U2FRegisterRequestGet = require("../routes/secondfactor/u2f/register_request/get");
 
 import ResetPasswordFormPost = require("../routes/password-reset/form/post");
-import ResetPasswordRequestPost = require("../routes/password-reset/request/get");
-
-import Error401Get = require("../routes/error/401/get");
-import Error403Get = require("../routes/error/403/get");
-import Error404Get = require("../routes/error/404/get");
-
-import LoggedIn = require("../routes/loggedin/get");
 
 import { ServerVariables } from "../ServerVariables";
 import Endpoints = require("../../../../shared/api");
@@ -86,16 +79,8 @@ function setupResetPassword(app: Express.Application, vars: ServerVariables) {
     new ResetPasswordIdentityHandler(vars.logger, vars.usersDatabase),
     vars);
 
-  app.get(Endpoints.RESET_PASSWORD_REQUEST_GET,
-    ResetPasswordRequestPost.default);
   app.post(Endpoints.RESET_PASSWORD_FORM_POST,
     ResetPasswordFormPost.default(vars));
-}
-
-function setupErrors(app: Express.Application, vars: ServerVariables) {
-  app.get(Endpoints.ERROR_401_GET, Error401Get.default(vars));
-  app.get(Endpoints.ERROR_403_GET, Error403Get.default(vars));
-  app.get(Endpoints.ERROR_404_GET, Error404Get.default);
 }
 
 export class RestApi {
@@ -110,10 +95,5 @@ export class RestApi {
     setupTotp(app, vars);
     setupU2f(app, vars);
     setupResetPassword(app, vars);
-    setupErrors(app, vars);
-
-    app.get(Endpoints.LOGGED_IN,
-      RequireValidatedFirstFactor.middleware(vars.logger),
-      LoggedIn.default(vars));
   }
 }

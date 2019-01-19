@@ -1,13 +1,11 @@
 
 import express = require("express");
 import BluebirdPromise = require("bluebird");
-import objectPath = require("object-path");
 
 import { Identity } from "../../../../../../types/Identity";
 import { IdentityValidable } from "../../../../IdentityValidable";
 import { PRE_VALIDATION_TEMPLATE } from "../../../../IdentityCheckPreValidationTemplate";
 import Constants = require("../constants");
-import Endpoints = require("../../../../../../../shared/api");
 import ErrorReplies = require("../../../../ErrorReplies");
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import UserMessages = require("../../../../../../../shared/UserMessages");
@@ -100,7 +98,6 @@ export default class RegistrationHandler implements IdentityValidable {
         res.json({
           base32_secret: secret.base32,
           otpauth_url: secret.otpauth_url,
-          login_endpoint: Endpoints.FIRST_FACTOR_GET
         });
       })
       .catch(ErrorReplies.replyWithError200(req, res, that.logger, UserMessages.OPERATION_FAILED));
