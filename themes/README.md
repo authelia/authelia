@@ -1,8 +1,8 @@
-In order to build a specific Theme you need to run:  
+In order to build a specific Theme you need to run:
 `grunt --theme=<theme_name>`
 
-Available themes are: default, black, matrix, squares, triangles  
-Example:  `grunt --theme=black`
+Available themes are: default, black, matrix, squares, triangles:
+`grunt --theme=black`
 
 By default the original theme will be built.
 
@@ -26,4 +26,4 @@ or adding parameters to default usage:
    -p or --port <port number>  
    -v or --verbose
 
-Example:  `chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88 -v`
+Example:<br>`chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88 -v`
