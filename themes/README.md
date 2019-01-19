@@ -1,8 +1,8 @@
 In order to build a specific Theme you need to run:
-`grunt --theme=<theme_name>`
+<br>`grunt --theme=<theme_name>`
 
 Available themes are: default, black, matrix, squares, triangles:
-`grunt --theme=black`
+<br>`grunt --theme=black`
 
 By default the original theme will be built.
 
