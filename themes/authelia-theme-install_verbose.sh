@@ -385,101 +385,132 @@ authelia_local_install()
     # done
 	}
 
-authelia_global_install() {
+authelia_global_install() 
+    {
+    if test -z "$verbose"
+    then
+        echo -e "${LIGHTBLUE}> Removing old Authelia globally...${NC}"
+        npm remove -g authelia >/dev/null 2>&1
 
-if test -z "$verbose"
-then
-    echo -e "${LIGHTBLUE}> Removing old Authelia globally...${NC}"
-    npm remove -g authelia >/dev/null 2>&1
+        echo -e "${LIGHTBLUE}> Installing Authelia globally...${NC}"
+        npm install -g authelia >/dev/null 2>&1
 
-    echo -e "${LIGHTBLUE}> Installing Authelia globally...${NC}"
-    npm install -g authelia >/dev/null 2>&1
+        echo -e "${LIGHTBLUE}> Installing Grunt-cli globally...${NC}"
+        npm install -g grunt-cli >/dev/null 2>&1
 
-    echo -e "${LIGHTBLUE}> Installing Grunt-cli globally...${NC}"
-    npm install -g grunt-cli >/dev/null 2>&1
+        echo -e "${LIGHTBLUE}> Creating user Authelia...${NC}"
+        useradd -r -s /bin/false authelia >/dev/null 2>&1
+    else
+        echo -e "${LIGHTBLUE}> Removing old Authelia globally...${NC}"
+        npm remove -g authelia
 
-    echo -e "${LIGHTBLUE}> Creating user Authelia...${NC}"
-    useradd -r -s /bin/false authelia >/dev/null 2>&1
-else
-    echo -e "${LIGHTBLUE}> Removing old Authelia globally...${NC}"
-    npm remove -g authelia
+        echo -e "${LIGHTBLUE}> Installing Authelia globally...${NC}"
+        npm install -g authelia
 
-    echo -e "${LIGHTBLUE}> Installing Authelia globally...${NC}"
-    npm install -g authelia
+        echo -e "${LIGHTBLUE}> Installing Grunt-cli globally...${NC}"
+        npm install -g grunt-cli
 
-    echo -e "${LIGHTBLUE}> Installing Grunt-cli globally...${NC}"
-    npm install -g grunt-cli
+        echo -e "${LIGHTBLUE}> Creating user Authelia...${NC}"
+        useradd -r -s /bin/false authelia
+    fi
 
-    echo -e "${LIGHTBLUE}> Creating user Authelia...${NC}"
-    useradd -r -s /bin/false authelia
-fi
 
-echo -e "${LIGHTBLUE}> Configuring Authelia...${NC}"
-mkdir -p /etc/authelia
-chown root:authelia /etc/authelia
-chmod 2750 /etc/authelia
-wget -O /etc/authelia/config.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.template.yml' >/dev/null 2>&1
-wget -O /etc/authelia/config.minimal.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.minimal.yml' >/dev/null 2>&1
-wget -O /etc/authelia/users_database.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/users_database.yml' >/dev/null 2>&1
+    if test -z "$verbose"
+    then
+        echo -e "${LIGHTBLUE}> Configuring Authelia...${NC}"
+        mkdir -p /etc/authelia
+        chown root:authelia /etc/authelia
+        chmod 2750 /etc/authelia
+        wget -O /etc/authelia/config.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.template.yml' >/dev/null 2>&1
+        wget -O /etc/authelia/config.minimal.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.minimal.yml' >/dev/null 2>&1
+        wget -O /etc/authelia/users_database.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/users_database.yml' >/dev/null 2>&1
+    else
+        echo -e "${LIGHTBLUE}> Configuring Authelia...${NC}"
+        mkdir -p /etc/authelia
+        chown root:authelia /etc/authelia
+        chmod 2750 /etc/authelia
+        wget -O /etc/authelia/config.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.template.yml' >/dev/null 2>&1
+        wget -O /etc/authelia/config.minimal.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.minimal.yml' >/dev/null 2>&1
+        wget -O /etc/authelia/users_database.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/users_database.yml' >/dev/null 2>&1
+    fi
 
-echo -e "${LIGHTBLUE}> Creating Authelia in systemd...${NC}"
-cat >/etc/systemd/system/authelia.service <<EOL
-[Unit]
-Description=2FA Single Sign-On Authentication Server
-After=network.target
+    echo -e "${LIGHTBLUE}> Creating Authelia in systemd...${NC}"
+    cat >/etc/systemd/system/authelia.service 
+    << EOL
+        [Unit]
+        Description=2FA Single Sign-On Authentication Server
+        After=network.target
 
-[Service]
-User=authelia
-Group=authelia
-ExecStart=/usr/bin/authelia /etc/authelia/config.minimal.yml
-Restart=always
+        [Service]
+        User=authelia
+        Group=authelia
+        ExecStart=/usr/bin/authelia /etc/authelia/config.minimal.yml
+        Restart=always
 
-[Install]
-WantedBy=multi-user.target
+        [Install]
+        WantedBy=multi-user.target
 EOL
 
-echo -e "${LIGHTBLUE}> Reload daemon, enable and start service...${NC}"
-systemctl daemon-reload
-systemctl start authelia
-systemctl status authelia
-systemctl enable authelia
+    echo -e "${LIGHTBLUE}> Reload daemon, enable and start service...${NC}"
+    systemctl daemon-reload
+    systemctl start authelia
+    systemctl status authelia
+    systemctl enable authelia
 
-echo -e "${LIGHTBLUE}> Deleting /tmp/authelia...${NC}"
-rm -rf /tmp/authelia
+    echo -e "${LIGHTBLUE}> Deleting /tmp/authelia...${NC}"
+    rm -rf /tmp/authelia
 
-echo -e "${LIGHTBLUE}> Cloning git...${NC}"
-git clone https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+    echo -e "${LIGHTBLUE}> Cloning git...${NC}"
+    if test -z "$verbose"
+    then
+        git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+        git pull origin dev >/dev/null 2>&1
+    else
+        git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+        git pull origin dev
+    fi
 
-if test -z "$theme"
-then
-	while [[ "$theme" != 'default' && "$theme" != 'black' && "$theme" != 'matrix' && "$theme" != 'squares' && "$theme" != 'triangles' ]]; do
-		echo -e "${YELLOW}> Which theme? ([default],black,matrix,triangles,squares)${NC}"
-		read theme
-		if test -z "$theme"
-		then
-            theme="default"
-			echo -e "${LIGHTBLUE}> Input empty, defaulting to:" $theme"...${NC}"
-		else
-			echo
-		fi
-	done
-else
-		echo -e "${LIGHTBLUE}> Theme chosen:" $theme"...${NC}"
-fi
+    if test -z "$theme"
+    then
+        while [[ "$theme" != 'default' && "$theme" != 'black' && "$theme" != 'matrix' && "$theme" != 'squares' && "$theme" != 'triangles' ]]; do
+            echo -e "${YELLOW}> Which theme? ([default],black,matrix,triangles,squares)${NC}"
+            read theme
+            if test -z "$theme"
+            then
+                theme="default"
+                echo -e "${LIGHTBLUE}> Input empty, defaulting to:" $theme"...${NC}"
+            else
+                echo
+            fi
+        done
+    else
+            echo -e "${LIGHTBLUE}> Theme chosen:" $theme"...${NC}"
+    fi
 
-echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
-npm install >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
+    if test -z "$verbose"
+    then
+        echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+        npm install >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
 
-grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
+        grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
 
-echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-cp -r dist $dest_global"/authelia" 
+        echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+        cp -R dist $dest_global"/authelia" 
+    else
+        echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+        npm install && echo -e "${YELLOW}50%...${NC}"
 
-echo -e "${LIGHTBLUE}> Starting server...${NC}"
-echo -e "${LIGHTBLUE}> Stop with CTRL-C, run with \"authelia config.file\"${NC}"
+        grunt --theme=$theme && echo -e "${GREEN}100%... OK!${NC}"
 
-sleep 5
-systemctl status authelia
+        echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+        cp -v -R dist $dest_global"/authelia" 
+    fi
+
+    echo -e "${LIGHTBLUE}> Starting server...${NC}"
+    echo -e "${LIGHTBLUE}> Stop with CTRL-C, run with \"authelia config.file\"${NC}"
+
+    sleep 5
+    systemctl status authelia
 
 }
 	
