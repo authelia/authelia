@@ -49,6 +49,13 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             interactive="yes"
             ;;
     esac
+		case $1 in
+        -b | --build )
+            shift
+            build="yes"
+            interactive="yes"
+            ;;
+    esac
     case $1 in
         -h | --help )
             shift
@@ -63,6 +70,7 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             echo -e "${LIGHTBLUE}|  -m or --mode <local|global>                                                             |"
             echo -e "${LIGHTBLUE}|  -p or --port <port number>                                                              |"
             echo -e "${LIGHTBLUE}|  -v or --verbose                                                                         |"
+            echo -e "${LIGHTBLUE}|  -b or --build                                                                           |"
             echo -e "${LIGHTBLUE}--------------------------------------------------------------------------------------------${NC}"
             exit 0
             ;;
@@ -101,6 +109,13 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             interactive="yes"
             ;;
     esac
+	case $2 in
+        -b | --build )
+            shift
+            build="yes"
+            interactive="yes"
+            ;;
+    esac
     case $3 in
         -t | --theme )
             shift
@@ -129,10 +144,24 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             interactive="yes"
             ;;
     esac
+	case $3 in
+        -b | --build )
+            shift
+            build="yes"
+            interactive="yes"
+            ;;
+    esac
     case $4 in
         -v | --verbose )
             shift
             verbose="yes"
+            interactive="yes"
+            ;;
+    esac
+	case $5 in
+        -b | --build )
+            shift
+            build="yes"
             interactive="yes"
             ;;
     esac
@@ -182,7 +211,6 @@ if test "$verbose"
 then
    echo -e "${YELLOW}> Using Verbose mode...${NC}"
 fi
-
 
 authelia_mod
 
@@ -486,37 +514,40 @@ EOL
     else
             echo -e "${LIGHTBLUE}> Theme chosen:" $theme"...${NC}"
     fi
-
-    # if test -z "$verbose"
-    # then
-        # echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
-        # npm install >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
-
-        # grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
-
-        # echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-        # cp -R dist $dest_global"/authelia" 
-    # else
-        # echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
-        # npm install && echo -e "${YELLOW}50%...${NC}"
-
-        # grunt --theme=$theme && echo -e "${GREEN}100%... OK!${NC}"
-
-        # echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-        # cp -v -R dist $dest_global"/authelia" 
-    # fi
 	
-	if test -z "$verbose"
-    then
-        echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-		cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
-		cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
-        cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/" 
-    else
-        echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-		cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
-		cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
-        cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/" 
+	if test -z "$build"
+	then
+		if test -z "$verbose"
+		then
+			echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+			cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
+			cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
+			cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/" 
+		else
+			echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+			cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
+			cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
+			cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/" 
+		fi
+	else
+	    if test -z "$verbose"
+		then
+			echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+			npm install >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
+
+			grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
+
+			echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+			cp -R dist $dest_global"/authelia" 
+		else
+			echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+			npm install && echo -e "${YELLOW}50%...${NC}"
+
+			grunt --theme=$theme && echo -e "${GREEN}100%... OK!${NC}"
+
+			echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+			cp -v -R dist $dest_global"/authelia" 
+		fi
     fi
 
     echo -e "${LIGHTBLUE}> Starting server...${NC}"
