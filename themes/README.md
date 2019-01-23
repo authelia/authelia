@@ -24,7 +24,7 @@ or adding parameters to default usage:
    -t or --theme <default|black|matrix|squares|triangles>              
    -m or --mode <local|global>                                         
    -p or --port <port number>  
-   -v or --verbose
+   -v or --verbose  
    -b or --build <to build the themes, instead of copying built ones>
 
 Example:<br>`chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88 -v -b`
