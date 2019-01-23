@@ -436,19 +436,19 @@ authelia_global_install()
 
     echo -e "${LIGHTBLUE}> Creating Authelia in systemd...${NC}"
     cat >/etc/systemd/system/authelia.service 
-    << EOL
-        [Unit]
-        Description=2FA Single Sign-On Authentication Server
-        After=network.target
+		<< EOL
+			[Unit]
+			Description=2FA Single Sign-On Authentication Server
+			After=network.target
 
-        [Service]
-        User=authelia
-        Group=authelia
-        ExecStart=/usr/bin/authelia /etc/authelia/config.minimal.yml
-        Restart=always
+			[Service]
+			User=authelia
+			Group=authelia
+			ExecStart=/usr/bin/authelia /etc/authelia/config.minimal.yml
+			Restart=always
 
-        [Install]
-        WantedBy=multi-user.target
+			[Install]
+			WantedBy=multi-user.target 
 EOL
 
     echo -e "${LIGHTBLUE}> Reload daemon, enable and start service...${NC}"
@@ -487,23 +487,36 @@ EOL
             echo -e "${LIGHTBLUE}> Theme chosen:" $theme"...${NC}"
     fi
 
-    if test -z "$verbose"
+    # if test -z "$verbose"
+    # then
+        # echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+        # npm install >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
+
+        # grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
+
+        # echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+        # cp -R dist $dest_global"/authelia" 
+    # else
+        # echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+        # npm install && echo -e "${YELLOW}50%...${NC}"
+
+        # grunt --theme=$theme && echo -e "${GREEN}100%... OK!${NC}"
+
+        # echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+        # cp -v -R dist $dest_global"/authelia" 
+    # fi
+	
+	if test -z "$verbose"
     then
-        echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
-        npm install >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
-
-        grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
-
         echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-        cp -R dist $dest_global"/authelia" 
+		cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
+		cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
+        cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/" 
     else
-        echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
-        npm install && echo -e "${YELLOW}50%...${NC}"
-
-        grunt --theme=$theme && echo -e "${GREEN}100%... OK!${NC}"
-
         echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-        cp -v -R dist $dest_global"/authelia" 
+		cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
+		cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
+        cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/" 
     fi
 
     echo -e "${LIGHTBLUE}> Starting server...${NC}"
