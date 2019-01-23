@@ -158,7 +158,7 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             interactive="yes"
             ;;
     esac
-	case $5 in
+    case $5 in
         -b | --build )
             shift
             build="yes"
@@ -217,13 +217,6 @@ authelia_mod
 dest_global="$(echo | npm -g root)"
 dest_local="$(echo | pwd)"
 
-if test -z "$verbose"
-then
-	apt-get update >/dev/null 2>&1
-else
-	apt-get update
-fi
-
 authelia_local_install()
 	{
 	while [[ "$theme" != 'default' && "$theme" != 'black' && "$theme" != 'matrix' && "$theme" != 'squares' && "$theme" != 'triangles' ]]; do
@@ -250,8 +243,8 @@ authelia_local_install()
                 fi
 
                 echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
-                
-                if test -z "$verbose"
+
+		if test -z "$verbose"
                 then
                     authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
                     authelia_filename_npm=${authelia_latest_npm##*/}
@@ -320,7 +313,7 @@ authelia_local_install()
                 fi
 
                 echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
-                
+
                 if test -z "$verbose"
                 then
                     authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
@@ -374,43 +367,42 @@ authelia_local_install()
                 node package/dist/server/src/index.js ./themes/config.minimal.port.yml
             fi
     done
-    # while [[ "$theme" = 'default' || "$theme" = 'black' || "$theme" = 'matrix' || "$theme" = 'squares' || "$theme" = 'triangles' ]]; do
-    #             echo -e "${LIGHTBLUE}> Using theme:" $theme"...${NC}"
+    while [[ "$theme" = 'default' || "$theme" = 'black' || "$theme" = 'matrix' || "$theme" = 'squares' || "$theme" = 'triangles' ]]; do
+                echo -e "${LIGHTBLUE}> Using theme:" $theme"...${NC}"
+                echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
 
-    #             echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
+                rm -rf /tmp/authelia
+                mkdir /tmp/authelia && cd /tmp/authelia
 
-    #             rm -rf /tmp/authelia
-    #             mkdir /tmp/authelia && cd /tmp/authelia
+                echo -e "${LIGHTBLUE}> Cloning git...${NC}"
+                git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
 
-    #             echo -e "${LIGHTBLUE}> Cloning git...${NC}"
-    #             git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
+                authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
+                authelia_filename_npm=${authelia_latest_npm##*/}
+                authelia_filename="$(echo $authelia_filename_npm)"
+                curl -s -OL $(npm view authelia dist.tarball)
 
-    #             echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
-    #             authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
-    #             authelia_filename_npm=${authelia_latest_npm##*/}
-    #             authelia_filename="$(echo $authelia_filename_npm)"
-    #             curl -s -OL $(npm view authelia dist.tarball)
+                tar -zxf $authelia_filename
 
-    #             tar -zxf $authelia_filename
+                echo -e "${LIGHTBLUE}> Installing...${NC}"
+                npm install >/dev/null 2>&1
 
-    #             echo -e "${LIGHTBLUE}> Installing...${NC}"
-    #             npm install >/dev/null 2>&1
+                echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
+                cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
+                cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
+                cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
 
-    #             echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-    #             cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-    #             cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-    #             cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
+                if test -z "$port"
+                then
+                    echo "Using port: 8080"
+                else
+                    echo "Using port: "$port
+                    sed -i 's/8080/'$port'/' ./themes/config.minimal.port.yml
+                fi
 
-    #             if test -z "$port"
-    #             then
-    #                 echo "Using port: 8080"
-    #             else
-    #                 echo "Using port: "$port
-    #                 sed -i 's/8080/'$port'/' ./themes/config.minimal.port.yml
-    #             fi
-
-    #             node package/dist/server/src/index.js ./themes/config.minimal.port.yml
-    # done
+                node package/dist/server/src/index.js ./themes/config.minimal.port.yml
+    done
 	}
 
 authelia_global_install() 
@@ -430,7 +422,7 @@ authelia_global_install()
         useradd -r -s /bin/false authelia >/dev/null 2>&1
     else
         echo -e "${LIGHTBLUE}> Removing old Authelia globally...${NC}"
-        npm remove -g authelia
+        npm uninstall -g authelia
 
         echo -e "${LIGHTBLUE}> Installing Authelia globally...${NC}"
         npm install -g authelia
@@ -463,20 +455,18 @@ authelia_global_install()
     fi
 
     echo -e "${LIGHTBLUE}> Creating Authelia in systemd...${NC}"
-    cat >/etc/systemd/system/authelia.service 
-		<< EOL
-			[Unit]
-			Description=2FA Single Sign-On Authentication Server
-			After=network.target
 
-			[Service]
-			User=authelia
-			Group=authelia
-			ExecStart=/usr/bin/authelia /etc/authelia/config.minimal.yml
-			Restart=always
-
-			[Install]
-			WantedBy=multi-user.target 
+cat >/etc/systemd/system/authelia.service <<EOL
+[Unit]
+Description=2FA Single Sign-On Authentication Server
+After=network.target
+[Service]
+User=authelia
+Group=authelia
+ExecStart=/usr/bin/authelia /etc/authelia/config.minimal.yml
+Restart=always
+[Install]
+WantedBy=multi-user.target
 EOL
 
     echo -e "${LIGHTBLUE}> Reload daemon, enable and start service...${NC}"
