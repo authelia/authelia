@@ -145,11 +145,6 @@ then
     exit 0
 fi
 
-#echo "port: "$port
-#echo "interactive: "$interactive
-#echo "theme: "$theme
-#echo "mode: "$mode
-
 authelia_mod()
 	{
         echo
@@ -161,25 +156,25 @@ authelia_mod()
 			apt-get update
 		fi
         echo
-                if test -z "$verbose"
-                then
-		echo -e "${LIGHTBLUE}> Adding nodejs...\e[0m${NC}"
-		apt-get -y install ${node_debian} >/dev/null 2>&1
-		for ((i=0; i < "${#authelia_reqname[@]}"; i++))
-		do
-		    echo -e "${LIGHTBLUE}> Installing ${authelia_reqname[$i]}...\e[0m${NC}"
-		    apt-get -y install ${authelia_req[$i]} >/dev/null 2>&1
-		done
-		echo
+        if test -z "$verbose"
+        then
+            echo -e "${LIGHTBLUE}> Adding nodejs...\e[0m${NC}"
+            apt-get -y install ${node_debian} >/dev/null 2>&1
+            for ((i=0; i < "${#authelia_reqname[@]}"; i++))
+            do
+                echo -e "${LIGHTBLUE}> Installing ${authelia_reqname[$i]}...\e[0m${NC}"
+                apt-get -y install ${authelia_req[$i]} >/dev/null 2>&1
+            done
+            echo
 		else
-                echo -e "${LIGHTBLUE}> Adding nodejs...\e[0m${NC}"
-                apt-get -y install ${node_debian}
-                for ((i=0; i < "${#authelia_reqname[@]}"; i++))
-                do
-                    echo -e "${LIGHTBLUE}> Installing ${authelia_reqname[$i]}...\e[0m${NC}"
-                    apt-get -y install ${authelia_req[$i]}
-                done
-                echo
+            echo -e "${LIGHTBLUE}> Adding nodejs...\e[0m${NC}"
+            apt-get -y install ${node_debian}
+            for ((i=0; i < "${#authelia_reqname[@]}"; i++))
+            do
+                echo -e "${LIGHTBLUE}> Installing ${authelia_reqname[$i]}...\e[0m${NC}"
+                apt-get -y install ${authelia_req[$i]}
+            done
+            echo
 		fi
     }
 
@@ -210,39 +205,65 @@ authelia_local_install()
             then
             	theme="default"
                 echo -e "${LIGHTBLUE}> Input empty, defaulting to:" $theme"...${NC}"
-
-		echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
+		        echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
+                echo -e "${LIGHTBLUE}> Cleaning up /tmp...${NC}"
 
                 rm -rf /tmp/authelia
                 mkdir /tmp/authelia && cd /tmp/authelia
 
-                #authelia_latest_github="$(curl -s https://github.com/clems4ever/authelia/releases | grep authelia/archive/v* | cut -d '"' -f 4 | head -n 2 | grep tar)"
-                #authelia_version_github=${authelia_latest_github##*/}
-                #curl -s -OL https://github.com/$authelia_latest_github
-
-                #authelia_latest_tarball="$(npm view authelia | grep tgz | cut -d " " -f 2)"
-                #authelia_version_npm=${authelia_latest_tarball##*/}
-                #curl -s -OL $authelia_latest_tarball
-
                 echo -e "${LIGHTBLUE}> Cloning git...${NC}"
-                git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                if test -z "$verbose"
+                then
+                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                    git pull origin dev >/dev/null 2>&1
+                else
+                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+                    git pull origin dev
+                fi
 
                 echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
-                authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
-                authelia_filename_npm=${authelia_latest_npm##*/}
-                authelia_filename="$(echo $authelia_filename_npm)"
-                curl -s -OL $(npm view authelia dist.tarball)
-                #npm pack authelia
+                
+                if test -z "$verbose"
+                then
+                    authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
+                    authelia_filename_npm=${authelia_latest_npm##*/}
+                    authelia_filename="$(echo $authelia_filename_npm)"
+                    curl -s -OL $(npm view authelia dist.tarball)
 
-                tar -zxf $authelia_filename
+                    tar -zxf $authelia_filename
+                else
+                    authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
+                    echo $authelia_latest_npm
+                    authelia_filename_npm=${authelia_latest_npm##*/}
+                    echo $authelia_filename_npm
+                    authelia_filename="$(echo $authelia_filename_npm)"
+                    echo $authelia_filename
+                    curl -vs -OL $(npm view authelia dist.tarball)
 
-                echo -e "${LIGHTBLUE}> Installing...${NC}"
-                npm install >/dev/null 2>&1
+                    tar -zxvf $authelia_filename
+                fi
 
-                echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
+                if test -z "$verbose"
+                then
+                    echo -e "${LIGHTBLUE}> Installing...${NC}"
+                    npm install >/dev/null 2>&1
+                else
+                    echo -e "${LIGHTBLUE}> Installing...${NC}"
+                    npm install
+                fi
+
+                if test -z "$verbose"
+                then
+                    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
+                    cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
+                    cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
+                    cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
+                else
+                    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
+                    cp -v -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
+                    cp -v -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
+                    cp -v -R "./themes/full/$theme/views/" "./package/dist/server/src/"
+                fi
 
                 if test -z "$port"
                 then
@@ -254,40 +275,65 @@ authelia_local_install()
 
                 node package/dist/server/src/index.js ./themes/config.minimal.port.yml
             else
-                echo -e "${LIGHTBLUE}> Using theme:" $theme"...${NC}"
-
-                echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
+		        echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
+                echo -e "${LIGHTBLUE}> Cleaning up /tmp...${NC}"
 
                 rm -rf /tmp/authelia
-		mkdir /tmp/authelia && cd /tmp/authelia
-
-                #authelia_latest_github="$(curl -s https://github.com/clems4ever/authelia/releases | grep authelia/archive/v* | cut -d '"' -f 4 | head -n 2 | grep tar)"
-                #authelia_version_github=${authelia_latest_github##*/}
-                #curl -s -OL https://github.com/$authelia_latest_github
-
-                #authelia_latest_tarball="$(npm view authelia | grep tgz | cut -d " " -f 2)"
-                #authelia_version_npm=${authelia_latest_tarball##*/}
-                #curl -s -OL $authelia_latest_tarball
+                mkdir /tmp/authelia && cd /tmp/authelia
 
                 echo -e "${LIGHTBLUE}> Cloning git...${NC}"
-                git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                if test -z "$verbose"
+                then
+                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                    git pull origin dev >/dev/null 2>&1
+                else
+                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+                    git pull origin dev
+                fi
 
                 echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
-                authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
-                authelia_filename_npm=${authelia_latest_npm##*/}
-                authelia_filename="$(echo $authelia_filename_npm)"
-                curl -s -OL $(npm view authelia dist.tarball)
-                #npm pack authelia
+                
+                if test -z "$verbose"
+                then
+                    authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
+                    authelia_filename_npm=${authelia_latest_npm##*/}
+                    authelia_filename="$(echo $authelia_filename_npm)"
+                    curl -s -OL $(npm view authelia dist.tarball)
 
-                tar -zxf $authelia_filename
+                    tar -zxf $authelia_filename
+                else
+                    authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
+                    echo $authelia_latest_npm
+                    authelia_filename_npm=${authelia_latest_npm##*/}
+                    echo $authelia_filename_npm
+                    authelia_filename="$(echo $authelia_filename_npm)"
+                    echo $authelia_filename
+                    curl -vs -OL $(npm view authelia dist.tarball)
 
-                echo -e "${LIGHTBLUE}> Installing...${NC}"
-                npm install >/dev/null 2>&1
+                    tar -zxvf $authelia_filename
+                fi
 
-                echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
+                if test -z "$verbose"
+                then
+                    echo -e "${LIGHTBLUE}> Installing...${NC}"
+                    npm install >/dev/null 2>&1
+                else
+                    echo -e "${LIGHTBLUE}> Installing...${NC}"
+                    npm install
+                fi
+
+                if test -z "$verbose"
+                then
+                    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
+                    cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
+                    cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
+                    cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
+                else
+                    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
+                    cp -v -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
+                    cp -v -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
+                    cp -v -R "./themes/full/$theme/views/" "./package/dist/server/src/"
+                fi
 
                 if test -z "$port"
                 then
@@ -300,64 +346,73 @@ authelia_local_install()
                 node package/dist/server/src/index.js ./themes/config.minimal.port.yml
             fi
     done
-    while [[ "$theme" = 'default' || "$theme" = 'black' || "$theme" = 'matrix' || "$theme" = 'squares' || "$theme" = 'triangles' ]]; do
-                echo -e "${LIGHTBLUE}> Using theme:" $theme"...${NC}"
+    # while [[ "$theme" = 'default' || "$theme" = 'black' || "$theme" = 'matrix' || "$theme" = 'squares' || "$theme" = 'triangles' ]]; do
+    #             echo -e "${LIGHTBLUE}> Using theme:" $theme"...${NC}"
 
-                echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
+    #             echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
 
-                rm -rf /tmp/authelia
-                mkdir /tmp/authelia && cd /tmp/authelia
+    #             rm -rf /tmp/authelia
+    #             mkdir /tmp/authelia && cd /tmp/authelia
 
-                #authelia_latest_github="$(curl -s https://github.com/clems4ever/authelia/releases | grep authelia/archive/v* | cut -d '"' -f 4 | head -n 2 | grep tar)"
-                #authelia_version_github=${authelia_latest_github##*/}
-                #curl -s -OL https://github.com/$authelia_latest_github
+    #             echo -e "${LIGHTBLUE}> Cloning git...${NC}"
+    #             git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
 
-                #authelia_latest_tarball="$(npm view authelia | grep tgz | cut -d " " -f 2)"
-                #authelia_version_npm=${authelia_latest_tarball##*/}
-                #curl -s -OL $authelia_latest_tarball
+    #             echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
+    #             authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
+    #             authelia_filename_npm=${authelia_latest_npm##*/}
+    #             authelia_filename="$(echo $authelia_filename_npm)"
+    #             curl -s -OL $(npm view authelia dist.tarball)
 
-                echo -e "${LIGHTBLUE}> Cloning git...${NC}"
-                git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+    #             tar -zxf $authelia_filename
 
-                echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
-                authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
-                authelia_filename_npm=${authelia_latest_npm##*/}
-                authelia_filename="$(echo $authelia_filename_npm)"
-                curl -s -OL $(npm view authelia dist.tarball)
-                #npm pack authelia
+    #             echo -e "${LIGHTBLUE}> Installing...${NC}"
+    #             npm install >/dev/null 2>&1
 
-                tar -zxf $authelia_filename
+    #             echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
+    #             cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
+    #             cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
+    #             cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
 
-                echo -e "${LIGHTBLUE}> Installing...${NC}"
-                npm install >/dev/null 2>&1
+    #             if test -z "$port"
+    #             then
+    #                 echo "Using port: 8080"
+    #             else
+    #                 echo "Using port: "$port
+    #                 sed -i 's/8080/'$port'/' ./themes/config.minimal.port.yml
+    #             fi
 
-                echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
-
-                if test -z "$port"
-                then
-                    echo "Using port: 8080"
-                else
-                    echo "Using port: "$port
-                    sed -i 's/8080/'$port'/' ./themes/config.minimal.port.yml
-                fi
-
-                node package/dist/server/src/index.js ./themes/config.minimal.port.yml
-    done
+    #             node package/dist/server/src/index.js ./themes/config.minimal.port.yml
+    # done
 	}
 
-authelia_global_install()
-	{
-echo -e "${LIGHTBLUE}> Installing Authelia globally...${NC}"
-npm install -g authelia >/dev/null 2>&1
+authelia_global_install() {
 
-echo -e "${LIGHTBLUE}> Installing Grunt-cli globally...${NC}"
-npm install -g grunt-cli >/dev/null 2>&1
+if test -z "$verbose"
+then
+    echo -e "${LIGHTBLUE}> Removing old Authelia globally...${NC}"
+    npm remove -g authelia >/dev/null 2>&1
 
-echo -e "${LIGHTBLUE}> Creating user Authelia...${NC}"
-useradd -r -s /bin/false authelia >/dev/null 2>&1
+    echo -e "${LIGHTBLUE}> Installing Authelia globally...${NC}"
+    npm install -g authelia >/dev/null 2>&1
+
+    echo -e "${LIGHTBLUE}> Installing Grunt-cli globally...${NC}"
+    npm install -g grunt-cli >/dev/null 2>&1
+
+    echo -e "${LIGHTBLUE}> Creating user Authelia...${NC}"
+    useradd -r -s /bin/false authelia >/dev/null 2>&1
+else
+    echo -e "${LIGHTBLUE}> Removing old Authelia globally...${NC}"
+    npm remove -g authelia
+
+    echo -e "${LIGHTBLUE}> Installing Authelia globally...${NC}"
+    npm install -g authelia
+
+    echo -e "${LIGHTBLUE}> Installing Grunt-cli globally...${NC}"
+    npm install -g grunt-cli
+
+    echo -e "${LIGHTBLUE}> Creating user Authelia...${NC}"
+    useradd -r -s /bin/false authelia
+fi
 
 echo -e "${LIGHTBLUE}> Configuring Authelia...${NC}"
 mkdir -p /etc/authelia
@@ -425,233 +480,8 @@ echo -e "${LIGHTBLUE}> Stop with CTRL-C, run with \"authelia config.file\"${NC}"
 
 sleep 5
 systemctl status authelia
-	}
 
-authelia_local_install_verbose()
-	{
-	while [[ "$theme" != 'default' && "$theme" != 'black' && "$theme" != 'matrix' && "$theme" != 'squares' && "$theme" != 'triangles' ]]; do
-        echo -e "${YELLOW}> Which theme? ([default],black,matrix,triangles,squares)${NC}"
-        read theme
-            if test -z "$theme"
-            then
-            	theme="default"
-                echo -e "${LIGHTBLUE}> Input empty, defaulting to:" $theme"...${NC}"
-
-		echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
-
-                rm -rf /tmp/authelia
-                mkdir /tmp/authelia && cd /tmp/authelia
-
-                #authelia_latest_github="$(curl -s https://github.com/clems4ever/authelia/releases | grep authelia/archive/v* | cut -d '"' -f 4 | head -n 2 | grep tar)"
-                #authelia_version_github=${authelia_latest_github##*/}
-                #curl -s -OL https://github.com/$authelia_latest_github
-
-                #authelia_latest_tarball="$(npm view authelia | grep tgz | cut -d " " -f 2)"
-                #authelia_version_npm=${authelia_latest_tarball##*/}
-                #curl -s -OL $authelia_latest_tarball
-
-                echo -e "${LIGHTBLUE}> Cloning git...${NC}"
-                git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
-
-                echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
-                authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
-                authelia_filename_npm=${authelia_latest_npm##*/}
-                authelia_filename="$(echo $authelia_filename_npm)"
-                curl -s -OL $(npm view authelia dist.tarball)
-                #npm pack authelia
-
-                tar -zxf $authelia_filename
-
-                echo -e "${LIGHTBLUE}> Installing...${NC}"
-                npm install
-
-                echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
-
-                if test -z "$port"
-                then
-                    echo "Using port: 8080"
-                else
-                    echo "Using port: "$port
-                    sed -i 's/8080/'$port'/' ./themes/config.minimal.port.yml
-                fi
-
-                node package/dist/server/src/index.js ./themes/config.minimal.port.yml
-            else
-                echo -e "${LIGHTBLUE}> Using theme:" $theme"...${NC}"
-
-                echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
-
-                rm -rf /tmp/authelia
-				mkdir /tmp/authelia && cd /tmp/authelia
-
-                #authelia_latest_github="$(curl -s https://github.com/clems4ever/authelia/releases | grep authelia/archive/v* | cut -d '"' -f 4 | head -n 2 | grep tar)"
-                #authelia_version_github=${authelia_latest_github##*/}
-                #curl -s -OL https://github.com/$authelia_latest_github
-
-                #authelia_latest_tarball="$(npm view authelia | grep tgz | cut -d " " -f 2)"
-                #authelia_version_npm=${authelia_latest_tarball##*/}
-                #curl -s -OL $authelia_latest_tarball
-
-                echo -e "${LIGHTBLUE}> Cloning git...${NC}"
-                git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
-
-                echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
-                authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
-                authelia_filename_npm=${authelia_latest_npm##*/}
-                authelia_filename="$(echo $authelia_filename_npm)"
-                curl -s -OL $(npm view authelia dist.tarball)
-                #npm pack authelia
-
-                tar -zxf $authelia_filename
-
-                echo -e "${LIGHTBLUE}> Installing...${NC}"
-                npm install
-
-                echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
-
-                if test -z "$port"
-                then
-                    echo "Using port: 8080"
-                else
-                    echo "Using port: "$port
-                    sed -i 's/8080/'$port'/' ./themes/config.minimal.port.yml
-                fi
-
-                node package/dist/server/src/index.js ./themes/config.minimal.port.yml
-            fi
-    done
-    while [[ "$theme" = 'default' || "$theme" = 'black' || "$theme" = 'matrix' || "$theme" = 'squares' || "$theme" = 'triangles' ]]; do
-                echo -e "${LIGHTBLUE}> Using theme:" $theme"...${NC}"
-
-                echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
-
-                rm -rf /tmp/authelia
-                mkdir /tmp/authelia && cd /tmp/authelia
-
-                #authelia_latest_github="$(curl -s https://github.com/clems4ever/authelia/releases | grep authelia/archive/v* | cut -d '"' -f 4 | head -n 2 | grep tar)"
-                #authelia_version_github=${authelia_latest_github##*/}
-                #curl -s -OL https://github.com/$authelia_latest_github
-
-                #authelia_latest_tarball="$(npm view authelia | grep tgz | cut -d " " -f 2)"
-                #authelia_version_npm=${authelia_latest_tarball##*/}
-                #curl -s -OL $authelia_latest_tarball
-
-                echo -e "${LIGHTBLUE}> Cloning git...${NC}"
-                git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
-
-                echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
-                authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
-                authelia_filename_npm=${authelia_latest_npm##*/}
-                authelia_filename="$(echo $authelia_filename_npm)"
-                curl -s -OL $(npm view authelia dist.tarball)
-                #npm pack authelia
-
-                tar -zxf $authelia_filename
-
-                echo -e "${LIGHTBLUE}> Installing...${NC}"
-                npm install
-
-                echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
-
-                if test -z "$port"
-                then
-                    echo "Using port: 8080"
-                else
-                    echo "Using port: "$port
-                    sed -i 's/8080/'$port'/' ./themes/config.minimal.port.yml
-                fi
-
-                node package/dist/server/src/index.js ./themes/config.minimal.port.yml
-    done
-	}
-
-authelia_global_install_verbose()
-	{
-echo -e "${LIGHTBLUE}> Installing Authelia globally...${NC}"
-npm install -g authelia
-
-echo -e "${LIGHTBLUE}> Installing Grunt-cli globally...${NC}"
-npm install -g grunt-cli
-
-echo -e "${LIGHTBLUE}> Creating user Authelia...${NC}"
-useradd -r -s /bin/false authelia
-
-echo -e "${LIGHTBLUE}> Configuring Authelia...${NC}"
-mkdir -p /etc/authelia
-chown root:authelia /etc/authelia
-chmod 2750 /etc/authelia
-wget -O /etc/authelia/config.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.template.yml'
-wget -O /etc/authelia/config.minimal.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.minimal.yml'
-wget -O /etc/authelia/users_database.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/users_database.yml'
-
-echo -e "${LIGHTBLUE}> Creating Authelia in systemd...${NC}"
-cat >/etc/systemd/system/authelia.service <<EOL
-[Unit]
-Description=2FA Single Sign-On Authentication Server
-After=network.target
-
-[Service]
-User=authelia
-Group=authelia
-ExecStart=/usr/bin/authelia /etc/authelia/config.minimal.yml
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOL
-
-echo -e "${LIGHTBLUE}> Reload daemon, enable and start service...${NC}"
-systemctl daemon-reload
-systemctl start authelia
-systemctl status authelia
-systemctl enable authelia
-
-echo -e "${LIGHTBLUE}> Deleting /tmp/authelia...${NC}"
-rm -rf /tmp/authelia
-
-echo -e "${LIGHTBLUE}> Cloning git...${NC}"
-git clone https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
-
-if test -z "$theme"
-then
-	while [[ "$theme" != 'default' && "$theme" != 'black' && "$theme" != 'matrix' && "$theme" != 'squares' && "$theme" != 'triangles' ]]; do
-		echo -e "${YELLOW}> Which theme? ([default],black,matrix,triangles,squares)${NC}"
-		read theme
-		if test -z "$theme"
-		then
-            theme="default"
-			echo -e "${LIGHTBLUE}> Input empty, defaulting to:" $theme"...${NC}"
-		else
-			echo
-		fi
-	done
-else
-		echo -e "${LIGHTBLUE}> Theme chosen:" $theme"...${NC}"
-fi
-
-echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
-npm install && echo -e "${YELLOW}50%...${NC}"
-
-grunt --theme=$theme && echo -e "${GREEN}100%... OK!${NC}"
-
-echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-cp -r dist $dest_global"/authelia" 
-
-echo -e "${LIGHTBLUE}> Starting server...${NC}"
-echo -e "${LIGHTBLUE}> Stop with CTRL-C, run with \"authelia config.file\"${NC}"
-
-sleep 5
-systemctl status authelia
-	}
+}
 	
 authelia_global_or_local_install()
 	{
@@ -662,12 +492,7 @@ authelia_global_or_local_install()
 		then
             mode="local"
 			echo -e "${LIGHTBLUE}> Input empty, defaulting to:" $mode"...${NC}"
-			if test -z "$verbose"
-			then
-				authelia_local_install
-			else
-				authelia_local_install_verbose
-			fi
+			authelia_local_install
         fi
     done
         if test "$mode" = 'local'
@@ -677,15 +502,8 @@ authelia_global_or_local_install()
 		elif test "$mode" = 'global'
 		then
 			echo -e "${LIGHTBLUE}> "$mode" install...${NC}"
-			if test -z "$verbose"
-			then
-				authelia_global_install
-			else
-				authelia_global_install_verbose
-			fi
+			authelia_global_install
 		fi
 	}
 
 authelia_global_or_local_install
-
-#cp config.minimal.yml /etc/authelia && rm -rf /tmp/authelia && cd /home && authelia /etc/authelia/config.minimal.yml
