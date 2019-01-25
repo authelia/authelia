@@ -413,7 +413,7 @@ authelia_global_install()
         npm remove -g authelia >/dev/null 2>&1
 
         echo -e "${LIGHTBLUE}> Installing Authelia globally...${NC}"
-        npm install -g authelia >/dev/null 2>&1
+        npm install -g --unsafe-perm authelia >/dev/null 2>&1
 
         echo -e "${LIGHTBLUE}> Installing Grunt-cli globally...${NC}"
         npm install -g grunt-cli >/dev/null 2>&1
@@ -425,7 +425,7 @@ authelia_global_install()
         npm uninstall -g authelia
 
         echo -e "${LIGHTBLUE}> Installing Authelia globally...${NC}"
-        npm install -g authelia
+        npm install -g --unsafe-perm authelia
 
         echo -e "${LIGHTBLUE}> Installing Grunt-cli globally...${NC}"
         npm install -g grunt-cli
@@ -439,7 +439,7 @@ authelia_global_install()
     then
         echo -e "${LIGHTBLUE}> Configuring Authelia...${NC}"
         mkdir -p /etc/authelia
-        chown root:authelia /etc/authelia
+        chown -R authelia:authelia /etc/authelia
         chmod 2750 /etc/authelia
         wget -O /etc/authelia/config.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.template.yml' >/dev/null 2>&1
         wget -O /etc/authelia/config.minimal.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.minimal.yml' >/dev/null 2>&1
@@ -447,7 +447,7 @@ authelia_global_install()
     else
         echo -e "${LIGHTBLUE}> Configuring Authelia...${NC}"
         mkdir -p /etc/authelia
-        chown root:authelia /etc/authelia
+        chown -R authelia:authelia /etc/authelia
         chmod 2750 /etc/authelia
         wget -O /etc/authelia/config.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.template.yml' >/dev/null 2>&1
         wget -O /etc/authelia/config.minimal.yml 'https://raw.githubusercontent.com/clems4ever/authelia/master/config.minimal.yml' >/dev/null 2>&1
@@ -504,7 +504,7 @@ EOL
     else
             echo -e "${LIGHTBLUE}> Theme chosen:" $theme"...${NC}"
     fi
-	
+
 	if test -z "$build"
 	then
 		if test -z "$verbose"
@@ -539,6 +539,16 @@ EOL
 			cp -v -R dist $dest_global"/authelia" 
 		fi
     fi
+
+        #echo -e "${LIGHTBLUE}> Configuring Authelia...${NC}"
+        #mkdir -p /etc/authelia
+        #chown root:authelia /etc/authelia
+        #chmod 2750 /etc/authelia
+
+	#systemctl daemon-reload
+	#systemctl start authelia
+	#systemctl status authelia
+	#systemctl enable authelia
 
     echo -e "${LIGHTBLUE}> Starting server...${NC}"
     echo -e "${LIGHTBLUE}> Stop with CTRL-C, run with \"authelia config.file\"${NC}"
