@@ -1,7 +1,7 @@
-import * as Express from 'express';
-import * as Bluebird from 'bluebird';
+import * as Express from "express";
+import * as Bluebird from "bluebird";
 import { ServerVariables } from "../../ServerVariables";
-import { AuthenticationSessionHandler } from '../../AuthenticationSessionHandler';
+import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 
 export default function (vars: ServerVariables) {
   return function (req: Express.Request, res: Express.Response): Bluebird<void> {
@@ -10,7 +10,7 @@ export default function (vars: ServerVariables) {
       res.json({
         username: authSession.userid,
         authentication_level: authSession.authentication_level
-      })
+      });
       resolve();
     });
   };

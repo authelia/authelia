@@ -1,3 +1,3 @@
-import { default as Level } from '../../../../shared/AuthenticationLevel';
+import { default as Level } from "../../../../shared/AuthenticationLevel";
 
-export {Level};
+export { Level };

@@ -4,7 +4,6 @@ import BluebirdPromise = require("bluebird");
 
 import { Identity } from "../../../../../../types/Identity";
 import { IdentityValidable } from "../../../../IdentityValidable";
-import { PRE_VALIDATION_TEMPLATE } from "../../../../IdentityCheckPreValidationTemplate";
 import Constants = require("../constants");
 import ErrorReplies = require("../../../../ErrorReplies");
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
@@ -64,7 +63,8 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   preValidationResponse(req: express.Request, res: express.Response) {
-    res.render(PRE_VALIDATION_TEMPLATE);
+    res.status(204);
+    res.send();
   }
 
   postValidationInit(req: express.Request) {

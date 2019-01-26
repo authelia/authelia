@@ -1,0 +1,18 @@
+@import '../../variables.scss';
+
+.infoContainer {
+  margin-bottom: ($theme-spacing) * 2;
+}
+
+.imageContainer {
+  text-align: center;
+  
+  img {
+    width: 120px;
+  }
+}
+
+.retryButtonContainer {
+  text-align: center;
+  padding-top: ($theme-spacing) * 2;
+}

@@ -244,10 +244,10 @@ export const FIRST_FACTOR_POST = "/api/firstfactor";
  * @apiName State
  * @apiGroup Authentication
  * @apiVersion 1.0.0
- * 
+ *
  * @apiSuccess (Success 200) A dict containing the username and the authentication
  * level
- * 
+ *
  * @apiDescription Get the authentication state of the user based on the cookie.
  */
 export const STATE_GET = "/api/state";

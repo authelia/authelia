@@ -1,0 +1,40 @@
+@import '../../variables.scss';
+@import "@material/theme/mdc-theme";
+
+.mainContent {
+  width: 440px;
+  margin: auto;
+  margin-top: 80px;
+}
+
+.title {
+  font-size: 1.4em;
+  font-weight: bold;
+  display: inline-block;
+  padding-bottom: ($theme-spacing);
+}
+
+.frame {
+  box-shadow:
+    rgba(0,0,0,0.14902) 0px 1px 1px 0px,
+    rgba(0,0,0,0.09804) 0px 1px 2px 0px;
+  background-color: white;
+  border-radius: 5px;
+  padding: 40px;
+  border-top: 6px solid ($mdc-theme-primary);
+}
+
+.innerFrame {
+  width: 100%;
+}
+
+.footer {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.65em;
+  color: grey;
+
+  a:visited {
+    color: grey;
+  }
+}

@@ -1,10 +1,11 @@
-import React, { Component, KeyboardEvent, ChangeEvent } from 'react';
+import React, { Component, KeyboardEvent, ChangeEvent, FormEvent } from 'react';
 
-import { WithStyles, withStyles, Button, TextField } from '@material-ui/core';
+import TextField, { Input } from '@material/react-text-field';
+import Button from '@material/react-button';
 
-import styles from '../../assets/jss/components/SecondFactorForm/SecondFactorForm';
+import styles from '../../assets/scss/components/SecondFactorForm/SecondFactorForm.module.scss';
 import CircleLoader, { Status } from '../../components/CircleLoader/CircleLoader';
-import FormNotification from '../FormNotification/FormNotification';
+import Notification from '../Notification/Notification';
 
 export interface OwnProps {
   username: string;
@@ -29,7 +30,7 @@ export interface DispatchProps {
   onOneTimePasswordValidationRequested: (token: string) => void;
 }
 
-export type Props = OwnProps & StateProps & DispatchProps & WithStyles;
+export type Props = OwnProps & StateProps & DispatchProps;
 
 interface State {
   oneTimePassword: string;
@@ -48,7 +49,6 @@ class SecondFactorView extends Component<Props, State> {
   }
 
   private renderU2f(n: number) {
-    const { classes } = this.props;
     let u2fStatus = Status.LOADING;
     if (this.props.securityKeyVerified) {
       u2fStatus = Status.SUCCESSFUL;
@@ -56,14 +56,14 @@ class SecondFactorView extends Component<Props, State> {
       u2fStatus = Status.FAILURE;
     }
     return (
-      <div className={classes.methodU2f} key='u2f-method'>
-        <div className={classes.methodName}>Option {n} - Security Key</div>
+      <div className={styles.methodU2f} key='u2f-method'>
+        <div className={styles.methodName}>Option {n} - Security Key</div>
         <div>Insert your security key into a USB port and touch the gold disk.</div>
-        <div className={classes.imageContainer}>
+        <div className={styles.imageContainer}>
           <CircleLoader status={u2fStatus}></CircleLoader>
         </div>
-        <div className={classes.registerDeviceContainer}>
-          <a className={classes.registerDevice} href="#"
+        <div className={styles.registerDeviceContainer}>
+          <a className={styles.registerDevice} href="#"
             onClick={this.props.onRegisterSecurityKeyClicked}>
             Register device
           </a>
@@ -72,8 +72,8 @@ class SecondFactorView extends Component<Props, State> {
     )
   }
 
-  private onOneTimePasswordChanged = (e: ChangeEvent<HTMLInputElement>) => {
-    this.setState({oneTimePassword: e.target.value});
+  private onOneTimePasswordChanged = (e: FormEvent<HTMLElement>) => {
+    this.setState({oneTimePassword: (e.target as HTMLInputElement).value});
   }
 
   private onTotpKeyPressed = (e: KeyboardEvent) => {
@@ -88,42 +88,43 @@ class SecondFactorView extends Component<Props, State> {
   }
 
   private renderTotp(n: number) {
-    const { classes } = this.props;
     return (
-      <div className={classes.methodTotp} key='totp-method'>
-        <div className={classes.methodName}>Option {n} - One-Time Password</div>
-        <FormNotification show={this.props.oneTimePasswordVerificationError !== null}>
+      <div className={styles.methodTotp} key='totp-method'>
+        <div className={styles.methodName}>Option {n} - One-Time Password</div>
+        <Notification show={this.props.oneTimePasswordVerificationError !== null}>
           {this.props.oneTimePasswordVerificationError}
-        </FormNotification>
+        </Notification>
         <TextField
-          className={classes.totpField}
-          name="totp-token"
-          id="totp-token"
-          variant="outlined"
+          className={styles.totpField}
           label="One-Time Password"
-          onChange={this.onOneTimePasswordChanged}
-          onKeyPress={this.onTotpKeyPressed}>
+          outlined={true}>
+          <Input
+            name="totp-token"
+            id="totp-token"
+            onChange={this.onOneTimePasswordChanged as any}
+            onKeyPress={this.onTotpKeyPressed}
+            value={this.state.oneTimePassword} />
         </TextField>
-        <div className={classes.registerDeviceContainer}>
-          <a className={classes.registerDevice} href="#"
+        <div className={styles.registerDeviceContainer}>
+          <a className={styles.registerDevice} href="#"
             onClick={this.props.onRegisterOneTimePasswordClicked}>
             Register device
           </a>
         </div>
-        <Button
-          className={classes.totpButton}
-          variant="contained"
-          color="primary"
-          onClick={this.onOneTimePasswordValidationRequested}
-          disabled={this.props.oneTimePasswordVerificationInProgress}>
-          OK
-        </Button>
+        <div className={styles.totpButton}>
+          <Button
+            color="primary"
+            raised={true}
+            onClick={this.onOneTimePasswordValidationRequested}
+            disabled={this.props.oneTimePasswordVerificationInProgress}>
+            OK
+          </Button>
+        </div>
       </div>
     )
   }
 
   private renderMode() {
-    const { classes } = this.props;
     const methods = [];
     let n = 1;
     if (this.props.securityKeySupported) {
@@ -133,23 +134,22 @@ class SecondFactorView extends Component<Props, State> {
     methods.push(this.renderTotp(n));
 
     return (
-      <div className={classes.methodsContainer}>
+      <div className={styles.methodsContainer}>
         {methods}
       </div>
     );
   }
 
   render() {
-    const { classes } = this.props;
     return (
-      <div className={classes.container}>
-        <div className={classes.header}>
-          <div className={classes.hello}>Hello <b>{this.props.username}</b></div>
-          <div className={classes.logout}>
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <div className={styles.hello}>Hello <b>{this.props.username}</b></div>
+          <div className={styles.logout}>
             <a onClick={this.props.onLogoutClicked} href="#">Logout</a>
           </div>
         </div>
-        <div className={classes.body}>
+        <div className={styles.body}>
           {this.renderMode()}
         </div>
       </div>
@@ -157,4 +157,4 @@ class SecondFactorView extends Component<Props, State> {
   }
 }
 
-export default withStyles(styles)(SecondFactorView);
+export default SecondFactorView;

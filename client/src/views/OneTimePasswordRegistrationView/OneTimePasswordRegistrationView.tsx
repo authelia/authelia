@@ -1,19 +1,20 @@
 import React, { Component } from "react";
 
-import { WithStyles, withStyles, CircularProgress, Button } from "@material-ui/core";
+import Button from "@material/react-button";
 
-import styles from '../../assets/jss/views/OneTimePasswordRegistrationView/OneTimePasswordRegistrationView';
+import styles from '../../assets/scss/views/OneTimePasswordRegistrationView/OneTimePasswordRegistrationView.module.scss';
 import { RouteProps, RouterProps } from "react-router";
 import QueryString from 'query-string';
 
 import QRCode from 'qrcode.react';
-import FormNotification from "../../components/FormNotification/FormNotification";
+import Notification from "../../components/Notification/Notification";
 
 import googleStoreImage from '../../assets/images/googleplay-badge.svg';
 import appleStoreImage from '../../assets/images/applestore-badge.svg';
 import { Secret } from "./Secret";
+import CircleLoader, { Status } from "../../components/CircleLoader/CircleLoader";
 
-export interface Props extends WithStyles, RouteProps, RouterProps {
+export interface Props extends RouteProps, RouterProps {
   secret: Secret | null;
   error: string | null;
   onInit: (token: string) => void;
@@ -47,54 +48,52 @@ class OneTimePasswordRegistrationView extends Component<Props> {
   }
 
   private renderWithSecret(secret: Secret) {
-    const { classes } = this.props;
     return (
       <div>
-        <div className={classes.text}>
+        <div className={styles.text}>
           Register your device by scanning the barcode or adding the key.
         </div>
-        <div className={classes.secretContainer}>
-          <div className={classes.qrcodeContainer}>
+        <div className={styles.secretContainer}>
+          <div className={styles.qrcodeContainer}>
             <QRCode value={secret.otpauth_url} size={180} level="Q"></QRCode>
           </div>
-          <div className={classes.base32Container}>{secret.base32_secret}</div>
+          <div className={styles.base32Container}>{secret.base32_secret}</div>
         </div>
-        <div className={classes.loginButtonContainer}>
+        <div className={styles.loginButtonContainer}>
           <Button
             color="primary"
-            variant="contained"
+            raised={true}
             onClick={this.props.onLoginClicked}>
             Login
           </Button>
         </div>
-        <div className={classes.needGoogleAuthenticator}>
-          <div className={classes.needGoogleAuthenticatorText}>Need Google Authenticator?</div>
-          <img src={appleStoreImage} className={classes.store} alt='Google Authenticator on Apple Store'/>
-          <img src={googleStoreImage} className={classes.store} alt='Google Authenticator on Google Store'/>
+        <div className={styles.needGoogleAuthenticator}>
+          <div className={styles.needGoogleAuthenticatorText}>Need Google Authenticator?</div>
+          <img src={appleStoreImage} className={styles.store} alt='Google Authenticator on Apple Store'/>
+          <img src={googleStoreImage} className={styles.store} alt='Google Authenticator on Google Store'/>
         </div>
       </div>
     )
   }
 
   private renderError() {
-    const {classes} = this.props;
     return (
       <div>
-        <FormNotification show={true}>
+        <Notification show={true}>
           <div>{this.props.error}</div>
-        </FormNotification>
-        <div className={classes.buttonContainer}>
+        </Notification>
+        <div className={styles.buttonContainer}>
           <Button
-            variant="contained"
             color="primary"
-            className={classes.button}
+            raised={true}
+            className={styles.button}
             onClick={this.props.onRetryClicked}>
             Retry
           </Button>
           <Button
-            variant="contained"
             color="primary"
-            className={classes.button}
+            raised={true}
+            className={styles.button}
             onClick={this.props.onCancelClicked}>
             Cancel
           </Button>
@@ -110,11 +109,10 @@ class OneTimePasswordRegistrationView extends Component<Props> {
   }
 
   private renderLoading() {
-    const { classes } = this.props;
     return (
       <div>
         <div>One-Time password secret is being generated...</div>
-        <div className={classes.progressContainer}><CircularProgress /></div>
+        <div className={styles.progressContainer}><CircleLoader status={Status.LOADING} /></div>
       </div>
     )
   }
@@ -126,4 +124,4 @@ class OneTimePasswordRegistrationView extends Component<Props> {
   }
 }
 
-export default withStyles(styles)(OneTimePasswordRegistrationView);
+export default OneTimePasswordRegistrationView;

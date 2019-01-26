@@ -8,6 +8,7 @@ services:
       - ./client/tsconfig.json:/usr/app/client/tsconfig.json
       - ./client/public:/usr/app/client/public
       - ./client/src:/usr/app/client/src
+      - ./client/.env.development:/usr/app/client/.env.development
     networks:
       example-network:
         aliases:

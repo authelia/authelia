@@ -1,11 +1,13 @@
-import React, { Component, KeyboardEvent, ChangeEvent } from "react";
-import { TextField, Button, WithStyles, withStyles } from "@material-ui/core";
+import React, { Component, KeyboardEvent, FormEvent } from "react";
 import { RouterProps } from "react-router";
 import classnames from 'classnames';
 import QueryString from 'query-string';
 
-import styles from '../../assets/jss/views/ResetPasswordView/ResetPasswordView';
-import FormNotification from "../../components/FormNotification/FormNotification";
+import Button from "@material/react-button";
+import TextField, { Input } from "@material/react-text-field";
+
+import styles from '../../assets/scss/views/ResetPasswordView/ResetPasswordView.module.scss';
+import Notification from "../../components/Notification/Notification";
 
 export interface StateProps {
   disabled: boolean;
@@ -17,7 +19,7 @@ export interface DispatchProps {
   onCancelClicked: () => void;
 }
 
-export type Props = StateProps & DispatchProps & RouterProps & WithStyles;
+export type Props = StateProps & DispatchProps & RouterProps;
 
 interface State {
   password1: string;
@@ -66,61 +68,64 @@ class ResetPasswordView extends Component<Props, State> {
     this.onPasswordResetRequested();
   }
 
-  private onPassword1Changed = (e: ChangeEvent<HTMLInputElement>) => {
-    this.setState({password1: e.target.value});
+  private onPassword1Changed = (e: FormEvent<HTMLElement>) => {
+    this.setState({password1: (e.target as HTMLInputElement).value});
   }
 
-  private onPassword2Changed = (e: ChangeEvent<HTMLInputElement>) => {
-    this.setState({password2: e.target.value});
+  private onPassword2Changed = (e: FormEvent<HTMLElement>) => {
+    this.setState({password2: (e.target as HTMLInputElement).value});
   }
 
   render() {
-    const { classes } = this.props;
     return (
       <div>
-        <FormNotification show={this.state.error !== null}>
+        <Notification show={this.state.error !== null}>
           {this.state.error}
-        </FormNotification>
+        </Notification>
         <div>Enter your new password</div>
-        <div className={classes.form}>
+        <div className={styles.form}>
           <TextField
-            className={classes.field}
-            variant="outlined"
-            type="password"
+            className={styles.field}
+            outlined={true}
             id="password1"
-            value={this.state.password1}
-            onChange={this.onPassword1Changed}
-            disabled={this.props.disabled}
             label="New password">
+            <Input
+              type="password"
+              key="password1"
+              value={this.state.password1}
+              onChange={this.onPassword1Changed}
+              disabled={this.props.disabled}/>
           </TextField>
           <TextField
-            className={classes.field}
-            variant="outlined"
-            type="password"
+            className={styles.field}
+            outlined={true}
             id="password2"
-            value={this.state.password2}
-            onKeyPress={this.onKeyPressed}
-            onChange={this.onPassword2Changed}
-            disabled={this.props.disabled}
             label="Confirm password">
+            <Input
+              type="password"
+              key="password2"
+              value={this.state.password2}
+              onKeyPress={this.onKeyPressed}
+              onChange={this.onPassword2Changed}
+              disabled={this.props.disabled} />
           </TextField>
-          <div className={classes.buttonsContainer}>
-            <div className={classnames(classes.buttonContainer, classes.buttonResetContainer)}>
+          <div className={styles.buttonsContainer}>
+            <div className={classnames(styles.buttonContainer, styles.buttonResetContainer)}>
               <Button
                 onClick={this.onResetClicked}
-                variant="contained"
                 color="primary"
+                raised={true}
                 disabled={this.props.disabled}
-                className={classnames(classes.button, classes.buttonReset)}>
+                className={classnames(styles.button, styles.buttonReset)}>
                 Reset
               </Button>
             </div>
-            <div className={classnames(classes.buttonContainer, classes.buttonCancelContainer)}>
+            <div className={classnames(styles.buttonContainer, styles.buttonCancelContainer)}>
               <Button
                 onClick={this.props.onCancelClicked}
-                variant="contained"
                 color="primary"
-                className={classnames(classes.button, classes.buttonCancel)}>
+                raised={true}
+                className={classnames(styles.button, styles.buttonCancel)}>
                 Cancel
               </Button>
               </div>
@@ -131,4 +136,4 @@ class ResetPasswordView extends Component<Props, State> {
   }
 }
 
-export default withStyles(styles)(ResetPasswordView);
+export default ResetPasswordView;

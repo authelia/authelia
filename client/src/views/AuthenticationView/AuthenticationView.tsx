@@ -3,7 +3,7 @@ import AlreadyAuthenticated from "../../containers/components/AlreadyAuthenticat
 import FirstFactorForm from "../../containers/components/FirstFactorForm/FirstFactorForm";
 import SecondFactorForm from "../../containers/components/SecondFactorForm/SecondFactorForm";
 import RemoteState from "./RemoteState";
-import { RouterProps, Redirect } from "react-router";
+import { RouterProps } from "react-router";
 import queryString from 'query-string';
 
 export enum Stage {

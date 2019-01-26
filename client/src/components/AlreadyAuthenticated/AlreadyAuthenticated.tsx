@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 
-import styles from '../../assets/jss/components/AlreadyAuthenticated/AlreadyAuthenticated';
-import { WithStyles, withStyles, Button } from "@material-ui/core";
+import styles from '../../assets/scss/components/AlreadyAuthenticated/AlreadyAuthenticated.module.scss';
+import Button from "@material/react-button";
 import CircleLoader, { Status } from "../CircleLoader/CircleLoader";
 
 export interface OwnProps {
@@ -12,26 +12,23 @@ export interface DispatchProps {
   onLogoutClicked: () => void;
 }
 
-export type Props = OwnProps & DispatchProps & WithStyles;
+export type Props = OwnProps & DispatchProps;
 
 class AlreadyAuthenticated extends Component<Props> {
   render() {
-    const { classes } = this.props;
     return (
-      <div className={classes.container}>
-        <div className={classes.successContainer}>
-          <CircleLoader status={Status.SUCCESSFUL} />
-          <span className={classes.messageContainer}>
-            <b>{this.props.username}</b><br/>
+      <div className={styles.container}>
+        <div className={styles.successContainer}>
+          <div className={styles.messageContainer}>
+            <span className={styles.username}>{this.props.username}</span>
             you are authenticated
-          </span>
+          </div>
+          <div className={styles.statusIcon}><CircleLoader status={Status.SUCCESSFUL} /></div>
         </div>
-        <div>Close this tab or logout</div>
-        <div className={classes.logoutButtonContainer}>
+        <div className={styles.logoutButtonContainer}>
           <Button
             onClick={this.props.onLogoutClicked}
-            variant="contained"
-            color="primary">
+            color="red">
             Logout
           </Button>
         </div>
@@ -40,4 +37,4 @@ class AlreadyAuthenticated extends Component<Props> {
   }
 }
 
-export default withStyles(styles)(AlreadyAuthenticated);
+export default AlreadyAuthenticated;

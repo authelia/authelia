@@ -1,19 +1,14 @@
-import React, { Component, KeyboardEvent, ChangeEvent } from "react";
+import React, { Component, KeyboardEvent, FormEvent } from "react";
 
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
+import TextField, {Input} from '@material/react-text-field';
+import Button from '@material/react-button';
+import Checkbox from '@material/react-checkbox';
 
 import { Link } from "react-router-dom";
-import { WithStyles, withStyles } from "@material-ui/core";
 
-import styles from '../../assets/jss/components/FirstFactorForm/FirstFactorForm';
-import FormNotification from "../../components/FormNotification/FormNotification";
+import Notification from "../../components/Notification/Notification";
 
-import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
-import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import styles from '../../assets/scss/components/FirstFactorForm/FirstFactorForm.module.scss';
 
 export interface StateProps {
   formDisabled: boolean;
@@ -24,7 +19,7 @@ export interface DispatchProps {
   onAuthenticationRequested(username: string, password: string): void;
 }
 
-export type Props = StateProps & DispatchProps & WithStyles;
+export type Props = StateProps & DispatchProps;
 
 interface State {
   username: string;
@@ -48,12 +43,14 @@ class FirstFactorForm extends Component<Props, State> {
     })
   }
 
-  onUsernameChanged = (e: ChangeEvent<HTMLInputElement>) => {
-    this.setState({username: e.target.value});
+  onUsernameChanged = (e: FormEvent<HTMLElement>) => {
+    const val = (e.target as HTMLInputElement).value;
+    this.setState({username: val});
   }
 
-  onPasswordChanged = (e: ChangeEvent<HTMLInputElement>) => {
-    this.setState({password: e.target.value});
+  onPasswordChanged = (e: FormEvent<HTMLElement>) => {
+    const val = (e.target as HTMLInputElement).value;
+    this.setState({password: val});
   }
 
   onLoginClicked = () => {
@@ -67,63 +64,61 @@ class FirstFactorForm extends Component<Props, State> {
   }
 
   render() {
-    const { classes } = this.props;
     return (
       <div>
-        <FormNotification
-          show={this.props.error != null}>
+        <Notification
+          show={this.props.error != null}
+          className={styles.notification}>
           {this.props.error || ''}
-        </FormNotification>
-        <div className={classes.fields}>
-          <div className={classes.field}>
+        </Notification>
+        <div className={styles.fields}>
+          <div className={styles.field}>
             <TextField
-              className={classes.input}
-              variant="outlined"
-              id="username"
+              className={styles.input}
               label="Username"
-              disabled={this.props.formDisabled}
-              onChange={this.onUsernameChanged}>
+              outlined={true}>
+              <Input
+                id="username"
+                onChange={this.onUsernameChanged}
+                disabled={this.props.formDisabled}
+                value={this.state.username}/>
             </TextField>
           </div>
-          <div className={classes.field}>
+          <div className={styles.field}>
             <TextField
-              className={classes.input}
-              id="password"
-              variant="outlined"
+              className={styles.input}
               label="Password"
-              type="password"
-              disabled={this.props.formDisabled}
-              onChange={this.onPasswordChanged}
-              onKeyPress={this.onPasswordKeyPressed}>
+              outlined={true}>
+              <Input
+                id="password"
+                type="password"
+                disabled={this.props.formDisabled}
+                onChange={this.onPasswordChanged}
+                onKeyPress={this.onPasswordKeyPressed}
+                value={this.state.password} />
             </TextField>
           </div>
         </div>
         <div>
-          <div className={classes.buttons}>
+          <div className={styles.buttons}>
             <Button
               onClick={this.onLoginClicked}
-              variant="contained"
               color="primary"
+              raised={true}
               disabled={this.props.formDisabled}>
               Login
             </Button>
           </div>
-          <div className={classes.controls}>
-            <div className={classes.rememberMe}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
-                    checkedIcon={<CheckBoxIcon fontSize="small" />}
-                    checked={this.state.rememberMe}
-                    onChange={this.toggleRememberMe}
-                    color="primary"
-                  />
-                }
-                label="Remember me"
+          <div className={styles.controls}>
+            <div className={styles.rememberMe}>
+              <Checkbox
+                nativeControlId='remember-checkbox'
+                checked={this.state.rememberMe}
+                onChange={this.toggleRememberMe}
               />
+              <label htmlFor='remember-checkbox'>Remember me</label>
             </div>
-            <div className={classes.resetPassword}>
+            <div className={styles.resetPassword}>
               <Link to="/forgot-password">Forgot password?</Link>
             </div>
           </div>
@@ -139,4 +134,4 @@ class FirstFactorForm extends Component<Props, State> {
   }
 }
 
-export default withStyles(styles)(FirstFactorForm);
+export default FirstFactorForm;

@@ -7,7 +7,7 @@ import AuthenticationView from "../containers/views/AuthenticationView/Authentic
 
 export const routes = [{
   path: '/',
-  title: 'Login',
+  title: 'Sign in',
   component: AuthenticationView,
 }, {
   path: '/confirmation-sent',
@@ -15,11 +15,11 @@ export const routes = [{
   component: ConfirmationSentView
 }, {
   path: '/one-time-password-registration',
-  title: 'One-time password registration',
+  title: 'One-time password',
   component: OneTimePasswordRegistrationView,
 }, {
   path: '/security-key-registration',
-  title: 'Security key registration',
+  title: 'Security key',
   component: SecurityKeyRegistrationView,
 }, {
   path: '/forgot-password',

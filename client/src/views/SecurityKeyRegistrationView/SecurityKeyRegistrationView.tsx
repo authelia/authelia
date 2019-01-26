@@ -1,14 +1,14 @@
 import React, { Component } from "react";
 
-import { WithStyles, withStyles, Button } from "@material-ui/core";
+import Button from "@material/react-button";
 
-import styles from '../../assets/jss/views/SecurityKeyRegistrationView/SecurityKeyRegistrationView';
+import styles from '../../assets/scss/views/SecurityKeyRegistrationView/SecurityKeyRegistrationView.module.scss';
 import { RouteProps, RouterProps } from "react-router";
 import QueryString from 'query-string';
-import FormNotification from "../../components/FormNotification/FormNotification";
+import Notification from "../../components/Notification/Notification";
 import CircleLoader, { Status } from "../../components/CircleLoader/CircleLoader";
 
-export interface Props extends WithStyles, RouteProps, RouterProps {
+export interface Props extends RouteProps, RouterProps {
   deviceRegistered: boolean | null;
   error: string | null;
   onInit: (token: string) => void;
@@ -32,16 +32,15 @@ class SecurityKeyRegistrationView extends Component<Props> {
   }
 
   private renderError() {
-    const { classes } = this.props;
     return (
       <div>
-        <FormNotification show={true}>
+        <Notification show={true}>
           {this.props.error}
-        </FormNotification>
-        <div className={classes.retryButtonContainer}>
+        </Notification>
+        <div className={styles.retryButtonContainer}>
           <Button
-            variant="contained"
             color="primary"
+            raised={true}
             onClick={this.props.onBackClicked}>
             Back
           </Button>
@@ -51,7 +50,6 @@ class SecurityKeyRegistrationView extends Component<Props> {
   }
 
   private renderRegistering() {
-    const { classes } = this.props;
     let status = Status.LOADING;
     if (this.props.deviceRegistered === true) {
       status = Status.SUCCESSFUL;
@@ -60,8 +58,8 @@ class SecurityKeyRegistrationView extends Component<Props> {
     }
     return (
       <div>
-        <div className={classes.infoContainer}>Press the gold disk to register your security key</div>
-        <div className={classes.imageContainer}>
+        <div className={styles.infoContainer}>Press the gold disk to register your security key</div>
+        <div className={styles.imageContainer}>
           <CircleLoader status={status}></CircleLoader>
         </div>
       </div>
@@ -77,4 +75,4 @@ class SecurityKeyRegistrationView extends Component<Props> {
   }
 }
 
-export default withStyles(styles)(SecurityKeyRegistrationView);
+export default SecurityKeyRegistrationView;

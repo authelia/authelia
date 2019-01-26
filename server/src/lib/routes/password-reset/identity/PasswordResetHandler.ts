@@ -5,12 +5,9 @@ import objectPath = require("object-path");
 import exceptions = require("../../../Exceptions");
 import { Identity } from "../../../../../types/Identity";
 import { IdentityValidable } from "../../../IdentityValidable";
-import { PRE_VALIDATION_TEMPLATE } from "../../../IdentityCheckPreValidationTemplate";
 import Constants = require("../constants");
 import { IRequestLogger } from "../../../logging/IRequestLogger";
 import { IUsersDatabase } from "../../../authentication/backends/IUsersDatabase";
-
-export const TEMPLATE_NAME = "password-reset-form";
 
 export default class PasswordResetHandler implements IdentityValidable {
   private logger: IRequestLogger;
@@ -52,7 +49,8 @@ export default class PasswordResetHandler implements IdentityValidable {
   }
 
   preValidationResponse(req: express.Request, res: express.Response) {
-    res.render(PRE_VALIDATION_TEMPLATE);
+    res.status(204);
+    res.send();
   }
 
   postValidationInit(req: express.Request) {
@@ -60,7 +58,8 @@ export default class PasswordResetHandler implements IdentityValidable {
   }
 
   postValidationResponse(req: express.Request, res: express.Response) {
-    res.render(TEMPLATE_NAME);
+    res.status(204);
+    res.send();
   }
 
   mailSubject(): string {

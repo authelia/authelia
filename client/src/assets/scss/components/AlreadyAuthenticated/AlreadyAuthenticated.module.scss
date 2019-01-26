@@ -1,0 +1,24 @@
+@import '../../variables.scss';
+
+.container {
+  text-align: center;
+}
+
+.messageContainer {
+  color: green;
+  
+  .username {
+    display: block;
+    font-size: 1.6em;
+    font-weight: bold;
+  }
+}
+
+.statusIcon {
+  margin-top: ($theme-spacing) * 2;
+  margin-bottom: ($theme-spacing) * 2;
+}
+
+.logoutButtonContainer {
+  margin-top: ($theme-spacing) * 2,
+}

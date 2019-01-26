@@ -3,8 +3,8 @@ import classnames from 'classnames';
 
 import mail from '../../assets/images/mail.png';
 
-import styles from './ConfirmationSentView.module.css';
-import { Button } from "@material-ui/core";
+import styles from '../../assets/scss/views/ConfirmationSentView/ConfirmationSentView.module.scss';
+import Button from "@material/react-button";
 import { RouterProps } from "react-router";
 
 interface Props extends RouterProps {}
@@ -22,7 +22,7 @@ class ConfirmationSentView extends Component<Props> {
               <Button
                 onClick={() => this.props.history.goBack()}
                 className={styles.button}
-                variant="contained"
+                raised={true}
                 color="primary">
                 Back
               </Button>

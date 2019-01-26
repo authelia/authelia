@@ -1,10 +1,11 @@
 {
-  "name": "client-react",
+  "name": "authelia-portal",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@material-ui/core": "3.7.1",
-    "@material-ui/icons": "^3.0.1",
+    "@material/react-button": "^0.8.0",
+    "@material/react-checkbox": "^0.8.0",
+    "@material/react-text-field": "^0.8.0",
     "@types/classnames": "^2.2.7",
     "@types/jss": "^9.5.7",
     "@types/node": "^10.12.2",
@@ -31,11 +32,12 @@
     "redux-thunk": "^2.3.0",
     "typesafe-actions": "^3.0.0",
     "typescript": "^3.1.6",
-    "u2f-api": "^1.0.10"
+    "u2f-api": "^1.0.10",
+    "utility-types": "^3.4.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "SASS_PATH=./node_modules react-scripts start",
+    "build": "SASS_PATH=./node_modules react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

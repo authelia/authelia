@@ -1,0 +1,10 @@
+@import '../../variables.scss';
+
+.container {
+  color: white;
+  font-size: 0.8em;
+  padding: ($theme-spacing) * 2;
+  border: 1px solid red;
+  border-radius: 5px;
+  background-color: #ff8d8d;
+}

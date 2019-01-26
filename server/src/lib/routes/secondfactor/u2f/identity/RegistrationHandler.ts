@@ -1,19 +1,15 @@
 
 import BluebirdPromise = require("bluebird");
 import express = require("express");
-import objectPath = require("object-path");
 
 import { IdentityValidable } from "../../../../IdentityValidable";
 import { Identity } from "../../../../../../types/Identity";
-import { PRE_VALIDATION_TEMPLATE } from "../../../../IdentityCheckPreValidationTemplate";
 import FirstFactorValidator = require("../../../../FirstFactorValidator");
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import { IRequestLogger } from "../../../../logging/IRequestLogger";
 
 const CHALLENGE = "u2f-register";
 const MAIL_SUBJECT = "Register your security key with Authelia";
-
-const POST_VALIDATION_TEMPLATE_NAME = "u2f-register";
 
 
 export default class RegistrationHandler implements IdentityValidable {
@@ -55,7 +51,8 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   preValidationResponse(req: express.Request, res: express.Response) {
-    res.render(PRE_VALIDATION_TEMPLATE);
+    res.status(204);
+    res.send();
   }
 
   postValidationInit(req: express.Request) {
@@ -63,7 +60,8 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   postValidationResponse(req: express.Request, res: express.Response) {
-    res.render(POST_VALIDATION_TEMPLATE_NAME);
+    res.status(204);
+    res.send();
   }
 
   mailSubject(): string {

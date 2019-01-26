@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import classnames from 'classnames';
 
-import styles from './CircleLoader.module.scss';
+import styles from '../../assets/scss/components/CircleLoader/CircleLoader.module.scss';
 
 export enum Status {
   LOADING,

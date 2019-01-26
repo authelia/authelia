@@ -8,7 +8,7 @@ import UserMessages = require("../../../../../shared/UserMessages");
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import { GroupsAndEmails } from "../../authentication/backends/GroupsAndEmails";
-import {Level} from "../../authentication/Level";
+import { Level } from "../../authentication/Level";
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)

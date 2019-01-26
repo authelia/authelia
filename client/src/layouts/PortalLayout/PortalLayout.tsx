@@ -4,11 +4,10 @@ import { Route, Switch, Redirect, RouterProps, RouteProps } from "react-router";
 
 import { routes } from '../../routes/routes';
 import { AUTHELIA_GITHUB_URL } from "../../constants";
-import { WithStyles, withStyles } from "@material-ui/core";
 
-import styles from '../../assets/jss/layouts/PortalLayout/PortalLayout';
+import styles from '../../assets/scss/layouts/PortalLayout/PortalLayout.module.scss';
 
-interface Props extends RouterProps, RouteProps, WithStyles {}
+interface Props extends RouterProps, RouteProps {}
 
 class PortalLayout extends Component<Props> {
   private renderTitle() {
@@ -25,15 +24,14 @@ class PortalLayout extends Component<Props> {
 
 
   render() {
-    const { classes } = this.props;
     return (
-      <div className={classes.mainContent}>
-        <div className={classes.frame}>
-          <div className={classes.innerFrame}>
-            <div className={classes.title}>
-              {this.renderTitle()}
-            </div>
-            <div className={classes.content}>
+      <div className={styles.main}>
+        <div className={styles.mainContent}>
+          <div className={styles.title}>
+            {this.renderTitle()}
+          </div>
+          <div className={styles.frame}>
+            <div className={styles.innerFrame}>
               <Switch>
                 {routes.map((r, key) => {
                   return <Route path={r.path} component={r.component} exact={true} key={key} />
@@ -42,13 +40,13 @@ class PortalLayout extends Component<Props> {
               </Switch>
             </div>
           </div>
-        </div>
-        <div className={classes.footer}>
-          <div>Powered by <a href={AUTHELIA_GITHUB_URL}>Authelia</a></div>
+          <div className={styles.footer}>
+            <div><a href={AUTHELIA_GITHUB_URL}>Powered by Authelia</a></div>
+          </div>
         </div>
       </div>
     )
   }
 }
 
-export default withStyles(styles)(PortalLayout);
+export default PortalLayout;

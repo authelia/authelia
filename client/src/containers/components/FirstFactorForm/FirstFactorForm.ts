@@ -32,11 +32,14 @@ function onAuthenticationRequested(dispatch: Dispatch) {
       return;
     }
 
-    const json = await res.json();
-    if ('error' in json) {
-      await dispatch(authenticateFailure(json['error']));
-      return;
+    if (res.status !== 204) {
+      const json = await res.json();
+      if ('error' in json) {
+        await dispatch(authenticateFailure(json['error']));
+        return;
+      }
     }
+    
     dispatch(authenticateSuccess());
 
     // fetch state
