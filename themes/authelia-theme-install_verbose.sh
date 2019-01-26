@@ -15,7 +15,7 @@ if ! [ $(id -u) = 0 ]; then echo -e "${ORANGE}Please run this script as sudo or 
 #Authelia Requirements
 authelia_req=('wget' 'unzip' 'nginx' 'nodejs' 'curl')
 authelia_reqname=('WGET' 'UNZIP' 'NGINX' 'NODEJS' 'CURL')
-node_debian=('curl -sL https://deb.nodesource.com/setup_8.x | bash - && apt-get install -y nodejs')
+
 interactive=""
 
 # Get script arguments for non-interactive mode
@@ -158,8 +158,8 @@ authelia_mod()
         echo
         if test -z "$verbose"
         then
-            echo -e "${LIGHTBLUE}> Adding nodejs...\e[0m${NC}"
-            apt-get -y install ${node_debian} >/dev/null 2>&1
+            echo -e "${LIGHTBLUE}> Adding nodejs 10.x...\e[0m${NC}"
+            curl -sL https://deb.nodesource.com/setup_10.x | bash - >/dev/null 2>&1
             for ((i=0; i < "${#authelia_reqname[@]}"; i++))
             do
                 echo -e "${LIGHTBLUE}> Installing ${authelia_reqname[$i]}...\e[0m${NC}"
@@ -167,8 +167,8 @@ authelia_mod()
             done
             echo
 		else
-            echo -e "${LIGHTBLUE}> Adding nodejs...\e[0m${NC}"
-            apt-get -y install ${node_debian}
+            echo -e "${LIGHTBLUE}> Adding nodejs 10.x...\e[0m${NC}"
+	    curl -sL https://deb.nodesource.com/setup_10.x | bash -
             for ((i=0; i < "${#authelia_reqname[@]}"; i++))
             do
                 echo -e "${LIGHTBLUE}> Installing ${authelia_reqname[$i]}...\e[0m${NC}"
@@ -514,7 +514,10 @@ EOL
                         grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
 
                         echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-                        cp -R dist $dest_global"/authelia" 
+			cp -R dist/server/src/public_html/ $dest_global"/authelia/dist/server/src/"
+			cp -R dist/server/src/resources/ $dest_global"/authelia/dist/server/src/"
+			cp -R dist/server/src/views/ $dest_global"/authelia/dist/server/src/"
+
 		else
 			echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
 			npm install --unsafe-perm && echo -e "${YELLOW}50%...${NC}"
@@ -522,7 +525,9 @@ EOL
 			grunt --theme=$theme && echo -e "${GREEN}100%... OK!${NC}"
 
 			echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-			cp -v -R dist $dest_global"/authelia" 
+			cp -v -R dist/server/src/public_html/ $dest_global"/authelia/dist/server/src/"
+			cp -v -R dist/server/src/resources/ $dest_global"/authelia/dist/server/src/"
+			cp -v -R dist/server/src/views/ $dest_global"/authelia/dist/server/src/"
 		fi
 
     echo -e "${LIGHTBLUE}> Stop with CTRL-C, run with \"authelia config.file\"${NC}"
