@@ -104,25 +104,25 @@ module.exports = function (grunt) {
         },
         resources: {
             expand: true,
-            cwd: 'themes/src/' + theme + '/server/src/resources',
+            cwd: 'themes/' + theme + '/server/src/resources',
             src: '**',
             dest: `${buildDir}/server/src/resources/`
         },
         views: {
             expand: true,
-            cwd: 'themes/src/' + theme + '/server/src/views',
+            cwd: 'themes/' + theme + '/server/src/views',
             src: '**',
             dest: `${buildDir}/server/src/views/`
         },
         images: {
             expand: true,
-            cwd: 'themes/src/' + theme + '/client/src/img',
+            cwd: 'themes/' + theme + '/client/src/img',
             src: '**',
             dest: `${buildDir}/server/src/public_html/img/`
         },
         thirdparties: {
             expand: true,
-            cwd: 'themes/src/' + theme + '/client/src/thirdparties',
+            cwd: 'themes/' + theme + '/client/src/thirdparties',
             src: '**',
             dest: `${buildDir}/server/src/public_html/js/`
         },
@@ -194,7 +194,7 @@ module.exports = function (grunt) {
     },
     concat: {
       css: {
-        src: ['themes/src/' + theme + '/client/src/css/*.css'],
+        src: ['themes/' + theme + '/client/src/css/*.css'],
         dest: `${buildDir}/server/src/public_html/css/authelia.css`
       },
     },
