@@ -23,7 +23,7 @@ module.exports = function (grunt) {
         backup: ['backup'],
     },
     concurrent: {
-        prebuild: [['check', 'clean:backup', 'copy:backup'], 'clean:dist'],
+        //prebuild: [['check', 'clean:backup', 'copy:backup'], 'clean:dist'],
         build: ['compile-client', 'browserify', 'compile-server', 'copy-resources', 'generate-config-schema'],
         finish: ['run:minify', 'cssmin', 'run:include-minified-script'],
     },
@@ -253,5 +253,5 @@ module.exports = function (grunt) {
 
   //grunt.registerTask('default', ['check', 'build-dist']);
   //grunt.registerTask('default', ['concurrent:various', 'concurrent:build', 'concurrent:finish']);
-  grunt.registerTask('default', ['concurrent:prebuild', 'concurrent:build', 'concurrent:finish']);
+  grunt.registerTask('default', ['clean:backup', 'copy:backup', 'clean:dist', 'concurrent:build', 'concurrent:finish']);
 };

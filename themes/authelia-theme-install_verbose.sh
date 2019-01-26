@@ -49,7 +49,7 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             interactive="yes"
             ;;
     esac
-		case $1 in
+    case $1 in
         -b | --build )
             shift
             build="yes"
