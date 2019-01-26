@@ -24,7 +24,8 @@ module.exports = function (grunt) {
     },
     concurrent: {
         //prebuild: [['check', 'clean:backup', 'copy:backup'], 'clean:dist'],
-        build: ['compile-client', 'browserify', 'compile-server', 'copy-resources', 'generate-config-schema'],
+        build: [['compile-client', 'browserify'], ['compile-server', 'copy-resources'], 'generate-config-schema'],
+        //build2: ['compile-client', 'browserify', 'compile-server', 'copy-resources', 'generate-config-schema'],
         finish: ['run:minify', 'cssmin', 'run:include-minified-script'],
     },
     run: {
