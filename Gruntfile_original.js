@@ -3,9 +3,6 @@ module.exports = function (grunt) {
   const schemaDir = "server/src/lib/configuration/Configuration.schema.json"
   var theme = grunt.option('theme') || 'default';
 
-  require('time-grunt')(grunt); // npm install --save-dev time-grunt
-  require('load-grunt-tasks')(grunt); // npm install --save-dev load-grunt-tasks
-
   grunt.initConfig({
     env: {
       "env-test-server-unit": {
@@ -21,10 +18,6 @@ module.exports = function (grunt) {
     clean: {
         dist: ['dist'],
         backup: ['backup'],
-    },
-    concurrent: {
-        build: [['compile-client', 'browserify'], ['compile-server', 'copy-resources'], 'generate-config-schema'],
-        finish: ['run:minify', 'cssmin', 'run:include-minified-script'],
     },
     run: {
       "compile-server": {
@@ -214,7 +207,6 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-run');
   grunt.loadNpmTasks('grunt-env');
-  grunt.loadNpmTasks('grunt-concurrent');
 
   grunt.registerTask('compile-server', ['run:lint-server', 'run:compile-server'])
   grunt.registerTask('compile-client', ['run:lint-client', 'run:compile-client'])
@@ -249,5 +241,6 @@ module.exports = function (grunt) {
         grunt.log.writeln('Building "'+ theme +'" theme');
     }
   });
-  grunt.registerTask('default', ['clean:backup', 'copy:backup', 'clean:dist', 'concurrent:build', 'concurrent:finish']);
+
+  grunt.registerTask('default', ['check', 'build-dist']);
 };
