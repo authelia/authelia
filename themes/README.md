@@ -15,7 +15,7 @@ If you want to create a new theme:
 authelia-theme-install.sh is meant for npm install, either locally (/tmp) or globally.
 authelia-gui-theme-install.sh is meant for npm install, either locally (/tmp) or globally, but with a whiptail GUI.                                                                       
 Default usage:                                                         
-`./authelia-theme-install.sh -i | --interactive`
+`./authelia-theme-install.sh -i | --interactive`<br>
 `./authelia-gui-theme-install.sh`
 
 or adding parameters to default usage:                                 
