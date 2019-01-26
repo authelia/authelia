@@ -10,6 +10,6 @@ services:
       - ./client/src:/usr/app/client/src
       - ./client/.env.development:/usr/app/client/.env.development
     networks:
-      example-network:
+      authelianet:
         aliases:
           - authelia-frontend

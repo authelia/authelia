@@ -15,4 +15,4 @@ VOLUME /usr/app/src
 VOLUME /etc/authelia
 VOLUME /var/lib/authelia
 
-CMD ["npm", "run-script", "start"]
+CMD ["./node_modules/.bin/nodemon", "-e", "yml,js,ts,json", "--exec", "./scripts/run-dev-server.sh"]

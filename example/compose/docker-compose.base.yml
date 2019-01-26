@@ -1,4 +1,6 @@
 version: '2'
 networks:
+  authelianet:
+    external: true
   example-network:
     driver: bridge
