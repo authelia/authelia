@@ -1,5 +1,4 @@
 #!/bin/bash
-#apt install whiptail -y
 
 whiptail \
     --title "Authelia Theme Installer" \
@@ -36,12 +35,6 @@ else
     VERBOSE="no"
 fi
 
-#if (whiptail --title "Build theme?" --yes-button "Build" --no-button "Copy" --yesno "Build theme or copy prebuilt?" 10 60 3>&1 1>&2 2>&3) then
-#    BUILD="build"
-#else
-#    BUILD="copy"
-#fi
-
 until [[ $PORT =~ ^(0|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$ ]]; do
 PORT=$(whiptail --inputbox "Enter the listening port" 10 60 8080 --title "Which port should be exposed?" 10 60 3>&1 1>&2 2>&3)
 exitstatus=$?
@@ -59,7 +52,6 @@ fi
 
 if test "$VERBOSE" = 'yes'
 then
-        #./authelia-theme-install_verbose.sh -t $THEME -m $MODE -p $PORT -v -b
         COMMAND="./authelia-theme-install_verbose.sh -t $THEME -m $MODE -p $PORT -v"
 else
         COMMAND="./authelia-theme-install_verbose.sh -t $THEME -m $MODE -p $PORT"
@@ -67,23 +59,3 @@ fi
 
 echo $COMMAND
 eval $COMMAND
-
-#whiptail --title "Example" --gauge "Just another example" 6 50 0
-
-#if test "$VERBOSE" = 'yes'
-#then
-#	if test "$BUILD" = 'build'
-#	then
-#		#./authelia-theme-install_verbose.sh -t $THEME -m $MODE -p $PORT -v -b
-#		COMMAND="./authelia-theme-install_verbose.sh -t $THEME -m $MODE -p $PORT -v -b"
-#	else
-#		COMMAND="./authelia-theme-install_verbose.sh -t $THEME -m $MODE -p $PORT -v"
-#	fi
-#else
-#	if test "$BUILD" = 'copy'
-#        then
-#                COMMAND="./authelia-theme-install_verbose.sh -t $THEME -m $MODE -p $PORT"
-#        else
-#                COMMAND="./authelia-theme-install_verbose.sh -t $THEME -m $MODE -p $PORT -b"
-#        fi
-#fi

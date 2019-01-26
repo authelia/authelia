@@ -22,11 +22,6 @@ module.exports = function (grunt) {
         dist: ['dist'],
         backup: ['backup'],
     },
-    concurrent: {
-        various: [['check', 'clean:backup', 'copy:backup'], 'clean:dist'],
-        build: ['build-server', 'build-client'],
-        finish: ['run:minify', 'cssmin', 'run:include-minified-script'],
-    },
     run: {
       "compile-server": {
         cmd: "./node_modules/.bin/tsc",
@@ -250,8 +245,5 @@ module.exports = function (grunt) {
         grunt.log.writeln('Building "'+ theme +'" theme');
     }
   });
-
   grunt.registerTask('default', ['check', 'build-dist']);
-  //grunt.registerTask('default', ['concurrent:various', 'concurrent:build', 'concurrent:finish']);
-  //grunt.registerTask('default', ['concurrent:various', 'concurrent:build']);
 };

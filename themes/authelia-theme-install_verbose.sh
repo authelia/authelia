@@ -186,7 +186,6 @@ fi
 authelia_mod
 
 dest_global="$(echo | npm -g root)"
-#dest_local="$(echo | pwd)"
 dest_local="/tmp/authelia"
 
 authelia_local_install()
@@ -244,19 +243,6 @@ authelia_local_install()
                     echo -e "${LIGHTBLUE}> Installing...${NC}"
                     npm install --unsafe-perm
                 fi
-
-                #if test -z "$verbose"
-                #then
-                #    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                #    cp -R "./themes/$theme/public_html/" "./package/dist/server/src/"
-                #    cp -R "./themes/$theme/resources/" "./package/dist/server/src/"
-                #    cp -R "./themes/$theme/views/" "./package/dist/server/src/"
-                #else
-                #    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                #    cp -v -R "./themes/$theme/public_html/" "./package/dist/server/src/"
-                #    cp -v -R "./themes/$theme/resources/" "./package/dist/server/src/"
-                #    cp -v -R "./themes/$theme/views/" "./package/dist/server/src/"
-                #fi
 
                 if test -z "$port"
                 then

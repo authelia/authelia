@@ -23,9 +23,7 @@ module.exports = function (grunt) {
         backup: ['backup'],
     },
     concurrent: {
-        //prebuild: [['check', 'clean:backup', 'copy:backup'], 'clean:dist'],
         build: [['compile-client', 'browserify'], ['compile-server', 'copy-resources'], 'generate-config-schema'],
-        //build2: ['compile-client', 'browserify', 'compile-server', 'copy-resources', 'generate-config-schema'],
         finish: ['run:minify', 'cssmin', 'run:include-minified-script'],
     },
     run: {
@@ -251,8 +249,5 @@ module.exports = function (grunt) {
         grunt.log.writeln('Building "'+ theme +'" theme');
     }
   });
-
-  //grunt.registerTask('default', ['check', 'build-dist']);
-  //grunt.registerTask('default', ['concurrent:various', 'concurrent:build', 'concurrent:finish']);
   grunt.registerTask('default', ['clean:backup', 'copy:backup', 'clean:dist', 'concurrent:build', 'concurrent:finish']);
 };
