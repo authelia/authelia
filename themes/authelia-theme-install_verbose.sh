@@ -525,17 +525,6 @@ EOL
 			cp -v -R dist $dest_global"/authelia" 
 		fi
 
-        #echo -e "${LIGHTBLUE}> Configuring Authelia...${NC}"
-        #mkdir -p /etc/authelia
-        #chown root:authelia /etc/authelia
-        #chmod 2750 /etc/authelia
-
-	#systemctl daemon-reload
-	#systemctl start authelia
-	#systemctl status authelia
-	#systemctl enable authelia
-
-    echo -e "${LIGHTBLUE}> Starting server...${NC}"
     echo -e "${LIGHTBLUE}> Stop with CTRL-C, run with \"authelia config.file\"${NC}"
 
     sleep 5
