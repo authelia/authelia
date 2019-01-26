@@ -1,3 +1,4 @@
+#!/bin/bash
 #apt install whiptail -y
 
 whiptail \
@@ -42,13 +43,12 @@ else
 fi
 
 until [[ $PORT =~ ^(0|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$ ]]; do
-        PORT=$(whiptail --inputbox "Enter the listening port" 10 60 8080 --title "Which port should be exposed?" 10 60 3>&1 1>&2 2>&3)
-
-	exitstatus=$?
-	if [ $exitstatus = 1 ];
-	then
-		exit 1
-	fi
+PORT=$(whiptail --inputbox "Enter the listening port" 10 60 8080 --title "Which port should be exposed?" 10 60 3>&1 1>&2 2>&3)
+exitstatus=$?
+if [ $exitstatus = 1 ];
+then
+	exit 1
+fi
 done
 
 if (whiptail --title "Authelia Theme Installer" --yes-button "Ok" --no-button "Cancel" --yesno "Summary: \n Mode: $MODE \n Theme: $THEME \n Verbose: $VERBOSE \n Port: $PORT \n Build: $BUILD" 13 70 3>&1 1>&2 2>&3) then
