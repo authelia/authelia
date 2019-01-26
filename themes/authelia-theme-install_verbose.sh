@@ -50,13 +50,6 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             ;;
     esac
     case $1 in
-        -b | --build )
-            shift
-            build="yes"
-            interactive="yes"
-            ;;
-    esac
-    case $1 in
         -h | --help )
             shift
             echo -e "${LIGHTBLUE}--------------------------------------------------------------------------------------------"
@@ -70,7 +63,6 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             echo -e "${LIGHTBLUE}|  -m or --mode <local|global>                                                             |"
             echo -e "${LIGHTBLUE}|  -p or --port <port number>                                                              |"
             echo -e "${LIGHTBLUE}|  -v or --verbose                                                                         |"
-            echo -e "${LIGHTBLUE}|  -b or --build                                                                           |"
             echo -e "${LIGHTBLUE}--------------------------------------------------------------------------------------------${NC}"
             exit 0
             ;;
@@ -109,13 +101,6 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             interactive="yes"
             ;;
     esac
-	case $2 in
-        -b | --build )
-            shift
-            build="yes"
-            interactive="yes"
-            ;;
-    esac
     case $3 in
         -t | --theme )
             shift
@@ -144,24 +129,10 @@ while [ "$1" != "" ] || [ "$2" != "" ] || [ "$3" != "" ] || [ "$4" != "" ]; do
             interactive="yes"
             ;;
     esac
-	case $3 in
-        -b | --build )
-            shift
-            build="yes"
-            interactive="yes"
-            ;;
-    esac
     case $4 in
         -v | --verbose )
             shift
             verbose="yes"
-            interactive="yes"
-            ;;
-    esac
-    case $5 in
-        -b | --build )
-            shift
-            build="yes"
             interactive="yes"
             ;;
     esac
@@ -215,7 +186,8 @@ fi
 authelia_mod
 
 dest_global="$(echo | npm -g root)"
-dest_local="$(echo | pwd)"
+#dest_local="$(echo | pwd)"
+dest_local="/tmp/authelia"
 
 authelia_local_install()
 	{
@@ -267,24 +239,24 @@ authelia_local_install()
                 if test -z "$verbose"
                 then
                     echo -e "${LIGHTBLUE}> Installing...${NC}"
-                    npm install >/dev/null 2>&1
+                    npm install --unsafe-perm >/dev/null 2>&1
                 else
                     echo -e "${LIGHTBLUE}> Installing...${NC}"
-                    npm install
+                    npm install --unsafe-perm
                 fi
 
-                if test -z "$verbose"
-                then
-                    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                    cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-                    cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-                    cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
-                else
-                    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                    cp -v -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-                    cp -v -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-                    cp -v -R "./themes/full/$theme/views/" "./package/dist/server/src/"
-                fi
+                #if test -z "$verbose"
+                #then
+                #    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
+                #    cp -R "./themes/$theme/public_html/" "./package/dist/server/src/"
+                #    cp -R "./themes/$theme/resources/" "./package/dist/server/src/"
+                #    cp -R "./themes/$theme/views/" "./package/dist/server/src/"
+                #else
+                #    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
+                #    cp -v -R "./themes/$theme/public_html/" "./package/dist/server/src/"
+                #    cp -v -R "./themes/$theme/resources/" "./package/dist/server/src/"
+                #    cp -v -R "./themes/$theme/views/" "./package/dist/server/src/"
+                #fi
 
                 if test -z "$port"
                 then
@@ -296,7 +268,7 @@ authelia_local_install()
 
                 node package/dist/server/src/index.js ./themes/config.minimal.port.yml
             else
-		        echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
+		echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
                 echo -e "${LIGHTBLUE}> Cleaning up /tmp...${NC}"
 
                 rm -rf /tmp/authelia
@@ -336,24 +308,21 @@ authelia_local_install()
 
                 if test -z "$verbose"
                 then
-                    echo -e "${LIGHTBLUE}> Installing...${NC}"
-                    npm install >/dev/null 2>&1
-                else
-                    echo -e "${LIGHTBLUE}> Installing...${NC}"
-                    npm install
-                fi
+                        echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+                        npm install --unsafe-perm >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
 
-                if test -z "$verbose"
-                then
-                    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                    cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-                    cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-                    cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
+                        grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
+
+                        echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+                        cp -R dist $dest_local"/package"
                 else
-                    echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                    cp -v -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-                    cp -v -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-                    cp -v -R "./themes/full/$theme/views/" "./package/dist/server/src/"
+                        echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+                        npm install --unsafe-perm && echo -e "${YELLOW}50%...${NC}"
+
+                        grunt --theme=$theme && echo -e "${GREEN}100%... OK!${NC}"
+
+                        echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+                        cp -v -R dist $dest_local"/package"
                 fi
 
                 if test -z "$port"
@@ -375,23 +344,55 @@ authelia_local_install()
                 mkdir /tmp/authelia && cd /tmp/authelia
 
                 echo -e "${LIGHTBLUE}> Cloning git...${NC}"
-                git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                if test -z "$verbose"
+                then
+                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                    git pull origin dev >/dev/null 2>&1
+                else
+                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+                    git pull origin dev
+                fi
 
                 echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
-                authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
-                authelia_filename_npm=${authelia_latest_npm##*/}
-                authelia_filename="$(echo $authelia_filename_npm)"
-                curl -s -OL $(npm view authelia dist.tarball)
 
-                tar -zxf $authelia_filename
+                if test -z "$verbose"
+                then
+                    authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
+                    authelia_filename_npm=${authelia_latest_npm##*/}
+                    authelia_filename="$(echo $authelia_filename_npm)"
+                    curl -s -OL $(npm view authelia dist.tarball)
 
-                echo -e "${LIGHTBLUE}> Installing...${NC}"
-                npm install >/dev/null 2>&1
+                    tar -zxf $authelia_filename
+                else
+                    authelia_latest_npm="$(echo | npm view authelia dist.tarball)"
+                    echo $authelia_latest_npm
+                    authelia_filename_npm=${authelia_latest_npm##*/}
+                    echo $authelia_filename_npm
+                    authelia_filename="$(echo $authelia_filename_npm)"
+                    echo $authelia_filename
+                    curl -vs -OL $(npm view authelia dist.tarball)
 
-                echo -e "${LIGHTBLUE}> Copying $theme...${NC}"
-                cp -R "./themes/full/$theme/public_html/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/resources/" "./package/dist/server/src/"
-                cp -R "./themes/full/$theme/views/" "./package/dist/server/src/"
+                    tar -zxvf $authelia_filename
+                fi
+
+		if test -z "$verbose"
+                then
+                        echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+                        npm install --unsafe-perm >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
+
+                        grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
+
+                        echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+                        cp -R dist $dest_local"/package"
+                else
+                        echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+                        npm install --unsafe-perm && echo -e "${YELLOW}50%...${NC}"
+
+                        grunt --theme=$theme && echo -e "${GREEN}100%... OK!${NC}"
+
+                        echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+                        cp -v -R dist $dest_local"/package"
+                fi
 
                 if test -z "$port"
                 then
@@ -505,40 +506,24 @@ EOL
             echo -e "${LIGHTBLUE}> Theme chosen:" $theme"...${NC}"
     fi
 
-	if test -z "$build"
-	then
-		if test -z "$verbose"
+	if test -z "$verbose"
 		then
-			echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-			cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
-			cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
-			cp -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/" 
-		else
-			echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-			cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
-			cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/"
-			cp -v -R "./themes/full/$theme/views/" $dest_global"/authelia/dist/server/src/" 
-		fi
-	else
-	    if test -z "$verbose"
-		then
-			echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
-			npm install >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
+		        echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+                        npm install --unsafe-perm >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
 
-			grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
+                        grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
 
-			echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
-			cp -R dist $dest_global"/authelia" 
+                        echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+                        cp -R dist $dest_global"/authelia" 
 		else
 			echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
-			npm install && echo -e "${YELLOW}50%...${NC}"
+			npm install --unsafe-perm && echo -e "${YELLOW}50%...${NC}"
 
 			grunt --theme=$theme && echo -e "${GREEN}100%... OK!${NC}"
 
 			echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
 			cp -v -R dist $dest_global"/authelia" 
 		fi
-    fi
 
         #echo -e "${LIGHTBLUE}> Configuring Authelia...${NC}"
         #mkdir -p /etc/authelia
@@ -557,7 +542,7 @@ EOL
     systemctl status authelia
 
 }
-	
+
 authelia_global_or_local_install()
 	{
 	while [ "$mode" != "local" ] && [ "$mode" != "global" ]; do    
