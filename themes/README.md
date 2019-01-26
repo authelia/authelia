@@ -7,13 +7,10 @@ Available themes are: default, black, matrix, squares, triangles:
 By default the original theme will be built.
 
 If you want to create a new theme:
-- Use the `themes/src/default` or `themes/full/default` as source material
+- Use the `themes/default` as source material
 - Make a copy in themes folder with a new name
 - Add your theme folder name on line 237,239 and 242
 - And then build as above, with your theme folder/name.
-
-`themes/src/<theme_name>` contains the source files, before build.  
-`themes/full/<theme_name>` contains the pre-built files.
 
 authelia-theme-install.sh is meant for npm install, either locally (/tmp) or globally.
                                                                        
@@ -25,6 +22,5 @@ or adding parameters to default usage:
    -m or --mode <local|global>                                         
    -p or --port <port number>  
    -v or --verbose  
-   -b or --build <to build the themes, instead of copying built ones>
 
-Example:<br>`chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88 -v -b`
+Example:<br>`chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88 -v`
