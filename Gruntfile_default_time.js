@@ -23,9 +23,8 @@ module.exports = function (grunt) {
         backup: ['backup'],
     },
     concurrent: {
-        //prebuild: [['check', 'clean:backup', 'copy:backup'], 'clean:dist'],
-        build: [['compile-client', 'browserify'], ['compile-server', 'copy-resources'], 'generate-config-schema'],
-        //build2: ['compile-client', 'browserify', 'compile-server', 'copy-resources', 'generate-config-schema'],
+        various: [['check', 'clean:backup', 'copy:backup'], 'clean:dist'],
+        build: ['build-server', 'build-client'],
         finish: ['run:minify', 'cssmin', 'run:include-minified-script'],
     },
     run: {
@@ -216,7 +215,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-run');
   grunt.loadNpmTasks('grunt-env');
-  grunt.loadNpmTasks('grunt-concurrent');
+  grunt.loadNpmTasks('load-grunt-tasks');
 
   grunt.registerTask('compile-server', ['run:lint-server', 'run:compile-server'])
   grunt.registerTask('compile-client', ['run:lint-client', 'run:compile-client'])
@@ -252,7 +251,7 @@ module.exports = function (grunt) {
     }
   });
 
-  //grunt.registerTask('default', ['check', 'build-dist']);
+  grunt.registerTask('default', ['check', 'build-dist']);
   //grunt.registerTask('default', ['concurrent:various', 'concurrent:build', 'concurrent:finish']);
-  grunt.registerTask('default', ['clean:backup', 'copy:backup', 'clean:dist', 'concurrent:build', 'concurrent:finish']);
+  //grunt.registerTask('default', ['concurrent:various', 'concurrent:build']);
 };
