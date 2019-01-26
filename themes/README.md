@@ -13,14 +13,15 @@ If you want to create a new theme:
 - And then build as above, with your theme folder/name.
 
 authelia-theme-install.sh is meant for npm install, either locally (/tmp) or globally.
-                                                                       
+authelia-gui-theme-install.sh is meant for npm install, either locally (/tmp) or globally, but with a whiptail GUI.                                                                       
 Default usage:                                                         
-`authelia-theme-install.sh -i | --interactive`
-                                                                       
+`./authelia-theme-install.sh -i | --interactive`
+`./authelia-gui-theme-install.sh`
+
 or adding parameters to default usage:                                 
    -t or --theme <default|black|matrix|squares|triangles>              
    -m or --mode <local|global>                                         
    -p or --port <port number>  
    -v or --verbose  
 
-Example:<br>`chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88 -v`
+Example:<br>`chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88 -v` or just `./authelia-gui-theme-install.sh`
