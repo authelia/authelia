@@ -24,4 +24,4 @@ or adding parameters to default usage:
    -p or --port <port number>  
    -v or --verbose  
 
-Example:<br>`chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88 -v`<br> or just `./authelia-gui-theme-install.sh`
+Example:<br>`chmod +x authelia-theme-install.sh && ./authelia-theme-install.sh -t black -m global -p 88 -v`<br> or just:<br>`chmod +x authelia-gui-theme-install.sh && ./authelia-gui-theme-install.sh`
