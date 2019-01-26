@@ -198,7 +198,7 @@ authelia_local_install()
             then
             	theme="default"
                 echo -e "${LIGHTBLUE}> Input empty, defaulting to:" $theme"...${NC}"
-		        echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
+	        echo -e "${LIGHTBLUE}> Installing latest Authelia locally...${NC}"
                 echo -e "${LIGHTBLUE}> Cleaning up /tmp...${NC}"
 
                 rm -rf /tmp/authelia
