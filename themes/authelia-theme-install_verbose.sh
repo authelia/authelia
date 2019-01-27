@@ -206,11 +206,15 @@ authelia_local_install()
                 echo -e "${LIGHTBLUE}> Cloning git...${NC}"
                 if test -z "$verbose"
                 then
-                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
-                    git pull origin dev >/dev/null 2>&1
+                    #git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                    #git pull origin dev >/dev/null 2>&1
+                    git clone https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                    git pull >/dev/null 2>&1
                 else
-                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
-                    git pull origin dev
+                    #git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+                    #git pull origin dev
+                    git clone https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+                    git pull
                 fi
 
                 echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
@@ -263,11 +267,15 @@ authelia_local_install()
                 echo -e "${LIGHTBLUE}> Cloning git...${NC}"
                 if test -z "$verbose"
                 then
-                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
-                    git pull origin dev >/dev/null 2>&1
+                    #git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                    #git pull origin dev >/dev/null 2>&1
+                    git clone https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                    git pull >/dev/null 2>&1
                 else
-                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
-                    git pull origin dev
+                    #git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+                    #git pull origin dev
+                    git clone https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+                    git pull
                 fi
 
                 echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
@@ -332,11 +340,15 @@ authelia_local_install()
                 echo -e "${LIGHTBLUE}> Cloning git...${NC}"
                 if test -z "$verbose"
                 then
-                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
-                    git pull origin dev >/dev/null 2>&1
+                    #git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                    #git pull origin dev >/dev/null 2>&1
+                    git clone https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+                    git pull >/dev/null 2>&1
                 else
-                    git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
-                    git pull origin dev
+                    #git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+                    #git pull origin dev
+                    git clone https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+                    git pull
                 fi
 
                 echo -e "${LIGHTBLUE}> Getting latest tarball...${NC}"
@@ -468,11 +480,15 @@ EOL
     echo -e "${LIGHTBLUE}> Cloning git...${NC}"
     if test -z "$verbose"
     then
-        git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
-        git pull origin dev >/dev/null 2>&1
+        #git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+        #git pull origin dev >/dev/null 2>&1
+        git clone https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
+        git pull >/dev/null 2>&1
     else
-        git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
-        git pull origin dev
+        #git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+        #git pull origin dev
+        git clone https://github.com/bankainojutsu/authelia.git /tmp/authelia && cd /tmp/authelia
+        git pull
     fi
 
     if test -z "$theme"
@@ -494,12 +510,12 @@ EOL
 
 	if test -z "$verbose"
 		then
-		        echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
-                        npm install --unsafe-perm >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
+      echo -e "${LIGHTBLUE}> Building theme:" $theme"...${NC}"
+      npm install --unsafe-perm >/dev/null 2>&1 && echo -e "${YELLOW}50%...${NC}"
 
-                        grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
+      grunt --theme=$theme >/dev/null 2>&1 && echo -e "${GREEN}100%... OK!${NC}"
 
-                        echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
+      echo -e "${LIGHTBLUE}> Installing" $theme "theme${NC}"
 			cp -R dist/server/src/public_html/ $dest_global"/authelia/dist/server/src/"
 			cp -R dist/server/src/resources/ $dest_global"/authelia/dist/server/src/"
 			cp -R dist/server/src/views/ $dest_global"/authelia/dist/server/src/"
@@ -516,8 +532,9 @@ EOL
 			cp -v -R dist/server/src/views/ $dest_global"/authelia/dist/server/src/"
 		fi
 
-    echo -e "${LIGHTBLUE}> Stop with CTRL-C, run with \"authelia config.file\"${NC}"
+    echo -e "${LIGHTBLUE}> Restarting authelia service, waiting 5, and checking status...${NC}"
 
+    systemctl restart authelia
     sleep 5
     systemctl status authelia
 
