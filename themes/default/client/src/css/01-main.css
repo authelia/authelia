@@ -15,6 +15,7 @@ body {
 .poweredby {
   font-size: 0.7em;
   color: #6b6b6b;
+  text-align: center;
 }
 /* notifications */
 .notification {
