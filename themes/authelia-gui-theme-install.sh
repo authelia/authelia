@@ -57,9 +57,9 @@ fi
 
 if test "$VERBOSE" = 'yes'
 then
-        COMMAND="./authelia-theme-install_verbose.sh -t $THEME -m $MODE -p $PORT -v"
+        COMMAND="./authelia-theme-install.sh -t $THEME -m $MODE -p $PORT -v"
 else
-        COMMAND="./authelia-theme-install_verbose.sh -t $THEME -m $MODE -p $PORT"
+        COMMAND="./authelia-theme-install.sh -t $THEME -m $MODE -p $PORT"
 fi
 
 echo $COMMAND

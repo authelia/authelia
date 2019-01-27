@@ -264,7 +264,7 @@ authelia_local_install()
                 rm -rf /tmp/authelia
                 mkdir /tmp/authelia && cd /tmp/authelia
 
-                echo -e "${LIGHTBLUE}> Cloning git...${NC}"
+                echo -e "${LIGHTBLUE}> Cloning git to /tmp/authelia...${NC}"
                 if test -z "$verbose"
                 then
                     #git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
@@ -337,7 +337,7 @@ authelia_local_install()
                 rm -rf /tmp/authelia
                 mkdir /tmp/authelia && cd /tmp/authelia
 
-                echo -e "${LIGHTBLUE}> Cloning git...${NC}"
+                echo -e "${LIGHTBLUE}> Cloning git to /tmp/authelia...${NC}"
                 if test -z "$verbose"
                 then
                     #git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
@@ -477,7 +477,7 @@ EOL
     echo -e "${LIGHTBLUE}> Deleting /tmp/authelia...${NC}"
     rm -rf /tmp/authelia
 
-    echo -e "${LIGHTBLUE}> Cloning git...${NC}"
+    echo -e "${LIGHTBLUE}> Cloning git to /tmp/authelia...${NC}"
     if test -z "$verbose"
     then
         #git clone --single-branch --branch dev https://github.com/bankainojutsu/authelia.git /tmp/authelia >/dev/null 2>&1 && cd /tmp/authelia
