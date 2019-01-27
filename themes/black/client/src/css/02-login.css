@@ -35,7 +35,6 @@
 }
 .form-signin input[type="password"]
 {
-    /* margin-bottom: 10px; */
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
@@ -61,14 +60,15 @@
 {
     display: block;
     text-align: center;
+    color: white;
 }
-.account-wall p 
+.account-wall p
 {
     text-align: center;
     margin: 10px;
     color: white;
 }
-.account-wall .form-inputs 
+.account-wall .form-inputs
 {
     margin-bottom: 10px;
     border-color: #b20c0c;

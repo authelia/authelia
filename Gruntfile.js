@@ -249,5 +249,5 @@ module.exports = function (grunt) {
         grunt.log.writeln('Building "'+ theme +'" theme');
     }
   });
-  grunt.registerTask('default', ['clean:backup', 'copy:backup', 'clean:dist', 'concurrent:build', 'concurrent:finish']);
+  grunt.registerTask('default', ['check', 'clean:backup', 'copy:backup', 'clean:dist', 'concurrent:build', 'concurrent:finish']);
 };

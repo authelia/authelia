@@ -1,17 +1,19 @@
 .totp-register #secret {
-  background-color: white;
+  background-color: black;
   font-size: 0.9em;
   font-weight: bold;
   padding: 5px;
-  border: 1px solid #c7c7c7;
+  border: 1px solid #fff;
   word-wrap: break-word;
 }
 .totp-register #qrcode img {
   margin: 10px auto;
+  border: solid;
 }
 .totp-register .need-google-authenticator {
   text-align: center;
   margin-top: 20px;
+  color: white;
 }
 .totp-register .store-badges {
   margin-top: 5px;
