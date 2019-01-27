@@ -13,8 +13,8 @@ NC='\033[0m' # No Color
 if ! [ $(id -u) = 0 ]; then echo -e "${ORANGE}Please run this script as sudo or root${NC}"; exit 1 ; fi
 
 #Authelia Requirements
-authelia_req=('wget' 'unzip' 'nginx' 'nodejs' 'curl')
-authelia_reqname=('WGET' 'UNZIP' 'NGINX' 'NODEJS' 'CURL')
+authelia_req=('wget' 'unzip' 'nginx' 'nodejs' 'curl' 'git')
+authelia_reqname=('WGET' 'UNZIP' 'NGINX' 'NODEJS' 'CURL' 'GIT')
 
 interactive=""
 
@@ -392,7 +392,7 @@ authelia_local_install()
     done
 	}
 
-authelia_global_install() 
+authelia_global_install()
     {
     if test -z "$verbose"
     then
@@ -525,7 +525,7 @@ EOL
 
 authelia_global_or_local_install()
 	{
-	while [ "$mode" != "local" ] && [ "$mode" != "global" ]; do    
+	while [ "$mode" != "local" ] && [ "$mode" != "global" ]; do
         echo -e "${YELLOW}> global or [local]?${NC}"
         read mode
 		if test -z "$mode"
