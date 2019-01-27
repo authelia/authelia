@@ -1,0 +1,10 @@
+#!/bin/bash
+
+./example/compose/nginx/portal/render.js
+
+./scripts/utils/prepare-environment.sh
+
+server_watcher="./node_modules/.bin/nodemon -e yml,js,ts,json --exec ./scripts/run-dev-server.sh 2>&1 /tmp/authelia-server.log"
+client_watcher="cd client && BROWSER=none npm run start > /tmp/authelia-client.log"
+
+./node_modules/.bin/concurrently "$server_watcher" "$client_watcher"

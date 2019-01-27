@@ -10,4 +10,4 @@ services:
     depends_on: 
       - redis
     networks:
-      - example-network
+      - authelianet

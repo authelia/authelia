@@ -32,7 +32,7 @@ before_script:
 script:
 - "./scripts/travis.sh"
 after_success:
-- "./scripts/docker-publish.sh"
+- "./scripts/authelia-scripts publish-docker"
 deploy:
   provider: npm
   email: clement.michaud34@gmail.com

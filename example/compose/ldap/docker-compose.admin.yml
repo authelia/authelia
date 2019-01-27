@@ -8,4 +8,4 @@ services:
       - PHPLDAPADMIN_LDAP_HOSTS=openldap
       - PHPLDAPADMIN_HTTPS=false
     networks:
-      - example-network
+      - authelianet

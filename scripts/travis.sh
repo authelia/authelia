@@ -2,19 +2,18 @@
 
 set -e
 
+export PATH=./scripts:$PATH
+
 docker --version
 docker-compose --version
 echo "node `node -v`"
 echo "npm `npm -v`"
 
-# Generate configuration schema
-grunt schema
-
 # Run unit tests
-grunt test-unit
+authelia-scripts test
 
-# Build the app from Typescript and package
-grunt build-dist
+# Build
+authelia-scripts build
 
 # Run integration/example tests
 ./scripts/integration-tests.sh

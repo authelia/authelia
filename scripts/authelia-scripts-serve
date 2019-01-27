@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Render the production version of the nginx portal configuration
+./example/compose/nginx/portal/render.js --production
+
+./scripts/utils/prepare-environment.sh
+
+./node_modules/.bin/nodemon -e yml --exec 'node dist/server/src/index.js config.yml'

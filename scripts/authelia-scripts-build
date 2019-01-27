@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -x
+set -e
+
+DIST_DIR=dist
+
+rm -rf $DIST_DIR
+
+# Build the server
+./node_modules/.bin/tslint -c server/tslint.json -p server/tsconfig.json
+./node_modules/.bin/tsc -p server/tsconfig.json
+
+mkdir -p $DIST_DIR/server/src/resources
+cp server/src/resources/** $DIST_DIR/server/src/resources/
+
+./node_modules/.bin/typescript-json-schema -o server/src/lib/configuration/Configuration.schema.json --strictNullChecks --required server/tsconfig.json Configuration
+
+# Copy in dist
+cp server/src/lib/configuration/Configuration.schema.json $DIST_DIR/server/src/lib/configuration
+
+
+# Build the client
+pushd client
+npm run build
+popd
+
+mv client/build $DIST_DIR/server/src/public_html
+

@@ -6,4 +6,4 @@ services:
       - ./dist/server:/usr/src/server
       - ./dist/shared:/usr/src/shared
     networks:
-      - example-network
+      - authelianet

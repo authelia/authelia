@@ -9,5 +9,6 @@ else
   echo "Bridge authelianet already exist."
 fi
 
-./scripts/dc-dev.sh build && ./scripts/dc-dev.sh up -d
+./scripts/dc-dev.sh up -d
 
+./scripts/dc-dev.sh kill -s SIGHUP nginx-portal

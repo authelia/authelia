@@ -1,14 +1,5 @@
 version: '2'
-services:
-  authelia:
-    build: .
-    restart: always
-    volumes:
-      - ./config.template.yml:/etc/authelia/config.yml:ro
-    environment:
-      - NODE_TLS_REJECT_UNAUTHORIZED=0
-    depends_on: 
-      - redis
-      - mongo
-    networks:
-      - example-network
+services: {}
+networks:
+  authelianet:
+    external: true

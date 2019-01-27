@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+ 
+program
+  .version('0.0.1')
+  .command('start', 'Start development environment.')
+  .command('build', 'Build production version of Authelia from source.')
+  .command('clean', 'Clean the production version of Authelia.')
+  .command('serve', 'Serve production version of Authelia.')
+  .command('test', 'Run Authelia unit tests.')
+
+  .command('build-docker', 'Build Docker image containing production version of Authelia.')
+  .command('publish-docker', 'Publish Docker image containing production version of Authelia to Dockerhub.')
+
+program.parse(process.argv);
+
+

@@ -3,4 +3,4 @@ services:
   httpbin:
     image: citizenstig/httpbin
     networks:
-      - example-network
+      - authelianet

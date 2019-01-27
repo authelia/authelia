@@ -1,0 +1,3 @@
+#!/bin/bash
+
+TS_NODE_PROJECT=server/tsconfig.json ./node_modules/.bin/mocha --colors --require ts-node/register server/src/**/*.spec.ts

@@ -5,10 +5,13 @@
   "bin": {
     "authelia": "./dist/server/src/index.js"
   },
+  "engines": {
+    "node": ">=8.0.0 <10.0.0"
+  },
   "scripts": {
-    "start": "./scripts/authelia-cli start",
-    "build": "echo build",
-    "test": "./node_modules/.bin/grunt test-unit",
+    "start": "./scripts/authelia-scripts start",
+    "build": "./scripts/authelia-scripts build",
+    "test": "./scripts/authelia-scripts test",
     "cover": "NODE_ENV=test nyc npm t"
   },
   "repository": {
@@ -82,6 +85,7 @@
     "apidoc": "^0.17.6",
     "chromedriver": "^2.37.0",
     "commander": "^2.19.0",
+    "concurrently": "^4.1.0",
     "cucumber": "^4.0.0",
     "grunt": "^1.0.3",
     "grunt-contrib-clean": "^2.0.0",

@@ -9,4 +9,4 @@ services:
     ports:
       - "8080:443"
     networks:
-      - example-network
+      - authelianet
