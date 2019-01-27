@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Check if user is root or sudo
+if ! [ $(id -u) = 0 ]; then whiptail \
+    --title "Authelia Theme Installer" \
+    --msgbox "Please run this as root." 10 60; exit 1 ; fi
+
 whiptail \
     --title "Authelia Theme Installer" \
     --msgbox "This will install a theme to authelia." 10 60
