@@ -9,6 +9,7 @@
 .totp-register #qrcode img {
   margin: 10px auto;
   border: solid;
+  color: white;
 }
 .totp-register .need-google-authenticator {
   text-align: center;
