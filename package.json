@@ -42,7 +42,6 @@
     "nodemailer": "^4.7.0",
     "nodemailer-direct-transport": "^3.3.2",
     "nodemailer-smtp-transport": "^2.7.4",
-    "npm": "^6.7.0",
     "object-path": "^0.11.3",
     "parse5": "^4.0.0",
     "pug": "^2.0.0-rc.2",
