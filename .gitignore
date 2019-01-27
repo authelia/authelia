@@ -1,7 +1,4 @@
 
-# Package-lock file
-package-lock.json
-
 # NodeJs modules
 node_modules/
 
