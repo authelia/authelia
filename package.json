@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@types/parse5": "^4.0.0",
+    "acorn": "^6.0.5",
     "ajv": "^6.7.0",
     "bluebird": "^3.5.3",
     "body-parser": "^1.18.3",
@@ -42,6 +43,7 @@
     "nodemailer": "^4.7.0",
     "nodemailer-direct-transport": "^3.3.2",
     "nodemailer-smtp-transport": "^2.7.4",
+    "nyc": "^13.1.0",
     "object-path": "^0.11.3",
     "parse5": "^4.0.0",
     "pug": "^2.0.0-rc.2",
@@ -109,7 +111,6 @@
     "jsdom": "^11.0.0",
     "mocha": "^5.0.5",
     "mockdate": "^2.0.1",
-    "nyc": "^13.1.0",
     "power-assert": "^1.4.4",
     "proxyquire": "^2.0.1",
     "query-string": "^6.0.0",
