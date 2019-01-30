@@ -1,5 +1,5 @@
 import SeleniumWebdriver from "selenium-webdriver";
-import LoginAndRegisterTotp from '../../helpers/LoginAndRegisterTotp';
+import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
 
 /** 
  * Given the user logs in as john,

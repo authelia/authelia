@@ -1,7 +1,7 @@
 import ChildProcess from 'child_process';
 import Bluebird from "bluebird";
 
-import AutheliaSuite from "../helpers/context/AutheliaSuite";
+import AutheliaSuite from "../../helpers/context/AutheliaSuite";
 import BadPassword from "./scenarii/BadPassword";
 import RegisterTotp from './scenarii/RegisterTotp';
 import ResetPassword from './scenarii/ResetPassword';

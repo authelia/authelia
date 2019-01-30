@@ -1,11 +1,11 @@
-import FillLoginPageWithUserAndPasswordAndClick from '../../helpers/FillLoginPageAndClick';
-import WaitRedirected from '../../helpers/WaitRedirected';
-import VisitPage from '../../helpers/VisitPage';
-import ValidateTotp from '../../helpers/ValidateTotp';
-import AccessSecret from "../../helpers/AccessSecret";
-import LoginAndRegisterTotp from '../../helpers/LoginAndRegisterTotp';
-import SeeNotification from '../../helpers/SeeNotification';
-import { AUTHENTICATION_TOTP_FAILED } from '../../../shared/UserMessages';
+import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLoginPageAndClick';
+import WaitRedirected from '../../../helpers/WaitRedirected';
+import VisitPage from '../../../helpers/VisitPage';
+import ValidateTotp from '../../../helpers/ValidateTotp';
+import AccessSecret from "../../../helpers/AccessSecret";
+import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
+import SeeNotification from '../../../helpers/SeeNotification';
+import { AUTHENTICATION_TOTP_FAILED } from '../../../../shared/UserMessages';
 
 export default function() {
   /**

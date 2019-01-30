@@ -1,12 +1,13 @@
-import VisitPage from '../../helpers/VisitPage';
-import ClickOnLink from '../../helpers/ClickOnLink';
-import ClickOn from '../../helpers/ClickOn';
-import WaitRedirected from '../../helpers/WaitRedirected';
-import FillField from "../../helpers/FillField";
-import {GetLinkFromEmail} from "../../helpers/GetIdentityLink";
-import FillLoginPageAndClick from "../../helpers/FillLoginPageAndClick";
 import SeleniumWebDriver from 'selenium-webdriver';
-import IsSecondFactorStage from "../../helpers/IsSecondFactorStage";
+
+import VisitPage from '../../../helpers/VisitPage';
+import ClickOnLink from '../../../helpers/ClickOnLink';
+import ClickOn from '../../../helpers/ClickOn';
+import WaitRedirected from '../../../helpers/WaitRedirected';
+import FillField from "../../../helpers/FillField";
+import {GetLinkFromEmail} from "../../../helpers/GetIdentityLink";
+import FillLoginPageAndClick from "../../../helpers/FillLoginPageAndClick";
+import IsSecondFactorStage from "../../../helpers/IsSecondFactorStage";
 
 export default function() {
   it("should reset password for john", async function() {

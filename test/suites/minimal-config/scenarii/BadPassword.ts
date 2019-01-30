@@ -1,7 +1,7 @@
-import FillLoginPageWithUserAndPasswordAndClick from '../../helpers/FillLoginPageAndClick';
-import VisitPage from '../../helpers/VisitPage';
-import SeeNotification from '../../helpers/SeeNotification';
-import {AUTHENTICATION_FAILED} from '../../../shared/UserMessages';
+import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLoginPageAndClick';
+import VisitPage from '../../../helpers/VisitPage';
+import SeeNotification from '../../../helpers/SeeNotification';
+import {AUTHENTICATION_FAILED} from '../../../../shared/UserMessages';
 
 export default function() {
 /**
