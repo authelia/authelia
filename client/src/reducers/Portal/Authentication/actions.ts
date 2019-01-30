@@ -3,7 +3,6 @@ import {
   FETCH_STATE_REQUEST,
   FETCH_STATE_SUCCESS,
   FETCH_STATE_FAILURE,
-  SET_REDIRECTION_URL,
 } from "../../constants";
 import RemoteState from '../../../views/AuthenticationView/RemoteState';
 
@@ -19,7 +18,3 @@ export const fetchStateFailure = createAction(FETCH_STATE_FAILURE, resolve => {
     return resolve(err);
   }
 });
-
-export const setRedirectionUrl = createAction(SET_REDIRECTION_URL, resolve => {
-  return (url: string) => resolve(url);
-})

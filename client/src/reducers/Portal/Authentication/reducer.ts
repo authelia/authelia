@@ -6,15 +6,12 @@ import RemoteState from '../../../views/AuthenticationView/RemoteState';
 export type Action = ActionType<typeof Actions>;
 
 interface State {
-  redirectionUrl : string | null;
   remoteState: RemoteState | null;
   remoteStateLoading: boolean;
   remoteStateError: string | null;
 }
 
 const initialState: State = {
-  redirectionUrl: null,
-
   remoteState: null,
   remoteStateLoading: false,
   remoteStateError: null,
@@ -41,11 +38,6 @@ export default (state = initialState, action: Action): State => {
         remoteStateError: action.payload,
         remoteStateLoading: false,
       };
-    case getType(Actions.setRedirectionUrl):
-      return {
-        ...state,
-        redirectionUrl: action.payload,
-      }
   }
   return state;
 }

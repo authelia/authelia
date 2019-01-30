@@ -4,9 +4,6 @@ export const FETCH_STATE_SUCCESS = '@portal/fetch_state_success';
 export const FETCH_STATE_FAILURE = '@portal/fetch_state_failure';
 
 // AUTHENTICATION PROCESS
-
-export const SET_REDIRECTION_URL = '@portal/authenticate/set_redirection_url';
-
 export const AUTHENTICATE_REQUEST = '@portal/authenticate_request';
 export const AUTHENTICATE_SUCCESS = '@portal/authenticate_success';
 export const AUTHENTICATE_FAILURE = '@portal/authenticate_failure';
