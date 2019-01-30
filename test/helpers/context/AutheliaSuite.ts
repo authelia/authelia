@@ -4,15 +4,15 @@ import WithDriver from "./WithDriver";
 let running = false;
 
 interface AutheliaSuiteType {
-  (description: string, cb: (this: Mocha.ISuiteCallbackContext) => void): Mocha.ISuite;
-  only: (description: string, cb: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite;
+  (description: string, configPath: string, cb: (this: Mocha.ISuiteCallbackContext) => void): Mocha.ISuite;
+  only: (description: string, configPath: string, cb: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite;
 }
 
-function AutheliaSuiteBase(description: string,
-  context: (description: string, ctx: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite,
-  cb: (this: Mocha.ISuiteCallbackContext) => void) {
+function AutheliaSuiteBase(description: string, configPath: string,
+  cb: (this: Mocha.ISuiteCallbackContext) => void,
+  context: (description: string, ctx: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite) {
   if (!running  && process.env['WITH_SERVER'] == 'y') {
-    WithAutheliaRunning();
+    WithAutheliaRunning(configPath);
     running = true;
   }  
 
@@ -22,13 +22,16 @@ function AutheliaSuiteBase(description: string,
   });
 }
 
-const AutheliaSuite = <AutheliaSuiteType>function(description: string, cb: (this: Mocha.ISuiteCallbackContext) => void) {
-  return AutheliaSuiteBase(description, describe, cb);
+const AutheliaSuite = <AutheliaSuiteType>function(
+  description: string, configPath: string, 
+  cb: (this: Mocha.ISuiteCallbackContext) => void) {
+  return AutheliaSuiteBase(description, configPath, cb, describe);
 }
 
 
-AutheliaSuite.only = function(description: string, cb: (this: Mocha.ISuiteCallbackContext) => void) {
-  return AutheliaSuiteBase(description, describe.only, cb);
+AutheliaSuite.only = function(description: string, configPath: string, 
+  cb: (this: Mocha.ISuiteCallbackContext) => void) {
+  return AutheliaSuiteBase(description, configPath, cb, describe.only);
 }
 
 export default AutheliaSuite as AutheliaSuiteType;

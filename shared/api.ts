@@ -287,3 +287,17 @@ export const VERIFY_GET = "/api/verify";
  */
 export const LOGOUT_POST = "/api/logout";
 
+/**
+ * @api {post} /api/redirect Url redirection checking endpoint
+ * @apiName Redirect
+ * @apiGroup Authentication
+ * @apiVersion 1.0.0
+ * @apiDescription Check if the user can be redirected to the url provided.
+ * The level of permissions for this user are checked and the url must be
+ * in the domain protected by authelia.
+ *
+ * @apiSuccess (Success 200)
+ *
+ * @apiDescription Resets the session to logout the user.
+ */
+export const REDIRECT_POST = "/api/redirect";

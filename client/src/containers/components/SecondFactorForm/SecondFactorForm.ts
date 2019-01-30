@@ -9,6 +9,7 @@ import * as AutheliaService from '../../../services/AutheliaService';
 import { push } from 'connected-react-router';
 import fetchState from '../../../behaviors/FetchStateBehavior';
 import LogoutBehavior from '../../../behaviors/LogoutBehavior';
+import SafelyRedirectBehavior from '../../../behaviors/SafelyRedirectBehavior';
 
 const mapStateToProps = (state: RootState): StateProps => ({
   securityKeySupported: state.secondFactor.securityKeySupported,
@@ -52,19 +53,23 @@ async function triggerSecurityKeySigning(dispatch: Dispatch) {
   await dispatch(securityKeySignSuccess());
 }
 
-function redirectOnSuccess(dispatch: Dispatch, ownProps: OwnProps, duration?: number) {
-  function redirect() {
+async function handleSuccess(dispatch: Dispatch, ownProps: OwnProps, duration?: number) {
+  async function handle() {
     if (ownProps.redirection) {
-      window.location.href = ownProps.redirection;
+      try {
+        await SafelyRedirectBehavior(ownProps.redirection, dispatch);
+      } catch (e) {
+        await fetchState(dispatch);
+      }
     } else {
-      fetchState(dispatch);
+      await fetchState(dispatch);
     }
   }
 
   if (duration) {
-    setTimeout(redirect, duration);
+    setTimeout(handle, duration);
   } else {
-    redirect();
+    await handle();
   }
 }
 
@@ -84,7 +89,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
       if (isU2FSupported) {
         await dispatch(setSecurityKeySupported(true));
         await triggerSecurityKeySigning(dispatch);
-        redirectOnSuccess(dispatch, ownProps, 1000);
+        await handleSuccess(dispatch, ownProps, 1000);
       }
     },
     onOneTimePasswordValidationRequested: async (token: string) => {
@@ -106,7 +111,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
         throw body['error'];
       }
       dispatch(oneTimePasswordVerificationSuccess());
-      redirectOnSuccess(dispatch, ownProps);
+      await handleSuccess(dispatch, ownProps);
     },
   }
 }

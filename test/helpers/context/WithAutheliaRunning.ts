@@ -1,12 +1,12 @@
 
 import ChildProcess from 'child_process';
 
-export default function WithAutheliaRunning(waitTimeout: number = 3000) {
+export default function WithAutheliaRunning(configPath: string, waitTimeout: number = 3000) {
   before(function() {
     this.timeout(5000);
     const authelia = ChildProcess.spawn(
       './scripts/authelia-scripts',
-      ['serve', '--no-watch', '--config', 'config.minimal.yml'],
+      ['serve', '--no-watch', '--config', configPath],
       {detached: true});
     this.authelia = authelia;
   

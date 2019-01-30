@@ -1,10 +1,10 @@
 import { connect } from 'react-redux';
-import AuthenticationView, {StateProps, Stage, DispatchProps} from '../../../views/AuthenticationView/AuthenticationView';
+import QueryString from 'query-string';
+import AuthenticationView, {StateProps, Stage, DispatchProps, OwnProps} from '../../../views/AuthenticationView/AuthenticationView';
 import { RootState } from '../../../reducers';
 import { Dispatch } from 'redux';
 import AuthenticationLevel from '../../../types/AuthenticationLevel';
 import FetchStateBehavior from '../../../behaviors/FetchStateBehavior';
-import { setRedirectionUrl } from '../../../reducers/Portal/Authentication/actions';
 
 function authenticationLevelToStage(level: AuthenticationLevel): Stage {
   switch (level)  {
@@ -17,12 +17,21 @@ function authenticationLevelToStage(level: AuthenticationLevel): Stage {
   }
 }
 
-const mapStateToProps = (state: RootState): StateProps => {
+const mapStateToProps = (state: RootState, ownProps: OwnProps): StateProps => {
   const stage = (state.authentication.remoteState)
     ? authenticationLevelToStage(state.authentication.remoteState.authentication_level)
     : Stage.FIRST_FACTOR;
+
+  let url: string | null = null;
+  if (ownProps.location) {
+    const params = QueryString.parse(ownProps.location.search);
+    if ('rd' in params) {
+      url = params['rd'] as string;
+    }
+  }
+
   return {
-    redirectionUrl: state.authentication.redirectionUrl,
+    redirectionUrl: url,
     remoteState: state.authentication.remoteState,
     stage: stage,
   };
@@ -30,11 +39,8 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   return {
-    onInit: async (redirectionUrl?: string) => {
+    onInit: async () => {
       await FetchStateBehavior(dispatch);
-      if (redirectionUrl) {
-        await dispatch(setRedirectionUrl(redirectionUrl));
-      }
     }
   }
 }

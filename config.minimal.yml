@@ -4,6 +4,8 @@
 
 port: 9091
 
+log_level: debug
+
 authentication_backend:
   file:
     path: ./users_database.yml

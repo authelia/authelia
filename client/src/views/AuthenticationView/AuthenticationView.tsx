@@ -3,14 +3,15 @@ import AlreadyAuthenticated from "../../containers/components/AlreadyAuthenticat
 import FirstFactorForm from "../../containers/components/FirstFactorForm/FirstFactorForm";
 import SecondFactorForm from "../../containers/components/SecondFactorForm/SecondFactorForm";
 import RemoteState from "./RemoteState";
-import { RouterProps } from "react-router";
-import queryString from 'query-string';
+import { RouterProps, RouteProps } from "react-router";
 
 export enum Stage {
   FIRST_FACTOR,
   SECOND_FACTOR,
   ALREADY_AUTHENTICATED,
 }
+
+export interface OwnProps extends RouteProps {}
 
 export interface StateProps {
   stage: Stage;
@@ -19,19 +20,13 @@ export interface StateProps {
 }
 
 export interface DispatchProps {
-  onInit: (redirectionUrl?: string) => void;
+  onInit: () => void;
 }
 
 export type Props = StateProps & DispatchProps & RouterProps;
 
 class AuthenticationView extends Component<Props> {
-  componentDidMount() {
-    if (this.props.history.location) {
-      const params = queryString.parse(this.props.history.location.search);
-      if ('rd' in params) {
-        this.props.onInit(params['rd'] as string);
-      }
-    }
+  componentWillMount() {
     this.props.onInit();
   }
 

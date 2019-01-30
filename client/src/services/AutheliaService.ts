@@ -115,3 +115,23 @@ export async function resetPassword(newPassword: string) {
     body: JSON.stringify({password: newPassword})
   });
 }
+
+export async function checkRedirection(url: string) {
+  const res = await fetch('/api/redirect', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({url})
+  })
+
+  if (res.status !== 200) {
+    throw new Error('Status code ' + res.status);
+  }
+
+  const text = await res.text();
+  if (text !== 'OK') {
+    throw new Error('Cannot redirect');
+  }
+  return;
+}

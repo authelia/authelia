@@ -3,6 +3,7 @@ import Express = require("express");
 import FirstFactorPost = require("../routes/firstfactor/post");
 import LogoutPost from "../routes/logout/post";
 import StateGet from "../routes/state/get";
+import RedirectPost from "../routes/redirect/post";
 import VerifyGet = require("../routes/verify/get");
 import TOTPSignGet = require("../routes/secondfactor/totp/sign/post");
 
@@ -86,6 +87,7 @@ function setupResetPassword(app: Express.Application, vars: ServerVariables) {
 export class RestApi {
   static setup(app: Express.Application, vars: ServerVariables): void {
     app.get(Endpoints.STATE_GET, StateGet(vars));
+    app.post(Endpoints.REDIRECT_POST, RedirectPost(vars));
 
     app.post(Endpoints.LOGOUT_POST, LogoutPost(vars));
 

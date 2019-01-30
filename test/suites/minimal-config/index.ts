@@ -9,7 +9,7 @@ import TOTPValidation from './scenarii/TOTPValidation';
 
 const execAsync = Bluebird.promisify(ChildProcess.exec);
 
-AutheliaSuite('Minimal configuration', function() {
+AutheliaSuite('Minimal configuration', 'config.minimal.yml', function() {
   this.timeout(10000);
   beforeEach(function() {
     return execAsync("cp users_database.example.yml users_database.yml");
