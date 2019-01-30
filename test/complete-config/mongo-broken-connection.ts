@@ -1,6 +1,6 @@
-import WithDriver from '../helpers/with-driver';
-import fullLogin from '../helpers/full-login';
-import loginAndRegisterTotp from '../helpers/login-and-register-totp';
+import WithDriver from '../helpers/context/WithDriver';
+import fullLogin from '../helpers/FullLogin';
+import loginAndRegisterTotp from '../helpers/LoginAndRegisterTotp';
 
 describe("Connection retry when mongo fails or restarts", function() {
   this.timeout(30000);

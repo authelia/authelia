@@ -51,9 +51,10 @@ class ForgotPasswordView extends Component<Props, State> {
           <TextField
             className={styles.field}
             outlined={true}
-            id="username"
             label="Username">
-            <Input 
+            <Input
+              id="username"
+              name="username"
               onChange={this.onUsernameChanged}
               onKeyPress={this.onKeyPressed}
               value={this.state.username}
@@ -64,6 +65,7 @@ class ForgotPasswordView extends Component<Props, State> {
               <Button
                 onClick={this.onPasswordResetRequested}
                 color="primary"
+                id="next-button"
                 raised={true}
                 className={styles.buttonConfirm}
                 disabled={this.props.disabled}>
@@ -75,6 +77,7 @@ class ForgotPasswordView extends Component<Props, State> {
                 onClick={this.props.onCancelClicked}
                 color="primary"
                 raised={true}
+                id="cancel-button"
                 className={styles.buttonCancel}>
                 Cancel
               </Button>

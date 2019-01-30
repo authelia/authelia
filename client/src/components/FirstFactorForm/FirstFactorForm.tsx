@@ -65,7 +65,7 @@ class FirstFactorForm extends Component<Props, State> {
 
   render() {
     return (
-      <div>
+      <div className='first-factor-step'>
         <Notification
           show={this.props.error != null}
           className={styles.notification}>
@@ -103,8 +103,9 @@ class FirstFactorForm extends Component<Props, State> {
           <div className={styles.buttons}>
             <Button
               onClick={this.onLoginClicked}
-              color="primary"
+              color='primary'
               raised={true}
+              id='login-button'
               disabled={this.props.formDisabled}>
               Login
             </Button>

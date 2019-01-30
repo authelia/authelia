@@ -1,9 +1,9 @@
-import WithDriver from "../helpers/with-driver";
-import LoginAndRegisterTotp from "../helpers/login-and-register-totp";
-import SeeNotification from "../helpers/see-notification";
-import VisitPage from "../helpers/visit-page";
-import FillLoginPageWithUserAndPasswordAndClick from '../helpers/fill-login-page-and-click';
-import ValidateTotp from "../helpers/validate-totp";
+import WithDriver from "../helpers/context/WithDriver";
+import LoginAndRegisterTotp from "../helpers/LoginAndRegisterTotp";
+import SeeNotification from "../helpers/SeeNotification";
+import VisitPage from "../helpers/VisitPage";
+import FillLoginPageWithUserAndPasswordAndClick from '../helpers/FillLoginPageAndClick';
+import ValidateTotp from "../helpers/ValidateTotp";
 import {CANNOT_REDIRECT_TO_EXTERNAL_DOMAIN} from '../../shared/UserMessages';
 
 /*

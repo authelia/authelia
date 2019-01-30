@@ -111,7 +111,7 @@ http {
         server_name     public.example.com;
 
         resolver 127.0.0.11 ipv6=off;
-        set $upstream_verify http://authelia:8080/api/verify;
+        set $upstream_verify http://192.168.240.1:9091/api/verify;
         set $upstream_endpoint http://nginx-backend;
         set $upstream_headers http://httpbin:8000/headers;
 
@@ -179,7 +179,7 @@ http {
         server_name     admin.example.com;
 
         resolver 127.0.0.11 ipv6=off;
-        set $upstream_verify http://authelia:8080/api/verify;
+        set $upstream_verify http://192.168.240.1:9091/api/verify;
         set $upstream_endpoint http://nginx-backend;
 
         ssl_certificate     /etc/ssl/server.crt;
@@ -229,7 +229,7 @@ http {
         server_name     dev.example.com;
 
         resolver 127.0.0.11 ipv6=off;
-        set $upstream_verify http://authelia:8080/api/verify;
+        set $upstream_verify http://192.168.240.1:9091/api/verify;
         set $upstream_endpoint http://nginx-backend;
 
         ssl_certificate     /etc/ssl/server.crt;
@@ -279,7 +279,7 @@ http {
         server_name     mx1.mail.example.com mx2.mail.example.com;
 
         resolver 127.0.0.11 ipv6=off;
-        set $upstream_verify http://authelia:8080/api/verify;
+        set $upstream_verify http://192.168.240.1:9091/api/verify;
         set $upstream_endpoint http://nginx-backend;
 
         ssl_certificate     /etc/ssl/server.crt;
@@ -329,7 +329,7 @@ http {
         server_name     single_factor.example.com;
 
         resolver 127.0.0.11 ipv6=off;
-        set $upstream_verify http://authelia:8080/api/verify;
+        set $upstream_verify http://192.168.240.1:9091/api/verify;
         set $upstream_endpoint http://nginx-backend;
         set $upstream_headers http://httpbin:8000/headers;
 
@@ -400,7 +400,7 @@ http {
         server_name     authelia.example.com;
 
         resolver 127.0.0.11 ipv6=off;
-        set $upstream_endpoint http://authelia:8080;
+        set $upstream_endpoint http://192.168.240.1:9091;
 
         ssl_certificate     /etc/ssl/server.crt;
         ssl_certificate_key /etc/ssl/server.key;

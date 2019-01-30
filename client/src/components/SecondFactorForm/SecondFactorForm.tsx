@@ -1,4 +1,5 @@
-import React, { Component, KeyboardEvent, ChangeEvent, FormEvent } from 'react';
+import React, { Component, KeyboardEvent, FormEvent } from 'react';
+import classnames from 'classnames';
 
 import TextField, { Input } from '@material/react-text-field';
 import Button from '@material/react-button';
@@ -63,7 +64,7 @@ class SecondFactorView extends Component<Props, State> {
           <CircleLoader status={u2fStatus}></CircleLoader>
         </div>
         <div className={styles.registerDeviceContainer}>
-          <a className={styles.registerDevice} href="#"
+          <a className={classnames(styles.registerDevice, 'register-u2f')} href="#"
             onClick={this.props.onRegisterSecurityKeyClicked}>
             Register device
           </a>
@@ -89,7 +90,7 @@ class SecondFactorView extends Component<Props, State> {
 
   private renderTotp(n: number) {
     return (
-      <div className={styles.methodTotp} key='totp-method'>
+      <div className={classnames(styles.methodTotp, 'second-factor-step')} key='totp-method'>
         <div className={styles.methodName}>Option {n} - One-Time Password</div>
         <Notification show={this.props.oneTimePasswordVerificationError !== null}>
           {this.props.oneTimePasswordVerificationError}
@@ -99,14 +100,14 @@ class SecondFactorView extends Component<Props, State> {
           label="One-Time Password"
           outlined={true}>
           <Input
-            name="totp-token"
-            id="totp-token"
+            name='totp-token'
+            id='totp-token'
             onChange={this.onOneTimePasswordChanged as any}
             onKeyPress={this.onTotpKeyPressed}
             value={this.state.oneTimePassword} />
         </TextField>
         <div className={styles.registerDeviceContainer}>
-          <a className={styles.registerDevice} href="#"
+          <a className={classnames(styles.registerDevice, 'register-totp')} href="#"
             onClick={this.props.onRegisterOneTimePasswordClicked}>
             Register device
           </a>
@@ -115,6 +116,7 @@ class SecondFactorView extends Component<Props, State> {
           <Button
             color="primary"
             raised={true}
+            id='totp-button'
             onClick={this.onOneTimePasswordValidationRequested}
             disabled={this.props.oneTimePasswordVerificationInProgress}>
             OK

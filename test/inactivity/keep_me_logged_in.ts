@@ -1,10 +1,10 @@
 import Bluebird = require("bluebird");
-import LoginAndRegisterTotp from "../helpers/login-and-register-totp";
-import VisitPage from "../helpers/visit-page";
-import FillLoginPageWithUserAndPasswordAndClick from "../helpers/fill-login-page-and-click";
-import WithDriver from "../helpers/with-driver";
-import ValidateTotp from "../helpers/validate-totp";
-import WaitRedirected from "../helpers/wait-redirected";
+import LoginAndRegisterTotp from "../helpers/LoginAndRegisterTotp";
+import VisitPage from "../helpers/VisitPage";
+import FillLoginPageWithUserAndPasswordAndClick from "../helpers/FillLoginPageAndClick";
+import WithDriver from "../helpers/context/WithDriver";
+import ValidateTotp from "../helpers/ValidateTotp";
+import WaitRedirected from "../helpers/WaitRedirected";
 
 describe("Keep me logged in", function() {
   this.timeout(15000);

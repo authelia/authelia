@@ -1,5 +1,9 @@
 version: '2'
-services: {}
+# services: {}
 networks:
   authelianet:
-    external: true
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.240.0/24
+          gateway: 192.168.240.1

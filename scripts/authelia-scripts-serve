@@ -1,8 +1,39 @@
-#!/bin/bash
+#!/usr/bin/env node
 
-# Render the production version of the nginx portal configuration
-./example/compose/nginx/portal/render.js --production
+var program = require('commander');
+var execSync = require('child_process').execSync;
+var spawn = require('child_process').spawn;
+ 
+program
+  .option('-c, --config <config>', 'Configuration file to run Authelia with.')
+  .option('--no-watch', 'Disable hot reload.')
+  .parse(process.argv);
 
-./scripts/utils/prepare-environment.sh
+let config = 'config.yml'; // set default config file.
 
-./node_modules/.bin/nodemon -e yml --exec 'node dist/server/src/index.js config.yml'
+if (program.config) {
+  config = program.config;
+}
+
+// Render the production version of the nginx portal configuration
+execSync('./example/compose/nginx/portal/render.js --production');
+
+// Prepare the environment
+execSync('./scripts/utils/prepare-environment.sh');
+
+var server;
+if (program.watch) {
+  server = spawn('./node_modules/.bin/nodemon',
+    ['-e', 'yml', '--ignore', './users_database*.yml', '--exec', `node dist/server/src/index.js ${config}`]);
+}
+else {
+  server = spawn('/usr/bin/env', ['node', 'dist/server/src/index.js', config]);
+}
+
+server.stdout.on('data', (data) => {
+  process.stdout.write(`${data}`);
+});
+
+server.stderr.on('data', (data) => {
+  process.stderr.write(`${data}`);
+});

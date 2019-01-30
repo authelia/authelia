@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import classnames from 'classnames';
 
 import styles from '../../assets/scss/components/AlreadyAuthenticated/AlreadyAuthenticated.module.scss';
 import Button from "@material/react-button";
@@ -17,7 +18,7 @@ export type Props = OwnProps & DispatchProps;
 class AlreadyAuthenticated extends Component<Props> {
   render() {
     return (
-      <div className={styles.container}>
+      <div className={classnames(styles.container, 'already-authenticated-step')}>
         <div className={styles.successContainer}>
           <div className={styles.messageContainer}>
             <span className={styles.username}>{this.props.username}</span>

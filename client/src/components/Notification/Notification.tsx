@@ -11,7 +11,7 @@ interface Props {
 class Notification extends Component<Props> {
   render() {
     return (this.props.show)
-      ? (<div className={classnames(styles.container, this.props.className)}>
+      ? (<div className={classnames(styles.container, this.props.className, 'notification')}>
           {this.props.children}
         </div>)
       : null;

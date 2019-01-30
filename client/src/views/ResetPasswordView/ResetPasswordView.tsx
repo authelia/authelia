@@ -92,6 +92,7 @@ class ResetPasswordView extends Component<Props, State> {
             <Input
               type="password"
               key="password1"
+              name="password1"
               value={this.state.password1}
               onChange={this.onPassword1Changed}
               disabled={this.props.disabled}/>
@@ -104,6 +105,7 @@ class ResetPasswordView extends Component<Props, State> {
             <Input
               type="password"
               key="password2"
+              name="password2"
               value={this.state.password2}
               onKeyPress={this.onKeyPressed}
               onChange={this.onPassword2Changed}
@@ -114,6 +116,7 @@ class ResetPasswordView extends Component<Props, State> {
               <Button
                 onClick={this.onResetClicked}
                 color="primary"
+                id="reset-button"
                 raised={true}
                 disabled={this.props.disabled}
                 className={classnames(styles.button, styles.buttonReset)}>
@@ -124,6 +127,7 @@ class ResetPasswordView extends Component<Props, State> {
               <Button
                 onClick={this.props.onCancelClicked}
                 color="primary"
+                id="cancel-button"
                 raised={true}
                 className={classnames(styles.button, styles.buttonCancel)}>
                 Cancel

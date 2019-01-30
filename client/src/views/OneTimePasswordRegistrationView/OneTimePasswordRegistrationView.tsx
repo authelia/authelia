@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import classnames from 'classnames';
 
 import Button from "@material/react-button";
 
@@ -54,10 +55,10 @@ class OneTimePasswordRegistrationView extends Component<Props> {
           Register your device by scanning the barcode or adding the key.
         </div>
         <div className={styles.secretContainer}>
-          <div className={styles.qrcodeContainer}>
+          <div className={classnames(styles.qrcodeContainer, 'qrcode')}>
             <QRCode value={secret.otpauth_url} size={180} level="Q"></QRCode>
           </div>
-          <div className={styles.base32Container}>{secret.base32_secret}</div>
+          <div className={classnames(styles.base32Container, 'base32-secret')}>{secret.base32_secret}</div>
         </div>
         <div className={styles.loginButtonContainer}>
           <Button

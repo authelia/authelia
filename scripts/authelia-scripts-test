@@ -1,3 +1,25 @@
-#!/bin/bash
+#!/usr/bin/env node
 
-TS_NODE_PROJECT=server/tsconfig.json ./node_modules/.bin/mocha --colors --require ts-node/register server/src/**/*.spec.ts
+var program = require('commander');
+var spawn = require('child_process').spawn;
+
+program
+  .option('--with-server', 'Spawn Authelia before running the tests.')
+  .parse(process.argv);
+
+mocha = spawn('./node_modules/.bin/mocha', ['--exit', '--colors', '--require', 'ts-node/register', ...program.args], {
+  env: {
+    ...process.env,
+    TS_NODE_PROJECT: 'test/tsconfig.json',
+    WITH_SERVER: (program.withServer) ? 'y' : 'n',
+  }
+});
+
+mocha.stdout.on('data', (data) => {
+  process.stdout.write(`${data}`);
+});
+
+mocha.stderr.on('data', (data) => {
+  process.stderr.write(`${data}`);
+});
+// TS_NODE_PROJECT=server/tsconfig.json ./node_modules/.bin/mocha --colors --require ts-node/register server/src/**/*.spec.ts

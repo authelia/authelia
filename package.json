@@ -93,7 +93,7 @@
     "grunt-run": "^0.8.0",
     "istanbul": "^0.4.5",
     "jquery": "^3.2.1",
-    "mocha": "^5.0.5",
+    "mocha": "^5.2.0",
     "mockdate": "^2.0.1",
     "nodemon": "^1.18.9",
     "nyc": "^13.1.0",
@@ -107,7 +107,7 @@
     "tmp": "0.0.33",
     "ts-node": "^6.0.1",
     "tslint": "^5.2.0",
-    "typescript": "^2.3.2",
+    "typescript": "^2.9.2",
     "typescript-json-schema": "^0.23.0"
   },
   "nyc": {

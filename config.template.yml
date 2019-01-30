@@ -3,7 +3,7 @@
 ###############################################################
 
 # The port to listen on
-port: 8080
+port: 9091
 
 # Log level
 #
@@ -42,7 +42,7 @@ authentication_backend:
   # production.
   ldap:
     # The url of the ldap server
-    url: ldap://openldap
+    url: ldap://127.0.0.1
 
     # The base dn for every entries
     base_dn: dc=example,dc=com
@@ -198,7 +198,7 @@ session:
 
   # The redis connection details
   redis:
-    host: redis
+    host: 127.0.0.1
     port: 6379
     password: authelia
 
@@ -229,7 +229,7 @@ storage:
 
   # Settings to connect to mongo server
   mongo:
-    url: mongodb://mongo
+    url: mongodb://127.0.0.1
     database: authelia
     auth:
       username: authelia
@@ -258,6 +258,6 @@ notifier:
     username: test
     password: password
     secure: false
-    host: 'smtp'
+    host: 127.0.0.1
     port: 1025
     sender: admin@example.com

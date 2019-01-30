@@ -2,9 +2,11 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
+port: 9091
+
 authentication_backend:
   file:
-    path: /etc/authelia/users_database.yml
+    path: ./users_database.yml
 
 session:
   secret: unsecure_session_secret
@@ -96,7 +98,7 @@ notifier:
     username: test
     password: password
     secure: false
-    host: 'smtp'
+    host: 127.0.0.1
     port: 1025
     sender: admin@example.com
 

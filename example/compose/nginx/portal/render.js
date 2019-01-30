@@ -17,6 +17,14 @@ if (program.production) {
   options['production'] = true;
 }
 
-html = ejs.renderFile(__dirname + '/nginx.conf.ejs', options, (err, conf) => {
-  fs.writeFileSync(__dirname + '/nginx.conf', conf);
+const templatePath = __dirname + '/nginx.conf.ejs';
+const outputPath = __dirname + '/nginx.conf';
+
+html = ejs.renderFile(templatePath, options, (err, conf) => {
+  try {
+    var fd = fs.openSync(outputPath, 'w');
+    fs.writeFileSync(fd, conf);
+  } catch (e) {
+    fs.writeFileSync(outputPath, conf);
+  }
 });
