@@ -10,8 +10,7 @@ export default async function(
   await driver.findElement(SeleniumWebdriver.By.id("username")).sendKeys(username);
   await driver.findElement(SeleniumWebdriver.By.id("password")).sendKeys(password);
   if (keepMeLoggedIn) {
-    await driver.findElement(SeleniumWebdriver.By.id("keep_me_logged_in")).click();
-    return;
+    await driver.findElement(SeleniumWebdriver.By.id("remember-checkbox")).click();
   }
   await driver.findElement(SeleniumWebdriver.By.tagName("button")).click();
 };

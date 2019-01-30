@@ -3,6 +3,7 @@
 var program = require('commander');
 var execSync = require('child_process').execSync;
 var spawn = require('child_process').spawn;
+var fs = require('fs');
  
 program
   .option('-c, --config <config>', 'Configuration file to run Authelia with.')
@@ -30,10 +31,14 @@ else {
   server = spawn('/usr/bin/env', ['node', 'dist/server/src/index.js', config]);
 }
 
+var logStream = fs.createWriteStream('/tmp/authelia-server.log', {flags: 'a'});
+
 server.stdout.on('data', (data) => {
   process.stdout.write(`${data}`);
 });
+server.stdout.pipe(logStream);
 
 server.stderr.on('data', (data) => {
   process.stderr.write(`${data}`);
 });
+server.stderr.pipe(logStream);

@@ -15,12 +15,12 @@ const mapStateToProps = (state: RootState): StateProps => {
 }
 
 function onAuthenticationRequested(dispatch: Dispatch) {
-  return async (username: string, password: string) => {
+  return async (username: string, password: string, rememberMe: boolean) => {
     let err, res;
     
     // Validate first factor
     dispatch(authenticate());
-    [err, res] = await to(AutheliaService.postFirstFactorAuth(username, password));
+    [err, res] = await to(AutheliaService.postFirstFactorAuth(username, password, rememberMe));
 
     if (err) {
       await dispatch(authenticateFailure(err.message));

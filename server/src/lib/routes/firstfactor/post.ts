@@ -15,8 +15,7 @@ export default function (vars: ServerVariables) {
     : BluebirdPromise<void> {
     const username: string = req.body.username;
     const password: string = req.body.password;
-    const keepMeLoggedIn: boolean = req.body.keepMeLoggedIn &&
-      req.body.keepMeLoggedIn === "true";
+    const keepMeLoggedIn: boolean = req.body.keepMeLoggedIn;
     let authSession: AuthenticationSession;
 
     if (keepMeLoggedIn) {

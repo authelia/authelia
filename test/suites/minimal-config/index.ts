@@ -6,10 +6,11 @@ import BadPassword from "./scenarii/BadPassword";
 import RegisterTotp from './scenarii/RegisterTotp';
 import ResetPassword from './scenarii/ResetPassword';
 import TOTPValidation from './scenarii/TOTPValidation';
+import Inactivity from './scenarii/Inactivity';
 
 const execAsync = Bluebird.promisify(ChildProcess.exec);
 
-AutheliaSuite('Minimal configuration', 'config.minimal.yml', function() {
+AutheliaSuite('Minimal configuration', __dirname + '/config.yml', function() {
   this.timeout(10000);
   beforeEach(function() {
     return execAsync("cp users_database.example.yml users_database.yml");
@@ -20,4 +21,6 @@ AutheliaSuite('Minimal configuration', 'config.minimal.yml', function() {
 
   describe('TOTP Registration', RegisterTotp);
   describe('TOTP Validation', TOTPValidation);
+
+  describe('Inactivity period', Inactivity);
 });

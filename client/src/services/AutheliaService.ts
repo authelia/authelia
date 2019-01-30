@@ -22,7 +22,8 @@ export async function fetchState() {
     });
 }
 
-export async function postFirstFactorAuth(username: string, password: string) {
+export async function postFirstFactorAuth(username: string, password: string,
+  rememberMe: boolean) {
   return fetchSafe('/api/firstfactor', {
     method: 'POST',
     headers: {
@@ -32,6 +33,7 @@ export async function postFirstFactorAuth(username: string, password: string) {
     body: JSON.stringify({
       username: username,
       password: password,
+      keepMeLoggedIn: rememberMe,
     })
   });
 }

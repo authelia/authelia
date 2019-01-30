@@ -8,7 +8,7 @@ export default function() {
   beforeEach(function() {
     const driver = new SeleniumWebdriver.Builder()
       .forBrowser("chrome")
-      .setChromeOptions(new chrome.Options().headless())
+      // .setChromeOptions(new chrome.Options().headless())
       .build();
     this.driver = driver;
   });
