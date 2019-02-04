@@ -12,6 +12,7 @@ function AutheliaSuiteBase(description: string, configPath: string,
   cb: (this: Mocha.ISuiteCallbackContext) => void,
   context: (description: string, ctx: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite) {
   if (!running  && process.env['WITH_SERVER'] == 'y') {
+    console.log('Spawning Authelia server with configuration %s.', configPath);
     WithAutheliaRunning(configPath);
     running = true;
   }  

@@ -2,16 +2,44 @@
 
 var program = require('commander');
 var spawn = require('child_process').spawn;
+var fs = require('fs');
+var execSync = require('child_process').execSync;
 
 program
-  .option('--with-server', 'Spawn Authelia before running the tests.')
+  .option('--headless', 'Run in headless mode.')
   .parse(process.argv);
 
-mocha = spawn('./node_modules/.bin/mocha', ['--exit', '--colors', '--require', 'ts-node/register', ...program.args], {
+let suite;
+let withServer = false;
+let args = [];
+const ENVIRONMENT_FILENAME = '.suite';
+
+if (fs.existsSync(ENVIRONMENT_FILENAME)) {
+  const suite = fs.readFileSync(ENVIRONMENT_FILENAME);
+  console.log('Suite %s detected (dev env running). Running test related to this suite.', suite);
+  args.push('test/suites/' + suite + '/*.ts');
+}
+else if (program.args.length > 0) {
+  console.log('No suite detected. Running selected tests against built server.');
+  withServer = true;
+  args = program.args;
+
+  // Render the production version of the nginx portal configuration
+  // execSync('./example/compose/nginx/portal/render.js --production');
+  // Prepare the environment
+  // execSync('./scripts/utils/prepare-environment.sh');
+}
+else {
+  console.log('No suite detected but no tests have been selected...');
+  process.exit(1);
+}
+
+mocha = spawn('./node_modules/.bin/mocha', ['--exit', '--colors', '--require', 'ts-node/register', ...args], {
   env: {
     ...process.env,
     TS_NODE_PROJECT: 'test/tsconfig.json',
-    WITH_SERVER: (program.withServer) ? 'y' : 'n',
+    WITH_SERVER: (withServer) ? 'y' : 'n',
+    HEADLESS: (program.headless) ? 'y' : 'n',
   }
 });
 
@@ -22,4 +50,3 @@ mocha.stdout.on('data', (data) => {
 mocha.stderr.on('data', (data) => {
   process.stderr.write(`${data}`);
 });
-// TS_NODE_PROJECT=server/tsconfig.json ./node_modules/.bin/mocha --colors --require ts-node/register server/src/**/*.spec.ts

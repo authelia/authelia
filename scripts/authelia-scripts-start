@@ -1,20 +1,105 @@
-#!/bin/bash
+#!/usr/bin/env node
 
-config_path=$1
+var program = require('commander');
+var exec = require('child_process').execSync;
+var spawn = require('child_process').spawn;
+var chokidar = require('chokidar');
+var fs = require('fs');
 
-if [ "$config_path" == "" ];
-then
-  echo "Please provide a configuration file."
-  exit 1
-fi
+program
+  .option('-s, --suite <suite>', 'The suite to run Authelia for. This suite represents a configuration for Authelia and a set of tests for that configuration.')
+  .parse(process.argv)
 
-./example/compose/nginx/portal/render.js
+if (!program.suite) {
+  throw new Error('Please provide a suite.');
+}
 
-./scripts/utils/prepare-environment.sh
+const ENVIRONMENT_FILENAME = '.suite';
 
-./node_modules/.bin/typescript-json-schema -o server/src/lib/configuration/Configuration.schema.json --strictNullChecks --required server/tsconfig.json Configuration
 
-server_watcher="./node_modules/.bin/nodemon -e yml,js,ts,json --exec ./scripts/run-dev-server.sh $config_path 2>&1 /tmp/authelia-server.log"
-client_watcher="cd client && BROWSER=none npm run start > /tmp/authelia-client.log"
+var tsWatcher = chokidar.watch(['server', 'shared/**/*.ts', 'node_modules'], {
+  persistent: true,
+  ignoreInitial: true,
+});
 
-./node_modules/.bin/concurrently "$server_watcher" "$client_watcher"
+// Properly cleanup server and client if ctrl-c is hit
+process.on('SIGINT', function() {
+  killServer();
+  killClient();
+  fs.unlinkSync(ENVIRONMENT_FILENAME);
+  process.exit();
+});
+
+
+let serverProcess;
+function reloadServer() {
+  killServer(() => {
+    startServer();
+  });
+}
+
+function startServer() {
+  serverProcess = spawn('./scripts/run-dev-server.sh', [`test/suites/${program.suite}/config.yml`], {detached: true});
+  serverProcess.stdout.pipe(process.stdout);
+  serverProcess.stderr.pipe(process.stderr);
+}
+
+let clientProcess;
+function startClient() {
+  clientProcess = spawn('npm', ['run', 'start'], {
+    detached: true,
+    cwd: './client',
+    env: {
+      ...process.env,
+      'BROWSER': 'none'
+    }
+  });
+  clientProcess.stdout.pipe(process.stdout);
+  clientProcess.stderr.pipe(process.stderr);
+}
+
+function killServer(onExit) {
+  if (serverProcess) {
+    process.kill(-serverProcess.pid);
+    serverProcess.on('exit', () => {
+      serverProcess = undefined;
+      onExit();
+    });
+  }
+}
+
+function killClient(onExit) {
+  if (clientProcess) {
+    process.kill(-clientProcess.pid);
+    clientProcess.on('exit', () => {
+      clientProcess = undefined;
+      onExit();
+    });
+  }
+}
+
+function generateConfigurationSchema() {
+  exec('./node_modules/.bin/typescript-json-schema -o server/src/lib/configuration/Configuration.schema.json --strictNullChecks --required server/tsconfig.json Configuration');
+}
+
+function reload(path) {
+  console.log(`File ${path} has been changed, reloading...`);
+  if (path.startsWith('server/src/lib/configuration/schema')) {
+    console.log('Schema needs to be regenerated.');
+    generateConfigurationSchema();
+  }
+  reloadServer();
+}
+
+fs.writeFileSync(ENVIRONMENT_FILENAME, program.suite);
+exec('./example/compose/nginx/portal/render.js');
+exec('./scripts/utils/prepare-environment.sh');
+
+console.log('Start watching');
+tsWatcher.on('add', reload);
+tsWatcher.on('remove', reload);
+tsWatcher.on('change', reload);
+
+startServer();
+startClient();
+

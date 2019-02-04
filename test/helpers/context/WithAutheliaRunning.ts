@@ -8,6 +8,10 @@ export default function WithAutheliaRunning(configPath: string, waitTimeout: num
       './scripts/authelia-scripts',
       ['serve', '--no-watch', '--config', configPath],
       {detached: true});
+
+    authelia.on('exit', function() {
+      console.log('Server terminated.');
+    });
     this.authelia = authelia;
   
     const waitPromise = new Promise((resolve, reject) => setTimeout(() => resolve(), waitTimeout));

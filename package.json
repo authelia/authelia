@@ -85,6 +85,7 @@
     "@types/winston": "^2.3.2",
     "@types/yamljs": "^0.2.30",
     "apidoc": "^0.17.6",
+    "chokidar": "^2.0.4",
     "chromedriver": "^2.37.0",
     "commander": "^2.19.0",
     "concurrently": "^4.1.0",
