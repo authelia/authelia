@@ -1,0 +1,30 @@
+defaultEntryPoints = ["http", "https"]
+# logLevel = "DEBUG"
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+    [entryPoints.https.tls]
+  [entryPoints.api]
+  address = ":8080"
+
+[api]
+# This is exposed via a subdomain and a proxy
+entryPoint = "api"
+dashboard = true
+
+[docker]
+# Docker server endpoint. Can be a tcp or a unix socket endpoint.
+endpoint = "unix:///var/run/docker.sock"
+# network = "traefik_default"
+
+# Default domain used.
+# Can be overridden by setting the "traefik.domain" label on a container.
+domain = "localhost"
+
+# Enable watch docker changes
+watch = true
