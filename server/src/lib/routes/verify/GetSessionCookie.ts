@@ -3,13 +3,10 @@ import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession }
   from "../../../../types/AuthenticationSession";
 import { URLDecomposer } from "../../utils/URLDecomposer";
-import GetHeader from "../../utils/GetHeader";
-import {
-  HEADER_X_ORIGINAL_URL,
-} from "../../../../../shared/constants";
 import setUserAndGroupsHeaders from "./SetUserAndGroupsHeaders";
 import CheckAuthorizations from "./CheckAuthorizations";
 import CheckInactivity from "./CheckInactivity";
+import { RequestUrlGetter } from "../../utils/RequestUrlGetter";
 
 
 export default async function (req: Express.Request, res: Express.Response,
@@ -19,7 +16,7 @@ export default async function (req: Express.Request, res: Express.Response,
     throw new Error("No cookie detected.");
   }
 
-  const originalUrl = GetHeader(req, HEADER_X_ORIGINAL_URL);
+  const originalUrl = RequestUrlGetter.getOriginalUrl(req);
 
   if (!originalUrl) {
     throw new Error("Cannot detect the original URL from headers.");

@@ -3,10 +3,11 @@ import { ServerVariables } from "../../ServerVariables";
 import { URLDecomposer } from "../../utils/URLDecomposer";
 import { Level } from "../../authentication/Level";
 import GetHeader from "../../utils/GetHeader";
-import { HEADER_X_ORIGINAL_URL, HEADER_PROXY_AUTHORIZATION } from "../../../../../shared/constants";
+import { HEADER_PROXY_AUTHORIZATION } from "../../../../../shared/constants";
 import setUserAndGroupsHeaders from "./SetUserAndGroupsHeaders";
 import CheckAuthorizations from "./CheckAuthorizations";
 import { Level as AuthorizationLevel } from "../../authorization/Level";
+import { RequestUrlGetter } from "../../utils/RequestUrlGetter";
 
 export default async function(req: Express.Request, res: Express.Response,
   vars: ServerVariables)
@@ -38,7 +39,7 @@ export default async function(req: Express.Request, res: Express.Response,
   const password = splittedToken[1];
   const groupsAndEmails = await vars.usersDatabase.checkUserPassword(username, password);
 
-  const uri = GetHeader(req, HEADER_X_ORIGINAL_URL);
+  const uri = RequestUrlGetter.getOriginalUrl(req);
   const urlDecomposition = URLDecomposer.fromUrl(uri);
 
   CheckAuthorizations(vars.authorizer, urlDecomposition.domain, urlDecomposition.path,
