@@ -5,6 +5,10 @@ export const REDIRECT_QUERY_PARAM = "rd";
 export const HEADER_X_TARGET_URL = "x-target-url";
 
 export const HEADER_X_ORIGINAL_URL = "x-original-url";
+export const HEADER_X_FORWARDED_PROTO = "x-forwarded-proto";
+export const HEADER_X_FORWARDED_HOST = "x-forwarded-host";
+export const HEADER_X_FORWARDED_PORT = "x-forwarded-port";
+export const HEADER_X_FORWARDED_URI = "x-forwarded-uri";
 export const HEADER_PROXY_AUTHORIZATION = "proxy-authorization";
 export const HEADER_REDIRECT = "redirect";
 

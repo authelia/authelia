@@ -9,8 +9,8 @@ import { AuthenticationSessionHandler }
   from "../../AuthenticationSessionHandler";
 import { AuthenticationSession }
   from "../../../../types/AuthenticationSession";
-import GetHeader from "../../utils/GetHeader";
 import HasHeader from "../..//utils/HasHeader";
+import { RequestUrlGetter } from "../../utils/RequestUrlGetter";
 
 
 async function verifyWithSelectedMethod(req: Express.Request, res: Express.Response,
@@ -31,7 +31,7 @@ async function verifyWithSelectedMethod(req: Express.Request, res: Express.Respo
  * @param res The response to write Redirect header to.
  */
 function setRedirectHeader(req: Express.Request, res: Express.Response) {
-  const originalUrl = GetHeader(req, Constants.HEADER_X_ORIGINAL_URL);
+  const originalUrl = RequestUrlGetter.getOriginalUrl(req);
   res.set(Constants.HEADER_REDIRECT, originalUrl);
 }
 
