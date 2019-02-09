@@ -24,8 +24,8 @@ var tsWatcher = chokidar.watch(['server', 'shared/**/*.ts', 'node_modules'], {
 
 // Properly cleanup server and client if ctrl-c is hit
 process.on('SIGINT', function() {
-  killServer();
-  killClient();
+  killServer(() => {});
+  killClient(() => {});
   fs.unlinkSync(ENVIRONMENT_FILENAME);
   process.exit();
 });
@@ -60,21 +60,31 @@ function startClient() {
 
 function killServer(onExit) {
   if (serverProcess) {
-    process.kill(-serverProcess.pid);
     serverProcess.on('exit', () => {
       serverProcess = undefined;
       onExit();
     });
+    try {
+      process.kill(-serverProcess.pid);
+    } catch (e) {
+      console.error(e);
+      onExit();
+    }
   }
 }
 
 function killClient(onExit) {
   if (clientProcess) {
-    process.kill(-clientProcess.pid);
     clientProcess.on('exit', () => {
       clientProcess = undefined;
       onExit();
     });
+    try {
+      process.kill(-clientProcess.pid);
+    } catch (e) {
+      console.error(e);
+      onExit();
+    }
   }
 }
 

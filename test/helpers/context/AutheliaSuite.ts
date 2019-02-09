@@ -18,7 +18,6 @@ function AutheliaSuiteBase(description: string, configPath: string,
   }  
 
   return context('Suite: ' + description, function(this: Mocha.ISuiteCallbackContext) {
-    WithDriver.call(this);
     cb.call(this);
   });
 }

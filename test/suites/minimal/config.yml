@@ -14,6 +14,7 @@ session:
   secret: unsecure_session_secret
   domain: example.com
   inactivity: 5000
+  expiration: 8000
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:

@@ -5,6 +5,7 @@ import ValidateTotp from "../../../helpers/ValidateTotp";
 import Logout from "../../../helpers/Logout";
 import WaitRedirected from "../../../helpers/WaitRedirected";
 import IsAlreadyAuthenticatedStage from "../../../helpers/IsAlreadyAuthenticatedStage";
+import WithDriver from "../../../helpers/context/WithDriver";
 
 /*
  * Authelia should not be vulnerable to open redirection. Otherwise it would aid an
@@ -14,6 +15,7 @@ import IsAlreadyAuthenticatedStage from "../../../helpers/IsAlreadyAuthenticated
  * the URL is pointing to an external domain.
  */
 export default function() {
+  WithDriver(true);
   describe("Only redirection to a subdomain of the protected domain should be allowed", function() {
     this.timeout(10000);
     let secret: string;
@@ -44,18 +46,22 @@ export default function() {
       });
     }
     
-    describe('blocked redirection', function() {
+    describe('Cannot redirect to https://www.google.fr', function() {
       // Do not redirect to another domain than example.com
       CannotRedirectTo("https://www.google.fr");
+    });
 
-      // Do not redirect to rogue domain
+    describe('Cannot redirect to https://public.example.com.a:8080', function() {
+      // Do not redirect to another domain than example.com
       CannotRedirectTo("https://public.example.com.a:8080");
+    });
 
+    describe('Cannot redirect to http://public.example.com:8080', function() {
       // Do not redirect to http website
       CannotRedirectTo("http://public.example.com:8080");
     });
 
-    describe('allowed redirection', function() {
+    describe('Can redirect to https://public.example.com:8080/', function() {
       // Can redirect to any subdomain of the domain protected by Authelia.
       CanRedirectTo("https://public.example.com:8080/");
     });

@@ -1,4 +1,5 @@
-import SeleniumWebdriver from "selenium-webdriver";
+import SeleniumWebdriver, { WebDriver } from "selenium-webdriver";
+import Assert from 'assert';
 import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
 
 /** 
@@ -26,5 +27,18 @@ export default function() {
         SeleniumWebdriver.By.className("base32-secret")),
         5000);
     });
+
+    it("should have user and issuer in otp url", async function() {
+      // this.timeout(100000);
+      const el = await (this.driver as WebDriver).wait(
+        SeleniumWebdriver.until.elementLocated(
+          SeleniumWebdriver.By.className('otpauth-secret')), 5000);
+          
+      const otpauthUrl = await el.getAttribute('innerText');
+      const label = 'john';
+      const issuer = 'example.com';
+
+      Assert(new RegExp(`^otpauth://totp/${label}\\?secret=[A-Z0-9]+&issuer=${issuer}$`).test(otpauthUrl));
+    })
   });
 };

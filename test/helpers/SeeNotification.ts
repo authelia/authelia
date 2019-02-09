@@ -1,4 +1,4 @@
-import SeleniumWebdriver, { ThenableWebDriver, WebDriver } from "selenium-webdriver";
+import SeleniumWebdriver, { WebDriver } from "selenium-webdriver";
 import Assert = require("assert");
 
 export default async function(driver: WebDriver, type: string, message: string) {

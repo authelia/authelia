@@ -42,9 +42,9 @@ export function register(app: Express.Application,
   vars: ServerVariables) {
 
   app.post(pre_validation_endpoint,
-    get_start_validation(handler, post_validation_endpoint, vars));
+    post_start_validation(handler, vars));
   app.post(post_validation_endpoint,
-    get_finish_validation(handler, vars));
+    post_finish_validation(handler, vars));
 }
 
 function checkIdentityToken(req: Express.Request, identityToken: string)
@@ -55,7 +55,7 @@ function checkIdentityToken(req: Express.Request, identityToken: string)
   return BluebirdPromise.resolve();
 }
 
-export function get_finish_validation(handler: IdentityValidable,
+export function post_finish_validation(handler: IdentityValidable,
   vars: ServerVariables)
   : Express.RequestHandler {
 
@@ -88,8 +88,7 @@ export function get_finish_validation(handler: IdentityValidable,
   };
 }
 
-export function get_start_validation(handler: IdentityValidable,
-  postValidationEndpoint: string,
+export function post_start_validation(handler: IdentityValidable,
   vars: ServerVariables)
   : Express.RequestHandler {
   return function (req: Express.Request, res: Express.Response)

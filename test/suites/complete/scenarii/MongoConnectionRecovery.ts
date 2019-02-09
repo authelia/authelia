@@ -1,8 +1,16 @@
 import LoginAndRegisterTotp from "../../../helpers/LoginAndRegisterTotp";
 import FullLogin from "../../../helpers/FullLogin";
 import child_process from 'child_process';
+import WithDriver from "../../../helpers/context/WithDriver";
+import Logout from "../../../helpers/Logout";
 
 export default function() {
+  after(async function() {
+    await Logout(this.driver);
+  })
+
+  WithDriver();
+
   it("should be able to login after mongo restarts", async function() {
     this.timeout(30000);
     

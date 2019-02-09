@@ -30,15 +30,15 @@ function setupTotp(app: Express.Application, vars: ServerVariables) {
     RequireValidatedFirstFactor.middleware(vars.logger),
     TOTPSignGet.default(vars));
 
-  app.get(Endpoints.SECOND_FACTOR_TOTP_IDENTITY_START_GET,
+  app.post(Endpoints.SECOND_FACTOR_TOTP_IDENTITY_START_POST,
     RequireValidatedFirstFactor.middleware(vars.logger));
 
-  app.get(Endpoints.SECOND_FACTOR_TOTP_IDENTITY_FINISH_GET,
+  app.post(Endpoints.SECOND_FACTOR_TOTP_IDENTITY_FINISH_POST,
     RequireValidatedFirstFactor.middleware(vars.logger));
 
   IdentityCheckMiddleware.register(app,
-    Endpoints.SECOND_FACTOR_TOTP_IDENTITY_START_GET,
-    Endpoints.SECOND_FACTOR_TOTP_IDENTITY_FINISH_GET,
+    Endpoints.SECOND_FACTOR_TOTP_IDENTITY_START_POST,
+    Endpoints.SECOND_FACTOR_TOTP_IDENTITY_FINISH_POST,
     new TOTPRegistrationIdentityHandler(vars.logger,
       vars.userDataStore, vars.totpHandler, vars.config.totp),
     vars);

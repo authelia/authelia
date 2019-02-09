@@ -58,6 +58,7 @@ class OneTimePasswordRegistrationView extends Component<Props> {
           <div className={classnames(styles.qrcodeContainer, 'qrcode')}>
             <QRCode value={secret.otpauth_url} size={180} level="Q"></QRCode>
           </div>
+          <div className={classnames(styles.otpauthContainer, 'otpauth-secret')}>{secret.otpauth_url}</div>
           <div className={classnames(styles.base32Container, 'base32-secret')}>{secret.base32_secret}</div>
         </div>
         <div className={styles.loginButtonContainer}>

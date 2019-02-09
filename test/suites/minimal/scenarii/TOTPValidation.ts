@@ -39,9 +39,9 @@ export default function() {
       await LoginAndRegisterTotp(this.driver, "john", true);
       const BAD_TOKEN = "125478";
         
-        await VisitPage(this.driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
-        await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
-        await ValidateTotp(this.driver, BAD_TOKEN);
+      await VisitPage(this.driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
+      await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
+      await ValidateTotp(this.driver, BAD_TOKEN);
     });
 
     it("get a notification message", async function() {

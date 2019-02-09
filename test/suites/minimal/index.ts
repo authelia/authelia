@@ -7,6 +7,8 @@ import RegisterTotp from './scenarii/RegisterTotp';
 import ResetPassword from './scenarii/ResetPassword';
 import TOTPValidation from './scenarii/TOTPValidation';
 import Inactivity from './scenarii/Inactivity';
+import BackendProtection from './scenarii/BackendProtection';
+import VerifyEndpoint from './scenarii/VerifyEndpoint';
 
 const execAsync = Bluebird.promisify(ChildProcess.exec);
 
@@ -15,6 +17,9 @@ AutheliaSuite('Minimal configuration', __dirname + '/config.yml', function() {
   beforeEach(function() {
     return execAsync("cp users_database.example.yml users_database.yml");
   });
+
+  describe('Backend protection', BackendProtection);
+  describe('Verify API endpoint', VerifyEndpoint);
 
   describe('Bad password', BadPassword);
   describe('Reset password', ResetPassword);

@@ -78,6 +78,8 @@ export default function (vars: ServerVariables) {
         ErrorReplies.replyWithError401(req, res, vars.logger))
       // The user is not yet authenticated -> 401
       .catch((err) => {
+        // This redirect parameter is used in Kubernetes to annotate the ingress with
+        // the url to the authentication portal.
         const redirectUrl = getRedirectParam(req);
         if (redirectUrl) {
           ErrorReplies.redirectTo(redirectUrl, req, res, vars.logger)(err);

@@ -143,7 +143,7 @@ export const SECOND_FACTOR_U2F_IDENTITY_FINISH_POST = "/api/secondfactor/u2f/ide
  *
  * @apiDescription Initiates the identity validation
  */
-export const SECOND_FACTOR_TOTP_IDENTITY_START_GET = "/api/secondfactor/totp/identity/start";
+export const SECOND_FACTOR_TOTP_IDENTITY_START_POST = "/api/secondfactor/totp/identity/start";
 
 
 
@@ -159,7 +159,7 @@ export const SECOND_FACTOR_TOTP_IDENTITY_START_GET = "/api/secondfactor/totp/ide
  * @apiDescription Serves the TOTP registration page that displays the secret.
  * The secret is a QRCode and a base32 secret.
  */
-export const SECOND_FACTOR_TOTP_IDENTITY_FINISH_GET = "/api/secondfactor/totp/identity/finish";
+export const SECOND_FACTOR_TOTP_IDENTITY_FINISH_POST = "/api/secondfactor/totp/identity/finish";
 
 
 
