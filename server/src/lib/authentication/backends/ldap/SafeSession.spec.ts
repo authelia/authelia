@@ -1,6 +1,7 @@
 import BluebirdPromise = require("bluebird");
 import { SessionStub } from "./SessionStub.spec";
 import { SafeSession } from "./SafeSession";
+import Winston = require("winston");
 
 describe("ldap/SanitizedClient", function () {
   let client: SafeSession;
@@ -11,7 +12,7 @@ describe("ldap/SanitizedClient", function () {
     clientStub.searchGroupsStub.onCall(0).returns(BluebirdPromise.resolve());
     clientStub.searchEmailsStub.onCall(0).returns(BluebirdPromise.resolve());
     clientStub.modifyPasswordStub.onCall(0).returns(BluebirdPromise.resolve());
-    client = new SafeSession(clientStub);
+    client = new SafeSession(clientStub, Winston);
   });
 
   describe("special chars are used", function () {

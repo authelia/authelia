@@ -14,11 +14,13 @@ function containsOneOf(s: string, characters: string[]) {
 export class Sanitizer {
   static sanitize(input: string): string {
     const forbiddenChars = [",", "\\", "'", "#", "+", "<", ">", ";", "\"", "="];
-    if (containsOneOf(input, forbiddenChars))
+    if (containsOneOf(input, forbiddenChars)) {
       throw new Error("Input containing unsafe characters.");
+    }
 
-    if (input != input.trim())
+    if (input != input.trim()) {
       throw new Error("Input has unexpected spaces.");
+    }
 
     return input;
   }
