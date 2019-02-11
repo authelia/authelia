@@ -31,7 +31,8 @@ export class SessionFactory implements ISessionFactory {
         this.config,
         connector,
         this.logger
-      )
+      ),
+      this.logger
     );
   }
 }
