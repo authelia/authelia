@@ -20,4 +20,4 @@ grunt build-dist
 ./scripts/integration-tests.sh
 
 # Test npm deployment before actual deployment
-./scripts/npm-deployment-test.sh
+# ./scripts/npm-deployment-test.sh
