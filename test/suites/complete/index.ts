@@ -4,6 +4,7 @@ import EnforceInternalRedirectionsOnly from "./scenarii/EnforceInternalRedirecti
 import AccessControl from "./scenarii/AccessControl";
 import CustomHeadersForwarded from "./scenarii/CustomHeadersForwarded";
 import SingleFactorAuthentication from "./scenarii/SingleFactorAuthentication";
+import BasicAuthentication from "./scenarii/BasicAuthentication";
 
 AutheliaSuite('Complete configuration', __dirname + '/config.yml', function() {
   this.timeout(10000);
@@ -14,4 +15,5 @@ AutheliaSuite('Complete configuration', __dirname + '/config.yml', function() {
   describe('Mongo broken connection recovery', MongoConnectionRecovery);
   describe('Enforce internal redirections only', EnforceInternalRedirectionsOnly);
   describe('Single factor authentication', SingleFactorAuthentication);
+  describe('Basic authentication', BasicAuthentication);
 });

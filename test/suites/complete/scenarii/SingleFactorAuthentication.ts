@@ -30,5 +30,5 @@ export default function() {
 
     // And the user should end up on the second factor page.
     await VerifyIsSecondFactorStage(this.driver);
-  })
+  });
 }
