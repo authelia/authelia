@@ -1,7 +1,7 @@
 import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLoginPageAndClick';
-import VisitPage from '../../../helpers/VisitPage';
 import SeeNotification from '../../../helpers/SeeNotification';
 import {AUTHENTICATION_FAILED} from '../../../../shared/UserMessages';
+import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
 
 export default function() {
 /**
@@ -11,7 +11,7 @@ export default function() {
   describe('failed login as john in first factor', function() {
     beforeEach(async function() {
       this.timeout(10000);
-      await VisitPage(this.driver, "https://login.example.com:8080/")
+      await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/")
       await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'bad_password');
     });
 

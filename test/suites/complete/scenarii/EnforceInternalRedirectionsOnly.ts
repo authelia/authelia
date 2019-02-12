@@ -1,11 +1,11 @@
 import LoginAndRegisterTotp from "../../../helpers/LoginAndRegisterTotp";
-import VisitPage from "../../../helpers/VisitPage";
 import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLoginPageAndClick';
 import ValidateTotp from "../../../helpers/ValidateTotp";
 import Logout from "../../../helpers/Logout";
-import WaitRedirected from "../../../helpers/WaitRedirected";
-import IsAlreadyAuthenticatedStage from "../../../helpers/assertions/VerifyIsAlreadyAuthenticatedStage";
+import VerifyIsAlreadyAuthenticatedStage from "../../../helpers/assertions/VerifyIsAlreadyAuthenticatedStage";
 import { StartDriver, StopDriver } from "../../../helpers/context/WithDriver";
+import VisitPageAndWaitUrlIs from "../../../helpers/behaviors/VisitPageAndWaitUrlIs";
+import VerifyUrlIs from "../../../helpers/assertions/VerifyUrlIs";
 
 /*
  * Authelia should not be vulnerable to open redirection. Otherwise it would aid an
@@ -31,19 +31,19 @@ export default function() {
   
     function CannotRedirectTo(url: string) {
       it(`should redirect to already authenticated page when requesting ${url}`, async function() {
-        await VisitPage(this.driver, `https://login.example.com:8080/?rd=${url}`);
+        await VisitPageAndWaitUrlIs(this.driver, `https://login.example.com:8080/?rd=${url}`);
         await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
         await ValidateTotp(this.driver, secret);
-        await IsAlreadyAuthenticatedStage(this.driver);
+        await VerifyIsAlreadyAuthenticatedStage(this.driver);
       });
     }
 
     function CanRedirectTo(url: string) {
       it(`should redirect to ${url}`, async function() {
-        await VisitPage(this.driver, `https://login.example.com:8080/?rd=${url}`);
+        await VisitPageAndWaitUrlIs(this.driver, `https://login.example.com:8080/?rd=${url}`);
         await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
         await ValidateTotp(this.driver, secret);
-        await WaitRedirected(this.driver, url);
+        await VerifyUrlIs(this.driver, url);
       });
     }
     

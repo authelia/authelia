@@ -1,6 +1,5 @@
 import SeleniumWebDriver from 'selenium-webdriver';
 
-import VisitPage from '../../../helpers/VisitPage';
 import ClickOnLink from '../../../helpers/ClickOnLink';
 import ClickOn from '../../../helpers/ClickOn';
 import WaitRedirected from '../../../helpers/WaitRedirected';
@@ -9,10 +8,11 @@ import {GetLinkFromEmail} from "../../../helpers/GetIdentityLink";
 import FillLoginPageAndClick from "../../../helpers/FillLoginPageAndClick";
 import IsSecondFactorStage from "../../../helpers/assertions/VerifyIsSecondFactorStage";
 import SeeNotification from '../../../helpers/SeeNotification';
+import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
 
 export default function() {
   it("should reset password for john", async function() {
-    await VisitPage(this.driver, "https://login.example.com:8080/");
+    await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/");
     await ClickOnLink(this.driver, "Forgot password\?");
     await WaitRedirected(this.driver, "https://login.example.com:8080/forgot-password");
     await FillField(this.driver, "username", "john");
@@ -21,7 +21,7 @@ export default function() {
 
     await this.driver.sleep(500); // Simulate the time it takes to receive the e-mail.
     const link = await GetLinkFromEmail();
-    await VisitPage(this.driver, link);
+    await VisitPageAndWaitUrlIs(this.driver, link);
     await FillField(this.driver, "password1", "newpass");
     await FillField(this.driver, "password2", "newpass");
     await ClickOn(this.driver, SeleniumWebDriver.By.id('reset-button'));
@@ -33,7 +33,7 @@ export default function() {
   });
 
   it("should persuade reset password is initiated for unknown user", async function() {
-    await VisitPage(this.driver, "https://login.example.com:8080/");
+    await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/");
     await ClickOnLink(this.driver, "Forgot password\?");
     await WaitRedirected(this.driver, "https://login.example.com:8080/forgot-password");
     await FillField(this.driver, "username", "unknown");
@@ -44,7 +44,7 @@ export default function() {
   });
 
   it("should notify passwords are different in reset form", async function() {
-    await VisitPage(this.driver, "https://login.example.com:8080/");
+    await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/");
     await ClickOnLink(this.driver, "Forgot password\?");
     await WaitRedirected(this.driver, "https://login.example.com:8080/forgot-password");
     await FillField(this.driver, "username", "john");
@@ -53,7 +53,7 @@ export default function() {
 
     await this.driver.sleep(500); // Simulate the time it takes to receive the e-mail.
     const link = await GetLinkFromEmail();
-    await VisitPage(this.driver, link);
+    await VisitPageAndWaitUrlIs(this.driver, link);
     await FillField(this.driver, "password1", "newpass");
     await FillField(this.driver, "password2", "badpass");
     await ClickOn(this.driver, SeleniumWebDriver.By.id('reset-button'));

@@ -6,17 +6,18 @@ import FillLoginPageAndClick from "../../../helpers/FillLoginPageAndClick";
 import ValidateTotp from "../../../helpers/ValidateTotp";
 import VerifyUrlIs from "../../../helpers/assertions/VerifyUrlIs";
 import Logout from "../../../helpers/Logout";
+import VisitPageAndWaitUrlIs from "../../../helpers/behaviors/VisitPageAndWaitUrlIs";
 
 async function ShouldHaveAccessTo(url: string) {
   it('should have access to ' + url, async function() {
-    await VisitPage(this.driver, url);
+    await VisitPageAndWaitUrlIs(this.driver, url);
     await VerifySecretObserved(this.driver);
   })
 }
 
 async function ShouldNotHaveAccessTo(url: string) {
   it('should not have access to ' + url, async function() {
-    await this.driver.get(url);
+    await VisitPage(this.driver, url);
     await VerifyUrlIs(this.driver, 'https://login.example.com:8080/');
   })
 }
@@ -34,7 +35,7 @@ export default function() {
 
     before(async function() {
       const secret = await LoginAndRegisterTotp(this.driver, "john", true);
-      await VisitPage(this.driver, 'https://login.example.com:8080/');
+      await VisitPageAndWaitUrlIs(this.driver, 'https://login.example.com:8080/');
       await FillLoginPageAndClick(this.driver, 'john', 'password', false);
       await ValidateTotp(this.driver, secret);
     })
@@ -61,7 +62,7 @@ export default function() {
 
     before(async function() {
       const secret = await LoginAndRegisterTotp(this.driver, "bob", true);
-      await VisitPage(this.driver, 'https://login.example.com:8080/');
+      await VisitPageAndWaitUrlIs(this.driver, 'https://login.example.com:8080/');
       await FillLoginPageAndClick(this.driver, 'bob', 'password', false);
       await ValidateTotp(this.driver, secret);
     })
@@ -88,7 +89,7 @@ export default function() {
 
     before(async function() {
       const secret = await LoginAndRegisterTotp(this.driver, "harry", true);
-      await VisitPage(this.driver, 'https://login.example.com:8080/');
+      await VisitPageAndWaitUrlIs(this.driver, 'https://login.example.com:8080/');
       await FillLoginPageAndClick(this.driver, 'harry', 'password', false);
       await ValidateTotp(this.driver, secret);
     })

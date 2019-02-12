@@ -1,11 +1,11 @@
 import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLoginPageAndClick';
 import WaitRedirected from '../../../helpers/WaitRedirected';
-import VisitPage from '../../../helpers/VisitPage';
 import ValidateTotp from '../../../helpers/ValidateTotp';
 import VerifySecretObserved from "../../../helpers/assertions/VerifySecretObserved";
 import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
 import SeeNotification from '../../../helpers/SeeNotification';
 import { AUTHENTICATION_TOTP_FAILED } from '../../../../shared/UserMessages';
+import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
 
 export default function() {
   /**
@@ -18,7 +18,7 @@ export default function() {
       const secret = await LoginAndRegisterTotp(this.driver, "john", true);
       if (!secret) throw new Error('No secret!');
       
-      await VisitPage(this.driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
+      await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
       await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
       await ValidateTotp(this.driver, secret);
       await WaitRedirected(this.driver, "https://admin.example.com:8080/secret.html");
@@ -39,7 +39,7 @@ export default function() {
       await LoginAndRegisterTotp(this.driver, "john", true);
       const BAD_TOKEN = "125478";
         
-      await VisitPage(this.driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
+      await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
       await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
       await ValidateTotp(this.driver, BAD_TOKEN);
     });
