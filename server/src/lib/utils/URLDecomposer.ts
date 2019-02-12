@@ -1,3 +1,4 @@
+// TODO: replace this decompose by third party library.
 export class URLDecomposer {
   static fromUrl(url: string): {domain: string, path: string} {
     if (!url) return;

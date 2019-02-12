@@ -4,8 +4,8 @@ import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLogin
 import ValidateTotp from "../../../helpers/ValidateTotp";
 import Logout from "../../../helpers/Logout";
 import WaitRedirected from "../../../helpers/WaitRedirected";
-import IsAlreadyAuthenticatedStage from "../../../helpers/IsAlreadyAuthenticatedStage";
-import WithDriver from "../../../helpers/context/WithDriver";
+import IsAlreadyAuthenticatedStage from "../../../helpers/assertions/VerifyIsAlreadyAuthenticatedStage";
+import { StartDriver, StopDriver } from "../../../helpers/context/WithDriver";
 
 /*
  * Authelia should not be vulnerable to open redirection. Otherwise it would aid an
@@ -15,17 +15,18 @@ import WithDriver from "../../../helpers/context/WithDriver";
  * the URL is pointing to an external domain.
  */
 export default function() {
-  WithDriver(true);
   describe("Only redirection to a subdomain of the protected domain should be allowed", function() {
     this.timeout(10000);
     let secret: string;
   
     beforeEach(async function() {
+      this.driver = await StartDriver();
       secret = await LoginAndRegisterTotp(this.driver, "john", true)
     });
   
     afterEach(async function() {
       await Logout(this.driver);
+      await StopDriver(this.driver);
     })
   
     function CannotRedirectTo(url: string) {

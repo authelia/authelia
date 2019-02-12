@@ -6,6 +6,7 @@ function getReturnType<R> (f: (...args: any[]) => R): R {
 }
 
 const t = getReturnType(PortalReducer)
+
 export type RootState = StateType<typeof t>;
 
 export default PortalReducer;

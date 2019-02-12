@@ -56,8 +56,6 @@ export default function (req: Express.Request, res: Express.Response,
 
     const originalUrl = ObjectPath.get<Express.Request, string>(
       req, "headers.x-original-url");
-    const originalUri =
-      ObjectPath.get<Express.Request, string>(req, "headers.x-original-uri");
 
     const d = URLDecomposer.fromUrl(originalUrl);
     vars.logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s", d.domain,

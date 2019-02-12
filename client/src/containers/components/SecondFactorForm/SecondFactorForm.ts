@@ -55,9 +55,9 @@ async function triggerSecurityKeySigning(dispatch: Dispatch) {
 
 async function handleSuccess(dispatch: Dispatch, ownProps: OwnProps, duration?: number) {
   async function handle() {
-    if (ownProps.redirection) {
+    if (ownProps.redirectionUrl) {
       try {
-        await SafelyRedirectBehavior(ownProps.redirection, dispatch);
+        await SafelyRedirectBehavior(ownProps.redirectionUrl);
       } catch (e) {
         await fetchState(dispatch);
       }

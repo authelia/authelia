@@ -1,5 +1,4 @@
 import Express = require("express");
-import { DomainExtractor } from "../../../../shared/DomainExtractor";
 import { BelongToDomain } from "../../../../shared/BelongToDomain";
 
 

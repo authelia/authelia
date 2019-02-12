@@ -1,23 +1,23 @@
 import LoginAndRegisterTotp from "../../../helpers/LoginAndRegisterTotp";
 import VisitPage from "../../../helpers/VisitPage";
-import ObserveSecret from "../../../helpers/assertions/ObserveSecret";
+import VerifySecretObserved from "../../../helpers/assertions/VerifySecretObserved";
 import WithDriver from "../../../helpers/context/WithDriver";
 import FillLoginPageAndClick from "../../../helpers/FillLoginPageAndClick";
 import ValidateTotp from "../../../helpers/ValidateTotp";
-import WaitRedirected from "../../../helpers/WaitRedirected";
+import VerifyUrlIs from "../../../helpers/assertions/VerifyUrlIs";
 import Logout from "../../../helpers/Logout";
 
 async function ShouldHaveAccessTo(url: string) {
   it('should have access to ' + url, async function() {
     await VisitPage(this.driver, url);
-    await ObserveSecret(this.driver);
+    await VerifySecretObserved(this.driver);
   })
 }
 
 async function ShouldNotHaveAccessTo(url: string) {
   it('should not have access to ' + url, async function() {
     await this.driver.get(url);
-    await WaitRedirected(this.driver, 'https://login.example.com:8080/');
+    await VerifyUrlIs(this.driver, 'https://login.example.com:8080/');
   })
 }
 

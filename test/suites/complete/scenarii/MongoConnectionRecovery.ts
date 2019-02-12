@@ -16,6 +16,6 @@ export default function() {
     
     const secret = await LoginAndRegisterTotp(this.driver, "john", true);
     child_process.execSync("./scripts/dc-dev.sh restart mongo");
-    await FullLogin(this.driver, "https://admin.example.com:8080/secret.html", "john", secret);
+    await FullLogin(this.driver, "john", secret, "https://admin.example.com:8080/secret.html");
   });  
 }

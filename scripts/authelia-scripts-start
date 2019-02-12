@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 var program = require('commander');
-var exec = require('child_process').execSync;
 var spawn = require('child_process').spawn;
 var chokidar = require('chokidar');
 var fs = require('fs');
@@ -101,15 +100,39 @@ function reload(path) {
   reloadServer();
 }
 
-fs.writeFileSync(ENVIRONMENT_FILENAME, program.suite);
-exec('./example/compose/nginx/portal/render.js');
-exec('./scripts/utils/prepare-environment.sh');
+function exec(command, args) {
+  return new Promise((resolve, reject) => {
+    const cmd = spawn(command, args);
 
-console.log('Start watching');
-tsWatcher.on('add', reload);
-tsWatcher.on('remove', reload);
-tsWatcher.on('change', reload);
+    cmd.stdout.pipe(process.stdout);
+    cmd.stderr.pipe(process.stderr);
+    cmd.on('close', (code) => {
+      if (code == 0) {
+        resolve();
+        return;
+      }
+      reject(new Error('Status code ' + code));
+    });
+  });
+}
 
-startServer();
-startClient();
+async function main() {
+  console.log(`Create suite file ${ENVIRONMENT_FILENAME}.`);
+  fs.writeFileSync(ENVIRONMENT_FILENAME, program.suite);
 
+  console.log(`Render nginx configuration...`);
+  await exec('./example/compose/nginx/portal/render.js');
+
+  console.log(`Prepare environment with docker-compose...`);
+  await exec('./scripts/utils/prepare-environment.sh');
+  
+  console.log('Start watching...');
+  tsWatcher.on('add', reload);
+  tsWatcher.on('remove', reload);
+  tsWatcher.on('change', reload);
+  
+  startServer();
+  startClient();
+}
+
+main()

@@ -37,11 +37,9 @@ const mapStateToProps = (state: RootState, ownProps: OwnProps): StateProps => {
   };
 }
 
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
+const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
-    onInit: async () => {
-      await FetchStateBehavior(dispatch);
-    }
+    onInit: async () => await FetchStateBehavior(dispatch)
   }
 }
 

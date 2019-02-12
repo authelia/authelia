@@ -10,6 +10,10 @@ import Notification from "../../components/Notification/Notification";
 
 import styles from '../../assets/scss/components/FirstFactorForm/FirstFactorForm.module.scss';
 
+export interface OwnProps {
+  redirectionUrl: string | null;
+}
+
 export interface StateProps {
   formDisabled: boolean;
   error: string | null;
@@ -19,7 +23,7 @@ export interface DispatchProps {
   onAuthenticationRequested(username: string, password: string, rememberMe: boolean): void;
 }
 
-export type Props = StateProps & DispatchProps;
+export type Props = OwnProps & StateProps & DispatchProps;
 
 interface State {
   username: string;

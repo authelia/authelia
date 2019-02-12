@@ -36,12 +36,12 @@ class AuthenticationView extends Component<Props> {
     if (this.props.stage === Stage.SECOND_FACTOR) {
       return <SecondFactorForm
         username={this.props.remoteState.username}
-        redirection={this.props.redirectionUrl} />;
+        redirectionUrl={this.props.redirectionUrl} />;
     } else if (this.props.stage === Stage.ALREADY_AUTHENTICATED) {
       return <AlreadyAuthenticated
         username={this.props.remoteState.username}/>;
     }
-    return <FirstFactorForm />;
+    return <FirstFactorForm redirectionUrl={this.props.redirectionUrl} />;
   }
 }
 

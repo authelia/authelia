@@ -2,7 +2,7 @@ import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLogin
 import WaitRedirected from '../../../helpers/WaitRedirected';
 import VisitPage from '../../../helpers/VisitPage';
 import ValidateTotp from '../../../helpers/ValidateTotp';
-import AccessSecret from "../../../helpers/AccessSecret";
+import VerifySecretObserved from "../../../helpers/assertions/VerifySecretObserved";
 import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
 import SeeNotification from '../../../helpers/SeeNotification';
 import { AUTHENTICATION_TOTP_FAILED } from '../../../../shared/UserMessages';
@@ -25,7 +25,7 @@ export default function() {
     });
 
     it("should access the secret", async function() {
-      await AccessSecret(this.driver);
+      await VerifySecretObserved(this.driver);
     });
   });
 

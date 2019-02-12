@@ -1,4 +1,3 @@
-import Bluebird = require("bluebird");
 import LoginAndRegisterTotp from "../../../helpers/LoginAndRegisterTotp";
 import VisitPage from "../../../helpers/VisitPage";
 import FillLoginPageWithUserAndPasswordAndClick from "../../../helpers/FillLoginPageAndClick";

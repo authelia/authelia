@@ -1,7 +1,7 @@
 import { Dispatch } from "redux";
 import * as AutheliaService from '../services/AutheliaService';
 
-export default async function(url: string, dispatch: Dispatch) {
+export default async function(url: string) {
   try {
     // Check the url against the backend before redirecting.
     await AutheliaService.checkRedirection(url);

@@ -1,5 +1,6 @@
 
 import Exceptions = require("../../Exceptions");
+import * as ObjectPath from "object-path";
 import BluebirdPromise = require("bluebird");
 import express = require("express");
 import ErrorReplies = require("../../ErrorReplies");
@@ -9,6 +10,11 @@ import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import { GroupsAndEmails } from "../../authentication/backends/GroupsAndEmails";
 import { Level } from "../../authentication/Level";
+import { Level as AuthorizationLevel } from "../../authorization/Level";
+import { BelongToDomain } from "../../../../../shared/BelongToDomain";
+import { URLDecomposer } from "../..//utils/URLDecomposer";
+import { Object } from "../../../lib/authorization/Object";
+import { Subject } from "../../../lib/authorization/Subject";
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)
@@ -54,6 +60,37 @@ export default function (vars: ServerVariables) {
 
         vars.logger.debug(req, "Mark successful authentication to regulator.");
         vars.regulator.mark(username, true);
+      })
+      .then(function() {
+        const targetUrl = ObjectPath.get(req, 'headers.x-target-url', null);
+        
+        if (!targetUrl) {
+          res.status(204);
+          res.send();
+          return BluebirdPromise.resolve();
+        }
+
+        if (BelongToDomain(targetUrl, vars.config.session.domain)) {
+          const resource = URLDecomposer.fromUrl(targetUrl);
+          const resObject: Object = {
+            domain: resource.domain,
+            resource: resource.path,
+          }
+
+          const subject: Subject = {
+            user: authSession.userid,
+            groups: authSession.groups
+          }
+
+          const authorizationLevel = vars.authorizer.authorization(resObject, subject);
+          if (authorizationLevel <= AuthorizationLevel.ONE_FACTOR) {
+            res.json({
+              redirect: targetUrl
+            });
+            return BluebirdPromise.resolve();
+          }
+        }
+
         res.status(204);
         res.send();
         return BluebirdPromise.resolve();

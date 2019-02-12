@@ -10,7 +10,7 @@ import Notification from '../Notification/Notification';
 
 export interface OwnProps {
   username: string;
-  redirection: string | null;
+  redirectionUrl: string | null;
 }
 
 export interface StateProps {

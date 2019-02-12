@@ -7,7 +7,7 @@ import WaitRedirected from '../../../helpers/WaitRedirected';
 import FillField from "../../../helpers/FillField";
 import {GetLinkFromEmail} from "../../../helpers/GetIdentityLink";
 import FillLoginPageAndClick from "../../../helpers/FillLoginPageAndClick";
-import IsSecondFactorStage from "../../../helpers/IsSecondFactorStage";
+import IsSecondFactorStage from "../../../helpers/assertions/VerifyIsSecondFactorStage";
 import SeeNotification from '../../../helpers/SeeNotification';
 
 export default function() {

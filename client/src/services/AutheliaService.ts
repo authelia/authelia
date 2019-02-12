@@ -23,13 +23,20 @@ export async function fetchState() {
 }
 
 export async function postFirstFactorAuth(username: string, password: string,
-  rememberMe: boolean) {
+  rememberMe: boolean, redirectionUrl: string | null) {
+
+  const headers: Record<string, string> = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  }
+
+  if (redirectionUrl) {
+    headers['X-Target-Url'] = redirectionUrl;
+  }
+
   return fetchSafe('/api/firstfactor', {
     method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
+    headers: headers,
     body: JSON.stringify({
       username: username,
       password: password,
