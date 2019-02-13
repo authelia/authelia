@@ -63,8 +63,8 @@ export default function (vars: ServerVariables) {
         vars.regulator.mark(username, true);
       })
       .then(function() {
-        const targetUrl = ObjectPath.get(req, 'headers.x-target-url', null);
-        
+        const targetUrl = ObjectPath.get(req, "headers.x-target-url", undefined);
+
         if (!targetUrl) {
           res.status(204);
           res.send();
@@ -76,12 +76,12 @@ export default function (vars: ServerVariables) {
           const resObject: Object = {
             domain: resource.domain,
             resource: resource.path,
-          }
+          };
 
           const subject: Subject = {
             user: authSession.userid,
             groups: authSession.groups
-          }
+          };
 
           const authorizationLevel = vars.authorizer.authorization(resObject, subject);
           if (authorizationLevel <= AuthorizationLevel.ONE_FACTOR) {

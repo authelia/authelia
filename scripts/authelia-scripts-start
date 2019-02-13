@@ -44,9 +44,12 @@ function startServer() {
     console.log('Authelia is interrupted. Consider removing ' + AUTHELIA_INTERRUPT_FILENAME + ' if it\'s not expected.');
     return;
   }
-  serverProcess = spawn('./scripts/run-dev-server.sh', [`test/suites/${program.suite}/config.yml`]);
-  serverProcess.stdout.pipe(process.stdout);
-  serverProcess.stderr.pipe(process.stderr);
+  exec('./node_modules/.bin/tslint', ['-c', 'server/tslint.json', '-p', 'server/tsconfig.json'])
+    .then(function() {
+      serverProcess = spawn('./scripts/run-dev-server.sh', [`test/suites/${program.suite}/config.yml`]);
+      serverProcess.stdout.pipe(process.stdout);
+      serverProcess.stderr.pipe(process.stderr);
+    });
 }
 
 let clientProcess;
@@ -97,7 +100,8 @@ function killClient(onExit) {
 }
 
 function generateConfigurationSchema() {
-  exec('./node_modules/.bin/typescript-json-schema -o server/src/lib/configuration/Configuration.schema.json --strictNullChecks --required server/tsconfig.json Configuration');
+  return ixec('./node_modules/.bin/typescript-json-schema',
+    ['-o', 'server/src/lib/configuration/Configuration.schema.json', '--strictNullChecks', '--required', 'server/tsconfig.json', 'Configuration']);
 }
 
 function reload(path) {
