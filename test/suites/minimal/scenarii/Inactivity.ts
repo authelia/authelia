@@ -12,7 +12,7 @@ export default function(this: Mocha.ISuiteCallbackContext) {
 
   beforeEach(async function() {
     this.driver = await StartDriver();
-    this.secret = await LoginAndRegisterTotp(this.driver, "john", true);
+    this.secret = await LoginAndRegisterTotp(this.driver, "john", "password", true);
   });
 
   afterEach(async function() {

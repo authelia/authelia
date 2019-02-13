@@ -31,7 +31,7 @@ export default function() {
     describe("With two factors", function() {
       before(async function() {
         this.driver = await StartDriver();
-        await RegisterAndLoginWith2FA(this.driver, "john", true, "https://public.example.com:8080/headers");
+        await RegisterAndLoginWith2FA(this.driver, "john", "password", true, "https://public.example.com:8080/headers");
       });
     
       after(async function() {

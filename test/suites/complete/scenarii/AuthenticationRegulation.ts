@@ -3,31 +3,14 @@ import LoginAs from "../../../helpers/LoginAs";
 import VerifyNotificationDisplayed from "../../../helpers/assertions/VerifyNotificationDisplayed";
 import VerifyIsSecondFactorStage from "../../../helpers/assertions/VerifyIsSecondFactorStage";
 
-/*
-Given I visit "https://login.example.com:8080/"
-    And I set field "username" to "blackhat"
-    And I set field "password" to "bad-password"
-    And I click on "Sign in"
-    And I get a notification of type "error" with message "Authentication failed. Please check your credentials."
-    And I set field "password" to "bad-password"
-    And I click on "Sign in"
-    And I get a notification of type "error" with message "Authentication failed. Please check your credentials."
-    And I set field "password" to "bad-password"
-    And I click on "Sign in"
-    And I get a notification of type "error" with message "Authentication failed. Please check your credentials."
-    When I set field "password" to "password"
-    And I click on "Sign in"
-    Then I get a notification of type "error" with message "Authentication failed. Please check your credentials."
-*/
-
 export default function() {
   describe('Authelia regulates authentications when a hacker is brute forcing', function() {
     this.timeout(15000);
-    before(async function() {
+    beforeEach(async function() {
       this.driver = await StartDriver();
     });
 
-    after(async function() {
+    afterEach(async function() {
       await StopDriver(this.driver);
     });
 

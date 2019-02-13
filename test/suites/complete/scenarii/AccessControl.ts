@@ -34,7 +34,7 @@ export default function() {
     WithDriver();
 
     before(async function() {
-      const secret = await LoginAndRegisterTotp(this.driver, "john", true);
+      const secret = await LoginAndRegisterTotp(this.driver, "john", "password", true);
       await VisitPageAndWaitUrlIs(this.driver, 'https://login.example.com:8080/');
       await FillLoginPageAndClick(this.driver, 'john', 'password', false);
       await ValidateTotp(this.driver, secret);
@@ -61,7 +61,7 @@ export default function() {
     WithDriver();
 
     before(async function() {
-      const secret = await LoginAndRegisterTotp(this.driver, "bob", true);
+      const secret = await LoginAndRegisterTotp(this.driver, "bob", "password", true);
       await VisitPageAndWaitUrlIs(this.driver, 'https://login.example.com:8080/');
       await FillLoginPageAndClick(this.driver, 'bob', 'password', false);
       await ValidateTotp(this.driver, secret);
@@ -88,7 +88,7 @@ export default function() {
     WithDriver();
 
     before(async function() {
-      const secret = await LoginAndRegisterTotp(this.driver, "harry", true);
+      const secret = await LoginAndRegisterTotp(this.driver, "harry", "password", true);
       await VisitPageAndWaitUrlIs(this.driver, 'https://login.example.com:8080/');
       await FillLoginPageAndClick(this.driver, 'harry', 'password', false);
       await ValidateTotp(this.driver, secret);

@@ -15,7 +15,7 @@ export default function() {
       ChildProcess.execSync('rm -f .authelia-interrupt');
 
       this.driver = await StartDriver();
-      await RegisterAndLoginTwoFactor(this.driver, 'john', true, 'https://admin.example.com:8080/secret.html');
+      await RegisterAndLoginTwoFactor(this.driver, 'john', "password", true, 'https://admin.example.com:8080/secret.html');
       await VisitPageAndWaitUrlIs(this.driver, 'https://home.example.com:8080/');
     });
 
@@ -46,7 +46,7 @@ export default function() {
       ChildProcess.execSync('rm -f .authelia-interrupt');
 
       this.driver = await StartDriver();
-      this.secret = await LoginAndRegisterTotp(this.driver, 'john', true);
+      this.secret = await LoginAndRegisterTotp(this.driver, 'john', "password", true);
       await Logout(this.driver);
     });
 

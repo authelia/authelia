@@ -21,7 +21,7 @@ export default function() {
   
     beforeEach(async function() {
       this.driver = await StartDriver();
-      secret = await LoginAndRegisterTotp(this.driver, "john", true)
+      secret = await LoginAndRegisterTotp(this.driver, "john", "password", true)
     });
   
     afterEach(async function() {
