@@ -1,7 +1,7 @@
 import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLoginPageAndClick';
-import SeeNotification from '../../../helpers/SeeNotification';
 import {AUTHENTICATION_FAILED} from '../../../../shared/UserMessages';
 import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
+import VerifyNotificationDisplayed from '../../../helpers/assertions/VerifyNotificationDisplayed';
 
 export default function() {
 /**
@@ -17,7 +17,7 @@ export default function() {
 
     it('should get a notification message', async function () {
       this.timeout(10000);
-      await SeeNotification(this.driver, AUTHENTICATION_FAILED);
+      await VerifyNotificationDisplayed(this.driver, AUTHENTICATION_FAILED);
     });
   });
 }

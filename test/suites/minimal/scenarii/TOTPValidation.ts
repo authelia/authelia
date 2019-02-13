@@ -3,9 +3,9 @@ import WaitRedirected from '../../../helpers/WaitRedirected';
 import ValidateTotp from '../../../helpers/ValidateTotp';
 import VerifySecretObserved from "../../../helpers/assertions/VerifySecretObserved";
 import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
-import SeeNotification from '../../../helpers/SeeNotification';
 import { AUTHENTICATION_TOTP_FAILED } from '../../../../shared/UserMessages';
 import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
+import VerifyNotificationDisplayed from '../../../helpers/assertions/VerifyNotificationDisplayed';
 
 export default function() {
   /**
@@ -45,7 +45,7 @@ export default function() {
     });
 
     it("get a notification message", async function() {
-      await SeeNotification(this.driver, AUTHENTICATION_TOTP_FAILED);
+      await VerifyNotificationDisplayed(this.driver, AUTHENTICATION_TOTP_FAILED);
     });
   });
 }

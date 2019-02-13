@@ -7,8 +7,8 @@ import FillField from "../../../helpers/FillField";
 import {GetLinkFromEmail} from "../../../helpers/GetIdentityLink";
 import FillLoginPageAndClick from "../../../helpers/FillLoginPageAndClick";
 import IsSecondFactorStage from "../../../helpers/assertions/VerifyIsSecondFactorStage";
-import SeeNotification from '../../../helpers/SeeNotification';
 import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
+import VerifyNotificationDisplayed from '../../../helpers/assertions/VerifyNotificationDisplayed';
 
 export default function() {
   it("should reset password for john", async function() {
@@ -57,6 +57,6 @@ export default function() {
     await FillField(this.driver, "password1", "newpass");
     await FillField(this.driver, "password2", "badpass");
     await ClickOn(this.driver, SeleniumWebDriver.By.id('reset-button'));
-    await SeeNotification(this.driver, "The passwords are different.");
+    await VerifyNotificationDisplayed(this.driver, "The passwords are different.");
   });
 }
