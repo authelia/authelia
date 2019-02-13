@@ -1,7 +1,6 @@
 import LoginAndRegisterTotp from "../../../helpers/LoginAndRegisterTotp";
 import FillLoginPageWithUserAndPasswordAndClick from "../../../helpers/FillLoginPageAndClick";
 import ValidateTotp from "../../../helpers/ValidateTotp";
-import WaitRedirected from "../../../helpers/WaitRedirected";
 import { WebDriver } from "selenium-webdriver";
 import VisitPageAndWaitUrlIs from "../../../helpers/behaviors/VisitPageAndWaitUrlIs";
 import VisitPage from "../../../helpers/VisitPage";
@@ -19,11 +18,11 @@ export default function(this: Mocha.ISuiteCallbackContext) {
     await VisitPageAndWaitUrlIs(driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
     await FillLoginPageWithUserAndPasswordAndClick(driver, 'john', 'password', false);
     await ValidateTotp(driver, this.secret);
-    await WaitRedirected(driver, "https://admin.example.com:8080/secret.html");
+    await VerifyUrlIs(driver, "https://admin.example.com:8080/secret.html");
     await VisitPageAndWaitUrlIs(driver, "https://home.example.com:8080/");
     await driver.sleep(6000);
     await driver.get("https://admin.example.com:8080/secret.html");
-    await WaitRedirected(driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
+    await VerifyUrlIs(driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
   });
 
   it('should disconnect user after cookie expiration', async function() {
@@ -31,7 +30,7 @@ export default function(this: Mocha.ISuiteCallbackContext) {
     await VisitPageAndWaitUrlIs(driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
     await FillLoginPageWithUserAndPasswordAndClick(driver, 'john', 'password', false);
     await ValidateTotp(driver, this.secret);
-    await WaitRedirected(driver, "https://admin.example.com:8080/secret.html");
+    await VerifyUrlIs(driver, "https://admin.example.com:8080/secret.html");
     await VisitPageAndWaitUrlIs(driver, "https://home.example.com:8080/");
 
     await driver.sleep(4000);
@@ -41,7 +40,7 @@ export default function(this: Mocha.ISuiteCallbackContext) {
 
     await driver.sleep(2000);
     await driver.get("https://admin.example.com:8080/secret.html");
-    await WaitRedirected(driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
+    await VerifyUrlIs(driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
 
   });
 
@@ -51,7 +50,7 @@ export default function(this: Mocha.ISuiteCallbackContext) {
       await VisitPageAndWaitUrlIs(driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
       await FillLoginPageWithUserAndPasswordAndClick(driver, 'john', 'password', true);
       await ValidateTotp(driver, this.secret);
-      await WaitRedirected(driver, "https://admin.example.com:8080/secret.html");
+      await VerifyUrlIs(driver, "https://admin.example.com:8080/secret.html");
       await VisitPageAndWaitUrlIs(driver, "https://home.example.com:8080/");
       await driver.sleep(6000);
       await VisitPage(driver, "https://admin.example.com:8080/secret.html");

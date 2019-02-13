@@ -1,11 +1,11 @@
 import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLoginPageAndClick';
-import WaitRedirected from '../../../helpers/WaitRedirected';
 import ValidateTotp from '../../../helpers/ValidateTotp';
 import VerifySecretObserved from "../../../helpers/assertions/VerifySecretObserved";
 import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
 import { AUTHENTICATION_TOTP_FAILED } from '../../../../shared/UserMessages';
 import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
 import VerifyNotificationDisplayed from '../../../helpers/assertions/VerifyNotificationDisplayed';
+import VerifyUrlIs from '../../../helpers/assertions/VerifyUrlIs';
 
 export default function() {
   /**
@@ -21,7 +21,7 @@ export default function() {
       await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
       await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
       await ValidateTotp(this.driver, secret);
-      await WaitRedirected(this.driver, "https://admin.example.com:8080/secret.html");
+      await VerifyUrlIs(this.driver, "https://admin.example.com:8080/secret.html");
     });
 
     it("should access the secret", async function() {
