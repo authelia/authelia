@@ -73,10 +73,10 @@ regulation:
   max_retries: 3
 
   # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window. 
-  find_time: 120
+  find_time: 10
 
   # The length of time before a banned user can login again.
-  ban_time: 300
+  ban_time: 5
 
 # Default redirection URL
 #

@@ -29,7 +29,6 @@ export default function() {
     });
 
     it("should have user and issuer in otp url", async function() {
-      // this.timeout(100000);
       const el = await (this.driver as WebDriver).wait(
         SeleniumWebdriver.until.elementLocated(
           SeleniumWebdriver.By.className('otpauth-secret')), 5000);

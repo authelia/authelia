@@ -15,6 +15,7 @@ import { BelongToDomain } from "../../../../../shared/BelongToDomain";
 import { URLDecomposer } from "../..//utils/URLDecomposer";
 import { Object } from "../../../lib/authorization/Object";
 import { Subject } from "../../../lib/authorization/Subject";
+import AuthenticationError from "../../../lib/authentication/AuthenticationError";
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)
@@ -95,7 +96,7 @@ export default function (vars: ServerVariables) {
         res.send();
         return BluebirdPromise.resolve();
       })
-      .catch(Exceptions.LdapBindError, function (err: Error) {
+      .catch(AuthenticationError, function (err: Error) {
         vars.regulator.mark(username, false);
         return ErrorReplies.replyWithError200(req, res, vars.logger, UserMessages.AUTHENTICATION_FAILED)(err);
       })

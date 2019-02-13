@@ -5,6 +5,8 @@ import AccessControl from "./scenarii/AccessControl";
 import CustomHeadersForwarded from "./scenarii/CustomHeadersForwarded";
 import SingleFactorAuthentication from "./scenarii/SingleFactorAuthentication";
 import BasicAuthentication from "./scenarii/BasicAuthentication";
+import AutheliaRestart from "./scenarii/AutheliaRestart";
+import AuthenticationRegulation from "./scenarii/AuthenticationRegulation";
 
 AutheliaSuite('Complete configuration', __dirname + '/config.yml', function() {
   this.timeout(10000);
@@ -16,4 +18,6 @@ AutheliaSuite('Complete configuration', __dirname + '/config.yml', function() {
   describe('Enforce internal redirections only', EnforceInternalRedirectionsOnly);
   describe('Single factor authentication', SingleFactorAuthentication);
   describe('Basic authentication', BasicAuthentication);
+  describe('Authelia restart', AutheliaRestart);
+  describe('Authentication regulation', AuthenticationRegulation);
 });

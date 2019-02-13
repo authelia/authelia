@@ -4,6 +4,8 @@ import ValidateTotp from "../../../helpers/ValidateTotp";
 import WaitRedirected from "../../../helpers/WaitRedirected";
 import { WebDriver } from "selenium-webdriver";
 import VisitPageAndWaitUrlIs from "../../../helpers/behaviors/VisitPageAndWaitUrlIs";
+import VisitPage from "../../../helpers/VisitPage";
+import VerifyUrlIs from "../../../helpers/assertions/VerifyUrlIs";
 
 export default function(this: Mocha.ISuiteCallbackContext) {
   this.timeout(20000);
@@ -52,8 +54,8 @@ export default function(this: Mocha.ISuiteCallbackContext) {
       await WaitRedirected(driver, "https://admin.example.com:8080/secret.html");
       await VisitPageAndWaitUrlIs(driver, "https://home.example.com:8080/");
       await driver.sleep(6000);
-      await driver.get("https://admin.example.com:8080/secret.html");
-      await WaitRedirected(driver, "https://admin.example.com:8080/secret.html");
+      await VisitPage(driver, "https://admin.example.com:8080/secret.html");
+      await VerifyUrlIs(driver, "https://admin.example.com:8080/secret.html");
     });
   });
 }

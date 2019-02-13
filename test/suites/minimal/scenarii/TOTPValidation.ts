@@ -45,7 +45,7 @@ export default function() {
     });
 
     it("get a notification message", async function() {
-      await SeeNotification(this.driver, "error", AUTHENTICATION_TOTP_FAILED);
+      await SeeNotification(this.driver, AUTHENTICATION_TOTP_FAILED);
     });
   });
 }

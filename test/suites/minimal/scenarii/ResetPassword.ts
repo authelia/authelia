@@ -57,6 +57,6 @@ export default function() {
     await FillField(this.driver, "password1", "newpass");
     await FillField(this.driver, "password2", "badpass");
     await ClickOn(this.driver, SeleniumWebDriver.By.id('reset-button'));
-    await SeeNotification(this.driver, "error", "The passwords are different.");
+    await SeeNotification(this.driver, "The passwords are different.");
   });
 }

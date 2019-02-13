@@ -4,6 +4,7 @@ var program = require('commander');
 var spawn = require('child_process').spawn;
 var chokidar = require('chokidar');
 var fs = require('fs');
+var kill = require('tree-kill');
 
 program
   .option('-s, --suite <suite>', 'The suite to run Authelia for. This suite represents a configuration for Authelia and a set of tests for that configuration.')
@@ -14,17 +15,18 @@ if (!program.suite) {
 }
 
 const ENVIRONMENT_FILENAME = '.suite';
+const AUTHELIA_INTERRUPT_FILENAME = '.authelia-interrupt';
 
 
-var tsWatcher = chokidar.watch(['server', 'shared/**/*.ts', 'node_modules'], {
+var tsWatcher = chokidar.watch(['server', 'shared/**/*.ts', 'node_modules', AUTHELIA_INTERRUPT_FILENAME], {
   persistent: true,
   ignoreInitial: true,
 });
 
 // Properly cleanup server and client if ctrl-c is hit
 process.on('SIGINT', function() {
-  killServer(() => {});
-  killClient(() => {});
+  killServer();
+  killClient();
   fs.unlinkSync(ENVIRONMENT_FILENAME);
   process.exit();
 });
@@ -38,7 +40,11 @@ function reloadServer() {
 }
 
 function startServer() {
-  serverProcess = spawn('./scripts/run-dev-server.sh', [`test/suites/${program.suite}/config.yml`], {detached: true});
+  if (fs.existsSync(AUTHELIA_INTERRUPT_FILENAME)) {
+    console.log('Authelia is interrupted. Consider removing ' + AUTHELIA_INTERRUPT_FILENAME + ' if it\'s not expected.');
+    return;
+  }
+  serverProcess = spawn('./scripts/run-dev-server.sh', [`test/suites/${program.suite}/config.yml`]);
   serverProcess.stdout.pipe(process.stdout);
   serverProcess.stderr.pipe(process.stderr);
 }
@@ -46,7 +52,6 @@ function startServer() {
 let clientProcess;
 function startClient() {
   clientProcess = spawn('npm', ['run', 'start'], {
-    detached: true,
     cwd: './client',
     env: {
       ...process.env,
@@ -61,14 +66,16 @@ function killServer(onExit) {
   if (serverProcess) {
     serverProcess.on('exit', () => {
       serverProcess = undefined;
-      onExit();
+      if (onExit) onExit();
     });
     try {
-      process.kill(-serverProcess.pid);
+      kill(serverProcess.pid, 'SIGKILL');
     } catch (e) {
       console.error(e);
-      onExit();
+      if (onExit) onExit();
     }
+  } else {
+    if (onExit) onExit();
   }
 }
 
@@ -76,14 +83,16 @@ function killClient(onExit) {
   if (clientProcess) {
     clientProcess.on('exit', () => {
       clientProcess = undefined;
-      onExit();
+      if (onExit) onExit();
     });
     try {
-      process.kill(-clientProcess.pid);
+      kill(clientProcess.pid, 'SIGKILL');
     } catch (e) {
       console.error(e);
-      onExit();
+      if (onExit) onExit();
     }
+  } else {
+    if (onExit) onExit();
   }
 }
 
@@ -96,6 +105,16 @@ function reload(path) {
   if (path.startsWith('server/src/lib/configuration/schema')) {
     console.log('Schema needs to be regenerated.');
     generateConfigurationSchema();
+  }
+  else if (path === AUTHELIA_INTERRUPT_FILENAME) {
+    if (fs.existsSync(path)) {
+      console.log('Authelia is being interrupted.');
+      killServer();
+    } else {
+      console.log('Authelia is restarting.');
+      startServer();
+    }
+    return;
   }
   reloadServer();
 }
@@ -128,7 +147,7 @@ async function main() {
   
   console.log('Start watching...');
   tsWatcher.on('add', reload);
-  tsWatcher.on('remove', reload);
+  tsWatcher.on('unlink', reload);
   tsWatcher.on('change', reload);
   
   startServer();

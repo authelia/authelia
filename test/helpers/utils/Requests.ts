@@ -5,8 +5,7 @@ import { StatusCodeError } from 'request-promise/errors';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-// Sent a GET request to the url and expect a 401
-export async function GET_Expect401(url: string) {
+export async function GET_ExpectError(url: string, statusCode: number) {
   try {
     await Request.get(url, {
       json: true,
@@ -15,11 +14,20 @@ export async function GET_Expect401(url: string) {
     throw new Error('No response');
   } catch (e) {
     if (e instanceof StatusCodeError) {
-      Assert.equal(e.statusCode, 401);
+      Assert.equal(e.statusCode, statusCode);
       return;
     }
   }
   return;
+}
+
+// Sent a GET request to the url and expect a 401
+export async function GET_Expect401(url: string) {
+  return await GET_ExpectError(url, 401);
+}
+
+export async function GET_Expect502(url: string) {
+  return await GET_ExpectError(url, 502);
 }
 
 export async function POST_Expect401(url: string, body?: any) {

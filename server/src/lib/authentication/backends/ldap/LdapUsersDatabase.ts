@@ -5,6 +5,7 @@ import { LdapConfiguration } from "../../../configuration/schema/LdapConfigurati
 import { ISession } from "./ISession";
 import { GroupsAndEmails } from "../GroupsAndEmails";
 import Exceptions = require("../../../Exceptions");
+import AuthenticationError from "../../AuthenticationError";
 
 type SessionCallback<T> = (session: ISession) => Bluebird<T>;
 
@@ -58,7 +59,7 @@ export class LdapUsersDatabase implements IUsersDatabase {
           .then(() => getInfo(session));
       })
       .catch((err) =>
-        Bluebird.reject(new Exceptions.LdapError(err.message)));
+        Bluebird.reject(new AuthenticationError(err.message)));
   }
 
   getEmails(username: string): Bluebird<string[]> {

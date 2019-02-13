@@ -17,7 +17,7 @@ export default function() {
 
     it('should get a notification message', async function () {
       this.timeout(10000);
-      await SeeNotification(this.driver, "error", AUTHENTICATION_FAILED);
+      await SeeNotification(this.driver, AUTHENTICATION_FAILED);
     });
   });
 }

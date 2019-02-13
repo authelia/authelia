@@ -6,6 +6,9 @@ import VisitPage from "../../../helpers/VisitPage";
 import VerifyUrlIs from "../../../helpers/assertions/VerifyUrlIs";
 import VerifyIsSecondFactorStage from "../../../helpers/assertions/VerifyIsSecondFactorStage";
 
+/*
+ * Those tests are related to single factor protected resources.
+ */
 export default function() {
   beforeEach(async function() {
     this.driver = await StartDriver();
