@@ -9,8 +9,17 @@ import IsSecondFactorStage from "../../../helpers/assertions/VerifyIsSecondFacto
 import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
 import VerifyNotificationDisplayed from '../../../helpers/assertions/VerifyNotificationDisplayed';
 import VerifyUrlIs from '../../../helpers/assertions/VerifyUrlIs';
+import { StartDriver, StopDriver } from '../../../helpers/context/WithDriver';
 
 export default function() {
+  beforeEach(async function() {
+    this.driver = await StartDriver();
+  });
+
+  afterEach(async function() {
+    await StopDriver(this.driver);
+  })
+
   it("should reset password for john", async function() {
     await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/");
     await ClickOnLink(this.driver, "Forgot password\?");

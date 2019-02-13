@@ -1,6 +1,7 @@
 import SeleniumWebdriver, { WebDriver } from "selenium-webdriver";
 import Assert from 'assert';
 import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
+import { StartDriver, StopDriver } from "../../../helpers/context/WithDriver";
 
 /** 
  * Given the user logs in as john,
@@ -9,9 +10,15 @@ import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
  */
 export default function() {
   describe('successfully login as john', function() {
-    beforeEach('register successfully', async function() {
-      this.timeout(10000);
+    this.timeout(10000);
+
+    beforeEach(async function() {
+      this.driver = await StartDriver();
       await LoginAndRegisterTotp(this.driver, "john", true);
+    });
+
+    afterEach(async function() {
+      await StopDriver(this.driver);
     })
 
     it("should see generated qrcode", async function() {

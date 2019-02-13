@@ -2,6 +2,7 @@ import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLogin
 import {AUTHENTICATION_FAILED} from '../../../../shared/UserMessages';
 import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
 import VerifyNotificationDisplayed from '../../../helpers/assertions/VerifyNotificationDisplayed';
+import { StartDriver, StopDriver } from '../../../helpers/context/WithDriver';
 
 export default function() {
 /**
@@ -9,14 +10,19 @@ export default function() {
  * Then he gets a notification message.
  */
   describe('failed login as john in first factor', function() {
-    beforeEach(async function() {
-      this.timeout(10000);
+    this.timeout(10000);
+
+    before(async function() {
+      this.driver = await StartDriver();
       await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/")
       await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'bad_password');
     });
 
+    after(async function() {
+      await StopDriver(this.driver);
+    })
+
     it('should get a notification message', async function () {
-      this.timeout(10000);
       await VerifyNotificationDisplayed(this.driver, AUTHENTICATION_FAILED);
     });
   });

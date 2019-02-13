@@ -6,6 +6,7 @@ import { AUTHENTICATION_TOTP_FAILED } from '../../../../shared/UserMessages';
 import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
 import VerifyNotificationDisplayed from '../../../helpers/assertions/VerifyNotificationDisplayed';
 import VerifyUrlIs from '../../../helpers/assertions/VerifyUrlIs';
+import { StartDriver, StopDriver } from '../../../helpers/context/WithDriver';
 
 export default function() {
   /**
@@ -14,13 +15,21 @@ export default function() {
  * Then he has access to secret page.
  */
   describe('Successfully pass second factor with TOTP', function() {
-    beforeEach(async function() {
+    before(async function() {
+      this.driver = await StartDriver();
       const secret = await LoginAndRegisterTotp(this.driver, "john", true);
       if (!secret) throw new Error('No secret!');
       
       await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
       await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
       await ValidateTotp(this.driver, secret);
+    });
+
+    after(async function() {
+      await StopDriver(this.driver);
+    });
+
+    it("should be automatically redirected to secret page", async function() {
       await VerifyUrlIs(this.driver, "https://admin.example.com:8080/secret.html");
     });
 
@@ -35,13 +44,18 @@ export default function() {
  * Then he gets a notification message.
  */
   describe('Fail validation of second factor with TOTP', function() {
-    beforeEach(async function() {
+    before(async function() {
+      this.driver = await StartDriver();
       await LoginAndRegisterTotp(this.driver, "john", true);
       const BAD_TOKEN = "125478";
         
       await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
       await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
       await ValidateTotp(this.driver, BAD_TOKEN);
+    });
+
+    after(async function() {
+      await StopDriver(this.driver);
     });
 
     it("get a notification message", async function() {

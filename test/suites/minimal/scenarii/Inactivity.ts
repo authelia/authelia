@@ -5,13 +5,19 @@ import { WebDriver } from "selenium-webdriver";
 import VisitPageAndWaitUrlIs from "../../../helpers/behaviors/VisitPageAndWaitUrlIs";
 import VisitPage from "../../../helpers/VisitPage";
 import VerifyUrlIs from "../../../helpers/assertions/VerifyUrlIs";
+import { StartDriver, StopDriver } from "../../../helpers/context/WithDriver";
 
 export default function(this: Mocha.ISuiteCallbackContext) {
   this.timeout(20000);
 
   beforeEach(async function() {
+    this.driver = await StartDriver();
     this.secret = await LoginAndRegisterTotp(this.driver, "john", true);
   });
+
+  afterEach(async function() {
+    await StopDriver(this.driver);
+  })
 
   it("should disconnect user after inactivity period", async function() {
     const driver = this.driver as WebDriver;
