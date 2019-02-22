@@ -5,7 +5,7 @@ import VerifyForwardedHeaderIs from "../../../helpers/assertions/VerifyForwarded
 import LoginOneFactor from "../../../helpers/behaviors/LoginOneFactor";
 
 export default function() {
-  describe("Custom-Forwarded-User and Custom-Forwarded-Groups are correctly forwarded to protected backend", function() {
+  describe.only("Custom-Forwarded-User and Custom-Forwarded-Groups are correctly forwarded to protected backend", function() {
     this.timeout(10000);
 
     describe("With single factor", function() {

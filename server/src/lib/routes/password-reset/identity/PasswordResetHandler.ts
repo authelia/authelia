@@ -29,10 +29,10 @@ export default class PasswordResetHandler implements IdentityValidable {
     return BluebirdPromise.resolve()
       .then(function () {
         that.logger.debug(req, "User '%s' requested a password reset", userid);
-        if (!userid)
+        if (!userid) {
           return BluebirdPromise.reject(
             new exceptions.AccessDeniedError("No user id provided"));
-
+        }
         return that.usersDatabase.getEmails(userid);
       })
       .then(function (emails: string[]) {

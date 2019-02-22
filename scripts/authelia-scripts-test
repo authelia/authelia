@@ -25,9 +25,9 @@ else if (program.args.length > 0) {
   args = program.args;
 
   // Render the production version of the nginx portal configuration
-  // execSync('./example/compose/nginx/portal/render.js --production');
+  execSync('./example/compose/nginx/portal/render.js --production');
   // Prepare the environment
-  // execSync('./scripts/utils/prepare-environment.sh');
+  execSync('./scripts/utils/prepare-environment.sh');
 }
 else {
   console.log('No suite detected but no tests have been selected...');

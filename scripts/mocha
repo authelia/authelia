@@ -1,3 +1,0 @@
-#!/bin/bash
-
-WITH_SERVER=n TS_NODE_PROJECT=test/tsconfig.json ./node_modules/.bin/mocha --exit --colors --require ts-node/register $*

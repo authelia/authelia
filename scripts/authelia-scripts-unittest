@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+var spawn = require('child_process').spawn;
+
+program
+  .parse(process.argv);
+
+async function runTests(pattern) {
+  return new Promise((resolve, reject) => {
+    mocha = spawn('./node_modules/.bin/mocha', ['--colors', '--require', 'ts-node/register', pattern], {
+      env: {
+        ...process.env,
+        'TS_NODE_PROJECT': './server/tsconfig.json'
+      }
+    });
+    
+    mocha.stdout.pipe(process.stdout);
+    mocha.stderr.pipe(process.stderr);
+    mocha.on('exit', (status) => {
+      if (status == 0) {
+        resolve();
+      }
+      reject(new Error('Status code ' + status));
+    });
+  });
+}
+
+async function test() {
+  await runTests('server/src/**/*.spec.ts');
+  await runTests('shared/**/*.spec.ts');
+}
+
+test()
+  .then(() => {
+    process.exit(0);
+  }, (err) => {
+    process.exit(1);
+  });
+

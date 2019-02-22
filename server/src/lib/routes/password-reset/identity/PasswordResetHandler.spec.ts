@@ -1,10 +1,6 @@
 
 import PasswordResetHandler
   from "./PasswordResetHandler";
-import { UserDataStore } from "../../../storage/UserDataStore";
-import Sinon = require("sinon");
-import winston = require("winston");
-import assert = require("assert");
 import BluebirdPromise = require("bluebird");
 import ExpressMock = require("../../../stubs/express.spec");
 import { ServerVariablesMock, ServerVariablesMockBuilder }
@@ -13,15 +9,14 @@ import { ServerVariables } from "../../../ServerVariables";
 
 describe("routes/password-reset/identity/PasswordResetHandler", function () {
   let req: ExpressMock.RequestMock;
-  let res: ExpressMock.ResponseMock;
   let mocks: ServerVariablesMock;
   let vars: ServerVariables;
 
   beforeEach(function () {
     req = {
       originalUrl: "/non-api/xxx",
-      query: {
-        userid: "user"
+      body: {
+        username: "user"
       },
       session: {
         auth: {
@@ -36,10 +31,6 @@ describe("routes/password-reset/identity/PasswordResetHandler", function () {
       }
     };
 
-    const options = {
-      inMemoryOnly: true
-    };
-
     const s = ServerVariablesMockBuilder.build();
     mocks = s.mocks;
     vars = s.variables;
@@ -52,12 +43,11 @@ describe("routes/password-reset/identity/PasswordResetHandler", function () {
       .returns(BluebirdPromise.resolve({}));
     mocks.userDataStore.consumeIdentityValidationTokenStub
       .returns(BluebirdPromise.resolve({}));
-    res = ExpressMock.ResponseMock();
   });
 
   describe("test reset password identity pre check", () => {
     it("should fail when no userid is provided", function () {
-      req.query.userid = undefined;
+      req.body.username = undefined;
       const handler = new PasswordResetHandler(vars.logger,
         vars.usersDatabase);
       return handler.preValidationInit(req as any)

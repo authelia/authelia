@@ -110,7 +110,7 @@ export function post_start_validation(handler: IdentityValidable,
         return createAndSaveToken(userid, handler.challenge(),
           vars.userDataStore);
       })
-      .then((token) => {
+      .then((token: string) => {
         const host = req.get("Host");
         const link_url = util.format("https://%s%s?token=%s", host,
           handler.destinationPath(), token);
@@ -124,6 +124,7 @@ export function post_start_validation(handler: IdentityValidable,
         return BluebirdPromise.resolve();
       })
       .catch(Exceptions.IdentityError, (err: Error) => {
+        vars.logger.error(req, err.message);
         handler.preValidationResponse(req, res);
         return BluebirdPromise.resolve();
       })

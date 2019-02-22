@@ -24,6 +24,7 @@ export class IdentityValidableStub implements IdentityValidable {
         this.postValidationResponseStub = Sinon.stub();
 
         this.mailSubjectStub = Sinon.stub();
+        this.destinationPathStub = Sinon.stub();
     }
 
     challenge(): string {

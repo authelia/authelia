@@ -9,7 +9,8 @@ export default function (vars: ServerVariables) {
       const authSession = AuthenticationSessionHandler.get(req, vars.logger);
       res.json({
         username: authSession.userid,
-        authentication_level: authSession.authentication_level
+        authentication_level: authSession.authentication_level,
+        default_redirection_url: vars.config.default_redirection_url,
       });
       resolve();
     });

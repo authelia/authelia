@@ -1,4 +1,3 @@
-
 import objectPath = require("object-path");
 import u2f_common = require("../U2FCommon");
 import BluebirdPromise = require("bluebird");
@@ -46,7 +45,7 @@ export default function (vars: ServerVariables) {
         return BluebirdPromise.resolve();
       })
       .catch(ErrorReplies.replyWithError200(req, res, vars.logger,
-        UserMessages.AUTHENTICATION_U2F_FAILED));
+        UserMessages.OPERATION_FAILED));
   }
 
   return handler;

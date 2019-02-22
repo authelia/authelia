@@ -14,7 +14,7 @@ export default function() {
   it("should be able to login after mongo restarts", async function() {
     this.timeout(30000);
     
-    const secret = await LoginAndRegisterTotp(this.driver, "john", true);
+    const secret = await LoginAndRegisterTotp(this.driver, "john", "password", true);
     child_process.execSync("./scripts/dc-dev.sh restart mongo");
     await FullLogin(this.driver, "john", secret, "https://admin.example.com:8080/secret.html");
   });  

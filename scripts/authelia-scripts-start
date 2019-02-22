@@ -16,9 +16,10 @@ if (!program.suite) {
 
 const ENVIRONMENT_FILENAME = '.suite';
 const AUTHELIA_INTERRUPT_FILENAME = '.authelia-interrupt';
+const CONFIG_FILEPATH = `test/suites/${program.suite}/config.yml`; 
 
 
-var tsWatcher = chokidar.watch(['server', 'shared/**/*.ts', 'node_modules', AUTHELIA_INTERRUPT_FILENAME], {
+var tsWatcher = chokidar.watch(['server', 'shared/**/*.ts', 'node_modules', AUTHELIA_INTERRUPT_FILENAME, CONFIG_FILEPATH], {
   persistent: true,
   ignoreInitial: true,
 });
@@ -46,7 +47,7 @@ function startServer() {
   }
   exec('./node_modules/.bin/tslint', ['-c', 'server/tslint.json', '-p', 'server/tsconfig.json'])
     .then(function() {
-      serverProcess = spawn('./scripts/run-dev-server.sh', [`test/suites/${program.suite}/config.yml`]);
+      serverProcess = spawn('./scripts/run-dev-server.sh', [CONFIG_FILEPATH]);
       serverProcess.stdout.pipe(process.stdout);
       serverProcess.stderr.pipe(process.stderr);
     });

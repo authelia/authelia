@@ -1,6 +1,6 @@
 
 import sinon = require("sinon");
-import IdentityValidator = require("./IdentityCheckMiddleware");
+import * as IdentityCheckMiddleware from "./IdentityCheckMiddleware";
 import exceptions = require("./Exceptions");
 import { ServerVariables } from "./ServerVariables";
 import Assert = require("assert");
@@ -10,6 +10,7 @@ import ExpressMock = require("./stubs/express.spec");
 import { IdentityValidableStub } from "./IdentityValidableStub.spec";
 import { ServerVariablesMock, ServerVariablesMockBuilder }
   from "./ServerVariablesMockBuilder.spec";
+import { OPERATION_FAILED } from "../../../shared/UserMessages";
 
 describe("IdentityCheckMiddleware", function () {
   let req: ExpressMock.RequestMock;
@@ -60,8 +61,8 @@ throws a first factor error", function () {
         identityValidable.preValidationInitStub.returns(BluebirdPromise.reject(
           new exceptions.FirstFactorValidationError(
             "Error during prevalidation")));
-        const callback = IdentityValidator.get_start_validation(
-          identityValidable, "/endpoint", vars);
+        const callback = IdentityCheckMiddleware.post_start_validation(
+          identityValidable, vars);
 
         return callback(req as any, res as any, undefined)
           .then(() => {
@@ -75,8 +76,8 @@ throws a first factor error", function () {
 
       identityValidable.preValidationInitStub
         .returns(BluebirdPromise.resolve(identity));
-      const callback = IdentityValidator
-        .get_start_validation(identityValidable, "/endpoint", vars);
+      const callback = IdentityCheckMiddleware
+        .post_start_validation(identityValidable, vars);
 
       return callback(req as any, res as any, undefined)
         .then(function () {
@@ -87,13 +88,12 @@ throws a first factor error", function () {
     // In that case we answer with 200 to avoid user enumeration.
     it("should send 200 if userid is missing in provided identity",
       function () {
-        const endpoint = "/protected";
         const identity = { email: "abc@example.com" };
 
         identityValidable.preValidationInitStub
           .returns(BluebirdPromise.resolve(identity));
-        const callback = IdentityValidator
-          .get_start_validation(identityValidable, "/endpoint", vars);
+        const callback = IdentityCheckMiddleware
+          .post_start_validation(identityValidable, vars);
 
         return callback(req as any, res as any, undefined)
           .then(function () {
@@ -101,52 +101,49 @@ throws a first factor error", function () {
           });
       });
 
-    it("should issue a token, send an email and return 204", function () {
-      const endpoint = "/protected";
+    it("should issue a token, send an email and return 204", async function () {
       const identity = { userid: "user", email: "abc@example.com" };
       req.get = sinon.stub().withArgs("Host").returns("localhost");
 
       identityValidable.preValidationInitStub
         .returns(BluebirdPromise.resolve(identity));
-      const callback = IdentityValidator
-        .get_start_validation(identityValidable, "/finish_endpoint", vars);
+      const callback = IdentityCheckMiddleware
+        .post_start_validation(identityValidable, vars);
 
-      return callback(req as any, res as any, undefined)
-        .then(function () {
-          Assert(mocks.notifier.notifyStub.calledOnce);
-          Assert(mocks.userDataStore.produceIdentityValidationTokenStub
-            .calledOnce);
-          Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub
-            .getCall(0).args[0], "user");
-          Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub
-            .getCall(0).args[3], 240000);
-        });
+      await callback(req as any, res as any, undefined)
+      Assert(mocks.notifier.notifyStub.calledOnce);
+      Assert(mocks.userDataStore.produceIdentityValidationTokenStub
+        .calledOnce);
+      Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub
+        .getCall(0).args[0], "user");
+      Assert.equal(mocks.userDataStore.produceIdentityValidationTokenStub
+        .getCall(0).args[3], 240000);
     });
   });
 
 
 
   describe("test finish GET", function () {
-    it("should send 401 if no identity_token is provided", () => {
-      const callback = IdentityValidator
-        .get_finish_validation(identityValidable, vars);
+    it("should return an error if no identity_token is provided", () => {
+      const callback = IdentityCheckMiddleware
+        .post_finish_validation(identityValidable, vars);
 
       return callback(req as any, res as any, undefined)
         .then(function () {
-          Assert(res.redirect.calledWith("/error/401"));
+          Assert(res.status.calledWith(200));
+          Assert(res.send.calledWith({'error': OPERATION_FAILED}));
         });
     });
 
     it("should call postValidation if identity_token is provided and still \
 valid", function () {
         req.query.identity_token = "token";
-
-        const callback = IdentityValidator
-          .get_finish_validation(identityValidable, vars);
+        const callback = IdentityCheckMiddleware
+          .post_finish_validation(identityValidable, vars);
         return callback(req as any, res as any, undefined);
       });
 
-    it("should return 401 if identity_token is provided but invalid",
+    it("should return an error if identity_token is provided but invalid",
       function () {
         req.query.identity_token = "token";
 
@@ -156,11 +153,12 @@ valid", function () {
         mocks.userDataStore.consumeIdentityValidationTokenStub
           .returns(BluebirdPromise.reject(new Error("Invalid token")));
 
-        const callback = IdentityValidator
-          .get_finish_validation(identityValidable, vars);
+        const callback = IdentityCheckMiddleware
+          .post_finish_validation(identityValidable, vars);
         return callback(req as any, res as any, undefined)
           .then(() => {
-            Assert(res.redirect.calledWith("/error/401"));
+            Assert(res.status.calledWith(200));
+            Assert(res.send.calledWith({'error': OPERATION_FAILED}));
           });
       });
   });

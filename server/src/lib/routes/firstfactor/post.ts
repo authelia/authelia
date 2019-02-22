@@ -1,5 +1,3 @@
-
-import Exceptions = require("../../Exceptions");
 import * as ObjectPath from "object-path";
 import BluebirdPromise = require("bluebird");
 import express = require("express");
@@ -98,8 +96,8 @@ export default function (vars: ServerVariables) {
       })
       .catch(AuthenticationError, function (err: Error) {
         vars.regulator.mark(username, false);
-        return ErrorReplies.replyWithError200(req, res, vars.logger, UserMessages.AUTHENTICATION_FAILED)(err);
+        return ErrorReplies.replyWithError200(req, res, vars.logger, UserMessages.OPERATION_FAILED)(err);
       })
-      .catch(ErrorReplies.replyWithError200(req, res, vars.logger, UserMessages.AUTHENTICATION_FAILED));
+      .catch(ErrorReplies.replyWithError200(req, res, vars.logger, UserMessages.OPERATION_FAILED));
   };
 }

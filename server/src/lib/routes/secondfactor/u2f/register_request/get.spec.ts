@@ -36,10 +36,6 @@ describe("routes/secondfactor/u2f/register_request/get", function () {
     mocks = s.mocks;
     vars = s.variables;
 
-    const options = {
-      inMemoryOnly: true
-    };
-
     mocks.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
     mocks.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
 
@@ -63,7 +59,6 @@ describe("routes/secondfactor/u2f/register_request/get", function () {
 
     it("should return internal error on registration request", function () {
       res.send = sinon.spy();
-      const user_key_container = {};
       mocks.u2f.requestStub.returns(BluebirdPromise.reject("Internal error"));
       return U2FRegisterRequestGet.default(vars)(req as any, res as any)
         .then(function () {
@@ -78,7 +73,10 @@ describe("routes/secondfactor/u2f/register_request/get", function () {
       req.session.auth.identity_check = undefined;
       return U2FRegisterRequestGet.default(vars)(req as any, res as any)
         .then(function () {
-          Assert.equal(403, res.status.getCall(0).args[0]);
+          Assert.equal(200, res.status.getCall(0).args[0]);
+          Assert.deepEqual(res.send.getCall(0).args[0], {
+            error: "Operation failed."
+          });
         });
     });
   });
