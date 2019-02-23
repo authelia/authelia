@@ -12,11 +12,11 @@ echo "npm `npm -v`"
 # Run unit tests
 authelia-scripts unittest
 
-# Run integration tests
-authelia-scripts test --headless test/suites/**/*.ts
-
 # Build
 authelia-scripts build
+
+# Run integration tests
+authelia-scripts test --headless test/suites/**/*.ts
 
 # Test npm deployment before actual deployment
 # ./scripts/npm-deployment-test.sh

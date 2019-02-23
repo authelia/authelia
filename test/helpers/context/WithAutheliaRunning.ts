@@ -11,8 +11,8 @@ export default function WithAutheliaRunning(configPath: string, waitTimeout: num
       ['serve', '--no-watch', '--config', configPath],
       {detached: true});
 
-    authelia.on('exit', function() {
-      console.log('Server terminated.');
+    authelia.on('exit', function(status) {
+      console.log('Server terminated with status ' + status);
     });
     this.authelia = authelia;
   
