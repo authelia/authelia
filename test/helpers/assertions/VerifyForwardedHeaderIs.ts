@@ -7,7 +7,6 @@ export default async function(driver: WebDriver, header: string, expectedValue: 
   const text = await el.getText();
 
   const expectedLine = Util.format("\"%s\": \"%s\"", header, expectedValue);
-
   if (text.indexOf(expectedLine) < 0) {
     throw new Error("Header not found.");
   }

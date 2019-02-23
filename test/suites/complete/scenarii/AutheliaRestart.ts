@@ -32,8 +32,7 @@ export default function() {
       await GET_Expect502('https://login.example.com:8080/api/state');
       await this.driver.sleep(1000);
       ChildProcess.execSync('rm .authelia-interrupt');
-      await this.driver.sleep(1000);
-
+      await this.driver.sleep(4000);
 
       await VisitPageAndWaitUrlIs(this.driver, 'https://admin.example.com:8080/secret.html');
       await VerifySecretObserved(this.driver);
@@ -63,7 +62,7 @@ export default function() {
       await GET_Expect502('https://login.example.com:8080/api/state');
       await this.driver.sleep(1000);
       ChildProcess.execSync('rm .authelia-interrupt');
-      await this.driver.sleep(1000);
+      await this.driver.sleep(4000);
 
       // The user can re-authenticate with the secret.
       await FullLogin(this.driver, 'john', this.secret, 'https://admin.example.com:8080/secret.html')

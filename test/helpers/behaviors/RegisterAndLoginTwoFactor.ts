@@ -1,6 +1,7 @@
 import { WebDriver } from "selenium-webdriver";
 import LoginAndRegisterTotp from "../LoginAndRegisterTotp";
 import FullLogin from "../FullLogin";
+import VerifyUrlIs from "../assertions/VerifyUrlIs";
 
 export default async function(
   driver: WebDriver,
@@ -11,5 +12,6 @@ export default async function(
 
   const secret = await LoginAndRegisterTotp(driver, username, password, email);
   await FullLogin(driver, username, secret, targetUrl);
+  await VerifyUrlIs(driver, targetUrl);
   return secret;
 };

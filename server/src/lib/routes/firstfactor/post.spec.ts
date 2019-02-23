@@ -114,7 +114,7 @@ describe("routes/firstfactor/post", function () {
         Assert.equal(res.status.getCall(0).args[0], 200);
         Assert.equal(mocks.regulator.markStub.getCall(0).args[0], "username");
         Assert.deepEqual(res.send.getCall(0).args[0], {
-          error: "Operation failed."
+          error: "Authentication failed. Please check your credentials."
         });
       });
   });
@@ -126,7 +126,7 @@ describe("routes/firstfactor/post", function () {
       .then(function () {
         Assert.equal(res.status.getCall(0).args[0], 200);
         Assert.deepEqual(res.send.getCall(0).args[0], {
-          error: "Operation failed."
+          error: "Authentication failed. Please check your credentials."
         });
       });
   });

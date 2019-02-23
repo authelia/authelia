@@ -1,7 +1,4 @@
 import WithAutheliaRunning from "./WithAutheliaRunning";
-import WithDriver from "./WithDriver";
-
-let running = false;
 
 interface AutheliaSuiteType {
   (description: string, configPath: string, cb: (this: Mocha.ISuiteCallbackContext) => void): Mocha.ISuite;
@@ -11,13 +8,11 @@ interface AutheliaSuiteType {
 function AutheliaSuiteBase(description: string, configPath: string,
   cb: (this: Mocha.ISuiteCallbackContext) => void,
   context: (description: string, ctx: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite) {
-  if (!running  && process.env['WITH_SERVER'] == 'y') {
-    console.log('Spawning Authelia server with configuration %s.', configPath);
-    WithAutheliaRunning(configPath);
-    running = true;
-  }  
-
   return context('Suite: ' + description, function(this: Mocha.ISuiteCallbackContext) {
+    if (process.env['WITH_SERVER'] == 'y') {
+      WithAutheliaRunning(configPath);
+    }
+
     cb.call(this);
   });
 }
