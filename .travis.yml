@@ -30,7 +30,7 @@ before_script:
 - sh -e /etc/init.d/xvfb start
 - sleep 3
 script:
-- "./scripts/travis.sh"
+- "./scripts/authelia-scripts travis"
 after_success:
 - "./scripts/authelia-scripts publish-docker"
 deploy:

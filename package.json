@@ -13,6 +13,7 @@
     "build": "./scripts/authelia-scripts build",
     "unittest": "./scripts/authelia-scripts unittest",
     "test": "./scripts/authelia-scripts test",
+    "travis": "./scripts/authelia-scripts travis",
     "cover": "NODE_ENV=test nyc npm t"
   },
   "repository": {
