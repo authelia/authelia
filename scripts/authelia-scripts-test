@@ -50,3 +50,10 @@ mocha.stdout.on('data', (data) => {
 mocha.stderr.on('data', (data) => {
   process.stderr.write(`${data}`);
 });
+
+mocha.on('exit', function(statusCode) {
+  if (statusCode != 0) {
+    console.error("The tests failed... Mocha exited with status code " + statusCode);
+  }
+  process.exit(statusCode);
+})
