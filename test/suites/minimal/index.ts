@@ -17,8 +17,9 @@ const execAsync = Bluebird.promisify(ChildProcess.exec);
 
 AutheliaSuite('Minimal configuration', __dirname + '/config.yml', function() {
   this.timeout(10000);
-  beforeEach(function() {
-    return execAsync("cp users_database.example.yml users_database.yml");
+  beforeEach(async function() {
+    await execAsync('mkdir -p /var/lib/authelia/db')
+    await execAsync('cp users_database.example.yml users_database.yml');
   });
 
   describe('Simple authentication', SimpleAuthentication);
