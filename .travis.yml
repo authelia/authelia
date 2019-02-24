@@ -23,8 +23,11 @@ addons:
   - public.example.com
   - authelia.example.com
   - admin.example.com
+
 before_install:
 - npm install -g npm@'>=2.13.5'
+- pushd client && npm install && popd
+
 before_script:
 - export DISPLAY=:99.0
 - sh -e /etc/init.d/xvfb start
@@ -33,6 +36,7 @@ script:
 - "./scripts/authelia-scripts travis"
 after_success:
 - "./scripts/authelia-scripts publish-docker"
+
 deploy:
   provider: npm
   email: clement.michaud34@gmail.com
