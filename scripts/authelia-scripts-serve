@@ -42,3 +42,8 @@ server.stderr.on('data', (data) => {
   process.stderr.write(`${data}`);
 });
 server.stderr.pipe(logStream);
+
+
+server.on('exit', function(statusCode) {
+  process.exit(statusCode);
+})
