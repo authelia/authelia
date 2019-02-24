@@ -9,11 +9,11 @@ docker-compose --version
 echo "node `node -v`"
 echo "npm `npm -v`"
 
-# Run unit tests
-authelia-scripts unittest
-
 # Build
 authelia-scripts build
+
+# Run unit tests
+authelia-scripts unittest
 
 # Run integration tests
 authelia-scripts test --headless test/suites/**/*.ts
