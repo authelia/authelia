@@ -14,7 +14,7 @@ services:
       - traefik.frontend.rule=Host:login.example.com
   admin:
     labels:
-      - traefik.frontend.rule=Host:protected.example.com
+      - traefik.frontend.rule=Host:admin.example.com
       - traefik.port=5601
       - traefik.frontend.auth.forward.address=https://login.example.com/api/verify?rd=https://login.example.com?rd=https://admin.example.com
     networks:
