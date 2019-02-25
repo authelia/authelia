@@ -1,0 +1,21 @@
+version: "2"
+services:
+  authelia:
+    volumes:
+      - ./config.test.yml:/etc/authelia/config.yml:ro
+      - ./dist/server:/usr/src/server
+      - ./dist/shared:/usr/src/shared
+    networks:
+      - example-network
+    # If you want to use traefik, you must provide a subdomain for authelia to work.
+    # In this case, login.example.com is the authelia subdomain
+    # Also, admin.example.com is the protected subdomain
+    labels:
+      - traefik.frontend.rule=Host:login.example.com
+  admin:
+    labels:
+      - traefik.frontend.rule=Host:protected.example.com
+      - traefik.port=5601
+      - traefik.frontend.auth.forward.address=https://login.example.com/api/verify?rd=https://login.example.com?rd=https://admin.example.com
+    networks:
+      - example-network
