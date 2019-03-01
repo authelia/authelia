@@ -8,6 +8,10 @@ import BasicAuthentication from "./scenarii/BasicAuthentication";
 import AutheliaRestart from "./scenarii/AutheliaRestart";
 import AuthenticationRegulation from "./scenarii/AuthenticationRegulation";
 
+before(function() {
+
+});
+
 AutheliaSuite('Complete configuration', __dirname + '/config.yml', function() {
   this.timeout(10000);
 

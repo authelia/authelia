@@ -9,10 +9,9 @@ program
   .option('--headless', 'Run in headless mode.')
   .parse(process.argv);
 
-let suite;
 let withServer = false;
 let args = [];
-const ENVIRONMENT_FILENAME = '.suite';
+const ENVIRONMENT_FILENAME = '.suite'; // This file is created by the start command.
 
 if (fs.existsSync(ENVIRONMENT_FILENAME)) {
   const suite = fs.readFileSync(ENVIRONMENT_FILENAME);

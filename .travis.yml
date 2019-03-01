@@ -35,7 +35,7 @@ before_script:
 script:
 - "./scripts/authelia-scripts travis"
 after_success:
-- "./scripts/authelia-scripts publish-docker"
+- "./scripts/authelia-scripts docker publish"
 
 deploy:
   provider: npm

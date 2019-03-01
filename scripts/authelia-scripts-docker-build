@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+
+var { exec } = require('./utils/exec');
+var { IMAGE_NAME } = require('./utils/docker');
+
+async function main() {
+  await exec(`docker build -t ${IMAGE_NAME} .`);
+}
+
+main();

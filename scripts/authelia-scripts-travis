@@ -15,6 +15,9 @@ authelia-scripts build
 # Run unit tests
 authelia-scripts unittest
 
+# Build the docker image
+authelia-scripts docker build
+
 # Run integration tests
 authelia-scripts test --headless test/suites/**/*.ts
 

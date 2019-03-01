@@ -14,8 +14,7 @@ program
 
   .command('travis', 'Build and test Authelia on Travis.')
   .command('hash-password <password>', 'Hash a password with SSHA512.')
-  .command('build-docker', 'Build Docker image containing production version of Authelia.')
-  .command('publish-docker', 'Publish Docker image containing production version of Authelia to Dockerhub.')
+  .command('docker', 'Docker related commands.')
   .parse(process.argv);
 
 
