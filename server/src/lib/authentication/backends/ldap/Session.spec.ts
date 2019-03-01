@@ -83,6 +83,49 @@ describe("ldap/Session", function () {
       });
   });
 
+  it("should replace {uid} by user uid when searching for groups in LDAP", function () {
+    const USER_UID = "user1";
+    const options: LdapConfiguration = {
+      url: "ldap://ldap",
+      additional_users_dn: "ou=users",
+      additional_groups_dn: "ou=groups",
+      base_dn: "dc=example,dc=com",
+      users_filter: "cn={0}",
+      groups_filter: "member=cn={uid},ou=users,dc=example,dc=com",
+      group_name_attribute: "cn",
+      mail_attribute: "mail",
+      user: "cn=admin,dc=example,dc=com",
+      password: "password"
+    };
+    const ldapClient = new ConnectorStub();
+
+    // Retrieve user DN
+    ldapClient.searchAsyncStub.withArgs("ou=users,dc=example,dc=com", {
+      scope: "sub",
+      sizeLimit: 1,
+      attributes: ["uid"],
+      filter: "cn=user1"
+    }).returns(BluebirdPromise.resolve([{
+      uid: USER_UID
+    }]));
+
+    // Retrieve groups
+    ldapClient.searchAsyncStub.withArgs("ou=groups,dc=example,dc=com", {
+      scope: "sub",
+      attributes: ["cn"],
+      filter: "member=cn=user1,ou=users,dc=example,dc=com"
+    }).returns(BluebirdPromise.resolve([{
+      cn: "group1"
+    }]));
+
+    const client = new Session(ADMIN_USER_DN, ADMIN_PASSWORD, options, ldapClient, Winston);
+
+    return client.searchGroups("user1")
+      .then(function (groups: string[]) {
+        Assert.deepEqual(groups, ["group1"]);
+      });
+  });
+
   it("should retrieve mail from custom attribute", function () {
     const USER_DN = "cn=user1,ou=users,dc=example,dc=com";
     const options: LdapConfiguration = {

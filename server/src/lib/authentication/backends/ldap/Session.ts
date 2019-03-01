@@ -61,6 +61,12 @@ export class Session implements ISession {
           return BluebirdPromise.resolve(userGroupsFilter.replace("{dn}", userDN));
         });
     }
+    else if (userGroupsFilter.indexOf("{uid}") > 0) {
+      return this.searchUserUid(username)
+        .then(function (userUid: string) {
+          return BluebirdPromise.resolve(userGroupsFilter.replace("{uid}", userUid));
+        });
+    }
     return BluebirdPromise.resolve(userGroupsFilter);
   }
 
@@ -83,27 +89,35 @@ export class Session implements ISession {
       });
   }
 
-  searchUserDn(username: string): BluebirdPromise<string> {
+  searchUserAttribute(username: string, attribute: string): BluebirdPromise<string> {
     const that = this;
     const filter = this.options.users_filter.replace("{0}", username);
     this.logger.debug("Computed users filter is %s", filter);
     const query = {
       scope: "sub",
       sizeLimit: 1,
-      attributes: ["dn"],
+      attributes: [attribute],
       filter: filter
     };
 
-    that.logger.debug("LDAP: searching for user dn of %s", username);
+    that.logger.debug("LDAP: searching for user %s of %s", attribute, username);
     return that.connector.searchAsync(this.usersSearchBase, query)
-      .then(function (users: { dn: string }[]) {
+      .then(function (users: { [attribute: string]: string }[]) {
         if (users.length > 0) {
-          that.logger.debug("LDAP: retrieved user dn is %s", users[0].dn);
-          return BluebirdPromise.resolve(users[0].dn);
+          that.logger.debug("LDAP: retrieved user %s is %s", attribute, users[0][attribute]);
+          return BluebirdPromise.resolve(users[0][attribute]);
         }
         return BluebirdPromise.reject(new Error(
-          Util.format("No user DN found for user '%s'", username)));
+          Util.format("No user %s found for user '%s'", attribute, username)));
       });
+  }
+
+  searchUserDn(username: string): BluebirdPromise<string> {
+      return this.searchUserAttribute(username, "dn");
+  }
+
+  searchUserUid(username: string): BluebirdPromise<string> {
+      return this.searchUserAttribute(username, "uid");
   }
 
   searchEmails(username: string): BluebirdPromise<string[]> {
