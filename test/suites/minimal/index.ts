@@ -15,10 +15,17 @@ import SimpleAuthentication from './scenarii/SimpleAuthentication';
 
 const execAsync = Bluebird.promisify(ChildProcess.exec);
 
+before(async function() {
+  await execAsync('mkdir -p /tmp/authelia/db');
+});
+
+after(async function() {
+  await execAsync('rm -r /tmp/authelia/db');
+});
+
 AutheliaSuite('Minimal configuration', __dirname + '/config.yml', function() {
   this.timeout(10000);
   beforeEach(async function() {
-    await execAsync('mkdir -p /var/lib/authelia/db')
     await execAsync('cp users_database.example.yml users_database.yml');
   });
 
