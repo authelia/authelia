@@ -15,8 +15,8 @@ authentication_backend:
 session:
   secret: unsecure_session_secret
   domain: example.com
-  expiration: 3600000 # 1 hour
-  inactivity: 300000 # 5 minutes
+  inactivity: 5000
+  expiration: 8000
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
@@ -75,10 +75,10 @@ regulation:
   max_retries: 3
 
   # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window. 
-  find_time: 300
+  find_time: 10
 
   # The length of time before a banned user can login again.
-  ban_time: 900
+  ban_time: 5
 
 # Default redirection URL
 #
