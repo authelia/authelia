@@ -13,7 +13,7 @@ export default function WithAutheliaRunning(suitePath: string, waitTimeout: numb
   });
   
   after(async function() {
-    this.timeout(10000);
+    this.timeout(30000);
 
     console.log('Stopping environment...');
     await teardown();

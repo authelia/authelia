@@ -1,4 +1,5 @@
 import { exec } from '../../helpers/utils/exec';
+import { execSync } from 'child_process';
 
 class DockerCompose {
   private commandPrefix: string;
@@ -8,15 +9,19 @@ class DockerCompose {
   }
 
   async up() {
-    await exec(this.commandPrefix + ' up -d');
+    return await exec(this.commandPrefix + ' up -d');
   }
 
   async down() {
-    await exec(this.commandPrefix + ' down');
+    return await exec(this.commandPrefix + ' down');
   }
 
   async restart(service: string) {
-    await exec(this.commandPrefix + ' restart ' + service);
+    return await exec(this.commandPrefix + ' restart ' + service);
+  }
+
+  async ps() {
+    return Promise.resolve(execSync(this.commandPrefix + ' ps').toString('utf-8'));
   }
 }
 
