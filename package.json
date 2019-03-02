@@ -9,12 +9,13 @@
     "node": ">=8.0.0 <10.0.0"
   },
   "scripts": {
-    "start": "./scripts/authelia-scripts start",
+    "start": "ts-node -P ./test/tsconfig.json ./scripts/authelia-scripts start",
     "build": "./scripts/authelia-scripts build",
     "unittest": "./scripts/authelia-scripts unittest",
     "test": "./scripts/authelia-scripts test",
     "travis": "./scripts/authelia-scripts travis",
-    "cover": "NODE_ENV=test nyc npm t"
+    "cover": "NODE_ENV=test nyc npm t",
+    "scripts": "./scripts/authelia-scripts"
   },
   "repository": {
     "type": "git",
@@ -60,6 +61,8 @@
   "devDependencies": {
     "@types/bluebird": "^3.5.4",
     "@types/body-parser": "^1.16.3",
+    "@types/chokidar": "^1.7.5",
+    "@types/commander": "^2.12.2",
     "@types/connect-redis": "0.0.7",
     "@types/ejs": "^2.3.33",
     "@types/express": "^4.0.35",

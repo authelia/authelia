@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+var spawn = require('child_process').spawn;
+
+program
+  .description(`Clean environment artifacts from previous suites.`)
+  .parse(process.argv)
+
+runEnvProcess = spawn('./node_modules/.bin/ts-node -P test/tsconfig.json -- ./scripts/clean-environment.ts', {
+  shell: true
+});
+runEnvProcess.stdout.pipe(process.stdout);
+runEnvProcess.stderr.pipe(process.stderr);
+
+runEnvProcess.on('exit', function(statusCode) {
+  process.exit(statusCode);
+});

@@ -19,7 +19,7 @@ authelia-scripts unittest
 authelia-scripts docker build
 
 # Run integration tests
-authelia-scripts test --headless test/suites/**/*.ts
+authelia-scripts suites test --headless
 
 # Test npm deployment before actual deployment
 # ./scripts/npm-deployment-test.sh

@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+var spawn = require('child_process').spawn;
+var fs = require('fs');
+
+let suite;
+
+program
+  .description(`Start the suite provided as argument. You can list the suites with the 'list' command.`)
+  .arguments('<suite>')
+  .action((suiteArg) => suite = suiteArg)
+  .parse(process.argv)
+
+if (!suite) {
+  program.help();
+}
+
+const ENVIRONMENT_FILENAME = '.suite';
+
+let runEnvProcess;
+
+// Sometime SIGINT is received twice, we make sure with this variable that we cleanup
+// only once.
+var alreadyCleaningUp = false;
+
+// Properly cleanup server and client if ctrl-c is hit
+process.on('SIGINT', function() {
+  if (alreadyCleaningUp) return;
+  alreadyCleaningUp = true;
+  console.log('Cleanup procedure is running...');
+});
+
+async function main() {
+  fs.writeFileSync(ENVIRONMENT_FILENAME, suite);
+
+  // Start the environment from ts-node process.
+  runEnvProcess = spawn('./node_modules/.bin/ts-node -P test/tsconfig.json -- ./scripts/run-environment.ts ' + suite, {
+    shell: true
+  });
+  runEnvProcess.stdout.pipe(process.stdout);
+  runEnvProcess.stderr.pipe(process.stderr);
+
+  runEnvProcess.on('exit', function(statusCode) {
+    fs.unlinkSync(ENVIRONMENT_FILENAME);
+    process.exit(statusCode);
+  });
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1)
+});

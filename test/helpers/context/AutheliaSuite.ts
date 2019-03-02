@@ -1,16 +1,17 @@
-import WithAutheliaRunning from "./WithAutheliaRunning";
+import WithEnvironment from "./WithEnvironment";
+import fs from 'fs';
 
 interface AutheliaSuiteType {
   (description: string, configPath: string, cb: (this: Mocha.ISuiteCallbackContext) => void): Mocha.ISuite;
   only: (description: string, configPath: string, cb: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite;
 }
 
-function AutheliaSuiteBase(description: string, configPath: string,
+function AutheliaSuiteBase(description: string, suite: string,
   cb: (this: Mocha.ISuiteCallbackContext) => void,
   context: (description: string, ctx: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite) {
   return context('Suite: ' + description, function(this: Mocha.ISuiteCallbackContext) {
-    if (process.env['WITH_SERVER'] == 'y') {
-      WithAutheliaRunning(configPath);
+    if (!fs.existsSync('.suite')) {
+      WithEnvironment(suite);
     }
 
     cb.call(this);

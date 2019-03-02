@@ -1,20 +1,17 @@
 #!/usr/bin/env node
 
 var program = require('commander');
- 
+
 program
   .version('0.0.1')
 
-  .command('start', 'Start development environment.')
+  .command('suites', 'Run Authelia in specific environments.')
+  .command('serve', 'Run Authelia with a customized configuration.')
   .command('build', 'Build production version of Authelia from source.')
   .command('clean', 'Clean the production version of Authelia.')
-  .command('serve', 'Serve production version of Authelia.')
-  .command('test', 'Run Authelia integration tests.')
   .command('unittest', 'Run Authelia integration tests.')
 
   .command('travis', 'Build and test Authelia on Travis.')
   .command('hash-password <password>', 'Hash a password with SSHA512.')
   .command('docker', 'Docker related commands.')
   .parse(process.argv);
-
-

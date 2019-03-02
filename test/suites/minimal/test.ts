@@ -1,6 +1,3 @@
-import ChildProcess from 'child_process';
-import Bluebird from "bluebird";
-
 import AutheliaSuite from "../../helpers/context/AutheliaSuite";
 import BadPassword from "./scenarii/BadPassword";
 import RegisterTotp from './scenarii/RegisterTotp';
@@ -12,21 +9,12 @@ import VerifyEndpoint from './scenarii/VerifyEndpoint';
 import RequiredTwoFactor from './scenarii/RequiredTwoFactor';
 import LogoutRedirectToAlreadyLoggedIn from './scenarii/LogoutRedirectToAlreadyLoggedIn';
 import SimpleAuthentication from './scenarii/SimpleAuthentication';
+import { exec } from '../../helpers/utils/exec';
 
-const execAsync = Bluebird.promisify(ChildProcess.exec);
-
-before(async function() {
-  await execAsync('mkdir -p /tmp/authelia/db');
-});
-
-after(async function() {
-  await execAsync('rm -r /tmp/authelia/db');
-});
-
-AutheliaSuite('Minimal configuration', __dirname + '/config.yml', function() {
+AutheliaSuite('Minimal configuration', __dirname, function() {
   this.timeout(10000);
   beforeEach(async function() {
-    await execAsync('cp users_database.example.yml users_database.yml');
+    await exec('cp users_database.example.yml users_database.yml');
   });
 
   describe('Simple authentication', SimpleAuthentication);

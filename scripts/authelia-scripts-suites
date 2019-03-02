@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+
+program
+  .command('start', 'Start a suite.')
+  .command('list', 'List the available suites')
+  .command('test', 'Test a suite.')
+  .command('clean', 'Clean remaining environment artifacts (like docker-compose env).')
+  .parse(process.argv);

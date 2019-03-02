@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+var ListSuites = require('./utils/ListSuites');
+
+program
+  .description(`List the available suites.`)
+  .parse(process.argv)
+
+console.log(ListSuites().join("\n"));
