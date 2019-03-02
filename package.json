@@ -9,10 +9,10 @@
     "node": ">=8.0.0 <10.0.0"
   },
   "scripts": {
-    "start": "ts-node -P ./test/tsconfig.json ./scripts/authelia-scripts start",
+    "start": "./scripts/authelia-scripts suites start",
     "build": "./scripts/authelia-scripts build",
     "unittest": "./scripts/authelia-scripts unittest",
-    "test": "./scripts/authelia-scripts test",
+    "test": "./scripts/authelia-scripts suites test",
     "travis": "./scripts/authelia-scripts travis",
     "cover": "NODE_ENV=test nyc npm t",
     "scripts": "./scripts/authelia-scripts"
