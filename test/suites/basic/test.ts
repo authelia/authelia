@@ -12,8 +12,9 @@ import { exec } from '../../helpers/utils/exec';
 
 AutheliaSuite('Simple configuration', __dirname, function() {
   this.timeout(10000);
+  
   beforeEach(async function() {
-    await exec('cp users_database.example.yml users_database.yml');
+    await exec(`cp ${__dirname}/users_database.yml ${__dirname}/users_database.test.yml`);
   });
 
   describe('Simple authentication', SimpleAuthentication);

@@ -12,6 +12,7 @@ const dockerEnv = new DockerEnvironment([
 ])
 
 async function setup() {
+  await exec(`cp ${__dirname}/users_database.yml ${__dirname}/users_database.test.yml`);
   await exec('mkdir -p /tmp/authelia/db');
   await exec('./example/compose/nginx/portal/render.js ' + (fs.existsSync('.suite') ? '': '--production'));
   await dockerEnv.start();
