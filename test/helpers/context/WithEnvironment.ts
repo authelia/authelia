@@ -5,7 +5,7 @@ export default function WithAutheliaRunning(suitePath: string, waitTimeout: numb
   var { setup, teardown } = require(`../../suites/${suite}/environment`);
 
   before(async function() {
-    this.timeout(10000);
+    this.timeout(30000);
 
     console.log('Preparing environment...');
     await setup();  
