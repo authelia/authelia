@@ -1,7 +1,6 @@
 import sleep from '../utils/sleep';
 
-export default function WithAutheliaRunning(suitePath: string, waitTimeout: number = 5000) {
-  const suite = suitePath.split('/').slice(-1)[0];
+export default function WithEnvironment(suite: string, waitTimeout: number = 5000) {
   var { setup, teardown } = require(`../../suites/${suite}/environment`);
 
   before(async function() {

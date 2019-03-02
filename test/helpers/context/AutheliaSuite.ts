@@ -2,14 +2,15 @@ import WithEnvironment from "./WithEnvironment";
 import fs from 'fs';
 
 interface AutheliaSuiteType {
-  (description: string, configPath: string, cb: (this: Mocha.ISuiteCallbackContext) => void): Mocha.ISuite;
-  only: (description: string, configPath: string, cb: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite;
+  (suitePath: string, cb: (this: Mocha.ISuiteCallbackContext) => void): Mocha.ISuite;
+  only: (suitePath: string, cb: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite;
 }
 
-function AutheliaSuiteBase(description: string, suite: string,
+function AutheliaSuiteBase(suitePath: string,
   cb: (this: Mocha.ISuiteCallbackContext) => void,
   context: (description: string, ctx: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite) {
-  return context('Suite: ' + description, function(this: Mocha.ISuiteCallbackContext) {
+  const suite = suitePath.split('/').slice(-1)[0];
+  return context('Suite: ' + suite, function(this: Mocha.ISuiteCallbackContext) {
     if (!fs.existsSync('.suite')) {
       WithEnvironment(suite);
     }
@@ -18,16 +19,15 @@ function AutheliaSuiteBase(description: string, suite: string,
   });
 }
 
-const AutheliaSuite = <AutheliaSuiteType>function(
-  description: string, configPath: string, 
+const AutheliaSuite = <AutheliaSuiteType>function(suitePath: string, 
   cb: (this: Mocha.ISuiteCallbackContext) => void) {
-  return AutheliaSuiteBase(description, configPath, cb, describe);
+  return AutheliaSuiteBase(suitePath, cb, describe);
 }
 
 
-AutheliaSuite.only = function(description: string, configPath: string, 
+AutheliaSuite.only = function(suitePath: string, 
   cb: (this: Mocha.ISuiteCallbackContext) => void) {
-  return AutheliaSuiteBase(description, configPath, cb, describe.only);
+  return AutheliaSuiteBase(suitePath, cb, describe.only);
 }
 
 export default AutheliaSuite as AutheliaSuiteType;

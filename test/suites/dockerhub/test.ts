@@ -4,7 +4,7 @@ import { composeFiles } from './environment';
 import Assert from 'assert';
 import SimpleAuthentication from './scenarii/SimpleAuthentication';
 
-AutheliaSuite('Dockerhub', __dirname, function() {
+AutheliaSuite(__dirname, function() {
   this.timeout(15000);
   const dockerCompose = new DockerCompose(composeFiles);
   

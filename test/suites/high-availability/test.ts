@@ -8,7 +8,7 @@ import BasicAuthentication from "./scenarii/BasicAuthentication";
 import AutheliaRestart from "./scenarii/AutheliaRestart";
 import AuthenticationRegulation from "./scenarii/AuthenticationRegulation";
 
-AutheliaSuite('Complete configuration', __dirname, function() {
+AutheliaSuite(__dirname, function() {
   this.timeout(10000);
 
   describe('Custom headers forwarded to backend', CustomHeadersForwarded);

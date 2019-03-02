@@ -10,7 +10,7 @@ import LogoutRedirectToAlreadyLoggedIn from './scenarii/LogoutRedirectToAlreadyL
 import SimpleAuthentication from './scenarii/SimpleAuthentication';
 import { exec } from '../../helpers/utils/exec';
 
-AutheliaSuite('Simple configuration', __dirname, function() {
+AutheliaSuite(__dirname, function() {
   this.timeout(10000);
   
   beforeEach(async function() {
