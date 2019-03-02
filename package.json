@@ -15,7 +15,8 @@
     "test": "./scripts/authelia-scripts suites test",
     "travis": "./scripts/authelia-scripts travis",
     "cover": "NODE_ENV=test nyc npm t",
-    "scripts": "./scripts/authelia-scripts"
+    "scripts": "./scripts/authelia-scripts",
+    "hash-password": "./scripts/authelia-scripts hash-password"
   },
   "repository": {
     "type": "git",

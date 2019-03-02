@@ -26,16 +26,17 @@ Here are the versions used for testing in Travis:
 
 Make sure you don't have anything listening on port 8080 and 8085.
 
-The port 8080 will be our frontend load balancer serving both **Authelia**'s portal and the applications we want to protect.
+The port 8080 will be our frontend load balancer serving both **Authelia**'s portal and the
+applications we want to protect.
 
-The port 8085 is serving a webmail used to receive fake emails sent by **Authelia**
+The port 8085 is serving a webmail used to receive emails sent by **Authelia**
 to validate your identity when registering U2F or TOTP secrets or when
 resetting your password.
 
 ### Subdomain aliases
 
-In order to simulate the behavior of a DNS resolving some test subdomains of **example.com** to your machine, we
-need to add the following lines to your **/etc/hosts**. It will alias the
+In order to simulate the behavior of a DNS resolving some test subdomains of **example.com**
+to your machine, we need to add the following lines to your **/etc/hosts**. It will alias the
 subdomains so that nginx can redirect requests to the correct virtual host.
 
     127.0.0.1       home.example.com
@@ -52,7 +53,10 @@ subdomains so that nginx can redirect requests to the correct virtual host.
 To deploy **Authelia** using the latest image from [Dockerhub], run the
 following command:
 
-    ./scripts/example-dockerhub/deploy-example.sh
+    npm run script suites start dockerhub
+
+A Suites is a virtual environment for running Authelia. If you want more details please
+read the related [documentation](./suites.md).
 
 ## Test it!
 
@@ -71,8 +75,8 @@ Below is what the login page looks like after you accepted all exceptions:
   <img src="../images/first_factor.png" width="400">
 </p>
 
-You can use one of the users listed in [https://home.example.com:8080/](https://home.example.com:8080/). The rights granted to each user and
-group is also provided there.
+You can use one of the users listed in [https://home.example.com:8080/](https://home.example.com:8080/).
+The rights granted to each user and group is also provided there.
 
 At some point, you'll be required to register your second factor, either
 U2F or TOTP. Since your security is **Authelia**'s priority, it will send 
@@ -86,8 +90,8 @@ The webmail is accessible from
 **Note:** If you cannot deploy the fake webmail for any reason. You can
 configure **Authelia** to use the filesystem notifier (option available
 in [config.template.yml]) that will send the content of the email in a
-file instead of sending an email. It is advised to use this option
-for testing only.
+file instead of sending an email. It is advised to not use this option
+in production.
 
 Enjoy!
 

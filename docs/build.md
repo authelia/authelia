@@ -1,73 +1,53 @@
 # Build
 
-**Authelia** is written in Typescript and built with [Grunt](https://gruntjs.com/).
+**Authelia** is written in Typescript and built with [Authelia scripts](docs/authelia-scripts.md).
 
-In order to build **Authelia**, you need to make sure Node v8 and NPM is
+In order to build **Authelia**, you need to make sure Node with version >= 8 and < 10 and NPM is
 installed on your machine.
 
-Then, run the following command install the node modules:
+Then, run the following command to install the node modules:
 
     npm install
 
 And, this command to build **Authelia** under dist/:
 
-    ./node_modules/.bin/grunt build
+    npm run build
+
+Then you can also build the Docker image with:
+
+    npm run docker build
 
 ## Details
 
 ### Build
 
-**Authelia** is made of two components: the client and the server.
+**Authelia** is made of two parts: the frontend and the backend.
 
-The client is written in Typescript and uses jQuery. It is built as part of
-the global `build` Grunt command.
-
-The server is written in Typescript. It is also built as part of the global `build`
-Grunt command.
+The frontend is a [React](https://reactjs.org/) application written in Typescript and
+the backend is an express application also written in Typescript.
 
 ### Tests
 
-Grunt also handles the commands to run the tests. There are several type of
-tests for **Authelia**: unit tests for the server, the client and a shared
-library and an integration test suite testing both components together.
-
-The unit tests are written with Mocha while integration tests are using
-Cucumber and Mocha.
+There are two kind of tests: unit tests and integration tests.
 
 ### Unit tests
 
-To run the client unit tests, run:
+To run the unit tests, run:
 
-    ./node_modules/.bin/grunt test-client
-
-To run the server unit tests, run:
-
-    ./node_modules/.bin/grunt test-server
-
-To run the shared library unit tests, run:
-
-    ./node_modules/.bin/grunt test-shared
+    npm run unittest
 
 ### Integration tests
 
-Integration tests are mainly based on Selenium so they
-need a complete environment to be run.
+Integration tests run with Mocha and are based on Selenium. They generally
+require a complete environment made of several components like redis, mongo and a LDAP
+to run.
 
-You can start by making sure **Authelia** is built with:
+In order to simplify the creation of such environments, Authelia comes with a concept of
+[Suites] that basically act as virtual environments for running either
+manual or integration tests.
 
-    grunt build
+Please read the documentation related to [Suites] in order to discover
+how to run related tests.
 
-and the docker image is built with:
 
-    ./scripts/example-commit/dc-example.sh build
-
-Then, start the environment with:
-
-    ./scripts/example-commit/dc-example.sh up -d
-
-And run the tests with:
-
-    ./node_modules/.bin/grunt test-int
-
-Note: the Cucumber tests are hard to maintain and will therefore
-be refactored to use Mocha instead.
+[Suites]: ./suites.md
