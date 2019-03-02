@@ -3,6 +3,7 @@
 var program = require('commander');
 var spawn = require('child_process').spawn;
 var fs = require('fs');
+var ListSuites = require('./utils/ListSuites');
 
 let suite;
 
@@ -14,6 +15,11 @@ program
 
 if (!suite) {
   program.help();
+}
+
+if (ListSuites().indexOf(suite) == -1) {
+  console.log("[WARNING] This suite does not exist. Use 'list' command to check the existing suites.");
+  process.exit(1);
 }
 
 const ENVIRONMENT_FILENAME = '.suite';
