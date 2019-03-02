@@ -21,5 +21,5 @@ AutheliaSuite('Dockerhub', __dirname, function() {
     });
   });
 
-  describe.only('Simple authentication', SimpleAuthentication);
+  describe('Simple authentication', SimpleAuthentication);
 });

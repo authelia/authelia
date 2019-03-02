@@ -100,7 +100,7 @@
     "grunt-run": "^0.8.0",
     "istanbul": "^0.4.5",
     "jquery": "^3.2.1",
-    "mocha": "^5.2.0",
+    "mocha": "^6.0.2",
     "mockdate": "^2.0.1",
     "node-fetch": "^2.3.0",
     "nodemon": "^1.18.9",

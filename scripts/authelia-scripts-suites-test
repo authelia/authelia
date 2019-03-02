@@ -17,7 +17,7 @@ let args = [];
 const ENVIRONMENT_FILENAME = '.suite'; // This file is created by the start command.
 
 if (suite) {
-  if (fs.existsSync(ENVIRONMENT_FILENAME)) {
+  if (fs.existsSync(ENVIRONMENT_FILENAME) && suite != fs.readFileSync(ENVIRONMENT_FILENAME)) {
     console.error('You cannot test a suite while another one is running. If you want to test the current suite, ' +
                   'do not provide the suite argument. Otherwise, stop the current suite and run the command again.');
     process.exit(1);
@@ -35,7 +35,7 @@ else {
   args.push('test/suites/**/test.ts');
 }
 
-mocha = spawn('./node_modules/.bin/mocha', ['--exit', '--colors', '--require', 'ts-node/register', ...args], {
+mocha = spawn('./node_modules/.bin/mocha', ['--forbid-only', '--forbid-pending', '--exit', '--colors', '--require', 'ts-node/register', ...args], {
   env: {
     ...process.env,
     TS_NODE_PROJECT: 'test/tsconfig.json',
