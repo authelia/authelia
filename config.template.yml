@@ -130,8 +130,10 @@ access_control:
   rules:
     # Rules applied to everyone
     - domain: public.example.com
+      policy: bypass
+    - domain: secure.example.com
       policy: two_factor
-    - domain: single_factor.example.com
+    - domain: singlefactor.example.com
       policy: one_factor
 
     # Rules applied to 'admin' group

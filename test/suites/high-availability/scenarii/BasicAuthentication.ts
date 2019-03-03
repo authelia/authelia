@@ -1,7 +1,7 @@
 import Request from 'request-promise';
 
 async function GetSecret(username: string, password: string) {
-  return await Request('https://single_factor.example.com:8080/secret.html', {
+  return await Request('https://singlefactor.example.com:8080/secret.html', {
     auth: {
       username,
       password

@@ -1,12 +1,8 @@
 import ExpressSession = require("express-session");
-import Redis = require("redis");
-
 import { Configuration } from "./schema/Configuration";
 import { GlobalDependencies } from "../../../types/Dependencies";
-import { RedisStoreOptions } from "connect-redis";
 
 export class SessionConfigurationBuilder {
-
   static build(configuration: Configuration, deps: GlobalDependencies): ExpressSession.SessionOptions {
     const sessionOptions: ExpressSession.SessionOptions = {
       name: configuration.session.name,
@@ -22,30 +18,13 @@ export class SessionConfigurationBuilder {
     };
 
     if (configuration.session.redis) {
-      let redisOptions;
-      const options: Redis.ClientOpts = {
+      const RedisStore = deps.ConnectRedis(deps.session);
+      sessionOptions.store = new RedisStore({
         host: configuration.session.redis.host,
-        port: configuration.session.redis.port
-      };
-
-      if (configuration.session.redis.password) {
-        options["password"] = configuration.session.redis.password;
-      }
-      const client = deps.Redis.createClient(options);
-
-      client.on("error", function (err: Error) {
-        console.error("Redis error:", err);
-      });
-
-      redisOptions = {
-        client: client,
+        port: configuration.session.redis.port,
+        pass: configuration.session.redis.password,
         logErrors: true
-      };
-
-      if (redisOptions) {
-        const RedisStore = deps.ConnectRedis(deps.session);
-        sessionOptions.store = new RedisStore(redisOptions);
-      }
+      });
     }
     return sessionOptions;
   }

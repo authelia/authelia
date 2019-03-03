@@ -129,14 +129,22 @@ access_control:
   rules:
     # Rules applied to everyone
     - domain: public.example.com
+      policy: bypass
+    - domain: secure.example.com
       policy: two_factor
-    - domain: single_factor.example.com
+    - domain: singlefactor.example.com
       policy: one_factor
 
     # Rules applied to 'admin' group
-    - domain: 'mx2.mail.example.com'
+    - domain: mx2.mail.example.com
       subject: 'group:admin'
       policy: deny
+
+    # Rules applied to user 'john'
+    - domain: '*.example.com'
+      subject: 'user:john'
+      policy: two_factor
+
     - domain: '*.example.com'
       subject: 'group:admin'
       policy: two_factor
@@ -147,14 +155,6 @@ access_control:
         - '^/groups/dev/.*$'
       subject: 'group:dev'
       policy: two_factor
-
-    # Rules applied to user 'john'
-    - domain: dev.example.com
-      resources:
-        - '^/users/john/.*$'
-      subject: 'user:john'
-      policy: two_factor
-
 
     # Rules applied to user 'harry'
     - domain: dev.example.com

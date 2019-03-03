@@ -6,7 +6,6 @@ import { RootState } from '../../../reducers';
 import * as AutheliaService from '../../../services/AutheliaService';
 import to from 'await-to-js';
 import FetchStateBehavior from '../../../behaviors/FetchStateBehavior';
-import SafelyRedirectBehavior from '../../../behaviors/SafelyRedirectBehavior';
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
@@ -16,7 +15,7 @@ const mapStateToProps = (state: RootState): StateProps => {
 }
 
 function onAuthenticationRequested(dispatch: Dispatch, redirectionUrl: string | null) {
-  return async (username: string, password: string, rememberMe: boolean) => {
+  return async (username: string, password: string, rememberMe: boolean): Promise<void> => {
     let err, res;
     
     // Validate first factor
@@ -26,32 +25,37 @@ function onAuthenticationRequested(dispatch: Dispatch, redirectionUrl: string | 
 
     if (err) {
       await dispatch(authenticateFailure(err.message));
-      return;
+      throw new Error(err.message);
     }
 
     if (!res) {
       await dispatch(authenticateFailure('No response'));
-      return;
+      throw new Error('No response');
     }
 
     if (res.status === 200) {
       const json = await res.json();
       if ('error' in json) {
         await dispatch(authenticateFailure(json['error']));
-        return;
+        throw new Error(json['error']);
       }
 
+      dispatch(authenticateSuccess());
       if ('redirect' in json) {
         window.location.href = json['redirect'];
         return;
       }
+
+      // fetch state to move to next stage in case redirect is not possible
+      await FetchStateBehavior(dispatch);
     } else if (res.status === 204) {
       dispatch(authenticateSuccess());
 
       // fetch state to move to next stage
-      FetchStateBehavior(dispatch);
+      await FetchStateBehavior(dispatch);
     } else {
       dispatch(authenticateFailure('Unknown error'));
+      throw new Error('Unknown error... (' + res.status + ')');
     }
   }
 }

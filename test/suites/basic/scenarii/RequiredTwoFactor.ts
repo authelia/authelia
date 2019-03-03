@@ -13,7 +13,7 @@ export default function() {
       if (!secret) throw new Error('No secret!');
       
       await VisitPage(this.driver, "https://admin.example.com:8080/secret.html");
-      await VerifyUrlIs(this.driver, "https://login.example.com:8080/?rd=https://admin.example.com:8080/secret.html");
+      await VerifyUrlIs(this.driver, "https://login.example.com:8080/#/?rd=https://admin.example.com:8080/secret.html");
       await FillLoginPageAndClick(this.driver, "john", "password");
       await VerifyIsSecondFactorStage(this.driver);
     });

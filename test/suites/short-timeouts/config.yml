@@ -39,7 +39,7 @@ access_control:
   default_policy: deny
 
   rules:
-    - domain: single_factor.example.com
+    - domain: singlefactor.example.com
       policy: one_factor
 
     - domain: '*.example.com'

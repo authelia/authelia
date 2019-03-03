@@ -7,7 +7,7 @@ import CircleLoader, { Status } from "../CircleLoader/CircleLoader";
 
 export interface OwnProps {
   username: string;
-  redirectionUrl: string;
+  redirectionUrl: string | null;
 }
 
 export interface DispatchProps {
@@ -27,7 +27,7 @@ class AlreadyAuthenticated extends Component<Props> {
           </div>
           <div className={styles.statusIcon}><CircleLoader status={Status.SUCCESSFUL} /></div>
         </div>
-        <a href={this.props.redirectionUrl}>{this.props.redirectionUrl}</a>
+        {(this.props.redirectionUrl) ? <a href={this.props.redirectionUrl}>{this.props.redirectionUrl}</a> : null}
         <div className={styles.logoutButtonContainer}>
           <Button
             onClick={this.props.onLogoutClicked}

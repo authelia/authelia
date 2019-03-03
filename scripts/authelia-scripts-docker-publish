@@ -15,8 +15,9 @@ function login_to_dockerhub {
 
 function deploy_on_dockerhub {
   TAG=$1
-  IMAGE_NAME=clems4ever/authelia
-  IMAGE_WITH_TAG=$IMAGE_NAME:$TAG
+  IMAGE_NAME=authelia:dist
+  DOCKERHUB_IMAGE_NAME=clems4ever/authelia
+  IMAGE_WITH_TAG=$DOCKERHUB_IMAGE_NAME:$TAG
 
   echo "==========================================================="
   echo "Docker image $IMAGE_WITH_TAG will be deployed on Dockerhub."
@@ -27,12 +28,10 @@ function deploy_on_dockerhub {
 }
 
 
-if [ "$TRAVIS_BRANCH" == "master" ]; then
+if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+  echo "Building on master branch"
   login_to_dockerhub
   deploy_on_dockerhub master
-elif [ "$TRAVIS_BRANCH" == "develop" ]; then
-  login_to_dockerhub
-  deploy_on_dockerhub develop
 elif [ ! -z "$TRAVIS_TAG" ]; then
   login_to_dockerhub
   deploy_on_dockerhub $TRAVIS_TAG

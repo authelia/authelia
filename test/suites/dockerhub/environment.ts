@@ -25,4 +25,13 @@ async function teardown() {
   await dockerEnv.stop();
 }
 
-export { setup, teardown, composeFiles };
+const setup_timeout = 30000;
+const teardown_timeout = 30000;
+
+export {
+  setup,
+  setup_timeout,
+  teardown,
+  teardown_timeout,
+  composeFiles
+};

@@ -2,17 +2,18 @@
 
 set -e
 
-export PATH=./scripts:$PATH
+source bootstrap.sh
 
 docker --version
 docker-compose --version
 echo "node `node -v`"
 echo "npm `npm -v`"
 
+authelia-scripts bootstrap
+
 docker-compose -f docker-compose.yml \
   -f example/compose/mongo/docker-compose.yml \
   -f example/compose/redis/docker-compose.yml \
-  -f example/compose/nginx/backend/docker-compose.yml \
   -f example/compose/nginx/portal/docker-compose.yml \
   -f example/compose/smtp/docker-compose.yml \
   -f example/compose/httpbin/docker-compose.yml \

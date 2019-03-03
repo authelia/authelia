@@ -1,4 +1,3 @@
-import WithEnvironment from "./WithEnvironment";
 import fs from 'fs';
 
 interface AutheliaSuiteType {
@@ -11,10 +10,6 @@ function AutheliaSuiteBase(suitePath: string,
   context: (description: string, ctx: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite) {
   const suite = suitePath.split('/').slice(-1)[0];
   return context('Suite: ' + suite, function(this: Mocha.ISuiteCallbackContext) {
-    if (!fs.existsSync('.suite')) {
-      WithEnvironment(suite);
-    }
-
     cb.call(this);
   });
 }

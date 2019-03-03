@@ -16,7 +16,7 @@ export default function() {
     });
 
     it('should redirect the user', async function() {
-      await VisitPage(this.driver, 'https://login.example.com:8080/logout');
+      await VisitPage(this.driver, 'https://login.example.com:8080/#/logout');
       await VerifyIsAlreadyAuthenticatedStage(this.driver);
     });
   });

@@ -4,7 +4,7 @@ import BluebirdPromise = require("bluebird");
 import express = require("express");
 import { U2FRegistrationDocument } from "../../../../storage/U2FRegistrationDocument";
 import U2f = require("u2f");
-import redirect from "../../redirect";
+import Redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
 import { ServerVariables } from "../../../../ServerVariables";
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
@@ -41,7 +41,7 @@ export default function (vars: ServerVariables) {
           return BluebirdPromise.reject(new Error("Error while signing"));
         vars.logger.info(req, "Successful authentication");
         authSession.authentication_level = Level.TWO_FACTOR;
-        redirect(vars)(req, res);
+        Redirect(vars)(req, res);
         return BluebirdPromise.resolve();
       })
       .catch(ErrorReplies.replyWithError200(req, res, vars.logger,

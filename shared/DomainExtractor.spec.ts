@@ -25,8 +25,8 @@ describe.only("shared/DomainExtractor", function () {
       const domain1 = DomainExtractor.fromUrl("https://login.example.com:8080/?rd=https://public.example.com:8080/");
       Assert.equal(domain1, "login.example.com");
 
-      const domain2 = DomainExtractor.fromUrl("https://single_factor.example.com:8080/secret.html");
-      Assert.equal(domain2, "single_factor.example.com");
+      const domain2 = DomainExtractor.fromUrl("https://singlefactor.example.com:8080/secret.html");
+      Assert.equal(domain2, "singlefactor.example.com");
     });
   });
 });

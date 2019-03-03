@@ -14,6 +14,8 @@ import { URLDecomposer } from "../..//utils/URLDecomposer";
 import { Object } from "../../../lib/authorization/Object";
 import { Subject } from "../../../lib/authorization/Subject";
 import AuthenticationError from "../../../lib/authentication/AuthenticationError";
+import IsRedirectionSafe from "../../../lib/utils/IsRedirectionSafe";
+import * as URLParse from "url-parse";
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)
@@ -61,7 +63,7 @@ export default function (vars: ServerVariables) {
         vars.regulator.mark(username, true);
       })
       .then(function() {
-        const targetUrl = ObjectPath.get(req, "headers.x-target-url", undefined);
+        const targetUrl = ObjectPath.get<Express.Request, string>(req, "headers.x-target-url", undefined);
 
         if (!targetUrl) {
           res.status(204);
@@ -83,10 +85,13 @@ export default function (vars: ServerVariables) {
 
           const authorizationLevel = vars.authorizer.authorization(resObject, subject);
           if (authorizationLevel <= AuthorizationLevel.ONE_FACTOR) {
-            res.json({
-              redirect: targetUrl
-            });
-            return BluebirdPromise.resolve();
+            if (IsRedirectionSafe(vars, authSession, new URLParse(targetUrl))) {
+              res.json({redirect: targetUrl});
+              return BluebirdPromise.resolve();
+            } else {
+              res.json({error: "You're authenticated but cannot be automatically redirected to an unsafe URL."});
+              return BluebirdPromise.resolve();
+            }
           }
         }
 

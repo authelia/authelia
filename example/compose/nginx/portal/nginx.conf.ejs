@@ -107,8 +107,77 @@ http {
     }
 
     server {
+        listen 443 ssl;
+        server_name     mail.example.com;
+
+        resolver 127.0.0.11 ipv6=off;
+        set $upstream_endpoint http://smtp:1080;
+
+        ssl_certificate     /etc/ssl/server.crt;
+        ssl_certificate_key /etc/ssl/server.key;
+
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Frame-Options "SAMEORIGIN";
+
+        location / {
+            proxy_set_header  Host $http_host;
+            proxy_pass        $upstream_endpoint;
+        }
+    }
+
+    server {
         listen 443 ssl; 
         server_name     public.example.com;
+
+        resolver 127.0.0.11 ipv6=off;
+        set $upstream_verify <%= authelia_backend %>/api/verify;
+        set $upstream_endpoint http://nginx-backend;
+
+        ssl_certificate     /etc/ssl/server.crt;
+        ssl_certificate_key /etc/ssl/server.key;
+
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Frame-Options "SAMEORIGIN";
+
+        location /auth_verify {
+            internal;
+            proxy_set_header            Host $http_host;
+
+            proxy_set_header            X-Original-URI $request_uri;
+            proxy_set_header            X-Original-URL $scheme://$http_host$request_uri;
+            proxy_set_header            X-Real-IP $remote_addr;
+            proxy_set_header            X-Forwarded-Proto $scheme;
+            proxy_set_header            X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            proxy_pass_request_body     off;
+            proxy_set_header            Content-Length "";
+
+            proxy_pass        $upstream_verify;
+        }
+
+        location / {
+            auth_request /auth_verify;
+
+            auth_request_set $redirect $upstream_http_redirect;
+            
+            auth_request_set $user $upstream_http_remote_user;
+            proxy_set_header X-Forwarded-User $user;
+            
+            auth_request_set $groups $upstream_http_remote_groups;
+            proxy_set_header Remote-Groups $groups;
+
+            proxy_set_header Host $http_host;
+
+            error_page 401 =302 https://login.example.com:8080/#/?rd=$redirect;
+
+            proxy_pass        $upstream_endpoint;
+        }
+    }
+
+    server {
+        listen 443 ssl; 
+        server_name     admin.example.com
+                        secure.example.com;
 
         resolver 127.0.0.11 ipv6=off;
         set $upstream_verify <%= authelia_backend %>/api/verify;
@@ -141,7 +210,7 @@ http {
             auth_request /auth_verify;
 
             auth_request_set $redirect $upstream_http_redirect;
-            
+
             auth_request_set $user $upstream_http_remote_user;
             proxy_set_header X-Forwarded-User $user;
             
@@ -150,8 +219,7 @@ http {
 
             proxy_set_header Host $http_host;
 
-            error_page 401 =302 https://login.example.com:8080?rd=$redirect;
-            error_page 403 = https://login.example.com:8080/error/403;
+            error_page 401 =302 https://login.example.com:8080/#/?rd=$redirect;
 
             proxy_pass        $upstream_endpoint;
         }
@@ -167,60 +235,9 @@ http {
             auth_request_set $groups $upstream_http_remote_groups;
             proxy_set_header Custom-Forwarded-Groups $groups;
 
-            error_page 401 =302 https://login.example.com:8080?rd=$redirect;
-            error_page 403 = https://login.example.com:8080/error/403;
+            error_page 401 =302 https://login.example.com:8080/#/?rd=$redirect;
 
             proxy_pass        $upstream_headers;
-        }
-    }
-
-    server {
-        listen 443 ssl; 
-        server_name     admin.example.com;
-
-        resolver 127.0.0.11 ipv6=off;
-        set $upstream_verify <%= authelia_backend %>/api/verify;
-        set $upstream_endpoint http://nginx-backend;
-
-        ssl_certificate     /etc/ssl/server.crt;
-        ssl_certificate_key /etc/ssl/server.key;
-
-        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-        add_header X-Frame-Options "SAMEORIGIN";
-
-        location /auth_verify {
-            internal;
-            proxy_set_header            Host $http_host;
-
-            proxy_set_header            X-Original-URI $request_uri;
-            proxy_set_header            X-Original-URL $scheme://$http_host$request_uri;
-            proxy_set_header            X-Real-IP $remote_addr;
-            proxy_set_header            X-Forwarded-Proto $scheme;
-            proxy_set_header            X-Forwarded-For $proxy_add_x_forwarded_for;
-
-            proxy_pass_request_body     off;
-            proxy_set_header            Content-Length "";
-
-            proxy_pass        $upstream_verify;
-        }
-
-        location / {
-            auth_request /auth_verify;
-
-            auth_request_set $redirect $upstream_http_redirect;
-
-            auth_request_set $user $upstream_http_remote_user;
-            proxy_set_header X-Forwarded-User $user;
-            
-            auth_request_set $groups $upstream_http_remote_groups;
-            proxy_set_header Remote-Groups $groups;
-
-            proxy_set_header Host $http_host;
-
-            error_page 401 =302 https://login.example.com:8080?rd=$redirect;
-            error_page 403 = https://login.example.com:8080/error/403;
-
-            proxy_pass        $upstream_endpoint;
         }
     }
 
@@ -267,8 +284,7 @@ http {
 
             proxy_set_header Host $http_host;
 
-            error_page 401 =302 https://login.example.com:8080?rd=$redirect;
-            error_page 403 = https://login.example.com:8080/error/403;
+            error_page 401 =302 https://login.example.com:8080/#/?rd=$redirect;
 
             proxy_pass        $upstream_endpoint;
         }
@@ -317,8 +333,7 @@ http {
 
             proxy_set_header Host $http_host;
 
-            error_page 401 =302 https://login.example.com:8080?rd=$redirect;
-            error_page 403 = https://login.example.com:8080/error/403;
+            error_page 401 =302 https://login.example.com:8080/#/?rd=$redirect;
 
             proxy_pass        $upstream_endpoint;
         }
@@ -326,7 +341,7 @@ http {
 
     server {
         listen 443 ssl;
-        server_name     single_factor.example.com;
+        server_name     singlefactor.example.com;
 
         resolver 127.0.0.11 ipv6=off;
         set $upstream_verify <%= authelia_backend %>/api/verify;
@@ -371,8 +386,7 @@ http {
 
             proxy_set_header Host $http_host;
 
-            error_page 401 =302 https://login.example.com:8080?rd=$redirect;
-            error_page 403 = https://login.example.com:8080/error/403;
+            error_page 401 =302 https://login.example.com:8080/#/?rd=$redirect;
 
             proxy_pass        $upstream_endpoint;
         }
@@ -388,8 +402,7 @@ http {
             auth_request_set $groups $upstream_http_remote_groups;
             proxy_set_header Custom-Forwarded-Groups $groups;
 
-            error_page 401 =302 https://login.example.com:8080?rd=$redirect;
-            error_page 403 = https://login.example.com:8080/error/403;
+            error_page 401 =302 https://login.example.com:8080/#/?rd=$redirect;
 
             proxy_pass        $upstream_headers;
         }

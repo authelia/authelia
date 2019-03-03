@@ -112,7 +112,7 @@ export function post_start_validation(handler: IdentityValidable,
       })
       .then((token: string) => {
         const host = req.get("Host");
-        const link_url = util.format("https://%s%s?token=%s", host,
+        const link_url = util.format("https://%s/#%s?token=%s", host,
           handler.destinationPath(), token);
         vars.logger.info(req, "Notification sent to user \"%s\"",
           identity.userid);

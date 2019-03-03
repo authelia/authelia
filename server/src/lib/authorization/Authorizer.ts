@@ -45,11 +45,9 @@ function MatchSubject(subject: Subject) {
 }
 
 export class Authorizer implements IAuthorizer {
-  private logger: Winston;
   private readonly configuration: ACLConfiguration;
 
   constructor(configuration: ACLConfiguration, logger_: Winston) {
-    this.logger = logger_;
     this.configuration = configuration;
   }
 

@@ -3,13 +3,20 @@ import { RootState } from '../../../reducers';
 import { Dispatch } from 'redux';
 import u2fApi from 'u2f-api';
 import to from 'await-to-js';
-import { securityKeySignSuccess, securityKeySign, securityKeySignFailure, setSecurityKeySupported, oneTimePasswordVerification, oneTimePasswordVerificationFailure, oneTimePasswordVerificationSuccess } from '../../../reducers/Portal/SecondFactor/actions';
+import {
+  securityKeySignSuccess,
+  securityKeySign,
+  securityKeySignFailure,
+  setSecurityKeySupported,
+  oneTimePasswordVerification,
+  oneTimePasswordVerificationFailure,
+  oneTimePasswordVerificationSuccess
+} from '../../../reducers/Portal/SecondFactor/actions';
 import SecondFactorForm, { OwnProps, StateProps } from '../../../components/SecondFactorForm/SecondFactorForm';
 import * as AutheliaService from '../../../services/AutheliaService';
 import { push } from 'connected-react-router';
 import fetchState from '../../../behaviors/FetchStateBehavior';
 import LogoutBehavior from '../../../behaviors/LogoutBehavior';
-import SafelyRedirectBehavior from '../../../behaviors/SafelyRedirectBehavior';
 
 const mapStateToProps = (state: RootState): StateProps => ({
   securityKeySupported: state.secondFactor.securityKeySupported,
@@ -20,7 +27,7 @@ const mapStateToProps = (state: RootState): StateProps => ({
   oneTimePasswordVerificationError: state.secondFactor.oneTimePasswordVerificationError,
 });
 
-async function triggerSecurityKeySigning(dispatch: Dispatch) {
+async function triggerSecurityKeySigning(dispatch: Dispatch, redirectionUrl: string | null) {
   let err, result;
   dispatch(securityKeySign());
   [err, result] = await to(AutheliaService.requestSigning());
@@ -45,25 +52,39 @@ async function triggerSecurityKeySigning(dispatch: Dispatch) {
     throw 'No response';
   }
 
-  [err, result] = await to(AutheliaService.completeSecurityKeySigning(result));
+  [err, result] = await to(AutheliaService.completeSecurityKeySigning(result, redirectionUrl));
   if (err) {
     await dispatch(securityKeySignFailure(err.message));
     throw err;
   }
-  await dispatch(securityKeySignSuccess());
+  
+  try {
+    await redirectIfPossible(dispatch, result as Response);
+    dispatch(securityKeySignSuccess());
+    await handleSuccess(dispatch, 1000);
+  } catch (err) {
+    dispatch(securityKeySignFailure(err.message));
+  }
 }
 
-async function handleSuccess(dispatch: Dispatch, ownProps: OwnProps, duration?: number) {
+async function redirectIfPossible(dispatch: Dispatch, res: Response) {
+  if (res.status === 204) return;
+
+  const body = await res.json();
+  if ('error' in body) {
+    throw new Error(body['error']);
+  }
+
+  if ('redirect' in body) {
+    window.location.href = body['redirect'];
+    return;
+  }
+  return;
+}
+
+async function handleSuccess(dispatch: Dispatch, duration?: number) {
   async function handle() {
-    if (ownProps.redirectionUrl) {
-      try {
-        await SafelyRedirectBehavior(ownProps.redirectionUrl);
-      } catch (e) {
-        await fetchState(dispatch);
-      }
-    } else {
-      await fetchState(dispatch);
-    }
+    await fetchState(dispatch);
   }
 
   if (duration) {
@@ -88,14 +109,13 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
       const isU2FSupported = await u2fApi.isSupported();
       if (isU2FSupported) {
         await dispatch(setSecurityKeySupported(true));
-        await triggerSecurityKeySigning(dispatch);
-        await handleSuccess(dispatch, ownProps, 1000);
+        await triggerSecurityKeySigning(dispatch, ownProps.redirectionUrl);
       }
     },
     onOneTimePasswordValidationRequested: async (token: string) => {
       let err, res;
       dispatch(oneTimePasswordVerification());
-      [err, res] = await to(AutheliaService.verifyTotpToken(token));
+      [err, res] = await to(AutheliaService.verifyTotpToken(token, ownProps.redirectionUrl));
       if (err) {
         dispatch(oneTimePasswordVerificationFailure(err.message));
         throw err;
@@ -105,13 +125,13 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
         throw 'No response';
       }
 
-      const body = await res.json();
-      if ('error' in body) {
-        dispatch(oneTimePasswordVerificationFailure(body['error']));
-        throw body['error'];
+      try {
+        await redirectIfPossible(dispatch, res);
+        dispatch(oneTimePasswordVerificationSuccess());
+        await handleSuccess(dispatch);
+      } catch (err) {
+        dispatch(oneTimePasswordVerificationFailure(err.message));
       }
-      dispatch(oneTimePasswordVerificationSuccess());
-      await handleSuccess(dispatch, ownProps);
     },
   }
 }

@@ -8,10 +8,11 @@ export default async function(
   username: string,
   password: string,
   email: boolean = false,
-  targetUrl: string = "https://login.example.com:8080/") {
+  targetUrl: string = "https://login.example.com:8080/#/",
+  timeout: number = 5000) {
 
-  const secret = await LoginAndRegisterTotp(driver, username, password, email);
-  await FullLogin(driver, username, secret, targetUrl);
-  await VerifyUrlIs(driver, targetUrl);
+  const secret = await LoginAndRegisterTotp(driver, username, password, email, timeout);
+  await FullLogin(driver, username, secret, targetUrl, timeout);
+  await VerifyUrlIs(driver, targetUrl, timeout);
   return secret;
 };

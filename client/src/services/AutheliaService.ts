@@ -75,24 +75,36 @@ export async function requestSigning() {
     });
 }
 
-export async function completeSecurityKeySigning(response: u2fApi.SignResponse) {
+export async function completeSecurityKeySigning(
+  response: u2fApi.SignResponse, redirectionUrl: string | null) {
+
+  const headers: Record<string, string> = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  }
+  if (redirectionUrl) {
+    headers['X-Target-Url'] = redirectionUrl;
+  }
   return fetchSafe('/api/u2f/sign', {
     method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
+    headers: headers,
     body: JSON.stringify(response),
   });
 }
 
-export async function verifyTotpToken(token: string) {
+export async function verifyTotpToken(
+  token: string, redirectionUrl: string | null) {
+  
+    const headers: Record<string, string> = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  }
+  if (redirectionUrl) {
+    headers['X-Target-Url'] = redirectionUrl;
+  }
   return fetchSafe('/api/totp', {
     method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
+    headers: headers,
     body: JSON.stringify({token}),
   })
 }
@@ -123,24 +135,4 @@ export async function resetPassword(newPassword: string) {
     },
     body: JSON.stringify({password: newPassword})
   });
-}
-
-export async function checkRedirection(url: string) {
-  const res = await fetch('/api/redirect', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({url})
-  })
-
-  if (res.status !== 200) {
-    throw new Error('Status code ' + res.status);
-  }
-
-  const text = await res.text();
-  if (text !== 'OK') {
-    throw new Error('Cannot redirect');
-  }
-  return;
 }

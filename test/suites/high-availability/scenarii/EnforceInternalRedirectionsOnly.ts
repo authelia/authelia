@@ -6,6 +6,7 @@ import VerifyIsAlreadyAuthenticatedStage from "../../../helpers/assertions/Verif
 import { StartDriver, StopDriver } from "../../../helpers/context/WithDriver";
 import VisitPageAndWaitUrlIs from "../../../helpers/behaviors/VisitPageAndWaitUrlIs";
 import VerifyUrlIs from "../../../helpers/assertions/VerifyUrlIs";
+import VerifyNotificationDisplayed from "../../../helpers/assertions/VerifyNotificationDisplayed";
 
 /*
  * Authelia should not be vulnerable to open redirection. Otherwise it would aid an
@@ -29,18 +30,23 @@ export default function() {
       await StopDriver(this.driver);
     })
   
-    function CannotRedirectTo(url: string) {
+    function CannotRedirectTo(url: string, twoFactor: boolean = true) {
       it(`should redirect to already authenticated page when requesting ${url}`, async function() {
-        await VisitPageAndWaitUrlIs(this.driver, `https://login.example.com:8080/?rd=${url}`);
+        await VisitPageAndWaitUrlIs(this.driver, `https://login.example.com:8080/#/?rd=${url}`);
         await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
-        await ValidateTotp(this.driver, secret);
-        await VerifyIsAlreadyAuthenticatedStage(this.driver);
+        if (twoFactor) {
+          await ValidateTotp(this.driver, secret);
+          await VerifyIsAlreadyAuthenticatedStage(this.driver);
+        } else {
+          await VerifyNotificationDisplayed(this.driver,
+            "You're authenticated but cannot be automatically redirected to an unsafe URL.");
+        }
       });
     }
 
     function CanRedirectTo(url: string) {
       it(`should redirect to ${url}`, async function() {
-        await VisitPageAndWaitUrlIs(this.driver, `https://login.example.com:8080/?rd=${url}`);
+        await VisitPageAndWaitUrlIs(this.driver, `https://login.example.com:8080/#/?rd=${url}`);
         await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
         await ValidateTotp(this.driver, secret);
         await VerifyUrlIs(this.driver, url);
@@ -57,14 +63,19 @@ export default function() {
       CannotRedirectTo("https://public.example.com.a:8080");
     });
 
-    describe('Cannot redirect to http://public.example.com:8080', function() {
+    describe('Cannot redirect to http://secure.example.com:8080', function() {
       // Do not redirect to http website
-      CannotRedirectTo("http://public.example.com:8080");
+      CannotRedirectTo("http://secure.example.com:8080");
     });
 
-    describe('Can redirect to https://public.example.com:8080/', function() {
+    describe('Cannot redirect to http://singlefactor.example.com:8080', function() {
+      // Do not redirect to http website
+      CannotRedirectTo("http://singlefactor.example.com:8080", false);
+    });
+
+    describe('Can redirect to https://secure.example.com:8080/', function() {
       // Can redirect to any subdomain of the domain protected by Authelia.
-      CanRedirectTo("https://public.example.com:8080/");
+      CanRedirectTo("https://secure.example.com:8080/");
     });
   });
 }

@@ -15,7 +15,13 @@
       public.example.com <a href="https://public.example.com:8080/"> / index.html</a>
     </li>
     <li>
-      secret.example.com
+      secure.example.com <a href="https://secure.example.com:8080/"> / secret.html</a>
+    </li>
+    <li>
+      singlefactor.example.com <a href="https://singlefactor.example.com:8080/secret.html"> / secret.html</a>
+    </li>
+    <li>
+      dev.example.com
       <ul>
         <li>Groups
           <ul>
@@ -51,12 +57,9 @@
     <li>
       mx2.main.example.com <a href="https://mx2.mail.example.com:8080/secret.html"> / secret.html</a>
     </li>
-    <li>
-      single_factor.example.com <a href="https://single_factor.example.com:8080/secret.html"> / secret.html</a>
-    </li>
   </ul>
 
-  You can also log off by visiting the following <a href="https://login.example.com:8080/logout?rd=https://home.example.com:8080/">link</a>.
+  You can also log off by visiting the following <a href="https://login.example.com:8080/#/logout?rd=https://home.example.com:8080/">link</a>.
 
   <h1>List of users</h1>
   Here is the list of credentials you can log in with to test access control.<br/>
@@ -74,61 +77,57 @@
   <p></p>These rules are extracted from the configuration file
   <a href="https://github.com/clems4ever/authelia/blob/master/config.template.yml">config.template.yml</a>.</p>
   <pre id="rules" style="border: 1px grey solid; padding: 20px; display: inline-block;">
-# Default policy can either be `allow` or `deny`.
-# It is the policy applied to any resource if it has not been overriden
-# in the `any`, `groups` or `users` category.
-
-default_policy: deny
-
-# The rules that apply to anyone.
-# The value is a list of rules.
-
-any:
-  - domain: public.example.com
-    policy: allow
-
-# Group-based rules. The key is a group name and the value
-# is a list of rules.
-
-groups:
-  admin:
-    # All resources in all domains
-    - domain: '*.example.com'
-      policy: allow
-    # Except mx2.mail.example.com (it restricts the first rule)
-    - domain: 'mx2.mail.example.com'
-      policy: deny
-  dev:
-    - domain: dev.example.com
-      policy: allow
-      resources:
-        - '^/groups/dev/.*$'
-
-# User-based rules. The key is a user name and the value
-# is a list of rules.
-
-users:
-  john:
-    - domain: dev.example.com
-      policy: allow
-      resources:
-        - '^/users/john/.*$' 
-  harry:
-    - domain: dev.example.com
-      policy: allow
-      resources:
-        - '^/users/harry/.*$'
-  bob:
-    - domain: '*.mail.example.com'
-      policy: allow
-    - domain: 'dev.example.com'
-      policy: allow
-      resources:
-        - '^/users/bob/.*$'
-    - domain: 'dev.example.com'
-      policy: allow
-      resources:
-        - '^/users/harry/.*$'</pre>
+    default_policy: deny
+  
+    rules:
+      # Rules applied to everyone
+      - domain: public.example.com
+        policy: bypass
+      - domain: secure.example.com
+        policy: two_factor
+      - domain: singlefactor.example.com
+        policy: one_factor
+  
+      # Rules applied to 'admin' group
+      - domain: 'mx2.mail.example.com'
+        subject: 'group:admin'
+        policy: deny
+      - domain: '*.example.com'
+        subject: 'group:admin'
+        policy: two_factor
+  
+      # Rules applied to 'dev' group
+      - domain: dev.example.com
+        resources:
+          - '^/groups/dev/.*$'
+        subject: 'group:dev'
+        policy: two_factor
+  
+      # Rules applied to user 'john'
+      - domain: dev.example.com
+        resources:
+          - '^/users/john/.*$'
+        subject: 'user:john'
+        policy: two_factor
+  
+  
+      # Rules applied to user 'harry'
+      - domain: dev.example.com
+        resources:
+          - '^/users/harry/.*$'
+        subject: 'user:harry'
+        policy: two_factor
+  
+      # Rules applied to user 'bob'
+      - domain: '*.mail.example.com'
+        subject: 'user:bob'
+        policy: two_factor
+      - domain: 'dev.example.com'
+        resources:
+          - '^/users/bob/.*$'
+        subject: 'user:bob'
+        policy: two_factor
+  </pre>
 </body>
 
 </html>

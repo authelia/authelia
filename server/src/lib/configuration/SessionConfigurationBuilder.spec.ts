@@ -3,7 +3,6 @@ import { Configuration } from "./schema/Configuration";
 import { GlobalDependencies } from "../../../types/Dependencies";
 
 import ExpressSession = require("express-session");
-import ConnectRedis = require("connect-redis");
 import Sinon = require("sinon");
 import Assert = require("assert");
 
@@ -128,22 +127,15 @@ describe("configuration/SessionConfigurationBuilder", function () {
       password: "authelia_pass"
     };
     const RedisStoreMock = Sinon.spy();
-    const redisClient = Sinon.mock().returns({ on: Sinon.spy() });
-    const createClientStub = Sinon.stub();
+    deps.ConnectRedis = Sinon.stub().returns(RedisStoreMock);
 
-    deps.ConnectRedis = Sinon.stub().returns(RedisStoreMock) as any;
-    deps.Redis = {
-      createClient: createClientStub
-    } as any;
+    SessionConfigurationBuilder.build(configuration, deps);
 
-    createClientStub.returns(redisClient);
-
-    const options = SessionConfigurationBuilder.build(configuration, deps);
-
-    Assert(createClientStub.calledWith({
+    Assert(RedisStoreMock.calledWith({
       host: "redis.example.com",
       port: 6379,
-      password: "authelia_pass"
+      pass: "authelia_pass",
+      logErrors: true,
     }));
   });
 });

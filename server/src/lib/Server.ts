@@ -49,8 +49,7 @@ export default class Server {
     return ServerVariablesInitializer.initialize(
       config, this.globalLogger, this.requestLogger, deps)
       .then(function (vars: ServerVariables) {
-        Configurator.configure(config, app, vars, deps);
-        return BluebirdPromise.resolve();
+        return Configurator.configure(config, app, vars, deps);
       });
   }
 
