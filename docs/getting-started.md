@@ -53,7 +53,8 @@ subdomains so that nginx can redirect requests to the correct virtual host.
 To deploy **Authelia** using the latest image from [Dockerhub], run the
 following command:
 
-    npm run script suites start dockerhub
+    npm install commander
+    npm run scripts suites start dockerhub
 
 A Suites is a virtual environment for running Authelia. If you want more details please
 read the related [documentation](./suites.md).
