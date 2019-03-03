@@ -47,7 +47,7 @@ you can authenticate using your U2F device by simply touching the token.
 Easy, right?!
 
 <p align="center">
-  <img src="./images/u2f.png" width="400">
+  <img src="../images/u2f.png" width="400">
 </p>
 
 ## Password reset
