@@ -21,6 +21,14 @@ that the attacker must also require the certificate to retrieve the cookies.
 Note that using [HSTS] has consequences. That's why you should read the blog
 post nginx has written on [HSTS].
 
+## Content-Security-Policy
+
+Authelia's portal is protected against XSS using the content
+security policy mechanism that is documented
+[here](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP). This protection
+will reject untrusted payloads threatening your users during the authentication
+workflow.
+
 ## More protections measures with Nginx
 
 You can also apply the following headers to your nginx configuration for

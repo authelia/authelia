@@ -17,9 +17,9 @@ non resilient to failures.*
 [Getting Started] documentation.
 
 In some cases, like protecting personal websites, it can be fine to use
-**Authelia** in a non highly-available manner. Fortunately, we can
-achieve to run it along with one reverse proxy meaning the setup is
-then reduced to only two components: Authelia and nginx.
+**Authelia** in a non highly-available setup. We can
+achieve that in order to reduce the number of components to only two: Authelia
+and nginx.
 
 As for a regular deployment in production, you need to install **Authelia**
 either by pulling the Docker image or installing the npm package and run
@@ -37,7 +37,8 @@ it with a configuration file passed as argument.
 
 ## Deploy Nginx
 
-You also need to install nginx and take [example/compose/nginx/minimal/nginx.conf](./example/compose/nginx/minimal/nginx.conf) as an example of configuration.
+You also need to install nginx and take [example/compose/nginx/minimal/nginx.conf](./example/compose/nginx/minimal/nginx.conf)
+as an example for your configuration.
 
 ## Discard components
 
@@ -83,7 +84,7 @@ from running multiple instances of **Authelia** in parallel and is therefore
 discouraged for production environments.
 
 To use a file backend instead of a LDAP server, you should first duplicate
-the file [users_database.yml](../users_database.yml) and edit it to add the
+the file [users_database.yml](../test/suites/basic/users_database.yml) and edit it to add the
 users you want.
 
 The content of this file is as follows:
@@ -99,10 +100,10 @@ The content of this file is as follows:
 
 The password is hashed and salted as it is in LDAP servers with salted SHA-512. Here is a one-liner to generate such hashed password:
 
-    python3 -c 'import crypt; print("{CRYPT}" + crypt.crypt("mypassword", crypt.mksalt(crypt.METHOD_SHA512, rounds=500000)))'
+    npm run hash-password mypassword
 
 Once the file is created, edit the configuration file with the following
-block (as used in [config.minimal.yml](../config.minimal.yml)):
+block (as used in [config.yml](../test/suites/basic/config.yml)):
 
     authentication_backend:
       file:
@@ -141,9 +142,13 @@ crash or an hardware issue. Moreover, it will also prevent from reliably
 persisting data and consequently fail access to your platform as the devices
 registered by your users will be lost.
 
-### Why is this not automated?
+### Why aren't all those steps automated?
 
 Well, as stated before those instructions are not meant to be applied for
 a production environment. That being said, in some cases it is just fine and
-so writing an Ansible playbook to automate all this process would be great.
+writing an Ansible playbook to automate all this process is ok.
 We would really be more than happy to review such a PR.
+In the meantime, you can check the *basic* [suite](./suites.md) to see all this
+in real example.
+
+[Getting Started]: ./getting-started.md

@@ -8,13 +8,11 @@ images/
 example/
 
 .travis.yml
-config.test.yml
 CONTRIBUTORS.md
 Dockerfile
 docker-compose.*
 Gruntfile.js
 tslint.json
 tsconfig.json
-users_database.yml
 
 *.tgz

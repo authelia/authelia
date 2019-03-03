@@ -6,4 +6,4 @@ services:
       - ./example/compose/nginx/backend/html:/usr/share/nginx/html
       - ./example/compose/nginx/backend/nginx.conf:/etc/nginx/nginx.conf
     networks:
-      - example-network
+      - authelianet

@@ -1,26 +1,26 @@
-
-import Exceptions = require("../../Exceptions");
+import * as ObjectPath from "object-path";
 import BluebirdPromise = require("bluebird");
 import express = require("express");
-import Endpoint = require("../../../../../shared/api");
 import ErrorReplies = require("../../ErrorReplies");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
-import Constants = require("../../../../../shared/constants");
 import UserMessages = require("../../../../../shared/UserMessages");
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import { GroupsAndEmails } from "../../authentication/backends/GroupsAndEmails";
-import { Level as AuthenticationLevel } from "../../authentication/Level";
+import { Level } from "../../authentication/Level";
 import { Level as AuthorizationLevel } from "../../authorization/Level";
-import { URLDecomposer } from "../../utils/URLDecomposer";
+import { BelongToDomain } from "../../../../../shared/BelongToDomain";
+import { URLDecomposer } from "../..//utils/URLDecomposer";
+import { Object } from "../../../lib/authorization/Object";
+import { Subject } from "../../../lib/authorization/Subject";
+import AuthenticationError from "../../../lib/authentication/AuthenticationError";
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)
     : BluebirdPromise<void> {
     const username: string = req.body.username;
     const password: string = req.body.password;
-    const keepMeLoggedIn: boolean = req.body.keepMeLoggedIn &&
-      req.body.keepMeLoggedIn === "true";
+    const keepMeLoggedIn: boolean = req.body.keepMeLoggedIn;
     let authSession: AuthenticationSession;
 
     if (keepMeLoggedIn) {
@@ -48,20 +48,10 @@ export default function (vars: ServerVariables) {
           JSON.stringify(groupsAndEmails));
         authSession.userid = username;
         authSession.keep_me_logged_in = keepMeLoggedIn;
-        authSession.authentication_level = AuthenticationLevel.ONE_FACTOR;
-        const redirectUrl: string = req.query[Constants.REDIRECT_QUERY_PARAM] !== "undefined"
-          // Fuck, don't know why it is a string!
-          ? req.query[Constants.REDIRECT_QUERY_PARAM]
-          : "";
+        authSession.authentication_level = Level.ONE_FACTOR;
 
         const emails: string[] = groupsAndEmails.emails;
         const groups: string[] = groupsAndEmails.groups;
-        const decomposition = URLDecomposer.fromUrl(redirectUrl);
-        const authorizationLevel = (decomposition)
-          ? vars.authorizer.authorization(
-            {domain: decomposition.domain, resource: decomposition.path},
-            {user: username, groups: groups})
-          : AuthorizationLevel.TWO_FACTOR;
 
         if (emails.length > 0)
           authSession.email = emails[0];
@@ -69,33 +59,45 @@ export default function (vars: ServerVariables) {
 
         vars.logger.debug(req, "Mark successful authentication to regulator.");
         vars.regulator.mark(username, true);
+      })
+      .then(function() {
+        const targetUrl = ObjectPath.get(req, "headers.x-target-url", undefined);
 
-        if (authorizationLevel <= AuthorizationLevel.ONE_FACTOR) {
-          let newRedirectionUrl: string = redirectUrl;
-          if (!newRedirectionUrl)
-            newRedirectionUrl = Endpoint.LOGGED_IN;
-          res.send({
-            redirect: newRedirectionUrl
-          });
-          vars.logger.debug(req, "Redirect to '%s'", redirectUrl);
+        if (!targetUrl) {
+          res.status(204);
+          res.send();
+          return BluebirdPromise.resolve();
         }
-        else {
-          let newRedirectUrl = Endpoint.SECOND_FACTOR_GET;
-          if (redirectUrl) {
-            newRedirectUrl += "?" + Constants.REDIRECT_QUERY_PARAM + "="
-              + redirectUrl;
+
+        if (BelongToDomain(targetUrl, vars.config.session.domain)) {
+          const resource = URLDecomposer.fromUrl(targetUrl);
+          const resObject: Object = {
+            domain: resource.domain,
+            resource: resource.path,
+          };
+
+          const subject: Subject = {
+            user: authSession.userid,
+            groups: authSession.groups
+          };
+
+          const authorizationLevel = vars.authorizer.authorization(resObject, subject);
+          if (authorizationLevel <= AuthorizationLevel.ONE_FACTOR) {
+            res.json({
+              redirect: targetUrl
+            });
+            return BluebirdPromise.resolve();
           }
-          vars.logger.debug(req, "Redirect to '%s'", newRedirectUrl);
-          res.send({
-            redirect: newRedirectUrl
-          });
         }
+
+        res.status(204);
+        res.send();
         return BluebirdPromise.resolve();
       })
-      .catch(Exceptions.LdapBindError, function (err: Error) {
+      .catch(AuthenticationError, function (err: Error) {
         vars.regulator.mark(username, false);
-        return ErrorReplies.replyWithError200(req, res, vars.logger, UserMessages.OPERATION_FAILED)(err);
+        return ErrorReplies.replyWithError200(req, res, vars.logger, UserMessages.AUTHENTICATION_FAILED)(err);
       })
-      .catch(ErrorReplies.replyWithError200(req, res, vars.logger, UserMessages.OPERATION_FAILED));
+      .catch(ErrorReplies.replyWithError200(req, res, vars.logger, UserMessages.AUTHENTICATION_FAILED));
   };
 }

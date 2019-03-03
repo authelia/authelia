@@ -8,6 +8,7 @@ import { GroupsAndEmails } from "../GroupsAndEmails";
 import { IUsersDatabase } from "../IUsersDatabase";
 import { HashGenerator } from "../../../utils/HashGenerator";
 import { ReadWriteQueue } from "./ReadWriteQueue";
+import AuthenticationError from "../../AuthenticationError";
 
 const loadAsync = Bluebird.promisify(Yaml.load);
 
@@ -80,7 +81,7 @@ export class FileUsersDatabase implements IUsersDatabase {
     return HashGenerator.ssha512(password, rounds, salt)
       .then((hash: string) => {
         if (hash !== storedHash) {
-          return Bluebird.reject(new Error("Wrong username/password."));
+          return Bluebird.reject(new AuthenticationError("Wrong username/password."));
         }
         return Bluebird.resolve();
       });

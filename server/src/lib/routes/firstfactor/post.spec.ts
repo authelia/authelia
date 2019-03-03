@@ -6,11 +6,10 @@ import FirstFactorPost = require("./post");
 import exceptions = require("../../Exceptions");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
-import Endpoints = require("../../../../../shared/api");
-import AuthenticationRegulatorMock = require("../../regulation/RegulatorStub.spec");
 import ExpressMock = require("../../stubs/express.spec");
 import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../ServerVariablesMockBuilder.spec";
 import { ServerVariables } from "../../ServerVariables";
+import AuthenticationError from "../../authentication/AuthenticationError";
 
 describe("routes/firstfactor/post", function () {
   let req: ExpressMock.RequestMock;
@@ -73,7 +72,7 @@ describe("routes/firstfactor/post", function () {
           emails: emails,
           groups: groups
         }));
-      req.body.keepMeLoggedIn = "true";
+      req.body.keepMeLoggedIn = true;
       return FirstFactorPost.default(vars)(req as any, res as any);
     });
 
@@ -108,14 +107,14 @@ describe("routes/firstfactor/post", function () {
 
   it("should return error message when LDAP authenticator throws", function () {
     mocks.usersDatabase.checkUserPasswordStub.withArgs("username", "password")
-      .returns(BluebirdPromise.reject(new exceptions.LdapBindError("Bad credentials")));
+      .returns(BluebirdPromise.reject(new AuthenticationError("Bad credentials")));
 
     return FirstFactorPost.default(vars)(req as any, res as any)
       .then(function () {
         Assert.equal(res.status.getCall(0).args[0], 200);
         Assert.equal(mocks.regulator.markStub.getCall(0).args[0], "username");
         Assert.deepEqual(res.send.getCall(0).args[0], {
-          error: "Operation failed."
+          error: "Authentication failed. Please check your credentials."
         });
       });
   });
@@ -127,7 +126,7 @@ describe("routes/firstfactor/post", function () {
       .then(function () {
         Assert.equal(res.status.getCall(0).args[0], 200);
         Assert.deepEqual(res.send.getCall(0).args[0], {
-          error: "Operation failed."
+          error: "Authentication failed. Please check your credentials."
         });
       });
   });

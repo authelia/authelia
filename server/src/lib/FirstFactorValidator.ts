@@ -1,7 +1,6 @@
 
 import BluebirdPromise = require("bluebird");
 import express = require("express");
-import objectPath = require("object-path");
 import Exceptions = require("./Exceptions");
 import { AuthenticationSessionHandler } from "./AuthenticationSessionHandler";
 import { IRequestLogger } from "./logging/IRequestLogger";

@@ -1,0 +1,148 @@
+$brand-success: #5cb85c;
+$brand-failure: #d44141;
+$loader-size: 4em;
+$check-height: $loader-size/2;
+$check-width: $check-height/2;
+$check-left: ($loader-size/6 + $loader-size/25);
+$check-thickness: 3px;
+$check-color: $brand-success;
+
+$cross-height: $loader-size/2;
+$cross-width: $check-height/10 - $check-height/12;
+$cross-left: $loader-size/2;
+$cross-top: $loader-size/4;
+
+.circleLoader {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-left-color: $check-color;
+  animation: loader-spin 1.2s infinite linear;
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  border-radius: 50%;
+  width: $loader-size;
+  height: $loader-size;
+}
+
+.loadComplete {
+  -webkit-animation: none;
+  animation: none;
+  transition: border 500ms ease-out;
+  &.success {
+    border-color: $brand-success;
+  }
+  &.failure {
+    border-color: $brand-failure;
+  }
+}
+
+.checkmark {
+  display: none;
+
+  &.show {
+    display: inline;
+  }
+  
+  &.draw:after {
+    animation-duration: 800ms;
+    animation-timing-function: ease;
+    animation-name: checkmark;
+    transform: scaleX(-1) rotate(135deg);
+  }
+  
+  &:after {
+    opacity: 1;
+    height: $check-height;
+    width: $check-width;
+    transform-origin: left top;
+    border-right: $check-thickness solid $check-color;
+    border-top: $check-thickness solid $check-color;
+    content: '';
+    left: $check-left;
+    top: $check-height;
+    position: absolute;
+  }
+}
+
+.cross {
+  display: none;
+
+  &.show {
+    display: inline;
+  }
+
+  &.draw:after, &.draw:before {
+    animation-duration: 300ms;
+    animation-timing-function: ease;
+    animation-name: cross;
+  }
+
+  &:before, &:after {
+    position: absolute;
+    left: $cross-left;
+    top: $cross-top;
+    content: '';
+    height: $cross-height;
+    width: $cross-width;
+    background-color: $brand-failure;
+  }
+
+  &:before {
+    transform: rotate(45deg);
+  }
+
+  &:after {
+    transform: rotate(-45deg);
+  }
+}
+
+@keyframes loader-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes checkmark {
+  0% {
+    height: 0;
+    width: 0;
+    opacity: 1;
+  }
+  20% {
+    height: 0;
+    width: $check-width;
+    opacity: 1;
+  }
+  40% {
+    height: $check-height;
+    width: $check-width;
+    opacity: 1;
+  }
+  100% {
+    height: $check-height;
+    width: $check-width;
+    opacity: 1;
+  }
+}
+
+@keyframes cross {
+  0% {
+    width: 0;
+    height: 0;
+  }
+  20% {
+    height: 0;
+    width: $cross-width;
+  }
+  40% {
+    height: $cross-height;
+    width: $cross-width;
+  }
+  100% {
+    width: $cross-width;
+    height: $cross-height;
+  }
+}

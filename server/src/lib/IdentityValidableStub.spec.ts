@@ -1,7 +1,6 @@
 
 import Sinon = require("sinon");
 import { IdentityValidable } from "./IdentityValidable";
-import express = require("express");
 import Bluebird = require("bluebird");
 import { Identity } from "../../types/Identity";
 
@@ -13,6 +12,7 @@ export class IdentityValidableStub implements IdentityValidable {
     preValidationResponseStub: Sinon.SinonStub;
     postValidationResponseStub: Sinon.SinonStub;
     mailSubjectStub: Sinon.SinonStub;
+    destinationPathStub: Sinon.SinonStub;
 
     constructor() {
         this.challengeStub = Sinon.stub();
@@ -24,6 +24,7 @@ export class IdentityValidableStub implements IdentityValidable {
         this.postValidationResponseStub = Sinon.stub();
 
         this.mailSubjectStub = Sinon.stub();
+        this.destinationPathStub = Sinon.stub();
     }
 
     challenge(): string {
@@ -48,5 +49,9 @@ export class IdentityValidableStub implements IdentityValidable {
 
     mailSubject(): string {
         return this.mailSubjectStub();
+    }
+
+    destinationPath(): string {
+        return this.destinationPathStub();
     }
 }

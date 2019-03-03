@@ -4,12 +4,9 @@ import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
 import U2FSignPost = require("./post");
 import { ServerVariables } from "../../../../ServerVariables";
-import winston = require("winston");
-
+import UserMessages = require("../../../../../../../shared/UserMessages");
 import { ServerVariablesMockBuilder, ServerVariablesMock } from "../../../../ServerVariablesMockBuilder.spec";
 import ExpressMock = require("../../../../stubs/express.spec");
-import U2FMock = require("../../../../stubs/u2f.spec");
-import U2f = require("u2f");
 import { Level } from "../../../../authentication/Level";
 
 describe("routes/secondfactor/u2f/sign/post", function () {
@@ -39,10 +36,6 @@ describe("routes/secondfactor/u2f/sign/post", function () {
     };
     req.headers = {};
     req.headers.host = "localhost";
-
-    const options = {
-      inMemoryOnly: true
-    };
 
     res = ExpressMock.ResponseMock();
     res.send = sinon.spy();
@@ -94,7 +87,7 @@ describe("routes/secondfactor/u2f/sign/post", function () {
       .then(function () {
         Assert.equal(res.status.getCall(0).args[0], 200);
         Assert.deepEqual(res.send.getCall(0).args[0],
-          { error: "Operation failed." });
+          { error: UserMessages.OPERATION_FAILED });
       });
   });
 });

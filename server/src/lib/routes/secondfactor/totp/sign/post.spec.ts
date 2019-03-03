@@ -67,7 +67,7 @@ describe("routes/secondfactor/totp/sign/post", function () {
         Assert.notEqual(authSession.authentication_level, Level.TWO_FACTOR);
         Assert.equal(res.status.getCall(0).args[0], 200);
         Assert.deepEqual(res.send.getCall(0).args[0], {
-          error: "Operation failed."
+          error: "Authentication failed. Have you already registered your secret?"
         });
         return BluebirdPromise.resolve();
       });

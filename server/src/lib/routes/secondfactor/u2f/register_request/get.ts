@@ -1,7 +1,4 @@
 
-import { UserDataStore } from "../../../../storage/UserDataStore";
-
-import objectPath = require("object-path");
 import u2f_common = require("../U2FCommon");
 import BluebirdPromise = require("bluebird");
 import express = require("express");
@@ -21,8 +18,6 @@ export default function (vars: ServerVariables) {
       authSession = AuthenticationSessionHandler.get(req, vars.logger);
       if (!authSession.identity_check
         || authSession.identity_check.challenge != "u2f-register") {
-        res.status(403);
-        res.send();
         return reject(new Error("Bad challenge."));
       }
 

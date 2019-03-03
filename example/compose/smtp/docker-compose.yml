@@ -3,6 +3,7 @@ services:
   smtp:
     image: schickling/mailcatcher
     ports:
+      - "1025:1025"
       - "8085:1080"
     networks:
-      - example-network
+      - authelianet

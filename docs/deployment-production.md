@@ -36,16 +36,11 @@ the root of the repo.
 
 <img src="/images/kube-logo.png" width="24" align="left">
 
-**Authelia** can also be used on top of [Kubernetes] using [nginx ingress
-controller](https://github.com/kubernetes/ingress-nginx).
+**Authelia** can also be used on top of [Kubernetes] using
+[nginx ingress controller](https://github.com/kubernetes/ingress-nginx).
 
 Please refer to the following [documentation](../example/kube/README.md)
 for more information.
-
-[config.template.yml]: ../config.template.yml
-[Getting Started]: ./getting-started.md
-[Deployment for Devs]: ./deployment-dev.md
-[Kubernetes]: https://kubernetes.io/
 
 ## FAQ
 
@@ -56,3 +51,10 @@ an infrastructure on bare metal. We would be more than happy to review any PR on
 
 Regarding Kubernetes, the right way to go would be to write a helm recipe.
 Again, we would be glad to review any PR implementing this.
+
+
+
+[config.template.yml]: ../config.template.yml
+[Getting Started]: ./getting-started.md
+[Deployment for Devs]: ./deployment-dev.md
+[Kubernetes]: https://kubernetes.io/

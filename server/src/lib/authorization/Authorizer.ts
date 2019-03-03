@@ -1,5 +1,5 @@
 
-import { ACLConfiguration, ACLPolicy, ACLRule } from "../configuration/schema/AclConfiguration";
+import { ACLConfiguration, ACLRule } from "../configuration/schema/AclConfiguration";
 import { IAuthorizer } from "./IAuthorizer";
 import { Winston } from "../../../types/Dependencies";
 import { MultipleDomainMatcher } from "./MultipleDomainMatcher";

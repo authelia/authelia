@@ -1,6 +1,5 @@
 
 import { INotifier } from "../notifiers/INotifier";
-import { Identity } from "../../../types/Identity";
 
 import Fs = require("fs");
 import Path = require("path");

@@ -1,6 +1,5 @@
 import BluebirdPromise = require("bluebird");
 import exceptions = require("../../../Exceptions");
-import { EventEmitter } from "events";
 import { ISession } from "./ISession";
 import { LdapConfiguration } from "../../../configuration/schema/LdapConfiguration";
 import { Winston } from "../../../../../types/Dependencies";

@@ -1,0 +1,13 @@
+version: '2'
+services:
+  authelia:
+    image: clems4ever/authelia:latest
+    restart: always
+    volumes:
+      - ./test/suites/dockerhub/config.yml:/etc/authelia/config.yml:ro
+    environment:
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+    depends_on: 
+      - redis
+    networks:
+      - authelianet

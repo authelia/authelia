@@ -13,6 +13,8 @@ services:
     volumes:
       - ./example/compose/ldap/base.ldif:/etc/ldap.dist/prepopulate/base.ldif
       - ./example/compose/ldap/access.rules:/etc/ldap.dist/prepopulate/access.rules
+    ports:
+      - "389:389"
     networks:
-      - example-network
+      - authelianet
 

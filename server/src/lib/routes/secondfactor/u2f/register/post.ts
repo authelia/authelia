@@ -1,5 +1,3 @@
-
-import { UserDataStore } from "../../../../storage/UserDataStore";
 import objectPath = require("object-path");
 import u2f_common = require("../U2FCommon");
 import BluebirdPromise = require("bluebird");

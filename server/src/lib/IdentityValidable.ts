@@ -16,4 +16,5 @@ export interface IdentityValidable {
   // Serves the page if identity validated
   postValidationResponse(req: Express.Request, res: Express.Response): void;
   mailSubject(): string;
+  destinationPath(): string;
 }

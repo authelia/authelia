@@ -8,7 +8,6 @@ export class HashGenerator {
     password: string,
     rounds: number = 500000,
     salt?: string): BluebirdPromise<string> {
-    const saltSize = 16;
     // $6 means SHA512
     const _salt = Util.format("$6$rounds=%d$%s", rounds,
       (salt) ? salt : RandomString.generate(16));

@@ -109,17 +109,17 @@ export const SECOND_FACTOR_TOTP_POST = "/api/totp";
 
 
 /**
- * @api {get} /secondfactor/u2f/identity/start Start U2F registration identity validation
+ * @api {get} /api/secondfactor/u2f/identity/start Start U2F registration identity validation
  * @apiName RequestU2FRegistration
  * @apiGroup U2F
  * @apiVersion 1.0.0
  * @apiUse UserSession
  * @apiUse IdentityValidationStart
  */
-export const SECOND_FACTOR_U2F_IDENTITY_START_GET = "/secondfactor/u2f/identity/start";
+export const SECOND_FACTOR_U2F_IDENTITY_START_POST = "/api/secondfactor/u2f/identity/start";
 
 /**
- * @api {get} /secondfactor/u2f/identity/finish Finish U2F registration identity validation
+ * @api {get} /api/secondfactor/u2f/identity/finish Finish U2F registration identity validation
  * @apiName ServeU2FRegistrationPage
  * @apiGroup U2F
  * @apiVersion 1.0.0
@@ -129,12 +129,12 @@ export const SECOND_FACTOR_U2F_IDENTITY_START_GET = "/secondfactor/u2f/identity/
  * @apiDescription Serves the U2F registration page that asks the user to
  * touch the token of the U2F device.
  */
-export const SECOND_FACTOR_U2F_IDENTITY_FINISH_GET = "/secondfactor/u2f/identity/finish";
+export const SECOND_FACTOR_U2F_IDENTITY_FINISH_POST = "/api/secondfactor/u2f/identity/finish";
 
 
 
 /**
- * @api {get} /secondfactor/totp/identity/start Start TOTP registration identity validation
+ * @api {get} /api/secondfactor/totp/identity/start Start TOTP registration identity validation
  * @apiName StartTOTPRegistration
  * @apiGroup TOTP
  * @apiVersion 1.0.0
@@ -143,12 +143,12 @@ export const SECOND_FACTOR_U2F_IDENTITY_FINISH_GET = "/secondfactor/u2f/identity
  *
  * @apiDescription Initiates the identity validation
  */
-export const SECOND_FACTOR_TOTP_IDENTITY_START_GET = "/secondfactor/totp/identity/start";
+export const SECOND_FACTOR_TOTP_IDENTITY_START_POST = "/api/secondfactor/totp/identity/start";
 
 
 
 /**
- * @api {get} /secondfactor/totp/identity/finish Finish TOTP registration identity validation
+ * @api {get} /api/secondfactor/totp/identity/finish Finish TOTP registration identity validation
  * @apiName FinishTOTPRegistration
  * @apiGroup TOTP
  * @apiVersion 1.0.0
@@ -159,7 +159,7 @@ export const SECOND_FACTOR_TOTP_IDENTITY_START_GET = "/secondfactor/totp/identit
  * @apiDescription Serves the TOTP registration page that displays the secret.
  * The secret is a QRCode and a base32 secret.
  */
-export const SECOND_FACTOR_TOTP_IDENTITY_FINISH_GET = "/secondfactor/totp/identity/finish";
+export const SECOND_FACTOR_TOTP_IDENTITY_FINISH_POST = "/api/secondfactor/totp/identity/finish";
 
 
 
@@ -187,7 +187,7 @@ export const RESET_PASSWORD_FORM_POST = "/api/password-reset";
  *
  * @apiDescription Serve a page that requires the username.
  */
-export const RESET_PASSWORD_REQUEST_GET = "/password-reset/request";
+export const RESET_PASSWORD_REQUEST_GET = "/api/password-reset/request";
 
 
 
@@ -201,7 +201,7 @@ export const RESET_PASSWORD_REQUEST_GET = "/password-reset/request";
  *
  * @apiDescription Start password reset request.
  */
-export const RESET_PASSWORD_IDENTITY_START_GET = "/password-reset/identity/start";
+export const RESET_PASSWORD_IDENTITY_START_GET = "/api/password-reset/identity/start";
 
 
 
@@ -215,7 +215,7 @@ export const RESET_PASSWORD_IDENTITY_START_GET = "/password-reset/identity/start
  *
  * @apiDescription Start password reset request.
  */
-export const RESET_PASSWORD_IDENTITY_FINISH_GET = "/password-reset/identity/finish";
+export const RESET_PASSWORD_IDENTITY_FINISH_GET = "/api/password-reset/identity/finish";
 
 
 
@@ -240,28 +240,17 @@ export const RESET_PASSWORD_IDENTITY_FINISH_GET = "/password-reset/identity/fini
 export const FIRST_FACTOR_POST = "/api/firstfactor";
 
 /**
- * @api {get} / First factor page
- * @apiName Login
+ * @api {get} /state Authentication state
+ * @apiName State
  * @apiGroup Authentication
  * @apiVersion 1.0.0
  *
- * @apiSuccess (Success 200) {String} Content The content of the first factor page.
+ * @apiSuccess (Success 200) A dict containing the username and the authentication
+ * level
  *
- * @apiDescription Serves the login page and create a create a cookie for the client.
+ * @apiDescription Get the authentication state of the user based on the cookie.
  */
-export const FIRST_FACTOR_GET = "/";
-
-/**
- * @api {get} /secondfactor Second factor page
- * @apiName SecondFactor
- * @apiGroup Authentication
- * @apiVersion 1.0.0
- *
- * @apiSuccess (Success 200) {String} Content The content of second factor page.
- *
- * @apiDescription Serves the second factor page
- */
-export const SECOND_FACTOR_GET = "/secondfactor";
+export const STATE_GET = "/api/state";
 
 /**
  * @api {get} /api/verify Verify user authentication
@@ -287,20 +276,28 @@ export const SECOND_FACTOR_GET = "/secondfactor";
 export const VERIFY_GET = "/api/verify";
 
 /**
- * @api {get} /logout Serves logout page
+ * @api {post} /api/logout Logout procedure
  * @apiName Logout
  * @apiGroup Authentication
  * @apiVersion 1.0.0
  *
- * @apiParam {String} redirect Redirect to this URL when user is deauthenticated.
- * @apiSuccess (Success 302) redirect Redirect to the URL.
+ * @apiSuccess (Success 200)
  *
- * @apiDescription Log out the user and redirect to the URL.
+ * @apiDescription Resets the session to logout the user.
  */
-export const LOGOUT_GET = "/logout";
+export const LOGOUT_POST = "/api/logout";
 
-export const ERROR_401_GET = "/error/401";
-export const ERROR_403_GET = "/error/403";
-export const ERROR_404_GET = "/error/404";
-
-export const LOGGED_IN = "/loggedin";
+/**
+ * @api {post} /api/redirect Url redirection checking endpoint
+ * @apiName Redirect
+ * @apiGroup Authentication
+ * @apiVersion 1.0.0
+ * @apiDescription Check if the user can be redirected to the url provided.
+ * The level of permissions for this user are checked and the url must be
+ * in the domain protected by authelia.
+ *
+ * @apiSuccess (Success 200)
+ *
+ * @apiDescription Resets the session to logout the user.
+ */
+export const REDIRECT_POST = "/api/redirect";

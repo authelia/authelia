@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+
+program
+  .command('build', 'Build docker image clems4ever/authelia.')
+  .command('publish', 'Publish image clems4ever/authelia to Dockerhub.')
+  .parse(process.argv);

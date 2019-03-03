@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-- '8'
+- '9'
 services:
 - docker
 - ntp
@@ -23,16 +23,20 @@ addons:
   - public.example.com
   - authelia.example.com
   - admin.example.com
+
 before_install:
 - npm install -g npm@'>=2.13.5'
+- pushd client && npm install && popd
+
 before_script:
 - export DISPLAY=:99.0
 - sh -e /etc/init.d/xvfb start
 - sleep 3
 script:
-- "./scripts/travis.sh"
+- "./scripts/authelia-scripts travis"
 after_success:
-- "./scripts/docker-publish.sh"
+- "./scripts/authelia-scripts docker publish"
+
 deploy:
   provider: npm
   email: clement.michaud34@gmail.com

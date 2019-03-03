@@ -1,0 +1,27 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+var spawn = require('child_process').spawn;
+var fs = require('fs');
+
+let config;
+
+program
+  .description('Run Authelia server with a custom configuration file. This is an alternative to suites in the case the environment is already set up.')
+  .arguments('[config_file]', 'Configuration file to run Authelia with.')
+  .action((configArg) => config = configArg)
+  .parse(process.argv);
+
+
+if (!config) {
+  config = 'config.yml'; // set default config file.;
+}
+
+const server = spawn('/usr/bin/env', ['node', 'dist/server/src/index.js', config]);
+
+server.stdout.pipe(process.stdout);
+server.stderr.pipe(process.stderr);
+
+server.on('exit', function(statusCode) {
+  process.exit(statusCode);
+});

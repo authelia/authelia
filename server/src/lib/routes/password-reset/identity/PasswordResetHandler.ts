@@ -5,12 +5,9 @@ import objectPath = require("object-path");
 import exceptions = require("../../../Exceptions");
 import { Identity } from "../../../../../types/Identity";
 import { IdentityValidable } from "../../../IdentityValidable";
-import { PRE_VALIDATION_TEMPLATE } from "../../../IdentityCheckPreValidationTemplate";
 import Constants = require("../constants");
 import { IRequestLogger } from "../../../logging/IRequestLogger";
 import { IUsersDatabase } from "../../../authentication/backends/IUsersDatabase";
-
-export const TEMPLATE_NAME = "password-reset-form";
 
 export default class PasswordResetHandler implements IdentityValidable {
   private logger: IRequestLogger;
@@ -28,14 +25,14 @@ export default class PasswordResetHandler implements IdentityValidable {
   preValidationInit(req: express.Request): BluebirdPromise<Identity> {
     const that = this;
     const userid: string =
-      objectPath.get<express.Request, string>(req, "query.userid");
+      objectPath.get<express.Request, string>(req, "body.username");
     return BluebirdPromise.resolve()
       .then(function () {
         that.logger.debug(req, "User '%s' requested a password reset", userid);
-        if (!userid)
+        if (!userid) {
           return BluebirdPromise.reject(
             new exceptions.AccessDeniedError("No user id provided"));
-
+        }
         return that.usersDatabase.getEmails(userid);
       })
       .then(function (emails: string[]) {
@@ -52,7 +49,8 @@ export default class PasswordResetHandler implements IdentityValidable {
   }
 
   preValidationResponse(req: express.Request, res: express.Response) {
-    res.render(PRE_VALIDATION_TEMPLATE);
+    res.status(204);
+    res.send();
   }
 
   postValidationInit(req: express.Request) {
@@ -60,10 +58,15 @@ export default class PasswordResetHandler implements IdentityValidable {
   }
 
   postValidationResponse(req: express.Request, res: express.Response) {
-    res.render(TEMPLATE_NAME);
+    res.status(204);
+    res.send();
   }
 
   mailSubject(): string {
     return "Reset your password";
+  }
+
+  destinationPath(): string {
+    return "/reset-password";
   }
 }

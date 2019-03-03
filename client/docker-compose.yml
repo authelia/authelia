@@ -1,0 +1,15 @@
+version: '2'
+services:
+  authelia-frontend-dev:
+    build:
+      context: client
+    restart: always
+    volumes:
+      - ./client/tsconfig.json:/usr/app/client/tsconfig.json
+      - ./client/public:/usr/app/client/public
+      - ./client/src:/usr/app/client/src
+      - ./client/.env.development:/usr/app/client/.env.development
+    networks:
+      authelianet:
+        aliases:
+          - authelia-frontend

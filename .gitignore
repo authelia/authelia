@@ -36,3 +36,5 @@ example/ldap/private.ldif
 Configuration.schema.json
 
 users_database.test.yml
+
+.suite
