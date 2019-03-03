@@ -1,3 +1,8 @@
+Release Notes - Version 3.12.0
+------------------------------
+* Add logs to troubleshoot LDAP sanitizer.
+* Add {uid} placeholder for LDAP search queries for groups.
+
 Release Notes - Version 3.11.0
 ------------------------------
 * [BREAKING] Flatten ACL rules to enable some use cases. Configuration of ACLs
@@ -6,7 +11,6 @@ must be updated.
 * Define minimum level of authentication required for a resource in ACL to be
 authorized.
 * Allow Authelia to be built with different themes.
-* Add {uid} placeholder for LDAP search queries for groups.
 * Fix bug in hash matching when using file-based users database.
 * Fix dead link in documentation.
 
