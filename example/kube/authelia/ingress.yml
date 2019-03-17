@@ -10,10 +10,10 @@ spec:
   tls:
   - secretName: authelia-tls
     hosts:
-    - login.kube.example.com
+    - login.example.com
   rules:
   rules:
-  - host: login.kube.example.com
+  - host: login.example.com
     http:
       paths:
       - path: /

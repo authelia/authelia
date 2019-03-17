@@ -20,9 +20,17 @@ async function setup() {
 }
 
 async function teardown() {
-  await dockerEnv.stop();
   await autheliaServer.stop();
-  await exec('rm -r /tmp/authelia/db');
+  await dockerEnv.stop();
+  await exec('rm -rf /tmp/authelia/db');
 }
 
-export { setup, teardown };
+const setup_timeout = 30000;
+const teardown_timeout = 30000;
+
+export {
+  setup,
+  setup_timeout,
+  teardown,
+  teardown_timeout
+};

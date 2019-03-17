@@ -4,6 +4,7 @@ import { exec } from '../utils/exec';
 import ChildProcess from 'child_process';
 import kill from 'tree-kill';
 import AutheliaServerInterface from './AutheliaServerInterface';
+import sleep from '../utils/sleep';
 
 class AutheliaServerWithHotReload implements AutheliaServerInterface {
   private watcher: Chokidar.FSWatcher;
@@ -11,6 +12,8 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
   private AUTHELIA_INTERRUPT_FILENAME = '.authelia-interrupt';
   private serverProcess: ChildProcess.ChildProcess | undefined;
   private clientProcess: ChildProcess.ChildProcess | undefined;
+  private filesChangedBuffer: string[] = [];
+  private changeInProgress: boolean = false;
 
   constructor(configPath: string) {
     this.configPath = configPath;
@@ -22,6 +25,7 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
   }
 
   private async startServer() {
+    if (this.serverProcess) return;
     await exec('./node_modules/.bin/tslint -c server/tslint.json -p server/tsconfig.json')
     this.serverProcess = ChildProcess.spawn('./node_modules/.bin/ts-node',
       ['-P', './server/tsconfig.json', './server/src/index.ts', this.configPath], {
@@ -30,8 +34,8 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
     this.serverProcess.stdout.pipe(process.stdout);
     this.serverProcess.stderr.pipe(process.stderr);
     this.serverProcess.on('exit', () => {
-      console.log('Authelia server exited.');
       if (!this.serverProcess) return;
+      console.log('Authelia server with pid=%s exited.', this.serverProcess.pid);
       this.serverProcess.removeAllListeners();
       this.serverProcess = undefined;
     });
@@ -40,9 +44,10 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
   private killServer() {
     return new Promise((resolve, reject) => {
       if (this.serverProcess) {
+        const pid = this.serverProcess.pid;
         try {
           const timeout = setTimeout(
-            () => reject(new Error('Server not killed after timeout.')), 10000);
+            () => reject(new Error(`Server with pid=${pid} not killed after timeout.`)), 10000);
           this.serverProcess.on('exit', () => {
             clearTimeout(timeout);
             resolve();
@@ -58,6 +63,8 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
   }
 
   private async startClient() {
+    if (this.clientProcess) return;
+
     this.clientProcess = ChildProcess.spawn('npm', ['run', 'start'], {
       cwd: './client',
       env: {
@@ -68,8 +75,8 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
     this.clientProcess.stdout.pipe(process.stdout);
     this.clientProcess.stderr.pipe(process.stderr);
     this.clientProcess.on('exit', () => {
-      console.log('Authelia client exited.');
       if (!this.clientProcess) return;
+      console.log('Authelia client exited with pid=%s.', this.clientProcess.pid);
       this.clientProcess.removeAllListeners();
       this.clientProcess = undefined;
     })
@@ -78,9 +85,10 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
   private killClient() {
     return new Promise((resolve, reject) => {
       if (this.clientProcess) {
+        const pid = this.clientProcess.pid;
         try {
           const timeout = setTimeout(
-            () => reject(new Error('Server not killed after timeout.')), 10000);
+            () => reject(new Error(`Server with pid=${pid} not killed after timeout.`)), 10000);
           this.clientProcess.on('exit', () => {
             clearTimeout(timeout);
             resolve();
@@ -105,14 +113,18 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
    * Handle file changes.
    * @param path The path of the file that has been changed.
    */
-  private async onFileChanged(path: string) {
-    console.log(`File ${path} has been changed, reloading...`);
-    if (path.startsWith('server/src/lib/configuration/schema')) {
+  private onFilesChanged = async (paths: string[]) => {
+    const containsSchemaFiles = paths.filter(
+      (p) => p.startsWith('server/src/lib/configuration/schema')).length > 0;
+    if (containsSchemaFiles) {
       console.log('Schema needs to be regenerated.');
       await this.generateConfigurationSchema();
     }
-    else if (path === this.AUTHELIA_INTERRUPT_FILENAME) {
-      if (fs.existsSync(path)) {
+    
+    const interruptFile = paths.filter(
+      (p) => p === this.AUTHELIA_INTERRUPT_FILENAME).length > 0;
+    if (interruptFile) {
+      if (fs.existsSync(this.AUTHELIA_INTERRUPT_FILENAME)) {
         console.log('Authelia is being interrupted.');
         await this.killServer();
       } else {
@@ -121,8 +133,32 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
       }
       return;
     }
+
     await this.killServer();
     await this.startServer();
+
+    if (this.filesChangedBuffer.length > 0) {
+      await this.consumeFileChanged();
+    }
+  }
+
+  private async consumeFileChanged() {
+    this.changeInProgress = true;
+    const paths = this.filesChangedBuffer;
+    this.filesChangedBuffer = [];
+    try {
+      await this.onFilesChanged(paths);
+    } catch(e) {
+      console.error(e);
+    }
+    this.changeInProgress = false;
+  }
+
+  private enqueueFileChanged(path: string) {
+    console.log(`File ${path} has been changed, reloading...`);
+    this.filesChangedBuffer.push(path);
+    if (this.changeInProgress) return;
+    this.consumeFileChanged();
   }
 
   async start() {
@@ -132,9 +168,9 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
     }
 
     console.log('Start watching file changes...');
-    this.watcher.on('add', (p) => this.onFileChanged(p));
-    this.watcher.on('unlink', (p) => this.onFileChanged(p));
-    this.watcher.on('change', (p) => this.onFileChanged(p));
+    this.watcher.on('add', (p) => this.enqueueFileChanged(p));
+    this.watcher.on('unlink', (p) => this.enqueueFileChanged(p));
+    this.watcher.on('change', (p) => this.enqueueFileChanged(p));
 
     this.startClient();
     this.startServer();
@@ -143,6 +179,7 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
   async stop() {
     await this.killClient();
     await this.killServer();
+    await sleep(2000);
   }
 }
 

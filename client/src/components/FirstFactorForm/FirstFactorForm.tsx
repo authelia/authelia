@@ -20,7 +20,7 @@ export interface StateProps {
 }
 
 export interface DispatchProps {
-  onAuthenticationRequested(username: string, password: string, rememberMe: boolean): void;
+  onAuthenticationRequested(username: string, password: string, rememberMe: boolean): Promise<void>;
 }
 
 export type Props = OwnProps & StateProps & DispatchProps;
@@ -136,7 +136,11 @@ class FirstFactorForm extends Component<Props, State> {
     this.props.onAuthenticationRequested(
       this.state.username,
       this.state.password,
-      this.state.rememberMe);
+      this.state.rememberMe)
+      .catch((err: Error) => console.error(err))
+      .finally(() => {
+        this.setState({username: '', password: ''});
+      })
   }
 }
 

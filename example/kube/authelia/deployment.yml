@@ -18,8 +18,7 @@ spec:
     spec:
       containers:
       - name: authelia
-        image: localhost:5000/authelia:latest
-        imagePullPolicy: Always
+        image: authelia:dist
         ports:
         - containerPort: 80
         volumeMounts:

@@ -29,14 +29,13 @@ the root of the repo.
 
 ### Deploy With Docker
 
-    docker pull clems4ever/authelia
     docker run -v /path/to/your/config.yml:/etc/authelia/config.yml clems4ever/authelia
 
 ## On top of Kubernetes
 
 <img src="/images/kube-logo.png" width="24" align="left">
 
-**Authelia** can also be used on top of [Kubernetes] using
+**Authelia** can also be installed on top of [Kubernetes] using
 [nginx ingress controller](https://github.com/kubernetes/ingress-nginx).
 
 Please refer to the following [documentation](../example/kube/README.md)

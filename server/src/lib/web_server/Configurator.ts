@@ -34,6 +34,12 @@ export class Configurator {
     app.disable(X_POWERED_BY);
     app.enable(TRUST_PROXY);
     app.use(Helmet());
+    app.use(function (req, res, next) {
+      if (!req.session) {
+        return next(new Error("No session available."));
+      }
+      next();
+    });
 
     RestApi.setup(app, vars);
   }

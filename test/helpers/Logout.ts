@@ -1,5 +1,6 @@
 import { WebDriver } from "selenium-webdriver";
+import VisitPage from "./VisitPage";
 
 export default async function(driver: WebDriver) {
-  await driver.get(`https://login.example.com:8080/logout`);
+  await VisitPage(driver, `https://login.example.com:8080/#/logout`);
 }

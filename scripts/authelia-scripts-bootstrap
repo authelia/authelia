@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+
+var { exec } = require('./utils/exec');
+var fs = require('fs');
+
+async function main() {
+  console.log('Build authelia-example-backend docker image.')
+  await exec('docker build -t authelia-example-backend example/compose/nginx/backend');
+
+  if (!fs.existsSync('/tmp/kind')) {
+    console.log('Install Kind for spawning a Kubernetes cluster.');
+    await exec('wget https://github.com/clems4ever/kind/releases/download/0.1.0-cmic1/kind-linux-amd64 -O /tmp/kind && chmod +x /tmp/kind');  
+  }
+
+  if (!fs.existsSync('/tmp/kubectl')) {
+    console.log('Install Kubectl for interacting with Kubernetes.');
+    await exec('wget https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl -O /tmp/kubectl && chmod +x /tmp/kubectl');
+  }
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+})

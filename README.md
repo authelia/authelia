@@ -41,14 +41,18 @@ For more details about the features, follow [Features](./docs/features.md).
 
 ## Getting Started
 
-If you want to quickly test Authelia with Docker, we recommend you read
-[Getting Started](./docs/getting-started.md).
+You can start off with
+
+    source bootstrap.sh
+
+If you want to go further, please read [Getting Started](./docs/getting-started.md).
 
 ## Deployment
 
-Now that you have tested **Authelia** and you want to try it out in your own infrastructure, you can learn how to deploy and use it with
-[Deployment](./docs/deployment-production.md). This guide will show you how to deploy
-it on bare metal as well as on Kubernetes.
+Now that you have tested **Authelia** and you want to try it out in your own infrastructure,
+you can learn how to deploy and use it with [Deployment](./docs/deployment-production.md).
+This guide will show you how to deploy it on bare metal as well as on
+[Kubernetes](https://kubernetes.io/).
 
 ## Security
 

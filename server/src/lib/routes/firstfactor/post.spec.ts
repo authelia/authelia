@@ -1,5 +1,3 @@
-
-import Sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
 import FirstFactorPost = require("./post");

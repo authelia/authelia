@@ -5,6 +5,7 @@ var program = require('commander');
 program
   .version('0.0.1')
 
+  .command('bootstrap', 'Prepare some containers for development.')
   .command('suites', 'Run Authelia in specific environments.')
   .command('serve', 'Run Authelia with a customized configuration.')
   .command('build', 'Build production version of Authelia from source.')

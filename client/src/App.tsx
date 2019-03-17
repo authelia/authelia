@@ -3,14 +3,14 @@ import './App.scss';
 
 import { Route, Switch } from "react-router-dom";
 import { routes } from './routes/index';
-import { createBrowserHistory } from 'history';
+import { createHashHistory } from 'history';
 import { createStore, applyMiddleware, compose } from 'redux';
 import reducer from './reducers';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
 import { routerMiddleware, ConnectedRouter } from 'connected-react-router';
 
-const history = createBrowserHistory();
+const history = createHashHistory();
 const store = createStore(
   reducer(history),
   compose(

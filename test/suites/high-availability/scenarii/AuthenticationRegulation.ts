@@ -23,7 +23,7 @@ export default function() {
       await VerifyNotificationDisplayed(this.driver, "Authentication failed. Please check your credentials.");
 
       // when providing good credentials, the hacker is regulated and see same message as previously.
-      await LoginAs(this.driver, "blackhat", "password");
+      await LoginAs(this.driver, "blackhat", "bad-password");
       await VerifyNotificationDisplayed(this.driver, "Authentication failed. Please check your credentials.");
 
       // Wait the regulation ban time before retrying with correct credentials.

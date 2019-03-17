@@ -15,13 +15,15 @@ export async function GetLinkFromFile() {
 export async function GetLinkFromEmail() {
   const data = await Request({
     method: "GET",
-    uri: "http://localhost:8085/messages",
-    json: true
+    uri: "https://mail.example.com:8080/messages",
+    json: true,
+    rejectUnauthorized: false,
   });
   const messageId = data[data.length - 1].id;
   const data2 = await Request({
     method: "GET",
-    uri: `http://localhost:8085/messages/${messageId}.html`
+    rejectUnauthorized: false,
+    uri: `https://mail.example.com:8080/messages/${messageId}.html`
   });
   const regexp = new RegExp(/<a href="(.+)" class="button">Continue<\/a>/);
   const match = regexp.exec(data2);

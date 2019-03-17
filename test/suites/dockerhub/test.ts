@@ -2,7 +2,8 @@ import AutheliaSuite from '../../helpers/context/AutheliaSuite';
 import DockerCompose from '../../helpers/context/DockerCompose';
 import { composeFiles } from './environment';
 import Assert from 'assert';
-import SimpleAuthentication from './scenarii/SimpleAuthentication';
+import SingleFactorAuthentication from '../../helpers/scenarii/SingleFactorAuthentication';
+import TwoFactorAuthentication from '../../helpers/scenarii/TwoFactorAuthentication';
 
 AutheliaSuite(__dirname, function() {
   this.timeout(15000);
@@ -21,5 +22,6 @@ AutheliaSuite(__dirname, function() {
     });
   });
 
-  describe('Simple authentication', SimpleAuthentication);
+  describe('Single-factor authentication', SingleFactorAuthentication())
+  describe('Two-factor authentication', TwoFactorAuthentication());
 });

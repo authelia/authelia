@@ -15,18 +15,16 @@ addons:
   hosts:
   - admin.example.com
   - login.example.com
-  - single_factor.example.com
+  - singlefactor.example.com
   - dev.example.com
   - home.example.com
   - mx1.mail.example.com
   - mx2.mail.example.com
   - public.example.com
+  - secure.example.com
   - authelia.example.com
   - admin.example.com
-
-before_install:
-- npm install -g npm@'>=2.13.5'
-- pushd client && npm install && popd
+  - mail.example.com
 
 before_script:
 - export DISPLAY=:99.0

@@ -7,8 +7,8 @@ import BackendProtection from './scenarii/BackendProtection';
 import VerifyEndpoint from './scenarii/VerifyEndpoint';
 import RequiredTwoFactor from './scenarii/RequiredTwoFactor';
 import LogoutRedirectToAlreadyLoggedIn from './scenarii/LogoutRedirectToAlreadyLoggedIn';
-import SimpleAuthentication from './scenarii/SimpleAuthentication';
 import { exec } from '../../helpers/utils/exec';
+import TwoFactorAuthentication from "../../helpers/scenarii/TwoFactorAuthentication";
 
 AutheliaSuite(__dirname, function() {
   this.timeout(10000);
@@ -17,7 +17,7 @@ AutheliaSuite(__dirname, function() {
     await exec(`cp ${__dirname}/users_database.yml ${__dirname}/users_database.test.yml`);
   });
 
-  describe('Simple authentication', SimpleAuthentication);
+  describe('Two-factor authentication', TwoFactorAuthentication());
   describe('Backend protection', BackendProtection);
   describe('Verify API endpoint', VerifyEndpoint);
   describe('Bad password', BadPassword);

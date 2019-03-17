@@ -7,14 +7,14 @@ import VerifyUrlIs from "../../../helpers/assertions/VerifyUrlIs";
 
 export default function() {
   describe("Custom-Forwarded-User and Custom-Forwarded-Groups are correctly forwarded to protected backend", function() {
-    this.timeout(10000);
+    this.timeout(100000);
 
-    describe("With single factor", function() {
+    describe("Headers after single factor authentication", function() {
       before(async function() {
         this.driver = await StartDriver();
-        await LoginOneFactor(this.driver, "john", "password", "https://single_factor.example.com:8080/headers");
+        await LoginOneFactor(this.driver, "john", "password", "https://singlefactor.example.com:8080/headers");
       });
-    
+      
       after(async function() {
         await Logout(this.driver);
         await StopDriver(this.driver);
@@ -29,10 +29,10 @@ export default function() {
       });
     });
 
-    describe("With two factors", function() {
+    describe("Headers after two factor authentication", function() {
       before(async function() {
         this.driver = await StartDriver();
-        await RegisterAndLoginWith2FA(this.driver, "john", "password", true, "https://public.example.com:8080/headers");
+        await RegisterAndLoginWith2FA(this.driver, "john", "password", true, "https://secure.example.com:8080/headers");
       });
     
       after(async function() {

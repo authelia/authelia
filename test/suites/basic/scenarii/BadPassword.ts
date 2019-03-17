@@ -14,7 +14,7 @@ export default function() {
 
     before(async function() {
       this.driver = await StartDriver();
-      await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/")
+      await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/#/")
       await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'bad_password');
     });
 

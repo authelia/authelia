@@ -2,7 +2,6 @@
 
 var program = require('commander');
 var spawn = require('child_process').spawn;
-var fs = require('fs');
 
 let config;
 
