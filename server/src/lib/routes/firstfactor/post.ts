@@ -1,4 +1,3 @@
-import * as ObjectPath from "object-path";
 import BluebirdPromise = require("bluebird");
 import express = require("express");
 import ErrorReplies = require("../../ErrorReplies");
@@ -16,6 +15,7 @@ import { Subject } from "../../../lib/authorization/Subject";
 import AuthenticationError from "../../../lib/authentication/AuthenticationError";
 import IsRedirectionSafe from "../../../lib/utils/IsRedirectionSafe";
 import * as URLParse from "url-parse";
+import GetHeader from "../../utils/GetHeader";
 
 export default function (vars: ServerVariables) {
   return function (req: express.Request, res: express.Response)
@@ -63,7 +63,7 @@ export default function (vars: ServerVariables) {
         vars.regulator.mark(username, true);
       })
       .then(function() {
-        const targetUrl = ObjectPath.get<Express.Request, string>(req, "headers.x-target-url", undefined);
+        const targetUrl = GetHeader(req, "x-target-url");
 
         if (!targetUrl) {
           res.status(204);
@@ -85,7 +85,7 @@ export default function (vars: ServerVariables) {
 
           const authorizationLevel = vars.authorizer.authorization(resObject, subject);
           if (authorizationLevel <= AuthorizationLevel.ONE_FACTOR) {
-            if (IsRedirectionSafe(vars, authSession, new URLParse(targetUrl))) {
+            if (IsRedirectionSafe(vars, new URLParse(targetUrl))) {
               res.json({redirect: targetUrl});
               return BluebirdPromise.resolve();
             } else {

@@ -1,8 +1,5 @@
 import Express = require("express");
 import BluebirdPromise = require("bluebird");
-import Util = require("util");
-import ObjectPath = require("object-path");
-
 import Exceptions = require("../../Exceptions");
 import { Configuration } from "../../configuration/schema/Configuration";
 import { ServerVariables } from "../../ServerVariables";
@@ -13,6 +10,8 @@ import { AuthenticationSessionHandler }
   from "../../AuthenticationSessionHandler";
 import AccessControl from "./access_control";
 import { URLDecomposer } from "../../utils/URLDecomposer";
+import GetHeader from "../../utils/GetHeader";
+import { HEADER_X_ORIGINAL_URL } from "../../../../../shared/constants";
 
 function verify_inactivity(req: Express.Request,
   authSession: AuthenticationSession,
@@ -54,8 +53,7 @@ export default function (req: Express.Request, res: Express.Response,
         "userid is missing"));
     }
 
-    const originalUrl = ObjectPath.get<Express.Request, string>(
-      req, "headers.x-original-url");
+    const originalUrl = GetHeader(req, HEADER_X_ORIGINAL_URL);
 
     const d = URLDecomposer.fromUrl(originalUrl);
     vars.logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s", d.domain,

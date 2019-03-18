@@ -1,4 +1,4 @@
-
+import * as Express from "express";
 import sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
@@ -10,14 +10,13 @@ import ExpressMock = require("../../../../stubs/express.spec");
 import { Level } from "../../../../authentication/Level";
 
 describe("routes/secondfactor/u2f/sign/post", function () {
-  let req: ExpressMock.RequestMock;
+  let req: Express.Request;
   let res: ExpressMock.ResponseMock;
   let mocks: ServerVariablesMock;
   let vars: ServerVariables;
 
   beforeEach(function () {
     req = ExpressMock.RequestMock();
-    req.app = {};
     req.originalUrl = "/api/xxxx";
 
     const s = ServerVariablesMockBuilder.build();
@@ -25,6 +24,7 @@ describe("routes/secondfactor/u2f/sign/post", function () {
     vars = s.variables;
 
     req.session = {
+      ...req.session,
       auth: {
         userid: "user",
         authentication_level: Level.ONE_FACTOR,

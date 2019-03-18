@@ -1,16 +1,17 @@
+import * as Express from 'express';
 import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
 import FirstFactorPost = require("./post");
 import exceptions = require("../../Exceptions");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
-import ExpressMock = require("../../stubs/express.spec");
+import * as ExpressMock from "../../stubs/express.spec";
 import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../ServerVariablesMockBuilder.spec";
 import { ServerVariables } from "../../ServerVariables";
 import AuthenticationError from "../../authentication/AuthenticationError";
 
 describe("routes/firstfactor/post", function () {
-  let req: ExpressMock.RequestMock;
+  let req: Express.Request;
   let res: ExpressMock.ResponseMock;
   let emails: string[];
   let groups: string[];
@@ -29,23 +30,11 @@ describe("routes/firstfactor/post", function () {
     mocks.regulator.regulateStub.returns(BluebirdPromise.resolve());
     mocks.regulator.markStub.returns(BluebirdPromise.resolve());
 
-    req = {
-      originalUrl: "/api/firstfactor",
-      body: {
-        username: "username",
-        password: "password"
-      },
-      query: {
-        redirect: "http://redirect.url"
-      },
-      session: {
-        cookie: {}
-      },
-      headers: {
-        host: "home.example.com"
-      }
-    };
-
+    req = ExpressMock.RequestMock();
+    req.body = {
+      username: "username",
+      password: "password"
+    }
     res = ExpressMock.ResponseMock();
     authSession = AuthenticationSessionHandler.get(req as any, vars.logger);
   });

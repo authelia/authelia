@@ -4,11 +4,17 @@ var program = require('commander');
 var spawn = require('child_process').spawn;
 
 program
+  .option('--forbid-only', 'Forbid only and pending filters.')
   .parse(process.argv);
 
-async function runTests(pattern) {
+async function runTests(patterns) {
   return new Promise((resolve, reject) => {
-    mocha = spawn('./node_modules/.bin/mocha', ['--colors', '--require', 'ts-node/register', pattern], {
+    let mochaArgs = ['--require', 'ts-node/register', '--require', './spec-helper.js', '--colors'];
+    if (program.forbidOnly) {
+      mochaArgs = ['--forbid-only', '--forbid-pending'].concat(mochaArgs);
+    }
+
+    const mocha = spawn('./node_modules/.bin/mocha', mochaArgs.concat(patterns), {
       env: {
         ...process.env,
         'TS_NODE_PROJECT': './server/tsconfig.json'
@@ -27,8 +33,10 @@ async function runTests(pattern) {
 }
 
 async function test() {
-  await runTests('server/src/**/*.spec.ts');
-  await runTests('shared/**/*.spec.ts');
+  await runTests([
+    'server/src/**/*.spec.ts',
+    'shared/**/*.spec.ts'
+  ]);
 }
 
 test()

@@ -6,34 +6,44 @@ import { ServerVariables } from "../../ServerVariables";
 import GetWithSessionCookieMethod from "./get_session_cookie";
 import GetWithBasicAuthMethod from "./get_basic_auth";
 import Constants = require("../../../../../shared/constants");
-import ObjectPath = require("object-path");
-
 import { AuthenticationSessionHandler }
   from "../../AuthenticationSessionHandler";
 import { AuthenticationSession }
   from "../../../../types/AuthenticationSession";
+import GetHeader from "../../utils/GetHeader";
 
 const REMOTE_USER = "Remote-User";
 const REMOTE_GROUPS = "Remote-Groups";
 
 
 function verifyWithSelectedMethod(req: Express.Request, res: Express.Response,
-  vars: ServerVariables, authSession: AuthenticationSession)
+  vars: ServerVariables, authSession: AuthenticationSession | undefined)
   : () => BluebirdPromise<{ username: string, groups: string[] }> {
   return function () {
-    const authorization: string = "" + req.headers["proxy-authorization"];
-    if (authorization && authorization.startsWith("Basic "))
-      return GetWithBasicAuthMethod(req, res, vars, authorization);
-
-    return GetWithSessionCookieMethod(req, res, vars, authSession);
+    const authorization = GetHeader(req, Constants.HEADER_PROXY_AUTHORIZATION);
+    if (authorization) {
+      if (authorization.startsWith("Basic ")) {
+        return GetWithBasicAuthMethod(req, res, vars, authorization);
+      }
+      else {
+        throw new Error("The authorization header should be of the form 'Basic XXXXXX'");
+      }
+    }
+    else {
+      if (authSession) {
+        return GetWithSessionCookieMethod(req, res, vars, authSession);
+      }
+      else {
+        throw new Error("No cookie detected.");
+      }
+    }
   };
 }
 
 function setRedirectHeader(req: Express.Request, res: Express.Response) {
   return function () {
-    const originalUrl = ObjectPath.get<Express.Request, string>(
-      req, "headers.x-original-url");
-    res.set("Redirect", originalUrl);
+    const originalUrl = GetHeader(req, Constants.HEADER_X_ORIGINAL_URL);
+    res.set(Constants.HEADER_REDIRECT, originalUrl);
     return BluebirdPromise.resolve();
   };
 }
@@ -62,7 +72,7 @@ function getRedirectParam(req: Express.Request) {
 export default function (vars: ServerVariables) {
   return function (req: Express.Request, res: Express.Response)
     : BluebirdPromise<void> {
-    let authSession: AuthenticationSession;
+    let authSession: AuthenticationSession | undefined;
     return new BluebirdPromise(function (resolve, reject) {
       authSession = AuthenticationSessionHandler.get(req, vars.logger);
       resolve();
@@ -78,6 +88,7 @@ export default function (vars: ServerVariables) {
         ErrorReplies.replyWithError401(req, res, vars.logger))
       // The user is not yet authenticated -> 401
       .catch((err) => {
+        console.error(err);
         // This redirect parameter is used in Kubernetes to annotate the ingress with
         // the url to the authentication portal.
         const redirectUrl = getRedirectParam(req);

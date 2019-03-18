@@ -1,15 +1,14 @@
-
+import * as Express from "express";
 import sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
 import U2FRegisterRequestGet = require("./get");
 import ExpressMock = require("../../../../stubs/express.spec");
-import { UserDataStoreStub } from "../../../../storage/UserDataStoreStub.spec";
 import { ServerVariablesMockBuilder, ServerVariablesMock } from "../../../../ServerVariablesMockBuilder.spec";
 import { ServerVariables } from "../../../../ServerVariables";
 
 describe("routes/secondfactor/u2f/register_request/get", function () {
-  let req: ExpressMock.RequestMock;
+  let req: Express.Request;
   let res: ExpressMock.ResponseMock;
   let mocks: ServerVariablesMock;
   let vars: ServerVariables;
@@ -17,8 +16,8 @@ describe("routes/secondfactor/u2f/register_request/get", function () {
   beforeEach(function () {
     req = ExpressMock.RequestMock();
     req.originalUrl = "/api/xxxx";
-    req.app = {};
     req.session = {
+      ...req.session,
       auth: {
         userid: "user",
         first_factor: true,

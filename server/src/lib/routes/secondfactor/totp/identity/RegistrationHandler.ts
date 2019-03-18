@@ -1,5 +1,5 @@
 
-import express = require("express");
+import * as Express from "express";
 import BluebirdPromise = require("bluebird");
 
 import { Identity } from "../../../../../../types/Identity";
@@ -35,7 +35,7 @@ export default class RegistrationHandler implements IdentityValidable {
     return Constants.CHALLENGE;
   }
 
-  private retrieveIdentity(req: express.Request): BluebirdPromise<Identity> {
+  private retrieveIdentity(req: Express.Request): BluebirdPromise<Identity> {
     const that = this;
     return new BluebirdPromise(function (resolve, reject) {
       const authSession = AuthenticationSessionHandler.get(req, that.logger);
@@ -54,7 +54,7 @@ export default class RegistrationHandler implements IdentityValidable {
     });
   }
 
-  preValidationInit(req: express.Request): BluebirdPromise<Identity> {
+  preValidationInit(req: Express.Request): BluebirdPromise<Identity> {
     const that = this;
     return FirstFactorValidator.validate(req, this.logger)
       .then(function () {
@@ -62,16 +62,16 @@ export default class RegistrationHandler implements IdentityValidable {
       });
   }
 
-  preValidationResponse(req: express.Request, res: express.Response) {
+  preValidationResponse(req: Express.Request, res: Express.Response) {
     res.status(204);
     res.send();
   }
 
-  postValidationInit(req: express.Request) {
+  postValidationInit(req: Express.Request) {
     return FirstFactorValidator.validate(req, this.logger);
   }
 
-  postValidationResponse(req: express.Request, res: express.Response)
+  postValidationResponse(req: Express.Request, res: Express.Response)
     : BluebirdPromise<void> {
     const that = this;
     let secret: TOTPSecret;

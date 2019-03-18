@@ -1,20 +1,17 @@
 
 import BluebirdPromise = require("bluebird");
-import Sinon = require("sinon");
 import Assert = require("assert");
-import Exceptions = require("../../../../Exceptions");
+import * as Express from "express";
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import SignPost = require("./post");
 import { ServerVariables } from "../../../../ServerVariables";
-
 import ExpressMock = require("../../../../stubs/express.spec");
-import { UserDataStoreStub } from "../../../../storage/UserDataStoreStub.spec";
 import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../../../ServerVariablesMockBuilder.spec";
 import { Level } from "../../../../authentication/Level";
 
 describe("routes/secondfactor/totp/sign/post", function () {
-  let req: ExpressMock.RequestMock;
+  let req: Express.Request;
   let res: ExpressMock.ResponseMock;
   let authSession: AuthenticationSession;
   let vars: ServerVariables;
@@ -24,17 +21,9 @@ describe("routes/secondfactor/totp/sign/post", function () {
     const s = ServerVariablesMockBuilder.build();
     vars = s.variables;
     mocks = s.mocks;
-    const app_get = Sinon.stub();
-    req = {
-      originalUrl: "/api/totp-register",
-      app: {},
-      body: {
-        token: "abc"
-      },
-      session: {},
-      query: {
-        redirect: "http://redirect"
-      }
+    req = ExpressMock.RequestMock();
+    req.body = {
+      token: "abc",
     };
     res = ExpressMock.ResponseMock();
 

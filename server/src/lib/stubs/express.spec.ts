@@ -1,103 +1,117 @@
 
-import sinon = require("sinon");
-import express = require("express");
-
-export interface RequestMock {
-    app?: any;
-    body?: any;
-    session?: any;
-    headers?: any;
-    get?: any;
-    query?: any;
-    originalUrl: string;
-}
+import * as Sinon from "sinon";
+import * as Express from "express";
+import { GET_VARIABLE_KEY } from "../../../../shared/constants";
+import { RequestLoggerStub } from "../logging/RequestLoggerStub.spec";
 
 export interface ResponseMock {
-    send: sinon.SinonStub | sinon.SinonSpy;
-    sendStatus: sinon.SinonStub;
-    sendFile: sinon.SinonStub;
-    sendfile: sinon.SinonStub;
-    status: sinon.SinonStub | sinon.SinonSpy;
-    json: sinon.SinonStub | sinon.SinonSpy;
-    links: sinon.SinonStub;
-    jsonp: sinon.SinonStub;
-    download: sinon.SinonStub;
-    contentType: sinon.SinonStub;
-    type: sinon.SinonStub;
-    format: sinon.SinonStub;
-    attachment: sinon.SinonStub;
-    set: sinon.SinonStub;
-    header: sinon.SinonStub;
+    send: Sinon.SinonStub | Sinon.SinonSpy;
+    sendStatus: Sinon.SinonStub;
+    sendFile: Sinon.SinonStub;
+    sendfile: Sinon.SinonStub;
+    status: Sinon.SinonStub | Sinon.SinonSpy;
+    json: Sinon.SinonStub | Sinon.SinonSpy;
+    links: Sinon.SinonStub;
+    jsonp: Sinon.SinonStub;
+    download: Sinon.SinonStub;
+    contentType: Sinon.SinonStub;
+    type: Sinon.SinonStub;
+    format: Sinon.SinonStub;
+    attachment: Sinon.SinonStub;
+    set: Sinon.SinonStub;
+    header: Sinon.SinonStub;
     headersSent: boolean;
-    get: sinon.SinonStub;
-    clearCookie: sinon.SinonStub;
-    cookie: sinon.SinonStub;
-    location: sinon.SinonStub;
-    redirect: sinon.SinonStub | sinon.SinonSpy;
-    render: sinon.SinonStub | sinon.SinonSpy;
-    locals: sinon.SinonStub;
+    get: Sinon.SinonStub;
+    clearCookie: Sinon.SinonStub;
+    cookie: Sinon.SinonStub;
+    location: Sinon.SinonStub;
+    redirect: Sinon.SinonStub | Sinon.SinonSpy;
+    render: Sinon.SinonStub | Sinon.SinonSpy;
+    locals: Sinon.SinonStub;
     charset: string;
-    vary: sinon.SinonStub;
+    vary: Sinon.SinonStub;
     app: any;
-    write: sinon.SinonStub;
-    writeContinue: sinon.SinonStub;
-    writeHead: sinon.SinonStub;
+    write: Sinon.SinonStub;
+    writeContinue: Sinon.SinonStub;
+    writeHead: Sinon.SinonStub;
     statusCode: number;
     statusMessage: string;
-    setHeader: sinon.SinonStub;
-    setTimeout: sinon.SinonStub;
+    setHeader: Sinon.SinonStub;
+    setTimeout: Sinon.SinonStub;
     sendDate: boolean;
-    getHeader: sinon.SinonStub;
+    getHeader: Sinon.SinonStub;
 }
 
-export function RequestMock(): RequestMock {
+export function RequestMock(): Express.Request {
+    const getMock = Sinon.mock()
+      .withArgs(GET_VARIABLE_KEY).atLeast(0).returns({
+          logger: new RequestLoggerStub()
+      });
     return {
-        originalUrl: "/non-api/xxx",
+        id: '1234',
+        headers: {},
         app: {
-            get: sinon.stub()
+            get: getMock,
+            set: Sinon.mock(),
         },
-        headers: {
-            "x-forwarded-for": "127.0.0.1"
-        },
-        session: {}
-    };
+        body: {},
+        query: {},
+        session: {
+            id: '1234',
+            regenerate: function() {},
+            reload: function() {},
+            destroy: function() {},
+            save: function() {},
+            touch: function() {},
+            cookie: {
+                domain: 'example.com',
+                expires: true,
+                httpOnly: true,
+                maxAge: 36000,
+                originalMaxAge: 36000,
+                path: '/',
+                secure: true,
+                serialize: () => '',
+            }
+        }
+    } as any;
 }
 export function ResponseMock(): ResponseMock {
     return {
-        send: sinon.stub(),
-        status: sinon.stub(),
-        json: sinon.stub(),
-        sendStatus: sinon.stub(),
-        links: sinon.stub(),
-        jsonp: sinon.stub(),
-        sendFile: sinon.stub(),
-        sendfile: sinon.stub(),
-        download: sinon.stub(),
-        contentType: sinon.stub(),
-        type: sinon.stub(),
-        format: sinon.stub(),
-        attachment: sinon.stub(),
-        set: sinon.stub(),
-        header: sinon.stub(),
+        send: Sinon.stub(),
+        status: Sinon.stub(),
+        json: Sinon.stub(),
+        sendStatus: Sinon.stub(),
+        links: Sinon.stub(),
+        jsonp: Sinon.stub(),
+        sendFile: Sinon.stub(),
+        sendfile: Sinon.stub(),
+        download: Sinon.stub(),
+        contentType: Sinon.stub(),
+        type: Sinon.stub(),
+        format: Sinon.stub(),
+        attachment: Sinon.stub(),
+        set: Sinon.stub(),
+        header: Sinon.stub(),
         headersSent: true,
-        get: sinon.stub(),
-        clearCookie: sinon.stub(),
-        cookie: sinon.stub(),
-        location: sinon.stub(),
-        redirect: sinon.stub(),
-        render: sinon.stub(),
-        locals: sinon.stub(),
+        get: Sinon.stub(),
+        clearCookie: Sinon.stub(),
+        cookie: Sinon.stub(),
+        location: Sinon.stub(),
+        redirect: Sinon.stub(),
+        render: Sinon.stub(),
+        locals: Sinon.stub(),
         charset: "utf-8",
-        vary: sinon.stub(),
-        app: sinon.stub(),
-        write: sinon.stub(),
-        writeContinue: sinon.stub(),
-        writeHead: sinon.stub(),
+        vary: Sinon.stub(),
+        app: Sinon.stub(),
+        write: Sinon.stub(),
+        writeContinue: Sinon.stub(),
+        writeHead: Sinon.stub(),
         statusCode: 200,
         statusMessage: "message",
-        setHeader: sinon.stub(),
-        setTimeout: sinon.stub(),
+        setHeader: Sinon.stub(),
+        setTimeout: Sinon.stub(),
         sendDate: true,
-        getHeader: sinon.stub()
+        getHeader: Sinon.stub()
     };
 }
