@@ -9,3 +9,6 @@ export const HEADER_PROXY_AUTHORIZATION = "proxy-authorization";
 export const HEADER_REDIRECT = "redirect";
 
 export const GET_VARIABLE_KEY = "variables";
+
+export const HEADER_REMOTE_USER = "Remote-User";
+export const HEADER_REMOTE_GROUPS = "Remote-Groups";

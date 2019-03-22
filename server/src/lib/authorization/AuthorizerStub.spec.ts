@@ -4,7 +4,7 @@ import { Level } from "./Level";
 import { Object } from "./Object";
 import { Subject } from "./Subject";
 
-export class AuthorizerStub implements IAuthorizer {
+export default class AuthorizerStub implements IAuthorizer {
   authorizationMock: Sinon.SinonStub;
 
   constructor() {

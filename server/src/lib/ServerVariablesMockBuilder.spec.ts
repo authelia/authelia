@@ -2,7 +2,7 @@ import { ServerVariables } from "./ServerVariables";
 
 import { Configuration } from "./configuration/schema/Configuration";
 import { IUsersDatabaseStub } from "./authentication/backends/IUsersDatabaseStub.spec";
-import { AuthorizerStub } from "./authorization/AuthorizerStub.spec";
+import AuthorizerStub from "./authorization/AuthorizerStub.spec";
 import { RequestLoggerStub } from "./logging/RequestLoggerStub.spec";
 import { NotifierStub } from "./notifiers/NotifierStub.spec";
 import { RegulatorStub } from "./regulation/RegulatorStub.spec";
