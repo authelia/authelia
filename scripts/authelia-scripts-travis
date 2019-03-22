@@ -22,15 +22,19 @@ docker-compose -f docker-compose.yml \
   pull
 
 # Build
+echo "===> Build stage"
 authelia-scripts build
 
 # Run unit tests
+echo "===> Unit tests stage"
 authelia-scripts unittest --forbid-only
 
 # Build the docker image
+echo "===> Docker image build stage"
 authelia-scripts docker build
 
 # Run integration tests
+echo "===> e2e stage"
 authelia-scripts suites test --headless --forbid-only
 
 # Test npm deployment before actual deployment
