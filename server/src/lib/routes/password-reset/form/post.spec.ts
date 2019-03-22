@@ -1,9 +1,7 @@
-
+import * as Express from "express";
 import PasswordResetFormPost = require("./post");
 import { AuthenticationSessionHandler } from "../../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../../types/AuthenticationSession";
-import { UserDataStore } from "../../../storage/UserDataStore";
-import Sinon = require("sinon");
 import Assert = require("assert");
 import BluebirdPromise = require("bluebird");
 import ExpressMock = require("../../../stubs/express.spec");
@@ -12,31 +10,18 @@ import { ServerVariables } from "../../../ServerVariables";
 import { Level } from "../../../authentication/Level";
 
 describe("routes/password-reset/form/post", function () {
-  let req: ExpressMock.RequestMock;
+  let req: Express.Request;
   let res: ExpressMock.ResponseMock;
   let vars: ServerVariables;
   let mocks: ServerVariablesMock;
   let authSession: AuthenticationSession;
 
   beforeEach(function () {
-    req = {
-      originalUrl: "/api/password-reset",
-      body: {
-        userid: "user"
-      },
-      session: {},
-      headers: {
-        host: "localhost"
-      }
-    };
+    req = ExpressMock.RequestMock();
 
     const s = ServerVariablesMockBuilder.build();
     mocks = s.mocks;
     vars = s.variables;
-
-    const options = {
-      inMemoryOnly: true
-    };
 
     mocks.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
     mocks.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
@@ -65,7 +50,6 @@ describe("routes/password-reset/form/post", function () {
 
   describe("test reset password post", () => {
     it("should update the password and reset auth_session for reauthentication", function () {
-      req.body = {};
       req.body.password = "new-password";
 
       mocks.usersDatabase.updatePasswordStub.returns(BluebirdPromise.resolve());
@@ -99,7 +83,6 @@ describe("routes/password-reset/form/post", function () {
     });
 
     it("should fail when ldap fails", function () {
-      req.body = {};
       req.body.password = "new-password";
 
       mocks.usersDatabase.updatePasswordStub

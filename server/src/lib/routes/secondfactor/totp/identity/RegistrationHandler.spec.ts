@@ -1,7 +1,4 @@
-import Sinon = require("sinon");
 import RegistrationHandler from "./RegistrationHandler";
-import { Identity } from "../../../../../../types/Identity";
-import { UserDataStore } from "../../../../storage/UserDataStore";
 import BluebirdPromise = require("bluebird");
 import ExpressMock = require("../../../../stubs/express.spec");
 import { ServerVariablesMock, ServerVariablesMockBuilder }
@@ -10,7 +7,7 @@ import { ServerVariables } from "../../../../ServerVariables";
 import Assert = require("assert");
 
 describe("routes/secondfactor/totp/identity/RegistrationHandler", function () {
-  let req: ExpressMock.RequestMock;
+  let req: Express.Request;
   let res: ExpressMock.ResponseMock;
   let mocks: ServerVariablesMock;
   let vars: ServerVariables;
@@ -22,6 +19,7 @@ describe("routes/secondfactor/totp/identity/RegistrationHandler", function () {
 
     req = ExpressMock.RequestMock();
     req.session = {
+      ...req.session,
       auth: {
         userid: "user",
         email: "user@example.com",
@@ -32,12 +30,6 @@ describe("routes/secondfactor/totp/identity/RegistrationHandler", function () {
           challenge: "totp-register"
         }
       }
-    };
-    req.headers = {};
-    req.headers.host = "localhost";
-
-    const options = {
-      inMemoryOnly: true
     };
 
     mocks.userDataStore.saveU2FRegistrationStub

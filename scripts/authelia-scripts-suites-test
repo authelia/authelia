@@ -19,7 +19,7 @@ async function runTests(suite, withEnv) {
   return new Promise((resolve, reject) => {
     let mochaArgs = ['--exit', '--colors', '--require', 'ts-node/register', 'test/suites/' + suite + '/test.ts']
     if (program.forbidOnly) {
-      mochaArgs = ['--forbid-only', '--forbid-pending'] + mochaArgs;
+      mochaArgs = ['--forbid-only', '--forbid-pending'].concat(mochaArgs);
     }
   
     const mochaCommand = './node_modules/.bin/mocha ' + mochaArgs.join(' ');

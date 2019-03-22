@@ -1,4 +1,4 @@
-
+import * as Express from "express";
 import PasswordResetHandler
   from "./PasswordResetHandler";
 import BluebirdPromise = require("bluebird");
@@ -8,28 +8,20 @@ import { ServerVariablesMock, ServerVariablesMockBuilder }
 import { ServerVariables } from "../../../ServerVariables";
 
 describe("routes/password-reset/identity/PasswordResetHandler", function () {
-  let req: ExpressMock.RequestMock;
+  let req: Express.Request;
   let mocks: ServerVariablesMock;
   let vars: ServerVariables;
 
   beforeEach(function () {
-    req = {
-      originalUrl: "/non-api/xxx",
-      body: {
-        username: "user"
-      },
-      session: {
-        auth: {
-          userid: "user",
-          email: "user@example.com",
-          first_factor: true,
-          second_factor: false
-        }
-      },
-      headers: {
-        host: "localhost"
-      }
+    req = ExpressMock.RequestMock();
+    req.body.username = "user";
+    req.session.auth = {
+      userid: "user",
+      email: "user@example.com",
+      first_factor: true,
+      second_factor: false
     };
+    req.headers.host = "localhost";
 
     const s = ServerVariablesMockBuilder.build();
     mocks = s.mocks;

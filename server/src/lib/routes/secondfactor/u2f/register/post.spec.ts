@@ -1,4 +1,4 @@
-
+import * as Express from "express";
 import sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import assert = require("assert");
@@ -6,13 +6,12 @@ import U2FRegisterPost = require("./post");
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import ExpressMock = require("../../../../stubs/express.spec");
-import { UserDataStoreStub } from "../../../../storage/UserDataStoreStub.spec";
 import { ServerVariablesMockBuilder, ServerVariablesMock } from "../../../../ServerVariablesMockBuilder.spec";
 import { ServerVariables } from "../../../../ServerVariables";
 
 
 describe("routes/secondfactor/u2f/register/post", function () {
-  let req: ExpressMock.RequestMock;
+  let req: Express.Request;
   let res: ExpressMock.ResponseMock;
   let mocks: ServerVariablesMock;
   let vars: ServerVariables;
@@ -21,8 +20,8 @@ describe("routes/secondfactor/u2f/register/post", function () {
   beforeEach(function () {
     req = ExpressMock.RequestMock();
     req.originalUrl = "/api/xxxx";
-    req.app = {};
     req.session = {
+      ...req.session,
       auth: {
         userid: "user",
         first_factor: true,
@@ -39,10 +38,6 @@ describe("routes/secondfactor/u2f/register/post", function () {
     const s = ServerVariablesMockBuilder.build();
     mocks = s.mocks;
     vars = s.variables;
-
-    const options = {
-      inMemoryOnly: true
-    };
 
     mocks.userDataStore.saveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));
     mocks.userDataStore.retrieveU2FRegistrationStub.returns(BluebirdPromise.resolve({}));

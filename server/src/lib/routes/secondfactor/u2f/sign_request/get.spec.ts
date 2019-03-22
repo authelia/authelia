@@ -1,4 +1,4 @@
-
+import * as Express from "express";
 import sinon = require("sinon");
 import BluebirdPromise = require("bluebird");
 import assert = require("assert");
@@ -8,10 +8,8 @@ import { Request } from "u2f";
 import { ServerVariablesMock, ServerVariablesMockBuilder } from "../../../../ServerVariablesMockBuilder.spec";
 import { ServerVariables } from "../../../../ServerVariables";
 
-import { SignMessage } from "../../../../../../../shared/SignMessage";
-
 describe("routes/secondfactor/u2f/sign_request/get", function () {
-  let req: ExpressMock.RequestMock;
+  let req: Express.Request;
   let res: ExpressMock.ResponseMock;
   let mocks: ServerVariablesMock;
   let vars: ServerVariables;
@@ -19,8 +17,8 @@ describe("routes/secondfactor/u2f/sign_request/get", function () {
   beforeEach(function () {
     req = ExpressMock.RequestMock();
     req.originalUrl = "/api/xxxx";
-    req.app = {};
     req.session = {
+      ...req.session,
       auth: {
         userid: "user",
         first_factor: true,

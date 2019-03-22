@@ -1,9 +1,7 @@
 
-import Assert = require("assert");
-import BluebirdPromise = require("bluebird");
-import Express = require("express");
-import Sinon = require("sinon");
-import winston = require("winston");
+import * as Assert from "assert";
+import * as Express from "express";
+import * as Sinon from "sinon";
 
 import VerifyGet = require("./get");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
@@ -13,9 +11,10 @@ import { ServerVariables } from "../../ServerVariables";
 import { ServerVariablesMockBuilder, ServerVariablesMock } from "../../ServerVariablesMockBuilder.spec";
 import { Level } from "../../authentication/Level";
 import { Level as AuthorizationLevel } from "../../authorization/Level";
+import { HEADER_X_ORIGINAL_URL } from "../../../../../shared/constants";
 
 describe("routes/verify/get", function () {
-  let req: ExpressMock.RequestMock;
+  let req: Express.Request;
   let res: ExpressMock.ResponseMock;
   let mocks: ServerVariablesMock;
   let vars: ServerVariables;
@@ -29,7 +28,7 @@ describe("routes/verify/get", function () {
       redirect: "undefined"
     };
     AuthenticationSessionHandler.reset(req as any);
-    req.headers["x-original-url"] = "https://secret.example.com/";
+    req.headers[HEADER_X_ORIGINAL_URL] = "https://secret.example.com/";
     const s = ServerVariablesMockBuilder.build(false);
     mocks = s.mocks;
     vars = s.variables;
@@ -37,40 +36,37 @@ describe("routes/verify/get", function () {
   });
 
   describe("with session cookie", function () {
-    it("should be already authenticated", function () {
+    it("should be already authenticated", async function () {
       mocks.authorizer.authorizationMock.returns(AuthorizationLevel.TWO_FACTOR);
       authSession.authentication_level = Level.TWO_FACTOR;
       authSession.userid = "myuser";
       authSession.groups = ["mygroup", "othergroup"];
-      return VerifyGet.default(vars)(req as Express.Request, res as any)
-        .then(function () {
-          Sinon.assert.calledWithExactly(res.setHeader, "Remote-User", "myuser");
-          Sinon.assert.calledWithExactly(res.setHeader, "Remote-Groups", "mygroup,othergroup");
-          Assert.equal(204, res.status.getCall(0).args[0]);
-        });
+      await VerifyGet.default(vars)(req as Express.Request, res as any);
+      res.setHeader.calledWith("Remote-User", "myuser");
+      res.setHeader.calledWith("Remote-Groups", "mygroup,othergroup");
+      Assert.equal(204, res.status.getCall(0).args[0]);
     });
 
     function test_session(_authSession: AuthenticationSession, status_code: number) {
+      const GetMock = Sinon.stub(AuthenticationSessionHandler, 'get');
+      GetMock.returns(_authSession);
       return VerifyGet.default(vars)(req as Express.Request, res as any)
         .then(function () {
           Assert.equal(status_code, res.status.getCall(0).args[0]);
-        });
+          GetMock.restore();
+        })
     }
 
-    function test_non_authenticated_401(authSession: AuthenticationSession) {
-      return test_session(authSession, 401);
+    function test_non_authenticated_401(_authSession: AuthenticationSession) {
+      return test_session(_authSession, 401);
     }
 
-    function test_unauthorized_403(authSession: AuthenticationSession) {
-      return test_session(authSession, 403);
-    }
-
-    function test_authorized(authSession: AuthenticationSession) {
-      return test_session(authSession, 204);
+    function test_unauthorized_403(_authSession: AuthenticationSession) {
+      return test_session(_authSession, 403);
     }
 
     describe("given user tries to access a 2-factor endpoint", function () {
-      before(function () {
+      beforeEach(function () {
         mocks.authorizer.authorizationMock.returns(AuthorizationLevel.TWO_FACTOR);
       });
 
@@ -115,7 +111,7 @@ describe("routes/verify/get", function () {
         it("should not be authenticated when domain is not allowed for user", function () {
           authSession.authentication_level = Level.TWO_FACTOR;
           authSession.userid = "myuser";
-          req.headers["x-original-url"] = "https://test.example.com/";
+          req.headers[HEADER_X_ORIGINAL_URL] = "https://test.example.com/";
           mocks.authorizer.authorizationMock.returns(AuthorizationLevel.DENY);
 
           return test_unauthorized_403({
@@ -132,7 +128,7 @@ describe("routes/verify/get", function () {
 
     describe("given user tries to access a single factor endpoint", function () {
       beforeEach(function () {
-        req.headers["x-original-url"] = "https://redirect.url/";
+        req.headers[HEADER_X_ORIGINAL_URL] = "https://redirect.url/";
       });
 
       it("should be authenticated when first factor is validated", function () {
@@ -227,7 +223,7 @@ describe("routes/verify/get", function () {
   });
 
   describe("with basic auth", function () {
-    it("should authenticate correctly", function () {
+    it("should authenticate correctly", async function () {
       mocks.authorizer.authorizationMock.returns(AuthorizationLevel.ONE_FACTOR);
       mocks.config.access_control.default_policy = "one_factor";
       mocks.usersDatabase.checkUserPasswordStub.returns({
@@ -235,12 +231,10 @@ describe("routes/verify/get", function () {
       });
       req.headers["proxy-authorization"] = "Basic am9objpwYXNzd29yZA==";
 
-      return VerifyGet.default(vars)(req as Express.Request, res as any)
-        .then(function () {
-          Sinon.assert.calledWithExactly(res.setHeader, "Remote-User", "john");
-          Sinon.assert.calledWithExactly(res.setHeader, "Remote-Groups", "mygroup,othergroup");
-          Assert.equal(204, res.status.getCall(0).args[0]);
-        });
+      await VerifyGet.default(vars)(req as Express.Request, res as any)
+      res.setHeader.calledWith("Remote-User", "john");
+      res.setHeader.calledWith("Remote-Groups", "mygroup,othergroup");
+      Assert.equal(204, res.status.getCall(0).args[0]);
     });
 
     it("should fail when endpoint is protected by two factors", function () {

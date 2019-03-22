@@ -1,18 +1,17 @@
 import Express = require("express");
 import BluebirdPromise = require("bluebird");
-import ObjectPath = require("object-path");
 import { ServerVariables } from "../../ServerVariables";
-import { AuthenticationSession }
-  from "../../../../types/AuthenticationSession";
 import AccessControl from "./access_control";
 import { URLDecomposer } from "../../utils/URLDecomposer";
 import { Level } from "../../authentication/Level";
+import GetHeader from "../../utils/GetHeader";
+import { HEADER_X_ORIGINAL_URL } from "../../../../../shared/constants";
 
 export default function (req: Express.Request, res: Express.Response,
   vars: ServerVariables, authorizationHeader: string)
   : BluebirdPromise<{ username: string, groups: string[] }> {
   let username: string;
-  const uri = ObjectPath.get<Express.Request, string>(req, "headers.x-original-url");
+  const uri = GetHeader(req, HEADER_X_ORIGINAL_URL);
   const urlDecomposition = URLDecomposer.fromUrl(uri);
 
   return BluebirdPromise.resolve()

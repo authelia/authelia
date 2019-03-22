@@ -1,10 +1,9 @@
 
-import sinon = require("sinon");
+import * as Sinon from "sinon";
 import * as IdentityCheckMiddleware from "./IdentityCheckMiddleware";
-import exceptions = require("./Exceptions");
 import { ServerVariables } from "./ServerVariables";
-import Assert = require("assert");
-import express = require("express");
+import * as Assert from "assert";
+import * as Express from "express";
 import BluebirdPromise = require("bluebird");
 import ExpressMock = require("./stubs/express.spec");
 import { IdentityValidableStub } from "./IdentityValidableStub.spec";
@@ -13,11 +12,11 @@ import { ServerVariablesMock, ServerVariablesMockBuilder }
 import { OPERATION_FAILED } from "../../../shared/UserMessages";
 
 describe("IdentityCheckMiddleware", function () {
-  let req: ExpressMock.RequestMock;
+  let req: Express.Request;
   let res: ExpressMock.ResponseMock;
-  let app: express.Application;
-  let app_get: sinon.SinonStub;
-  let app_post: sinon.SinonStub;
+  let app: Express.Application;
+  let app_get: Sinon.SinonStub;
+  let app_post: Sinon.SinonStub;
   let identityValidable: IdentityValidableStub;
   let mocks: ServerVariablesMock;
   let vars: ServerVariables;
@@ -29,14 +28,6 @@ describe("IdentityCheckMiddleware", function () {
 
     req = ExpressMock.RequestMock();
     res = ExpressMock.ResponseMock();
-
-    req.headers = {};
-    req.originalUrl = "/non-api/xxx";
-    req.session = {};
-
-    req.query = {};
-    req.app = {};
-
     identityValidable = new IdentityValidableStub();
 
     mocks.notifier.notifyStub.returns(BluebirdPromise.resolve());
@@ -45,9 +36,9 @@ describe("IdentityCheckMiddleware", function () {
     mocks.userDataStore.consumeIdentityValidationTokenStub
       .returns(BluebirdPromise.resolve({ userId: "user" }));
 
-    app = express();
-    app_get = sinon.stub(app, "get");
-    app_post = sinon.stub(app, "post");
+    app = Express();
+    app_get = Sinon.stub(app, "get");
+    app_post = Sinon.stub(app, "post");
   });
 
   afterEach(function () {
@@ -56,22 +47,8 @@ describe("IdentityCheckMiddleware", function () {
   });
 
   describe("test start GET", function () {
-    it("should redirect to error 401 if pre validation initialization \
-throws a first factor error", function () {
-        identityValidable.preValidationInitStub.returns(BluebirdPromise.reject(
-          new exceptions.FirstFactorValidationError(
-            "Error during prevalidation")));
-        const callback = IdentityCheckMiddleware.post_start_validation(
-          identityValidable, vars);
-
-        return callback(req as any, res as any, undefined)
-          .then(() => {
-            Assert(res.redirect.calledWith("/error/401"));
-          });
-      });
-
     // In that case we answer with 200 to avoid user enumeration.
-    it("should send 200 if email is missing in provided identity", function () {
+    it("should send 200 if email is missing in provided identity", async function () {
       const identity = { userid: "abc" };
 
       identityValidable.preValidationInitStub
@@ -79,31 +56,26 @@ throws a first factor error", function () {
       const callback = IdentityCheckMiddleware
         .post_start_validation(identityValidable, vars);
 
-      return callback(req as any, res as any, undefined)
-        .then(function () {
-          Assert(identityValidable.preValidationResponseStub.called);
-        });
+      await callback(req as any, res as any, undefined)
+      Assert(identityValidable.preValidationResponseStub.called);
     });
 
     // In that case we answer with 200 to avoid user enumeration.
-    it("should send 200 if userid is missing in provided identity",
-      function () {
-        const identity = { email: "abc@example.com" };
+    it("should send 200 if userid is missing in provided identity", async function () {
+      const identity = { email: "abc@example.com" };
 
-        identityValidable.preValidationInitStub
-          .returns(BluebirdPromise.resolve(identity));
-        const callback = IdentityCheckMiddleware
-          .post_start_validation(identityValidable, vars);
+      identityValidable.preValidationInitStub
+        .returns(BluebirdPromise.resolve(identity));
+      const callback = IdentityCheckMiddleware
+        .post_start_validation(identityValidable, vars);
 
-        return callback(req as any, res as any, undefined)
-          .then(function () {
-            Assert(identityValidable.preValidationResponseStub.called);
-          });
-      });
+      await callback(req as any, res as any, undefined)
+      Assert(identityValidable.preValidationResponseStub.called);
+    });
 
     it("should issue a token, send an email and return 204", async function () {
       const identity = { userid: "user", email: "abc@example.com" };
-      req.get = sinon.stub().withArgs("Host").returns("localhost");
+      req.get = Sinon.stub().withArgs("Host").returns("localhost");
 
       identityValidable.preValidationInitStub
         .returns(BluebirdPromise.resolve(identity));
@@ -124,42 +96,36 @@ throws a first factor error", function () {
 
 
   describe("test finish GET", function () {
-    it("should return an error if no identity_token is provided", () => {
+    it("should return an error if no identity_token is provided", async () => {
       const callback = IdentityCheckMiddleware
         .post_finish_validation(identityValidable, vars);
 
-      return callback(req as any, res as any, undefined)
-        .then(function () {
-          Assert(res.status.calledWith(200));
-          Assert(res.send.calledWith({'error': OPERATION_FAILED}));
-        });
+      await callback(req as any, res as any, undefined)
+      Assert(res.status.calledWith(200));
+      Assert(res.send.calledWith({'error': OPERATION_FAILED}));
     });
 
-    it("should call postValidation if identity_token is provided and still \
-valid", function () {
-        req.query.identity_token = "token";
-        const callback = IdentityCheckMiddleware
-          .post_finish_validation(identityValidable, vars);
-        return callback(req as any, res as any, undefined);
-      });
+    it("should call postValidation if identity_token is provided and still valid", async function () {
+      req.query.identity_token = "token";
+      const callback = IdentityCheckMiddleware
+        .post_finish_validation(identityValidable, vars);
+      await callback(req as any, res as any, undefined);
+    });
 
-    it("should return an error if identity_token is provided but invalid",
-      function () {
-        req.query.identity_token = "token";
+    it("should return an error if identity_token is provided but invalid", async function () {
+      req.query.identity_token = "token";
 
-        identityValidable.postValidationInitStub
-          .returns(BluebirdPromise.resolve());
-        mocks.userDataStore.consumeIdentityValidationTokenStub.reset();
-        mocks.userDataStore.consumeIdentityValidationTokenStub
-          .returns(BluebirdPromise.reject(new Error("Invalid token")));
+      identityValidable.postValidationInitStub
+        .returns(BluebirdPromise.resolve());
+      mocks.userDataStore.consumeIdentityValidationTokenStub.reset();
+      mocks.userDataStore.consumeIdentityValidationTokenStub
+        .returns(() => Promise.reject(new Error("Invalid token")));
 
-        const callback = IdentityCheckMiddleware
-          .post_finish_validation(identityValidable, vars);
-        return callback(req as any, res as any, undefined)
-          .then(() => {
-            Assert(res.status.calledWith(200));
-            Assert(res.send.calledWith({'error': OPERATION_FAILED}));
-          });
-      });
+      const callback = IdentityCheckMiddleware
+        .post_finish_validation(identityValidable, vars);
+      await callback(req as any, res as any, undefined)
+      Assert(res.status.calledWith(200));
+      Assert(res.send.calledWith({'error': OPERATION_FAILED}));
+    });
   });
 });

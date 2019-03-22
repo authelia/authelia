@@ -1,4 +1,6 @@
-import BluebirdPromise = require("bluebird");
+import * as Bluebird from "bluebird";
+import * as Express from "express";
+import * as http from "http";
 
 import { Configuration } from "./configuration/schema/Configuration";
 import { GlobalDependencies } from "../../types/Dependencies";
@@ -9,8 +11,7 @@ import { ServerVariables } from "./ServerVariables";
 import { ServerVariablesInitializer } from "./ServerVariablesInitializer";
 import { Configurator } from "./web_server/Configurator";
 
-import * as Express from "express";
-import * as http from "http";
+import { GET_VARIABLE_KEY } from "../../../shared/constants";
 
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));
@@ -44,11 +45,11 @@ export default class Server {
       JSON.stringify(displayableConfiguration, undefined, 2));
   }
 
-  private setup(config: Configuration, app: Express.Application, deps: GlobalDependencies): BluebirdPromise<void> {
-    const that = this;
+  private setup(config: Configuration, app: Express.Application, deps: GlobalDependencies): Bluebird<void> {
     return ServerVariablesInitializer.initialize(
       config, this.globalLogger, this.requestLogger, deps)
       .then(function (vars: ServerVariables) {
+        app.set(GET_VARIABLE_KEY, vars);
         return Configurator.configure(config, app, vars, deps);
       });
   }
@@ -56,7 +57,7 @@ export default class Server {
   private startServer(app: Express.Application, port: number) {
     const that = this;
     that.globalLogger.info("Starting Authelia...");
-    return new BluebirdPromise<void>((resolve, reject) => {
+    return new Bluebird<void>((resolve, reject) => {
       this.httpServer = app.listen(port, function (err: string) {
         that.globalLogger.info("Listening on port %d...", port);
         resolve();
@@ -65,7 +66,7 @@ export default class Server {
   }
 
   start(configuration: Configuration, deps: GlobalDependencies)
-    : BluebirdPromise<void> {
+    : Bluebird<void> {
     const that = this;
     const app = Express();
 
