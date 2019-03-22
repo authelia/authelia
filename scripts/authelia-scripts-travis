@@ -25,13 +25,13 @@ docker-compose -f docker-compose.yml \
 authelia-scripts build
 
 # Run unit tests
-authelia-scripts unittest
+authelia-scripts unittest --forbid-only
 
 # Build the docker image
 authelia-scripts docker build
 
 # Run integration tests
-authelia-scripts suites test --headless
+authelia-scripts suites test --headless --forbid-only
 
 # Test npm deployment before actual deployment
 # ./scripts/npm-deployment-test.sh
