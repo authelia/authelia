@@ -81,6 +81,13 @@ Please check [config.template.yml] to see an example of configuration.
 It is also possible to use [basic authentication] to access a resource 
 protected by a single factor.
 
+Please note that Authelia uses the *Proxy-Authorization* header and not
+*Authorization* since one might be willing to authenticate against both
+Authelia and the proxy. For instance you can use the following command to
+access your service:
+
+    curl -H "Proxy-Authorization: Basic am9objpwYXNzd29yZA==" https://myservice.example.com"
+
 ## Session management with Redis
 
 When your users authenticate against Authelia, sessions are stored in a
