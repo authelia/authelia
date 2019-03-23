@@ -3,7 +3,7 @@ import Express = require("express");
 import FirstFactorPost = require("../routes/firstfactor/post");
 import LogoutPost from "../routes/logout/post";
 import StateGet from "../routes/state/get";
-import VerifyGet = require("../routes/verify/get");
+import VerifyGet = require("../routes/verify/Get");
 import TOTPSignGet = require("../routes/secondfactor/totp/sign/post");
 
 import IdentityCheckMiddleware = require("../IdentityCheckMiddleware");

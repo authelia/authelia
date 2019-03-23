@@ -1,5 +1,5 @@
 
-import { ACLConfiguration, ACLRule } from "../configuration/schema/AclConfiguration";
+import { ACLConfiguration, ACLRule, ACLPolicy } from "../configuration/schema/AclConfiguration";
 import { IAuthorizer } from "./IAuthorizer";
 import { Winston } from "../../../types/Dependencies";
 import { MultipleDomainMatcher } from "./MultipleDomainMatcher";
@@ -60,7 +60,7 @@ export class Authorizer implements IAuthorizer {
       .filter(MatchSubject(subject));
   }
 
-  private ruleToLevel(policy: string): Level {
+  private ruleToLevel(policy: ACLPolicy): Level {
     if (policy == "bypass") {
       return Level.BYPASS;
     } else if (policy == "one_factor") {

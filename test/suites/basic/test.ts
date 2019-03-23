@@ -9,6 +9,7 @@ import RequiredTwoFactor from './scenarii/RequiredTwoFactor';
 import LogoutRedirectToAlreadyLoggedIn from './scenarii/LogoutRedirectToAlreadyLoggedIn';
 import { exec } from '../../helpers/utils/exec';
 import TwoFactorAuthentication from "../../helpers/scenarii/TwoFactorAuthentication";
+import BypassPolicy from "./scenarii/BypassPolicy";
 
 AutheliaSuite(__dirname, function() {
   this.timeout(10000);
@@ -18,6 +19,7 @@ AutheliaSuite(__dirname, function() {
   });
 
   describe('Two-factor authentication', TwoFactorAuthentication());
+  describe('Bypass policy', BypassPolicy)
   describe('Backend protection', BackendProtection);
   describe('Verify API endpoint', VerifyEndpoint);
   describe('Bad password', BadPassword);

@@ -66,7 +66,7 @@ export class NotAuthenticatedError extends Error {
 export class NotAuthorizedError extends Error {
   constructor(message?: string) {
     super(message);
-    this.name = "NotAuthanticatedError";
+    this.name = "NotAuthenticatedError";
     (<any>Object).setPrototypeOf(this, NotAuthorizedError.prototype);
   }
 }

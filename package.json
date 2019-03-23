@@ -113,6 +113,7 @@
     "sinon": "^5.0.7",
     "tmp": "0.0.33",
     "tree-kill": "^1.2.1",
+    "ts-mock-imports": "^1.2.3",
     "ts-node": "^6.0.1",
     "tslint": "^5.2.0",
     "typescript": "^2.9.2",

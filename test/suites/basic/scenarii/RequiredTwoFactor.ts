@@ -4,6 +4,7 @@ import { StartDriver, StopDriver } from '../../../helpers/context/WithDriver';
 import VerifyIsSecondFactorStage from '../../../helpers/assertions/VerifyIsSecondFactorStage';
 import VisitPage from '../../../helpers/VisitPage';
 import FillLoginPageAndClick from '../../../helpers/FillLoginPageAndClick';
+import Logout from '../../../helpers/Logout';
 
 export default function() {
   describe('User tries to access a page protected by second factor while he only passed first factor', function() {
@@ -19,6 +20,7 @@ export default function() {
     });
 
     after(async function() {
+      await Logout(this.driver);
       await StopDriver(this.driver);
     });
 

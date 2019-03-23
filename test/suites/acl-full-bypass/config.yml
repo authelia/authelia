@@ -1,0 +1,37 @@
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+port: 9091
+
+logs_level: debug
+
+authentication_backend:
+  file:
+    path: ./test/suites/basic/users_database.test.yml
+
+session:
+  secret: unsecure_session_secret
+  domain: example.com
+  expiration: 3600000 # 1 hour
+  inactivity: 300000 # 5 minutes
+
+storage:
+  local:
+    path: /tmp/authelia/db
+
+access_control:
+  default_policy: bypass
+  rules:
+  - domain: 'public.example.com'
+    policy: bypass
+
+notifier:
+  smtp:
+    username: test
+    password: password
+    secure: false
+    host: 127.0.0.1
+    port: 1025
+    sender: admin@example.com
+
