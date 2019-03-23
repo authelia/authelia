@@ -155,12 +155,32 @@ export const SECOND_FACTOR_TOTP_IDENTITY_START_POST = "/api/secondfactor/totp/id
  * @apiUse UserSession
  * @apiUse IdentityValidationFinish
  *
- *
  * @apiDescription Serves the TOTP registration page that displays the secret.
  * The secret is a QRCode and a base32 secret.
  */
 export const SECOND_FACTOR_TOTP_IDENTITY_FINISH_POST = "/api/secondfactor/totp/identity/finish";
 
+/**
+ * @api {get} /api/secondfactor/preferences Retrieve the user preferences.
+ * @apiName GetUserPreferences
+ * @apiGroup 2FA
+ * @apiVersion 1.0.0
+ * @apiUse UserSession
+ *
+ * @apiDescription Retrieve the user preferences sucha as the prefered method to use (TOTP or U2F).
+ */
+export const SECOND_FACTOR_PREFERENCES_GET = "/api/secondfactor/preferences";
+
+/**
+ * @api {post} /api/secondfactor/preferences Set the user preferences.
+ * @apiName SetUserPreferences
+ * @apiGroup 2FA
+ * @apiVersion 1.0.0
+ * @apiUse UserSession
+ *
+ * @apiDescription Set the user preferences sucha as the prefered method to use  (TOTP or U2F).
+ */
+export const SECOND_FACTOR_PREFERENCES_POST = "/api/secondfactor/preferences";
 
 
 /**

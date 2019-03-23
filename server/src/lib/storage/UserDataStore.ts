@@ -1,5 +1,4 @@
 import * as BluebirdPromise from "bluebird";
-import * as path from "path";
 import { IUserDataStore } from "./IUserDataStore";
 import { ICollection } from "./ICollection";
 import { ICollectionFactory } from "./ICollectionFactory";
@@ -9,6 +8,7 @@ import { U2FRegistration } from "../../../types/U2FRegistration";
 import { TOTPSecret } from "../../../types/TOTPSecret";
 import { AuthenticationTraceDocument } from "./AuthenticationTraceDocument";
 import { IdentityValidationDocument } from "./IdentityValidationDocument";
+import Method2FA from "../../../../shared/Method2FA";
 
 // Constants
 
@@ -17,6 +17,7 @@ const AUTHENTICATION_TRACES_COLLECTION_NAME = "authentication_traces";
 
 const U2F_REGISTRATIONS_COLLECTION_NAME = "u2f_registrations";
 const TOTP_SECRETS_COLLECTION_NAME = "totp_secrets";
+const PREFERED_2FA_METHOD_COLLECTION_NAME = "prefered_2fa_method";
 
 
 export interface U2FRegistrationKey {
@@ -31,6 +32,7 @@ export class UserDataStore implements IUserDataStore {
   private identityCheckTokensCollection: ICollection;
   private authenticationTracesCollection: ICollection;
   private totpSecretCollection: ICollection;
+  private prefered2faMethodCollection: ICollection;
 
   private collectionFactory: ICollectionFactory;
 
@@ -41,35 +43,24 @@ export class UserDataStore implements IUserDataStore {
     this.identityCheckTokensCollection = this.collectionFactory.build(IDENTITY_VALIDATION_TOKENS_COLLECTION_NAME);
     this.authenticationTracesCollection = this.collectionFactory.build(AUTHENTICATION_TRACES_COLLECTION_NAME);
     this.totpSecretCollection = this.collectionFactory.build(TOTP_SECRETS_COLLECTION_NAME);
+    this.prefered2faMethodCollection = this.collectionFactory.build(PREFERED_2FA_METHOD_COLLECTION_NAME);
   }
 
   saveU2FRegistration(userId: string, appId: string, registration: U2FRegistration): BluebirdPromise<void> {
-    const newDocument: U2FRegistrationDocument = {
-      userId: userId,
-      appId: appId,
-      registration: registration
-    };
-
-    const filter: U2FRegistrationKey = {
-      userId: userId,
-      appId: appId
-    };
+    const newDocument: U2FRegistrationDocument = {userId, appId, registration};
+    const filter: U2FRegistrationKey = {userId, appId};
 
     return this.u2fSecretCollection.update(filter, newDocument, { upsert: true });
   }
 
   retrieveU2FRegistration(userId: string, appId: string): BluebirdPromise<U2FRegistrationDocument> {
-    const filter: U2FRegistrationKey = {
-      userId: userId,
-      appId: appId
-    };
+    const filter: U2FRegistrationKey = { userId, appId };
     return this.u2fSecretCollection.findOne(filter);
   }
 
   saveAuthenticationTrace(userId: string, isAuthenticationSuccessful: boolean): BluebirdPromise<void> {
     const newDocument: AuthenticationTraceDocument = {
-      userId: userId,
-      date: new Date(),
+      userId, date: new Date(),
       isAuthenticationSuccessful: isAuthenticationSuccessful,
     };
 
@@ -77,18 +68,12 @@ export class UserDataStore implements IUserDataStore {
   }
 
   retrieveLatestAuthenticationTraces(userId: string, count: number): BluebirdPromise<AuthenticationTraceDocument[]> {
-    const q = {
-      userId: userId
-    };
-
-    return this.authenticationTracesCollection.find(q, { date: -1 }, count);
+    return this.authenticationTracesCollection.find({userId}, { date: -1 }, count);
   }
 
   produceIdentityValidationToken(userId: string, token: string, challenge: string, maxAge: number): BluebirdPromise<any> {
     const newDocument: IdentityValidationDocument = {
-      userId: userId,
-      token: token,
-      challenge: challenge,
+      userId, token, challenge,
       maxDate: new Date(new Date().getTime() + maxAge)
     };
 
@@ -97,10 +82,7 @@ export class UserDataStore implements IUserDataStore {
 
   consumeIdentityValidationToken(token: string, challenge: string): BluebirdPromise<IdentityValidationDocument> {
     const that = this;
-    const filter = {
-      token: token,
-      challenge: challenge
-    };
+    const filter = {token, challenge};
 
     let identityValidationDocument: IdentityValidationDocument;
 
@@ -123,21 +105,23 @@ export class UserDataStore implements IUserDataStore {
   }
 
   saveTOTPSecret(userId: string, secret: TOTPSecret): BluebirdPromise<void> {
-    const doc = {
-      userId: userId,
-      secret: secret
-    };
-
-    const filter = {
-      userId: userId
-    };
-    return this.totpSecretCollection.update(filter, doc, { upsert: true });
+    const doc = {userId, secret};
+    return this.totpSecretCollection.update({userId}, doc, { upsert: true });
   }
 
   retrieveTOTPSecret(userId: string): BluebirdPromise<TOTPSecretDocument> {
-    const filter = {
-      userId: userId
-    };
-    return this.totpSecretCollection.findOne(filter);
+    return this.totpSecretCollection.findOne({userId});
+  }
+
+  savePrefered2FAMethod(userId: string, method: Method2FA): BluebirdPromise<void> {
+    const newDoc = {userId, method};
+    return this.prefered2faMethodCollection.update({userId}, newDoc, {upsert: true});
+  }
+
+  retrievePrefered2FAMethod(userId: string): BluebirdPromise<Method2FA | undefined> {
+    return this.prefered2faMethodCollection.findOne({userId})
+      .then((doc) => {
+        return (doc && doc.method) ? doc.method : undefined;
+      });
   }
 }

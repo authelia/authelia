@@ -3,9 +3,9 @@ import { Dispatch } from 'redux';
 import { authenticateFailure, authenticateSuccess, authenticate } from '../../../reducers/Portal/FirstFactor/actions';
 import FirstFactorForm, { StateProps, OwnProps } from '../../../components/FirstFactorForm/FirstFactorForm';
 import { RootState } from '../../../reducers';
-import * as AutheliaService from '../../../services/AutheliaService';
 import to from 'await-to-js';
 import FetchStateBehavior from '../../../behaviors/FetchStateBehavior';
+import AutheliaService from '../../../services/AutheliaService';
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {

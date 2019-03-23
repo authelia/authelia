@@ -45,6 +45,9 @@ access_control:
     - domain: public.example.com
       policy: bypass
 
+    - domain: secure.example.com
+      policy: two_factor
+
     - domain: '*.example.com'
       subject: "group:admins"
       policy: two_factor

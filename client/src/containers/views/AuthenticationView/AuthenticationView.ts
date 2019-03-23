@@ -1,6 +1,6 @@
 import { connect } from 'react-redux';
 import QueryString from 'query-string';
-import AuthenticationView, {StateProps, Stage, DispatchProps, OwnProps} from '../../../views/AuthenticationView/AuthenticationView';
+import AuthenticationView, {StateProps, Stage, OwnProps} from '../../../views/AuthenticationView/AuthenticationView';
 import { RootState } from '../../../reducers';
 import { Dispatch } from 'redux';
 import AuthenticationLevel from '../../../types/AuthenticationLevel';

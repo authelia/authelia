@@ -1,4 +1,3 @@
-import BluebirdPromise = require("bluebird");
 import Sinon = require("sinon");
 import { ICollection } from "./ICollection";
 import { ICollectionFactory } from "./ICollectionFactory";

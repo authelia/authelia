@@ -2,9 +2,9 @@ import { connect } from 'react-redux';
 import { RootState } from '../../../reducers';
 import { Dispatch } from 'redux';
 import { push } from 'connected-react-router';
-import * as AutheliaService from '../../../services/AutheliaService';
 import ForgotPasswordView from '../../../views/ForgotPasswordView/ForgotPasswordView';
 import { forgotPasswordRequest, forgotPasswordSuccess, forgotPasswordFailure } from '../../../reducers/Portal/ForgotPassword/actions';
+import AutheliaService from '../../../services/AutheliaService';
 
 const mapStateToProps = (state: RootState) => ({
   disabled: state.forgotPassword.loading,

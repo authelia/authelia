@@ -2,8 +2,8 @@ import { connect } from 'react-redux';
 import { RootState } from '../../../reducers';
 import { Dispatch } from 'redux';
 import { push } from 'connected-react-router';
-import * as AutheliaService from '../../../services/AutheliaService';
 import ResetPasswordView, { StateProps } from '../../../views/ResetPasswordView/ResetPasswordView';
+import AutheliaService from '../../../services/AutheliaService';
 
 const mapStateToProps = (state: RootState): StateProps => ({
   disabled: state.resetPassword.loading,

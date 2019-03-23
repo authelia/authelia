@@ -10,7 +10,7 @@ export default async function(
   targetUrl: string,
   timeout: number = 5000) {
 
-    await VisitPageAndWaitUrlIs(driver, `https://login.example.com:8080/#/?rd=${targetUrl}`, timeout);
-    await FillLoginPageAndClick(driver, username, password, false, timeout);
-    await VerifyUrlIs(driver, targetUrl, timeout);
+  await VisitPageAndWaitUrlIs(driver, `https://login.example.com:8080/#/?rd=${targetUrl}`, timeout);
+  await FillLoginPageAndClick(driver, username, password, false, timeout);
+  await VerifyUrlIs(driver, targetUrl, timeout);
 };
