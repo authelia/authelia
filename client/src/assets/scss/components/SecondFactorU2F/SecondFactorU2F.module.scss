@@ -1,0 +1,21 @@
+@import '../../variables.scss';
+
+
+.methodU2f {
+  padding: ($theme-spacing);
+}
+
+.image {
+  width: '120px';
+}
+
+.imageContainer {
+  text-align: center;
+  margin-top: ($theme-spacing) * 2;
+  margin-bottom: ($theme-spacing) * 2;
+}
+
+.registerDeviceContainer {
+  text-align: right;
+  font-size: 0.7em;
+}

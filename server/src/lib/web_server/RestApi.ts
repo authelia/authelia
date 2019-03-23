@@ -1,4 +1,6 @@
-import Express = require("express");
+import * as Express from "express";
+import SecondFactorPreferencesGet from "../routes/secondfactor/preferences/Get";
+import SecondFactorPreferencesPost from "../routes/secondfactor/preferences/Post";
 
 import FirstFactorPost = require("../routes/firstfactor/post");
 import LogoutPost from "../routes/logout/post";
@@ -91,6 +93,14 @@ export class RestApi {
 
     app.get(Endpoints.VERIFY_GET, VerifyGet.default(vars));
     app.post(Endpoints.FIRST_FACTOR_POST, FirstFactorPost.default(vars));
+
+    app.get(Endpoints.SECOND_FACTOR_PREFERENCES_GET,
+      RequireValidatedFirstFactor.middleware(vars.logger),
+      SecondFactorPreferencesGet(vars));
+
+    app.post(Endpoints.SECOND_FACTOR_PREFERENCES_POST,
+      RequireValidatedFirstFactor.middleware(vars.logger),
+      SecondFactorPreferencesPost(vars));
 
     setupTotp(app, vars);
     setupU2f(app, vars);

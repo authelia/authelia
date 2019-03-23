@@ -6,9 +6,9 @@ import AutheliaServerFromDist from './AutheliaServerFromDist';
 class AutheliaServer implements AutheliaServerInterface {
   private runnerImpl: AutheliaServerInterface;
 
-  constructor(configPath: string) {
+  constructor(configPath: string, watchPaths: string[] = []) {
     if (fs.existsSync('.suite')) {
-      this.runnerImpl = new AutheliaServerWithHotReload(configPath);
+      this.runnerImpl = new AutheliaServerWithHotReload(configPath, watchPaths);
     } else {
       this.runnerImpl = new AutheliaServerFromDist(configPath, true);
     }

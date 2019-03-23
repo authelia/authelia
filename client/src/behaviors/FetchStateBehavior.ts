@@ -1,7 +1,7 @@
 import { Dispatch } from "redux";
-import * as AutheliaService from '../services/AutheliaService';
 import { fetchStateFailure, fetchStateSuccess } from "../reducers/Portal/Authentication/actions";
 import to from "await-to-js";
+import AutheliaService from "../services/AutheliaService";
 
 export default async function(dispatch: Dispatch) {
   let err, res;

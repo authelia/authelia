@@ -1,6 +1,7 @@
 
 import * as Actions from './actions';
 import { ActionType, getType, StateType } from 'typesafe-actions';
+import Method2FA from '../../../types/Method2FA';
 
 export type SecondFactorAction = ActionType<typeof Actions>;
 
@@ -8,6 +9,16 @@ interface SecondFactorState {
   logoutLoading: boolean;
   logoutSuccess: boolean | null;
   error: string | null;
+
+  userAnotherMethod: boolean;
+
+  preferedMethodLoading: boolean;
+  preferedMethodError: string | null;
+  preferedMethod: Method2FA | null;
+
+  setPreferedMethodLoading: boolean;
+  setPreferedMethodError: string | null;
+  setPreferedMethodSuccess: boolean | null;
 
   securityKeySupported: boolean;
   securityKeySignLoading: boolean;
@@ -22,6 +33,16 @@ const secondFactorInitialState: SecondFactorState = {
   logoutLoading: false,
   logoutSuccess: null,
   error: null,
+
+  userAnotherMethod: false,
+
+  preferedMethod: null,
+  preferedMethodError: null,
+  preferedMethodLoading: false,
+
+  setPreferedMethodLoading: false,
+  setPreferedMethodError: null,
+  setPreferedMethodSuccess: null,
 
   securityKeySupported: false,
   securityKeySignLoading: false,
@@ -98,6 +119,49 @@ export default (state = secondFactorInitialState, action: SecondFactorAction): S
         ...state,
         oneTimePasswordVerificationLoading: false,
         oneTimePasswordVerificationError: action.payload,
+      }
+    case getType(Actions.getPreferedMethod):
+      return {
+        ...state,
+        preferedMethodLoading: true,
+        preferedMethod: null,
+        preferedMethodError: null,
+      }
+    case getType(Actions.getPreferedMethodSuccess):
+      return {
+        ...state,
+        preferedMethodLoading: false,
+        preferedMethod: action.payload,
+      }
+    case getType(Actions.getPreferedMethodFailure):
+      return {
+        ...state,
+        preferedMethodLoading: false,
+        preferedMethodError: action.payload,
+      }
+    case getType(Actions.setPreferedMethod):
+      return {
+        ...state,
+        setPreferedMethodLoading: true,
+        setPreferedMethodSuccess: null,
+        preferedMethodError: null,
+      }
+    case getType(Actions.getPreferedMethodSuccess):
+      return {
+        ...state,
+        setPreferedMethodLoading: false,
+        setPreferedMethodSuccess: true,
+      }
+    case getType(Actions.getPreferedMethodFailure):
+      return {
+        ...state,
+        setPreferedMethodLoading: false,
+        setPreferedMethodError: action.payload,
+      }
+    case getType(Actions.setUseAnotherMethod):
+      return {
+        ...state,
+        userAnotherMethod: action.payload,
       }
   }
   return state;

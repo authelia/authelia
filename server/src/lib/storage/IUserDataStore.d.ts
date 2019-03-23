@@ -5,6 +5,7 @@ import { U2FRegistration } from "../../../types/U2FRegistration";
 import { TOTPSecret } from "../../../types/TOTPSecret";
 import { AuthenticationTraceDocument } from "./AuthenticationTraceDocument";
 import { IdentityValidationDocument } from "./IdentityValidationDocument";
+import Method2FA from "../../../../shared/Method2FA";
 
 export interface IUserDataStore {
     saveU2FRegistration(userId: string, appId: string, registration: U2FRegistration): BluebirdPromise<void>;
@@ -18,4 +19,7 @@ export interface IUserDataStore {
 
     saveTOTPSecret(userId: string, secret: TOTPSecret): BluebirdPromise<void>;
     retrieveTOTPSecret(userId: string): BluebirdPromise<TOTPSecretDocument>;
+
+    savePrefered2FAMethod(userId: string, method: Method2FA): BluebirdPromise<void>;
+    retrievePrefered2FAMethod(userId: string): BluebirdPromise<Method2FA>;
 }

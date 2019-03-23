@@ -9,11 +9,37 @@ import {
   SET_SECURITY_KEY_SUPPORTED,
   ONE_TIME_PASSWORD_VERIFICATION_REQUEST,
   ONE_TIME_PASSWORD_VERIFICATION_SUCCESS,
-  ONE_TIME_PASSWORD_VERIFICATION_FAILURE
+  ONE_TIME_PASSWORD_VERIFICATION_FAILURE,
+  GET_PREFERED_METHOD,
+  GET_PREFERED_METHOD_SUCCESS,
+  GET_PREFERED_METHOD_FAILURE,
+  SET_PREFERED_METHOD,
+  SET_PREFERED_METHOD_FAILURE,
+  SET_PREFERED_METHOD_SUCCESS,
+  SET_USE_ANOTHER_METHOD
 } from "../../constants";
+import Method2FA from "../../../types/Method2FA";
 
 export const setSecurityKeySupported = createAction(SET_SECURITY_KEY_SUPPORTED, resolve => {
   return (supported: boolean) => resolve(supported);
+});
+
+export const setUseAnotherMethod = createAction(SET_USE_ANOTHER_METHOD, resolve => {
+  return (useAnotherMethod: boolean) => resolve(useAnotherMethod);
+});
+
+export const getPreferedMethod = createAction(GET_PREFERED_METHOD);
+export const getPreferedMethodSuccess = createAction(GET_PREFERED_METHOD_SUCCESS, resolve => {
+  return (method: Method2FA) => resolve(method);
+});
+export const getPreferedMethodFailure = createAction(GET_PREFERED_METHOD_FAILURE, resolve => {
+  return (err: string) => resolve(err);
+});
+
+export const setPreferedMethod = createAction(SET_PREFERED_METHOD);
+export const setPreferedMethodSuccess = createAction(SET_PREFERED_METHOD_SUCCESS);
+export const setPreferedMethodFailure = createAction(SET_PREFERED_METHOD_FAILURE, resolve => {
+  return (err: string) => resolve(err);
 })
 
 export const securityKeySign = createAction(SECURITY_KEY_SIGN);

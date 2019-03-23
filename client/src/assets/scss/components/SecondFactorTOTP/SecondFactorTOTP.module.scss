@@ -1,0 +1,20 @@
+@import '../../variables.scss';
+
+
+.totpField {
+  margin-top: ($theme-spacing) * 2;
+  width: 100%;
+}
+
+.totpButton {
+  margin-top: ($theme-spacing);
+
+  button {
+    width: 100%;
+  }
+}
+
+.registerDeviceContainer {
+  text-align: right;
+  font-size: 0.7em;
+}

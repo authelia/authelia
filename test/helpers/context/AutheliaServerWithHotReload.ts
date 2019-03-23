@@ -15,10 +15,10 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
   private filesChangedBuffer: string[] = [];
   private changeInProgress: boolean = false;
 
-  constructor(configPath: string) {
+  constructor(configPath: string, watchedPaths: string[]) {
     this.configPath = configPath;
     this.watcher = Chokidar.watch(['server', 'shared/**/*.ts', 'node_modules',
-      this.AUTHELIA_INTERRUPT_FILENAME, configPath], {
+      this.AUTHELIA_INTERRUPT_FILENAME, configPath].concat(watchedPaths), {
       persistent: true,
       ignoreInitial: true,
     });

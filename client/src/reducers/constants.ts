@@ -10,6 +10,15 @@ export const AUTHENTICATE_FAILURE = '@portal/authenticate_failure';
 
 // SECOND FACTOR PAGE
 export const SET_SECURITY_KEY_SUPPORTED = '@portal/second_factor/set_security_key_supported';
+export const SET_USE_ANOTHER_METHOD = '@portal/second_factor/set_use_another_method';
+
+export const GET_PREFERED_METHOD = '@portal/second_factor/get_prefered_method';
+export const GET_PREFERED_METHOD_SUCCESS = '@portal/second_factor/get_prefered_method_success';
+export const GET_PREFERED_METHOD_FAILURE = '@portal/second_factor/get_prefered_method_failure';
+
+export const SET_PREFERED_METHOD = '@portal/second_factor/set_prefered_method';
+export const SET_PREFERED_METHOD_SUCCESS = '@portal/second_factor/set_prefered_method_success';
+export const SET_PREFERED_METHOD_FAILURE = '@portal/second_factor/set_prefered_method_failure';
 
 export const SECURITY_KEY_SIGN = '@portal/second_factor/security_key_sign';
 export const SECURITY_KEY_SIGN_SUCCESS = '@portal/second_factor/security_key_sign_success';

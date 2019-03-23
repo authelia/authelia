@@ -46,11 +46,12 @@ describe("storage/UserDataStore", function () {
   it("should correctly creates collections", function () {
     new UserDataStore(factory);
 
-    Assert.equal(4, factory.buildStub.callCount);
+    Assert.equal(5, factory.buildStub.callCount);
     Assert(factory.buildStub.calledWith("authentication_traces"));
     Assert(factory.buildStub.calledWith("identity_validation_tokens"));
     Assert(factory.buildStub.calledWith("u2f_registrations"));
     Assert(factory.buildStub.calledWith("totp_secrets"));
+    Assert(factory.buildStub.calledWith("prefered_2fa_method"));
   });
 
   describe("TOTP secrets collection", function () {
@@ -259,6 +260,30 @@ describe("storage/UserDataStore", function () {
           }));
           return BluebirdPromise.resolve();
         });
+    });
+  });
+  describe("Prefered 2FA method", function () {
+    it("should save a prefered 2FA method", async function () {
+      factory.buildStub.returns(collection);
+      collection.insertStub.returns(BluebirdPromise.resolve());
+
+      const dataStore = new UserDataStore(factory);
+
+      await dataStore.savePrefered2FAMethod(userId, "totp")
+      Assert(collection.updateStub.calledOnce);
+      Assert(collection.updateStub.calledWith(
+        {userId}, {userId, method: "totp"}, {upsert: true}));
+    });
+
+    it("should retrieve a prefered 2FA method", async function () {
+      factory.buildStub.returns(collection);
+      collection.findOneStub.returns(BluebirdPromise.resolve());
+
+      const dataStore = new UserDataStore(factory);
+
+      await dataStore.retrievePrefered2FAMethod(userId)
+      Assert(collection.findOneStub.calledOnce);
+      Assert(collection.findOneStub.calledWith({userId}));
     });
   });
 });

@@ -1,12 +1,10 @@
-import React, { Component, KeyboardEvent, FormEvent } from 'react';
-import classnames from 'classnames';
-
-import TextField, { Input } from '@material/react-text-field';
-import Button from '@material/react-button';
-
+import React, { Component } from 'react';
 import styles from '../../assets/scss/components/SecondFactorForm/SecondFactorForm.module.scss';
-import CircleLoader, { Status } from '../../components/CircleLoader/CircleLoader';
-import Notification from '../Notification/Notification';
+import Method2FA from '../../types/Method2FA';
+import SecondFactorTOTP from '../../containers/components/SecondFactorTOTP/SecondFactorTOTP';
+import SecondFactorU2F from '../../containers/components/SecondFactorU2F/SecondFactorU2F';
+import { Button } from '@material/react-button';
+import classnames from 'classnames';
 
 export interface OwnProps {
   username: string;
@@ -14,130 +12,62 @@ export interface OwnProps {
 }
 
 export interface StateProps {
-  securityKeySupported: boolean;
-  securityKeyVerified: boolean;
-  securityKeyError: string | null;
-
-  oneTimePasswordVerificationInProgress: boolean,
-  oneTimePasswordVerificationError: string | null;
+  method: Method2FA | null;
+  useAnotherMethod: boolean;
 }
 
 export interface DispatchProps {
   onInit: () => void;
   onLogoutClicked: () => void;
-  onRegisterSecurityKeyClicked: () => void;
-  onRegisterOneTimePasswordClicked: () => void;
-
-  onOneTimePasswordValidationRequested: (token: string) => void;
+  onOneTimePasswordMethodClicked: () => void;
+  onSecurityKeyMethodClicked: () => void;
+  onUseAnotherMethodClicked: () => void;
 }
 
 export type Props = OwnProps & StateProps & DispatchProps;
 
-interface State {
-  oneTimePassword: string;
-}
-
-class SecondFactorView extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      oneTimePassword: '',
-    }
-  }
-
-  componentWillMount() {
+class SecondFactorForm extends Component<Props> {
+  componentDidMount() {
     this.props.onInit();
   }
 
-  private renderU2f(n: number) {
-    let u2fStatus = Status.LOADING;
-    if (this.props.securityKeyVerified) {
-      u2fStatus = Status.SUCCESSFUL;
-    } else if (this.props.securityKeyError) {
-      u2fStatus = Status.FAILURE;
+  private renderMethod() {
+    let method: Method2FA = (this.props.method) ? this.props.method : 'totp'
+    let methodComponent, title: string;
+    if (method == 'u2f') {
+      title = "Security Key";
+      methodComponent = (<SecondFactorU2F redirectionUrl={this.props.redirectionUrl}></SecondFactorU2F>);
+    } else {
+      title = "One-Time Password"
+      methodComponent = (<SecondFactorTOTP redirectionUrl={this.props.redirectionUrl}></SecondFactorTOTP>);
     }
+
     return (
-      <div className={styles.methodU2f} key='u2f-method'>
-        <div className={styles.methodName}>Option {n} - Security Key</div>
-        <div>Insert your security key into a USB port and touch the gold disk.</div>
-        <div className={styles.imageContainer}>
-          <CircleLoader status={u2fStatus}></CircleLoader>
-        </div>
-        <div className={styles.registerDeviceContainer}>
-          <a className={classnames(styles.registerDevice, 'register-u2f')} href="#"
-            onClick={this.props.onRegisterSecurityKeyClicked}>
-            Register device
-          </a>
+      <div className={classnames('second-factor-step')} key={method + '-method'}>
+        <div className={styles.methodName}>{title}</div>
+        {methodComponent}
+      </div>
+    );
+  }
+
+  private renderUseAnotherMethod() {
+    return (
+      <div className={classnames('use-another-method-view')}>
+        <div>Choose a method</div>
+        <div className={styles.buttonsContainer}>
+          <Button raised onClick={this.props.onOneTimePasswordMethodClicked}>One-Time Password</Button>
+          <Button raised onClick={this.props.onSecurityKeyMethodClicked}>Security Key (U2F)</Button>
         </div>
       </div>
-    )
+    );
   }
 
-  private onOneTimePasswordChanged = (e: FormEvent<HTMLElement>) => {
-    this.setState({oneTimePassword: (e.target as HTMLInputElement).value});
-  }
-
-  private onTotpKeyPressed = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      this.onOneTimePasswordValidationRequested();
-    }
-  }
-
-  private onOneTimePasswordValidationRequested = () => {
-    if (this.props.oneTimePasswordVerificationInProgress) return;
-    this.props.onOneTimePasswordValidationRequested(this.state.oneTimePassword);
-  }
-
-  private renderTotp(n: number) {
+  private renderUseAnotherMethodLink() {
     return (
-      <div className={classnames(styles.methodTotp, 'second-factor-step')} key='totp-method'>
-        <div className={styles.methodName}>Option {n} - One-Time Password</div>
-        <Notification show={this.props.oneTimePasswordVerificationError !== null}>
-          {this.props.oneTimePasswordVerificationError}
-        </Notification>
-        <TextField
-          className={styles.totpField}
-          label="One-Time Password"
-          outlined={true}>
-          <Input
-            name='totp-token'
-            id='totp-token'
-            onChange={this.onOneTimePasswordChanged as any}
-            onKeyPress={this.onTotpKeyPressed}
-            value={this.state.oneTimePassword} />
-        </TextField>
-        <div className={styles.registerDeviceContainer}>
-          <a className={classnames(styles.registerDevice, 'register-totp')} href="#"
-            onClick={this.props.onRegisterOneTimePasswordClicked}>
-            Register device
-          </a>
-        </div>
-        <div className={styles.totpButton}>
-          <Button
-            color="primary"
-            raised={true}
-            id='totp-button'
-            onClick={this.onOneTimePasswordValidationRequested}
-            disabled={this.props.oneTimePasswordVerificationInProgress}>
-            OK
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  private renderMode() {
-    const methods = [];
-    let n = 1;
-    if (this.props.securityKeySupported) {
-      methods.push(this.renderU2f(n));
-      n++;
-    }
-    methods.push(this.renderTotp(n));
-
-    return (
-      <div className={styles.methodsContainer}>
-        {methods}
+      <div className={styles.anotherMethodLink}>
+        <a href="#" onClick={this.props.onUseAnotherMethodClicked}>
+          Use another method
+        </a>
       </div>
     );
   }
@@ -152,11 +82,12 @@ class SecondFactorView extends Component<Props, State> {
           </div>
         </div>
         <div className={styles.body}>
-          {this.renderMode()}
+          {(this.props.useAnotherMethod) ? this.renderUseAnotherMethod() : this.renderMethod()}
         </div>
+        {(this.props.useAnotherMethod) ? null : this.renderUseAnotherMethodLink()}
       </div>
     )
   }
 }
 
-export default SecondFactorView;
+export default SecondFactorForm;
