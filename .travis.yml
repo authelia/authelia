@@ -1,4 +1,5 @@
 language: node_js
+required: sudo
 node_js:
 - '9'
 services:
@@ -12,20 +13,6 @@ addons:
     packages:
     - libgif-dev
     - google-chrome-stable
-  hosts:
-  - admin.example.com
-  - login.example.com
-  - singlefactor.example.com
-  - dev.example.com
-  - home.example.com
-  - mx1.mail.example.com
-  - mx2.mail.example.com
-  - public.example.com
-  - secure.example.com
-  - authelia.example.com
-  - admin.example.com
-  - mail.example.com
-  - duo.example.com
 
 before_script:
 - export DISPLAY=:99.0

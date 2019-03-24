@@ -24,25 +24,6 @@ then
   return;
 fi
 
-echo "[BOOTSTRAP] Checking if example.com domain is forwarded to your machine..."
-cat /etc/hosts | grep "login.example.com" > /dev/null
-if [ $? -ne 0 ];
-then
-  echo "[ERROR] Please add those lines to /etc/hosts:
-  
-127.0.0.1       home.example.com
-127.0.0.1       public.example.com
-127.0.0.1       secure.example.com
-127.0.0.1       dev.example.com
-127.0.0.1       admin.example.com
-127.0.0.1       mx1.mail.example.com
-127.0.0.1       mx2.mail.example.com
-127.0.0.1       singlefactor.example.com
-127.0.0.1       login.example.com
-192.168.240.100 duo.example.com"
-  return;
-fi
-
 echo "[BOOTSTRAP] Running additional bootstrap steps..."
 authelia-scripts bootstrap
 

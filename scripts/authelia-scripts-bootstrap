@@ -3,12 +3,59 @@
 var { exec } = require('./utils/exec');
 var fs = require('fs');
 
-async function main() {
+async function buildDockerImages() {
+  console.log("[BOOTSTRAP] Building required Docker images...");
+
   console.log('Build authelia-example-backend docker image.')
   await exec('docker build -t authelia-example-backend example/compose/nginx/backend');
 
   console.log('Build authelia-duo-api docker image.')
   await exec('docker build -t authelia-duo-api example/compose/duo-api');
+}
+
+async function checkHostsFile() {
+  async function checkAndFixEntry(entries, domain, ip) {
+    const foundEntry = entries.filter(l => l[1] == domain);
+    if (foundEntry.length > 0) {
+      if (foundEntry[0][0] == ip) {
+        // The entry exists and is correct.
+        return;
+      }
+      else {
+        // We need to remove the entry and replace it.
+        console.log(`Update entry for ${domain}.`);
+        await exec(`cat /etc/hosts | grep -v "${domain}" | /usr/bin/sudo tee /etc/hosts > /dev/null`);
+        await exec(`echo "${ip} ${domain}" | /usr/bin/sudo tee -a /etc/hosts > /dev/null`); 
+      }
+    }
+    else {
+      // We need to add the new entry.
+      console.log(`Add entry for ${domain}.`);
+      await exec(`echo "${ip} ${domain}" | /usr/bin/sudo tee -a /etc/hosts > /dev/null`);
+    }
+  }
+
+  console.log("[BOOTSTRAP] Checking if example.com domain is forwarded to your machine...");
+  const actualEntries = fs.readFileSync("/etc/hosts").toString("utf-8")
+    .split("\n").filter(l => l !== '').map(l => l.split(" ").filter(w => w !== ''));
+
+  await checkAndFixEntry(actualEntries, 'login.example.com', '127.0.0.1');
+  await checkAndFixEntry(actualEntries, 'admin.example.com', '127.0.0.1');
+  await checkAndFixEntry(actualEntries, 'singlefactor.example.com', '127.0.0.1');
+  await checkAndFixEntry(actualEntries, 'dev.example.com', '127.0.0.1');
+  await checkAndFixEntry(actualEntries, 'home.example.com', '127.0.0.1');
+  await checkAndFixEntry(actualEntries, 'mx1.mail.example.com', '127.0.0.1');
+  await checkAndFixEntry(actualEntries, 'mx2.mail.example.com', '127.0.0.1');
+  await checkAndFixEntry(actualEntries, 'public.example.com', '127.0.0.1');
+  await checkAndFixEntry(actualEntries, 'secure.example.com', '127.0.0.1');
+  await checkAndFixEntry(actualEntries, 'authelia.example.com', '127.0.0.1');
+  await checkAndFixEntry(actualEntries, 'mail.example.com', '127.0.0.1');
+
+  await checkAndFixEntry(actualEntries, 'duo.example.com', '192.168.240.100');
+}
+
+async function checkKubernetesDependencies() {
+  console.log("[BOOTSTRAP] Checking Kubernetes tools in /tmp to allow testing a Kube cluster... (no junk installed on host)");
 
   if (!fs.existsSync('/tmp/kind')) {
     console.log('Install Kind for spawning a Kubernetes cluster.');
@@ -19,6 +66,12 @@ async function main() {
     console.log('Install Kubectl for interacting with Kubernetes.');
     await exec('wget https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl -O /tmp/kubectl && chmod +x /tmp/kubectl');
   }
+}
+
+async function main() {
+  await checkHostsFile();
+  await buildDockerImages();
+  await checkKubernetesDependencies();
 }
 
 main().catch((err) => {
