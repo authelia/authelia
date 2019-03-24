@@ -3,10 +3,8 @@ import LoginAs from "../../../helpers/LoginAs";
 import VerifyIsSecondFactorStage from "../../../helpers/assertions/VerifyIsSecondFactorStage";
 import ClickOnLink from "../../../helpers/ClickOnLink";
 import VerifyIsUseAnotherMethodView from "../../../helpers/assertions/VerifyIsUseAnotherMethodView";
-import VerifyElementDoesNotExist from "../../../helpers/assertions/VerifyElementDoesNotExist";
-import SeleniumWebDriver from "selenium-webdriver";
 import VerifyButtonDoesNotExist from "../../../helpers/assertions/VerifyButtonDoesNotExist";
-import VerifyButtonExists from "../../../helpers/assertions/VerifyButtonExists";
+import VerifyButtonHasAppeared from "../../../helpers/assertions/VerifyButtonHasAppeared";
 
 
 
@@ -26,8 +24,7 @@ export default function() {
 
     await ClickOnLink(this.driver, 'Use another method');
     await VerifyIsUseAnotherMethodView(this.driver);
-    await VerifyButtonExists(this.driver, "Security Key (U2F)");
-    await VerifyButtonExists(this.driver, "One-Time Password");
+    await VerifyButtonHasAppeared(this.driver, "One-Time Password");
     await VerifyButtonDoesNotExist(this.driver, "Duo Push Notification");
   });
 }

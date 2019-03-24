@@ -8,5 +8,9 @@ import VerifyElementDoesNotExist from "./VerifyElementDoesNotExist";
  * @param content The content of the button to select.
  */
 export default async function(driver: WebDriver, content: string) {
-  await VerifyElementDoesNotExist(driver, SeleniumWebDriver.By.xpath("//button[text()='" + content + "']"))
+  try {
+    await VerifyElementDoesNotExist(driver, SeleniumWebDriver.By.xpath("//button[text()='" + content + "']"));
+  } catch (err) {
+    throw new Error(`Button with content "${content}" should not exist.`);
+  }
 }

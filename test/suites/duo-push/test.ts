@@ -1,6 +1,7 @@
 import AutheliaSuite from "../../helpers/context/AutheliaSuite";
 import { exec } from '../../helpers/utils/exec';
 import DuoPushNotification from "./scenarii/DuoPushNotification";
+import Prefered2faMethod from "./scenarii/Prefered2faMethod";
 
 // required to query duo-api over https
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0 as any;
@@ -13,4 +14,5 @@ AutheliaSuite(__dirname, function() {
   });
 
   describe("Duo Push Notication", DuoPushNotification);
+  describe("Prefered 2FA methods", Prefered2faMethod);
 });

@@ -12,7 +12,6 @@ export interface StateProps {
 }
 
 export interface DispatchProps {
-  onInit: () => void;
   onOneTimePasswordMethodClicked: () => void;
   onSecurityKeyMethodClicked: () => void;
   onDuoPushMethodClicked: () => void;
@@ -27,10 +26,6 @@ interface MethodDescription {
 }
 
 class UseAnotherMethod extends Component<Props> {
-  componentDidMount() {
-    this.props.onInit();
-  }
-
   render() {
     const methods: MethodDescription[] = [
       {

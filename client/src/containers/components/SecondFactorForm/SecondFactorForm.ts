@@ -5,7 +5,10 @@ import LogoutBehavior from '../../../behaviors/LogoutBehavior';
 import { RootState } from '../../../reducers';
 import { StateProps, DispatchProps } from '../../../components/SecondFactorForm/SecondFactorForm';
 import FetchPrefered2faMethod from '../../../behaviors/FetchPrefered2faMethod';
-import { setUseAnotherMethod } from '../../../reducers/Portal/SecondFactor/actions';
+import { setUseAnotherMethod, setSecurityKeySupported } from '../../../reducers/Portal/SecondFactor/actions';
+import GetAvailable2faMethods from '../../../behaviors/GetAvailable2faMethods';
+import u2fApi from 'u2f-api';
+
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
@@ -16,7 +19,11 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   return {
-    onInit: () => FetchPrefered2faMethod(dispatch),
+    onInit: async () => {
+      dispatch(setSecurityKeySupported(await u2fApi.isSupported()));
+      FetchPrefered2faMethod(dispatch);
+      GetAvailable2faMethods(dispatch);
+    },
     onLogoutClicked: () => LogoutBehavior(dispatch),
     onUseAnotherMethodClicked: () => dispatch(setUseAnotherMethod(true)),
   }
