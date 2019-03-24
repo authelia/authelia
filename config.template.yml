@@ -34,7 +34,7 @@ totp:
 # Parameters used to contact the Duo API. Those are generated when you protect an application
 # of type "Partner Auth API" in the management panel.
 duo_api:
-  hostname: api-123456789.duosecurity.com
+  hostname: api-123456789.example.com
   integration_key: ABCDEF
   secret_key: 1234567890abcdefghifjkl
 
