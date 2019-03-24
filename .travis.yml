@@ -25,6 +25,7 @@ addons:
   - authelia.example.com
   - admin.example.com
   - mail.example.com
+  - duo.example.com
 
 before_script:
 - export DISPLAY=:99.0

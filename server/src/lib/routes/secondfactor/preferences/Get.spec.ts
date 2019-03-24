@@ -6,7 +6,7 @@ import * as ExpressMock from "../../../stubs/express.spec";
 import Get from "./Get";
 import * as Assert from "assert";
 
-describe("routes/secondfactor/Get", function() {
+describe("routes/secondfactor/preferences/Get", function() {
   let vars: ServerVariables;
   let mocks: ServerVariablesMock;
   let req: Express.Request;

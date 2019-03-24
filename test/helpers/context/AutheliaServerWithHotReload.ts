@@ -17,8 +17,10 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
 
   constructor(configPath: string, watchedPaths: string[]) {
     this.configPath = configPath;
-    this.watcher = Chokidar.watch(['server', 'shared/**/*.ts', 'node_modules',
-      this.AUTHELIA_INTERRUPT_FILENAME, configPath].concat(watchedPaths), {
+    const pathsToReload = ['server', 'shared/**/*.ts', 'node_modules',
+      this.AUTHELIA_INTERRUPT_FILENAME, configPath].concat(watchedPaths);
+    console.log("Authelia will reload on changes of files or directories in " + pathsToReload.join(', '));
+    this.watcher = Chokidar.watch(pathsToReload, {
       persistent: true,
       ignoreInitial: true,
     });
@@ -29,7 +31,10 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
     await exec('./node_modules/.bin/tslint -c server/tslint.json -p server/tsconfig.json')
     this.serverProcess = ChildProcess.spawn('./node_modules/.bin/ts-node',
       ['-P', './server/tsconfig.json', './server/src/index.ts', this.configPath], {
-        env: {...process.env},
+        env: {
+          ...process.env,
+          NODE_TLS_REJECT_UNAUTHORIZED: 0,
+        },
       });
     this.serverProcess.stdout.pipe(process.stdout);
     this.serverProcess.stderr.pipe(process.stderr);

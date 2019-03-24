@@ -113,6 +113,21 @@ class AutheliaService {
     })
   }
 
+  static async triggerDuoPush(redirectionUrl: string | null): Promise<any> {
+    
+      const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    }
+    if (redirectionUrl) {
+      headers['X-Target-Url'] = redirectionUrl;
+    }
+    return this.fetchSafe('/api/duo-push', {
+      method: 'POST',
+      headers: headers,
+    })
+  }
+
   static async initiatePasswordResetIdentityValidation(username: string) {
     return this.fetchSafe('/api/password-reset/identity/start', {
       method: 'POST',

@@ -28,6 +28,10 @@ export const ONE_TIME_PASSWORD_VERIFICATION_REQUEST = '@portal/second_factor/one
 export const ONE_TIME_PASSWORD_VERIFICATION_SUCCESS = '@portal/second_factor/one_time_password_verification_success';
 export const ONE_TIME_PASSWORD_VERIFICATION_FAILURE = '@portal/second_factor/one_time_password_verification_failure';
 
+export const TRIGGER_DUO_PUSH_AUTH = '@portal/second_factor/trigger_duo_push_auth_request';
+export const TRIGGER_DUO_PUSH_AUTH_SUCCESS = '@portal/second_factor/trigger_duo_push_auth_request_success';
+export const TRIGGER_DUO_PUSH_AUTH_FAILURE = '@portal/second_factor/trigger_duo_push_auth_request_failure';
+
 export const LOGOUT_REQUEST = '@portal/logout_request';
 export const LOGOUT_SUCCESS = '@portal/logout_success';
 export const LOGOUT_FAILURE = '@portal/logout_failure';

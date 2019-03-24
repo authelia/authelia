@@ -38,7 +38,8 @@ then
 127.0.0.1       mx1.mail.example.com
 127.0.0.1       mx2.mail.example.com
 127.0.0.1       singlefactor.example.com
-127.0.0.1       login.example.com"
+127.0.0.1       login.example.com
+192.168.240.100 duo.example.com"
   return;
 fi
 

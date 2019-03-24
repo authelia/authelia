@@ -5,6 +5,7 @@ import SecondFactorTOTP from '../../containers/components/SecondFactorTOTP/Secon
 import SecondFactorU2F from '../../containers/components/SecondFactorU2F/SecondFactorU2F';
 import { Button } from '@material/react-button';
 import classnames from 'classnames';
+import SecondFactorDuoPush from '../../containers/components/SecondFactorDuoPush/SecondFactorDuoPush';
 
 export interface OwnProps {
   username: string;
@@ -21,6 +22,7 @@ export interface DispatchProps {
   onLogoutClicked: () => void;
   onOneTimePasswordMethodClicked: () => void;
   onSecurityKeyMethodClicked: () => void;
+  onDuoPushMethodClicked: () => void;
   onUseAnotherMethodClicked: () => void;
 }
 
@@ -37,6 +39,9 @@ class SecondFactorForm extends Component<Props> {
     if (method == 'u2f') {
       title = "Security Key";
       methodComponent = (<SecondFactorU2F redirectionUrl={this.props.redirectionUrl}></SecondFactorU2F>);
+    } else if (method == "duo_push") {
+      title = "Duo Push Notification";
+      methodComponent = (<SecondFactorDuoPush redirectionUrl={this.props.redirectionUrl}></SecondFactorDuoPush>);
     } else {
       title = "One-Time Password"
       methodComponent = (<SecondFactorTOTP redirectionUrl={this.props.redirectionUrl}></SecondFactorTOTP>);
@@ -57,6 +62,7 @@ class SecondFactorForm extends Component<Props> {
         <div className={styles.buttonsContainer}>
           <Button raised onClick={this.props.onOneTimePasswordMethodClicked}>One-Time Password</Button>
           <Button raised onClick={this.props.onSecurityKeyMethodClicked}>Security Key (U2F)</Button>
+          <Button raised onClick={this.props.onDuoPushMethodClicked}>Duo Push Notification</Button>
         </div>
       </div>
     );

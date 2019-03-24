@@ -7,6 +7,9 @@ async function main() {
   console.log('Build authelia-example-backend docker image.')
   await exec('docker build -t authelia-example-backend example/compose/nginx/backend');
 
+  console.log('Build authelia-duo-api docker image.')
+  await exec('docker build -t authelia-duo-api example/compose/duo-api');
+
   if (!fs.existsSync('/tmp/kind')) {
     console.log('Install Kind for spawning a Kubernetes cluster.');
     await exec('wget https://github.com/clems4ever/kind/releases/download/0.1.0-cmic1/kind-linux-amd64 -O /tmp/kind && chmod +x /tmp/kind');  

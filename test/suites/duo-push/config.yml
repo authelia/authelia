@@ -30,6 +30,12 @@ storage:
 totp:
   issuer: example.com
 
+# The Duo Push Notification API configuration
+duo_api:
+  hostname: duo.example.com
+  integration_key: ABCDEFGHIJKL
+  secret_key: abcdefghijklmnopqrstuvwxyz123456789
+
 # Access Control
 #
 # Access control is a set of rules you can use to restrict user access to certain 

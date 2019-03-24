@@ -8,4 +8,6 @@ services:
     ports:
       - "8080:443"
     networks:
-      - authelianet
+      authelianet:
+        # Set the IP to be able to query on port 443
+        ipv4_address: 192.168.240.100

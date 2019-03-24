@@ -27,6 +27,10 @@ interface SecondFactorState {
   oneTimePasswordVerificationLoading: boolean,
   oneTimePasswordVerificationSuccess: boolean | null,
   oneTimePasswordVerificationError: string | null,
+
+  duoPushVerificationLoading: boolean;
+  duoPushVerificationSuccess: boolean | null;
+  duoPushVerificationError: string | null;
 }
 
 const secondFactorInitialState: SecondFactorState = {
@@ -51,6 +55,10 @@ const secondFactorInitialState: SecondFactorState = {
   oneTimePasswordVerificationLoading: false,
   oneTimePasswordVerificationError: null,
   oneTimePasswordVerificationSuccess: null,
+
+  duoPushVerificationLoading: false,
+  duoPushVerificationSuccess: null,
+  duoPushVerificationError: null,
 }
 
 export type PortalState = StateType<SecondFactorState>;
@@ -162,6 +170,25 @@ export default (state = secondFactorInitialState, action: SecondFactorAction): S
       return {
         ...state,
         userAnotherMethod: action.payload,
+      }
+    case getType(Actions.triggerDuoPushAuth):
+      return {
+        ...state,
+        duoPushVerificationLoading: true,
+        duoPushVerificationError: null,
+        duoPushVerificationSuccess: null,
+      }
+    case getType(Actions.triggerDuoPushAuthSuccess):
+      return {
+        ...state,
+        duoPushVerificationLoading: false,
+        duoPushVerificationSuccess: true,
+      }
+    case getType(Actions.triggerDuoPushAuthFailure):
+      return {
+        ...state,
+        duoPushVerificationLoading: false,
+        duoPushVerificationError: action.payload,
       }
   }
   return state;

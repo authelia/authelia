@@ -36,11 +36,11 @@ export default function (
   }
   else if (user && authorizationLevel == AuthorizationLevel.DENY) {
     throw new Exceptions.NotAuthorizedError(
-      Util.format("User %s is not authorized to access %s%s", user, domain, resource));
+      Util.format("User %s is not authorized to access %s%s", (user) ? user : "unknown", domain, resource));
   }
   else if (!isAuthorized(authorizationLevel, authenticationLevel)) {
     throw new Exceptions.NotAuthenticatedError(Util.format(
-      "User '%s' is not sufficiently authorized to access %s%s.", user, domain, resource));
+      "User '%s' is not sufficiently authorized to access %s%s.", (user) ? user : "unknown", domain, resource));
   }
   return authorizationLevel;
 }

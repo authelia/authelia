@@ -16,7 +16,10 @@ import {
   SET_PREFERED_METHOD,
   SET_PREFERED_METHOD_FAILURE,
   SET_PREFERED_METHOD_SUCCESS,
-  SET_USE_ANOTHER_METHOD
+  SET_USE_ANOTHER_METHOD,
+  TRIGGER_DUO_PUSH_AUTH,
+  TRIGGER_DUO_PUSH_AUTH_SUCCESS,
+  TRIGGER_DUO_PUSH_AUTH_FAILURE
 } from "../../constants";
 import Method2FA from "../../../types/Method2FA";
 
@@ -54,6 +57,11 @@ export const oneTimePasswordVerificationFailure = createAction(ONE_TIME_PASSWORD
   return (err: string) => resolve(err);
 });
 
+export const triggerDuoPushAuth = createAction(TRIGGER_DUO_PUSH_AUTH);
+export const triggerDuoPushAuthSuccess = createAction(TRIGGER_DUO_PUSH_AUTH_SUCCESS);
+export const triggerDuoPushAuthFailure = createAction(TRIGGER_DUO_PUSH_AUTH_FAILURE, resolve => {
+  return (err: string) => resolve(err);
+});
 
 export const logout = createAction(LOGOUT_REQUEST);
 export const logoutSuccess = createAction(LOGOUT_SUCCESS);
