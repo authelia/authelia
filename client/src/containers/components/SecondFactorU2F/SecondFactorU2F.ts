@@ -10,7 +10,6 @@ import {
   securityKeySignSuccess,
   securityKeySign,
   securityKeySignFailure,
-  setSecurityKeySupported
 } from '../../../reducers/Portal/SecondFactor/actions';
 import FetchStateBehavior from '../../../behaviors/FetchStateBehavior';
 
@@ -94,11 +93,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
       await dispatch(push('/confirmation-sent'));
     },
     onInit: async () => {
-      const isU2FSupported = await u2fApi.isSupported();
-      if (isU2FSupported) {
-        await dispatch(setSecurityKeySupported(true));
-        await triggerSecurityKeySigning(dispatch, ownProps.redirectionUrl);
-      }
+      await triggerSecurityKeySigning(dispatch, ownProps.redirectionUrl);
     },
   }
 }

@@ -5,24 +5,13 @@ import LogoutBehavior from '../../../behaviors/LogoutBehavior';
 import { RootState } from '../../../reducers';
 import { StateProps, DispatchProps } from '../../../components/SecondFactorForm/SecondFactorForm';
 import FetchPrefered2faMethod from '../../../behaviors/FetchPrefered2faMethod';
-import SetPrefered2faMethod from '../../../behaviors/SetPrefered2faMethod';
-import { getPreferedMethodSuccess, setUseAnotherMethod } from '../../../reducers/Portal/SecondFactor/actions';
-import Method2FA from '../../../types/Method2FA';
+import { setUseAnotherMethod } from '../../../reducers/Portal/SecondFactor/actions';
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     method: state.secondFactor.preferedMethod,
     useAnotherMethod: state.secondFactor.userAnotherMethod,
   }
-}
-
-async function storeMethod(dispatch: Dispatch, method: Method2FA) {
-  // display the new option
-  dispatch(getPreferedMethodSuccess(method));
-  dispatch(setUseAnotherMethod(false));
-
-  // And save the method for next time.
-  await SetPrefered2faMethod(dispatch, method);
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
