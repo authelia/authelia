@@ -171,6 +171,10 @@ class AutheliaService {
       body: JSON.stringify({method})
     });
   }
+
+  static async getAvailable2faMethods(): Promise<Method2FA[]> {
+    return await this.fetchSafeJson('/api/secondfactor/available');
+  }
 }
 
 export default AutheliaService;

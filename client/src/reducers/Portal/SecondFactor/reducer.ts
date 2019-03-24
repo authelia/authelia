@@ -12,6 +12,10 @@ interface SecondFactorState {
 
   userAnotherMethod: boolean;
 
+  getAvailableMethodsLoading: boolean;
+  getAvailableMethodResponse: Method2FA[] | null;
+  getAvailableMethodError: string | null;
+
   preferedMethodLoading: boolean;
   preferedMethodError: string | null;
   preferedMethod: Method2FA | null;
@@ -39,6 +43,10 @@ const secondFactorInitialState: SecondFactorState = {
   error: null,
 
   userAnotherMethod: false,
+
+  getAvailableMethodsLoading: false,
+  getAvailableMethodResponse: null,
+  getAvailableMethodError: null,
 
   preferedMethod: null,
   preferedMethodError: null,
@@ -189,6 +197,26 @@ export default (state = secondFactorInitialState, action: SecondFactorAction): S
         ...state,
         duoPushVerificationLoading: false,
         duoPushVerificationError: action.payload,
+      }
+
+    case getType(Actions.getPreferedMethod):
+      return {
+        ...state,
+        getAvailableMethodsLoading: true,
+        getAvailableMethodResponse: null,
+        getAvailableMethodError: null,
+      }
+    case getType(Actions.getAvailbleMethodsSuccess):
+      return {
+        ...state,
+        getAvailableMethodsLoading: false,
+        getAvailableMethodResponse: action.payload,
+      }
+    case getType(Actions.getAvailbleMethodsFailure):
+      return {
+        ...state,
+        getAvailableMethodsLoading: false,
+        getAvailableMethodError: action.payload,
       }
   }
   return state;

@@ -29,9 +29,6 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   return {
     onInit: () => FetchPrefered2faMethod(dispatch),
     onLogoutClicked: () => LogoutBehavior(dispatch),
-    onOneTimePasswordMethodClicked: () => storeMethod(dispatch, 'totp'),
-    onSecurityKeyMethodClicked: () => storeMethod(dispatch, 'u2f'),
-    onDuoPushMethodClicked: () => storeMethod(dispatch, "duo_push"),
     onUseAnotherMethodClicked: () => dispatch(setUseAnotherMethod(true)),
   }
 }

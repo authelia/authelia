@@ -197,6 +197,16 @@ export const SECOND_FACTOR_PREFERENCES_GET = "/api/secondfactor/preferences";
  */
 export const SECOND_FACTOR_PREFERENCES_POST = "/api/secondfactor/preferences";
 
+/**
+ * @api {post} /api/secondfactor/available List the available methods.
+ * @apiName GetAvailableMethods
+ * @apiGroup 2FA
+ * @apiVersion 1.0.0
+ *
+ * @apiDescription Get the available 2FA methods.
+ */
+export const SECOND_FACTOR_AVAILABLE_GET = "/api/secondfactor/available";
+
 
 /**
  * @api {post} /api/password-reset Set new password

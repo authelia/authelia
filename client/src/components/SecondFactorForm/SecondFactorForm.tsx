@@ -3,9 +3,9 @@ import styles from '../../assets/scss/components/SecondFactorForm/SecondFactorFo
 import Method2FA from '../../types/Method2FA';
 import SecondFactorTOTP from '../../containers/components/SecondFactorTOTP/SecondFactorTOTP';
 import SecondFactorU2F from '../../containers/components/SecondFactorU2F/SecondFactorU2F';
-import { Button } from '@material/react-button';
 import classnames from 'classnames';
 import SecondFactorDuoPush from '../../containers/components/SecondFactorDuoPush/SecondFactorDuoPush';
+import UseAnotherMethod from '../../containers/components/UseAnotherMethod/UseAnotherMethod';
 
 export interface OwnProps {
   username: string;
@@ -20,9 +20,6 @@ export interface StateProps {
 export interface DispatchProps {
   onInit: () => void;
   onLogoutClicked: () => void;
-  onOneTimePasswordMethodClicked: () => void;
-  onSecurityKeyMethodClicked: () => void;
-  onDuoPushMethodClicked: () => void;
   onUseAnotherMethodClicked: () => void;
 }
 
@@ -55,19 +52,6 @@ class SecondFactorForm extends Component<Props> {
     );
   }
 
-  private renderUseAnotherMethod() {
-    return (
-      <div className={classnames('use-another-method-view')}>
-        <div>Choose a method</div>
-        <div className={styles.buttonsContainer}>
-          <Button raised onClick={this.props.onOneTimePasswordMethodClicked}>One-Time Password</Button>
-          <Button raised onClick={this.props.onSecurityKeyMethodClicked}>Security Key (U2F)</Button>
-          <Button raised onClick={this.props.onDuoPushMethodClicked}>Duo Push Notification</Button>
-        </div>
-      </div>
-    );
-  }
-
   private renderUseAnotherMethodLink() {
     return (
       <div className={styles.anotherMethodLink}>
@@ -88,7 +72,7 @@ class SecondFactorForm extends Component<Props> {
           </div>
         </div>
         <div className={styles.body}>
-          {(this.props.useAnotherMethod) ? this.renderUseAnotherMethod() : this.renderMethod()}
+          {(this.props.useAnotherMethod) ? <UseAnotherMethod/> : this.renderMethod()}
         </div>
         {(this.props.useAnotherMethod) ? null : this.renderUseAnotherMethodLink()}
       </div>

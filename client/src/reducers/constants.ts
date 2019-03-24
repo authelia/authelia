@@ -12,6 +12,10 @@ export const AUTHENTICATE_FAILURE = '@portal/authenticate_failure';
 export const SET_SECURITY_KEY_SUPPORTED = '@portal/second_factor/set_security_key_supported';
 export const SET_USE_ANOTHER_METHOD = '@portal/second_factor/set_use_another_method';
 
+export const GET_AVAILABLE_METHODS = '@portal/second_factor/get_available_methods';
+export const GET_AVAILABLE_METHODS_SUCCESS = '@portal/second_factor/get_available_methods_success';
+export const GET_AVAILABLE_METHODS_FAILURE = '@portal/second_factor/get_available_methods_failure';
+
 export const GET_PREFERED_METHOD = '@portal/second_factor/get_prefered_method';
 export const GET_PREFERED_METHOD_SUCCESS = '@portal/second_factor/get_prefered_method_success';
 export const GET_PREFERED_METHOD_FAILURE = '@portal/second_factor/get_prefered_method_failure';

@@ -2,6 +2,7 @@ import * as Express from "express";
 import SecondFactorPreferencesGet from "../routes/secondfactor/preferences/Get";
 import SecondFactorPreferencesPost from "../routes/secondfactor/preferences/Post";
 import SecondFactorDuoPushPost from "../routes/secondfactor/duo-push/Post";
+import SecondFactorAvailableGet from "../routes/secondfactor/available/Get";
 
 import FirstFactorPost = require("../routes/firstfactor/post");
 import LogoutPost from "../routes/logout/post";
@@ -108,6 +109,10 @@ export class RestApi {
         RequireValidatedFirstFactor.middleware(vars.logger),
         SecondFactorDuoPushPost(vars));
     }
+
+    app.get(Endpoints.SECOND_FACTOR_AVAILABLE_GET,
+      RequireValidatedFirstFactor.middleware(vars.logger),
+      SecondFactorAvailableGet(vars));
 
     setupTotp(app, vars);
     setupU2f(app, vars);
