@@ -11,6 +11,10 @@ class DockerEnvironment {
     await this.dockerCompose.up();
   }
 
+  async logs(service: string) {
+    await this.dockerCompose.logs(service);
+  }
+
   async stop() {
     await this.dockerCompose.down();
   }

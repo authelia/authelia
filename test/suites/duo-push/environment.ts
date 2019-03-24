@@ -3,6 +3,8 @@ import { exec } from "../../helpers/utils/exec";
 import AutheliaServer from "../../helpers/context/AutheliaServer";
 import DockerEnvironment from "../../helpers/context/DockerEnvironment";
 
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0 as any;
+
 const autheliaServer = new AutheliaServer(__dirname + '/config.yml', [__dirname + '/users_database.yml']);
 const dockerEnv = new DockerEnvironment([
   'docker-compose.yml',

@@ -23,6 +23,10 @@ class DockerCompose {
   async ps() {
     return Promise.resolve(execSync(this.commandPrefix + ' ps').toString('utf-8'));
   }
+
+  async logs(service: string) {
+    await exec(this.commandPrefix + ' logs ' + service)
+  }
 }
 
 export default DockerCompose;

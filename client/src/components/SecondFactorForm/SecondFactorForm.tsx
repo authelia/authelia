@@ -71,7 +71,7 @@ class SecondFactorForm extends Component<Props> {
   private renderUseAnotherMethodLink() {
     return (
       <div className={styles.anotherMethodLink}>
-        <a href="#" onClick={this.props.onUseAnotherMethodClicked}>
+        <a onClick={this.props.onUseAnotherMethodClicked}>
           Use another method
         </a>
       </div>
@@ -84,7 +84,7 @@ class SecondFactorForm extends Component<Props> {
         <div className={styles.header}>
           <div className={styles.hello}>Hello <b>{this.props.username}</b></div>
           <div className={styles.logout}>
-            <a onClick={this.props.onLogoutClicked} href="#">Logout</a>
+            <a onClick={this.props.onLogoutClicked}>Logout</a>
           </div>
         </div>
         <div className={styles.body}>
