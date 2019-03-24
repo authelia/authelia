@@ -29,6 +29,15 @@ default_redirection_url: https://home.example.com:8080/
 totp:
   issuer: authelia.com
 
+# Duo Push API
+#
+# Parameters used to contact the Duo API. Those are generated when you protect an application
+# of type "Partner Auth API" in the management panel.
+duo_api:
+  hostname: api-123456789.example.com
+  integration_key: ABCDEF
+  secret_key: 1234567890abcdefghifjkl
+
 # The authentication backend to use for verifying user passwords
 # and retrieve information such as email address and groups
 # users belong to.

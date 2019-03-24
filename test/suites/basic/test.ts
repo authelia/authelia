@@ -10,7 +10,7 @@ import LogoutRedirectToAlreadyLoggedIn from './scenarii/LogoutRedirectToAlreadyL
 import { exec } from '../../helpers/utils/exec';
 import TwoFactorAuthentication from "../../helpers/scenarii/TwoFactorAuthentication";
 import BypassPolicy from "./scenarii/BypassPolicy";
-import Prefered2faMethod from "./scenarii/Prefered2faMethod";
+import NoDuoPushOption from "./scenarii/NoDuoPushOption";
 
 AutheliaSuite(__dirname, function() {
   this.timeout(10000);
@@ -29,5 +29,5 @@ AutheliaSuite(__dirname, function() {
   describe('TOTP Validation', TOTPValidation);
   describe('Required two factor', RequiredTwoFactor);
   describe('Logout endpoint redirect to already logged in page', LogoutRedirectToAlreadyLoggedIn);
-  describe('Prefered 2FA method', Prefered2faMethod);
+  describe('No Duo Push method available', NoDuoPushOption);
 });

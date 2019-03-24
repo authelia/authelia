@@ -1,0 +1,15 @@
+@import '../../variables.scss';
+
+.image {
+  width: '120px';
+}
+
+.imageContainer {
+  text-align: center;
+  margin-top: ($theme-spacing) * 2;
+  margin-bottom: ($theme-spacing) * 2;
+}
+
+.retryContainer {
+  text-align: center;
+}

@@ -12,6 +12,10 @@ export const AUTHENTICATE_FAILURE = '@portal/authenticate_failure';
 export const SET_SECURITY_KEY_SUPPORTED = '@portal/second_factor/set_security_key_supported';
 export const SET_USE_ANOTHER_METHOD = '@portal/second_factor/set_use_another_method';
 
+export const GET_AVAILABLE_METHODS = '@portal/second_factor/get_available_methods';
+export const GET_AVAILABLE_METHODS_SUCCESS = '@portal/second_factor/get_available_methods_success';
+export const GET_AVAILABLE_METHODS_FAILURE = '@portal/second_factor/get_available_methods_failure';
+
 export const GET_PREFERED_METHOD = '@portal/second_factor/get_prefered_method';
 export const GET_PREFERED_METHOD_SUCCESS = '@portal/second_factor/get_prefered_method_success';
 export const GET_PREFERED_METHOD_FAILURE = '@portal/second_factor/get_prefered_method_failure';
@@ -27,6 +31,10 @@ export const SECURITY_KEY_SIGN_FAILURE = '@portal/second_factor/security_key_sig
 export const ONE_TIME_PASSWORD_VERIFICATION_REQUEST = '@portal/second_factor/one_time_password_verification_request';
 export const ONE_TIME_PASSWORD_VERIFICATION_SUCCESS = '@portal/second_factor/one_time_password_verification_success';
 export const ONE_TIME_PASSWORD_VERIFICATION_FAILURE = '@portal/second_factor/one_time_password_verification_failure';
+
+export const TRIGGER_DUO_PUSH_AUTH = '@portal/second_factor/trigger_duo_push_auth_request';
+export const TRIGGER_DUO_PUSH_AUTH_SUCCESS = '@portal/second_factor/trigger_duo_push_auth_request_success';
+export const TRIGGER_DUO_PUSH_AUTH_FAILURE = '@portal/second_factor/trigger_duo_push_auth_request_failure';
 
 export const LOGOUT_REQUEST = '@portal/logout_request';
 export const LOGOUT_SUCCESS = '@portal/logout_success';

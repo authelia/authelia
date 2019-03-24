@@ -5,6 +5,7 @@ import { RegulationConfiguration, complete as RegulationConfigurationComplete } 
 import { SessionConfiguration, complete as SessionConfigurationComplete } from "./SessionConfiguration";
 import { StorageConfiguration, complete as StorageConfigurationComplete } from "./StorageConfiguration";
 import { TotpConfiguration, complete as TotpConfigurationComplete } from "./TotpConfiguration";
+import { DuoPushConfiguration } from "./DuoPushConfiguration";
 
 export interface Configuration {
   access_control?: ACLConfiguration;
@@ -17,6 +18,7 @@ export interface Configuration {
   session?: SessionConfiguration;
   storage?: StorageConfiguration;
   totp?: TotpConfiguration;
+  duo_api?: DuoPushConfiguration;
 }
 
 export function complete(

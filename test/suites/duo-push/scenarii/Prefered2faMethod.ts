@@ -6,6 +6,7 @@ import VerifyIsUseAnotherMethodView from "../../../helpers/assertions/VerifyIsUs
 import ClickOnButton from "../../../helpers/behaviors/ClickOnButton";
 import VerifyIsSecurityKeyView from "../../../helpers/assertions/VerifyIsSecurityKeyView";
 import VerifyIsSecondFactorStage from "../../../helpers/assertions/VerifyIsSecondFactorStage";
+import VerifyIsDuoPushNotificationView from "../../../helpers/assertions/VerifyIsDuoPushNotificationView";
 
 
 // This fixture tests that the latest used method is still used when the user gets back.
@@ -26,10 +27,10 @@ export default function() {
 
     await ClickOnLink(this.driver, 'Use another method');
     await VerifyIsUseAnotherMethodView(this.driver);
-    await ClickOnButton(this.driver, 'Security Key (U2F)');
+    await ClickOnButton(this.driver, 'Duo Push Notification');
     
     // Verify that the user is redirected to the new method
-    await VerifyIsSecurityKeyView(this.driver);
+    await VerifyIsDuoPushNotificationView(this.driver);
     await ClickOnLink(this.driver, "Logout");
 
     // Login with another user to check that he gets TOTP view.
@@ -39,7 +40,7 @@ export default function() {
 
     // Log john again to check that the prefered method has been persisted
     await LoginAs(this.driver, "john", "password", "https://secure.example.com:8080/");
-    await VerifyIsSecurityKeyView(this.driver);
+    await VerifyIsDuoPushNotificationView(this.driver);
 
     // Restore the prefered method to one-time password.
     await ClickOnLink(this.driver, 'Use another method');

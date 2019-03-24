@@ -107,6 +107,21 @@ export const SECOND_FACTOR_U2F_SIGN_REQUEST_GET = "/api/u2f/sign_request";
  */
 export const SECOND_FACTOR_TOTP_POST = "/api/totp";
 
+/**
+ * @api {post} /api/duo-push Complete Duo Push Factor
+ * @apiName ValidateDuoPushSecondFactor
+ * @apiGroup DuoPush
+ * @apiVersion 1.0.0
+ * @apiUse UserSession
+ * @apiUse InternalError
+ *
+ * @apiSuccess (Success 302) Redirect to the URL that has been stored during last call to /api/verify.
+ * @apiError (Error 401) {none} error TOTP token is invalid.
+ *
+ * @apiDescription Verify TOTP token. The user is authenticated upon success.
+ */
+export const SECOND_FACTOR_DUO_PUSH_POST = "/api/duo-push";
+
 
 /**
  * @api {get} /api/secondfactor/u2f/identity/start Start U2F registration identity validation
@@ -181,6 +196,16 @@ export const SECOND_FACTOR_PREFERENCES_GET = "/api/secondfactor/preferences";
  * @apiDescription Set the user preferences sucha as the prefered method to use  (TOTP or U2F).
  */
 export const SECOND_FACTOR_PREFERENCES_POST = "/api/secondfactor/preferences";
+
+/**
+ * @api {post} /api/secondfactor/available List the available methods.
+ * @apiName GetAvailableMethods
+ * @apiGroup 2FA
+ * @apiVersion 1.0.0
+ *
+ * @apiDescription Get the available 2FA methods.
+ */
+export const SECOND_FACTOR_AVAILABLE_GET = "/api/secondfactor/available";
 
 
 /**

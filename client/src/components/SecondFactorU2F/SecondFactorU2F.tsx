@@ -41,7 +41,7 @@ export default class SecondFactorU2F extends React.Component<Props, State> {
           <CircleLoader status={u2fStatus}></CircleLoader>
         </div>
         <div className={styles.registerDeviceContainer}>
-          <a className={classnames(styles.registerDevice, 'register-u2f')} href="#"
+          <a className={classnames(styles.registerDevice, 'register-u2f')}
             onClick={this.props.onRegisterSecurityKeyClicked}>
             Register new device
           </a>

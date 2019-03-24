@@ -5,9 +5,10 @@ import LogoutBehavior from '../../../behaviors/LogoutBehavior';
 import { RootState } from '../../../reducers';
 import { StateProps, DispatchProps } from '../../../components/SecondFactorForm/SecondFactorForm';
 import FetchPrefered2faMethod from '../../../behaviors/FetchPrefered2faMethod';
-import SetPrefered2faMethod from '../../../behaviors/SetPrefered2faMethod';
-import { getPreferedMethodSuccess, setUseAnotherMethod } from '../../../reducers/Portal/SecondFactor/actions';
-import Method2FA from '../../../types/Method2FA';
+import { setUseAnotherMethod, setSecurityKeySupported } from '../../../reducers/Portal/SecondFactor/actions';
+import GetAvailable2faMethods from '../../../behaviors/GetAvailable2faMethods';
+import u2fApi from 'u2f-api';
+
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
@@ -16,21 +17,14 @@ const mapStateToProps = (state: RootState): StateProps => {
   }
 }
 
-async function storeMethod(dispatch: Dispatch, method: Method2FA) {
-  // display the new option
-  dispatch(getPreferedMethodSuccess(method));
-  dispatch(setUseAnotherMethod(false));
-
-  // And save the method for next time.
-  await SetPrefered2faMethod(dispatch, method);
-}
-
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   return {
-    onInit: () => FetchPrefered2faMethod(dispatch),
+    onInit: async () => {
+      dispatch(setSecurityKeySupported(await u2fApi.isSupported()));
+      FetchPrefered2faMethod(dispatch);
+      GetAvailable2faMethods(dispatch);
+    },
     onLogoutClicked: () => LogoutBehavior(dispatch),
-    onOneTimePasswordMethodClicked: () => storeMethod(dispatch, 'totp'),
-    onSecurityKeyMethodClicked: () => storeMethod(dispatch, 'u2f'),
     onUseAnotherMethodClicked: () => dispatch(setUseAnotherMethod(true)),
   }
 }

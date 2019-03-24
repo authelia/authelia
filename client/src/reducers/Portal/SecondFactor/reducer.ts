@@ -12,6 +12,10 @@ interface SecondFactorState {
 
   userAnotherMethod: boolean;
 
+  getAvailableMethodsLoading: boolean;
+  getAvailableMethodResponse: Method2FA[] | null;
+  getAvailableMethodError: string | null;
+
   preferedMethodLoading: boolean;
   preferedMethodError: string | null;
   preferedMethod: Method2FA | null;
@@ -27,6 +31,10 @@ interface SecondFactorState {
   oneTimePasswordVerificationLoading: boolean,
   oneTimePasswordVerificationSuccess: boolean | null,
   oneTimePasswordVerificationError: string | null,
+
+  duoPushVerificationLoading: boolean;
+  duoPushVerificationSuccess: boolean | null;
+  duoPushVerificationError: string | null;
 }
 
 const secondFactorInitialState: SecondFactorState = {
@@ -35,6 +43,10 @@ const secondFactorInitialState: SecondFactorState = {
   error: null,
 
   userAnotherMethod: false,
+
+  getAvailableMethodsLoading: false,
+  getAvailableMethodResponse: null,
+  getAvailableMethodError: null,
 
   preferedMethod: null,
   preferedMethodError: null,
@@ -51,6 +63,10 @@ const secondFactorInitialState: SecondFactorState = {
   oneTimePasswordVerificationLoading: false,
   oneTimePasswordVerificationError: null,
   oneTimePasswordVerificationSuccess: null,
+
+  duoPushVerificationLoading: false,
+  duoPushVerificationSuccess: null,
+  duoPushVerificationError: null,
 }
 
 export type PortalState = StateType<SecondFactorState>;
@@ -162,6 +178,45 @@ export default (state = secondFactorInitialState, action: SecondFactorAction): S
       return {
         ...state,
         userAnotherMethod: action.payload,
+      }
+    case getType(Actions.triggerDuoPushAuth):
+      return {
+        ...state,
+        duoPushVerificationLoading: true,
+        duoPushVerificationError: null,
+        duoPushVerificationSuccess: null,
+      }
+    case getType(Actions.triggerDuoPushAuthSuccess):
+      return {
+        ...state,
+        duoPushVerificationLoading: false,
+        duoPushVerificationSuccess: true,
+      }
+    case getType(Actions.triggerDuoPushAuthFailure):
+      return {
+        ...state,
+        duoPushVerificationLoading: false,
+        duoPushVerificationError: action.payload,
+      }
+
+    case getType(Actions.getPreferedMethod):
+      return {
+        ...state,
+        getAvailableMethodsLoading: true,
+        getAvailableMethodResponse: null,
+        getAvailableMethodError: null,
+      }
+    case getType(Actions.getAvailbleMethodsSuccess):
+      return {
+        ...state,
+        getAvailableMethodsLoading: false,
+        getAvailableMethodResponse: action.payload,
+      }
+    case getType(Actions.getAvailbleMethodsFailure):
+      return {
+        ...state,
+        getAvailableMethodsLoading: false,
+        getAvailableMethodError: action.payload,
       }
   }
   return state;

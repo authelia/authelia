@@ -40,6 +40,9 @@ export default class Server {
       displayableConfiguration.notifier.email.password = STARS;
     if (displayableConfiguration.notifier && displayableConfiguration.notifier.smtp)
       displayableConfiguration.notifier.smtp.password = STARS;
+    if (displayableConfiguration.duo_api) {
+      displayableConfiguration.duo_api.secret_key = STARS;
+    }
 
     this.globalLogger.debug("User configuration is %s",
       JSON.stringify(displayableConfiguration, undefined, 2));

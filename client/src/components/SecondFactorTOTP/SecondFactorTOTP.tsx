@@ -68,7 +68,7 @@ export default class SecondFactorTOTP extends React.Component<Props, State> {
             value={this.state.oneTimePassword} />
         </TextField>
         <div className={styles.registerDeviceContainer}>
-          <a className={classnames(styles.registerDevice, 'register-totp')} href="#"
+          <a className={classnames(styles.registerDevice, 'register-totp')}
             onClick={this.props.onRegisterOneTimePasswordClicked}>
             Register new device
           </a>
