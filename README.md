@@ -29,8 +29,8 @@ for specific services in only few seconds.
 Here is the list of the main available features:
 
 * Several kind of second factor:
-  * **[Security Key (U2F)](./docs/2factor/security-key.md)** support with [Yubikey].
-  * **[Time-based One-Time password](./docs/2factor/time-based-one-time-password.md)** support with [Google Authenticator].
+  * **[Security Key (U2F)](./docs/2factor/security-key.md)** with [Yubikey].
+  * **[Time-based One-Time password](./docs/2factor/time-based-one-time-password.md)** with [Google Authenticator].
   * **[Mobile Push Notifications](./docs/2factor/duo-push-notifications.md)** with [Duo](https://duo.com/).
 * Password reset with identity verification using email.
 * Single-factor only authentication method available.
@@ -46,7 +46,7 @@ For more details about the features, follow [Features](./docs/features.md).
 
 You can start off with
 
-    git clone https://github.com/clems4ever/authelia.git
+    git clone https://github.com/clems4ever/authelia.git && cd authelia
     source bootstrap.sh
 
 If you want to go further, please read [Getting Started](./docs/getting-started.md).
