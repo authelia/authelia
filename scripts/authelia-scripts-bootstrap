@@ -48,7 +48,6 @@ async function checkHostsFile() {
   await checkAndFixEntry(actualEntries, 'mx2.mail.example.com', '127.0.0.1');
   await checkAndFixEntry(actualEntries, 'public.example.com', '127.0.0.1');
   await checkAndFixEntry(actualEntries, 'secure.example.com', '127.0.0.1');
-  await checkAndFixEntry(actualEntries, 'authelia.example.com', '127.0.0.1');
   await checkAndFixEntry(actualEntries, 'mail.example.com', '127.0.0.1');
 
   await checkAndFixEntry(actualEntries, 'duo.example.com', '192.168.240.100');

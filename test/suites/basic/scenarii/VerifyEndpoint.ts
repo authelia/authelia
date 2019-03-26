@@ -2,7 +2,7 @@ import { GET_Expect401, GET_ExpectRedirect } from "../../../helpers/utils/Reques
 
 export default function() {
   describe('Query without authenticated cookie', function() {
-    it('should get a 401 on GET to https://authelia.example.com:8080/api/verify', async function() {
+    it('should get a 401 on GET to https://login.example.com:8080/api/verify', async function() {
       await GET_Expect401('https://login.example.com:8080/api/verify');
     });
 
