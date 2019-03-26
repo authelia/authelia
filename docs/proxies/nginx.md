@@ -21,6 +21,32 @@ Here is a commented example of configuration
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Frame-Options "SAMEORIGIN";
 
+        location / {
+            # Send a subsequent request to Authelia to verify if the user is authenticated
+            # and has the right permissions to access the resource.
+            auth_request /auth_verify;
+
+            auth_request_set            $redirect $upstream_http_redirect;
+
+            # Set the X-Forwarded-User and X-Forwarded-Groups with the headers
+            # returned by Authelia for the backends which can consume them.
+            # This is not safe, as the backend must make sure that they come from the
+            # proxy. In the future, it's gonna be safe to just use OAuth.
+            auth_request_set            $user $upstream_http_remote_user;
+            proxy_set_header            X-Forwarded-User $user;
+
+            auth_request_set            $groups $upstream_http_remote_groups;
+            proxy_set_header            Remote-Groups $groups;
+
+            # If Authelia returns 401, then nginx redirects the user to the login portal.
+            # If it returns 200, then the request pass through to the backend.
+            # For other type of errors, nginx will handle them as usual.
+            # NOTE: do not forget to include /#/ representing the hash router of the web application.
+            error_page                  401 =302 https://login.example.com:8080/#/?rd=$redirect;
+
+            proxy_pass                  $upstream_endpoint;
+        }
+
         # Virtual endpoint created by nginx to forward auth requests.
         location /auth_verify {
             internal;
@@ -43,31 +69,6 @@ Here is a commented example of configuration
             proxy_set_header            Content-Length "";
 
             proxy_pass                  $upstream_verify;
-        }
-
-        location / {
-            # Send a subsequent request to Authelia to verify if the user is authenticated
-            # and has the right permissions to access the resource.
-            auth_request /auth_verify;
-
-            auth_request_set            $redirect $upstream_http_redirect;
-
-            # Set the X-Forwarded-User and X-Forwarded-Groups with the headers
-            # returned by Authelia for the backends which can consume them.
-            # This is not safe, as the backend must make sure that they come from the
-            # proxy. In the future, it's gonna be safe to just use OAuth.
-            auth_request_set            $user $upstream_http_remote_user;
-            proxy_set_header            X-Forwarded-User $user;
-
-            auth_request_set            $groups $upstream_http_remote_groups;
-            proxy_set_header            Remote-Groups $groups;
-
-            # If Authelia returns 401, then nginx redirects the user to the login portal.
-            # If it returns 200, then the request pass through to the backend.
-            # For other type of errors, nginx will handle them as usual.
-            error_page                  401 =302 https://login.example.com:8080/#/?rd=$redirect;
-
-            proxy_pass                  $upstream_endpoint;
         }
     }
 

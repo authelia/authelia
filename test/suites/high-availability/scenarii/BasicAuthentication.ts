@@ -11,7 +11,7 @@ async function GetSecret(username: string, password: string) {
 }
 
 export default function() {
-  it("should retrieve secret when Authorization header is provided", async function() {
+  it("should retrieve secret when Proxy-Authorization header is provided", async function() {
     const res = await GetSecret('john', 'password');
     if (res.indexOf('This is a very important secret!') < 0) {
       throw new Error('Cannot access secret.');
