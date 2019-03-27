@@ -24,11 +24,11 @@ describe("routes/secondfactor/duo-push/Post", function() {
       hostname: 'abc',
       integration_key: 'xyz',
       secret_key: 'secret',
-    }
+    };
 
     req = ExpressMock.RequestMock();
     res = ExpressMock.ResponseMock();
-  })
+  });
 
   it("should raise authentication level of user", async function() {
     const mock = Sinon.stub(DuoApi, "Client");
@@ -37,7 +37,7 @@ describe("routes/secondfactor/duo-push/Post", function() {
     });
     req.session.auth = {
       userid: 'john'
-    }
+    };
 
     Assert.equal(req.session.auth.authentication_level, undefined);
     await Post(vars)(req, res as any);
@@ -54,7 +54,7 @@ describe("routes/secondfactor/duo-push/Post", function() {
     });
     req.session.auth = {
       userid: 'john'
-    }
+    };
     vars.config.duo_api = undefined;
 
     Assert.equal(req.session.auth.authentication_level, undefined);
@@ -72,7 +72,7 @@ describe("routes/secondfactor/duo-push/Post", function() {
     });
     req.session.auth = {
       userid: 'john'
-    }
+    };
 
     Assert.equal(req.session.auth.authentication_level, undefined);
     await Post(vars)(req, res as any);
@@ -90,7 +90,7 @@ describe("routes/secondfactor/duo-push/Post", function() {
     });
     req.session.auth = {
       userid: 'john'
-    }
+    };
 
     Assert.equal(req.session.auth.authentication_level, undefined);
     const promise = Post(vars)(req, res as any)
