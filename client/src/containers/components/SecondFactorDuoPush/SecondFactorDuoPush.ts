@@ -4,6 +4,7 @@ import { Dispatch } from 'redux';
 import SecondFactorDuoPush, { StateProps, OwnProps, DispatchProps } from '../../../components/SecondFactorDuoPush/SecondFactorDuoPush';
 import FetchStateBehavior from '../../../behaviors/FetchStateBehavior';
 import TriggerDuoPushAuth from '../../../behaviors/TriggerDuoPushAuth';
+import RedirectionResponse from '../../../services/RedirectResponse';
 
 
 const mapStateToProps = (state: RootState): StateProps => ({
@@ -12,16 +13,16 @@ const mapStateToProps = (state: RootState): StateProps => ({
 });
 
 async function redirectIfPossible(body: any) {
-  if ('redirect' in body) {
+  if (body && 'redirect' in body) {
     window.location.href = body['redirect'];
     return true;
   }
   return false;
 }
 
-async function handleSuccess(dispatch: Dispatch, res: Response, duration?: number) {
+async function handleSuccess(dispatch: Dispatch, body: RedirectionResponse | undefined, duration?: number) {
   async function handle() {
-    const redirected = await redirectIfPossible(res);
+    const redirected = await redirectIfPossible(body);
     if (!redirected) {
       await FetchStateBehavior(dispatch);
     }
@@ -35,9 +36,8 @@ async function handleSuccess(dispatch: Dispatch, res: Response, duration?: numbe
 }
 
 async function triggerDuoPushAuth(dispatch: Dispatch, redirectionUrl: string | null) {
-  const res = await TriggerDuoPushAuth(dispatch, redirectionUrl);
-  if (!res) return;
-  await handleSuccess(dispatch, res, 2000);
+  const body = await TriggerDuoPushAuth(dispatch, redirectionUrl);
+  await handleSuccess(dispatch, body, 1000);
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => {

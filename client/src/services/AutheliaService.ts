@@ -1,6 +1,7 @@
 import RemoteState from "../views/AuthenticationView/RemoteState";
 import u2fApi, { SignRequest } from "u2f-api";
 import Method2FA from "../types/Method2FA";
+import RedirectResponse from "./RedirectResponse";
 
 class AutheliaService {
   static async fetchSafe(url: string, options?: RequestInit): Promise<Response> {
@@ -113,19 +114,28 @@ class AutheliaService {
     })
   }
 
-  static async triggerDuoPush(redirectionUrl: string | null): Promise<any> {
-    
-      const headers: Record<string, string> = {
+  static async triggerDuoPush(redirectionUrl: string | null): Promise<RedirectResponse | undefined> {    
+    const headers: Record<string, string> = {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
     }
     if (redirectionUrl) {
       headers['X-Target-Url'] = redirectionUrl;
     }
-    return this.fetchSafe('/api/duo-push', {
+    const res = await this.fetchSafe('/api/duo-push', {
       method: 'POST',
       headers: headers,
-    })
+    });
+
+    if (res.status === 204) {
+      return;
+    }
+
+    const body = await res.json();
+    if ('error' in body) {
+      throw new Error(body['error']);
+    }
+    return body;
   }
 
   static async initiatePasswordResetIdentityValidation(username: string) {

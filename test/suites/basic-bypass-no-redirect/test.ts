@@ -1,6 +1,7 @@
 import AutheliaSuite from "../../helpers/context/AutheliaSuite";
 import { exec } from '../../helpers/utils/exec';
 import BypassPolicy from "./scenarii/BypassPolicy";
+import NoDefaultRedirectionUrl from "./scenarii/NoDefaultRedirectionUrl";
 
 AutheliaSuite(__dirname, function() {
   this.timeout(10000);
@@ -10,4 +11,5 @@ AutheliaSuite(__dirname, function() {
   });
 
   describe('Bypass policy', BypassPolicy);
+  describe("No default redirection", NoDefaultRedirectionUrl);
 });

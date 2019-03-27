@@ -20,11 +20,19 @@ storage:
   local:
     path: /tmp/authelia/db
 
+# The Duo Push Notification API configuration
+duo_api:
+  hostname: duo.example.com
+  integration_key: ABCDEFGHIJKL
+  secret_key: abcdefghijklmnopqrstuvwxyz123456789
+
 access_control:
   default_policy: bypass
   rules:
   - domain: 'public.example.com'
     policy: bypass
+  - domain: 'secure.example.com'
+    policy: two_factor
 
 notifier:
   smtp:

@@ -3,12 +3,16 @@ import { exec } from "../../helpers/utils/exec";
 import AutheliaServer from "../../helpers/context/AutheliaServer";
 import DockerEnvironment from "../../helpers/context/DockerEnvironment";
 
+// required to query duo-api over https
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0 as any;
+
 const autheliaServer = new AutheliaServer(__dirname + '/config.yml');
 const dockerEnv = new DockerEnvironment([
   'docker-compose.yml',
   'example/compose/nginx/backend/docker-compose.yml',
   'example/compose/nginx/portal/docker-compose.yml',
   'example/compose/smtp/docker-compose.yml',
+  'example/compose/duo-api/docker-compose.yml',
 ])
 
 async function setup() {

@@ -87,18 +87,6 @@ regulation:
   ban_time: 900
 
 notifier:
-  # For testing purpose, notifications can be sent in a file
-  # filesystem:
-  #   filename: /tmp/authelia/notification.txt
-
-  # Use your email account to send the notifications. You can use an app password.
-  # List of valid services can be found here: https://nodemailer.com/smtp/well-known/  
-  ## email:
-  ##   username: user@example.com
-  ##   password: yourpassword
-  ##   sender: admin@example.com
-  ##   service: gmail
-  
   # Use a SMTP server for sending notifications
   smtp:
     username: test

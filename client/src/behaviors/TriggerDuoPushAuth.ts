@@ -5,14 +5,11 @@ import { triggerDuoPushAuth, triggerDuoPushAuthSuccess, triggerDuoPushAuthFailur
 export default async function(dispatch: Dispatch, redirectionUrl: string | null) {
   dispatch(triggerDuoPushAuth());
   try {
-    const res = await AutheliaService.triggerDuoPush(redirectionUrl);
-    const body = await res.json();
-    if ('error' in body) {
-      throw new Error(body['error']);
-    }
+    const body = await AutheliaService.triggerDuoPush(redirectionUrl);
     dispatch(triggerDuoPushAuthSuccess());
     return body;
   } catch (err) {
+    console.error(err);
     dispatch(triggerDuoPushAuthFailure(err.message))
   }
 }

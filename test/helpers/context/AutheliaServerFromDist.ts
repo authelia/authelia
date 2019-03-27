@@ -15,7 +15,8 @@ class AutheliaServerFromDist implements AutheliaServerInterface {
 
   async start() {
     this.serverProcess = ChildProcess.spawn('./scripts/authelia-scripts serve ' + this.configPath, {
-      shell: true
+      shell: true,
+      env: process.env,
     } as any);
     if (this.logInFile) {
       var logStream = fs.createWriteStream('/tmp/authelia-server.log', {flags: 'a'});
