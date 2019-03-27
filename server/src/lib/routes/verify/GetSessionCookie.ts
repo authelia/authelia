@@ -31,9 +31,9 @@ export default async function (req: Express.Request, res: Express.Response,
   const username = authSession.userid;
   const groups = authSession.groups;
 
-  vars.logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s", d.domain,
-    d.path, (username) ? username : "unknown", (groups instanceof Array && groups.length > 0) ? groups.join(",") : "unknown");
-  const authorizationLevel = CheckAuthorizations(vars.authorizer, d.domain, d.path, username, groups,
+  vars.logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s, ip=%s", d.domain,
+    d.path, (username) ? username : "unknown", (groups instanceof Array && groups.length > 0) ? groups.join(",") : "unknown", req.ip);
+  const authorizationLevel = CheckAuthorizations(vars.authorizer, d.domain, d.path, username, groups, req.ip,
     authSession.authentication_level);
 
   if (authorizationLevel > AuthorizationLevel.BYPASS) {

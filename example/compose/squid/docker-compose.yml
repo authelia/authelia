@@ -1,0 +1,19 @@
+version: '2'
+services:
+  # Simulates client 1.
+  client-1:
+    image: sameersbn/squid:3.5.27-1
+    volumes:
+      - ./example/compose/squid/squid.conf:/etc/squid/squid.conf
+    networks:
+      authelianet:
+        # Set the IP to be able to query on port 443
+        ipv4_address: 192.168.240.201
+  client-2:
+    image: sameersbn/squid:3.5.27-1
+    volumes:
+      - ./example/compose/squid/squid.conf:/etc/squid/squid.conf
+    networks:
+      authelianet:
+        # Set the IP to be able to query on port 443
+        ipv4_address: 192.168.240.202

@@ -39,18 +39,22 @@ async function checkHostsFile() {
   const actualEntries = fs.readFileSync("/etc/hosts").toString("utf-8")
     .split("\n").filter(l => l !== '').map(l => l.split(" ").filter(w => w !== ''));
 
-  await checkAndFixEntry(actualEntries, 'login.example.com', '127.0.0.1');
-  await checkAndFixEntry(actualEntries, 'admin.example.com', '127.0.0.1');
-  await checkAndFixEntry(actualEntries, 'singlefactor.example.com', '127.0.0.1');
-  await checkAndFixEntry(actualEntries, 'dev.example.com', '127.0.0.1');
-  await checkAndFixEntry(actualEntries, 'home.example.com', '127.0.0.1');
-  await checkAndFixEntry(actualEntries, 'mx1.mail.example.com', '127.0.0.1');
-  await checkAndFixEntry(actualEntries, 'mx2.mail.example.com', '127.0.0.1');
-  await checkAndFixEntry(actualEntries, 'public.example.com', '127.0.0.1');
-  await checkAndFixEntry(actualEntries, 'secure.example.com', '127.0.0.1');
-  await checkAndFixEntry(actualEntries, 'mail.example.com', '127.0.0.1');
-
+  await checkAndFixEntry(actualEntries, 'login.example.com', '192.168.240.100');
+  await checkAndFixEntry(actualEntries, 'admin.example.com', '192.168.240.100');
+  await checkAndFixEntry(actualEntries, 'singlefactor.example.com', '192.168.240.100');
+  await checkAndFixEntry(actualEntries, 'dev.example.com', '192.168.240.100');
+  await checkAndFixEntry(actualEntries, 'home.example.com', '192.168.240.100');
+  await checkAndFixEntry(actualEntries, 'mx1.mail.example.com', '192.168.240.100');
+  await checkAndFixEntry(actualEntries, 'mx2.mail.example.com', '192.168.240.100');
+  await checkAndFixEntry(actualEntries, 'public.example.com', '192.168.240.100');
+  await checkAndFixEntry(actualEntries, 'secure.example.com', '192.168.240.100');
+  await checkAndFixEntry(actualEntries, 'mail.example.com', '192.168.240.100');
   await checkAndFixEntry(actualEntries, 'duo.example.com', '192.168.240.100');
+
+  // For testing network ACLs.
+  await checkAndFixEntry(actualEntries, 'proxy-client1.example.com', '192.168.240.201');
+  await checkAndFixEntry(actualEntries, 'proxy-client2.example.com', '192.168.240.202');
+  await checkAndFixEntry(actualEntries, 'proxy-client3.example.com', '192.168.240.203');
 }
 
 async function checkKubernetesDependencies() {

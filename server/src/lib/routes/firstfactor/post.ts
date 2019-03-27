@@ -83,7 +83,7 @@ export default function (vars: ServerVariables) {
             groups: authSession.groups
           };
 
-          const authorizationLevel = vars.authorizer.authorization(resObject, subject);
+          const authorizationLevel = vars.authorizer.authorization(resObject, subject, req.ip);
           if (authorizationLevel <= AuthorizationLevel.ONE_FACTOR) {
             if (IsRedirectionSafe(vars, new URLParse(targetUrl))) {
               res.json({redirect: targetUrl});

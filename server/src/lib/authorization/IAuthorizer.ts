@@ -3,5 +3,5 @@ import { Subject } from "./Subject";
 import { Object } from "./Object";
 
 export interface IAuthorizer {
-  authorization(object: Object, subject: Subject): Level;
+  authorization(object: Object, subject: Subject, ip: string): Level;
 }

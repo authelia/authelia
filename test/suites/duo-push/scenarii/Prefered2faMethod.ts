@@ -4,7 +4,6 @@ import VerifyIsOneTimePasswordView from "../../../helpers/assertions/VerifyIsOne
 import ClickOnLink from "../../../helpers/ClickOnLink";
 import VerifyIsUseAnotherMethodView from "../../../helpers/assertions/VerifyIsUseAnotherMethodView";
 import ClickOnButton from "../../../helpers/behaviors/ClickOnButton";
-import VerifyIsSecurityKeyView from "../../../helpers/assertions/VerifyIsSecurityKeyView";
 import VerifyIsSecondFactorStage from "../../../helpers/assertions/VerifyIsSecondFactorStage";
 import VerifyIsDuoPushNotificationView from "../../../helpers/assertions/VerifyIsDuoPushNotificationView";
 

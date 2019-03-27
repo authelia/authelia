@@ -11,7 +11,7 @@ export default class AuthorizerStub implements IAuthorizer {
     this.authorizationMock = Sinon.stub();
   }
 
-  authorization(object: Object, subject: Subject): Level {
-    return this.authorizationMock(object, subject);
+  authorization(object: Object, subject: Subject, ip: string): Level {
+    return this.authorizationMock(object, subject, ip);
   }
 }

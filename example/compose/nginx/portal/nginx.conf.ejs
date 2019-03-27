@@ -12,7 +12,7 @@ events {
 http {
     <% if (production) { %>
     server {
-        listen 443 ssl;
+        listen 8080 ssl;
         server_name     login.example.com;
 
         resolver 127.0.0.11 ipv6=off;
@@ -39,6 +39,10 @@ http {
             proxy_set_header  X-Original-URI $request_uri;
             proxy_set_header  X-Real-IP $remote_addr;
             proxy_set_header  X-Forwarded-Proto $scheme;
+            # Needed for network ACLs to work. It appends the IP of the client to the list of IPs
+            # and allows Authelia to use it to match the network-based ACLs.
+            proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+
             proxy_intercept_errors on;
 
             proxy_pass        $backend_endpoint;
@@ -46,7 +50,7 @@ http {
     }
     <% } else { %>
     server {
-        listen 443 ssl;
+        listen 8080 ssl;
         server_name     login.example.com;
 
         resolver 127.0.0.11 ipv6=off;
@@ -59,6 +63,22 @@ http {
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Frame-Options "SAMEORIGIN";
 
+        # Serve the backend API for the portal.
+        location /api {
+            proxy_set_header  Host $http_host;
+            proxy_set_header  X-Original-URI $request_uri;
+            proxy_set_header  X-Real-IP $remote_addr;
+            proxy_set_header  X-Forwarded-Proto $scheme;
+            proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+            # Needed for network ACLs to work. It appends the IP of the client to the list of IPs
+            # and allows Authelia to use it to match the network-based ACLs.
+            proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            proxy_intercept_errors on;
+
+            proxy_pass        $backend_endpoint;
+        }
+
         # Serves the portal application.
         location / {
             # Allow websockets for webpack to auto-reload.
@@ -68,23 +88,12 @@ http {
 
             proxy_pass        $frontend_endpoint;
         }
-
-        # Serve the backend API for the portal.
-        location /api {
-            proxy_set_header  Host $http_host;
-            proxy_set_header  X-Original-URI $request_uri;
-            proxy_set_header  X-Real-IP $remote_addr;
-            proxy_set_header  X-Forwarded-Proto $scheme;
-            proxy_intercept_errors on;
-
-            proxy_pass        $backend_endpoint;
-        }
     }
     <% } %>
 
     # Serves the home page.
     server {
-        listen 443 ssl;
+        listen 8080 ssl;
         server_name     home.example.com;
 
         resolver 127.0.0.11 ipv6=off;
@@ -104,7 +113,7 @@ http {
 
     # Example configuration of domains protected by Authelia.
     server {
-        listen 443 ssl; 
+        listen 8080 ssl; 
         server_name     public.example.com
                         admin.example.com
                         secure.example.com
@@ -188,21 +197,9 @@ http {
         }
     }
 
-    # Matches all domains. It redirects to the home page.
-    server {
-	    listen 443 ssl;
-	    server_name _;
-
-        ssl_certificate     /etc/ssl/server.crt;
-        ssl_certificate_key /etc/ssl/server.key;
-
-	    return 301 https://home.example.com:8080/;
-    }
-
-
     # Fake Web Mail used to receive emails sent by Authelia.
     server {
-        listen 443 ssl;
+        listen 8080 ssl;
         server_name     mail.example.com;
 
         resolver 127.0.0.11 ipv6=off;
@@ -238,6 +235,17 @@ http {
             proxy_set_header  Host $http_host;
             proxy_pass        $upstream_endpoint;
         }
+    }
+
+    # Matches all domains. It redirects to the home page.
+    server {
+	    listen 8080 ssl;
+	    server_name _;
+
+        ssl_certificate     /etc/ssl/server.crt;
+        ssl_certificate_key /etc/ssl/server.key;
+
+	    return 301 https://home.example.com:8080/;
     }
 }
 

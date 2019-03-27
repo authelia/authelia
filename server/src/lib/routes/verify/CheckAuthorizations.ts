@@ -25,11 +25,11 @@ function isAuthorized(
 export default function (
   authorizer: IAuthorizer,
   domain: string, resource: string,
-  user: string, groups: string[],
+  user: string, groups: string[], ip: string,
   authenticationLevel: AuthenticationLevel): AuthorizationLevel {
 
   const authorizationLevel = authorizer
-    .authorization({domain, resource}, {user, groups});
+    .authorization({domain, resource}, {user, groups}, ip);
 
   if (authorizationLevel == AuthorizationLevel.BYPASS) {
     return authorizationLevel;

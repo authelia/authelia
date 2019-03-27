@@ -35,7 +35,7 @@ Here is the list of the main available features:
 * Password reset with identity verification using email.
 * Single-factor only authentication method available.
 * Access restriction after too many authentication attempts.
-* User-defined access control per subdomain and resource.
+* Fine-grained access control per subdomain, user, resource and network.
 * Support of [basic authentication] for endpoints protected by single factor.
 * High-availability using distributed database and KV store.
 * Compatible with Kubernetes ingress-nginx controller out of the box.

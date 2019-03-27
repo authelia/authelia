@@ -6,6 +6,7 @@ import { MultipleDomainMatcher } from "./MultipleDomainMatcher";
 import { Level } from "./Level";
 import { Object } from "./Object";
 import { Subject } from "./Subject";
+const IpRangeCheck = require("ip-range-check");
 
 function MatchDomain(actualDomain: string) {
   return function (rule: ACLRule): boolean {
@@ -44,6 +45,16 @@ function MatchSubject(subject: Subject) {
   };
 }
 
+function MatchNetworks(ip: string) {
+  return (rule: ACLRule): boolean => {
+    if (!rule.networks) return true; // all networks match
+
+    return rule.networks
+      .map(net => IpRangeCheck(ip, net) as boolean)
+      .reduce((acc, v) => acc || v, false);
+  };
+}
+
 export class Authorizer implements IAuthorizer {
   private readonly configuration: ACLConfiguration;
 
@@ -51,13 +62,14 @@ export class Authorizer implements IAuthorizer {
     this.configuration = configuration;
   }
 
-  private getMatchingRules(object: Object, subject: Subject): ACLRule[] {
+  private getMatchingRules(object: Object, subject: Subject, ip: string): ACLRule[] {
     const rules = this.configuration.rules;
     if (!rules) return [];
     return rules
       .filter(MatchDomain(object.domain))
       .filter(MatchResource(object.resource))
-      .filter(MatchSubject(subject));
+      .filter(MatchSubject(subject))
+      .filter(MatchNetworks(ip));
   }
 
   private ruleToLevel(policy: ACLPolicy): Level {
@@ -71,10 +83,10 @@ export class Authorizer implements IAuthorizer {
     return Level.DENY;
   }
 
-  authorization(object: Object, subject: Subject): Level {
+  authorization(object: Object, subject: Subject, ip: string): Level {
     if (!this.configuration) return Level.BYPASS;
 
-    const rules = this.getMatchingRules(object, subject);
+    const rules = this.getMatchingRules(object, subject, ip);
 
     return (rules.length > 0)
       ? this.ruleToLevel(rules[0].policy) // extract the policy of the first matching rule
