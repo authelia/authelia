@@ -140,8 +140,15 @@ access_control:
     # Rules applied to everyone
     - domain: public.example.com
       policy: bypass
+
+    - domain: secure.example.com
+      policy: one_factor
+      # Network based rule, if not provided any network matches.
+      networks:
+        - 192.168.1.0/24
     - domain: secure.example.com
       policy: two_factor
+
     - domain: singlefactor.example.com
       policy: one_factor
 

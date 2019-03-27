@@ -1,19 +1,23 @@
 require("chromedriver");
 import chrome from 'selenium-webdriver/chrome';
-import SeleniumWebdriver, { WebDriver } from "selenium-webdriver";
+import SeleniumWebdriver, { WebDriver, ProxyConfig } from "selenium-webdriver";
 
-export async function StartDriver() {
+export async function StartDriver(proxy?: ProxyConfig) {
   let options = new chrome.Options();
 
   if (process.env['HEADLESS'] == 'y') {
     options = options.headless();
   }
 
-  const driver = new SeleniumWebdriver.Builder()
-    .forBrowser("chrome")
-    .setChromeOptions(options)
-    .build();
-  return driver;
+  let driverBuilder = new SeleniumWebdriver.Builder()
+    .forBrowser("chrome");
+
+  if (proxy) {
+    options = options.addArguments(`--proxy-server=${proxy.httpProxy}`)
+  }
+
+  driverBuilder = driverBuilder.setChromeOptions(options);
+  return await driverBuilder.build();
 }
 
 export async function StopDriver(driver: WebDriver) {

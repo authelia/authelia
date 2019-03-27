@@ -61,19 +61,8 @@ Here are the versions used for testing in Travis:
 
 ### How am I supposed to access the subdomains of example.com?
 
-Well, in order to test Authelia, we will fake your browser that example.com is
-served by your machine. To do that, open */etc/hosts* and append the following
-lines:
-
-    127.0.0.1       home.example.com
-    127.0.0.1       public.example.com
-    127.0.0.1       secure.example.com
-    127.0.0.1       dev.example.com
-    127.0.0.1       admin.example.com
-    127.0.0.1       mx1.mail.example.com
-    127.0.0.1       mx2.mail.example.com
-    127.0.0.1       singlefactor.example.com
-    127.0.0.1       login.example.com
+Well, in order to test Authelia, Authelia fakes your browser by adding entries
+in /etc/hosts when you first source the bootstrap.sh script.
 
 ### What should I do if I want to contribute?
 

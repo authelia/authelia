@@ -1,11 +1,14 @@
 
 export type ACLPolicy = "deny" | "bypass" | "one_factor" | "two_factor";
 
+export type ACLNetwork = string[];
+
 export type ACLRule = {
   domain: string;
   resources?: string[];
   subject?: string;
   policy: ACLPolicy;
+  networks?: ACLNetwork;
 };
 
 export interface ACLConfiguration {

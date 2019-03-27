@@ -1,17 +1,18 @@
 version: '2'
 services:
-  nginx-portal:
+  kubernetes:
     image: nginx:alpine
     volumes:
-      - ./example/compose/nginx/portal/nginx.conf:/etc/nginx/nginx.conf
-      - ./example/compose/nginx/portal/ssl:/etc/ssl
-    ports:
-      - "8080:8080"
+      - ./example/compose/nginx/kubernetes/nginx.conf:/etc/nginx/nginx.conf
+      - ./example/compose/nginx/kubernetes/ssl:/etc/ssl
     networks:
       authelianet:
         aliases:
           - public.example.com
           - secure.example.com
           - login.example.com
+          - admin.example.com
+          - dev.example.com
+          - mail.example.com
         # Set the IP to be able to query on port 443
         ipv4_address: 192.168.240.100

@@ -1,0 +1,64 @@
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+port: 9091
+
+logs_level: debug
+
+authentication_backend:
+  file:
+    path: ./test/suites/basic/users_database.test.yml
+
+session:
+  secret: unsecure_session_secret
+  domain: example.com
+  expiration: 3600000 # 1 hour
+  inactivity: 300000 # 5 minutes
+
+# Configuration of the storage backend used to store data and secrets. i.e. totp data
+storage:
+  local:
+    path: /tmp/authelia/db
+
+# Access Control
+#
+# Access control is a set of rules you can use to restrict user access to certain 
+# resources.
+access_control:
+  default_policy: deny
+  rules:
+    - domain: secure.example.com
+      policy: one_factor
+      networks:
+        - 192.168.240.201/32
+
+    - domain: secure.example.com
+      policy: bypass
+      networks:
+        - 192.168.240.202/32
+        - 192.168.240.203/32
+
+    - domain: secure.example.com
+      policy: two_factor
+
+
+# Configuration of the authentication regulation mechanism.
+regulation: 
+  # Set it to 0 to disable max_retries.
+  max_retries: 3
+  # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window. 
+  find_time: 300
+  # The length of time before a banned user can login again.
+  ban_time: 900
+
+notifier:
+  # Use a SMTP server for sending notifications
+  smtp:
+    username: test
+    password: password
+    secure: false
+    host: 127.0.0.1
+    port: 1025
+    sender: admin@example.com
+

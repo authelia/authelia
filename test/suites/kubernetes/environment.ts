@@ -6,6 +6,7 @@ import { spawn, execSync, ChildProcess } from 'child_process';
 import treeKill = require('tree-kill');
 import Redis, { RedisClient } from 'redis';
 import sleep from '../../helpers/utils/sleep';
+import DockerEnvironment from '../../helpers/context/DockerEnvironment';
 
 let portFowardingProcess: ChildProcess;
 
@@ -78,11 +79,19 @@ async function redisReady(kubernetes: Kubernetes): Promise<void> {
 
 function startAutheliaPortForwarding(kubernetes: Kubernetes) {
   // Serve applications on port 8080
-  portFowardingProcess = spawn('kubectl',
-    ['port-forward', '-n', 'authelia', 'service/nginx-ingress-controller-service', '8080:443'], {
+  portFowardingProcess = spawn('kubectl port-forward --address 0.0.0.0 -n authelia service/nginx-ingress-controller-service 8080:443', {
+    shell: true,
     env: {KUBECONFIG: kubernetes.kubeConfig, ...process.env}
-  });
+  } as any);
+  portFowardingProcess.stdout.pipe(process.stdout);
+  portFowardingProcess.stderr.pipe(process.stderr);
 }
+
+const dockerEnv = new DockerEnvironment([
+  'docker-compose.yml',
+  'example/compose/nginx/kubernetes/docker-compose.yml',
+]);
+
 
 async function setup() {
   let kubernetes: Kubernetes;
@@ -108,6 +117,8 @@ async function setup() {
   });
   await servicesReady(kubernetes);
 
+  await dockerEnv.start();
+
   startAutheliaPortForwarding(kubernetes);
 }
 
@@ -119,8 +130,10 @@ async function teardown() {
     await sleep(1000);
   }
 
-  // if (process.env['KUBECONFIG']) return;
-  // await KubernetesManager.delete();
+  await dockerEnv.stop();
+
+  if (process.env['KUBECONFIG']) return;
+  await KubernetesManager.delete();
 }
 
 const setup_timeout = 300000;
