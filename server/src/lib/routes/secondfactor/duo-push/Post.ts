@@ -6,6 +6,8 @@ import * as UserMessage from "../../../../../../shared/UserMessages";
 import redirect from "../redirect";
 import { Level } from "../../../authentication/Level";
 import { DuoPushConfiguration } from "../../../configuration/schema/DuoPushConfiguration";
+import GetHeader from "../../../utils/GetHeader";
+import { HEADER_X_TARGET_URL } from "../../../../../../shared/constants";
 const DuoApi = require("@duosecurity/duo_api");
 
 interface DuoResponse {
@@ -17,11 +19,13 @@ interface DuoResponse {
   stat: "OK" | "FAIL";
 }
 
-function triggerAuth(username: string, config: DuoPushConfiguration): Promise<DuoResponse> {
+function triggerAuth(username: string, config: DuoPushConfiguration, req: Express.Request): Promise<DuoResponse> {
   return new Promise((resolve, reject) => {
+    const clientIP = req.ip;
+    const targetURL = GetHeader(req, HEADER_X_TARGET_URL);
     const client = new DuoApi.Client(config.integration_key, config.secret_key, config.hostname);
     const timer = setTimeout(() => reject(new Error("Call to duo push API timed out.")), 60000);
-    client.jsonApiCall("POST", "/auth/v2/auth", { username, factor: "push", device: "auto" }, (data: DuoResponse) => {
+    client.jsonApiCall("POST", "/auth/v2/auth", { username, ipaddr: clientIP, factor: "push", device: "auto", pushinfo: `target%20url=${targetURL}`}, (data: DuoResponse) => {
       clearTimeout(timer);
       resolve(data);
     });
@@ -37,7 +41,7 @@ export default function(vars: ServerVariables) {
       }
 
       const authSession = AuthenticationSessionHandler.get(req, vars.logger);
-      const authRes = await triggerAuth(authSession.userid, vars.config.duo_api);
+      const authRes = await triggerAuth(authSession.userid, vars.config.duo_api, req);
       if (authRes.response.result !== "allow") {
         throw new Error("User denied access.");
       }
