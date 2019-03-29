@@ -1,3 +1,13 @@
+Release Notes - Version 3.13.0
+------------------------------
+* Rewrite Authelia portal in Typescript.
+* Intoduce concept of suites and authelia-scripts.
+* Add official support for Kubernetes and a suite.
+* Improve documentation for nginx.
+* Fix bypass policy not properly handled.
+* Implement Duo push notification as a second factor.
+* Display only available 2FA options (U2F if supported in browser, Duo push if configured).
+
 Release Notes - Version 3.12.0
 ------------------------------
 * Add logs to troubleshoot LDAP sanitizer.
