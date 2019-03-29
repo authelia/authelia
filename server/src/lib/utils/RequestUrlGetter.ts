@@ -1,7 +1,7 @@
-import Constants = require("../../../../../shared/constants");
+import Constants = require("../../../../shared/constants");
 import Express = require("express");
-import GetHeader from "../../utils/GetHeader";
-import HasHeader from "../..//utils/HasHeader";
+import GetHeader from "./GetHeader";
+import HasHeader from "./HasHeader";
 
 export class RequestUrlGetter {
   static getOriginalUrl(req: Express.Request): string {
@@ -15,6 +15,11 @@ export class RequestUrlGetter {
     const port = GetHeader(req, Constants.HEADER_X_FORWARDED_PORT);
     const uri = GetHeader(req, Constants.HEADER_X_FORWARDED_URI);
 
+    if (!proto || !host || !port) {
+      throw new Error("Missing headers holding requested URL. Requires X-Original-Url or X-Forwarded-Proto, X-Forwarded-Host, and X-Forwarded-Port")
+    }
+
     return "${proto}://${host}:${port}${uri}";
+
   }
 }
