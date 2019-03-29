@@ -6,7 +6,7 @@ import HasHeader from "../..//utils/HasHeader";
 export class RequestUrlGetter {
   static getOriginalUrl(req: Express.Request): string {
 
-    if HasHeader(req, Constants.HEADER_X_ORIGINAL_URL) {
+    if (HasHeader(req, Constants.HEADER_X_ORIGINAL_URL)) {
       return GetHeader(req, Constants.HEADER_X_ORIGINAL_URL);
     }
 
