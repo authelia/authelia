@@ -51,7 +51,7 @@ async function triggerSecurityKeySigning(dispatch: Dispatch, redirectionUrl: str
   }
   
   try {
-    await redirectIfPossible(dispatch, result as Response);
+    await redirectIfPossible(result as Response);
     dispatch(securityKeySignSuccess());
     await handleSuccess(dispatch, 1000);
   } catch (err) {
@@ -59,7 +59,7 @@ async function triggerSecurityKeySigning(dispatch: Dispatch, redirectionUrl: str
   }
 }
 
-async function redirectIfPossible(dispatch: Dispatch, res: Response) {
+async function redirectIfPossible(res: Response) {
   if (res.status === 204) return;
 
   const body = await res.json();

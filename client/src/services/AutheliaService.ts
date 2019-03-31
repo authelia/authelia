@@ -2,6 +2,7 @@ import RemoteState from "../views/AuthenticationView/RemoteState";
 import u2fApi, { SignRequest } from "u2f-api";
 import Method2FA from "../types/Method2FA";
 import RedirectResponse from "./RedirectResponse";
+import PreferedMethodResponse from "./PreferedMethodResponse";
 
 class AutheliaService {
   static async fetchSafe(url: string, options?: RequestInit): Promise<Response> {
@@ -12,7 +13,7 @@ class AutheliaService {
     return res;
   }
 
-  static async fetchSafeJson(url: string, options?: RequestInit): Promise<any> {
+  static async fetchSafeJson<T>(url: string, options?: RequestInit): Promise<T> {
     const res = await fetch(url, options);
     if (res.status !== 200) {
       throw new Error('Status code ' + res.status);
@@ -167,7 +168,19 @@ class AutheliaService {
   }
 
   static async fetchPrefered2faMethod(): Promise<Method2FA> {
-    const doc = await this.fetchSafeJson('/api/secondfactor/preferences');
+    const doc = await this.fetchSafeJson<PreferedMethodResponse>('/api/secondfactor/preferences');
+    if (!doc) {
+      throw new Error("No response.");
+    }
+
+    if (doc.error) {
+      throw new Error(doc.error);
+    }
+
+    if (!doc.method) {
+      throw new Error("No method.");
+    }
+
     return doc.method;
   }
 
@@ -184,6 +197,21 @@ class AutheliaService {
 
   static async getAvailable2faMethods(): Promise<Method2FA[]> {
     return await this.fetchSafeJson('/api/secondfactor/available');
+  }
+
+  static async completeSecurityKeyRegistration(response: u2fApi.RegisterResponse): Promise<Response> {
+    return await this.fetchSafe('/api/u2f/register', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(response),
+    });
+  }
+
+  static async requestSecurityKeyRegistration() {
+    return this.fetchSafeJson<u2fApi.RegisterRequest>('/api/u2f/register_request')
   }
 }
 
