@@ -36,8 +36,6 @@ export default async function (req: Express.Request, res: Express.Response,
   const authorizationLevel = CheckAuthorizations(vars.authorizer, d.domain, d.path, username, groups, req.ip,
     authSession.authentication_level);
 
-  if (authorizationLevel > AuthorizationLevel.BYPASS) {
-    CheckInactivity(req, authSession, vars.config, vars.logger);
-    setUserAndGroupsHeaders(res, username, groups);
-  }
+  CheckInactivity(req, authSession, vars.config, vars.logger);
+  setUserAndGroupsHeaders(res, username, groups);
 }
