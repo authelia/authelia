@@ -7,7 +7,6 @@ import GetHeader from "../../utils/GetHeader";
 import {
   HEADER_X_ORIGINAL_URL,
 } from "../../../../../shared/constants";
-import { Level as AuthorizationLevel } from "../../authorization/Level";
 import setUserAndGroupsHeaders from "./SetUserAndGroupsHeaders";
 import CheckAuthorizations from "./CheckAuthorizations";
 import CheckInactivity from "./CheckInactivity";
@@ -33,9 +32,8 @@ export default async function (req: Express.Request, res: Express.Response,
 
   vars.logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s, ip=%s", d.domain,
     d.path, (username) ? username : "unknown", (groups instanceof Array && groups.length > 0) ? groups.join(",") : "unknown", req.ip);
-  const authorizationLevel = CheckAuthorizations(vars.authorizer, d.domain, d.path, username, groups, req.ip,
-    authSession.authentication_level);
 
+  CheckAuthorizations(vars.authorizer, d.domain, d.path, username, groups, req.ip, authSession.authentication_level);
   CheckInactivity(req, authSession, vars.config, vars.logger);
   setUserAndGroupsHeaders(res, username, groups);
 }
