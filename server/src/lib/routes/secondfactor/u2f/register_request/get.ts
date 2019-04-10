@@ -1,5 +1,4 @@
 
-import u2f_common = require("../U2FCommon");
 import BluebirdPromise = require("bluebird");
 import express = require("express");
 import U2f = require("u2f");
@@ -8,11 +7,15 @@ import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionH
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import UserMessages = require("../../../../../../../shared/UserMessages");
 import { ServerVariables } from "../../../../ServerVariables";
+import GetHeader from "../../../../utils/GetHeader";
+import * as Constants from "../../../../../../../shared/constants";
 
 export default function (vars: ServerVariables) {
   function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {
     let authSession: AuthenticationSession;
-    const appid: string = u2f_common.extract_app_id(req);
+    const scheme = GetHeader(req, Constants.HEADER_X_FORWARDED_PROTO);
+    const host = GetHeader(req, Constants.HEADER_X_FORWARDED_HOST);
+    const appid = scheme + "://" + host;
 
     return new BluebirdPromise(function (resolve, reject) {
       authSession = AuthenticationSessionHandler.get(req, vars.logger);

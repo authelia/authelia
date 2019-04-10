@@ -1,0 +1,75 @@
+defaultEntryPoints = ["http", "https"]
+logLevel = "DEBUG"
+
+[traefikLog]
+  filePath = "/var/log/traefik.log"
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":8080"
+    [entryPoints.https.tls]
+  [entryPoints.api]
+  address = ":8081"
+
+[file]
+
+# TODO(c.michaud): remove this template by providing a proxy doing
+#                  the routing depending on the mode (production or dev)
+<% if (!production) { %>
+
+[frontends]
+  [frontends.authelia_api]
+  backend = "authelia_api_backend"
+  [frontends.authelia_api.routes.route0]
+    rule = "Host:login.example.com; PathPrefix:/api;"
+
+  [frontends.authelia_front]
+  backend = "authelia_front_backend"
+  [frontends.authelia_front.routes.route0]
+    rule = "Host:login.example.com"
+    
+[backends]
+  [backends.authelia_api_backend]
+    [backends.authelia_api_backend.servers.server]
+    url = "http://192.168.240.1:9091"
+
+  [backends.authelia_front_backend]
+    [backends.authelia_front_backend.servers.server]
+    url = "http://192.168.240.1:3000"
+
+<% } else { %>
+
+[frontends]
+  [frontends.authelia]
+  backend = "authelia_backend"
+  [frontends.authelia.routes.route0]
+    rule = "Host:login.example.com"
+    
+[backends]
+  [backends.authelia_backend]
+    [backends.authelia_backend.servers.server]
+    url = "http://192.168.240.1:9091"
+
+<% } %>
+
+
+[api]
+# This is exposed via a subdomain and a proxy
+entryPoint = "api"
+dashboard = true
+
+[docker]
+# Docker server endpoint. Can be a tcp or a unix socket endpoint.
+endpoint = "unix:///var/run/docker.sock"
+# network = "traefik_default"
+
+# Default domain used.
+# Can be overridden by setting the "traefik.domain" label on a container.
+domain = "localhost"
+
+# Enable watch docker changes
+watch = true

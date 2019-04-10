@@ -1,0 +1,14 @@
+version: '2'
+services:
+  traefik:
+    image: traefik:v1.7.9-alpine
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./example/compose/traefik/traefik.toml:/etc/traefik/traefik.toml
+    labels:
+      - traefik.frontend.rule=Host:traefik.example.com
+      - traefik.port=8081
+    networks:
+      authelianet:
+        # Set the IP to be able to query on port 443
+        ipv4_address: 192.168.240.100

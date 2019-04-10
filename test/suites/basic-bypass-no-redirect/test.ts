@@ -6,6 +6,8 @@ import CustomHeadersForwarded from "./scenarii/CustomHeadersForwarded";
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0 as any;
 
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0 as any;
+
 AutheliaSuite(__dirname, function() {
   this.timeout(10000);
   

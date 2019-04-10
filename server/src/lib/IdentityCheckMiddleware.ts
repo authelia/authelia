@@ -10,11 +10,13 @@ import { AuthenticationSessionHandler } from "./AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../types/AuthenticationSession";
 import { ServerVariables } from "./ServerVariables";
 import { IdentityValidable } from "./IdentityValidable";
+import * as Constants from "../../../shared/constants";
 
 import Identity = require("../../types/Identity");
 import { IdentityValidationDocument }
   from "./storage/IdentityValidationDocument";
 import { OPERATION_FAILED } from "../../../shared/UserMessages";
+import GetHeader from "./utils/GetHeader";
 
 function createAndSaveToken(userid: string, challenge: string,
   userDataStore: IUserDataStore): BluebirdPromise<string> {
@@ -111,8 +113,9 @@ export function post_start_validation(handler: IdentityValidable,
           vars.userDataStore);
       })
       .then((token: string) => {
-        const host = req.get("Host");
-        const link_url = util.format("https://%s/#%s?token=%s", host,
+        const scheme = GetHeader(req, Constants.HEADER_X_FORWARDED_PROTO);
+        const host = GetHeader(req, Constants.HEADER_X_FORWARDED_HOST);
+        const link_url = util.format("%s://%s/#%s?token=%s", scheme, host,
           handler.destinationPath(), token);
         vars.logger.info(req, "Notification sent to user \"%s\"",
           identity.userid);

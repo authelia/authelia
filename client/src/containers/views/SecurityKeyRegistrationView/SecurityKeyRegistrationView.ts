@@ -2,7 +2,7 @@ import { connect } from 'react-redux';
 import SecurityKeyRegistrationView from '../../../views/SecurityKeyRegistrationView/SecurityKeyRegistrationView';
 import { RootState } from '../../../reducers';
 import { Dispatch } from 'redux';
-import * as U2fApi from "u2f-api";
+import U2fApi from "u2f-api";
 import { Props } from '../../../views/SecurityKeyRegistrationView/SecurityKeyRegistrationView';
 import { registerSecurityKey, registerSecurityKeyFailure, registerSecurityKeySuccess } from '../../../reducers/Portal/SecurityKeyRegistration/actions';
 import AutheliaService from '../../../services/AutheliaService';
@@ -12,13 +12,8 @@ const mapStateToProps = (state: RootState) => ({
   error: state.securityKeyRegistration.error,
 });
 
-async function checkIdentity(token: string) {
-  return fetch(`/api/secondfactor/u2f/identity/finish?token=${token}`, {
-    method: 'POST',
-  });
-}
-
 function fail(dispatch: Dispatch, err: Error) {
+  console.error(err);
   dispatch(registerSecurityKeyFailure(err.message));
 }
 
@@ -27,9 +22,9 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => {
     onInit: async (token: string) => {
       try {
         dispatch(registerSecurityKey());
-        await checkIdentity(token);
-        const requestRegister = await AutheliaService.requestSecurityKeyRegistration();
-        const registerResponse = await U2fApi.register(requestRegister, [], 60);
+        await AutheliaService.completeSecurityKeyRegistrationIdentityValidation(token);
+        const registerRequest = await AutheliaService.requestSecurityKeyRegistration();
+        const registerResponse = await U2fApi.register([registerRequest], [], 60);
         await AutheliaService.completeSecurityKeyRegistration(registerResponse);
         dispatch(registerSecurityKeySuccess());
         setTimeout(() => {

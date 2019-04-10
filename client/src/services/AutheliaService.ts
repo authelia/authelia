@@ -1,5 +1,5 @@
 import RemoteState from "../views/AuthenticationView/RemoteState";
-import u2fApi, { SignRequest } from "u2f-api";
+import U2fApi, { SignRequest } from "u2f-api";
 import Method2FA from "../types/Method2FA";
 import RedirectResponse from "./RedirectResponse";
 import PreferedMethodResponse from "./PreferedMethodResponse";
@@ -74,15 +74,11 @@ class AutheliaService {
   }
 
   static async requestSigning() {
-    return this.fetchSafe('/api/u2f/sign_request')
-      .then(async (res) => {
-        const body = await res.json();
-        return body as SignRequest;
-      });
+    return this.fetchSafeJson<SignRequest>('/api/u2f/sign_request');
   }
 
   static async completeSecurityKeySigning(
-    response: u2fApi.SignResponse, redirectionUrl: string | null) {
+    response: U2fApi.SignResponse, redirectionUrl: string | null) {
 
     const headers: Record<string, string> = {
       'Accept': 'application/json',
@@ -199,7 +195,7 @@ class AutheliaService {
     return await this.fetchSafeJson('/api/secondfactor/available');
   }
 
-  static async completeSecurityKeyRegistration(response: u2fApi.RegisterResponse): Promise<Response> {
+  static async completeSecurityKeyRegistration(response: U2fApi.RegisterResponse): Promise<Response> {
     return await this.fetchSafe('/api/u2f/register', {
       method: 'POST',
       headers: {
@@ -211,7 +207,18 @@ class AutheliaService {
   }
 
   static async requestSecurityKeyRegistration() {
-    return this.fetchSafeJson<u2fApi.RegisterRequest>('/api/u2f/register_request')
+    return this.fetchSafeJson<U2fApi.RegisterRequest>('/api/u2f/register_request')
+  }
+
+  static async completeSecurityKeyRegistrationIdentityValidation(token: string) {
+    const res = await this.fetchSafeJson(`/api/secondfactor/u2f/identity/finish?token=${token}`, {
+      method: 'POST',
+    });
+
+    if ('error' in res) {
+      throw new Error(res['error']);
+    }
+    return res;
   }
 }
 

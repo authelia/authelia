@@ -51,8 +51,7 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   preValidationResponse(req: express.Request, res: express.Response) {
-    res.status(204);
-    res.send();
+    res.json({message: "OK"});
   }
 
   postValidationInit(req: express.Request) {
@@ -60,8 +59,7 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   postValidationResponse(req: express.Request, res: express.Response) {
-    res.status(204);
-    res.send();
+    res.json({message: "OK"});
   }
 
   mailSubject(): string {

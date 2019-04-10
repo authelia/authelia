@@ -11,7 +11,7 @@ import { GET_VARIABLE_KEY } from "../../../../shared/constants";
  */
 export default function(req: Express.Request, header: string): string | undefined {
   const variables: ServerVariables = req.app.get(GET_VARIABLE_KEY);
-  if (!variables) return undefined;
+  if (!variables) throw new Error("There are no server variables set.");
 
   const value = ObjectPath.get<Express.Request, string>(req, "headers." + header, undefined);
   variables.logger.debug(req, "Header %s is set to %s", header, value);
