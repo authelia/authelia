@@ -6,6 +6,7 @@ import CheckInactivity from "./CheckInactivity";
 import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import { Configuration } from "../../configuration/schema/Configuration";
 import { RequestLoggerStub } from "../../logging/RequestLoggerStub.spec";
+import { Level } from "../../authentication/Level";
 
 
 describe('routes/verify/VerifyInactivity', function() {
@@ -16,7 +17,9 @@ describe('routes/verify/VerifyInactivity', function() {
 
   beforeEach(function() {
     req = ExpressMock.RequestMock();
-    authSession = {} as any;
+    authSession = {
+      authentication_level: Level.TWO_FACTOR,
+    } as any;
     configuration = {
       session: {
         domain: 'example.com',
@@ -30,6 +33,11 @@ describe('routes/verify/VerifyInactivity', function() {
       }
     }
     logger = new RequestLoggerStub();
+  });
+
+  it('should not throw if user is not authenticated', function() {
+    authSession.authentication_level = Level.NOT_AUTHENTICATED;
+    CheckInactivity(req, authSession, configuration, logger);
   });
 
   it('should not throw if inactivity timeout is disabled', function() {

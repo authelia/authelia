@@ -40,10 +40,8 @@ export default async function(req: Express.Request, res: Express.Response,
 
   const uri = GetHeader(req, HEADER_X_ORIGINAL_URL);
   const urlDecomposition = URLDecomposer.fromUrl(uri);
-  const authorizationLevel = CheckAuthorizations(vars.authorizer, urlDecomposition.domain, urlDecomposition.path,
-        username, groupsAndEmails.groups, req.ip, Level.ONE_FACTOR);
 
-  if (authorizationLevel > AuthorizationLevel.BYPASS) {
-    setUserAndGroupsHeaders(res, username, groupsAndEmails.groups);
-  }
+  CheckAuthorizations(vars.authorizer, urlDecomposition.domain, urlDecomposition.path,
+    username, groupsAndEmails.groups, req.ip, Level.ONE_FACTOR);
+  setUserAndGroupsHeaders(res, username, groupsAndEmails.groups);
 }

@@ -3,10 +3,16 @@ import { AuthenticationSession } from "AuthenticationSession";
 import { Configuration } from "../../configuration/schema/Configuration";
 import { IRequestLogger } from "../../logging/IRequestLogger";
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
+import { Level } from "../../authentication/Level";
 
 export default function(req: Express.Request,
   authSession: AuthenticationSession,
   configuration: Configuration, logger: IRequestLogger): void {
+
+  // If the user is not authenticated, we don't check inactivity.
+  if (authSession.authentication_level == Level.NOT_AUTHENTICATED) {
+    return;
+  }
 
   // If inactivity is not specified, then inactivity timeout does not apply
   if (!configuration.session.inactivity || authSession.keep_me_logged_in) {

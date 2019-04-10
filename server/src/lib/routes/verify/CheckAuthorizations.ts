@@ -26,13 +26,13 @@ export default function (
   authorizer: IAuthorizer,
   domain: string, resource: string,
   user: string, groups: string[], ip: string,
-  authenticationLevel: AuthenticationLevel): AuthorizationLevel {
+  authenticationLevel: AuthenticationLevel): void {
 
   const authorizationLevel = authorizer
     .authorization({domain, resource}, {user, groups}, ip);
 
   if (authorizationLevel == AuthorizationLevel.BYPASS) {
-    return authorizationLevel;
+    return;
   }
   else if (user && authorizationLevel == AuthorizationLevel.DENY) {
     throw new Exceptions.NotAuthorizedError(
@@ -42,5 +42,4 @@ export default function (
     throw new Exceptions.NotAuthenticatedError(Util.format(
       "User '%s' is not sufficiently authorized to access %s%s.", (user) ? user : "unknown", domain, resource));
   }
-  return authorizationLevel;
 }
