@@ -6,8 +6,7 @@ import GetHeader from "../../utils/GetHeader";
 import { HEADER_PROXY_AUTHORIZATION } from "../../../../../shared/constants";
 import setUserAndGroupsHeaders from "./SetUserAndGroupsHeaders";
 import CheckAuthorizations from "./CheckAuthorizations";
-import { Level as AuthorizationLevel } from "../../authorization/Level";
-import { RequestUrlGetter } from "../../utils/RequestUrlGetter";
+import RequestUrlGetter from "../../utils/RequestUrlGetter";
 
 export default async function(req: Express.Request, res: Express.Response,
   vars: ServerVariables)

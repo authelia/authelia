@@ -10,7 +10,7 @@ import { AuthenticationSessionHandler }
 import { AuthenticationSession }
   from "../../../../types/AuthenticationSession";
 import HasHeader from "../..//utils/HasHeader";
-import { RequestUrlGetter } from "../../utils/RequestUrlGetter";
+import RequestUrlGetter from "../../utils/RequestUrlGetter";
 
 
 async function verifyWithSelectedMethod(req: Express.Request, res: Express.Response,
@@ -24,42 +24,41 @@ async function verifyWithSelectedMethod(req: Express.Request, res: Express.Respo
   }
 }
 
-/**
- * The Redirect header is used to set the target URL in the login portal.
- *
- * @param req The request to extract X-Original-Url from.
- * @param res The response to write Redirect header to.
- */
-function setRedirectHeader(req: Express.Request, res: Express.Response) {
-  const originalUrl = RequestUrlGetter.getOriginalUrl(req);
-  res.set(Constants.HEADER_REDIRECT, originalUrl);
-}
-
 function getRedirectParam(req: Express.Request) {
   return req.query[Constants.REDIRECT_QUERY_PARAM] != "undefined"
     ? req.query[Constants.REDIRECT_QUERY_PARAM]
     : undefined;
 }
 
+async function unsafeGet(vars: ServerVariables, req: Express.Request, res: Express.Response) {
+  const authSession = AuthenticationSessionHandler.get(req, vars.logger);
+  try {
+    await verifyWithSelectedMethod(req, res, vars, authSession);
+    res.status(204);
+    res.send();
+  } catch (err) {
+    // Kubernetes ingress controller and Traefik use the rd parameter of the verify
+    // endpoint to provide the URL of the login portal. The target URL of the user
+    // is computed from X-Fowarded-* headers or X-Original-Url.
+    let redirectUrl = getRedirectParam(req);
+    const originalUrl = RequestUrlGetter.getOriginalUrl(req);
+    if (redirectUrl && originalUrl) {
+      redirectUrl = redirectUrl + `?${Constants.REDIRECT_QUERY_PARAM}=` + originalUrl;
+      ErrorReplies.redirectTo(redirectUrl, req, res, vars.logger)(err);
+      return;
+    }
+
+    // Reply with an error.
+    throw err;
+  }
+}
+
 export default function (vars: ServerVariables) {
   return async function (req: Express.Request, res: Express.Response)
     : Promise<void> {
-    const authSession = AuthenticationSessionHandler.get(req, vars.logger);
-    setRedirectHeader(req, res);
-
     try {
-      await verifyWithSelectedMethod(req, res, vars, authSession);
-      res.status(204);
-      res.send();
+      await unsafeGet(vars, req, res);
     } catch (err) {
-      // This redirect parameter is used in Kubernetes to annotate the ingress with
-      // the url to the authentication portal.
-      const redirectUrl = getRedirectParam(req);
-      if (redirectUrl) {
-        ErrorReplies.redirectTo(redirectUrl, req, res, vars.logger)(err);
-        return;
-      }
-
       if (err instanceof Exceptions.NotAuthorizedError) {
         ErrorReplies.replyWithError403(req, res, vars.logger)(err);
       } else {

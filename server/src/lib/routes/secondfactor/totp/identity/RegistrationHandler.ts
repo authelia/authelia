@@ -63,8 +63,7 @@ export default class RegistrationHandler implements IdentityValidable {
   }
 
   preValidationResponse(req: Express.Request, res: Express.Response) {
-    res.status(204);
-    res.send();
+    res.json({message: "OK"});
   }
 
   postValidationInit(req: Express.Request) {

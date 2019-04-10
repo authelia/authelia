@@ -88,7 +88,7 @@ describe("routes/verify/get", function () {
       req.query.rd = 'https://login.example.com/';
       const mock = ImportMock.mockOther(GetBasicAuth, "default", () => Promise.reject(new NotAuthenticatedError('No!')));
       await Get(vars)(req, res as any);
-      Assert(res.redirect.calledWith('https://login.example.com/'));
+      Assert(res.redirect.calledWith('https://login.example.com/?rd=https://secret.example.com/'));
       mock.restore();
     });
   });

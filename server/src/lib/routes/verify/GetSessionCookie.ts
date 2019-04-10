@@ -2,11 +2,11 @@ import Express = require("express");
 import { ServerVariables } from "../../ServerVariables";
 import { AuthenticationSession }
   from "../../../../types/AuthenticationSession";
-import { URLDecomposer } from "../../utils/URLDecomposer";
 import setUserAndGroupsHeaders from "./SetUserAndGroupsHeaders";
 import CheckAuthorizations from "./CheckAuthorizations";
 import CheckInactivity from "./CheckInactivity";
-import { RequestUrlGetter } from "../../utils/RequestUrlGetter";
+import RequestUrlGetter from "../../utils/RequestUrlGetter";
+import * as URLParse from "url-parse";
 
 
 export default async function (req: Express.Request, res: Express.Response,
@@ -22,15 +22,16 @@ export default async function (req: Express.Request, res: Express.Response,
     throw new Error("Cannot detect the original URL from headers.");
   }
 
-  const d = URLDecomposer.fromUrl(originalUrl);
-
+  const url = new URLParse(originalUrl);
   const username = authSession.userid;
   const groups = authSession.groups;
 
-  vars.logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s, ip=%s", d.domain,
-    d.path, (username) ? username : "unknown", (groups instanceof Array && groups.length > 0) ? groups.join(",") : "unknown", req.ip);
+  vars.logger.debug(req, "domain=%s, path=%s, user=%s, groups=%s, ip=%s", url.hostname,
+    url.pathname, (username) ? username : "unknown",
+    (groups instanceof Array && groups.length > 0) ? groups.join(",") : "unknown", req.ip);
 
-  CheckAuthorizations(vars.authorizer, d.domain, d.path, username, groups, req.ip, authSession.authentication_level);
+  CheckAuthorizations(vars.authorizer, url.hostname, url.pathname, username, groups,
+    req.ip, authSession.authentication_level);
   CheckInactivity(req, authSession, vars.config, vars.logger);
   setUserAndGroupsHeaders(res, username, groups);
 }

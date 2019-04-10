@@ -1,5 +1,4 @@
 version: '2'
-# services: {}
 networks:
   authelianet:
     driver: bridge

@@ -51,6 +51,9 @@ async function checkHostsFile() {
   await checkAndFixEntry(actualEntries, 'mail.example.com', '192.168.240.100');
   await checkAndFixEntry(actualEntries, 'duo.example.com', '192.168.240.100');
 
+  // For Traefik suite.
+  await checkAndFixEntry(actualEntries, 'traefik.example.com', '192.168.240.100');
+
   // For testing network ACLs.
   await checkAndFixEntry(actualEntries, 'proxy-client1.example.com', '192.168.240.201');
   await checkAndFixEntry(actualEntries, 'proxy-client2.example.com', '192.168.240.202');

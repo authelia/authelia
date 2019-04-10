@@ -4,5 +4,8 @@ services:
     image: schickling/mailcatcher
     ports:
       - "1025:1025"
+    labels:
+      - traefik.frontend.rule=Host:mail.example.com
+      - traefik.port=1080
     networks:
       - authelianet
