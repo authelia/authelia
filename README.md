@@ -2,7 +2,7 @@
   <img src="images/authelia-title.png" width="350" title="Authelia">
 </p>
 
-  [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)][MIT License]
+  [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)][Apache 2.0]
   [![Build](https://travis-ci.org/clems4ever/authelia.svg?branch=master)](https://travis-ci.org/clems4ever/authelia)
   [![Known Vulnerabilities](https://snyk.io/test/github/clems4ever/authelia/badge.svg?targetFile=package.json)](https://snyk.io/test/github/clems4ever/authelia?targetFile=package.json)
   [![Gitter](https://img.shields.io/gitter/room/badges/shields.svg)](https://gitter.im/authelia/general?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
