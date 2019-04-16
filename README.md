@@ -64,9 +64,9 @@ If you want more information about the security measures applied by
 **Authelia** and some tips on how to set up **Authelia** in a secure way,
 refer to [Security](./docs/security.md).
 
-## Changelog
+## Changelog & Breaking changes
 
-See [CHANGELOG.md](CHANGELOG.md).
+See [CHANGELOG.md](CHANGELOG.md) and [BREAKING.md](BREAKING.md).
 
 ## Contribute
 
