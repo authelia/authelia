@@ -1,3 +1,9 @@
+Release Notes - Version 3.14.0
+------------------------------
+* [BREAKING] Add official support for Traefik with a dedicated suite.
+* Add support for network-based ACL rules allowing to apply different authorization strategies on different networks.
+* Several bug fixes (unusual error message when using U2F, X-Forwarded-User and X-Forwarded-Groups was not propagated on bypassed endpoints).
+
 Release Notes - Version 3.13.0
 ------------------------------
 * Rewrite Authelia portal in Typescript.
