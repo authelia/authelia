@@ -26,8 +26,6 @@ Here is a commented example of configuration
             # and has the right permissions to access the resource.
             auth_request /auth_verify;
 
-            auth_request_set            $redirect $upstream_http_redirect;
-
             # Set the X-Forwarded-User and X-Forwarded-Groups with the headers
             # returned by Authelia for the backends which can consume them.
             # This is not safe, as the backend must make sure that they come from the
@@ -36,13 +34,17 @@ Here is a commented example of configuration
             proxy_set_header            X-Forwarded-User $user;
 
             auth_request_set            $groups $upstream_http_remote_groups;
-            proxy_set_header            Remote-Groups $groups;
+            proxy_set_header            X-Forwarded-Groups $groups;
 
+            # Set the `target_url` variable based on the request. It will be used to build the portal
+            # URL with the correct redirection parameter.
+            auth_request_set            $target_url $scheme://$http_host$request_uri;
+                        
             # If Authelia returns 401, then nginx redirects the user to the login portal.
             # If it returns 200, then the request pass through to the backend.
             # For other type of errors, nginx will handle them as usual.
             # NOTE: do not forget to include /#/ representing the hash router of the web application.
-            error_page                  401 =302 https://login.example.com:8080/#/?rd=$redirect;
+            error_page                  401 =302 https://login.example.com:8080/#/?rd=$target_url;
 
             proxy_pass                  $upstream_endpoint;
         }
@@ -50,18 +52,23 @@ Here is a commented example of configuration
         # Virtual endpoint created by nginx to forward auth requests.
         location /auth_verify {
             internal;
-            proxy_set_header            Host $http_host;
-
-            # [REQUIRED] Needed by Authelia to check authorizations of the resource.
-            proxy_set_header            X-Original-URL $scheme://$http_host$request_uri;
 
             # [OPTIONAL] The IP of the client shown in Authelia logs.
             proxy_set_header            X-Real-IP $remote_addr;
 
-            # [REQUIRED] Needed by Authelia to ensure that the query was served over SSL
-            #            Check this out: https://expressjs.com/en/guide/behind-proxies.html
+            # [REQUIRED] Needed by Authelia to check authorizations of the resource.
+            # Provide either X-Original-URL and X-Forwarded-Proto or
+            # X-Forwarded-Proto, X-Forwarded-Host and X-Forwarded-Uri or both.
+            # Those headers will be used by Authelia to deduce the target url of the user.
+            #
+            # X-Forwarded-Proto is mandatory since Authelia uses the "trust proxy" option.
+            # See https://expressjs.com/en/guide/behind-proxies.html
+            proxy_set_header            X-Original-URL $scheme://$http_host$request_uri;
+            
             proxy_set_header            X-Forwarded-Proto $scheme;
-
+            proxy_set_header            X-Forwarded-Host $http_host;
+            proxy_set_header            X-Forwarded-Uri $request_uri;
+                        
             # [OPTIONAL] The list of IPs of client and proxies in the chain.
             proxy_set_header            X-Forwarded-For $proxy_add_x_forwarded_for;
 
