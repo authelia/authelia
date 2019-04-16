@@ -7,7 +7,7 @@ import { IdentityValidable } from "../../../../IdentityValidable";
 import Constants = require("../constants");
 import ErrorReplies = require("../../../../ErrorReplies");
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
-import UserMessages = require("../../../../../../../shared/UserMessages");
+import UserMessages = require("../../../../UserMessages");
 import FirstFactorValidator = require("../../../../FirstFactorValidator");
 import { IRequestLogger } from "../../../../logging/IRequestLogger";
 import { IUserDataStore } from "../../../../storage/IUserDataStore";

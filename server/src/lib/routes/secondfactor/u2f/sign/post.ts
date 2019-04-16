@@ -7,11 +7,11 @@ import Redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
 import { ServerVariables } from "../../../../ServerVariables";
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
-import UserMessages = require("../../../../../../../shared/UserMessages");
+import UserMessages = require("../../../../UserMessages");
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import { Level } from "../../../../authentication/Level";
 import GetHeader from "../../../../utils/GetHeader";
-import * as Constants from "../../../../../../../shared/constants";
+import * as Constants from "../../../../constants";
 
 export default function (vars: ServerVariables) {
   function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {

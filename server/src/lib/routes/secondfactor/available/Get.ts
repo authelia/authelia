@@ -1,6 +1,6 @@
 import * as Express from "express";
 import { ServerVariables } from "../../../ServerVariables";
-import Method2FA from "../../../../../../shared/Method2FA";
+import Method2FA from "../../../Method2FA";
 
 
 export default function(vars: ServerVariables) {

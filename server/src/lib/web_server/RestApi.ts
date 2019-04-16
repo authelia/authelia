@@ -25,7 +25,7 @@ import U2FRegisterRequestGet = require("../routes/secondfactor/u2f/register_requ
 import ResetPasswordFormPost = require("../routes/password-reset/form/post");
 
 import { ServerVariables } from "../ServerVariables";
-import Endpoints = require("../../../../shared/api");
+import Endpoints = require("../api");
 import { RequireValidatedFirstFactor } from "./middlewares/RequireValidatedFirstFactor";
 
 function setupTotp(app: Express.Application, vars: ServerVariables) {

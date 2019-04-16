@@ -5,10 +5,10 @@ import U2f = require("u2f");
 import ErrorReplies = require("../../../../ErrorReplies");
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
-import UserMessages = require("../../../../../../../shared/UserMessages");
+import UserMessages = require("../../../../UserMessages");
 import { ServerVariables } from "../../../../ServerVariables";
 import GetHeader from "../../../../utils/GetHeader";
-import * as Constants from "../../../../../../../shared/constants";
+import * as Constants from "../../../../constants";
 
 export default function (vars: ServerVariables) {
   function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {

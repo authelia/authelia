@@ -4,7 +4,7 @@ import BluebirdPromise = require("bluebird");
 import Assert = require("assert");
 import U2FSignPost = require("./post");
 import { ServerVariables } from "../../../../ServerVariables";
-import UserMessages = require("../../../../../../../shared/UserMessages");
+import UserMessages = require("../../../../UserMessages");
 import { ServerVariablesMockBuilder, ServerVariablesMock } from "../../../../ServerVariablesMockBuilder.spec";
 import ExpressMock = require("../../../../stubs/express.spec");
 import { Level } from "../../../../authentication/Level";

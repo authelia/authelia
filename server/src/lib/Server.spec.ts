@@ -2,7 +2,6 @@
 import Assert = require("assert");
 import Sinon = require("sinon");
 import nedb = require("nedb");
-import express = require("express");
 import winston = require("winston");
 import speakeasy = require("speakeasy");
 import u2f = require("u2f");
@@ -10,7 +9,7 @@ import session = require("express-session");
 import { Configuration } from "./configuration/schema/Configuration";
 import { GlobalDependencies } from "../../types/Dependencies";
 import Server from "./Server";
-import { LdapjsMock, LdapjsClientMock } from "./stubs/ldapjs.spec";
+import { LdapjsMock } from "./stubs/ldapjs.spec";
 
 
 describe("Server", function () {

@@ -10,7 +10,6 @@ RUN apk --update add --no-cache --virtual \
     apk del .build-deps
 
 COPY dist/server /usr/src/server
-COPY dist/shared /usr/src/shared
 
 EXPOSE 9091
 

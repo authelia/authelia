@@ -1,7 +1,7 @@
 import * as Express from "express";
 import * as ObjectPath from "object-path";
 import { ServerVariables } from "../ServerVariables";
-import { GET_VARIABLE_KEY } from "../../../../shared/constants";
+import { GET_VARIABLE_KEY } from "../constants";
 
 /**
  *

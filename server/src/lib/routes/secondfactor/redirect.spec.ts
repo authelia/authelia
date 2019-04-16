@@ -5,7 +5,7 @@ import { ServerVariablesMockBuilder }
 from "../../ServerVariablesMockBuilder.spec";
 import { ServerVariables } from "../../ServerVariables";
 import Assert = require("assert");
-import { HEADER_X_TARGET_URL } from "../../../../../shared/constants";
+import { HEADER_X_TARGET_URL } from "../../constants";
 
 describe("routes/secondfactor/redirect", function() {
   let req: Express.Request;

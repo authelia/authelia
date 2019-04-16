@@ -1,6 +1,6 @@
 import * as ExpressMock from "../../stubs/express.spec";
 import * as Assert from "assert";
-import { HEADER_REMOTE_USER, HEADER_REMOTE_GROUPS } from "../../../../../shared/constants";
+import { HEADER_REMOTE_USER, HEADER_REMOTE_GROUPS } from "../../constants";
 import SetUserAndGroupsHeaders from "./SetUserAndGroupsHeaders";
 
 describe("routes/verify/SetUserAndGroupsHeaders", function() {

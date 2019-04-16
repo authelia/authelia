@@ -1,5 +1,5 @@
 import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLoginPageAndClick';
-import {AUTHENTICATION_FAILED} from '../../../../shared/UserMessages';
+import {AUTHENTICATION_FAILED} from '../../../../server/src/lib/UserMessages';
 import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
 import VerifyNotificationDisplayed from '../../../helpers/assertions/VerifyNotificationDisplayed';
 import { StartDriver, StopDriver } from '../../../helpers/context/WithDriver';

@@ -2,7 +2,7 @@ import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLogin
 import ValidateTotp from '../../../helpers/ValidateTotp';
 import VerifySecretObserved from "../../../helpers/assertions/VerifySecretObserved";
 import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
-import { AUTHENTICATION_TOTP_FAILED } from '../../../../shared/UserMessages';
+import { AUTHENTICATION_TOTP_FAILED } from '../../../../server/src/lib/UserMessages';
 import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
 import VerifyNotificationDisplayed from '../../../helpers/assertions/VerifyNotificationDisplayed';
 import VerifyUrlIs from '../../../helpers/assertions/VerifyUrlIs';

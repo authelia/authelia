@@ -2,7 +2,7 @@ import * as Express from "express";
 import { ServerVariables } from "../../../ServerVariables";
 import { AuthenticationSessionHandler } from "../../../AuthenticationSessionHandler";
 import * as ErrorReplies from "../../../ErrorReplies";
-import * as UserMessage from "../../../../../../shared/UserMessages";
+import * as UserMessage from "../../../UserMessages";
 
 
 export default function(vars: ServerVariables) {

@@ -11,7 +11,6 @@
         "paths": {
             "*": [
                 "./types/*",
-                "../shared/types/*"
             ]
         }
     },

@@ -3,7 +3,7 @@ import { ServerVariables } from "../../ServerVariables";
 import { URLDecomposer } from "../../utils/URLDecomposer";
 import { Level } from "../../authentication/Level";
 import GetHeader from "../../utils/GetHeader";
-import { HEADER_PROXY_AUTHORIZATION } from "../../../../../shared/constants";
+import { HEADER_PROXY_AUTHORIZATION } from "../../constants";
 import setUserAndGroupsHeaders from "./SetUserAndGroupsHeaders";
 import CheckAuthorizations from "./CheckAuthorizations";
 import RequestUrlGetter from "../../utils/RequestUrlGetter";

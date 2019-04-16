@@ -6,7 +6,7 @@ import Redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
-import UserMessages = require("../../../../../../../shared/UserMessages");
+import UserMessages = require("../../../../UserMessages");
 import { ServerVariables } from "../../../../ServerVariables";
 import { Level } from "../../../../authentication/Level";
 

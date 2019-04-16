@@ -4,7 +4,7 @@ import * as URLParse from "url-parse";
 import { ServerVariables } from "../../ServerVariables";
 import IsRedirectionSafe from "../../../lib/utils/IsRedirectionSafe";
 import GetHeader from "../../utils/GetHeader";
-import { HEADER_X_TARGET_URL } from "../../../../../shared/constants";
+import { HEADER_X_TARGET_URL } from "../../constants";
 
 
 export default function (vars: ServerVariables) {

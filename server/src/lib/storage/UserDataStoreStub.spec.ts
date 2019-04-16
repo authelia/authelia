@@ -8,7 +8,7 @@ import { TOTPSecret } from "../../../types/TOTPSecret";
 import { AuthenticationTraceDocument } from "./AuthenticationTraceDocument";
 import { IdentityValidationDocument } from "./IdentityValidationDocument";
 import { IUserDataStore } from "./IUserDataStore";
-import Method2FA from "../../../../shared/Method2FA";
+import Method2FA from "../Method2FA";
 
 export class UserDataStoreStub implements IUserDataStore {
     saveU2FRegistrationStub: Sinon.SinonStub;

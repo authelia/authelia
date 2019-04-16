@@ -35,7 +35,6 @@ async function runTests(patterns) {
 async function test() {
   await runTests([
     'server/src/**/*.spec.ts',
-    'shared/**/*.spec.ts'
   ]);
 }
 

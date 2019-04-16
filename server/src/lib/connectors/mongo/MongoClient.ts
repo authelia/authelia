@@ -2,7 +2,6 @@
 import MongoDB = require("mongodb");
 import { IMongoClient } from "./IMongoClient";
 import Bluebird = require("bluebird");
-import { AUTHENTICATION_FAILED } from "../../../../../shared/UserMessages";
 import { IGlobalLogger } from "../../logging/IGlobalLogger";
 import { MongoStorageConfiguration } from "../../configuration/schema/StorageConfiguration";
 

@@ -2,12 +2,12 @@ import * as Express from "express";
 import { ServerVariables } from "../../../ServerVariables";
 import { AuthenticationSessionHandler } from "../../../AuthenticationSessionHandler";
 import * as ErrorReplies from "../../../ErrorReplies";
-import * as UserMessage from "../../../../../../shared/UserMessages";
+import * as UserMessage from "../../../UserMessages";
 import redirect from "../redirect";
 import { Level } from "../../../authentication/Level";
 import { DuoPushConfiguration } from "../../../configuration/schema/DuoPushConfiguration";
 import GetHeader from "../../../utils/GetHeader";
-import { HEADER_X_TARGET_URL } from "../../../../../../shared/constants";
+import { HEADER_X_TARGET_URL } from "../../../constants";
 const DuoApi = require("@duosecurity/duo_api");
 
 interface DuoResponse {

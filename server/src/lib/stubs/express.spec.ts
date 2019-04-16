@@ -1,7 +1,7 @@
 
 import * as Sinon from "sinon";
 import * as Express from "express";
-import { GET_VARIABLE_KEY } from "../../../../shared/constants";
+import { GET_VARIABLE_KEY } from "../constants";
 import { RequestLoggerStub } from "../logging/RequestLoggerStub.spec";
 
 export interface ResponseMock {
