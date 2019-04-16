@@ -17,7 +17,7 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
 
   constructor(configPath: string, watchedPaths: string[]) {
     this.configPath = configPath;
-    const pathsToReload = ['server', 'shared/**/*.ts', 'node_modules',
+    const pathsToReload = ['server', 'node_modules',
       this.AUTHELIA_INTERRUPT_FILENAME, configPath].concat(watchedPaths);
     console.log("Authelia will reload on changes of files or directories in " + pathsToReload.join(', '));
     this.watcher = Chokidar.watch(pathsToReload, {

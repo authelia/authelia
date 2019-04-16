@@ -4,11 +4,11 @@ import { U2FRegistrationDocument } from "../../../../storage/U2FRegistrationDocu
 import exceptions = require("../../../../Exceptions");
 import ErrorReplies = require("../../../../ErrorReplies");
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
-import UserMessages = require("../../../../../../../shared/UserMessages");
+import UserMessages = require("../../../../UserMessages");
 import { ServerVariables } from "../../../../ServerVariables";
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import GetHeader from "../../../../utils/GetHeader";
-import * as Constants from "../../../../../../../shared/constants";
+import * as Constants from "../../../../constants";
 
 export default function (vars: ServerVariables) {
   function handler(req: express.Request, res: express.Response): BluebirdPromise<void> {

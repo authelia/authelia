@@ -7,10 +7,10 @@ import redirect from "../../redirect";
 import ErrorReplies = require("../../../../ErrorReplies");
 import { ServerVariables } from "../../../../ServerVariables";
 import { AuthenticationSessionHandler } from "../../../../AuthenticationSessionHandler";
-import UserMessages = require("../../../../../../../shared/UserMessages");
+import UserMessages = require("../../../../UserMessages");
 import { AuthenticationSession } from "../../../../../../types/AuthenticationSession";
 import GetHeader from "../../../../utils/GetHeader";
-import * as Constants from "../../../../../../../shared/constants";
+import * as Constants from "../../../../constants";
 
 
 export default function (vars: ServerVariables) {

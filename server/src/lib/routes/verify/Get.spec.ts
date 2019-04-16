@@ -6,7 +6,7 @@ import { AuthenticationSession } from "../../../../types/AuthenticationSession";
 import ExpressMock = require("../../stubs/express.spec");
 import { ServerVariables } from "../../ServerVariables";
 import { ServerVariablesMockBuilder, ServerVariablesMock } from "../../ServerVariablesMockBuilder.spec";
-import { HEADER_X_ORIGINAL_URL } from "../../../../../shared/constants";
+import { HEADER_X_ORIGINAL_URL } from "../../constants";
 import Get from "./Get";
 import { ImportMock } from 'ts-mock-imports';
 import * as GetBasicAuth from "./GetBasicAuth";

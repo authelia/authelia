@@ -9,7 +9,7 @@ import ExpressMock = require("./stubs/express.spec");
 import { IdentityValidableStub } from "./IdentityValidableStub.spec";
 import { ServerVariablesMock, ServerVariablesMockBuilder }
   from "./ServerVariablesMockBuilder.spec";
-import { OPERATION_FAILED } from "../../../shared/UserMessages";
+import { OPERATION_FAILED } from "./UserMessages";
 
 describe("IdentityCheckMiddleware", function () {
   let req: Express.Request;

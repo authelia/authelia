@@ -2,11 +2,10 @@
 import express = require("express");
 import BluebirdPromise = require("bluebird");
 import objectPath = require("object-path");
-import exceptions = require("../../../Exceptions");
 import { AuthenticationSessionHandler } from "../../../AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../../../../types/AuthenticationSession";
 import ErrorReplies = require("../../../ErrorReplies");
-import UserMessages = require("../../../../../../shared/UserMessages");
+import UserMessages = require("../../../UserMessages");
 import { ServerVariables } from "../../../ServerVariables";
 
 import Constants = require("./../constants");

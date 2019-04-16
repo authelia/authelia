@@ -11,7 +11,7 @@ import { ServerVariables } from "./ServerVariables";
 import { ServerVariablesInitializer } from "./ServerVariablesInitializer";
 import { Configurator } from "./web_server/Configurator";
 
-import { GET_VARIABLE_KEY } from "../../../shared/constants";
+import { GET_VARIABLE_KEY } from "./constants";
 
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));

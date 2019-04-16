@@ -1,4 +1,4 @@
-import Constants = require("../../../../shared/constants");
+import Constants = require("../constants");
 import Express = require("express");
 import GetHeader from "./GetHeader";
 import HasHeader from "./HasHeader";

@@ -1,7 +1,7 @@
 
 import express = require("express");
 import { AuthenticationSessionHandler } from "../../AuthenticationSessionHandler";
-import Constants = require("../../../../../shared/constants");
+import Constants = require("../../constants");
 import { ServerVariables } from "../../ServerVariables";
 
 function getRedirectParam(req: express.Request) {

@@ -4,7 +4,7 @@ import ErrorReplies = require("../../ErrorReplies");
 import { ServerVariables } from "../../ServerVariables";
 import GetSessionCookie from "./GetSessionCookie";
 import GetBasicAuth from "./GetBasicAuth";
-import Constants = require("../../../../../shared/constants");
+import Constants = require("../../constants");
 import { AuthenticationSessionHandler }
   from "../../AuthenticationSessionHandler";
 import { AuthenticationSession }

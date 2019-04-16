@@ -10,12 +10,12 @@ import { AuthenticationSessionHandler } from "./AuthenticationSessionHandler";
 import { AuthenticationSession } from "../../types/AuthenticationSession";
 import { ServerVariables } from "./ServerVariables";
 import { IdentityValidable } from "./IdentityValidable";
-import * as Constants from "../../../shared/constants";
+import * as Constants from "./constants";
 
 import Identity = require("../../types/Identity");
 import { IdentityValidationDocument }
   from "./storage/IdentityValidationDocument";
-import { OPERATION_FAILED } from "../../../shared/UserMessages";
+import { OPERATION_FAILED } from "./UserMessages";
 import GetHeader from "./utils/GetHeader";
 
 function createAndSaveToken(userid: string, challenge: string,

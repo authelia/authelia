@@ -2,7 +2,7 @@ import * as Express from "express";
 import { ServerVariables } from "../../ServerVariables";
 import * as ExpressMock from "../../stubs/express.spec";
 import { ServerVariablesMockBuilder, ServerVariablesMock } from "../../ServerVariablesMockBuilder.spec";
-import { HEADER_X_ORIGINAL_URL } from "../../../../../shared/constants";
+import { HEADER_X_ORIGINAL_URL } from "../../constants";
 import { Level } from "../../authorization/Level";
 import GetBasicAuthModule from "./GetBasicAuth";
 import * as CheckAuthorizations from "./CheckAuthorizations";
