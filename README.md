@@ -2,7 +2,7 @@
   <img src="images/authelia-title.png" width="350" title="Authelia">
 </p>
 
-  [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)][Apache 2.0]
+  [![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)][Apache 2.0]
   [![Build](https://travis-ci.org/clems4ever/authelia.svg?branch=master)](https://travis-ci.org/clems4ever/authelia)
   [![Known Vulnerabilities](https://snyk.io/test/github/clems4ever/authelia/badge.svg?targetFile=package.json)](https://snyk.io/test/github/clems4ever/authelia?targetFile=package.json)
   [![Gitter](https://img.shields.io/gitter/room/badges/shields.svg)](https://gitter.im/authelia/general?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
@@ -10,14 +10,25 @@
 
 **Authelia** is an open-source authentication and authorization server
 providing 2-factor authentication and single sign-on (SSO) for your
-applications.
-It acts as a companion of reverse proxies by handling authentication and
-authorization requests.
+applications via a web portal.
+It acts as a companion of reverse proxies like [nginx] or [Traefik] by handling forwarded authentication and authorization requests.
+
+<p align="center">
+  <img src="images/authelia.logo.png" height="100"/>
+  <img src="images/plus.png" height="100"/>
+  <img src="images/nginx.logo.png" height="100"/>
+  <img src="images/traefik.logo.png" height="100"/>  
+</p>
 
 **Authelia** can be installed as a standalone service using Docker or NPM
-but can also be deployed easily on Kubernetes. On the latest, one can
-leverage ingress configuration to set up authentication and authorizations
-for specific services in only few seconds.
+but can also be deployed easily on [Kubernetes] leveraging ingress controllers and ingress configuration.
+
+<p align="center">
+  <img src="images/kubernetes.logo.png" height="100"/>
+  <img src="images/docker.logo.png" width="100">
+</p>
+
+Here is what Authelia's portal looks like
 
 <p align="center">
   <img src="images/first_factor.png" width="400" />
@@ -32,15 +43,27 @@ Here is the list of the main available features:
   * **[Security Key (U2F)](./docs/2factor/security-key.md)** with [Yubikey].
   * **[Time-based One-Time password](./docs/2factor/time-based-one-time-password.md)** with [Google Authenticator].
   * **[Mobile Push Notifications](./docs/2factor/duo-push-notifications.md)** with [Duo](https://duo.com/).
-* Password reset with identity verification using email.
+* Password reset with identity verification using email confirmation.
 * Single-factor only authentication method available.
 * Access restriction after too many authentication attempts.
 * Fine-grained access control per subdomain, user, resource and network.
-* Support of [basic authentication] for endpoints protected by single factor.
-* High-availability using distributed database and KV store.
-* Compatible with Kubernetes ingress-nginx controller out of the box.
+* Support of basic authentication for endpoints protected by single factor.
+* Highly-available using distributed database and KV store.
+* Compatible with Kubernetes [ingress-nginx](https://github.com/kubernetes/ingress-nginx) controller out of the box.
 
 For more details about the features, follow [Features](./docs/features.md).
+
+## Proxy support
+
+Authelia works in combination with [nginx] or [Traefik] and soon with [HAProxy] as discussed in
+[#271](https://github.com/clems4ever/authelia/issues/271). It can be deployed on bare metal with
+Docker or directly in [Kubernetes].
+
+<p align="center">
+  <img src="images/nginx.logo.png" height="50"/>
+  <img src="images/traefik.logo.png" height="50"/> 
+  <img src="images/kubernetes.logo.png" height="50"/> 
+</p>
 
 ## Getting Started
 
@@ -102,3 +125,7 @@ in [LICENSE](LICENSE).
 [auth_request]: http://nginx.org/en/docs/http/ngx_http_auth_request_module.html
 [Google Authenticator]: https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en
 [config.template.yml]: https://github.com/clems4ever/authelia/blob/master/config.template.yml
+[nginx]: https://www.nginx.com/
+[Traefik]: https://traefik.io/
+[HAproxy]: http://www.haproxy.org/
+[Kubernetes]: https://kubernetes.io/
