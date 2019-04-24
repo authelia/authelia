@@ -4,6 +4,18 @@ Breaking changes
 Since Authelia is still under active development, it is subject to breaking changes. We then recommend you don't blindly use the latest
 Docker image but pick a version instead and check this file before upgrading. This is where you will get information about breaking changes and about what you should do to overcome those changes.
 
+## Breaking in v4.0.0
+
+Authelia has been rewritten in Go for better performance and reliability.
+
+### Model of U2F devices in MongoDB
+
+The model of U2F devices stored in MongoDB has been updated to better fit with the Go library handling U2F keys.
+
+### Removal of flag secure for SMTP notifier
+
+The go library for sending e-mails automatically switch to TLS if possible according to https://golang.org/pkg/net/smtp/#SendMail.
+
 ## Breaking in v3.14.0
 
 ### Headers in nginx configuration

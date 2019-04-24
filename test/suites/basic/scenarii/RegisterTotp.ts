@@ -2,6 +2,7 @@ import SeleniumWebdriver, { WebDriver } from "selenium-webdriver";
 import Assert from 'assert';
 import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
 import { StartDriver, StopDriver } from "../../../helpers/context/WithDriver";
+import sleep from "../../../helpers/utils/sleep";
 
 /** 
  * Given the user logs in as john,
@@ -12,12 +13,12 @@ export default function() {
   describe('successfully login as john', function() {
     this.timeout(10000);
 
-    beforeEach(async function() {
+    before(async function() {
       this.driver = await StartDriver();
       await LoginAndRegisterTotp(this.driver, "john", "password", true);
     });
 
-    afterEach(async function() {
+    after(async function() {
       await StopDriver(this.driver);
     })
 
@@ -44,7 +45,7 @@ export default function() {
       const label = 'john';
       const issuer = 'example.com';
 
-      Assert(new RegExp(`^otpauth://totp/${label}\\?secret=[A-Z0-9]+&issuer=${issuer}$`).test(otpauthUrl));
+      Assert(new RegExp(`^otpauth://totp/${issuer}:${label}\\?algorithm=SHA1&digits=6&issuer=${issuer}&period=30&secret=[A-Z0-9]+$`).test(otpauthUrl));
     })
   });
 };

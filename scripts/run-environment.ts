@@ -50,13 +50,18 @@ async function stop() {
 }
 
 async function start() {
-  const timer = setTimeout(() => {
+  const timer = setTimeout(async () => {
     console.error('Setup timed out...');
-    teardown().finally(() => process.exit(1));
+    try {
+      await teardown();
+    } catch(err) {
+      process.exit(1)
+    }
   }, setup_timeout);
   console.log('>>> Setting up environment <<<');
   try {
     await setup();
+    await sleep(200);
     clearTimeout(timer);
     await blockOrRun(command);
     if (!teardownInProgress) {

@@ -4,7 +4,6 @@ import { Dispatch } from 'redux';
 import SecondFactorDuoPush, { StateProps, OwnProps, DispatchProps } from '../../../components/SecondFactorDuoPush/SecondFactorDuoPush';
 import FetchStateBehavior from '../../../behaviors/FetchStateBehavior';
 import TriggerDuoPushAuth from '../../../behaviors/TriggerDuoPushAuth';
-import RedirectionResponse from '../../../services/RedirectResponse';
 
 
 const mapStateToProps = (state: RootState): StateProps => ({
@@ -20,7 +19,7 @@ async function redirectIfPossible(body: any) {
   return false;
 }
 
-async function handleSuccess(dispatch: Dispatch, body: RedirectionResponse | undefined, duration?: number) {
+async function handleSuccess(dispatch: Dispatch, body: {redirect: string} | undefined, duration?: number) {
   async function handle() {
     const redirected = await redirectIfPossible(body);
     if (!redirected) {

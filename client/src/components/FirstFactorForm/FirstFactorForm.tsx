@@ -17,17 +17,19 @@ export interface OwnProps {
 export interface StateProps {
   formDisabled: boolean;
   error: string | null;
+  username: string;
+  password: string;
 }
 
 export interface DispatchProps {
-  onAuthenticationRequested(username: string, password: string, rememberMe: boolean): Promise<void>;
+  onUsernameChanged(username: string): void;
+  onPasswordChanged(password: string): void;
+  onAuthenticationRequested(username: string, password: string, rememberMe: boolean): void;
 }
 
 export type Props = OwnProps & StateProps & DispatchProps;
 
 interface State {
-  username: string;
-  password: string;
   rememberMe: boolean;
 }
 
@@ -35,8 +37,6 @@ class FirstFactorForm extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      username: '',
-      password: '',
       rememberMe: false,
     }
   }
@@ -49,12 +49,12 @@ class FirstFactorForm extends Component<Props, State> {
 
   onUsernameChanged = (e: FormEvent<HTMLElement>) => {
     const val = (e.target as HTMLInputElement).value;
-    this.setState({username: val});
+    this.props.onUsernameChanged(val);
   }
 
   onPasswordChanged = (e: FormEvent<HTMLElement>) => {
     const val = (e.target as HTMLInputElement).value;
-    this.setState({password: val});
+    this.props.onPasswordChanged(val);
   }
 
   onLoginClicked = () => {
@@ -83,9 +83,10 @@ class FirstFactorForm extends Component<Props, State> {
               outlined={true}>
               <Input
                 id="username"
+                name="username"
                 onChange={this.onUsernameChanged}
                 disabled={this.props.formDisabled}
-                value={this.state.username}/>
+                value={this.props.username}/>
             </TextField>
           </div>
           <div className={styles.field}>
@@ -95,11 +96,12 @@ class FirstFactorForm extends Component<Props, State> {
               outlined={true}>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 disabled={this.props.formDisabled}
                 onChange={this.onPasswordChanged}
                 onKeyPress={this.onPasswordKeyPressed}
-                value={this.state.password} />
+                value={this.props.password} />
             </TextField>
           </div>
         </div>
@@ -134,13 +136,9 @@ class FirstFactorForm extends Component<Props, State> {
 
   private authenticate() {
     this.props.onAuthenticationRequested(
-      this.state.username,
-      this.state.password,
+      this.props.username,
+      this.props.password,
       this.state.rememberMe)
-      .catch((err: Error) => console.error(err))
-      .finally(() => {
-        this.setState({username: '', password: ''});
-      })
   }
 }
 

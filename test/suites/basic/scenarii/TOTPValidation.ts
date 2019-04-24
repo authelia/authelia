@@ -2,7 +2,6 @@ import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLogin
 import ValidateTotp from '../../../helpers/ValidateTotp';
 import VerifySecretObserved from "../../../helpers/assertions/VerifySecretObserved";
 import LoginAndRegisterTotp from '../../../helpers/LoginAndRegisterTotp';
-import { AUTHENTICATION_TOTP_FAILED } from '../../../../server/src/lib/UserMessages';
 import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
 import VerifyNotificationDisplayed from '../../../helpers/assertions/VerifyNotificationDisplayed';
 import VerifyUrlIs from '../../../helpers/assertions/VerifyUrlIs';
@@ -21,7 +20,6 @@ export default function() {
       if (!secret) throw new Error('No secret!');
       
       await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/#/?rd=https://admin.example.com:8080/secret.html");
-      await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
       await ValidateTotp(this.driver, secret);
     });
 
@@ -50,7 +48,6 @@ export default function() {
       const BAD_TOKEN = "125478";
         
       await VisitPageAndWaitUrlIs(this.driver, "https://login.example.com:8080/#/?rd=https://admin.example.com:8080/secret.html");
-      await FillLoginPageWithUserAndPasswordAndClick(this.driver, 'john', 'password');
       await ValidateTotp(this.driver, BAD_TOKEN);
     });
 
@@ -59,7 +56,7 @@ export default function() {
     });
 
     it("get a notification message", async function() {
-      await VerifyNotificationDisplayed(this.driver, AUTHENTICATION_TOTP_FAILED);
+      await VerifyNotificationDisplayed(this.driver, "Authentication failed, please retry later.");
     });
   });
 }

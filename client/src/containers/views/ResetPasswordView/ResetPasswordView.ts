@@ -12,11 +12,19 @@ const mapStateToProps = (state: RootState): StateProps => ({
 const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     onInit: async (token: string) => {
-      await AutheliaService.completePasswordResetIdentityValidation(token);
+      try {
+        await AutheliaService.completePasswordResetIdentityValidation(token);
+      } catch (err) {
+        console.error(err);
+      }
     },
     onPasswordResetRequested: async (newPassword: string) => {
-      await AutheliaService.resetPassword(newPassword);
-      await dispatch(push('/'));
+      try {
+        await AutheliaService.resetPassword(newPassword);
+        await dispatch(push('/'));
+      } catch (err) {
+        console.error(err);
+      }
     },
     onCancelClicked: async () => {
       await dispatch(push('/'));

@@ -10,6 +10,10 @@ port: 9091
 # Level of verbosity for logs
 logs_level: debug
 
+# The secret used to generate JWT tokens when validating user identity by
+# email confirmation.
+jwt_secret: a_very_important_secret
+
 # Default redirection URL
 #
 # If user tries to authenticate without any referer, Authelia
@@ -263,19 +267,20 @@ notifier:
   ## filesystem:
   ##   filename: /tmp/authelia/notification.txt
 
-  # Use your email account to send the notifications. You can use an app password.
-  # List of valid services can be found here: https://nodemailer.com/smtp/well-known/
-  ## email:
-  ##   username: user@example.com
-  ##   password: yourpassword
-  ##   sender: admin@example.com
-  ##   service: gmail
-
-  # Use a SMTP server for sending notifications
+  # Use a SMTP server for sending notifications. Authelia uses PLAIN method to authenticate.
+  # [Security] Make sure the connection is made over TLS otherwise your password will transit in plain text.
   smtp:
     username: test
     password: password
-    secure: false
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com
+
+  # Sending an email using a Gmail account is as simple as the next section.
+  # You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
+  ## smtp:
+  ##   username: myaccount@gmail.com
+  ##   password: yourapppassword
+  ##   sender: admin@example.com
+  ##   host: smtp.gmail.com
+  ##   port: 587

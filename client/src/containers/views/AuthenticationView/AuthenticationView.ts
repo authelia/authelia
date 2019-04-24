@@ -27,6 +27,8 @@ const mapStateToProps = (state: RootState, ownProps: OwnProps): StateProps => {
     const params = QueryString.parse(ownProps.location.search);
     if ('rd' in params) {
       url = params['rd'] as string;
+    } else if (state.authentication.remoteState && state.authentication.remoteState.default_redirection_url) {
+      url = state.authentication.remoteState.default_redirection_url;
     }
   }
 

@@ -10,6 +10,8 @@ port: 9091
 # Level of verbosity for logs
 logs_level: debug
 
+jwt_secret: unsecure_secret
+
 # Default redirection URL
 #
 # If user tries to authenticate without any referer, Authelia
@@ -42,7 +44,7 @@ authentication_backend:
   # production.
   ldap:
     # The url of the ldap server
-    url: ldap://127.0.0.1
+    url: 127.0.0.1:389
 
     # The base dn for every entries
     base_dn: dc=example,dc=com
@@ -53,7 +55,7 @@ authentication_backend:
     # The users filter used to find the user DN
     # {0} is a matcher replaced by username.
     # 'cn={0}' by default.
-    users_filter: cn={0}
+    users_filter: (cn={0})
 
     # An additional dn to define the scope of groups
     additional_groups_dn: ou=groups
@@ -213,10 +215,10 @@ regulation:
 
   # The time range during which the user can attempt login before being banned.
   # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window.
-  find_time: 15
+  find_time: 8
 
   # The length of time before a banned user can login again.
-  ban_time: 5
+  ban_time: 10
 
 # Configuration of the storage backend used to store data and secrets.
 #
@@ -240,23 +242,8 @@ storage:
 # registration or a TOTP registration.
 # Use only an available configuration: filesystem, gmail
 notifier:
-  # For testing purpose, notifications can be sent in a file
-  ## filesystem:
-  ##   filename: /tmp/authelia/notification.txt
-
-  # Use your email account to send the notifications. You can use an app password.
-  # List of valid services can be found here: https://nodemailer.com/smtp/well-known/
-  ## email:
-  ##   username: user@example.com
-  ##   password: yourpassword
-  ##   sender: admin@example.com
-  ##   service: gmail
-
   # Use a SMTP server for sending notifications
   smtp:
-    username: test
-    password: password
-    secure: false
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com

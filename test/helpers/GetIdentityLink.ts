@@ -25,7 +25,7 @@ export async function GetLinkFromEmail() {
     rejectUnauthorized: false,
     uri: `https://mail.example.com:8080/messages/${messageId}.html`
   });
-  const regexp = new RegExp(/<a href="(.+)" class="button">Continue<\/a>/);
+  const regexp = new RegExp(/<a href="(.+)" class="button">.*<\/a>/);
   const match = regexp.exec(data2);
   if (match == null) {
     throw new Error('No match');

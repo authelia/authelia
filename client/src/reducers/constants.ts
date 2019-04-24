@@ -4,9 +4,12 @@ export const FETCH_STATE_SUCCESS = '@portal/fetch_state_success';
 export const FETCH_STATE_FAILURE = '@portal/fetch_state_failure';
 
 // AUTHENTICATION PROCESS
-export const AUTHENTICATE_REQUEST = '@portal/authenticate_request';
-export const AUTHENTICATE_SUCCESS = '@portal/authenticate_success';
-export const AUTHENTICATE_FAILURE = '@portal/authenticate_failure';
+export const FIRST_FACTOR_SET_USERNAME = "@portal/first_factor/set_username";
+export const FIRST_FACTOR_SET_PASSWORD = "@portal/first_factor/set_password";
+
+export const AUTHENTICATE_REQUEST = '@portal/first_factor/authenticate_request';
+export const AUTHENTICATE_SUCCESS = '@portal/first_factor/authenticate_success';
+export const AUTHENTICATE_FAILURE = '@portal/first_factor/authenticate_failure';
 
 // SECOND FACTOR PAGE
 export const SET_SECURITY_KEY_SUPPORTED = '@portal/second_factor/set_security_key_supported';

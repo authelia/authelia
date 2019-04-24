@@ -14,10 +14,12 @@ class AutheliaServerFromDist implements AutheliaServerInterface {
   }
 
   async start() {
+    console.log("Spawn authelia server from dist.");
     this.serverProcess = ChildProcess.spawn('./scripts/authelia-scripts serve ' + this.configPath, {
       shell: true,
       env: process.env,
     } as any);
+    if (!this.serverProcess || !this.serverProcess.stdout || !this.serverProcess.stderr) return;
     if (this.logInFile) {
       var logStream = fs.createWriteStream('/tmp/authelia-server.log', {flags: 'a'});
       this.serverProcess.stdout.pipe(logStream);

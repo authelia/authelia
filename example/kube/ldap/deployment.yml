@@ -21,3 +21,30 @@ spec:
         image: clems4ever/authelia-test-ldap
         ports:
         - containerPort: 389
+        env:
+        - name: SLAPD_ORGANISATION
+          value: MyCompany
+        - name: SLAPD_DOMAIN
+          value: example.com
+        - name: SLAPD_PASSWORD
+          value: password
+        - name: SLAPD_CONFIG_PASSWORD
+          value: password
+        - name: SLAPD_ADDITIONAL_MODULES
+          value: memberof
+        - name: SLAPD_ADDITIONAL_SCHEMAS
+          value: openldap
+        - name: SLAPD_FORCE_RECONFIGURE
+          value: "true"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/ldap.dist/prepopulate
+      volumes:
+      - name: config-volume
+        configMap:
+          name: ldap-config
+          items:
+          - key: base.ldif
+            path: base.ldif
+          - key: access.rules
+            path: access.rules

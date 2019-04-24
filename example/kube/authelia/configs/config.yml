@@ -10,6 +10,8 @@ port: 80
 # Level of verbosity for logs
 logs_level: debug
 
+jwt_secret: an_unsecure_secret
+
 # Default redirection URL
 #
 # If user tries to authenticate without any referer, Authelia
@@ -35,7 +37,7 @@ authentication_backend:
   # production.
   ldap:
     # The url of the ldap server
-    url: ldap://ldap-service
+    url: ldap-service:389
   
     # The base dn for every entries
     base_dn: dc=example,dc=com
@@ -46,7 +48,7 @@ authentication_backend:
     # The users filter used to find the user DN
     # {0} is a matcher replaced by username.
     # 'cn={0}' by default.
-    users_filter: cn={0}
+    users_filter: (cn={0})
   
     # An additional dn to define the scope of groups
     additional_groups_dn: ou=groups
@@ -195,20 +197,9 @@ notifier:
   # For testing purpose, notifications can be sent in a file
   # filesystem:
   #   filename: /tmp/authelia/notification.txt
-
-  # Use your email account to send the notifications. You can use an app password.
-  # List of valid services can be found here: https://nodemailer.com/smtp/well-known/  
-  # email:
-  #   username: authelia@gmail.com
-  #   password: password
-  #   sender: authelia@example.com
-  #   service: gmail
   
   # Use a SMTP server for sending notifications
   smtp:
-    username: test
-    password: password
-    secure: false
     host: 'mailcatcher-service'
     port: 1025
     sender: admin@example.com
