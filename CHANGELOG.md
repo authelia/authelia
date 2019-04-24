@@ -1,3 +1,7 @@
+Release Notes - Version 3.15.0
+------------------------------
+* Change license from MIT to Apache 2.0.
+
 Release Notes - Version 3.14.0
 ------------------------------
 * [BREAKING] Add official support for Traefik with a dedicated suite.
