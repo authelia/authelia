@@ -18,7 +18,7 @@ http {
         resolver 127.0.0.11 ipv6=off;
         set $backend_endpoint <%= authelia_backend %>;
 
-        ssl_certificate     /etc/ssl/server.crt;
+        ssl_certificate     /etc/ssl/server.cert;
         ssl_certificate_key /etc/ssl/server.key;
 
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
@@ -26,7 +26,7 @@ http {
 
         # Serves the portal application.
         location / {
-            proxy_pass        $backend_endpoint/index.html;
+            proxy_pass        $backend_endpoint;
         }
 
         location /static {
@@ -62,7 +62,7 @@ http {
         set $frontend_endpoint http://192.168.240.1:3000;
         set $backend_endpoint <%= authelia_backend %>;
 
-        ssl_certificate     /etc/ssl/server.crt;
+        ssl_certificate     /etc/ssl/server.cert;
         ssl_certificate_key /etc/ssl/server.key;
 
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
@@ -108,7 +108,7 @@ http {
         resolver 127.0.0.11 ipv6=off;
         set $upstream_endpoint http://nginx-backend;
 
-        ssl_certificate     /etc/ssl/server.crt;
+        ssl_certificate     /etc/ssl/server.cert;
         ssl_certificate_key /etc/ssl/server.key;
 
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
@@ -135,7 +135,7 @@ http {
         set $upstream_endpoint http://nginx-backend;
         set $upstream_headers http://httpbin:8000/headers;
 
-        ssl_certificate     /etc/ssl/server.crt;
+        ssl_certificate     /etc/ssl/server.cert;
         ssl_certificate_key /etc/ssl/server.key;
 
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
@@ -179,7 +179,7 @@ http {
             proxy_set_header            X-Real-IP $remote_addr;
 
             # Provide either X-Original-URL and X-Forwarded-Proto or
-            # X-Forwarded-Proto, X-Forwarded-Host and X-Forwarded-Uri or both.
+            # X-Forwarded-Proto, X-Forwarded-Host and X-Forwarded-URI or both.
             # Those headers will be used by Authelia to deduce the target url of the user.
             #
             # X-Forwarded-Proto is mandatory since Authelia uses the "trust proxy" option.
@@ -188,7 +188,7 @@ http {
 
             proxy_set_header            X-Forwarded-Proto $scheme;
             proxy_set_header            X-Forwarded-Host $http_host;
-            proxy_set_header            X-Forwarded-Uri $request_uri;
+            proxy_set_header            X-Forwarded-URI $request_uri;
             
             proxy_set_header            X-Forwarded-For $proxy_add_x_forwarded_for;
 
@@ -227,7 +227,7 @@ http {
         resolver 127.0.0.11 ipv6=off;
         set $upstream_endpoint http://smtp:1080;
 
-        ssl_certificate     /etc/ssl/server.crt;
+        ssl_certificate     /etc/ssl/server.cert;
         ssl_certificate_key /etc/ssl/server.key;
 
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
@@ -247,7 +247,7 @@ http {
         resolver 127.0.0.11 ipv6=off;
         set $upstream_endpoint http://duo-api:3000;
 
-        ssl_certificate     /etc/ssl/server.crt;
+        ssl_certificate     /etc/ssl/server.cert;
         ssl_certificate_key /etc/ssl/server.key;
 
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
@@ -264,7 +264,7 @@ http {
 	    listen 8080 ssl;
 	    server_name _;
 
-        ssl_certificate     /etc/ssl/server.crt;
+        ssl_certificate     /etc/ssl/server.cert;
         ssl_certificate_key /etc/ssl/server.key;
 
 	    return 301 https://home.example.com:8080/;

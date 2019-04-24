@@ -6,8 +6,6 @@ source bootstrap.sh
 
 docker --version
 docker-compose --version
-echo "node `node -v`"
-echo "npm `npm -v`"
 
 authelia-scripts bootstrap
 
@@ -27,7 +25,7 @@ authelia-scripts build
 
 # Run unit tests
 echo "===> Unit tests stage"
-authelia-scripts unittest --forbid-only
+authelia-scripts unittest
 
 # Build the docker image
 echo "===> Docker image build stage"

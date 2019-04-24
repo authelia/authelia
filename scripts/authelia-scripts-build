@@ -6,24 +6,14 @@ set -e
 DIST_DIR=dist
 
 rm -rf $DIST_DIR
+mkdir -p $DIST_DIR
 
-# Build the server
-./node_modules/.bin/tslint -c server/tslint.json -p server/tsconfig.json
-./node_modules/.bin/tsc -p server/tsconfig.json
-
-mkdir -p $DIST_DIR/server/src/resources
-cp server/src/resources/** $DIST_DIR/server/src/resources/
-
-./node_modules/.bin/typescript-json-schema -o server/src/lib/configuration/Configuration.schema.json --strictNullChecks --required server/tsconfig.json Configuration
-
-# Copy in dist
-cp server/src/lib/configuration/Configuration.schema.json $DIST_DIR/server/src/lib/configuration
-
+GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -o $DIST_DIR/authelia
 
 # Build the client
 pushd client
 npm run build
 popd
 
-mv client/build $DIST_DIR/server/src/public_html
+mv client/build $DIST_DIR/public_html
 

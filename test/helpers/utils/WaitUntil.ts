@@ -2,10 +2,12 @@ import sleep from "./sleep";
 
 export default function WaitUntil(
   fn: () => Promise<boolean>, timeout: number = 15000,
-  interval: number = 1000, waitAfter: number = 0): Promise<void> {
+  interval: number = 1000, waitBefore: number = 0, waitAfter: number = 0): Promise<void> {
 
   return new Promise(async (resolve, reject) => {
     const timer = setTimeout(() => { throw new Error('Timeout') }, timeout);
+    if (waitBefore > 0)
+      await sleep(waitBefore);
     while (true) {
       try {
         const res = await fn();

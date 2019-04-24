@@ -14,12 +14,16 @@ interface FirstFactorState {
   lastResult: Result;
   loading: boolean;
   error: string | null;
+  username: string;
+  password: string;
 }
 
 const firstFactorInitialState: FirstFactorState = {
   lastResult: Result.NONE,
   loading: false,
   error: null,
+  username: '',
+  password: '',
 }
 
 export default (state = firstFactorInitialState, action: FirstFactorAction): FirstFactorState => {
@@ -44,6 +48,16 @@ export default (state = firstFactorInitialState, action: FirstFactorAction): Fir
         loading: false,
         error: action.payload,
       };
+    case getType(Actions.setUsername):
+      return {
+        ...state,
+        username: action.payload,
+      }
+    case getType(Actions.setPassword):
+      return {
+        ...state,
+        password: action.payload,
+      }
   }
   return state;
 }

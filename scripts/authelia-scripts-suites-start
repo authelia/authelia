@@ -42,7 +42,11 @@ async function main() {
 
   // Start the environment from ts-node process.
   runEnvProcess = spawn('./node_modules/.bin/ts-node -P test/tsconfig.json -- ./scripts/run-environment.ts ' + suite, {
-    shell: true
+    shell: true,
+    env: {
+      ...process.env,
+      ENVIRONMENT: 'dev',
+    }
   });
   runEnvProcess.stdout.pipe(process.stdout);
   runEnvProcess.stderr.pipe(process.stderr);

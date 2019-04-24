@@ -6,6 +6,8 @@ port: 9091
 
 logs_level: debug
 
+jwt_secret: unsecure_secret
+
 authentication_backend:
   file:
     path: ./test/suites/basic/users_database.test.yml
@@ -18,7 +20,7 @@ session:
 
 storage:
   local:
-    path: /tmp/authelia/db
+    path: /tmp/authelia/db.sqlite
 
 access_control:
   default_policy: bypass
@@ -34,9 +36,6 @@ access_control:
 
 notifier:
   smtp:
-    username: test
-    password: password
-    secure: false
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com

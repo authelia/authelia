@@ -6,7 +6,7 @@ import TOTPValidation from './scenarii/TOTPValidation';
 import BackendProtection from './scenarii/BackendProtection';
 import VerifyEndpoint from './scenarii/VerifyEndpoint';
 import RequiredTwoFactor from './scenarii/RequiredTwoFactor';
-import LogoutRedirectToAlreadyLoggedIn from './scenarii/LogoutRedirectToAlreadyLoggedIn';
+import AlreadyLoggedIn from './scenarii/AlreadyLoggedIn';
 import { exec } from '../../helpers/utils/exec';
 import TwoFactorAuthentication from "../../helpers/scenarii/TwoFactorAuthentication";
 import BypassPolicy from "./scenarii/BypassPolicy";
@@ -28,6 +28,6 @@ AutheliaSuite(__dirname, function() {
   describe('TOTP Registration', RegisterTotp);
   describe('TOTP Validation', TOTPValidation);
   describe('Required two factor', RequiredTwoFactor);
-  describe('Logout endpoint redirect to already logged in page', LogoutRedirectToAlreadyLoggedIn);
+  describe('Already logged in', AlreadyLoggedIn);
   describe('No Duo Push method available', NoDuoPushOption);
 });

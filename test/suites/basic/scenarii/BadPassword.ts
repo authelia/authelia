@@ -1,5 +1,4 @@
 import FillLoginPageWithUserAndPasswordAndClick from '../../../helpers/FillLoginPageAndClick';
-import {AUTHENTICATION_FAILED} from '../../../../server/src/lib/UserMessages';
 import VisitPageAndWaitUrlIs from '../../../helpers/behaviors/VisitPageAndWaitUrlIs';
 import VerifyNotificationDisplayed from '../../../helpers/assertions/VerifyNotificationDisplayed';
 import { StartDriver, StopDriver } from '../../../helpers/context/WithDriver';
@@ -23,7 +22,7 @@ export default function() {
     })
 
     it('should get a notification message', async function () {
-      await VerifyNotificationDisplayed(this.driver, AUTHENTICATION_FAILED);
+      await VerifyNotificationDisplayed(this.driver, "Authentication failed. Check your credentials.");
     });
   });
 }

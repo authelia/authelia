@@ -65,12 +65,12 @@ async function checkKubernetesDependencies() {
 
   if (!fs.existsSync('/tmp/kind')) {
     console.log('Install Kind for spawning a Kubernetes cluster.');
-    await exec('wget https://github.com/clems4ever/kind/releases/download/0.1.0-cmic1/kind-linux-amd64 -O /tmp/kind && chmod +x /tmp/kind');  
+    await exec('wget -nv https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-linux-amd64 -O /tmp/kind && chmod +x /tmp/kind');  
   }
 
   if (!fs.existsSync('/tmp/kubectl')) {
     console.log('Install Kubectl for interacting with Kubernetes.');
-    await exec('wget https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl -O /tmp/kubectl && chmod +x /tmp/kubectl');
+    await exec('wget -nv https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl -O /tmp/kubectl && chmod +x /tmp/kubectl');
   }
 }
 

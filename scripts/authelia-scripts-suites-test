@@ -30,7 +30,8 @@ async function runTests(suite, withEnv) {
         env: {
           ...process.env,
           TS_NODE_PROJECT: 'test/tsconfig.json',
-          HEADLESS: (program.headless) ? 'y' : 'n'
+          HEADLESS: (program.headless) ? 'y' : 'n',
+          ENVIRONMENT: 'dev',
         }
       });
     } else {
@@ -39,7 +40,8 @@ async function runTests(suite, withEnv) {
         env: {
           ...process.env,
           TS_NODE_PROJECT: 'test/tsconfig.json',
-          HEADLESS: (program.headless) ? 'y' : 'n'
+          HEADLESS: (program.headless) ? 'y' : 'n',
+          ENVIRONMENT: 'dev',
         }
       });
     }

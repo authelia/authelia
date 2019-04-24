@@ -27,11 +27,15 @@ export async function GET_Expect401(url: string, headers: {[key: string]: string
   return await GET_ExpectError(url, headers, 401);
 }
 
+export async function GET_Expect403(url: string, headers: {[key: string]: string} = {}) {
+  return await GET_ExpectError(url, headers, 403);
+}
+
 export async function GET_Expect502(url: string, headers: {[key: string]: string} = {}) {
   return await GET_ExpectError(url, headers, 502);
 }
 
-export async function POST_Expect401(url: string, body?: any) {
+export async function POST_Expect403(url: string, body?: any) {
   try {
     await Request.post(url, {
       json: true,
@@ -41,7 +45,7 @@ export async function POST_Expect401(url: string, body?: any) {
     throw new Error('No response');
   } catch (e) {
     if (e instanceof StatusCodeError) {
-      Assert.equal(e.statusCode, 401);
+      Assert.equal(e.statusCode, 403);
       return;
     }
   }

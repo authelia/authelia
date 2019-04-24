@@ -16,14 +16,14 @@ function arePodsReady(kubernetes: Kubernetes): boolean {
     ...process.env,
   }}).toString('utf-8').split("\n").filter((x) => x !== '');
   console.log(lines.join('\n'));
-  return lines.reduce((acc, line) => {
+  return lines.reduce((acc: boolean, line: string) => {
     return acc && line.indexOf('1/1') > -1;
   }, true);
 }
 
 function servicesReady(kubernetes: Kubernetes): Promise<void> {
   return WaitUntil(async () => arePodsReady(kubernetes),
-    300000, 15000, 5000);
+    600000, 15000, 5000, 5000);
 }
 
 function redisConnected(redisClient: RedisClient): Promise<void> {
@@ -83,8 +83,9 @@ function startAutheliaPortForwarding(kubernetes: Kubernetes) {
     shell: true,
     env: {KUBECONFIG: kubernetes.kubeConfig, ...process.env}
   } as any);
-  portFowardingProcess.stdout.pipe(process.stdout);
-  portFowardingProcess.stderr.pipe(process.stderr);
+  if (!portFowardingProcess) return;
+  portFowardingProcess.stdout!.pipe(process.stdout);
+  portFowardingProcess.stderr!.pipe(process.stderr);
 }
 
 const dockerEnv = new DockerEnvironment([
@@ -136,7 +137,7 @@ async function teardown() {
   await KubernetesManager.delete();
 }
 
-const setup_timeout = 300000;
+const setup_timeout = 600000;
 const teardown_timeout = 30000;
 
 export {

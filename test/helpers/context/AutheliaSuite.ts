@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 interface AutheliaSuiteType {
   (suitePath: string, cb: (this: Mocha.ISuiteCallbackContext) => void): Mocha.ISuite;
   only: (suitePath: string, cb: (this: Mocha.ISuiteCallbackContext) => void) => Mocha.ISuite;

@@ -3,7 +3,6 @@ export PATH=$(pwd)/scripts:/tmp:$PATH
 
 export PS1="(authelia) $PS1"
 
-echo "[BOOTSTRAP] Installing npm packages..."
 npm i
 
 pushd client
@@ -26,6 +25,9 @@ fi
 
 echo "[BOOTSTRAP] Running additional bootstrap steps..."
 authelia-scripts bootstrap
+
+# Create temporary directory that will contain the databases used in tests.
+mkdir -p /tmp/authelia
 
 echo "[BOOTSTRAP] Run 'authelia-scripts suites start dockerhub' to start Authelia and visit https://home.example.com:8080."
 echo "[BOOTSTRAP] More details at https://github.com/clems4ever/authelia/blob/master/docs/getting-started.md"

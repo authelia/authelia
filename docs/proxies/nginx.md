@@ -14,7 +14,7 @@ Here is a commented example of configuration
         set $upstream_verify https://authelia.example.com/api/verify;
         set $upstream_endpoint http://nginx-backend;
 
-        ssl_certificate     /etc/ssl/server.crt;
+        ssl_certificate     /etc/ssl/server.cert;
         ssl_certificate_key /etc/ssl/server.key;
 
         # Use HSTS, please beware of what you're doing if you set it.

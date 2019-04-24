@@ -1,0 +1,62 @@
+dn: ou=groups,dc=example,dc=com
+objectclass: organizationalUnit
+objectclass: top
+ou: groups
+
+dn: ou=users,dc=example,dc=com
+objectclass: organizationalUnit
+objectclass: top
+ou: users
+
+dn: cn=dev,ou=groups,dc=example,dc=com
+cn: dev
+member: cn=john,ou=users,dc=example,dc=com
+member: cn=bob,ou=users,dc=example,dc=com
+objectclass: groupOfNames
+objectclass: top
+
+dn: cn=admin,ou=groups,dc=example,dc=com
+cn: admin
+member: cn=john,ou=users,dc=example,dc=com
+objectclass: groupOfNames
+objectclass: top
+
+dn: cn=john,ou=users,dc=example,dc=com
+cn: john
+objectclass: inetOrgPerson
+objectclass: top
+mail: john.doe@authelia.com
+sn: John Doe
+userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+
+dn: cn=harry,ou=users,dc=example,dc=com
+cn: harry
+objectclass: inetOrgPerson
+objectclass: top
+mail: harry.potter@authelia.com
+sn: Harry Potter
+userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+
+dn: cn=bob,ou=users,dc=example,dc=com
+cn: bob
+objectclass: inetOrgPerson
+objectclass: top
+mail: bob.dylan@authelia.com
+sn: Bob Dylan
+userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+
+dn: cn=james,ou=users,dc=example,dc=com
+cn: james
+objectclass: inetOrgPerson
+objectclass: top
+mail: james.dean@authelia.com
+sn: James Dean
+userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+
+dn: cn=blackhat,ou=users,dc=example,dc=com
+cn: blackhat
+objectclass: inetOrgPerson
+objectclass: top
+mail: billy.blackhat@authelia.com
+sn: Billy BlackHat
+userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/

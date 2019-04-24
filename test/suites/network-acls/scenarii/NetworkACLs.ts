@@ -34,7 +34,7 @@ export default function() {
     it("should require two factor", async function() {
       await VisitPage(this.driver, "https://secure.example.com:8080/secret.html");
       await VerifyUrlIs(this.driver, "https://login.example.com:8080/#/?rd=https://secure.example.com:8080/secret.html");
-      await FillLoginPageAndClick(this.driver, 'john', 'password');
+      await FillLoginPageAndClick(this.driver, "john", "password");
       await ValidateTotp(this.driver, this.secret);
       await VerifyUrlIs(this.driver, "https://secure.example.com:8080/secret.html");
       await VerifySecretObserved(this.driver);

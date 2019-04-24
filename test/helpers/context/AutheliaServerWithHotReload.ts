@@ -1,6 +1,5 @@
 import Chokidar from 'chokidar';
 import fs from 'fs';
-import { exec } from '../utils/exec';
 import ChildProcess from 'child_process';
 import kill from 'tree-kill';
 import AutheliaServerInterface from './AutheliaServerInterface';
@@ -14,10 +13,11 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
   private clientProcess: ChildProcess.ChildProcess | undefined;
   private filesChangedBuffer: string[] = [];
   private changeInProgress: boolean = false;
+  private isInterrupted: boolean = false
 
   constructor(configPath: string, watchedPaths: string[]) {
     this.configPath = configPath;
-    const pathsToReload = ['server', 'node_modules',
+    const pathsToReload = ['**/*.go',
       this.AUTHELIA_INTERRUPT_FILENAME, configPath].concat(watchedPaths);
     console.log("Authelia will reload on changes of files or directories in " + pathsToReload.join(', '));
     this.watcher = Chokidar.watch(pathsToReload, {
@@ -28,14 +28,14 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
 
   private async startServer() {
     if (this.serverProcess) return;
-    await exec('./node_modules/.bin/tslint -c server/tslint.json -p server/tsconfig.json')
-    this.serverProcess = ChildProcess.spawn('./node_modules/.bin/ts-node',
-      ['-P', './server/tsconfig.json', './server/src/index.ts', this.configPath], {
+    this.serverProcess = ChildProcess.spawn('go',
+      ['run', 'main.go', '-config', this.configPath], {
         env: {
           ...process.env,
-          NODE_TLS_REJECT_UNAUTHORIZED: 0,
+          NODE_TLS_REJECT_UNAUTHORIZED: "0",
         },
       });
+    if (!this.serverProcess || !this.serverProcess.stdout || !this.serverProcess.stderr) return;
     this.serverProcess.stdout.pipe(process.stdout);
     this.serverProcess.stderr.pipe(process.stderr);
     this.serverProcess.on('exit', () => {
@@ -77,6 +77,7 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
         'BROWSER': 'none'
       }
     });
+    if (!this.clientProcess || !this.clientProcess.stdout || !this.clientProcess.stderr) return;
     this.clientProcess.stdout.pipe(process.stdout);
     this.clientProcess.stderr.pipe(process.stderr);
     this.clientProcess.on('exit', () => {
@@ -108,36 +109,27 @@ class AutheliaServerWithHotReload implements AutheliaServerInterface {
     });
   }
 
-  private async generateConfigurationSchema() {
-    await exec('./node_modules/.bin/typescript-json-schema -o ' +
-                'server/src/lib/configuration/Configuration.schema.json ' +
-                '--strictNullChecks --required server/tsconfig.json Configuration');
-  }
-
   /**
    * Handle file changes.
    * @param path The path of the file that has been changed.
    */
-  private onFilesChanged = async (paths: string[]) => {
-    const containsSchemaFiles = paths.filter(
-      (p) => p.startsWith('server/src/lib/configuration/schema')).length > 0;
-    if (containsSchemaFiles) {
-      console.log('Schema needs to be regenerated.');
-      await this.generateConfigurationSchema();
-    }
-    
-    const interruptFile = paths.filter(
+  private onFilesChanged = async (paths: string[]) => {  
+    const interruptFileExist = fs.existsSync(this.AUTHELIA_INTERRUPT_FILENAME);
+    const interruptFileModified = paths.filter(
       (p) => p === this.AUTHELIA_INTERRUPT_FILENAME).length > 0;
-    if (interruptFile) {
-      if (fs.existsSync(this.AUTHELIA_INTERRUPT_FILENAME)) {
-        console.log('Authelia is being interrupted.');
-        await this.killServer();
-      } else {
+      if (interruptFileExist) {
+        if (interruptFileModified) {
+          console.log('Authelia is being interrupted.');
+          this.isInterrupted = true;
+          await this.killServer();
+        }
+        return;
+      } else if (this.isInterrupted && interruptFileModified && !interruptFileExist){
         console.log('Authelia is restarting.');
         await this.startServer();
+        this.isInterrupted = false;
+        return;
       }
-      return;
-    }
 
     await this.killServer();
     await this.startServer();

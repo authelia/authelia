@@ -6,6 +6,7 @@ export default async function(dispatch: Dispatch) {
   dispatch(getPreferedMethod());
   try {
     const method = await AutheliaService.fetchPrefered2faMethod();
+    console.log(method);
     dispatch(getPreferedMethodSuccess(method));
   } catch (err) {
     dispatch(getPreferedMethodFailure(err.message))

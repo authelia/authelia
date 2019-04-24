@@ -18,7 +18,6 @@ const dockerEnv = new DockerEnvironment([
 
 async function setup() {
   await exec(`cp ${__dirname}/users_database.yml ${__dirname}/users_database.test.yml`);
-  await exec('mkdir -p /tmp/authelia/db');
   await exec('./example/compose/nginx/portal/render.js ' + (fs.existsSync('.suite') ? '': '--production'));
   await dockerEnv.start();
   await autheliaServer.start();
@@ -27,7 +26,6 @@ async function setup() {
 async function teardown() {
   await autheliaServer.stop();
   await dockerEnv.stop();
-  await exec('rm -rf /tmp/authelia/db');
 }
 
 const setup_timeout = 30000;

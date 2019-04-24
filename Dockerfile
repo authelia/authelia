@@ -1,19 +1,20 @@
-FROM node:8.7.0-alpine
+FROM alpine:3.9.4
 
-WORKDIR /usr/src
+WORKDIR /usr/app
 
-COPY package.json /usr/src/package.json
+RUN apk --no-cache add ca-certificates wget
 
-RUN apk --update add --no-cache --virtual \
-      .build-deps make g++ python && \
-    npm install --production && \
-    apk del .build-deps
+# Install the libc required by the password hashing compiled with CGO.
+RUN wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
+RUN wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.30-r0/glibc-2.30-r0.apk
+RUN apk --no-cache add glibc-2.30-r0.apk
 
-COPY dist/server /usr/src/server
+ADD dist/authelia authelia
+ADD dist/public_html public_html
 
 EXPOSE 9091
 
 VOLUME /etc/authelia
 VOLUME /var/lib/authelia
 
-CMD ["node", "server/src/index.js", "/etc/authelia/config.yml"]
+CMD ["./authelia", "-config", "/etc/authelia/config.yml"]

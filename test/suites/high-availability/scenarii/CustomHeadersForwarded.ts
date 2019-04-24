@@ -3,7 +3,6 @@ import { StartDriver, StopDriver } from "../../../helpers/context/WithDriver";
 import RegisterAndLoginWith2FA from "../../../helpers/behaviors/RegisterAndLoginTwoFactor";
 import VerifyForwardedHeaderIs from "../../../helpers/assertions/VerifyForwardedHeaderIs";
 import LoginOneFactor from "../../../helpers/behaviors/LoginOneFactor";
-import VerifyUrlIs from "../../../helpers/assertions/VerifyUrlIs";
 
 export default function() {
   describe("Custom-Forwarded-User and Custom-Forwarded-Groups are correctly forwarded to protected backend", function() {

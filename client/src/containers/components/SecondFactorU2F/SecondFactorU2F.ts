@@ -5,7 +5,6 @@ import SecondFactorU2F, { StateProps, OwnProps } from '../../../components/Secon
 import AutheliaService from '../../../services/AutheliaService';
 import { push } from 'connected-react-router';
 import u2fApi from 'u2f-api';
-import to from 'await-to-js';
 import {
   securityKeySignSuccess,
   securityKeySign,
@@ -20,58 +19,27 @@ const mapStateToProps = (state: RootState): StateProps => ({
 });
 
 async function triggerSecurityKeySigning(dispatch: Dispatch, redirectionUrl: string | null) {
-  let err, result;
   dispatch(securityKeySign());
-  [err, result] = await to(AutheliaService.requestSigning());
-  if (err) {
-    await dispatch(securityKeySignFailure(err.message));
-    throw err;
+  const signRequest = await AutheliaService.requestSigning();
+  const signRequests: u2fApi.SignRequest[] = [];
+  for (var i in signRequest.registeredKeys) {
+    const r = signRequest.registeredKeys[i];
+    signRequests.push({
+      appId: signRequest.appId,
+      challenge: signRequest.challenge,
+      keyHandle: r.keyHandle,
+      version: r.version,
+    })
   }
+  const signResponse = await u2fApi.sign(signRequests, 60);
+  const response = await AutheliaService.completeSecurityKeySigning(signResponse, redirectionUrl);
+  dispatch(securityKeySignSuccess());
 
-  if (!result) {
-    await dispatch(securityKeySignFailure('No response'));
-    throw 'No response';
-  }
-
-  [err, result] = await to(u2fApi.sign(result, 60));
-  if (err) {
-    await dispatch(securityKeySignFailure(err.message));
-    throw err;
-  }
-
-  if (!result) {
-    await dispatch(securityKeySignFailure('No response'));
-    throw 'No response';
-  }
-
-  [err, result] = await to(AutheliaService.completeSecurityKeySigning(result, redirectionUrl));
-  if (err) {
-    await dispatch(securityKeySignFailure(err.message));
-    throw err;
-  }
-  
-  try {
-    await redirectIfPossible(result as Response);
-    dispatch(securityKeySignSuccess());
-    await handleSuccess(dispatch, 1000);
-  } catch (err) {
-    dispatch(securityKeySignFailure(err.message));
-  }
-}
-
-async function redirectIfPossible(res: Response) {
-  if (res.status === 204) return;
-
-  const body = await res.json();
-  if ('error' in body) {
-    throw new Error(body['error']);
-  }
-
-  if ('redirect' in body) {
-    window.location.href = body['redirect'];
+  if (response) {
+    window.location.href = response.redirect;
     return;
   }
-  return;
+  await handleSuccess(dispatch, 1000);
 }
 
 async function handleSuccess(dispatch: Dispatch, duration?: number) {
@@ -93,7 +61,12 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
       await dispatch(push('/confirmation-sent'));
     },
     onInit: async () => {
-      await triggerSecurityKeySigning(dispatch, ownProps.redirectionUrl);
+      try {
+        await triggerSecurityKeySigning(dispatch, ownProps.redirectionUrl);
+      } catch (err) {
+        console.error(err);
+        await dispatch(securityKeySignFailure(err.message));
+      }
     },
   }
 }

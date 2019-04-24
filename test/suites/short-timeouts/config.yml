@@ -6,6 +6,8 @@ port: 9091
 
 logs_level: debug
 
+jwt_secret: unsecure_secret
+
 default_redirection_url: https://home.example.com:8080/
 
 authentication_backend:
@@ -15,13 +17,13 @@ authentication_backend:
 session:
   secret: unsecure_session_secret
   domain: example.com
-  inactivity: 5000
-  expiration: 8000
+  inactivity: 5
+  expiration: 8
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
   local:
-    path: /tmp/authelia/db
+    path: /tmp/authelia/db.sqlite
 
 # TOTP Issuer Name
 #
@@ -75,7 +77,7 @@ regulation:
   max_retries: 3
 
   # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window. 
-  find_time: 10
+  find_time: 3
 
   # The length of time before a banned user can login again.
   ban_time: 5
@@ -101,9 +103,6 @@ notifier:
   
   # Use a SMTP server for sending notifications
   smtp:
-    username: test
-    password: password
-    secure: false
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com

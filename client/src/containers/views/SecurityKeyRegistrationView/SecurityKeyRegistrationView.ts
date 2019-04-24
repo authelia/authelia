@@ -12,26 +12,30 @@ const mapStateToProps = (state: RootState) => ({
   error: state.securityKeyRegistration.error,
 });
 
-function fail(dispatch: Dispatch, err: Error) {
-  console.error(err);
-  dispatch(registerSecurityKeyFailure(err.message));
-}
-
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => {
   return {
     onInit: async (token: string) => {
       try {
         dispatch(registerSecurityKey());
-        await AutheliaService.completeSecurityKeyRegistrationIdentityValidation(token);
-        const registerRequest = await AutheliaService.requestSecurityKeyRegistration();
-        const registerResponse = await U2fApi.register([registerRequest], [], 60);
+        const registerRequest = await AutheliaService.completeSecurityKeyRegistrationIdentityValidation(token);
+        const registerRequests: U2fApi.RegisterRequest[] = [];
+        for(var i in registerRequest.registerRequests) {
+          const r = registerRequest.registerRequests[i];
+          registerRequests.push({
+            appId: registerRequest.appId,
+            challenge: r.challenge,
+            version: r.version,
+          })
+        }
+        const registerResponse = await U2fApi.register(registerRequests, [], 60);
         await AutheliaService.completeSecurityKeyRegistration(registerResponse);
         dispatch(registerSecurityKeySuccess());
         setTimeout(() => {
           ownProps.history.push('/');
         }, 2000);
       } catch(err) {
-        fail(dispatch, err);
+        console.error(err);
+        dispatch(registerSecurityKeyFailure(err.message));
       }
     },
     onBackClicked: () => {

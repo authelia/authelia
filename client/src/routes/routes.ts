@@ -4,6 +4,7 @@ import SecurityKeyRegistrationView from "../containers/views/SecurityKeyRegistra
 import ForgotPasswordView from "../containers/views/ForgotPasswordView/ForgotPasswordView";
 import ResetPasswordView from "../containers/views/ResetPasswordView/ResetPasswordView";
 import AuthenticationView from "../containers/views/AuthenticationView/AuthenticationView";
+import LogoutView from "../views/LogoutView/LogoutView";
 
 export const routes = [{
   path: '/',
@@ -29,4 +30,8 @@ export const routes = [{
   path: '/reset-password',
   title: 'Reset password',
   component: ResetPasswordView,
+}, {
+  path: '/logout',
+  title: 'Logout',
+  component: LogoutView,
 }]
