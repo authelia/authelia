@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  {{ template "authelia.fullname" . }}
+  labels:
+    app: {{ template "authelia.name" . }}
+    chart: {{ template "authelia.chart" . }}
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  selector:
+    app: {{ template "authelia.name" . }}
+  ports:
+  - protocol: TCP
+    port: {{ .Values.service.serviceport }}
+    targetPort: {{ .Values.service.containerport }}

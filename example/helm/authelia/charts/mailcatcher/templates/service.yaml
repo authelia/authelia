@@ -1,0 +1,19 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name:  {{ template "mailcatcher.fullname" . }}
+  labels:
+    app: {{ template "mailcatcher.name" . }}
+    chart: {{ template "mailcatcher.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  selector:
+    app: {{ template "mailcatcher.name" . }}
+  ports:
+  - protocol: TCP
+    port: 1080
+    name: ui
+  - protocol: TCP
+    port: 1025
+    name: smtp

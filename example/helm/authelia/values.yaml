@@ -1,0 +1,233 @@
+---
+## ********************* ##
+## AUTHELIA CHART CONFIG ##
+## ********************* ##
+
+## Deployment Configuration ##
+## ************************ ##
+deployment: 
+  ## Image Configuration
+  image:
+    name: clems4ever/authelia
+    version: v3.13.0
+  ## Resources
+  resources:
+    limits:
+      cpu: 100m
+      memory: 256Mi
+
+## Service Configuration ##
+## ********************* ##
+
+service:
+  serviceport: 80
+  containerport: 80
+
+## Application Specific Configuration ##
+## ********************************** ##
+
+# FQDN of the LDAP server to connect to
+authelia_conf:
+  default_redirection_url: https://mypage.example.com
+  session_name: my_life_for_aiur
+  session_secret: RdajeQNYr3bU6DhY8C5Pf
+
+## ** Dependencies ** ##
+## ****************** ##  
+
+## === Sub-Chart Value Overrides === ##
+
+## Redis
+## NOTE: Only applies when authelia.enabled = true
+
+redis:
+  image:
+    registry: docker.io
+    repository: bitnami/redis
+    tag: 4.0.14
+    pullPolicy: IfNotPresent
+
+  cluster:
+    enabled: false
+    slaveCount: 0
+  
+  master:
+    persistence:
+      enabled: false
+  
+  usePassword: true
+  password: defaultpass
+
+## Mongo
+## NOTE: Only applies when authelia.enabled = true
+
+mongodb:
+  image:
+    registry: docker.io
+    repository: bitnami/mongodb
+    tag: 4.0.9
+    pullPolicy: Always
+
+  usePassword: true
+  ## MongoDB admin password
+  ## ref: https://github.com/bitnami/bitnami-docker-mongodb/blob/master/README.md#setting-the-root-password-on-first-run
+  mongodbRootPassword: defaultpass
+
+  ## MongoDB custom user and database
+  ## ref: https://github.com/bitnami/bitnami-docker-mongodb/blob/master/README.md#creating-a-user-and-database-on-first-run
+  ##
+  #mongodbUsername: zeratul
+  #mongodbPassword: defaultpass
+  #mongodbDatabase: authelia
+
+  mongodbSystemLogVerbosity: 5
+
+  persistence:
+    enabled: true
+    storageClass: "microk8s-hostpath"
+    storageClassName: "microk8s-hostpath"
+    mountPath: /bitnami/mongodb
+    accessModes:
+      - ReadWriteOnce
+    size: 250Mi
+
+## OpenLDAP
+## NOTE: Only applies when authelia.enabled = true
+
+openldap:
+  image:
+  # From repository https://github.com/osixia/docker-openldap
+    repository: osixia/openldap
+    tag: 1.2.1
+    pullPolicy: IfNotPresent
+
+  env:
+    LDAP_ORGANISATION: "Authelia"
+    LDAP_DOMAIN: "authelia.com"
+    LDAP_BACKEND: "hdb"
+    LDAP_TLS: "true"
+    LDAP_TLS_ENFORCE: "false"
+    LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
+
+  adminPassword: defaultpass
+
+  persistence:
+    enabled: true
+    storageClass: "microk8s-hostpath"
+    storageClassName: "microk8s-hostpath"
+    accessMode: ReadWriteOnce
+    size: 50Mi
+
+  customLdifFiles:
+    01-default.ldif: |-
+      dn: ou=groups,dc=authelia,dc=com
+      objectclass: organizationalUnit
+      objectclass: top
+      ou: groups
+
+      dn: cn=admin,ou=groups,dc=authelia,dc=com
+      cn: admin
+      member: cn=user01,ou=users,dc=authelia,dc=com
+      objectclass: groupOfNames
+      objectclass: top
+
+      dn: ou=users,dc=authelia,dc=com
+      objectclass: organizationalUnit
+      objectclass: top
+      ou: users
+
+      dn: cn=user01,ou=users,dc=authelia,dc=com
+      cn: user01
+      mail: user01@authelia.com
+      objectclass: inetOrgPerson
+      objectclass: top
+      sn: Test User 01
+      userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+
+## Configure the ingress resource that allows you to access the
+## different endpoints protected by Authelia. Each host
+## entry will generate a different ingress resource.
+## ref: http://kubernetes.io/docs/user-guide/ingress/
+##
+ingress:
+  ## Set to true to enable ingress record generation
+  enabled: true
+
+  ## Set the value of the endpoint that will act as Authelia's 
+  ## login service (this login service should also be declared 
+  ## as an ingress)
+  authelia_login_url: "https://login.awesomekbs.com/#/"
+
+  ## The list of hostnames to be covered with this ingress record.
+  ## Most likely this will be just one host, but in the event more hosts are needed, this is an array
+  endpoints:
+  - ingressname: socops
+
+    ## Set the URL that the ingress resource should be responding to.
+    url: socops.awesomekbs.com
+
+    ## Set this to true in order to enable TLS on the ingress record
+    ## A side effect of this will be that the backend phpldapadmin service will be connected at port 443
+    tls: true
+
+    ## Set this to true in order to add the corresponding annotations for cert-manager
+    certManager: false
+
+    ## If TLS is set to true, you must declare what secret will store the key/certificate for TLS
+    tlsSecret: socops-tls
+
+    ## Backend
+    ## Configure here the service backend that this ingress is suposed to 
+    ## redirect traffic to. The "serviceName" key only needs a name since 
+    ## when the ingress template is rendered, it will append the name of 
+    ## the release too like this: {{ printf "%s-%s" ($Release.Name) "nginx" }}.
+    backend:
+      serviceName: nginx
+      servicePort: 80
+
+    ## Ingress annotations done as key:value pairs
+    ## For a full list of possible ingress annotations, please see
+    ## ref: https://github.com/kubernetes/ingress-nginx/blob/master/docs/annotations.md
+    ##
+    ## If tls is set to true, annotation ingress.kubernetes.io/secure-backends: "true" will automatically be set
+    ## If certManager is set to true, annotation kubernetes.io/tls-acme: "true" will automatically be set
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      kubernetes.io/ingress.allow-http: "false"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+  ## NOTE: The "login" ingress is required for Authelia to work.
+  ## The backend for the "login" endpoint must match the 
+  ## top serviceName and servicePort for Authelia in this values.yaml file.
+  - ingressname: login
+    url: login.awesomekbs.com
+    tls: true
+    certManager: false
+    tlsSecret: authelia-login-tls
+    backend:
+      serviceName: authelia
+      servicePort: 80
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      kubernetes.io/ingress.allow-http: "false"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+  secrets:
+  ## If you're providing your own certificates, please use this to add the certificates as secrets
+  ## key and certificate should start with -----BEGIN CERTIFICATE----- or
+  ## -----BEGIN RSA PRIVATE KEY-----
+  ##
+  ## name should line up with a tlsSecret set further up
+  ## If you're using cert-manager, this is unneeded, as it will create the secret for you if it is not set
+  ##
+  ## It is also possible to create and manage the certificates outside of this helm chart
+  ## Please see README.md for more information
+  # - name: phpldapadmin.local-tls
+  #   key:
+#   certificate:
+
+## Configuration options for nodeSelector, tolerations and affinity for pod
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+nodeSelector: {}
+tolerations: []
+affinity: {}

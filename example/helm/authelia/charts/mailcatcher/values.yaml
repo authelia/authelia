@@ -1,0 +1,83 @@
+---
+
+## Deployment Configuration ##
+## ************************ ##
+deployment: 
+  ## Image Configuration
+  image:
+    name: osixia/phpldapadmin
+    version: 0.7.2
+  ## Resources
+  resources:
+    limits:
+      cpu: 100m
+      memory: 256Mi
+
+## Application Specific Configuration ##
+## ********************************** ##
+
+# FQDN of the LDAP server to connect to
+# Uncoment the lines below if you wish to specify the host statically, otherwise 
+# it is dynamically generated with the Helm Release
+
+#LDAP:
+#  host: ldap://socops-ldap-openldap.default.svc.cluster.local:389
+
+## Service Configuration ##
+## ********************* ##
+
+service:
+  serviceport: 1443
+  containerport: 80
+
+## Configure the ingress resource that allows you to access the
+## PHPLDAPADMIN installation. Set up the URL
+## ref: http://kubernetes.io/docs/user-guide/ingress/
+##
+ingress:
+  ## Set to true to enable ingress record generation
+  enabled: false
+
+  ## The list of hostnames to be covered with this ingress record.
+  ## Most likely this will be just one host, but in the event more hosts are needed, this is an array
+  hosts:
+  - name: localhost
+
+    ## Set this to true in order to enable TLS on the ingress record
+    ## A side effect of this will be that the backend phpldapadmin service will be connected at port 443
+    tls: false
+
+    ## Set this to true in order to add the corresponding annotations for cert-manager
+    certManager: false
+
+    ## If TLS is set to true, you must declare what secret will store the key/certificate for TLS
+    tlsSecret: phpldapadmin.local-tls
+
+    ## Ingress annotations done as key:value pairs
+    ## For a full list of possible ingress annotations, please see
+    ## ref: https://github.com/kubernetes/ingress-nginx/blob/master/docs/annotations.md
+    ##
+    ## If tls is set to true, annotation ingress.kubernetes.io/secure-backends: "true" will automatically be set
+    ## If certManager is set to true, annotation kubernetes.io/tls-acme: "true" will automatically be set
+    annotations:
+    #  kubernetes.io/tls-acme: true
+
+  secrets:
+  ## If you're providing your own certificates, please use this to add the certificates as secrets
+  ## key and certificate should start with -----BEGIN CERTIFICATE----- or
+  ## -----BEGIN RSA PRIVATE KEY-----
+  ##
+  ## name should line up with a tlsSecret set further up
+  ## If you're using cert-manager, this is unneeded, as it will create the secret for you if it is not set
+  ##
+  ## It is also possible to create and manage the certificates outside of this helm chart
+  ## Please see README.md for more information
+  # - name: phpldapadmin.local-tls
+  #   key:
+#   certificate:
+
+## Configuration options for nodeSelector, tolerations and affinity for pod
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+nodeSelector: {}
+tolerations: []
+affinity: {}

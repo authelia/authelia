@@ -1,0 +1,41 @@
+{{- if .Values.ingress -}}
+{{- range $endpoint := .Values.ingress.endpoints }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name:  {{ printf "%s-%s" (include "authelia.fullname" $) $endpoint.ingressname }}
+  labels:
+    app: {{ template "authelia.name" $ }}
+    chart: {{ template "authelia.chart" $ }}
+    release: {{ $.Release.Name | quote }}
+    heritage: {{ $.Release.Service | quote }}
+  annotations:
+    {{- if $endpoint.certManager }}
+    kubernetes.io/tls-acme: "true"
+    {{- end }}
+    {{- if $endpoint.tls }}
+    ingress.kubernetes.io/secure-backends: "true"
+    {{- end }}
+    {{- range $key, $value := $endpoint.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    nginx.ingress.kubernetes.io/auth-url: {{ printf "http://%s.%s.svc.cluster.local/api/verify" (include "authelia.fullname" $) ($.Release.Namespace) }}
+    nginx.ingress.kubernetes.io/auth-signin: {{ $.Values.ingress.authelia_login_url }}
+spec:
+  tls:
+  {{- if not $endpoint.certManager }}
+  - secretName: {{ $endpoint.tlsSecret }}
+    hosts:
+    - {{ $endpoint.url }}
+  {{- end }}
+  rules:
+  - host: {{ $endpoint.url }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ printf "%s-%s" ($.Release.Name) $endpoint.backend.serviceName }}
+          servicePort: {{ $endpoint.backend.servicePort }}
+---
+{{- end }}
+{{- end -}}

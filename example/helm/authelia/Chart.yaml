@@ -1,0 +1,12 @@
+name: authelia
+home: https://authelia.com
+version: 0.1.0
+appVersion: 2.4.44
+description: Web-Based 2FA Authentication Portal
+keywords:
+  - authelia
+  - 2fa
+maintainers:
+  - name: @darkquassar
+    email: darkquasar7@gmail.com
+engine: gotpl

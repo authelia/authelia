@@ -1,0 +1,37 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name:  {{ template "authelia.fullname" . }}
+  labels:
+    app: {{ template "authelia.name" . }}
+    chart: {{ template "authelia.chart" . }}
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "authelia.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "authelia.name" . }}
+      annotations:
+        checksum.helm.kubernetes.io/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      containers:
+      - name: authelia
+        image: {{ .Values.deployment.image.name }}:{{ .Values.deployment.image.version }}
+        ports:
+        - containerPort: {{ .Values.service.containerport }}
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/authelia
+      volumes:
+      - name: config-volume
+        configMap:
+          name: authelia-config
+          items:
+          - key: config.yml
+            path: config.yml

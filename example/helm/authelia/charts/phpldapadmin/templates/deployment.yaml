@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  {{ template "phpldapadmin.fullname" . }}
+  labels:
+    app: {{ template "phpldapadmin.name" . }}
+    chart: {{ template "phpldapadmin.chart" . }}
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+{{- if .Values.extraLabels }}
+{{ toYaml .Values.extraLabels | indent 4 }}
+{{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "phpldapadmin.name" . }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ template "phpldapadmin.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.deployment.image.name }}:{{ .Values.deployment.image.version }}
+        env:
+        - name: PHPLDAPADMIN_LDAP_HOSTS
+          value: {{ printf "ldap://%s-openldap.%s.svc.cluster.local:389" (.Release.Name) (.Release.Namespace) }}
+        - name: PHPLDAPADMIN_HTTPS
+          value: "false"
+        ports:
+        - containerPort: {{ .Values.service.containerport }}
+        resources:
+          limits:
+            cpu: {{ .Values.deployment.resources.limits.cpu }}
+            memory: {{ .Values.deployment.resources.limits.memory }}

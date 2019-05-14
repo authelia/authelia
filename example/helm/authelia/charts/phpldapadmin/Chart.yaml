@@ -1,0 +1,12 @@
+name: phpldapadmin
+home: http://phpldapadmin.sourceforge.net/wiki/index.php/Main_Page
+version: 0.1.0
+appVersion: 2.4.44
+description: Web-based LDAP browser to manage your LDAP server
+keywords:
+  - phpldapadmin
+  - ldapadminphp
+maintainers:
+  - name: darkquasar
+    email: darkquasar7@gmail.com
+engine: gotpl

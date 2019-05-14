@@ -1,0 +1,11 @@
+name: mailcatcher
+home: https://mailcatcher.me/
+version: 0.1.0
+appVersion: 0.6.4
+description: Ruby-based Mail server for development purposes
+keywords:
+  - mailcatcher
+maintainers:
+  - name: darkquasar
+    email: darkquasar7@gmail.com
+engine: gotpl

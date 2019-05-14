@@ -1,0 +1,13 @@
+dependencies:
+- name: redis
+  version: ^6.4.0
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  condition: authelia.enabled
+- name: mongodb
+  version: ^5.16.0
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  condition: authelia.enabled
+- name: openldap
+  version: ^0.3.0
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  condition: authentication.openldap.enabled

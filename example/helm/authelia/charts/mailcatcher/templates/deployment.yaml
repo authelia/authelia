@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  {{ template "mailcatcher.fullname" . }}
+  labels:
+    app: {{ template "mailcatcher.name" . }}
+    chart: {{ template "mailcatcher.chart" . }}
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+{{- if .Values.extraLabels }}
+{{ toYaml .Values.extraLabels | indent 4 }}
+{{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "mailcatcher.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "mailcatcher.name" . }}
+    spec:
+      containers:
+      - name: mailcatcher
+        image: schickling/mailcatcher
+        ports:
+        - containerPort: 1025
+        - containerPort: 1080

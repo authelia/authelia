@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: {{ template "authelia.name" . }}
+    chart: {{ template "authelia.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  name: authelia-config
+data:
+  config.yml: |-
+{{ (tpl (.Files.Get "files/authelia-config.yml") . ) | indent 4 }}
