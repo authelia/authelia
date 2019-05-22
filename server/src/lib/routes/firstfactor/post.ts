@@ -66,12 +66,13 @@ export default function (vars: ServerVariables) {
         const targetUrl = GetHeader(req, "x-target-url");
 
         if (!targetUrl) {
+          vars.logger.debug(req, "Sending status 204 due to missing header 'x-target-url'");
           res.status(204);
           res.send();
           return BluebirdPromise.resolve();
         }
 
-        if (BelongToDomain(targetUrl, vars.config.session.domain)) {
+        if (BelongToDomain(targetUrl, vars.config.session.domain, vars.logger, req)) {
           vars.logger.debug(req, "%s was found to be in domain %s", targetUrl, vars.config.session.domain);
           const resource = URLDecomposer.fromUrl(targetUrl);
           const resObject: Object = {
@@ -85,8 +86,12 @@ export default function (vars: ServerVariables) {
           };
 
           const authorizationLevel = vars.authorizer.authorization(resObject, subject, req.ip);
+          vars.logger.debug(req, "calculated authorization level: %s from resObject: %s subject: %s and ip: %s",
+              authorizationLevel, JSON.stringify(resObject), JSON.stringify(subject), req.ip);
+
           if (authorizationLevel <= AuthorizationLevel.ONE_FACTOR) {
             if (IsRedirectionSafe(vars, new URLParse(targetUrl))) {
+              vars.logger.debug(req, "sending redirect to: %s", targetUrl);
               res.json({redirect: targetUrl});
               return BluebirdPromise.resolve();
             } else {
@@ -94,8 +99,10 @@ export default function (vars: ServerVariables) {
               return BluebirdPromise.resolve();
             }
           } else {
-            vars.logger.debug(req, "%s was not found to be in domain %s", targetUrl, vars.config.session.domain);
+            vars.logger.debug(req, "Current authorization level %s indicates no further action for %s", authorizationLevel, username);
           }
+        } else {
+          vars.logger.debug(req, "%s was not found to be in domain %s", targetUrl, vars.config.session.domain);
         }
 
         res.status(204);
