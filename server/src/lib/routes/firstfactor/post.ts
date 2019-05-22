@@ -46,7 +46,7 @@ export default function (vars: ServerVariables) {
       })
       .then(function (groupsAndEmails: GroupsAndEmails) {
         vars.logger.info(req,
-          "LDAP binding successful. Retrieved information about user are %s",
+          "Backend lookup successful. Retrieved information about user %s are %s", username,
           JSON.stringify(groupsAndEmails));
         authSession.userid = username;
         authSession.keep_me_logged_in = keepMeLoggedIn;
@@ -72,6 +72,7 @@ export default function (vars: ServerVariables) {
         }
 
         if (BelongToDomain(targetUrl, vars.config.session.domain)) {
+          vars.logger.debug(req, "%s was found to be in domain %s", targetUrl, vars.config.session.domain);
           const resource = URLDecomposer.fromUrl(targetUrl);
           const resObject: Object = {
             domain: resource.domain,
@@ -92,6 +93,8 @@ export default function (vars: ServerVariables) {
               res.json({error: "You're authenticated but cannot be automatically redirected to an unsafe URL."});
               return BluebirdPromise.resolve();
             }
+          } else {
+            vars.logger.debug(req, "%s was not found to be in domain %s", targetUrl, vars.config.session.domain);
           }
         }
 

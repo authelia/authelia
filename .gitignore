@@ -39,3 +39,6 @@ users_database.test.yml
 
 .suite
 .kube
+
+# Intellij
+.idea/
