@@ -12,7 +12,7 @@ src/.baseDir.ts
 .vscode/
 
 *.swp
-
+*~
 
 # Directory used by example
 /notifications/
@@ -39,3 +39,4 @@ users_database.test.yml
 
 .suite
 .kube
+.idea
