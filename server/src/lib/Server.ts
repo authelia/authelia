@@ -75,6 +75,13 @@ export default class Server {
 
     const appConfiguration = ConfigurationParser.parse(configuration);
 
+    // We want to get the ldap binding password from the environment if it has been set, otherwise
+    // it will come from the configuration file
+    if (process.env.LDAP_BACKEND_PASSWORD) {
+      appConfiguration.authentication_backend.ldap.password = process.env.LDAP_BACKEND_PASSWORD;
+      that.globalLogger.debug("Got ldap binding password from environment");
+    }
+
     // by default the level of logs is info
     deps.winston.level = appConfiguration.logs_level;
     this.displayConfigurations(appConfiguration);
