@@ -17,9 +17,10 @@ async function verifyWithSelectedMethod(req: Express.Request, res: Express.Respo
   vars: ServerVariables, authSession: AuthenticationSession | undefined)
   : Promise<void> {
   if (HasHeader(req, Constants.HEADER_PROXY_AUTHORIZATION)) {
+    vars.logger.debug(req, "Got PROXY_AUTHORIZATION header checking basic auth");
     await GetBasicAuth(req, res, vars);
-  }
-  else {
+  } else {
+    vars.logger.debug(req, "Checking session cookie");
     await GetSessionCookie(req, res, vars, authSession);
   }
 }
@@ -49,6 +50,7 @@ async function unsafeGet(vars: ServerVariables, req: Express.Request, res: Expre
     }
 
     // Reply with an error.
+    vars.logger.error(req, "Got an error state when processing verify. Error was: %s", err.toString());
     throw err;
   }
 }

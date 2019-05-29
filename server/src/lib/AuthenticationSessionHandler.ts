@@ -34,6 +34,8 @@ export class AuthenticationSessionHandler {
     }
 
     if (!req.session.auth) {
+      logger.debug(req, "Session %s has no authentication information. Its internal id is: %s its current cookie is: %s",
+          req.sessionID, req.session.id, JSON.stringify(req.session.cookie));
       logger.debug(req, "Authentication session %s was undefined. Resetting..." +
         " If it's unexpected, make sure you are visiting the expected domain.", req.sessionID);
       AuthenticationSessionHandler.reset(req);
