@@ -1,4 +1,4 @@
-FROM rajhakorithrien/node:10.16.0-alpine-tls-fix
+FROM node:10.16.0-alpine
 
 WORKDIR /usr/src
 
