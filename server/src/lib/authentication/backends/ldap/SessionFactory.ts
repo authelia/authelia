@@ -1,4 +1,3 @@
-import Ldapjs = require("ldapjs");
 import Winston = require("winston");
 
 import { IConnectorFactory } from "./connector/IConnectorFactory";

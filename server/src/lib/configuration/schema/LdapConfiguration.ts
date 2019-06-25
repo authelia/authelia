@@ -15,6 +15,13 @@ export interface LdapConfiguration {
 
   user: string; // admin username
   password: string; // admin password
+
+  // The file name where node can find the ldap server CA certificate
+  // for when the ldap server uses a self signed cert
+  caCert?: string;
+
+  // Used to try to reconnect on an ldap connection failure, defaults to true
+  reconnect?: boolean;
 }
 
 export function complete(configuration: LdapConfiguration): LdapConfiguration {

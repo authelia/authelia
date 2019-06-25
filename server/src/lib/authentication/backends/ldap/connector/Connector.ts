@@ -3,6 +3,7 @@ import EventEmitter = require("events");
 import Bluebird = require("bluebird");
 import { IConnector } from "./IConnector";
 import Exceptions = require("../../../../Exceptions");
+import { Client, ClientOptions } from "ldapjs";
 
 interface SearchEntry {
   object: any;
@@ -19,11 +20,8 @@ export interface ClientAsync {
 export class Connector implements IConnector {
   private client: ClientAsync;
 
-  constructor(url: string, ldapjs: typeof LdapJs) {
-    const ldapClient = ldapjs.createClient({
-      url: url,
-      reconnect: true
-    });
+  constructor(clientOptions: ClientOptions, ldapjs: typeof LdapJs) {
+    const ldapClient: Client = ldapjs.createClient(clientOptions);
 
     /*const clientLogger = (ldapClient as any).log;
     if (clientLogger) {
