@@ -1,4 +1,3 @@
-
 import BluebirdPromise = require("bluebird");
 import Nodemailer = require("nodemailer");
 
@@ -57,7 +56,7 @@ export class ServerVariablesInitializer {
       return new LdapUsersDatabase(
         new SessionFactory(
           ldapConfig,
-          new ConnectorFactory(ldapConfig, deps.ldapjs),
+          new ConnectorFactory(ldapConfig, deps.ldapjs, deps.winston),
           deps.winston
         ),
         ldapConfig
