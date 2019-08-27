@@ -1,6 +1,6 @@
 # Build and dev
 
-**Authelia** is written in Typescript and built with [Authelia scripts](./docs/authelia-scripts.md).
+**Authelia** is written in Typescript and built with [Authelia scripts](./authelia-scripts.md).
 
 In order to build and contribute to **Authelia**, you need to make sure Node with version >= 8 and < 10
 and NPM is installed on your machine.
@@ -28,7 +28,7 @@ a kind of virutal environment for **Authelia**, it allows you to run **Authelia*
 environment, develop and test your patches. A hot-reload feature has been implemented so that
 you can test your changes in realtime.
 
-The next command will start the suite called [basic](./test/suites/basic/README.md): 
+The next command will start the suite called [basic](../test/suites/basic/README.md): 
 
     authelia-scripts suites start basic
 
