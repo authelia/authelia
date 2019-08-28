@@ -1,0 +1,101 @@
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+authentication_backend:
+  file:
+    path: /etc/authelia/users_database.yml
+
+session:
+  secret: unsecure_session_secret
+  domain: example.com
+
+# Configuration of the storage backend used to store data and secrets. i.e. totp data
+storage:
+  local:
+    path: /etc/authelia/storage
+
+# TOTP Issuer Name
+#
+# This will be the issuer name displayed in Google Authenticator
+# See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
+totp:
+  issuer: example.com
+
+# Access Control
+#
+# Access control is a set of rules you can use to restrict user access to certain
+# resources.
+access_control:
+  # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
+  default_policy: deny
+
+  rules:
+    - domain: single_factor.example.com
+      policy: one_factor
+
+    - domain: '*.example.com'
+      subject: "group:admins"
+      policy: two_factor
+
+    - domain: dev.example.com
+      resources:
+        - '^/users/john/.*$'
+      subject: "user:john"
+      policy: two_factor
+
+    - domain: dev.example.com
+      resources:
+        - '^/users/harry/.*$'
+      subject: "user:harry"
+      policy: two_factor
+
+    - domain: '*.mail.example.com'
+      subject: "user:bob"
+      policy: two_factor
+
+    - domain: dev.example.com
+      resources:
+        - '^/users/bob/.*$'
+      subject: "user:bob"
+      policy: two_factor
+
+
+# Configuration of the authentication regulation mechanism.
+regulation:
+  # Set it to 0 to disable max_retries.
+  max_retries: 3
+
+  # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window.
+  find_time: 120
+
+  # The length of time before a banned user can login again.
+  ban_time: 300
+
+# Default redirection URL
+#
+# Note: this parameter is optional. If not provided, user won't
+# be redirected upon successful authentication.
+#default_redirection_url: https://authelia.example.domain
+
+notifier:
+  # For testing purpose, notifications can be sent in a file
+  # filesystem:
+  #   filename: /tmp/authelia/notification.txt
+
+  # Use your email account to send the notifications. You can use an app password.
+  # List of valid services can be found here: https://nodemailer.com/smtp/well-known/
+  ## email:
+  ##   username: user@example.com
+  ##   password: yourpassword
+  ##   sender: admin@example.com
+  ##   service: gmail
+
+  # Use a SMTP server for sending notifications
+  smtp:
+    username: test
+    password: password
+    secure: false
+    host: 'smtp'
+    port: 1025
+    sender: admin@example.com
