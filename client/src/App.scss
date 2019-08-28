@@ -1,3 +1,48 @@
 @import "@material/react-button/index.scss";
 @import "@material/react-checkbox/index.scss";
 @import "@material/react-text-field/index.scss";
+@import 'assets/scss/variables.scss';
+
+.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+  color: var(--mdc-theme-primary);
+}
+
+.mdc-text-field:not(.mdc-text-field--focused) .mdc-floating-label {
+  color: var(--mdc-theme-primary);
+}
+
+.mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate)~.mdc-checkbox__background {
+  border-color: var(--mdc-theme-primary);
+}
+
+.mdc-checkbox__native-control:enabled:checked:not(:indeterminate)~.mdc-checkbox__background {
+  border-color: var(--mdc-theme-primary);
+  background-color: var(--mdc-theme-primary);
+}
+
+// .mdc-checkbox__native-control:not(enabled)~.mdc-checkbox__background {
+//   border-color: var(--mdc-theme-primary);
+// }
+
+// .mdc-checkbox__native-control:enabled~.mdc-checkbox__background {
+//   border-color: var(--mdc-theme-primary);
+//   background-color: var(--mdc-theme-primary);
+// }
+
+// .mdc-checkbox__native-control:checked ~ .mdc-checkbox__background .mdc-checkbox__checkmark {
+//   background-color: var(--mdc-theme-secondary);
+//   color: var(--mdc-theme-primary);
+// }
+
+.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input {
+  color: var(--mdc-theme-primary); 
+}
+
+:root {
+  background-color: var(--mdc-theme-primary);
+}
+
+.App {
+  //text-align: center;
+  background-color: var(--mdc-theme-primary);
+}

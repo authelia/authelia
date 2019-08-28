@@ -20,6 +20,14 @@
   display: inline-block;
   width: 100%;
   font-size: 0.875rem;
+  color: var(--mdc-theme-primary);
+
+  a {
+    color: var(--mdc-theme-primary);
+  }
+  a:visited {
+    color: var(--mdc-theme-primary);
+  }
 }
 
 .rememberMe {

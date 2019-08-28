@@ -1,2 +1,23 @@
-
 $theme-spacing: 10px;
+
+$yellow: yellow;
+$green: green;
+$red: red;
+$blue: blue;
+$black: black;
+$white: white;
+
+// $mdc-theme-primary: $white; // main color
+// $mdc-theme-on-primary: $black; // contrast color
+// $mdc-theme-secondary: $black; //checkbox when activated
+// $mdc-theme-on-secondary: $white;
+
+// $mdc-theme-primary: $black; // main color
+// $mdc-theme-on-primary: $white; // contrast color
+// $mdc-theme-secondary: $white; //checkbox when activated
+// $mdc-theme-on-secondary: $black;
+
+$mdc-theme-primary: $black; // main color
+$mdc-theme-on-primary: $white; // contrast color
+$mdc-theme-secondary: $white; //checkbox when activated
+$mdc-theme-on-secondary: $black;
