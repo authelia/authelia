@@ -6,18 +6,96 @@ $red: red;
 $blue: blue;
 $black: black;
 $white: white;
+$grey: #eee;
+$gray: grey;
+$purple: #6200ee;
 
-// $mdc-theme-primary: $white; // main color
-// $mdc-theme-on-primary: $black; // contrast color
-// $mdc-theme-secondary: $black; //checkbox when activated
-// $mdc-theme-on-secondary: $white;
+//$theme-used: theme_standard;
+//$theme-used: theme_blackonwhite;
+$theme-used: theme_whiteonblack;
 
-// $mdc-theme-primary: $black; // main color
-// $mdc-theme-on-primary: $white; // contrast color
-// $mdc-theme-secondary: $white; //checkbox when activated
-// $mdc-theme-on-secondary: $black;
+// DEFAULT THEME /////////////////////////////////////////////////////////////////////////////////////////////////////////
+$default-theme-primary: #6200ee !default; // baseline purple, 500 tone
+$default-theme-on-primary: if(mdc-theme-contrast-tone($default-theme-primary) == "dark", #000, #fff) !default;
+$default-theme-accent: #018786 !default; // baseline teal, 600 tone
+$default-theme-topborder: $purple;
+$default-theme-text: $black;
+$default-theme-secondary: $white !default;
+$default-theme-on-secondary: if(mdc-theme-contrast-tone($default-theme-secondary) == "dark", #000, #fff) !default;
+$default-theme-background: $grey !default; // White
+$default-theme-link: $gray;
+$default-theme-surface: #fff !default;
+$default-theme-on-surface: if(mdc-theme-contrast-tone($default-theme-surface) == "dark", #000, #fff) !default;
+$default-theme-textfield: $gray !default;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$mdc-theme-primary: $black; // main color
-$mdc-theme-on-primary: $white; // contrast color
-$mdc-theme-secondary: $white; //checkbox when activated
-$mdc-theme-on-secondary: $black;
+$themes: (
+    theme_standard: (
+        theme: standard,
+        mdc-theme-accent: $default-theme-accent,
+        mdc-theme-primary: $default-theme-primary,
+        mdc-theme-on-primary: $default-theme-on-primary,
+        mdc-theme-topborder: $default-theme-topborder,
+        mdc-theme-text: $default-theme-text,
+        mdc-theme-secondary: $default-theme-secondary,
+        mdc-theme-on-secondary: $default-theme-secondary,
+        mdc-theme-background: $default-theme-background,
+        mdc-theme-link: $default-theme-link,
+        mdc-theme-surface: $default-theme-surface,
+        mdc-theme-on-surface: $default-theme-on-surface,
+        mdc-theme-textfield: $default-theme-textfield,
+        mdc-theme-controls: $black
+    ),
+    theme_blackonwhite: (
+        theme: blackonwhite,
+        mdc-theme-accent: $default-theme-accent,
+        mdc-theme-primary: $white,
+        mdc-theme-on-primary: $black,
+        mdc-theme-topborder: $black,
+        mdc-theme-text: $black,
+        mdc-theme-secondary: $black,
+        mdc-theme-on-secondary: $white,
+        mdc-theme-background: $white,
+        mdc-theme-link: $gray,
+        mdc-theme-surface: $default-theme-surface,
+        mdc-theme-on-surface: $default-theme-on-surface,
+        mdc-theme-textfield: $white,
+        mdc-theme-controls: $white
+    ),
+    theme_whiteonblack: (
+        theme: whiteonblack,
+        mdc-theme-accent: $default-theme-accent,
+        mdc-theme-primary: $black,
+        mdc-theme-on-primary: $white,
+        mdc-theme-topborder: $white,
+        mdc-theme-text: $white,
+        mdc-theme-secondary: $white,
+        mdc-theme-on-secondary: $black,
+        mdc-theme-background: $black,
+        mdc-theme-link: $gray,
+        mdc-theme-surface: $default-theme-surface,
+        mdc-theme-on-surface: $default-theme-on-surface,
+        mdc-theme-textfield: $black,
+        mdc-theme-controls: $black
+    )
+);
+
+@function _themes($param, $theme-name: $theme-used) {
+    $theme: map-get($themes, #{$theme-name});
+    
+    @return map-get($theme, #{$param});
+  }
+
+$mdc-theme-accent: _themes(mdc-theme-accent);
+$mdc-theme-primary: _themes(mdc-theme-primary);
+$mdc-theme-on-primary: _themes(mdc-theme-on-primary);
+$mdc-theme-topborder: _themes(mdc-theme-topborder);
+$mdc-theme-text: _themes(mdc-theme-text);
+$mdc-theme-secondary: _themes(mdc-theme-secondary);
+$mdc-theme-on-secondary: _themes(mdc-theme-on-secondary);
+$mdc-theme-background: _themes(mdc-theme-background);
+$mdc-theme-link: _themes(mdc-theme-link);
+$mdc-theme-surface: _themes(mdc-theme-surface);
+$mdc-theme-on-surface: _themes(mdc-theme-on-surface);
+$mdc-theme-textfield: _themes(mdc-theme-textfield);
+$mdc-theme-controls: _themes(mdc-theme-controls);

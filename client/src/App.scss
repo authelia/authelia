@@ -3,46 +3,78 @@
 @import "@material/react-text-field/index.scss";
 @import 'assets/scss/variables.scss';
 
-.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
-  color: var(--mdc-theme-primary);
-}
+@if $theme-used == theme_standard {
+    
+    .mdc-checkbox__native-control:checked ~ .mdc-checkbox__background .mdc-checkbox__checkmark {
+        color: var(--mdc-theme-primary);
+    }
 
-.mdc-text-field:not(.mdc-text-field--focused) .mdc-floating-label {
-  color: var(--mdc-theme-primary);
-}
+} @else if $theme-used == theme_blackonwhite {
 
-.mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate)~.mdc-checkbox__background {
-  border-color: var(--mdc-theme-primary);
-}
+    .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+        color: ($mdc-theme-textfield);
+    }
 
-.mdc-checkbox__native-control:enabled:checked:not(:indeterminate)~.mdc-checkbox__background {
-  border-color: var(--mdc-theme-primary);
-  background-color: var(--mdc-theme-primary);
-}
+    .mdc-text-field:not(.mdc-text-field--focused) .mdc-floating-label {
+        color: ($mdc-theme-textfield);
+    }
 
-// .mdc-checkbox__native-control:not(enabled)~.mdc-checkbox__background {
-//   border-color: var(--mdc-theme-primary);
-// }
+    .mdc-text-field:not(.mdc-text-field--disabled) .mdc-floating-label {
+        color: ($mdc-theme-textfield);    
+    }
 
-// .mdc-checkbox__native-control:enabled~.mdc-checkbox__background {
-//   border-color: var(--mdc-theme-primary);
-//   background-color: var(--mdc-theme-primary);
-// }
+    .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input {
+        color: ($mdc-theme-textfield);
+    }  
 
-// .mdc-checkbox__native-control:checked ~ .mdc-checkbox__background .mdc-checkbox__checkmark {
-//   background-color: var(--mdc-theme-secondary);
-//   color: var(--mdc-theme-primary);
-// }
+    .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate)~.mdc-checkbox__background {
+        border-color: var(--mdc-theme-text);
+    }
+    
+    .mdc-checkbox__native-control:not(enabled)~.mdc-checkbox__background {
+        border-color: var(--mdc-theme-primary);
+    }
+    
+    .mdc-checkbox__native-control:checked ~ .mdc-checkbox__background .mdc-checkbox__checkmark {
+        color: var(--mdc-theme-primary);
+    }
 
-.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input {
-  color: var(--mdc-theme-primary); 
+} @else if $theme-used == theme_whiteonblack {
+  
+    .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+        color: ($mdc-theme-textfield);
+    }
+
+    .mdc-text-field:not(.mdc-text-field--focused) .mdc-floating-label {
+        color: ($mdc-theme-textfield);
+    }
+
+    .mdc-text-field:not(.mdc-text-field--disabled) .mdc-floating-label {
+        color: ($mdc-theme-textfield);    
+    }
+
+    .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input {
+        color: ($mdc-theme-textfield);
+    }  
+
+    .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate)~.mdc-checkbox__background {
+        border-color: var(--mdc-theme-text);
+    }
+    
+    .mdc-checkbox__native-control:not(enabled)~.mdc-checkbox__background {
+        border-color: var(--mdc-theme-primary);
+    }
+    
+    .mdc-checkbox__native-control:checked ~ .mdc-checkbox__background .mdc-checkbox__checkmark {
+        color: var(--mdc-theme-primary);
+    }
 }
 
 :root {
-  background-color: var(--mdc-theme-primary);
+  background-color: var(--mdc-theme-background);
 }
 
 .App {
   //text-align: center;
-  background-color: var(--mdc-theme-primary);
+  background-color: var(--mdc-theme-background);
 }

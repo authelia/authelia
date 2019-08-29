@@ -5,7 +5,7 @@
   width: 440px;
   margin: auto;
   margin-top: 80px;
-  color: var(--mdc-theme-secondary);
+  color: var(--mdc-theme-text);
 }
 
 .title {
@@ -13,7 +13,7 @@
   font-weight: bold;
   display: inline-block;
   padding-bottom: ($theme-spacing);
-  color: var(--mdc-theme-secondary);
+  color: ($mdc-theme-text);
 }
 
 .frame {
@@ -23,26 +23,29 @@
   background-color: var(--mdc-theme-secondary);
   border-radius: 5px;
   padding: 40px;
-  border-top: 6px solid var(--mdc-theme-secondary);
-  color: var(--mdc-theme-primary);
+  border-top: 6px solid ($mdc-theme-topborder);
+  color: var(--mdc-theme-text);
 }
 
 .innerFrame {
   width: 100%;
   background-color: var(--mdc-theme-secondary);
-  color: var(--mdc-theme-primary);
+  @if $theme-used == theme_blackonwhite {
+  color: ($mdc-theme-textfield);
+  } @else {
+    color: var(--mdc-theme-text);
+  }
 }
 
 .footer {
   margin-top: 10px;
   text-align: center;
   font-size: 0.65em;
-  color: var(--mdc-theme-primary);
-
+  color: ($mdc-theme-link);
   a {
-    color: var(--mdc-theme-secondary);
+     color: ($mdc-theme-link);
   }
   a:visited {
-    color: var(--mdc-theme-secondary);
+    color: ($mdc-theme-link);
   }
 }

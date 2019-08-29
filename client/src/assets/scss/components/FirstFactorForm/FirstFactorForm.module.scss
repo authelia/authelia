@@ -20,13 +20,12 @@
   display: inline-block;
   width: 100%;
   font-size: 0.875rem;
-  color: var(--mdc-theme-primary);
-
+  color: ($mdc-theme-controls);
   a {
-    color: var(--mdc-theme-primary);
+    color: ($mdc-theme-controls);
   }
   a:visited {
-    color: var(--mdc-theme-primary);
+    color: ($mdc-theme-controls);
   }
 }
 
