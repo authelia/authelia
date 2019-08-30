@@ -35,6 +35,12 @@
   } @else {
     color: var(--mdc-theme-text);
   }
+  a {
+    color: ($mdc-theme-textfield);
+  }
+  a:visited {
+   color: ($mdc-theme-textfield);
+  }
 }
 
 .footer {

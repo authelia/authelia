@@ -11,6 +11,10 @@
 
 } @else if $theme-used == theme_blackonwhite {
 
+    .mdc-button:not(:disabled).mdc-button--raised, .mdc-button--unelevated {
+        background-color: var(--mdc-theme-primary);
+    }
+
     .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
         color: ($mdc-theme-textfield);
     }
@@ -41,6 +45,10 @@
 
 } @else if $theme-used == theme_whiteonblack {
   
+    .mdc-button:not(:disabled).mdc-button--raised, .mdc-button--unelevated {
+        background-color: var(--mdc-theme-primary);
+    }
+
     .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
         color: ($mdc-theme-textfield);
     }
