@@ -1,3 +1,8 @@
+Release Notes - Version 3.16.0
+------------------------------
+* Configure a CA for LDAPS.
+* Password could be provided as env variables to avoid exposing them in a file (also simpler to use and protect in Kubernetes).
+
 Release Notes - Version 3.15.0
 ------------------------------
 * Change license from MIT to Apache 2.0.
