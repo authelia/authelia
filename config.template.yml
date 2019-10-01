@@ -231,7 +231,7 @@ regulation:
   max_retries: 3
 
   # The time range during which the user can attempt login before being banned.
-  # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window.
+  # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
   find_time: 120
 
   # The length of time before a banned user can login again.
