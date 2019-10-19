@@ -97,9 +97,7 @@ documentation, security reviews or whatever, are very welcome to issue
 or review pull requests and take part to discussions in
 [Gitter](https://gitter.im/authelia/general?utm_source=share-link&utm_medium=link&utm_campaign=share-link).
 
-We are already greatful to contributors listed in
-[CONTRIBUTORS.md](CONTRIBUTORS.md) for their contributions to the project.
-Be the next in the list!
+I am very greatful to contributors for their contributions to the project. Don't hesitate be the next!
 
 ## Build Authelia
 
