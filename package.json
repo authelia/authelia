@@ -113,7 +113,7 @@
     "ts-node": "^6.0.1",
     "tslint": "^5.2.0",
     "typescript": "^2.9.2",
-    "typescript-json-schema": "^0.23.0"
+    "typescript-json-schema": "^0.40.0"
   },
   "nyc": {
     "include": [
