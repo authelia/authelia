@@ -1,3 +1,15 @@
+Release Notes - Version 3.16.3
+------------------------------
+* Update changelog of previous versions.
+
+Release Notes - Version 3.16.2
+------------------------------
+* Update email footer to inform user of actions to take if she is receiving an unexpected email from Authelia.
+
+Release Notes - Version 3.16.1
+------------------------------
+* Update NPM API key.
+
 Release Notes - Version 3.16.0
 ------------------------------
 * Configure a CA for LDAPS.
