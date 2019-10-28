@@ -247,7 +247,7 @@ regulation:
 storage:
   # The directory where the DB files will be saved
   ## local:
-  ##   path: /var/lib/authelia/store
+  ##   path: /var/lib/authelia/db.sqlite3
 
   # Settings to connect to mongo server
   mongo:
