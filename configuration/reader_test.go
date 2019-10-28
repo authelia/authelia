@@ -7,7 +7,7 @@ import (
 )
 
 func TestShouldParseConfigFile(t *testing.T) {
-	config, errors := Read("../test-resources/config.yml")
+	config, errors := Read("../test/resources/config.yml")
 
 	assert.Len(t, errors, 0)
 
