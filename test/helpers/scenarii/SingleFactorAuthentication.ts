@@ -30,7 +30,7 @@ export default function(timeout: number = 5000) {
       await VisitPage(this.driver, "https://admin.example.com:8080/secret.html");
   
       // the url should be the one from the portal.
-      await VerifyUrlContains(this.driver, "https://login.example.com:8080/#/?rd=https://admin.example.com:8080", timeout);
+      await VerifyUrlContains(this.driver, "https://login.example.com:8080/#/?rd=https://admin.example.com:8080/secret.html", timeout);
   
       // And the user should end up on the second factor page.
       await VerifyIsSecondFactorStage(this.driver, timeout);

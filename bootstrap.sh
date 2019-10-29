@@ -1,33 +1,19 @@
 
-export PATH=$(pwd)/scripts:/tmp:$PATH
+set -e
 
-export PS1="(authelia) $PS1"
+export PATH=./cmd/authelia-scripts/:/tmp:$PATH
 
-npm i
+if [ -z "$OLD_PS1" ]; then
+  OLD_PS1="$PS1"
+  export PS1="(authelia) $PS1"
+fi
 
-pushd client
-npm i
-popd
 
-echo "[BOOTSTRAP] Checking if Docker is installed..."
-if [ ! -x "$(command -v docker)" ];
+echo "[BOOTSTRAP] Checking if Go is installed..."
+if [ ! -x "$(command -v go)" ];
 then
-  echo "[ERROR] You must install docker on your machine.";
+  echo "[ERROR] You must install Go on your machine.";
   return
 fi
 
-echo "[BOOTSTRAP] Checking if docker-compose is installed..."
-if [ ! -x "$(command -v docker-compose)" ];
-then
-  echo "[ERROR] You must install docker-compose on your machine.";
-  return;
-fi
-
-echo "[BOOTSTRAP] Running additional bootstrap steps..."
 authelia-scripts bootstrap
-
-# Create temporary directory that will contain the databases used in tests.
-mkdir -p /tmp/authelia
-
-echo "[BOOTSTRAP] Run 'authelia-scripts suites start dockerhub' to start Authelia and visit https://home.example.com:8080."
-echo "[BOOTSTRAP] More details at https://github.com/clems4ever/authelia/blob/master/docs/getting-started.md"
