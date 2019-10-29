@@ -29,6 +29,8 @@ However a migration script will be provided later on. Help for writing this scri
 * Add the `jwt_secret` key in the configuration along with the value of the secret. This secret is used to generate expirable JWT tokens
 for operations requiring identity validation.
 * Remove the `secure` key of your SMTP notifier configuration as the Go implementation of the SMTP library uses TLS by default if available.
+* Make sure users and groups filter in the LDAP configuration have outer parenthesis. The standard format of LDAP filters always include outer
+parenthesis. You can find some examples in the "Examples" section of the following document: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
 
 #### If using the local storage
 * Remove the directory of the storage (beware you will lose your previous configuration: U2F, TOTP devices). Replace the path with a path to a sqlite3 database,
