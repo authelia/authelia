@@ -98,13 +98,13 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenBaseDNNotPr
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultUsersFilter() {
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
-	assert.Equal(suite.T(), "cn={0}", suite.configuration.Ldap.UsersFilter)
+	assert.Equal(suite.T(), "(cn={0})", suite.configuration.Ldap.UsersFilter)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultGroupsFilter() {
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
-	assert.Equal(suite.T(), "member={dn}", suite.configuration.Ldap.GroupsFilter)
+	assert.Equal(suite.T(), "(member={dn})", suite.configuration.Ldap.GroupsFilter)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultGroupNameAttribute() {
