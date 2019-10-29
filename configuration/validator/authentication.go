@@ -2,9 +2,13 @@ package validator
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/clems4ever/authelia/configuration/schema"
 )
+
+var ldapProtocolPrefix = "ldap://"
 
 func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.Path == "" {
@@ -12,10 +16,28 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 	}
 }
 
+func validateLdapURL(url string, validator *schema.StructValidator) string {
+	if strings.HasPrefix(url, ldapProtocolPrefix) {
+		url = url[len(ldapProtocolPrefix):]
+	}
+
+	portColons := strings.Index(url, ":")
+
+	// if no port is provided, we provide the default LDAP port
+	// TODO(c.michaud): support LDAP over TLS.
+	if portColons == -1 {
+		url = url + ":389"
+	}
+	return url
+}
+
 func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))
+	} else {
+		configuration.URL = validateLdapURL(configuration.URL, validator)
 	}
+	fmt.Println(configuration.URL)
 
 	if configuration.User == "" {
 		validator.Push(errors.New("Please provide a user name to connect to the LDAP server"))
@@ -30,11 +52,11 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	}
 
 	if configuration.UsersFilter == "" {
-		configuration.UsersFilter = "cn={0}"
+		configuration.UsersFilter = "(cn={0})"
 	}
 
 	if configuration.GroupsFilter == "" {
-		configuration.GroupsFilter = "member={dn}"
+		configuration.GroupsFilter = "(member={dn})"
 	}
 
 	if configuration.GroupNameAttribute == "" {
