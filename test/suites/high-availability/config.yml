@@ -44,7 +44,7 @@ authentication_backend:
   # production.
   ldap:
     # The url of the ldap server
-    url: 127.0.0.1:389
+    url: ldap://127.0.0.1
 
     # The base dn for every entries
     base_dn: dc=example,dc=com
