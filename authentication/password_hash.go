@@ -82,7 +82,7 @@ func RandomString(n int) string {
 func HashPassword(password string, salt *string) string {
 	var generatedSalt string
 	if salt == nil {
-		generatedSalt = fmt.Sprintf("$6$rounds=5000$%s$", RandomString(16))
+		generatedSalt = fmt.Sprintf("$6$rounds=50000$%s$", RandomString(16))
 	} else {
 		generatedSalt = *salt
 	}

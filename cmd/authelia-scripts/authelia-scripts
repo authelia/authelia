@@ -1,0 +1,3 @@
+#!/bin/bash
+
+go run cmd/authelia-scripts/*.go $*

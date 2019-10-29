@@ -2,7 +2,6 @@ package validator
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/clems4ever/authelia/configuration/schema"
@@ -37,7 +36,6 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	} else {
 		configuration.URL = validateLdapURL(configuration.URL, validator)
 	}
-	fmt.Println(configuration.URL)
 
 	if configuration.User == "" {
 		validator.Push(errors.New("Please provide a user name to connect to the LDAP server"))

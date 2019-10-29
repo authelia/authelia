@@ -14,22 +14,18 @@ addons:
     packages:
     - libgif-dev
     - google-chrome-stable
+
 before_script:
 - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-- nvm install v9 && nvm use v9 && npm i
+- nvm install v11 && nvm use v11 && npm i
 script:
-- "./scripts/authelia-scripts travis"
+- "source bootstrap.sh"
+- "authelia-scripts ci"
 after_success:
-- "./scripts/authelia-scripts docker publish"
-deploy:
-  provider: npm
-  email: clement.michaud34@gmail.com
-  skip_cleanup: true
-  api_key:
-    secure: HpaWykYM6zaTXrDRGvyRvsIhn1BLT5gxdU1VXB6PMlr+FpTUoOXsYqLf+S1ipmR8rfjCGXIM1dRPfp/UmEgeWBSJ8PDjipcjYLEWkJSsW8IAO6GVR+pNPO6TgBQmR5RljZRwBd/uIh43nW9tG1YeoERVxdF4OvqwIeu0+jFrVnMdQngfAhXOiEMDSwH328q8QZIkQUmEhWn+IksHG34rLyo29hQQtJ1OnPkJwB9ZSJ71EEp0VH5UtJBCy5eDxKo9NQgvZpf+t6b2jfmHzp1uHlc8h7frpsCIJ0mborzWgc7P0VT/eaNbiFEC0oYkm+0lYVa0kgwbpxB02b/N/VGNXp8Tg8cWQmDly9NomR2BXeCgoQr4hvwpbXNw/I1FunVHVM66o0lMJmFJllFhqSWYLtqHrJb1qNIIFJGCqkTb6pnj35pTC50HjITAK9hQqvhwQ8v142qEpxu9rIvQ+ao90sY9IPxTedhGRs6gjF32JEeXjzysysecZ16jnae4bxmGVT21VF4zcDabCz6IMPje/aGg4flGxGJ5rwYb9p9vWXcgO2FXQzmNg3USTqCQWL+4oN0aiv9IknStkZ9bHLSK+tQ/SGjSlIpn5ou2CfQgkBSkj1vmmG+M+eJN0x/BzRYwURrQRm2t4BBPpcj+PkLVDoNuw6I8ETfsLf9b/B1mi2E=
-  on:
-    tags: true
-    repo: clems4ever/authelia
+- "authelia-scripts docker publish"
+
+# TODO(c.michaud): publish built artifact on Github.
+
 notifications:
   email:
     recipients:

@@ -14,8 +14,8 @@ class AutheliaServerFromDist implements AutheliaServerInterface {
   }
 
   async start() {
-    console.log("Spawn authelia server from dist.");
-    this.serverProcess = ChildProcess.spawn('./scripts/authelia-scripts serve ' + this.configPath, {
+    console.log("Spawn authelia server from dist using config " + this.configPath);
+    this.serverProcess = ChildProcess.spawn('./cmd/authelia-scripts/authelia-scripts serve ' + this.configPath, {
       shell: true,
       env: process.env,
     } as any);

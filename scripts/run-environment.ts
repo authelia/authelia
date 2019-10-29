@@ -39,11 +39,12 @@ async function stop() {
     console.error('Teardown timed out...');
     process.exit(1);
   }, teardown_timeout);
-  console.log('>>> Tearing down environment <<<');
-  try {  
+
+  try {
+    console.log('>>> Tearing down environment <<<');
     await teardown();
     clearTimeout(timer);
-  } catch (err) {
+  } catch(err) {
     console.error(err);
     throw err;
   }
