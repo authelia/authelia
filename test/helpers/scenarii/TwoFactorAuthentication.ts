@@ -1,6 +1,7 @@
 import { StartDriver, StopDriver } from "../context/WithDriver";
 import RegisterAndLoginTwoFactor from "../behaviors/RegisterAndLoginTwoFactor";
 import VerifyUrlIs from "../assertions/VerifyUrlIs";
+import Logout from "../Logout";
 
 export default function (timeout: number = 5000) {
   return function() {
@@ -11,6 +12,7 @@ export default function (timeout: number = 5000) {
       });
   
       after(async function() {
+        await Logout(this.driver);
         await StopDriver(this.driver);
       });
   
