@@ -29,7 +29,7 @@ the root of the repo.
 
 ### Deploy With Docker
 
-    docker run -v /path/to/your/config.yml:/etc/authelia/config.yml clems4ever/authelia
+    docker run -v /path/to/your/config.yml:/etc/authelia/config.yml -e TZ=Europe/Paris clems4ever/authelia
 
 
 ## On top of Kubernetes
