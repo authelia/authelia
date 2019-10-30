@@ -2,7 +2,7 @@ FROM alpine:3.9.4
 
 WORKDIR /usr/app
 
-RUN apk --no-cache add ca-certificates wget
+RUN apk --no-cache add ca-certificates tzdata wget
 
 # Install the libc required by the password hashing compiled with CGO.
 RUN wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
