@@ -9,5 +9,5 @@ import (
 
 // HashPassword hash the provided password with crypt sha256 hash function
 func HashPassword(cobraCmd *cobra.Command, args []string) {
-	fmt.Println(authentication.HashPassword(args[0], nil))
+	fmt.Println(authentication.HashPassword(args[0], ""))
 }
