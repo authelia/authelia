@@ -1,13 +1,15 @@
 import React from "react"
 import { Redirect } from "react-router";
 
-async function logout() {
-    return fetch("/api/logout", {method: "POST"})
+export interface DispatchProps {
+    onInit: () => void;
 }
 
-export default class LogoutView extends React.Component {
-    componentDidMount() {
-        logout().catch(console.error);
+type Props = DispatchProps;
+
+export default class LogoutView extends React.Component<Props> {
+    componentWillMount() {
+        this.props.onInit();
     }
 
     render() {

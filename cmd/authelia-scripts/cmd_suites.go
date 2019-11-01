@@ -152,10 +152,12 @@ var SuitesTestCmd = &cobra.Command{
 			runSuiteTests(suite, runningSuite == "")
 		} else {
 			if runningSuite != "" {
-				panic(errors.New("Cannot run all tests while a suite is currently running. Shutdown running suite and retry"))
+				fmt.Println("Running suite (" + runningSuite + ") detected. Run tests of that suite")
+				runSuiteTests(runningSuite, false)
+			} else {
+				fmt.Println("No suite provided therefore all suites will be tested")
+				runAllSuites()
 			}
-			fmt.Println("No suite provided therefore all suites will be tested")
-			runAllSuites()
 		}
 	},
 	Args: cobra.MaximumNArgs(1),
@@ -193,11 +195,9 @@ func runSuiteTests(suite string, withEnv bool) {
 	var cmd *exec.Cmd
 
 	if withEnv {
-		fmt.Println("No running suite detected, setting up an environment for running the tests")
 		cmd = CommandWithStdout("bash", "-c",
 			"./node_modules/.bin/ts-node ./scripts/run-environment.ts "+suite+" '"+mochaCmdLine+"'")
 	} else {
-		fmt.Println("Running suite detected. Running tests...")
 		cmd = CommandWithStdout("bash", "-c", mochaCmdLine)
 	}
 
@@ -209,7 +209,7 @@ func runSuiteTests(suite string, withEnv bool) {
 	err := cmd.Run()
 
 	if err != nil {
-		os.Exit(1)
+		panic(err)
 	}
 }
 
