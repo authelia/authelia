@@ -1,29 +1,15 @@
 package authentication
 
-// #cgo LDFLAGS: -lcrypt
-// #define _GNU_SOURCE
-// #include <crypt.h>
-// #include <stdlib.h>
-import "C"
 import (
 	"errors"
 	"fmt"
+	"log"
 	"math/rand"
 	"strconv"
 	"strings"
-	"unsafe"
-)
 
-// Crypt wraps C library crypt_r
-func crypt(key string, salt string) string {
-	data := C.struct_crypt_data{}
-	ckey := C.CString(key)
-	csalt := C.CString(salt)
-	out := C.GoString(C.crypt_r(ckey, csalt, &data))
-	C.free(unsafe.Pointer(ckey))
-	C.free(unsafe.Pointer(csalt))
-	return out
-}
+	"github.com/simia-tech/crypt"
+)
 
 // PasswordHash represents all characteristics of a password hash.
 // Authelia only supports salted SHA512 method, i.e., $6$ mode.
@@ -79,14 +65,15 @@ func RandomString(n int) string {
 
 // HashPassword generate a salt and hash the password with the salt and a constant
 // number of rounds.
-func HashPassword(password string, salt *string) string {
-	var generatedSalt string
-	if salt == nil {
-		generatedSalt = fmt.Sprintf("$6$rounds=50000$%s$", RandomString(16))
-	} else {
-		generatedSalt = *salt
+func HashPassword(password string, salt string) string {
+	if salt == "" {
+		salt = fmt.Sprintf("$6$rounds=50000$%s", RandomString(16))
 	}
-	return crypt(password, generatedSalt)
+	hash, err := crypt.Crypt(password, salt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return hash
 }
 
 // CheckPassword check a password against a hash.
@@ -96,6 +83,6 @@ func CheckPassword(password string, hash string) (bool, error) {
 		return false, err
 	}
 	salt := fmt.Sprintf("$6$rounds=%d$%s$", passwordHash.Rounds, passwordHash.Salt)
-	pHash := HashPassword(password, &salt)
+	pHash := HashPassword(password, salt)
 	return pHash == hash, nil
 }
