@@ -10,7 +10,7 @@ WORKDIR /go/src/app
 COPY . .
 
 # CGO_ENABLED=1 is mandatory for building go-sqlite3
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -o authelia
+RUN cd cmd/authelia && GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -o authelia
 
 
 # ========================================
@@ -33,7 +33,7 @@ RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /usr/app
 
-COPY --from=builder-backend /go/src/app/authelia authelia
+COPY --from=builder-backend /go/src/app/cmd/authelia/authelia authelia
 COPY --from=builder-frontend /node/src/app/build public_html
 
 EXPOSE 9091
