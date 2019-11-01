@@ -1,10 +1,8 @@
 import { WebDriver } from "selenium-webdriver";
 import LoginAndRegisterTotp from "../LoginAndRegisterTotp";
-import FullLogin from "../FullLogin";
 import VerifyUrlIs from "../assertions/VerifyUrlIs";
 import VisitPageAndWaitUrlIs from "./VisitPageAndWaitUrlIs";
 import ValidateTotp from "../ValidateTotp";
-import FillLoginPageAndClick from "../FillLoginPageAndClick";
 
 export default async function(
   driver: WebDriver,

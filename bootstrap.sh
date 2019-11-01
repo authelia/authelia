@@ -1,5 +1,4 @@
-
-set -e
+#!/bin/bash
 
 export PATH=./cmd/authelia-scripts/:/tmp:$PATH
 
