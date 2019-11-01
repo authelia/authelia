@@ -5,6 +5,7 @@ Release Notes - Version 4.0.0
 * Models in database have been updated to better fit with the Go library.
 * The local storage has been replaced by a good old sqlite3 database.
 * The "secure" flag from the SMTP notifier configuration has been removed as TLS is used by default when available.
+* authelia-scripts tool has been rewritten in Go.
 
 Release Notes - Version 3.16.3
 ------------------------------
