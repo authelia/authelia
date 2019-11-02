@@ -43,6 +43,10 @@ func (n *SMTPNotifier) unauthenticatedSend(recipient string, msg string) error {
 	// Connect to the remote SMTP server.
 	c, err := smtp.Dial(n.address)
 
+	if err != nil {
+		return err
+	}
+
 	// Set the sender and recipient first
 	if err := c.Mail(n.sender); err != nil {
 		return err

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 start_apps() {                                                                                  
   # Create TLS certificate and key for HTTPS termination                          

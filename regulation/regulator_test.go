@@ -4,16 +4,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
-
-	"github.com/clems4ever/authelia/models"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/clems4ever/authelia/configuration/schema"
 	"github.com/clems4ever/authelia/mocks"
+	"github.com/clems4ever/authelia/models"
 	"github.com/clems4ever/authelia/regulation"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 type RegulatorSuite struct {

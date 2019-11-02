@@ -1,0 +1,9 @@
+FROM node:11-stretch-slim
+
+ARG USER_ID
+ARG GROUP_ID
+
+RUN cat /etc/passwd && userdel -rf node && \
+    groupadd -g ${GROUP_ID} dev && \
+    useradd -m -u $USER_ID -g $GROUP_ID dev
+USER dev

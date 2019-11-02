@@ -1,0 +1,14 @@
+version: '3'
+services:
+  authelia-frontend:
+    build:
+      context: example/compose/authelia
+      dockerfile: Dockerfile.frontend
+    command: npm run start
+    working_dir: /app
+    volumes:
+      - "./client:/app"
+    ports:
+      - 3000:3000
+    networks:
+      - authelianet

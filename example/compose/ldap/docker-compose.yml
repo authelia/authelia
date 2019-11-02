@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services:
   openldap:
     image: clems4ever/openldap

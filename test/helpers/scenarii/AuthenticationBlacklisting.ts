@@ -31,7 +31,7 @@ export default function(regulationMilliseconds: number) {
 
                 // when providing good credentials, the hacker is regulated and see same message as previously.
                 await LoginAs(this.driver, "james", "bad-password");
-                await VerifyNotificationDisplayed(this.driver, "Authentication failed. Check your credentials.");
+                await VerifyNotificationDisplayed(this.driver, "Please retry in a few minutes.");
                 await ClearFieldById(this.driver, "username");
 
                 // Wait the regulation ban time before retrying with correct credentials.

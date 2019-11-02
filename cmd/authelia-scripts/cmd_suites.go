@@ -5,48 +5,33 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"os/signal"
+	"sort"
 	"strings"
 	"syscall"
+	"time"
 
+	"github.com/clems4ever/authelia/suites"
+	"github.com/clems4ever/authelia/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-func listDirectories(path string) ([]string, error) {
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		return nil, err
-	}
+// ErrNotAvailableSuite error raised when suite is not available.
+var ErrNotAvailableSuite = errors.New("unavailable suite")
 
-	dirs := make([]string, 0)
+// ErrNoRunningSuite error raised when no suite is running
+var ErrNoRunningSuite = errors.New("no running suite")
 
-	for _, f := range files {
-		if f.IsDir() {
-			dirs = append(dirs, f.Name())
-		}
-	}
+// runningSuiteFile name of the file containing the currently running suite
+var runningSuiteFile = ".suite"
 
-	return dirs, nil
-}
+var headless bool
+var onlyForbidden bool
 
-func listSuites() ([]string, error) {
-	return listDirectories("./test/suites/")
-}
-
-func suiteAvailable(suite string, suites []string) (bool, error) {
-	suites, err := listSuites()
-
-	if err != nil {
-		return false, err
-	}
-
-	for _, s := range suites {
-		if s == suite {
-			return true, nil
-		}
-	}
-	return false, nil
+func init() {
+	SuitesTestCmd.Flags().BoolVar(&headless, "headless", false, "Run tests in headless mode")
+	SuitesTestCmd.Flags().BoolVar(&onlyForbidden, "only-forbidden", false, "Mocha 'only' filters are forbidden")
 }
 
 // SuitesListCmd Command for listing the available suites
@@ -54,117 +39,166 @@ var SuitesListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List available suites.",
 	Run: func(cmd *cobra.Command, args []string) {
-		suites, err := listSuites()
-
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Println(strings.Join(suites, "\n"))
+		fmt.Println(strings.Join(listSuites(), "\n"))
 	},
 	Args: cobra.ExactArgs(0),
 }
 
-// SuitesCleanCmd Command for cleaning suite environments
-var SuitesCleanCmd = &cobra.Command{
-	Use:   "clean",
-	Short: "Clean suite environments.",
+// SuitesSetupCmd Command for setuping a suite environment
+var SuitesSetupCmd = &cobra.Command{
+	Use:   "setup [suite]",
+	Short: "Setup a Go suite environment. Suites can be listed using the list command.",
 	Run: func(cmd *cobra.Command, args []string) {
-		command := CommandWithStdout("bash", "-c",
-			"./node_modules/.bin/ts-node -P test/tsconfig.json -- ./scripts/clean-environment.ts")
-		err := command.Run()
+		providedSuite := args[0]
+		runningSuite, err := getRunningSuite()
 
 		if err != nil {
-			panic(err)
-		}
-	},
-	Args: cobra.ExactArgs(0),
-}
-
-// SuitesStartCmd Command for starting a suite
-var SuitesStartCmd = &cobra.Command{
-	Use:   "start [suite]",
-	Short: "Start a suite. Suites can be listed using the list command.",
-	Run: func(cmd *cobra.Command, args []string) {
-		suites, err := listSuites()
-
-		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
-		selectedSuite := args[0]
-
-		available, err := suiteAvailable(selectedSuite, suites)
-
-		if err != nil {
-			panic(err)
+		if runningSuite != "" && runningSuite != providedSuite {
+			log.Fatal("A suite is already running")
 		}
 
-		if !available {
-			panic(errors.New("Suite named " + selectedSuite + " does not exist"))
-		}
-
-		err = ioutil.WriteFile(RunningSuiteFile, []byte(selectedSuite), 0644)
-
-		if err != nil {
-			panic(err)
-		}
-
-		signalChannel := make(chan os.Signal)
-		signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-
-		cmdline := "./node_modules/.bin/ts-node -P test/tsconfig.json -- ./scripts/run-environment.ts " + selectedSuite
-		command := CommandWithStdout("bash", "-c", cmdline)
-		command.Env = append(os.Environ(), "ENVIRONMENT=dev")
-
-		err = command.Run()
-
-		if err != nil {
-			panic(err)
-		}
-
-		err = os.Remove(RunningSuiteFile)
-
-		if err != nil {
-			panic(err)
+		if err := setupSuite(providedSuite); err != nil {
+			log.Fatal(err)
 		}
 	},
 	Args: cobra.ExactArgs(1),
+}
+
+// SuitesTeardownCmd Command for tearing down a suite environment
+var SuitesTeardownCmd = &cobra.Command{
+	Use:   "teardown [suite]",
+	Short: "Teardown a Go suite environment. Suites can be listed using the list command.",
+	Run: func(cmd *cobra.Command, args []string) {
+		var suiteName string
+		if len(args) == 1 {
+			suiteName = args[0]
+		} else {
+			runningSuite, err := getRunningSuite()
+
+			if err != nil {
+				panic(err)
+			}
+
+			if runningSuite == "" {
+				panic(ErrNoRunningSuite)
+			}
+			suiteName = runningSuite
+		}
+
+		if err := teardownSuite(suiteName); err != nil {
+			panic(err)
+		}
+	},
+	Args: cobra.MaximumNArgs(1),
 }
 
 // SuitesTestCmd Command for testing a suite
 var SuitesTestCmd = &cobra.Command{
 	Use:   "test [suite]",
 	Short: "Test a suite. Suites can be listed using the list command.",
-	Run: func(cmd *cobra.Command, args []string) {
-		runningSuite, err := getRunningSuite()
-		if err != nil {
-			panic(err)
+	Run:   testSuite,
+	Args:  cobra.MaximumNArgs(1),
+}
+
+func listSuites() []string {
+	suiteNames := make([]string, 0)
+	for _, k := range suites.GlobalRegistry.Suites() {
+		suiteNames = append(suiteNames, k)
+	}
+	sort.Strings(suiteNames)
+	return suiteNames
+}
+
+func checkSuiteAvailable(suite string) error {
+	suites := listSuites()
+
+	for _, s := range suites {
+		if s == suite {
+			return nil
+		}
+	}
+	return ErrNotAvailableSuite
+}
+
+func runSuiteSetupTeardown(command string, suite string) error {
+	selectedSuite := suite
+	err := checkSuiteAvailable(selectedSuite)
+
+	if err != nil {
+		if err == ErrNotAvailableSuite {
+			log.Fatal(errors.New("Suite named " + selectedSuite + " does not exist"))
+		}
+		log.Fatal(err)
+	}
+
+	s := suites.GlobalRegistry.Get(selectedSuite)
+
+	cmd := utils.CommandWithStdout("bash", "-c", "go run cmd/authelia-suites/*.go "+command+" "+selectedSuite)
+	cmd.Env = os.Environ()
+	return utils.RunCommandWithTimeout(cmd, s.SetUpTimeout)
+}
+
+func setupSuite(suiteName string) error {
+	log.Infof("Setup environment for suite %s...", suiteName)
+	signalChannel := make(chan os.Signal)
+	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+
+	interrupted := false
+
+	go func() {
+		<-signalChannel
+		interrupted = true
+	}()
+
+	if errSetup := runSuiteSetupTeardown("setup", suiteName); errSetup != nil || interrupted {
+		teardownSuite(suiteName)
+		return errSetup
+	}
+
+	return nil
+}
+
+func teardownSuite(suiteName string) error {
+	log.Infof("Tear down environment for suite %s...", suiteName)
+	return runSuiteSetupTeardown("teardown", suiteName)
+}
+
+func testSuite(cmd *cobra.Command, args []string) {
+	runningSuite, err := getRunningSuite()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(args) == 1 {
+		suite := args[0]
+
+		if runningSuite != "" && suite != runningSuite {
+			log.Fatal(errors.New("Running suite (" + runningSuite + ") is different than suite to be tested (" + suite + "). Shutdown running suite and retry"))
 		}
 
-		if len(args) == 1 {
-			suite := args[0]
-
-			if runningSuite != "" && suite != runningSuite {
-				panic(errors.New("Running suite (" + runningSuite + ") is different than suite to be tested (" + suite + "). Shutdown running suite and retry"))
+		if err := runSuiteTests(suite, runningSuite == ""); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if runningSuite != "" {
+			fmt.Println("Running suite (" + runningSuite + ") detected. Run tests of that suite")
+			if err := runSuiteTests(runningSuite, false); err != nil {
+				log.Fatal(err)
 			}
-
-			runSuiteTests(suite, runningSuite == "")
 		} else {
-			if runningSuite != "" {
-				fmt.Println("Running suite (" + runningSuite + ") detected. Run tests of that suite")
-				runSuiteTests(runningSuite, false)
-			} else {
-				fmt.Println("No suite provided therefore all suites will be tested")
-				runAllSuites()
+			fmt.Println("No suite provided therefore all suites will be tested")
+			if err := runAllSuites(); err != nil {
+				log.Fatal(err)
 			}
 		}
-	},
-	Args: cobra.MaximumNArgs(1),
+	}
 }
 
 func getRunningSuite() (string, error) {
-	exist, err := FileExists(RunningSuiteFile)
+	exist, err := utils.FileExists(runningSuiteFile)
 
 	if err != nil {
 		return "", err
@@ -174,61 +208,51 @@ func getRunningSuite() (string, error) {
 		return "", nil
 	}
 
-	b, err := ioutil.ReadFile(RunningSuiteFile)
+	b, err := ioutil.ReadFile(runningSuiteFile)
 	return string(b), err
 }
 
-func runSuiteTests(suite string, withEnv bool) {
-	mochaArgs := []string{"--exit", "--colors", "--require", "ts-node/register", "test/suites/" + suite + "/test.ts"}
-	if onlyForbidden {
-		mochaArgs = append(mochaArgs, "--forbid-only", "--forbid-pending")
+func runSuiteTests(suiteName string, withEnv bool) error {
+	if withEnv {
+		if err := setupSuite(suiteName); err != nil {
+			return err
+		}
 	}
-	mochaCmdLine := "./node_modules/.bin/mocha " + strings.Join(mochaArgs, " ")
 
-	fmt.Println(mochaCmdLine)
+	suite := suites.GlobalRegistry.Get(suiteName)
 
-	headlessValue := "n"
+	// Default value is 1 minute
+	timeout := "60s"
+	if suite.TestTimeout > 0 {
+		timeout = fmt.Sprintf("%ds", int64(suite.TestTimeout/time.Second))
+	}
+	testCmdLine := fmt.Sprintf("go test ./suites -timeout %s -run '^(Test%sSuite)$'", timeout, suiteName)
+
+	log.Infof("Running tests of suite %s...", suiteName)
+	log.Debugf("Running tests with command: %s", testCmdLine)
+
+	cmd := utils.CommandWithStdout("bash", "-c", testCmdLine)
+	cmd.Env = os.Environ()
 	if headless {
-		headlessValue = "y"
+		cmd.Env = append(cmd.Env, "HEADLESS=y")
 	}
 
-	var cmd *exec.Cmd
+	testErr := cmd.Run()
 
 	if withEnv {
-		cmd = CommandWithStdout("bash", "-c",
-			"./node_modules/.bin/ts-node ./scripts/run-environment.ts "+suite+" '"+mochaCmdLine+"'")
-	} else {
-		cmd = CommandWithStdout("bash", "-c", mochaCmdLine)
+		teardownSuite(suiteName)
 	}
 
-	cmd.Env = append(os.Environ(),
-		"TS_NODE_PROJECT=test/tsconfig.json",
-		"HEADLESS="+headlessValue,
-		"ENVIRONMENT=dev")
-
-	err := cmd.Run()
-
-	if err != nil {
-		panic(err)
-	}
+	return testErr
 }
 
-func runAllSuites() {
-	suites, err := listSuites()
-
-	if err != nil {
-		panic(err)
+func runAllSuites() error {
+	log.Info("Start running all suites")
+	for _, s := range listSuites() {
+		if err := runSuiteTests(s, true); err != nil {
+			return err
+		}
 	}
-
-	for _, s := range suites {
-		runSuiteTests(s, true)
-	}
-}
-
-var headless bool
-var onlyForbidden bool
-
-func init() {
-	SuitesTestCmd.Flags().BoolVar(&headless, "headless", false, "Run tests in headless mode")
-	SuitesTestCmd.Flags().BoolVar(&onlyForbidden, "only-forbidden", false, "Mocha 'only' filters are forbidden")
+	log.Info("All suites passed successfully")
+	return nil
 }

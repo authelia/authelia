@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
-
+	"github.com/clems4ever/authelia/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -18,34 +18,18 @@ const dockerPullCommandLine = "docker-compose -f docker-compose.yml " +
 
 // RunCI run the CI scripts
 func RunCI(cmd *cobra.Command, args []string) {
-	command := CommandWithStdout("bash", "-c", dockerPullCommandLine)
-	err := command.Run()
-
-	if err != nil {
-		panic(err)
+	log.Info("=====> Build stage")
+	if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "build").Run(); err != nil {
+		log.Fatal(err)
 	}
 
-	fmt.Println("===== Build stage =====")
-	command = CommandWithStdout("authelia-scripts", "build")
-	err = command.Run()
-
-	if err != nil {
-		panic(err)
+	log.Info("=====> Unit testing stage")
+	if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "unittest").Run(); err != nil {
+		log.Fatal(err)
 	}
 
-	fmt.Println("===== Unit testing stage =====")
-	command = CommandWithStdout("authelia-scripts", "unittest")
-	err = command.Run()
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("===== End-to-end testing stage =====")
-	command = CommandWithStdout("authelia-scripts", "suites", "test", "--headless", "--only-forbidden")
-	err = command.Run()
-
-	if err != nil {
-		panic(err)
+	log.Info("=====> End-to-end testing stage")
+	if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "suites", "test", "--headless", "--only-forbidden").Run(); err != nil {
+		log.Fatal(err)
 	}
 }

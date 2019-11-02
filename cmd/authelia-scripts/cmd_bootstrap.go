@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/clems4ever/authelia/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +42,7 @@ var hostEntries = []HostEntry{
 }
 
 func runCommand(cmd string, args ...string) {
-	command := CommandWithStdout(cmd, args...)
+	command := utils.CommandWithStdout(cmd, args...)
 	err := command.Run()
 
 	if err != nil {
@@ -66,7 +67,7 @@ func checkCommandExist(cmd string) {
 }
 
 func installClientNpmPackages() {
-	command := CommandWithStdout("npm", "ci")
+	command := utils.CommandWithStdout("npm", "ci")
 	command.Dir = "client"
 	err := command.Run()
 
@@ -97,20 +98,10 @@ func shell(cmd string) {
 func buildHelperDockerImages() {
 	shell("docker build -t authelia-example-backend example/compose/nginx/backend")
 	shell("docker build -t authelia-duo-api example/compose/duo-api")
-}
 
-func installKubernetesDependencies() {
-	if exist, err := FileExists("/tmp/kind"); err == nil && !exist {
-		shell("wget -nv https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-linux-amd64 -O /tmp/kind && chmod +x /tmp/kind")
-	} else {
-		bootstrapPrintln("Skip installing Kind since it's already installed")
-	}
-
-	if exist, err := FileExists("/tmp/kubectl"); err == nil && !exist {
-		shell("wget -nv https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl -O /tmp/kubectl && chmod +x /tmp/kubectl")
-	} else {
-		bootstrapPrintln("Skip installing Kubectl since it's already installed")
-	}
+	shell("docker-compose -f docker-compose.yml -f example/compose/kind/docker-compose.yml build")
+	shell("docker-compose -f docker-compose.yml -f example/compose/authelia/docker-compose.backend.yml build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)")
+	shell("docker-compose -f docker-compose.yml -f example/compose/authelia/docker-compose.frontend.yml build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)")
 }
 
 func prepareHostsFile() {
@@ -203,24 +194,31 @@ func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	bootstrapPrintln("Getting versions of tools")
 	readVersions()
 
+	bootstrapPrintln("Checking if GOPATH is set")
+
+	goPathFound := false
+	for _, v := range os.Environ() {
+		if strings.HasPrefix(v, "GOPATH=") {
+			goPathFound = true
+			break
+		}
+	}
+
+	if !goPathFound {
+		log.Fatal("GOPATH is not set")
+	}
+
 	bootstrapPrintln("Installing NPM packages for development...")
 	installNpmPackages()
 
-	bootstrapPrintln("Install NPM packages for frontend...")
-	installClientNpmPackages()
-
 	bootstrapPrintln("Building development Docker images...")
 	buildHelperDockerImages()
-	dockerBuildOfficialImage(defaultArch)
-
-	bootstrapPrintln("Installing Kubernetes dependencies for testing in /tmp... (no junk installed on host)")
-	installKubernetesDependencies()
 
 	createTemporaryDirectory()
 
 	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
 	prepareHostsFile()
 
-	bootstrapPrintln("Run 'authelia-scripts suites start docker-image' to start Authelia and visit https://home.example.com:8080.")
+	bootstrapPrintln("Run 'authelia-scripts suites setup Standalone' to start Authelia and visit https://home.example.com:8080.")
 	bootstrapPrintln("More details at https://github.com/clems4ever/authelia/blob/master/docs/getting-started.md")
 }

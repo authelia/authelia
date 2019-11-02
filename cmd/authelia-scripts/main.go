@@ -3,10 +3,12 @@
 package main
 
 import (
-	"log"
-
+	"github.com/clems4ever/authelia/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+var logLevel string
 
 // AutheliaCommandDefinition is the definition of one authelia-scripts command.
 type AutheliaCommandDefinition struct {
@@ -59,9 +61,14 @@ var Commands = []AutheliaCommandDefinition{
 		Args:  cobra.MinimumNArgs(1),
 	},
 	AutheliaCommandDefinition{
-		Name:        "suites",
-		Short:       "Compute hash of a password for creating a file-based users database",
-		SubCommands: CobraCommands{SuitesCleanCmd, SuitesListCmd, SuitesStartCmd, SuitesTestCmd},
+		Name:  "suites",
+		Short: "Compute hash of a password for creating a file-based users database",
+		SubCommands: CobraCommands{
+			SuitesTestCmd,
+			SuitesListCmd,
+			SuitesSetupCmd,
+			SuitesTeardownCmd,
+		},
 	},
 	AutheliaCommandDefinition{
 		Name:  "ci",
@@ -75,6 +82,15 @@ var Commands = []AutheliaCommandDefinition{
 	},
 }
 
+func levelStringToLevel(level string) log.Level {
+	if level == "debug" {
+		return log.DebugLevel
+	} else if level == "warning" {
+		return log.WarnLevel
+	}
+	return log.InfoLevel
+}
+
 func main() {
 	var rootCmd = &cobra.Command{Use: "authelia-scripts"}
 	cobraCommands := make([]*cobra.Command, 0)
@@ -85,7 +101,7 @@ func main() {
 		if autheliaCommand.CommandLine != "" {
 			cmdline := autheliaCommand.CommandLine
 			fn = func(cobraCmd *cobra.Command, args []string) {
-				cmd := CommandWithStdout(cmdline, args...)
+				cmd := utils.CommandWithStdout(cmdline, args...)
 				err := cmd.Run()
 				if err != nil {
 					panic(err)
@@ -118,10 +134,18 @@ func main() {
 
 		cobraCommands = append(cobraCommands, command)
 	}
+
+	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Set the log level for the command")
 	rootCmd.AddCommand(cobraCommands...)
+	cobra.OnInitialize(initConfig)
+
 	err := rootCmd.Execute()
 
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func initConfig() {
+	log.SetLevel(levelStringToLevel(logLevel))
 }

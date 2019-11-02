@@ -5,10 +5,10 @@ metadata:
   name: nginx-ingress-controller-service
   namespace: authelia
   labels:
-    k8s-app: nginx-ingress-controller
+    app: nginx-ingress-controller
 spec:
   selector:
-    k8s-app: nginx-ingress-controller
+    app: nginx-ingress-controller
   type: NodePort
   ports:
     - port: 80

@@ -1,19 +1,21 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-ingress-controller
   namespace: authelia
   labels:
-    k8s-app: nginx-ingress-controller
+    app: nginx-ingress-controller
 spec:
   replicas: 1
   revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: nginx-ingress-controller
   template:
     metadata:
       labels:
-        k8s-app: nginx-ingress-controller
-        name: nginx-ingress-controller
+        app: nginx-ingress-controller
       annotations:
         prometheus.io/port: '10254'
         prometheus.io/scrape: 'true'

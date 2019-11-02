@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PATH=./cmd/authelia-scripts/:/tmp:$PATH
+export PATH=./cmd/authelia-scripts/:/tmp:$PATH:./node_modules/.bin
 
 if [ -z "$OLD_PS1" ]; then
   OLD_PS1="$PS1"

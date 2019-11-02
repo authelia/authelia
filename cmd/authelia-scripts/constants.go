@@ -8,6 +8,3 @@ var DockerImageName = "clems4ever/authelia"
 
 // IntermediateDockerImageName local name of the docker image
 var IntermediateDockerImageName = "authelia:dist"
-
-// RunningSuiteFile name of the file containing the currently running suite
-var RunningSuiteFile = ".suite"
