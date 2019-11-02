@@ -1,0 +1,20 @@
+version: '3'
+services:
+  authelia-backend:
+    build:
+      context: example/compose/authelia
+      dockerfile: Dockerfile.backend
+    command: /resources/entrypoint.sh
+    working_dir: /app
+    volumes:
+      - "./example/compose/authelia/resources/:/resources"
+      - ".:/app"
+      - "${GOPATH}:/go"
+      - "/tmp/authelia:/tmp/authelia"
+    environment:
+      - SUITE_PATH=${SUITE_PATH}
+      - ENVIRONMENT=dev
+    ports:
+      - 9091:9091
+    networks:
+      - authelianet

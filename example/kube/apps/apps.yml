@@ -1,17 +1,20 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: test-app
   namespace: authelia
   labels:
-    k8s-app: test-app
+    app: test-app
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: test-app
   template:
     metadata:
       labels:
-        k8s-app: test-app
+        app: test-app
     spec:
       containers:
       - name: test-app
@@ -28,10 +31,10 @@ metadata:
   name: test-app-service
   namespace: authelia
   labels:
-    k8s-app: test-app
+    app: test-app
 spec:
   selector:
-    k8s-app: test-app
+    app: test-app
   ports:
     - port: 80
       name: http

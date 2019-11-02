@@ -4,7 +4,7 @@ metadata:
   name: nginx-ingress-controller-serviceaccount
   namespace: authelia
   labels:
-    k8s-app: nginx-ingress-controller
+    app: nginx-ingress-controller
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -12,7 +12,7 @@ kind: ClusterRole
 metadata:
   name: nginx-ingress-controller-clusterrole
   labels:
-    k8s-app: nginx-ingress-controller
+    app: nginx-ingress-controller
 rules:
   - apiGroups:
       - ""
@@ -68,7 +68,7 @@ metadata:
   name: nginx-ingress-controller-role
   namespace: authelia
   labels:
-    k8s-app: nginx-ingress-controller
+    app: nginx-ingress-controller
 rules:
   - apiGroups:
       - ""
@@ -112,7 +112,7 @@ metadata:
   name: nginx-ingress-controller-role-nisa-binding
   namespace: authelia
   labels:
-    k8s-app: nginx-ingress-controller
+    app: nginx-ingress-controller
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -128,7 +128,7 @@ kind: ClusterRoleBinding
 metadata:
   name: nginx-ingress-controller-clusterrole-nisa-binding
   labels:
-    k8s-app: nginx-ingress-controller
+    app: nginx-ingress-controller
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

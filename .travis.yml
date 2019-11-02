@@ -10,25 +10,34 @@ services:
   - ntp
   - xvfb
 
+addons:
+  chrome: stable
+  apt:
+    sources:
+      - google-chrome
+    packages:
+      - libgif-dev
+      - google-chrome-stable
+
+install: # Install ChromeDriver (64bits; replace 64 with 32 for 32bits).
+  - wget -N https://chromedriver.storage.googleapis.com/78.0.3904.70/chromedriver_linux64.zip -P ~/
+  - unzip ~/chromedriver_linux64.zip -d ~/
+  - rm ~/chromedriver_linux64.zip
+  - sudo mv -f ~/chromedriver /usr/local/share/
+  - sudo chmod +x /usr/local/share/chromedriver
+  - sudo ln -s /usr/local/share/chromedriver /usr/bin/chromedriver
+
 before_script:
   - export PATH=./cmd/authelia-scripts/:/tmp:$PATH
+  - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+  - nvm install v11 && nvm use v11 && npm i
+  - source bootstrap.sh
 
 jobs:
   include:
     - stage: test
-      addons:
-        chrome: stable
-        apt:
-          sources:
-            - google-chrome
-          packages:
-            - libgif-dev
-            - google-chrome-stable
       script:
-        - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-        - nvm install v11 && nvm use v11 && npm i
-        - source bootstrap.sh
-        - authelia-scripts ci
+        - authelia-scripts --log-level debug ci
       # TODO(c.michaud): publish built artifact on Github.
     - &build-images
       stage: build images

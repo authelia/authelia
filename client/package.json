@@ -47,5 +47,6 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "proxy": "http://authelia-backend:9091/"
 }

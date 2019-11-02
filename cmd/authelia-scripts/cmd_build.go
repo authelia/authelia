@@ -1,14 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/clems4ever/authelia/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 func buildAutheliaBinary() {
-	cmd := CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia")
+	cmd := utils.CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia")
 	cmd.Dir = "cmd/authelia"
 	cmd.Env = append(os.Environ(),
 		"GOOS=linux", "GOARCH=amd64", "CGO_ENABLED=1")
@@ -21,35 +22,43 @@ func buildAutheliaBinary() {
 }
 
 func buildFrontend() {
-	cmd := CommandWithStdout("npm", "run", "build")
+	// Install npm dependencies
+	cmd := utils.CommandWithStdout("npm", "ci")
 	cmd.Dir = "client"
-	err := cmd.Run()
 
-	if err != nil {
-		panic(err)
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
 	}
 
-	err = os.Rename("client/build", OutputDir+"/public_html")
+	// Then build the frontend
+	cmd = utils.CommandWithStdout("npm", "run", "build")
+	cmd.Dir = "client"
 
-	if err != nil {
-		panic(err)
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := os.Rename("client/build", OutputDir+"/public_html"); err != nil {
+		log.Fatal(err)
 	}
 }
 
 // Build build Authelia
 func Build(cobraCmd *cobra.Command, args []string) {
+	log.Info("Building Authelia...")
+
 	Clean(cobraCmd, args)
 
-	fmt.Println("Creating `" + OutputDir + "` directory")
+	log.Debug("Creating `" + OutputDir + "` directory")
 	err := os.MkdirAll(OutputDir, os.ModePerm)
 
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Building Authelia Go binary...")
+	log.Debug("Building Authelia Go binary...")
 	buildAutheliaBinary()
 
-	fmt.Println("Building Authelia frontend...")
+	log.Debug("Building Authelia frontend...")
 	buildFrontend()
 }

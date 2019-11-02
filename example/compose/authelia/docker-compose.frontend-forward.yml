@@ -1,0 +1,8 @@
+version: '3'
+services:
+  authelia-frontend:
+    image: nginx:alpine
+    volumes:
+      - ./example/compose/authelia/resources/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - authelianet

@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services:
   redis:
     image: redis:4.0-alpine
