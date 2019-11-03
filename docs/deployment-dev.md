@@ -100,7 +100,10 @@ The content of this file is as follows:
 
 The password is hashed and salted as it is in LDAP servers with salted SHA-512. Here is a one-liner to generate such hashed password:
 
-    npm run hash-password mypassword
+    $ npm run hash-password mypassword
+    $6$rounds=50000$BpLnfgDsc2WD8F2q$PumMwig8O0uIe9SgneL8Cm1FvUniOzpqBrH.uQE3aZR4K1dHsQldu5gEjJZsXcO./v3itfz6CXTDTJgeh5e8t.
+
+Copy this newly hashed password into your `users_database.yml` file, prefixed with `{CRYPT}` as shown in the example file above.
 
 Once the file is created, edit the configuration file with the following
 block (as used in [config.yml](../test/suites/basic/config.yml)):
