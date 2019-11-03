@@ -6,7 +6,7 @@ suite which is a kind of virtual environment for Authelia, it allows to create a
 components such as nginx, redis or mongo in which Authelia can run and be tested.
 
 This abstraction allows to prepare an environment for manual testing during development and also to
-craft and run integration tests.
+craft and run integration tests efficiently.
 
 ## Start a suite.
 
@@ -28,16 +28,19 @@ and this will run the tests related to the running suite.
 
 ### Run tests of non-running suite
 
-However, if no suite is running and you still want to test a particular suite like *complete*.
+However, if no suite is running and you still want to test a particular suite like *high-availability*.
 You can do so with the next command:
 
-    authelia-scripts suites test complete
+    authelia-scripts suites test high-availability
 
-This command will run the tests for the *complete* suite using the built version of Authelia that
-should be located in *dist*.
+This command will run the tests for the *high-availability* suite. Beware that running tests of a
+non-running suite implies the tests run against the distributable version of Authelia instead of
+the current development version. If you made some patches, you must build the distributable version
+before running the test command:
 
-WARNING: Authelia must be built with `authelia-scripts build` and possibly
-`authelia-scripts docker build` before running this command.
+    # Build authelia before running the tests against the suite.
+    authelia-scripts build
+    authelia-scripts docker build
 
 ### Run all tests of all suites
 
@@ -45,10 +48,17 @@ Running all tests is easy. Make sure that no suite is already running and run:
 
     authelia-scripts suites test
 
+Beware that the distributable version of Authelia is tested in that case. Don't
+forget to build Authelia including your patches before running the command.
+
+
+    # Build authelia before running the tests against the suite.
+    authelia-scripts build
+    authelia-scripts docker build
+
 ### Run tests in headless mode
 
-In order to run the tests without seeing the windows creating and vanishing, one
-can run the tests in headless mode with:
+In order to run the tests in headless mode, use the following command:
 
     authelia-scripts suites test --headless
 

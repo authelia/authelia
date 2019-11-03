@@ -3,7 +3,8 @@ import Fs = require("fs");
 import Request = require("request-promise");
 
 export async function GetLinkFromFile() {
-  const data = await Bluebird.promisify(Fs.readFile)("/tmp/authelia/notification.txt")
+  const data = await Bluebird.promisify(Fs.readFile)(
+    "/tmp/authelia/notification.txt")
   const regexp = new RegExp(/Link: (.+)/);
   const match = regexp.exec(data.toLocaleString());
   if (match == null) {
@@ -19,12 +20,14 @@ export async function GetLinkFromEmail() {
     json: true,
     rejectUnauthorized: false,
   });
+
   const messageId = data[data.length - 1].id;
   const data2 = await Request({
     method: "GET",
     rejectUnauthorized: false,
-    uri: `https://mail.example.com:8080/messages/${messageId}.html`
+    uri: `https://mail.example.com:8080/messages/${messageId}.html`,
   });
+
   const regexp = new RegExp(/<a href="(.+)" class="button">.*<\/a>/);
   const match = regexp.exec(data2);
   if (match == null) {

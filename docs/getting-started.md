@@ -1,18 +1,17 @@
 # Getting Started
 
-**Authelia** can be tested in a matter of seconds with docker-compose based
-on the latest image available on [Dockerhub].
+**Authelia** can be tested in a matter of seconds with Docker and docker-compose.
 
-In order to deploy the latest release locally, run the following command and
-follow the instructions of bootstrap.sh:
+In order to deploy the current version of Authelia locally, run the following
+command and follow the instructions of bootstrap.sh:
 
     source bootstrap.sh
 
-Then, start the *dockerhub* [suite].
+Then, start the *docker-image* [suite].
 
-    authelia-scripts suites start dockerhub
+    authelia-scripts suites start docker-image
 
-A [suite] is kind of a virtual environment for running Authelia.
+A [suite] is kind of a virtual environment for running Authelia in a complete ecosystem.
 If you want more details please read the related [documentation](./suites.md).
 
 ## Test it!
@@ -43,7 +42,7 @@ Since we're running a test environment, we provide a fake webmail called
 *MailCatcher* from which you can checkout the email and confirm
 your identity.
 The webmail is accessible from
-[http://mail.example.com:8080](http://mail.example.com:8085).
+[http://mail.example.com:8080](http://mail.example.com:8080).
 
 Enjoy!
 

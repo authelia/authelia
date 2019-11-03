@@ -211,6 +211,7 @@ func Bootstrap(cobraCmd *cobra.Command, args []string) {
 
 	bootstrapPrintln("Building development Docker images...")
 	buildDockerImages()
+	DockerBuildOfficialImage()
 
 	bootstrapPrintln("Installing Kubernetes dependencies for testing in /tmp... (no junk installed on host)")
 	installKubernetesDependencies()
@@ -220,6 +221,6 @@ func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
 	prepareHostsFile()
 
-	bootstrapPrintln("Run 'authelia-scripts suites start basic' to start Authelia and visit https://home.example.com:8080.")
+	bootstrapPrintln("Run 'authelia-scripts suites start docker-image' to start Authelia and visit https://home.example.com:8080.")
 	bootstrapPrintln("More details at https://github.com/clems4ever/authelia/blob/master/docs/getting-started.md")
 }

@@ -23,7 +23,7 @@ post nginx has written on [HSTS].
 
 ## Content-Security-Policy
 
-Authelia's portal is protected against XSS using the content
+Authelia's portal is protected against some XSS using the content
 security policy mechanism that is documented
 [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP). This protection
 will reject untrusted payloads threatening your users during the authentication
@@ -51,10 +51,6 @@ add_header X-Frame-Options "SAMEORIGIN";
 add_header X-XSS-Protection "1; mode=block";
 ```
 
-## Helmet
-
-To improve even more the security, [Helmet] has been added to **Authelia**.
-
 ## Contributing
 
 If you find possible vulnerabilities or threats, do not hesitate to contribute
@@ -62,4 +58,3 @@ either by writing a test case demonstrating the possible attack and if
 possible some solutions to prevent it or submit a PR.
 
 [HSTS]: https://www.nginx.com/blog/http-strict-transport-security-hsts-and-nginx/
-[Helmet]: https://helmetjs.github.io/
