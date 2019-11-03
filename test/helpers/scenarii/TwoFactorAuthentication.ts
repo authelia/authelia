@@ -8,7 +8,11 @@ export default function (timeout: number = 5000) {
     describe('The user is redirected to target url upon successful authentication', function() {
       before(async function() {
         this.driver = await StartDriver();
-        await RegisterAndLoginTwoFactor(this.driver, 'john', "password", true, 'https://admin.example.com:8080/secret.html', timeout);
+        await RegisterAndLoginTwoFactor(
+          this.driver,
+          'john', "password", true,
+          'https://admin.example.com:8080/secret.html',
+          timeout);
       });
   
       after(async function() {
@@ -17,7 +21,10 @@ export default function (timeout: number = 5000) {
       });
   
       it('should redirect the user', async function() {
-        await VerifyUrlIs(this.driver, 'https://admin.example.com:8080/secret.html', timeout);
+        await VerifyUrlIs(
+          this.driver,
+          'https://admin.example.com:8080/secret.html',
+          timeout);
       });
     });
   }

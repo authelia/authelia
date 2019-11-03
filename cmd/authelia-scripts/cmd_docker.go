@@ -3,22 +3,29 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
 )
+
+func DockerBuildOfficialImage() error {
+	docker := &Docker{}
+	return docker.Build(IntermediateDockerImageName, ".")
+}
 
 // DockerBuildCmd Command for building docker image of Authelia.
 var DockerBuildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Build the docker image of Authelia",
 	Run: func(cmd *cobra.Command, args []string) {
-		docker := &Docker{}
-		err := docker.Build(IntermediateDockerImageName, ".")
+		err := DockerBuildOfficialImage()
+
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
+		docker := &Docker{}
 		err = docker.Tag(IntermediateDockerImageName, DockerImageName)
 
 		if err != nil {

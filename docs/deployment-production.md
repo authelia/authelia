@@ -1,7 +1,8 @@
 # Deployment for Production
 
 **Authelia** can be deployed on bare metal or on Kubernetes with two
-different kind of artifacts: an npm package or a Docker image.
+different kind of artifacts: the distributable version (binary and public_html)
+or a Docker image.
 
 **NOTE:** If not done already, we highly recommend you first follow the
 [Getting Started] documentation.
@@ -11,21 +12,28 @@ different kind of artifacts: an npm package or a Docker image.
 **Authelia** has been designed to be a proxy companion handling the 
 authentication and authorization requests for your entire infrastructure.
 
-As **Authelia** will be key in your architecture, it requires several
-components to make it highly-available. Deploying it in production means having an LDAP server for storing the information about the users, a Redis cache to store the user sessions in a distributed manner, a
-MongoDB to persist user configurations and one or more nginx reverse proxies configured to be used with Authelia. With such a setup **Authelia** can easily be scaled to multiple instances to evenly handle the traffic.
+As **Authelia** will be key to your architecture, it requires several
+components to make it highly-available. Deploying it in production means having
+an LDAP server for storing the information about the users, a Redis cache to
+store the user sessions in a distributed manner, a MongoDB to persist user
+configurations and one or more nginx reverse proxies configured to be used with
+Authelia. With such a setup **Authelia** can easily be scaled to multiple instances
+to evenly handle the traffic.
 
-**NOTE:** If you don't have all those components, don't worry, there is a way to deploy **Authelia** with only nginx. This is described in [Deployment for Devs].
+**NOTE:** If you don't have all those components, don't worry, there is a way to
+deploy **Authelia** with only nginx. This is described in [Deployment for Devs].
 
 Here are the available steps to deploy **Authelia** given 
 the configuration file is **/path/to/your/config.yml**. Note that you can
 create your own configuration file from [config.template.yml] located at
 the root of the repo.
 
-### Deploy With NPM
+### Deploy with the distributable version
 
-    npm install -g authelia
-    authelia /path/to/your/config.yml
+    # Build it if not done already
+    authelia-scripts build
+
+    PUBLIC_DIR=./dist/public_html authelia -config /path/to/your/config.yml
 
 ### Deploy With Docker
 
@@ -49,7 +57,7 @@ for more information.
 Ansible would be a very good candidate to automate the installation of such
 an infrastructure on bare metal. We would be more than happy to review any PR on that matter.
 
-Regarding Kubernetes, the right way to go would be to write a helm recipe.
+Regarding Kubernetes, the right way to go would be to write a Helm recipe.
 Again, we would be glad to review any PR implementing this.
 
 

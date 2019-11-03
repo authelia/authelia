@@ -18,17 +18,17 @@ non resilient to failures.*
 
 In some cases, like protecting personal websites, it can be fine to use
 **Authelia** in a non highly-available setup. We can
-achieve that in order to reduce the number of components to only two: Authelia
-and nginx.
+achieve that in order to reduce the number of components to only two: a
+reverse proxy such as nginx or Traefik and Authelia as a companion of the
+proxy.
 
 As for a regular deployment in production, you need to install **Authelia**
-either by pulling the Docker image or installing the npm package and run
-it with a configuration file passed as argument.
+either by pulling the Docker image or building distributable version.
 
-## Deploy with npm
+## Build and deploy the distributable version
 
-    npm install -g authelia
-    authelia /path/to/your/config.yml
+    authelia-scripts build
+    PUBLIC_DIR=./dist/public_html ./dist/authelia -config /path/to/your/config.yml
 
 ## Deploy with Docker
 
@@ -40,21 +40,27 @@ it with a configuration file passed as argument.
 You also need to install nginx and take [example/compose/nginx/minimal/nginx.conf](./example/compose/nginx/minimal/nginx.conf)
 as an example for your configuration.
 
+## Deploy Traefik
+
+TODO
+
 ## Discard components
 
 ### Discard MongoDB
 
 There is an option in the configuration file to discard MongoDB and use
-your local filesystem to store the database data. This option will therefore
-prevent you from running multiple instances of **Authelia** in parallel.
-Consequently, this option is not meant to be used in production.
+your local filesystem to store data in a sqlite3 database. This option will
+therefore prevent you from running multiple instances of **Authelia** in
+parallel.
+Consequently, this option is not meant to be used in production or at least
+not one that should scale out.
 
 Here is the configuration block you should use:
 
     storage:
-      # The directory where the DB files will be saved
+      # The directory where the sqlite3 file will be saved
       local:
-        path: /var/lib/authelia/store
+        path: /var/lib/authelia/db.sqlite3
 
 ### Discard Redis
 
@@ -62,8 +68,8 @@ There is an option in the configuration file to discard Redis and use the
 memory of the server to store the KV data. This option will therefore
 prevent you from running multiple instances of **Authelia** in parallel and
 will make you lose user sessions if the application restarts. This
-concretely means that all your users will need to authenticate again in
-that case. Hence, this option is not meant to be used in production.
+concretely means that all your users will need to authenticate again after
+a restart of Authelia. Hence, this option is not meant to be used in production.
 
 To use memory instead of a Redis backend, just comment out the Redis
 connection details in the following block:
@@ -98,19 +104,22 @@ The content of this file is as follows:
           - admins
           - dev
 
-The password is hashed and salted as it is in LDAP servers with salted SHA-512. Here is a one-liner to generate such hashed password:
+The password is hashed and salted as it is in LDAP servers with salted SHA-512
+(more hash algorithms such as Argon2 will be provided in the future).
+Here is a one-liner to generate such hashed password:
 
-    $ npm run hash-password mypassword
+    $ authelia-scripts hash-password mypassword
     $6$rounds=50000$BpLnfgDsc2WD8F2q$PumMwig8O0uIe9SgneL8Cm1FvUniOzpqBrH.uQE3aZR4K1dHsQldu5gEjJZsXcO./v3itfz6CXTDTJgeh5e8t.
 
-Copy this newly hashed password into your `users_database.yml` file, prefixed with `{CRYPT}` as shown in the example file above.
+Copy this newly hashed password into your `users_database.yml` file, prefixed with
+`{CRYPT}` as shown in the example file above.
 
 Once the file is created, edit the configuration file with the following
 block (as used in [config.yml](../test/suites/basic/config.yml)):
 
     authentication_backend:
       file:
-        path: /etc/authelia/users_database.yml
+        path: /path/to/the/users_database.yml
 
 instead of (used in [config.template.yml](../config.template.yml)):
 
@@ -152,6 +161,6 @@ a production environment. That being said, in some cases it is just fine and
 writing an Ansible playbook to automate all this process is ok.
 We would really be more than happy to review such a PR.
 In the meantime, you can check the *basic* [suite](./suites.md) to see all this
-in real example.
+in a real example.
 
 [Getting Started]: ./getting-started.md

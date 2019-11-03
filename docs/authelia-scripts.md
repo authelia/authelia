@@ -16,8 +16,8 @@ For instance, you can build Authelia with:
 
     authelia-scripts build
 
-Or start the *basic* suite with:
+Or start the *docker-image* suite with:
 
-    authelia-scripts suites start basic
+    authelia-scripts suites start docker-image
 
 You will find more information in the scripts usage helpers.
