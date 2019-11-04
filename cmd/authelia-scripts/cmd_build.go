@@ -11,7 +11,7 @@ func buildAutheliaBinary() {
 	cmd := CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia")
 	cmd.Dir = "cmd/authelia"
 	cmd.Env = append(os.Environ(),
-		"GOOS=linux", "GOARCH=amd64", "CGO_ENABLED=1")
+		"GOOS=linux", "GOARCH=amd64", "CGO_ENABLED=0")
 
 	err := cmd.Run()
 

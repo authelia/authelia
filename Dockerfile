@@ -9,8 +9,7 @@ RUN apk --no-cache add gcc musl-dev
 WORKDIR /go/src/app
 COPY . .
 
-# CGO_ENABLED=1 is mandatory for building go-sqlite3
-RUN cd cmd/authelia && GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -o authelia
+RUN cd cmd/authelia && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o authelia
 
 
 # ========================================
