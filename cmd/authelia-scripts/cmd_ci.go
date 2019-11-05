@@ -41,14 +41,6 @@ func RunCI(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 
-	fmt.Println("===== Docker image build stage =====")
-	command = CommandWithStdout("authelia-scripts", "docker", "build")
-	err = command.Run()
-
-	if err != nil {
-		panic(err)
-	}
-
 	fmt.Println("===== End-to-end testing stage =====")
 	command = CommandWithStdout("authelia-scripts", "suites", "test", "--headless", "--only-forbidden")
 	err = command.Run()

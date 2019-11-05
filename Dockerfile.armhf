@@ -1,16 +1,17 @@
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.13-alpine AS builder-backend
+FROM arm32v7/golang:1.13-alpine AS builder-backend
 
-# gcc and musl-dev are required for building go-sqlite3
+# qemu binary, gcc and musl-dev are required for building go-sqlite3
+COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 RUN apk --no-cache add gcc musl-dev
 
 WORKDIR /go/src/app
 COPY . .
 
 # CGO_ENABLED=1 is mandatory for building go-sqlite3
-RUN cd cmd/authelia && GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w' -o authelia
+RUN cd cmd/authelia && GOOS=linux GOARCH=arm CGO_ENABLED=1 go build -tags netgo -ldflags '-w' -o authelia
 
 
 # ========================================
@@ -27,9 +28,12 @@ RUN npm ci && npm run build
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.10.3
+FROM arm32v7/alpine:3.10.3
 
-RUN apk --no-cache add ca-certificates tzdata
+COPY ./qemu-arm-static /usr/bin/qemu-arm-static
+
+RUN apk --no-cache add ca-certificates tzdata && \
+    rm /usr/bin/qemu-arm-static
 
 WORKDIR /usr/app
 

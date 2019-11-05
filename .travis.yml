@@ -1,34 +1,81 @@
 language: go
+
 required: sudo
+
 go:
-- '1.13'
+  - '1.13'
+
 services:
-- docker
-- ntp
-- xvfb
-addons:
-  chrome: stable
-  apt:
-    sources:
-    - google-chrome
-    packages:
-    - libgif-dev
-    - google-chrome-stable
+  - docker
+  - ntp
+  - xvfb
 
 before_script:
-- curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-- nvm install v11 && nvm use v11 && npm i
-script:
-- "source bootstrap.sh"
-- "authelia-scripts ci"
-after_success:
-- "authelia-scripts docker publish"
+  - export PATH=./cmd/authelia-scripts/:/tmp:$PATH
 
-# TODO(c.michaud): publish built artifact on Github.
+jobs:
+  include:
+    - stage: test
+      addons:
+        chrome: stable
+        apt:
+          sources:
+            - google-chrome
+          packages:
+            - libgif-dev
+            - google-chrome-stable
+      script:
+        - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+        - nvm install v11 && nvm use v11 && npm i
+        - source bootstrap.sh
+        - authelia-scripts ci
+      # TODO(c.michaud): publish built artifact on Github.
+    - &build-images
+      stage: build images
+      env:
+        - ARCH=amd64
+          DOCKERFILE=Dockerfile
+      install: skip
+      script:
+        - authelia-scripts docker build
+      after_success:
+        - authelia-scripts docker publish
+    - <<: *build-images
+      env:
+        - ARCH=arm32v7
+          DOCKERFILE=Dockerfile.armhf
+      install: skip
+      script:
+        - while sleep 9m; do echo '===== Prevent build from terminating  ====='; done &
+        - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        - wget https://github.com/multiarch/qemu-user-static/releases/download/v4.1.0-1/qemu-arm-static -O ./qemu-arm-static && chmod +x ./qemu-arm-static
+        - authelia-scripts docker build
+        - kill %1
+      after_success:
+        - authelia-scripts docker publish
+    - <<: *build-images
+      env:
+        - ARCH=arm64v8
+          DOCKERFILE=Dockerfile.aarch64
+      install: skip
+      script:
+        - while sleep 9m; do echo '===== Prevent build from terminating  ====='; done &
+        - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        - wget https://github.com/multiarch/qemu-user-static/releases/download/v4.1.0-1/qemu-aarch64-static -O ./qemu-aarch64-static && chmod +x ./qemu-aarch64-static
+        - authelia-scripts docker build
+        - kill %1
+      after_success:
+        - authelia-scripts docker publish
+    - stage: deploy manifests
+      env:
+        - DOCKER_CLI_EXPERIMENTAL=enabled
+      install: skip
+      script:
+        - authelia-scripts docker manifest
 
 notifications:
   email:
     recipients:
-    - clement.michaud34@gmail.com
+      - clement.michaud34@gmail.com
     on_success: change
     on_failure: always

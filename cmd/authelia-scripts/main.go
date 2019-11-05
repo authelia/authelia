@@ -42,7 +42,7 @@ var Commands = []AutheliaCommandDefinition{
 	AutheliaCommandDefinition{
 		Name:        "docker",
 		Short:       "Commands related to building and publishing docker image",
-		SubCommands: CobraCommands{DockerBuildCmd, DockerPushCmd},
+		SubCommands: CobraCommands{DockerBuildCmd, DockerPushCmd, DockerManifestCmd},
 	},
 	AutheliaCommandDefinition{
 		Name:  "hash-password [password]",

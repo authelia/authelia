@@ -11,7 +11,8 @@ import (
 
 func DockerBuildOfficialImage() error {
 	docker := &Docker{}
-	return docker.Build(IntermediateDockerImageName, ".")
+	Dockerfile := os.Getenv("DOCKERFILE")
+	return docker.Build(IntermediateDockerImageName, Dockerfile, ".")
 }
 
 // DockerBuildCmd Command for building docker image of Authelia.
@@ -40,6 +41,15 @@ var DockerPushCmd = &cobra.Command{
 	Short: "Publish Authelia docker image to Dockerhub",
 	Run: func(cmd *cobra.Command, args []string) {
 		publishDockerImage()
+	},
+}
+
+// DockerManifestCmd Command for pushing Authelia docker manifest to Dockerhub
+var DockerManifestCmd = &cobra.Command{
+	Use:   "manifest",
+	Short: "Publish Authelia docker manifest to Dockerhub",
+	Run: func(cmd *cobra.Command, args []string) {
+		publishDockerManifest()
 	},
 }
 
@@ -83,7 +93,46 @@ func deploy(docker *Docker, tag string) {
 	}
 }
 
+func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag string, arm64v8tag string) {
+	imageWithTag := DockerImageName + ":" + tag
+	fmt.Println("===================================================")
+	fmt.Println("Docker manifest " + imageWithTag + " will be deployed on Dockerhub.")
+	fmt.Println("===================================================")
+
+	err := docker.Tag(DockerImageName, imageWithTag)
+
+	if err != nil {
+		panic(err)
+	}
+
+	docker.Manifest(imageWithTag, amd64tag, arm32v7tag, arm64v8tag)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
 func publishDockerImage() {
+	docker := &Docker{}
+
+	ARCH := os.Getenv("ARCH")
+	travisBranch := os.Getenv("TRAVIS_BRANCH")
+	travisPullRequest := os.Getenv("TRAVIS_PULL_REQUEST")
+	travisTag := os.Getenv("TRAVIS_TAG")
+
+	if travisBranch == "master" && travisPullRequest == "false" {
+		login(docker)
+		deploy(docker, "master-" + ARCH)
+	} else if travisTag != "" {
+		login(docker)
+		deploy(docker, travisTag + "-" + ARCH)
+		deploy(docker, "latest-" + ARCH)
+	} else {
+		fmt.Println("Docker image will not be published")
+	}
+}
+
+func publishDockerManifest() {
 	docker := &Docker{}
 
 	travisBranch := os.Getenv("TRAVIS_BRANCH")
@@ -92,12 +141,12 @@ func publishDockerImage() {
 
 	if travisBranch == "master" && travisPullRequest == "false" {
 		login(docker)
-		deploy(docker, "master")
+		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
 	} else if travisTag != "" {
 		login(docker)
-		deploy(docker, travisTag)
-		deploy(docker, "latest")
+		deployManifest(docker, travisTag, travisTag + "-amd64", travisTag + "-arm32v7", travisTag + "-arm64v8")
+		deployManifest(docker, "latest", "latest-amd64", "latest-arm32v7", "latest-arm64v8")
 	} else {
-		fmt.Println("Docker image will not be built")
+		fmt.Println("Docker manifest will not be published")
 	}
 }
