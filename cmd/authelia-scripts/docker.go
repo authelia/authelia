@@ -25,9 +25,23 @@ func (d *Docker) Push(tag string) error {
 
 // Manifest push a docker manifest to dockerhub.
 func (d *Docker) Manifest(tag string, amd64tag string, arm32v7tag string, arm64v8tag string) error {
-	CommandWithStdout("docker", "manifest", "push", "--purge", tag).Run()
-	CommandWithStdout("docker", "manifest", "create", tag, amd64tag, arm32v7tag, arm64v8tag).Run()
-	CommandWithStdout("docker", "manifest", "annotate", tag, arm32v7tag, "--os", "linux", "--arch", "arm").Run()
-	CommandWithStdout("docker", "manifest", "annotate", tag, arm64v8tag, "--os", "linux", "--arch", "arm64", "--variant", "v8").Run()
+	err := CommandWithStdout("docker", "manifest", "create", tag, amd64tag, arm32v7tag, arm64v8tag).Run()
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = CommandWithStdout("docker", "manifest", "annotate", tag, arm32v7tag, "--os", "linux", "--arch", "arm").Run()
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = CommandWithStdout("docker", "manifest", "annotate", tag, arm64v8tag, "--os", "linux", "--arch", "arm64", "--variant", "v8").Run()
+
+	if err != nil {
+		panic(err)
+	}
+
 	return CommandWithStdout("docker", "manifest", "push", "--purge", tag).Run()
 }
