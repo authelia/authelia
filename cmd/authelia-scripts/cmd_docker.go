@@ -90,7 +90,7 @@ func deploy(docker *Docker, tag string) {
 		panic(err)
 	}
 
-	docker.Push(imageWithTag)
+	err = docker.Push(imageWithTag)
 
 	if err != nil {
 		panic(err)
@@ -109,7 +109,7 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 		panic(err)
 	}
 
-	docker.Manifest(imageWithTag, amd64tag, arm32v7tag, arm64v8tag)
+	err = docker.Manifest(imageWithTag, amd64tag, arm32v7tag, arm64v8tag)
 
 	if err != nil {
 		panic(err)
