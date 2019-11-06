@@ -34,38 +34,19 @@ jobs:
       stage: build images
       env:
         - ARCH=amd64
-          DOCKERFILE=Dockerfile
       install: skip
       script:
-        - authelia-scripts docker build
+        - while sleep 9m; do echo '===== Prevent build from terminating  ====='; done &
+        - authelia-scripts docker build -arch=$ARCH
+        - kill %1
       after_success:
-        - authelia-scripts docker publish
+        - authelia-scripts docker publish -arch=$ARCH
     - <<: *build-images
       env:
         - ARCH=arm32v7
-          DOCKERFILE=Dockerfile.armhf
-      install: skip
-      script:
-        - while sleep 9m; do echo '===== Prevent build from terminating  ====='; done &
-        - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        - wget https://github.com/multiarch/qemu-user-static/releases/download/v4.1.0-1/qemu-arm-static -O ./qemu-arm-static && chmod +x ./qemu-arm-static
-        - authelia-scripts docker build
-        - kill %1
-      after_success:
-        - authelia-scripts docker publish
     - <<: *build-images
       env:
         - ARCH=arm64v8
-          DOCKERFILE=Dockerfile.aarch64
-      install: skip
-      script:
-        - while sleep 9m; do echo '===== Prevent build from terminating  ====='; done &
-        - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        - wget https://github.com/multiarch/qemu-user-static/releases/download/v4.1.0-1/qemu-aarch64-static -O ./qemu-aarch64-static && chmod +x ./qemu-aarch64-static
-        - authelia-scripts docker build
-        - kill %1
-      after_success:
-        - authelia-scripts docker publish
     - stage: deploy manifests
       env:
         - DOCKER_CLI_EXPERIMENTAL=enabled
