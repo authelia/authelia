@@ -13,7 +13,7 @@ func DockerBuildOfficialImage() error {
 	docker := &Docker{}
 	// Set default Architecture Dockerfile to amd64
 	Dockerfile := "Dockerfile"
-	if dockerfile := os.Getenv("DOCKERFILE"); dockerfile != ""{
+	if dockerfile := os.Getenv("DOCKERFILE"); dockerfile != "" {
 		Dockerfile = dockerfile
 	}
 	return docker.Build(IntermediateDockerImageName, Dockerfile, ".")
