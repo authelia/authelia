@@ -94,7 +94,7 @@ func shell(cmd string) {
 	runCommand("bash", "-c", cmd)
 }
 
-func buildDockerImages() {
+func buildHelperDockerImages() {
 	shell("docker build -t authelia-example-backend example/compose/nginx/backend")
 	shell("docker build -t authelia-duo-api example/compose/duo-api")
 }
@@ -210,8 +210,8 @@ func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	installClientNpmPackages()
 
 	bootstrapPrintln("Building development Docker images...")
-	buildDockerImages()
-	DockerBuildOfficialImage()
+	buildHelperDockerImages()
+	dockerBuildOfficialImage(defaultArch)
 
 	bootstrapPrintln("Installing Kubernetes dependencies for testing in /tmp... (no junk installed on host)")
 	installKubernetesDependencies()

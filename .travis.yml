@@ -1,34 +1,62 @@
 language: go
+
 required: sudo
+
 go:
-- '1.13'
+  - '1.13'
+
 services:
-- docker
-- ntp
-- xvfb
-addons:
-  chrome: stable
-  apt:
-    sources:
-    - google-chrome
-    packages:
-    - libgif-dev
-    - google-chrome-stable
+  - docker
+  - ntp
+  - xvfb
 
 before_script:
-- curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-- nvm install v11 && nvm use v11 && npm i
-script:
-- "source bootstrap.sh"
-- "authelia-scripts ci"
-after_success:
-- "authelia-scripts docker publish"
+  - export PATH=./cmd/authelia-scripts/:/tmp:$PATH
 
-# TODO(c.michaud): publish built artifact on Github.
+jobs:
+  include:
+    - stage: test
+      addons:
+        chrome: stable
+        apt:
+          sources:
+            - google-chrome
+          packages:
+            - libgif-dev
+            - google-chrome-stable
+      script:
+        - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+        - nvm install v11 && nvm use v11 && npm i
+        - source bootstrap.sh
+        - authelia-scripts ci
+      # TODO(c.michaud): publish built artifact on Github.
+    - &build-images
+      stage: build images
+      env:
+        - ARCH=amd64
+      install: skip
+      script:
+        - while sleep 9m; do echo '===== Prevent build from terminating  ====='; done &
+        - authelia-scripts docker build --arch=$ARCH
+        - kill %1
+      after_success:
+        - authelia-scripts docker push-image --arch=$ARCH
+    - <<: *build-images
+      env:
+        - ARCH=arm32v7
+    - <<: *build-images
+      env:
+        - ARCH=arm64v8
+    - stage: deploy manifests
+      env:
+        - DOCKER_CLI_EXPERIMENTAL=enabled
+      install: skip
+      script:
+        - authelia-scripts docker push-manifest
 
 notifications:
   email:
     recipients:
-    - clement.michaud34@gmail.com
+      - clement.michaud34@gmail.com
     on_success: change
     on_failure: always
