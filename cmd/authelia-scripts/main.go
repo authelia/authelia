@@ -3,6 +3,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/spf13/cobra"
 )
 
@@ -117,5 +119,9 @@ func main() {
 		cobraCommands = append(cobraCommands, command)
 	}
 	rootCmd.AddCommand(cobraCommands...)
-	rootCmd.Execute()
+	err := rootCmd.Execute()
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
