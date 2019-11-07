@@ -42,3 +42,5 @@ users_database.test.yml
 .idea
 
 .authelia-interrupt
+
+qemu-*-static
