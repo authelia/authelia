@@ -149,12 +149,12 @@ func deploy(docker *Docker, tag string) {
 }
 
 func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag string, arm64v8tag string) {
-	imageWithTag := DockerImageName + ":" + tag
+	dockerImagePrefix := DockerImageName + ":"
 	fmt.Println("===================================================")
-	fmt.Println("Docker manifest " + imageWithTag + " will be deployed on Dockerhub.")
+	fmt.Println("Docker manifest " + dockerImagePrefix + tag + " will be deployed on Dockerhub.")
 	fmt.Println("===================================================")
 
-	err := docker.Manifest(imageWithTag, amd64tag, arm32v7tag, arm64v8tag)
+	err := docker.Manifest(dockerImagePrefix+tag, dockerImagePrefix+amd64tag, dockerImagePrefix+arm32v7tag, dockerImagePrefix+arm64v8tag)
 
 	if err != nil {
 		panic(err)
