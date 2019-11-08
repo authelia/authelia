@@ -4,7 +4,7 @@ package main
 type Docker struct{}
 
 // Build build a docker image
-func (d *Docker) Build(tag string, dockerfile string, target string) error {
+func (d *Docker) Build(tag, dockerfile, target string) error {
 	return CommandWithStdout("docker", "build", "-t", tag, "-f", dockerfile, target).Run()
 }
 
@@ -24,7 +24,7 @@ func (d *Docker) Push(tag string) error {
 }
 
 // Manifest push a docker manifest to dockerhub.
-func (d *Docker) Manifest(tag string, amd64tag string, arm32v7tag string, arm64v8tag string) error {
+func (d *Docker) Manifest(tag, amd64tag, arm32v7tag, arm64v8tag string) error {
 	err := CommandWithStdout("docker", "manifest", "create", tag, amd64tag, arm32v7tag, arm64v8tag).Run()
 
 	if err != nil {
@@ -44,4 +44,9 @@ func (d *Docker) Manifest(tag string, amd64tag string, arm32v7tag string, arm64v
 	}
 
 	return CommandWithStdout("docker", "manifest", "push", "--purge", tag).Run()
+}
+
+// CleanTag remove a tag from dockerhub.
+func (d *Docker) CleanTag(username, password, tag string) error {
+	return CommandWithStdout("curl", "-u", username+":"+password, "-X", "DELETE", "https://cloud.docker.com/v2/repositories/"+DockerImageName+"/tags/"+tag+"/").Run()
 }

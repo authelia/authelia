@@ -159,6 +159,22 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 	if err != nil {
 		panic(err)
 	}
+
+	tags := []string{amd64tag, arm32v7tag, arm64v8tag}
+	for _, t := range tags {
+		username := os.Getenv("DOCKER_USERNAME")
+		password := os.Getenv("DOCKER_PASSWORD")
+
+		fmt.Println("===================================================")
+		fmt.Println("Docker removing tag for " + dockerImagePrefix + t + " on Dockerhub.")
+		fmt.Println("===================================================")
+
+		err = docker.CleanTag(username, password, t)
+
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func publishDockerImage(arch string) {
