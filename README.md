@@ -12,8 +12,8 @@ providing 2-factor authentication and single sign-on (SSO) for your
 applications via a web portal.
 It acts as a companion of reverse proxies like [nginx] or [Traefik] by handling forwarded authentication and authorization requests.
 
-    BREAKING NEWS: Authelia v4 is here! The new version is written in Go for reliability, performance and security improvements.
-    It is currently available in beta.
+    BREAKING NEWS: Authelia v4 release is coming soon! The new version is written in Go for reliability, performance and security improvements.
+    It is currently available in beta in master.
     Please read AUTHELIA-V4.md if you want to migrate from v3 to v4. But note that the data model migration is not automated yet.
 
 
