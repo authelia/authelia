@@ -131,6 +131,7 @@ func login(docker *Docker) {
 
 func deploy(docker *Docker, tag string) {
 	imageWithTag := DockerImageName + ":" + tag
+
 	fmt.Println("===================================================")
 	fmt.Println("Docker image " + imageWithTag + " will be deployed on Dockerhub.")
 	fmt.Println("===================================================")
@@ -150,6 +151,7 @@ func deploy(docker *Docker, tag string) {
 
 func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag string, arm64v8tag string) {
 	dockerImagePrefix := DockerImageName + ":"
+
 	fmt.Println("===================================================")
 	fmt.Println("Docker manifest " + dockerImagePrefix + tag + " will be deployed on Dockerhub.")
 	fmt.Println("===================================================")
@@ -162,18 +164,25 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 
 	tags := []string{amd64tag, arm32v7tag, arm64v8tag}
 	for _, t := range tags {
-		username := os.Getenv("DOCKER_USERNAME")
-		password := os.Getenv("DOCKER_PASSWORD")
-
 		fmt.Println("===================================================")
 		fmt.Println("Docker removing tag for " + dockerImagePrefix + t + " on Dockerhub.")
 		fmt.Println("===================================================")
 
-		err = docker.CleanTag(username, password, t)
+		err = docker.CleanTag(t)
 
 		if err != nil {
 			panic(err)
 		}
+	}
+
+	fmt.Println("===================================================")
+	fmt.Println("Docker pushing README.md to Dockerhub.")
+	fmt.Println("===================================================")
+
+	err = docker.PublishReadme()
+
+	if err != nil {
+		panic(err)
 	}
 }
 

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/authelia-title.png" width="350" title="Authelia">
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/authelia-title.png" width="350" title="Authelia">
 </p>
 
   [![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)][Apache 2.0]
@@ -18,25 +18,25 @@ It acts as a companion of reverse proxies like [nginx] or [Traefik] by handling 
 
 
 <p align="center">
-  <img src="images/authelia.logo.png" height="100"/>
-  <img src="images/plus.png" height="100"/>
-  <img src="images/nginx.logo.png" height="100"/>
-  <img src="images/traefik.logo.png" height="100"/>  
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/authelia.logo.png" height="100"/>
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/plus.png" height="100"/>
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/nginx.logo.png" height="100"/>
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/traefik.logo.png" height="100"/>  
 </p>
 
 **Authelia** can be installed as a standalone service using Docker or NPM
 but can also be deployed easily on [Kubernetes] leveraging ingress controllers and ingress configuration.
 
 <p align="center">
-  <img src="images/kubernetes.logo.png" height="100"/>
-  <img src="images/docker.logo.png" width="100">
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/kubernetes.logo.png" height="100"/>
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/docker.logo.png" width="100">
 </p>
 
 Here is what Authelia's portal looks like
 
 <p align="center">
-  <img src="images/first_factor.png" width="400" />
-  <img src="images/use-another-method.png" width="400" />
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/first_factor.png" width="400" />
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/use-another-method.png" width="400" />
 </p>
 
 ## Features summary
@@ -44,9 +44,9 @@ Here is what Authelia's portal looks like
 Here is the list of the main available features:
 
 * Several kind of second factor:
-  * **[Security Key (U2F)](./docs/2factor/security-key.md)** with [Yubikey].
-  * **[Time-based One-Time password](./docs/2factor/time-based-one-time-password.md)** with [Google Authenticator].
-  * **[Mobile Push Notifications](./docs/2factor/duo-push-notifications.md)** with [Duo](https://duo.com/).
+  * **[Security Key (U2F)](https://github.com/clems4ever/authelia/blob/master/docs/2factor/security-key.md)** with [Yubikey].
+  * **[Time-based One-Time password](https://github.com/clems4ever/authelia/blob/master/docs/2factor/time-based-one-time-password.md)** with [Google Authenticator].
+  * **[Mobile Push Notifications](https://github.com/clems4ever/authelia/blob/master/docs/2factor/duo-push-notifications.md)** with [Duo](https://duo.com/).
 * Password reset with identity verification using email confirmation.
 * Single-factor only authentication method available.
 * Access restriction after too many authentication attempts.
@@ -55,7 +55,7 @@ Here is the list of the main available features:
 * Highly-available using distributed database and KV store.
 * Compatible with Kubernetes [ingress-nginx](https://github.com/kubernetes/ingress-nginx) controller out of the box.
 
-For more details about the features, follow [Features](./docs/features.md).
+For more details about the features, follow [Features](https://github.com/clems4ever/authelia/blob/master/docs/features.md).
 
 ## Proxy support
 
@@ -64,9 +64,9 @@ Authelia works in combination with [nginx] or [Traefik] and soon with [HAProxy] 
 Docker or directly in [Kubernetes].
 
 <p align="center">
-  <img src="images/nginx.logo.png" height="50"/>
-  <img src="images/traefik.logo.png" height="50"/> 
-  <img src="images/kubernetes.logo.png" height="50"/> 
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/nginx.logo.png" height="50"/>
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/traefik.logo.png" height="50"/> 
+  <img src="https://github.com/clems4ever/authelia/raw/master/images/kubernetes.logo.png" height="50"/> 
 </p>
 
 ## Getting Started
@@ -76,12 +76,12 @@ You can start off with
     git clone https://github.com/clems4ever/authelia.git && cd authelia
     source bootstrap.sh
 
-If you want to go further, please read [Getting Started](./docs/getting-started.md).
+If you want to go further, please read [Getting Started](https://github.com/clems4ever/authelia/blob/master/docs/getting-started.md).
 
 ## Deployment
 
 Now that you have tested **Authelia** and you want to try it out in your own infrastructure,
-you can learn how to deploy and use it with [Deployment](./docs/deployment-production.md).
+you can learn how to deploy and use it with [Deployment](https://github.com/clems4ever/authelia/blob/master/docs/deployment-production.md).
 This guide will show you how to deploy it on bare metal as well as on
 [Kubernetes](https://kubernetes.io/).
 
@@ -89,11 +89,11 @@ This guide will show you how to deploy it on bare metal as well as on
 
 If you want more information about the security measures applied by
 **Authelia** and some tips on how to set up **Authelia** in a secure way,
-refer to [Security](./docs/security.md).
+refer to [Security](https://github.com/clems4ever/authelia/blob/master/docs/security.md).
 
 ## Changelog & Breaking changes
 
-See [CHANGELOG.md](CHANGELOG.md) and [BREAKING.md](BREAKING.md).
+See [CHANGELOG.md](https://github.com/clems4ever/authelia/blob/master/CHANGELOG.md) and [BREAKING.md](https://github.com/clems4ever/authelia/blob/master/BREAKING.md).
 
 ## Contribute
 
@@ -102,16 +102,16 @@ documentation, security reviews or whatever, are very welcome to issue
 or review pull requests and take part to discussions in
 [Gitter](https://gitter.im/authelia/general?utm_source=share-link&utm_medium=link&utm_campaign=share-link).
 
-I am very greatful to contributors for their contributions to the project. Don't hesitate be the next!
+I am very grateful to contributors for their contributions to the project. Don't hesitate be the next!
 
 ## Build Authelia
 
-If you want to contribute with code, you should follow the documentation explaining how to [build](./docs/build.md) the application.
+If you want to contribute with code, you should follow the documentation explaining how to [build](https://github.com/clems4ever/authelia/blob/master/docs/build-and-dev.md) the application.
 
 ## License
 
 **Authelia** is **licensed** under the **[Apache 2.0]** license. The terms of the license are detailed
-in [LICENSE](LICENSE).
+in [LICENSE](https://github.com/clems4ever/authelia/blob/master/LICENSE).
 
 
 [Apache 2.0]: https://www.apache.org/licenses/LICENSE-2.0
