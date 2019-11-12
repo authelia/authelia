@@ -48,10 +48,10 @@ func (d *Docker) Manifest(tag, amd64tag, arm32v7tag, arm64v8tag string) error {
 
 // CleanTag remove a tag from dockerhub.
 func (d *Docker) CleanTag(tag string) error {
-	return CommandWithStdout("curl", "-u", "$DOCKER_USERNAME:$DOCKER_PASSWORD", "-X", "DELETE", "https://cloud.docker.com/v2/repositories/"+DockerImageName+"/tags/"+tag+"/").Run()
+	return CommandWithStdout("bash", "-c", "curl -s -o /dev/null -u $DOCKER_USERNAME:$DOCKER_PASSWORD -X DELETE https://cloud.docker.com/v2/repositories/"+DockerImageName+"/tags/"+tag+"/").Run()
 }
 
 // PublishReadme push README.md to dockerhub.
 func (d *Docker) PublishReadme() error {
-	return CommandWithStdout("bash", "-c", `jq -n --arg msg "$(<README.md)" '{"registry":"registry-1.docker.io","full_description": $msg }' | curl -u $DOCKER_USERNAME:$DOCKER_PASSWORD -X "PATCH" -H "Content-Type: application/json" -d @- https://cloud.docker.com/v2/repositories/clems4ever/authelia/`).Run()
+	return CommandWithStdout("bash", "-c", `jq -n --arg msg "$(<README.md)" '{"registry":"registry-1.docker.io","full_description": $msg }' | curl -s -o /dev/null -u $DOCKER_USERNAME:$DOCKER_PASSWORD -X "PATCH" -H "Content-Type: application/json" -d @- https://cloud.docker.com/v2/repositories/clems4ever/authelia/`).Run()
 }
