@@ -31,6 +31,8 @@ func waitUntilServiceLogDetected(
 }
 
 func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
+	log.Info("Waiting for Authelia to be ready...")
+
 	err := waitUntilServiceLogDetected(
 		5*time.Second,
 		90*time.Second,
@@ -42,10 +44,17 @@ func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
 		return err
 	}
 
-	return waitUntilServiceLogDetected(
+	err = waitUntilServiceLogDetected(
 		5*time.Second,
 		90*time.Second,
 		dockerEnvironment,
 		"authelia-frontend",
 		"You can now view authelia-portal in the browser.")
+
+	if err != nil {
+		return err
+	}
+	log.Info("Authelia is now ready!")
+
+	return nil
 }
