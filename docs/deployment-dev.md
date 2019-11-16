@@ -16,11 +16,10 @@ non resilient to failures.*
 **NOTE:** If not done already, we highly recommend you first follow the
 [Getting Started] documentation.
 
-In some cases, like protecting personal websites, it can be fine to use
-**Authelia** in a non highly-available setup. We can
-achieve that in order to reduce the number of components to only two: a
-reverse proxy such as nginx or Traefik and Authelia as a companion of the
-proxy.
+In some cases, like protecting personal projects/websites, it can be fine to use
+**Authelia** in a non highly-available setup. This reduces the number
+of components to only two: a reverse proxy such as nginx or Traefik and
+Authelia as a companion of the proxy.
 
 As for a regular deployment in production, you need to install **Authelia**
 either by pulling the Docker image or building distributable version.
@@ -48,16 +47,16 @@ TODO
 
 ### Discard SQL server
 
-There is an option in the configuration file to avoid using a SQL server and use
-a local sqlite3 database instead. This option will therefore prevent you from running
-multiple instances of **Authelia** in parallel.
+There is an option in the configuration file to avoid using an external SQL server
+and use a local sqlite3 database instead. This option will therefore prevent you
+from running multiple instances of **Authelia** in parallel.
 Consequently, this option is not meant to be used in production or at least
 not one that should scale out.
 
-Here is the configuration block you should use:
+Here is the configuration you should use:
 
     storage:
-      # The directory where the sqlite3 file will be saved
+      # The file path of the sqlite3 file where data will be persisted
       local:
         path: /var/lib/authelia/db.sqlite3
 
@@ -159,7 +158,7 @@ Well, as stated before those instructions are not meant to be applied for
 a production environment. That being said, in some cases it is just fine and
 writing an Ansible playbook to automate all this process is ok.
 We would really be more than happy to review such a PR.
-In the meantime, you can check the *basic* [suite](./suites.md) to see all this
+In the meantime, you can check the *Standalone* [suite](./suites.md) to see all this
 in a real example.
 
 [Getting Started]: ./getting-started.md
