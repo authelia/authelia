@@ -3,18 +3,18 @@
 Authelia is a single component in interaction with many others. Consequently, testing the features
 is not as easy as we might think. In order to solve this problem, Authelia came up with the concept of
 suite which is a kind of virtual environment for Authelia, it allows to create an environment made of
-components such as nginx, redis or mongo in which Authelia can run and be tested.
+components such as nginx, redis or mariadb in which Authelia can run and be tested.
 
 This abstraction allows to prepare an environment for manual testing during development and also to
 craft and run integration tests efficiently.
 
 ## Start a suite.
 
-Starting a suite called *basic* is done with the following command:
+Starting a suite called *Standalone* is done with the following command:
 
-    authelia-scripts suites start basic
+    authelia-scripts suites setup Standalone
 
-It will start the suite and block until you hit ctrl-c to stop the suite.
+It will deploy the environment of the suite and block until you hit ctrl-c to stop the suite.
 
 ## Run tests of a suite
 
@@ -28,12 +28,12 @@ and this will run the tests related to the running suite.
 
 ### Run tests of non-running suite
 
-However, if no suite is running and you still want to test a particular suite like *high-availability*.
+However, if no suite is running and you still want to test a particular suite like *HighAvailability*.
 You can do so with the next command:
 
-    authelia-scripts suites test high-availability
+    authelia-scripts suites test HighAvailability
 
-This command will run the tests for the *high-availability* suite. Beware that running tests of a
+This command will run the tests for the *HighAvailability* suite. Beware that running tests of a
 non-running suite implies the tests run against the distributable version of Authelia instead of
 the current development version. If you made some patches, you must build the distributable version
 before running the test command:

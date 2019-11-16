@@ -8,9 +8,9 @@ Docker image but pick a version instead and check this file before upgrading. Th
 
 Authelia has been rewritten in Go for better performance and reliability.
 
-### Model of U2F devices in MongoDB
+### Model of U2F devices
 
-The model of U2F devices stored in MongoDB has been updated to better fit with the Go library handling U2F keys.
+The model of U2F devices has been updated to better fit with the Go library handling U2F keys.
 
 ### Removal of flag secure for SMTP notifier
 

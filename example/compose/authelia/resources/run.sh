@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Build the binary
 go build -o /tmp/authelia/authelia-tmp cmd/authelia/main.go
 

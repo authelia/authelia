@@ -5,7 +5,7 @@ all components making Authelia highly available.
 
 ## Components
 
-This suite will spawn nginx as the edge reverse proxy, redis and mongo for storing
+This suite will spawn nginx as the edge reverse proxy, redis and mariadb for storing
 user sessions and configurations, LDAP for storing user accounts and authenticating,
 as well as a few helpers such as a fake webmail to receive e-mails sent by Authelia
 and httpbin to check headers forwarded by Authelia.

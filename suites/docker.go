@@ -1,6 +1,7 @@
 package suites
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -34,6 +35,13 @@ func (de *DockerEnvironment) createCommand(cmd string) *exec.Cmd {
 // Up spawn a docker environment
 func (de *DockerEnvironment) Up(suitePath string) error {
 	cmd := de.createCommandWithStdout("up -d")
+	cmd.Env = append(os.Environ(), "SUITE_PATH="+suitePath)
+	return cmd.Run()
+}
+
+// Restart restarts a service
+func (de *DockerEnvironment) Restart(suitePath, service string) error {
+	cmd := de.createCommandWithStdout(fmt.Sprintf("restart %s", service))
 	cmd.Env = append(os.Environ(), "SUITE_PATH="+suitePath)
 	return cmd.Run()
 }

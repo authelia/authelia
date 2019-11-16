@@ -243,19 +243,19 @@ regulation:
 
 # Configuration of the storage backend used to store data and secrets.
 #
-# You must use only an available configuration: local, mongo
+# You must use only an available configuration: local, sql
 storage:
   # The directory where the DB files will be saved
   ## local:
   ##   path: /var/lib/authelia/db.sqlite3
 
-  # Settings to connect to mongo server
-  mongo:
-    url: mongodb://127.0.0.1
+  # Settings to connect to SQL server
+  sql:
+    host: 127.0.0.1
+    port: 3306
     database: authelia
-    auth:
-      username: authelia
-      password: authelia
+    username: authelia
+    password: mypassword
 
 # Configuration of the notification system.
 #

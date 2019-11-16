@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-var basicSuiteName = "Basic"
+var mariadbSuiteName = "Mariadb"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
@@ -14,26 +14,27 @@ func init() {
 		"example/compose/nginx/backend/docker-compose.yml",
 		"example/compose/nginx/portal/docker-compose.yml",
 		"example/compose/smtp/docker-compose.yml",
+		"example/compose/mariadb/docker-compose.yml",
+		"example/compose/ldap/docker-compose.yml",
 	})
 
 	setup := func(suitePath string) error {
 		if err := dockerEnvironment.Up(suitePath); err != nil {
 			return err
 		}
+
 		return waitUntilAutheliaIsReady(dockerEnvironment)
 	}
 
 	teardown := func(suitePath string) error {
-		return dockerEnvironment.Down(suitePath)
+		err := dockerEnvironment.Down(suitePath)
+		return err
 	}
 
-	GlobalRegistry.Register(basicSuiteName, Suite{
-		TestTimeout:     1 * time.Minute,
+	GlobalRegistry.Register(mariadbSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    3 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 1 * time.Minute,
-		Description: `This suite is used to test Authelia in a standalone
-configuration with in-memory sessions and a local sqlite db stored on disk`,
+		TearDownTimeout: 2 * time.Minute,
 	})
 }

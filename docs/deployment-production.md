@@ -15,10 +15,10 @@ authentication and authorization requests for your entire infrastructure.
 As **Authelia** will be key to your architecture, it requires several
 components to make it highly-available. Deploying it in production means having
 an LDAP server for storing the information about the users, a Redis cache to
-store the user sessions in a distributed manner, a MongoDB to persist user
-configurations and one or more nginx reverse proxies configured to be used with
-Authelia. With such a setup **Authelia** can easily be scaled to multiple instances
-to evenly handle the traffic.
+store the user sessions in a distributed manner, a SQL server like MariaDB to
+persist user configurations and one or more nginx reverse proxies configured to
+be used with Authelia. With such a setup **Authelia** can easily be scaled to
+multiple instances to evenly handle the traffic.
 
 **NOTE:** If you don't have all those components, don't worry, there is a way to
 deploy **Authelia** with only nginx. This is described in [Deployment for Devs].

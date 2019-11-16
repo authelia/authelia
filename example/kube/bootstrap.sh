@@ -20,7 +20,7 @@ start_dashboard() {
   kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
 }
 
-# Spawn Redis and Mongo as backend for Authelia
+# Spawn Redis and storage backend
 # Please note they are not configured to be distributed on several machines
 start_storage() {
   kubectl apply -f storage

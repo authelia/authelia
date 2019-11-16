@@ -17,4 +17,6 @@ func NewStandaloneSuite() *StandaloneSuite {
 func TestStandaloneSuite(t *testing.T) {
 	suite.Run(t, NewOneFactorSuite())
 	suite.Run(t, NewTwoFactorSuite())
+
+	RunTypescriptSuite(t, standaloneSuiteName)
 }
