@@ -1,5 +1,5 @@
 import AutheliaSuite from "../../helpers/context/AutheliaSuite";
-import MongoConnectionRecovery from "./scenarii/MongoConnectionRecovery";
+import MariaConnectionRecovery from "./scenarii/MariaConnectionRecovery";
 import EnforceInternalRedirectionsOnly from "./scenarii/EnforceInternalRedirectionsOnly";
 import AccessControl from "./scenarii/AccessControl";
 import CustomHeadersForwarded from "./scenarii/CustomHeadersForwarded";
@@ -12,7 +12,7 @@ AutheliaSuite(__dirname, function () {
 
   describe('Custom headers forwarded to backend', CustomHeadersForwarded);
   describe('Access control', AccessControl);
-  describe('Mongo broken connection recovery', MongoConnectionRecovery);
+  describe('Mariadb broken connection recovery', MariaConnectionRecovery);
   describe('Enforce internal redirections only', EnforceInternalRedirectionsOnly);
   describe('Basic authentication', BasicAuthentication);
   describe('Authelia restart', AutheliaRestart);

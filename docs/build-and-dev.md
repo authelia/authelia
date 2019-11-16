@@ -44,8 +44,8 @@ To run the unit tests written, run:
 ### Integration tests
 
 Integration tests run with Mocha and are based on Selenium. They generally
-require a complete environment made of several components like redis, mongo and a LDAP
-to run. That's why [suites] have been created. At this point, the *basic* suite should
+require a complete environment made of several components like redis, a SQL server and a
+LDAP to run. That's why [suites] have been created. At this point, the *basic* suite should
 already be running and you can run the tests related to this suite with the following
 command:
 

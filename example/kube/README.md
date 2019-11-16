@@ -51,7 +51,7 @@ manual intervention.
 
 ## What do I need to know to deploy it in my cluster?
 
-Given your cluster already runs a LDAP server, a Redis, a Mongo database,
+Given your cluster already runs a LDAP server, a Redis, a SQL database,
 a SMTP server and a nginx ingress-controller, you can deploy **Authelia**
 and update your ingress configurations. An example is provided 
 [here](./authelia).

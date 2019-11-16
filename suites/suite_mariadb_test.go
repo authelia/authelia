@@ -6,15 +6,15 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type MongoSuite struct {
+type MariadbSuite struct {
 	*SeleniumSuite
 }
 
-func NewMongoSuite() *MongoSuite {
-	return &MongoSuite{SeleniumSuite: new(SeleniumSuite)}
+func NewMariadbSuite() *MariadbSuite {
+	return &MariadbSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
-func TestMongoSuite(t *testing.T) {
+func TestMariadbSuite(t *testing.T) {
 	suite.Run(t, NewOneFactorSuite())
 	suite.Run(t, NewTwoFactorSuite())
 }

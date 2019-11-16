@@ -14,6 +14,5 @@ func NewHighAvailabilitySuite() *HighAvailabilitySuite {
 
 func TestHighAvailabilitySuite(t *testing.T) {
 	RunTypescriptSuite(t, highAvailabilitySuiteName)
-
 	TestRunOneFactor(t)
 }

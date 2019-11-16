@@ -22,12 +22,12 @@ session:
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
-  mongo:
-    url: mongodb://mongo
+  sql:
+    host: mariadb
+    port: 3306
     database: authelia
-    auth:
-      username: authelia
-      password: authelia
+    username: admin
+    password: password
 
 # TOTP Issuer Name
 #

@@ -4,7 +4,7 @@
 2. [Deploy With Docker](#deploy-with-docker)
 3. [Deploy nginx](#deploy-nginx)
 4. [Discard components](#discard-components)
-    1. [Discard MongoDB](#discard-mongodb)
+    1. [Discard SQL Server](#discard-sql-server)
     2. [Discard Redis](#discard-redis)
     3. [Discard LDAP](#discard-ldap)
 5. [FAQ](#faq)
@@ -46,12 +46,11 @@ TODO
 
 ## Discard components
 
-### Discard MongoDB
+### Discard SQL server
 
-There is an option in the configuration file to discard MongoDB and use
-your local filesystem to store data in a sqlite3 database. This option will
-therefore prevent you from running multiple instances of **Authelia** in
-parallel.
+There is an option in the configuration file to avoid using a SQL server and use
+a local sqlite3 database instead. This option will therefore prevent you from running
+multiple instances of **Authelia** in parallel.
 Consequently, this option is not meant to be used in production or at least
 not one that should scale out.
 

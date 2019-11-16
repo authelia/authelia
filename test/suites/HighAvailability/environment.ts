@@ -2,7 +2,7 @@ const composeFiles = [
   'docker-compose.yml',
   'example/compose/authelia/docker-compose.backend.yml',
   'example/compose/authelia/docker-compose.frontend.yml',
-  'example/compose/mongo/docker-compose.yml',
+  'example/compose/mariadb/docker-compose.yml',
   'example/compose/redis/docker-compose.yml',
   'example/compose/nginx/backend/docker-compose.yml',
   'example/compose/nginx/portal/docker-compose.yml',

@@ -220,19 +220,15 @@ regulation:
 
 # Configuration of the storage backend used to store data and secrets.
 #
-# You must use only an available configuration: local, mongo
+# You must use only an available configuration: local, sql
 storage:
-  # The directory where the DB files will be saved
-  ## local:
-  ##   path: /var/lib/authelia/store
-
-  # Settings to connect to mongo server
-  mongo:
-    url: mongodb://mongo
+  # Settings to connect to mariadb server
+  sql:
+    host: mariadb
+    port: 3306 
     database: authelia
-    auth:
-      username: authelia
-      password: authelia
+    username: admin
+    password: password
 
 # Configuration of the notification system.
 #

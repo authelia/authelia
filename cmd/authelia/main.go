@@ -6,17 +6,15 @@ import (
 	"log"
 	"os"
 
-	"github.com/clems4ever/authelia/regulation"
-
-	"github.com/clems4ever/authelia/session"
-
 	"github.com/clems4ever/authelia/authentication"
 	"github.com/clems4ever/authelia/authorization"
 	"github.com/clems4ever/authelia/configuration"
 	"github.com/clems4ever/authelia/logging"
 	"github.com/clems4ever/authelia/middlewares"
 	"github.com/clems4ever/authelia/notification"
+	"github.com/clems4ever/authelia/regulation"
 	"github.com/clems4ever/authelia/server"
+	"github.com/clems4ever/authelia/session"
 	"github.com/clems4ever/authelia/storage"
 	"github.com/sirupsen/logrus"
 )
@@ -70,8 +68,8 @@ func main() {
 	}
 
 	var storageProvider storage.Provider
-	if config.Storage.Mongo != nil {
-		storageProvider = storage.NewMongoProvider(*config.Storage.Mongo)
+	if config.Storage.SQL != nil {
+		storageProvider = storage.NewSQLProvider(*config.Storage.SQL)
 	} else if config.Storage.Local != nil {
 		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
 	} else {

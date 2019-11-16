@@ -8,7 +8,7 @@ that the system is more reliable overall.
 Majors changes:
 * The configuration mostly remained the same, only one major key has been added: `jwt_secret` and one key removed: `secure` from the
 SMTP notifier as the Go SMTP library default to TLS if available.
-* The local storage previously used as a replacement of mongo for dev purpose was a `nedb` database which was implementing the same interface
+* The local storage used for dev purpose was a `nedb` database which was implementing the same interface
 as mongo but was not really standard. It has been replaced by a good old sqlite3 database.
 * The model of the database is not compatible with v3. This has been decided to better fit with Golang libraries.
 * Some features have been upgraded such as U2F in order to use the latest security features available like allowing device cloning detection.
@@ -32,9 +32,9 @@ for operations requiring identity validation.
 * Make sure users and groups filter in the LDAP configuration have outer parenthesis. The standard format of LDAP filters always include outer
 parenthesis. You can find some examples in the "Examples" section of the following document: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
 
-#### If using the local storage
+#### If you were using the local storage
 * Remove the directory of the storage (beware you will lose your previous configuration: U2F, TOTP devices). Replace the path with a path to a sqlite3 database,
 it is the new standard way of storing data in Authelia.
 
-#### If using the mongo storage
+#### If you were using the mongo storage
 * Flush your collections (beware you will lose your previous configuration: U2F, TOTP devices). New collections will be created by Authelia.
