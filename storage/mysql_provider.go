@@ -3,7 +3,6 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/clems4ever/authelia/configuration/schema"
 	"github.com/clems4ever/authelia/logging"
@@ -42,20 +41,6 @@ func NewSQLProvider(configuration schema.SQLStorageConfiguration) *MySQLProvider
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		logging.Logger().Fatalf("Unable to connect to SQL database: %v", err)
-	}
-
-	for i := 0; i < 3; i++ {
-		if err = db.Ping(); err == nil {
-			logging.Logger().Debug("Connection to the database is established")
-			break
-		}
-
-		if i == 2 {
-			logging.Logger().Fatal("Aborting because connection to database failed")
-		}
-
-		logging.Logger().Errorf("Unable to ping database retrying in 10 seconds. error: %v", err)
-		time.Sleep(10 * time.Second)
 	}
 
 	provider := MySQLProvider{}
