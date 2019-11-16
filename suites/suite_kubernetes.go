@@ -41,6 +41,11 @@ func init() {
 			return err
 		}
 
+		log.Debug("Starting Kubernetes dashboard...")
+		if err := kubectl.StartDashboard(); err != nil {
+			return err
+		}
+
 		log.Debug("Deploying thirdparties...")
 		if err = kubectl.DeployThirdparties(); err != nil {
 			return err

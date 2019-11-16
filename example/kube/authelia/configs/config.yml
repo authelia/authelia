@@ -93,6 +93,8 @@ storage:
     host: mariadb-service
     port: 3306
     database: authelia
+    username: admin
+    password: password
 
 notifier:
   smtp:
