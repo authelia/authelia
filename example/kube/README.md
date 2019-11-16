@@ -15,7 +15,7 @@ or deploy the dedicated [suite](/docs/suites.md) called *kubernetes*.
 
 The simplest way to start a Kubernetes cluster is to deploy the *kubernetes* suite with
 
-    authelia-scripts suites start kubernetes
+    authelia-scripts suites setup kubernetes
 
 This will take a few seconds (or minutes) to deploy the cluster.
 

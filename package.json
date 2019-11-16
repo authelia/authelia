@@ -2,21 +2,8 @@
   "name": "authelia",
   "version": "3.16.3",
   "description": "2FA Single Sign-On server for nginx using LDAP, TOTP and U2F",
-  "bin": {
-    "authelia": "./dist/server/src/index.js"
-  },
   "engines": {
     "node": ">=8.0.0 <10.0.0"
-  },
-  "scripts": {
-    "start": "./scripts/authelia-scripts suites start",
-    "build": "./scripts/authelia-scripts build",
-    "unittest": "./scripts/authelia-scripts unittest",
-    "test": "./scripts/authelia-scripts suites test",
-    "travis": "./scripts/authelia-scripts travis",
-    "cover": "NODE_ENV=test nyc npm t",
-    "scripts": "./scripts/authelia-scripts",
-    "hash-password": "./scripts/authelia-scripts hash-password"
   },
   "repository": {
     "type": "git",

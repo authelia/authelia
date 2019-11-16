@@ -1,60 +1,50 @@
 # Build and dev
 
 **Authelia** is written in Go and comes with a dedicated CLI called [authelia-scripts](./authelia-scripts.md)
-which is provided after running `source bootstrap.sh`. This CLI provides many useful tools to help you during
+which is available after running `source bootstrap.sh`. This CLI provides many useful tools to help you during
 development.
 
-In order to build and contribute to **Authelia**, you need to make sure Node with version >= 8 and < 12,
-Go v1.13 and Docker is installed on your machine.
+In order to build and contribute to **Authelia**, you need to make sure Go v1.13, Docker,
+docker-compose and Node with version >= 8 and < 12 are installed on your machine.
 
-## Build
+## Get started
 
-**Authelia** is made of two parts: the frontend and the backend.
+**Authelia** is made of Go application serving the API and a [React](https://reactjs.org/)
+application for the portal.
 
-The frontend is a [React](https://reactjs.org/) application written in Typescript and
-the backend is Go application.
+In order to ease development, Authelia uses the concept of [suites] to run Authelia from source
+code so that your patches are included. This is a kind of virtual environment running **Authelia**
+in a complete ecosystem (LDAP, Redis, SQL server). Note that Authelia is hotreloaded in the
+environment so that your patches are instantly included.
 
-The following command builds **Authelia** under dist/:
+The next command starts the suite called *Standalone*:
 
-    authelia-scripts build
+    authelia-scripts suites setup Standalone
 
-Or you can also build the Alpine-based official Docker image with:
+Most of the suites are using docker-compose to bootstrap the environment. Therefore, you
+can check the logs of all application by running the following command on the component
+you want to monitor.
 
-    authelia-scripts docker build
+    docker logs authelia_authelia-backend_1 -f
 
-## Development
-
-In order to ease development, Authelia uses the concept of [suites]. This is
-a kind of virutal environment for **Authelia**, it allows you to run **Authelia** in a complete
-ecosystem, develop and test your patches. A hot-reload feature has been implemented so that
-you can test your changes right after the file has been saved.
-
-The next command will start the suite called [basic](../test/suites/basic/README.md): 
-
-    authelia-scripts suites start basic
-
-Then, edit the code and observe how **Authelia** is automatically updated.
+Then, edit the code and observe how **Authelia** is automatically reloaded.
 
 ### Unit tests
 
-To run the unit tests written, run:
+To run the unit tests, run:
 
     authelia-scripts unittest
 
 ### Integration tests
 
-Integration tests run with Mocha and are based on Selenium. They generally
-require a complete environment made of several components like redis, a SQL server and a
-LDAP to run. That's why [suites] have been created. At this point, the *basic* suite should
-already be running and you can run the tests related to this suite with the following
-command:
+Integration tests are located under the `suites` directory based on Selenium.
 
     authelia-scripts suites test
 
-You don't need to start the suite before testing it. Given your environment is not running
-any suite, just use the following command to test the basic suite.
+You don't need to start the suite before testing it. Given you're not running
+any suite, just use the following command to test the *Standalone* suite.
 
-    authelia-scripts suites test basic
+    authelia-scripts suites test Standalone
 
 The suite will be spawned, tests will be run and then the suite will be teared down
 automatically.
