@@ -249,13 +249,21 @@ storage:
   ## local:
   ##   path: /var/lib/authelia/db.sqlite3
 
-  # Settings to connect to SQL server
-  sql:
+  # Settings to connect to MySQL server
+  mysql:
     host: 127.0.0.1
     port: 3306
     database: authelia
     username: authelia
     password: mypassword
+
+  # Settings to connect to MySQL server
+  # postgres:
+  #   host: 127.0.0.1
+  #   port: 3306
+  #   database: authelia
+  #   username: authelia
+  #   password: mypassword
 
 # Configuration of the notification system.
 #

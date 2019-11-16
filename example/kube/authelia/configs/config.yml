@@ -89,7 +89,7 @@ regulation:
   ban_time: 300
 
 storage:
-  sql:
+  mysql:
     host: mariadb-service
     port: 3306
     database: authelia

@@ -14,8 +14,8 @@ type MySQLProvider struct {
 	SQLProvider
 }
 
-// NewSQLProvider a SQL provider
-func NewSQLProvider(configuration schema.SQLStorageConfiguration) *MySQLProvider {
+// NewMySQLProvider a MySQL provider
+func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProvider {
 	connectionString := configuration.Username
 
 	if configuration.Password != "" {
@@ -36,14 +36,30 @@ func NewSQLProvider(configuration schema.SQLStorageConfiguration) *MySQLProvider
 		connectionString += fmt.Sprintf("/%s", configuration.Database)
 	}
 
-	fmt.Println(connectionString)
-
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		logging.Logger().Fatalf("Unable to connect to SQL database: %v", err)
 	}
 
-	provider := MySQLProvider{}
+	provider := MySQLProvider{
+		SQLProvider{
+			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", preferencesTableName),
+			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", preferencesTableName),
+
+			sqlTestIdentityVerificationTokenExistence: fmt.Sprintf("SELECT EXISTS (SELECT * FROM %s WHERE token=?)", identityVerificationTokensTableName),
+			sqlInsertIdentityVerificationToken:        fmt.Sprintf("INSERT INTO %s (token) VALUES (?)", identityVerificationTokensTableName),
+			sqlDeleteIdentityVerificationToken:        fmt.Sprintf("DELETE FROM %s WHERE token=?", identityVerificationTokensTableName),
+
+			sqlGetTOTPSecretByUsername: fmt.Sprintf("SELECT secret FROM %s WHERE username=?", totpSecretsTableName),
+			sqlUpsertTOTPSecret:        fmt.Sprintf("REPLACE INTO %s (username, secret) VALUES (?, ?)", totpSecretsTableName),
+
+			sqlGetU2FDeviceHandleByUsername: fmt.Sprintf("SELECT deviceHandle FROM %s WHERE username=?", u2fDeviceHandlesTableName),
+			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("REPLACE INTO %s (username, deviceHandle) VALUES (?, ?)", u2fDeviceHandlesTableName),
+
+			sqlInsertAuthenticationLog:     fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
+			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC", authenticationLogsTableName),
+		},
+	}
 	if err := provider.initialize(db); err != nil {
 		logging.Logger().Fatalf("Unable to initialize SQL database: %v", err)
 	}

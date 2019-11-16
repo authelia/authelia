@@ -8,12 +8,14 @@ import (
 
 // ValidateSQLStorage validates storage configuration.
 func ValidateSQLStorage(configuration *schema.StorageConfiguration, validator *schema.StructValidator) {
-	if configuration.Local == nil && configuration.SQL == nil {
-		validator.Push(errors.New("A storage configuration must be provided. It could be 'local' or 'sql'"))
+	if configuration.Local == nil && configuration.MySQL == nil && configuration.PostgreSQL == nil {
+		validator.Push(errors.New("A storage configuration must be provided. It could be 'local', 'mysql' or 'postgres'"))
 	}
 
-	if configuration.SQL != nil {
-		validateSQLConfiguration(configuration.SQL, validator)
+	if configuration.MySQL != nil {
+		validateSQLConfiguration(&configuration.MySQL.SQLStorageConfiguration, validator)
+	} else if configuration.PostgreSQL != nil {
+		validatePostgreSQLConfiguration(configuration.PostgreSQL, validator)
 	} else if configuration.Local != nil {
 		validateLocalStorageConfiguration(configuration.Local, validator)
 	}
@@ -26,6 +28,19 @@ func validateSQLConfiguration(configuration *schema.SQLStorageConfiguration, val
 
 	if configuration.Database == "" {
 		validator.Push(errors.New("A database must be provided"))
+	}
+}
+
+func validatePostgreSQLConfiguration(configuration *schema.PostgreSQLStorageConfiguration, validator *schema.StructValidator) {
+	validateSQLConfiguration(&configuration.SQLStorageConfiguration, validator)
+
+	if configuration.SSLMode == "" {
+		configuration.SSLMode = "disable"
+	}
+
+	if !(configuration.SSLMode == "disable" || configuration.SSLMode == "require" ||
+		configuration.SSLMode == "verify-ca" || configuration.SSLMode == "verify-full") {
+		validator.Push(errors.New("SSL mode must be 'disable', 'require', 'verify-ca' or 'verify-full'"))
 	}
 }
 

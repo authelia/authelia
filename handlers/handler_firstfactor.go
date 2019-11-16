@@ -5,13 +5,11 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/clems4ever/authelia/regulation"
-
-	"github.com/clems4ever/authelia/session"
-
 	"github.com/clems4ever/authelia/authentication"
 	"github.com/clems4ever/authelia/authorization"
 	"github.com/clems4ever/authelia/middlewares"
+	"github.com/clems4ever/authelia/regulation"
+	"github.com/clems4ever/authelia/session"
 )
 
 // FirstFactorPost is the handler performing the first factory.
@@ -51,7 +49,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !userPasswordOk {
-		ctx.Error(fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
+		ctx.ReplyError(fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
 		return
 	}
 
@@ -89,7 +87,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctx.Logger.Debugf("Details for user %s => groups: %s, emails %s", bodyJSON.Username, userDetails.Groups, userDetails.Emails)
+	ctx.Logger.Tracef("Details for user %s => groups: %s, emails %s", bodyJSON.Username, userDetails.Groups, userDetails.Emails)
 
 	// And set those information in the new session.
 	userSession := ctx.GetSession()

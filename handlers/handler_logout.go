@@ -8,7 +8,7 @@ import (
 
 // LogoutPost is the handler logging out the user attached to the given cookie.
 func LogoutPost(ctx *middlewares.AutheliaCtx) {
-	ctx.Logger.Debug("Destroy session")
+	ctx.Logger.Tracef("Destroy session")
 	err := ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 
 	if err != nil {

@@ -19,6 +19,11 @@ func newDefaultConfig() schema.Configuration {
 		Name:   "authelia_session",
 		Secret: "secret",
 	}
+	config.Storage = &schema.StorageConfiguration{
+		Local: &schema.LocalStorageConfiguration{
+			Path: "abc",
+		},
+	}
 	return config
 }
 

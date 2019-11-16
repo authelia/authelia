@@ -30,4 +30,6 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 		configuration.TOTP = &schema.TOTPConfiguration{}
 		ValidateTOTP(configuration.TOTP, validator)
 	}
+
+	ValidateSQLStorage(configuration.Storage, validator)
 }

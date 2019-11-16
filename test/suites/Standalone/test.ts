@@ -10,11 +10,11 @@ import { exec } from '../../helpers/utils/exec';
 import BypassPolicy from "./scenarii/BypassPolicy";
 import NoDuoPushOption from "./scenarii/NoDuoPushOption";
 
-AutheliaSuite("/tmp/authelia/suites/Basic/", function() {
+AutheliaSuite("/tmp/authelia/suites/Standalone/", function() {
   this.timeout(10000);
   
   beforeEach(async function() {
-    await exec(`cp ${__dirname}/../../../suites/Basic/users.yml /tmp/authelia/suites/Basic/users.yml`);
+    await exec(`cp ${__dirname}/../../../suites/Standalone/users.yml /tmp/authelia/suites/Standalone/users.yml`);
   });
 
   describe('Bypass policy', BypassPolicy)
