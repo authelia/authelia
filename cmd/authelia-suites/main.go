@@ -108,17 +108,17 @@ func teardownSuite(cmd *cobra.Command, args []string) {
 
 	s := suites.GlobalRegistry.Get(args[0])
 
-	if err := removeRunningSuiteFile(); err != nil {
-		log.Print(err)
+	suiteTmpDirectory := tmpDirectory + args[0]
+	if err := s.TearDown(suiteTmpDirectory); err != nil {
+		log.Fatal(err)
 	}
 
-	suiteTmpDirectory := tmpDirectory + args[0]
-	s.TearDown(suiteTmpDirectory)
-
-	err := os.RemoveAll(suiteTmpDirectory)
-
-	if err != nil {
+	if err := os.RemoveAll(suiteTmpDirectory); err != nil {
 		log.Fatal(err)
+	}
+
+	if err := removeRunningSuiteFile(); err != nil {
+		log.Print(err)
 	}
 
 	log.Info("Environment has been cleaned!")

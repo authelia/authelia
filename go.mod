@@ -5,13 +5,17 @@ go 1.13
 require (
 	github.com/Workiva/go-datastructures v1.0.50
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a
+	github.com/cespare/reflex v0.2.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/duosecurity/duo_api_golang v0.0.0-20190308151101-6c680f768e74
 	github.com/fasthttp/router v0.5.2
 	github.com/fasthttp/session v1.1.3
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/mock v1.3.1
+	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
+	github.com/kr/pty v1.1.8 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
+	github.com/ogier/pflag v0.0.1 // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
 	github.com/otiai10/copy v1.0.2
