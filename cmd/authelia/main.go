@@ -54,6 +54,9 @@ func main() {
 		logging.SetLevel(logrus.InfoLevel)
 		break
 	case "debug":
+		logging.SetLevel(logrus.DebugLevel)
+		break
+	case "trace":
 		logging.SetLevel(logrus.TraceLevel)
 	}
 
@@ -68,8 +71,10 @@ func main() {
 	}
 
 	var storageProvider storage.Provider
-	if config.Storage.SQL != nil {
-		storageProvider = storage.NewSQLProvider(*config.Storage.SQL)
+	if config.Storage.PostgreSQL != nil {
+		storageProvider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL)
+	} else if config.Storage.MySQL != nil {
+		storageProvider = storage.NewMySQLProvider(*config.Storage.MySQL)
 	} else if config.Storage.Local != nil {
 		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
 	} else {

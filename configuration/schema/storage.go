@@ -14,8 +14,20 @@ type SQLStorageConfiguration struct {
 	Password string `yaml:"password"`
 }
 
+// MySQLStorageConfiguration represents the configuration of a MySQL database
+type MySQLStorageConfiguration struct {
+	SQLStorageConfiguration `yaml:",inline"`
+}
+
+// PostgreSQLStorageConfiguration represents the configuration of a Postgres database
+type PostgreSQLStorageConfiguration struct {
+	SQLStorageConfiguration `yaml:",inline"`
+	SSLMode                 string `yaml:"sslmode"`
+}
+
 // StorageConfiguration represents the configuration of the storage backend.
 type StorageConfiguration struct {
-	Local *LocalStorageConfiguration `yaml:"local"`
-	SQL   *SQLStorageConfiguration   `yaml:"sql"`
+	Local      *LocalStorageConfiguration      `yaml:"local"`
+	MySQL      *MySQLStorageConfiguration      `yaml:"mysql"`
+	PostgreSQL *PostgreSQLStorageConfiguration `yaml:"postgres"`
 }

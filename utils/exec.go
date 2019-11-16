@@ -114,9 +114,8 @@ func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
 	select {
 	case <-time.After(timeout):
 		fmt.Printf("Timeout of %ds reached... Killing process...\n", int64(timeout/time.Second))
-		err := cmd.Process.Kill()
 
-		if err != nil {
+		if err := cmd.Process.Kill(); err != nil {
 			return err
 		}
 		return fmt.Errorf("timeout of %ds reached", int64(timeout/time.Second))

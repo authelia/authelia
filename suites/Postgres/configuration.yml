@@ -22,9 +22,9 @@ session:
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
-  mysql:
-    host: mariadb
-    port: 3306
+  postgres:
+    host: postgres
+    port: 5432
     database: authelia
     username: admin
     password: password

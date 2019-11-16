@@ -158,7 +158,7 @@ func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
 	lastActivity := ctx.GetSession().LastActivity
 	inactivityPeriod := time.Now().Unix() - lastActivity
 
-	ctx.Logger.Debugf("Inactivity report: Inactivity=%d, MaxInactivity=%d",
+	ctx.Logger.Tracef("Inactivity report: Inactivity=%d, MaxInactivity=%d",
 		inactivityPeriod, maxInactivityPeriod)
 
 	if inactivityPeriod > maxInactivityPeriod {

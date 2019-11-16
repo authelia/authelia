@@ -45,11 +45,20 @@ func AutheliaMiddleware(configuration schema.Configuration, providers Providers)
 	}
 }
 
+// Error reply with an error and display the stack trace in the logs.
 func (c *AutheliaCtx) Error(err error, message string) {
 	b, _ := json.Marshal(ErrorResponse{Status: "KO", Message: message})
 	c.SetContentType("application/json")
 	c.SetBody(b)
 	c.Logger.Error(err)
+}
+
+// ReplyError reply with an error but does not display any stack trace in the logs
+func (c *AutheliaCtx) ReplyError(err error, message string) {
+	b, _ := json.Marshal(ErrorResponse{Status: "KO", Message: message})
+	c.SetContentType("application/json")
+	c.SetBody(b)
+	c.Logger.Debug(err)
 }
 
 // ReplyUnauthorized response sent when user is unauthorized

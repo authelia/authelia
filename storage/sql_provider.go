@@ -2,6 +2,8 @@ package storage
 
 import (
 	"database/sql"
+	"encoding/base64"
+	"fmt"
 	"time"
 
 	"github.com/clems4ever/authelia/models"
@@ -10,42 +12,58 @@ import (
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
 	db *sql.DB
+
+	sqlGetPreferencesByUsername     string
+	sqlUpsertSecondFactorPreference string
+
+	sqlTestIdentityVerificationTokenExistence string
+	sqlInsertIdentityVerificationToken        string
+	sqlDeleteIdentityVerificationToken        string
+
+	sqlGetTOTPSecretByUsername string
+	sqlUpsertTOTPSecret        string
+
+	sqlGetU2FDeviceHandleByUsername string
+	sqlUpsertU2FDeviceHandle        string
+
+	sqlInsertAuthenticationLog     string
+	sqlGetLatestAuthenticationLogs string
 }
 
 func (p *SQLProvider) initialize(db *sql.DB) error {
 	p.db = db
 
-	_, err := db.Exec("CREATE TABLE IF NOT EXISTS SecondFactorPreferences (username VARCHAR(100) PRIMARY KEY, method VARCHAR(10))")
+	_, err := db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100) PRIMARY KEY, second_factor_method VARCHAR(10))", preferencesTableName))
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS IdentityVerificationTokens (token VARCHAR(512))")
+	_, err = db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (token VARCHAR(512))", identityVerificationTokensTableName))
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS TOTPSecrets (username VARCHAR(100) PRIMARY KEY, secret VARCHAR(64))")
+	_, err = db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100) PRIMARY KEY, secret VARCHAR(64))", totpSecretsTableName))
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS U2FDeviceHandles (username VARCHAR(100) PRIMARY KEY, deviceHandle BLOB)")
+	_, err = db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100) PRIMARY KEY, deviceHandle TEXT)", u2fDeviceHandlesTableName))
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS AuthenticationLogs (username VARCHAR(100), successful BOOL, time INTEGER)")
+	_, err = db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100), successful BOOL, time INTEGER)", authenticationLogsTableName))
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec("CREATE INDEX IF NOT EXISTS time ON AuthenticationLogs (time);")
+	_, err = db.Exec(fmt.Sprintf("CREATE INDEX IF NOT EXISTS time ON %s (time);", authenticationLogsTableName))
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec("CREATE INDEX IF NOT EXISTS username ON AuthenticationLogs (username);")
+	_, err = db.Exec(fmt.Sprintf("CREATE INDEX IF NOT EXISTS username ON %s (username);", authenticationLogsTableName))
 	if err != nil {
 		return err
 	}
@@ -54,11 +72,7 @@ func (p *SQLProvider) initialize(db *sql.DB) error {
 
 // LoadPrefered2FAMethod load the prefered method for 2FA from sqlite db.
 func (p *SQLProvider) LoadPrefered2FAMethod(username string) (string, error) {
-	stmt, err := p.db.Prepare("SELECT method FROM SecondFactorPreferences WHERE username=?")
-	if err != nil {
-		return "", err
-	}
-	rows, err := stmt.Query(username)
+	rows, err := p.db.Query(p.sqlGetPreferencesByUsername, username)
 	defer rows.Close()
 	if err != nil {
 		return "", err
@@ -76,70 +90,42 @@ func (p *SQLProvider) LoadPrefered2FAMethod(username string) (string, error) {
 
 // SavePrefered2FAMethod save the prefered method for 2FA in sqlite db.
 func (p *SQLProvider) SavePrefered2FAMethod(username string, method string) error {
-	stmt, err := p.db.Prepare("REPLACE INTO SecondFactorPreferences (username, method) VALUES (?, ?)")
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(username, method)
+	_, err := p.db.Exec(p.sqlUpsertSecondFactorPreference, username, method)
 	return err
 }
 
 // FindIdentityVerificationToken look for an identity verification token in DB.
 func (p *SQLProvider) FindIdentityVerificationToken(token string) (bool, error) {
-	stmt, err := p.db.Prepare("SELECT token FROM IdentityVerificationTokens WHERE token=?")
+	var found bool
+	err := p.db.QueryRow(p.sqlTestIdentityVerificationTokenExistence, token).Scan(&found)
 	if err != nil {
 		return false, err
 	}
-	var found string
-	err = stmt.QueryRow(token).Scan(&found)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
+	return found, nil
 }
 
 // SaveIdentityVerificationToken save an identity verification token in DB.
 func (p *SQLProvider) SaveIdentityVerificationToken(token string) error {
-	stmt, err := p.db.Prepare("INSERT INTO IdentityVerificationTokens (token) VALUES (?)")
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(token)
+	_, err := p.db.Exec(p.sqlInsertIdentityVerificationToken, token)
 	return err
 }
 
 // RemoveIdentityVerificationToken remove an identity verification token from the DB.
 func (p *SQLProvider) RemoveIdentityVerificationToken(token string) error {
-	stmt, err := p.db.Prepare("DELETE FROM IdentityVerificationTokens WHERE token=?")
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(token)
+	_, err := p.db.Exec(p.sqlDeleteIdentityVerificationToken, token)
 	return err
 }
 
 // SaveTOTPSecret save a TOTP secret of a given user.
 func (p *SQLProvider) SaveTOTPSecret(username string, secret string) error {
-	stmt, err := p.db.Prepare("REPLACE INTO TOTPSecrets (username, secret) VALUES (?, ?)")
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(username, secret)
+	_, err := p.db.Exec(p.sqlUpsertTOTPSecret, username, secret)
 	return err
 }
 
 // LoadTOTPSecret load a TOTP secret given a username.
 func (p *SQLProvider) LoadTOTPSecret(username string) (string, error) {
-	stmt, err := p.db.Prepare("SELECT secret FROM TOTPSecrets WHERE username=?")
-	if err != nil {
-		return "", err
-	}
 	var secret string
-	err = stmt.QueryRow(username).Scan(&secret)
-	if err != nil {
+	if err := p.db.QueryRow(p.sqlGetTOTPSecretByUsername, username).Scan(&secret); err != nil {
 		if err == sql.ErrNoRows {
 			return "", nil
 		}
@@ -150,45 +136,32 @@ func (p *SQLProvider) LoadTOTPSecret(username string) (string, error) {
 
 // SaveU2FDeviceHandle save a registered U2F device registration blob.
 func (p *SQLProvider) SaveU2FDeviceHandle(username string, keyHandle []byte) error {
-	stmt, err := p.db.Prepare("REPLACE INTO U2FDeviceHandles (username, deviceHandle) VALUES (?, ?)")
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(username, keyHandle)
+	_, err := p.db.Exec(p.sqlUpsertU2FDeviceHandle, username, base64.StdEncoding.EncodeToString(keyHandle))
 	return err
 }
 
 // LoadU2FDeviceHandle load a U2F device registration blob for a given username.
 func (p *SQLProvider) LoadU2FDeviceHandle(username string) ([]byte, error) {
-	stmt, err := p.db.Prepare("SELECT deviceHandle FROM U2FDeviceHandles WHERE username=?")
-	if err != nil {
-		return nil, err
-	}
-	var deviceHandle []byte
-	err = stmt.QueryRow(username).Scan(&deviceHandle)
-	if err != nil {
+	var deviceHandle string
+	if err := p.db.QueryRow(p.sqlGetU2FDeviceHandleByUsername, username).Scan(&deviceHandle); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoU2FDeviceHandle
 		}
 		return nil, err
 	}
-	return deviceHandle, nil
+
+	return base64.StdEncoding.DecodeString(deviceHandle)
 }
 
 // AppendAuthenticationLog append a mark to the authentication log.
 func (p *SQLProvider) AppendAuthenticationLog(attempt models.AuthenticationAttempt) error {
-	stmt, err := p.db.Prepare("INSERT INTO AuthenticationLogs (username, successful, time) VALUES (?, ?, ?)")
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(attempt.Username, attempt.Successful, attempt.Time.Unix())
+	_, err := p.db.Exec(p.sqlInsertAuthenticationLog, attempt.Username, attempt.Successful, attempt.Time.Unix())
 	return err
 }
 
 // LoadLatestAuthenticationLogs retrieve the latest marks from the authentication log.
 func (p *SQLProvider) LoadLatestAuthenticationLogs(username string, fromDate time.Time) ([]models.AuthenticationAttempt, error) {
-	rows, err := p.db.Query("SELECT successful, time FROM AuthenticationLogs WHERE time>? AND username=? ORDER BY time DESC",
-		fromDate.Unix(), username)
+	rows, err := p.db.Query(p.sqlGetLatestAuthenticationLogs, fromDate.Unix(), username)
 
 	if err != nil {
 		return nil, err

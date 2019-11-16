@@ -136,7 +136,7 @@ func runSuiteSetupTeardown(command string, suite string) error {
 
 	s := suites.GlobalRegistry.Get(selectedSuite)
 
-	cmd := utils.CommandWithStdout("bash", "-c", "go run cmd/authelia-suites/*.go "+command+" "+selectedSuite)
+	cmd := utils.CommandWithStdout("go", "run", "cmd/authelia-suites/main.go", command, selectedSuite)
 	cmd.Env = os.Environ()
 	return utils.RunCommandWithTimeout(cmd, s.SetUpTimeout)
 }

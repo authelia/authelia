@@ -223,7 +223,7 @@ regulation:
 # You must use only an available configuration: local, sql
 storage:
   # Settings to connect to mariadb server
-  sql:
+  mysql:
     host: mariadb
     port: 3306 
     database: authelia
