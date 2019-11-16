@@ -83,6 +83,24 @@ func (k Kubectl) StopProxy() error {
 	return cmd.Run()
 }
 
+// StartDashboard start Kube dashboard
+func (k Kubectl) StartDashboard() error {
+	if err := kindCommand("sh -c 'cd /authelia && ./bootstrap-dashboard.sh'").Run(); err != nil {
+		return err
+	}
+
+	if err := utils.Shell("docker-compose -f docker-compose.yml -f example/compose/kind/docker-compose.yml up -d kube-dashboard").Run(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// StopDashboard stop kube dashboard
+func (k Kubectl) StopDashboard() error {
+	cmd := utils.Shell("docker-compose -f docker-compose.yml -f example/compose/kind/docker-compose.yml rm -s -f kube-dashboard")
+	return cmd.Run()
+}
+
 // DeployThirdparties deploy thirdparty services (ldap, db, ingress controllers, etc...)
 func (k Kubectl) DeployThirdparties() error {
 	cmd := kindCommand("sh -c 'cd /authelia && ./bootstrap.sh'")

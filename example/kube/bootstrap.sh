@@ -12,14 +12,6 @@ start_ingress_controller() {
   kubectl apply -f ingress-controller
 }
 
-start_dashboard() {
-  kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml
-  kubectl apply -f dashboard.yml
-
-  echo "Bearer token for UI user."
-  kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
-}
-
 # Spawn Redis and storage backend
 # Please note they are not configured to be distributed on several machines
 start_storage() {
@@ -42,7 +34,6 @@ create_namespace() {
 }
 
 create_namespace
-start_dashboard
 start_storage
 start_ldap
 start_mail

@@ -39,6 +39,9 @@ var hostEntries = []HostEntry{
 	HostEntry{Domain: "proxy-client1.example.com", IP: "192.168.240.201"},
 	HostEntry{Domain: "proxy-client2.example.com", IP: "192.168.240.202"},
 	HostEntry{Domain: "proxy-client3.example.com", IP: "192.168.240.203"},
+
+	// Kubernetes dashboard
+	HostEntry{Domain: "kubernetes.example.com", IP: "192.168.240.110"},
 }
 
 func runCommand(cmd string, args ...string) {
