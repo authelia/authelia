@@ -1,7 +1,6 @@
 package session
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/clems4ever/authelia/configuration/schema"
@@ -35,21 +34,14 @@ func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 		return NewDefaultUserSession(), err
 	}
 
-	userSessionJSON, ok := store.Get(userSessionStorerKey).([]byte)
+	userSession, ok := store.Get(userSessionStorerKey).(UserSession)
 
 	// If userSession is not yet defined we create the new session with default values
 	// and save it in the store.
 	if !ok {
-		userSession := NewDefaultUserSession()
+		userSession = NewDefaultUserSession()
 		store.Set(userSessionStorerKey, userSession)
 		return userSession, nil
-	}
-
-	var userSession UserSession
-	err = json.Unmarshal(userSessionJSON, &userSession)
-
-	if err != nil {
-		return NewDefaultUserSession(), err
 	}
 
 	return userSession, nil
@@ -63,13 +55,7 @@ func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession
 		return err
 	}
 
-	userSessionJSON, err := json.Marshal(userSession)
-
-	if err != nil {
-		return err
-	}
-
-	store.Set(userSessionStorerKey, userSessionJSON)
+	store.Set(userSessionStorerKey, userSession)
 	p.sessionHolder.Save(ctx, store)
 	return nil
 }
