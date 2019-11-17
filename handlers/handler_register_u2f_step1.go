@@ -25,7 +25,7 @@ var SecondFactorU2FIdentityStart = middlewares.IdentityVerificationStart(middlew
 
 func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 	appID := fmt.Sprintf("%s://%s", ctx.XForwardedProto(), ctx.XForwardedHost())
-	ctx.Logger.Debugf("U2F appID is %s", appID)
+	ctx.Logger.Tracef("U2F appID is %s", appID)
 	var trustedFacets = []string{appID}
 
 	challenge, err := u2f.NewChallenge(appID, trustedFacets)

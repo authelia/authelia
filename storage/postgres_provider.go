@@ -61,8 +61,8 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 			sqlGetTOTPSecretByUsername: fmt.Sprintf("SELECT secret FROM %s WHERE username=$1", totpSecretsTableName),
 			sqlUpsertTOTPSecret:        fmt.Sprintf("INSERT INTO %s (username, secret) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET secret=$2", totpSecretsTableName),
 
-			sqlGetU2FDeviceHandleByUsername: fmt.Sprintf("SELECT deviceHandle FROM %s WHERE username=$1", u2fDeviceHandlesTableName),
-			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("INSERT INTO %s (username, deviceHandle) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET deviceHandle=$2", u2fDeviceHandlesTableName),
+			sqlGetU2FDeviceHandleByUsername: fmt.Sprintf("SELECT keyHandle, publicKey FROM %s WHERE username=$1", u2fDeviceHandlesTableName),
+			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("INSERT INTO %s (username, keyHandle, publicKey) VALUES ($1, $2, $3) ON CONFLICT (username) DO UPDATE SET keyHandle=$2, publicKey=$3", u2fDeviceHandlesTableName),
 
 			sqlInsertAuthenticationLog:     fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES ($1, $2, $3)", authenticationLogsTableName),
 			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>$1 AND username=$2 ORDER BY time DESC", authenticationLogsTableName),

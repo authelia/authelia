@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"crypto/elliptic"
 	"fmt"
 	"net/url"
 
 	"github.com/clems4ever/authelia/authentication"
 	"github.com/clems4ever/authelia/middlewares"
+	"github.com/tstranex/u2f"
 )
 
 // SecondFactorU2FSignPost handler for completing a signing request.
@@ -29,8 +31,15 @@ func SecondFactorU2FSignPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	var registration u2f.Registration
+	registration.KeyHandle = userSession.U2FRegistration.KeyHandle
+	x, y := elliptic.Unmarshal(elliptic.P256(), userSession.U2FRegistration.PublicKey)
+	registration.PubKey.Curve = elliptic.P256()
+	registration.PubKey.X = x
+	registration.PubKey.Y = y
+
 	// TODO(c.michaud): store the counter to help detecting cloned U2F keys.
-	_, err = userSession.U2FRegistration.Authenticate(
+	_, err = registration.Authenticate(
 		requestBody.SignResponse, *userSession.U2FChallenge, 0)
 
 	if err != nil {

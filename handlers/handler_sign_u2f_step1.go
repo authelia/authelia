@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"crypto/elliptic"
 	"fmt"
 
 	"github.com/clems4ever/authelia/middlewares"
+	"github.com/clems4ever/authelia/session"
 	"github.com/clems4ever/authelia/storage"
 	"github.com/tstranex/u2f"
 )
@@ -21,7 +23,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	registrationBin, err := ctx.Providers.StorageProvider.LoadU2FDeviceHandle(userSession.Username)
+	keyHandleBytes, publicKeyBytes, err := ctx.Providers.StorageProvider.LoadU2FDeviceHandle(userSession.Username)
 
 	if err != nil {
 		if err == storage.ErrNoU2FDeviceHandle {
@@ -32,20 +34,18 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if len(registrationBin) == 0 {
-		ctx.Error(fmt.Errorf("Wrong format of device handler for user %s", userSession.Username), mfaValidationFailedMessage)
-		return
-	}
-
 	var registration u2f.Registration
-	err = registration.UnmarshalBinary(registrationBin)
-	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to unmarshal U2F device handle: %s", err), mfaValidationFailedMessage)
-		return
-	}
+	registration.KeyHandle = keyHandleBytes
+	x, y := elliptic.Unmarshal(elliptic.P256(), publicKeyBytes)
+	registration.PubKey.Curve = elliptic.P256()
+	registration.PubKey.X = x
+	registration.PubKey.Y = y
 
 	// Save the challenge and registration for use in next request
-	userSession.U2FRegistration = &registration
+	userSession.U2FRegistration = &session.U2FRegistration{
+		KeyHandle: keyHandleBytes,
+		PublicKey: publicKeyBytes,
+	}
 	userSession.U2FChallenge = challenge
 	err = ctx.SaveSession(userSession)
 

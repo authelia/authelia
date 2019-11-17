@@ -8,7 +8,5 @@ services:
     working_dir: /app
     volumes:
       - "./client:/app"
-    ports:
-      - 3000:3000
     networks:
       - authelianet

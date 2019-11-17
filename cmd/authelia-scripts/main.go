@@ -80,6 +80,14 @@ var Commands = []AutheliaCommandDefinition{
 		Short: "Run unit tests",
 		Func:  RunUnitTest,
 	},
+	AutheliaCommandDefinition{
+		Name:  "migrate",
+		Short: "Migrate data from v3 to v4",
+		SubCommands: CobraCommands{
+			MigrateLocalCmd,
+			MigrateMongoCmd,
+		},
+	},
 }
 
 func levelStringToLevel(level string) log.Level {

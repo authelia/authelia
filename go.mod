@@ -13,7 +13,9 @@ require (
 	github.com/fasthttp/router v0.5.2
 	github.com/fasthttp/session v1.1.3
 	github.com/go-sql-driver/mysql v1.4.1
+	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/mock v1.3.1
+	github.com/golang/snappy v0.0.1 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/lib/pq v1.2.0
@@ -28,8 +30,12 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/stretchr/testify v1.4.0
 	github.com/tebeka/selenium v0.9.9
+	github.com/tidwall/pretty v1.0.0 // indirect
 	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.6.0
+	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
+	github.com/xdg/stringprep v1.0.0 // indirect
+	go.mongodb.org/mongo-driver v1.1.3
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/ldap.v3 v3.1.0
 	gopkg.in/yaml.v2 v2.2.4
