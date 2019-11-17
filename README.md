@@ -14,7 +14,7 @@ It acts as a companion of reverse proxies like [nginx] or [Traefik] by handling 
 
     BREAKING NEWS: Authelia v4 release is coming soon! The new version is written in Go for reliability, performance and security improvements.
     It is currently available in beta in master.
-    Please read AUTHELIA-V4.md if you want to migrate from v3 to v4. But note that the data model migration is not automated yet.
+    Please read BREAKING.md if you want to migrate from v3 to v4. Otherwise, start fresh in v4 and enjoy!
 
 
 <p align="center">

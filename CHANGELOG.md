@@ -4,9 +4,13 @@ Release Notes - Version 4.0.0
 * config.yml should include a secret for jwt issuance and verification.
 * Models in database have been updated to better fit with the Go library.
 * The local storage has been replaced by a good old sqlite3 database.
+* The mongo option for storing user preferences and device secrets has been deprecated in favor of SQL options: mysql and postgres.
 * The "secure" flag from the SMTP notifier configuration has been removed as TLS is used by default when available.
 * authelia-scripts tool has been rewritten in Go.
-* Use pure implementation of crypt to avoid CGO and dependency to libc.
+* Use pure implementation of crypt.
+* Introduction of a "migrate" command to authelia-scripts to help migrating from v3 to v4.
+* Authelia is built and available on Dockerhub in 3 flavors: amd64, arm32v7 and arm64v8.
+* Introduction of suites in Go.
 
 Release Notes - Version 3.16.3
 ------------------------------
