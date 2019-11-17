@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/clems4ever/authelia/models"
-	"github.com/clems4ever/authelia/storage"
+	"github.com/clems4ever/authelia/internal/models"
+	"github.com/clems4ever/authelia/internal/storage"
 	"github.com/spf13/cobra"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"

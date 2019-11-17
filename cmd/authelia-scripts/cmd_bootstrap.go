@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/clems4ever/authelia/utils"
+	"github.com/clems4ever/authelia/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +19,8 @@ type HostEntry struct {
 }
 
 var hostEntries = []HostEntry{
+	// For authelia backend
+	HostEntry{Domain: "authelia.example.com", IP: "192.168.240.50"},
 	// For common tests
 	HostEntry{Domain: "login.example.com", IP: "192.168.240.100"},
 	HostEntry{Domain: "admin.example.com", IP: "192.168.240.100"},

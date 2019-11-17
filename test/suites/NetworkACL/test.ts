@@ -6,7 +6,7 @@ AutheliaSuite(__dirname, function () {
     this.timeout(10000);
 
     beforeEach(async function () {
-        await exec(`cp ${__dirname}/../../../suites/NetworkACL/users.yml /tmp/authelia/suites/NetworkACL/users.yml`);
+        await exec(`cp ${__dirname}/../../../internal/suites/NetworkACL/users.yml /tmp/authelia/suites/NetworkACL/users.yml`);
     });
 
     describe("Network ACLs", NetworkACLs);

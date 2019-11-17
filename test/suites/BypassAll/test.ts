@@ -12,7 +12,7 @@ AutheliaSuite(__dirname, function () {
     this.timeout(10000);
 
     beforeEach(async function () {
-        await exec(`cp ${__dirname}/../../../suites/BypassAll/users.yml /tmp/authelia/suites/BypassAll/users.yml`);
+        await exec(`cp ${__dirname}/../../../internal/suites/BypassAll/users.yml /tmp/authelia/suites/BypassAll/users.yml`);
     });
 
     describe('Bypass policy', BypassPolicy);

@@ -10,7 +10,7 @@ AutheliaSuite(__dirname, function () {
     this.timeout(10000);
 
     beforeEach(async function () {
-        await exec(`cp ${__dirname}/../../../suites/DuoPush/users.yml /tmp/authelia/suites/DuoPush/users.yml`);
+        await exec(`cp ${__dirname}/../../../internal/suites/DuoPush/users.yml /tmp/authelia/suites/DuoPush/users.yml`);
     });
 
     describe("Duo Push Notication", DuoPushNotification);

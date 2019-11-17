@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/clems4ever/authelia/utils"
+	"github.com/clems4ever/authelia/internal/utils"
 )
 
 // Docker a docker object

@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/clems4ever/authelia/utils"
+	"github.com/clems4ever/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
