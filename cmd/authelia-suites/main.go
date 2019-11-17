@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/clems4ever/authelia/suites"
-	"github.com/clems4ever/authelia/utils"
+	"github.com/clems4ever/authelia/internal/suites"
+	"github.com/clems4ever/authelia/internal/utils"
 	"github.com/otiai10/copy"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -18,7 +18,7 @@ var tmpDirectory = "/tmp/authelia/suites/"
 var runningSuiteFile = ".suite"
 
 func init() {
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
 }
 
 func main() {
@@ -61,7 +61,7 @@ func setupSuite(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	suiteResourcePath := cwd + "/suites/" + suiteName
+	suiteResourcePath := cwd + "/internal/suites/" + suiteName
 
 	exist, err := utils.FileExists(suiteResourcePath)
 

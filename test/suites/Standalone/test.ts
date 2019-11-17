@@ -14,7 +14,7 @@ AutheliaSuite("/tmp/authelia/suites/Standalone/", function() {
   this.timeout(10000);
   
   beforeEach(async function() {
-    await exec(`cp ${__dirname}/../../../suites/Standalone/users.yml /tmp/authelia/suites/Standalone/users.yml`);
+    await exec(`cp ${__dirname}/../../../internal/suites/Standalone/users.yml /tmp/authelia/suites/Standalone/users.yml`);
   });
 
   describe('Bypass policy', BypassPolicy)

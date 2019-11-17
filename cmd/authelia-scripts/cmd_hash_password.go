@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/clems4ever/authelia/authentication"
+	"github.com/clems4ever/authelia/internal/authentication"
 	"github.com/spf13/cobra"
 )
 

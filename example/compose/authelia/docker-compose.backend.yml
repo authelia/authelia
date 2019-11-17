@@ -15,4 +15,5 @@ services:
       - SUITE_PATH=${SUITE_PATH}
       - ENVIRONMENT=dev
     networks:
-      - authelianet
+      authelianet:
+        ipv4_address: 192.168.240.50

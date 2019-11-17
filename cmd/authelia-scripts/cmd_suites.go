@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/clems4ever/authelia/suites"
-	"github.com/clems4ever/authelia/utils"
+	"github.com/clems4ever/authelia/internal/suites"
+	"github.com/clems4ever/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -137,6 +137,8 @@ func runSuiteSetupTeardown(command string, suite string) error {
 	s := suites.GlobalRegistry.Get(selectedSuite)
 
 	cmd := utils.CommandWithStdout("go", "run", "cmd/authelia-suites/main.go", command, selectedSuite)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
 	return utils.RunCommandWithTimeout(cmd, s.SetUpTimeout)
 }
@@ -154,7 +156,10 @@ func setupSuite(suiteName string) error {
 	}()
 
 	if errSetup := runSuiteSetupTeardown("setup", suiteName); errSetup != nil || interrupted {
-		teardownSuite(suiteName)
+		err := teardownSuite(suiteName)
+		if err != nil {
+			log.Error(err)
+		}
 		return errSetup
 	}
 
@@ -226,12 +231,14 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	if suite.TestTimeout > 0 {
 		timeout = fmt.Sprintf("%ds", int64(suite.TestTimeout/time.Second))
 	}
-	testCmdLine := fmt.Sprintf("go test ./suites -timeout %s -run '^(Test%sSuite)$'", timeout, suiteName)
+	testCmdLine := fmt.Sprintf("go test ./internal/suites -timeout %s -run '^(Test%sSuite)$'", timeout, suiteName)
 
 	log.Infof("Running tests of suite %s...", suiteName)
 	log.Debugf("Running tests with command: %s", testCmdLine)
 
 	cmd := utils.CommandWithStdout("bash", "-c", testCmdLine)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
 	if headless {
 		cmd.Env = append(cmd.Env, "HEADLESS=y")
@@ -240,7 +247,11 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	testErr := cmd.Run()
 
 	if withEnv {
-		teardownSuite(suiteName)
+		err := teardownSuite(suiteName)
+
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	return testErr
