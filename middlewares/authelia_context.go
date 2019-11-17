@@ -24,7 +24,7 @@ func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration
 
 	userSession, err := providers.SessionProvider.GetSession(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve user session: %s", err.Error())
+		return autheliaCtx, fmt.Errorf("Unable to retrieve user session: %s", err)
 	}
 
 	autheliaCtx.userSession = userSession
