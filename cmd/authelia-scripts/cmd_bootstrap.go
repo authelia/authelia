@@ -224,6 +224,7 @@ func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
 	prepareHostsFile()
 
+	fmt.Println()
 	bootstrapPrintln("Run 'authelia-scripts suites setup Standalone' to start Authelia and visit https://home.example.com:8080.")
 	bootstrapPrintln("More details at https://github.com/clems4ever/authelia/blob/master/docs/getting-started.md")
 }
