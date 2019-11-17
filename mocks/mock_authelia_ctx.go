@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/clems4ever/authelia/regulation"
+	"github.com/clems4ever/authelia/storage"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/clems4ever/authelia/authorization"
@@ -27,7 +28,7 @@ type MockAutheliaCtx struct {
 
 	// Providers
 	UserProviderMock    *MockUserProvider
-	StorageProviderMock *MockStorageProvider
+	StorageProviderMock *storage.MockProvider
 	NotifierMock        *MockNotifier
 
 	UserSession *session.UserSession
@@ -62,7 +63,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia.UserProviderMock = NewMockUserProvider(mockAuthelia.Ctrl)
 	providers.UserProvider = mockAuthelia.UserProviderMock
 
-	mockAuthelia.StorageProviderMock = NewMockStorageProvider(mockAuthelia.Ctrl)
+	mockAuthelia.StorageProviderMock = storage.NewMockProvider(mockAuthelia.Ctrl)
 	providers.StorageProvider = mockAuthelia.StorageProviderMock
 
 	mockAuthelia.NotifierMock = NewMockNotifier(mockAuthelia.Ctrl)

@@ -1,6 +1,6 @@
 package storage
 
-var preferencesTableName = "PreferencesTableName"
+var preferencesTableName = "Preferences"
 var identityVerificationTokensTableName = "IdentityVerificationTokens"
 var totpSecretsTableName = "TOTPSecrets"
 var u2fDeviceHandlesTableName = "U2FDeviceHandles"

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"crypto/elliptic"
 	"fmt"
 
 	"github.com/clems4ever/authelia/middlewares"
@@ -32,14 +33,15 @@ func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	deviceHandle, err := registration.MarshalBinary()
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to marshal U2F registration data: %v", err), unableToRegisterSecurityKeyMessage)
 		return
 	}
 
 	ctx.Logger.Debugf("Register U2F device for user %s", userSession.Username)
-	err = ctx.Providers.StorageProvider.SaveU2FDeviceHandle(userSession.Username, deviceHandle)
+
+	publicKey := elliptic.Marshal(elliptic.P256(), registration.PubKey.X, registration.PubKey.Y)
+	err = ctx.Providers.StorageProvider.SaveU2FDeviceHandle(userSession.Username, registration.KeyHandle, publicKey)
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to register U2F device for user %s: %v", userSession.Username, err), unableToRegisterSecurityKeyMessage)

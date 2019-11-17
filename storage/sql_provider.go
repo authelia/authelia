@@ -48,7 +48,8 @@ func (p *SQLProvider) initialize(db *sql.DB) error {
 		return err
 	}
 
-	_, err = db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100) PRIMARY KEY, deviceHandle TEXT)", u2fDeviceHandlesTableName))
+	// keyHandle and publicKey are stored in base64 format
+	_, err = db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100) PRIMARY KEY, keyHandle TEXT, publicKey TEXT)", u2fDeviceHandlesTableName))
 	if err != nil {
 		return err
 	}
@@ -135,22 +136,37 @@ func (p *SQLProvider) LoadTOTPSecret(username string) (string, error) {
 }
 
 // SaveU2FDeviceHandle save a registered U2F device registration blob.
-func (p *SQLProvider) SaveU2FDeviceHandle(username string, keyHandle []byte) error {
-	_, err := p.db.Exec(p.sqlUpsertU2FDeviceHandle, username, base64.StdEncoding.EncodeToString(keyHandle))
+func (p *SQLProvider) SaveU2FDeviceHandle(username string, keyHandle []byte, publicKey []byte) error {
+	_, err := p.db.Exec(p.sqlUpsertU2FDeviceHandle,
+		username,
+		base64.StdEncoding.EncodeToString(keyHandle),
+		base64.StdEncoding.EncodeToString(publicKey))
 	return err
 }
 
 // LoadU2FDeviceHandle load a U2F device registration blob for a given username.
-func (p *SQLProvider) LoadU2FDeviceHandle(username string) ([]byte, error) {
-	var deviceHandle string
-	if err := p.db.QueryRow(p.sqlGetU2FDeviceHandleByUsername, username).Scan(&deviceHandle); err != nil {
+func (p *SQLProvider) LoadU2FDeviceHandle(username string) ([]byte, []byte, error) {
+	var keyHandleBase64, publicKeyBase64 string
+	if err := p.db.QueryRow(p.sqlGetU2FDeviceHandleByUsername, username).Scan(&keyHandleBase64, &publicKeyBase64); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, ErrNoU2FDeviceHandle
+			return nil, nil, ErrNoU2FDeviceHandle
 		}
-		return nil, err
+		return nil, nil, err
 	}
 
-	return base64.StdEncoding.DecodeString(deviceHandle)
+	keyHandle, err := base64.StdEncoding.DecodeString(keyHandleBase64)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	publicKey, err := base64.StdEncoding.DecodeString(publicKeyBase64)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return keyHandle, publicKey, nil
 }
 
 // AppendAuthenticationLog append a mark to the authentication log.

@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/clems4ever/authelia/configuration/schema"
-	"github.com/clems4ever/authelia/mocks"
 	"github.com/clems4ever/authelia/models"
 	"github.com/clems4ever/authelia/regulation"
+	"github.com/clems4ever/authelia/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -17,14 +17,14 @@ type RegulatorSuite struct {
 	suite.Suite
 
 	ctrl          *gomock.Controller
-	storageMock   *mocks.MockStorageProvider
+	storageMock   *storage.MockProvider
 	configuration schema.RegulationConfiguration
 	now           time.Time
 }
 
 func (s *RegulatorSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
-	s.storageMock = mocks.NewMockStorageProvider(s.ctrl)
+	s.storageMock = storage.NewMockProvider(s.ctrl)
 
 	s.configuration = schema.RegulationConfiguration{
 		MaxRetries: 3,

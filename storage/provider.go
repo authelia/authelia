@@ -19,8 +19,8 @@ type Provider interface {
 	SaveTOTPSecret(username string, secret string) error
 	LoadTOTPSecret(username string) (string, error)
 
-	SaveU2FDeviceHandle(username string, device []byte) error
-	LoadU2FDeviceHandle(username string) ([]byte, error)
+	SaveU2FDeviceHandle(username string, keyHandle []byte, publicKey []byte) error
+	LoadU2FDeviceHandle(username string) ([]byte, []byte, error)
 
 	AppendAuthenticationLog(attempt models.AuthenticationAttempt) error
 	LoadLatestAuthenticationLogs(username string, fromDate time.Time) ([]models.AuthenticationAttempt, error)

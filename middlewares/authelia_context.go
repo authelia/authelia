@@ -24,7 +24,7 @@ func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration
 
 	userSession, err := providers.SessionProvider.GetSession(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve user session: %s", err.Error())
+		return autheliaCtx, fmt.Errorf("Unable to retrieve user session: %s", err.Error())
 	}
 
 	autheliaCtx.userSession = userSession
@@ -47,7 +47,12 @@ func AutheliaMiddleware(configuration schema.Configuration, providers Providers)
 
 // Error reply with an error and display the stack trace in the logs.
 func (c *AutheliaCtx) Error(err error, message string) {
-	b, _ := json.Marshal(ErrorResponse{Status: "KO", Message: message})
+	b, marshalErr := json.Marshal(ErrorResponse{Status: "KO", Message: message})
+
+	if marshalErr != nil {
+		c.Logger.Error(marshalErr)
+	}
+
 	c.SetContentType("application/json")
 	c.SetBody(b)
 	c.Logger.Error(err)
@@ -55,7 +60,12 @@ func (c *AutheliaCtx) Error(err error, message string) {
 
 // ReplyError reply with an error but does not display any stack trace in the logs
 func (c *AutheliaCtx) ReplyError(err error, message string) {
-	b, _ := json.Marshal(ErrorResponse{Status: "KO", Message: message})
+	b, marshalErr := json.Marshal(ErrorResponse{Status: "KO", Message: message})
+
+	if marshalErr != nil {
+		c.Logger.Error(marshalErr)
+	}
+
 	c.SetContentType("application/json")
 	c.SetBody(b)
 	c.Logger.Debug(err)

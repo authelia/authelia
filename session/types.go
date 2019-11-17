@@ -13,6 +13,12 @@ type ProviderConfig struct {
 	providerConfig session.ProviderConfig
 }
 
+// U2FRegistration is a serializable version of a U2F registration
+type U2FRegistration struct {
+	KeyHandle []byte
+	PublicKey []byte
+}
+
 // UserSession is the structure representing the session of a user.
 type UserSession struct {
 	Username string
@@ -29,7 +35,7 @@ type UserSession struct {
 	U2FChallenge *u2f.Challenge
 	// The registration representing a U2F device in DB set after identity verification.
 	// This is used in second phase of a U2F authentication.
-	U2FRegistration *u2f.Registration
+	U2FRegistration *U2FRegistration
 
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.

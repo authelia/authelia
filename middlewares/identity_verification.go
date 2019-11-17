@@ -65,7 +65,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a TOTP device.",
+		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 		err = ctx.Providers.Notifier.Send(identity.Email, args.MailSubject, buf.String())
 
