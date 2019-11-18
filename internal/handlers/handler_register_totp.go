@@ -31,7 +31,7 @@ var SecondFactorTOTPIdentityStart = middlewares.IdentityVerificationStart(middle
 	MailSubject:           "[Authelia] Register your mobile",
 	MailTitle:             "Register your mobile",
 	MailButtonContent:     "Register",
-	TargetEndpoint:        "/one-time-password-registration",
+	TargetEndpoint:        "/one-time-password/register",
 	ActionClaim:           TOTPRegistrationAction,
 	IdentityRetrieverFunc: identityRetrieverFromSession,
 })

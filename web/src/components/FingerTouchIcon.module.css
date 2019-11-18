@@ -1,0 +1,20 @@
+
+.hand {
+    transform: rotate(20deg);
+}
+
+.strong.hand path {
+    stroke: black;
+    stroke-width: 10;
+}
+
+.shaking {
+    animation: shaking 1s;
+    animation-iteration-count:infinite;
+}
+
+@keyframes shaking {
+    0% {transform: translateX(20px) translateY(20px)}
+    50% {transform: translateX(0px) translateY(0px)}
+    100% {transform: translateX(20px) translateY(20px)}
+}

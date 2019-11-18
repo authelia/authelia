@@ -7,6 +7,6 @@ services:
     command: npm run start
     working_dir: /app
     volumes:
-      - "./client:/app"
+      - "./web:/app"
     networks:
       - authelianet

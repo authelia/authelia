@@ -38,7 +38,7 @@ var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewar
 	MailSubject:           "[Authelia] Reset your password",
 	MailTitle:             "Reset your password",
 	MailButtonContent:     "Reset",
-	TargetEndpoint:        "/reset-password",
+	TargetEndpoint:        "/reset-password/step2",
 	ActionClaim:           ResetPasswordAction,
 	IdentityRetrieverFunc: identityRetrieverFromStorage,
 })

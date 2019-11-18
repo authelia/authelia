@@ -120,6 +120,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		safeRedirection := isRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain)
 
 		if safeRedirection && requiredLevel <= authorization.OneFactor {
+			ctx.Logger.Debugf("Redirection is safe, redirecting...")
 			response := redirectResponse{bodyJSON.TargetURL}
 			ctx.SetJSONBody(response)
 		} else {

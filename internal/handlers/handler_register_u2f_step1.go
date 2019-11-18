@@ -18,7 +18,7 @@ var SecondFactorU2FIdentityStart = middlewares.IdentityVerificationStart(middlew
 	MailSubject:           "[Authelia] Register your key",
 	MailTitle:             "Register your key",
 	MailButtonContent:     "Register",
-	TargetEndpoint:        "/security-key-registration",
+	TargetEndpoint:        "/security-key/register",
 	ActionClaim:           U2FRegistrationAction,
 	IdentityRetrieverFunc: identityRetrieverFromSession,
 })

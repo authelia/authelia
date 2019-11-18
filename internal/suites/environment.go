@@ -14,7 +14,7 @@ func waitUntilServiceLogDetected(
 	timeout time.Duration,
 	dockerEnvironment *DockerEnvironment,
 	service string,
-	logPattern string) error {
+	logPatterns []string) error {
 	log.Debug("Waiting for service " + service + " to be ready...")
 	err := utils.CheckUntil(5*time.Second, 1*time.Minute, func() (bool, error) {
 		logs, err := dockerEnvironment.Logs(service, []string{"--tail", "20"})
@@ -23,7 +23,12 @@ func waitUntilServiceLogDetected(
 		if err != nil {
 			return false, err
 		}
-		return strings.Contains(logs, logPattern), nil
+		for _, pattern := range logPatterns {
+			if strings.Contains(logs, pattern) {
+				return true, nil
+			}
+		}
+		return false, nil
 	})
 
 	fmt.Print("\n")
@@ -38,7 +43,7 @@ func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
 		90*time.Second,
 		dockerEnvironment,
 		"authelia-backend",
-		"Authelia is listening on")
+		[]string{"Authelia is listening on"})
 
 	if err != nil {
 		return err
@@ -49,7 +54,7 @@ func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
 		90*time.Second,
 		dockerEnvironment,
 		"authelia-frontend",
-		"You can now view authelia-portal in the browser.")
+		[]string{"You can now view web in the browser.", "Compiled with warnings", "Compiled successfully!"})
 
 	if err != nil {
 		return err

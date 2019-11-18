@@ -6,7 +6,7 @@ import "fmt"
 var BaseDomain = "example.com:8080"
 
 // LoginBaseURL the base URL of the login portal
-var LoginBaseURL = fmt.Sprintf("https://login.%s/#/", BaseDomain)
+var LoginBaseURL = fmt.Sprintf("https://login.%s/", BaseDomain)
 
 // SingleFactorBaseURL the base URL of the singlefactor domain
 var SingleFactorBaseURL = fmt.Sprintf("https://singlefactor.%s", BaseDomain)

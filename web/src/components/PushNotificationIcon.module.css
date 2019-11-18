@@ -1,0 +1,15 @@
+
+.wiggle {
+    animation: wiggle 0.5s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes wiggle {
+    0% {transform: rotate(0deg);}
+    15% {transform: rotate(3deg);}
+    30% {transform: rotate(0deg);}
+    45% {transform: rotate(3deg);}
+    60% {transform: rotate(0deg);}
+    80% {transform: rotate(3deg);}
+    100% {transform: rotate(0deg);}
+}

@@ -49,7 +49,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		link := fmt.Sprintf("%s://%s/#%s?token=%s", ctx.XForwardedProto(),
+		link := fmt.Sprintf("%s://%s%s?token=%s", ctx.XForwardedProto(),
 			ctx.XForwardedHost(), args.TargetEndpoint, ss)
 
 		params := map[string]interface{}{
