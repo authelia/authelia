@@ -27,6 +27,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	fmt.Println("Selected public_html directory is ", publicDir)
 
 	router.GET("/", fasthttp.FSHandler(publicDir, 0))
+	router.NotFound = fasthttp.FSHandler(publicDir, 0)
 	router.ServeFiles("/static/*filepath", publicDir+"/static")
 
 	router.GET("/api/state", autheliaMiddleware(handlers.StateGet))
