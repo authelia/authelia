@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/clems4ever/authelia/internal/utils"
@@ -198,6 +199,7 @@ func publishDockerManifest() {
 	travisBranch := os.Getenv("TRAVIS_BRANCH")
 	travisPullRequest := os.Getenv("TRAVIS_PULL_REQUEST")
 	travisTag := os.Getenv("TRAVIS_TAG")
+	ignoredSuffixes := regexp.MustCompile("alpha|beta")
 
 	if travisBranch == "master" && travisPullRequest == "false" {
 		login(docker)
@@ -205,7 +207,9 @@ func publishDockerManifest() {
 	} else if travisTag != "" {
 		login(docker)
 		deployManifest(docker, travisTag, travisTag+"-amd64", travisTag+"-arm32v7", travisTag+"-arm64v8")
-		deployManifest(docker, "latest", "latest-amd64", "latest-arm32v7", "latest-arm64v8")
+		if !ignoredSuffixes.MatchString(travisTag) {
+			deployManifest(docker, "latest", "latest-amd64", "latest-arm32v7", "latest-arm64v8")
+		}
 	} else {
 		fmt.Println("Docker manifest will not be published")
 	}
