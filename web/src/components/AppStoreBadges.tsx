@@ -9,7 +9,6 @@ export interface Props {
     appleStoreLink: string;
 
     targetBlank?: boolean;
-
     className?: string;
 }
 
