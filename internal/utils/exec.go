@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -13,9 +15,22 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Command create a command at the project root
+func Command(name string, args ...string) *exec.Cmd {
+	cmd := exec.Command(name, args...)
+
+	// By default set the working directory to the project root directory
+	wd, _ := os.Getwd()
+	for !strings.HasSuffix(wd, "authelia") {
+		wd = filepath.Dir(wd)
+	}
+	cmd.Dir = wd
+	return cmd
+}
+
 // CommandWithStdout create a command forwarding stdout and stderr to the OS streams
 func CommandWithStdout(name string, args ...string) *exec.Cmd {
-	cmd := exec.Command(name, args...)
+	cmd := Command(name, args...)
 	if log.GetLevel() > log.InfoLevel {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr

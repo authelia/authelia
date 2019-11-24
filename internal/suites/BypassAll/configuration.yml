@@ -10,7 +10,7 @@ jwt_secret: unsecure_secret
 
 authentication_backend:
   file:
-    path: users.yml
+    path: /var/lib/authelia/users.yml
 
 session:
   secret: unsecure_session_secret
@@ -31,14 +31,13 @@ duo_api:
 access_control:
   default_policy: bypass
   rules:
-  - domain: 'public.example.com'
-    policy: bypass
-  - domain: 'secure.example.com'
-    policy: two_factor
+    - domain: "public.example.com"
+      policy: bypass
+    - domain: "secure.example.com"
+      policy: two_factor
 
 notifier:
   smtp:
     host: smtp
     port: 1025
     sender: admin@example.com
-

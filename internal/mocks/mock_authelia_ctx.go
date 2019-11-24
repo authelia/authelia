@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/clems4ever/authelia/internal/regulation"
 	"github.com/clems4ever/authelia/internal/storage"
@@ -32,11 +33,34 @@ type MockAutheliaCtx struct {
 	NotifierMock        *MockNotifier
 
 	UserSession *session.UserSession
+
+	Clock TestingClock
+}
+
+// TestingClock implementation of clock for tests
+type TestingClock struct {
+	now time.Time
+}
+
+// Now return the stored clock
+func (dc *TestingClock) Now() time.Time {
+	return dc.now
+}
+
+// After return a channel receiving the time after duration has elapsed
+func (dc *TestingClock) After(d time.Duration) <-chan time.Time {
+	return time.After(d)
+}
+
+// Set set the time of the clock
+func (dc *TestingClock) Set(now time.Time) {
+	dc.now = now
 }
 
 // NewMockAutheliaCtx create an instance of AutheliaCtx mock
 func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia := new(MockAutheliaCtx)
+	mockAuthelia.Clock = TestingClock{}
 
 	configuration := schema.Configuration{
 		AccessControl: new(schema.AccessControlConfiguration),
@@ -75,7 +99,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.SessionProvider = session.NewProvider(
 		configuration.Session)
 
-	providers.Regulator = regulation.NewRegulator(configuration.Regulation, providers.StorageProvider)
+	providers.Regulator = regulation.NewRegulator(configuration.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
 
 	request := &fasthttp.RequestCtx{}
 	// Set a cookie to identify this client throughout the test
@@ -94,6 +118,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 // Close close the mock
 func (m *MockAutheliaCtx) Close() {
 	m.Hook.Reset()
+	m.Ctrl.Finish()
 }
 
 // Assert200KO assert an error response from the service.

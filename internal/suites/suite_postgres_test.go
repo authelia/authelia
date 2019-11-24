@@ -15,6 +15,6 @@ func NewPostgresSuite() *PostgresSuite {
 }
 
 func TestPostgresSuite(t *testing.T) {
-	suite.Run(t, NewOneFactorSuite())
-	suite.Run(t, NewTwoFactorSuite())
+	suite.Run(t, NewOneFactorScenario())
+	suite.Run(t, NewTwoFactorScenario())
 }

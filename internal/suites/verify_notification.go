@@ -1,9 +1,14 @@
 package suites
 
-import "context"
+import (
+	"context"
+	"testing"
 
-func verifyNotificationDisplayed(ctx context.Context, s *SeleniumSuite, message string) {
-	txt, err := WaitElementLocatedByClassName(ctx, s, "notification").Text()
-	s.Assert().NoError(err)
-	s.Assert().Equal(message, txt)
+	"github.com/stretchr/testify/assert"
+)
+
+func (wds *WebDriverSession) verifyNotificationDisplayed(ctx context.Context, t *testing.T, message string) {
+	el := wds.WaitElementLocatedByClassName(ctx, t, "notification")
+	assert.NotNil(t, el)
+	wds.WaitElementTextContains(ctx, t, el, message)
 }

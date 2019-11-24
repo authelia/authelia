@@ -2,7 +2,6 @@ package suites
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 
@@ -21,41 +20,35 @@ func NewDockerEnvironment(files []string) *DockerEnvironment {
 }
 
 func (de *DockerEnvironment) createCommandWithStdout(cmd string) *exec.Cmd {
-	dockerCmdLine := "docker-compose -f " + strings.Join(de.dockerComposeFiles, " -f ") + " " + cmd
+	dockerCmdLine := fmt.Sprintf("docker-compose -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
 	log.Trace(dockerCmdLine)
 	return utils.CommandWithStdout("bash", "-c", dockerCmdLine)
 }
 
 func (de *DockerEnvironment) createCommand(cmd string) *exec.Cmd {
-	dockerCmdLine := "docker-compose -f " + strings.Join(de.dockerComposeFiles, " -f ") + " " + cmd
+	dockerCmdLine := fmt.Sprintf("docker-compose -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
 	log.Trace(dockerCmdLine)
-	return exec.Command("bash", "-c", dockerCmdLine)
+	return utils.Command("bash", "-c", dockerCmdLine)
 }
 
 // Up spawn a docker environment
-func (de *DockerEnvironment) Up(suitePath string) error {
-	cmd := de.createCommandWithStdout("up -d")
-	cmd.Env = append(os.Environ(), "SUITE_PATH="+suitePath)
-	return cmd.Run()
+func (de *DockerEnvironment) Up() error {
+	return de.createCommandWithStdout("up -d").Run()
 }
 
 // Restart restarts a service
-func (de *DockerEnvironment) Restart(suitePath, service string) error {
-	cmd := de.createCommandWithStdout(fmt.Sprintf("restart %s", service))
-	cmd.Env = append(os.Environ(), "SUITE_PATH="+suitePath)
-	return cmd.Run()
+func (de *DockerEnvironment) Restart(service string) error {
+	return de.createCommandWithStdout(fmt.Sprintf("restart %s", service)).Run()
 }
 
 // Down spawn a docker environment
-func (de *DockerEnvironment) Down(suitePath string) error {
-	cmd := de.createCommandWithStdout("down -v")
-	cmd.Env = append(os.Environ(), "SUITE_PATH="+suitePath)
-	return cmd.Run()
+func (de *DockerEnvironment) Down() error {
+	return de.createCommandWithStdout("down -v").Run()
 }
 
 // Logs get logs of a given service of the environment
 func (de *DockerEnvironment) Logs(service string, flags []string) (string, error) {
-	cmd := de.createCommand("logs " + strings.Join(flags, " ") + " " + service)
+	cmd := de.createCommand(fmt.Sprintf("logs %s %s", strings.Join(flags, " "), service))
 	content, err := cmd.Output()
 	return string(content), err
 }

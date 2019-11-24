@@ -12,7 +12,7 @@ jwt_secret: very_important_secret
 
 authentication_backend:
   file:
-    path: users.yml
+    path: /var/lib/authelia/users.yml
 
 session:
   secret: unsecure_session_secret
@@ -22,7 +22,7 @@ session:
 
 storage:
   local:
-    path: db.sqlite3
+    path: /tmp/authelia/db.sqlite3
 
 totp:
   issuer: example.com
@@ -40,37 +40,36 @@ access_control:
     - domain: secure.example.com
       policy: two_factor
 
-    - domain: '*.example.com'
+    - domain: "*.example.com"
       subject: "group:admins"
       policy: two_factor
 
     - domain: dev.example.com
       resources:
-        - '^/users/john/.*$' 
+        - "^/users/john/.*$"
       subject: "user:john"
       policy: two_factor
 
     - domain: dev.example.com
       resources:
-        - '^/users/harry/.*$'
+        - "^/users/harry/.*$"
       subject: "user:harry"
       policy: two_factor
 
-    - domain: '*.mail.example.com'
+    - domain: "*.mail.example.com"
       subject: "user:bob"
       policy: two_factor
 
     - domain: dev.example.com
       resources:
-        - '^/users/bob/.*$'
+        - "^/users/bob/.*$"
       subject: "user:bob"
       policy: two_factor
 
-
-regulation: 
+regulation:
   # Set it to 0 to disable max_retries.
   max_retries: 3
-  # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window. 
+  # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window.
   find_time: 300
   # The length of time before a banned user can login again.
   ban_time: 900
@@ -80,4 +79,3 @@ notifier:
     host: smtp
     port: 1025
     sender: admin@example.com
-

@@ -65,11 +65,13 @@ export default function (props: Props) {
 
     return (
         <LoginLayout
+            id="first-factor-stage"
             title="Sign in"
             showBrand>
             <Grid container spacing={2} className={style.root}>
                 <Grid item xs={12}>
                     <FixedTextField
+                        id="username-textfield"
                         label="Username"
                         variant="outlined"
                         required
@@ -82,6 +84,7 @@ export default function (props: Props) {
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField
+                        id="password-textfield"
                         label="Password"
                         variant="outlined"
                         required
@@ -103,6 +106,7 @@ export default function (props: Props) {
                     <FormControlLabel
                         control={
                             <Checkbox
+                                id="remember-checkbox"
                                 disabled={disabled}
                                 checked={rememberMe}
                                 onChange={handleRememberMeChange}
@@ -113,6 +117,7 @@ export default function (props: Props) {
                         label="Remember me"
                     />
                     <Link
+                        id="reset-password-button"
                         component="button"
                         onClick={handleResetPasswordClick}
                         className={style.resetLink}>
@@ -120,7 +125,10 @@ export default function (props: Props) {
                     </Link>
                 </Grid>
                 <Grid item xs={12}>
-                    <Button variant="contained" color="primary"
+                    <Button
+                        id="sign-in-button"
+                        variant="contained"
+                        color="primary"
                         fullWidth
                         disabled={disabled}
                         onClick={handleSignIn}>

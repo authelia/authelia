@@ -27,7 +27,4 @@ retry() {
 # Build the binary
 go build -o /tmp/authelia/authelia-tmp cmd/authelia/main.go
 
-# Run the temporary binary
-cd $SUITE_PATH
-
-retry 3 /tmp/authelia/authelia-tmp -config ${SUITE_PATH}/configuration.yml
+retry 3 /tmp/authelia/authelia-tmp -config /etc/authelia/configuration.yml

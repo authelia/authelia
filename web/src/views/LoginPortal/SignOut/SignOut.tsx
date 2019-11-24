@@ -6,11 +6,12 @@ import { Typography, makeStyles } from "@material-ui/core";
 import { Redirect } from "react-router";
 import { FirstFactorRoute } from "../../../Routes";
 import { useRedirectionURL } from "../../../hooks/RedirectionURL";
+import { useIsMountedRef } from "../../../hooks/Mounted";
 
-export interface Props {
-}
+export interface Props { }
 
 export default function (props: Props) {
+    const mounted = useIsMountedRef();
     const style = useStyles();
     const { createErrorNotification } = useNotifications();
     const redirectionURL = useRedirectionURL();
@@ -20,7 +21,12 @@ export default function (props: Props) {
         try {
             // TODO(c.michaud): pass redirection URL to backend for validation.
             await signOut();
-            setTimeout(() => { setTimedOut(true); }, 2000);
+            setTimeout(() => {
+                if (!mounted) {
+                    return;
+                }
+                setTimedOut(true);
+            }, 2000);
         } catch (err) {
             console.error(err);
             createErrorNotification("There was an issue signing out");

@@ -13,6 +13,7 @@ export enum State {
 }
 
 export interface Props {
+    id: string;
     authenticationLevel: AuthenticationLevel;
 
     onRegisterClick: () => void;
@@ -66,6 +67,7 @@ export default function (props: Props) {
 
     return (
         <MethodContainer
+            id={props.id}
             title="One-Time Password"
             explanation="Enter one-time password"
             onRegisterClick={props.onRegisterClick}>

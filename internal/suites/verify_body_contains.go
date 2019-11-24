@@ -1,8 +1,26 @@
 package suites
 
-import "context"
+import (
+	"context"
+	"strings"
+	"testing"
 
-func verifyBodyContains(ctx context.Context, s *SeleniumSuite, pattern string) {
-	bodyElement := WaitElementLocatedByTagName(ctx, s, "body")
-	WaitElementTextContains(ctx, s, bodyElement, pattern)
+	"github.com/stretchr/testify/require"
+	"github.com/tebeka/selenium"
+)
+
+func (wds *WebDriverSession) verifyBodyContains(ctx context.Context, t *testing.T, pattern string) {
+	err := wds.Wait(ctx, func(wd selenium.WebDriver) (bool, error) {
+		bodyElement := wds.WaitElementLocatedByTagName(ctx, t, "body")
+		require.NotNil(t, bodyElement)
+
+		content, err := bodyElement.Text()
+
+		if err != nil {
+			return false, err
+		}
+
+		return strings.Contains(content, pattern), nil
+	})
+	require.NoError(t, err)
 }

@@ -7,11 +7,13 @@ import (
 	"github.com/clems4ever/authelia/internal/configuration/schema"
 	"github.com/clems4ever/authelia/internal/models"
 	"github.com/clems4ever/authelia/internal/storage"
+	"github.com/clems4ever/authelia/internal/utils"
 )
 
 // NewRegulator create a regulator instance.
-func NewRegulator(configuration *schema.RegulationConfiguration, provider storage.Provider) *Regulator {
+func NewRegulator(configuration *schema.RegulationConfiguration, provider storage.Provider, clock utils.Clock) *Regulator {
 	regulator := &Regulator{storageProvider: provider}
+	regulator.clock = clock
 	if configuration != nil {
 		if configuration.FindTime > configuration.BanTime {
 			panic(fmt.Errorf("find_time cannot be greater than ban_time"))
@@ -30,7 +32,7 @@ func (r *Regulator) Mark(username string, successful bool) error {
 	return r.storageProvider.AppendAuthenticationLog(models.AuthenticationAttempt{
 		Username:   username,
 		Successful: successful,
-		Time:       time.Now(),
+		Time:       r.clock.Now(),
 	})
 }
 
@@ -42,7 +44,7 @@ func (r *Regulator) Regulate(username string) (time.Time, error) {
 	if !r.enabled {
 		return time.Time{}, nil
 	}
-	now := time.Now()
+	now := r.clock.Now()
 
 	// TODO(c.michaud): make sure FindTime < BanTime.
 	attempts, err := r.storageProvider.LoadLatestAuthenticationLogs(username, now.Add(-r.banTime))

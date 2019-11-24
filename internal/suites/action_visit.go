@@ -3,25 +3,25 @@ package suites
 import (
 	"context"
 	"fmt"
-	"net/url"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func doVisit(s *SeleniumSuite, url string) {
-	err := s.WebDriver().Get(url)
-	assert.NoError(s.T(), err)
+func (wds *WebDriverSession) doVisit(t *testing.T, url string) {
+	err := wds.WebDriver.Get(url)
+	assert.NoError(t, err)
 }
 
-func doVisitAndVerifyURLIs(ctx context.Context, s *SeleniumSuite, url string) {
-	doVisit(s, url)
-	verifyURLIs(ctx, s, url)
+func (wds *WebDriverSession) doVisitAndVerifyURLIs(ctx context.Context, t *testing.T, url string) {
+	wds.doVisit(t, url)
+	wds.verifyURLIs(ctx, t, url)
 }
 
-func doVisitLoginPage(ctx context.Context, s *SeleniumSuite, targetURL string) {
+func (wds *WebDriverSession) doVisitLoginPage(ctx context.Context, t *testing.T, targetURL string) {
 	suffix := ""
 	if targetURL != "" {
-		suffix = fmt.Sprintf("?rd=%s", url.QueryEscape(targetURL))
+		suffix = fmt.Sprintf("?rd=%s", targetURL)
 	}
-	doVisitAndVerifyURLIs(ctx, s, fmt.Sprintf("%s%s", LoginBaseURL, suffix))
+	wds.doVisitAndVerifyURLIs(ctx, t, fmt.Sprintf("%s/%s", LoginBaseURL, suffix))
 }

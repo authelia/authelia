@@ -1,22 +1,138 @@
 package suites
 
 import (
+	"context"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 )
 
-type StandaloneSuite struct {
+type StandaloneWebDriverSuite struct {
 	*SeleniumSuite
 }
 
+func NewStandaloneWebDriverSuite() *StandaloneWebDriverSuite {
+	return &StandaloneWebDriverSuite{SeleniumSuite: new(SeleniumSuite)}
+}
+
+func (s *StandaloneWebDriverSuite) SetupSuite() {
+	wds, err := StartWebDriver()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s.WebDriverSession = wds
+}
+
+func (s *StandaloneWebDriverSuite) TearDownSuite() {
+	err := s.WebDriverSession.Stop()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (s *StandaloneWebDriverSuite) SetupTest() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	s.doLogout(ctx, s.T())
+	s.WebDriverSession.doVisit(s.T(), HomeBaseURL)
+	s.verifyIsHome(ctx, s.T())
+}
+
+func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated() {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	_ = s.doRegisterAndLogin2FA(ctx, s.T(), "john", "password", false, "")
+
+	// Visit home page to change context
+	s.doVisit(s.T(), HomeBaseURL)
+	s.verifyIsHome(ctx, s.T())
+
+	// Visit the login page and wait for redirection to 2FA page with success icon displayed
+	s.doVisit(s.T(), LoginBaseURL)
+	s.verifyIsSecondFactorPage(ctx, s.T())
+
+	// Check whether the success icon is displayed
+	s.WaitElementLocatedByClassName(ctx, s.T(), "success-icon")
+}
+
+type StandaloneSuite struct {
+	suite.Suite
+}
+
 func NewStandaloneSuite() *StandaloneSuite {
-	return &StandaloneSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &StandaloneSuite{}
+}
+
+// Standard case using nginx
+func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorize() {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify", AutheliaBaseURL), nil)
+	s.Assert().NoError(err)
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Original-URL", AdminBaseURL)
+
+	client := NewHTTPClient()
+	res, err := client.Do(req)
+	s.Assert().NoError(err)
+	s.Assert().Equal(res.StatusCode, 401)
+	body, err := ioutil.ReadAll(res.Body)
+	s.Assert().NoError(err)
+	s.Assert().Equal(string(body), "Unauthorized")
+}
+
+// Standard case using Kubernetes
+func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, LoginBaseURL), nil)
+	s.Assert().NoError(err)
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Original-URL", AdminBaseURL)
+
+	client := NewHTTPClient()
+	res, err := client.Do(req)
+	s.Assert().NoError(err)
+	s.Assert().Equal(res.StatusCode, 302)
+	body, err := ioutil.ReadAll(res.Body)
+	s.Assert().NoError(err)
+	s.Assert().Equal(string(body), fmt.Sprintf("Found. Redirecting to %s?rd=%s", LoginBaseURL, AdminBaseURL))
+}
+
+func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI() {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, LoginBaseURL), nil)
+	s.Assert().NoError(err)
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Host", "secure.example.com:8080")
+	req.Header.Set("X-Forwarded-URI", "/")
+
+	client := NewHTTPClient()
+	res, err := client.Do(req)
+	s.Assert().NoError(err)
+	s.Assert().Equal(res.StatusCode, 302)
+	body, err := ioutil.ReadAll(res.Body)
+	s.Assert().NoError(err)
+	s.Assert().Equal(string(body), fmt.Sprintf("Found. Redirecting to %s?rd=https://secure.example.com:8080/", LoginBaseURL))
+}
+
+func TestStandaloneWebDriverScenario(t *testing.T) {
+	suite.Run(t, NewStandaloneWebDriverSuite())
 }
 
 func TestStandaloneSuite(t *testing.T) {
-	suite.Run(t, NewOneFactorSuite())
-	suite.Run(t, NewTwoFactorSuite())
+	suite.Run(t, NewOneFactorScenario())
+	suite.Run(t, NewTwoFactorScenario())
+	suite.Run(t, NewBypassPolicyScenario())
+	suite.Run(t, NewBackendProtectionScenario())
+	suite.Run(t, NewResetPasswordScenario())
+	suite.Run(t, NewAvailableMethodsScenario([]string{"ONE-TIME PASSWORD"}))
 
-	RunTypescriptSuite(t, standaloneSuiteName)
+	suite.Run(t, NewStandaloneWebDriverSuite())
+	suite.Run(t, NewStandaloneSuite())
 }

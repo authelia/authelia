@@ -9,6 +9,7 @@ var ldapSuiteName = "LDAP"
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"docker-compose.yml",
+		"internal/suites/LDAP/docker-compose.yml",
 		"example/compose/authelia/docker-compose.backend.yml",
 		"example/compose/authelia/docker-compose.frontend.yml",
 		"example/compose/nginx/backend/docker-compose.yml",
@@ -18,7 +19,7 @@ func init() {
 	})
 
 	setup := func(suitePath string) error {
-		err := dockerEnvironment.Up(suitePath)
+		err := dockerEnvironment.Up()
 
 		if err != nil {
 			return err
@@ -28,7 +29,7 @@ func init() {
 	}
 
 	teardown := func(suitePath string) error {
-		err := dockerEnvironment.Down(suitePath)
+		err := dockerEnvironment.Down()
 		return err
 	}
 

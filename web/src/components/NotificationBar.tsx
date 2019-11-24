@@ -28,6 +28,7 @@ export default function (props: Props) {
             onClose={props.onClose}
             onExited={() => setTmpNotification(null)}>
             <ColoredSnackbarContent
+                className="notification"
                 variant={tmpNotification ? tmpNotification.level : "info"}
                 message={tmpNotification ? tmpNotification.message : ""} />
         </Snackbar>

@@ -6,6 +6,6 @@ export interface Props { }
 
 export default function (props: Props) {
     return (
-        <FontAwesomeIcon icon={faCheckCircle} size="4x" color="green" />
+        <FontAwesomeIcon icon={faCheckCircle} size="4x" color="green" className="success-icon" />
     )
 }

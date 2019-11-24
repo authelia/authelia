@@ -8,7 +8,6 @@ npm-debug.log*
 # Coverage reports
 coverage/
 
-src/.baseDir.ts
 .vscode/
 
 *.swp

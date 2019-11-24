@@ -18,7 +18,7 @@ export default function (props: Props) {
     const style = useStyles();
 
     const dial = (
-        <span className={style.otpInput}>
+        <span className={style.otpInput} id="otp-input">
             <OtpInput
                 onChange={props.onChange}
                 value={props.passcode}

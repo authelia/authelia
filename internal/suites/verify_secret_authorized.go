@@ -1,7 +1,10 @@
 package suites
 
-import "context"
+import (
+	"context"
+	"testing"
+)
 
-func verifySecretAuthorized(ctx context.Context, s *SeleniumSuite) {
-	verifyBodyContains(ctx, s, "This is a very important secret!")
+func (wds *WebDriverSession) verifySecretAuthorized(ctx context.Context, t *testing.T) {
+	wds.verifyBodyContains(ctx, t, "This is a very important secret!")
 }

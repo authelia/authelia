@@ -22,21 +22,30 @@ export default function (props: Props) {
         color={theme.palette.primary.main} backgroundColor={"white"} />
 
     return (
-        <Dialog open={props.open} className={style.root} onClose={props.onClose}>
+        <Dialog
+            id="methods-dialog"
+            open={props.open}
+            className={style.root}
+            onClose={props.onClose}>
             <DialogContent>
                 <Grid container justify="center" spacing={1}>
                     {props.methods.has(SecondFactorMethod.TOTP)
-                        ? <MethodItem method="One-Time Password" icon={pieChartIcon}
+                        ? <MethodItem
+                            id="one-time-password-option"
+                            method="One-Time Password"
+                            icon={pieChartIcon}
                             onClick={() => props.onClick(SecondFactorMethod.TOTP)} />
                         : null}
                     {props.methods.has(SecondFactorMethod.U2F) && props.u2fSupported
                         ? <MethodItem
+                            id="security-key-option"
                             method="Security Key"
                             icon={<FingerTouchIcon size={32} />}
                             onClick={() => props.onClick(SecondFactorMethod.U2F)} />
                         : null}
                     {props.methods.has(SecondFactorMethod.Duo)
                         ? <MethodItem
+                            id="push-notification-option"
                             method="Push Notification"
                             icon={<PushNotificationIcon width={32} height={32} />}
                             onClick={() => props.onClick(SecondFactorMethod.Duo)} />
@@ -59,6 +68,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 interface MethodItemProps {
+    id: string;
     method: string;
     icon: ReactNode;
 
@@ -82,7 +92,7 @@ function MethodItem(props: MethodItemProps) {
     }))();
 
     return (
-        <Grid item xs={12}>
+        <Grid item xs={12} className="method-option" id={props.id}>
             <Button className={style.item} color="primary"
                 classes={{ root: style.buttonRoot }}
                 variant="contained"

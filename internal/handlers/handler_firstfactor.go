@@ -35,13 +35,15 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	userPasswordOk, err := ctx.Providers.UserProvider.CheckUserPassword(bodyJSON.Username, bodyJSON.Password)
 
 	if err != nil {
+		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
+		ctx.Providers.Regulator.Mark(bodyJSON.Username, false)
+
 		ctx.Error(fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 		return
 	}
 
 	ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
-	// Mark the authentication attempt and whether it was successful.
-	err = ctx.Providers.Regulator.Mark(bodyJSON.Username, userPasswordOk)
+	err = ctx.Providers.Regulator.Mark(bodyJSON.Username, false)
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to mark authentication: %s", err), authenticationFailedMessage)

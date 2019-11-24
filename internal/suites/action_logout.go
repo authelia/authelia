@@ -1,8 +1,12 @@
 package suites
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"testing"
+)
 
-func doLogout(ctx context.Context, s *SeleniumSuite) {
-	doVisit(s, "https://login.example.com:8080/#/logout")
-	verifyIsFirstFactorPage(ctx, s)
+func (wds *WebDriverSession) doLogout(ctx context.Context, t *testing.T) {
+	wds.doVisit(t, fmt.Sprintf("%s%s", LoginBaseURL, "/logout"))
+	wds.verifyIsFirstFactorPage(ctx, t)
 }
