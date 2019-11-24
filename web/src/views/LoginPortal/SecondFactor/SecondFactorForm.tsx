@@ -22,7 +22,7 @@ import { Configuration } from "../../../models/Configuration";
 import u2fApi from "u2f-api";
 import { AuthenticationLevel } from "../../../services/State";
 
-const EMAIL_SENT_NOTIFICATION = "An email has been sent to your address to complete the registration process";
+const EMAIL_SENT_NOTIFICATION = "An email has been sent to your address to complete the process.";
 
 export interface Props {
     username: string;
@@ -84,6 +84,7 @@ export default function (props: Props) {
 
     return (
         <LoginLayout
+            id="second-factor-stage"
             title={`Hi ${props.username}`}
             showBrand>
             <MethodSelectionDialog
@@ -94,13 +95,19 @@ export default function (props: Props) {
                 onClick={handleMethodSelected} />
             <Grid container>
                 <Grid item xs={12}>
-                    <Button color="secondary" onClick={handleLogoutClick}>Logout</Button>{" | "}
-                    <Button color="secondary" onClick={handleMethodSelectionClick}>Methods</Button>
+                    <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
+                        Logout
+                    </Button>
+                    {" | "}
+                    <Button color="secondary" onClick={handleMethodSelectionClick} id="methods-button">
+                        Methods
+                    </Button>
                 </Grid>
                 <Grid item xs={12} className={style.methodContainer}>
                     <Switch>
                         <Route path={SecondFactorTOTPRoute} exact>
                             <OneTimePasswordMethod
+                                id="one-time-password-method"
                                 authenticationLevel={props.authenticationLevel}
                                 onRegisterClick={initiateRegistration(initiateTOTPRegistrationProcess)}
                                 onSignInError={err => createErrorNotification(err.message)}
@@ -108,6 +115,7 @@ export default function (props: Props) {
                         </Route>
                         <Route path={SecondFactorU2FRoute} exact>
                             <SecurityKeyMethod
+                                id="security-key-method"
                                 authenticationLevel={props.authenticationLevel}
                                 onRegisterClick={initiateRegistration(initiateU2FRegistrationProcess)}
                                 onSignInError={err => createErrorNotification(err.message)}
@@ -115,6 +123,7 @@ export default function (props: Props) {
                         </Route>
                         <Route path={SecondFactorPushRoute} exact>
                             <PushNotificationMethod
+                                id="push-notification-method"
                                 authenticationLevel={props.authenticationLevel}
                                 onSignInError={err => createErrorNotification(err.message)}
                                 onSignInSuccess={props.onAuthenticationSuccess} />

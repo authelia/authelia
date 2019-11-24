@@ -6,6 +6,6 @@ export interface Props { }
 
 export default function (props: Props) {
     return (
-        <FontAwesomeIcon icon={faTimesCircle} size="4x" color="red" />
+        <FontAwesomeIcon icon={faTimesCircle} size="4x" color="red" className="failure-icon" />
     )
 }

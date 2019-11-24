@@ -1,7 +1,10 @@
 package suites
 
-import "context"
+import (
+	"context"
+	"testing"
+)
 
-func verifyIsFirstFactorPage(ctx context.Context, s *SeleniumSuite) {
-	WaitElementLocatedByClassName(ctx, s, "first-factor-step")
+func (wds *WebDriverSession) verifyIsFirstFactorPage(ctx context.Context, t *testing.T) {
+	wds.WaitElementLocatedByID(ctx, t, "first-factor-stage")
 }

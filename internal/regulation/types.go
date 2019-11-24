@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/clems4ever/authelia/internal/storage"
+	"github.com/clems4ever/authelia/internal/utils"
 )
 
 // Regulator an authentication regulator preventing attackers to brute force the service.
@@ -18,4 +19,6 @@ type Regulator struct {
 	banTime time.Duration
 
 	storageProvider storage.Provider
+
+	clock utils.Clock
 }

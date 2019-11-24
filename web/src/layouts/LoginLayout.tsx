@@ -5,6 +5,7 @@ import { grey } from "@material-ui/core/colors";
 
 
 export interface Props {
+    id?: string;
     children?: ReactNode;
     title: string;
     showBrand?: boolean;
@@ -14,6 +15,7 @@ export default function (props: Props) {
     const style = useStyles();
     return (
         <Grid
+            id={props.id}
             className={style.root}
             container
             spacing={0}

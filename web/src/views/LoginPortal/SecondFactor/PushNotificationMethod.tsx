@@ -16,6 +16,7 @@ export enum State {
 }
 
 export interface Props {
+    id: string;
     authenticationLevel: AuthenticationLevel;
 
     onSignInError: (err: Error) => void;
@@ -40,13 +41,15 @@ export default function (props: Props) {
         try {
             setState(State.SignInInProgress);
             const res = await completePushNotificationSignIn(redirectionURL);
-
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
 
             setState(State.Success);
-            setTimeout(() => onSignInSuccessCallback(res ? res.redirect : undefined), 1500);
+            setTimeout(() => {
+                if (!mounted.current) return;
+                onSignInSuccessCallback(res ? res.redirect : undefined)
+            }, 1500);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
@@ -81,6 +84,7 @@ export default function (props: Props) {
 
     return (
         <MethodContainer
+            id={props.id}
             title="Push Notification"
             explanation="A notification has been sent to your smartphone">
             <div className={style.icon}>

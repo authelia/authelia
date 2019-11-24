@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   authelia-backend:
     build:
@@ -12,7 +12,6 @@ services:
       - "${GOPATH}:/go"
       - "/tmp/authelia:/tmp/authelia"
     environment:
-      - SUITE_PATH=${SUITE_PATH}
       - ENVIRONMENT=dev
     networks:
       authelianet:

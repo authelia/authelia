@@ -14,7 +14,7 @@ type TwoFactorSuite struct {
 	*SeleniumSuite
 }
 
-func NewTwoFactorSuite() *TwoFactorSuite {
+func NewTwoFactorScenario() *TwoFactorSuite {
 	return &TwoFactorSuite{
 		SeleniumSuite: new(SeleniumSuite),
 	}
@@ -27,7 +27,7 @@ func (s *TwoFactorSuite) SetupSuite() {
 		log.Fatal(err)
 	}
 
-	s.SeleniumSuite.WebDriverSession = wds
+	s.WebDriverSession = wds
 }
 
 func (s *TwoFactorSuite) TearDownSuite() {
@@ -42,24 +42,44 @@ func (s *TwoFactorSuite) SetupTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	doLogout(ctx, s.SeleniumSuite)
-	doVisit(s.SeleniumSuite, HomeBaseURL)
-	verifyURLIs(ctx, s.SeleniumSuite, HomeBaseURL)
+	s.doLogout(ctx, s.T())
+	s.doVisit(s.T(), HomeBaseURL)
+	s.verifyIsHome(ctx, s.T())
 }
 
 func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	// Register TOTP secret and logout.
-	secret := doRegisterThenLogout(ctx, s.SeleniumSuite, "john", "password")
+	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	doLoginTwoFactor(ctx, s.SeleniumSuite, "john", "password", false, secret, targetURL)
+	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, targetURL)
+	s.verifySecretAuthorized(ctx, s.T())
 
-	verifySecretAuthorized(ctx, s.SeleniumSuite)
+	s.doVisit(s.T(), HomeBaseURL)
+	s.verifyIsHome(ctx, s.T())
+
+	s.doVisit(s.T(), targetURL)
+	s.verifySecretAuthorized(ctx, s.T())
+}
+
+func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	// Register TOTP secret and logout.
+	s.doRegisterThenLogout(ctx, s.T(), "john", "password")
+
+	wrongPasscode := "123456"
+	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
+	s.verifyIsSecondFactorPage(ctx, s.T())
+	s.doEnterOTP(ctx, s.T(), wrongPasscode)
+
+	s.verifyNotificationDisplayed(ctx, s.T(), "The one-time password might be wrong")
 }
 
 func TestRunTwoFactor(t *testing.T) {
-	suite.Run(t, NewTwoFactorSuite())
+	suite.Run(t, NewTwoFactorScenario())
 }

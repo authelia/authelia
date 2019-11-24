@@ -3,8 +3,10 @@ package handlers
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/clems4ever/authelia/internal/mocks"
+	"github.com/clems4ever/authelia/internal/models"
 
 	"github.com/clems4ever/authelia/internal/authentication"
 	"github.com/golang/mock/gomock"
@@ -68,6 +70,32 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 
 	assert.Equal(s.T(), "Error while checking password for user test: Failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+}
+
+func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCredentials() {
+	t, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
+	s.mock.Clock.Set(t)
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
+		Return(false, fmt.Errorf("Invalid credentials"))
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(gomock.Eq(models.AuthenticationAttempt{
+			Username:   "test",
+			Successful: false,
+			Time:       t,
+		}))
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	FirstFactorPost(s.mock.Ctx)
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {

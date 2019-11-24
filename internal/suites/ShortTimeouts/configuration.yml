@@ -12,7 +12,7 @@ default_redirection_url: https://home.example.com:8080/
 
 authentication_backend:
   file:
-    path: users.yml
+    path: /var/lib/authelia/users.yml
 
 session:
   secret: unsecure_session_secret

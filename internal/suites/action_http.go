@@ -1,24 +1,21 @@
 package suites
 
 import (
-	"crypto/tls"
 	"io/ioutil"
 	"net/http"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func doHTTPGetQuery(s *SeleniumSuite, url string) []byte {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
+func doHTTPGetQuery(t *testing.T, url string) []byte {
+	client := NewHTTPClient()
 	req, err := http.NewRequest("GET", url, nil)
-	assert.NoError(s.T(), err)
+	assert.NoError(t, err)
 
 	req.Header.Add("Accept", "application/json")
 	resp, err := client.Do(req)
-	assert.NoError(s.T(), err)
+	assert.NoError(t, err)
 
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)

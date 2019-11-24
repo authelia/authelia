@@ -1,7 +1,10 @@
 package suites
 
-import "context"
+import (
+	"context"
+	"testing"
+)
 
-func verifyIsSecondFactorPage(ctx context.Context, s *SeleniumSuite) {
-	WaitElementLocatedByClassName(ctx, s, "second-factor-step")
+func (wds *WebDriverSession) verifyIsSecondFactorPage(ctx context.Context, t *testing.T) {
+	wds.WaitElementLocatedByID(ctx, t, "second-factor-stage")
 }

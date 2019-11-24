@@ -14,7 +14,7 @@ type OneFactorSuite struct {
 	*SeleniumSuite
 }
 
-func NewOneFactorSuite() *OneFactorSuite {
+func NewOneFactorScenario() *OneFactorSuite {
 	return &OneFactorSuite{
 		SeleniumSuite: new(SeleniumSuite),
 	}
@@ -27,7 +27,7 @@ func (s *OneFactorSuite) SetupSuite() {
 		log.Fatal(err)
 	}
 
-	s.SeleniumSuite.WebDriverSession = wds
+	s.WebDriverSession = wds
 }
 
 func (s *OneFactorSuite) TearDownSuite() {
@@ -42,9 +42,9 @@ func (s *OneFactorSuite) SetupTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	doLogout(ctx, s.SeleniumSuite)
-	doVisit(s.SeleniumSuite, HomeBaseURL)
-	verifyURLIs(ctx, s.SeleniumSuite, HomeBaseURL)
+	s.doLogout(ctx, s.T())
+	s.doVisit(s.T(), HomeBaseURL)
+	s.verifyIsHome(ctx, s.T())
 }
 
 func (s *OneFactorSuite) TestShouldAuthorizeSecretAfterOneFactor() {
@@ -52,8 +52,8 @@ func (s *OneFactorSuite) TestShouldAuthorizeSecretAfterOneFactor() {
 	defer cancel()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURL)
-	doLoginOneFactor(ctx, s.SeleniumSuite, "john", "password", false, targetURL)
-	verifySecretAuthorized(ctx, s.SeleniumSuite)
+	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, targetURL)
+	s.verifySecretAuthorized(ctx, s.T())
 }
 
 func (s *OneFactorSuite) TestShouldRedirectToSecondFactor() {
@@ -61,8 +61,8 @@ func (s *OneFactorSuite) TestShouldRedirectToSecondFactor() {
 	defer cancel()
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	doLoginOneFactor(ctx, s.SeleniumSuite, "john", "password", false, targetURL)
-	verifyIsSecondFactorPage(ctx, s.SeleniumSuite)
+	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, targetURL)
+	s.verifyIsSecondFactorPage(ctx, s.T())
 }
 
 func (s *OneFactorSuite) TestShouldDenyAccessOnBadPassword() {
@@ -70,11 +70,11 @@ func (s *OneFactorSuite) TestShouldDenyAccessOnBadPassword() {
 	defer cancel()
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	doLoginOneFactor(ctx, s.SeleniumSuite, "john", "bad-password", false, targetURL)
-	verifyIsFirstFactorPage(ctx, s.SeleniumSuite)
-	verifyNotificationDisplayed(ctx, s.SeleniumSuite, "Authentication failed. Check your credentials.")
+	s.doLoginOneFactor(ctx, s.T(), "john", "bad-password", false, targetURL)
+	s.verifyIsFirstFactorPage(ctx, s.T())
+	s.verifyNotificationDisplayed(ctx, s.T(), "There was a problem. Username or password might be incorrect.")
 }
 
 func TestRunOneFactor(t *testing.T) {
-	suite.Run(t, NewOneFactorSuite())
+	suite.Run(t, NewOneFactorScenario())
 }

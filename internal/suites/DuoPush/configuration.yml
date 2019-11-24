@@ -4,13 +4,13 @@
 
 port: 9091
 
-logs_level: debug
+logs_level: trace
 
 jwt_secret: very_important_secret
 
 authentication_backend:
   file:
-    path: users.yml
+    path: /var/lib/authelia/users.yml
 
 session:
   secret: unsecure_session_secret
@@ -38,7 +38,7 @@ duo_api:
 
 # Access Control
 #
-# Access control is a set of rules you can use to restrict user access to certain 
+# Access control is a set of rules you can use to restrict user access to certain
 # resources.
 access_control:
   # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
@@ -54,39 +54,38 @@ access_control:
     - domain: secure.example.com
       policy: two_factor
 
-    - domain: '*.example.com'
+    - domain: "*.example.com"
       subject: "group:admins"
       policy: two_factor
 
     - domain: dev.example.com
       resources:
-        - '^/users/john/.*$' 
+        - "^/users/john/.*$"
       subject: "user:john"
       policy: two_factor
 
     - domain: dev.example.com
       resources:
-        - '^/users/harry/.*$'
+        - "^/users/harry/.*$"
       subject: "user:harry"
       policy: two_factor
 
-    - domain: '*.mail.example.com'
+    - domain: "*.mail.example.com"
       subject: "user:bob"
       policy: two_factor
 
     - domain: dev.example.com
       resources:
-        - '^/users/bob/.*$'
+        - "^/users/bob/.*$"
       subject: "user:bob"
       policy: two_factor
 
-
 # Configuration of the authentication regulation mechanism.
-regulation: 
+regulation:
   # Set it to 0 to disable max_retries.
   max_retries: 3
 
-  # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window. 
+  # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window.
   find_time: 300
 
   # The length of time before a banned user can login again.
@@ -98,4 +97,3 @@ notifier:
     host: smtp
     port: 1025
     sender: admin@example.com
-

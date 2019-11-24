@@ -11,7 +11,6 @@ import { useRedirectionURL } from "../../hooks/RedirectionURL";
 import { useUserPreferences } from "../../hooks/UserPreferences";
 import { SecondFactorMethod } from "../../models/Methods";
 import { useAutheliaConfiguration } from "../../hooks/Configuration";
-import SignOut from "./SignOut/SignOut";
 
 export default function () {
     const history = useHistory();

@@ -10,7 +10,7 @@ jwt_secret: unsecure_secret
 
 authentication_backend:
   file:
-    path: users.yml
+    path: /var/lib/authelia/users.yml
 
 session:
   secret: unsecure_session_secret

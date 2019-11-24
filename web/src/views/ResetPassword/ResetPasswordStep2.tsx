@@ -54,22 +54,23 @@ export default function () {
             if (password2 === "") {
                 setErrorPassword2(true);
             }
-
-            if (password1 !== password2) {
-                setErrorPassword1(true);
-                setErrorPassword2(true)
-            }
             return
+        }
+        if (password1 !== password2) {
+            setErrorPassword1(true);
+            setErrorPassword2(true)
+            createErrorNotification("Passwords do not match.");
+            return;
         }
 
         try {
             await resetPassword(password1);
-            createSuccessNotification("The password has been reset");
+            createSuccessNotification("Password has been reset.");
             setTimeout(() => history.push(FirstFactorRoute), 1500);
             setFormDisabled(true);
         } catch (err) {
             console.error(err);
-            createErrorNotification("There was an issue resetting the password");
+            createErrorNotification("There was an issue resetting the password.");
         }
     }
 
@@ -80,10 +81,11 @@ export default function () {
         history.push(FirstFactorRoute);
 
     return (
-        <LoginLayout title="Enter new password">
+        <LoginLayout title="Enter new password" id="reset-password-step2-stage">
             <Grid container className={style.root} spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
+                        id="password1-textfield"
                         label="New password"
                         variant="outlined"
                         type="password"
@@ -95,6 +97,7 @@ export default function () {
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField
+                        id="password2-textfield"
                         label="Repeat new password"
                         variant="outlined"
                         type="password"
@@ -112,6 +115,7 @@ export default function () {
                 </Grid>
                 <Grid item xs={6}>
                     <Button
+                        id="reset-button"
                         variant="contained"
                         color="primary"
                         name="password1"
@@ -121,6 +125,7 @@ export default function () {
                 </Grid>
                 <Grid item xs={6}>
                     <Button
+                        id="cancel-button"
                         variant="contained"
                         color="primary"
                         name="password2"

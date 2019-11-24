@@ -22,9 +22,9 @@ export default function () {
 
         try {
             await initiateResetPasswordProcess(username);
-            createInfoNotification("An email has been sent to your address to complete the process");
+            createInfoNotification("An email has been sent to your address to complete the process.");
         } catch (err) {
-            createErrorNotification("There was an issue initiating the password reset process");
+            createErrorNotification("There was an issue initiating the password reset process.");
         }
     }
 
@@ -37,10 +37,11 @@ export default function () {
     }
 
     return (
-        <LoginLayout title="Reset password">
+        <LoginLayout title="Reset password" id="reset-password-step1-stage">
             <Grid container className={style.root} spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
+                        id="username-textfield"
                         label="Username"
                         variant="outlined"
                         fullWidth
@@ -56,6 +57,7 @@ export default function () {
                 </Grid>
                 <Grid item xs={6}>
                     <Button
+                        id="reset-button"
                         variant="contained"
                         color="primary"
                         fullWidth
@@ -63,6 +65,7 @@ export default function () {
                 </Grid>
                 <Grid item xs={6}>
                     <Button
+                        id="cancel-button"
                         variant="contained"
                         color="primary"
                         fullWidth

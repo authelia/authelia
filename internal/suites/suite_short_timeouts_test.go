@@ -2,6 +2,8 @@ package suites
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
 type ShortTimeoutsSuite struct {
@@ -13,5 +15,6 @@ func NewShortTimeoutsSuite() *ShortTimeoutsSuite {
 }
 
 func TestShortTimeoutsSuite(t *testing.T) {
-	RunTypescriptSuite(t, shortTimeoutsSuiteName)
+	suite.Run(t, NewInactivityScenario())
+	suite.Run(t, NewRegulationScenario())
 }

@@ -6,31 +6,32 @@ import (
 
 var highAvailabilitySuiteName = "HighAvailability"
 
-func init() {
-	dockerEnvironment := NewDockerEnvironment([]string{
-		"docker-compose.yml",
-		"example/compose/authelia/docker-compose.backend.yml",
-		"example/compose/authelia/docker-compose.frontend.yml",
-		"example/compose/mariadb/docker-compose.yml",
-		"example/compose/redis/docker-compose.yml",
-		"example/compose/nginx/backend/docker-compose.yml",
-		"example/compose/nginx/portal/docker-compose.yml",
-		"example/compose/smtp/docker-compose.yml",
-		"example/compose/httpbin/docker-compose.yml",
-		"example/compose/ldap/docker-compose.admin.yml", // This is just used for administration, not for testing.
-		"example/compose/ldap/docker-compose.yml",
-	})
+var haDockerEnvironment = NewDockerEnvironment([]string{
+	"docker-compose.yml",
+	"internal/suites/HighAvailability/docker-compose.yml",
+	"example/compose/authelia/docker-compose.backend.yml",
+	"example/compose/authelia/docker-compose.frontend.yml",
+	"example/compose/mariadb/docker-compose.yml",
+	"example/compose/redis/docker-compose.yml",
+	"example/compose/nginx/backend/docker-compose.yml",
+	"example/compose/nginx/portal/docker-compose.yml",
+	"example/compose/smtp/docker-compose.yml",
+	"example/compose/httpbin/docker-compose.yml",
+	"example/compose/ldap/docker-compose.admin.yml", // This is just used for administration, not for testing.
+	"example/compose/ldap/docker-compose.yml",
+})
 
+func init() {
 	setup := func(suitePath string) error {
-		if err := dockerEnvironment.Up(suitePath); err != nil {
+		if err := haDockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment)
+		return waitUntilAutheliaIsReady(haDockerEnvironment)
 	}
 
 	teardown := func(suitePath string) error {
-		return dockerEnvironment.Down(suitePath)
+		return haDockerEnvironment.Down()
 	}
 
 	GlobalRegistry.Register(highAvailabilitySuiteName, Suite{

@@ -16,6 +16,7 @@ import (
 	"github.com/clems4ever/authelia/internal/server"
 	"github.com/clems4ever/authelia/internal/session"
 	"github.com/clems4ever/authelia/internal/storage"
+	"github.com/clems4ever/authelia/internal/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -51,12 +52,15 @@ func main() {
 
 	switch config.LogsLevel {
 	case "info":
+		logging.Logger().Info("Logging severity set to info")
 		logging.SetLevel(logrus.InfoLevel)
 		break
 	case "debug":
+		logging.Logger().Info("Logging severity set to debug")
 		logging.SetLevel(logrus.DebugLevel)
 		break
 	case "trace":
+		logging.Logger().Info("Logging severity set to trace")
 		logging.SetLevel(logrus.TraceLevel)
 	}
 
@@ -90,9 +94,10 @@ func main() {
 		log.Fatalf("Unrecognized notifier")
 	}
 
+	clock := utils.RealClock{}
 	authorizer := authorization.NewAuthorizer(*config.AccessControl)
 	sessionProvider := session.NewProvider(config.Session)
-	regulator := regulation.NewRegulator(config.Regulation, storageProvider)
+	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
 
 	providers := middlewares.Providers{
 		Authorizer:      authorizer,

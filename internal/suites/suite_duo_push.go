@@ -9,6 +9,7 @@ var duoPushSuiteName = "DuoPush"
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"docker-compose.yml",
+		"internal/suites/DuoPush/docker-compose.yml",
 		"example/compose/authelia/docker-compose.backend.yml",
 		"example/compose/authelia/docker-compose.frontend.yml",
 		"example/compose/nginx/backend/docker-compose.yml",
@@ -17,7 +18,7 @@ func init() {
 	})
 
 	setup := func(suitePath string) error {
-		if err := dockerEnvironment.Up(suitePath); err != nil {
+		if err := dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
@@ -25,7 +26,7 @@ func init() {
 	}
 
 	teardown := func(suitePath string) error {
-		return dockerEnvironment.Down(suitePath)
+		return dockerEnvironment.Down()
 	}
 
 	GlobalRegistry.Register(duoPushSuiteName, Suite{

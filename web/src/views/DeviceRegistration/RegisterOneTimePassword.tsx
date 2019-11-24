@@ -21,6 +21,7 @@ export default function () {
 
     // The secret retrieved from the API is all is ok.
     const [secretURL, setSecretURL] = useState("empty");
+    const [secretBase32, setSecretBase32] = useState(undefined as string | undefined);
     const { createErrorNotification } = useNotifications();
     const [hasErrored, setHasErrored] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +43,7 @@ export default function () {
         try {
             const secret = await completeTOTPRegistrationProcess(processToken);
             setSecretURL(secret.otpauth_url);
+            setSecretBase32(secret.base32_secret);
         } catch (err) {
             console.error(err);
             createErrorNotification("Failed to generate the code to register your device", 10000);
@@ -75,6 +77,10 @@ export default function () {
                         {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
                     </Link>
                 </div>
+                {secretBase32
+                    ? <input id="base32-secret"
+                        style={{ display: "none" }}
+                        value={secretBase32} /> : null}
                 <Button
                     variant="contained"
                     color="primary"

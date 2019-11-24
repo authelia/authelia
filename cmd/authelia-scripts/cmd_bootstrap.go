@@ -55,10 +55,6 @@ func runCommand(cmd string, args ...string) {
 	}
 }
 
-func installNpmPackages() {
-	runCommand("npm", "ci")
-}
-
 func checkCommandExist(cmd string) {
 	fmt.Print("Checking if '" + cmd + "' command is installed...")
 	command := exec.Command("bash", "-c", "command -v "+cmd)
@@ -212,9 +208,6 @@ func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	if !goPathFound {
 		log.Fatal("GOPATH is not set")
 	}
-
-	bootstrapPrintln("Installing NPM packages for development...")
-	installNpmPackages()
 
 	bootstrapPrintln("Building development Docker images...")
 	buildHelperDockerImages()
