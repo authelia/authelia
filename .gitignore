@@ -40,3 +40,8 @@ users_database.test.yml
 .suite
 .kube
 .idea
+
+# Helm dependent charts
+helm/charts
+
+.DS_Store
