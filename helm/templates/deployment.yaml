@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "authelia.fullname" . }}
+  labels:
+{{ include "authelia.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "authelia.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "authelia.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "authelia.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: NODE_TLS_REJECT_UNAUTHORIZED
+            value: "0"
+          ports:
+            - name: http
+              containerPort: 9091
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: authelia-config
+            mountPath: /etc/authelia/config.yml
+            subPath: config.yml
+          {{- if not .Values.mongodb.enabled }}
+          - name: authelia-store
+            mountPath: /var/lib/authelia
+          {{- end }}
+          {{- if not .Values.authelia.ldap.enable }}
+          - name: authelia-users
+            mountPath: /var/lib/authelia/users_database.yml
+            subPath: users_database.yml
+          {{- end }}
+          - name: authelia-temp
+            mountPath: /tmp/authelia
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+      - name: authelia-config
+        configMap:
+          name: {{ template "authelia.fullname" . }}-config
+      {{- if not .Values.mongodb.enabled }}
+      - name: authelia-store
+        persistentVolumeClaim:
+          claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{- else }}{{ template "authelia.fullname" . }}-store{{- end }}
+      {{- end }}
+      {{- if not .Values.authelia.ldap.enable }}
+      - name: authelia-users
+        secret:
+          secretName: {{ template "authelia.fullname" . }}-users
+      {{- end }}
+      - name: authelia-temp
+        emptyDir: {}

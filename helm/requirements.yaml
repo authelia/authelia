@@ -1,0 +1,9 @@
+dependencies:
+- name: mongodb
+  version: ~7.4.6
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  condition: mongodb.enabled
+- name: redis
+  version: ~10.0.1
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  condition: redis.enabled

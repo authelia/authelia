@@ -1,0 +1,14 @@
+{{- if not .Values.authelia.ldap.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "authelia.fullname" . }}-users
+  labels:
+    app.kubernetes.io/name: {{ include "authelia.name" . }}
+    helm.sh/chart: {{ include "authelia.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+type: Opaque
+data:
+  users_database.yml: {{ toYaml .Values.authelia.fileAuth | b64enc | quote }}
+{{- end }}

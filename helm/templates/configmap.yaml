@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "authelia.fullname" . }}-config
+  labels:
+{{ include "authelia.labels" . | indent 4 }}
+data:
+  config.yml: |-
+    port: 9091
+
+    logs_level: {{ .Values.authelia.logLevel }}
+
+    default_redirection_url: {{ .Values.authelia.redirectionURL }}
+
+    totp:
+      issuer: {{ .Values.authelia.totpIssuer }}
+
+    {{- if .Values.authelia.duo.enabled }}
+    duo_api:
+{{ toYaml .Values.authelia.duo.config | indent 6 }}
+    {{- end }}
+
+    authentication_backend:
+      {{- if .Values.authelia.ldap.enabled }}
+      ldap:
+{{ toYaml .Values.authelia.ldap.config | indent 8 }}
+      {{- else }}
+      file:
+        path: /var/lib/authelia/users_database.yml
+      {{- end }}
+
+    access_control:
+      default_policy: {{ .Values.authelia.accessControl.defaultPolicy }}
+      rules:
+{{ toYaml .Values.authelia.accessControl.rules | indent 8 }}
+
+    session:
+{{ toYaml .Values.authelia.session | indent 6 }}
+      {{- if .Values.redis.enabled }}
+      redis:
+        host: {{ template "authelia.redis.fullname" . }}-master
+        port: {{ .Values.redis.redisPort }}
+        {{- if .Values.redis.usePassword }}
+        password: {{ .Values.redis.password }}
+        {{- end }}
+      {{- end }}
+
+    regulation:
+{{ toYaml .Values.authelia.regulation | indent 6 }}
+
+    storage:
+      {{- if .Values.mongodb.enabled }}
+      mongo:
+        url: mongodb://{{ template "authelia.mongodb.fullname" . }}
+        database: authelia
+        auth:
+          username: root
+          password: {{ .Values.mongodb.mongodbRootPassword }}
+      {{- else }}
+      local:
+        path: /var/lib/authelia
+      {{- end }}
+
+    notifier:
+{{ toYaml .Values.authelia.notifier | indent 6 }}

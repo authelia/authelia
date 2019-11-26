@@ -1,0 +1,256 @@
+# Default values for authelia.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: clems4ever/authelia
+  tag: v3.16.2
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+authelia:
+  logLevel: "debug"
+  redirectionURL: "https://home.example.com:8080/"
+  totpIssuer: "authelia.com"
+
+  duo:
+    enabled: false
+    config:
+      hostname: api-123456789.example.com
+      integration_key: ABCDEF
+      secret_key: 1234567890abcdefghifjkl
+
+  ldap:
+    enabled: false
+    config:
+      url: ldap://127.0.0.1
+      # The base dn for every entries
+      base_dn: dc=example,dc=com
+      # An additional dn to define the scope to all users
+      additional_users_dn: ou=users
+      # The users filter used to find the user DN
+      # {0} is a matcher replaced by username.
+      # 'cn={0}' by default.
+      users_filter: cn={0}
+      # An additional dn to define the scope of groups
+      additional_groups_dn: ou=groups
+      # The groups filter used for retrieving groups of a given user.
+      # {0} is a matcher replaced by username.
+      # {dn} is a matcher replaced by user DN.
+      # {uid} is a matcher replaced by user uid.
+      # 'member={dn}' by default.
+      groups_filter: (&(member={dn})(objectclass=groupOfNames))
+      # The attribute holding the name of the group
+      group_name_attribute: cn
+      # The attribute holding the mail address of the user
+      mail_attribute: mail
+      # The username and password of the admin user.
+      user: cn=admin,dc=example,dc=com
+      password: password
+
+    # If LDAP is disabled, you can specify a users database file, however
+    # it will be read-only!
+  fileAuth:
+    users: {}
+      # john:
+      #   password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+      #   email: john.doe@authelia.com
+      #   groups:
+      #     - admins
+      #     - dev
+
+  # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
+  # It is the policy applied to any resource if there is no policy to be applied
+  # to the user.
+  accessControl:
+    defaultPolicy: deny
+    rules:
+      # Rules applied to everyone
+      - domain: public.example.com
+        policy: bypass
+
+      - domain: secure.example.com
+        policy: one_factor
+        # Network based rule, if not provided any network matches.
+        networks:
+          - 192.168.1.0/24
+      - domain: secure.example.com
+        policy: two_factor
+
+      - domain: singlefactor.example.com
+        policy: one_factor
+
+      # Rules applied to 'admin' group
+      - domain: 'mx2.mail.example.com'
+        subject: 'group:admin'
+        policy: deny
+      - domain: '*.example.com'
+        subject: 'group:admin'
+        policy: two_factor
+
+      # Rules applied to 'dev' group
+      - domain: dev.example.com
+        resources:
+          - '^/groups/dev/.*$'
+        subject: 'group:dev'
+        policy: two_factor
+
+      # Rules applied to user 'john'
+      - domain: dev.example.com
+        resources:
+          - '^/users/john/.*$'
+        subject: 'user:john'
+        policy: two_factor
+
+      # Rules applied to user 'harry'
+      - domain: dev.example.com
+        resources:
+          - '^/users/harry/.*$'
+        subject: 'user:harry'
+        policy: two_factor
+
+      # Rules applied to user 'bob'
+      - domain: '*.mail.example.com'
+        subject: 'user:bob'
+        policy: two_factor
+      - domain: 'dev.example.com'
+        resources:
+          - '^/users/bob/.*$'
+        subject: 'user:bob'
+        policy: two_factor
+
+  session:
+    # The name of the session cookie. (default: authelia_session).
+    name: authelia_session
+    # The secret to encrypt the session cookie.
+    secret: unsecure_session_secret
+    # The time in ms before the cookie expires and session is reset.
+    expiration: 3600000 # 1 hour
+    # The inactivity time in ms before the session is reset.
+    inactivity: 300000 # 5 minutes
+    # The domain to protect.
+    # Note: the authenticator must also be in that domain. If empty, the cookie
+    # is restricted to the subdomain of the issuer.
+    domain: example.local
+
+  regulation:
+    # The number of failed login attempts before user is banned.
+    # Set it to 0 to disable regulation.
+    max_retries: 3
+    # The time range during which the user can attempt login before being banned.
+    # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
+    find_time: 120
+    # The length of time before a banned user can login again.
+    ban_time: 300
+
+  notifier: {}
+    # For testing purpose, notifications can be sent in a file
+    # filesystem:
+    #   filename: /tmp/authelia/notification.txt
+
+    # Use your email account to send the notifications. You can use an app password.
+    # List of valid services can be found here: https://nodemailer.com/smtp/well-known/
+    ## email:
+    ##   username: user@example.com
+    ##   password: yourpassword
+    ##   sender: admin@example.com
+    ##   service: gmail
+
+    # Use a SMTP server for sending notifications
+    # smtp:
+    #   username: test
+    #   password: password
+    #   secure: false
+    #   host: 127.0.0.1
+    #   port: 1025
+    #   sender: admin@example.com
+
+# Options for Authelia PVC (/var/lib/authelia/store) when not using mongoDB
+persistence:
+  annotations: {}
+  ## Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  # storageClass: "-"
+
+  ## A manually managed Persistent Volume and Claim
+  ## Requires persistence.enabled: true
+  ## If defined, PVC must be created manually before volume will be bound
+  # existingClaim:
+
+  accessMode: ReadWriteOnce
+  size: 100Mi
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+redis:
+  enabled: true
+  usePassword: false
+  password: "authelia"
+  cluster:
+    enabled: false
+
+mongodb:
+  enabled: true
+  mongodbRootPassword: authelia
