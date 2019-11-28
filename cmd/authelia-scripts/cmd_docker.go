@@ -15,6 +15,12 @@ import (
 var arch string
 var supportedArch = []string{"amd64", "arm32v7", "arm64v8"}
 var defaultArch = "amd64"
+var travisBranch = os.Getenv("TRAVIS_BRANCH")
+var travisPullRequest = os.Getenv("TRAVIS_PULL_REQUEST")
+var travisTag = os.Getenv("TRAVIS_TAG")
+var dockerTags = regexp.MustCompile(`(?P<Minor>(?P<Major>v\d+)\.\d+)\.\d+.*`)
+var ignoredSuffixes = regexp.MustCompile("alpha|beta")
+var tags = dockerTags.FindStringSubmatch(travisTag)
 
 func init() {
 	DockerBuildCmd.PersistentFlags().StringVar(&arch, "arch", defaultArch, "target architecture among: "+strings.Join(supportedArch, ", "))
@@ -136,7 +142,7 @@ func login(docker *Docker) {
 func deploy(docker *Docker, tag string) {
 	imageWithTag := DockerImageName + ":" + tag
 
-	log.Debug("Docker image " + imageWithTag + " will be deployed on Dockerhub.")
+	log.Debug("Docker image " + imageWithTag + " will be deployed on Dockerhub")
 
 	if err := docker.Tag(DockerImageName, imageWithTag); err != nil {
 		log.Fatal(err)
@@ -150,7 +156,7 @@ func deploy(docker *Docker, tag string) {
 func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag string, arm64v8tag string) {
 	dockerImagePrefix := DockerImageName + ":"
 
-	log.Debug("Docker manifest " + dockerImagePrefix + tag + " will be deployed on Dockerhub.")
+	log.Debug("Docker manifest " + dockerImagePrefix + tag + " will be deployed on Dockerhub")
 
 	err := docker.Manifest(dockerImagePrefix+tag, dockerImagePrefix+amd64tag, dockerImagePrefix+arm32v7tag, dockerImagePrefix+arm64v8tag)
 
@@ -167,7 +173,7 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 		}
 	}
 
-	log.Debug("Docker pushing README.md to Dockerhub.")
+	log.Debug("Docker pushing README.md to Dockerhub")
 
 	if err := docker.PublishReadme(); err != nil {
 		log.Fatal(err)
@@ -177,17 +183,21 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 func publishDockerImage(arch string) {
 	docker := &Docker{}
 
-	travisBranch := os.Getenv("TRAVIS_BRANCH")
-	travisPullRequest := os.Getenv("TRAVIS_PULL_REQUEST")
-	travisTag := os.Getenv("TRAVIS_TAG")
-
 	if travisBranch == "master" && travisPullRequest == "false" {
 		login(docker)
 		deploy(docker, "master-"+arch)
 	} else if travisTag != "" {
-		login(docker)
-		deploy(docker, travisTag+"-"+arch)
-		deploy(docker, "latest-"+arch)
+		if len(tags) == 3 {
+			login(docker)
+			deploy(docker, tags[0]+"-"+arch)
+		} else {
+			log.Fatal("Docker image will not be published, the specified tag does not conform to the standard")
+		}
+		if !ignoredSuffixes.MatchString(travisTag) {
+			deploy(docker, tags[1]+"-"+arch)
+			deploy(docker, tags[2]+"-"+arch)
+			deploy(docker, "latest-"+arch)
+		}
 	} else {
 		log.Info("Docker image will not be published")
 	}
@@ -196,18 +206,19 @@ func publishDockerImage(arch string) {
 func publishDockerManifest() {
 	docker := &Docker{}
 
-	travisBranch := os.Getenv("TRAVIS_BRANCH")
-	travisPullRequest := os.Getenv("TRAVIS_PULL_REQUEST")
-	travisTag := os.Getenv("TRAVIS_TAG")
-	ignoredSuffixes := regexp.MustCompile("alpha|beta")
-
 	if travisBranch == "master" && travisPullRequest == "false" {
 		login(docker)
 		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
 	} else if travisTag != "" {
-		login(docker)
-		deployManifest(docker, travisTag, travisTag+"-amd64", travisTag+"-arm32v7", travisTag+"-arm64v8")
+		if len(tags) == 3 {
+			login(docker)
+			deployManifest(docker, tags[0], tags[0]+"-amd64", tags[0]+"-arm32v7", tags[0]+"-arm64v8")
+		} else {
+			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
+		}
 		if !ignoredSuffixes.MatchString(travisTag) {
+			deployManifest(docker, tags[1], tags[1]+"-amd64", tags[1]+"-arm32v7", tags[1]+"-arm64v8")
+			deployManifest(docker, tags[2], tags[2]+"-amd64", tags[2]+"-arm32v7", tags[2]+"-arm64v8")
 			deployManifest(docker, "latest", "latest-amd64", "latest-arm32v7", "latest-arm64v8")
 		}
 	} else {
