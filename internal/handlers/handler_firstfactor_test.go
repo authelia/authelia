@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/clems4ever/authelia/internal/mocks"
 	"github.com/clems4ever/authelia/internal/models"
@@ -61,6 +60,14 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(false, fmt.Errorf("Failed"))
 
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(gomock.Eq(models.AuthenticationAttempt{
+			Username:   "test",
+			Successful: false,
+			Time:       s.mock.Clock.Now(),
+		}))
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -73,9 +80,6 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 }
 
 func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCredentials() {
-	t, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
-	s.mock.Clock.Set(t)
-
 	s.mock.UserProviderMock.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
@@ -86,7 +90,7 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 		AppendAuthenticationLog(gomock.Eq(models.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
-			Time:       t,
+			Time:       s.mock.Clock.Now(),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -104,15 +108,15 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(true, nil)
 
-	s.mock.UserProviderMock.
-		EXPECT().
-		GetDetails(gomock.Eq("test")).
-		Return(nil, fmt.Errorf("Failed"))
-
 	s.mock.StorageProviderMock.
 		EXPECT().
 		AppendAuthenticationLog(gomock.Any()).
 		Return(nil)
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		GetDetails(gomock.Eq("test")).
+		Return(nil, fmt.Errorf("Failed"))
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
@@ -125,16 +129,11 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
-func (s *FirstFactorSuite) TestShouldFailIfAuthenticationLoggingFail() {
+func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 	s.mock.UserProviderMock.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(true, nil)
-
-	s.mock.UserProviderMock.
-		EXPECT().
-		GetDetails(gomock.Eq("test")).
-		Return(nil, nil)
 
 	s.mock.StorageProviderMock.
 		EXPECT().

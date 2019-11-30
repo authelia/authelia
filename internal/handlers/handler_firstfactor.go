@@ -42,20 +42,20 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
-	err = ctx.Providers.Regulator.Mark(bodyJSON.Username, false)
-
-	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to mark authentication: %s", err), authenticationFailedMessage)
-		return
-	}
-
 	if !userPasswordOk {
 		ctx.ReplyError(fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
 		return
 	}
 
 	ctx.Logger.Debugf("Credentials validation of user %s is ok", bodyJSON.Username)
+
+	ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
+	err = ctx.Providers.Regulator.Mark(bodyJSON.Username, true)
+
+	if err != nil {
+		ctx.Error(fmt.Errorf("Unable to mark authentication: %s", err), authenticationFailedMessage)
+		return
+	}
 
 	// Reset all values from previous session before regenerating the cookie.
 	err = ctx.SaveSession(session.NewDefaultUserSession())
