@@ -15,8 +15,8 @@ member: cn=bob,ou=users,dc=example,dc=com
 objectclass: groupOfNames
 objectclass: top
 
-dn: cn=admin,ou=groups,dc=example,dc=com
-cn: admin
+dn: cn=admins,ou=groups,dc=example,dc=com
+cn: admins
 member: cn=john,ou=users,dc=example,dc=com
 objectclass: groupOfNames
 objectclass: top

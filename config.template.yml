@@ -99,7 +99,6 @@ authentication_backend:
   ## file:
   ##   path: ./users_database.yml
 
-
 # Access Control
 #
 # Access control is a list of rules defining the authorizations applied for one
@@ -156,46 +155,44 @@ access_control:
     - domain: singlefactor.example.com
       policy: one_factor
 
-    # Rules applied to 'admin' group
-    - domain: 'mx2.mail.example.com'
-      subject: 'group:admin'
+    # Rules applied to 'admins' group
+    - domain: "mx2.mail.example.com"
+      subject: "groups:admins"
       policy: deny
-    - domain: '*.example.com'
-      subject: 'group:admin'
+    - domain: "*.example.com"
+      subject: "groups:admins"
       policy: two_factor
 
     # Rules applied to 'dev' group
     - domain: dev.example.com
       resources:
-        - '^/groups/dev/.*$'
-      subject: 'group:dev'
+        - "^/groups/dev/.*$"
+      subject: "group:dev"
       policy: two_factor
 
     # Rules applied to user 'john'
     - domain: dev.example.com
       resources:
-        - '^/users/john/.*$'
-      subject: 'user:john'
+        - "^/users/john/.*$"
+      subject: "user:john"
       policy: two_factor
-
 
     # Rules applied to user 'harry'
     - domain: dev.example.com
       resources:
-        - '^/users/harry/.*$'
-      subject: 'user:harry'
+        - "^/users/harry/.*$"
+      subject: "user:harry"
       policy: two_factor
 
     # Rules applied to user 'bob'
-    - domain: '*.mail.example.com'
-      subject: 'user:bob'
+    - domain: "*.mail.example.com"
+      subject: "user:bob"
       policy: two_factor
-    - domain: 'dev.example.com'
+    - domain: "dev.example.com"
       resources:
-        - '^/users/bob/.*$'
-      subject: 'user:bob'
+        - "^/users/bob/.*$"
+      subject: "user:bob"
       policy: two_factor
-
 
 # Configuration of session cookies
 #
@@ -283,7 +280,6 @@ notifier:
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com
-
   # Sending an email using a Gmail account is as simple as the next section.
   # You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
   ## smtp:

@@ -57,7 +57,7 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 
 	for i := 0; i < 3; i++ {
 		s.WaitElementLocatedByID(ctx, s.T(), "sign-in-button").Click()
-		time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 
 	// Reset password field

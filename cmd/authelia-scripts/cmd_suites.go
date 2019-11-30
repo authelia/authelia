@@ -27,11 +27,9 @@ var ErrNoRunningSuite = errors.New("no running suite")
 var runningSuiteFile = ".suite"
 
 var headless bool
-var onlyForbidden bool
 
 func init() {
 	SuitesTestCmd.Flags().BoolVar(&headless, "headless", false, "Run tests in headless mode")
-	SuitesTestCmd.Flags().BoolVar(&onlyForbidden, "only-forbidden", false, "Mocha 'only' filters are forbidden")
 }
 
 // SuitesListCmd Command for listing the available suites
@@ -79,17 +77,17 @@ var SuitesTeardownCmd = &cobra.Command{
 			runningSuite, err := getRunningSuite()
 
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 
 			if runningSuite == "" {
-				panic(ErrNoRunningSuite)
+				log.Fatal(ErrNoRunningSuite)
 			}
 			suiteName = runningSuite
 		}
 
 		if err := teardownSuite(suiteName); err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	},
 	Args: cobra.MaximumNArgs(1),
@@ -143,6 +141,14 @@ func runSuiteSetupTeardown(command string, suite string) error {
 	return utils.RunCommandWithTimeout(cmd, s.SetUpTimeout)
 }
 
+func runOnSetupTimeout(suite string) error {
+	cmd := utils.CommandWithStdout("go", "run", "cmd/authelia-suites/main.go", "timeout", suite)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
+	return utils.RunCommandWithTimeout(cmd, 15*time.Second)
+}
+
 func setupSuite(suiteName string) error {
 	log.Infof("Setup environment for suite %s...", suiteName)
 	signalChannel := make(chan os.Signal)
@@ -156,10 +162,10 @@ func setupSuite(suiteName string) error {
 	}()
 
 	if errSetup := runSuiteSetupTeardown("setup", suiteName); errSetup != nil || interrupted {
-		err := teardownSuite(suiteName)
-		if err != nil {
-			log.Error(err)
+		if errSetup == utils.ErrTimeoutReached {
+			runOnSetupTimeout(suiteName)
 		}
+		teardownSuite(suiteName)
 		return errSetup
 	}
 
@@ -231,7 +237,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	if suite.TestTimeout > 0 {
 		timeout = fmt.Sprintf("%ds", int64(suite.TestTimeout/time.Second))
 	}
-	testCmdLine := fmt.Sprintf("go test ./internal/suites -timeout %s -run '^(Test%sSuite)$'", timeout, suiteName)
+	testCmdLine := fmt.Sprintf("go test -v ./internal/suites -timeout %s -run '^(Test%sSuite)$'", timeout, suiteName)
 
 	log.Infof("Running tests of suite %s...", suiteName)
 	log.Debugf("Running tests with command: %s", testCmdLine)

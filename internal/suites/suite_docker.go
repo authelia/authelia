@@ -5,17 +5,15 @@ import (
 	"time"
 )
 
-var duoPushSuiteName = "DuoPush"
-
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"docker-compose.yml",
-		"internal/suites/DuoPush/docker-compose.yml",
-		"example/compose/authelia/docker-compose.backend.yml",
-		"example/compose/authelia/docker-compose.frontend.yml",
+		"internal/suites/Docker/docker-compose.yml",
+		"example/compose/authelia/docker-compose.backend-dist.yml",
+		"example/compose/authelia/docker-compose.frontend-dist.yml",
 		"example/compose/nginx/backend/docker-compose.yml",
 		"example/compose/nginx/portal/docker-compose.yml",
-		"example/compose/duo-api/docker-compose.yml",
+		"example/compose/smtp/docker-compose.yml",
 	})
 
 	setup := func(suitePath string) error {
@@ -45,7 +43,7 @@ func init() {
 		return dockerEnvironment.Down()
 	}
 
-	GlobalRegistry.Register(duoPushSuiteName, Suite{
+	GlobalRegistry.Register("Docker", Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  onSetupTimeout,
@@ -53,8 +51,7 @@ func init() {
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 
-		Description: `This suite has been created to test Authelia against
-the Duo API for push notifications. It allows a user to validate second factor
-with a mobile phone.`,
+		Description: `This suite has been created to test the distributable version of Authelia
+It's often useful to test this one before the Kube one.`,
 	})
 }

@@ -39,6 +39,15 @@ func (s *HighAvailabilityWebDriverSuite) TearDownSuite() {
 	}
 }
 
+func (s *HighAvailabilityWebDriverSuite) SetupTest() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	s.doLogout(ctx, s.T())
+	s.doVisit(s.T(), HomeBaseURL)
+	s.verifyIsHome(ctx, s.T())
+}
+
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -151,13 +160,15 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 
 	verifyAuthorization := func(username string) func(t *testing.T) {
 		return func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 			defer cancel()
 
 			s.doRegisterAndLogin2FA(ctx, t, username, "password", false, "")
 
 			for url, authorizations := range expectedAuthorizations {
-				verifyUserIsAuthorized(ctx, t, username, url, authorizations[username])
+				t.Run(url, func(t *testing.T) {
+					verifyUserIsAuthorized(ctx, t, username, url, authorizations[username])
+				})
 			}
 
 			s.doLogout(ctx, t)
@@ -165,7 +176,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 	}
 
 	for _, user := range []string{UserJohn, UserBob, UserHarry} {
-		s.T().Run(fmt.Sprintf("user %s", user), verifyAuthorization(user))
+		s.T().Run(fmt.Sprintf("%s", user), verifyAuthorization(user))
 	}
 }
 

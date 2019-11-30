@@ -1,10 +1,13 @@
-version: '3'
+version: "3"
 services:
   authelia-frontend:
     build:
       context: example/compose/authelia
       dockerfile: Dockerfile.frontend
-    command: npm run start
+      args:
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+    command: sh -c 'npm ci && npm run start'
     working_dir: /app
     volumes:
       - "./web:/app"

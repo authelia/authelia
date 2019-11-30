@@ -17,12 +17,11 @@ spec:
         app: test-app
     spec:
       containers:
-      - name: test-app
-        imagePullPolicy: Never
-        image: authelia-example-backend
-        ports:
-        - containerPort: 80
-
+        - name: test-app
+          imagePullPolicy: Never
+          image: nginx-backend
+          ports:
+            - containerPort: 80
 
 ---
 apiVersion: v1
@@ -53,17 +52,17 @@ metadata:
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
   tls:
-  - secretName: test-app-tls
-    hosts:
-    - home.example.com
+    - secretName: test-app-tls
+      hosts:
+        - home.example.com
   rules:
-  - host: home.example.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: test-app-service
-          servicePort: 80
+    - host: home.example.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: test-app-service
+              servicePort: 80
 
 ---
 apiVersion: extensions/v1beta1
@@ -79,55 +78,54 @@ metadata:
     nginx.ingress.kubernetes.io/auth-signin: "https://login.example.com:8080/#/"
 spec:
   tls:
-  - secretName: test-app-tls
-    hosts:
-    - public.example.com
-    - admin.example.com
-    - dev.example.com
-    - mx1.mail.example.com
-    - mx2.mail.example.com
-    - singlefactor.example.com
+    - secretName: test-app-tls
+      hosts:
+        - public.example.com
+        - admin.example.com
+        - dev.example.com
+        - mx1.mail.example.com
+        - mx2.mail.example.com
+        - singlefactor.example.com
   rules:
-  - host: public.example.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: test-app-service
-          servicePort: 80
-  - host: admin.example.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: test-app-service
-          servicePort: 80
-  - host: dev.example.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: test-app-service
-          servicePort: 80
-  - host: mx1.mail.example.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: test-app-service
-          servicePort: 80
-  - host: mx2.mail.example.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: test-app-service
-          servicePort: 80
-  - host: singlefactor.example.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: test-app-service
-          servicePort: 80
-
+    - host: public.example.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: test-app-service
+              servicePort: 80
+    - host: admin.example.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: test-app-service
+              servicePort: 80
+    - host: dev.example.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: test-app-service
+              servicePort: 80
+    - host: mx1.mail.example.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: test-app-service
+              servicePort: 80
+    - host: mx2.mail.example.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: test-app-service
+              servicePort: 80
+    - host: singlefactor.example.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: test-app-service
+              servicePort: 80

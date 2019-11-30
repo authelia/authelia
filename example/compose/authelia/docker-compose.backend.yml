@@ -4,6 +4,9 @@ services:
     build:
       context: example/compose/authelia
       dockerfile: Dockerfile.backend
+      args:
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
     command: /resources/entrypoint.sh
     working_dir: /app
     volumes:

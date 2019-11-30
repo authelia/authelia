@@ -35,31 +35,34 @@ func waitUntilServiceLogDetected(
 	return err
 }
 
-func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
-	log.Info("Waiting for Authelia to be ready...")
-
-	err := waitUntilServiceLogDetected(
+func waitUntilAutheliaBackendIsReady(dockerEnvironment *DockerEnvironment) error {
+	return waitUntilServiceLogDetected(
 		5*time.Second,
 		90*time.Second,
 		dockerEnvironment,
 		"authelia-backend",
 		[]string{"Authelia is listening on"})
+}
 
-	if err != nil {
-		return err
-	}
-
-	err = waitUntilServiceLogDetected(
+func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) error {
+	return waitUntilServiceLogDetected(
 		5*time.Second,
 		90*time.Second,
 		dockerEnvironment,
 		"authelia-frontend",
 		[]string{"You can now view web in the browser.", "Compiled with warnings", "Compiled successfully!"})
+}
 
-	if err != nil {
+func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
+	log.Info("Waiting for Authelia to be ready...")
+
+	if err := waitUntilAutheliaBackendIsReady(dockerEnvironment); err != nil {
+		return err
+	}
+
+	if err := waitUntilAutheliaFrontendIsReady(dockerEnvironment); err != nil {
 		return err
 	}
 	log.Info("Authelia is now ready!")
-
 	return nil
 }

@@ -4,27 +4,27 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func (wds *WebDriverSession) doFillLoginPageAndClick(ctx context.Context, t *testing.T, username, password string, keepMeLoggedIn bool) {
 	usernameElement := wds.WaitElementLocatedByID(ctx, t, "username-textfield")
 	err := usernameElement.SendKeys(username)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	passwordElement := wds.WaitElementLocatedByID(ctx, t, "password-textfield")
 	err = passwordElement.SendKeys(password)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	if keepMeLoggedIn {
 		keepMeLoggedInElement := wds.WaitElementLocatedByID(ctx, t, "remember-checkbox")
 		err = keepMeLoggedInElement.Click()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}
 
 	buttonElement := wds.WaitElementLocatedByID(ctx, t, "sign-in-button")
 	err = buttonElement.Click()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // Login 1FA

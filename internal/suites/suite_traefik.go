@@ -1,6 +1,7 @@
 package suites
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -24,7 +25,22 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment)
+		return waitUntilAutheliaBackendIsReady(dockerEnvironment)
+	}
+
+	onSetupTimeout := func() error {
+		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
+		if err != nil {
+			return err
+		}
+		fmt.Println(backendLogs)
+
+		frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
+		if err != nil {
+			return err
+		}
+		fmt.Println(frontendLogs)
+		return nil
 	}
 
 	teardown := func(suitePath string) error {
@@ -35,6 +51,7 @@ func init() {
 	GlobalRegistry.Register(traefikSuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
+		OnSetupTimeout:  onSetupTimeout,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 	})

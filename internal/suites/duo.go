@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // DuoPolicy a type of policy
@@ -26,10 +26,10 @@ func ConfigureDuo(t *testing.T, allowDeny DuoPolicy) {
 	}
 
 	req, err := http.NewRequest("POST", url, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, res.StatusCode)
+	require.NoError(t, err)
+	require.Equal(t, 200, res.StatusCode)
 }

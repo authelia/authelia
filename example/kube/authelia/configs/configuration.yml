@@ -10,7 +10,7 @@ default_redirection_url: https://home.example.com:8080
 
 authentication_backend:
   ldap:
-    url: ldap-service:389  
+    url: ldap-service:389
     base_dn: dc=example,dc=com
     additional_users_dn: ou=users
     users_filter: (cn={0})
@@ -33,46 +33,44 @@ access_control:
     - domain: singlefactor.example.com
       policy: one_factor
 
-    # Rules applied to 'admin' group
-    - domain: 'mx2.mail.example.com'
-      subject: 'group:admin'
+    # Rules applied to 'admins' group
+    - domain: "mx2.mail.example.com"
+      subject: "group:admins"
       policy: deny
-    - domain: '*.example.com'
-      subject: 'group:admin'
+    - domain: "*.example.com"
+      subject: "group:admins"
       policy: two_factor
 
     # Rules applied to 'dev' group
     - domain: dev.example.com
       resources:
-        - '^/groups/dev/.*$'
-      subject: 'group:dev'
+        - "^/groups/dev/.*$"
+      subject: "group:dev"
       policy: two_factor
 
     # Rules applied to user 'john'
     - domain: dev.example.com
       resources:
-        - '^/users/john/.*$'
-      subject: 'user:john'
+        - "^/users/john/.*$"
+      subject: "user:john"
       policy: two_factor
-
 
     # Rules applied to user 'harry'
     - domain: dev.example.com
       resources:
-        - '^/users/harry/.*$'
-      subject: 'user:harry'
+        - "^/users/harry/.*$"
+      subject: "user:harry"
       policy: two_factor
 
     # Rules applied to user 'bob'
-    - domain: '*.mail.example.com'
-      subject: 'user:bob'
+    - domain: "*.mail.example.com"
+      subject: "user:bob"
       policy: two_factor
-    - domain: 'dev.example.com'
+    - domain: "dev.example.com"
       resources:
-        - '^/users/bob/.*$'
-      subject: 'user:bob'
+        - "^/users/bob/.*$"
+      subject: "user:bob"
       policy: two_factor
-
 
 session:
   secret: unsecure_password
@@ -98,6 +96,6 @@ storage:
 
 notifier:
   smtp:
-    host: 'mailcatcher-service'
+    host: "mailcatcher-service"
     port: 1025
     sender: admin@example.com

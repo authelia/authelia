@@ -15,6 +15,16 @@ func init() {
 	kubectl := Kubectl{}
 
 	setup := func(suitePath string) error {
+		cmd := utils.Shell("docker-compose -f docker-compose.yml -f example/compose/kind/docker-compose.yml build")
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+
+		cmd = utils.Shell("docker build -t nginx-backend example/compose/nginx/backend")
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+
 		exists, err := kind.ClusterExists()
 
 		if err != nil {
@@ -74,23 +84,24 @@ func init() {
 	}
 
 	teardown := func(suitePath string) error {
+		kubectl.StopDashboard()
 		kubectl.StopProxy()
 		return kind.DeleteCluster()
 	}
 
 	GlobalRegistry.Register(kubernetesSuiteName, Suite{
-		TestTimeout:     60 * time.Second,
 		SetUp:           setup,
 		SetUpTimeout:    10 * time.Minute,
+		TestTimeout:     2 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 10 * time.Minute,
+		TearDownTimeout: 2 * time.Minute,
 		Description:     "This suite has been created to test Authelia in a Kubernetes context and using nginx as the ingress controller.",
 	})
 }
 
 func loadDockerImages() error {
 	kind := Kind{}
-	images := []string{"authelia:dist", "authelia-example-backend"}
+	images := []string{"authelia:dist", "nginx-backend"}
 
 	for _, image := range images {
 		err := kind.LoadImage(image)

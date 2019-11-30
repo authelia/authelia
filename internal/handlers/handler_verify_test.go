@@ -208,7 +208,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyDefaultPolicy() {
 		GetDetails(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"john@example.com"},
-			Groups: []string{"dev", "admin"},
+			Groups: []string{"dev", "admins"},
 		}, nil)
 
 	VerifyGet(mock.Ctx)
@@ -231,7 +231,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfBypassDomain() {
 		GetDetails(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"john@example.com"},
-			Groups: []string{"dev", "admin"},
+			Groups: []string{"dev", "admins"},
 		}, nil)
 
 	VerifyGet(mock.Ctx)
@@ -254,7 +254,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 		GetDetails(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"john@example.com"},
-			Groups: []string{"dev", "admin"},
+			Groups: []string{"dev", "admins"},
 		}, nil)
 
 	VerifyGet(mock.Ctx)
@@ -277,7 +277,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 		GetDetails(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"john@example.com"},
-			Groups: []string{"dev", "admin"},
+			Groups: []string{"dev", "admins"},
 		}, nil)
 
 	VerifyGet(mock.Ctx)
@@ -300,7 +300,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfDenyDomain() {
 		GetDetails(gomock.Eq("john")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"john@example.com"},
-			Groups: []string{"dev", "admin"},
+			Groups: []string{"dev", "admins"},
 		}, nil)
 
 	VerifyGet(mock.Ctx)

@@ -31,10 +31,8 @@ func Command(name string, args ...string) *exec.Cmd {
 // CommandWithStdout create a command forwarding stdout and stderr to the OS streams
 func CommandWithStdout(name string, args ...string) *exec.Cmd {
 	cmd := Command(name, args...)
-	if log.GetLevel() > log.InfoLevel {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	return cmd
 }
 
@@ -133,7 +131,7 @@ func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
 		if err := cmd.Process.Kill(); err != nil {
 			return err
 		}
-		return fmt.Errorf("timeout of %ds reached", int64(timeout/time.Second))
+		return ErrTimeoutReached
 	case err := <-done:
 		return err
 	}

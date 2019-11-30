@@ -33,7 +33,7 @@ func (de *DockerEnvironment) createCommand(cmd string) *exec.Cmd {
 
 // Up spawn a docker environment
 func (de *DockerEnvironment) Up() error {
-	return de.createCommandWithStdout("up -d").Run()
+	return de.createCommandWithStdout("up --build -d").Run()
 }
 
 // Restart restarts a service

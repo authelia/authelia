@@ -7,6 +7,7 @@ require (
 	github.com/Workiva/go-datastructures v1.0.50
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a
 	github.com/cespare/reflex v0.2.0 // indirect
+	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/duosecurity/duo_api_golang v0.0.0-20190308151101-6c680f768e74
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect

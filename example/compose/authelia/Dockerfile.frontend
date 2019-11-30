@@ -1,9 +1,9 @@
-FROM node:11-stretch-slim
+FROM node:12-alpine
 
 ARG USER_ID
 ARG GROUP_ID
 
-RUN cat /etc/passwd && userdel -rf node && \
-    groupadd -g ${GROUP_ID} dev && \
-    useradd -m -u $USER_ID -g $GROUP_ID dev
+RUN deluser node && \
+    addgroup --gid ${GROUP_ID} dev && \
+    adduser --uid ${USER_ID} -G dev -D dev
 USER dev

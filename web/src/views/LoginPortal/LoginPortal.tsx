@@ -1,8 +1,11 @@
-import React, { useEffect, Fragment, ReactNode, useState } from "react";
+import React, { useEffect, Fragment, ReactNode, useState, useCallback } from "react";
 import { Switch, Route, Redirect, useHistory, useLocation } from "react-router";
 import FirstFactorForm from "./FirstFactor/FirstFactorForm";
 import SecondFactorForm from "./SecondFactor/SecondFactorForm";
-import { FirstFactorRoute, SecondFactorRoute, SecondFactorTOTPRoute, SecondFactorPushRoute, SecondFactorU2FRoute, LogoutRoute } from "../../Routes";
+import {
+    FirstFactorRoute, SecondFactorRoute, SecondFactorTOTPRoute,
+    SecondFactorPushRoute, SecondFactorU2FRoute
+} from "../../Routes";
 import { useAutheliaState } from "../../hooks/State";
 import LoadingPage from "../LoadingPage/LoadingPage";
 import { AuthenticationLevel } from "../../services/State";
@@ -22,6 +25,8 @@ export default function () {
     const [state, fetchState, , fetchStateError] = useAutheliaState();
     const [preferences, fetchPreferences, , fetchPreferencesError] = useUserPreferences();
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useAutheliaConfiguration();
+
+    const redirect = useCallback((url: string) => history.push(url), [history]);
 
     // Fetch the state when portal is mounted.
     useEffect(() => { fetchState() }, [fetchState]);
@@ -71,19 +76,19 @@ export default function () {
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
-                history.push(`${FirstFactorRoute}${redirectionSuffix}`);
+                redirect(`${FirstFactorRoute}${redirectionSuffix}`);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && preferences) {
                 console.log("redirect");
                 if (preferences.method === SecondFactorMethod.U2F) {
-                    history.push(`${SecondFactorU2FRoute}${redirectionSuffix}`);
+                    redirect(`${SecondFactorU2FRoute}${redirectionSuffix}`);
                 } else if (preferences.method === SecondFactorMethod.Duo) {
-                    history.push(`${SecondFactorPushRoute}${redirectionSuffix}`);
+                    redirect(`${SecondFactorPushRoute}${redirectionSuffix}`);
                 } else {
-                    history.push(`${SecondFactorTOTPRoute}${redirectionSuffix}`);
+                    redirect(`${SecondFactorTOTPRoute}${redirectionSuffix}`);
                 }
             }
         }
-    }, [state, redirectionURL, history.push, preferences, setFirstFactorDisabled]);
+    }, [state, redirectionURL, redirect, preferences, setFirstFactorDisabled]);
 
     const handleFirstFactorSuccess = async (redirectionURL: string | undefined) => {
         if (redirectionURL) {

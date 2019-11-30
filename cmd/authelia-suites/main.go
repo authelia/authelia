@@ -32,6 +32,12 @@ func main() {
 		Run:   setupSuite,
 	}
 
+	setupTimeoutCmd := &cobra.Command{
+		Use:   "timeout [suite]",
+		Short: "Run the OnSetupTimeout callback when setup times out",
+		Run:   setupTimeoutSuite,
+	}
+
 	stopCmd := &cobra.Command{
 		Use:   "teardown [suite]",
 		Short: "Teardown the suite environment",
@@ -39,6 +45,7 @@ func main() {
 	}
 
 	rootCmd.AddCommand(startCmd)
+	rootCmd.AddCommand(setupTimeoutCmd)
 	rootCmd.AddCommand(stopCmd)
 	rootCmd.Execute()
 }
@@ -99,6 +106,18 @@ func setupSuite(cmd *cobra.Command, args []string) {
 	}
 
 	log.Info("Environment is ready!")
+}
+
+func setupTimeoutSuite(cmd *cobra.Command, args []string) {
+	suiteName := args[0]
+	s := suites.GlobalRegistry.Get(suiteName)
+
+	if s.OnSetupTimeout == nil {
+		return
+	}
+	if err := s.OnSetupTimeout(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func teardownSuite(cmd *cobra.Command, args []string) {

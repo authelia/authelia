@@ -128,7 +128,7 @@ users
 john
 email: john.doe@authelia.com
 groups:
-- admin
+- admins
 - dev
 `)
 

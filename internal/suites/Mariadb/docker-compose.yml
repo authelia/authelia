@@ -3,3 +3,4 @@ services:
   authelia-backend:
     volumes:
       - "./internal/suites/Mariadb/configuration.yml:/etc/authelia/configuration.yml:ro"
+      - "./internal/suites/Mariadb/users.yml:/var/lib/authelia/users.yml"

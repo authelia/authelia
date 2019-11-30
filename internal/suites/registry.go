@@ -9,9 +9,12 @@ import (
 
 // Suite the definition of a suite
 type Suite struct {
-	TestTimeout     time.Duration
-	SetUp           func(tmpPath string) error
-	SetUpTimeout    time.Duration
+	SetUp          func(tmpPath string) error
+	SetUpTimeout   time.Duration
+	OnSetupTimeout func() error
+
+	TestTimeout time.Duration
+
 	TearDown        func(tmpPath string) error
 	TearDownTimeout time.Duration
 
