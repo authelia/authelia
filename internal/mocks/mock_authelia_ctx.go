@@ -62,6 +62,9 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia := new(MockAutheliaCtx)
 	mockAuthelia.Clock = TestingClock{}
 
+	datetime, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
+	mockAuthelia.Clock.Set(datetime)
+
 	configuration := schema.Configuration{
 		AccessControl: new(schema.AccessControlConfiguration),
 	}

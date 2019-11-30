@@ -12,6 +12,7 @@ import (
 	"github.com/clems4ever/authelia/internal/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 // Test getOriginalURL
@@ -172,54 +173,143 @@ func (tc TestCase) String() string {
 	return fmt.Sprintf("url=%s, auth=%s, exp_status=%d", tc.URL, tc.Authorization, tc.ExpectedStatusCode)
 }
 
+type BasicAuthorizationSuite struct {
+	suite.Suite
+}
+
+func NewBasicAuthorizationSuite() *BasicAuthorizationSuite {
+	return &BasicAuthorizationSuite{}
+}
+
+func (s *BasicAuthorizationSuite) TestShouldNotBeAbleToParseBasicAuth() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpaaaaaaaaaaaaaaaa")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
+
+	VerifyGet(mock.Ctx)
+
+	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+}
+
+func (s *BasicAuthorizationSuite) TestShouldApplyDefaultPolicy() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(true, nil)
+
+	mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq("john")).
+		Return(&authentication.UserDetails{
+			Emails: []string{"john@example.com"},
+			Groups: []string{"dev", "admin"},
+		}, nil)
+
+	VerifyGet(mock.Ctx)
+
+	assert.Equal(s.T(), 403, mock.Ctx.Response.StatusCode())
+}
+
+func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfBypassDomain() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(true, nil)
+
+	mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq("john")).
+		Return(&authentication.UserDetails{
+			Emails: []string{"john@example.com"},
+			Groups: []string{"dev", "admin"},
+		}, nil)
+
+	VerifyGet(mock.Ctx)
+
+	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
+}
+
+func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfOneFactorDomain() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(true, nil)
+
+	mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq("john")).
+		Return(&authentication.UserDetails{
+			Emails: []string{"john@example.com"},
+			Groups: []string{"dev", "admin"},
+		}, nil)
+
+	VerifyGet(mock.Ctx)
+
+	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
+}
+
+func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(true, nil)
+
+	mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq("john")).
+		Return(&authentication.UserDetails{
+			Emails: []string{"john@example.com"},
+			Groups: []string{"dev", "admin"},
+		}, nil)
+
+	VerifyGet(mock.Ctx)
+
+	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+}
+
+func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfDenyDomain() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://deny.example.com")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(true, nil)
+
+	mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq("john")).
+		Return(&authentication.UserDetails{
+			Emails: []string{"john@example.com"},
+			Groups: []string{"dev", "admin"},
+		}, nil)
+
+	VerifyGet(mock.Ctx)
+
+	assert.Equal(s.T(), 403, mock.Ctx.Response.StatusCode())
+}
+
 func TestShouldVerifyAuthorizationsUsingBasicAuth(t *testing.T) {
-	testCases := []TestCase{
-		// Authorization has bad format.
-		TestCase{"https://bypass.example.com", "Basic am9objpaaaaaaaaaaaaaaaa", 401},
-
-		// Correct Authorization
-		TestCase{"https://test.example.com", "Basic am9objpwYXNzd29yZA==", 403},
-		TestCase{"https://bypass.example.com", "Basic am9objpwYXNzd29yZA==", 200},
-		TestCase{"https://one-factor.example.com", "Basic am9objpwYXNzd29yZA==", 200},
-		TestCase{"https://two-factor.example.com", "Basic am9objpwYXNzd29yZA==", 401},
-		TestCase{"https://deny.example.com", "Basic am9objpwYXNzd29yZA==", 403},
-	}
-
-	for _, testCase := range testCases {
-		testCase := testCase
-		t.Run(testCase.String(), func(t *testing.T) {
-			mock := mocks.NewMockAutheliaCtx(t)
-			defer mock.Close()
-
-			mock.UserProviderMock.EXPECT().
-				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
-				Return(true, nil)
-
-			details := authentication.UserDetails{
-				Emails: []string{"john@example.com"},
-				Groups: []string{"dev", "admin"},
-			}
-			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
-				Return(&details, nil)
-
-			mock.Ctx.Request.Header.Set("Proxy-Authorization", testCase.Authorization)
-			mock.Ctx.Request.Header.Set("X-Original-URL", testCase.URL)
-
-			VerifyGet(mock.Ctx)
-			expStatus, actualStatus := testCase.ExpectedStatusCode, mock.Ctx.Response.StatusCode()
-			assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
-				testCase.URL, actualStatus, expStatus)
-
-			if testCase.ExpectedStatusCode == 200 {
-				assert.Equal(t, []byte("john"), mock.Ctx.Response.Header.Peek("Remote-User"))
-				assert.Equal(t, []byte("dev,admin"), mock.Ctx.Response.Header.Peek("Remote-Groups"))
-			} else {
-				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-User"))
-				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-Groups"))
-			}
-		})
-	}
+	suite.Run(t, NewBasicAuthorizationSuite())
 }
 
 func TestShouldVerifyWrongCredentialsInBasicAuth(t *testing.T) {
