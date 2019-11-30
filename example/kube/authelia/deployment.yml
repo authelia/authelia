@@ -17,17 +17,17 @@ spec:
         app: authelia
     spec:
       containers:
-      - name: authelia
-        image: authelia:dist
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: config-volume
-          mountPath: /etc/authelia
+        - name: authelia
+          image: authelia:dist
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/authelia
       volumes:
-      - name: config-volume
-        configMap:
-          name: authelia-config
-          items:
-          - key: config.yml
-            path: config.yml
+        - name: config-volume
+          configMap:
+            name: authelia-config
+            items:
+              - key: configuration.yml
+                path: configuration.yml

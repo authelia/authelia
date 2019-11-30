@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/clems4ever/authelia/internal/configuration/schema"
 	"github.com/clems4ever/authelia/internal/duo"
@@ -27,7 +28,6 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	fmt.Println("Selected public_html directory is ", publicDir)
 
 	router.GET("/", fasthttp.FSHandler(publicDir, 0))
-	router.NotFound = fasthttp.FSHandler(publicDir, 0)
 	router.ServeFiles("/static/*filepath", publicDir+"/static")
 
 	router.GET("/api/state", autheliaMiddleware(handlers.StateGet))
@@ -93,6 +93,10 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 		router.POST("/api/secondfactor/duo", autheliaMiddleware(
 			middlewares.RequireFirstFactor(handlers.SecondFactorDuoPost(duoAPI))))
+	}
+
+	router.NotFound = func(ctx *fasthttp.RequestCtx) {
+		ctx.SendFile(path.Join(publicDir, "index.html"))
 	}
 
 	portPattern := fmt.Sprintf(":%d", configuration.Port)

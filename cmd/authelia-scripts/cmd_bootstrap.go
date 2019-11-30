@@ -96,15 +96,6 @@ func shell(cmd string) {
 	runCommand("bash", "-c", cmd)
 }
 
-func buildHelperDockerImages() {
-	shell("docker build -t authelia-example-backend example/compose/nginx/backend")
-	shell("docker build -t authelia-duo-api example/compose/duo-api")
-
-	shell("docker-compose -f docker-compose.yml -f example/compose/kind/docker-compose.yml build")
-	shell("docker-compose -f docker-compose.yml -f example/compose/authelia/docker-compose.backend.yml build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)")
-	shell("docker-compose -f docker-compose.yml -f example/compose/authelia/docker-compose.frontend.yml build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)")
-}
-
 func prepareHostsFile() {
 	contentBytes, err := readHostsFile()
 
@@ -208,9 +199,6 @@ func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	if !goPathFound {
 		log.Fatal("GOPATH is not set")
 	}
-
-	bootstrapPrintln("Building development Docker images...")
-	buildHelperDockerImages()
 
 	createTemporaryDirectory()
 

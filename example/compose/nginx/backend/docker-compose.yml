@@ -1,10 +1,11 @@
-version: '3'
+version: "3"
 services:
   nginx-backend:
-    image: authelia-example-backend
+    build:
+      context: example/compose/nginx/backend
     labels:
       - traefik.frontend.rule=Host:home.example.com,public.example.com,secure.example.com,admin.example.com,singlefactor.example.com
-      - traefik.frontend.auth.forward.address=http://192.168.240.1:9091/api/verify?rd=https://login.example.com:8080/%23/
+      - traefik.frontend.auth.forward.address=http://authelia-backend:9091/api/verify?rd=https://login.example.com:8080/
       - traefik.frontend.auth.forward.tls.insecureSkipVerify=true
     networks:
       - authelianet

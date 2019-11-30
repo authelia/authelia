@@ -16,36 +16,40 @@ let permission = 'allow';
 
 app.post('/allow', (req, res) => {
   permission = 'allow';
+  console.log("set allowed!");
   res.send('ALLOWED');
 });
 
 app.post('/deny', (req, res) => {
   permission = 'deny';
+  console.log("set denied!");
   res.send('DENIED');
 });
 
 app.post('/auth/v2/auth', (req, res) => {
-  let response;
-  if (permission == 'allow') {
-    response = {
-      response: {
-        result: 'allow',
-        status: 'allow',
-        status_msg: 'The user allowed access.',
-      },
-      stat: 'OK',
-    };
-  } else {
-    response = {
-      response: {
-        result: 'deny',
-        status: 'deny',
-        status_msg: 'The user denied access.',
-      },
-      stat: 'OK',
-    };
-  }
-  setTimeout(() => res.json(response), 2000);
+  setTimeout(() => {
+    let response;
+    if (permission == 'allow') {
+      response = {
+        response: {
+          result: 'allow',
+          status: 'allow',
+          status_msg: 'The user allowed access.',
+        },
+        stat: 'OK',
+      };
+    } else {
+      response = {
+        response: {
+          result: 'deny',
+          status: 'deny',
+          status_msg: 'The user denied access.',
+        },
+        stat: 'OK',
+      };
+    }
+    res.json(response);
+  }, 2000);
 });
 
 app.listen(port, () => console.log(`Duo API listening on port ${port}!`));

@@ -2,11 +2,15 @@ package suites
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"testing"
 	"time"
 
+	mapset "github.com/deckarep/golang-set"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/tebeka/selenium"
 )
@@ -59,18 +63,55 @@ func (s *CustomHeadersScenario) TestShouldNotForwardCustomHeaderForUnauthenticat
 	s.WaitElementTextContains(ctx, s.T(), body, "httpbin:8000")
 }
 
+type Headers struct {
+	ForwardedGroups string `json:"Custom-Forwarded-Groups"`
+	ForwardedUser   string `json:"Custom-Forwarded-User"`
+}
+
+type HeadersPayload struct {
+	Headers Headers `json:"headers"`
+}
+
 func (s *CustomHeadersScenario) TestShouldForwardCustomHeaderForAuthenticatedUser() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
+
+	expectedGroups := mapset.NewSetWith("dev", "admins")
 
 	targetURL := fmt.Sprintf("%s/headers", PublicBaseURL)
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, targetURL)
 	s.verifyURLIs(ctx, s.T(), targetURL)
 
-	body, err := s.WebDriver().FindElement(selenium.ByTagName, "body")
-	s.Assert().NoError(err)
-	s.WaitElementTextContains(ctx, s.T(), body, "\"Custom-Forwarded-User\": \"john\"")
-	s.WaitElementTextContains(ctx, s.T(), body, "\"Custom-Forwarded-Groups\": \"admins,dev\"")
+	err := s.Wait(ctx, func(d selenium.WebDriver) (bool, error) {
+		body, err := s.WebDriver().FindElement(selenium.ByTagName, "body")
+		if err != nil {
+			return false, err
+		}
+
+		if body == nil {
+			return false, nil
+		}
+
+		content, err := body.Text()
+		if err != nil {
+			return false, err
+		}
+
+		payload := HeadersPayload{}
+		if err := json.Unmarshal([]byte(content), &payload); err != nil {
+			return false, err
+		}
+
+		groups := strings.Split(payload.Headers.ForwardedGroups, ",")
+		actualGroups := mapset.NewSet()
+		for _, group := range groups {
+			actualGroups.Add(group)
+		}
+
+		return strings.Contains(payload.Headers.ForwardedUser, "john") && expectedGroups.Equal(actualGroups), nil
+	})
+
+	require.NoError(s.T(), err)
 }
 
 func TestCustomHeadersScenario(t *testing.T) {

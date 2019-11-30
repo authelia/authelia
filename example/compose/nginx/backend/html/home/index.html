@@ -8,8 +8,9 @@
 
 <body>
   <h1>Access the secret</h1>
-  <span style="font-size: 1.2em; color: red">You need to log in to access the secret!</span><br/><br/> Try to access it using
-  one of the following links to test access control powered by Authelia.<br/>
+  <span style="font-size: 1.2em; color: red">You need to log in to access the secret!</span><br /><br /> Try to access
+  it using
+  one of the following links to test access control powered by Authelia.<br />
   <ul>
     <li>
       public.example.com <a href="https://public.example.com:8080/"> /</a>
@@ -59,12 +60,15 @@
     </li>
   </ul>
 
-  You can also log off by visiting the following <a href="https://login.example.com:8080/logout?rd=https://home.example.com:8080/">link</a>.
+  You can also log off by visiting the following <a
+    href="https://login.example.com:8080/logout?rd=https://home.example.com:8080/">link</a>.
 
   <h1>List of users</h1>
-  Here is the list of credentials you can log in with to test access control.<br/>
-  <br/> Once first factor is passed, you will need to follow the links to register a secret for the second factor.<br/> Authelia
-  will send you a fictituous email in a <strong>fake webmail</strong> at <a href="http://localhost:8085">http://localhost:8085</a>.<br/> 
+  Here is the list of credentials you can log in with to test access control.<br />
+  <br /> Once first factor is passed, you will need to follow the links to register a secret for the second
+  factor.<br /> Authelia
+  will send you a fictituous email in a <strong>fake webmail</strong> at <a
+    href="http://localhost:8085">http://localhost:8085</a>.<br />
   It will provide you with the link to complete the registration allowing you to authenticate with 2-factor.
 
   <ul>
@@ -86,12 +90,12 @@
     - domain: singlefactor.example.com
       policy: one_factor
 
-    # Rules applied to 'admin' group
+    # Rules applied to 'admins' group
     - domain: 'mx2.mail.example.com'
-      subject: 'group:admin'
+      subject: 'groups:admins'
       policy: deny
     - domain: '*.example.com'
-      subject: 'group:admin'
+      subject: 'groups:admins'
       policy: two_factor
 
     # Rules applied to 'dev' group

@@ -162,7 +162,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUser() {
 		GetDetails(gomock.Eq("test")).
 		Return(&authentication.UserDetails{
 			Emails: []string{"test@example.com"},
-			Groups: []string{"dev", "admin"},
+			Groups: []string{"dev", "admins"},
 		}, nil)
 
 	s.mock.StorageProviderMock.
@@ -186,7 +186,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUser() {
 	assert.Equal(s.T(), "test", session.Username)
 	assert.Equal(s.T(), authentication.OneFactor, session.AuthenticationLevel)
 	assert.Equal(s.T(), []string{"test@example.com"}, session.Emails)
-	assert.Equal(s.T(), []string{"dev", "admin"}, session.Groups)
+	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
 
 }
 

@@ -24,10 +24,11 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 
 	bannedUntil, err := ctx.Providers.Regulator.Regulate(bodyJSON.Username)
 
-	if err == regulation.ErrUserIsBanned {
-		ctx.Error(fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), userBannedMessage)
-		return
-	} else if err != nil {
+	if err != nil {
+		if err == regulation.ErrUserIsBanned {
+			ctx.Error(fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), userBannedMessage)
+			return
+		}
 		ctx.Error(fmt.Errorf("Unable to regulate authentication: %s", err), authenticationFailedMessage)
 		return
 	}
@@ -43,6 +44,9 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !userPasswordOk {
+		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
+		ctx.Providers.Regulator.Mark(bodyJSON.Username, false)
+
 		ctx.ReplyError(fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
 		return
 	}

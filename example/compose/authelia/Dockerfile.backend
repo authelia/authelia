@@ -1,8 +1,10 @@
-FROM golang:1.13-stretch
+FROM golang:1.13-alpine
+
+RUN apk --no-cache add gcc musl-dev
 
 ARG USER_ID
 ARG GROUP_ID
 
-RUN groupadd -g ${GROUP_ID} dev && \
-    useradd -m -u $USER_ID -g $GROUP_ID dev
+RUN addgroup --gid ${GROUP_ID} dev && \
+    adduser --uid ${USER_ID} -G dev -D dev
 USER dev

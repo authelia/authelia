@@ -1,13 +1,13 @@
-version: '3.4'
+version: "3.4"
 services:
   authelia:
     image: clems4ever/authelia:latest
     # Used for Docker configs
     configs:
       - source: authelia
-        target: /etc/authelia/config.yml
-        uid: '0'
-        gid: '0'
+        target: /etc/authelia/configuration.yml
+        uid: "0"
+        gid: "0"
         mode: 0444
     environment:
       - NODE_TLS_REJECT_UNAUTHORIZED=0

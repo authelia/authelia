@@ -18,18 +18,18 @@ const dockerPullCommandLine = "docker-compose -f docker-compose.yml " +
 
 // RunCI run the CI scripts
 func RunCI(cmd *cobra.Command, args []string) {
-	log.Info("=====> Build stage")
+	log.Info("=====> Build stage <=====")
 	if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "build").Run(); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Info("=====> Unit testing stage")
+	log.Info("=====> Unit testing stage <=====")
 	if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "unittest").Run(); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Info("=====> End-to-end testing stage")
-	if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "suites", "test", "--headless", "--only-forbidden").Run(); err != nil {
+	log.Info("=====> Build Docker stage <=====")
+	if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "docker", "build").Run(); err != nil {
 		log.Fatal(err)
 	}
 }

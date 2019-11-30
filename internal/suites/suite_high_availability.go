@@ -1,6 +1,7 @@
 package suites
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -27,7 +28,22 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(haDockerEnvironment)
+		return waitUntilAutheliaBackendIsReady(haDockerEnvironment)
+	}
+
+	onSetupTimeout := func() error {
+		backendLogs, err := haDockerEnvironment.Logs("authelia-backend", nil)
+		if err != nil {
+			return err
+		}
+		fmt.Println(backendLogs)
+
+		frontendLogs, err := haDockerEnvironment.Logs("authelia-frontend", nil)
+		if err != nil {
+			return err
+		}
+		fmt.Println(frontendLogs)
+		return nil
 	}
 
 	teardown := func(suitePath string) error {
@@ -37,7 +53,8 @@ func init() {
 	GlobalRegistry.Register(highAvailabilitySuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
-		TestTimeout:     1 * time.Minute,
+		OnSetupTimeout:  onSetupTimeout,
+		TestTimeout:     5 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 		Description: `This suite is made to test Authelia in a *complete*

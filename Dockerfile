@@ -7,7 +7,14 @@ FROM golang:1.13-alpine AS builder-backend
 RUN apk --no-cache add gcc musl-dev
 
 WORKDIR /go/src/app
-COPY . .
+
+COPY go.mod go.mod
+COPY go.sum go.sum
+
+RUN go mod download
+
+COPY cmd cmd
+COPY internal internal
 
 # CGO_ENABLED=1 is mandatory for building go-sqlite3
 RUN cd cmd/authelia && GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w' -o authelia
@@ -16,10 +23,10 @@ RUN cd cmd/authelia && GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netg
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:11-alpine AS builder-frontend
+FROM node:12-alpine AS builder-frontend
 
 WORKDIR /node/src/app
-COPY client .
+COPY web .
 
 # Install the dependencies and build
 RUN npm ci && npm run build
@@ -41,4 +48,4 @@ EXPOSE 9091
 VOLUME /etc/authelia
 VOLUME /var/lib/authelia
 
-CMD ["./authelia", "-config", "/etc/authelia/config.yml"]
+CMD ["./authelia", "-config", "/etc/authelia/configuration.yml"]

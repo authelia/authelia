@@ -35,15 +35,23 @@ func (s *DuoPushSuite) TearDownSuite() {
 	}
 }
 
+func (s *DuoPushSuite) SetupTest() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	s.doLogout(ctx, s.T())
+}
+
 func (s *DuoPushSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	s.doChangeMethod(ctx, s.T(), "one-time-password")
+	s.WaitElementLocatedByID(ctx, s.T(), "one-time-password-method")
 }
 
 func (s *DuoPushSuite) TestShouldSucceedAuthentication() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	ConfigureDuo(s.T(), Allow)
@@ -54,7 +62,7 @@ func (s *DuoPushSuite) TestShouldSucceedAuthentication() {
 }
 
 func (s *DuoPushSuite) TestShouldFailAuthentication() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	ConfigureDuo(s.T(), Deny)

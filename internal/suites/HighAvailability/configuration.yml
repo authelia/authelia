@@ -136,9 +136,9 @@ access_control:
     - domain: singlefactor.example.com
       policy: one_factor
 
-    # Rules applied to 'admin' group
+    # Rules applied to 'admins' group
     - domain: mx2.mail.example.com
-      subject: "group:admin"
+      subject: "group:admins"
       policy: deny
 
     # Rules applied to user 'john'
@@ -147,7 +147,7 @@ access_control:
       policy: two_factor
 
     - domain: "*.example.com"
-      subject: "group:admin"
+      subject: "group:admins"
       policy: two_factor
 
     # Rules applied to 'dev' group
@@ -225,7 +225,7 @@ storage:
   # Settings to connect to mariadb server
   mysql:
     host: mariadb
-    port: 3306 
+    port: 3306
     database: authelia
     username: admin
     password: password

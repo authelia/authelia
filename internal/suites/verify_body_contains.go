@@ -11,8 +11,15 @@ import (
 
 func (wds *WebDriverSession) verifyBodyContains(ctx context.Context, t *testing.T, pattern string) {
 	err := wds.Wait(ctx, func(wd selenium.WebDriver) (bool, error) {
-		bodyElement := wds.WaitElementLocatedByTagName(ctx, t, "body")
-		require.NotNil(t, bodyElement)
+		bodyElement, err := wds.WebDriver.FindElement(selenium.ByTagName, "body")
+
+		if err != nil {
+			return false, err
+		}
+
+		if bodyElement == nil {
+			return false, nil
+		}
 
 		content, err := bodyElement.Text()
 

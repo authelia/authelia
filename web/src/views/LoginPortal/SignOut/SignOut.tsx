@@ -31,7 +31,7 @@ export default function (props: Props) {
             console.error(err);
             createErrorNotification("There was an issue signing out");
         }
-    }, [createErrorNotification, setTimedOut]);
+    }, [createErrorNotification, setTimedOut, mounted]);
 
     useEffect(() => { doSignOut() }, [doSignOut]);
 
