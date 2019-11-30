@@ -131,7 +131,7 @@ func login(docker *Docker) {
 		log.Fatal(errors.New("DOCKER_PASSWORD is empty"))
 	}
 
-	log.Debug("Login to dockerhub as " + username)
+	log.Infof("Login to dockerhub as %s", username)
 	err := docker.Login(username, password)
 
 	if err != nil {
@@ -142,7 +142,7 @@ func login(docker *Docker) {
 func deploy(docker *Docker, tag string) {
 	imageWithTag := DockerImageName + ":" + tag
 
-	log.Debug("Docker image " + imageWithTag + " will be deployed on Dockerhub")
+	log.Infof("Docker image %s will be deployed on Dockerhub", imageWithTag)
 
 	if err := docker.Tag(DockerImageName, imageWithTag); err != nil {
 		log.Fatal(err)
@@ -156,7 +156,7 @@ func deploy(docker *Docker, tag string) {
 func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag string, arm64v8tag string) {
 	dockerImagePrefix := DockerImageName + ":"
 
-	log.Debug("Docker manifest " + dockerImagePrefix + tag + " will be deployed on Dockerhub")
+	log.Infof("Docker manifest %s%s will be deployed on Dockerhub", dockerImagePrefix, tag)
 
 	err := docker.Manifest(dockerImagePrefix+tag, dockerImagePrefix+amd64tag, dockerImagePrefix+arm32v7tag, dockerImagePrefix+arm64v8tag)
 
@@ -166,14 +166,14 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 
 	tags := []string{amd64tag, arm32v7tag, arm64v8tag}
 	for _, t := range tags {
-		log.Debug("Docker removing tag for " + dockerImagePrefix + t + " on Dockerhub.")
+		log.Infof("Docker removing tag for %s%s on Dockerhub", dockerImagePrefix, t)
 
 		if err := docker.CleanTag(t); err != nil {
 			panic(err)
 		}
 	}
 
-	log.Debug("Docker pushing README.md to Dockerhub")
+	log.Info("Docker pushing README.md to Dockerhub")
 
 	if err := docker.PublishReadme(); err != nil {
 		log.Fatal(err)
