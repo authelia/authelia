@@ -49,9 +49,11 @@ jobs:
         - kill %1
       after_success:
         - authelia-scripts docker push-image --arch=$ARCH
-        - if [[ $TRAVIS_TAG ]]; then docker create --name authelia-binary clems4ever/authelia:$TRAVIS_TAG-$ARCH && docker cp authelia-binary:/usr/app/authelia ./authelia-linux-$ARCH && docker cp authelia-binary:/usr/app/public_html ./ && tar -czf authelia-linux-$ARCH.tar.gz authelia-linux-$ARCH public_html; fi
       before_deploy:
-        - echo Deploying Authelia $TRAVIS_TAG-$ARCH to GitHub Releases
+        - docker create --name authelia-binary clems4ever/authelia:$TRAVIS_TAG-$ARCH
+        - docker cp authelia-binary:/usr/app/authelia ./authelia-linux-$ARCH
+        - docker cp authelia-binary:/usr/app/public_html ./
+        - tar -czf authelia-linux-$ARCH.tar.gz authelia-linux-$ARCH public_html
       deploy:
         provider: releases
         api_key: '$GITHUB_API_KEY'
