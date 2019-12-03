@@ -41,6 +41,8 @@ func dockerBuildOfficialImage(arch string) error {
 	docker := &Docker{}
 	// Set default Architecture Dockerfile to amd64
 	dockerfile := "Dockerfile"
+	// Set version of QEMU
+	qemuversion := "v4.1.1-1"
 
 	// If not the default value
 	if arch != defaultArch {
@@ -54,7 +56,7 @@ func dockerBuildOfficialImage(arch string) error {
 			panic(err)
 		}
 
-		err = utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/v4.1.0-1/qemu-arm-static -O ./qemu-arm-static && chmod +x ./qemu-arm-static").Run()
+		err = utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-arm-static -O ./qemu-arm-static && chmod +x ./qemu-arm-static").Run()
 
 		if err != nil {
 			panic(err)
@@ -66,7 +68,7 @@ func dockerBuildOfficialImage(arch string) error {
 			panic(err)
 		}
 
-		err = utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/v4.1.0-1/qemu-aarch64-static -O ./qemu-aarch64-static && chmod +x ./qemu-aarch64-static").Run()
+		err = utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-aarch64-static -O ./qemu-aarch64-static && chmod +x ./qemu-aarch64-static").Run()
 
 		if err != nil {
 			panic(err)
