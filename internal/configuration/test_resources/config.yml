@@ -50,10 +50,10 @@ access_control:
 
     # Rules applied to 'admins' group
     - domain: "mx2.mail.example.com"
-      subject: "groups:admins"
+      subject: "group:admins"
       policy: deny
     - domain: "*.example.com"
-      subject: "groups:admins"
+      subject: "group:admins"
       policy: two_factor
 
     # Rules applied to 'dev' group

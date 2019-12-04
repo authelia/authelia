@@ -47,16 +47,12 @@ func (s *UserPreferencesScenario) SetupTest() {
 }
 
 func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
 	defer cancel()
 
 	// Authenticate
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(ctx, s.T())
-
-	// And select OTP method
-	s.doChangeMethod(ctx, s.T(), "one-time-password")
-	s.WaitElementLocatedByID(ctx, s.T(), "one-time-password-method")
 
 	// Then switch to push notification method
 	s.doChangeMethod(ctx, s.T(), "push-notification")

@@ -27,9 +27,4 @@ func RunCI(cmd *cobra.Command, args []string) {
 	if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "unittest").Run(); err != nil {
 		log.Fatal(err)
 	}
-
-	log.Info("=====> Build Docker stage <=====")
-	if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "docker", "build").Run(); err != nil {
-		log.Fatal(err)
-	}
 }
