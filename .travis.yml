@@ -20,9 +20,6 @@ addons:
       - google-chrome-stable
 
 install:
-  - go mod download
-
-before_script:
   - export PATH=./cmd/authelia-scripts/:/tmp:$PATH
   - source bootstrap.sh
 
@@ -32,6 +29,7 @@ jobs:
       before_script:
         - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
         - nvm install v12 && nvm use v12
+        - go mod download
       script:
         - authelia-scripts --log-level debug ci
 
@@ -42,12 +40,16 @@ jobs:
         - SUITE_NAME=BypassAll
       before_script:
         # Install chrome driver
+        # TODO(c.michaud): this could be done in authelia-scripts instead for devs to not do the install themselves.
+        #                  or even provide a docker image with a selenium server.
         - wget -N https://chromedriver.storage.googleapis.com/78.0.3904.70/chromedriver_linux64.zip -P ~/
         - unzip ~/chromedriver_linux64.zip -d ~/
         - rm ~/chromedriver_linux64.zip
         - sudo mv -f ~/chromedriver /usr/local/share/
         - sudo chmod +x /usr/local/share/chromedriver
         - sudo ln -s /usr/local/share/chromedriver /usr/bin/chromedriver
+
+        - go mod download
       script:
         # Run the suite
         - CI=true authelia-scripts --log-level debug suites test $SUITE_NAME --headless
@@ -90,7 +92,6 @@ jobs:
       stage: build images
       env:
         - ARCH=amd64
-      install: skip
       script:
         - while sleep 9m; do echo '===== Prevent build from terminating  ====='; done &
         - authelia-scripts docker build --arch=$ARCH
@@ -119,7 +120,6 @@ jobs:
     - stage: deploy manifests
       env:
         - DOCKER_CLI_EXPERIMENTAL=enabled
-      install: skip
       script:
         - authelia-scripts docker push-manifest
 
