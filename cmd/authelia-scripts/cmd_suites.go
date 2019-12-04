@@ -237,7 +237,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	if suite.TestTimeout > 0 {
 		timeout = fmt.Sprintf("%ds", int64(suite.TestTimeout/time.Second))
 	}
-	testCmdLine := fmt.Sprintf("go test -v ./internal/suites -timeout %s -run '^(Test%sSuite)$'", timeout, suiteName)
+	testCmdLine := fmt.Sprintf("go test -count=1 -v ./internal/suites -timeout %s -run '^(Test%sSuite)$'", timeout, suiteName)
 
 	log.Infof("Running tests of suite %s...", suiteName)
 	log.Debugf("Running tests with command: %s", testCmdLine)

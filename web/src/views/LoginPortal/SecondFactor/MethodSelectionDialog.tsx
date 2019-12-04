@@ -23,12 +23,11 @@ export default function (props: Props) {
 
     return (
         <Dialog
-            id="methods-dialog"
             open={props.open}
             className={style.root}
             onClose={props.onClose}>
             <DialogContent>
-                <Grid container justify="center" spacing={1}>
+                <Grid container justify="center" spacing={1} id="methods-dialog">
                     {props.methods.has(SecondFactorMethod.TOTP)
                         ? <MethodItem
                             id="one-time-password-option"
