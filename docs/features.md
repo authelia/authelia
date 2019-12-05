@@ -1,6 +1,6 @@
 # Features in details
 
-## First factor using a LDAP server
+## 1-Factor (1FA) using a LDAP server
 
 **Authelia** uses an LDAP server as the backend for storing credentials.
 When authentication is needed, the user is redirected to the login page which
@@ -11,11 +11,11 @@ You can find an example of the configuration of the LDAP backend in
 [config.template.yml].
 
 <p align="center">
-  <img src="../images/first_factor.png" width="400">
+  <img src="../docs/images/1FA.png" width="400">
 </p>
 
 
-## Second factor
+## 2-Factor (2FA)
 
 **Authelia** comes with three kind of second factor.
 
@@ -24,7 +24,7 @@ You can find an example of the configuration of the LDAP backend in
 * Duo Push Notifications to use with [Duo mobile application](https://play.google.com/store/apps/details?id=com.duosecurity.duomobile&hl=en) available on Android, iOS and Windows. More info [here](./2factor/duo-push-notifications.md).
 
 <p align="center">
-  <img src="../images/use-another-method.png" width="400">
+  <img src="../docs/images/2FA-METHODS.png" width="400">
 </p>
 
 ## Password reset
@@ -37,7 +37,7 @@ email to the user email address.
 Proceed with the password reset form and validate to reset your password.
 
 <p align="center">
-  <img src="../images/reset_password.png" width="400">
+  <img src="../docs/images/RESET-PASSWORD-STEP1.png" width="400">
 </p>
 
 ## Access Control
@@ -63,7 +63,7 @@ Please note that Authelia uses the *Proxy-Authorization* header and not
 Authelia and the proxy. For instance you can use the following command to
 access your service:
 
-    curl -H "Proxy-Authorization: Basic am9objpwYXNzd29yZA==" https://myservice.example.com"
+    $ curl -H "Proxy-Authorization: Basic am9objpwYXNzd29yZA==" https://myservice.example.com"
 
 ## Session management with Redis
 

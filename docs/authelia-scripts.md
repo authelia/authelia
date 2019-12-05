@@ -12,9 +12,13 @@ Then, you can access the scripts usage by running the following command:
 
     authelia-scripts --help
 
-For instance, you can build Authelia with:
+For instance, you can build Authelia (Go binary and frontend) with:
 
     authelia-scripts build
+
+Or build the official Docker image with:
+
+    authelia-scripts docker build
 
 Or start the *Standalone* suite with:
 
