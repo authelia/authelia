@@ -45,9 +45,8 @@ jobs:
         - wget -N https://chromedriver.storage.googleapis.com/78.0.3904.70/chromedriver_linux64.zip -P ~/
         - unzip ~/chromedriver_linux64.zip -d ~/
         - rm ~/chromedriver_linux64.zip
-        - sudo mv -f ~/chromedriver /usr/local/share/
-        - sudo chmod +x /usr/local/share/chromedriver
-        - sudo ln -s /usr/local/share/chromedriver /usr/bin/chromedriver
+        - sudo mv -f ~/chromedriver /usr/local/bin/chromedriver
+        - sudo chmod +x /usr/local/bin/chromedriver
 
         - go mod download
       script:
