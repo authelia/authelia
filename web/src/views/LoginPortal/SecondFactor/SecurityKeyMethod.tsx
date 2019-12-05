@@ -31,7 +31,7 @@ export interface Props {
 }
 
 export default function (props: Props) {
-    const signInTimeout = 2;
+    const signInTimeout = 30;
     const [state, setState] = useState(State.WaitTouch);
     const style = useStyles();
     const redirectionURL = useRedirectionURL();
