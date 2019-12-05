@@ -14,7 +14,14 @@ func NewShortTimeoutsSuite() *ShortTimeoutsSuite {
 	return &ShortTimeoutsSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
+func (s *ShortTimeoutsSuite) TestInactivityScenario() {
+	suite.Run(s.T(), NewInactivityScenario())
+}
+
+func (s *ShortTimeoutsSuite) TestRegulationScenario() {
+	suite.Run(s.T(), NewRegulationScenario())
+}
+
 func TestShortTimeoutsSuite(t *testing.T) {
-	suite.Run(t, NewInactivityScenario())
-	suite.Run(t, NewRegulationScenario())
+	suite.Run(t, NewShortTimeoutsSuite())
 }

@@ -14,7 +14,14 @@ func NewMariadbSuite() *MariadbSuite {
 	return &MariadbSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
+func (s *MariadbSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
+}
+
+func (s *MariadbSuite) TestTwoFactorScenario() {
+	suite.Run(s.T(), NewTwoFactorScenario())
+}
+
 func TestMariadbSuite(t *testing.T) {
-	suite.Run(t, NewOneFactorScenario())
-	suite.Run(t, NewTwoFactorScenario())
+	suite.Run(t, NewMariadbSuite())
 }

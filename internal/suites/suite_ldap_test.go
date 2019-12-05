@@ -14,7 +14,14 @@ func NewLDAPSuite() *LDAPSuite {
 	return &LDAPSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
+func (s *LDAPSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
+}
+
+func (s *LDAPSuite) TestTwoFactorScenario() {
+	suite.Run(s.T(), NewTwoFactorScenario())
+}
+
 func TestLDAPSuite(t *testing.T) {
-	suite.Run(t, NewOneFactorScenario())
-	suite.Run(t, NewTwoFactorScenario())
+	suite.Run(t, NewLDAPSuite())
 }

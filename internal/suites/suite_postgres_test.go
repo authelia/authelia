@@ -14,7 +14,14 @@ func NewPostgresSuite() *PostgresSuite {
 	return &PostgresSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
+func (s *PostgresSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
+}
+
+func (s *PostgresSuite) TestTwoFactorScenario() {
+	suite.Run(s.T(), NewTwoFactorScenario())
+}
+
 func TestPostgresSuite(t *testing.T) {
-	suite.Run(t, NewOneFactorScenario())
-	suite.Run(t, NewTwoFactorScenario())
+	suite.Run(t, NewPostgresSuite())
 }

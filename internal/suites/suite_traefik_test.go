@@ -14,7 +14,14 @@ func NewTraefikSuite() *TraefikSuite {
 	return &TraefikSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
+func (s *TraefikSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
+}
+
+func (s *TraefikSuite) TestTwoFactorScenario() {
+	suite.Run(s.T(), NewTwoFactorScenario())
+}
+
 func TestTraefikSuite(t *testing.T) {
-	suite.Run(t, NewOneFactorScenario())
-	suite.Run(t, NewTwoFactorScenario())
+	suite.Run(t, NewTraefikSuite())
 }

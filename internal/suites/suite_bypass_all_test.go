@@ -10,15 +10,15 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type BypassAllSuite struct {
+type BypassAllWebDriverSuite struct {
 	*SeleniumSuite
 }
 
-func NewBypassAllSuite() *BypassAllSuite {
-	return &BypassAllSuite{SeleniumSuite: new(SeleniumSuite)}
+func NewBypassAllWebDriverSuite() *BypassAllWebDriverSuite {
+	return &BypassAllWebDriverSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
-func (s *BypassAllSuite) SetupSuite() {
+func (s *BypassAllWebDriverSuite) SetupSuite() {
 	wds, err := StartWebDriver()
 
 	if err != nil {
@@ -28,7 +28,7 @@ func (s *BypassAllSuite) SetupSuite() {
 	s.WebDriverSession = wds
 }
 
-func (s *BypassAllSuite) TearDownSuite() {
+func (s *BypassAllWebDriverSuite) TearDownSuite() {
 	err := s.WebDriverSession.Stop()
 
 	if err != nil {
@@ -36,7 +36,7 @@ func (s *BypassAllSuite) TearDownSuite() {
 	}
 }
 
-func (s *BypassAllSuite) TestShouldAccessPublicResource() {
+func (s *BypassAllWebDriverSuite) TestShouldAccessPublicResource() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -47,7 +47,22 @@ func (s *BypassAllSuite) TestShouldAccessPublicResource() {
 	s.verifySecretAuthorized(ctx, s.T())
 }
 
+type BypassAllSuite struct {
+	suite.Suite
+}
+
+func NewBypassAllSuite() *BypassAllSuite {
+	return &BypassAllSuite{}
+}
+
+func (s *BypassAllSuite) TestBypassAllWebDriverSuite() {
+	suite.Run(s.T(), NewBypassAllWebDriverSuite())
+}
+
+func (s *BypassAllSuite) TestCustomHeadersScenario() {
+	suite.Run(s.T(), NewCustomHeadersScenario())
+}
+
 func TestBypassAllSuite(t *testing.T) {
 	suite.Run(t, NewBypassAllSuite())
-	suite.Run(t, NewCustomHeadersScenario())
 }

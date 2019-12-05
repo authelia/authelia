@@ -14,7 +14,14 @@ func NewKubernetesSuite() *KubernetesSuite {
 	return &KubernetesSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
+func (s *KubernetesSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
+}
+
+func (s *KubernetesSuite) TestTwoFactorScenario() {
+	suite.Run(s.T(), NewTwoFactorScenario())
+}
+
 func TestKubernetesSuite(t *testing.T) {
-	suite.Run(t, NewOneFactorScenario())
-	suite.Run(t, NewTwoFactorScenario())
+	suite.Run(t, NewKubernetesSuite())
 }
