@@ -16,8 +16,8 @@ non resilient to failures.*
 **NOTE:** If not done already, we highly recommend you first follow the
 [Getting Started] documentation.
 
-In some cases, like protecting personal projects/websites, it can be fine to use
-**Authelia** in a non highly-available setup. This reduces the number
+In some cases, like protecting personal projects/websites, it can be fine
+to use **Authelia** in a non highly-available setup. This reduces the number
 of components to only two: a reverse proxy such as nginx or Traefik and
 Authelia as a companion of the proxy.
 
@@ -26,17 +26,18 @@ either by pulling the Docker image or building distributable version.
 
 ## Build and deploy the distributable version
 
-    authelia-scripts build
-    PUBLIC_DIR=./dist/public_html ./dist/authelia -config /path/to/your/config.yml
+    $ authelia-scripts build
+    $ PUBLIC_DIR=./dist/public_html ./dist/authelia -config /path/to/your/config.yml
 
 ## Deploy with Docker
 
-    docker pull clems4ever/authelia
-    docker run -v /path/to/your/config.yml:/etc/authelia/config.yml clems4ever/authelia
+    $ docker pull clems4ever/authelia
+    $ docker run -v /path/to/your/config.yml:/etc/authelia/config.yml clems4ever/authelia
 
 ## Deploy Nginx
 
-You also need to install nginx and take [example/compose/nginx/minimal/nginx.conf](./example/compose/nginx/minimal/nginx.conf)
+You also need to install nginx and take
+[example/compose/nginx/minimal/nginx.conf](./example/compose/nginx/minimal/nginx.conf)
 as an example for your configuration.
 
 ## Deploy Traefik
@@ -47,11 +48,12 @@ TODO
 
 ### Discard SQL server
 
-There is an option in the configuration file to avoid using an external SQL server
-and use a local sqlite3 database instead. This option will therefore prevent you
-from running multiple instances of **Authelia** in parallel.
-Consequently, this option is not meant to be used in production or at least
-not one that should scale out.
+There is an option in the configuration file to avoid using an external
+SQL server and use a local sqlite3 database instead. This option will
+therefore prevent you from running multiple instances of **Authelia**
+in parallel.
+Consequently, this option is not meant to be used in production or at
+least not one that should scale out.
 
 Here is the configuration you should use:
 
@@ -88,8 +90,8 @@ from running multiple instances of **Authelia** in parallel and is therefore
 discouraged for production environments.
 
 To use a file backend instead of a LDAP server, you should first duplicate
-the file [users_database.yml](../test/suites/basic/users_database.yml) and edit it to add the
-users you want.
+the file [users_database.yml](../test/suites/basic/users_database.yml) and
+edit it to add the users you want.
 
 The content of this file is as follows:
 
@@ -106,7 +108,7 @@ The password is hashed and salted as it is in LDAP servers with salted SHA-512
 (more hash algorithms such as Argon2 will be provided in the future).
 Here is a one-liner to generate such hashed password:
 
-    $ authelia-scripts hash-password mypassword
+    $ 
     $6$rounds=50000$BpLnfgDsc2WD8F2q$PumMwig8O0uIe9SgneL8Cm1FvUniOzpqBrH.uQE3aZR4K1dHsQldu5gEjJZsXcO./v3itfz6CXTDTJgeh5e8t.
 
 Copy this newly hashed password into your `users_database.yml` file, prefixed with

@@ -31,18 +31,17 @@ the root of the repo.
 ### Deploy with the distributable version
 
     # Build it if not done already
-    authelia-scripts build
-
-    PUBLIC_DIR=./dist/public_html authelia -config /path/to/your/config.yml
+    $ authelia-scripts build
+    $ PUBLIC_DIR=./dist/public_html authelia -config /path/to/your/config.yml
 
 ### Deploy With Docker
 
-    docker run -v /path/to/your/config.yml:/etc/authelia/config.yml -e TZ=Europe/Paris clems4ever/authelia
+    $ docker run -v /path/to/your/config.yml:/etc/authelia/config.yml -e TZ=Europe/Paris clems4ever/$ $ authelia -config /etc/authelia/config.yml
 
 
 ## On top of Kubernetes
 
-<img src="../images/kubernetes.logo.png" width="50" style="padding-right: 10px" align="left">
+<img src="../docs/images/logos/kubernetes.logo.png" width="50" style="padding-right: 10px" align="left">
 
 **Authelia** can also be installed on top of [Kubernetes] using
 [nginx ingress controller](https://github.com/kubernetes/ingress-nginx).

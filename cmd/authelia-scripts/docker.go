@@ -57,5 +57,5 @@ func (d *Docker) CleanTag(tag string) error {
 
 // PublishReadme push README.md to dockerhub.
 func (d *Docker) PublishReadme() error {
-	return utils.CommandWithStdout("bash", "-c", `jq -n --arg msg "$(<README.md)" '{"registry":"registry-1.docker.io","full_description": $msg }' | curl -fs --retry 3 -o /dev/null -u $DOCKER_USERNAME:$DOCKER_PASSWORD -X "PATCH" -H "Content-Type: application/json" -d @- https://cloud.docker.com/v2/repositories/clems4ever/authelia/`).Run()
+	return utils.CommandWithStdout("bash", "-c", `jq -n --arg msg "$(cat README.md | sed 's/\.\/docs/https:\/\/github.com\/clems4ever\/authelia\/raw\/master\/docs/g')" '{"registry":"registry-1.docker.io","full_description": $msg }' | curl -fs --retry 3 -o /dev/null -u $DOCKER_USERNAME:$DOCKER_PASSWORD -X "PATCH" -H "Content-Type: application/json" -d @- https://cloud.docker.com/v2/repositories/clems4ever/authelia/`).Run()
 }

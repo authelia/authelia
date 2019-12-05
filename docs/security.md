@@ -2,7 +2,7 @@
 
 ## Protection against cookie theft
 
-Authelia uses two mechanism to protect against cookie theft:
+Authelia uses two mechanisms to protect against cookie theft:
 1. session attribute `httpOnly` set to true make client-side code unable to
 read the cookie.
 2. session attribute `secure` ensure the cookie will never be sent over an
@@ -20,14 +20,6 @@ that the attacker must also require the certificate to retrieve the cookies.
 
 Note that using [HSTS] has consequences. That's why you should read the blog
 post nginx has written on [HSTS].
-
-## Content-Security-Policy
-
-Authelia's portal is protected against some XSS using the content
-security policy mechanism that is documented
-[here](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP). This protection
-will reject untrusted payloads threatening your users during the authentication
-workflow.
 
 ## More protections measures with Nginx
 

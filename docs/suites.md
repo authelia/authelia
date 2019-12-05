@@ -1,46 +1,39 @@
 # Suites
 
-Authelia is a single component in interaction with many others. Consequently, testing the features
-is not as easy as we might think. In order to solve this problem, Authelia came up with the concept of
-suite which is a kind of virtual environment for Authelia, it allows to create an environment made of
-components such as nginx, redis or mariadb in which Authelia can run and be tested.
+Authelia is a single component in interaction with many others in a complete
+ecosystem. Consequently, testing the features is not as easy as we might
+think. In order to solve this problem, Authelia came up with the concept of
+suite which is a kind of virtual environment for Authelia and a set of tests.
+A suite can setup components such as nginx, redis or mariadb in which
+Authelia can run and be tested.
 
-This abstraction allows to prepare an environment for manual testing during development and also to
-craft and run integration tests efficiently.
+This abstraction allows to prepare an environment for manual testing during
+development and also to craft and run integration tests efficiently.
 
 ## Start a suite.
 
 Starting a suite called *Standalone* is done with the following command:
 
-    authelia-scripts suites setup Standalone
+    $ authelia-scripts suites setup Standalone
 
-It will deploy the environment of the suite and block until you hit ctrl-c to stop the suite.
+This command deploys the environment of the suite.
 
 ## Run tests of a suite
 
 ### Run tests of running suite
 
-If a suite is already running, you can simply type:
+If a suite is already running, you can simply type the test command
+that will run the test related to the currently running suite:
 
-    authelia-scripts suites test
-
-and this will run the tests related to the running suite.
+    $ authelia-scripts suites test
 
 ### Run tests of non-running suite
 
-However, if no suite is running and you still want to test a particular suite like *HighAvailability*.
-You can do so with the next command:
+However, if no suite is running yet and you just want to run the tests of a
+specific suite like *HighAvailability*, you can do so with the next command:
 
-    authelia-scripts suites test HighAvailability
-
-This command will run the tests for the *HighAvailability* suite. Beware that running tests of a
-non-running suite implies the tests run against the distributable version of Authelia instead of
-the current development version. If you made some patches, you must build the distributable version
-before running the test command:
-
-    # Build authelia before running the tests against the suite.
-    authelia-scripts build
-    authelia-scripts docker build
+    # Set up the env, run the tests and tear down the env
+    $ authelia-scripts suites test HighAvailability
 
 ### Run all tests of all suites
 
@@ -48,26 +41,25 @@ Running all tests is easy. Make sure that no suite is already running and run:
 
     authelia-scripts suites test
 
-Beware that the distributable version of Authelia is tested in that case. Don't
-forget to build Authelia including your patches before running the command.
-
-
-    # Build authelia before running the tests against the suite.
-    authelia-scripts build
-    authelia-scripts docker build
-
 ### Run tests in headless mode
 
-In order to run the tests in headless mode, use the following command:
+As you might have noticed, the tests are run using chromedriver and selenium. It means
+that the tests open an instance of Chrome that might interfere with your other activities.
+In order to run the tests in headless mode to avoid the interference, use the following
+command:
 
-    authelia-scripts suites test --headless
+    $ authelia-scripts suites test --headless
 
 
 ## Create a suite
 
-Creating a suite is as easy as creating a new directory with at least two files:
+Creating a suite is as easy. Let's take the example of the **Standalone** suite:
 
-* **environment.ts** - It defines the setup and teardown phases when creating the environment. The *setup*
-phase is the phase when the required components will be spawned and Authelia will start while the *teardown*
-is executed when the suite is destroyed (ctrl-c hit by the user) or the tests are finished.
-* **test.ts** - It defines a set of tests to run against the suite.
+* **suite_standalone.go** - It defines the setup and teardown phases. It likely uses
+docker-compose to setup the ecosystem. This file also defines the timeouts.
+* **suite_standalone_test.go** - It defines the set of tests to run against the suite.
+* **Standalone** directory - It contains resources required by the suite and likely
+mounted in the containers.
+
+A suite can also be much more complex like setting up a complete Kubernetes ecosystem.
+You can check the Kubernetes suite as example.
