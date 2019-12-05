@@ -1,6 +1,7 @@
 Release Notes - Version 4.0.0
 ------------------------------
 * Authelia is rewritten in Go.
+* Authelia frontend has been rewritten with Material-UI and simplified.
 * config.yml should include a secret for jwt issuance and verification.
 * Models in database have been updated to better fit with the Go library.
 * The local storage has been replaced by a good old sqlite3 database.
