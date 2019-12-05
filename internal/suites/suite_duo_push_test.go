@@ -9,15 +9,15 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type DuoPushSuite struct {
+type DuoPushWebDriverSuite struct {
 	*SeleniumSuite
 }
 
-func NewDuoPushSuite() *DuoPushSuite {
-	return &DuoPushSuite{SeleniumSuite: new(SeleniumSuite)}
+func NewDuoPushWebDriverSuite() *DuoPushWebDriverSuite {
+	return &DuoPushWebDriverSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
-func (s *DuoPushSuite) SetupSuite() {
+func (s *DuoPushWebDriverSuite) SetupSuite() {
 	wds, err := StartWebDriver()
 
 	if err != nil {
@@ -27,7 +27,7 @@ func (s *DuoPushSuite) SetupSuite() {
 	s.WebDriverSession = wds
 }
 
-func (s *DuoPushSuite) TearDownSuite() {
+func (s *DuoPushWebDriverSuite) TearDownSuite() {
 	err := s.WebDriverSession.Stop()
 
 	if err != nil {
@@ -35,14 +35,14 @@ func (s *DuoPushSuite) TearDownSuite() {
 	}
 }
 
-func (s *DuoPushSuite) SetupTest() {
+func (s *DuoPushWebDriverSuite) SetupTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	s.doLogout(ctx, s.T())
 }
 
-func (s *DuoPushSuite) TearDownTest() {
+func (s *DuoPushWebDriverSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -50,7 +50,7 @@ func (s *DuoPushSuite) TearDownTest() {
 	s.WaitElementLocatedByID(ctx, s.T(), "one-time-password-method")
 }
 
-func (s *DuoPushSuite) TestShouldSucceedAuthentication() {
+func (s *DuoPushWebDriverSuite) TestShouldSucceedAuthentication() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -61,7 +61,7 @@ func (s *DuoPushSuite) TestShouldSucceedAuthentication() {
 	s.WaitElementLocatedByClassName(ctx, s.T(), "success-icon")
 }
 
-func (s *DuoPushSuite) TestShouldFailAuthentication() {
+func (s *DuoPushWebDriverSuite) TestShouldFailAuthentication() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -72,11 +72,29 @@ func (s *DuoPushSuite) TestShouldFailAuthentication() {
 	s.WaitElementLocatedByClassName(ctx, s.T(), "failure-icon")
 }
 
-func TestDuoPushSuite(t *testing.T) {
-	suite.Run(t, NewDuoPushSuite())
-	suite.Run(t, NewAvailableMethodsScenario([]string{
+type DuoPushSuite struct {
+	suite.Suite
+}
+
+func NewDuoPushSuite() *DuoPushSuite {
+	return &DuoPushSuite{}
+}
+
+func (s *DuoPushSuite) TestDuoPushWebDriverSuite() {
+	suite.Run(s.T(), NewDuoPushWebDriverSuite())
+}
+
+func (s *DuoPushSuite) TestAvailableMethodsScenario() {
+	suite.Run(s.T(), NewAvailableMethodsScenario([]string{
 		"ONE-TIME PASSWORD",
 		"PUSH NOTIFICATION",
 	}))
-	suite.Run(t, NewUserPreferencesScenario())
+}
+
+func (s *DuoPushSuite) TestUserPreferencesScenario() {
+	suite.Run(s.T(), NewUserPreferencesScenario())
+}
+
+func TestDuoPushSuite(t *testing.T) {
+	suite.Run(t, NewDuoPushSuite())
 }

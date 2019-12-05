@@ -121,18 +121,34 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 	s.Assert().Equal(string(body), fmt.Sprintf("Found. Redirecting to %s?rd=https://secure.example.com:8080/", LoginBaseURL))
 }
 
-func TestStandaloneWebDriverScenario(t *testing.T) {
-	suite.Run(t, NewStandaloneWebDriverSuite())
+func (s *StandaloneSuite) TestStandaloneWebDriverScenario() {
+	suite.Run(s.T(), NewStandaloneWebDriverSuite())
+}
+
+func (s *StandaloneSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
+}
+
+func (s *StandaloneSuite) TestTwoFactorScenario() {
+	suite.Run(s.T(), NewTwoFactorScenario())
+}
+
+func (s *StandaloneSuite) TestBypassPolicyScenario() {
+	suite.Run(s.T(), NewBypassPolicyScenario())
+}
+
+func (s *StandaloneSuite) TestBackendProtectionScenario() {
+	suite.Run(s.T(), NewBackendProtectionScenario())
+}
+
+func (s *StandaloneSuite) TestResetPasswordScenario() {
+	suite.Run(s.T(), NewResetPasswordScenario())
+}
+
+func (s *StandaloneSuite) TestAvailableMethodsScenario() {
+	suite.Run(s.T(), NewAvailableMethodsScenario([]string{"ONE-TIME PASSWORD"}))
 }
 
 func TestStandaloneSuite(t *testing.T) {
-	suite.Run(t, NewOneFactorScenario())
-	suite.Run(t, NewTwoFactorScenario())
-	suite.Run(t, NewBypassPolicyScenario())
-	suite.Run(t, NewBackendProtectionScenario())
-	suite.Run(t, NewResetPasswordScenario())
-	suite.Run(t, NewAvailableMethodsScenario([]string{"ONE-TIME PASSWORD"}))
-
-	suite.Run(t, NewStandaloneWebDriverSuite())
 	suite.Run(t, NewStandaloneSuite())
 }

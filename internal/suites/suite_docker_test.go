@@ -14,7 +14,14 @@ func NewDockerSuite() *DockerSuite {
 	return &DockerSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
+func (s *DockerSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
+}
+
+func (s *DockerSuite) TestTwoFactorScenario() {
+	suite.Run(s.T(), NewTwoFactorScenario())
+}
+
 func TestDockerSuite(t *testing.T) {
-	suite.Run(t, NewOneFactorScenario())
-	suite.Run(t, NewTwoFactorScenario())
+	suite.Run(t, NewDockerSuite())
 }

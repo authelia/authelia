@@ -203,15 +203,32 @@ func (s *HighAvailabilitySuite) TestBasicAuth() {
 	s.Assert().Equal(DoGetWithAuth(s.T(), "john", "password"), 200)
 	s.Assert().Equal(DoGetWithAuth(s.T(), "john", "bad-password"), 302)
 	s.Assert().Equal(DoGetWithAuth(s.T(), "dontexist", "password"), 302)
+}
 
+func (s *HighAvailabilitySuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
+}
+
+func (s *HighAvailabilitySuite) TestTwoFactorScenario() {
+	suite.Run(s.T(), NewTwoFactorScenario())
+}
+
+func (s *HighAvailabilitySuite) TestRegulationScenario() {
+	suite.Run(s.T(), NewRegulationScenario())
+}
+
+func (s *HighAvailabilitySuite) TestCustomHeadersScenario() {
+	suite.Run(s.T(), NewCustomHeadersScenario())
+}
+
+func (s *HighAvailabilitySuite) TestRedirectionCheckScenario() {
+	suite.Run(s.T(), NewRedirectionCheckScenario())
+}
+
+func (s *HighAvailabilitySuite) TestHighAvailabilityWebDriverSuite() {
+	suite.Run(s.T(), NewHighAvailabilityWebDriverSuite())
 }
 
 func TestHighAvailabilitySuite(t *testing.T) {
-	suite.Run(t, NewOneFactorScenario())
-	suite.Run(t, NewTwoFactorScenario())
-	suite.Run(t, NewRegulationScenario())
-	suite.Run(t, NewCustomHeadersScenario())
-	suite.Run(t, NewRedirectionCheckScenario())
-	suite.Run(t, NewHighAvailabilityWebDriverSuite())
 	suite.Run(t, NewHighAvailabilitySuite())
 }
