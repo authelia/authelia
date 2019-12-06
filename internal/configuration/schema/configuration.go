@@ -2,6 +2,7 @@ package schema
 
 // Configuration object extracted from YAML configuration file.
 type Configuration struct {
+	Host                      string `yaml:"host"`
 	Port                      int    `yaml:"port"`
 	LogsLevel                 string `yaml:"logs_level"`
 	JWTSecret                 string `yaml:"jwt_secret"`
