@@ -54,9 +54,10 @@ authentication_backend:
   # than one instance and therefore is recommended for
   # production.
   ldap:
-    # The url of the ldap server
+    # The url to the ldap server. Scheme can be ldap:// or ldaps://
     url: ldap://127.0.0.1
-
+    # Skip verifying the server certificate (to allow self-signed certificate).
+    skip_verify: false
     # The base dn for every entries
     base_dn: dc=example,dc=com
 

@@ -9,4 +9,4 @@ spec:
     app: ldap
   ports:
   - protocol: TCP
-    port: 389
+    port: 636

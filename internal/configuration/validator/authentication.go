@@ -2,12 +2,14 @@ package validator
 
 import (
 	"errors"
-	"strings"
+	"fmt"
+	"net/url"
 
 	"github.com/clems4ever/authelia/internal/configuration/schema"
 )
 
 var ldapProtocolPrefix = "ldap://"
+var ldapsProtocolPrefix = "ldaps://"
 
 func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.Path == "" {
@@ -15,19 +17,30 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 	}
 }
 
-func validateLdapURL(url string, validator *schema.StructValidator) string {
-	if strings.HasPrefix(url, ldapProtocolPrefix) {
-		url = url[len(ldapProtocolPrefix):]
+func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
+	u, err := url.Parse(ldapURL)
+
+	if err != nil {
+		validator.Push(errors.New("Unable to parse URL to ldap server. The scheme is probably missing: ldap:// or ldaps://"))
+		return ""
 	}
 
-	portColons := strings.Index(url, ":")
-
-	// if no port is provided, we provide the default LDAP port
-	// TODO(c.michaud): support LDAP over TLS.
-	if portColons == -1 {
-		url = url + ":389"
+	if !(u.Scheme == "ldap" || u.Scheme == "ldaps") {
+		validator.Push(errors.New("Unknown scheme for ldap url, should be ldap:// or ldaps://"))
+		return ""
 	}
-	return url
+
+	if u.Scheme == "ldap" && u.Port() == "" {
+		u.Host += ":389"
+	} else if u.Scheme == "ldaps" && u.Port() == "" {
+		u.Host += ":636"
+	}
+
+	if !u.IsAbs() {
+		validator.Push(fmt.Errorf("URL to LDAP %s is still not absolute, it should be something like ldap://127.0.0.1:389", u.String()))
+	}
+
+	return u.String()
 }
 
 func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {

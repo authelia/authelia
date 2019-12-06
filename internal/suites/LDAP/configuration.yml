@@ -13,7 +13,10 @@ jwt_secret: very_important_secret
 authentication_backend:
   ldap:
     # The url of the ldap server
-    url: ldap://openldap
+    url: ldaps://openldap
+
+    # Skip certificate verification (for self-signed certificates)
+    skip_verify: true
 
     # The base dn for every entries
     base_dn: dc=example,dc=com

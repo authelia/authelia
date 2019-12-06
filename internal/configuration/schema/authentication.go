@@ -3,6 +3,7 @@ package schema
 // LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server.
 type LDAPAuthenticationBackendConfiguration struct {
 	URL                string `yaml:"url"`
+	SkipVerify         bool   `yaml:"skip_verify"`
 	BaseDN             string `yaml:"base_dn"`
 	AdditionalUsersDN  string `yaml:"additional_users_dn"`
 	UsersFilter        string `yaml:"users_filter"`

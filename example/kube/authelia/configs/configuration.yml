@@ -10,7 +10,8 @@ default_redirection_url: https://home.example.com:8080
 
 authentication_backend:
   ldap:
-    url: ldap-service:389
+    url: ldaps://ldap-service
+    skip_verify: true
     base_dn: dc=example,dc=com
     additional_users_dn: ou=users
     users_filter: (cn={0})
