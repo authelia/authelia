@@ -240,6 +240,9 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		rd := string(ctx.QueryArgs().Peek("rd"))
 		if rd != "" {
 			redirectionURL := fmt.Sprintf("%s?rd=%s", rd, targetURL.String())
+			if strings.Contains(redirectionURL, "/%23/") {
+				ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
+			}
 			ctx.Redirect(redirectionURL, 302)
 			ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
 		} else {
