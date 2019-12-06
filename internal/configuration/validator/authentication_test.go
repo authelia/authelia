@@ -5,6 +5,7 @@ import (
 
 	"github.com/clems4ever/authelia/internal/configuration/schema"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -117,6 +118,24 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultMailAttribute()
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
 	assert.Equal(suite.T(), "mail", suite.configuration.Ldap.MailAttribute)
+}
+
+func (suite *LdapAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {
+	assert.Equal(suite.T(), "", validateLdapURL("127.0.0.1", suite.validator))
+	require.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Unknown scheme for ldap url, should be ldap:// or ldaps://")
+
+	assert.Equal(suite.T(), "", validateLdapURL("127.0.0.1:636", suite.validator))
+	require.Len(suite.T(), suite.validator.Errors(), 2)
+	assert.EqualError(suite.T(), suite.validator.Errors()[1], "Unable to parse URL to ldap server. The scheme is probably missing: ldap:// or ldaps://")
+
+	assert.Equal(suite.T(), "ldap://127.0.0.1:389", validateLdapURL("ldap://127.0.0.1", suite.validator))
+	assert.Equal(suite.T(), "ldap://127.0.0.1:390", validateLdapURL("ldap://127.0.0.1:390", suite.validator))
+	assert.Equal(suite.T(), "ldap://127.0.0.1:389/abc", validateLdapURL("ldap://127.0.0.1/abc", suite.validator))
+	assert.Equal(suite.T(), "ldap://127.0.0.1:389/abc?test=abc&x=y", validateLdapURL("ldap://127.0.0.1/abc?test=abc&x=y", suite.validator))
+
+	assert.Equal(suite.T(), "ldaps://127.0.0.1:390", validateLdapURL("ldaps://127.0.0.1:390", suite.validator))
+	assert.Equal(suite.T(), "ldaps://127.0.0.1:636", validateLdapURL("ldaps://127.0.0.1", suite.validator))
 }
 
 func TestLdapAuthenticationBackend(t *testing.T) {

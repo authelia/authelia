@@ -17,6 +17,7 @@ func init() {
 		"example/compose/nginx/portal/docker-compose.yml",
 		"example/compose/smtp/docker-compose.yml",
 		"example/compose/ldap/docker-compose.yml",
+		"example/compose/ldap/docker-compose.admin.yml",
 	})
 
 	setup := func(suitePath string) error {

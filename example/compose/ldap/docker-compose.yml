@@ -1,20 +1,20 @@
-version: '3'
+version: "3"
 services:
   openldap:
-    image: clems4ever/openldap
+    image: osixia/openldap:1.3.0
+    hostname: ldap.example.com
     environment:
-      - SLAPD_ORGANISATION=MyCompany
-      - SLAPD_DOMAIN=example.com
-      - SLAPD_PASSWORD=password
-      - SLAPD_CONFIG_PASSWORD=password
-      - SLAPD_ADDITIONAL_MODULES=memberof
-      - SLAPD_ADDITIONAL_SCHEMAS=openldap
-      - SLAPD_FORCE_RECONFIGURE=true
+      - LDAP_ORGANISATION=MyCompany
+      - LDAP_DOMAIN=example.com
+      - LDAP_ADMIN_PASSWORD=password
+      - LDAP_CONFIG_PASSWORD=password
+      - LDAP_ADDITIONAL_MODULES=memberof
+      - LDAP_ADDITIONAL_SCHEMAS=openldap
+      - LDAP_FORCE_RECONFIGURE=true
+      - LDAP_TLS_VERIFY_CLIENT=try
     volumes:
-      - ./example/compose/ldap/base.ldif:/etc/ldap.dist/prepopulate/base.ldif
-      - ./example/compose/ldap/access.rules:/etc/ldap.dist/prepopulate/access.rules
-    ports:
-      - "389:389"
+      - ./example/compose/ldap/ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom
+    command:
+      - --copy-service
     networks:
       - authelianet
-
