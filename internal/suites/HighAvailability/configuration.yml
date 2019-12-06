@@ -185,10 +185,10 @@ session:
   secret: unsecure_session_secret
 
   # The time in ms before the cookie expires and session is reset.
-  expiration: 3600000 # 1 hour
+  expiration: 3600 # 1 hour
 
   # The inactivity time in ms before the session is reset.
-  inactivity: 300000 # 5 minutes
+  inactivity: 300 # 5 minutes
 
   # The domain to protect.
   # Note: the authenticator must also be in that domain. If empty, the cookie

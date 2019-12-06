@@ -75,8 +75,8 @@ access_control:
 
 session:
   secret: unsecure_password
-  expiration: 3600000 # 1 hour
-  inactivity: 300000 # 5 minutes
+  expiration: 3600 # 1 hour
+  inactivity: 300 # 5 minutes
   domain: example.com
   redis:
     host: redis-service
