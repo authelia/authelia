@@ -100,7 +100,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		ctx.SendFile(path.Join(publicDir, "index.html"))
 	}
 
-	portPattern := fmt.Sprintf(":%d", configuration.Port)
+	portPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
 	logging.Logger().Infof("Authelia is listening on %s", portPattern)
 
 	logging.Logger().Fatal(fasthttp.ListenAndServe(portPattern,
