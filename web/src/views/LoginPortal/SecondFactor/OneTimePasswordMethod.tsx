@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import MethodContainer from "./MethodContainer";
+import MethodContainer, { State as MethodContainerState } from "./MethodContainer";
 import OTPDial from "./OTPDial";
 import { completeTOTPSignIn } from "../../../services/OneTimePassword";
 import { useRedirectionURL } from "../../../hooks/RedirectionURL";
@@ -15,6 +15,7 @@ export enum State {
 export interface Props {
     id: string;
     authenticationLevel: AuthenticationLevel;
+    registered: boolean;
 
     onRegisterClick: () => void;
     onSignInError: (err: Error) => void;
@@ -65,11 +66,19 @@ export default function (props: Props) {
 
     useEffect(() => { signInFunc() }, [signInFunc]);
 
+    let methodState = MethodContainerState.METHOD;
+    if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
+        methodState = MethodContainerState.ALREADY_AUTHENTICATED;
+    } else if (!props.registered) {
+        methodState = MethodContainerState.NOT_REGISTERED;
+    }
+
     return (
         <MethodContainer
             id={props.id}
             title="One-Time Password"
             explanation="Enter one-time password"
+            state={methodState}
             onRegisterClick={props.onRegisterClick}>
             <OTPDial
                 passcode={passcode}

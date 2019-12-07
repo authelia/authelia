@@ -12,9 +12,7 @@ interface IconWithContextProps {
 export default function (props: IconWithContextProps) {
     const iconSize = 64;
     const style = makeStyles(theme => ({
-        root: {
-            height: iconSize + theme.spacing(6),
-        },
+        root: {},
         iconContainer: {
             display: "flex",
             flexDirection: "column",
@@ -26,7 +24,6 @@ export default function (props: IconWithContextProps) {
         },
         context: {
             display: "block",
-            height: theme.spacing(6),
         }
     }))();
 
