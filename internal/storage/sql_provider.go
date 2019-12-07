@@ -22,6 +22,7 @@ type SQLProvider struct {
 
 	sqlGetTOTPSecretByUsername string
 	sqlUpsertTOTPSecret        string
+	sqlDeleteTOTPSecret        string
 
 	sqlGetU2FDeviceHandleByUsername string
 	sqlUpsertU2FDeviceHandle        string
@@ -133,6 +134,12 @@ func (p *SQLProvider) LoadTOTPSecret(username string) (string, error) {
 		return "", err
 	}
 	return secret, nil
+}
+
+// DeleteTOTPSecret delete a TOTP secret given a username.
+func (p *SQLProvider) DeleteTOTPSecret(username string) error {
+	_, err := p.db.Exec(p.sqlDeleteTOTPSecret, username)
+	return err
 }
 
 // SaveU2FDeviceHandle save a registered U2F device registration blob.
