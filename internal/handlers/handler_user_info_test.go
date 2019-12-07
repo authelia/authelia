@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/clems4ever/authelia/internal/mocks"
+	"github.com/clems4ever/authelia/internal/storage"
 
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
@@ -30,34 +31,41 @@ func (s *FetchSuite) TearDownTest() {
 	s.mock.Close()
 }
 
-func (s *FetchSuite) setPreferencesExpectations(preferences UserPreferences) {
-	s.mock.StorageProviderMock.
+func setPreferencesExpectations(preferences UserPreferences, provider *storage.MockProvider) {
+	provider.
 		EXPECT().
 		LoadPrefered2FAMethod(gomock.Eq("john")).
 		Return(preferences.Method, nil)
 
-	var u2fData []byte
 	if preferences.HasU2F {
-		u2fData = []byte("abc")
+		u2fData := []byte("abc")
+		provider.
+			EXPECT().
+			LoadU2FDeviceHandle(gomock.Eq("john")).
+			Return(u2fData, u2fData, nil)
+	} else {
+		provider.
+			EXPECT().
+			LoadU2FDeviceHandle(gomock.Eq("john")).
+			Return(nil, nil, storage.ErrNoU2FDeviceHandle)
 	}
 
-	s.mock.StorageProviderMock.
-		EXPECT().
-		LoadU2FDeviceHandle(gomock.Eq("john")).
-		Return(u2fData, u2fData, nil)
-
-	var totpSecret string
 	if preferences.HasTOTP {
-		totpSecret = "secret"
+		totpSecret := "secret"
+		provider.
+			EXPECT().
+			LoadTOTPSecret(gomock.Eq("john")).
+			Return(totpSecret, nil)
+	} else {
+		provider.
+			EXPECT().
+			LoadTOTPSecret(gomock.Eq("john")).
+			Return("", storage.ErrNoTOTPSecret)
 	}
 
-	s.mock.StorageProviderMock.
-		EXPECT().
-		LoadTOTPSecret(gomock.Eq("john")).
-		Return(totpSecret, nil)
 }
 
-func (s *FetchSuite) TestMethodSetToU2F() {
+func TestMethodSetToU2F(t *testing.T) {
 	table := []UserPreferences{
 		UserPreferences{
 			Method: "totp",
@@ -72,26 +80,39 @@ func (s *FetchSuite) TestMethodSetToU2F() {
 			HasU2F:  true,
 			HasTOTP: false,
 		},
+		UserPreferences{
+			Method:  "mobile_push",
+			HasU2F:  false,
+			HasTOTP: false,
+		},
 	}
 
 	for _, expectedPreferences := range table {
-		s.setPreferencesExpectations(expectedPreferences)
-		UserInfoGet(s.mock.Ctx)
+		mock := mocks.NewMockAutheliaCtx(t)
+		// Set the intial user session.
+		userSession := mock.Ctx.GetSession()
+		userSession.Username = "john"
+		userSession.AuthenticationLevel = 1
+		mock.Ctx.SaveSession(userSession)
+
+		setPreferencesExpectations(expectedPreferences, mock.StorageProviderMock)
+		UserInfoGet(mock.Ctx)
 
 		actualPreferences := UserPreferences{}
-		s.mock.GetResponseData(s.T(), &actualPreferences)
+		mock.GetResponseData(t, &actualPreferences)
 
-		s.Run("expected method", func() {
-			s.Assert().Equal(expectedPreferences.Method, actualPreferences.Method)
+		t.Run("expected method", func(t *testing.T) {
+			assert.Equal(t, expectedPreferences.Method, actualPreferences.Method)
 		})
 
-		s.Run("registered u2f", func() {
-			s.Assert().Equal(expectedPreferences.HasU2F, actualPreferences.HasU2F)
+		t.Run("registered u2f", func(t *testing.T) {
+			assert.Equal(t, expectedPreferences.HasU2F, actualPreferences.HasU2F)
 		})
 
-		s.Run("registered totp", func() {
-			s.Assert().Equal(expectedPreferences.HasTOTP, actualPreferences.HasTOTP)
+		t.Run("registered totp", func(t *testing.T) {
+			assert.Equal(t, expectedPreferences.HasTOTP, actualPreferences.HasTOTP)
 		})
+		mock.Close()
 	}
 }
 
@@ -104,12 +125,12 @@ func (s *FetchSuite) TestShouldGetDefaultPreferenceIfNotInDB() {
 	s.mock.StorageProviderMock.
 		EXPECT().
 		LoadU2FDeviceHandle(gomock.Eq("john")).
-		Return(nil, nil, nil)
+		Return(nil, nil, storage.ErrNoU2FDeviceHandle)
 
 	s.mock.StorageProviderMock.
 		EXPECT().
 		LoadTOTPSecret(gomock.Eq("john")).
-		Return("", nil)
+		Return("", storage.ErrNoTOTPSecret)
 
 	UserInfoGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), UserPreferences{Method: "totp"})
@@ -119,10 +140,19 @@ func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 	s.mock.StorageProviderMock.EXPECT().
 		LoadPrefered2FAMethod(gomock.Eq("john")).
 		Return("", fmt.Errorf("Failure"))
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		LoadU2FDeviceHandle(gomock.Eq("john"))
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		LoadTOTPSecret(gomock.Eq("john"))
+
 	UserInfoGet(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "Unable to load prefered 2FA method: Failure", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Unable to load user information", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 

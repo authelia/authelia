@@ -28,12 +28,12 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
 	s.mock.Assert200OK(s.T(), []string{"totp", "u2f"})
 }
 
-func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndDuo() {
+func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMobilePush() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: &schema.DuoAPIConfiguration{},
 	}
 	SecondFactorAvailableMethodsGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), []string{"totp", "u2f", "duo_push"})
+	s.mock.Assert200OK(s.T(), []string{"totp", "u2f", "mobile_push"})
 }
 
 func TestRunSuite(t *testing.T) {
