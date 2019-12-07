@@ -72,7 +72,7 @@ func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 	errors := loadInfo(userSession.Username, ctx.Providers.StorageProvider, &preferences, ctx.Logger)
 
 	if len(errors) > 0 {
-		ctx.Error(fmt.Errorf("Unable to load user preferences"), operationFailedMessage)
+		ctx.Error(fmt.Errorf("Unable to load user information"), operationFailedMessage)
 		return
 	}
 	ctx.SetJSONBody(preferences)
