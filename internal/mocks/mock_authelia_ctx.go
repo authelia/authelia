@@ -9,6 +9,7 @@ import (
 	"github.com/clems4ever/authelia/internal/regulation"
 	"github.com/clems4ever/authelia/internal/storage"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/clems4ever/authelia/internal/authorization"
 	"github.com/clems4ever/authelia/internal/configuration/schema"
@@ -142,4 +143,11 @@ func (m *MockAutheliaCtx) Assert200OK(t *testing.T, data interface{}) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, string(b), string(m.Ctx.Response.Body()))
+}
+
+func (m *MockAutheliaCtx) GetResponseData(t *testing.T, data interface{}) {
+	okResponse := middlewares.OKResponse{}
+	okResponse.Data = data
+	err := json.Unmarshal(m.Ctx.Response.Body(), &okResponse)
+	require.NoError(t, err)
 }

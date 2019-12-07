@@ -81,7 +81,7 @@ export default function () {
                 console.log("redirect");
                 if (preferences.method === SecondFactorMethod.U2F) {
                     redirect(`${SecondFactorU2FRoute}${redirectionSuffix}`);
-                } else if (preferences.method === SecondFactorMethod.Duo) {
+                } else if (preferences.method === SecondFactorMethod.MobilePush) {
                     redirect(`${SecondFactorPushRoute}${redirectionSuffix}`);
                 } else {
                     redirect(`${SecondFactorTOTPRoute}${redirectionSuffix}`);

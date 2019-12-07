@@ -10,10 +10,16 @@ type MethodList = []string
 
 type authorizationMatching int
 
-// preferences is the model of user second factor preferences
-type preferences struct {
+// UserInfo is the model of user second factor preferences
+type UserPreferences struct {
 	// The prefered 2FA method.
 	Method string `json:"method" valid:"required"`
+
+	// True if a security key has been registered
+	HasU2F bool `json:"has_u2f" valid:"required"`
+
+	// True if a TOTP device has been registered
+	HasTOTP bool `json:"has_totp" valid:"required"`
 }
 
 // signTOTPRequestBody model of the request body received by TOTP authentication endpoint.

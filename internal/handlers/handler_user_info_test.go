@@ -1,0 +1,213 @@
+package handlers
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/clems4ever/authelia/internal/mocks"
+
+	"github.com/golang/mock/gomock"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+)
+
+type FetchSuite struct {
+	suite.Suite
+	mock *mocks.MockAutheliaCtx
+}
+
+func (s *FetchSuite) SetupTest() {
+	s.mock = mocks.NewMockAutheliaCtx(s.T())
+	// Set the intial user session.
+	userSession := s.mock.Ctx.GetSession()
+	userSession.Username = "john"
+	userSession.AuthenticationLevel = 1
+	s.mock.Ctx.SaveSession(userSession)
+}
+
+func (s *FetchSuite) TearDownTest() {
+	s.mock.Close()
+}
+
+func (s *FetchSuite) setPreferencesExpectations(preferences UserPreferences) {
+	s.mock.StorageProviderMock.
+		EXPECT().
+		LoadPrefered2FAMethod(gomock.Eq("john")).
+		Return(preferences.Method, nil)
+
+	var u2fData []byte
+	if preferences.HasU2F {
+		u2fData = []byte("abc")
+	}
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		LoadU2FDeviceHandle(gomock.Eq("john")).
+		Return(u2fData, u2fData, nil)
+
+	var totpSecret string
+	if preferences.HasTOTP {
+		totpSecret = "secret"
+	}
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		LoadTOTPSecret(gomock.Eq("john")).
+		Return(totpSecret, nil)
+}
+
+func (s *FetchSuite) TestMethodSetToU2F() {
+	table := []UserPreferences{
+		UserPreferences{
+			Method: "totp",
+		},
+		UserPreferences{
+			Method:  "u2f",
+			HasU2F:  true,
+			HasTOTP: true,
+		},
+		UserPreferences{
+			Method:  "u2f",
+			HasU2F:  true,
+			HasTOTP: false,
+		},
+	}
+
+	for _, expectedPreferences := range table {
+		s.setPreferencesExpectations(expectedPreferences)
+		UserInfoGet(s.mock.Ctx)
+
+		actualPreferences := UserPreferences{}
+		s.mock.GetResponseData(s.T(), &actualPreferences)
+
+		s.Run("expected method", func() {
+			s.Assert().Equal(expectedPreferences.Method, actualPreferences.Method)
+		})
+
+		s.Run("registered u2f", func() {
+			s.Assert().Equal(expectedPreferences.HasU2F, actualPreferences.HasU2F)
+		})
+
+		s.Run("registered totp", func() {
+			s.Assert().Equal(expectedPreferences.HasTOTP, actualPreferences.HasTOTP)
+		})
+	}
+}
+
+func (s *FetchSuite) TestShouldGetDefaultPreferenceIfNotInDB() {
+	s.mock.StorageProviderMock.
+		EXPECT().
+		LoadPrefered2FAMethod(gomock.Eq("john")).
+		Return("", nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		LoadU2FDeviceHandle(gomock.Eq("john")).
+		Return(nil, nil, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		LoadTOTPSecret(gomock.Eq("john")).
+		Return("", nil)
+
+	UserInfoGet(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), UserPreferences{Method: "totp"})
+}
+
+func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPrefered2FAMethod(gomock.Eq("john")).
+		Return("", fmt.Errorf("Failure"))
+	UserInfoGet(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed.")
+	assert.Equal(s.T(), "Unable to load prefered 2FA method: Failure", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
+}
+
+func TestFetchSuite(t *testing.T) {
+	suite.Run(t, &FetchSuite{})
+}
+
+type SaveSuite struct {
+	suite.Suite
+	mock *mocks.MockAutheliaCtx
+}
+
+func (s *SaveSuite) SetupTest() {
+	s.mock = mocks.NewMockAutheliaCtx(s.T())
+	// Set the intial user session.
+	userSession := s.mock.Ctx.GetSession()
+	userSession.Username = "john"
+	userSession.AuthenticationLevel = 1
+	s.mock.Ctx.SaveSession(userSession)
+}
+
+func (s *SaveSuite) TearDownTest() {
+	s.mock.Close()
+}
+
+func (s *SaveSuite) TestShouldReturnError500WhenNoBodyProvided() {
+	s.mock.Ctx.Request.SetBody(nil)
+	MethodPreferencePost(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed.")
+	assert.Equal(s.T(), "Unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
+}
+
+func (s *SaveSuite) TestShouldReturnError500WhenMalformedBodyProvided() {
+	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"abc\""))
+	MethodPreferencePost(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed.")
+	assert.Equal(s.T(), "Unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
+}
+
+func (s *SaveSuite) TestShouldReturnError500WhenBadBodyProvided() {
+	s.mock.Ctx.Request.SetBody([]byte("{\"weird_key\":\"abc\"}"))
+	MethodPreferencePost(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed.")
+	assert.Equal(s.T(), "Unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
+}
+
+func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
+	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"abc\"}"))
+	MethodPreferencePost(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed.")
+	assert.Equal(s.T(), "Unknown method 'abc', it should be one of totp, u2f, mobile_push", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
+}
+
+func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
+	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
+	s.mock.StorageProviderMock.EXPECT().
+		SavePrefered2FAMethod(gomock.Eq("john"), gomock.Eq("u2f")).
+		Return(fmt.Errorf("Failure"))
+
+	MethodPreferencePost(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed.")
+	assert.Equal(s.T(), "Unable to save new prefered 2FA method: Failure", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
+}
+
+func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
+	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
+	s.mock.StorageProviderMock.EXPECT().
+		SavePrefered2FAMethod(gomock.Eq("john"), gomock.Eq("u2f")).
+		Return(nil)
+
+	MethodPreferencePost(s.mock.Ctx)
+
+	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+}
+
+func TestSaveSuite(t *testing.T) {
+	suite.Run(t, &SaveSuite{})
+}
