@@ -11,7 +11,6 @@ import (
 
 type SecondFactorAvailableMethodsFixture struct {
 	suite.Suite
-
 	mock *mocks.MockAutheliaCtx
 }
 
@@ -24,16 +23,22 @@ func (s *SecondFactorAvailableMethodsFixture) TearDownTest() {
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
-	SecondFactorAvailableMethodsGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), []string{"totp", "u2f"})
+	expectedBody := ExtendedConfigurationBody{
+		AvailableMethods: []string{"totp", "u2f"},
+	}
+	ExtendedConfigurationGet(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), expectedBody)
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMobilePush() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: &schema.DuoAPIConfiguration{},
 	}
-	SecondFactorAvailableMethodsGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), []string{"totp", "u2f", "mobile_push"})
+	expectedBody := ExtendedConfigurationBody{
+		AvailableMethods: []string{"totp", "u2f", "mobile_push"},
+	}
+	ExtendedConfigurationGet(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), expectedBody)
 }
 
 func TestRunSuite(t *testing.T) {

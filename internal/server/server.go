@@ -32,6 +32,10 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	router.GET("/api/state", autheliaMiddleware(handlers.StateGet))
 
+	router.GET("/api/configuration", autheliaMiddleware(handlers.ConfigurationGet))
+	router.GET("/api/configuration/extended", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.ExtendedConfigurationGet)))
+
 	router.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet))
 
 	router.POST("/api/firstfactor", autheliaMiddleware(handlers.FirstFactorPost))
@@ -44,10 +48,6 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		handlers.ResetPasswordIdentityFinish))
 	router.POST("/api/reset-password", autheliaMiddleware(
 		handlers.ResetPasswordPost))
-
-	// 2FA preferences and settings related endpoints.
-	router.GET("/api/secondfactor/available", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorAvailableMethodsGet)))
 
 	// Information about the user
 	router.GET("/api/user/info", autheliaMiddleware(

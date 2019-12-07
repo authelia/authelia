@@ -25,6 +25,9 @@ export const UserInfoPath = "/api/user/info";
 export const UserInfo2FAMethodPath = "/api/user/info/2fa_method";
 export const Available2FAMethodsPath = "/api/secondfactor/available";
 
+export const ConfigurationPath = "/api/configuration";
+export const ExtendedConfigurationPath = "/api/configuration/extended";
+
 export interface ErrorResponse {
     status: "KO";
     message: string;

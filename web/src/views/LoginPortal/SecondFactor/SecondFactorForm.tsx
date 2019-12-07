@@ -18,7 +18,7 @@ import {
 } from "../../../Routes";
 import { setPrefered2FAMethod } from "../../../services/UserPreferences";
 import { UserInfo } from "../../../models/UserInfo";
-import { Configuration } from "../../../models/Configuration";
+import { ExtendedConfiguration } from "../../../models/Configuration";
 import u2fApi from "u2f-api";
 import { AuthenticationLevel } from "../../../services/State";
 
@@ -29,7 +29,7 @@ export interface Props {
     authenticationLevel: AuthenticationLevel;
 
     userInfo: UserInfo;
-    configuration: Configuration;
+    configuration: ExtendedConfiguration;
 
     onMethodChanged: (method: SecondFactorMethod) => void;
     onAuthenticationSuccess: (redirectURL: string | undefined) => void;
@@ -89,7 +89,7 @@ export default function (props: Props) {
             showBrand>
             <MethodSelectionDialog
                 open={methodSelectionOpen}
-                methods={props.configuration}
+                methods={props.configuration.available_methods}
                 u2fSupported={u2fSupported}
                 onClose={() => setMethodSelectionOpen(false)}
                 onClick={handleMethodSelected} />

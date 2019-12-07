@@ -20,7 +20,7 @@ session:
 
 storage:
   local:
-    path: /tmp/authelia/db.sqlite
+    path: /var/lib/authelia/db.sqlite
 
 # The Duo Push Notification API configuration
 duo_api:

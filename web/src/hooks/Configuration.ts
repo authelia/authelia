@@ -1,6 +1,10 @@
 import { useRemoteCall } from "./RemoteCall";
-import { getAvailable2FAMethods } from "../services/Configuration";
+import { getConfiguration, getExtendedConfiguration } from "../services/Configuration";
 
-export function useAutheliaConfiguration() {
-    return useRemoteCall(getAvailable2FAMethods, []);
+export function useConfiguration() {
+    return useRemoteCall(getConfiguration, []);
+}
+
+export function useExtendedConfiguration() {
+    return useRemoteCall(getExtendedConfiguration, []);
 }

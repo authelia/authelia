@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     BrowserRouter as Router, Route, Switch, Redirect
 } from "react-router-dom";
@@ -17,36 +17,52 @@ import NotificationsContext from './hooks/NotificationsContext';
 import { Notification } from './models/Notifications';
 import NotificationBar from './components/NotificationBar';
 import SignOut from './views/LoginPortal/SignOut/SignOut';
+import { useConfiguration } from './hooks/Configuration';
+import Tracker from "./components/Tracker";
+import { useTracking } from "./hooks/Tracking";
 
 const App: React.FC = () => {
     const [notification, setNotification] = useState(null as Notification | null);
+    const [configuration, fetchConfig, , fetchConfigError] = useConfiguration();
+    const tracker = useTracking(configuration);
+
+    useEffect(() => {
+        if (fetchConfigError) {
+            console.error(fetchConfigError);
+        }
+    }, [fetchConfigError]);
+
+    useEffect(() => { fetchConfig() }, [fetchConfig]);
+
     return (
         <NotificationsContext.Provider value={{ notification, setNotification }} >
-            <NotificationBar onClose={() => setNotification(null)} />
             <Router>
-                <Switch>
-                    <Route path={ResetPasswordStep1Route} exact>
-                        <ResetPasswordStep1 />
-                    </Route>
-                    <Route path={ResetPasswordStep2Route} exact>
-                        <ResetPasswordStep2 />
-                    </Route>
-                    <Route path={RegisterSecurityKeyRoute} exact>
-                        <RegisterSecurityKey />
-                    </Route>
-                    <Route path={RegisterOneTimePasswordRoute} exact>
-                        <RegisterOneTimePassword />
-                    </Route>
-                    <Route path={LogoutRoute} exact>
-                        <SignOut />
-                    </Route>
-                    <Route path={FirstFactorRoute}>
-                        <LoginPortal />
-                    </Route>
-                    <Route path="/">
-                        <Redirect to={FirstFactorRoute}></Redirect>
-                    </Route>
-                </Switch>
+                <Tracker tracker={tracker}>
+                    <NotificationBar onClose={() => setNotification(null)} />
+                    <Switch>
+                        <Route path={ResetPasswordStep1Route} exact>
+                            <ResetPasswordStep1 />
+                        </Route>
+                        <Route path={ResetPasswordStep2Route} exact>
+                            <ResetPasswordStep2 />
+                        </Route>
+                        <Route path={RegisterSecurityKeyRoute} exact>
+                            <RegisterSecurityKey />
+                        </Route>
+                        <Route path={RegisterOneTimePasswordRoute} exact>
+                            <RegisterOneTimePassword />
+                        </Route>
+                        <Route path={LogoutRoute} exact>
+                            <SignOut />
+                        </Route>
+                        <Route path={FirstFactorRoute}>
+                            <LoginPortal />
+                        </Route>
+                        <Route path="/">
+                            <Redirect to={FirstFactorRoute}></Redirect>
+                        </Route>
+                    </Switch>
+                </Tracker>
             </Router>
         </NotificationsContext.Provider>
     );

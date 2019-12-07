@@ -45,7 +45,10 @@ func (s *BackendProtectionScenario) TestProtectionOfBackendEndpoints() {
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/user/info/2fa_method", AutheliaBaseURL), 403)
 
 	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/user/info", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/secondfactor/available", AutheliaBaseURL), 403)
+	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/configuration/extended", AutheliaBaseURL), 403)
+
+	// This is the global configuration, it's safe to let it open.
+	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), 200)
 
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/u2f/identity/start", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/u2f/identity/finish", AutheliaBaseURL), 403)

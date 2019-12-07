@@ -4,8 +4,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      - "/tmp/authelia:/tmp/authelia"
     environment:
       - ENVIRONMENT=dev
     restart: always
