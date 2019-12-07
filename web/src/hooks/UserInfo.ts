@@ -1,5 +1,5 @@
 import { getUserPreferences } from "../services/UserPreferences";
-import { useRemoteCall } from "../hooks/RemoteCall";
+import { useRemoteCall } from "./RemoteCall";
 
 export function useUserPreferences() {
     return useRemoteCall(getUserPreferences, []);

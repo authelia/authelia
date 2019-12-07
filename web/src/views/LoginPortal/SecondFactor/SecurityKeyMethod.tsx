@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, Fragment } from "react";
-import MethodContainer from "./MethodContainer";
+import MethodContainer, { State as MethodContainerState } from "./MethodContainer";
 import { makeStyles, Button, useTheme } from "@material-ui/core";
 import { initiateU2FSignin, completeU2FSignin } from "../../../services/SecurityKey";
 import u2fApi from "u2f-api";
@@ -8,7 +8,6 @@ import { useIsMountedRef } from "../../../hooks/Mounted";
 import { useTimer } from "../../../hooks/Timer";
 import LinearProgressBar from "../../../components/LinearProgressBar";
 import FingerTouchIcon from "../../../components/FingerTouchIcon";
-import SuccessIcon from "../../../components/SuccessIcon";
 import FailureIcon from "../../../components/FailureIcon";
 import IconWithContext from "./IconWithContext";
 import { CSSProperties } from "@material-ui/styles";
@@ -17,13 +16,13 @@ import { AuthenticationLevel } from "../../../services/State";
 export enum State {
     WaitTouch = 1,
     SigninInProgress = 2,
-    Success = 3,
-    Failure = 4,
+    Failure = 3,
 }
 
 export interface Props {
     id: string;
     authenticationLevel: AuthenticationLevel;
+    registered: boolean;
 
     onRegisterClick: () => void;
     onSignInError: (err: Error) => void;
@@ -44,7 +43,7 @@ export default function (props: Props) {
 
     const doInitiateSignIn = useCallback(async () => {
         // If user is already authenticated, we don't initiate sign in process.
-        if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
+        if (!props.registered || props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
             return;
         }
 
@@ -69,8 +68,7 @@ export default function (props: Props) {
 
             setState(State.SigninInProgress);
             const res = await completeU2FSignin(signResponse, redirectionURL);
-            setState(State.Success);
-            setTimeout(() => { onSignInSuccessCallback(res ? res.redirect : undefined) }, 1500);
+            onSignInSuccessCallback(res ? res.redirect : undefined);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
@@ -79,22 +77,23 @@ export default function (props: Props) {
             onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
             setState(State.Failure);
         }
-    }, [onSignInSuccessCallback, onSignInErrorCallback, redirectionURL, mounted, triggerTimer, props.authenticationLevel]);
-
-    // Set successful state if user is already authenticated.
-    useEffect(() => {
-        if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
-            setState(State.Success);
-        }
-    }, [props.authenticationLevel, setState]);
+    }, [onSignInSuccessCallback, onSignInErrorCallback, redirectionURL, mounted, triggerTimer, props.authenticationLevel, props.registered]);
 
     useEffect(() => { doInitiateSignIn() }, [doInitiateSignIn]);
+
+    let methodState = MethodContainerState.METHOD;
+    if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
+        methodState = MethodContainerState.ALREADY_AUTHENTICATED;
+    } else if (!props.registered) {
+        methodState = MethodContainerState.NOT_REGISTERED;
+    }
 
     return (
         <MethodContainer
             id={props.id}
             title="Security Key"
             explanation="Touch the token of your security key"
+            state={methodState}
             onRegisterClick={props.onRegisterClick}>
             <div className={style.icon}>
                 <Icon state={state} timer={timerPercent} onRetryClick={doInitiateSignIn} />
@@ -134,15 +133,9 @@ function Icon(props: IconProps) {
         context={<Button color="secondary" onClick={props.onRetryClick}>Retry</Button>}
         className={state === State.Failure ? undefined : "hidden"} />
 
-    const success = <IconWithContext
-        icon={<SuccessIcon />}
-        context={<div style={{ color: "green", padding: theme.spacing() }}>Success!</div>}
-        className={state === State.Success || state === State.SigninInProgress ? undefined : "hidden"} />
-
     return (
         <Fragment>
             {touch}
-            {success}
             {failure}
         </Fragment>
     )

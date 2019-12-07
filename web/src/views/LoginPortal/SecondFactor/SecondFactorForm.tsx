@@ -17,7 +17,7 @@ import {
     SecondFactorPushRoute, SecondFactorU2FRoute, SecondFactorRoute
 } from "../../../Routes";
 import { setPrefered2FAMethod } from "../../../services/UserPreferences";
-import { UserPreferences } from "../../../models/UserPreferences";
+import { UserInfo } from "../../../models/UserInfo";
 import { Configuration } from "../../../models/Configuration";
 import u2fApi from "u2f-api";
 import { AuthenticationLevel } from "../../../services/State";
@@ -28,7 +28,7 @@ export interface Props {
     username: string;
     authenticationLevel: AuthenticationLevel;
 
-    userPreferences: UserPreferences;
+    userInfo: UserInfo;
     configuration: Configuration;
 
     onMethodChanged: (method: SecondFactorMethod) => void;
@@ -109,6 +109,8 @@ export default function (props: Props) {
                             <OneTimePasswordMethod
                                 id="one-time-password-method"
                                 authenticationLevel={props.authenticationLevel}
+                                // Whether the user has a TOTP secret registered already
+                                registered={props.userInfo.has_totp}
                                 onRegisterClick={initiateRegistration(initiateTOTPRegistrationProcess)}
                                 onSignInError={err => createErrorNotification(err.message)}
                                 onSignInSuccess={props.onAuthenticationSuccess} />
@@ -117,6 +119,8 @@ export default function (props: Props) {
                             <SecurityKeyMethod
                                 id="security-key-method"
                                 authenticationLevel={props.authenticationLevel}
+                                // Whether the user has a U2F device registered already
+                                registered={props.userInfo.has_u2f}
                                 onRegisterClick={initiateRegistration(initiateU2FRegistrationProcess)}
                                 onSignInError={err => createErrorNotification(err.message)}
                                 onSignInSuccess={props.onAuthenticationSuccess} />

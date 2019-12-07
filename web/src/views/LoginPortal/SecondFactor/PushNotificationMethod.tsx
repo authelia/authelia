@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState, ReactNode } from "react";
-import MethodContainer from "./MethodContainer";
+import MethodContainer, { State as MethodContainerState } from "./MethodContainer";
 import PushNotificationIcon from "../../../components/PushNotificationIcon";
 import { completePushNotificationSignIn } from "../../../services/PushNotification";
 import { Button, makeStyles } from "@material-ui/core";
@@ -82,11 +82,17 @@ export default function (props: Props) {
             icon = <FailureIcon />;
     }
 
+    let methodState = MethodContainerState.METHOD;
+    if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
+        methodState = MethodContainerState.ALREADY_AUTHENTICATED;
+    }
+
     return (
         <MethodContainer
             id={props.id}
             title="Push Notification"
-            explanation="A notification has been sent to your smartphone">
+            explanation="A notification has been sent to your smartphone"
+            state={methodState}>
             <div className={style.icon}>
                 {icon}
             </div>
