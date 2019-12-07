@@ -1,17 +1,20 @@
 Breaking changes
 ================
 
-Since Authelia is still under active development, it is subject to breaking changes. We then recommend you don't blindly use the latest
-Docker image but pick a version instead and read this documentation before upgrading. This is where you will get information about breaking
-changes and about what you should do to overcome those changes.
+Since Authelia is still under active development, it is subject to breaking changes. It's
+recommended not to use the 'latest' Docker image tag blindly but pick a version instead
+and read this documentation before upgrading. This is where you will get information about
+breaking changes and about what you should do to overcome those changes.
 
 ## Breaking in v4.0.0
 
-Authelia has been rewritten in Go for better code maintainability and for performance and security reasons.
+Authelia has been rewritten in Go for better code maintainability and for performance and
+security reasons.
 
-The principles stay the same, Authelia is still an authenticating and authorizing proxy. Some major changes have been made though so
-that the system is more reliable overall. This induced breaking the previous data model and the configuration to bring new features
-but fortunately migration tools are provided to ease the task.
+The principles stay the same, Authelia is still an authenticating and authorizing proxy.
+Some major changes have been made though so that the system is more reliable overall. This
+induced breaking the previous data model and the configuration to bring new features but
+fortunately migration tools are provided to ease the task.
 
 ### Major updates
 
