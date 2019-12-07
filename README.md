@@ -50,7 +50,7 @@ Here is the list of the main available features:
 * Access restriction after too many authentication attempts.
 * Fine-grained access control per subdomain, user, resource and network.
 * Support of basic authentication for endpoints protected by single factor.
-* Highly-available using distributed database and KV store.
+* Highly available using a remote database and Redis as a highly available KV store.
 * Compatible with Kubernetes [ingress-nginx](https://github.com/kubernetes/ingress-nginx) controller out of the box.
 
 For more details about the features, follow [Features](./docs/features.md).
