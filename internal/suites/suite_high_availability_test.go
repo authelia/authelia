@@ -49,15 +49,15 @@ func (s *HighAvailabilityWebDriverSuite) SetupTest() {
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
 	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
 
 	err := haDockerEnvironment.Restart("mariadb")
-	s.Assert().NoError(err)
+	s.Require().NoError(err)
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(20 * time.Second)
 
 	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
 	s.verifyIsSecondFactorPage(ctx, s.T())
@@ -227,6 +227,10 @@ func (s *HighAvailabilitySuite) TestRedirectionCheckScenario() {
 
 func (s *HighAvailabilitySuite) TestHighAvailabilityWebDriverSuite() {
 	suite.Run(s.T(), NewHighAvailabilityWebDriverSuite())
+}
+
+func TestHighAvailabilityWebDriverSuite(t *testing.T) {
+	suite.Run(t, NewHighAvailabilityWebDriverSuite())
 }
 
 func TestHighAvailabilitySuite(t *testing.T) {

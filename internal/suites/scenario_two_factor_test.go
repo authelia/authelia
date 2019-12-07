@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/clems4ever/authelia/internal/storage"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -47,35 +45,6 @@ func (s *TwoFactorSuite) SetupTest() {
 	s.doLogout(ctx, s.T())
 	s.doVisit(s.T(), HomeBaseURL)
 	s.verifyIsHome(ctx, s.T())
-}
-
-func (s *TwoFactorSuite) TestShouldCheckUserIsAskedToRegisterDevice() {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-
-	username := "john"
-	password := "password"
-
-	// Clean up any TOTP secret already in DB
-	provider := storage.NewSQLiteProvider("/tmp/authelia/db.sqlite3")
-	require.NoError(s.T(), provider.DeleteTOTPSecret(username))
-
-	// Login one factor
-	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")
-
-	// Check the user is asked to register a new device
-	s.WaitElementLocatedByClassName(ctx, s.T(), "state-not-registered")
-
-	// Then register the TOTP factor
-	s.doRegisterTOTP(ctx, s.T())
-	// And logout
-	s.doLogout(ctx, s.T())
-
-	// Login one factor again
-	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")
-
-	// now the user should be asked to perform 2FA
-	s.WaitElementLocatedByClassName(ctx, s.T(), "state-method")
 }
 
 func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {

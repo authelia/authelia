@@ -13,7 +13,6 @@ services:
       - "./example/compose/authelia/resources/:/resources"
       - ".:/app"
       - "${GOPATH}:/go"
-      - "/tmp/authelia:/tmp/authelia"
     environment:
       - ENVIRONMENT=dev
     networks:

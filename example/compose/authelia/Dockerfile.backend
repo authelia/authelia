@@ -7,4 +7,11 @@ ARG GROUP_ID
 
 RUN addgroup --gid ${GROUP_ID} dev && \
     adduser --uid ${USER_ID} -G dev -D dev
+
+RUN mkdir -p /etc/authelia && chown dev:dev /etc/authelia
+RUN mkdir -p /var/lib/authelia && chown dev:dev /var/lib/authelia
+
 USER dev
+
+VOLUME /etc/authelia
+VOLUME /var/lib/authelia

@@ -13,7 +13,7 @@ import { useNotifications } from "../../hooks/NotificationsContext";
 import { useRedirectionURL } from "../../hooks/RedirectionURL";
 import { useUserPreferences as userUserInfo } from "../../hooks/UserInfo";
 import { SecondFactorMethod } from "../../models/Methods";
-import { useAutheliaConfiguration } from "../../hooks/Configuration";
+import { useExtendedConfiguration } from "../../hooks/Configuration";
 
 export default function () {
     const history = useHistory();
@@ -24,7 +24,7 @@ export default function () {
 
     const [state, fetchState, , fetchStateError] = useAutheliaState();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = userUserInfo();
-    const [configuration, fetchConfiguration, , fetchConfigurationError] = useAutheliaConfiguration();
+    const [configuration, fetchConfiguration, , fetchConfigurationError] = useExtendedConfiguration();
 
     const redirect = useCallback((url: string) => history.push(url), [history]);
 
