@@ -2,6 +2,7 @@ import React, { ReactNode, Fragment } from "react";
 import { makeStyles, Typography, Link, useTheme } from "@material-ui/core";
 import SuccessIcon from "../../../components/SuccessIcon";
 import InformationIcon from "../../../components/InformationIcon";
+import classnames from "classnames";
 
 export enum State {
     ALREADY_AUTHENTICATED = 1,
@@ -23,24 +24,28 @@ export default function (props: Props) {
     const style = useStyles();
 
     let container: ReactNode;
+    let stateClass: string = '';
     switch (props.state) {
         case State.ALREADY_AUTHENTICATED:
             container = <AlreadyAuthenticatedContainer />
+            stateClass = "state-already-authenticated";
             break;
         case State.NOT_REGISTERED:
             container = <NotRegisteredContainer />
+            stateClass = "state-not-registered";
             break;
         case State.METHOD:
             container = <MethodContainer explanation={props.explanation}>
                 {props.children}
             </MethodContainer>
+            stateClass = "state-method";
             break;
     }
 
     return (
         <div id={props.id}>
             <Typography variant="h6">{props.title}</Typography>
-            <div className={style.container} id="2fa-container">
+            <div className={classnames(style.container, stateClass)} id="2fa-container">
                 <div className={style.containerFlex}>
                     {container}
                 </div>

@@ -18,6 +18,7 @@ type Provider interface {
 
 	SaveTOTPSecret(username string, secret string) error
 	LoadTOTPSecret(username string) (string, error)
+	DeleteTOTPSecret(username string) error
 
 	SaveU2FDeviceHandle(username string, keyHandle []byte, publicKey []byte) error
 	LoadU2FDeviceHandle(username string) (keyHandle []byte, publicKey []byte, err error)

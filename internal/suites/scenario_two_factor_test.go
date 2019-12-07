@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/clems4ever/authelia/internal/storage"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -47,20 +49,66 @@ func (s *TwoFactorSuite) SetupTest() {
 	s.verifyIsHome(ctx, s.T())
 }
 
+func (s *TwoFactorSuite) TestShouldCheckUserIsAskedToRegisterDevice() {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	username := "john"
+	password := "password"
+
+	// Clean up any TOTP secret already in DB
+	provider := storage.NewSQLiteProvider("/tmp/authelia/db.sqlite3")
+	require.NoError(s.T(), provider.DeleteTOTPSecret(username))
+
+	// Login one factor
+	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")
+
+	// Check the user is asked to register a new device
+	s.WaitElementLocatedByClassName(ctx, s.T(), "state-not-registered")
+
+	// Then register the TOTP factor
+	s.doRegisterTOTP(ctx, s.T())
+	// And logout
+	s.doLogout(ctx, s.T())
+
+	// Login one factor again
+	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")
+
+	// now the user should be asked to perform 2FA
+	s.WaitElementLocatedByClassName(ctx, s.T(), "state-method")
+}
+
 func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	// Register TOTP secret and logout.
-	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
+	username := "john"
+	password := "password"
 
+	// Login one factor
+	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")
+
+	// Check he reaches the 2FA stage
+	s.verifyIsSecondFactorPage(ctx, s.T())
+
+	// Then register the TOTP factor
+	secret := s.doRegisterTOTP(ctx, s.T())
+
+	// And logout
+	s.doLogout(ctx, s.T())
+
+	// Login again with 1FA & 2FA
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
 	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, targetURL)
+
+	// And check if the user is redirected to the secret.
 	s.verifySecretAuthorized(ctx, s.T())
 
+	// Leave the secret
 	s.doVisit(s.T(), HomeBaseURL)
 	s.verifyIsHome(ctx, s.T())
 
+	// And try to reload it again to check the session is kept
 	s.doVisit(s.T(), targetURL)
 	s.verifySecretAuthorized(ctx, s.T())
 }
