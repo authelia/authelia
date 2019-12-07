@@ -102,11 +102,12 @@ jobs:
         - docker cp authelia-binary:/usr/app/authelia ./authelia-linux-$ARCH
         - docker cp authelia-binary:/usr/app/public_html ./
         - tar -czf authelia-linux-$ARCH.tar.gz authelia-linux-$ARCH public_html
+        - sha256sum authelia-linux-$ARCH.tar.gz > authelia-linux-$ARCH.tar.gz.sha256
       deploy:
         provider: releases
         api_key: "$GITHUB_API_KEY"
         file_glob: true
-        file: "authelia-linux-$ARCH.tar.gz"
+        file: "authelia-linux-$ARCH.tar.gz*"
         skip_cleanup: true
         on:
           tags: true
