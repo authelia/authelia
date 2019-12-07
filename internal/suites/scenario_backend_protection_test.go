@@ -42,8 +42,8 @@ func (s *BackendProtectionScenario) TestProtectionOfBackendEndpoints() {
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/u2f/sign", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/u2f/register", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/u2f/sign_request", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/preferences", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/secondfactor/preferences", AutheliaBaseURL), 403)
+	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/user/info/2fa_method", AutheliaBaseURL), 403)
+	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/secondfactor/user/info", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/secondfactor/available", AutheliaBaseURL), 403)
 
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/u2f/identity/start", AutheliaBaseURL), 403)

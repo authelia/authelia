@@ -49,10 +49,11 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	router.GET("/api/secondfactor/available", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorAvailableMethodsGet)))
 
-	router.GET("/api/secondfactor/preferences", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorPreferencesGet)))
-	router.POST("/api/secondfactor/preferences", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorPreferencesPost)))
+	// Information about the user
+	router.GET("/api/user/info", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.UserInfoGet)))
+	router.POST("/api/user/info/2fa_method", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
 
 	// TOTP related endpoints
 	router.POST("/api/secondfactor/totp/identity/start", autheliaMiddleware(

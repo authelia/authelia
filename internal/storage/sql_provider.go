@@ -128,7 +128,7 @@ func (p *SQLProvider) LoadTOTPSecret(username string) (string, error) {
 	var secret string
 	if err := p.db.QueryRow(p.sqlGetTOTPSecretByUsername, username).Scan(&secret); err != nil {
 		if err == sql.ErrNoRows {
-			return "", nil
+			return "", ErrNoTOTPSecret
 		}
 		return "", err
 	}

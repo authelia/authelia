@@ -21,7 +21,8 @@ export const ResetPasswordPath = "/api/reset-password"
 
 export const LogoutPath = "/api/logout";
 export const StatePath = "/api/state";
-export const UserPreferencesPath = "/api/secondfactor/preferences";
+export const UserInfoPath = "/api/user/info";
+export const UserInfo2FAMethodPath = "/api/user/info/2fa_method";
 export const Available2FAMethodsPath = "/api/secondfactor/available";
 
 export interface ErrorResponse {

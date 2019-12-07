@@ -11,7 +11,7 @@ func SecondFactorAvailableMethodsGet(ctx *middlewares.AutheliaCtx) {
 	availableMethods := MethodList{authentication.TOTP, authentication.U2F}
 
 	if ctx.Configuration.DuoAPI != nil {
-		availableMethods = append(availableMethods, authentication.DuoPush)
+		availableMethods = append(availableMethods, authentication.Push)
 	}
 
 	ctx.Logger.Debugf("Available methods are %s", availableMethods)
