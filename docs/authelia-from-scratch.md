@@ -1,4 +1,4 @@
-# Installing **Authelia** on bare metal from scratch
+# Installing **Authelia** on Debian bare metal from scratch
 
 This document describes how to build **Authelia** from scratch and how to
 create a basic working configuration.
@@ -20,7 +20,19 @@ The following passwords are needed;
     redis-password=<redis-password>
     mariadb-password=<mariadb-password>
     user-password=<user-password>
+    jwtsecret=<jwt-secret>
+    sessionsecret=<session-secret>
     
+These packages are optional and only needed if you are planning to compile from source;
+
+    * GO
+    * Docker
+    * Docker Compose
+    * Node.JS
+    and you can then skip the section 'Download, Build and Install Authelia'
+
+**NOTE** [you can download the binary from https://github.com/clems4ever/authelia/releases/](https://github.com/clems4ever/authelia/releases/)
+
 This document assumes you have a domain-wildcard SSL certificate in /etc/nginx/ssl/
 
     # cp -aL /etc/letsencrypt/live/example.com/fullchain.pem /etc/nginx/ssl/xxx.example.com.fullchain
@@ -164,6 +176,7 @@ This document assumes you have a domain-wildcard SSL certificate in /etc/nginx/s
     
             location / {
                     add_header X-Forwarded-Host authelia.example.com;
+                    add_header X-Forwarded-Proto $scheme;
                     set $upstream_authelia http://authelia.example.com:9091;
                     proxy_pass $upstream_authelia;
                     include proxy.conf;
@@ -362,7 +375,7 @@ This document assumes you have a domain-wildcard SSL certificate in /etc/nginx/s
     port: 9091
     
     logs_level: info
-    jwt_secret: a_secret
+    jwt_secret: $jwtsecret
     default_redirection_url: https://landing.example.com/
     
     totp:
@@ -386,7 +399,7 @@ This document assumes you have a domain-wildcard SSL certificate in /etc/nginx/s
     
     session:
       name: authelia_session
-      secret: unsecure_session_secret
+      secret: $sessionsecret
       expiration: 3600 # 1 hour
       inactivity: 300 # 5 minutes
       domain: example.com
