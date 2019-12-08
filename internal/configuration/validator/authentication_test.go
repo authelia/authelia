@@ -120,6 +120,20 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultMailAttribute()
 	assert.Equal(suite.T(), "mail", suite.configuration.Ldap.MailAttribute)
 }
 
+func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesNotContainEnclosingParenthesis() {
+	suite.configuration.Ldap.UsersFilter = "cn={0}"
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	assert.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The users filter should contain enclosing parenthesis. For instance cn={0} should be (cn={0})")
+}
+
+func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenGroupsFilterDoesNotContainEnclosingParenthesis() {
+	suite.configuration.Ldap.UsersFilter = "cn={0}"
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	assert.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The users filter should contain enclosing parenthesis. For instance cn={0} should be (cn={0})")
+}
+
 func (suite *LdapAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {
 	assert.Equal(suite.T(), "", validateLdapURL("127.0.0.1", suite.validator))
 	require.Len(suite.T(), suite.validator.Errors(), 1)
