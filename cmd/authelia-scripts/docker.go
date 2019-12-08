@@ -52,10 +52,10 @@ func (d *Docker) Manifest(tag, amd64tag, arm32v7tag, arm64v8tag string) error {
 
 // CleanTag remove a tag from dockerhub.
 func (d *Docker) CleanTag(tag string) error {
-	return utils.CommandWithStdout("bash", "-c", "curl -fs --retry 3 -o /dev/null -u $DOCKER_USERNAME:$DOCKER_PASSWORD -X DELETE https://cloud.docker.com/v2/repositories/"+DockerImageName+"/tags/"+tag+"/").Run()
+	return utils.CommandWithStdout("bash", "-c", `token=$(curl -fs --retry 3 -H "Content-Type: application/json" -X "POST" -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token) && curl -fs --retry 3 -o /dev/null -L -X "DELETE" -H "Authorization: JWT $token" https://hub.docker.com/v2/repositories/"+DockerImageName+"/tags/"+tag+"/`).Run()
 }
 
 // PublishReadme push README.md to dockerhub.
 func (d *Docker) PublishReadme() error {
-	return utils.CommandWithStdout("bash", "-c", `jq -n --arg msg "$(cat README.md | sed 's/\.\/docs/https:\/\/github.com\/clems4ever\/authelia\/raw\/master\/docs/g')" '{"registry":"registry-1.docker.io","full_description": $msg }' | curl -fs --retry 3 -o /dev/null -u $DOCKER_USERNAME:$DOCKER_PASSWORD -X "PATCH" -H "Content-Type: application/json" -d @- https://cloud.docker.com/v2/repositories/clems4ever/authelia/`).Run()
+	return utils.CommandWithStdout("bash", "-c", `token=$(curl -fs --retry 3 -H "Content-Type: application/json" -X "POST" -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token) && jq -n --arg msg "$(cat README.md | sed -r 's/(\<img\ src\=\")(\.\/)/\1https:\/\/github.com\/clems4ever\/authelia\/raw\/master\//' | sed 's/\.\//https:\/\/github.com\/clems4ever\/authelia\/blob\/master\//g')" '{"registry":"registry-1.docker.io","full_description": $msg }' | curl -fs --retry 3 -o /dev/null -L -X "PATCH" -H "Content-Type: application/json" -H "Authorization: JWT $token" -d @- https://hub.docker.com/v2/repositories/clems4ever/authelia/`).Run()
 }
