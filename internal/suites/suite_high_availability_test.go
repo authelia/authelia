@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 
@@ -64,30 +63,17 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaRestart() {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
 	secret := s.doRegisterAndLogin2FA(ctx, s.T(), "john", "password", false, "")
+	s.verifyIsSecondFactorPage(ctx, s.T())
 
 	err := haDockerEnvironment.Restart("authelia-backend")
-	s.Assert().NoError(err)
+	s.Require().NoError(err)
 
-	loop := true
-	for loop {
-		logs, err := haDockerEnvironment.Logs("authelia-backend", []string{"--tail", "10"})
-		s.Assert().NoError(err)
-
-		select {
-		case <-time.After(1 * time.Second):
-			if strings.Contains(logs, "Authelia is listening on :9091") {
-				loop = false
-			}
-			break
-		case <-ctx.Done():
-			loop = false
-			break
-		}
-	}
+	err = waitUntilAutheliaBackendIsReady(haDockerEnvironment)
+	s.Require().NoError(err)
 
 	s.doVisit(s.T(), HomeBaseURL)
 	s.verifyIsHome(ctx, s.T())
