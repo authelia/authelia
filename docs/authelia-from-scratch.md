@@ -23,12 +23,13 @@ The following passwords are needed;
     jwtsecret=<jwt-secret>
     sessionsecret=<session-secret>
     
-These packages are optional and only needed if you are planning to compile from source;
+These packages are optional and only needed if you are planning to compile from source, if you install using a binary artifact you can safely skip the installation;
 
     * GO
     * Docker
     * Docker Compose
     * Node.JS
+    * gcc g++ make
     and you can then skip the section 'Download, Build and Install Authelia'
 
 **NOTE** [you can download the binary from https://github.com/clems4ever/authelia/releases/](https://github.com/clems4ever/authelia/releases/)
