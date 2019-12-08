@@ -9,6 +9,7 @@ import (
 
 func newDefaultConfig() schema.Configuration {
 	config := schema.Configuration{}
+	config.Host = "127.0.0.1"
 	config.Port = 9090
 	config.LogsLevel = "info"
 	config.JWTSecret = "a_secret"
@@ -47,6 +48,17 @@ func TestShouldValidateAndUpdatePort(t *testing.T) {
 
 	assert.Len(t, validator.Errors(), 0)
 	assert.Equal(t, 8080, config.Port)
+}
+
+func TestShouldValidateAndUpdateHost(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.Host = ""
+
+	Validate(&config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Equal(t, "0.0.0.0", config.Host)
 }
 
 func TestShouldValidateAndUpdateLogsLevel(t *testing.T) {

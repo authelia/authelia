@@ -17,9 +17,9 @@ const (
 	TOTP = "totp"
 	// U2F Method using U2F devices like Yubikeys
 	U2F = "u2f"
-	// DuoPush Method using Duo application to receive push notifications.
-	DuoPush = "duo_push"
+	// Push Method using Duo application to receive push notifications.
+	Push = "mobile_push"
 )
 
 // PossibleMethods is the set of all possible 2FA methods.
-var PossibleMethods = []string{TOTP, U2F, DuoPush}
+var PossibleMethods = []string{TOTP, U2F, Push}

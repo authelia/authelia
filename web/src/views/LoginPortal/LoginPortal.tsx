@@ -11,9 +11,9 @@ import LoadingPage from "../LoadingPage/LoadingPage";
 import { AuthenticationLevel } from "../../services/State";
 import { useNotifications } from "../../hooks/NotificationsContext";
 import { useRedirectionURL } from "../../hooks/RedirectionURL";
-import { useUserPreferences } from "../../hooks/UserPreferences";
+import { useUserPreferences as userUserInfo } from "../../hooks/UserInfo";
 import { SecondFactorMethod } from "../../models/Methods";
-import { useAutheliaConfiguration } from "../../hooks/Configuration";
+import { useExtendedConfiguration } from "../../hooks/Configuration";
 
 export default function () {
     const history = useHistory();
@@ -23,8 +23,8 @@ export default function () {
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
 
     const [state, fetchState, , fetchStateError] = useAutheliaState();
-    const [preferences, fetchPreferences, , fetchPreferencesError] = useUserPreferences();
-    const [configuration, fetchConfiguration, , fetchConfigurationError] = useAutheliaConfiguration();
+    const [userInfo, fetchUserInfo, , fetchUserInfoError] = userUserInfo();
+    const [configuration, fetchConfiguration, , fetchConfigurationError] = useExtendedConfiguration();
 
     const redirect = useCallback((url: string) => history.push(url), [history]);
 
@@ -34,10 +34,10 @@ export default function () {
     // Fetch preferences and configuration when user is authenticated.
     useEffect(() => {
         if (state && state.authentication_level >= AuthenticationLevel.OneFactor) {
-            fetchPreferences();
+            fetchUserInfo();
             fetchConfiguration();
         }
-    }, [state, fetchPreferences, fetchConfiguration]);
+    }, [state, fetchUserInfo, fetchConfiguration]);
 
     // Enable first factor when user is unauthenticated.
     useEffect(() => {
@@ -62,10 +62,10 @@ export default function () {
 
     // Display an error when preferences fetching fails
     useEffect(() => {
-        if (fetchPreferencesError) {
+        if (fetchUserInfoError) {
             createErrorNotification("There was an issue retrieving user preferences");
         }
-    }, [fetchPreferencesError, createErrorNotification]);
+    }, [fetchUserInfoError, createErrorNotification]);
 
     // Redirect to the correct stage if not enough authenticated
     useEffect(() => {
@@ -77,18 +77,17 @@ export default function () {
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
                 redirect(`${FirstFactorRoute}${redirectionSuffix}`);
-            } else if (state.authentication_level >= AuthenticationLevel.OneFactor && preferences) {
-                console.log("redirect");
-                if (preferences.method === SecondFactorMethod.U2F) {
+            } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo) {
+                if (userInfo.method === SecondFactorMethod.U2F) {
                     redirect(`${SecondFactorU2FRoute}${redirectionSuffix}`);
-                } else if (preferences.method === SecondFactorMethod.Duo) {
+                } else if (userInfo.method === SecondFactorMethod.MobilePush) {
                     redirect(`${SecondFactorPushRoute}${redirectionSuffix}`);
                 } else {
                     redirect(`${SecondFactorTOTPRoute}${redirectionSuffix}`);
                 }
             }
         }
-    }, [state, redirectionURL, redirect, preferences, setFirstFactorDisabled]);
+    }, [state, redirectionURL, redirect, userInfo, setFirstFactorDisabled]);
 
     const handleFirstFactorSuccess = async (redirectionURL: string | undefined) => {
         if (redirectionURL) {
@@ -125,12 +124,12 @@ export default function () {
                 </ComponentOrLoading>
             </Route>
             <Route path={SecondFactorRoute}>
-                {state && preferences && configuration ? <SecondFactorForm
+                {state && userInfo && configuration ? <SecondFactorForm
                     username={state.username}
                     authenticationLevel={state.authentication_level}
-                    userPreferences={preferences}
+                    userInfo={userInfo}
                     configuration={configuration}
-                    onMethodChanged={() => fetchPreferences()}
+                    onMethodChanged={() => fetchUserInfo()}
                     onAuthenticationSuccess={handleSecondFactorSuccess} /> : null}
             </Route>
             <Route path="/">
