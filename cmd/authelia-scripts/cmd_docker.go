@@ -13,6 +13,7 @@ import (
 )
 
 var arch string
+
 var supportedArch = []string{"amd64", "arm32v7", "arm64v8"}
 var defaultArch = "amd64"
 var travisBranch = os.Getenv("TRAVIS_BRANCH")
@@ -25,7 +26,6 @@ var tags = dockerTags.FindStringSubmatch(travisTag)
 func init() {
 	DockerBuildCmd.PersistentFlags().StringVar(&arch, "arch", defaultArch, "target architecture among: "+strings.Join(supportedArch, ", "))
 	DockerPushCmd.PersistentFlags().StringVar(&arch, "arch", defaultArch, "target architecture among: "+strings.Join(supportedArch, ", "))
-
 }
 
 func checkArchIsSupported(arch string) {
@@ -75,7 +75,22 @@ func dockerBuildOfficialImage(arch string) error {
 		}
 	}
 
-	return docker.Build(IntermediateDockerImageName, dockerfile, ".")
+	gitTag := travisTag
+	if gitTag == "" {
+		// If commit is not tagged, mark the build has having unknown tag.
+		gitTag = "unknown"
+	}
+
+	cmd := utils.Shell("git rev-parse HEAD")
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	commitBytes, err := cmd.Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	commitHash := strings.Trim(string(commitBytes), "\n")
+
+	return docker.Build(IntermediateDockerImageName, dockerfile, ".", gitTag, commitHash)
 }
 
 // DockerBuildCmd Command for building docker image of Authelia.

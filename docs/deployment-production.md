@@ -32,11 +32,11 @@ the root of the repo.
 
     # Build it if not done already
     $ authelia-scripts build
-    $ PUBLIC_DIR=./dist/public_html authelia -config /path/to/your/config.yml
+    $ PUBLIC_DIR=./dist/public_html authelia --config /path/to/your/config.yml
 
 ### Deploy With Docker
 
-    $ docker run -v /path/to/your/config.yml:/etc/authelia/config.yml -e TZ=Europe/Paris clems4ever/$ $ authelia -config /etc/authelia/config.yml
+    $ docker run -v /path/to/your/config.yml:/etc/authelia/config.yml -e TZ=Europe/Paris clems4ever/$ $ authelia --config /etc/authelia/config.yml
 
 
 ## On top of Kubernetes

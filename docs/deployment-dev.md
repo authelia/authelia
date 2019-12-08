@@ -27,7 +27,7 @@ either by pulling the Docker image or building distributable version.
 ## Build and deploy the distributable version
 
     $ authelia-scripts build
-    $ PUBLIC_DIR=./dist/public_html ./dist/authelia -config /path/to/your/config.yml
+    $ PUBLIC_DIR=./dist/public_html ./dist/authelia --config /path/to/your/config.yml
 
 ## Deploy with Docker
 

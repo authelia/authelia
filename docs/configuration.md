@@ -8,5 +8,5 @@ repository. All the details are documented there.
 When running **Authelia**, you can specify your configuration file by passing
 the file path as the first argument of **Authelia**.
 
-    $ authelia -config config.custom.yml
+    $ authelia --config config.custom.yml
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -18,33 +18,24 @@ import (
 	"github.com/clems4ever/authelia/internal/storage"
 	"github.com/clems4ever/authelia/internal/utils"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
-func tryExtractConfigPath() (string, error) {
-	configPtr := flag.String("config", "", "The path to a configuration file.")
-	flag.Parse()
+var configPathFlag string
 
-	if *configPtr == "" {
-		return "", errors.New("No config file path provided")
+func startServer() {
+	if configPathFlag == "" {
+		log.Fatal(errors.New("No config file path provided"))
 	}
 
-	return *configPtr, nil
-}
-
-func main() {
 	if os.Getenv("ENVIRONMENT") == "dev" {
 		logging.Logger().Info("===> Authelia is running in development mode. <===")
 	}
 
-	configPath, err := tryExtractConfigPath()
-	if err != nil {
-		logging.Logger().Error(err)
-	}
-
-	config, errs := configuration.Read(configPath)
+	config, errs := configuration.Read(configPathFlag)
 
 	if len(errs) > 0 {
-		for _, err = range errs {
+		for _, err := range errs {
 			logging.Logger().Error(err)
 		}
 		panic(errors.New("Some errors have been reported"))
@@ -108,4 +99,27 @@ func main() {
 		SessionProvider: sessionProvider,
 	}
 	server.StartServer(*config, providers)
+}
+
+func main() {
+	rootCmd := &cobra.Command{
+		Use: "authelia",
+		Run: func(cmd *cobra.Command, args []string) {
+			startServer()
+		},
+	}
+
+	rootCmd.Flags().StringVar(&configPathFlag, "config", "", "Configuration file")
+
+	versionCmd := &cobra.Command{
+		Use: "version",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("build git tag: %s\n", BuildTag)
+			fmt.Printf("build git commit: %s\n", BuildCommit)
+			fmt.Printf("build time: %s\n", BuildTime)
+		},
+	}
+
+	rootCmd.AddCommand(versionCmd)
+	rootCmd.Execute()
 }
