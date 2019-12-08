@@ -3,6 +3,9 @@
 # =======================================
 FROM golang:1.13-alpine AS builder-backend
 
+ARG BUILD_TAG
+ARG BUILD_COMMIT
+
 # gcc and musl-dev are required for building go-sqlite3
 RUN apk --no-cache add gcc musl-dev
 
@@ -15,6 +18,13 @@ RUN go mod download
 
 COPY cmd cmd
 COPY internal internal
+
+# Set the build version and time
+RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
+    BUILD_TIME=`date +"%Y-%m-%d %T"` && \
+    sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
+    sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go && \
+    sed -i "s/__BUILD_TIME__/${BUILD_TIME}/" cmd/authelia/constants.go
 
 # CGO_ENABLED=1 is mandatory for building go-sqlite3
 RUN cd cmd/authelia && GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w' -o authelia
@@ -48,4 +58,4 @@ EXPOSE 9091
 VOLUME /etc/authelia
 VOLUME /var/lib/authelia
 
-CMD ["./authelia", "-config", "/etc/authelia/configuration.yml"]
+CMD ["./authelia", "--config", "/etc/authelia/configuration.yml"]
