@@ -12,6 +12,12 @@ Release Notes - Version 4.0.0
 * Introduction of a "migrate" command to authelia-scripts to help migrating from v3 to v4.
 * Authelia is built and available on Dockerhub in 3 flavors: amd64, arm32v7 and arm64v8.
 * Introduction of suites in Go.
+* Add support of LDAP over TLS.
+* Publish Authelia as self-sufficient archives.
+* Remove the need of putting weird characters /%23/ in the redirection URL to portal.
+* Publish multiple docker tags per version (one for major, minor and patch)
+* Add `host` configuration to restring binding to local interface 127.0.0.1.
+* Add `google_analytics` configuration option to provide a tracking ID for admins to track the use of the portal thanks to a GA dashboard.
 
 Release Notes - Version 3.16.3
 ------------------------------
