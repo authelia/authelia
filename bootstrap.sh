@@ -9,6 +9,7 @@ fi
 
 export USER_ID=$(id -u)
 export GROUP_ID=$(id -g)
+export CI=false
 
 
 echo "[BOOTSTRAP] Checking if Go is installed..."
