@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set +u
+
+echo "--- :buildkite: Setting up Build environment"
+
+export GOPATH=$HOME/gopath
+export GOROOT=/usr/local/go
+export NVM_DIR="$HOME/.nvm"
+export PATH=$PATH:/usr/local/go/bin:./cmd/authelia-scripts/:/tmp
+

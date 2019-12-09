@@ -1,0 +1,30 @@
+env:
+  BUILDKITE_GOLANG_IMPORT_PATH: "$BUILDKITE_BUILD_CHECKOUT_PATH"
+
+steps:
+  - command: .buildkite/steps/buildandtest.sh
+    name: ":hammer: Build & Test"
+
+#  - wait
+
+#  - command: "docker push ${DOCKERHUB_REPOSITORY}:${BUILDKITE_BUILD_NUMBER}\ndocker push ${DOCKERHUB_REPOSITORY}:latest"
+#    label: ":docker: Push"
+#    branches: master
+#
+#  - wait
+#
+#  - command: "curl \"https://ci.nerv.com.au/readmesync/update?github_repo=${GITHUB_REPOSITORY}&dockerhub_repo=${DOCKERHUB_REPOSITORY}\""
+#    label: "Update :docker: Full Description"
+#    branches: master
+#
+#  - wait
+#
+#  - command: "curl -X POST \"https://hooks.microbadger.com/images/nightah/smart-exporter/H_iKzDPCai6-nOypE48x9ojqjkU=\""
+#    label: "Update Microbadger"
+#    branches: master
+#
+#  - wait
+#
+#  - command: "git tag -a -f -m \"Buildkite Build: ${BUILDKITE_BUILD_NUMBER}\n${BUILDKITE_BUILD_URL}\" ${BUILDKITE_BUILD_NUMBER}\ngit push git@github.com:AntilaX-3/docker-smartexporter.git ${BUILDKITE_BUILD_NUMBER}"
+#    label: ":github: Publish Tag"
+#    branches: master
