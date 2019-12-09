@@ -1,11 +1,11 @@
-env:
-  BUILDKITE_GOLANG_IMPORT_PATH: "$BUILDKITE_BUILD_CHECKOUT_PATH"
-
 steps:
   - command: .buildkite/steps/buildandtest.sh
-    name: ":hammer: Build & Test"
+    name: ":hammer_and_wrench: Build & Test"
 
-#  - wait
+  - wait
+
+  - command: .buildkite/steps/e2etests.sh | buildkite-agent pipeline upload
+    name: ":chrome: End-to-end suite tests"
 
 #  - command: "docker push ${DOCKERHUB_REPOSITORY}:${BUILDKITE_BUILD_NUMBER}\ndocker push ${DOCKERHUB_REPOSITORY}:latest"
 #    label: ":docker: Push"
