@@ -9,18 +9,17 @@
 **Authelia** is an open-source authentication and authorization server
 providing 2-factor authentication and single sign-on (SSO) for your
 applications via a web portal.
-It acts as a companion of reverse proxies like [nginx] or [Traefik] by handling forwarded authentication and authorization requests.
+It acts as a companion of reverse proxies like [nginx] or [Traefik] to tell them wether queries should pass through. Unauthenticated user are
+redirected to Authelia Sign-in portal instead.
 
-    BREAKING NEWS: Authelia v4 has been released!
-    Please read BREAKING.md if you want to migrate from v3 to v4. Otherwise, start fresh in v4 and enjoy!
+The architecture is shown in the diagram below.
 
-
-<p align="center">
-  <img src="./docs/images/logos/authelia.logo.png" height="100"/>
-  <img src="./docs/images/plus.png" height="100"/>
-  <img src="./docs/images/logos/nginx.logo.png" height="100"/>
-  <img src="./docs/images/logos/traefik.logo.png" height="100"/>  
+<p align="center" style="margin:50px">
+  <img src="./docs/images/archi.png"/>
 </p>
+
+**BREAKING NEWS: Authelia v4 has been released!
+Please read BREAKING.md if you want to migrate from v3 to v4. Otherwise, start fresh in v4 and enjoy!**
 
 **Authelia** can be installed as a standalone service using Docker or NPM
 but can also be deployed easily on [Kubernetes] leveraging ingress controllers and ingress configuration.
