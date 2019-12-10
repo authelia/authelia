@@ -153,12 +153,17 @@ func (c *AutheliaCtx) SetJSONBody(value interface{}) error {
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
 func (c *AutheliaCtx) RemoteIP() net.IP {
+	XRealIP := c.RequestCtx.Request.Header.Peek("X-Real-IP")
+	if XRealIP != nil {
+		return net.ParseIP(string(XRealIP))
+	}
+
 	XForwardedFor := c.RequestCtx.Request.Header.Peek("X-Forwarded-For")
 	if XForwardedFor != nil {
 		ips := strings.Split(string(XForwardedFor), ",")
 
 		if len(ips) > 0 {
-			return net.ParseIP(strings.Trim(ips[0], " "))
+			return net.ParseIP(strings.TrimSpace(ips[0]))
 		}
 	}
 	return c.RequestCtx.RemoteIP()
