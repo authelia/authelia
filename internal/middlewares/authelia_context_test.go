@@ -33,3 +33,17 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 
 	assert.True(t, nextCalled)
 }
+
+func TestShouldExtractXRealIPAsRemoteIP(t *testing.T) {
+	ctx := &fasthttp.RequestCtx{}
+	autheliaCtx := middlewares.AutheliaCtx{
+		RequestCtx: ctx,
+	}
+	assert.Equal(t, "0.0.0.0", autheliaCtx.RemoteIP().String())
+
+	ctx.Request.Header.Add("X-Forwarded-For", "10.0.0.1 , 192.168.0.1, 127.0.0.1")
+	assert.Equal(t, "10.0.0.1", autheliaCtx.RemoteIP().String())
+
+	ctx.Request.Header.Add("X-Real-Ip", "10.2.0.1")
+	assert.Equal(t, "10.2.0.1", autheliaCtx.RemoteIP().String())
+}
