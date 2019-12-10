@@ -11,6 +11,10 @@ var defaultLogsLevel = "info"
 
 // Validate and adapt the configuration read from file.
 func Validate(configuration *schema.Configuration, validator *schema.StructValidator) {
+	if configuration.Host == "" {
+		configuration.Host = "0.0.0.0"
+	}
+
 	if configuration.Port == 0 {
 		configuration.Port = defaultPort
 	}

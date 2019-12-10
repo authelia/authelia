@@ -183,14 +183,16 @@ func testSuite(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
+	// If suite(s) are provided as argument
 	if len(args) == 1 {
-		suite := args[0]
+		suiteArg := args[0]
 
-		if runningSuite != "" && suite != runningSuite {
-			log.Fatal(errors.New("Running suite (" + runningSuite + ") is different than suite to be tested (" + suite + "). Shutdown running suite and retry"))
+		if runningSuite != "" && suiteArg != runningSuite {
+			log.Fatal(errors.New("Running suite (" + runningSuite + ") is different than suite(s) to be tested (" + suiteArg + "). Shutdown running suite and retry"))
 		}
 
-		if err := runSuiteTests(suite, runningSuite == ""); err != nil {
+		suiteNames := strings.Split(suiteArg, ",")
+		if err := runMultipleSuitesTests(suiteNames, runningSuite == ""); err != nil {
 			log.Fatal(err)
 		}
 	} else {
@@ -261,6 +263,15 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	}
 
 	return testErr
+}
+
+func runMultipleSuitesTests(suiteNames []string, withEnv bool) error {
+	for _, suiteName := range suiteNames {
+		if err := runSuiteTests(suiteName, withEnv); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func runAllSuites() error {

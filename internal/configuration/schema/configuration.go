@@ -2,10 +2,13 @@ package schema
 
 // Configuration object extracted from YAML configuration file.
 type Configuration struct {
-	Port                  int                                `yaml:"port"`
-	LogsLevel             string                             `yaml:"logs_level"`
-	JWTSecret             string                             `yaml:"jwt_secret"`
-	DefaultRedirectionURL string                             `yaml:"default_redirection_url"`
+	Host                      string `yaml:"host"`
+	Port                      int    `yaml:"port"`
+	LogsLevel                 string `yaml:"logs_level"`
+	JWTSecret                 string `yaml:"jwt_secret"`
+	DefaultRedirectionURL     string `yaml:"default_redirection_url"`
+	GoogleAnalyticsTrackingID string `yaml:"google_analytics"`
+
 	AuthenticationBackend AuthenticationBackendConfiguration `yaml:"authentication_backend"`
 	Session               SessionConfiguration               `yaml:"session"`
 

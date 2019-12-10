@@ -53,7 +53,7 @@ func init() {
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  onSetupTimeout,
 		TearDown:        teardown,
-		TestTimeout:     2 * time.Minute,
+		TestTimeout:     3 * time.Minute,
 		TearDownTimeout: 2 * time.Minute,
 		Description: `This suite is used to test Authelia in a standalone
 configuration with in-memory sessions and a local sqlite db stored on disk`,

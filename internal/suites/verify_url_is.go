@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/tebeka/selenium"
 )
 
@@ -18,5 +18,5 @@ func (wds *WebDriverSession) verifyURLIs(ctx context.Context, t *testing.T, url 
 		return currentURL == url, nil
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }

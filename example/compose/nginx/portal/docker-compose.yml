@@ -5,8 +5,6 @@ services:
     volumes:
       - ./example/compose/nginx/portal/nginx.conf:/etc/nginx/nginx.conf
       - ./example/compose/nginx/portal/ssl:/etc/ssl
-    ports:
-      - "8080:8080"
     networks:
       authelianet:
         aliases:

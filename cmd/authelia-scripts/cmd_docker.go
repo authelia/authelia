@@ -13,19 +13,19 @@ import (
 )
 
 var arch string
+
 var supportedArch = []string{"amd64", "arm32v7", "arm64v8"}
 var defaultArch = "amd64"
 var travisBranch = os.Getenv("TRAVIS_BRANCH")
 var travisPullRequest = os.Getenv("TRAVIS_PULL_REQUEST")
 var travisTag = os.Getenv("TRAVIS_TAG")
-var dockerTags = regexp.MustCompile(`(?P<Minor>(?P<Major>v\d+)\.\d+)\.\d+.*`)
+var dockerTags = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
 var ignoredSuffixes = regexp.MustCompile("alpha|beta")
 var tags = dockerTags.FindStringSubmatch(travisTag)
 
 func init() {
 	DockerBuildCmd.PersistentFlags().StringVar(&arch, "arch", defaultArch, "target architecture among: "+strings.Join(supportedArch, ", "))
 	DockerPushCmd.PersistentFlags().StringVar(&arch, "arch", defaultArch, "target architecture among: "+strings.Join(supportedArch, ", "))
-
 }
 
 func checkArchIsSupported(arch string) {
@@ -75,7 +75,22 @@ func dockerBuildOfficialImage(arch string) error {
 		}
 	}
 
-	return docker.Build(IntermediateDockerImageName, dockerfile, ".")
+	gitTag := travisTag
+	if gitTag == "" {
+		// If commit is not tagged, mark the build has having unknown tag.
+		gitTag = "unknown"
+	}
+
+	cmd := utils.Shell("git rev-parse HEAD")
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	commitBytes, err := cmd.Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	commitHash := strings.Trim(string(commitBytes), "\n")
+
+	return docker.Build(IntermediateDockerImageName, dockerfile, ".", gitTag, commitHash)
 }
 
 // DockerBuildCmd Command for building docker image of Authelia.
@@ -189,16 +204,18 @@ func publishDockerImage(arch string) {
 		login(docker)
 		deploy(docker, "master-"+arch)
 	} else if travisTag != "" {
-		if len(tags) == 3 {
+		if len(tags) == 4 {
+			fmt.Printf("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
+
 			login(docker)
-			deploy(docker, tags[0]+"-"+arch)
+			deploy(docker, tags[1]+"-"+arch)
+			if !ignoredSuffixes.MatchString(travisTag) {
+				deploy(docker, tags[2]+"-"+arch)
+				deploy(docker, tags[3]+"-"+arch)
+				deploy(docker, "latest-"+arch)
+			}
 		} else {
 			log.Fatal("Docker image will not be published, the specified tag does not conform to the standard")
-		}
-		if !ignoredSuffixes.MatchString(travisTag) {
-			deploy(docker, tags[1]+"-"+arch)
-			deploy(docker, tags[2]+"-"+arch)
-			deploy(docker, "latest-"+arch)
 		}
 	} else {
 		log.Info("Docker image will not be published")
@@ -212,16 +229,19 @@ func publishDockerManifest() {
 		login(docker)
 		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
 	} else if travisTag != "" {
-		if len(tags) == 3 {
+		if len(tags) == 4 {
+			fmt.Printf("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
+
 			login(docker)
-			deployManifest(docker, tags[0], tags[0]+"-amd64", tags[0]+"-arm32v7", tags[0]+"-arm64v8")
+			deployManifest(docker, tags[1], tags[1]+"-amd64", tags[1]+"-arm32v7", tags[1]+"-arm64v8")
+
+			if !ignoredSuffixes.MatchString(travisTag) {
+				deployManifest(docker, tags[2], tags[2]+"-amd64", tags[2]+"-arm32v7", tags[2]+"-arm64v8")
+				deployManifest(docker, tags[3], tags[3]+"-amd64", tags[3]+"-arm32v7", tags[3]+"-arm64v8")
+				deployManifest(docker, "latest", "latest-amd64", "latest-arm32v7", "latest-arm64v8")
+			}
 		} else {
 			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
-		}
-		if !ignoredSuffixes.MatchString(travisTag) {
-			deployManifest(docker, tags[1], tags[1]+"-amd64", tags[1]+"-arm32v7", tags[1]+"-arm64v8")
-			deployManifest(docker, tags[2], tags[2]+"-amd64", tags[2]+"-arm32v7", tags[2]+"-arm64v8")
-			deployManifest(docker, "latest", "latest-amd64", "latest-arm32v7", "latest-arm64v8")
 		}
 	} else {
 		fmt.Println("Docker manifest will not be published")

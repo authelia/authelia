@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/clems4ever/authelia/internal/configuration/schema"
 )
@@ -66,8 +67,16 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		configuration.UsersFilter = "(cn={0})"
 	}
 
+	if !strings.HasPrefix(configuration.UsersFilter, "(") || !strings.HasSuffix(configuration.UsersFilter, ")") {
+		validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance cn={0} should be (cn={0})"))
+	}
+
 	if configuration.GroupsFilter == "" {
 		configuration.GroupsFilter = "(member={dn})"
+	}
+
+	if !strings.HasPrefix(configuration.GroupsFilter, "(") || !strings.HasSuffix(configuration.GroupsFilter, ")") {
+		validator.Push(errors.New("The groups filter should contain enclosing parenthesis. For instance cn={0} should be (cn={0})"))
 	}
 
 	if configuration.GroupNameAttribute == "" {

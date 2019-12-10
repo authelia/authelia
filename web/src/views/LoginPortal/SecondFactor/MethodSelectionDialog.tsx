@@ -42,12 +42,12 @@ export default function (props: Props) {
                             icon={<FingerTouchIcon size={32} />}
                             onClick={() => props.onClick(SecondFactorMethod.U2F)} />
                         : null}
-                    {props.methods.has(SecondFactorMethod.Duo)
+                    {props.methods.has(SecondFactorMethod.MobilePush)
                         ? <MethodItem
                             id="push-notification-option"
                             method="Push Notification"
                             icon={<PushNotificationIcon width={32} height={32} />}
-                            onClick={() => props.onClick(SecondFactorMethod.Duo)} />
+                            onClick={() => props.onClick(SecondFactorMethod.MobilePush)} />
                         : null}
                 </Grid>
             </DialogContent>

@@ -32,6 +32,10 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	router.GET("/api/state", autheliaMiddleware(handlers.StateGet))
 
+	router.GET("/api/configuration", autheliaMiddleware(handlers.ConfigurationGet))
+	router.GET("/api/configuration/extended", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.ExtendedConfigurationGet)))
+
 	router.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet))
 
 	router.POST("/api/firstfactor", autheliaMiddleware(handlers.FirstFactorPost))
@@ -45,14 +49,11 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	router.POST("/api/reset-password", autheliaMiddleware(
 		handlers.ResetPasswordPost))
 
-	// 2FA preferences and settings related endpoints.
-	router.GET("/api/secondfactor/available", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorAvailableMethodsGet)))
-
-	router.GET("/api/secondfactor/preferences", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorPreferencesGet)))
-	router.POST("/api/secondfactor/preferences", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorPreferencesPost)))
+	// Information about the user
+	router.GET("/api/user/info", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.UserInfoGet)))
+	router.POST("/api/user/info/2fa_method", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
 
 	// TOTP related endpoints
 	router.POST("/api/secondfactor/totp/identity/start", autheliaMiddleware(
@@ -99,7 +100,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		ctx.SendFile(path.Join(publicDir, "index.html"))
 	}
 
-	portPattern := fmt.Sprintf(":%d", configuration.Port)
+	portPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
 	logging.Logger().Infof("Authelia is listening on %s", portPattern)
 
 	logging.Logger().Fatal(fasthttp.ListenAndServe(portPattern,

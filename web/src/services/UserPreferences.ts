@@ -1,11 +1,17 @@
 import { Get, PostWithOptionalResponse } from "./Client";
-import { UserPreferencesPath } from "./Api";
+import { UserInfoPath, UserInfo2FAMethodPath } from "./Api";
 import { SecondFactorMethod } from "../models/Methods";
-import { UserPreferences } from "../models/UserPreferences";
+import { UserInfo } from "../models/UserInfo";
 
-export type Method2FA = "u2f" | "totp" | "duo_push";
+export type Method2FA = "u2f" | "totp" | "mobile_push";
 
-export interface UserPreferencesPayload {
+export interface UserInfoPayload {
+    method: Method2FA;
+    has_u2f: boolean;
+    has_totp: boolean;
+}
+
+export interface MethodPreferencePayload {
     method: Method2FA;
 }
 
@@ -15,8 +21,8 @@ export function toEnum(method: Method2FA): SecondFactorMethod {
             return SecondFactorMethod.U2F;
         case "totp":
             return SecondFactorMethod.TOTP;
-        case "duo_push":
-            return SecondFactorMethod.Duo;
+        case "mobile_push":
+            return SecondFactorMethod.MobilePush;
     }
 }
 
@@ -26,17 +32,17 @@ export function toString(method: SecondFactorMethod): Method2FA {
             return "u2f";
         case SecondFactorMethod.TOTP:
             return "totp";
-        case SecondFactorMethod.Duo:
-            return "duo_push";
+        case SecondFactorMethod.MobilePush:
+            return "mobile_push";
     }
 }
 
-export async function getUserPreferences(): Promise<UserPreferences> {
-    const res = await Get<UserPreferencesPayload>(UserPreferencesPath);
-    return { method: toEnum(res.method) };
+export async function getUserPreferences(): Promise<UserInfo> {
+    const res = await Get<UserInfoPayload>(UserInfoPath);
+    return { ...res, method: toEnum(res.method) };
 }
 
 export function setPrefered2FAMethod(method: SecondFactorMethod) {
-    return PostWithOptionalResponse(UserPreferencesPath,
-        { method: toString(method) } as UserPreferencesPayload);
+    return PostWithOptionalResponse(UserInfo2FAMethodPath,
+        { method: toString(method) } as MethodPreferencePayload);
 }

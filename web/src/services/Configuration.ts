@@ -1,9 +1,17 @@
 import { Get } from "./Client";
-import { Available2FAMethodsPath } from "./Api";
-import { Method2FA, toEnum } from "./UserPreferences";
-import { Configuration } from "../models/Configuration";
+import { ExtendedConfigurationPath, ConfigurationPath } from "./Api";
+import { toEnum, Method2FA } from "./UserPreferences";
+import { Configuration, ExtendedConfiguration } from "../models/Configuration";
 
-export async function getAvailable2FAMethods(): Promise<Configuration> {
-    const methods = await Get<Method2FA[]>(Available2FAMethodsPath);
-    return new Set(methods.map(toEnum));
+export async function getConfiguration(): Promise<Configuration> {
+    return Get<Configuration>(ConfigurationPath);
+}
+
+interface ExtendedConfigurationPayload {
+    available_methods: Method2FA[];
+}
+
+export async function getExtendedConfiguration(): Promise<ExtendedConfiguration> {
+    const config = await Get<ExtendedConfigurationPayload>(ExtendedConfigurationPath);
+    return { ...config, available_methods: new Set(config.available_methods.map(toEnum)) };
 }
