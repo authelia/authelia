@@ -145,7 +145,7 @@ func prepareHostsFile() {
 
 	if modified {
 		bootstrapPrintln("/etc/hosts needs to be updated")
-		shell("cat /tmp/authelia/hosts > /etc/hosts")
+		shell("cat /tmp/authelia/hosts | sudo tee -a /etc/hosts > /dev/null")
 	}
 }
 
