@@ -98,7 +98,7 @@ jobs:
       after_success:
         - authelia-scripts docker push-image --arch=$ARCH
       before_deploy:
-        - docker create --name authelia-binary clems4ever/authelia:$TRAVIS_TAG-$ARCH
+        - docker create --name authelia-binary clems4ever/authelia:${TRAVIS_TAG:1}-$ARCH
         - docker cp authelia-binary:/usr/app/authelia ./authelia-linux-$ARCH
         - docker cp authelia-binary:/usr/app/public_html ./
         - tar -czf authelia-linux-$ARCH.tar.gz authelia-linux-$ARCH public_html
