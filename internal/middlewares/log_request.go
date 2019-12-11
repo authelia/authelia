@@ -1,14 +1,14 @@
 package middlewares
 
 import (
-	"github.com/clems4ever/authelia/internal/logging"
 	"github.com/valyala/fasthttp"
 )
 
 // LogRequestMiddleware logs the query that is being treated.
 func LogRequestMiddleware(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
-		logger := logging.NewRequestLogger(ctx)
+		autheliaCtx := &AutheliaCtx{RequestCtx: ctx}
+		logger := NewRequestLogger(autheliaCtx)
 
 		logger.Trace("Request hit")
 		next(ctx)
