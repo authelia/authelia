@@ -7,12 +7,20 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/clems4ever/authelia/internal/session"
-
 	"github.com/clems4ever/authelia/internal/configuration/schema"
-	"github.com/clems4ever/authelia/internal/logging"
+	"github.com/clems4ever/authelia/internal/session"
+	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
+
+// NewRequestLogger create a new request logger for the given request.
+func NewRequestLogger(ctx *AutheliaCtx) *logrus.Entry {
+	return logrus.WithFields(logrus.Fields{
+		"method":    string(ctx.Method()),
+		"path":      string(ctx.Path()),
+		"remote_ip": ctx.RemoteIP().String(),
+	})
+}
 
 // NewAutheliaCtx instantiate an AutheliaCtx out of a RequestCtx.
 func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration, providers Providers) (*AutheliaCtx, error) {
@@ -20,7 +28,7 @@ func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration
 	autheliaCtx.RequestCtx = ctx
 	autheliaCtx.Providers = providers
 	autheliaCtx.Configuration = configuration
-	autheliaCtx.Logger = logging.NewRequestLogger(ctx)
+	autheliaCtx.Logger = NewRequestLogger(autheliaCtx)
 
 	userSession, err := providers.SessionProvider.GetSession(ctx)
 	if err != nil {
@@ -153,7 +161,7 @@ func (c *AutheliaCtx) SetJSONBody(value interface{}) error {
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
 func (c *AutheliaCtx) RemoteIP() net.IP {
-	XForwardedFor := c.RequestCtx.Request.Header.Peek("X-Forwarded-For")
+	XForwardedFor := c.Request.Header.Peek("X-Forwarded-For")
 	if XForwardedFor != nil {
 		ips := strings.Split(string(XForwardedFor), ",")
 
