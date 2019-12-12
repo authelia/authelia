@@ -7,9 +7,21 @@ if [ -z "$OLD_PS1" ]; then
   export PS1="(authelia) $PS1"
 fi
 
-export USER_ID=$(id -u)
-export GROUP_ID=$(id -g)
-
+if [ $(id -u) = 0 ]; then
+  export USER_ID=1000
+else
+  export USER_ID=$(id -u)
+fi
+if [ $(id -g) = 0 ]; then
+  export GROUP_ID=1000
+else
+  export GROUP_ID=$(id -g)
+fi
+if [ $CI == "true" ]; then
+  echo "Running in CI don't overwrite variable"
+else
+  export CI=false
+fi
 
 echo "[BOOTSTRAP] Checking if Go is installed..."
 if [ ! -x "$(command -v go)" ];
