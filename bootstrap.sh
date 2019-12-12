@@ -17,7 +17,7 @@ if [ $(id -g) = 0 ]; then
 else
   export GROUP_ID=$(id -g)
 fi
-if [ $CI == "true" ]; then
+if [ "$CI" == "true" ]; then
   echo "Running in CI don't overwrite variable"
 else
   export CI=false

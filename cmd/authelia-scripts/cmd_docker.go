@@ -14,7 +14,7 @@ import (
 
 var arch string
 
-var supportedArch = []string{"amd64", "arm32v7", "arm64v8"}
+var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "CI"}
 var defaultArch = "amd64"
 var travisBranch = os.Getenv("TRAVIS_BRANCH")
 var travisPullRequest = os.Getenv("TRAVIS_PULL_REQUEST")
