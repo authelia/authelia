@@ -4,12 +4,13 @@ set +u
 
 echo "--- :buildkite: Setting up Build environment"
 
-source bootstrap.sh
-
-if [[ $BUILDKITE_COMMAND == ".buildkite/steps/buildandtest.sh" ]]; then
-  go mod download
-elif [[ $BUILDKITE_LABEL =~ ^:selenium ]]; then
-  go mod download
-else
-  echo "Not running CI"
+if [[ ! $BUILDKITE_COMMAND =~ "buildkite-agent pipeline upload" ]]; then
+  source bootstrap.sh
+  if [[ $BUILDKITE_COMMAND == ".buildkite/steps/buildandtest.sh" ]]; then
+    go mod download
+  elif [[ $BUILDKITE_LABEL =~ ^:selenium ]]; then
+    go mod download
+  else
+    echo "Not running CI"
+  fi
 fi

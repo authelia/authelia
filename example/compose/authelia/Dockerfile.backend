@@ -1,7 +1,5 @@
 FROM golang:1.13-alpine
 
-RUN apk --no-cache add gcc musl-dev
-
 ARG USER_ID
 ARG GROUP_ID
 
