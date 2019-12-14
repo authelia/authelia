@@ -16,6 +16,7 @@ var arch string
 
 var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "CI"}
 var defaultArch = "amd64"
+var buildkite = os.Getenv("BUILDKITE")
 var ciBranch = os.Getenv("BUILDKITE_BRANCH")
 var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
 var ciTag = os.Getenv("BUILDKITE_TAG")
@@ -50,25 +51,27 @@ func dockerBuildOfficialImage(arch string) error {
 	}
 
 	if arch == "arm32v7" {
-		err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
-
-		if err != nil {
-			panic(err)
+		if buildkite != "true" {
+			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
+			if err != nil {
+				panic(err)
+			}
 		}
 
-		err = utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-arm-static -O ./qemu-arm-static && chmod +x ./qemu-arm-static").Run()
+		err := utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-arm-static -O ./qemu-arm-static && chmod +x ./qemu-arm-static").Run()
 
 		if err != nil {
 			panic(err)
 		}
 	} else if arch == "arm64v8" {
-		err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
-
-		if err != nil {
-			panic(err)
+		if buildkite != "true" {
+			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
+			if err != nil {
+				panic(err)
+			}
 		}
 
-		err = utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-aarch64-static -O ./qemu-aarch64-static && chmod +x ./qemu-aarch64-static").Run()
+		err := utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-aarch64-static -O ./qemu-aarch64-static && chmod +x ./qemu-aarch64-static").Run()
 
 		if err != nil {
 			panic(err)
@@ -137,7 +140,6 @@ var DockerManifestCmd = &cobra.Command{
 }
 
 func login(docker *Docker) {
-	buildkite := os.Getenv("BUILDKITE")
 	username := os.Getenv("DOCKER_USERNAME")
 	password := os.Getenv("DOCKER_PASSWORD")
 
