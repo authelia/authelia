@@ -1,18 +1,18 @@
 steps:
-  - command: ".buildkite/steps/buildandtest.sh"
-    name: ":hammer_and_wrench: Build & Test"
-    agents:
-      build: "true"
-    artifact_paths:
-      - "dist.tar.gz"
-      - "web.tar.gz"
-
-  - wait
-
-  - command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
-    name: ":chrome: End-to-end suite tests"
-
-  - wait
+#  - command: ".buildkite/steps/buildandtest.sh"
+#    name: ":hammer_and_wrench: Build & Test"
+#    agents:
+#      build: "true"
+#    artifact_paths:
+#      - "dist.tar.gz"
+#      - "web.tar.gz"
+#
+#  - wait
+#
+#  - command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
+#    name: ":chrome: End-to-end suite tests"
+#
+#  - wait
 
   - command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
     label: ":docker: Build images"

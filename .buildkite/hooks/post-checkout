@@ -10,7 +10,7 @@ then
   then
     go mod download
   fi
-  if [[ $BUILDKITE_LABEL =~ "^:selenium" ]];
+  if [[ $BUILDKITE_LABEL =~ ":selenium:" ]];
   then
     go mod download
   fi
