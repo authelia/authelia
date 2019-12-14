@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set +u
+
+echo "--- :github: Preparing build artifacts"
+
+if [[ $BUILDKITE_LABEL =~ ^:selenium ]]; then
+  buildkite-agent artifact download "dist/*" . && chmod +x dist/authelia
+fi
