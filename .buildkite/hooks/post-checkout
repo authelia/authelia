@@ -2,8 +2,13 @@
 
 set +u
 
-echo "--- :github: Preparing build artifacts"
-
-if [[ $BUILDKITE_LABEL =~ ^:selenium ]]; then
-  buildkite-agent artifact download "dist/*" . && chmod +x dist/authelia
+if [[ ! $BUILDKITE_COMMAND =~ "buildkite-agent pipeline upload" ]]; then
+  echo "--- :buildkite: Setting up Build environment"
+  source bootstrap.sh
+  if [[ $BUILDKITE_COMMAND == ".buildkite/steps/buildandtest.sh" ]]; then
+    go mod download
+  fi
+  if [[ $BUILDKITE_LABEL =~ ^:selenium ]]; then
+    go mod download
+  fi
 fi

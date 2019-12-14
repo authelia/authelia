@@ -2,7 +2,8 @@ steps:
   - command: .buildkite/steps/buildandtest.sh
     name: ":hammer_and_wrench: Build & Test"
     artifact_paths:
-      - "dist/**/*"
+      - "dist.tar.gz"
+      - "web.tar.gz"
 
   - wait
 

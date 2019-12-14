@@ -7,7 +7,7 @@ services:
       args:
         USER_ID: ${USER_ID}
         GROUP_ID: ${GROUP_ID}
-    command: /resources/entrypoint.sh
+    command: /resources/entrypoint-backend.sh
     working_dir: /app
     volumes:
       - "./example/compose/authelia/resources/:/resources"

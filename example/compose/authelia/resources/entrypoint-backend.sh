@@ -4,10 +4,10 @@ set -x
 
 if [ "$CI" == "true" ];
 then
-    echo "Use static version of Authelia"
-    /resources/run.sh
+    echo "Use CI version of Authelia"
+    /resources/run-backend.sh
 else
-    echo "Use hot reloaded version of Authelia"
+    echo "Use hot reloaded version of Authelia backend"
     go get github.com/cespare/reflex
 
     # Sleep 10 seconds to wait the end of npm install updating web directory

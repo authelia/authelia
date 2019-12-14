@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set +u
+
+if [[ $BUILDKITE_COMMAND == ".buildkite/steps/buildandtest.sh" ]]; then
+    tar -czf dist.tar.gz dist
+    tar -czf web.tar.gz web
+fi

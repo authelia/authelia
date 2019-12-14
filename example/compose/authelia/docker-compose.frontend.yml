@@ -7,9 +7,12 @@ services:
       args:
         USER_ID: ${USER_ID}
         GROUP_ID: ${GROUP_ID}
-    command: sh -c 'npm ci && npm run start'
+    command: /resources/entrypoint-frontend.sh
     working_dir: /app
     volumes:
+      - "./example/compose/authelia/resources/:/resources"
       - "./web:/app"
+    environment:
+      - CI=${CI}
     networks:
       - authelianet

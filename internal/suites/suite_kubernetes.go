@@ -91,7 +91,7 @@ func init() {
 
 	GlobalRegistry.Register(kubernetesSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    10 * time.Minute,
+		SetUpTimeout:    12 * time.Minute,
 		TestTimeout:     2 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,

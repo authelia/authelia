@@ -12,13 +12,15 @@ if [ $(id -u) = 0 ]; then
 else
   export USER_ID=$(id -u)
 fi
+
 if [ $(id -g) = 0 ]; then
   export GROUP_ID=1000
 else
   export GROUP_ID=$(id -g)
 fi
+
 if [ "$CI" == "true" ]; then
-  echo "Running in CI don't overwrite variable"
+  true
 else
   export CI=false
 fi
