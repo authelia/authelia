@@ -4,7 +4,7 @@ set +u
 
 if [[ $BUILDKITE_LABEL =~ ":selenium:" ]];
 then
-  echo "--- :go: :node: Extracting build artifacts"
+  echo "--- :go::node: Extracting build artifacts"
   buildkite-agent artifact download "dist.tar.gz" . && tar xf dist.tar.gz
   buildkite-agent artifact download "web.tar.gz" . && tar xf web.tar.gz
 fi
