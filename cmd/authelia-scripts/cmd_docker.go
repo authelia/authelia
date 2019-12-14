@@ -16,12 +16,12 @@ var arch string
 
 var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "CI"}
 var defaultArch = "amd64"
-var travisBranch = os.Getenv("TRAVIS_BRANCH")
-var travisPullRequest = os.Getenv("TRAVIS_PULL_REQUEST")
-var travisTag = os.Getenv("TRAVIS_TAG")
+var ciBranch = os.Getenv("BUILDKITE_BRANCH")
+var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
+var ciTag = os.Getenv("BUILDKITE_TAG")
 var dockerTags = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
 var ignoredSuffixes = regexp.MustCompile("alpha|beta")
-var tags = dockerTags.FindStringSubmatch(travisTag)
+var tags = dockerTags.FindStringSubmatch(ciTag)
 
 func init() {
 	DockerBuildCmd.PersistentFlags().StringVar(&arch, "arch", defaultArch, "target architecture among: "+strings.Join(supportedArch, ", "))
@@ -75,7 +75,7 @@ func dockerBuildOfficialImage(arch string) error {
 		}
 	}
 
-	gitTag := travisTag
+	gitTag := ciTag
 	if gitTag == "" {
 		// If commit is not tagged, mark the build has having unknown tag.
 		gitTag = "unknown"
@@ -137,8 +137,13 @@ var DockerManifestCmd = &cobra.Command{
 }
 
 func login(docker *Docker) {
+	buildkite := os.Getenv("BUILDKITE")
 	username := os.Getenv("DOCKER_USERNAME")
 	password := os.Getenv("DOCKER_PASSWORD")
+
+	if buildkite == "true" {
+		return
+	}
 
 	if username == "" {
 		log.Fatal(errors.New("DOCKER_USERNAME is empty"))
@@ -200,16 +205,16 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 func publishDockerImage(arch string) {
 	docker := &Docker{}
 
-	if travisBranch == "master" && travisPullRequest == "false" {
+	if ciBranch == "master" && ciPullRequest == "false" {
 		login(docker)
 		deploy(docker, "master-"+arch)
-	} else if travisTag != "" {
+	} else if ciTag != "" {
 		if len(tags) == 4 {
 			fmt.Printf("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 
 			login(docker)
 			deploy(docker, tags[1]+"-"+arch)
-			if !ignoredSuffixes.MatchString(travisTag) {
+			if !ignoredSuffixes.MatchString(ciTag) {
 				deploy(docker, tags[2]+"-"+arch)
 				deploy(docker, tags[3]+"-"+arch)
 				deploy(docker, "latest-"+arch)
@@ -225,17 +230,17 @@ func publishDockerImage(arch string) {
 func publishDockerManifest() {
 	docker := &Docker{}
 
-	if travisBranch == "master" && travisPullRequest == "false" {
+	if ciBranch == "master" && ciPullRequest == "false" {
 		login(docker)
 		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
-	} else if travisTag != "" {
+	} else if ciTag != "" {
 		if len(tags) == 4 {
 			fmt.Printf("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 
 			login(docker)
 			deployManifest(docker, tags[1], tags[1]+"-amd64", tags[1]+"-arm32v7", tags[1]+"-arm64v8")
 
-			if !ignoredSuffixes.MatchString(travisTag) {
+			if !ignoredSuffixes.MatchString(ciTag) {
 				deployManifest(docker, tags[2], tags[2]+"-amd64", tags[2]+"-arm32v7", tags[2]+"-arm64v8")
 				deployManifest(docker, tags[3], tags[3]+"-amd64", tags[3]+"-arm32v7", tags[3]+"-arm64v8")
 				deployManifest(docker, "latest", "latest-amd64", "latest-arm32v7", "latest-arm64v8")
