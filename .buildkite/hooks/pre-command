@@ -8,3 +8,8 @@ then
   buildkite-agent artifact download "dist.tar.gz" . && tar xf dist.tar.gz
   buildkite-agent artifact download "web.tar.gz" . && tar xf web.tar.gz
 fi
+
+if [[ $BUILDKITE_LABEL == ":github: Publish binary artifacts" ]];
+then
+  buildkite-agent artifact download "authelia-linux-*" .
+fi

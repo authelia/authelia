@@ -2,13 +2,13 @@
 
 set +u
 
-if [[ $BUILDKITE_COMMAND == ".buildkite/steps/buildandtest.sh" ]];
+if [[ $BUILDKITE_COMMAND == "authelia-scripts --log-level debug ci" ]];
 then
     tar -czf dist.tar.gz dist
     tar -czf web.tar.gz web
 fi
 
-if [[ $BUILDKITE_LABEL =~ ":docker: Build" && BUILDKITE_TAG != "" ]];
+if [[ $BUILDKITE_LABEL =~ ":docker: Build" && $BUILDKITE_TAG != "" ]];
 then
   echo "--- :docker: Saving artifacts for :github: releases"
   docker create --name authelia-binary nightah/authelia:${BUILDKITE_TAG:1}-$ARCH

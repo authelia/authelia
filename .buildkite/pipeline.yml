@@ -1,6 +1,6 @@
 steps:
-  - command: ".buildkite/steps/buildandtest.sh"
-    name: ":hammer_and_wrench: Build & Test"
+  - command: "authelia-scripts --log-level debug ci"
+    label: ":hammer_and_wrench: Build and test Authelia"
     agents:
       build: "true"
     artifact_paths:
@@ -10,13 +10,15 @@ steps:
   - wait
 
   - command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
-    name: ":chrome: End-to-end suite tests"
+    label: ":chrome: End-to-end suite tests"
 
   - wait
 
   - command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
     label: ":docker: Image builds"
     branches: "master buildkite"
+    artifact_paths:
+      - "authelia-linux-*"
 
   - wait
 
@@ -25,3 +27,7 @@ steps:
     branches: "master buildkite"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
+
+  - commands: ".buildkite/steps/ghartifacts.sh"
+    label: ":github: Publish binary artifacts"
+    if: build.tag != null

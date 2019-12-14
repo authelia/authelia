@@ -6,7 +6,7 @@ if [[ ! $BUILDKITE_COMMAND =~ "buildkite-agent pipeline upload" ]];
 then
   echo "--- :buildkite: Setting up Build environment"
   source bootstrap.sh
-  if [[ $BUILDKITE_COMMAND == ".buildkite/steps/buildandtest.sh" ]];
+  if [[ $BUILDKITE_COMMAND == "authelia-scripts --log-level debug ci" ]];
   then
     go mod download
   fi
