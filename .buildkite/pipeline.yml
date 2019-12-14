@@ -2,7 +2,7 @@ steps:
   - command: ".buildkite/steps/buildandtest.sh"
     name: ":hammer_and_wrench: Build & Test"
     agents:
-      build: true
+      build: "true"
     artifact_paths:
       - "dist.tar.gz"
       - "web.tar.gz"
@@ -12,10 +12,12 @@ steps:
   - command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
     name: ":chrome: End-to-end suite tests"
 
-#  - command: "docker push ${DOCKERHUB_REPOSITORY}:${BUILDKITE_BUILD_NUMBER}\ndocker push ${DOCKERHUB_REPOSITORY}:latest"
-#    label: ":docker: Push"
-#    branches: master
-#
+  - wait
+
+  - command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
+    label: ":docker: Build images"
+    branches: "master buildkite"
+
 #  - wait
 #
 #  - command: "curl \"https://ci.nerv.com.au/readmesync/update?github_repo=${GITHUB_REPOSITORY}&dockerhub_repo=${DOCKERHUB_REPOSITORY}\""

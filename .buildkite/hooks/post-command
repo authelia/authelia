@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set +u
+
+if [[ $BUILDKITE_LABEL =~ "^:docker: Build" ]];
+then
+  echo "--- :docker: Pushing images to DockerHub"
+  authelia-scripts docker push-image --arch=$ARCH
+fi

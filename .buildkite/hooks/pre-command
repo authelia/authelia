@@ -2,7 +2,8 @@
 
 set +u
 
-if [[ $BUILDKITE_LABEL =~ ^:selenium ]]; then
+if [[ $BUILDKITE_LABEL =~ ^:selenium ]];
+then
   echo "--- :github: Preparing build artifacts"
   buildkite-agent artifact download "dist.tar.gz" . && tar xf dist.tar.gz
   buildkite-agent artifact download "web.tar.gz" . && tar xf web.tar.gz
