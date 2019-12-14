@@ -15,7 +15,7 @@ steps:
 #  - wait
 
   - command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
-    label: ":docker: Build images"
+    label: ":docker: Image build"
     branches: "master buildkite"
 
 #  - wait
