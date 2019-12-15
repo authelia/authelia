@@ -9,6 +9,6 @@ do
   if [[ "${SUITE_NAME}" == "Kubernetes" ]];
   then
     echo "    agents:"
-    echo "      "kubernetes: true""
+    echo "      "suite: kubernetes""
   fi
 done
