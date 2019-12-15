@@ -8,10 +8,15 @@ then
     tar -czf web.tar.gz web
 fi
 
-if [[ $BUILDKITE_LABEL =~ ":docker: Build" && $BUILDKITE_TAG != "" ]];
+if [[ $BUILDKITE_LABEL =~ ":docker: Build" ]];
 then
-  echo "--- :docker: Saving artifacts for :github: releases"
-  docker create --name authelia-binary nightah/authelia:${BUILDKITE_TAG:1}-$ARCH
+  echo "--- :docker: Saving artifacts for :github: and :buildkite: releases"
+  if [[ $BUILDKITE_TAG != "" ]];
+  then
+    docker create --name authelia-binary nightah/authelia:${BUILDKITE_TAG:1}-$ARCH
+  else
+    docker create --name authelia-binary nightah/authelia:master-$ARCH
+  fi
   docker cp authelia-binary:/usr/app/authelia ./authelia-linux-$ARCH
   docker cp authelia-binary:/usr/app/public_html ./
   docker rm -f authelia-binary
