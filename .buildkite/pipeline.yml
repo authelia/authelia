@@ -30,4 +30,6 @@ steps:
 
   - label: ":github: Deploy Artifacts"
     command: ".buildkite/steps/ghartifacts.sh"
+    agents:
+      upload: "fast"
     if: build.tag != null
