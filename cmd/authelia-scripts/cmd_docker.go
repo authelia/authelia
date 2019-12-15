@@ -17,6 +17,7 @@ var arch string
 var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "CI"}
 var defaultArch = "amd64"
 var buildkite = os.Getenv("BUILDKITE")
+var buildkiteQEMU = os.Getenv("BUILDKITE_AGENT_META_DATA_QEMU")
 var ciBranch = os.Getenv("BUILDKITE_BRANCH")
 var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
 var ciTag = os.Getenv("BUILDKITE_TAG")
@@ -51,7 +52,7 @@ func dockerBuildOfficialImage(arch string) error {
 	}
 
 	if arch == "arm32v7" {
-		if buildkite != "true" {
+		if buildkiteQEMU != "true" {
 			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
 			if err != nil {
 				panic(err)
@@ -64,7 +65,7 @@ func dockerBuildOfficialImage(arch string) error {
 			panic(err)
 		}
 	} else if arch == "arm64v8" {
-		if buildkite != "true" {
+		if buildkiteQEMU != "true" {
 			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
 			if err != nil {
 				panic(err)
