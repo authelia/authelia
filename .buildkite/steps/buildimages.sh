@@ -11,6 +11,4 @@ do
   echo "      - \"authelia-linux-${BUILD_ARCH}.tar.gz.sha256\""
   echo "    env:"
   echo "      "ARCH: ${BUILD_ARCH}""
-  echo "    agents:"
-  echo "      "docker: true""
 done
