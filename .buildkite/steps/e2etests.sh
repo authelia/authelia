@@ -5,7 +5,7 @@ for SUITE_NAME in BypassAll Docker DuoPush HighAvailability Kubernetes LDAP Mari
 do
   echo "  - commands:"
   echo "    - \"authelia-scripts --log-level debug suites test ${SUITE_NAME} --headless\""
-  echo "    label: \":selenium: ${SUITE_NAME} suite\""
+  echo "    label: \":selenium: ${SUITE_NAME} Suite\""
   if [[ "${SUITE_NAME}" == "Kubernetes" ]];
   then
     echo "    agents:"

@@ -1,6 +1,6 @@
 steps:
   - command: "authelia-scripts --log-level debug ci"
-    label: ":hammer_and_wrench: Build & test"
+    label: ":hammer_and_wrench: Build & Test"
     agents:
       upload: "fast"
     artifact_paths:
@@ -10,12 +10,12 @@ steps:
   - wait
 
   - command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
-    label: ":chrome: Integration tests"
+    label: ":chrome: Integration Tests"
 
   - wait
 
   - command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
-    label: ":docker: Image builds"
+    label: ":docker: Image Builds"
     branches: "master buildkite"
     artifact_paths:
       - "authelia-linux-*"
@@ -23,11 +23,11 @@ steps:
   - wait
 
   - command: "authelia-scripts docker push-manifest"
-    label: ":docker: Deploy manifests"
+    label: ":docker: Deploy Manifests"
     branches: "master buildkite"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
 
   - commands: ".buildkite/steps/ghartifacts.sh"
-    label: ":github: Deploy binary artifacts"
+    label: ":github: Deploy Artifacts"
     if: build.tag != null

@@ -9,7 +9,7 @@ then
   buildkite-agent artifact download "web.tar.gz" . && tar xf web.tar.gz
 fi
 
-if [[ $BUILDKITE_LABEL == ":github: Deploy binary artifacts" ]];
+if [[ $BUILDKITE_LABEL == ":github: Deploy Artifacts" ]];
 then
   buildkite-agent artifact download "authelia-linux-*" .
 fi
