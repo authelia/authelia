@@ -213,7 +213,7 @@ func publishDockerImage(arch string) {
 		deploy(docker, "master-"+arch)
 	} else if ciTag != "" {
 		if len(tags) == 4 {
-			fmt.Printf("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
+			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 
 			login(docker)
 			deploy(docker, tags[1]+"-"+arch)
@@ -238,7 +238,7 @@ func publishDockerManifest() {
 		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
 	} else if ciTag != "" {
 		if len(tags) == 4 {
-			fmt.Printf("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
+			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 
 			login(docker)
 			deployManifest(docker, tags[1], tags[1]+"-amd64", tags[1]+"-arm32v7", tags[1]+"-arm64v8")
