@@ -6,8 +6,6 @@ steps:
     artifact_paths:
       - "dist.tar.gz"
       - "web.tar.gz"
-    plugins:
-      - nightah/github-checks#v0.0.4
 
   - wait
 
@@ -19,8 +17,6 @@ steps:
   - label: ":docker: Image Builds"
     command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
     branches: "master buildkite v*"
-    plugins:
-      - nightah/github-checks#v0.0.4
 
   - wait
 
@@ -29,13 +25,9 @@ steps:
     branches: "master buildkite v*"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
-    plugins:
-      - nightah/github-checks#v0.0.4
 
   - label: ":github: Deploy Artifacts"
     command: ".buildkite/steps/ghartifacts.sh"
     agents:
       upload: "fast"
-    plugins:
-      - nightah/github-checks#v0.0.4
     if: build.tag != null
