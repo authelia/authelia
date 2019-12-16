@@ -7,5 +7,5 @@ then
     echo "Use CI version of Authelia frontend"
     /resources/run-frontend.sh
 else
-    npm ci && npm run start
+    yarn install && yarn start
 fi

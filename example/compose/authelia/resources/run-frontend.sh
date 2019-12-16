@@ -2,4 +2,4 @@
 
 set -e
 
-npm run start
+yarn start

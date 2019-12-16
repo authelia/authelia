@@ -68,7 +68,7 @@ func checkCommandExist(cmd string) {
 }
 
 func installClientNpmPackages() {
-	command := utils.CommandWithStdout("npm", "ci")
+	command := utils.CommandWithStdout("yarn", "install")
 	command.Dir = "client"
 	err := command.Run()
 
