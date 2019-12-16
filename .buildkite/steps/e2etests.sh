@@ -6,8 +6,11 @@ do
   echo "  - commands:"
   echo "    - \"authelia-scripts --log-level debug suites test ${SUITE_NAME} --headless\""
   echo "    label: \":selenium: ${SUITE_NAME} Suite\""
-  if [[ "${SUITE_NAME}" == "Kubernetes" ]];
+  if [[ "${SUITE_NAME}" != "Kubernetes" ]];
   then
+    echo "    agents:"
+    echo "      "suite: all""
+  else
     echo "    agents:"
     echo "      "suite: kubernetes""
   fi

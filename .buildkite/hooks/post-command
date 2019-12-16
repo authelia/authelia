@@ -2,6 +2,16 @@
 
 set +u
 
+if [[ $BUILDKITE_LABEL =~ ":selenium:" ]];
+then
+  CONTAINERS=$(docker ps -a -q)
+  if [[ $CONTAINERS != "" ]];
+  then
+    echo "--- :docker: Clean environment"
+    docker rm -f $(docker ps -a -q)
+  fi
+fi
+
 if [[ $BUILDKITE_LABEL =~ ":docker: Build" ]];
 then
   echo "--- :docker: Pushing images to DockerHub"
