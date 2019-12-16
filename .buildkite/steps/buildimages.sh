@@ -11,4 +11,6 @@ do
   echo "      - \"authelia-linux-${BUILD_ARCH}.tar.gz.sha256\""
   echo "    env:"
   echo "      "ARCH: ${BUILD_ARCH}""
+  echo "    plugins:"
+  echo "      - \"nightah/github-checks#v0.0.4\""
 done

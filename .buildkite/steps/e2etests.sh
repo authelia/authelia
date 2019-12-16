@@ -14,4 +14,6 @@ do
     echo "    agents:"
     echo "      "suite: kubernetes""
   fi
+  echo "    plugins:"
+  echo "      - \"nightah/github-checks#v0.0.4\""
 done
