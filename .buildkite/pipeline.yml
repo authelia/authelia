@@ -19,8 +19,6 @@ steps:
   - label: ":docker: Image Builds"
     command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
     branches: "master buildkite v*"
-    artifact_paths:
-      - "authelia-linux-*"
     plugins:
       - nightah/github-checks#v0.0.4
 
