@@ -2,6 +2,8 @@
 
 set +u
 
+DOCKER_IMAGE=nightah/authelia
+
 if [[ $BUILDKITE_LABEL =~ ":selenium:" ]];
 then
   CONTAINERS=$(docker ps -a -q)
@@ -12,8 +14,8 @@ then
   fi
 fi
 
-if [[ $BUILDKITE_LABEL =~ ":docker: Build" ]];
+if [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]];
 then
-  echo "--- :docker: Pushing images to DockerHub"
-  authelia-scripts docker push-image --arch=$ARCH
+  echo "--- :docker: Saving images for push to DockerHub"
+  docker save $DOCKER_IMAGE | gzip > authelia-image-$ARCH.tar.gz
 fi

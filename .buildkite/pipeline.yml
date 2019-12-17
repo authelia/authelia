@@ -6,6 +6,7 @@ steps:
     artifact_paths:
       - "dist.tar.gz"
       - "web.tar.gz"
+    key: "build"
 
   - wait
 
@@ -17,8 +18,13 @@ steps:
   - label: ":docker: Image Builds"
     command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
     branches: "master buildkite v*"
+    depends_on: "build"
 
   - wait
+
+  - label: ":docker: Image Deployments"
+    command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
+    branches: "master buildkite v*"
 
   - label: ":docker: Deploy Manifests"
     command: "authelia-scripts docker push-manifest"
