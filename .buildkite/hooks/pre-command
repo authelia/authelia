@@ -11,7 +11,7 @@ fi
 
 if [[ $BUILDKITE_LABEL =~ ":docker: Deploy Image" ]];
 then
-  buildkite-agent artifact download "authelia-image-$ARCH*"
+  buildkite-agent artifact download "authelia-image-$ARCH*" .
   zcat authelia-image-$ARCH.tar.gz | docker load
 fi
 

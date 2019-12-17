@@ -2,9 +2,7 @@
 
 set +u
 
-DOCKER_IMAGE=nightah/authelia
-
-if [[ $BUILDKITE_LABEL =~ ":selenium:" ]];
+if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]];
 then
   CONTAINERS=$(docker ps -a -q)
   if [[ $CONTAINERS != "" ]];
@@ -12,10 +10,4 @@ then
     echo "--- :docker: Clean environment"
     docker rm -f $(docker ps -a -q)
   fi
-fi
-
-if [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]];
-then
-  echo "--- :docker: Saving images for push to DockerHub"
-  docker save $DOCKER_IMAGE | gzip > authelia-image-$ARCH.tar.gz
 fi
