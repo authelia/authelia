@@ -18,13 +18,17 @@ steps:
   - label: ":docker: Image Builds"
     command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
     branches: "master buildkite v*"
-    depends_on: "build"
+    depends_on:
+      - "build"
+    key: "build-docker"
 
   - wait
 
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
     branches: "master buildkite v*"
+
+  - wait
 
   - label: ":docker: Deploy Manifests"
     command: "authelia-scripts docker push-manifest"
@@ -36,4 +40,5 @@ steps:
     command: ".buildkite/steps/ghartifacts.sh"
     agents:
       upload: "fast"
+    depends_on: "build-docker"
     if: build.tag != null
