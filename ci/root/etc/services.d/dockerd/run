@@ -1,0 +1,4 @@
+#!/usr/bin/with-contenv bash
+
+exec \
+	s6-setuidgid root dockerd-entrypoint.sh > /dev/null 2>&1
