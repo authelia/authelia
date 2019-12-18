@@ -54,9 +54,9 @@ RUN \
    tar xfz s6-overlay.tar.gz -C / && \
  echo "**** Patch CVE-2019-5021 ****" && \
    sed -i -e 's/^root::/root:!:/' /etc/shadow && \
- echo "**** Create abc user and make our folders ****" && \
-   useradd -u 911 -U -d /buildkite -s /bin/false abc && \
-   usermod -G wheel abc && \
+ echo "**** Create buildkite user and make our folders ****" && \
+   useradd -u 911 -U -d /buildkite -s /bin/false buildkite && \
+   usermod -G wheel buildkite && \
    sed -i 's/# %wheel/%wheel/g' /etc/sudoers && \
  echo "**** Install Buildkite ****" && \
    mkdir -p /buildkite/builds /buildkite/hooks /buildkite/plugins && \

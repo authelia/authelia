@@ -1,4 +1,4 @@
 #!/usr/bin/with-contenv bash
 
 exec \
-	s6-setuidgid abc ssh-env-config.sh /usr/local/bin/buildkite-agent start
+	s6-setuidgid buildkite ssh-env-config.sh /usr/local/bin/buildkite-agent start

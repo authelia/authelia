@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bash
 
 # permissions
-chown -R abc:abc \
+chown -R buildkite:buildkite \
 	/buildkite

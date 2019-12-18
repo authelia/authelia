@@ -4,5 +4,5 @@ while [ ! -S "/run/docker.sock" ];
 do
   sleep 1;
 done
-chown root:abc /run/docker.sock
+chown root:buildkite /run/docker.sock
 tail -f /dev/null
