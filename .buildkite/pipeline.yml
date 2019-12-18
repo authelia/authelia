@@ -18,7 +18,7 @@ steps:
 
   - label: ":docker: Image Builds"
     command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
-    branches: "master buildkite v*"
+    branches: "master v*"
     depends_on:
       - "build"
     key: "build-docker"
@@ -27,7 +27,7 @@ steps:
 
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
-    branches: "master buildkite v*"
+    branches: "master v*"
     depends_on:
       - "test"
       - "build-docker"
@@ -36,7 +36,7 @@ steps:
 
   - label: ":docker: Deploy Manifests"
     command: "authelia-scripts docker push-manifest"
-    branches: "master buildkite v*"
+    branches: "master v*"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
 

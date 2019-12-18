@@ -208,7 +208,7 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 func publishDockerImage(arch string) {
 	docker := &Docker{}
 
-	if ciBranch == "master" || ciBranch == "buildkite" && ciPullRequest == "false" {
+	if ciBranch == "master" && ciPullRequest == "false" {
 		login(docker)
 		deploy(docker, "master-"+arch)
 	} else if ciTag != "" {
@@ -233,7 +233,7 @@ func publishDockerImage(arch string) {
 func publishDockerManifest() {
 	docker := &Docker{}
 
-	if ciBranch == "master" || ciBranch == "buildkite" && ciPullRequest == "false" {
+	if ciBranch == "master" && ciPullRequest == "false" {
 		login(docker)
 		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
 	} else if ciTag != "" {
@@ -252,6 +252,6 @@ func publishDockerManifest() {
 			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
 		}
 	} else {
-		fmt.Println("Docker manifest will not be published")
+		log.Info("Docker manifest will not be published")
 	}
 }
