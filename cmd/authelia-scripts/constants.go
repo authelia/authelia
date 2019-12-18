@@ -4,7 +4,7 @@ package main
 var OutputDir = "dist"
 
 // DockerImageName the official name of authelia docker image
-var DockerImageName = "nightah/authelia"
+var DockerImageName = "clems4ever/authelia"
 
 // IntermediateDockerImageName local name of the docker image
 var IntermediateDockerImageName = "authelia:dist"
