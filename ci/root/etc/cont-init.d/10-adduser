@@ -3,8 +3,8 @@
 PUID=${PUID:-911}
 PGID=${PGID:-911}
 
-groupmod -o -g "$PGID" abc
-usermod -o -u "$PUID" abc
+groupmod -o -g "$PGID" buildkite
+usermod -o -u "$PUID" buildkite
 
 cat <<'EOF'
 --------------------------------------------
@@ -22,8 +22,8 @@ GID/UID
 --------------------------------------------
 EOF
 echo "
-User uid:    $(id -u abc)
-User gid:    $(id -g abc)
+User uid:    $(id -u buildkite)
+User gid:    $(id -g buildkite)
 --------------------------------------------
 "
-chown abc:abc /buildkite
+chown buildkite:buildkite /buildkite
