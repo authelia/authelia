@@ -7,8 +7,6 @@ go:
 
 services:
   - docker
-  - ntp
-  - xvfb
 
 addons:
   chrome: stable
@@ -45,9 +43,9 @@ jobs:
         - wget -N https://chromedriver.storage.googleapis.com/78.0.3904.70/chromedriver_linux64.zip -P ~/
         - unzip ~/chromedriver_linux64.zip -d ~/
         - rm ~/chromedriver_linux64.zip
-        - sudo mv -f ~/chromedriver /usr/local/bin/chromedriver
-        - sudo chmod +x /usr/local/bin/chromedriver
-
+        - sudo mv -f ~/chromedriver /usr/bin/chromedriver
+        - sudo chmod +x /usr/bin/chromedriver
+        - sudo ln -s /usr/bin/google-chrome-stable /usr/bin/chromium-browser
         - go mod download
       script:
         # Run the suite

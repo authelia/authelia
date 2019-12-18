@@ -18,12 +18,8 @@ var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "CI"}
 var defaultArch = "amd64"
 var buildkite = os.Getenv("BUILDKITE")
 var buildkiteQEMU = os.Getenv("BUILDKITE_AGENT_META_DATA_QEMU")
-var ciBranch = os.Getenv("BUILDKITE_BRANCH")
-var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
-var ciTag = os.Getenv("BUILDKITE_TAG")
 var dockerTags = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
 var ignoredSuffixes = regexp.MustCompile("alpha|beta")
-var tags = dockerTags.FindStringSubmatch(ciTag)
 
 func init() {
 	DockerBuildCmd.PersistentFlags().StringVar(&arch, "arch", defaultArch, "target architecture among: "+strings.Join(supportedArch, ", "))
@@ -45,6 +41,13 @@ func dockerBuildOfficialImage(arch string) error {
 	dockerfile := "Dockerfile"
 	// Set version of QEMU
 	qemuversion := "v4.1.1-1"
+
+	ciTag := ""
+	if os.Getenv("TRAVIS_TAG") != "" {
+		ciTag = os.Getenv("TRAVIS_TAG")
+	} else {
+		ciTag = os.Getenv("BUILDKITE_TAG")
+	}
 
 	// If not the default value
 	if arch != defaultArch {
@@ -208,6 +211,26 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 func publishDockerImage(arch string) {
 	docker := &Docker{}
 
+	ciBranch := ""
+	if os.Getenv("TRAVIS_BRANCH") != "" {
+		ciBranch = os.Getenv("TRAVIS_BRANCH")
+	} else {
+		ciBranch = os.Getenv("BUILDKITE_BRANCH")
+	}
+	ciPullRequest := ""
+	if os.Getenv("TRAVIS_PULL_REQUEST") != "" {
+		ciPullRequest = os.Getenv("TRAVIS_PULL_REQUEST")
+	} else {
+		ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
+	}
+	ciTag := ""
+	if os.Getenv("TRAVIS_TAG") != "" {
+		ciTag = os.Getenv("TRAVIS_TAG")
+	} else {
+		ciTag = os.Getenv("BUILDKITE_TAG")
+	}
+	tags := dockerTags.FindStringSubmatch(ciTag)
+
 	if ciBranch == "master" && ciPullRequest == "false" {
 		login(docker)
 		deploy(docker, "master-"+arch)
@@ -232,6 +255,26 @@ func publishDockerImage(arch string) {
 
 func publishDockerManifest() {
 	docker := &Docker{}
+
+	ciBranch := ""
+	if os.Getenv("TRAVIS_BRANCH") != "" {
+		ciBranch = os.Getenv("TRAVIS_BRANCH")
+	} else {
+		ciBranch = os.Getenv("BUILDKITE_BRANCH")
+	}
+	ciPullRequest := ""
+	if os.Getenv("TRAVIS_PULL_REQUEST") != "" {
+		ciPullRequest = os.Getenv("TRAVIS_PULL_REQUEST")
+	} else {
+		ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
+	}
+	ciTag := ""
+	if os.Getenv("TRAVIS_TAG") != "" {
+		ciTag = os.Getenv("TRAVIS_TAG")
+	} else {
+		ciTag = os.Getenv("BUILDKITE_TAG")
+	}
+	tags := dockerTags.FindStringSubmatch(ciTag)
 
 	if ciBranch == "master" && ciPullRequest == "false" {
 		login(docker)
