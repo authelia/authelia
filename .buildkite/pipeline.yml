@@ -12,6 +12,7 @@ steps:
 
   - label: ":chrome: Integration Tests"
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
+    key: "test"
 
   - wait
 
@@ -27,6 +28,9 @@ steps:
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
     branches: "master buildkite v*"
+    depends_on:
+      - "test"
+      - "build-docker"
 
   - wait
 
