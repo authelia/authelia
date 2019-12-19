@@ -34,7 +34,7 @@ type SQLProvider struct {
 func (p *SQLProvider) initialize(db *sql.DB) error {
 	p.db = db
 
-	_, err := db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100) PRIMARY KEY, second_factor_method VARCHAR(10))", preferencesTableName))
+	_, err := db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100) PRIMARY KEY, second_factor_method VARCHAR(11))", preferencesTableName))
 	if err != nil {
 		return err
 	}
