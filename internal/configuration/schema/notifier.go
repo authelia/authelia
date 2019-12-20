@@ -17,10 +17,10 @@ type EmailNotifierConfiguration struct {
 type SMTPNotifierConfiguration struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
-	Secure   string `yaml:"secure"`
+	Sender   string `yaml:"sender"`
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
-	Sender   string `yaml:"sender"`
+	Secure   bool   `yaml:"secure"`
 }
 
 // NotifierConfiguration representes the configuration of the notifier to use when sending notifications to users.
