@@ -1,8 +1,0 @@
-#!/usr/bin/with-contenv bash
-
-while [ ! -S "/run/docker.sock" ];
-do
-  sleep 1;
-done
-chown root:buildkite /run/docker.sock
-tail -f /dev/null
