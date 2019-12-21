@@ -39,7 +39,7 @@ jobs:
         # Install chrome driver
         # TODO(c.michaud): this could be done in authelia-scripts instead for devs to not do the install themselves.
         #                  or even provide a docker image with a selenium server.
-        - wget -N https://chromedriver.storage.googleapis.com/79.0.3945.36/chromedriver_linux64.zip -P ~/
+        - wget -N https://chromedriver.storage.googleapis.com/78.0.3904.70/chromedriver_linux64.zip -P ~/
         - unzip ~/chromedriver_linux64.zip -d ~/
         - rm ~/chromedriver_linux64.zip
         - sudo mv -f ~/chromedriver /usr/bin/chromedriver
