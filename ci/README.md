@@ -1,5 +1,5 @@
 [logo]: https://github.com/clems4ever/authelia/raw/master/docs/images/authelia-title.png "Authelia"
-[![alt text][logo]](https://github.com/AntilaX-3/)
+[![alt text][logo]](https://www.authelia.com/)
 
 # authelia/buildkite
 [![Docker Pulls](https://img.shields.io/docker/pulls/authelia/buildkite.svg)](https://hub.docker.com/r/authelia/buildkite/) [![Docker Stars](https://img.shields.io/docker/stars/authelia/buildkite.svg)](https://hub.docker.com/r/authelia/buildkite/)
