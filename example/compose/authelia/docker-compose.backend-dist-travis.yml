@@ -1,0 +1,12 @@
+version: "3"
+services:
+  authelia-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ENVIRONMENT=dev
+    restart: always
+    networks:
+      authelianet:
+        ipv4_address: 192.168.240.50

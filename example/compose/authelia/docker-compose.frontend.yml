@@ -14,5 +14,6 @@ services:
       - "./web:/app"
     environment:
       - CI=${CI}
+      - TRAVIS=${TRAVIS}
     networks:
       - authelianet
