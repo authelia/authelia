@@ -24,7 +24,7 @@ multiple instances to evenly handle the traffic.
 deploy **Authelia** with only nginx. This is described in [Deployment for Devs].
 
 Here are the available steps to deploy **Authelia** given 
-the configuration file is **/path/to/your/config.yml**. Note that you can
+the configuration file is **/path/to/your/configuration.yml**. Note that you can
 create your own configuration file from [config.template.yml] located at
 the root of the repo.
 
@@ -32,11 +32,11 @@ the root of the repo.
 
     # Build it if not done already
     $ authelia-scripts build
-    $ PUBLIC_DIR=./dist/public_html authelia --config /path/to/your/config.yml
+    $ PUBLIC_DIR=./dist/public_html authelia --config /path/to/your/configuration.yml
 
 ### Deploy With Docker
 
-    $ docker run -v /path/to/your/config.yml:/etc/authelia/config.yml -e TZ=Europe/Paris clems4ever/$ $ authelia --config /etc/authelia/config.yml
+    $ docker run -v /path/to/your/configuration.yml:/etc/authelia/configuration.yml -e TZ=Europe/Paris authelia/authelia
 
 
 ## On top of Kubernetes

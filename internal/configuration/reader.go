@@ -5,8 +5,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
-	"github.com/clems4ever/authelia/internal/configuration/validator"
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/validator"
 )
 
 func check(e error) {

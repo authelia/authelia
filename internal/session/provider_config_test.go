@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/fasthttp/session/memory"
 	"github.com/fasthttp/session/redis"
 	"github.com/stretchr/testify/assert"

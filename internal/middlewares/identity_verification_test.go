@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/clems4ever/authelia/internal/middlewares"
-	"github.com/clems4ever/authelia/internal/mocks"
-	"github.com/clems4ever/authelia/internal/session"
+	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/session"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

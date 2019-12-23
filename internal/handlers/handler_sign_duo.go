@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/clems4ever/authelia/internal/authentication"
-	"github.com/clems4ever/authelia/internal/duo"
-	"github.com/clems4ever/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/duo"
+	"github.com/authelia/authelia/internal/middlewares"
 )
 
 // SecondFactorDuoPost handler for sending a push notification via duo api.

@@ -3,7 +3,7 @@ package validator
 import (
 	"testing"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/stretchr/testify/assert"
 )
 

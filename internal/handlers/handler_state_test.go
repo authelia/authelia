@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/clems4ever/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/mocks"
 
-	"github.com/clems4ever/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/authentication"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

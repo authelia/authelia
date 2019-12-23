@@ -3,7 +3,7 @@ package authentication
 import (
 	"testing"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )

@@ -36,7 +36,7 @@ export default function (props: Props) {
                     </Grid>
                     {props.showBrand ? <Grid item xs={12}>
                         <Link
-                            href="https://github.com/clems4ever/authelia"
+                            href="https://github.com/authelia/authelia"
                             target="_blank"
                             className={style.poweredBy}>
                             Powered by Authelia

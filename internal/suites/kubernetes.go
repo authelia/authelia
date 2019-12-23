@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/clems4ever/authelia/internal/utils"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 var kindImageName = "authelia-kind-proxy"

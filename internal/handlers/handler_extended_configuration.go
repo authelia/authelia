@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/clems4ever/authelia/internal/authentication"
-	"github.com/clems4ever/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/middlewares"
 )
 
 type ExtendedConfigurationBody struct {

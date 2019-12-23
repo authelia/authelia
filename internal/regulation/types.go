@@ -3,8 +3,8 @@ package regulation
 import (
 	"time"
 
-	"github.com/clems4ever/authelia/internal/storage"
-	"github.com/clems4ever/authelia/internal/utils"
+	"github.com/authelia/authelia/internal/storage"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // Regulator an authentication regulator preventing attackers to brute force the service.
