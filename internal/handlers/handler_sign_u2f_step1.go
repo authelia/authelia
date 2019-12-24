@@ -4,9 +4,9 @@ import (
 	"crypto/elliptic"
 	"fmt"
 
-	"github.com/clems4ever/authelia/internal/middlewares"
-	"github.com/clems4ever/authelia/internal/session"
-	"github.com/clems4ever/authelia/internal/storage"
+	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/internal/storage"
 	"github.com/tstranex/u2f"
 )
 

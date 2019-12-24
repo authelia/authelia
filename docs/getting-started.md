@@ -69,5 +69,5 @@ in /etc/hosts when you first source the bootstrap.sh script.
 You can refer to the dedicated documentation [here](./build-and-dev.md).
 
 [config.template.yml]: ../config.template.yml
-[DockerHub]: https://hub.docker.com/r/clems4ever/authelia/
+[DockerHub]: https://hub.docker.com/r/authelia/authelia/
 [suite]: ./suites.md

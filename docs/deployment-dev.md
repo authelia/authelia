@@ -27,12 +27,12 @@ either by pulling the Docker image or building distributable version.
 ## Build and deploy the distributable version
 
     $ authelia-scripts build
-    $ PUBLIC_DIR=./dist/public_html ./dist/authelia --config /path/to/your/config.yml
+    $ PUBLIC_DIR=./dist/public_html ./dist/authelia --config /path/to/your/configuration.yml
 
 ## Deploy with Docker
 
-    $ docker pull clems4ever/authelia
-    $ docker run -v /path/to/your/config.yml:/etc/authelia/config.yml clems4ever/authelia
+    $ docker pull authelia/authelia
+    $ docker run -v /path/to/your/configuration.yml:/etc/authelia/configuration.yml authelia/authelia
 
 ## Deploy Nginx
 
@@ -115,7 +115,7 @@ Copy this newly hashed password into your `users_database.yml` file, prefixed wi
 `{CRYPT}` as shown in the example file above.
 
 Once the file is created, edit the configuration file with the following
-block (as used in [config.yml](../test/suites/basic/config.yml)):
+block (as used in [configuration.yml](../test/suites/basic/configuration.yml)):
 
     authentication_backend:
       file:

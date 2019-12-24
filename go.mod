@@ -1,4 +1,4 @@
-module github.com/clems4ever/authelia
+module github.com/authelia/authelia
 
 go 1.13
 

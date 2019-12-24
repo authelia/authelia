@@ -72,6 +72,6 @@ Redis key/value store. You can specify your own Redis instance in
 [config.template.yml].
 
 [basic authentication]: https://en.wikipedia.org/wiki/Basic_access_authentication
-[config.template.yml]: https://github.com/clems4ever/authelia/blob/master/config.template.yml
+[config.template.yml]: https://github.com/authelia/authelia/blob/master/config.template.yml
 [Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
 [Google Authenticator]: https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en

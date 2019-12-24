@@ -3,8 +3,8 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/clems4ever/authelia/internal/middlewares"
-	"github.com/clems4ever/authelia/internal/session"
+	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/session"
 	"github.com/pquerna/otp/totp"
 )
 

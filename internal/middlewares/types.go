@@ -1,13 +1,13 @@
 package middlewares
 
 import (
-	"github.com/clems4ever/authelia/internal/authentication"
-	"github.com/clems4ever/authelia/internal/authorization"
-	"github.com/clems4ever/authelia/internal/configuration/schema"
-	"github.com/clems4ever/authelia/internal/notification"
-	"github.com/clems4ever/authelia/internal/regulation"
-	"github.com/clems4ever/authelia/internal/session"
-	"github.com/clems4ever/authelia/internal/storage"
+	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/notification"
+	"github.com/authelia/authelia/internal/regulation"
+	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/internal/storage"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"

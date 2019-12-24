@@ -1,7 +1,7 @@
 version: "3.4"
 services:
   authelia:
-    image: clems4ever/authelia:latest
+    image: authelia/authelia:latest
     # Used for Docker configs
     configs:
       - source: authelia
