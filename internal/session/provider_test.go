@@ -3,13 +3,13 @@ package session
 import (
 	"testing"
 
-	"github.com/clems4ever/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/authentication"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
 func TestShouldInitializerSession(t *testing.T) {

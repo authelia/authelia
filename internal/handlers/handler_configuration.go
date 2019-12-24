@@ -1,6 +1,6 @@
 package handlers
 
-import "github.com/clems4ever/authelia/internal/middlewares"
+import "github.com/authelia/authelia/internal/middlewares"
 
 type ConfigurationBody struct {
 	GoogleAnalyticsTrackingID string `json:"ga_tracking_id,omitempty"`

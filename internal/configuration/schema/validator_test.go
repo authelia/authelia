@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
 type TestNestedStruct struct {

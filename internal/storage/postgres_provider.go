@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
-	"github.com/clems4ever/authelia/internal/logging"
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/logging"
 	_ "github.com/lib/pq" // Load the PostgreSQL Driver used in the connection string.
 )
 

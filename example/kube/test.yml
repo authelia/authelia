@@ -18,5 +18,5 @@ spec:
     spec:
       containers:
       - name: test-app1
-        image: clems4ever/authelia:kube
+        image: authelia/authelia:kube
         imagePullPolicy: Never

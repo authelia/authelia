@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	fasthttpsession "github.com/fasthttp/session"
 	"github.com/valyala/fasthttp"
 )

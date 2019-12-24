@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/clems4ever/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/middlewares"
 )
 
 // LogoutPost is the handler logging out the user attached to the given cookie.

@@ -5,11 +5,11 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/clems4ever/authelia/internal/authentication"
-	"github.com/clems4ever/authelia/internal/authorization"
-	"github.com/clems4ever/authelia/internal/middlewares"
-	"github.com/clems4ever/authelia/internal/regulation"
-	"github.com/clems4ever/authelia/internal/session"
+	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/regulation"
+	"github.com/authelia/authelia/internal/session"
 )
 
 // FirstFactorPost is the handler performing the first factory.

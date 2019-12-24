@@ -27,6 +27,7 @@ dist/
 *.tgz
 
 # Specific files
+/configuration.yml
 /config.yml
 /config.test.yml
 

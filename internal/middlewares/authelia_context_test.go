@@ -3,11 +3,11 @@ package middlewares_test
 import (
 	"testing"
 
-	"github.com/clems4ever/authelia/internal/session"
+	"github.com/authelia/authelia/internal/session"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
-	"github.com/clems4ever/authelia/internal/middlewares"
-	"github.com/clems4ever/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"

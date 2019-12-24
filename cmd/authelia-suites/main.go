@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/clems4ever/authelia/internal/suites"
-	"github.com/clems4ever/authelia/internal/utils"
+	"github.com/authelia/authelia/internal/suites"
+	"github.com/authelia/authelia/internal/utils"
 	"github.com/otiai10/copy"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

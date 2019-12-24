@@ -5,7 +5,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/fasthttp/session"
 	"github.com/fasthttp/session/memory"
 	"github.com/fasthttp/session/redis"

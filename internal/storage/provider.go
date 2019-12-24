@@ -3,7 +3,7 @@ package storage
 import (
 	"time"
 
-	"github.com/clems4ever/authelia/internal/models"
+	"github.com/authelia/authelia/internal/models"
 )
 
 // Provider is an interface providing storage capabilities for

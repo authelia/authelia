@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/schema"
 
 	"github.com/stretchr/testify/assert"
 )

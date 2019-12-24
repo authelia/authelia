@@ -5,7 +5,7 @@
 package storage
 
 import (
-	models "github.com/clems4ever/authelia/internal/models"
+	models "github.com/authelia/authelia/internal/models"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/clems4ever/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/mocks"
 
 	"github.com/stretchr/testify/assert"
 

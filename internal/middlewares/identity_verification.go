@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/clems4ever/authelia/internal/templates"
+	"github.com/authelia/authelia/internal/templates"
 	jwt "github.com/dgrijalva/jwt-go"
 )
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/clems4ever/authelia/internal/mocks"
-	"github.com/clems4ever/authelia/internal/storage"
+	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/storage"
 
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/clems4ever/authelia/internal/storage"
+	"github.com/authelia/authelia/internal/storage"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )

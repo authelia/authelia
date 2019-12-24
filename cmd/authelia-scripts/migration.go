@@ -4,8 +4,8 @@ import (
 	"encoding/base64"
 	"strings"
 
-	"github.com/clems4ever/authelia/internal/configuration"
-	"github.com/clems4ever/authelia/internal/storage"
+	"github.com/authelia/authelia/internal/configuration"
+	"github.com/authelia/authelia/internal/storage"
 )
 
 // TOTPSecretsV3 one entry of TOTP secrets in v3
