@@ -3,7 +3,7 @@
 </p>
 
   [![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)][Apache 2.0]
-  [![Build](https://travis-ci.org/clems4ever/authelia.svg?branch=master)](https://travis-ci.org/clems4ever/authelia)
+  [![Build](https://travis-ci.org/authelia/authelia.svg?branch=master)](https://travis-ci.org/authelia/authelia)
   [![Gitter](https://img.shields.io/gitter/room/badges/shields.svg)](https://gitter.im/authelia/general?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
 **Authelia** is an open-source authentication and authorization server
@@ -57,7 +57,7 @@ For more details about the features, follow [Features](./docs/features.md).
 ## Proxy support
 
 Authelia works in combination with [nginx] or [Traefik] and soon with [HAProxy] as discussed in
-[#271](https://github.com/clems4ever/authelia/issues/271). It can be deployed on bare metal with
+[#271](https://github.com/authelia/authelia/issues/271). It can be deployed on bare metal with
 Docker or directly in [Kubernetes].
 
 <p align="center">
@@ -70,7 +70,7 @@ Docker or directly in [Kubernetes].
 
 You can start off with
 
-    git clone https://github.com/clems4ever/authelia.git && cd authelia
+    git clone https://github.com/authelia/authelia.git && cd authelia
     source bootstrap.sh
 
 If you want to go further, please read [Getting Started](./docs/getting-started.md).

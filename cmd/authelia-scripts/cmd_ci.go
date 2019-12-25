@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/clems4ever/authelia/internal/utils"
+	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/clems4ever/authelia/internal/authentication"
-	"github.com/clems4ever/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/pquerna/otp/totp"
 )
 

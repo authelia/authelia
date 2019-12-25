@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"github.com/clems4ever/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/authentication"
 )
 
 // RequireFirstFactor check if user has enough permissions to execute the next handler.

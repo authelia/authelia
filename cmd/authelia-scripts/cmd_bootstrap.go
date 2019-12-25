@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/clems4ever/authelia/internal/utils"
+	"github.com/authelia/authelia/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -207,5 +207,5 @@ func Bootstrap(cobraCmd *cobra.Command, args []string) {
 
 	fmt.Println()
 	bootstrapPrintln("Run 'authelia-scripts suites setup Standalone' to start Authelia and visit https://home.example.com:8080.")
-	bootstrapPrintln("More details at https://github.com/clems4ever/authelia/blob/master/docs/getting-started.md")
+	bootstrapPrintln("More details at https://github.com/authelia/authelia/blob/master/docs/getting-started.md")
 }

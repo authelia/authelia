@@ -3,9 +3,9 @@ package handlers
 import (
 	"testing"
 
-	"github.com/clems4ever/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/mocks"
 
-	"github.com/clems4ever/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/stretchr/testify/suite"
 )
 

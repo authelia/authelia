@@ -5,10 +5,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/clems4ever/authelia/internal/authentication"
-	"github.com/clems4ever/authelia/internal/middlewares"
-	"github.com/clems4ever/authelia/internal/storage"
-	"github.com/clems4ever/authelia/internal/utils"
+	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/storage"
+	"github.com/authelia/authelia/internal/utils"
 	"github.com/sirupsen/logrus"
 )
 

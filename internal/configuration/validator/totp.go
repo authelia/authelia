@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"github.com/clems4ever/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
 const defaultTOTPIssuer = "Authelia"

@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/clems4ever/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/middlewares"
 )
 
 // StateGet is the handler serving the user state.

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/clems4ever/authelia/internal/logging"
+	"github.com/authelia/authelia/internal/logging"
 	_ "github.com/mattn/go-sqlite3" // Load the SQLite Driver used in the connection string.
 )
 
