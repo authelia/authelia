@@ -2,7 +2,7 @@
 
 set +u
 
-DOCKER_IMAGE=clems4ever/authelia
+DOCKER_IMAGE=authelia/authelia
 
 if [[ $BUILDKITE_COMMAND == "authelia-scripts --log-level debug ci" ]];
 then
