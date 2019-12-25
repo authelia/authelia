@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-for SUITE_NAME in BypassAll Docker DuoPush HighAvailability Kubernetes LDAP Mariadb NetworkACL Postgres ShortTimeouts Standalone Traefik;
+for SUITE_NAME in $(authelia-scripts suites list);
 do
   echo "  - label: \":selenium: ${SUITE_NAME} Suite\""
   echo "    commands:"
