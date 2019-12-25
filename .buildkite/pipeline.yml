@@ -23,26 +23,26 @@ steps:
       - "build"
     key: "build-docker"
 
-  - wait
-
-  - label: ":docker: Image Deployments"
-    command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
-    branches: "master v*"
-    depends_on:
-      - "test"
-      - "build-docker"
-
-  - wait
-
-  - label: ":docker: Deploy Manifests"
-    command: "authelia-scripts docker push-manifest"
-    branches: "master v*"
-    env:
-      DOCKER_CLI_EXPERIMENTAL: "enabled"
-
-  - label: ":github: Deploy Artifacts"
-    command: ".buildkite/steps/ghartifacts.sh"
-    agents:
-      upload: "fast"
-    depends_on: "build-docker"
-    if: build.tag != null
+#  - wait
+#
+#  - label: ":docker: Image Deployments"
+#    command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
+#    branches: "master v*"
+#    depends_on:
+#      - "test"
+#      - "build-docker"
+#
+#  - wait
+#
+#  - label: ":docker: Deploy Manifests"
+#    command: "authelia-scripts docker push-manifest"
+#    branches: "master v*"
+#    env:
+#      DOCKER_CLI_EXPERIMENTAL: "enabled"
+#
+#  - label: ":github: Deploy Artifacts"
+#    command: ".buildkite/steps/ghartifacts.sh"
+#    agents:
+#      upload: "fast"
+#    depends_on: "build-docker"
+#    if: build.tag != null
