@@ -84,7 +84,7 @@ func TestShouldUpdatePassword(t *testing.T) {
 
 func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 	WithDatabase(MalformedUserDatabaseContent, func(path string) {
-		assert.Panics(t, func() {
+		assert.PanicsWithValue(t, "Unable to parse database: yaml: line 4: mapping values are not allowed in this context", func() {
 			NewFileUserProvider(path)
 		})
 	})
@@ -92,7 +92,15 @@ func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 
 func TestShouldRaiseWhenLoadingDatabaseWithBadSchemaForFirstTime(t *testing.T) {
 	WithDatabase(BadSchemaUserDatabaseContent, func(path string) {
-		assert.Panics(t, func() {
+		assert.PanicsWithValue(t, "Invalid schema of database: Users: non zero value required", func() {
+			NewFileUserProvider(path)
+		})
+	})
+}
+
+func TestShouldRaiseWhenLoadingDatabaseWithBadHashesForTheFirstTime(t *testing.T) {
+	WithDatabase(BadHashContent, func(path string) {
+		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot match pattern 'rounds=<int>' to find the number of rounds", func() {
 			NewFileUserProvider(path)
 		})
 	})
@@ -157,6 +165,19 @@ var UserDatabaseWithouCryptContent = []byte(`
 users:
   john:
     password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+  james:
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: james.dean@authelia.com
+`)
+
+var BadHashContent = []byte(`
+users:
+  john:
+    password: "$6$rounds00000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: john.doe@authelia.com
     groups:
       - admins
