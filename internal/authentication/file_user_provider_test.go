@@ -98,6 +98,16 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSchemaForFirstTime(t *testing.T) {
 	})
 }
 
+func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
+	WithDatabase(UserDatabaseWithouCryptContent, func(path string) {
+		provider := NewFileUserProvider(path)
+		ok, err := provider.CheckUserPassword("john", "password")
+
+		assert.NoError(t, err)
+		assert.True(t, ok)
+	})
+}
+
 var UserDatabaseContent = []byte(`
 users:
   john:
@@ -141,4 +151,17 @@ user:
     groups:
       - admins
       - dev
+`)
+
+var UserDatabaseWithouCryptContent = []byte(`
+users:
+  john:
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+  james:
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: james.dean@authelia.com
 `)

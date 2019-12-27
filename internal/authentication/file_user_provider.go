@@ -3,6 +3,7 @@ package authentication
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"sync"
 
 	"github.com/asaskevich/govalidator"
@@ -68,7 +69,7 @@ func readDatabase(path string) (*DatabaseModel, error) {
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *FileUserProvider) CheckUserPassword(username string, password string) (bool, error) {
 	if details, ok := p.database.Users[username]; ok {
-		hashedPassword := details.HashedPassword[7:] // Remove {CRYPT}
+		hashedPassword := strings.ReplaceAll(details.HashedPassword, "{CRYPT}", "")
 		ok, err := CheckPassword(password, hashedPassword)
 		if err != nil {
 			return false, err

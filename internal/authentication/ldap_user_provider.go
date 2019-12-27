@@ -153,15 +153,15 @@ func (p *LDAPUserProvider) getUserUID(conn LDAPConnection, username string) (str
 }
 
 func (p *LDAPUserProvider) createGroupsFilter(conn LDAPConnection, username string) (string, error) {
-	if strings.Index(p.configuration.GroupsFilter, "{0}") >= 0 {
+	if strings.Contains(p.configuration.GroupsFilter, "{0}") {
 		return strings.Replace(p.configuration.GroupsFilter, "{0}", username, -1), nil
-	} else if strings.Index(p.configuration.GroupsFilter, "{dn}") >= 0 {
+	} else if strings.Contains(p.configuration.GroupsFilter, "{dn}") {
 		userDN, err := p.getUserDN(conn, username)
 		if err != nil {
 			return "", err
 		}
 		return strings.Replace(p.configuration.GroupsFilter, "{dn}", userDN, -1), nil
-	} else if strings.Index(p.configuration.GroupsFilter, "{uid}") >= 0 {
+	} else if strings.Contains(p.configuration.GroupsFilter, "{uid}") {
 		userUID, err := p.getUserUID(conn, username)
 		if err != nil {
 			return "", err
