@@ -22,26 +22,27 @@ type PasswordHash struct {
 	Hash string
 }
 
-// passwordHashFromString extracts all characteristics of a hash given its string representation.
-func passwordHashFromString(hash string) (*PasswordHash, error) {
-	// Only supports salted sha 512.
-	if hash[:3] != "$6$" {
-		return nil, errors.New("Authelia only supports salted SHA512 hashing")
-	}
+// ParseHash extracts all characteristics of a hash given its string representation.
+func ParseHash(hash string) (*PasswordHash, error) {
 	parts := strings.Split(hash, "$")
 
 	if len(parts) != 5 {
-		return nil, errors.New("Cannot parse the hash")
+		return nil, fmt.Errorf("Cannot parse the hash %s", hash)
+	}
+
+	// Only supports salted sha 512.
+	if parts[1] != "6" {
+		return nil, fmt.Errorf("Authelia only supports salted SHA512 hashing ($6$), not $%s$", parts[1])
 	}
 
 	roundsKV := strings.Split(parts[2], "=")
 	if len(roundsKV) != 2 {
-		return nil, errors.New("Cannot find the number of rounds")
+		return nil, errors.New("Cannot match pattern 'rounds=<int>' to find the number of rounds")
 	}
 
 	rounds, err := strconv.ParseInt(roundsKV[1], 10, 0)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot find the number of rounds in the hash: %s", err.Error())
+		return nil, fmt.Errorf("Cannot find the number of rounds from %s using pattern 'rounds=<int>'. Cause: %s", roundsKV[1], err.Error())
 	}
 
 	return &PasswordHash{
@@ -78,7 +79,7 @@ func HashPassword(password string, salt string) string {
 
 // CheckPassword check a password against a hash.
 func CheckPassword(password string, hash string) (bool, error) {
-	passwordHash, err := passwordHashFromString(hash)
+	passwordHash, err := ParseHash(hash)
 	if err != nil {
 		return false, err
 	}
