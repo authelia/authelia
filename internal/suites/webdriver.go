@@ -21,18 +21,19 @@ type WebDriverSession struct {
 
 // StartWebDriverWithProxy create a selenium session
 func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) {
-	service, err := selenium.NewChromeDriverService("/usr/local/bin/chromedriver", port)
+	service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", port)
 
 	if err != nil {
 		return nil, err
 	}
 
 	chromeCaps := chrome.Capabilities{
-		Path: "/usr/bin/google-chrome-stable",
+		Path: "/usr/bin/chromium-browser",
 	}
 
 	if os.Getenv("HEADLESS") != "" {
 		chromeCaps.Args = append(chromeCaps.Args, "--headless")
+		chromeCaps.Args = append(chromeCaps.Args, "--no-sandbox")
 	}
 
 	if proxy != "" {

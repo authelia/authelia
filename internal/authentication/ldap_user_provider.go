@@ -97,7 +97,7 @@ func (p *LDAPUserProvider) getUserAttribute(conn LDAPConnection, username string
 	defer client.Close()
 
 	userFilter := strings.Replace(p.configuration.UsersFilter, "{0}", username, -1)
-	var baseDN string = p.configuration.BaseDN
+	baseDN := p.configuration.BaseDN
 	if p.configuration.AdditionalUsersDN != "" {
 		baseDN = p.configuration.AdditionalUsersDN + "," + baseDN
 	}
@@ -184,7 +184,7 @@ func (p *LDAPUserProvider) GetDetails(username string) (*UserDetails, error) {
 		return nil, fmt.Errorf("Unable to create group filter for user %s. Cause: %s", username, err)
 	}
 
-	var groupBaseDN string = p.configuration.BaseDN
+	groupBaseDN := p.configuration.BaseDN
 	if p.configuration.AdditionalGroupsDN != "" {
 		groupBaseDN = p.configuration.AdditionalGroupsDN + "," + groupBaseDN
 	}

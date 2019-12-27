@@ -25,7 +25,7 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaBackendIsReady(dockerEnvironment)
+		return waitUntilAutheliaIsReady(dockerEnvironment)
 	}
 
 	onSetupTimeout := func() error {
@@ -52,6 +52,7 @@ func init() {
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  onSetupTimeout,
+		TestTimeout:     2 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 	})

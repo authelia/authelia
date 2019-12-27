@@ -1,0 +1,18 @@
+# ===================================
+# ===== Authelia CI image =====
+# ===================================
+FROM alpine:3.10.3
+
+RUN apk --no-cache add ca-certificates tzdata
+
+WORKDIR /usr/app
+
+COPY /dist/authelia authelia
+COPY /dist/public_html public_html
+
+EXPOSE 9091
+
+VOLUME /etc/authelia
+VOLUME /var/lib/authelia
+
+CMD ["./authelia", "--config", "/etc/authelia/configuration.yml"]

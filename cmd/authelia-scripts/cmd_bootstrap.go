@@ -68,7 +68,7 @@ func checkCommandExist(cmd string) {
 }
 
 func installClientNpmPackages() {
-	command := utils.CommandWithStdout("npm", "ci")
+	command := utils.CommandWithStdout("yarn", "install")
 	command.Dir = "client"
 	err := command.Run()
 
@@ -145,7 +145,7 @@ func prepareHostsFile() {
 
 	if modified {
 		bootstrapPrintln("/etc/hosts needs to be updated")
-		shell("/usr/bin/sudo mv /tmp/authelia/hosts /etc/hosts")
+		shell("cat /tmp/authelia/hosts | sudo tee -a /etc/hosts > /dev/null")
 	}
 }
 

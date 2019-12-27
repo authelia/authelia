@@ -42,7 +42,7 @@ WORKDIR /node/src/app
 COPY web .
 
 # Install the dependencies and build
-RUN npm ci && npm run build
+RUN yarn install && yarn build
 
 # ===================================
 # ===== Authelia official image =====

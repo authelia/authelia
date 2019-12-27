@@ -3,7 +3,7 @@ services:
   authelia-backend:
     build:
       context: .
-      dockerfile: Dockerfile.CI
+      dockerfile: Dockerfile
     environment:
       - ENVIRONMENT=dev
     restart: always

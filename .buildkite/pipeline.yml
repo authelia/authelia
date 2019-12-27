@@ -1,0 +1,48 @@
+steps:
+  - label: ":hammer_and_wrench: Build & Test"
+    command: "authelia-scripts --log-level debug ci"
+    agents:
+      upload: "fast"
+    artifact_paths:
+      - "dist.tar.gz"
+      - "web.tar.gz"
+    key: "build"
+
+  - wait
+
+  - label: ":chrome: Integration Tests"
+    command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
+    key: "test"
+
+  - wait
+
+  - label: ":docker: Image Builds"
+    command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
+    branches: "master v*"
+    depends_on:
+      - "build"
+    key: "build-docker"
+
+#  - wait
+#
+#  - label: ":docker: Image Deployments"
+#    command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
+#    branches: "master v*"
+#    depends_on:
+#      - "test"
+#      - "build-docker"
+#
+#  - wait
+#
+#  - label: ":docker: Deploy Manifests"
+#    command: "authelia-scripts docker push-manifest"
+#    branches: "master v*"
+#    env:
+#      DOCKER_CLI_EXPERIMENTAL: "enabled"
+#
+#  - label: ":github: Deploy Artifacts"
+#    command: ".buildkite/steps/ghartifacts.sh"
+#    agents:
+#      upload: "fast"
+#    depends_on: "build-docker"
+#    if: build.tag != null

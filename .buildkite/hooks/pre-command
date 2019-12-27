@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set +u
+
+if [[ $BUILDKITE_LABEL =~ ":selenium:" ]];
+then
+  echo "--- :go::node: Extracting build artifacts"
+  buildkite-agent artifact download "dist.tar.gz" . && tar xf dist.tar.gz
+  buildkite-agent artifact download "web.tar.gz" . && tar xf web.tar.gz
+fi
+
+if [[ $BUILDKITE_LABEL =~ ":docker: Deploy Image" ]];
+then
+  buildkite-agent artifact download "authelia-image-$ARCH*" .
+  zcat authelia-image-$ARCH.tar.gz | docker load
+fi
+
+if [[ $BUILDKITE_LABEL == ":github: Deploy Artifacts" ]];
+then
+  buildkite-agent artifact download "authelia-linux-*" .
+fi

@@ -1,6 +1,9 @@
 FROM golang:1.13-alpine
 
-RUN apk --no-cache add gcc musl-dev
+#TODO(nightah): Remove when turning off Travis
+ARG TRAVIS
+RUN if [ "$TRAVIS" == "true" ]; then apk --no-cache add gcc musl-dev; fi
+#TODO(nightah): Remove when turning off Travis
 
 ARG USER_ID
 ARG GROUP_ID

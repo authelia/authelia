@@ -14,14 +14,18 @@ import (
 
 var arch string
 
-var supportedArch = []string{"amd64", "arm32v7", "arm64v8"}
+var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "CI"}
 var defaultArch = "amd64"
-var travisBranch = os.Getenv("TRAVIS_BRANCH")
-var travisPullRequest = os.Getenv("TRAVIS_PULL_REQUEST")
-var travisTag = os.Getenv("TRAVIS_TAG")
+var buildkite = os.Getenv("BUILDKITE")
+var buildkiteQEMU = os.Getenv("BUILDKITE_AGENT_META_DATA_QEMU")
+//TODO(nightah): Uncomment when turning off Travis
+//var ciBranch = os.Getenv("BUILDKITE_BRANCH")
+//var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
+//var ciTag = os.Getenv("BUILDKITE_TAG")
 var dockerTags = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
 var ignoredSuffixes = regexp.MustCompile("alpha|beta")
-var tags = dockerTags.FindStringSubmatch(travisTag)
+//var tags = dockerTags.FindStringSubmatch(ciTag)
+//TODO(nightah): Uncomment when turning off Travis
 
 func init() {
 	DockerBuildCmd.PersistentFlags().StringVar(&arch, "arch", defaultArch, "target architecture among: "+strings.Join(supportedArch, ", "))
@@ -44,38 +48,49 @@ func dockerBuildOfficialImage(arch string) error {
 	// Set version of QEMU
 	qemuversion := "v4.1.1-1"
 
+	//TODO(nightah): Remove when turning off Travis
+	ciTag := ""
+	if os.Getenv("TRAVIS_TAG") != "" {
+		ciTag = os.Getenv("TRAVIS_TAG")
+	} else {
+		ciTag = os.Getenv("BUILDKITE_TAG")
+	}
+	//TODO(nightah): Remove when turning off Travis
+
 	// If not the default value
 	if arch != defaultArch {
 		dockerfile = fmt.Sprintf("%s.%s", dockerfile, arch)
 	}
 
 	if arch == "arm32v7" {
-		err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
-
-		if err != nil {
-			panic(err)
+		if buildkiteQEMU != "true" {
+			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
+			if err != nil {
+				panic(err)
+			}
 		}
 
-		err = utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-arm-static -O ./qemu-arm-static && chmod +x ./qemu-arm-static").Run()
+		err := utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-arm-static -O ./qemu-arm-static && chmod +x ./qemu-arm-static").Run()
 
 		if err != nil {
 			panic(err)
 		}
 	} else if arch == "arm64v8" {
-		err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
-
-		if err != nil {
-			panic(err)
+		if buildkiteQEMU != "true" {
+			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
+			if err != nil {
+				panic(err)
+			}
 		}
 
-		err = utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-aarch64-static -O ./qemu-aarch64-static && chmod +x ./qemu-aarch64-static").Run()
+		err := utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-aarch64-static -O ./qemu-aarch64-static && chmod +x ./qemu-aarch64-static").Run()
 
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	gitTag := travisTag
+	gitTag := ciTag
 	if gitTag == "" {
 		// If commit is not tagged, mark the build has having unknown tag.
 		gitTag = "unknown"
@@ -140,6 +155,10 @@ func login(docker *Docker) {
 	username := os.Getenv("DOCKER_USERNAME")
 	password := os.Getenv("DOCKER_PASSWORD")
 
+	if buildkite == "true" {
+		return
+	}
+
 	if username == "" {
 		log.Fatal(errors.New("DOCKER_USERNAME is empty"))
 	}
@@ -200,16 +219,38 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 func publishDockerImage(arch string) {
 	docker := &Docker{}
 
-	if travisBranch == "master" && travisPullRequest == "false" {
+	//TODO(nightah): Remove when turning off Travis
+	ciBranch := ""
+	if os.Getenv("TRAVIS_BRANCH") != "" {
+		ciBranch = os.Getenv("TRAVIS_BRANCH")
+	} else {
+		ciBranch = os.Getenv("BUILDKITE_BRANCH")
+	}
+	ciPullRequest := ""
+	if os.Getenv("TRAVIS_PULL_REQUEST") != "" {
+		ciPullRequest = os.Getenv("TRAVIS_PULL_REQUEST")
+	} else {
+		ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
+	}
+	ciTag := ""
+	if os.Getenv("TRAVIS_TAG") != "" {
+		ciTag = os.Getenv("TRAVIS_TAG")
+	} else {
+		ciTag = os.Getenv("BUILDKITE_TAG")
+	}
+	tags := dockerTags.FindStringSubmatch(ciTag)
+	//TODO(nightah): Remove when turning off Travis
+
+	if ciBranch == "master" && ciPullRequest == "false" {
 		login(docker)
 		deploy(docker, "master-"+arch)
-	} else if travisTag != "" {
+	} else if ciTag != "" {
 		if len(tags) == 4 {
-			fmt.Printf("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
+			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 
 			login(docker)
 			deploy(docker, tags[1]+"-"+arch)
-			if !ignoredSuffixes.MatchString(travisTag) {
+			if !ignoredSuffixes.MatchString(ciTag) {
 				deploy(docker, tags[2]+"-"+arch)
 				deploy(docker, tags[3]+"-"+arch)
 				deploy(docker, "latest-"+arch)
@@ -225,17 +266,39 @@ func publishDockerImage(arch string) {
 func publishDockerManifest() {
 	docker := &Docker{}
 
-	if travisBranch == "master" && travisPullRequest == "false" {
+	//TODO(nightah): Remove when turning off Travis
+	ciBranch := ""
+	if os.Getenv("TRAVIS_BRANCH") != "" {
+		ciBranch = os.Getenv("TRAVIS_BRANCH")
+	} else {
+		ciBranch = os.Getenv("BUILDKITE_BRANCH")
+	}
+	ciPullRequest := ""
+	if os.Getenv("TRAVIS_PULL_REQUEST") != "" {
+		ciPullRequest = os.Getenv("TRAVIS_PULL_REQUEST")
+	} else {
+		ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
+	}
+	ciTag := ""
+	if os.Getenv("TRAVIS_TAG") != "" {
+		ciTag = os.Getenv("TRAVIS_TAG")
+	} else {
+		ciTag = os.Getenv("BUILDKITE_TAG")
+	}
+	tags := dockerTags.FindStringSubmatch(ciTag)
+	//TODO(nightah): Remove when turning off Travis
+
+	if ciBranch == "master" && ciPullRequest == "false" {
 		login(docker)
 		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
-	} else if travisTag != "" {
+	} else if ciTag != "" {
 		if len(tags) == 4 {
-			fmt.Printf("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
+			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 
 			login(docker)
 			deployManifest(docker, tags[1], tags[1]+"-amd64", tags[1]+"-arm32v7", tags[1]+"-arm64v8")
 
-			if !ignoredSuffixes.MatchString(travisTag) {
+			if !ignoredSuffixes.MatchString(ciTag) {
 				deployManifest(docker, tags[2], tags[2]+"-amd64", tags[2]+"-arm32v7", tags[2]+"-arm64v8")
 				deployManifest(docker, tags[3], tags[3]+"-amd64", tags[3]+"-arm32v7", tags[3]+"-arm64v8")
 				deployManifest(docker, "latest", "latest-amd64", "latest-arm32v7", "latest-arm64v8")
@@ -244,6 +307,6 @@ func publishDockerManifest() {
 			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
 		}
 	} else {
-		fmt.Println("Docker manifest will not be published")
+		log.Info("Docker manifest will not be published")
 	}
 }

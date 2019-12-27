@@ -23,7 +23,7 @@ func buildAutheliaBinary() {
 
 func buildFrontend() {
 	// Install npm dependencies
-	cmd := utils.CommandWithStdout("npm", "ci")
+	cmd := utils.CommandWithStdout("yarn", "install")
 	cmd.Dir = "web"
 
 	if err := cmd.Run(); err != nil {
@@ -31,7 +31,7 @@ func buildFrontend() {
 	}
 
 	// Then build the frontend
-	cmd = utils.CommandWithStdout("npm", "run", "build")
+	cmd = utils.CommandWithStdout("yarn", "build")
 	cmd.Dir = "web"
 
 	if err := cmd.Run(); err != nil {

@@ -2,6 +2,8 @@ package suites
 
 import (
 	"fmt"
+	//TODO(nightah): Remove when turning off Travis
+	"os"
 	"time"
 
 	"github.com/authelia/authelia/internal/utils"
@@ -42,9 +44,18 @@ func init() {
 		}
 
 		log.Debug("Building authelia:dist image...")
-		if err := utils.Shell("authelia-scripts docker build").Run(); err != nil {
-			return err
+		//TODO(nightah): Remove when turning off Travis
+		travis := os.Getenv("TRAVIS")
+		if travis == "true" {
+			if err := utils.Shell("authelia-scripts docker build").Run(); err != nil {
+				return err
+			}
+		} else {
+			if err := utils.Shell("authelia-scripts docker build --arch=CI").Run(); err != nil {
+				return err
+			}
 		}
+		//TODO(nightah): Remove when turning off Travis
 
 		log.Debug("Loading images into Kubernetes container...")
 		if err = loadDockerImages(); err != nil {
@@ -91,7 +102,7 @@ func init() {
 
 	GlobalRegistry.Register(kubernetesSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    10 * time.Minute,
+		SetUpTimeout:    12 * time.Minute,
 		TestTimeout:     2 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,

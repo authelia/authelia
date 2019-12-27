@@ -2,14 +2,27 @@ package suites
 
 import (
 	"fmt"
+	//TODO(nightah): Remove when turning off Travis
+	"os"
 	"time"
 )
 
 func init() {
+	//TODO(nightah): Remove when turning off Travis
+	travis := os.Getenv("TRAVIS")
+	backend := ""
+	if travis == "true" {
+		backend = "example/compose/authelia/docker-compose.backend-dist-travis.yml"
+	} else {
+		backend = "example/compose/authelia/docker-compose.backend-dist.yml"
+	}
+	//TODO(nightah): Remove when turning off Travis
+
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"docker-compose.yml",
 		"internal/suites/Docker/docker-compose.yml",
-		"example/compose/authelia/docker-compose.backend-dist.yml",
+		//TODO(nightah): Change to "example/compose/authelia/docker-compose.backend-dist.yml" when removing Travis
+		backend,
 		"example/compose/authelia/docker-compose.frontend-dist.yml",
 		"example/compose/nginx/backend/docker-compose.yml",
 		"example/compose/nginx/portal/docker-compose.yml",

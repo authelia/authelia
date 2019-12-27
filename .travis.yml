@@ -7,8 +7,6 @@ go:
 
 services:
   - docker
-  - ntp
-  - xvfb
 
 addons:
   chrome: stable
@@ -16,11 +14,10 @@ addons:
     sources:
       - google-chrome
     packages:
-      - libgif-dev
       - google-chrome-stable
 
 install:
-  - export PATH=./cmd/authelia-scripts/:/tmp:$PATH
+  - export PATH=$PATH:./cmd/authelia-scripts/:/tmp
   - source bootstrap.sh
 
 jobs:
@@ -45,13 +42,13 @@ jobs:
         - wget -N https://chromedriver.storage.googleapis.com/78.0.3904.70/chromedriver_linux64.zip -P ~/
         - unzip ~/chromedriver_linux64.zip -d ~/
         - rm ~/chromedriver_linux64.zip
-        - sudo mv -f ~/chromedriver /usr/local/bin/chromedriver
-        - sudo chmod +x /usr/local/bin/chromedriver
-
+        - sudo mv -f ~/chromedriver /usr/bin/chromedriver
+        - sudo chmod +x /usr/bin/chromedriver
+        - sudo ln -s /usr/bin/google-chrome-stable /usr/bin/chromium-browser
         - go mod download
       script:
         # Run the suite
-        - CI=true authelia-scripts --log-level debug suites test $SUITE_NAME --headless
+        - authelia-scripts --log-level debug suites test $SUITE_NAME --headless
     # TODO(c.michaud): check if all suites are listed based on `authelia-scripts suites list` command.
     - <<: *e2e-test
       env:
