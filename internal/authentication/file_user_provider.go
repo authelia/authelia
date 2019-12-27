@@ -35,8 +35,15 @@ func NewFileUserProvider(filepath string) *FileUserProvider {
 	database, err := readDatabase(filepath)
 	if err != nil {
 		// Panic since the file does not exist when Authelia is starting.
-		panic(err)
+		panic(err.Error())
 	}
+
+	// Early check whether hashed passwords are correct for all users
+	err = checkPasswordHashes(database)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	return &FileUserProvider{
 		path:     &filepath,
 		database: database,
@@ -44,24 +51,34 @@ func NewFileUserProvider(filepath string) *FileUserProvider {
 	}
 }
 
+func checkPasswordHashes(database *DatabaseModel) error {
+	for u, v := range database.Users {
+		_, err := ParseHash(v.HashedPassword)
+		if err != nil {
+			return fmt.Errorf("Unable to parse hash of user %s: %s", u, err)
+		}
+	}
+	return nil
+}
+
 func readDatabase(path string) (*DatabaseModel, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Unable to read database from file %s: %s", path, err)
 	}
 	db := DatabaseModel{}
 	err = yaml.Unmarshal(content, &db)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Unable to parse database: %s", err)
 	}
 
 	ok, err := govalidator.ValidateStruct(db)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Invalid schema of database: %s", err)
 	}
 
 	if !ok {
-		return nil, fmt.Errorf("The database format is invalid: %s", err.Error())
+		return nil, fmt.Errorf("The database format is invalid: %s", err)
 	}
 	return &db, nil
 }
