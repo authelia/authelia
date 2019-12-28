@@ -71,6 +71,9 @@ func (n *SMTPNotifier) Send(recipient string, subject string, body string) error
 
 	// Attempt AUTH if password is specified only
 	if n.password != "" {
+		if !starttls {
+			log.Warn("Authentication is being attempted over an insecure connection. Using a SMTP server that supports STARTTLS is recommended, especially if the server is not on your local network (username and pasword are being transmitted in plain-text).")
+		}
 
 		// Check the server supports AUTH, and get the mechanisms
 		authExtension, m := c.Extension("AUTH")
@@ -90,7 +93,7 @@ func (n *SMTPNotifier) Send(recipient string, subject string, body string) error
 
 			// Throw error since AUTH extension is not supported
 			if auth == nil {
-				return fmt.Errorf("SMTP server does not advertise a AUTH mechanism that Authelia supports. Advertised mechanisms: %s.", m)
+				return fmt.Errorf("SMTP server does not advertise a AUTH mechanism that Authelia supports (PLAIN or LOGIN). Advertised mechanisms: %s.", m)
 			}
 
 			// Authenticate
