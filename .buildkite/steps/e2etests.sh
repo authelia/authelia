@@ -6,6 +6,8 @@ do
   echo "  - label: \":selenium: ${SUITE_NAME} Suite\""
   echo "    commands:"
   echo "      - \"authelia-scripts --log-level debug suites test ${SUITE_NAME} --headless\""
+  echo "    retry:"
+  echo "      "automatic: true""
   if [[ "${SUITE_NAME}" != "Kubernetes" ]];
   then
     echo "    agents:"
