@@ -46,7 +46,7 @@ func dockerBuildOfficialImage(arch string) error {
 	// Set default Architecture Dockerfile to amd64
 	dockerfile := "Dockerfile"
 	// Set version of QEMU
-	qemuversion := "v4.1.1-1"
+	qemuversion := "v4.2.0-2"
 
 	//TODO(nightah): Remove when turning off Travis
 	ciTag := ""
