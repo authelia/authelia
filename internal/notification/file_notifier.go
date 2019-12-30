@@ -21,7 +21,7 @@ func NewFileNotifier(configuration schema.FileSystemNotifierConfiguration) *File
 }
 
 // Send send a identity verification link to a user.
-func (n *FileNotifier) Send(recipient string, subject string, body string) error {
+func (n *FileNotifier) Send(recipient, subject, body string) error {
 	content := fmt.Sprintf("Date: %s\nRecipient: %s\nSubject: %s\nBody: %s", time.Now(), recipient, subject, body)
 
 	err := ioutil.WriteFile(n.path, []byte(content), 0755)

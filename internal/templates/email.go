@@ -26,7 +26,7 @@ const emailContent = `
    <title>Authelia</title>
 
    <style type="text/css">
-      /* Client-specific Styles */
+      /* client-specific Styles */
       #outlook a {
          padding: 0;
       }
