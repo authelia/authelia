@@ -12,7 +12,6 @@ spec:
     hosts:
     - login.example.com
   rules:
-  rules:
   - host: login.example.com
     http:
       paths:
