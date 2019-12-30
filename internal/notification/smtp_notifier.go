@@ -41,7 +41,6 @@ func (n *SMTPNotifier) Send(recipient string, subject string, body string) error
 	msg := "From: " + n.sender + "\n" +
 		"To: " + recipient + "\n" +
 		"Subject: " + subject + "\n" +
-		"Content-Type: text/html\n" +
 		"MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n" +
 		body
 
