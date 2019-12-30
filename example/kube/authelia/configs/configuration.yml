@@ -100,3 +100,4 @@ notifier:
     host: "mailcatcher-service"
     port: 1025
     sender: admin@example.com
+    disable_require_tls: true

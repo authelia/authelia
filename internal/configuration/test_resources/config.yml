@@ -115,7 +115,7 @@ notifier:
   smtp:
     username: test
     password: password
-    secure: false
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com
+    disable_require_tls: true
