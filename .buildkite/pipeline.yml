@@ -14,7 +14,8 @@ steps:
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
     key: "test"
 
-  - wait
+  - wait:
+    if: build.branch == "master" || build.branch =~ /^v/
 
   - label: ":docker: Image Builds"
     command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
@@ -23,7 +24,8 @@ steps:
       - "build"
     key: "build-docker"
 
-#  - wait
+#  - wait:
+#    if: build.branch == "master" || build.branch =~ /^v/
 #
 #  - label: ":docker: Image Deployments"
 #    command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
@@ -32,7 +34,8 @@ steps:
 #      - "test"
 #      - "build-docker"
 #
-#  - wait
+#  - wait:
+#    if: build.branch == "master" || build.branch =~ /^v/
 #
 #  - label: ":docker: Deploy Manifests"
 #    command: "authelia-scripts docker push-manifest"
