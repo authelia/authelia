@@ -86,6 +86,7 @@ jobs:
 
     - &build-images
       stage: build images
+      if: branch = "master" && type != "pull_request" || branch =~ /^v/
       env:
         - ARCH=amd64
       script:
@@ -115,6 +116,7 @@ jobs:
       env:
         - ARCH=arm64v8
     - stage: deploy manifests
+      if: branch = "master" && type != "pull_request" || branch =~ /^v/
       env:
         - DOCKER_CLI_EXPERIMENTAL=enabled
       script:
