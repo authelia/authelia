@@ -48,7 +48,7 @@ RUN yarn install && yarn build
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM arm32v7/alpine:3.10.3
+FROM arm32v7/alpine:3.11.2
 
 COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 

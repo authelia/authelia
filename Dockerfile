@@ -47,7 +47,7 @@ RUN yarn install && yarn build
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.10.3
+FROM alpine:3.11.2
 
 RUN apk --no-cache add ca-certificates tzdata
 
