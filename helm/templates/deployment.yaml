@@ -14,7 +14,7 @@ spec:
     metadata:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        {{- if not .Values.authelia.ldap.enable }}
+        {{- if not .Values.authelia.ldap.enabled }}
         checksum/users: {{ include (print $.Template.BasePath "/users.yaml") . | sha256sum }}
       labels:
         app.kubernetes.io/name: {{ include "authelia.name" . }}
@@ -58,7 +58,7 @@ spec:
           - name: authelia-store
             mountPath: /var/lib/authelia
           {{- end }}
-          {{- if not .Values.authelia.ldap.enable }}
+          {{- if not .Values.authelia.ldap.enabled }}
           - name: authelia-users
             mountPath: /var/lib/authelia/users_database.yml
             subPath: users_database.yml
@@ -86,7 +86,7 @@ spec:
         persistentVolumeClaim:
           claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{- else }}{{ template "authelia.fullname" . }}-store{{- end }}
       {{- end }}
-      {{- if not .Values.authelia.ldap.enable }}
+      {{- if not .Values.authelia.ldap.enabled }}
       - name: authelia-users
         secret:
           secretName: {{ template "authelia.fullname" . }}-users
