@@ -227,7 +227,7 @@ func (s *RegulatorSuite) TestShouldCheckRegulationHasBeenResetOnSuccessfulAttemp
 			Time:       s.clock.Now().Add(-93 * time.Second),
 		},
 		// The user was almost banned but he did a successful attempt. Therefore, even if the next
-		// failure happens withing FindTime, he should not be banned.
+		// failure happens within FindTime, he should not be banned.
 		models.AuthenticationAttempt{
 			Username:   "john",
 			Successful: false,

@@ -12,7 +12,7 @@ type authorizationMatching int
 
 // UserInfo is the model of user second factor preferences
 type UserPreferences struct {
-	// The prefered 2FA method.
+	// The preferred 2FA method.
 	Method string `json:"method" valid:"required"`
 
 	// True if a security key has been registered

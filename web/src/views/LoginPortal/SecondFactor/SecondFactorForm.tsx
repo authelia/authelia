@@ -16,7 +16,7 @@ import {
     LogoutRoute as SignOutRoute, SecondFactorTOTPRoute,
     SecondFactorPushRoute, SecondFactorU2FRoute, SecondFactorRoute
 } from "../../../Routes";
-import { setPrefered2FAMethod } from "../../../services/UserPreferences";
+import { setPreferred2FAMethod } from "../../../services/UserPreferences";
 import { UserInfo } from "../../../models/UserInfo";
 import { ExtendedConfiguration } from "../../../models/Configuration";
 import u2fApi from "u2f-api";
@@ -69,12 +69,12 @@ export default function (props: Props) {
 
     const handleMethodSelected = async (method: SecondFactorMethod) => {
         try {
-            await setPrefered2FAMethod(method);
+            await setPreferred2FAMethod(method);
             setMethodSelectionOpen(false);
             props.onMethodChanged(method);
         } catch (err) {
             console.error(err);
-            createErrorNotification("There was an issue updating prefered second factor method");
+            createErrorNotification("There was an issue updating preferred second factor method");
         }
     }
 

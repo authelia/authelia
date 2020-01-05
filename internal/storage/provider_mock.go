@@ -34,33 +34,33 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 	return m.recorder
 }
 
-// LoadPrefered2FAMethod mocks base method
-func (m *MockProvider) LoadPrefered2FAMethod(username string) (string, error) {
+// LoadPreferred2FAMethod mocks base method
+func (m *MockProvider) LoadPreferred2FAMethod(username string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadPrefered2FAMethod", username)
+	ret := m.ctrl.Call(m, "LoadPreferred2FAMethod", username)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LoadPrefered2FAMethod indicates an expected call of LoadPrefered2FAMethod
-func (mr *MockProviderMockRecorder) LoadPrefered2FAMethod(username interface{}) *gomock.Call {
+// LoadPreferred2FAMethod indicates an expected call of LoadPreferred2FAMethod
+func (mr *MockProviderMockRecorder) LoadPreferred2FAMethod(username interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadPrefered2FAMethod", reflect.TypeOf((*MockProvider)(nil).LoadPrefered2FAMethod), username)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadPreferred2FAMethod", reflect.TypeOf((*MockProvider)(nil).LoadPreferred2FAMethod), username)
 }
 
-// SavePrefered2FAMethod mocks base method
-func (m *MockProvider) SavePrefered2FAMethod(username, method string) error {
+// SavePreferred2FAMethod mocks base method
+func (m *MockProvider) SavePreferred2FAMethod(username, method string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SavePrefered2FAMethod", username, method)
+	ret := m.ctrl.Call(m, "SavePreferred2FAMethod", username, method)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SavePrefered2FAMethod indicates an expected call of SavePrefered2FAMethod
-func (mr *MockProviderMockRecorder) SavePrefered2FAMethod(username, method interface{}) *gomock.Call {
+// SavePreferred2FAMethod indicates an expected call of SavePreferred2FAMethod
+func (mr *MockProviderMockRecorder) SavePreferred2FAMethod(username, method interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePrefered2FAMethod", reflect.TypeOf((*MockProvider)(nil).SavePrefered2FAMethod), username, method)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePreferred2FAMethod", reflect.TypeOf((*MockProvider)(nil).SavePreferred2FAMethod), username, method)
 }
 
 // FindIdentityVerificationToken mocks base method

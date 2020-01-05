@@ -19,7 +19,7 @@ func loadInfo(username string, storageProvier storage.Provider, preferences *Use
 	errors := make([]error, 0)
 	go func() {
 		defer wg.Done()
-		method, err := storageProvier.LoadPrefered2FAMethod(username)
+		method, err := storageProvier.LoadPreferred2FAMethod(username)
 		if err != nil {
 			errors = append(errors, err)
 			logger.Error(err)
@@ -97,11 +97,11 @@ func MethodPreferencePost(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userSession := ctx.GetSession()
-	ctx.Logger.Debugf("Save new prefered 2FA method of user %s to %s", userSession.Username, bodyJSON.Method)
-	err = ctx.Providers.StorageProvider.SavePrefered2FAMethod(userSession.Username, bodyJSON.Method)
+	ctx.Logger.Debugf("Save new preferred 2FA method of user %s to %s", userSession.Username, bodyJSON.Method)
+	err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(userSession.Username, bodyJSON.Method)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to save new prefered 2FA method: %s", err), operationFailedMessage)
+		ctx.Error(fmt.Errorf("Unable to save new preferred 2FA method: %s", err), operationFailedMessage)
 		return
 	}
 

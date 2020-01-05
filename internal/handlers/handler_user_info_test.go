@@ -20,7 +20,7 @@ type FetchSuite struct {
 
 func (s *FetchSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	// Set the intial user session.
+	// Set the initial user session.
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = "john"
 	userSession.AuthenticationLevel = 1
@@ -34,7 +34,7 @@ func (s *FetchSuite) TearDownTest() {
 func setPreferencesExpectations(preferences UserPreferences, provider *storage.MockProvider) {
 	provider.
 		EXPECT().
-		LoadPrefered2FAMethod(gomock.Eq("john")).
+		LoadPreferred2FAMethod(gomock.Eq("john")).
 		Return(preferences.Method, nil)
 
 	if preferences.HasU2F {
@@ -89,7 +89,7 @@ func TestMethodSetToU2F(t *testing.T) {
 
 	for _, expectedPreferences := range table {
 		mock := mocks.NewMockAutheliaCtx(t)
-		// Set the intial user session.
+		// Set the initial user session.
 		userSession := mock.Ctx.GetSession()
 		userSession.Username = "john"
 		userSession.AuthenticationLevel = 1
@@ -119,7 +119,7 @@ func TestMethodSetToU2F(t *testing.T) {
 func (s *FetchSuite) TestShouldGetDefaultPreferenceIfNotInDB() {
 	s.mock.StorageProviderMock.
 		EXPECT().
-		LoadPrefered2FAMethod(gomock.Eq("john")).
+		LoadPreferred2FAMethod(gomock.Eq("john")).
 		Return("", nil)
 
 	s.mock.StorageProviderMock.
@@ -138,7 +138,7 @@ func (s *FetchSuite) TestShouldGetDefaultPreferenceIfNotInDB() {
 
 func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 	s.mock.StorageProviderMock.EXPECT().
-		LoadPrefered2FAMethod(gomock.Eq("john")).
+		LoadPreferred2FAMethod(gomock.Eq("john")).
 		Return("", fmt.Errorf("Failure"))
 
 	s.mock.StorageProviderMock.
@@ -167,7 +167,7 @@ type SaveSuite struct {
 
 func (s *SaveSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	// Set the intial user session.
+	// Set the initial user session.
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = "john"
 	userSession.AuthenticationLevel = 1
@@ -217,20 +217,20 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
 	s.mock.StorageProviderMock.EXPECT().
-		SavePrefered2FAMethod(gomock.Eq("john"), gomock.Eq("u2f")).
+		SavePreferred2FAMethod(gomock.Eq("john"), gomock.Eq("u2f")).
 		Return(fmt.Errorf("Failure"))
 
 	MethodPreferencePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "Unable to save new prefered 2FA method: Failure", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Unable to save new preferred 2FA method: Failure", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
 func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
 	s.mock.StorageProviderMock.EXPECT().
-		SavePrefered2FAMethod(gomock.Eq("john"), gomock.Eq("u2f")).
+		SavePreferred2FAMethod(gomock.Eq("john"), gomock.Eq("u2f")).
 		Return(nil)
 
 	MethodPreferencePost(s.mock.Ctx)

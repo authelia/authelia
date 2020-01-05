@@ -124,7 +124,7 @@ func migrateMongoTOTPDevices(db *mongo.Database, dbProvider storage.Provider) {
 }
 
 func migrateMongoPreferences(db *mongo.Database, dbProvider storage.Provider) {
-	u2fCollection := db.Collection("prefered_2fa_method")
+	u2fCollection := db.Collection("preferred_2fa_method")
 
 	cur, err := u2fCollection.Find(context.Background(), bson.D{})
 	if err != nil {
@@ -139,7 +139,7 @@ func migrateMongoPreferences(db *mongo.Database, dbProvider storage.Provider) {
 			log.Fatal(err)
 		}
 
-		err = dbProvider.SavePrefered2FAMethod(result.UserID, result.Method)
+		err = dbProvider.SavePreferred2FAMethod(result.UserID, result.Method)
 
 		if err != nil {
 			log.Fatal(err)
