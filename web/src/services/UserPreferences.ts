@@ -42,7 +42,7 @@ export async function getUserPreferences(): Promise<UserInfo> {
     return { ...res, method: toEnum(res.method) };
 }
 
-export function setPrefered2FAMethod(method: SecondFactorMethod) {
+export function setPreferred2FAMethod(method: SecondFactorMethod) {
     return PostWithOptionalResponse(UserInfo2FAMethodPath,
         { method: toString(method) } as MethodPreferencePayload);
 }

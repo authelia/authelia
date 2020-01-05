@@ -9,8 +9,8 @@ import (
 // Provider is an interface providing storage capabilities for
 // persisting any kind of data related to Authelia.
 type Provider interface {
-	LoadPrefered2FAMethod(username string) (string, error)
-	SavePrefered2FAMethod(username string, method string) error
+	LoadPreferred2FAMethod(username string) (string, error)
+	SavePreferred2FAMethod(username string, method string) error
 
 	FindIdentityVerificationToken(token string) (bool, error)
 	SaveIdentityVerificationToken(token string) error

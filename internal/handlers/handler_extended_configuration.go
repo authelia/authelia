@@ -9,7 +9,7 @@ type ExtendedConfigurationBody struct {
 	AvailableMethods MethodList `json:"available_methods"`
 }
 
-// ExtendedConfigurationGet get the extended configuration accessbile to authenticated users.
+// ExtendedConfigurationGet get the extended configuration accessible to authenticated users.
 func ExtendedConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	body := ExtendedConfigurationBody{}
 	body.AvailableMethods = MethodList{authentication.TOTP, authentication.U2F}

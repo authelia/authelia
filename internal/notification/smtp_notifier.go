@@ -51,7 +51,7 @@ func (n *SMTPNotifier) Send(recipient string, subject string, body string) error
 		return err
 	}
 
-	// Do StartTLS if available (some servers only provide the auth extnesion after, and encrpytion is preferred)
+	// Do StartTLS if available (some servers only provide the auth extnesion after, and encryption is preferred)
 	starttls, _ := c.Extension("STARTTLS")
 	if starttls {
 		tlsconfig := &tls.Config{

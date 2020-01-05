@@ -23,7 +23,7 @@ type SMTPNotifierConfiguration struct {
 	Secure   bool   `yaml:"secure"`
 }
 
-// NotifierConfiguration representes the configuration of the notifier to use when sending notifications to users.
+// NotifierConfiguration represents the configuration of the notifier to use when sending notifications to users.
 type NotifierConfiguration struct {
 	FileSystem *FileSystemNotifierConfiguration `yaml:"filesystem"`
 	Email      *EmailNotifierConfiguration      `yaml:"email"`

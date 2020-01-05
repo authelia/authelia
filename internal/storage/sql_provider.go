@@ -72,8 +72,8 @@ func (p *SQLProvider) initialize(db *sql.DB) error {
 	return nil
 }
 
-// LoadPrefered2FAMethod load the prefered method for 2FA from sqlite db.
-func (p *SQLProvider) LoadPrefered2FAMethod(username string) (string, error) {
+// LoadPreferred2FAMethod load the preferred method for 2FA from sqlite db.
+func (p *SQLProvider) LoadPreferred2FAMethod(username string) (string, error) {
 	rows, err := p.db.Query(p.sqlGetPreferencesByUsername, username)
 	defer rows.Close()
 	if err != nil {
@@ -90,8 +90,8 @@ func (p *SQLProvider) LoadPrefered2FAMethod(username string) (string, error) {
 	return "", nil
 }
 
-// SavePrefered2FAMethod save the prefered method for 2FA in sqlite db.
-func (p *SQLProvider) SavePrefered2FAMethod(username string, method string) error {
+// SavePreferred2FAMethod save the preferred method for 2FA in sqlite db.
+func (p *SQLProvider) SavePreferred2FAMethod(username string, method string) error {
 	_, err := p.db.Exec(p.sqlUpsertSecondFactorPreference, username, method)
 	return err
 }

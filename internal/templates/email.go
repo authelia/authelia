@@ -264,9 +264,9 @@ const emailContent = `
       </tbody>
    </table>
    <!-- End of Header -->
-   <!-- Start of seperator -->
+   <!-- Start of separator -->
    <table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable"
-      st-sortable="seperator">
+      st-sortable="separator">
       <tbody>
          <tr>
             <td>
@@ -281,7 +281,7 @@ const emailContent = `
          </tr>
       </tbody>
    </table>
-   <!-- End of seperator -->
+   <!-- End of separator -->
    <!-- Start Full Text -->
    <table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable"
       st-sortable="full-text">
@@ -353,9 +353,9 @@ const emailContent = `
       </tbody>
    </table>
    <!-- end of full text -->
-   <!-- Start of seperator -->
+   <!-- Start of separator -->
    <table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable"
-      st-sortable="seperator">
+      st-sortable="separator">
       <tbody>
          <tr>
             <td>
@@ -377,7 +377,7 @@ const emailContent = `
          </tr>
       </tbody>
    </table>
-   <!-- End of seperator -->
+   <!-- End of separator -->
    <!-- Start of Postfooter -->
    <table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable"
       st-sortable="postfooter">
