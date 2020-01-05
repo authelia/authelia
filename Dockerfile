@@ -28,8 +28,6 @@ RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
 
 # CGO_ENABLED=1 is mandatory for building go-sqlite3
 RUN cd cmd/authelia && GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -o authelia && cd ../../
-
-# CGO_ENABLED=1 is mandatory for building go-sqlite3
 RUN cd cmd/authelia-scripts && GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -o authelia-scripts -ldflags '-w -linkmode external -extldflags -static'
 
 

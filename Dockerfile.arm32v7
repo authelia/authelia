@@ -1,14 +1,16 @@
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM arm32v7/golang:1.13-alpine AS builder-backend
+FROM golang:1.13-alpine AS builder-backend
 
 ARG BUILD_TAG
 ARG BUILD_COMMIT
+ARG CC_VERSION="v14"
 
-# qemu binary, gcc and musl-dev are required for building go-sqlite3
-COPY ./qemu-arm-static /usr/bin/qemu-arm-static
-RUN apk --no-cache add gcc musl-dev
+# gcc cross-compiler is required for building go-sqlite3
+RUN apk --no-cache add curl && \
+    curl -Lfs -o /tmp/gcc-7.3.0-arm-linux-musleabihf.tar.xz "https://github.com/just-containers/musl-cross-make/releases/download/${CC_VERSION}/gcc-7.3.0-arm-linux-musleabihf.tar.xz" && \
+    tar xf /tmp/gcc-7.3.0-arm-linux-musleabihf.tar.xz -C /
 
 WORKDIR /go/src/app
 
@@ -28,10 +30,8 @@ RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
     sed -i "s/__BUILD_TIME__/${BUILD_TIME}/" cmd/authelia/constants.go
 
 # CGO_ENABLED=1 is mandatory for building go-sqlite3
-RUN cd cmd/authelia && GOOS=linux GOARCH=arm CGO_ENABLED=1 go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -o authelia && cd ../../
-
-# CGO_ENABLED=1 is mandatory for building go-sqlite3
-RUN cd cmd/authelia-scripts && GOOS=linux GOARCH=arm CGO_ENABLED=1 go build -o authelia-scripts -ldflags '-w -linkmode external -extldflags -static'
+RUN cd cmd/authelia && GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -o authelia && cd ../../
+RUN cd cmd/authelia-scripts && GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc go build -o authelia-scripts -ldflags '-w -linkmode external -extldflags -static'
 
 
 # ========================================
