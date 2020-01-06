@@ -102,7 +102,7 @@ func migrateLocalU2FSecret(dbProvider storage.Provider) {
 }
 
 func migrateLocalPreferences(dbProvider storage.Provider) {
-	file, err := os.Open(path.Join(localDatabasePath, "preferred_2fa_method"))
+	file, err := os.Open(path.Join(localDatabasePath, "prefered_2fa_method"))
 	if err != nil {
 		log.Fatal(err)
 	}
