@@ -37,7 +37,7 @@ Authelia's verification endpoint.
 The ingress controller also requires the URL to the
 authentication portal so that the user can be redirected if he is not
 yet authenticated. This annotation is as follows:
-`nginx.ingress.kubernetes.io/auth-signin: "https://login.example.com:8080/#/"`
+`nginx.ingress.kubernetes.io/auth-signin: "https://login.example.com:8080/"`
 
 Those annotations can be seen in `apps/apps.yml` configuration.
 
