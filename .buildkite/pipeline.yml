@@ -4,8 +4,8 @@ steps:
     agents:
       upload: "fast"
     artifact_paths:
-      - "dist.tar.gz"
-      - "web.tar.gz"
+      - "dist.tar.zst"
+      - "web.tar.zst"
     key: "build"
 
   - wait
