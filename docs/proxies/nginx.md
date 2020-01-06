@@ -44,7 +44,7 @@ Here is a commented example of configuration
             # If it returns 200, then the request pass through to the backend.
             # For other type of errors, nginx will handle them as usual.
             # NOTE: do not forget to include /#/ representing the hash router of the web application.
-            error_page                  401 =302 https://login.example.com:8080/#/?rd=$target_url;
+            error_page                  401 =302 https://login.example.com:8080/?rd=$target_url;
 
             proxy_pass                  $upstream_endpoint;
         }
