@@ -21,7 +21,7 @@ fortunately migration tools are provided to ease the task.
 * The configuration mostly remained the same, only one major key has been added: `jwt_secret`
 and one key removed: `secure` from the SMTP notifier as the Go SMTP library default to TLS
 if available.
-* The Hash router has been removed and replaced by a Browser router. This means that the weird characters
+* The Hash router has been removed and replaced with a Browser router. This means that the weird characters
 /%23/ and /#/ in the redirection URL can now be safely removed.
 * The local storage used for dev purpose was a `nedb` database which was implementing the
 same interface as mongo but was not really standard. It has been replaced by a good old
