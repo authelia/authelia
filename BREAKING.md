@@ -32,6 +32,7 @@ with Golang libraries.
 available like allowing device cloning detection.
 * Furthermore, a top-notch web server implementation (fasthttp) has been selected to allow a
 large performance gain in order to use Authelia in demanding environments.
+* Redirect parameter for Nginx is now changed to `http://Authelia/?rd=RedirectURL`
 
 ### Data migration tools
 
