@@ -21,8 +21,8 @@ fortunately migration tools are provided to ease the task.
 * The configuration mostly remained the same, only one major key has been added: `jwt_secret`
 and one key removed: `secure` from the SMTP notifier as the Go SMTP library default to TLS
 if available.
-* The Hash router has been replaced by a Browser router. This means that the weird characters
-/%23/ in the URL could now be safely removed.
+* The Hash router has been removed and replaced by a Browser router. This means that the weird characters
+/%23/ and /#/ in the redirection URL can now be safely removed.
 * The local storage used for dev purpose was a `nedb` database which was implementing the
 same interface as mongo but was not really standard. It has been replaced by a good old
 sqlite3 database.
@@ -32,7 +32,6 @@ with Golang libraries.
 available like allowing device cloning detection.
 * Furthermore, a top-notch web server implementation (fasthttp) has been selected to allow a
 large performance gain in order to use Authelia in demanding environments.
-* Redirect parameter for Nginx is now changed to `http://Authelia/?rd=RedirectURL`
 
 ### Data migration tools
 
