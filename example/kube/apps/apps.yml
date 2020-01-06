@@ -75,7 +75,7 @@ metadata:
     kubernetes.io/ingress.allow-http: "false"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/auth-url: "http://authelia-service.authelia.svc.cluster.local/api/verify"
-    nginx.ingress.kubernetes.io/auth-signin: "https://login.example.com:8080/#/"
+    nginx.ingress.kubernetes.io/auth-signin: "https://login.example.com:8080/"
 spec:
   tls:
     - secretName: test-app-tls
