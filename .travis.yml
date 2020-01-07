@@ -99,13 +99,13 @@ jobs:
         - docker create --name authelia-binary authelia/authelia:${TRAVIS_TAG:1}-$ARCH
         - docker cp authelia-binary:/usr/app/authelia ./authelia-linux-$ARCH
         - docker cp authelia-binary:/usr/app/public_html ./
-        - tar -czf authelia-linux-$ARCH.tar.gz authelia-linux-$ARCH public_html
-        - sha256sum authelia-linux-$ARCH.tar.gz > authelia-linux-$ARCH.tar.gz.sha256
+        - tar -I 'zstdmt -T0 -12' -cf authelia-linux-$ARCH.tar.zst authelia-linux-$ARCH public_html
+        - sha256sum authelia-linux-$ARCH.tar.zst > authelia-linux-$ARCH.tar.zst.sha256
       deploy:
         provider: releases
         api_key: "$GITHUB_API_KEY"
         file_glob: true
-        file: "authelia-linux-$ARCH.tar.gz*"
+        file: "authelia-linux-$ARCH.tar.zst*"
         skip_cleanup: true
         on:
           tags: true
