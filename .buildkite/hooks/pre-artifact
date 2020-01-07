@@ -6,6 +6,7 @@ DOCKER_IMAGE=authelia/authelia
 
 if [[ $BUILDKITE_COMMAND == "authelia-scripts --log-level debug ci" ]];
 then
+  echo "--- :go::node: Saving artifacts for :chrome::selenium: Integration tests"
   tar --zstd -cf dist.tar.zst dist
   tar --zstd -cf web.tar.zst web
 fi
