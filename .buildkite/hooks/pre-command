@@ -4,9 +4,12 @@ set +u
 
 if [[ $BUILDKITE_LABEL =~ ":selenium:" ]];
 then
+  echo "--- :twisted_rightwards_arrows::desktop_computer: Downloading build artifacts"
+  buildkite-agent artifact download "dist.tar.zst" .
+  buildkite-agent artifact download "web.tar.zst" .
   echo "--- :go::node: Extracting build artifacts"
-  buildkite-agent artifact download "dist.tar.zst" . && tar xf dist.tar.zst
-  buildkite-agent artifact download "web.tar.zst" . && tar xf web.tar.zst
+  tar xf dist.tar.zst
+  tar xf web.tar.zst
 fi
 
 if [[ $BUILDKITE_LABEL =~ ":docker: Deploy Image" ]];
