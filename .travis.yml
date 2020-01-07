@@ -99,7 +99,7 @@ jobs:
         - docker create --name authelia-binary authelia/authelia:${TRAVIS_TAG:1}-$ARCH
         - docker cp authelia-binary:/usr/app/authelia ./authelia-linux-$ARCH
         - docker cp authelia-binary:/usr/app/public_html ./
-        - tar --zstd -cf authelia-linux-$ARCH.tar.zst authelia-linux-$ARCH public_html
+        - tar -I 'zstdmt -T0 -12' -cf authelia-linux-$ARCH.tar.zst authelia-linux-$ARCH public_html
         - sha256sum authelia-linux-$ARCH.tar.zst > authelia-linux-$ARCH.tar.zst.sha256
       deploy:
         provider: releases

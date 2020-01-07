@@ -8,6 +8,6 @@ then
   if [[ ${CONTAINERS} != "" ]];
   then
     echo "--- :docker: Clean environment"
-    docker rm -f "${CONTAINERS}"
+    docker rm -f ${CONTAINERS}
   fi
 fi
