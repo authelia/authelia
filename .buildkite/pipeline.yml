@@ -1,8 +1,6 @@
 steps:
   - label: ":hammer_and_wrench: Build & Test"
     command: "authelia-scripts --log-level debug ci"
-    agents:
-      upload: "fast"
     artifact_paths:
       - "dist.tar.zst"
       - "web.tar.zst"
