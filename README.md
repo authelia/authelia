@@ -56,13 +56,13 @@ For more details about the features, follow [Features](./docs/features.md).
 
 ## Proxy support
 
-Authelia works in combination with [nginx] or [Traefik] and soon with [HAProxy] as discussed in
-[#271](https://github.com/authelia/authelia/issues/271). It can be deployed on bare metal with
+Authelia works in combination with [nginx] or [Traefik] and [HAProxy]. It can be deployed on bare metal with
 Docker or directly in [Kubernetes].
 
 <p align="center">
   <img src="./docs/images/logos/nginx.logo.png" height="50"/>
-  <img src="./docs/images/logos/traefik.logo.png" height="50"/> 
+  <img src="./docs/images/logos/traefik.logo.png" height="50"/>
+  <img src="./docs/images/logos/haproxy.logo.png" height="50"/>  
   <img src="./docs/images/logos/kubernetes.logo.png" height="50"/> 
 </p>
 
