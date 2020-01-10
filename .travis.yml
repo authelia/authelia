@@ -58,6 +58,9 @@ jobs:
         - SUITE_NAME=DuoPush
     - <<: *e2e-test
       env:
+        - SUITE_NAME=HAProxy
+    - <<: *e2e-test
+      env:
         - SUITE_NAME=HighAvailability
     - <<: *e2e-test
       env:
