@@ -1,0 +1,10 @@
+version: '3'
+services:
+  haproxy:
+    build: ./example/compose/haproxy/
+    volumes:
+      - ./example/compose/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    networks:
+      authelianet:
+        # Set the IP to be able to query on port 8080
+        ipv4_address: 192.168.240.100

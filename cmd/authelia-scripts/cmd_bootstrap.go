@@ -37,6 +37,9 @@ var hostEntries = []HostEntry{
 	// For Traefik suite
 	HostEntry{Domain: "traefik.example.com", IP: "192.168.240.100"},
 
+	// For HAProxy suite
+	HostEntry{Domain: "haproxy.example.com", IP: "192.168.240.100"},
+
 	// For testing network ACLs
 	HostEntry{Domain: "proxy-client1.example.com", IP: "192.168.240.201"},
 	HostEntry{Domain: "proxy-client2.example.com", IP: "192.168.240.202"},
