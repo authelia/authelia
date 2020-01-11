@@ -18,12 +18,14 @@ var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "CI"}
 var defaultArch = "amd64"
 var buildkite = os.Getenv("BUILDKITE")
 var buildkiteQEMU = os.Getenv("BUILDKITE_AGENT_META_DATA_QEMU")
+
 //TODO(nightah): Uncomment when turning off Travis
 //var ciBranch = os.Getenv("BUILDKITE_BRANCH")
 //var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
 //var ciTag = os.Getenv("BUILDKITE_TAG")
 var dockerTags = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
 var ignoredSuffixes = regexp.MustCompile("alpha|beta")
+
 //var tags = dockerTags.FindStringSubmatch(ciTag)
 //TODO(nightah): Uncomment when turning off Travis
 
@@ -92,8 +94,8 @@ func dockerBuildOfficialImage(arch string) error {
 
 	gitTag := ciTag
 	if gitTag == "" {
-		// If commit is not tagged, mark the build has having unknown tag.
-		gitTag = "unknown"
+		// If commit is not tagged, mark the build has having master tag.
+		gitTag = "master"
 	}
 
 	cmd := utils.Shell("git rev-parse HEAD")
