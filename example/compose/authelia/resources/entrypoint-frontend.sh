@@ -2,10 +2,10 @@
 
 set -x
 
-if [ "$CI" == "true" ] && [ "$TRAVIS" != "true" ];
+if [ "$CI" == "true" ];
 then
   echo "Use CI version of Authelia frontend"
-  /resources/run-frontend.sh
+  yarn start
 else
   yarn install && yarn start
 fi
