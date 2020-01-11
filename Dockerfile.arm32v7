@@ -14,8 +14,7 @@ RUN apk --no-cache add curl && \
 
 WORKDIR /go/src/app
 
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY go.mod go.sum ./
 
 RUN go mod download
 
@@ -30,8 +29,10 @@ RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
     sed -i "s/__BUILD_TIME__/${BUILD_TIME}/" cmd/authelia/constants.go
 
 # CGO_ENABLED=1 is mandatory for building go-sqlite3
-RUN cd cmd/authelia && GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -o authelia && cd ../../
-RUN cd cmd/authelia-scripts && GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc go build -ldflags '-w -linkmode external -extldflags -static' -o authelia-scripts
+RUN cd cmd/authelia && \
+GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -o authelia && \
+cd ../authelia-scripts && \
+GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc go build -ldflags '-w -linkmode external -extldflags -static' -o authelia-scripts
 
 
 # ========================================
@@ -57,8 +58,7 @@ RUN apk --no-cache add ca-certificates tzdata && \
 
 WORKDIR /usr/app
 
-COPY --from=builder-backend /go/src/app/cmd/authelia/authelia authelia
-COPY --from=builder-backend /go/src/app/cmd/authelia-scripts/authelia-scripts authelia-scripts
+COPY --from=builder-backend /go/src/app/cmd/authelia/authelia /go/src/app/cmd/authelia-scripts/authelia-scripts ./
 COPY --from=builder-frontend /node/src/app/build public_html
 
 EXPOSE 9091
