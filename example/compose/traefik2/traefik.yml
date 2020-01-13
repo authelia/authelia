@@ -1,0 +1,84 @@
+## STATIC CONFIGURATION
+log:
+  level: DEBUG
+  filePath: /var/log/traefik.log
+
+accessLog:
+  filePath: /var/log/traefik-access.log
+  bufferingSize: 1000
+
+providers:
+  file:
+    filename: /etc/traefik/traefik.yml
+    watch: true
+
+entryPoints:
+  http:
+    address: ":80"
+
+  https:
+    address: ":8080"
+
+http:
+  routers:
+    authelia_api:
+      rule: Host(`login.example.com`) && PathPrefix(`/api`)
+      entryPoints:
+        - https
+      tls: {}
+      service: authelia_api
+      priority: 1000
+
+    authelia_front:
+      rule: Host(`login.example.com`)
+      entryPoints:
+        - https
+      tls: {}
+      service: authelia_front
+
+    protectedapps:
+      rule: Host(`home.example.com`, `public.example.com`, `secure.example.com`, `admin.example.com`, `singlefactor.example.com`)
+      entryPoints:
+        - https
+      tls: {}
+      middlewares:
+        - authelia
+      service: protectedapps
+
+    mail:
+      rule: Host(`mail.example.com`)
+      entryPoints:
+        - https
+      tls: {}
+      service: mail
+
+  middlewares:
+    authelia:
+      forwardAuth:
+        trustForwardHeaders: true
+        authResponseHeaders:
+          - X-Forwarded-User
+        address: http://authelia-backend:9091/api/verify?rd=https://login.example.com:8080/
+        tls:
+          insecureSkipVerify: true
+
+  services:
+    authelia_api:
+      loadBalancer:
+        servers:
+          - url: http://authelia-backend:9091
+
+    authelia_front:
+      loadBalancer:
+        servers:
+          - url: http://authelia-frontend:3000
+
+    mail:
+      loadBalancer:
+        servers:
+          - url: http://smtp:1080
+
+    protectedapps:
+      loadBalancer:
+        servers:
+          - url: http://nginx-backend:80

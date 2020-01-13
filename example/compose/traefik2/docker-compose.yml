@@ -1,0 +1,11 @@
+version: '3'
+services:
+  traefik:
+    image: traefik:v2.1.2
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./example/compose/traefik2/traefik.yml:/etc/traefik/traefik.yml
+    networks:
+      authelianet:
+        # Set the IP to be able to query on port 8080
+        ipv4_address: 192.168.240.100
