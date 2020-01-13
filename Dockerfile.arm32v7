@@ -23,7 +23,7 @@ COPY internal internal
 
 # Set the build version and time
 RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
-    BUILD_TIME=`date +"%Y-%m-%d %T"` && \
+    sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
     sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go
 
 # CGO_ENABLED=1 is mandatory for building go-sqlite3
