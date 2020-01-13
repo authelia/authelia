@@ -1,3 +1,17 @@
+Release Notes - Version 4.1.0
+-----------------------------
+* Add support of HAProxy as a reverse proxy.
+* Huge optimization of build time for standard and cross compiled targets (Many thanks to @nightah).
+* Statically link authelia binary.
+* Multiple optimizations to docker images to reduce size.
+* Add support of authentication mechanisms to SMTP notifier and enforce use of TLS (Many thanks to @james-d-elliott).
+* Introduce Buildkite build (will soon replace Travis. Many thanks to @nightah).
+* Fix Postgres bad column name.
+* Many fixes to the documentation.
+* Support hashes without {CRYPT} in file-based users database.
+* Allow blank additional\_groups\_dn and additional\_users\_dn.
+* Fix wrong remote IP in logs.
+
 Release Notes - Version 4.0.0
 ------------------------------
 * Authelia is rewritten in Go.

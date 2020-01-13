@@ -81,8 +81,8 @@ func dockerBuildOfficialImage(arch string) error {
 
 	gitTag := ciTag
 	if gitTag == "" {
-		// If commit is not tagged, mark the build has having unknown tag.
-		gitTag = "unknown"
+		// If commit is not tagged, mark the build has having master tag.
+		gitTag = "master"
 	}
 
 	cmd := utils.Shell("git rev-parse HEAD")
