@@ -11,6 +11,11 @@ services:
       - "traefik.http.routers.protectedapps.entrypoints=https"
       - "traefik.http.routers.protectedapps.tls=true"
       - "traefik.http.routers.protecteapps.middlewares=authelia"
-      - "traefik.http.routers.protectedapps.middlewares=authelia@file"
+      - "traefik.http.routers.protectedapps.middlewares=authelia@file" #TODO(url-encoding) remove for url-encoding
+#TODO(url-encoding) uncomment for url-encoding
+#      - "traefik.http.middlewares.authelia.forwardAuth.trustForwardHeaders=true"
+#      - "traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=X-Forwarded-User"
+#      - "traefik.http.middlewares.authelia.forwardAuth.address=http://authelia-backend:9091/api/verify?rd=https://login.example.com:8080/"
+#      - "traefik.http.middlewares.authelia.forwardAuth.tls.insecureskipverify=true"
     networks:
       - authelianet
