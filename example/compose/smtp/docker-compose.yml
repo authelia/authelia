@@ -7,5 +7,9 @@ services:
     labels:
       - traefik.frontend.rule=Host:mail.example.com
       - traefik.port=1080
+      - traefik.http.routers.mail.rule=Host(`mail.example.com`)
+      - traefik.http.routers.mail.entrypoints=https
+      - traefik.http.routers.mail.tls=true
+      - traefik.http.services.mail.loadbalancer.server.port=1080
     networks:
       - authelianet

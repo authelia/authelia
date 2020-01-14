@@ -12,6 +12,9 @@ providers:
     filename: /etc/traefik/traefik.yml
     watch: true
 
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+
 entryPoints:
   http:
     address: ":80"
@@ -36,32 +39,6 @@ http:
       tls: {}
       service: authelia_front
 
-    protectedapps:
-      rule: Host(`home.example.com`, `public.example.com`, `secure.example.com`, `admin.example.com`, `singlefactor.example.com`)
-      entryPoints:
-        - https
-      tls: {}
-      middlewares:
-        - authelia
-      service: protectedapps
-
-    mail:
-      rule: Host(`mail.example.com`)
-      entryPoints:
-        - https
-      tls: {}
-      service: mail
-
-  middlewares:
-    authelia:
-      forwardAuth:
-        trustForwardHeaders: true
-        authResponseHeaders:
-          - X-Forwarded-User
-        address: http://authelia-backend:9091/api/verify?rd=https://login.example.com:8080/
-        tls:
-          insecureSkipVerify: true
-
   services:
     authelia_api:
       loadBalancer:
@@ -72,13 +49,3 @@ http:
       loadBalancer:
         servers:
           - url: http://authelia-frontend:3000
-
-    mail:
-      loadBalancer:
-        servers:
-          - url: http://smtp:1080
-
-    protectedapps:
-      loadBalancer:
-        servers:
-          - url: http://nginx-backend:80
