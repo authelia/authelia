@@ -39,6 +39,16 @@ http:
       tls: {}
       service: authelia_front
 
+  middlewares:
+    authelia:
+      forwardAuth:
+        trustForwardHeaders: true
+        authResponseHeaders:
+          - X-Forwarded-User
+        address: http://authelia-backend:9091/api/verify?rd=https://login.example.com:8080/
+        tls:
+          insecureSkipVerify: true
+
   services:
     authelia_api:
       loadBalancer:

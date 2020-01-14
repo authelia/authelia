@@ -10,10 +10,6 @@ services:
       - traefik.http.routers.protectedapps.rule=Host(`home.example.com`, `public.example.com`, `secure.example.com`, `admin.example.com`, `singlefactor.example.com`)
       - traefik.http.routers.protectedapps.entrypoints=https
       - traefik.http.routers.protectedapps.tls=true
-      - traefik.http.routers.protecteapps.middlewares=authelia
-      - traefik.http.middlewares.authelia.forwardauth.trustforwardheaders=true
-      - traefik.http.middlewares.authelia.forwardauth.authresponseheaders=X-Forwarded-User
-      - traefik.http.middlewares.authelia.forwardauth.address=http://authelia-backend:9091/api/verify?rd=https://login.example.com:8080/
-      - traefik.http.middlewares.authelia.forwardauth.tls.insecureskipverify=true
+      - traefik.http.routers.protectedapps.middlewares=authelia@file
     networks:
       - authelianet
