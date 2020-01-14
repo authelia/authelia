@@ -6,10 +6,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./example/compose/traefik2/traefik.yml:/etc/traefik/traefik.yml
     labels:
-      - traefik.http.routers.api.rule=Host(`traefik.example.com`)
-      - traefik.http.routers.api.entrypoints=https
-      - traefik.http.routers.api.service=api@internal
-      - traefik.http.routers.api.tls=true
+      - "traefik.http.routers.api.rule=Host(`traefik.example.com`)"
+      - "traefik.http.routers.api.entrypoints=https"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.tls=true"
     networks:
       authelianet:
         # Set the IP to be able to query on port 8080
