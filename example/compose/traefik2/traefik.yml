@@ -7,6 +7,9 @@ accessLog:
   filePath: /var/log/traefik-access.log
   bufferingSize: 1000
 
+api:
+  dashboard: true
+
 providers:
   file:
     filename: /etc/traefik/traefik.yml
