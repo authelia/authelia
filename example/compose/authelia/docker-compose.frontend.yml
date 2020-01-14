@@ -12,6 +12,9 @@ services:
     volumes:
       - "./example/compose/authelia/resources/:/resources"
       - "./web:/app"
+    labels:
+      - traefik.frontend.rule=Host:login.example.com
+      - traefik.port=3000
     environment:
       - CI=${CI}
       - TRAVIS=${TRAVIS}

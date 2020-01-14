@@ -15,28 +15,6 @@ logLevel = "DEBUG"
   [entryPoints.api]
   address = ":8081"
 
-[file]
-
-[frontends]
-  [frontends.authelia_api]
-  backend = "authelia_api_backend"
-  [frontends.authelia_api.routes.route0]
-    rule = "Host:login.example.com; PathPrefix:/api;"
-
-  [frontends.authelia_front]
-  backend = "authelia_front_backend"
-  [frontends.authelia_front.routes.route0]
-    rule = "Host:login.example.com"
-    
-[backends]
-  [backends.authelia_api_backend]
-    [backends.authelia_api_backend.servers.server]
-    url = "http://authelia-backend:9091"
-
-  [backends.authelia_front_backend]
-    [backends.authelia_front_backend.servers.server]
-    url = "http://authelia-frontend:3000"
-
 [api]
 # This is exposed via a subdomain and a proxy
 entryPoint = "api"
