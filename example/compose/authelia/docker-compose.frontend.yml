@@ -14,11 +14,9 @@ services:
       - "./web:/app"
     labels:
       - "traefik.frontend.rule=Host:login.example.com"
-      - "traefik.port=3000"
       - "traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`)"
       - "traefik.http.routers.authelia_frontend.entrypoints=https"
       - "traefik.http.routers.authelia_frontend.tls=true"
-      - "traefik.http.services.authelia_frontend.loadbalancer.server.port=3000"
     environment:
       - CI=${CI}
       - TRAVIS=${TRAVIS}

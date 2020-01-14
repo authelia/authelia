@@ -16,11 +16,9 @@ services:
       - "${GOPATH}:/go"
     labels:
       - "traefik.frontend.rule=Host:login.example.com;PathPrefix:/api"
-      - "traefik.port=9091"
       - "traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) && PathPrefix(`/api`)"
       - "traefik.http.routers.authelia_backend.entrypoints=https"
       - "traefik.http.routers.authelia_backend.tls=true"
-      - "traefik.http.services.authelia_backend.loadbalancer.server.port=9091"
     environment:
       - ENVIRONMENT=dev
       - CI=${CI}
