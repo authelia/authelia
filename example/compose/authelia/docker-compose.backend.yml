@@ -7,7 +7,6 @@ services:
       args:
         USER_ID: ${USER_ID}
         GROUP_ID: ${GROUP_ID}
-        TRAVIS: ${TRAVIS}
     command: /resources/entrypoint-backend.sh
     working_dir: /app
     volumes:
@@ -22,7 +21,6 @@ services:
     environment:
       - ENVIRONMENT=dev
       - CI=${CI}
-      - TRAVIS=${TRAVIS}
     networks:
       authelianet:
         ipv4_address: 192.168.240.50

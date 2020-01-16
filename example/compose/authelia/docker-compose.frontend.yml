@@ -19,6 +19,5 @@ services:
       - "traefik.http.routers.authelia_frontend.tls=true"
     environment:
       - CI=${CI}
-      - TRAVIS=${TRAVIS}
     networks:
       - authelianet
