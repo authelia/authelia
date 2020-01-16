@@ -61,3 +61,8 @@ func (d *Docker) CleanTag(tag string) error {
 func (d *Docker) PublishReadme() error {
 	return utils.CommandWithStdout("bash", "-c", `token=$(curl -fs --retry 3 -H "Content-Type: application/json" -X "POST" -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token) && jq -n --arg msg "$(cat README.md | sed -r 's/(\<img\ src\=\")(\.\/)/\1https:\/\/github.com\/authelia\/authelia\/raw\/master\//' | sed 's/\.\//https:\/\/github.com\/authelia\/authelia\/blob\/master\//g')" '{"registry":"registry-1.docker.io","full_description": $msg }' | curl -fs --retry 3 -o /dev/null -L -X "PATCH" -H "Content-Type: application/json" -H "Authorization: JWT $token" -d @- https://hub.docker.com/v2/repositories/authelia/authelia/`).Run()
 }
+
+// UpdateMicroBadger updates MicroBadger metadata based on dockerhub.
+func (d *Docker) UpdateMicroBadger() error {
+	return utils.CommandWithStdout("curl", "-fs", "--retry", "3", "-X", "POST", "https://hooks.microbadger.com/images/authelia/authelia/6b8tWohGJpS4CbbPCgUHxVe_uY4=").Run()
+}

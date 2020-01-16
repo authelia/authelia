@@ -119,23 +119,23 @@ var DockerBuildCmd = &cobra.Command{
 	},
 }
 
-// DockerPushCmd Command for pushing Authelia docker image to Dockerhub
+// DockerPushCmd Command for pushing Authelia docker image to Docker Hub
 var DockerPushCmd = &cobra.Command{
 	Use:   "push-image",
-	Short: "Publish Authelia docker image to Dockerhub",
+	Short: "Publish Authelia docker image to Docker Hub",
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Infof("Pushing Docker image %s to dockerhub...", DockerImageName)
+		log.Infof("Pushing Docker image %s to Docker Hub...", DockerImageName)
 		checkArchIsSupported(arch)
 		publishDockerImage(arch)
 	},
 }
 
-// DockerManifestCmd Command for pushing Authelia docker manifest to Dockerhub
+// DockerManifestCmd Command for pushing Authelia docker manifest to Docker Hub
 var DockerManifestCmd = &cobra.Command{
 	Use:   "push-manifest",
-	Short: "Publish Authelia docker manifest to Dockerhub",
+	Short: "Publish Authelia docker manifest to Docker Hub",
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Infof("Pushing Docker manifest of %s to dockerhub...", DockerImageName)
+		log.Infof("Pushing Docker manifest of %s to Docker Hub...", DockerImageName)
 		publishDockerManifest()
 	},
 }
@@ -156,18 +156,18 @@ func login(docker *Docker) {
 		log.Fatal(errors.New("DOCKER_PASSWORD is empty"))
 	}
 
-	log.Infof("Login to dockerhub as %s", username)
+	log.Infof("Login to Docker Hub as %s", username)
 	err := docker.Login(username, password)
 
 	if err != nil {
-		log.Fatal("Login to dockerhub failed", err)
+		log.Fatal("Login to Docker Hub failed", err)
 	}
 }
 
 func deploy(docker *Docker, tag string) {
 	imageWithTag := DockerImageName + ":" + tag
 
-	log.Infof("Docker image %s will be deployed on Dockerhub", imageWithTag)
+	log.Infof("Docker image %s will be deployed on Docker Hub", imageWithTag)
 
 	if err := docker.Tag(DockerImageName, imageWithTag); err != nil {
 		log.Fatal(err)
@@ -181,7 +181,7 @@ func deploy(docker *Docker, tag string) {
 func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag string, arm64v8tag string) {
 	dockerImagePrefix := DockerImageName + ":"
 
-	log.Infof("Docker manifest %s%s will be deployed on Dockerhub", dockerImagePrefix, tag)
+	log.Infof("Docker manifest %s%s will be deployed on Docker Hub", dockerImagePrefix, tag)
 
 	err := docker.Manifest(dockerImagePrefix+tag, dockerImagePrefix+amd64tag, dockerImagePrefix+arm32v7tag, dockerImagePrefix+arm64v8tag)
 
@@ -191,17 +191,11 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 
 	tags := []string{amd64tag, arm32v7tag, arm64v8tag}
 	for _, t := range tags {
-		log.Infof("Docker removing tag for %s%s on Dockerhub", dockerImagePrefix, t)
+		log.Infof("Docker removing tag for %s%s on Docker Hub", dockerImagePrefix, t)
 
 		if err := docker.CleanTag(t); err != nil {
 			panic(err)
 		}
-	}
-
-	log.Info("Docker pushing README.md to Dockerhub")
-
-	if err := docker.PublishReadme(); err != nil {
-		log.Fatal(err)
 	}
 }
 
@@ -236,22 +230,41 @@ func publishDockerManifest() {
 	if ciBranch == "master" && ciPullRequest == "false" {
 		login(docker)
 		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
+		publishDockerReadme(docker)
 	} else if ciTag != "" {
 		if len(tags) == 4 {
 			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 
 			login(docker)
 			deployManifest(docker, tags[1], tags[1]+"-amd64", tags[1]+"-arm32v7", tags[1]+"-arm64v8")
+			publishDockerReadme(docker)
 
 			if !ignoredSuffixes.MatchString(ciTag) {
 				deployManifest(docker, tags[2], tags[2]+"-amd64", tags[2]+"-arm32v7", tags[2]+"-arm64v8")
 				deployManifest(docker, tags[3], tags[3]+"-amd64", tags[3]+"-arm32v7", tags[3]+"-arm64v8")
 				deployManifest(docker, "latest", "latest-amd64", "latest-arm32v7", "latest-arm64v8")
+				publishDockerReadme(docker)
+				updateMicroBadger(docker)
 			}
 		} else {
 			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
 		}
 	} else {
 		log.Info("Docker manifest will not be published")
+	}
+}
+
+func publishDockerReadme(docker *Docker) {
+	log.Info("Docker pushing README.md to Docker Hub")
+
+	if err := docker.PublishReadme(); err != nil {
+		log.Fatal(err)
+	}
+}
+func updateMicroBadger(docker *Docker) {
+	log.Info("Updating MicroBadger metadata from Docker Hub")
+
+	if err := docker.UpdateMicroBadger(); err != nil {
+		log.Fatal(err)
 	}
 }
