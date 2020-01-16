@@ -3,6 +3,7 @@
 </p>
 
   [![Docker Tag](https://images.microbadger.com/badges/version/authelia/authelia.svg)](https://microbadger.com/images/authelia/authelia)
+  [![Docker Size](https://img.shields.io/microbadger/image-size/authelia/authelia?style=flat-square&=blue&logo=docker)](https://microbadger.com/images/authelia/authelia)
   [![GitHub Release](https://img.shields.io/github/release/authelia/authelia.svg?style=flat-square&color=blue&logo=github&logoColor=FFFFFF)](https://github.com/authelia/authelia/releases)
   [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square)][Apache 2.0]
   [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
