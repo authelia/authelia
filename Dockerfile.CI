@@ -7,8 +7,7 @@ RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /usr/app
 
-COPY /dist/authelia authelia
-COPY /dist/public_html public_html
+COPY dist ./
 
 EXPOSE 9091
 

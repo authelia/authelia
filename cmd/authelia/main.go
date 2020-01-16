@@ -114,9 +114,7 @@ func main() {
 	versionCmd := &cobra.Command{
 		Use: "version",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("build git tag: %s\n", BuildTag)
-			fmt.Printf("build git commit: %s\n", BuildCommit)
-			fmt.Printf("build time: %s\n", BuildTime)
+			fmt.Printf("Authelia version %s, build %s", BuildTag, BuildCommit)
 		},
 	}
 
