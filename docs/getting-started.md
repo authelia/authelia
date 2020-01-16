@@ -51,13 +51,13 @@ Enjoy!
 
 ### What version of Docker and docker-compose should I use?
 
-Here are the versions used for testing in Travis:
+Here are the versions used for testing in Buildkite:
 
     $ docker --version
-    Docker version 17.03.1-ce, build c6d412e
+    Docker version 19.03.5, build 633a0ea838
 
     $ docker-compose --version
-    docker-compose version 1.14.0, build c7bdf9e
+    docker-compose version 1.24.1, build unknown
 
 ### How am I supposed to access the subdomains of example.com?
 
