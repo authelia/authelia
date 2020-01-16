@@ -1,7 +1,7 @@
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.13-alpine AS builder-backend
+FROM golang:1.13.6-alpine AS builder-backend
 
 ARG BUILD_TAG
 ARG BUILD_COMMIT
@@ -25,7 +25,7 @@ RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
 
 # CGO_ENABLED=1 is mandatory for building go-sqlite3
 RUN cd cmd/authelia && \
-GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -o authelia && \
+GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -trimpath -o authelia && \
 cd ../authelia-scripts && \
 GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags '-w -linkmode external -extldflags -static' -o authelia-scripts
 
