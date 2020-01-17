@@ -12,7 +12,7 @@
 **Authelia** is an open-source authentication and authorization server
 providing 2-factor authentication and single sign-on (SSO) for your
 applications via a web portal.
-It acts as a companion of reverse proxies like [nginx] or [Traefik] to tell them wether queries should pass through. Unauthenticated user are
+It acts as a companion of reverse proxies like [nginx] or [Traefik] to let them know whether queries should pass through. Unauthenticated user are
 redirected to Authelia Sign-in portal instead.
 
 The architecture is shown in the diagram below.
