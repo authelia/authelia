@@ -5,7 +5,7 @@ set +u
 if [[ $BUILDKITE_LABEL =~ ":selenium:" ]];
 then
   DEFAULT_ARCH=amd64
-  echo "--- :twisted_rightwards_arrows::desktop_computer: Downloading build artifacts"
+  echo "--- :docker: Extract, load and tag build container"
   buildkite-agent artifact download "authelia-image-${DEFAULT_ARCH}*" .
   zstdcat authelia-image-${DEFAULT_ARCH}.tar.zst | docker load
   docker tag authelia/authelia authelia:dist

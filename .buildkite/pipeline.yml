@@ -1,7 +1,6 @@
 steps:
   - label: ":hammer_and_wrench: Unit Test"
     command: "authelia-scripts --log-level debug ci"
-    key: "build"
 
   - wait
 
@@ -10,15 +9,13 @@ steps:
     agents:
       build: "true"
     depends_on: ~
-    key: "build-docker"
 
   - wait
 
   - label: ":chrome: Integration Tests"
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
     depends_on:
-      - "build-docker"
-    key: "test"
+      - "build-docker-amd64"
 
   - wait:
     if: build.branch == "master" || build.branch =~ /^v/
@@ -26,10 +23,6 @@ steps:
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
     branches: "master v*"
-    depends_on:
-      - "build"
-      - "build-docker"
-      - "test"
 
   - wait:
     if: build.branch == "master" || build.branch =~ /^v/
@@ -44,5 +37,8 @@ steps:
     command: ".buildkite/steps/ghartifacts.sh"
     agents:
       upload: "fast"
-    depends_on: "build-docker"
+    depends_on:
+      - "build-docker-amd64"
+      - "build-docker-arm32v7"
+      - "build-docker-arm64v8"
     if: build.tag != null

@@ -16,4 +16,5 @@ do
   fi
   echo "    env:"
   echo "      "ARCH: ${BUILD_ARCH}""
+  echo "    key: \"build-docker-${BUILD_ARCH}\""
 done
