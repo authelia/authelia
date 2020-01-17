@@ -12,7 +12,7 @@
 **Authelia** is an open-source authentication and authorization server
 providing 2-factor authentication and single sign-on (SSO) for your
 applications via a web portal.
-It acts as a companion of reverse proxies like [nginx] or [Traefik] to let them know whether queries should pass through. Unauthenticated user are
+It acts as a companion of reverse proxies like [nginx], [Traefik] or [HAProxy] to let them know whether queries should pass through. Unauthenticated user are
 redirected to Authelia Sign-in portal instead.
 
 The architecture is shown in the diagram below.
@@ -24,7 +24,7 @@ The architecture is shown in the diagram below.
 **BREAKING NEWS: Authelia v4 has been released!
 Please read BREAKING.md if you want to migrate from v3 to v4. Otherwise, start fresh in v4 and enjoy!**
 
-**Authelia** can be installed as a standalone service using Docker or NPM
+**Authelia** can be installed as a standalone service using a [Static binary](https://github.com/authelia/authelia/releases/latest) or [Docker]
 but can also be deployed easily on [Kubernetes] leveraging ingress controllers and ingress configuration.
 
 <p align="center">
@@ -118,10 +118,11 @@ in [LICENSE](./LICENSE).
 [TOTP]: https://en.wikipedia.org/wiki/Time-based_One-time_Password_Algorithm
 [Security Key]: https://www.yubico.com/about/background/fido/
 [Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
-[auth_request]: http://nginx.org/en/docs/http/ngx_http_auth_request_module.html
+[auth_request]: https://nginx.org/en/docs/http/ngx_http_auth_request_module.html
 [Google Authenticator]: https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en
 [config.template.yml]: ./config.template.yml
 [nginx]: https://www.nginx.com/
 [Traefik]: https://traefik.io/
-[HAproxy]: http://www.haproxy.org/
+[HAProxy]: https://www.haproxy.org/
+[Docker]: https://docker.com/
 [Kubernetes]: https://kubernetes.io/
