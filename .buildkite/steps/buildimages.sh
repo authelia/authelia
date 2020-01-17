@@ -10,6 +10,10 @@ do
   echo "      - \"authelia-image-${BUILD_ARCH}.tar.zst\""
   echo "      - \"authelia-linux-${BUILD_ARCH}.tar.zst\""
   echo "      - \"authelia-linux-${BUILD_ARCH}.tar.zst.sha256\""
+  if [[ "${BUILD_ARCH}" != "amd64" ]];
+  then
+    echo "    branches: \"master v*\""
+  fi
   echo "    env:"
   echo "      "ARCH: ${BUILD_ARCH}""
 done

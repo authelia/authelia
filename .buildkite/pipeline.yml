@@ -3,16 +3,21 @@ steps:
     command: "authelia-scripts --log-level debug ci"
     key: "build"
 
+  - wait
+
   - label: ":docker: Image Builds"
     command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
     agents:
       build: "true"
+    depends_on: ~
     key: "build-docker"
 
   - wait
 
   - label: ":chrome: Integration Tests"
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
+    depends_on:
+      - "build-docker"
     key: "test"
 
   - wait:
@@ -22,8 +27,9 @@ steps:
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
     branches: "master v*"
     depends_on:
-      - "test"
+      - "build"
       - "build-docker"
+      - "test"
 
   - wait:
     if: build.branch == "master" || build.branch =~ /^v/
