@@ -2,6 +2,8 @@ steps:
   - label: ":hammer_and_wrench: Unit Test"
     command: "authelia-scripts --log-level debug ci"
 
+  - wait
+
   - label: ":docker: Image Builds"
     command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
     agents:

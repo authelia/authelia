@@ -171,10 +171,10 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
-			"username": "test",
-			"password": "hello",
-			"keepMeLoggedIn": true
-		}`)
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.
@@ -210,10 +210,10 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
-			"username": "test",
-			"password": "hello",
-			"keepMeLoggedIn": false
-		}`)
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": false
+	}`)
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.
