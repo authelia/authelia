@@ -41,8 +41,8 @@ func init() {
 			}
 		}
 
-		log.Debug("Building authelia:dist image...")
-		if err := utils.Shell("authelia-scripts docker build --arch=CI").Run(); err != nil {
+		log.Debug("Building authelia:dist image or use cache if already built...")
+		if err := utils.Shell("authelia-scripts docker build").Run(); err != nil {
 			return err
 		}
 

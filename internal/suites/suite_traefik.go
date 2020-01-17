@@ -11,8 +11,8 @@ func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"docker-compose.yml",
 		"internal/suites/Traefik/docker-compose.yml",
-		"example/compose/authelia/docker-compose.backend.yml",
-		"example/compose/authelia/docker-compose.frontend.yml",
+		"example/compose/authelia/docker-compose.backend.{}.yml",
+		"example/compose/authelia/docker-compose.frontend.{}.yml",
 		"example/compose/nginx/backend/docker-compose.yml",
 		"example/compose/traefik/docker-compose.yml",
 		"example/compose/smtp/docker-compose.yml",

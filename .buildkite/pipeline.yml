@@ -1,28 +1,19 @@
 steps:
-  - label: ":hammer_and_wrench: Build & Test"
+  - label: ":hammer_and_wrench: Unit Test"
     command: "authelia-scripts --log-level debug ci"
-    artifact_paths:
-      - "dist.tar.zst"
-      - "web.tar.zst"
     key: "build"
+
+  - label: ":docker: Image Builds"
+    command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
+    agents:
+      build: "true"
+    key: "build-docker"
 
   - wait
 
   - label: ":chrome: Integration Tests"
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
     key: "test"
-
-  - wait:
-    if: build.branch == "master" || build.branch =~ /^v/
-
-  - label: ":docker: Image Builds"
-    command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
-    agents:
-      build: "true"
-    branches: "master v*"
-    depends_on:
-      - "build"
-    key: "build-docker"
 
   - wait:
     if: build.branch == "master" || build.branch =~ /^v/

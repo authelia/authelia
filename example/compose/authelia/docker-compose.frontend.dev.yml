@@ -12,7 +12,5 @@ services:
     volumes:
       - "./example/compose/authelia/resources/:/resources"
       - "./web:/app"
-    environment:
-      - CI=${CI}
     networks:
       - authelianet

@@ -15,7 +15,6 @@ services:
       - "${GOPATH}:/go"
     environment:
       - ENVIRONMENT=dev
-      - CI=${CI}
     networks:
       authelianet:
         ipv4_address: 192.168.240.50
