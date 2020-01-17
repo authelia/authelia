@@ -31,6 +31,8 @@ func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) 
 		Path: "/usr/bin/chromium-browser",
 	}
 
+	chromeCaps.Args = append(chromeCaps.Args, "--ignore-certificate-errors")
+
 	if os.Getenv("HEADLESS") != "" {
 		chromeCaps.Args = append(chromeCaps.Args, "--headless")
 		chromeCaps.Args = append(chromeCaps.Args, "--no-sandbox")
