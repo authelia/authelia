@@ -76,9 +76,9 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	// and avoid the cookie to expire if "Remember me" was ticked.
+	// set the cookie to expire in 1 year if "Remember me" was ticked.
 	if *bodyJSON.KeepMeLoggedIn {
-		err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, time.Duration(0))
+		err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, time.Duration(31556952 * time.Second))
 		if err != nil {
 			ctx.Error(fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
 			return
