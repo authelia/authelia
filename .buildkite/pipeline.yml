@@ -23,6 +23,8 @@ steps:
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
     branches: "master v*"
+    concurrency: 1
+    concurrency_group: "deployments"
 
   - wait:
     if: build.branch == "master" || build.branch =~ /^v/
@@ -30,6 +32,8 @@ steps:
   - label: ":docker: Deploy Manifests"
     command: "authelia-scripts docker push-manifest"
     branches: "master v*"
+    concurrency: 1
+    concurrency_group: "deployments"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
 
