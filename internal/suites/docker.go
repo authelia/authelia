@@ -2,6 +2,7 @@ package suites
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -16,6 +17,15 @@ type DockerEnvironment struct {
 
 // NewDockerEnvironment create a new docker environment
 func NewDockerEnvironment(files []string) *DockerEnvironment {
+	if os.Getenv("CI") == "true" {
+		for i := range files {
+			files[i] = strings.ReplaceAll(files[i], "{}", "dist")
+		}
+	} else {
+		for i := range files {
+			files[i] = strings.ReplaceAll(files[i], "{}", "dev")
+		}
+	}
 	return &DockerEnvironment{dockerComposeFiles: files}
 }
 

@@ -11,8 +11,8 @@ func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"docker-compose.yml",
 		"internal/suites/HAProxy/docker-compose.yml",
-		"example/compose/authelia/docker-compose.backend.yml",
-		"example/compose/authelia/docker-compose.frontend.yml",
+		"example/compose/authelia/docker-compose.backend.{}.yml",
+		"example/compose/authelia/docker-compose.frontend.{}.yml",
 		"example/compose/nginx/backend/docker-compose.yml",
 		"example/compose/haproxy/docker-compose.yml",
 		"example/compose/smtp/docker-compose.yml",
@@ -25,7 +25,7 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment)
+		return waitUntilAutheliaBackendIsReady(dockerEnvironment)
 	}
 
 	onSetupTimeout := func() error {

@@ -75,7 +75,7 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	password := "password"
 
 	// Clean up any TOTP secret already in DB
-	provider := storage.NewSQLiteProvider("/tmp/authelia/db.sqlite3")
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 	require.NoError(s.T(), provider.DeleteTOTPSecret(username))
 
 	// Login one factor

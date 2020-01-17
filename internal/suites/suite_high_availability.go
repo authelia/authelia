@@ -10,8 +10,8 @@ var highAvailabilitySuiteName = "HighAvailability"
 var haDockerEnvironment = NewDockerEnvironment([]string{
 	"docker-compose.yml",
 	"internal/suites/HighAvailability/docker-compose.yml",
-	"example/compose/authelia/docker-compose.backend.yml",
-	"example/compose/authelia/docker-compose.frontend.yml",
+	"example/compose/authelia/docker-compose.backend.{}.yml",
+	"example/compose/authelia/docker-compose.frontend.{}.yml",
 	"example/compose/mariadb/docker-compose.yml",
 	"example/compose/redis/docker-compose.yml",
 	"example/compose/nginx/backend/docker-compose.yml",
@@ -28,7 +28,7 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(haDockerEnvironment)
+		return waitUntilAutheliaBackendIsReady(haDockerEnvironment)
 	}
 
 	onSetupTimeout := func() error {

@@ -1,28 +1,19 @@
 steps:
-  - label: ":hammer_and_wrench: Build & Test"
+  - label: ":hammer_and_wrench: Unit Test"
     command: "authelia-scripts --log-level debug ci"
-    artifact_paths:
-      - "dist.tar.zst"
-      - "web.tar.zst"
-    key: "build"
-
-  - wait
-
-  - label: ":chrome: Integration Tests"
-    command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
-    key: "test"
-
-  - wait:
-    if: build.branch == "master" || build.branch =~ /^v/
 
   - label: ":docker: Image Builds"
     command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
     agents:
       build: "true"
-    branches: "master v*"
+    depends_on: ~
+
+  - wait
+
+  - label: ":chrome: Integration Tests"
+    command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
     depends_on:
-      - "build"
-    key: "build-docker"
+      - "build-docker-amd64"
 
   - wait:
     if: build.branch == "master" || build.branch =~ /^v/
@@ -30,9 +21,6 @@ steps:
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
     branches: "master v*"
-    depends_on:
-      - "test"
-      - "build-docker"
 
   - wait:
     if: build.branch == "master" || build.branch =~ /^v/
@@ -47,5 +35,8 @@ steps:
     command: ".buildkite/steps/ghartifacts.sh"
     agents:
       upload: "fast"
-    depends_on: "build-docker"
+    depends_on:
+      - "build-docker-amd64"
+      - "build-docker-arm32v7"
+      - "build-docker-arm64v8"
     if: build.tag != null

@@ -4,13 +4,6 @@ set +u
 
 DOCKER_IMAGE=authelia/authelia
 
-if [[ $BUILDKITE_COMMAND == "authelia-scripts --log-level debug ci" ]];
-then
-  echo "--- :go::node: Saving artifacts for :chrome::selenium: Integration tests"
-  tar -I 'zstdmt -T0 -12' -cf dist.tar.zst dist
-  tar -I 'zstdmt -T0 -12' -cf web.tar.zst web
-fi
-
 if [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]];
 then
   echo "--- :docker: Saving artifacts for :buildkite: :docker: :github: releases"
@@ -21,6 +14,6 @@ then
   docker rm -f authelia-binary
   tar -I 'zstdmt -T0 -12' -cf authelia-linux-"${ARCH}".tar.zst authelia-linux-"${ARCH}" public_html
   sha256sum authelia-linux-"${ARCH}".tar.zst > authelia-linux-"${ARCH}".tar.zst.sha256
-  # Saving image for push to DockerHub
+  # Saving image for push to docker hub
   docker save $DOCKER_IMAGE | zstdmt -T0 -12 > authelia-image-"${ARCH}".tar.zst
 fi
