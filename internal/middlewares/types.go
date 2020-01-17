@@ -8,6 +8,7 @@ import (
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/storage"
+	"github.com/authelia/authelia/internal/utils"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -20,7 +21,8 @@ type AutheliaCtx struct {
 	Logger        *logrus.Entry
 	Providers     Providers
 	Configuration schema.Configuration
-	userSession   session.UserSession
+
+	Clock utils.Clock
 }
 
 // Providers contain all provider provided to Authelia.

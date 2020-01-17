@@ -102,6 +102,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	userSession.Emails = userDetails.Emails
 	userSession.AuthenticationLevel = authentication.OneFactor
 	userSession.LastActivity = time.Now().Unix()
+	userSession.KeepMeLoggedIn = *bodyJSON.KeepMeLoggedIn
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/internal/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
@@ -29,13 +30,7 @@ func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration
 	autheliaCtx.Providers = providers
 	autheliaCtx.Configuration = configuration
 	autheliaCtx.Logger = NewRequestLogger(autheliaCtx)
-
-	userSession, err := providers.SessionProvider.GetSession(ctx)
-	if err != nil {
-		return autheliaCtx, fmt.Errorf("Unable to retrieve user session: %s", err.Error())
-	}
-
-	autheliaCtx.userSession = userSession
+	autheliaCtx.Clock = utils.RealClock{}
 	return autheliaCtx, nil
 }
 
@@ -112,12 +107,16 @@ func (c *AutheliaCtx) XOriginalURL() []byte {
 
 // GetSession return the user session. Any update will be saved in cache.
 func (c *AutheliaCtx) GetSession() session.UserSession {
-	return c.userSession
+	userSession, err := c.Providers.SessionProvider.GetSession(c.RequestCtx)
+	if err != nil {
+		c.Logger.Error("Unable to retrieve user session")
+		return session.NewDefaultUserSession()
+	}
+	return userSession
 }
 
 // SaveSession save the content of the session.
 func (c *AutheliaCtx) SaveSession(userSession session.UserSession) error {
-	c.userSession = userSession
 	return c.Providers.SessionProvider.SaveSession(c.RequestCtx, userSession)
 }
 

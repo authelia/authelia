@@ -106,7 +106,7 @@ func (s *InactivityScenario) TestShouldDisableCookieExpirationAndInactivity() {
 	s.doVisit(s.T(), HomeBaseURL)
 	s.verifyIsHome(ctx, s.T())
 
-	time.Sleep(9 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	s.doVisit(s.T(), targetURL)
 	s.verifySecretAuthorized(ctx, s.T())
