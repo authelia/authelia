@@ -2,12 +2,12 @@
   <img src="./docs/images/authelia-title.png" width="350" title="Authelia">
 </p>
 
-  [![Docker Tag](https://images.microbadger.com/badges/version/authelia/authelia.svg)](https://microbadger.com/images/authelia/authelia)
-  [![Docker Size](https://img.shields.io/microbadger/image-size/authelia/authelia?style=flat-square&=blue&logo=docker)](https://microbadger.com/images/authelia/authelia)
-  [![GitHub Release](https://img.shields.io/github/release/authelia/authelia.svg?style=flat-square&color=blue&logo=github&logoColor=FFFFFF)](https://github.com/authelia/authelia/releases)
-  [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square)][Apache 2.0]
   [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
-  [![Gitter](https://img.shields.io/gitter/room/badges/shields.svg?style=flat-square&color=brightgreen)](https://gitter.im/authelia/general?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
+  [![Docker Tag](https://images.microbadger.com/badges/version/authelia/authelia.svg)](https://microbadger.com/images/authelia/authelia)
+  [![Docker Size](https://img.shields.io/microbadger/image-size/authelia/authelia?logo=docker&style=flat-square&=blue)](https://microbadger.com/images/authelia/authelia)
+  [![GitHub Release](https://img.shields.io/github/release/authelia/authelia.svg?logo=github&style=flat-square&color=blue)](https://github.com/authelia/authelia/releases)
+  [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square)][Apache 2.0]
+  [![Matrix](https://img.shields.io/matrix/authelia:matrix.org?logo=matrix&style=flat-square&color=blue)](https://riot.im/app/#/room/#authelia:matrix.org)
 
 **Authelia** is an open-source authentication and authorization server
 providing 2-factor authentication and single sign-on (SSO) for your
