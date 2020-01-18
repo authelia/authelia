@@ -13,9 +13,9 @@ func (wds *WebDriverSession) doVisit(t *testing.T, url string) {
 	assert.NoError(t, err)
 }
 
-func (wds *WebDriverSession) doVisitAndVerifyURLIs(ctx context.Context, t *testing.T, url string) {
+func (wds *WebDriverSession) doVisitAndVerifyOneFactorStep(ctx context.Context, t *testing.T, url string) {
 	wds.doVisit(t, url)
-	wds.verifyURLIs(ctx, t, url)
+	wds.verifyIsFirstFactorPage(ctx, t)
 }
 
 func (wds *WebDriverSession) doVisitLoginPage(ctx context.Context, t *testing.T, targetURL string) {
@@ -23,5 +23,5 @@ func (wds *WebDriverSession) doVisitLoginPage(ctx context.Context, t *testing.T,
 	if targetURL != "" {
 		suffix = fmt.Sprintf("?rd=%s", targetURL)
 	}
-	wds.doVisitAndVerifyURLIs(ctx, t, fmt.Sprintf("%s/%s", LoginBaseURL, suffix))
+	wds.doVisitAndVerifyOneFactorStep(ctx, t, fmt.Sprintf("%s/%s", LoginBaseURL, suffix))
 }

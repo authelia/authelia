@@ -228,7 +228,7 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		// is computed from X-Fowarded-* headers or X-Original-URL.
 		rd := string(ctx.QueryArgs().Peek("rd"))
 		if rd != "" {
-			redirectionURL := fmt.Sprintf("%s?rd=%s", rd, targetURL.String())
+			redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
 			if strings.Contains(redirectionURL, "/%23/") {
 				ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
 			}
