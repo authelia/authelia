@@ -71,7 +71,7 @@ export default function () {
     useEffect(() => {
         if (state) {
             const redirectionSuffix = redirectionURL
-                ? `?rd=${encodeURI(redirectionURL)}`
+                ? `?rd=${encodeURIComponent(redirectionURL)}`
                 : '';
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {

@@ -503,3 +503,22 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 	assert.Equal(t, "john", newUserSession.Username)
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
 }
+
+func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = "john"
+	userSession.AuthenticationLevel = authentication.NotAuthenticated
+	mock.Ctx.SaveSession(userSession)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	mock.Ctx.Request.SetHost("mydomain.com")
+	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.mydomain.com")
+
+	VerifyGet(mock.Ctx)
+
+	assert.Equal(t, "Found. Redirecting to https://auth.mydomain.com?rd=https%3A%2F%2Ftwo-factor.example.com",
+		string(mock.Ctx.Response.Body()))
+}
