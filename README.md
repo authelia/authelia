@@ -60,7 +60,7 @@ For more details about the features, follow [Features](./docs/features.md).
 ## Proxy support
 
 Authelia works in combination with [nginx], [Traefik] or [HAProxy]. It can be deployed on bare metal with
-Docker or directly in [Kubernetes].
+Docker or on top of [Kubernetes].
 
 <p align="center">
   <img src="./docs/images/logos/nginx.logo.png" height="50"/>
