@@ -2,6 +2,7 @@ package suites
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/authelia/authelia/internal/utils"
@@ -41,13 +42,15 @@ func init() {
 			}
 		}
 
-		log.Debug("Building authelia:dist image...")
-		if err := utils.Shell("authelia-scripts docker build --arch=CI").Run(); err != nil {
-			return err
+		log.Debug("Building authelia:dist image or use cache if already built...")
+		if os.Getenv("CI") != "true" {
+			if err := utils.Shell("authelia-scripts docker build").Run(); err != nil {
+				return err
+			}
 		}
 
 		log.Debug("Loading images into Kubernetes container...")
-		if err = loadDockerImages(); err != nil {
+		if err := loadDockerImages(); err != nil {
 			return err
 		}
 
@@ -57,7 +60,7 @@ func init() {
 		}
 
 		log.Debug("Deploying thirdparties...")
-		if err = kubectl.DeployThirdparties(); err != nil {
+		if err := kubectl.DeployThirdparties(); err != nil {
 			return err
 		}
 

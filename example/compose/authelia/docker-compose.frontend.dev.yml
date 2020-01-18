@@ -17,7 +17,5 @@ services:
       - "traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`)"
       - "traefik.http.routers.authelia_frontend.entrypoints=https"
       - "traefik.http.routers.authelia_frontend.tls=true"
-    environment:
-      - CI=${CI}
     networks:
       - authelianet

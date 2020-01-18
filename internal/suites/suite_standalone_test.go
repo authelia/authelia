@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
@@ -75,7 +76,7 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	password := "password"
 
 	// Clean up any TOTP secret already in DB
-	provider := storage.NewSQLiteProvider("/tmp/authelia/db.sqlite3")
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 	require.NoError(s.T(), provider.DeleteTOTPSecret(username))
 
 	// Login one factor
@@ -133,7 +134,9 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 	s.Assert().Equal(res.StatusCode, 302)
 	body, err := ioutil.ReadAll(res.Body)
 	s.Assert().NoError(err)
-	s.Assert().Equal(string(body), fmt.Sprintf("Found. Redirecting to %s?rd=%s", LoginBaseURL, AdminBaseURL))
+
+	urlEncodedAdminURL := url.QueryEscape(AdminBaseURL)
+	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s", LoginBaseURL, urlEncodedAdminURL), string(body))
 }
 
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI() {
@@ -149,7 +152,9 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 	s.Assert().Equal(res.StatusCode, 302)
 	body, err := ioutil.ReadAll(res.Body)
 	s.Assert().NoError(err)
-	s.Assert().Equal(string(body), fmt.Sprintf("Found. Redirecting to %s?rd=https://secure.example.com:8080/", LoginBaseURL))
+
+	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
+	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s", LoginBaseURL, urlEncodedAdminURL), string(body))
 }
 
 func (s *StandaloneSuite) TestStandaloneWebDriverScenario() {
@@ -178,6 +183,10 @@ func (s *StandaloneSuite) TestResetPasswordScenario() {
 
 func (s *StandaloneSuite) TestAvailableMethodsScenario() {
 	suite.Run(s.T(), NewAvailableMethodsScenario([]string{"ONE-TIME PASSWORD"}))
+}
+
+func (s *StandaloneSuite) TestRedirectionURLScenario() {
+	suite.Run(s.T(), NewRedirectionURLScenario())
 }
 
 func TestStandaloneSuite(t *testing.T) {

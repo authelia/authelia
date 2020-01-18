@@ -151,7 +151,7 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
-func (s *FirstFactorSuite) TestShouldAuthenticateUser() {
+func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	s.mock.UserProviderMock.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
@@ -184,10 +184,49 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUser() {
 	// And store authentication in session.
 	session := s.mock.Ctx.GetSession()
 	assert.Equal(s.T(), "test", session.Username)
+	assert.Equal(s.T(), true, session.KeepMeLoggedIn)
 	assert.Equal(s.T(), authentication.OneFactor, session.AuthenticationLevel)
 	assert.Equal(s.T(), []string{"test@example.com"}, session.Emails)
 	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
+}
 
+func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
+	s.mock.UserProviderMock.
+		EXPECT().
+		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
+		Return(true, nil)
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		GetDetails(gomock.Eq("test")).
+		Return(&authentication.UserDetails{
+			Emails: []string{"test@example.com"},
+			Groups: []string{"dev", "admins"},
+		}, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(gomock.Any()).
+		Return(nil)
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": false
+	}`)
+	FirstFactorPost(s.mock.Ctx)
+
+	// Respond with 200.
+	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
+
+	// And store authentication in session.
+	session := s.mock.Ctx.GetSession()
+	assert.Equal(s.T(), "test", session.Username)
+	assert.Equal(s.T(), false, session.KeepMeLoggedIn)
+	assert.Equal(s.T(), authentication.OneFactor, session.AuthenticationLevel)
+	assert.Equal(s.T(), []string{"test@example.com"}, session.Emails)
+	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
 }
 
 func TestFirstFactorSuite(t *testing.T) {

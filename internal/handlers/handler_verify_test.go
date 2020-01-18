@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
@@ -425,4 +426,99 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	mock.Ctx.Configuration.Session.Inactivity = 10
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = "john"
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
+	mock.Ctx.SaveSession(userSession)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+
+	VerifyGet(mock.Ctx)
+
+	// The session has been destroyed
+	newUserSession := mock.Ctx.GetSession()
+	assert.Equal(t, "", newUserSession.Username)
+	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel)
+}
+
+func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	mock.Ctx.Configuration.Session.Inactivity = 10
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = "john"
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
+	userSession.KeepMeLoggedIn = true
+	mock.Ctx.SaveSession(userSession)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+
+	VerifyGet(mock.Ctx)
+
+	// The session has been destroyed
+	newUserSession := mock.Ctx.GetSession()
+	assert.Equal(t, "john", newUserSession.Username)
+	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
+}
+
+func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	mock.Ctx.Configuration.Session.Inactivity = 10
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = "john"
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Add(-1 * time.Second).Unix()
+	mock.Ctx.SaveSession(userSession)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+
+	VerifyGet(mock.Ctx)
+
+	// The session has been destroyed
+	newUserSession := mock.Ctx.GetSession()
+	assert.Equal(t, "john", newUserSession.Username)
+	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
+}
+
+func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = "john"
+	userSession.AuthenticationLevel = authentication.NotAuthenticated
+	mock.Ctx.SaveSession(userSession)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	mock.Ctx.Request.SetHost("mydomain.com")
+	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.mydomain.com")
+
+	VerifyGet(mock.Ctx)
+
+	assert.Equal(t, "Found. Redirecting to https://auth.mydomain.com?rd=https%3A%2F%2Ftwo-factor.example.com",
+		string(mock.Ctx.Response.Body()))
 }

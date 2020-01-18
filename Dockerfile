@@ -27,7 +27,7 @@ RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
 RUN cd cmd/authelia && \
 GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -trimpath -o authelia && \
 cd ../authelia-scripts && \
-GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags '-w -linkmode external -extldflags -static' -o authelia-scripts
+GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags '-w -linkmode external -extldflags -static' -trimpath -o authelia-scripts
 
 # ========================================
 # ===== Build image for the frontend =====
@@ -38,7 +38,7 @@ WORKDIR /node/src/app
 COPY web .
 
 # Install the dependencies and build
-RUN yarn install && yarn build
+RUN yarn install --frozen-lockfile && yarn build
 
 # ===================================
 # ===== Authelia official image =====

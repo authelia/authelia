@@ -22,7 +22,7 @@ session:
 
 storage:
   local:
-    path: /tmp/authelia/db.sqlite3
+    path: /tmp/db.sqlite3
 
 totp:
   issuer: example.com

@@ -139,24 +139,13 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, grou
 
 // hasUserBeenInactiveLongEnough check whether the user has been inactive for too long.
 func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
-	expiration, err := ctx.Providers.SessionProvider.GetExpiration(ctx.RequestCtx)
-
-	if err != nil {
-		return false, err
-	}
-
-	// If the cookie has no expiration.
-	if expiration == 0 {
-		return false, nil
-	}
-
 	maxInactivityPeriod := ctx.Configuration.Session.Inactivity
 	if maxInactivityPeriod == 0 {
 		return false, nil
 	}
 
 	lastActivity := ctx.GetSession().LastActivity
-	inactivityPeriod := time.Now().Unix() - lastActivity
+	inactivityPeriod := ctx.Clock.Now().Unix() - lastActivity
 
 	ctx.Logger.Tracef("Inactivity report: Inactivity=%d, MaxInactivity=%d",
 		inactivityPeriod, maxInactivityPeriod)
@@ -178,7 +167,7 @@ func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (u
 		return "", nil, authentication.NotAuthenticated, fmt.Errorf("An anonymous user cannot be authenticated. That might be the sign of a compromise")
 	}
 
-	if !isUserAnonymous {
+	if !userSession.KeepMeLoggedIn && !isUserAnonymous {
 		inactiveLongEnough, err := hasUserBeenInactiveLongEnough(ctx)
 		if err != nil {
 			return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check if user has been inactive for a long time: %s", err)
@@ -239,7 +228,7 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		// is computed from X-Fowarded-* headers or X-Original-URL.
 		rd := string(ctx.QueryArgs().Peek("rd"))
 		if rd != "" {
-			redirectionURL := fmt.Sprintf("%s?rd=%s", rd, targetURL.String())
+			redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
 			if strings.Contains(redirectionURL, "/%23/") {
 				ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
 			}
