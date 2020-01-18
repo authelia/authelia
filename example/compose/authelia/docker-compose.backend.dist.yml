@@ -2,6 +2,11 @@ version: "3"
 services:
   authelia-backend:
     image: authelia:dist
+    labels:
+      - "traefik.frontend.rule=Host:login.example.com"
+      - "traefik.http.routers.authelia.rule=Host(`login.example.com`)"
+      - "traefik.http.routers.authelia.entrypoints=https"
+      - "traefik.http.routers.authelia.tls=true"
     environment:
       - ENVIRONMENT=dev
     restart: always
