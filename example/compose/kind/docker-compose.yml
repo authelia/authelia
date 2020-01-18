@@ -4,11 +4,11 @@ services:
     build:
       context: ./example/compose/kind
     volumes:
-      - kind-volume:/kind/config
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./example/kube:/authelia
-      - ./example/compose/kind/config.yml:/etc/kind/config.yml
-    command: kubectl port-forward --address 0.0.0.0 -n authelia service/nginx-ingress-controller-service 8080:443
+      - 'kind-volume:/kind/config'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - './example/kube:/authelia'
+      - './example/compose/kind/config.yml:/etc/kind/config.yml'
+    command: 'kubectl port-forward --address 0.0.0.0 -n authelia service/nginx-ingress-controller-service 8080:443'
     networks:
       authelianet:
         aliases:
@@ -25,9 +25,9 @@ services:
     build:
       context: ./example/compose/kind
     volumes:
-      - kind-volume:/kind/config
-      - ./example/compose/kind/entrypoint-dashboard.sh:/entrypoint-dashboard.sh
-    command: "/entrypoint-dashboard.sh"
+      - 'kind-volume:/kind/config'
+      - './example/compose/kind/entrypoint-dashboard.sh:/entrypoint-dashboard.sh'
+    command: '/entrypoint-dashboard.sh'
     networks:
       authelianet:
         aliases:

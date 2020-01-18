@@ -3,20 +3,20 @@ services:
   traefik:
     image: traefik:v1.7.20-alpine
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - '/var/run/docker.sock:/var/run/docker.sock'
     labels:
-      - "traefik.frontend.rule=Host:traefik.example.com"
-      - "traefik.port=8081"
+      - 'traefik.frontend.rule=Host:traefik.example.com'
+      - 'traefik.port=8081'
     command:
-      - "--api"
-      - "--api.entrypoint=api"
-      - "--docker"
-      - "--defaultentrypoints=https"
-      - "--logLevel=DEBUG"
-      - "--traefiklog=true"
-      - "--traefiklog.filepath=/var/log/traefik.log"
-      - "--entryPoints=Name:https Address::8080 TLS"
-      - "--entryPoints=Name:api Address::8081"
+      - '--api'
+      - '--api.entrypoint=api'
+      - '--docker'
+      - '--defaultentrypoints=https'
+      - '--logLevel=DEBUG'
+      - '--traefiklog=true'
+      - '--traefiklog.filepath=/var/log/traefik.log'
+      - '--entryPoints=Name:https Address::8080 TLS'
+      - '--entryPoints=Name:api Address::8081'
     networks:
       authelianet:
         # Set the IP to be able to query on port 8080

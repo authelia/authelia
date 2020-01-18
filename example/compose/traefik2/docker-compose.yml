@@ -3,22 +3,20 @@ services:
   traefik:
     image: traefik:v2.1.2
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./example/compose/traefik2/authelia.yml:/etc/traefik/authelia.yml #TODO(url-encoding) remove for url-encoding
+      - '/var/run/docker.sock:/var/run/docker.sock'
     labels:
-      - "traefik.http.routers.api.rule=Host(`traefik.example.com`)"
-      - "traefik.http.routers.api.entrypoints=https"
-      - "traefik.http.routers.api.service=api@internal"
-      - "traefik.http.routers.api.tls=true"
+      - 'traefik.http.routers.api.rule=Host(`traefik.example.com`)'
+      - 'traefik.http.routers.api.entrypoints=https'
+      - 'traefik.http.routers.api.service=api@internal'
+      - 'traefik.http.routers.api.tls=true'
     command:
-      - "--api"
-      - "--providers.file.filename=/etc/traefik/authelia.yml" #TODO(url-encoding) remove for url-encoding
-      - "--providers.docker=true"
-      - "--entrypoints.https=true"
-      - "--entrypoints.https.address=:8080"
-      - "--log=true"
-      - "--log.level=DEBUG"
-      - "--log.filepath=/var/log/traefik.log"
+      - '--api'
+      - '--providers.docker=true'
+      - '--entrypoints.https=true'
+      - '--entrypoints.https.address=:8080'
+      - '--log=true'
+      - '--log.level=DEBUG'
+      - '--log.filepath=/var/log/traefik.log'
     networks:
       authelianet:
         # Set the IP to be able to query on port 8080

@@ -1,21 +1,17 @@
-version: "3"
+version: '3'
 services:
   nginx-backend:
     build:
       context: example/compose/nginx/backend
     labels:
-      - "traefik.frontend.rule=Host:home.example.com,public.example.com,secure.example.com,admin.example.com,singlefactor.example.com"
-      - "traefik.frontend.auth.forward.address=http://authelia-backend:9091/api/verify?rd=https://login.example.com:8080/"
-      - "traefik.frontend.auth.forward.tls.insecureSkipVerify=true"
-      - "traefik.http.routers.protectedapps.rule=Host(`home.example.com`, `public.example.com`, `secure.example.com`, `admin.example.com`, `singlefactor.example.com`)"
-      - "traefik.http.routers.protectedapps.entrypoints=https"
-      - "traefik.http.routers.protectedapps.tls=true"
-      - "traefik.http.routers.protecteapps.middlewares=authelia"
-      - "traefik.http.routers.protectedapps.middlewares=authelia@file" #TODO(url-encoding) remove for url-encoding
-#TODO(url-encoding) uncomment for url-encoding
-#      - "traefik.http.middlewares.authelia.forwardAuth.trustForwardHeaders=true"
-#      - "traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=X-Forwarded-User"
-#      - "traefik.http.middlewares.authelia.forwardAuth.address=http://authelia-backend:9091/api/verify?rd=https://login.example.com:8080/"
-#      - "traefik.http.middlewares.authelia.forwardAuth.tls.insecureskipverify=true"
+      - 'traefik.frontend.rule=Host:home.example.com,public.example.com,secure.example.com,admin.example.com,singlefactor.example.com'
+      - 'traefik.frontend.auth.forward.address=http://authelia-backend:9091/api/verify?rd=https://login.example.com:8080/'
+      - 'traefik.frontend.auth.forward.tls.insecureSkipVerify=true'
+      - 'traefik.http.routers.protectedapps.rule=Host(`home.example.com`, `public.example.com`, `secure.example.com`, `admin.example.com`, `singlefactor.example.com`)'
+      - 'traefik.http.routers.protectedapps.entrypoints=https'
+      - 'traefik.http.routers.protectedapps.tls=true'
+      - 'traefik.http.routers.protecteapps.middlewares=authelia'
+      - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia-backend:9091/api/verify?rd=https://login.example.com:8080/'
+      - 'traefik.http.middlewares.authelia.forwardAuth.tls.insecureSkipVerify=true'
     networks:
       - authelianet
