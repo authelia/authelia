@@ -11,6 +11,9 @@ Release Notes - Version 4.1.0
 * Support hashes without {CRYPT} in file-based users database.
 * Allow blank additional\_groups\_dn and additional\_users\_dn.
 * Fix wrong remote IP in logs.
+* URL encode rd parameter to allow parameters in original URL.
+* Fix broken remember me functionality.
+* Make authelia binary build reproducible.
 
 Release Notes - Version 4.0.0
 ------------------------------
