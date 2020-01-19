@@ -8,8 +8,8 @@ do
   echo "      - \"authelia-scripts docker build --arch=${BUILD_ARCH}\""
   echo "    artifact_paths:"
   echo "      - \"authelia-image-${BUILD_ARCH}.tar.zst\""
-  echo "      - \"authelia-linux-${BUILD_ARCH}.tar.zst\""
-  echo "      - \"authelia-linux-${BUILD_ARCH}.tar.zst.sha256\""
+  echo "      - \"authelia-linux-${BUILD_ARCH}.tar.gz\""
+  echo "      - \"authelia-linux-${BUILD_ARCH}.tar.gz.sha256\""
   if [[ "${BUILD_ARCH}" != "amd64" ]];
   then
     echo "    branches: \"master v*\""
