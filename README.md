@@ -102,14 +102,14 @@ Would you like to report any vulnerability discovered in Authelia, please first 
 
 ## Changelog & Breaking changes
 
-See [CHANGELOG.md](./CHANGELOG.md) and [BREAKING.md](./BREAKING.md).
+See [CHANGELOG](./CHANGELOG.md) and [BREAKING](./BREAKING.md).
 
 ## Contribute
 
 Anybody willing to contribute to the project either with code, 
 documentation, security reviews or whatever, are very welcome to issue
 or review pull requests and take part to discussions in
-[Gitter](https://gitter.im/authelia/general?utm_source=share-link&utm_medium=link&utm_campaign=share-link).
+[Matrix](https://riot.im/app/#/room/#authelia:matrix.org)
 
 I am very grateful to contributors for their contributions to the project. Don't hesitate, be the next!
 
