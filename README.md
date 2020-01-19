@@ -8,6 +8,7 @@
   [![GitHub Release](https://img.shields.io/github/release/authelia/authelia.svg?logo=github&style=flat-square&color=blue)](https://github.com/authelia/authelia/releases)
   [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square)][Apache 2.0]
   [![Matrix](https://img.shields.io/matrix/authelia:matrix.org?logo=matrix&style=flat-square&color=blue)](https://riot.im/app/#/room/#authelia:matrix.org)
+  [![Sponsor](https://img.shields.io/badge/donate-opencollective-blue.svg?style=flat-square)](https://opencollective.com/authelia-sponsors)
 
 **Authelia** is an open-source authentication and authorization server
 providing 2-factor authentication and single sign-on (SSO) for your
@@ -115,6 +116,10 @@ I am very grateful to contributors for their contributions to the project. Don't
 ## Build Authelia
 
 If you want to contribute with code, you should follow the documentation explaining how to [build](./docs/build-and-dev.md) the application.
+
+## Sponsorship
+
+[Become a backer](https://opencollective.com/authelia-sponsors) to support Authelia.
 
 ## License
 
