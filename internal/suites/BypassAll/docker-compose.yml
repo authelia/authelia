@@ -1,6 +1,6 @@
-version: "3"
+version: '3'
 services:
   authelia-backend:
     volumes:
-      - "./internal/suites/BypassAll/configuration.yml:/etc/authelia/configuration.yml:ro"
-      - "./internal/suites/BypassAll/users.yml:/var/lib/authelia/users.yml"
+      - './internal/suites/BypassAll/configuration.yml:/etc/authelia/configuration.yml:ro'
+      - './internal/suites/BypassAll/users.yml:/var/lib/authelia/users.yml'

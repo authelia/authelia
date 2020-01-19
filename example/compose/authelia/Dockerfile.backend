@@ -15,3 +15,5 @@ USER dev
 
 VOLUME /etc/authelia
 VOLUME /var/lib/authelia
+
+EXPOSE 9091

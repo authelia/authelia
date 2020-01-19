@@ -1,4 +1,4 @@
-version: "3.4"
+version: '3.4'
 services:
   authelia:
     image: authelia/authelia:latest
@@ -6,8 +6,8 @@ services:
     configs:
       - source: authelia
         target: /etc/authelia/configuration.yml
-        uid: "0"
-        gid: "0"
+        uid: '0'
+        gid: '0'
         mode: 0444
     environment:
       - NODE_TLS_REJECT_UNAUTHORIZED=0
