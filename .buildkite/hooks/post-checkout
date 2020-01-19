@@ -2,7 +2,9 @@
 
 set +u
 
-if [[ ! $BUILDKITE_COMMAND =~ "buildkite-agent pipeline upload" ]] || [[ $BUILDKITE_COMMAND == ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload" ]];
+if [[ ! $BUILDKITE_COMMAND =~ "buildkite-agent pipeline upload" ]] || \
+[[ $BUILDKITE_COMMAND == ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload" ]] || \
+[[ ! $BUILDKITE_COMMAND == ".buildkite/steps/ghartifacts.sh" ]];
 then
   echo "--- :buildkite: Setting up Build environment"
   source bootstrap.sh
