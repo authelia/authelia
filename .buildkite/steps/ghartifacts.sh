@@ -11,4 +11,5 @@ do
   artifacts+=(-a "${FILES}")
 done
 
+echo "--- :github: Deploy artifacts for release: ${BUILDKITE_TAG}"
 hub release create "${artifacts[@]}" -m "${BUILDKITE_TAG}" "${BUILDKITE_TAG}"
