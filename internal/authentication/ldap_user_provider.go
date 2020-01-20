@@ -89,6 +89,17 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 	return true, nil
 }
 
+// OWASP recommends to escape some special characters
+// https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.md
+const SpecialLDAPRunes = "\\,#+<>;\"="
+
+func (p *LDAPUserProvider) ldapEscape(input string) string {
+	for _, c := range SpecialLDAPRunes {
+		input = strings.ReplaceAll(input, string(c), fmt.Sprintf("\\%c", c))
+	}
+	return input
+}
+
 func (p *LDAPUserProvider) getUserAttribute(conn LDAPConnection, username string, attribute string) ([]string, error) {
 	client, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
@@ -96,6 +107,7 @@ func (p *LDAPUserProvider) getUserAttribute(conn LDAPConnection, username string
 	}
 	defer client.Close()
 
+	username = p.ldapEscape(username)
 	userFilter := strings.Replace(p.configuration.UsersFilter, "{0}", username, -1)
 	baseDN := p.configuration.BaseDN
 	if p.configuration.AdditionalUsersDN != "" {
