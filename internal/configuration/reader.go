@@ -1,12 +1,12 @@
 package configuration
 
 import (
-	"io/ioutil"
-
-	"gopkg.in/yaml.v2"
+	"fmt"
+	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/configuration/validator"
+	"github.com/spf13/viper"
 )
 
 func check(e error) {
@@ -17,23 +17,27 @@ func check(e error) {
 
 // Read a YAML configuration and create a Configuration object out of it.
 func Read(configPath string) (*schema.Configuration, []error) {
-	config := schema.Configuration{}
+	viper.SetEnvPrefix("AUTHELIA")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
 
-	data, err := ioutil.ReadFile(configPath)
-	check(err)
+	viper.SetConfigFile(configPath)
 
-	err = yaml.Unmarshal([]byte(data), &config)
-
-	if err != nil {
-		return nil, []error{err}
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			return nil, []error{fmt.Errorf("unable to find config file %s", configPath)}
+		}
 	}
 
+	var configuration schema.Configuration
+	viper.Unmarshal(&configuration)
+
 	val := schema.NewStructValidator()
-	validator.Validate(&config, val)
+	validator.Validate(&configuration, val)
 
 	if val.HasErrors() {
 		return nil, val.Errors()
 	}
 
-	return &config, nil
+	return &configuration, nil
 }

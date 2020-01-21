@@ -14,7 +14,6 @@ require (
 	github.com/fasthttp/router v0.5.2
 	github.com/fasthttp/session v1.1.3
 	github.com/go-sql-driver/mysql v1.4.1
-	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/mock v1.3.1
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
@@ -29,6 +28,7 @@ require (
 	github.com/simia-tech/crypt v0.2.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
+	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.4.0
 	github.com/tebeka/selenium v0.9.9
 	github.com/tidwall/pretty v1.0.0 // indirect

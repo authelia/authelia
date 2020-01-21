@@ -8,11 +8,11 @@ import (
 
 // ACLRule represent one ACL rule
 type ACLRule struct {
-	Domain    string   `yaml:"domain"`
-	Policy    string   `yaml:"policy"`
-	Subject   string   `yaml:"subject"`
-	Networks  []string `yaml:"networks"`
-	Resources []string `yaml:"resources"`
+	Domain    string   `mapstructure:"domain"`
+	Policy    string   `mapstructure:"policy"`
+	Subject   string   `mapstructure:"subject"`
+	Networks  []string `mapstructure:"networks"`
+	Resources []string `mapstructure:"resources"`
 }
 
 // IsPolicyValid check if policy is valid
@@ -54,8 +54,8 @@ func (r *ACLRule) Validate(validator *StructValidator) {
 
 // AccessControlConfiguration represents the configuration related to ACLs.
 type AccessControlConfiguration struct {
-	DefaultPolicy string    `yaml:"default_policy"`
-	Rules         []ACLRule `yaml:"rules"`
+	DefaultPolicy string    `mapstructure:"default_policy"`
+	Rules         []ACLRule `mapstructure:"rules"`
 }
 
 // Validate validate the access control configuration
