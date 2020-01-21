@@ -8,6 +8,7 @@ import (
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/internal/commands"
 	"github.com/authelia/authelia/internal/configuration"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
@@ -112,12 +113,13 @@ func main() {
 	rootCmd.Flags().StringVar(&configPathFlag, "config", "", "Configuration file")
 
 	versionCmd := &cobra.Command{
-		Use: "version",
+		Use:   "version",
+		Short: "Show the version of Authelia",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Printf("Authelia version %s, build %s", BuildTag, BuildCommit)
 		},
 	}
 
-	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(versionCmd, commands.HashPasswordCmd, commands.MigrateCmd)
 	rootCmd.Execute()
 }

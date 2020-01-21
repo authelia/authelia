@@ -98,7 +98,7 @@ The content of this file is as follows:
     users:
       ...
       john:
-        password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+        password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
         email: john.doe@authelia.com
         groups:
           - admins
@@ -108,11 +108,10 @@ The password is hashed and salted as it is in LDAP servers with salted SHA-512
 (more hash algorithms such as Argon2 will be provided in the future).
 Here is a one-liner to generate such hashed password:
 
-    $ 
+    $ docker run authelia/authelia authelia hash-password yourpassword
     $6$rounds=50000$BpLnfgDsc2WD8F2q$PumMwig8O0uIe9SgneL8Cm1FvUniOzpqBrH.uQE3aZR4K1dHsQldu5gEjJZsXcO./v3itfz6CXTDTJgeh5e8t.
 
-Copy this newly hashed password into your `users_database.yml` file, prefixed with
-`{CRYPT}` as shown in the example file above.
+Copy this newly hashed password into your `users_database.yml` file.
 
 Once the file is created, edit the configuration file with the following
 block (as used in [configuration.yml](../test/suites/basic/configuration.yml)):

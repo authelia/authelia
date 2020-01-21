@@ -3,6 +3,7 @@
 package main
 
 import (
+	"github.com/authelia/authelia/internal/commands"
 	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -49,12 +50,6 @@ var Commands = []AutheliaCommandDefinition{
 		SubCommands: CobraCommands{DockerBuildCmd, DockerPushCmd, DockerManifestCmd},
 	},
 	AutheliaCommandDefinition{
-		Name:  "hash-password [password]",
-		Short: "Compute hash of a password for creating a file-based users database",
-		Func:  HashPassword,
-		Args:  cobra.MinimumNArgs(1),
-	},
-	AutheliaCommandDefinition{
 		Name:  "serve [config]",
 		Short: "Serve compiled version of Authelia",
 		Func:  ServeCmd,
@@ -79,14 +74,6 @@ var Commands = []AutheliaCommandDefinition{
 		Name:  "unittest",
 		Short: "Run unit tests",
 		Func:  RunUnitTest,
-	},
-	AutheliaCommandDefinition{
-		Name:  "migrate",
-		Short: "Migrate data from v3 to v4",
-		SubCommands: CobraCommands{
-			MigrateLocalCmd,
-			MigrateMongoCmd,
-		},
 	},
 }
 
@@ -142,6 +129,7 @@ func main() {
 
 		cobraCommands = append(cobraCommands, command)
 	}
+	cobraCommands = append(cobraCommands, commands.HashPasswordCmd, commands.MigrateCmd)
 
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Set the log level for the command")
 	rootCmd.AddCommand(cobraCommands...)
