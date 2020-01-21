@@ -44,7 +44,7 @@ RUN yarn install --frozen-lockfile && yarn build
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM arm64v8/alpine:3.11.2
+FROM arm64v8/alpine:3.11.3
 
 COPY ./qemu-aarch64-static /usr/bin/qemu-aarch64-static
 
