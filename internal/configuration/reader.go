@@ -19,7 +19,17 @@ func check(e error) {
 func Read(configPath string) (*schema.Configuration, []error) {
 	viper.SetEnvPrefix("AUTHELIA")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
+
+	// we need to bind all env variables as long as https://github.com/spf13/viper/issues/761
+	// is not resolved.
+	viper.BindEnv("jwt_secret")
+	viper.BindEnv("duo_api.secret_key")
+	viper.BindEnv("session.secret")
+	viper.BindEnv("authentication_backend.ldap.password")
+	viper.BindEnv("notifier.smtp.password")
+	viper.BindEnv("session.redis.password")
+	viper.BindEnv("storage.mysql.password")
+	viper.BindEnv("storage.postgres.password")
 
 	viper.SetConfigFile(configPath)
 
