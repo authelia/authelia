@@ -32,7 +32,7 @@ func init() {
 	SuitesTestCmd.Flags().BoolVar(&headless, "headless", false, "Run tests in headless mode")
 }
 
-// SuitesListCmd Command for listing the available suites
+// SuitesListCmd Command for listing the available suites.
 var SuitesListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List available suites.",
@@ -42,7 +42,7 @@ var SuitesListCmd = &cobra.Command{
 	Args: cobra.ExactArgs(0),
 }
 
-// SuitesSetupCmd Command for setuping a suite environment
+// SuitesSetupCmd Command to setup a suite environment.
 var SuitesSetupCmd = &cobra.Command{
 	Use:   "setup [suite]",
 	Short: "Setup a Go suite environment. Suites can be listed using the list command.",

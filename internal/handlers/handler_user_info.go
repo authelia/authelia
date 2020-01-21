@@ -12,14 +12,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func loadInfo(username string, storageProvier storage.Provider, preferences *UserPreferences, logger *logrus.Entry) []error {
+func loadInfo(username string, storageProvider storage.Provider, preferences *UserPreferences, logger *logrus.Entry) []error {
 	var wg sync.WaitGroup
 	wg.Add(3)
 
 	errors := make([]error, 0)
 	go func() {
 		defer wg.Done()
-		method, err := storageProvier.LoadPreferred2FAMethod(username)
+		method, err := storageProvider.LoadPreferred2FAMethod(username)
 		if err != nil {
 			errors = append(errors, err)
 			logger.Error(err)
@@ -34,7 +34,7 @@ func loadInfo(username string, storageProvier storage.Provider, preferences *Use
 
 	go func() {
 		defer wg.Done()
-		_, _, err := storageProvier.LoadU2FDeviceHandle(username)
+		_, _, err := storageProvider.LoadU2FDeviceHandle(username)
 		if err != nil {
 			if err == storage.ErrNoU2FDeviceHandle {
 				return
@@ -48,7 +48,7 @@ func loadInfo(username string, storageProvier storage.Provider, preferences *Use
 
 	go func() {
 		defer wg.Done()
-		_, err := storageProvier.LoadTOTPSecret(username)
+		_, err := storageProvider.LoadTOTPSecret(username)
 		if err != nil {
 			if err == storage.ErrNoTOTPSecret {
 				return
@@ -64,7 +64,7 @@ func loadInfo(username string, storageProvier storage.Provider, preferences *Use
 	return errors
 }
 
-// UserInfoGet get the info related to the user identitified by the session.
+// UserInfoGet get the info related to the user identified by the session.
 func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 

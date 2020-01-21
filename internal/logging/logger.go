@@ -11,7 +11,7 @@ func init() {
 	logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
 }
 
-// Logger return the standard logrues logger.
+// Logger return the standard logrus logger.
 func Logger() *logrus.Logger {
 	return logrus.StandardLogger()
 }

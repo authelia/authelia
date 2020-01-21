@@ -63,7 +63,7 @@ Release Notes - Version 3.14.0
 Release Notes - Version 3.13.0
 ------------------------------
 * Rewrite Authelia portal in Typescript.
-* Intoduce concept of suites and authelia-scripts.
+* Introduce concept of suites and authelia-scripts.
 * Add official support for Kubernetes and a suite.
 * Improve documentation for nginx.
 * Fix bypass policy not properly handled.
@@ -90,7 +90,7 @@ Release Notes - Version 3.10.0
 ------------------------------
 * Add docker-compose for deploying Authelia on Swarm*.
 * Add "keep me logged in" checkbox in first factor page.
-* Fix U2F compatiblity with Firefox.
+* Fix U2F compatibility with Firefox.
 * Bump dependencies to fix vulnerabilities reported by snyk.
 * Improve documentation for dev setup.
 

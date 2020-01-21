@@ -92,7 +92,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
 }
 
-func TestRunSecondeFactorDuoPostSuite(t *testing.T) {
+func TestRunSecondFactorDuoPostSuite(t *testing.T) {
 	s := new(SecondFactorDuoPostSuite)
 	suite.Run(t, s)
 }

@@ -75,7 +75,7 @@ func (s *ResetPasswordScenario) TestShouldMakeAttackerThinkPasswordResetIsInitia
 	s.doVisit(s.T(), LoginBaseURL)
 	s.verifyIsFirstFactorPage(ctx, s.T())
 
-	// Try to initiate a password reset of an inexistant user
+	// Try to initiate a password reset of an nonexistent user.
 	s.doInitiatePasswordReset(ctx, s.T(), "i_dont_exist")
 
 	// Check that the notification make the attacker thinks the process is initiated

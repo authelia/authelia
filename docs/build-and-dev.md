@@ -46,7 +46,7 @@ Integration tests are located under the `internal/suites` directory
 and are based on Selenium. A suite is a combination of environment
 and tests. Executing a suite therefore means starting the environment,
 running the tests and tearing down the environment. Each step can be
-run independantly:
+run independently:
 
     # List the available suites
     $ authelia-scripts suites list
