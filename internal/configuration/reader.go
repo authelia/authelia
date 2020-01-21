@@ -1,12 +1,12 @@
 package configuration
 
 import (
-	"io/ioutil"
-
-	"gopkg.in/yaml.v2"
+	"fmt"
+	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/configuration/validator"
+	"github.com/spf13/viper"
 )
 
 func check(e error) {
@@ -17,23 +17,37 @@ func check(e error) {
 
 // Read a YAML configuration and create a Configuration object out of it.
 func Read(configPath string) (*schema.Configuration, []error) {
-	config := schema.Configuration{}
+	viper.SetEnvPrefix("AUTHELIA")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	data, err := ioutil.ReadFile(configPath)
-	check(err)
+	// we need to bind all env variables as long as https://github.com/spf13/viper/issues/761
+	// is not resolved.
+	viper.BindEnv("jwt_secret")
+	viper.BindEnv("duo_api.secret_key")
+	viper.BindEnv("session.secret")
+	viper.BindEnv("authentication_backend.ldap.password")
+	viper.BindEnv("notifier.smtp.password")
+	viper.BindEnv("session.redis.password")
+	viper.BindEnv("storage.mysql.password")
+	viper.BindEnv("storage.postgres.password")
 
-	err = yaml.Unmarshal([]byte(data), &config)
+	viper.SetConfigFile(configPath)
 
-	if err != nil {
-		return nil, []error{err}
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			return nil, []error{fmt.Errorf("unable to find config file %s", configPath)}
+		}
 	}
 
+	var configuration schema.Configuration
+	viper.Unmarshal(&configuration)
+
 	val := schema.NewStructValidator()
-	validator.Validate(&config, val)
+	validator.Validate(&configuration, val)
 
 	if val.HasErrors() {
 		return nil, val.Errors()
 	}
 
-	return &config, nil
+	return &configuration, nil
 }

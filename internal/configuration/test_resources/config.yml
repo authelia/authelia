@@ -2,10 +2,10 @@
 #                   Authelia configuration                    #
 ###############################################################
 
+host: 127.0.0.1
 port: 9091
 
 logs_level: debug
-jwt_secret: a_secret
 default_redirection_url: https://home.example.com:8080/
 
 totp:
@@ -14,7 +14,6 @@ totp:
 duo_api:
   hostname: api-123456789.example.com
   integration_key: ABCDEF
-  secret_key: 1234567890abcdefghifjkl
 
 authentication_backend:
   ldap:
@@ -27,7 +26,6 @@ authentication_backend:
     group_name_attribute: cn
     mail_attribute: mail
     user: cn=admin,dc=example,dc=com
-    password: password
 
 access_control:
   default_policy: deny
@@ -89,14 +87,12 @@ access_control:
 
 session:
   name: authelia_session
-  secret: unsecure_session_secret
   expiration: 3600000 # 1 hour
   inactivity: 300000 # 5 minutes
   domain: example.com
   redis:
     host: 127.0.0.1
     port: 6379
-    password: authelia
 
 regulation:
   max_retries: 3
@@ -109,12 +105,10 @@ storage:
     port: 3306
     database: authelia
     username: authelia
-    password: authelia
 
 notifier:
   smtp:
     username: test
-    password: password
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com

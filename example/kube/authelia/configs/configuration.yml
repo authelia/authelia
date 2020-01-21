@@ -4,7 +4,6 @@
 
 port: 80
 logs_level: debug
-jwt_secret: an_unsecure_secret
 
 default_redirection_url: https://home.example.com:8080
 
@@ -20,7 +19,6 @@ authentication_backend:
     group_name_attribute: cn
     mail_attribute: mail
     user: cn=admin,dc=example,dc=com
-    password: password
 
 access_control:
   default_policy: deny
@@ -74,7 +72,6 @@ access_control:
       policy: two_factor
 
 session:
-  secret: unsecure_password
   expiration: 3600 # 1 hour
   inactivity: 300 # 5 minutes
   domain: example.com
@@ -93,7 +90,6 @@ storage:
     port: 3306
     database: authelia
     username: admin
-    password: password
 
 notifier:
   smtp:

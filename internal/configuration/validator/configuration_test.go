@@ -5,6 +5,7 @@ import (
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func newDefaultConfig() schema.Configuration {
@@ -25,6 +26,11 @@ func newDefaultConfig() schema.Configuration {
 			Path: "abc",
 		},
 	}
+	config.Notifier = &schema.NotifierConfiguration{
+		FileSystem: &schema.FileSystemNotifierConfiguration{
+			Filename: "/tmp/file",
+		},
+	}
 	return config
 }
 
@@ -34,7 +40,7 @@ func TestShouldNotUpdateConfig(t *testing.T) {
 
 	Validate(&config, validator)
 
-	assert.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, 9090, config.Port)
 	assert.Equal(t, "info", config.LogsLevel)
 }
@@ -46,7 +52,7 @@ func TestShouldValidateAndUpdatePort(t *testing.T) {
 
 	Validate(&config, validator)
 
-	assert.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, 8080, config.Port)
 }
 
@@ -57,7 +63,7 @@ func TestShouldValidateAndUpdateHost(t *testing.T) {
 
 	Validate(&config, validator)
 
-	assert.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, "0.0.0.0", config.Host)
 }
 
@@ -68,6 +74,20 @@ func TestShouldValidateAndUpdateLogsLevel(t *testing.T) {
 
 	Validate(&config, validator)
 
-	assert.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, "info", config.LogsLevel)
+}
+
+func TestShouldEnsureNotifierConfigIsProvided(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+
+	Validate(&config, validator)
+	require.Len(t, validator.Errors(), 0)
+
+	config.Notifier = nil
+
+	Validate(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "A notifier configuration must be provided")
 }
