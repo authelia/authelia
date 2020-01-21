@@ -25,9 +25,7 @@ RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
 
 # CGO_ENABLED=1 is mandatory for building go-sqlite3
 RUN cd cmd/authelia && \
-GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -trimpath -o authelia && \
-cd ../authelia-scripts && \
-GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags '-w -linkmode external -extldflags -static' -trimpath -o authelia-scripts
+GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -trimpath -o authelia
 
 # ========================================
 # ===== Build image for the frontend =====
@@ -49,7 +47,7 @@ RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /usr/app
 
-COPY --from=builder-backend /go/src/app/cmd/authelia/authelia /go/src/app/cmd/authelia-scripts/authelia-scripts ./
+COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
 COPY --from=builder-frontend /node/src/app/build public_html
 
 EXPOSE 9091

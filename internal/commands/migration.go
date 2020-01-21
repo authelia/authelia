@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"encoding/base64"
@@ -6,7 +6,18 @@ import (
 
 	"github.com/authelia/authelia/internal/configuration"
 	"github.com/authelia/authelia/internal/storage"
+	"github.com/spf13/cobra"
 )
+
+var MigrateCmd *cobra.Command
+
+func init() {
+	MigrateCmd = &cobra.Command{
+		Use:   "migrate",
+		Short: "helper function to migrate from v3 to v4",
+	}
+	MigrateCmd.AddCommand(MigrateLocalCmd, MigrateMongoCmd)
+}
 
 // TOTPSecretsV3 one entry of TOTP secrets in v3
 type TOTPSecretsV3 struct {
