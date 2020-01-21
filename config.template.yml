@@ -117,7 +117,7 @@ authentication_backend:
 # It must stand at the beginning of the pattern. (example: *.mydomain.com)
 #
 # Note: You must put patterns containing wildcards between simple quotes for the YAML
-# to be syntaxically correct.
+# to be syntactically correct.
 #
 # Definition: A `rule` is an object with the following keys: `domain`, `subject`,
 # `policy` and `resources`.

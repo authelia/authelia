@@ -149,7 +149,7 @@ This documentation gives instructions that will make **Authelia** non
 highly-available and non scalable by preventing you from running multiple
 instances of the application.
 This means that **Authelia** won't be able to distribute the
-load accross multiple servers and it will prevent failover in case of a
+load across multiple servers and it will prevent failover in case of a
 crash or an hardware issue. Moreover, it will also prevent from reliably
 persisting data and consequently fail access to your platform as the devices
 registered by your users will be lost.

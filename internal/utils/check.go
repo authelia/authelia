@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// CheckUntil regurly check a predicate until it's true or time out is reached
+// CheckUntil regularly check a predicate until it's true or time out is reached.
 func CheckUntil(interval time.Duration, timeout time.Duration, predicate func() (bool, error)) error {
 	for {
 		select {

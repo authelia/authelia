@@ -87,7 +87,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	assert.Equal(t, "no notif", mock.Hook.LastEntry().Message)
 }
 
-func TestShouldSucceedIdentityVerficationStartProcess(t *testing.T) {
+func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
