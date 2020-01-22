@@ -1,3 +1,11 @@
+Release Notes - Version 4.2.0
+-----------------------------
+* Bump version of Alpine to 3.11.3
+* Integrate hash-password and migrate command to authelia binary.
+* Add possibility to read secrets from env variables.
+* [BUGFIX] Fix bug in the validation of the notifier configuration.
+* Escape special LDAP characters.
+
 Release Notes - Version 4.1.0
 -----------------------------
 * Add support of HAProxy as a reverse proxy.
