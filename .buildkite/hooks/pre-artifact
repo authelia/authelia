@@ -12,7 +12,7 @@ then
   docker cp authelia-binary:/usr/app/authelia ./authelia-linux-"${ARCH}"
   docker cp authelia-binary:/usr/app/public_html ./
   docker rm -f authelia-binary
-  tar -czf authelia-linux-"${ARCH}".tar.gz authelia-linux-"${ARCH}" public_html
+  tar -czf authelia-linux-"${ARCH}".tar.gz authelia-linux-"${ARCH}" config.template.yml public_html
   sha256sum authelia-linux-"${ARCH}".tar.gz > authelia-linux-"${ARCH}".tar.gz.sha256
   # Saving image for push to docker hub
   docker save $DOCKER_IMAGE | zstdmt -T0 -12 > authelia-image-"${ARCH}".tar.zst
