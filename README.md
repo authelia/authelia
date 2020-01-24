@@ -102,9 +102,9 @@ Security is taken very seriously here, therefore we follow the rule of responsib
 
 Would you like to report any vulnerability discovered in Authelia, please first contact **clems4ever** on [Matrix](https://riot.im/app/#/room/#authelia:matrix.org) or by [email](mailto:clement.michaud34@gmail.com).
 
-## Changelog & Breaking changes
+## Breaking changes
 
-See [CHANGELOG](./CHANGELOG.md) and [BREAKING](./BREAKING.md).
+See [BREAKING](./BREAKING.md).
 
 ## Contribute
 
