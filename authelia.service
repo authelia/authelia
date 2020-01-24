@@ -1,0 +1,11 @@
+[Unit]
+Description=Authelia authentication and authorization server
+After=network.target
+
+[Service]
+Environment=PUBLIC_DIR=/usr/share/webapps/authelia
+ExecStart=/usr/bin/authelia --config /etc/authelia/configuration.yml
+SyslogIdentifier=authelia
+
+[Install]
+WantedBy=multi-user.target
