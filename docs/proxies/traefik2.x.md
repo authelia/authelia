@@ -1,4 +1,4 @@
-# Nginx
+# Traefik2
 
 [Traefik 2.x] is a reverse proxy supported by **Authelia**.
 
