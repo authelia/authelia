@@ -7,11 +7,12 @@
 Below you will find commented examples of the following configuration:
 
 * Authelia portal
-* Protected endpoint
+* Protected endpoint (Nextcloud)
 * Supplementary config
 
 With the below configuration you can add `authelia.conf` to virtual hosts to support protection with Authelia.
-`auth.conf` is utilised to protect a specific location/route.
+`auth.conf` is utilised to enable the protection either at the root location or a more specific location/route.
+`proxy.conf` is included just for completeness.
 
 #### Supplementary config
 
@@ -80,6 +81,43 @@ proxy_set_header X-Forwarded-Groups $groups;
 error_page 401 =302 https://auth.example.com/?rd=$target_url;
 ```
 
+##### proxy.conf
+```nginx
+client_body_buffer_size 128k;
+
+#Timeout if the real server is dead
+proxy_next_upstream error timeout invalid_header http_500 http_502 http_503;
+
+# Advanced Proxy Config
+send_timeout 5m;
+proxy_read_timeout 360;
+proxy_send_timeout 360;
+proxy_connect_timeout 360;
+
+# Basic Proxy Config
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Host $http_host;
+proxy_set_header X-Forwarded-Uri $request_uri;
+proxy_set_header X-Forwarded-Ssl on;
+proxy_redirect  http://  $scheme://;
+proxy_http_version 1.1;
+proxy_set_header Connection "";
+proxy_cache_bypass $cookie_session;
+proxy_no_cache $cookie_session;
+proxy_buffers 64 256k;
+
+# If behind reverse proxy, forwards the correct IP
+set_real_ip_from 10.0.0.0/8;
+set_real_ip_from 172.0.0.0/8;
+set_real_ip_from 192.168.0.0/16;
+set_real_ip_from fc00::/7;
+real_ip_header X-Forwarded-For;
+real_ip_recursive on;
+```
+
 #### Authelia Portal
 
 ```nginx
@@ -106,13 +144,13 @@ server {
 
 ```nginx
 server {
-    server_name protected.example.com;
+    server_name nextcloud.example.com;
     listen 80;
     return 301 https://$server_name$request_uri;
 }
 
 server {
-    server_name protected.example.com;
+    server_name nextcloud.example.com;
     listen 443 ssl http2;
     include /config/nginx/ssl.conf;
     include /config/nginx/authelia.conf; # Virtual endpoint to forward auth requests
@@ -121,7 +159,7 @@ server {
         set $upstream_nextcloud https://nextcloud;
         proxy_pass $upstream_nextcloud;
         include /config/nginx/auth.conf; # Activates Authelia for specified route/location, please ensure you have setup the domain in your configuration.yml
-        include /config/nginx/proxy.conf;
+        include /config/nginx/proxy.conf; # Reverse proxy configuration
     }
 }
 ```
