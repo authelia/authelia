@@ -40,7 +40,7 @@ func (s *RegulatorSuite) TearDownTest() {
 }
 
 func (s *RegulatorSuite) TestShouldNotThrowWhenUserIsLegitimate() {
-	attempts := []models.AuthenticationAttempt{
+	attemptsInDB := []models.AuthenticationAttempt{
 		models.AuthenticationAttempt{
 			Username:   "john",
 			Successful: true,
@@ -50,7 +50,7 @@ func (s *RegulatorSuite) TestShouldNotThrowWhenUserIsLegitimate() {
 
 	s.storageMock.EXPECT().
 		LoadLatestAuthenticationLogs(gomock.Eq("john"), gomock.Any()).
-		Return(attempts, nil)
+		Return(attemptsInDB, nil)
 
 	regulator := regulation.NewRegulator(&s.configuration, s.storageMock, &s.clock)
 
@@ -253,4 +253,51 @@ func (s *RegulatorSuite) TestShouldCheckRegulationHasBeenResetOnSuccessfulAttemp
 func TestRunRegulatorSuite(t *testing.T) {
 	s := new(RegulatorSuite)
 	suite.Run(t, s)
+}
+
+// This test checks that the regulator is disabled when configuration is set to 0.
+func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
+	attemptsInDB := []models.AuthenticationAttempt{
+		models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: false,
+			Time:       s.clock.Now().Add(-31 * time.Second),
+		},
+		models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: false,
+			Time:       s.clock.Now().Add(-34 * time.Second),
+		},
+		models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: false,
+			Time:       s.clock.Now().Add(-36 * time.Second),
+		},
+	}
+
+	s.storageMock.EXPECT().
+		LoadLatestAuthenticationLogs(gomock.Eq("john"), gomock.Any()).
+		Return(attemptsInDB, nil)
+
+	// Check Disabled Functionality
+	configuration := schema.RegulationConfiguration{
+		MaxRetries: 0,
+		FindTime:   180,
+		BanTime:    180,
+	}
+
+	regulator := regulation.NewRegulator(&configuration, s.storageMock, &s.clock)
+	_, err := regulator.Regulate("john")
+	assert.NoError(s.T(), err)
+
+	// Check Enabled Functionality
+	configuration = schema.RegulationConfiguration{
+		MaxRetries: 1,
+		FindTime:   180,
+		BanTime:    180,
+	}
+
+	regulator = regulation.NewRegulator(&configuration, s.storageMock, &s.clock)
+	_, err = regulator.Regulate("john")
+	assert.Equal(s.T(), regulation.ErrUserIsBanned, err)
 }

@@ -18,7 +18,8 @@ func NewRegulator(configuration *schema.RegulationConfiguration, provider storag
 		if configuration.FindTime > configuration.BanTime {
 			panic(fmt.Errorf("find_time cannot be greater than ban_time"))
 		}
-		regulator.enabled = true
+		// Set regulator enabled only if MaxRetries is not 0.
+		regulator.enabled = configuration.MaxRetries > 0
 		regulator.maxRetries = configuration.MaxRetries
 		regulator.findTime = time.Duration(configuration.FindTime) * time.Second
 		regulator.banTime = time.Duration(configuration.BanTime) * time.Second
