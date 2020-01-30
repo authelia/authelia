@@ -3,16 +3,13 @@
 set +u
 
 if [[ ! $BUILDKITE_COMMAND =~ "buildkite-agent pipeline upload" ]] || \
-[[ $BUILDKITE_COMMAND == ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload" ]];
-then
+[[ $BUILDKITE_COMMAND == ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload" ]]; then
   echo "--- :buildkite: Setting up Build environment"
   source bootstrap.sh
-  if [[ $BUILDKITE_COMMAND == "authelia-scripts --log-level debug ci" ]];
-  then
+  if [[ $BUILDKITE_COMMAND == "authelia-scripts --log-level debug ci" ]]; then
     go mod download
   fi
-  if [[ $BUILDKITE_LABEL =~ ":selenium:" ]];
-  then
+  if [[ $BUILDKITE_LABEL =~ ":selenium:" ]]; then
     go mod download
   fi
 fi

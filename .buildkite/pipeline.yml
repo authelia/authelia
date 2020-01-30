@@ -17,21 +17,17 @@ steps:
     depends_on:
       - "build-docker-amd64"
 
-  - wait:
-    if: build.branch == "master" || build.branch =~ /^v/
+  - wait
 
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
-    branches: "master v*"
     concurrency: 1
     concurrency_group: "deployments"
 
-  - wait:
-    if: build.branch == "master" || build.branch =~ /^v/
+  - wait
 
   - label: ":docker: Deploy Manifests"
     command: "authelia-scripts docker push-manifest"
-    branches: "master v*"
     concurrency: 1
     concurrency_group: "deployments"
     env:

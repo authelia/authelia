@@ -23,6 +23,7 @@ var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
 var ciTag = os.Getenv("BUILDKITE_TAG")
 var dockerTags = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
 var ignoredSuffixes = regexp.MustCompile("alpha|beta")
+var publicRepo = regexp.MustCompile(`.*\:.*`)
 var tags = dockerTags.FindStringSubmatch(ciTag)
 
 func init() {
@@ -202,7 +203,13 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 func publishDockerImage(arch string) {
 	docker := &Docker{}
 
-	if ciBranch == "master" && ciPullRequest == "false" {
+	if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deploy(docker, ciBranch+"-"+arch)
+	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deploy(docker, "PR"+ciPullRequest+"-"+arch)
+	} else if ciBranch == "master" && ciPullRequest == "false" {
 		login(docker)
 		deploy(docker, "master-"+arch)
 	} else if ciTag != "" {
@@ -227,7 +234,13 @@ func publishDockerImage(arch string) {
 func publishDockerManifest() {
 	docker := &Docker{}
 
-	if ciBranch == "master" && ciPullRequest == "false" {
+	if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deployManifest(docker, ciBranch, ciBranch+"-amd64", ciBranch+"-arm32v7", ciBranch+"-arm64v8")
+	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deployManifest(docker, "PR"+ciPullRequest, "PR"+ciPullRequest+"-amd64", "PR"+ciPullRequest+"-arm32v7", "PR"+ciPullRequest+"-arm64v8")
+	} else if ciBranch == "master" && ciPullRequest == "false" {
 		login(docker)
 		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
 		publishDockerReadme(docker)
