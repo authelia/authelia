@@ -95,6 +95,10 @@ func (s *DuoPushSuite) TestUserPreferencesScenario() {
 	suite.Run(s.T(), NewUserPreferencesScenario())
 }
 
+func (s *DuoPushSuite) TestDefaultRedirectionURLScenario() {
+	suite.Run(s.T(), NewDefaultRedirectionURLScenario())
+}
+
 func TestDuoPushSuite(t *testing.T) {
 	suite.Run(t, NewDuoPushSuite())
 }

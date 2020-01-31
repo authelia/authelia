@@ -14,6 +14,10 @@ func NewShortTimeoutsSuite() *ShortTimeoutsSuite {
 	return &ShortTimeoutsSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
+func (s *ShortTimeoutsSuite) TestDefaultRedirectionURLScenario() {
+	suite.Run(s.T(), NewDefaultRedirectionURLScenario())
+}
+
 func (s *ShortTimeoutsSuite) TestInactivityScenario() {
 	suite.Run(s.T(), NewInactivityScenario())
 }
