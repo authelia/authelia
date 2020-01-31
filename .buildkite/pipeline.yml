@@ -16,29 +16,3 @@ steps:
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
     depends_on:
       - "build-docker-amd64"
-
-  - wait
-
-  - label: ":docker: Image Deployments"
-    command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
-    concurrency: 1
-    concurrency_group: "deployments"
-
-  - wait
-
-  - label: ":docker: Deploy Manifests"
-    command: "authelia-scripts docker push-manifest"
-    concurrency: 1
-    concurrency_group: "deployments"
-    env:
-      DOCKER_CLI_EXPERIMENTAL: "enabled"
-
-  - label: ":github: Deploy Artifacts"
-    command: ".buildkite/steps/ghartifacts.sh"
-    agents:
-      upload: "fast"
-    depends_on:
-      - "build-docker-amd64"
-      - "build-docker-arm32v7"
-      - "build-docker-arm64v8"
-    if: build.tag != null
