@@ -13,7 +13,7 @@ func HandleAuthResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		targetURL, err := url.ParseRequestURI(targetURI)
 
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to parse target URL with U2F: %s", err), mfaValidationFailedMessage)
+			ctx.Error(fmt.Errorf("Unable to parse target URL: %s", err), mfaValidationFailedMessage)
 			return
 		}
 
