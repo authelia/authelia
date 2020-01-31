@@ -245,7 +245,7 @@ regulation:
 
 # Configuration of the storage backend used to store data and secrets.
 #
-# You must use only an available configuration: local, sql
+# You must use only an available configuration: local, mysql, postgres
 storage:
   # The directory where the DB files will be saved
   ## local:
