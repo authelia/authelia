@@ -2,7 +2,7 @@
   <img src="./docs/images/authelia-title.png" width="350" title="Authelia">
 </p>
 
-  [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
+  [![Financial Contributors on Open Collective](https://opencollective.com/authelia-sponsors/all/badge.svg?label=financial+contributors&style=flat-square)](https://opencollective.com/authelia-sponsors) [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
   [![Docker Tag](https://images.microbadger.com/badges/version/authelia/authelia.svg)](https://microbadger.com/images/authelia/authelia)
   [![Docker Size](https://img.shields.io/microbadger/image-size/authelia/authelia?logo=docker&style=flat-square&color=blue)](https://microbadger.com/images/authelia/authelia)
   [![GitHub Release](https://img.shields.io/github/release/authelia/authelia.svg?logo=github&style=flat-square&color=blue)](https://github.com/authelia/authelia/releases)
@@ -123,6 +123,36 @@ If you want to contribute with code, you should follow the documentation explain
 ## Sponsorship
 
 [Become a backer](https://opencollective.com/authelia-sponsors) to support Authelia.
+
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/authelia/authelia/graphs/contributors"><img src="https://opencollective.com/authelia-sponsors/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/authelia-sponsors/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/authelia-sponsors"><img src="https://opencollective.com/authelia-sponsors/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/authelia-sponsors/contribute)]
+
+<a href="https://opencollective.com/authelia-sponsors/organization/0/website"><img src="https://opencollective.com/authelia-sponsors/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/organization/1/website"><img src="https://opencollective.com/authelia-sponsors/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/organization/2/website"><img src="https://opencollective.com/authelia-sponsors/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/organization/3/website"><img src="https://opencollective.com/authelia-sponsors/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/organization/4/website"><img src="https://opencollective.com/authelia-sponsors/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/organization/5/website"><img src="https://opencollective.com/authelia-sponsors/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/organization/6/website"><img src="https://opencollective.com/authelia-sponsors/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/organization/7/website"><img src="https://opencollective.com/authelia-sponsors/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/organization/8/website"><img src="https://opencollective.com/authelia-sponsors/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/organization/9/website"><img src="https://opencollective.com/authelia-sponsors/organization/9/avatar.svg"></a>
 
 ## License
 
