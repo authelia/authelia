@@ -12,18 +12,6 @@ logs_level: debug
 
 jwt_secret: unsecure_secret
 
-# Default redirection URL
-#
-# If user tries to authenticate without any referer, Authelia
-# does not know where to redirect the user to at the end of the
-# authentication process.
-# This parameter allows you to specify the default redirection
-# URL Authelia will use in such a case.
-#
-# Note: this parameter is optional. If not provided, user won't
-# be redirected upon successful authentication.
-default_redirection_url: https://home.example.com:8080/
-
 # TOTP Issuer Name
 #
 # This will be the issuer name displayed in Google Authenticator
