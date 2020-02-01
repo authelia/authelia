@@ -10,6 +10,10 @@ if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Bu
   fi
 fi
 
+if [[ $BUILDKITE_LABEL =~ ":docker: Deploy" ]]; then
+  docker logout
+fi
+
 if [[ $BUILDKITE_BRANCH == "master" ]] || [[ $BUILDKITE_BRANCH =~ ^v.* ]] && [[ $BUILDKITE_PULL_REQUEST == "false" ]]; then
   if [[ $BUILDKITE_LABEL == ":docker: Deploy Manifests" ]]; then
     echo "--- :docker: Removing tags for deleted branches"
