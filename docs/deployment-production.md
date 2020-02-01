@@ -20,13 +20,17 @@ persist user configurations and one or more nginx reverse proxies configured to
 be used with Authelia. With such a setup **Authelia** can easily be scaled to
 multiple instances to evenly handle the traffic.
 
-**NOTE:** If you don't have all those components, don't worry, there is a way to
+**NOTE**: If you don't have all those components, don't worry, there is a way to
 deploy **Authelia** with only nginx. This is described in [Deployment for Devs].
 
 Here are the available steps to deploy **Authelia** given 
 the configuration file is **/path/to/your/configuration.yml**. Note that you can
 create your own configuration file from [config.template.yml] located at
 the root of the repo.
+
+**NOTE**: Prefer using environment variables to set secrets in production otherwise
+pay attention to the permissions of the configuration file. See
+[configuration.md](./configuration.md#secrets) for more information.
 
 ### Deploy with the distributable version
 
@@ -37,7 +41,6 @@ the root of the repo.
 ### Deploy With Docker
 
     $ docker run -v /path/to/your/configuration.yml:/etc/authelia/configuration.yml -e TZ=Europe/Paris authelia/authelia
-
 
 ## On top of Kubernetes
 
