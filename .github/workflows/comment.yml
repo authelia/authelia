@@ -1,0 +1,29 @@
+name: Docker Image CD
+on: pull_request
+
+jobs:
+  example_comment_pr:
+    runs-on: ubuntu-latest
+    name: Commentary
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Comment PR
+        uses: authelia/actions-comment-pull-request@master
+        with:
+          message: '# Containers
+
+            These changes are published as containers for testing at one of the following locations:
+
+            #### Local Branch
+
+            * `docker pull authelia/authelia:${{ github.head_ref }}`
+
+            #### Pull Request
+
+            * `docker pull authelia/authelia:PR${{ github.event.pull_request.number }}`
+
+
+            Pull Requests require approval from an Authelia team member to deploy.'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
