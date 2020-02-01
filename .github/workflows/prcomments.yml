@@ -1,0 +1,13 @@
+name: Add container pull commands
+on: pull_request
+jobs:
+  comment:
+    name: Add container pull commands
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: harupy/comment-on-pr@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.COMMENT_ON_PR_GH_TOKEN }}
+        with:
+          filename: prcomments.md
