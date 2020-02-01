@@ -6,8 +6,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      - uses: harupy/comment-on-pr@master
+      - uses: harupy/comment-on-pr@v0.1.0
         env:
-          GITHUB_TOKEN: ${{ secrets.COMMENT_ON_PR_GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           filename: prcomments.md
