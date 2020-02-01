@@ -1,11 +1,11 @@
-package handlers
+package utils
 
 import (
 	"net/url"
 	"strings"
 )
 
-func isRedirectionSafe(url url.URL, protectedDomain string) bool {
+func IsRedirectionSafe(url url.URL, protectedDomain string) bool {
 	if url.Scheme != "https" {
 		return false
 	}
