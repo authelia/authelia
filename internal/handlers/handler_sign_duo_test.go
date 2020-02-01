@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"testing"
@@ -90,6 +91,80 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	response := duo.Response{}
+	response.Response.Result = "allow"
+
+	duoMock.EXPECT().Call(gomock.Any()).Return(&response, nil)
+
+	s.mock.Ctx.Configuration.DefaultRedirectionURL = "http://redirection.local"
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), redirectResponse{
+		Redirect: "http://redirection.local",
+	})
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	response := duo.Response{}
+	response.Response.Result = "allow"
+
+	duoMock.EXPECT().Call(gomock.Any()).Return(&response, nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), nil)
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	response := duo.Response{}
+	response.Response.Result = "allow"
+
+	duoMock.EXPECT().Call(gomock.Any()).Return(&response, nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{
+		TargetURL: "https://mydomain.local",
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), redirectResponse{
+		Redirect: "https://mydomain.local",
+	})
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	response := duo.Response{}
+	response.Response.Result = "allow"
+
+	duoMock.EXPECT().Call(gomock.Any()).Return(&response, nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{
+		TargetURL: "http://mydomain.local",
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), nil)
 }
 
 func TestRunSecondFactorDuoPostSuite(t *testing.T) {

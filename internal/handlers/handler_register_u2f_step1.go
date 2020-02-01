@@ -45,14 +45,7 @@ func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string
 		return
 	}
 
-	request := u2f.NewWebRegisterRequest(challenge, []u2f.Registration{})
-
-	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to generate new U2F request for registration: %s", err), operationFailedMessage)
-		return
-	}
-
-	ctx.SetJSONBody(request)
+	ctx.SetJSONBody(u2f.NewWebRegisterRequest(challenge, []u2f.Registration{}))
 }
 
 // SecondFactorU2FIdentityFinish the handler for finishing the identity validation

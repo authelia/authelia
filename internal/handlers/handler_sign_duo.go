@@ -51,21 +51,6 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 			return
 		}
 
-		if requestBody.TargetURL != "" {
-			targetURL, err := url.ParseRequestURI(requestBody.TargetURL)
-
-			if err != nil {
-				ctx.Error(fmt.Errorf("Unable to parse target URL: %s", err), mfaValidationFailedMessage)
-				return
-			}
-
-			if targetURL != nil && isRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain) {
-				ctx.SetJSONBody(redirectResponse{Redirect: requestBody.TargetURL})
-			} else {
-				ctx.ReplyOK()
-			}
-		} else {
-			ctx.ReplyOK()
-		}
+		HandleAuthResponse(ctx, requestBody.TargetURL)
 	}
 }

@@ -61,7 +61,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	router.POST("/api/secondfactor/totp/identity/finish", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityFinish)))
 	router.POST("/api/secondfactor/totp", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost)))
+		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost(&handlers.TOTPVerifierImpl{}))))
 
 	// U2F related endpoints
 	router.POST("/api/secondfactor/u2f/identity/start", autheliaMiddleware(
@@ -74,8 +74,9 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	router.POST("/api/secondfactor/u2f/sign_request", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignGet)))
+
 	router.POST("/api/secondfactor/u2f/sign", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignPost)))
+		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignPost(&handlers.U2FVerifierImpl{}))))
 
 	// Configure DUO api endpoint only if configuration exists
 	if configuration.DuoAPI != nil {

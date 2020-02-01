@@ -10,6 +10,7 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // FirstFactorPost is the handler performing the first factory.
@@ -78,7 +79,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 
 	// set the cookie to expire in 1 year if "Remember me" was ticked.
 	if *bodyJSON.KeepMeLoggedIn {
-		err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, time.Duration(31556952 * time.Second))
+		err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, time.Duration(31556952*time.Second))
 		if err != nil {
 			ctx.Error(fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
 			return
@@ -124,7 +125,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 
 		ctx.Logger.Debugf("Required level for the URL %s is %d", targetURL.String(), requiredLevel)
 
-		safeRedirection := isRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain)
+		safeRedirection := utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain)
 
 		if safeRedirection && requiredLevel <= authorization.OneFactor {
 			ctx.Logger.Debugf("Redirection is safe, redirecting...")

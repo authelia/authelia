@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
@@ -21,6 +22,13 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 
 	if configuration.LogsLevel == "" {
 		configuration.LogsLevel = defaultLogsLevel
+	}
+
+	if configuration.DefaultRedirectionURL != "" {
+		_, err := url.ParseRequestURI(configuration.DefaultRedirectionURL)
+		if err != nil {
+			validator.Push(fmt.Errorf("Unable to parse default redirection url"))
+		}
 	}
 
 	if configuration.JWTSecret == "" {

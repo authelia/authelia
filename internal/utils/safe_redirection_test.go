@@ -1,4 +1,4 @@
-package handlers
+package utils
 
 import (
 	"net/url"
@@ -9,7 +9,7 @@ import (
 
 func isURLSafe(requestURI string, domain string) bool {
 	url, _ := url.ParseRequestURI(requestURI)
-	return isRedirectionSafe(*url, domain)
+	return IsRedirectionSafe(*url, domain)
 }
 
 func TestShouldReturnFalseOnBadScheme(t *testing.T) {
