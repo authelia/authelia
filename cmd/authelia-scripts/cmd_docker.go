@@ -16,7 +16,6 @@ var arch string
 
 var supportedArch = []string{"amd64", "arm32v7", "arm64v8"}
 var defaultArch = "amd64"
-var buildkite = os.Getenv("BUILDKITE")
 var buildkiteQEMU = os.Getenv("BUILDKITE_AGENT_META_DATA_QEMU")
 var ciBranch = os.Getenv("BUILDKITE_BRANCH")
 var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
@@ -144,10 +143,6 @@ var DockerManifestCmd = &cobra.Command{
 func login(docker *Docker) {
 	username := os.Getenv("DOCKER_USERNAME")
 	password := os.Getenv("DOCKER_PASSWORD")
-
-	if buildkite == "true" {
-		return
-	}
 
 	if username == "" {
 		log.Fatal(errors.New("DOCKER_USERNAME is empty"))

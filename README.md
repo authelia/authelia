@@ -107,15 +107,6 @@ Would you like to report any vulnerability discovered in Authelia, please first 
 
 See [BREAKING](./BREAKING.md).
 
-## Contribute
-
-Anybody willing to contribute to the project either with code, 
-documentation, security reviews or whatever, are very welcome to issue
-or review pull requests and take part to discussions in
-[Matrix](https://riot.im/app/#/room/#authelia:matrix.org)
-
-I am very grateful to contributors for their contributions to the project. Don't hesitate, be the next!
-
 ## Build Authelia
 
 If you want to contribute with code, you should follow the documentation explaining how to [build](./docs/build-and-dev.md) the application.
