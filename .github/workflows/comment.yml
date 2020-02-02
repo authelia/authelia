@@ -1,5 +1,7 @@
 name: Docker Image CD
-on: pull_request
+on:
+  pull_request:
+    types: [opened]
 
 jobs:
   example_comment_pr:
