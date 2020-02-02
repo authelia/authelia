@@ -6,4 +6,5 @@ export interface Configuration {
 
 export interface ExtendedConfiguration {
     available_methods: Set<SecondFactorMethod>;
+    one_factor_default_policy: boolean;
 }

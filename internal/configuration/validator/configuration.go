@@ -49,5 +49,9 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 		ValidateNotifier(configuration.Notifier, validator)
 	}
 
+	if configuration.AccessControl.DefaultPolicy == "" {
+		configuration.AccessControl.DefaultPolicy = "deny"
+	}
+
 	ValidateSQLStorage(configuration.Storage, validator)
 }

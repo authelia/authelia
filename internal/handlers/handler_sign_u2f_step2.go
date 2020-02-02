@@ -48,6 +48,6 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 			return
 		}
 
-		HandleAuthResponse(ctx, requestBody.TargetURL)
+		Handle2FAResponse(ctx, requestBody.TargetURL)
 	}
 }

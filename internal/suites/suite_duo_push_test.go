@@ -46,6 +46,9 @@ func (s *DuoPushWebDriverSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	s.doLogout(ctx, s.T())
+	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
+	s.verifyIsSecondFactorPage(ctx, s.T())
 	s.doChangeMethod(ctx, s.T(), "one-time-password")
 	s.WaitElementLocatedByID(ctx, s.T(), "one-time-password-method")
 }
@@ -58,7 +61,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSucceedAuthentication() {
 
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
 	s.doChangeMethod(ctx, s.T(), "push-notification")
-	s.WaitElementLocatedByClassName(ctx, s.T(), "success-icon")
+	s.verifyIsHome(ctx, s.T())
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldFailAuthentication() {

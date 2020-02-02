@@ -62,10 +62,7 @@ func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed
 	s.doVisit(s.T(), LoginBaseURL)
-	s.verifyIsSecondFactorPage(ctx, s.T())
-
-	// Check whether the success icon is displayed
-	s.WaitElementLocatedByClassName(ctx, s.T(), "success-icon")
+	s.verifyIsAuthenticatedPage(ctx, s.T())
 }
 
 func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() {

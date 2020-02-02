@@ -66,9 +66,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	datetime, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
 	mockAuthelia.Clock.Set(datetime)
 
-	configuration := schema.Configuration{
-		AccessControl: new(schema.AccessControlConfiguration),
-	}
+	configuration := schema.Configuration{}
 	configuration.Session.Name = "authelia_session"
 	configuration.AccessControl.DefaultPolicy = "deny"
 	configuration.AccessControl.Rules = []schema.ACLRule{schema.ACLRule{
@@ -98,7 +96,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.Notifier = mockAuthelia.NotifierMock
 
 	providers.Authorizer = authorization.NewAuthorizer(
-		*configuration.AccessControl)
+		configuration.AccessControl)
 
 	providers.SessionProvider = session.NewProvider(
 		configuration.Session)

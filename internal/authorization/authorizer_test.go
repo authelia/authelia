@@ -255,6 +255,15 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/xyz/embedded/abc", Bypass)
 }
 
+func (s *AuthorizerSuite) TestPolicyToLevel() {
+	s.Assert().Equal(Bypass, PolicyToLevel("bypass"))
+	s.Assert().Equal(OneFactor, PolicyToLevel("one_factor"))
+	s.Assert().Equal(TwoFactor, PolicyToLevel("two_factor"))
+	s.Assert().Equal(Denied, PolicyToLevel("deny"))
+
+	s.Assert().Equal(Denied, PolicyToLevel("whatever"))
+}
+
 func TestRunSuite(t *testing.T) {
 	s := AuthorizerSuite{}
 	suite.Run(t, &s)

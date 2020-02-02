@@ -87,7 +87,7 @@ func startServer() {
 	}
 
 	clock := utils.RealClock{}
-	authorizer := authorization.NewAuthorizer(*config.AccessControl)
+	authorizer := authorization.NewAuthorizer(config.AccessControl)
 	sessionProvider := session.NewProvider(config.Session)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
 

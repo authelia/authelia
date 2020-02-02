@@ -160,7 +160,7 @@ func selectMatchingRules(rules []schema.ACLRule, subject Subject, object Object)
 	return selectMatchingObjectRules(matchingRules, object)
 }
 
-func policyToLevel(policy string) Level {
+func PolicyToLevel(policy string) Level {
 	switch policy {
 	case "bypass":
 		return Bypass
@@ -183,7 +183,7 @@ func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL) Level
 	})
 
 	if len(matchingRules) > 0 {
-		return policyToLevel(matchingRules[0].Policy)
+		return PolicyToLevel(matchingRules[0].Policy)
 	}
-	return policyToLevel(p.configuration.DefaultPolicy)
+	return PolicyToLevel(p.configuration.DefaultPolicy)
 }

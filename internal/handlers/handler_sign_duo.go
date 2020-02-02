@@ -51,6 +51,6 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 			return
 		}
 
-		HandleAuthResponse(ctx, requestBody.TargetURL)
+		Handle2FAResponse(ctx, requestBody.TargetURL)
 	}
 }

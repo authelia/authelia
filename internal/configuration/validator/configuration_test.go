@@ -91,3 +91,13 @@ func TestShouldEnsureNotifierConfigIsProvided(t *testing.T) {
 	require.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "A notifier configuration must be provided")
 }
+
+func TestShouldAddDefaultAccessControl(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+
+	Validate(&config, validator)
+	require.Len(t, validator.Errors(), 0)
+	assert.NotNil(t, config.AccessControl)
+	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
+}

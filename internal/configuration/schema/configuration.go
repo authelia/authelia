@@ -15,10 +15,10 @@ type Configuration struct {
 	AuthenticationBackend AuthenticationBackendConfiguration `mapstructure:"authentication_backend"`
 	Session               SessionConfiguration               `mapstructure:"session"`
 
-	TOTP          *TOTPConfiguration          `mapstructure:"totp"`
-	DuoAPI        *DuoAPIConfiguration        `mapstructure:"duo_api"`
-	AccessControl *AccessControlConfiguration `mapstructure:"access_control"`
-	Regulation    *RegulationConfiguration    `mapstructure:"regulation"`
-	Storage       *StorageConfiguration       `mapstructure:"storage"`
-	Notifier      *NotifierConfiguration      `mapstructure:"notifier"`
+	TOTP          *TOTPConfiguration         `mapstructure:"totp"`
+	DuoAPI        *DuoAPIConfiguration       `mapstructure:"duo_api"`
+	AccessControl AccessControlConfiguration `mapstructure:"access_control"`
+	Regulation    *RegulationConfiguration   `mapstructure:"regulation"`
+	Storage       *StorageConfiguration      `mapstructure:"storage"`
+	Notifier      *NotifierConfiguration     `mapstructure:"notifier"`
 }

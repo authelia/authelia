@@ -4,7 +4,7 @@ import FirstFactorForm from "./FirstFactor/FirstFactorForm";
 import SecondFactorForm from "./SecondFactor/SecondFactorForm";
 import {
     FirstFactorRoute, SecondFactorRoute, SecondFactorTOTPRoute,
-    SecondFactorPushRoute, SecondFactorU2FRoute
+    SecondFactorPushRoute, SecondFactorU2FRoute, AuthenticatedRoute
 } from "../../Routes";
 import { useAutheliaState } from "../../hooks/State";
 import LoadingPage from "../LoadingPage/LoadingPage";
@@ -14,6 +14,7 @@ import { useRedirectionURL } from "../../hooks/RedirectionURL";
 import { useUserPreferences as userUserInfo } from "../../hooks/UserInfo";
 import { SecondFactorMethod } from "../../models/Methods";
 import { useExtendedConfiguration } from "../../hooks/Configuration";
+import AuthenticatedView from "./AuthenticatedView/AuthenticatedView";
 
 export default function () {
     const history = useHistory();
@@ -77,33 +78,28 @@ export default function () {
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
                 redirect(`${FirstFactorRoute}${redirectionSuffix}`);
-            } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo) {
-                if (userInfo.method === SecondFactorMethod.U2F) {
-                    redirect(`${SecondFactorU2FRoute}${redirectionSuffix}`);
-                } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                    redirect(`${SecondFactorPushRoute}${redirectionSuffix}`);
+            } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
+                if (configuration.one_factor_default_policy) {
+                    redirect(AuthenticatedRoute);
                 } else {
-                    redirect(`${SecondFactorTOTPRoute}${redirectionSuffix}`);
+                    if (userInfo.method === SecondFactorMethod.U2F) {
+                        redirect(`${SecondFactorU2FRoute}${redirectionSuffix}`);
+                    } else if (userInfo.method === SecondFactorMethod.MobilePush) {
+                        redirect(`${SecondFactorPushRoute}${redirectionSuffix}`);
+                    } else {
+                        redirect(`${SecondFactorTOTPRoute}${redirectionSuffix}`);
+                    }
                 }
             }
         }
-    }, [state, redirectionURL, redirect, userInfo, setFirstFactorDisabled]);
+    }, [state, redirectionURL, redirect, userInfo, setFirstFactorDisabled, configuration]);
 
-    const handleFirstFactorSuccess = async (redirectionURL: string | undefined) => {
+    const handleAuthSuccess = async (redirectionURL: string | undefined) => {
         if (redirectionURL) {
             // Do an external redirection pushed by the server.
             window.location.href = redirectionURL;
         } else {
             // Refresh state
-            fetchState();
-        }
-    }
-
-    const handleSecondFactorSuccess = async (redirectionURL: string | undefined) => {
-        if (redirectionURL) {
-            // Do an external redirection pushed by the server.
-            window.location.href = redirectionURL;
-        } else {
             fetchState();
         }
     }
@@ -120,7 +116,7 @@ export default function () {
                         disabled={firstFactorDisabled}
                         onAuthenticationStart={() => setFirstFactorDisabled(true)}
                         onAuthenticationFailure={() => setFirstFactorDisabled(false)}
-                        onAuthenticationSuccess={handleFirstFactorSuccess} />
+                        onAuthenticationSuccess={handleAuthSuccess} />
                 </ComponentOrLoading>
             </Route>
             <Route path={SecondFactorRoute}>
@@ -130,7 +126,10 @@ export default function () {
                     userInfo={userInfo}
                     configuration={configuration}
                     onMethodChanged={() => fetchUserInfo()}
-                    onAuthenticationSuccess={handleSecondFactorSuccess} /> : null}
+                    onAuthenticationSuccess={handleAuthSuccess} /> : null}
+            </Route>
+            <Route path={AuthenticatedRoute} exact>
+                {state ? <AuthenticatedView username={state.username} /> : null}
             </Route>
             <Route path="/">
                 <Redirect to={FirstFactorRoute} />

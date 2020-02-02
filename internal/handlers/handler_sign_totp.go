@@ -40,6 +40,6 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 			return
 		}
 
-		HandleAuthResponse(ctx, bodyJSON.TargetURL)
+		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}
 }
