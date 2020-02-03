@@ -18,9 +18,9 @@ if [[ $BUILDKITE_LABEL == ":docker: Deploy Manifests" ]] && [[ $BUILDKITE_PULL_R
   if [[ ! $(curl -fs --retry 3 "https://api.github.com/repos/authelia/authelia/issues/${BUILDKITE_PULL_REQUEST}/comments" | jq '.[].user.login') =~ autheliabot ]]; then
     echo "--- :github: Add deployment commentary"
     if [[ $BUILDKITE_PULL_REQUEST_REPO == "git://github.com/authelia/authelia.git" ]]; then
-      curl -fs --retry 3 -H "Authorization: token ${GITHUB_COMMENT_TOKEN}" -X "POST" -d '{"body": "# Docker Container\nThese changes are published for testing at the following location:\n* `docker pull authelia/authelia:${BUILDKITE_BRANCH}`"}' "https://api.github.com/repos/authelia/authelia/issues/${BUILDKITE_PULL_REQUEST}/comments"
+      curl -fs --retry 3 -H "Authorization: token ${GITHUB_COMMENT_TOKEN}" -X "POST" -d "{\"body\": \"# Docker Container\nThese changes are published for testing at the following location:\n* `docker pull authelia/authelia:${BUILDKITE_BRANCH}`\"}" "https://api.github.com/repos/authelia/authelia/issues/${BUILDKITE_PULL_REQUEST}/comments"
     else
-      curl -fs --retry 3 -H "Authorization: token ${GITHUB_COMMENT_TOKEN}" -X "POST" -d '{"body": "# Docker Container\nThese changes are published for testing at the following location:\n* `docker pull authelia/authelia:PR${BUILDKITE_PULL_REQUEST}`"}' "https://api.github.com/repos/authelia/authelia/issues/${BUILDKITE_PULL_REQUEST}/comments"
+      curl -fs --retry 3 -H "Authorization: token ${GITHUB_COMMENT_TOKEN}" -X "POST" -d "{\"body\": \"# Docker Container\nThese changes are published for testing at the following location:\n* `docker pull authelia/authelia:PR${BUILDKITE_PULL_REQUEST}`\"}" "https://api.github.com/repos/authelia/authelia/issues/${BUILDKITE_PULL_REQUEST}/comments"
     fi
   fi
 fi
