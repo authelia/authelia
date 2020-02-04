@@ -70,7 +70,7 @@ func (s *RedirectionCheckScenario) TestShouldRedirectOnlyWhenDomainIsHandledByAu
 			if redirected {
 				s.verifySecretAuthorized(ctx, t)
 			} else {
-				s.WaitElementLocatedByClassName(ctx, t, "success-icon")
+				s.verifyIsAuthenticatedPage(ctx, t)
 			}
 			s.doLogout(ctx, t)
 		})

@@ -7,3 +7,5 @@ services:
     volumes:
       - './internal/suites/Standalone/configuration.yml:/etc/authelia/configuration.yml:ro'
       - './internal/suites/Standalone/users.yml:/var/lib/authelia/users.yml'
+      - '/tmp:/tmp'
+    user: ${USER_ID}:${GROUP_ID}

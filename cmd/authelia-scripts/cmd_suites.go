@@ -27,9 +27,11 @@ var ErrNoRunningSuite = errors.New("no running suite")
 var runningSuiteFile = ".suite"
 
 var headless bool
+var testPattern string
 
 func init() {
 	SuitesTestCmd.Flags().BoolVar(&headless, "headless", false, "Run tests in headless mode")
+	SuitesTestCmd.Flags().StringVar(&testPattern, "test", "", "The single test to run")
 }
 
 // SuitesListCmd Command for listing the available suites.
@@ -184,15 +186,14 @@ func testSuite(cmd *cobra.Command, args []string) {
 	}
 
 	// If suite(s) are provided as argument
-	if len(args) == 1 {
+	if len(args) >= 1 {
 		suiteArg := args[0]
 
 		if runningSuite != "" && suiteArg != runningSuite {
 			log.Fatal(errors.New("Running suite (" + runningSuite + ") is different than suite(s) to be tested (" + suiteArg + "). Shutdown running suite and retry"))
 		}
 
-		suiteNames := strings.Split(suiteArg, ",")
-		if err := runMultipleSuitesTests(suiteNames, runningSuite == ""); err != nil {
+		if err := runMultipleSuitesTests(strings.Split(suiteArg, ","), runningSuite == ""); err != nil {
 			log.Fatal(err)
 		}
 	} else {
@@ -239,7 +240,13 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	if suite.TestTimeout > 0 {
 		timeout = fmt.Sprintf("%ds", int64(suite.TestTimeout/time.Second))
 	}
-	testCmdLine := fmt.Sprintf("go test -count=1 -v ./internal/suites -timeout %s -run '^(Test%sSuite)$'", timeout, suiteName)
+	testCmdLine := fmt.Sprintf("go test -count=1 -v ./internal/suites -timeout %s ", timeout)
+
+	if testPattern != "" {
+		testCmdLine += fmt.Sprintf("-run '%s'", testPattern)
+	} else {
+		testCmdLine += fmt.Sprintf("-run '^(Test%sSuite)$'", suiteName)
+	}
 
 	log.Infof("Running tests of suite %s...", suiteName)
 	log.Debugf("Running tests with command: %s", testCmdLine)

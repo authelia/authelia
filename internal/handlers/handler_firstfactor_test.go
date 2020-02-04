@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/authelia/authelia/internal/models"
 
@@ -229,7 +230,76 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
 }
 
+type FirstFactorRedirectionSuite struct {
+	suite.Suite
+
+	mock *mocks.MockAutheliaCtx
+}
+
+func (s *FirstFactorRedirectionSuite) SetupTest() {
+	s.mock = mocks.NewMockAutheliaCtx(s.T())
+	s.mock.Ctx.Configuration.DefaultRedirectionURL = "https://default.local"
+	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = "one_factor"
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(
+		s.mock.Ctx.Configuration.AccessControl)
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
+		Return(true, nil)
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		GetDetails(gomock.Eq("test")).
+		Return(&authentication.UserDetails{
+			Emails: []string{"test@example.com"},
+			Groups: []string{"dev", "admins"},
+		}, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(gomock.Any()).
+		Return(nil)
+}
+
+func (s *FirstFactorRedirectionSuite) TearDownTest() {
+	s.mock.Close()
+}
+
+// When the target url is unknown, default policy is to one_factor and default_redirect_url
+// is provided, the user should be redirected to the default url.
+func (s *FirstFactorRedirectionSuite) TestShouldRedirectUserToDefaultRedirectionURLWhenNoTargetURLProvided() {
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": false
+	}`)
+	FirstFactorPost(s.mock.Ctx)
+
+	// Respond with 200.
+	s.mock.Assert200OK(s.T(), redirectResponse{
+		Redirect: "https://default.local",
+	})
+}
+
+// When the target url is unsafe, default policy is set to one_factor and default_redirect_url
+// is provided, the user should be redirected to the default url.
+func (s *FirstFactorRedirectionSuite) TestShouldRedirectUserToDefaultRedirectionURLWhenURLIsUnsafe() {
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": false,
+		"targetURL": "http://notsafe.local"
+	}`)
+	FirstFactorPost(s.mock.Ctx)
+
+	// Respond with 200.
+	s.mock.Assert200OK(s.T(), redirectResponse{
+		Redirect: "https://default.local",
+	})
+}
+
 func TestFirstFactorSuite(t *testing.T) {
-	firstFactorSuite := new(FirstFactorSuite)
-	suite.Run(t, firstFactorSuite)
+	suite.Run(t, new(FirstFactorSuite))
+	suite.Run(t, new(FirstFactorRedirectionSuite))
 }

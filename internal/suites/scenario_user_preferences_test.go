@@ -65,17 +65,17 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	// Then go back to portal.
 	s.doVisit(s.T(), LoginBaseURL)
 	s.verifyIsSecondFactorPage(ctx, s.T())
-
 	// And check the latest method is still used.
 	s.WaitElementLocatedByID(ctx, s.T(), "push-notification-method")
 	// Meaning the authentication is successful
-	s.WaitElementLocatedByClassName(ctx, s.T(), "success-icon")
+	s.verifyIsHome(ctx, s.T())
 
 	// Logout the user and see what user 'harry' sees.
 	s.doLogout(ctx, s.T())
 	s.doLoginOneFactor(ctx, s.T(), "harry", "password", false, "")
 	s.verifyIsSecondFactorPage(ctx, s.T())
 	s.WaitElementLocatedByID(ctx, s.T(), "one-time-password-method")
+
 	s.doLogout(ctx, s.T())
 	s.verifyIsFirstFactorPage(ctx, s.T())
 
@@ -83,7 +83,10 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(ctx, s.T())
 	s.WaitElementLocatedByID(ctx, s.T(), "push-notification-method")
-	s.WaitElementLocatedByClassName(ctx, s.T(), "success-icon")
+	s.verifyIsHome(ctx, s.T())
+
+	s.doLogout(ctx, s.T())
+	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
 
 	// Eventually restore the default method
 	s.doChangeMethod(ctx, s.T(), "one-time-password")

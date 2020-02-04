@@ -1,5 +1,6 @@
 
 export const FirstFactorRoute = "/";
+export const AuthenticatedRoute = "/authenticated";
 
 export const SecondFactorRoute = "/2fa";
 export const SecondFactorU2FRoute = "/2fa/security-key";

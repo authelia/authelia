@@ -2,15 +2,12 @@ package handlers
 
 import (
 	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/session"
-	"github.com/authelia/authelia/internal/utils"
 )
 
 // FirstFactorPost is the handler performing the first factory.
@@ -111,30 +108,5 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if bodyJSON.TargetURL != "" {
-		targetURL, err := url.ParseRequestURI(bodyJSON.TargetURL)
-		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to parse target URL %s: %s", bodyJSON.TargetURL, err), authenticationFailedMessage)
-			return
-		}
-		requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(authorization.Subject{
-			Username: userSession.Username,
-			Groups:   userSession.Groups,
-			IP:       ctx.RemoteIP(),
-		}, *targetURL)
-
-		ctx.Logger.Debugf("Required level for the URL %s is %d", targetURL.String(), requiredLevel)
-
-		safeRedirection := utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain)
-
-		if safeRedirection && requiredLevel <= authorization.OneFactor {
-			ctx.Logger.Debugf("Redirection is safe, redirecting...")
-			response := redirectResponse{bodyJSON.TargetURL}
-			ctx.SetJSONBody(response)
-		} else {
-			ctx.ReplyOK()
-		}
-	} else {
-		ctx.ReplyOK()
-	}
+	Handle1FAResponse(ctx, bodyJSON.TargetURL, userSession.Username, userSession.Groups)
 }
