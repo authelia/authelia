@@ -6,6 +6,8 @@ do
   echo "  - label: \":docker: Build Image [${BUILD_ARCH}]\""
   echo "    commands:"
   echo "      - \"authelia-scripts docker build --arch=${BUILD_ARCH}\""
+  echo "    agents:"
+  echo "      build: \"true\""
   echo "    artifact_paths:"
   echo "      - \"authelia-image-${BUILD_ARCH}.tar.zst\""
   echo "      - \"authelia-linux-${BUILD_ARCH}.tar.gz\""
