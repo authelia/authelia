@@ -29,16 +29,16 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	forwardedHost := ctx.XForwardedHost()
 	forwardedURI := ctx.XForwardedURI()
 
-	if forwardedProto == nil || forwardedHost == nil {
-		return nil, errMissingHeadersForTargetURL
+	if forwardedProto == nil {
+		return nil, errMissingXForwardedProto
+	}
+
+	if forwardedHost == nil {
+		return nil, errMissingXForwardedHost
 	}
 
 	var requestURI string
 	scheme := append(forwardedProto, protoHostSeparator...)
-	if forwardedURI == nil {
-		requestURI = string(append(scheme, forwardedHost...))
-	}
-
 	requestURI = string(append(scheme,
 		append(forwardedHost, forwardedURI...)...))
 

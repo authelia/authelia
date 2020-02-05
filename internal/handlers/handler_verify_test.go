@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -71,7 +72,40 @@ func TestShouldRaiseWhenNoHeaderProvidedToDetectTargetURL(t *testing.T) {
 	defer mock.Close()
 	_, err := getOriginalURL(mock.Ctx)
 	assert.Error(t, err)
-	assert.Equal(t, "Missing headers for detecting target URL", err.Error())
+	assert.Equal(t, "Missing header X-Fowarded-Proto used to detect target URL", err.Error())
+}
+
+func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	_, err := getOriginalURL(mock.Ctx)
+	assert.Error(t, err)
+	assert.Equal(t, "Missing header X-Fowarded-Host used to detect target URL", err.Error())
+}
+
+func TestShouldRaiseWhenXForwardedProtoIsNotParseable(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "!:;;:,")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
+	_, err := getOriginalURL(mock.Ctx)
+	assert.Error(t, err)
+	assert.Equal(t, "parse !:;;:,://myhost.local: invalid URI for request", err.Error())
+}
+
+func TestShouldRaiseWhenXForwardedURIIsNotParseable(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
+	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "!:;;:,")
+	_, err := getOriginalURL(mock.Ctx)
+	require.Error(t, err)
+	assert.Equal(t, "parse https://myhost.local!:;;:,: invalid port \":,\" after host", err.Error())
 }
 
 // Test parseBasicAuth
