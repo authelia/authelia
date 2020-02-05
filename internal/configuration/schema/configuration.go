@@ -19,6 +19,6 @@ type Configuration struct {
 	DuoAPI        *DuoAPIConfiguration       `mapstructure:"duo_api"`
 	AccessControl AccessControlConfiguration `mapstructure:"access_control"`
 	Regulation    *RegulationConfiguration   `mapstructure:"regulation"`
-	Storage       *StorageConfiguration      `mapstructure:"storage"`
+	Storage       StorageConfiguration       `mapstructure:"storage"`
 	Notifier      *NotifierConfiguration     `mapstructure:"notifier"`
 }

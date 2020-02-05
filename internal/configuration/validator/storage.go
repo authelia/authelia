@@ -7,7 +7,7 @@ import (
 )
 
 // ValidateSQLStorage validates storage configuration.
-func ValidateSQLStorage(configuration *schema.StorageConfiguration, validator *schema.StructValidator) {
+func ValidateStorage(configuration schema.StorageConfiguration, validator *schema.StructValidator) {
 	if configuration.Local == nil && configuration.MySQL == nil && configuration.PostgreSQL == nil {
 		validator.Push(errors.New("A storage configuration must be provided. It could be 'local', 'mysql' or 'postgres'"))
 	}
@@ -22,7 +22,7 @@ func ValidateSQLStorage(configuration *schema.StorageConfiguration, validator *s
 }
 
 func validateSQLConfiguration(configuration *schema.SQLStorageConfiguration, validator *schema.StructValidator) {
-	if configuration.Password != "" && configuration.Username == "" {
+	if configuration.Password == "" || configuration.Username == "" {
 		validator.Push(errors.New("Username and password must be provided"))
 	}
 

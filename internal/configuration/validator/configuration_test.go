@@ -21,10 +21,8 @@ func newDefaultConfig() schema.Configuration {
 		Name:   "authelia_session",
 		Secret: "secret",
 	}
-	config.Storage = &schema.StorageConfiguration{
-		Local: &schema.LocalStorageConfiguration{
-			Path: "abc",
-		},
+	config.Storage.Local = &schema.LocalStorageConfiguration{
+		Path: "abc",
 	}
 	config.Notifier = &schema.NotifierConfiguration{
 		FileSystem: &schema.FileSystemNotifierConfiguration{
