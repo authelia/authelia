@@ -1,6 +1,7 @@
 <p align="center">
   <img src="./docs/images/authelia-title.png" width="350" title="Authelia">
 </p>
+<!-- Current release: 4.3.0 -->
 
   [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
   [![Docker Tag](https://images.microbadger.com/badges/version/authelia/authelia.svg)](https://microbadger.com/images/authelia/authelia)
