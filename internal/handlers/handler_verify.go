@@ -20,9 +20,12 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	if originalURL != nil {
 		url, err := url.ParseRequestURI(string(originalURL))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header")
 		}
 		return url, nil
+	} else {
+		ctx.Logger.Debug("No X-Original-URL header detected, fallback to combination of " +
+			"X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers")
 	}
 
 	forwardedProto := ctx.XForwardedProto()
