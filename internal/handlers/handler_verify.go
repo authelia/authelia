@@ -20,7 +20,7 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	if originalURL != nil {
 		url, err := url.ParseRequestURI(string(originalURL))
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header")
+			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
 		}
 		return url, nil
 	} else {
@@ -65,7 +65,7 @@ func parseBasicAuth(auth string) (username, password string, err error) {
 	cs := string(c)
 	s := strings.IndexByte(cs, ':')
 	if s < 0 {
-		return "", "", fmt.Errorf("Format for %s header must be user:password", AuthorizationHeader)
+		return "", "", fmt.Errorf("Format of %s header must be user:password", AuthorizationHeader)
 	}
 	return cs[:s], cs[s+1:], nil
 }
