@@ -45,9 +45,9 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	requestURI = string(append(scheme,
 		append(forwardedHost, forwardedURI...)...))
 
-	url, err := url.ParseRequestURI(string(requestURI))
+	url, err := url.ParseRequestURI(requestURI)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
 	}
 	return url, nil
 }
