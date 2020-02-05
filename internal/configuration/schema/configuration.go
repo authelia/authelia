@@ -10,7 +10,7 @@ type Configuration struct {
 	// representing the permission to proceed with the operation.
 	JWTSecret                 string `mapstructure:"jwt_secret"`
 	DefaultRedirectionURL     string `mapstructure:"default_redirection_url"`
-	GoogleAnalyticsTrackingID string `mapstructure:" google_analytics"`
+	GoogleAnalyticsTrackingID string `mapstructure:"google_analytics"`
 
 	AuthenticationBackend AuthenticationBackendConfiguration `mapstructure:"authentication_backend"`
 	Session               SessionConfiguration               `mapstructure:"session"`
