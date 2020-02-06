@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -49,7 +50,7 @@ func TestShouldGetOriginalURLFromForwardedHeadersWithURI(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Original-URL", "htt-ps//home?-.example.com")
 	_, err := getOriginalURL(mock.Ctx)
 	assert.Error(t, err)
-	assert.Equal(t, "parse htt-ps//home?-.example.com: invalid URI for request", err.Error())
+	assert.Equal(t, "Unable to parse URL extracted from X-Original-URL header: parse htt-ps//home?-.example.com: invalid URI for request", err.Error())
 }
 
 func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
@@ -71,14 +72,47 @@ func TestShouldRaiseWhenNoHeaderProvidedToDetectTargetURL(t *testing.T) {
 	defer mock.Close()
 	_, err := getOriginalURL(mock.Ctx)
 	assert.Error(t, err)
-	assert.Equal(t, "Missing headers for detecting target URL", err.Error())
+	assert.Equal(t, "Missing header X-Fowarded-Proto used to detect target URL", err.Error())
+}
+
+func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	_, err := getOriginalURL(mock.Ctx)
+	assert.Error(t, err)
+	assert.Equal(t, "Missing header X-Fowarded-Host used to detect target URL", err.Error())
+}
+
+func TestShouldRaiseWhenXForwardedProtoIsNotParseable(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "!:;;:,")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
+	_, err := getOriginalURL(mock.Ctx)
+	assert.Error(t, err)
+	assert.Equal(t, "Unable to parse URL !:;;:,://myhost.local: parse !:;;:,://myhost.local: invalid URI for request", err.Error())
+}
+
+func TestShouldRaiseWhenXForwardedURIIsNotParseable(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
+	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "!:;;:,")
+	_, err := getOriginalURL(mock.Ctx)
+	require.Error(t, err)
+	assert.Equal(t, "Unable to parse URL https://myhost.local!:;;:,: parse https://myhost.local!:;;:,: invalid port \":,\" after host", err.Error())
 }
 
 // Test parseBasicAuth
 func TestShouldRaiseWhenHeaderDoesNotContainBasicPrefix(t *testing.T) {
 	_, _, err := parseBasicAuth("alzefzlfzemjfej==")
 	assert.Error(t, err)
-	assert.Equal(t, "Basic prefix not found in authorization header", err.Error())
+	assert.Equal(t, "Basic prefix not found in Proxy-Authorization header", err.Error())
 }
 
 func TestShouldRaiseWhenCredentialsAreNotInBase64(t *testing.T) {
@@ -91,7 +125,7 @@ func TestShouldRaiseWhenCredentialsAreNotInCorrectForm(t *testing.T) {
 	// the decoded format should be user:password.
 	_, _, err := parseBasicAuth("Basic am9obiBwYXNzd29yZA==")
 	assert.Error(t, err)
-	assert.Equal(t, "Format for basic auth must be user:password", err.Error())
+	assert.Equal(t, "Format of Proxy-Authorization header must be user:password", err.Error())
 }
 
 func TestShouldReturnUsernameAndPassword(t *testing.T) {

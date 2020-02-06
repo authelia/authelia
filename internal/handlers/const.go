@@ -11,7 +11,7 @@ const ResetPasswordAction = "ResetPassword"
 
 const authPrefix = "Basic "
 
-const authorizationHeader = "Proxy-Authorization"
+const AuthorizationHeader = "Proxy-Authorization"
 const remoteUserHeader = "Remote-User"
 const remoteGroupsHeader = "Remote-Groups"
 
