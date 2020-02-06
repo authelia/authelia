@@ -20,31 +20,34 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	if originalURL != nil {
 		url, err := url.ParseRequestURI(string(originalURL))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
 		}
 		return url, nil
+	} else {
+		ctx.Logger.Debug("No X-Original-URL header detected, fallback to combination of " +
+			"X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers")
 	}
 
 	forwardedProto := ctx.XForwardedProto()
 	forwardedHost := ctx.XForwardedHost()
 	forwardedURI := ctx.XForwardedURI()
 
-	if forwardedProto == nil || forwardedHost == nil {
-		return nil, errMissingHeadersForTargetURL
+	if forwardedProto == nil {
+		return nil, errMissingXForwardedProto
+	}
+
+	if forwardedHost == nil {
+		return nil, errMissingXForwardedHost
 	}
 
 	var requestURI string
 	scheme := append(forwardedProto, protoHostSeparator...)
-	if forwardedURI == nil {
-		requestURI = string(append(scheme, forwardedHost...))
-	}
-
 	requestURI = string(append(scheme,
 		append(forwardedHost, forwardedURI...)...))
 
-	url, err := url.ParseRequestURI(string(requestURI))
+	url, err := url.ParseRequestURI(requestURI)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
 	}
 	return url, nil
 }
@@ -53,7 +56,7 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 // "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true).
 func parseBasicAuth(auth string) (username, password string, err error) {
 	if !strings.HasPrefix(auth, authPrefix) {
-		return "", "", fmt.Errorf("%s prefix not found in authorization header", strings.Trim(authPrefix, " "))
+		return "", "", fmt.Errorf("%s prefix not found in %s header", strings.Trim(authPrefix, " "), AuthorizationHeader)
 	}
 	c, err := base64.StdEncoding.DecodeString(auth[len(authPrefix):])
 	if err != nil {
@@ -62,7 +65,7 @@ func parseBasicAuth(auth string) (username, password string, err error) {
 	cs := string(c)
 	s := strings.IndexByte(cs, ':')
 	if s < 0 {
-		return "", "", fmt.Errorf("Format for basic auth must be user:password")
+		return "", "", fmt.Errorf("Format of %s header must be user:password", AuthorizationHeader)
 	}
 	return cs[:s], cs[s+1:], nil
 }
@@ -105,13 +108,13 @@ func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCt
 	username, password, err := parseBasicAuth(string(auth))
 
 	if err != nil {
-		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to parse basic auth: %s", err)
+		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to parse content of %s header: %s", AuthorizationHeader, err)
 	}
 
 	authenticated, err := ctx.Providers.UserProvider.CheckUserPassword(username, password)
 
 	if err != nil {
-		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check password in basic auth mode: %s", err)
+		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check credentials extracted from %s header: %s", AuthorizationHeader, err)
 	}
 
 	// If the user is not correctly authenticated, send a 401.
@@ -123,7 +126,7 @@ func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCt
 	details, err := ctx.Providers.UserProvider.GetDetails(username)
 
 	if err != nil {
-		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to retrieve user details in basic auth mode: %s", err)
+		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to retrieve details of user %s: %s", username, err)
 	}
 
 	return username, details.Groups, authentication.OneFactor, nil
@@ -200,7 +203,7 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	var groups []string
 	var authLevel authentication.Level
 
-	proxyAuthorization := ctx.Request.Header.Peek(authorizationHeader)
+	proxyAuthorization := ctx.Request.Header.Peek(AuthorizationHeader)
 	hasBasicAuth := proxyAuthorization != nil
 
 	if hasBasicAuth {
