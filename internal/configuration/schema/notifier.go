@@ -12,6 +12,7 @@ type SMTPNotifierConfiguration struct {
 	Sender            string `mapstructure:"sender"`
 	Host              string `mapstructure:"host"`
 	Port              int    `mapstructure:"port"`
+	PortTLS           bool   `mapstructure:"port_tls"`
 	TrustedCert       string `mapstructure:"trusted_cert"`
 	DisableVerifyCert bool   `mapstructure:"disable_verify_cert"`
 	DisableRequireTLS bool   `mapstructure:"disable_require_tls"`

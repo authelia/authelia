@@ -21,6 +21,7 @@ type SMTPNotifier struct {
 	sender            string
 	host              string
 	port              int
+	portTLS           bool
 	trustedCert       string
 	disableVerifyCert bool
 	disableRequireTLS bool
@@ -37,6 +38,7 @@ func NewSMTPNotifier(configuration schema.SMTPNotifierConfiguration) *SMTPNotifi
 		sender:            configuration.Sender,
 		host:              configuration.Host,
 		port:              configuration.Port,
+		portTLS:           configuration.PortTLS,
 		trustedCert:       configuration.TrustedCert,
 		disableVerifyCert: configuration.DisableVerifyCert,
 		disableRequireTLS: configuration.DisableRequireTLS,
@@ -199,12 +201,24 @@ func (n *SMTPNotifier) compose(recipient, subject, body string) error {
 // Dial the SMTP server with the SMTPNotifier config.
 func (n *SMTPNotifier) dial() error {
 	log.Debugf("Notifier SMTP client attempting connection to %s", n.address)
-	client, err := smtp.Dial(n.address)
-	if err != nil {
-		return err
+	if n.portTLS {
+		conn, err := tls.Dial("tcp", n.address, n.tlsConfig)
+		if err != nil {
+			return err
+		}
+		client, err := smtp.NewClient(conn, n.host)
+		if err != nil {
+			return err
+		}
+		n.client = client
+	} else {
+		client, err := smtp.Dial(n.address)
+		if err != nil {
+			return err
+		}
+		n.client = client
 	}
 	log.Debug("Notifier SMTP client connected successfully")
-	n.client = client
 	return nil
 }
 
