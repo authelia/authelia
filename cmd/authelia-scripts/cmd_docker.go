@@ -198,16 +198,7 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 func publishDockerImage(arch string) {
 	docker := &Docker{}
 
-	if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
-		login(docker)
-		deploy(docker, ciBranch+"-"+arch)
-	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
-		login(docker)
-		deploy(docker, "PR"+ciPullRequest+"-"+arch)
-	} else if ciBranch == "master" && ciPullRequest == "false" {
-		login(docker)
-		deploy(docker, "master-"+arch)
-	} else if ciTag != "" {
+	if ciTag != "" {
 		if len(tags) == 4 {
 			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 
@@ -221,6 +212,15 @@ func publishDockerImage(arch string) {
 		} else {
 			log.Fatal("Docker image will not be published, the specified tag does not conform to the standard")
 		}
+	} else if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deploy(docker, ciBranch+"-"+arch)
+	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deploy(docker, "PR"+ciPullRequest+"-"+arch)
+	} else if ciBranch == "master" && ciPullRequest == "false" {
+		login(docker)
+		deploy(docker, "master-"+arch)
 	} else {
 		log.Info("Docker image will not be published")
 	}
@@ -229,17 +229,7 @@ func publishDockerImage(arch string) {
 func publishDockerManifest() {
 	docker := &Docker{}
 
-	if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
-		login(docker)
-		deployManifest(docker, ciBranch, ciBranch+"-amd64", ciBranch+"-arm32v7", ciBranch+"-arm64v8")
-	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
-		login(docker)
-		deployManifest(docker, "PR"+ciPullRequest, "PR"+ciPullRequest+"-amd64", "PR"+ciPullRequest+"-arm32v7", "PR"+ciPullRequest+"-arm64v8")
-	} else if ciBranch == "master" && ciPullRequest == "false" {
-		login(docker)
-		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
-		publishDockerReadme(docker)
-	} else if ciTag != "" {
+	if ciTag != "" {
 		if len(tags) == 4 {
 			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 
@@ -257,6 +247,16 @@ func publishDockerManifest() {
 		} else {
 			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
 		}
+	} else if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deployManifest(docker, ciBranch, ciBranch+"-amd64", ciBranch+"-arm32v7", ciBranch+"-arm64v8")
+	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deployManifest(docker, "PR"+ciPullRequest, "PR"+ciPullRequest+"-amd64", "PR"+ciPullRequest+"-arm32v7", "PR"+ciPullRequest+"-arm64v8")
+	} else if ciBranch == "master" && ciPullRequest == "false" {
+		login(docker)
+		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
+		publishDockerReadme(docker)
 	} else {
 		log.Info("Docker manifest will not be published")
 	}

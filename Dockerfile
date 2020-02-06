@@ -55,4 +55,6 @@ EXPOSE 9091
 VOLUME /etc/authelia
 VOLUME /var/lib/authelia
 
+ENV PATH="/usr/app:${PATH}"
+
 CMD ["./authelia", "--config", "/etc/authelia/configuration.yml"]
