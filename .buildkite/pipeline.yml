@@ -6,8 +6,6 @@ steps:
 
   - label: ":docker: Image Builds"
     command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
-    agents:
-      build: "true"
     depends_on: ~
 
   - wait
