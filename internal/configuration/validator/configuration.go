@@ -53,5 +53,5 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 		configuration.AccessControl.DefaultPolicy = "deny"
 	}
 
-	ValidateSQLStorage(configuration.Storage, validator)
+	ValidateStorage(configuration.Storage, validator)
 }
