@@ -4,6 +4,7 @@
 <!-- Current release: 4.3.0 -->
 
   [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
+  [![Go Report Card](https://goreportcard.com/badge/github.com/authelia/authelia)](https://goreportcard.com/report/github.com/authelia/authelia)
   [![Docker Tag](https://images.microbadger.com/badges/version/authelia/authelia.svg)](https://microbadger.com/images/authelia/authelia)
   [![Docker Size](https://img.shields.io/microbadger/image-size/authelia/authelia?logo=docker&style=flat-square&color=blue)](https://microbadger.com/images/authelia/authelia)
   [![GitHub Release](https://img.shields.io/github/release/authelia/authelia.svg?logo=github&style=flat-square&color=blue)](https://github.com/authelia/authelia/releases)
