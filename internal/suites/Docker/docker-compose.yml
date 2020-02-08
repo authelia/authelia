@@ -2,5 +2,5 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './internal/suites/Docker/configuration.yml:/etc/authelia/configuration.yml:ro'
-      - './internal/suites/Docker/users.yml:/var/lib/authelia/users.yml'
+      - './Docker/configuration.yml:/etc/authelia/configuration.yml:ro'
+      - './Docker/users.yml:/var/lib/authelia/users.yml'

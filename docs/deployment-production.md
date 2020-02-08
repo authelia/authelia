@@ -49,7 +49,7 @@ pay attention to the permissions of the configuration file. See
 **Authelia** can also be installed on top of [Kubernetes] using
 [nginx ingress controller](https://github.com/kubernetes/ingress-nginx).
 
-Please refer to the following [documentation](../example/kube/README.md)
+Please refer to the following [documentation](../internal/suites/example/kube/README.md)
 for more information.
 
 ## FAQ

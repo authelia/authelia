@@ -54,7 +54,7 @@ manual intervention.
 Given your cluster already runs a LDAP server, a Redis, a SQL database,
 a SMTP server and a nginx ingress-controller, you can deploy **Authelia**
 and update your ingress configurations. An example is provided 
-[here](./authelia).
+[here](authelia).
 
 ## Questions
 

@@ -9,15 +9,15 @@ var ldapSuiteName = "LDAP"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"docker-compose.yml",
+		"internal/suites/docker-compose.yml",
 		"internal/suites/LDAP/docker-compose.yml",
-		"example/compose/authelia/docker-compose.backend.{}.yml",
-		"example/compose/authelia/docker-compose.frontend.{}.yml",
-		"example/compose/nginx/backend/docker-compose.yml",
-		"example/compose/nginx/portal/docker-compose.yml",
-		"example/compose/smtp/docker-compose.yml",
-		"example/compose/ldap/docker-compose.yml",
-		"example/compose/ldap/docker-compose.admin.yml",
+		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
+		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
+		"internal/suites/example/compose/nginx/portal/docker-compose.yml",
+		"internal/suites/example/compose/smtp/docker-compose.yml",
+		"internal/suites/example/compose/ldap/docker-compose.yml",
+		"internal/suites/example/compose/ldap/docker-compose.admin.yml",
 	})
 
 	setup := func(suitePath string) error {
