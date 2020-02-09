@@ -2,5 +2,5 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './internal/suites/NetworkACL/configuration.yml:/etc/authelia/configuration.yml:ro'
-      - './internal/suites/NetworkACL/users.yml:/var/lib/authelia/users.yml'
+      - './NetworkACL/configuration.yml:/etc/authelia/configuration.yml:ro'
+      - './NetworkACL/users.yml:/var/lib/authelia/users.yml'

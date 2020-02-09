@@ -2,5 +2,5 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './internal/suites/Mariadb/configuration.yml:/etc/authelia/configuration.yml:ro'
-      - './internal/suites/Mariadb/users.yml:/var/lib/authelia/users.yml'
+      - './Mariadb/configuration.yml:/etc/authelia/configuration.yml:ro'
+      - './Mariadb/users.yml:/var/lib/authelia/users.yml'

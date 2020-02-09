@@ -2,5 +2,5 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './internal/suites/HAProxy/configuration.yml:/etc/authelia/configuration.yml:ro'
-      - './internal/suites/HAProxy/users.yml:/var/lib/authelia/users.yml'
+      - './HAProxy/configuration.yml:/etc/authelia/configuration.yml:ro'
+      - './HAProxy/users.yml:/var/lib/authelia/users.yml'

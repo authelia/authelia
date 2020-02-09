@@ -2,5 +2,5 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './internal/suites/ShortTimeouts/configuration.yml:/etc/authelia/configuration.yml:ro'
-      - './internal/suites/ShortTimeouts/users.yml:/var/lib/authelia/users.yml'
+      - './ShortTimeouts/configuration.yml:/etc/authelia/configuration.yml:ro'
+      - './ShortTimeouts/users.yml:/var/lib/authelia/users.yml'

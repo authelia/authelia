@@ -2,7 +2,7 @@ version: '3'
 services:
   nginx-backend:
     build:
-      context: example/compose/nginx/backend
+      context: ./example/compose/nginx/backend
     labels:
       - 'traefik.frontend.rule=Host:home.example.com,public.example.com,secure.example.com,admin.example.com,singlefactor.example.com' # Traefik 1.x
       - 'traefik.frontend.auth.forward.address=http://authelia-backend:9091/api/verify?rd=https://login.example.com:8080/' # Traefik 1.x
