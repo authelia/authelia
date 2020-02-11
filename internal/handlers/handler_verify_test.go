@@ -72,7 +72,7 @@ func TestShouldRaiseWhenNoHeaderProvidedToDetectTargetURL(t *testing.T) {
 	defer mock.Close()
 	_, err := getOriginalURL(mock.Ctx)
 	assert.Error(t, err)
-	assert.Equal(t, "Missing header X-Fowarded-Proto used to detect target URL", err.Error())
+	assert.Equal(t, "Missing header X-Fowarded-Proto", err.Error())
 }
 
 func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testing.T) {
@@ -82,7 +82,7 @@ func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testi
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
 	_, err := getOriginalURL(mock.Ctx)
 	assert.Error(t, err)
-	assert.Equal(t, "Missing header X-Fowarded-Host used to detect target URL", err.Error())
+	assert.Equal(t, "Missing header X-Fowarded-Host", err.Error())
 }
 
 func TestShouldRaiseWhenXForwardedProtoIsNotParseable(t *testing.T) {
