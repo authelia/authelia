@@ -25,7 +25,6 @@ func (s *HandlerSignU2FStep1Suite) TearDownTest() {
 func (s *HandlerSignU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissing() {
 	SecondFactorU2FSignGet(s.mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "Missing header X-Fowarded-Proto", s.mock.Hook.LastEntry().Message)
 }
@@ -34,7 +33,6 @@ func (s *HandlerSignU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissing() 
 	s.mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
 	SecondFactorU2FSignGet(s.mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "Missing header X-Fowarded-Host", s.mock.Hook.LastEntry().Message)
 }

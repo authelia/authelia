@@ -67,7 +67,6 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissi
 
 	SecondFactorU2FIdentityFinish(s.mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "Missing header X-Fowarded-Proto", s.mock.Hook.LastEntry().Message)
 }
@@ -88,7 +87,6 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissin
 
 	SecondFactorU2FIdentityFinish(s.mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "Missing header X-Fowarded-Host", s.mock.Hook.LastEntry().Message)
 }

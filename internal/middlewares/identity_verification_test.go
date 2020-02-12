@@ -42,7 +42,6 @@ func TestShouldFailStartingProcessIfUserHasNoEmailAddress(t *testing.T) {
 
 	middlewares.IdentityVerificationStart(newArgs(retriever))(mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "User does not have any email", mock.Hook.LastEntry().Message)
 }
@@ -60,7 +59,6 @@ func TestShouldFailIfJWTCannotBeSaved(t *testing.T) {
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "cannot save", mock.Hook.LastEntry().Message)
 }
@@ -84,7 +82,6 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "no notif", mock.Hook.LastEntry().Message)
 }
@@ -103,7 +100,6 @@ func TestShouldFailWhenXForwardedProtoHeaderIsMissing(t *testing.T) {
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "Missing header X-Fowarded-Proto", mock.Hook.LastEntry().Message)
 }
@@ -122,7 +118,6 @@ func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "Missing header X-Fowarded-Host", mock.Hook.LastEntry().Message)
 }
