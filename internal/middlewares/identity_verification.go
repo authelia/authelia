@@ -49,6 +49,16 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
+		if ctx.XForwardedProto() == nil {
+			ctx.Error(errMissingXForwardedProto, operationFailedMessage)
+			return
+		}
+
+		if ctx.XForwardedHost() == nil {
+			ctx.Error(errMissingXForwardedHost, operationFailedMessage)
+			return
+		}
+
 		link := fmt.Sprintf("%s://%s%s?token=%s", ctx.XForwardedProto(),
 			ctx.XForwardedHost(), args.TargetEndpoint, ss)
 

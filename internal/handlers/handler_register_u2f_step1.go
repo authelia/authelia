@@ -24,6 +24,16 @@ var SecondFactorU2FIdentityStart = middlewares.IdentityVerificationStart(middlew
 })
 
 func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
+	if ctx.XForwardedProto() == nil {
+		ctx.Error(errMissingXForwardedProto, operationFailedMessage)
+		return
+	}
+
+	if ctx.XForwardedHost() == nil {
+		ctx.Error(errMissingXForwardedHost, operationFailedMessage)
+		return
+	}
+
 	appID := fmt.Sprintf("%s://%s", ctx.XForwardedProto(), ctx.XForwardedHost())
 	ctx.Logger.Tracef("U2F appID is %s", appID)
 	var trustedFacets = []string{appID}
