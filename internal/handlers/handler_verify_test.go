@@ -556,3 +556,25 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	assert.Equal(t, "Found. Redirecting to https://auth.mydomain.com?rd=https%3A%2F%2Ftwo-factor.example.com",
 		string(mock.Ctx.Response.Body()))
 }
+
+func TestIsDomainProtected(t *testing.T) {
+	GetURL := func(u string) *url.URL {
+		x, err := url.ParseRequestURI(u)
+		require.NoError(t, err)
+		return x
+	}
+
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("http://mytest.example.com/abc/?query=abc"), "example.com"))
+
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("http://example.com/abc/?query=abc"), "example.com"))
+
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("https://mytest.example.com/abc/?query=abc"), "example.com"))
+
+	// cookies readable by a service on a machine is also readable by a service on the same machine
+	// with a different port as mentioned in https://tools.ietf.org/html/rfc6265#section-8.5
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("https://mytest.example.com:8080/abc/?query=abc"), "example.com"))
+}

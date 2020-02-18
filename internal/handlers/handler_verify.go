@@ -14,6 +14,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
+	return strings.HasSuffix(url.Hostname(), domain)
+}
+
 // getOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers).
 func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	originalURL := ctx.XOriginalURL()
@@ -196,6 +200,13 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to parse target URL: %s", err), operationFailedMessage)
+		return
+	}
+
+	if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domain) {
+		ctx.Logger.Error(fmt.Errorf("The target URL %s is not under the protected domain %s",
+			targetURL.String(), ctx.Configuration.Session.Domain))
+		ctx.ReplyUnauthorized()
 		return
 	}
 
