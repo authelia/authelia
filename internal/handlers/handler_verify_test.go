@@ -578,3 +578,17 @@ func TestIsDomainProtected(t *testing.T) {
 	assert.True(t, isURLUnderProtectedDomain(
 		GetURL("https://mytest.example.com:8080/abc/?query=abc"), "example.com"))
 }
+
+func TestSchemeIsHTTPS(t *testing.T) {
+	GetURL := func(u string) *url.URL {
+		x, err := url.ParseRequestURI(u)
+		require.NoError(t, err)
+		return x
+	}
+
+	assert.False(t, isSchemeHTTPS(
+		GetURL("http://mytest.example.com/abc/?query=abc")))
+	assert.True(t, isSchemeHTTPS(
+		GetURL("https://mytest.example.com/abc/?query=abc")))
+
+}

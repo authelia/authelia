@@ -18,6 +18,10 @@ func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
 	return strings.HasSuffix(url.Hostname(), domain)
 }
 
+func isSchemeHTTPS(url *url.URL) bool {
+	return url.Scheme == "https"
+}
+
 // getOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers).
 func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	originalURL := ctx.XOriginalURL()
@@ -200,6 +204,13 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to parse target URL: %s", err), operationFailedMessage)
+		return
+	}
+
+	if !isSchemeHTTPS(targetURL) {
+		ctx.Logger.Error(fmt.Errorf("Scheme of target URL %s must be 'https' since cookies are "+
+			"only transported over a secure connection for security reasons", targetURL.String()))
+		ctx.ReplyUnauthorized()
 		return
 	}
 
