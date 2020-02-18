@@ -65,11 +65,6 @@ func (b *AuthorizerTesterBuilder) Build() *AuthorizerTester {
 	return NewAuthorizerTester(b.config)
 }
 
-type Request struct {
-	subject Subject
-	object  Object
-}
-
 var AnonymousUser = Subject{
 	Username: "",
 	Groups:   []string{},
