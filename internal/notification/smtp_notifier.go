@@ -198,8 +198,9 @@ func (n *SMTPNotifier) compose(recipient, subject, body string) error {
 
 // Dial the SMTP server with the SMTPNotifier config.
 func (n *SMTPNotifier) dial() error {
+	log.Debugf("Notifier SMTP client attempting connection to %s", n.address)
 	if n.port == 465 {
-		log.Debugf("Notifier SMTP client attempting connection to %s (using a TLS socket)", n.address)
+		log.Warnf("Notifier SMTP client configured to connect to a SMTPS server. It's highly recommended you use a non SMTPS port and STARTTLS instead as SMTPS as a protocol is long deprecated.")
 		conn, err := tls.Dial("tcp", n.address, n.tlsConfig)
 		if err != nil {
 			return err
@@ -210,7 +211,6 @@ func (n *SMTPNotifier) dial() error {
 		}
 		n.client = client
 	} else {
-		log.Debugf("Notifier SMTP client attempting connection to %s (using a regular socket)", n.address)
 		client, err := smtp.Dial(n.address)
 		if err != nil {
 			return err

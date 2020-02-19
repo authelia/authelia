@@ -26,14 +26,20 @@ post nginx has written on [HSTS].
 By default the SMTP Notifier implementation does not allow connections that are not secure.
 As such all connections require the following:
 
-1. STARTTLS before authentication or sending emails (unauthenticated connections 
-require it as well)
-2. Valid X509 Certificate presented to the client during the STARTTLS handshake
+1. TLS Connection (STARTTLS or SMTPS) has been negotiated before authentication or sending emails (unauthenticated 
+connections require it as well)
+2. Valid X509 Certificate presented to the client during the TLS handshake
 
 There is an option to disable both of these security measures however they are
 not recommended. You should only do this in a situation where you control all 
 networks between Authelia and the SMTP server. The following configuration options
 exist to configure the security level:
+
+### SMTPS vs STARTTLS
+
+By default all connections start as plain text and are upgraded via STARTTLS. SMTPS is supported, however due to the
+fact it was basically considered deprecated before the turn of the century, there is no way to configure it. It happens
+automatically when a SMTP notifier is configured with the SMTPS port of 465.
 
 ### Configuration Option: disable_verify_cert
 
@@ -49,6 +55,7 @@ with authentication disabled (comment the password) and as such is only an
 option for SMTP servers that allow unauthenticated relay (bad practice).
 
 ### Configuration Option: trusted_cert
+
 This is a YAML string type. This specifies the file location of a pub certificate
 that can be used to validate the authenticity of a server with a self signed
 certificate. This can either be the public cert of the certificate authority
