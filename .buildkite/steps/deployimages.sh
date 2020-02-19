@@ -7,7 +7,7 @@ do
   echo "    - \"authelia-scripts docker push-image --arch=${BUILD_ARCH}\""
   echo "    label: \":docker: Deploy Image [${BUILD_ARCH}]\""
   echo "    agents:"
-  echo "      "upload: fast""
+  echo "      upload: \"fast\""
   echo "    env:"
   echo "      "ARCH: ${BUILD_ARCH}""
 done

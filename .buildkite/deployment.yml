@@ -17,4 +17,8 @@ steps:
     command: ".buildkite/steps/ghartifacts.sh"
     agents:
       upload: "fast"
+    key: "artifacts"
     if: build.tag != null
+
+  - label: ":linux: Deploy AUR"
+    command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
