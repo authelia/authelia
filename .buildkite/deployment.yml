@@ -22,3 +22,4 @@ steps:
 
   - label: ":linux: Deploy AUR"
     command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
+    if: build.tag != null || build.branch == "master"
