@@ -72,7 +72,7 @@ func TestShouldRaiseWhenNoHeaderProvidedToDetectTargetURL(t *testing.T) {
 	defer mock.Close()
 	_, err := getOriginalURL(mock.Ctx)
 	assert.Error(t, err)
-	assert.Equal(t, "Missing header X-Fowarded-Proto used to detect target URL", err.Error())
+	assert.Equal(t, "Missing header X-Fowarded-Proto", err.Error())
 }
 
 func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testing.T) {
@@ -82,7 +82,7 @@ func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testi
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
 	_, err := getOriginalURL(mock.Ctx)
 	assert.Error(t, err)
-	assert.Equal(t, "Missing header X-Fowarded-Host used to detect target URL", err.Error())
+	assert.Equal(t, "Missing header X-Fowarded-Host", err.Error())
 }
 
 func TestShouldRaiseWhenXForwardedProtoIsNotParseable(t *testing.T) {
@@ -555,4 +555,40 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 
 	assert.Equal(t, "Found. Redirecting to https://auth.mydomain.com?rd=https%3A%2F%2Ftwo-factor.example.com",
 		string(mock.Ctx.Response.Body()))
+}
+
+func TestIsDomainProtected(t *testing.T) {
+	GetURL := func(u string) *url.URL {
+		x, err := url.ParseRequestURI(u)
+		require.NoError(t, err)
+		return x
+	}
+
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("http://mytest.example.com/abc/?query=abc"), "example.com"))
+
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("http://example.com/abc/?query=abc"), "example.com"))
+
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("https://mytest.example.com/abc/?query=abc"), "example.com"))
+
+	// cookies readable by a service on a machine is also readable by a service on the same machine
+	// with a different port as mentioned in https://tools.ietf.org/html/rfc6265#section-8.5
+	assert.True(t, isURLUnderProtectedDomain(
+		GetURL("https://mytest.example.com:8080/abc/?query=abc"), "example.com"))
+}
+
+func TestSchemeIsHTTPS(t *testing.T) {
+	GetURL := func(u string) *url.URL {
+		x, err := url.ParseRequestURI(u)
+		require.NoError(t, err)
+		return x
+	}
+
+	assert.False(t, isSchemeHTTPS(
+		GetURL("http://mytest.example.com/abc/?query=abc")))
+	assert.True(t, isSchemeHTTPS(
+		GetURL("https://mytest.example.com/abc/?query=abc")))
+
 }

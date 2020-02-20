@@ -10,7 +10,7 @@ import (
 )
 
 var kindImageName = "authelia-kind-proxy"
-var dockerCmdLine = fmt.Sprintf("docker-compose -f docker-compose.yml -f example/compose/kind/docker-compose.yml run --rm %s", kindImageName)
+var dockerCmdLine = fmt.Sprintf("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml run --rm %s", kindImageName)
 
 // Kind used for running kind commands
 type Kind struct{}
@@ -73,13 +73,13 @@ type Kubectl struct{}
 
 // StartProxy start a proxy
 func (k Kubectl) StartProxy() error {
-	cmd := utils.Shell("docker-compose -f docker-compose.yml -f example/compose/kind/docker-compose.yml up -d authelia-kind-proxy")
+	cmd := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml up -d authelia-kind-proxy")
 	return cmd.Run()
 }
 
 // StopProxy stop a proxy
 func (k Kubectl) StopProxy() error {
-	cmd := utils.Shell("docker-compose -f docker-compose.yml -f example/compose/kind/docker-compose.yml rm -s -f authelia-kind-proxy")
+	cmd := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml rm -s -f authelia-kind-proxy")
 	return cmd.Run()
 }
 
@@ -89,7 +89,7 @@ func (k Kubectl) StartDashboard() error {
 		return err
 	}
 
-	if err := utils.Shell("docker-compose -f docker-compose.yml -f example/compose/kind/docker-compose.yml up -d kube-dashboard").Run(); err != nil {
+	if err := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml up -d kube-dashboard").Run(); err != nil {
 		return err
 	}
 	return nil
@@ -97,7 +97,7 @@ func (k Kubectl) StartDashboard() error {
 
 // StopDashboard stop kube dashboard
 func (k Kubectl) StopDashboard() error {
-	cmd := utils.Shell("docker-compose -f docker-compose.yml -f example/compose/kind/docker-compose.yml rm -s -f kube-dashboard")
+	cmd := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml rm -s -f kube-dashboard")
 	return cmd.Run()
 }
 

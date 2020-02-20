@@ -2,5 +2,5 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './internal/suites/Traefik/configuration.yml:/etc/authelia/configuration.yml:ro'
-      - './internal/suites/Traefik/users.yml:/var/lib/authelia/users.yml'
+      - './Traefik/configuration.yml:/etc/authelia/configuration.yml:ro'
+      - './Traefik/users.yml:/var/lib/authelia/users.yml'
