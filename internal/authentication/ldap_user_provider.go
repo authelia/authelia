@@ -44,7 +44,7 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 	}
 
 	if url.Scheme == "ldaps" {
-		logging.Logger().Debug("LDAP client starts a TLS session")
+		logging.Logger().Trace("LDAP client starts a TLS session")
 		conn, err := p.connectionFactory.DialTLS("tcp", url.Host, &tls.Config{
 			InsecureSkipVerify: p.configuration.SkipVerify,
 		})
@@ -53,7 +53,7 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 		}
 		newConnection = conn
 	} else {
-		logging.Logger().Debug("LDAP client starts a session over raw TCP")
+		logging.Logger().Trace("LDAP client starts a session over raw TCP")
 		conn, err := p.connectionFactory.Dial("tcp", url.Host)
 		if err != nil {
 			return nil, err

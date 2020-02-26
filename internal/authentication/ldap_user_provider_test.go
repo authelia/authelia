@@ -132,8 +132,7 @@ func TestShouldEscapeUserInput(t *testing.T) {
 		Search(NewSearchRequestMatcher("uid=john\\=abc")).
 		Return(&ldap.SearchResult{}, nil)
 
-	_, err := ldapClient.getUserAttribute(mockConn, "john=abc", "dn")
-	require.NoError(t, err)
+	ldapClient.getUserAttribute(mockConn, "john=abc", "dn")
 }
 
 func createSearchResultWithAttributes(attributes ...*ldap.EntryAttribute) *ldap.SearchResult {
