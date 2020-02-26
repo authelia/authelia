@@ -40,6 +40,7 @@ services:
     networks:
       - net
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.api.rule=Host(`traefik.example.com`)'
       - 'traefik.http.routers.api.entrypoints=https'
       - 'traefik.http.routers.api.service=api@internal'
@@ -50,6 +51,7 @@ services:
     command:
       - '--api'
       - '--providers.docker=true'
+      - '--providers.docker.exposedByDefault=false'
       - '--entrypoints.http=true'
       - '--entrypoints.http.address=:80'
       - '--entrypoints.https=true'
@@ -67,9 +69,12 @@ services:
     networks:
       - net
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.authelia.rule=Host(`login.example.com`)'
       - 'traefik.http.routers.authelia.entrypoints=https'
       - 'traefik.http.routers.authelia.tls=true'
+      - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https://login.example.com/'
+      - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
     expose:
       - 9091
     restart: unless-stopped
@@ -85,11 +90,11 @@ services:
     networks:
       - net
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.nextcloud.rule=Host(`nextcloud.example.com`)'
       - 'traefik.http.routers.nextcloud.entrypoints=https'
       - 'traefik.http.routers.nextcloud.tls=true'
-      - 'traefik.http.routers.nextcloud.middlewares=authelia'
-      - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https://login.example.com/'
+      - 'traefik.http.routers.nextcloud.middlewares=authelia@docker'
     expose:
       - 443
     restart: unless-stopped
