@@ -95,7 +95,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 
 	// And set those information in the new session.
 	userSession := ctx.GetSession()
-	userSession.Username = bodyJSON.Username
+	userSession.Username = userDetails.Username
 	userSession.Groups = userDetails.Groups
 	userSession.Emails = userDetails.Emails
 	userSession.AuthenticationLevel = authentication.OneFactor

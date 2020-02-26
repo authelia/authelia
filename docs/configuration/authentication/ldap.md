@@ -25,6 +25,12 @@ authentication_backend:
 
         # The base dn for every entries
         base_dn: dc=example,dc=com
+
+        # The attribute holding the username of the user (introduced to handle
+        # case insensitive search queries: #561).
+        # Microsoft Active Directory usually uses 'sAMAccountName'
+        # OpenLDAP usually uses 'uid'
+        username_attribute: uid
         
         # An additional dn to define the scope to all users
         additional_users_dn: ou=users

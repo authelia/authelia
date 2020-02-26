@@ -163,8 +163,9 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
 		Return(&authentication.UserDetails{
-			Emails: []string{"test@example.com"},
-			Groups: []string{"dev", "admins"},
+			Username: "test",
+			Emails:   []string{"test@example.com"},
+			Groups:   []string{"dev", "admins"},
 		}, nil)
 
 	s.mock.StorageProviderMock.
@@ -202,8 +203,9 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
 		Return(&authentication.UserDetails{
-			Emails: []string{"test@example.com"},
-			Groups: []string{"dev", "admins"},
+			Username: "test",
+			Emails:   []string{"test@example.com"},
+			Groups:   []string{"dev", "admins"},
 		}, nil)
 
 	s.mock.StorageProviderMock.
@@ -226,6 +228,49 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	session := s.mock.Ctx.GetSession()
 	assert.Equal(s.T(), "test", session.Username)
 	assert.Equal(s.T(), false, session.KeepMeLoggedIn)
+	assert.Equal(s.T(), authentication.OneFactor, session.AuthenticationLevel)
+	assert.Equal(s.T(), []string{"test@example.com"}, session.Emails)
+	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
+}
+
+func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSession() {
+	s.mock.UserProviderMock.
+		EXPECT().
+		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
+		Return(true, nil)
+
+	s.mock.UserProviderMock.
+		EXPECT().
+		GetDetails(gomock.Eq("test")).
+		Return(&authentication.UserDetails{
+			// This is the name in authentication backend, in some setups the binding is
+			// case insensitive but the user ID in session must match the user in LDAP
+			// for the other modules of Authelia to be coherent.
+			Username: "Test",
+			Emails:   []string{"test@example.com"},
+			Groups:   []string{"dev", "admins"},
+		}, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(gomock.Any()).
+		Return(nil)
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+	FirstFactorPost(s.mock.Ctx)
+
+	// Respond with 200.
+	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
+
+	// And store authentication in session.
+	session := s.mock.Ctx.GetSession()
+	assert.Equal(s.T(), "Test", session.Username)
+	assert.Equal(s.T(), true, session.KeepMeLoggedIn)
 	assert.Equal(s.T(), authentication.OneFactor, session.AuthenticationLevel)
 	assert.Equal(s.T(), []string{"test@example.com"}, session.Emails)
 	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
@@ -259,8 +304,9 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
 		Return(&authentication.UserDetails{
-			Emails: []string{"test@example.com"},
-			Groups: []string{"dev", "admins"},
+			Username: "test",
+			Emails:   []string{"test@example.com"},
+			Groups:   []string{"dev", "admins"},
 		}, nil)
 
 	s.mock.StorageProviderMock.

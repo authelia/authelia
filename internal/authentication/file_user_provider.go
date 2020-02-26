@@ -101,8 +101,9 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 func (p *FileUserProvider) GetDetails(username string) (*UserDetails, error) {
 	if details, ok := p.database.Users[username]; ok {
 		return &UserDetails{
-			Groups: details.Groups,
-			Emails: []string{details.Email},
+			Username: username,
+			Groups:   details.Groups,
+			Emails:   []string{details.Email},
 		}, nil
 	}
 	return nil, fmt.Errorf("User '%s' does not exist in database", username)
