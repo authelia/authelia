@@ -214,8 +214,11 @@ func (p *LDAPUserProvider) GetDetails(username string) (*UserDetails, error) {
 	}
 
 	groups := make([]string, 0)
-
 	for _, res := range sr.Entries {
+		if len(res.Attributes) == 0 {
+			logging.Logger().Warningf("No groups retrieved from LDAP for user %s", username)
+			break
+		}
 		// append all values of the document. Normally there should be only one per document.
 		groups = append(groups, res.Attributes[0].Values...)
 	}
@@ -240,6 +243,10 @@ func (p *LDAPUserProvider) GetDetails(username string) (*UserDetails, error) {
 	emails := make([]string, 0)
 
 	for _, res := range sr.Entries {
+		if len(res.Attributes) == 0 {
+			logging.Logger().Warningf("No email retrieved from LDAP for user %s", username)
+			break
+		}
 		// append all values of the document. Normally there should be only one per document.
 		emails = append(emails, res.Attributes[0].Values...)
 	}

@@ -132,5 +132,114 @@ func TestShouldEscapeUserInput(t *testing.T) {
 		Search(NewSearchRequestMatcher("uid=john\\=abc")).
 		Return(&ldap.SearchResult{}, nil)
 
-	ldapClient.getUserAttribute(mockConn, "john=abc", "dn")
+	_, err := ldapClient.getUserAttribute(mockConn, "john=abc", "dn")
+	require.NoError(t, err)
+}
+
+func createSearchResultWithAttributes(attributes ...*ldap.EntryAttribute) *ldap.SearchResult {
+	return &ldap.SearchResult{
+		Entries: []*ldap.Entry{
+			&ldap.Entry{Attributes: attributes},
+		},
+	}
+}
+
+func createSearchResultWithAttributeValues(values ...string) *ldap.SearchResult {
+	return createSearchResultWithAttributes(&ldap.EntryAttribute{
+		Values: values,
+	})
+}
+
+func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
+		URL:               "ldap://127.0.0.1:389",
+		User:              "cn=admin,dc=example,dc=com",
+		Password:          "password",
+		UsersFilter:       "uid={0}",
+		AdditionalUsersDN: "ou=users",
+		BaseDN:            "dc=example,dc=com",
+	}, mockFactory)
+
+	mockFactory.EXPECT().
+		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
+		Return(mockConn, nil).Times(2)
+
+	mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil).
+		Times(2)
+
+	mockConn.EXPECT().
+		Close().Times(2)
+
+	searchGroups := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(createSearchResultWithAttributes(), nil)
+	searchUserDN := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(createSearchResultWithAttributeValues("uid=john,dc=example,dc=com"), nil)
+	searchEmails := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(createSearchResultWithAttributeValues("test@example.com"), nil)
+
+	gomock.InOrder(searchGroups, searchUserDN, searchEmails)
+
+	details, err := ldapClient.GetDetails("john")
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, details.Groups, []string{})
+	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
+}
+
+func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
+		URL:               "ldap://127.0.0.1:389",
+		User:              "cn=admin,dc=example,dc=com",
+		Password:          "password",
+		UsersFilter:       "uid={0}",
+		AdditionalUsersDN: "ou=users",
+		BaseDN:            "dc=example,dc=com",
+	}, mockFactory)
+
+	mockFactory.EXPECT().
+		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
+		Return(mockConn, nil).Times(2)
+
+	mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil).
+		Times(2)
+
+	mockConn.EXPECT().
+		Close().Times(2)
+
+	searchGroups := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(createSearchResultWithAttributeValues("group1", "group2"), nil)
+	searchUserDN := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(createSearchResultWithAttributeValues("uid=john,dc=example,dc=com"), nil)
+	searchEmails := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(createSearchResultWithAttributes(), nil)
+
+	gomock.InOrder(searchGroups, searchUserDN, searchEmails)
+
+	details, err := ldapClient.GetDetails("john")
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, details.Groups, []string{"group1", "group2"})
+	assert.ElementsMatch(t, details.Emails, []string{})
 }
