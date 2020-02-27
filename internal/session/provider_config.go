@@ -1,8 +1,9 @@
 package session
 
 import (
-	"github.com/valyala/fasthttp"
 	"time"
+
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/fasthttp/session"
