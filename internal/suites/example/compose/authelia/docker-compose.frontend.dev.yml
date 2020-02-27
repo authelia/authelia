@@ -11,7 +11,7 @@ services:
     working_dir: /app
     volumes:
       - './example/compose/authelia/resources/:/resources'
-      - './web:/app'
+      - '../../web:/app'
     labels:
       - 'traefik.frontend.rule=Host:login.example.com'
       - 'traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`)'
