@@ -588,7 +588,29 @@ func TestSchemeIsHTTPS(t *testing.T) {
 
 	assert.False(t, isSchemeHTTPS(
 		GetURL("http://mytest.example.com/abc/?query=abc")))
+	assert.False(t, isSchemeHTTPS(
+		GetURL("ws://mytest.example.com/abc/?query=abc")))
+	assert.False(t, isSchemeHTTPS(
+		GetURL("wss://mytest.example.com/abc/?query=abc")))
 	assert.True(t, isSchemeHTTPS(
 		GetURL("https://mytest.example.com/abc/?query=abc")))
+
+}
+
+func TestSchemeIsWSS(t *testing.T) {
+	GetURL := func(u string) *url.URL {
+		x, err := url.ParseRequestURI(u)
+		require.NoError(t, err)
+		return x
+	}
+
+	assert.False(t, isSchemeWSS(
+		GetURL("ws://mytest.example.com/abc/?query=abc")))
+	assert.False(t, isSchemeWSS(
+		GetURL("http://mytest.example.com/abc/?query=abc")))
+	assert.False(t, isSchemeWSS(
+		GetURL("https://mytest.example.com/abc/?query=abc")))
+	assert.True(t, isSchemeWSS(
+		GetURL("wss://mytest.example.com/abc/?query=abc")))
 
 }
