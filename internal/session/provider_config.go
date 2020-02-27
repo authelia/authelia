@@ -1,9 +1,8 @@
 package session
 
 import (
-	"time"
-
 	"github.com/valyala/fasthttp"
+	"time"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/fasthttp/session"
@@ -46,6 +45,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 			Host:        configuration.Redis.Host,
 			Port:        configuration.Redis.Port,
 			Password:    configuration.Redis.Password,
+			DbNumber:    configuration.Redis.Database,
 			PoolSize:    8,
 			IdleTimeout: 300,
 			KeyPrefix:   "authelia-session",

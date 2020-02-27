@@ -5,6 +5,7 @@ type RedisSessionConfiguration struct {
 	Host     string `mapstructure:"host"`
 	Port     int64  `mapstructure:"port"`
 	Password string `mapstructure:"password"`
+	Database int    `mapstructure:"database"`
 }
 
 // SessionConfiguration represents the configuration related to user sessions.
