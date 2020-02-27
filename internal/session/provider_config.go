@@ -43,10 +43,11 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 	if configuration.Redis != nil {
 		providerName = "redis"
 		providerConfig = &redis.Config{
-			Host:        configuration.Redis.Host,
-			Port:        configuration.Redis.Port,
-			Password:    configuration.Redis.Password,
-			DbNumber:    configuration.Redis.Database,
+			Host:     configuration.Redis.Host,
+			Port:     configuration.Redis.Port,
+			Password: configuration.Redis.Password,
+			// DbNumber is the fasthttp/session property for the Redis DB Index
+			DbNumber:    configuration.Redis.DatabaseIndex,
 			PoolSize:    8,
 			IdleTimeout: 300,
 			KeyPrefix:   "authelia-session",

@@ -54,6 +54,7 @@ func TestShouldCreateRedisSessionProvider(t *testing.T) {
 	assert.Equal(t, "redis.example.com", pConfig.Host)
 	assert.Equal(t, int64(6379), pConfig.Port)
 	assert.Equal(t, "pass", pConfig.Password)
+	// DbNumber is the fasthttp/session property for the Redis DB Index
 	assert.Equal(t, 0, pConfig.DbNumber)
 }
 
@@ -63,14 +64,15 @@ func TestShouldSetDbNumber(t *testing.T) {
 	configuration.Name = "my_session"
 	configuration.Expiration = 40
 	configuration.Redis = &schema.RedisSessionConfiguration{
-		Host:     "redis.example.com",
-		Port:     6379,
-		Password: "pass",
-		Database: 5,
+		Host:          "redis.example.com",
+		Port:          6379,
+		Password:      "pass",
+		DatabaseIndex: 5,
 	}
 	providerConfig := NewProviderConfig(configuration)
 	assert.Equal(t, "redis", providerConfig.providerName)
 	assert.IsType(t, &redis.Config{}, providerConfig.providerConfig)
 	pConfig := providerConfig.providerConfig.(*redis.Config)
+	// DbNumber is the fasthttp/session property for the Redis DB Index
 	assert.Equal(t, 5, pConfig.DbNumber)
 }
