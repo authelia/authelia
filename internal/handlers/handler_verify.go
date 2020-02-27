@@ -22,6 +22,10 @@ func isSchemeHTTPS(url *url.URL) bool {
 	return url.Scheme == "https"
 }
 
+func isSchemeWSS(url *url.URL) bool {
+	return url.Scheme == "wss"
+}
+
 // getOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers).
 func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	originalURL := ctx.XOriginalURL()
@@ -207,8 +211,8 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !isSchemeHTTPS(targetURL) {
-		ctx.Logger.Error(fmt.Errorf("Scheme of target URL %s must be 'https' since cookies are "+
+	if !isSchemeHTTPS(targetURL) && !isSchemeWSS(targetURL) {
+		ctx.Logger.Error(fmt.Errorf("Scheme of target URL %s must be secure since cookies are "+
 			"only transported over a secure connection for security reasons", targetURL.String()))
 		ctx.ReplyUnauthorized()
 		return

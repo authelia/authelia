@@ -11,7 +11,7 @@ services:
     working_dir: /app
     volumes:
       - './example/compose/authelia/resources/:/resources'
-      - '.:/app'
+      - '../..:/app'
       - '${GOPATH}:/go'
     labels:
       - 'traefik.frontend.rule=Host:login.example.com;PathPrefix:/api'
