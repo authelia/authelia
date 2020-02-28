@@ -223,6 +223,8 @@ session:
     port: 6379
     # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD
     password: authelia
+    # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
+    database_index: 0
 
 # Configuration of the authentication regulation mechanism.
 #
