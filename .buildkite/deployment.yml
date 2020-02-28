@@ -15,6 +15,8 @@ steps:
 
   - label: ":github: Deploy Artifacts"
     command: ".buildkite/steps/ghartifacts.sh"
+    retry:
+      automatic: true
     agents:
       upload: "fast"
     key: "artifacts"
