@@ -14,7 +14,7 @@ steps:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
 
   - label: ":github: Deploy Artifacts"
-    command: ".buildkite/steps/ghartifacts.sh"
+    command: "ghartifacts.sh"
     retry:
       automatic: true
     agents:
@@ -25,3 +25,9 @@ steps:
   - label: ":linux: Deploy AUR"
     command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
     if: build.tag != null || build.branch == "master"
+
+  - label: ":docs: Deploy documentation"
+    command: "syncdoc.sh"
+    agents:
+      upload: "fast"
+    if: build.branch == "master"

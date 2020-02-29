@@ -1,3 +1,9 @@
+---
+layout: default
+title: Getting Started
+nav_order: 2
+---
+
 # Getting Started
 
 **Authelia** can be tested in a matter of seconds with Docker and docker-compose.
@@ -59,15 +65,25 @@ Here are the versions used for testing in Buildkite:
     $ docker-compose --version
     docker-compose version 1.24.1, build unknown
 
-### How am I supposed to access the subdomains of example.com?
+### How can I serve my application under example.com?
 
-In order to test Authelia, Authelia fakes your browser by adding entries
-in /etc/hosts when you first source the bootstrap.sh script.
+Don't worry, you don't need to own the domain *example.com* to test Authelia.
+Copy the following lines in your /etc/hosts.
+
+    192.168.240.100 home.example.com
+    192.168.240.100 login.example.com
+    192.168.240.100 singlefactor.example.com
+    192.168.240.100 public.example.com
+    192.168.240.100 secure.example.com
+    192.168.240.100 mail.example.com
+    192.168.240.100 mx1.mail.example.com
+
+`192.168.240.100` is the IP attributed by Docker to the reverse proxy. Once done
+you can access the listed sub-domains from your browser and they will target
+the reverse proxy.
 
 ### What should I do if I want to contribute?
 
-You can refer to the dedicated documentation [here](./build-and-dev.md).
+You can refer to the dedicated documentation [here](./contributing/index.md).
 
-[config.template.yml]: ../config.template.yml
-[DockerHub]: https://hub.docker.com/r/authelia/authelia/
-[suite]: ./suites.md
+[suite]: ./contributing/suites.md
