@@ -5,8 +5,8 @@
 
   [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
   [![Go Report Card](https://goreportcard.com/badge/github.com/authelia/authelia?style=flat-square)](https://goreportcard.com/report/github.com/authelia/authelia)
-  [![Docker Tag](https://images.microbadger.com/badges/version/authelia/authelia.svg)](https://microbadger.com/images/authelia/authelia)
-  [![Docker Size](https://img.shields.io/microbadger/image-size/authelia/authelia?logo=docker&style=flat-square&color=blue)](https://microbadger.com/images/authelia/authelia)
+  [![Docker Tag](https://img.shields.io/docker/v/authelia/authelia?logo=docker&style=flat-square&color=blue&sort=semver)](https://microbadger.com/images/authelia/authelia)
+  [![Docker Size](https://img.shields.io/docker/image-size/authelia/authelia?logo=docker&style=flat-square&color=blue&sort=semver)](https://hub.docker.com/r/authelia/authelia/tags)
   [![GitHub Release](https://img.shields.io/github/release/authelia/authelia.svg?logo=github&style=flat-square&color=blue)](https://github.com/authelia/authelia/releases)
   [![AUR source version](https://img.shields.io/aur/version/authelia?logo=arch-linux&label=authelia&style=flat-square&color=blue)](https://aur.archlinux.org/packages/authelia/)
   [![AUR binary version](https://img.shields.io/aur/version/authelia-bin?logo=arch-linux&label=authelia-bin&style=flat-square&color=blue)](https://aur.archlinux.org/packages/authelia-bin/)
@@ -20,6 +20,8 @@ providing 2-factor authentication and single sign-on (SSO) for your
 applications via a web portal.
 It acts as a companion of reverse proxies like [nginx], [Traefik] or [HAProxy] to let them know whether queries should pass through. Unauthenticated user are
 redirected to Authelia Sign-in portal instead.
+
+Documentation is available at https://docs.authelia.com.
 
 The architecture is shown in the diagram below.
 
