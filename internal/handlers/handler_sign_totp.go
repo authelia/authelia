@@ -32,6 +32,13 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 			return
 		}
 
+		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+
+		if err != nil {
+			ctx.Error(fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), authenticationFailedMessage)
+			return
+		}
+
 		userSession.AuthenticationLevel = authentication.TwoFactor
 		err = ctx.SaveSession(userSession)
 
