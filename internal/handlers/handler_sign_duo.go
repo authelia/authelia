@@ -6,7 +6,6 @@ import (
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/duo"
-	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
@@ -22,10 +21,9 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		}
 
 		userSession := ctx.GetSession()
-		log := logging.Logger()
 		remoteIP := ctx.RemoteIP().String()
 
-		log.Debugf("Starting 2FA Duo Push Auth Attempt for %s from IP %s", userSession.Username, remoteIP)
+		ctx.Logger.Debugf("Starting 2FA Duo Push Auth Attempt for %s from IP %s", userSession.Username, remoteIP)
 
 		values := url.Values{}
 		// { username, ipaddr: clientIP, factor: "push", device: "auto", pushinfo: `target%20url=${targetURL}`}
@@ -45,11 +43,11 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 
 		if duoResponse.Stat == "FAIL" {
 			if duoResponse.Code == 40002 {
-				log.Warnf("Duo failed to process the auth request for %s from %s: %s (%s), error code %d. "+
+				ctx.Logger.Warnf("Duo failed to process the auth request for %s from %s: %s (%s), error code %d. "+
 					"This error often occurs if you've not setup the username in the Admin Dashboard.",
 					userSession.Username, remoteIP, duoResponse.Message, duoResponse.MessageDetail, duoResponse.Code)
 			} else {
-				log.Warnf("Duo failed to process the auth request for %s from %s: %s (%s), error code %d.",
+				ctx.Logger.Warnf("Duo failed to process the auth request for %s from %s: %s (%s), error code %d.",
 					userSession.Username, remoteIP, duoResponse.Message, duoResponse.MessageDetail, duoResponse.Code)
 			}
 		}

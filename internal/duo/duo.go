@@ -30,6 +30,5 @@ func (d *APIImpl) Call(values url.Values) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return &response, nil
 }
