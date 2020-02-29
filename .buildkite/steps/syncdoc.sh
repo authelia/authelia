@@ -3,7 +3,7 @@
 set -e
 
 rm -rf authelia
-git clone git@github.com:authelia/authelia.git --branch gh-pages
+git clone git@github.com:authelia/authelia.git --single-branch --branch gh-pages
 
 pushd docs
 bundle install
@@ -14,7 +14,7 @@ COMMIT=$(git show -s --format=%h)
 
 pushd authelia
 git add -A
-git commit -m "synchronize docs of commit ${COMMIT}"
+git commit -m "Synchronize docs of commit: ${COMMIT}"
 git push
 popd
 
