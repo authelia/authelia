@@ -35,7 +35,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 			values.Set("pushinfo", fmt.Sprintf("target%%20url=%s", requestBody.TargetURL))
 		}
 
-		duoResponse, err := duoAPI.Call(values)
+		duoResponse, err := duoAPI.Call(values, ctx)
 		if err != nil {
 			ctx.Error(fmt.Errorf("Duo API errored: %s", err), mfaValidationFailedMessage)
 			return

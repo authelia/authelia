@@ -1,11 +1,15 @@
 package duo
 
-import "net/url"
+import (
+	"net/url"
+
+	"github.com/authelia/authelia/internal/middlewares"
+)
 import "github.com/duosecurity/duo_api_golang"
 
 // API interface wrapping duo api library for testing purpose
 type API interface {
-	Call(values url.Values) (*Response, error)
+	Call(values url.Values, ctx *middlewares.AutheliaCtx) (*Response, error)
 }
 
 // APIImpl implementation of DuoAPI interface
