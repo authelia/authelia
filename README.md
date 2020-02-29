@@ -21,6 +21,8 @@ applications via a web portal.
 It acts as a companion of reverse proxies like [nginx], [Traefik] or [HAProxy] to let them know whether queries should pass through. Unauthenticated user are
 redirected to Authelia Sign-in portal instead.
 
+Documentation is available at https://docs.authelia.com.
+
 The architecture is shown in the diagram below.
 
 <p align="center" style="margin:50px">
