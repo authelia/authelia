@@ -43,7 +43,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndAllowAccess() {
 	response := duo.Response{}
 	response.Response.Result = "allow"
 
-	duoMock.EXPECT().Call(gomock.Eq(values)).Return(&response, nil)
+	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
 
 	s.mock.Ctx.Request.SetBodyString("{\"targetURL\": \"https://target.example.com\"}")
 
@@ -65,7 +65,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 	response := duo.Response{}
 	response.Response.Result = "deny"
 
-	duoMock.EXPECT().Call(gomock.Eq(values)).Return(&response, nil)
+	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
 
 	s.mock.Ctx.Request.SetBodyString("{\"targetURL\": \"https://target.example.com\"}")
 
@@ -84,7 +84,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	values.Set("device", "auto")
 	values.Set("pushinfo", "target%20url=https://target.example.com")
 
-	duoMock.EXPECT().Call(gomock.Eq(values)).Return(nil, fmt.Errorf("Connnection error"))
+	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(nil, fmt.Errorf("Connnection error"))
 
 	s.mock.Ctx.Request.SetBodyString("{\"targetURL\": \"https://target.example.com\"}")
 
@@ -99,7 +99,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 	response := duo.Response{}
 	response.Response.Result = "allow"
 
-	duoMock.EXPECT().Call(gomock.Any()).Return(&response, nil)
+	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = "http://redirection.local"
 
@@ -119,7 +119,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 	response := duo.Response{}
 	response.Response.Result = "allow"
 
-	duoMock.EXPECT().Call(gomock.Any()).Return(&response, nil)
+	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{})
 	s.Require().NoError(err)
@@ -135,7 +135,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	response := duo.Response{}
 	response.Response.Result = "allow"
 
-	duoMock.EXPECT().Call(gomock.Any()).Return(&response, nil)
+	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
 		TargetURL: "https://mydomain.local",
@@ -155,7 +155,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 	response := duo.Response{}
 	response.Response.Result = "allow"
 
-	duoMock.EXPECT().Call(gomock.Any()).Return(&response, nil)
+	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
 		TargetURL: "http://mydomain.local",
