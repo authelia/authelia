@@ -20,5 +20,8 @@ type Response struct {
 		Status        string `json:"status"`
 		StatusMessage string `json:"status_msg"`
 	} `json:"response"`
-	Stat string `json:"stat"`
+	Code          int    `json:"code"`
+	Message       string `json:"message"`
+	MessageDetail string `json:"message_detail"`
+	Stat          string `json:"stat"`
 }

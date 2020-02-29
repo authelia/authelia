@@ -5,6 +5,8 @@ import (
 	"net/url"
 
 	"github.com/duosecurity/duo_api_golang"
+
+	"github.com/authelia/authelia/internal/logging"
 )
 
 // NewDuoAPI create duo API instance
@@ -21,6 +23,7 @@ func (d *APIImpl) Call(values url.Values) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	logging.Logger().Tracef("Duo Auth Response Data: %s", string(responseBytes))
 
 	var response Response
 	err = json.Unmarshal(responseBytes, &response)
