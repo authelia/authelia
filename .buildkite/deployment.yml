@@ -26,7 +26,7 @@ steps:
     command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
     if: build.tag != null || build.branch == "master"
 
-  - label: ":docs: Deploy documentation"
+  - label: ":book: Deploy Documentation"
     command: "syncdoc.sh"
     agents:
       upload: "fast"
