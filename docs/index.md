@@ -42,22 +42,12 @@ so that you can test it in minutes. Let's begin with the
 
 * is not an OAuth or OpenID Connect provider yet.
 * is not a SAML provider yet.
-<<<<<<< HEAD
-* does not support support authentication against an OAuth or OpenID Connect provider.
-* does not support using hardware devices as single factor.
-* does not allow provide a PAM module yet.
-=======
 * does not support authentication against an OAuth or OpenID Connect provider.
 * does not support authentication against a SAML provider.
 * does not support using hardware devices as single factor.
 * does not provide a PAM module yet.
->>>>>>> [WIP] Use 'Just-the-docs' jekyll theme to organize documentation.
 
 
 [Duo]: https://duo.com/
 [Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
-<<<<<<< HEAD
 [Google Authenticator]: https://google-authenticator.com/
-=======
-[Google Authenticator]: https://google-authenticator.com/
->>>>>>> [WIP] Use 'Just-the-docs' jekyll theme to organize documentation.
