@@ -24,7 +24,7 @@ func (d *APIImpl) Call(values url.Values, ctx *middlewares.AutheliaCtx) (*Respon
 		return nil, err
 	}
 
-	ctx.Logger.Tracef("Duo Auth Response Data for %s from IP %s: %s", ctx.GetSession().Username, ctx.RemoteIP().String(), string(responseBytes))
+	ctx.Logger.Tracef("Duo Push Auth Response Raw Data for %s from IP %s: %s", ctx.GetSession().Username, ctx.RemoteIP().String(), string(responseBytes))
 
 	var response Response
 	err = json.Unmarshal(responseBytes, &response)

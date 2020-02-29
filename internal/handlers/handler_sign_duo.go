@@ -23,7 +23,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		userSession := ctx.GetSession()
 		remoteIP := ctx.RemoteIP().String()
 
-		ctx.Logger.Debugf("Starting 2FA Duo Push Auth Attempt for %s from IP %s", userSession.Username, remoteIP)
+		ctx.Logger.Debugf("Starting Duo Push Auth Attempt for %s from IP %s", userSession.Username, remoteIP)
 
 		values := url.Values{}
 		// { username, ipaddr: clientIP, factor: "push", device: "auto", pushinfo: `target%20url=${targetURL}`}
@@ -43,11 +43,11 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 
 		if duoResponse.Stat == "FAIL" {
 			if duoResponse.Code == 40002 {
-				ctx.Logger.Warnf("Duo failed to process the auth request for %s from %s: %s (%s), error code %d. "+
+				ctx.Logger.Warnf("Duo Push Auth failed to process the auth request for %s from %s: %s (%s), error code %d. "+
 					"This error often occurs if you've not setup the username in the Admin Dashboard.",
 					userSession.Username, remoteIP, duoResponse.Message, duoResponse.MessageDetail, duoResponse.Code)
 			} else {
-				ctx.Logger.Warnf("Duo failed to process the auth request for %s from %s: %s (%s), error code %d.",
+				ctx.Logger.Warnf("Duo Push Auth failed to process the auth request for %s from %s: %s (%s), error code %d.",
 					userSession.Username, remoteIP, duoResponse.Message, duoResponse.MessageDetail, duoResponse.Code)
 			}
 		}
