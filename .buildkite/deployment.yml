@@ -3,6 +3,11 @@ steps:
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
     concurrency: 1
     concurrency_group: "deployments"
+    if: build.branch == "master"
+
+  - label: ":docker: Image Deployments"
+    command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
+    if: build.branch != "master"
 
   - wait
 
@@ -12,9 +17,17 @@ steps:
     concurrency_group: "deployments"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
+    if: build.branch == "master"
+
+  - label: ":docker: Deploy Manifests"
+    command: "authelia-scripts docker push-manifest"
+    env:
+      DOCKER_CLI_EXPERIMENTAL: "enabled"
+    if: build.branch != "master"
 
   - label: ":github: Deploy Artifacts"
     command: "ghartifacts.sh"
+    depends_on: ~
     retry:
       automatic: true
     agents:
@@ -24,10 +37,12 @@ steps:
 
   - label: ":linux: Deploy AUR"
     command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
+    depends_on: ~
     if: build.tag != null || build.branch == "master"
 
   - label: ":book: Deploy Documentation"
     command: "syncdoc.sh"
+    depends_on: ~
     agents:
       upload: "fast"
     if: build.branch == "master"
