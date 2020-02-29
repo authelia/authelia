@@ -34,7 +34,7 @@ normal to see this exception several times.
 Below is what the login page looks like after you accepted all exceptions:
 
 <p align="center">
-  <img src="../docs/images/1FA.png" width="400">
+  <img src="./images/1FA.png" width="400">
 </p>
 
 You can use one of the users listed in

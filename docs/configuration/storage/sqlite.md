@@ -12,7 +12,7 @@ If you don't have a SQL server, you can use [SQLite](https://en.wikipedia.org/wi
 However please note that this setup will prevent you from running multiple
 instances of Authelia since the database will be a local file.
 
-## Configuration
+## Configuration
 
 Just give the path to the sqlite database. It will be created if the file does not exist.
 

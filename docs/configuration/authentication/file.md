@@ -63,7 +63,7 @@ For instance, with the docker image, just run
     $6$rounds=50000$BpLnfgDsc2WD8F2q$be7OyobnQ8K09dyDiGjY.cULh4yDePMh6CUMpLwF4WHTJmLcPE2ijM2ZsqZL.hVAANojEfDu3sU9u9uD7AeBJ/
 
 
-## Password Hash Function
+## Password Hash Function
 
 The only supported hash function is salted sha512 determined by the prefix `$6$` as described
 in this [wiki](https://en.wikipedia.org/wiki/Crypt_(C)) page. 
@@ -74,4 +74,3 @@ The best algorithm, [Argon2](https://en.wikipedia.org/wiki/Argon2) does though. 
 [Password Hashing Competition](https://en.wikipedia.org/wiki/Password_Hashing_Competition) in 2015 and is now
 considered the best hashing function. There is an open [issue](https://github.com/authelia/authelia/issues/577)
 to add support for this hashing function.
-

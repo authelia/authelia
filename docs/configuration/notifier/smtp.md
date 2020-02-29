@@ -36,7 +36,7 @@ notifier:
     ## trusted_cert: ""
 ```
 
-## Using Gmail
+## Using Gmail
 
 You need to generate an app password in order to use Gmail SMTP servers. The process is
 described [here](https://support.google.com/accounts/answer/185833?hl=en)
