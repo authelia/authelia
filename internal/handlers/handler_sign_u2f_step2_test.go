@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"regexp"
 	"testing"
 
 	"github.com/authelia/authelia/internal/mocks"
@@ -104,6 +105,30 @@ func (s *HandlerSignU2FStep2Suite) TestShouldNotRedirectToUnsafeURL() {
 
 	SecondFactorU2FSignPost(u2fVerifier)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
+}
+
+func (s *HandlerSignU2FStep2Suite) TestShouldRegenerateSessionForPreventingSessionFixation() {
+	u2fVerifier := NewMockU2FVerifier(s.mock.Ctrl)
+
+	u2fVerifier.EXPECT().
+		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	bodyBytes, err := json.Marshal(signU2FRequestBody{
+		SignResponse: u2f.SignResponse{},
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	r := regexp.MustCompile("^authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	SecondFactorU2FSignPost(u2fVerifier)(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), nil)
+
+	s.Assert().NotEqual(
+		res[0][1],
+		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 }
 
 func TestRunHandlerSignU2FStep2Suite(t *testing.T) {
