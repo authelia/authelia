@@ -38,12 +38,12 @@ so that you can test it in minutes. Let's begin with the
 [Getting Started](./getting-started).
 
 
-## Authelia...
+## However, Authelia...
 
 * is not an OAuth or OpenID Connect provider yet.
 * is not a SAML provider yet.
-* does not support authentication against an OAuth or OpenID Connect provider.
-* does not support authentication against a SAML provider.
+* does not support authentication against an OAuth or OpenID Connect provider yet.
+* does not support authentication against a SAML provider yet.
 * does not support using hardware devices as single factor.
 * does not provide a PAM module yet.
 
