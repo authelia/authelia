@@ -44,7 +44,6 @@ func init() {
 	CertificatesGenerateCmd.PersistentFlags().IntVar(&rsaBits, "rsa-bits", 2048, "Size of RSA key to generate. Ignored if --ecdsa-curve is set")
 	CertificatesGenerateCmd.PersistentFlags().StringVar(&ecdsaCurve, "ecdsa-curve", "", "ECDSA curve to use to generate a key. Valid values are P224, P256 (recommended), P384, P521")
 	CertificatesGenerateCmd.PersistentFlags().BoolVar(&ed25519Key, "ed25519", false, "Generate an Ed25519 key")
-
 	CertificatesGenerateCmd.PersistentFlags().StringVar(&targetDirectory, "dir", "", "Target directory where the certificate and keys will be stored")
 
 	CertificatesCmd.AddCommand(CertificatesGenerateCmd)

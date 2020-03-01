@@ -20,7 +20,7 @@ Documentation for deploying a reverse proxy collaborating with Authelia is avail
 [here](./supported-proxies/index.md).
 
 Please note that Authelia only works for websites served over HTTPS because the session cookie
-can only be transmitted over secure connections. Therefore, would you need to generate a
+can only be transmitted over secure connections. Therefore, if you need to generate a
 self-signed certificate for your setup, you can use the dedicated helper function provided
 by the authelia binary.
 
