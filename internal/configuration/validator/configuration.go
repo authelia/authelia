@@ -24,6 +24,12 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 		configuration.LogsLevel = defaultLogsLevel
 	}
 
+	if configuration.SSLKey != "" && configuration.SSLCert == "" {
+		validator.Push(fmt.Errorf("SSL key provided but no certificate"))
+	} else if configuration.SSLKey == "" && configuration.SSLCert != "" {
+		validator.Push(fmt.Errorf("SSL certificate provided but no key"))
+	}
+
 	if configuration.DefaultRedirectionURL != "" {
 		_, err := url.ParseRequestURI(configuration.DefaultRedirectionURL)
 		if err != nil {

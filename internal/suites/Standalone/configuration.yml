@@ -3,6 +3,8 @@
 ###############################################################
 
 port: 9091
+ssl_cert: /var/lib/authelia/ssl/cert.pem
+ssl_key: /var/lib/authelia/ssl/key.pem
 
 logs_level: debug
 

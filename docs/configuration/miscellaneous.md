@@ -10,12 +10,24 @@ nav_order: 5
 Here are the main customizable options in Authelia.
 
 ## Host & Port
+
 `optional: true`
 
 Defines the address to listen on.
 
     host: 0.0.0.0
     port: 9091
+
+## TLS
+
+`optional: true`
+
+Authelia can use TLS. Provide the certificate and the key with the
+following keys.
+
+    ssl_key: /var/lib/authelia/ssl/key.pem
+    ssl_cert: /var/lib/authelia/ssl/cert.pem
+
 
 ## Logs level
 

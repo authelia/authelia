@@ -99,3 +99,33 @@ func TestShouldAddDefaultAccessControl(t *testing.T) {
 	assert.NotNil(t, config.AccessControl)
 	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
 }
+
+func TestShouldRaiseErrorWhenSSLCertWithoutKeyIsProvided(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.SSLCert = "/tmp/cert.pem"
+
+	Validate(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "SSL certificate provided but no key")
+}
+
+func TestShouldRaiseErrorWhenSSLKeyWithoutCertIsProvided(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.SSLKey = "/tmp/key.pem"
+
+	Validate(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "SSL key provided but no certificate")
+}
+
+func TestShouldNotRaiseErrorWhenBothSSLCertificateAndKeyAreProvided(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.SSLCert = "/tmp/cert.pem"
+	config.SSLKey = "/tmp/key.pem"
+
+	Validate(&config, validator)
+	require.Len(t, validator.Errors(), 0)
+}
