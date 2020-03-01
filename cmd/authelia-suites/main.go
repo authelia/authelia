@@ -38,6 +38,12 @@ func main() {
 		Run:   setupTimeoutSuite,
 	}
 
+	errorCmd := &cobra.Command{
+		Use:   "error [suite]",
+		Short: "Run the OnError callback when some tests fail",
+		Run:   runErrorCallback,
+	}
+
 	stopCmd := &cobra.Command{
 		Use:   "teardown [suite]",
 		Short: "Teardown the suite environment",
@@ -46,8 +52,11 @@ func main() {
 
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(setupTimeoutCmd)
+	rootCmd.AddCommand(errorCmd)
 	rootCmd.AddCommand(stopCmd)
-	rootCmd.Execute()
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func createRunningSuiteFile(suite string) error {
@@ -116,6 +125,18 @@ func setupTimeoutSuite(cmd *cobra.Command, args []string) {
 		return
 	}
 	if err := s.OnSetupTimeout(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func runErrorCallback(cmd *cobra.Command, args []string) {
+	suiteName := args[0]
+	s := suites.GlobalRegistry.Get(suiteName)
+
+	if s.OnError == nil {
+		return
+	}
+	if err := s.OnError(); err != nil {
 		log.Fatal(err)
 	}
 }
