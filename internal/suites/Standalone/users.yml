@@ -13,7 +13,7 @@ users:
     email: james.dean@authelia.com
     groups: []
   john:
-    password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+    password: '{CRYPT}$6$rounds=50000$LnfgDsc2WD8F2qNf$0gcCt8jlqAGZRv2ee3mCFsfAr1P4N7kESWEf36Xtw6OjkhAcQuGVOBHXp0lFuZbppa7YlgHk3VD28aSQu9U9S1'
     email: john.doe@authelia.com
     groups:
     - admins
