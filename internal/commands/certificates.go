@@ -40,7 +40,7 @@ func init() {
 
 	CertificatesGenerateCmd.PersistentFlags().StringVar(&validFrom, "start-date", "", "Creation date formatted as Jan 1 15:04:05 2011")
 	CertificatesGenerateCmd.PersistentFlags().DurationVar(&validFor, "duration", 365*24*time.Hour, "Duration that certificate is valid for")
-	CertificatesGenerateCmd.PersistentFlags().BoolVar(&isCA, "ca", false, "whether this cert should be its own Certificate Authority")
+	CertificatesGenerateCmd.PersistentFlags().BoolVar(&isCA, "ca", false, "Whether this cert should be its own Certificate Authority")
 	CertificatesGenerateCmd.PersistentFlags().IntVar(&rsaBits, "rsa-bits", 2048, "Size of RSA key to generate. Ignored if --ecdsa-curve is set")
 	CertificatesGenerateCmd.PersistentFlags().StringVar(&ecdsaCurve, "ecdsa-curve", "", "ECDSA curve to use to generate a key. Valid values are P224, P256 (recommended), P384, P521")
 	CertificatesGenerateCmd.PersistentFlags().BoolVar(&ed25519Key, "ed25519", false, "Generate an Ed25519 key")

@@ -55,5 +55,5 @@ support websites served over HTTP in order to avoid any risk due to misconfigura
 
 If a self-signed certificate is required, the following command can be used to generate one:
 
-    # Generate a certificate covering "example.com" for one year and stores it in /tmp/certs/ directory.
+    # Generate a certificate covering "example.com" for one year in the /tmp/certs/ directory.
     $ docker run authelia/authelia authelia certificates generate --host example.com --dir /tmp/certs/
