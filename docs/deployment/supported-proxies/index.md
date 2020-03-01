@@ -10,7 +10,7 @@ has_children: true
 
 **Authelia** works in collaboration with reverse proxies. In the sub-pages you
 can find the documentation of the configuration required for every supported
-proxies.
+proxy.
 
 If you are not aware of the workflow of an authentication request, reading this
 [documentation](./home/architecture) first is highly recommended.
@@ -19,7 +19,7 @@ If you are not aware of the workflow of an authentication request, reading this
 ## How Authelia integrates with proxies?
 
 Authelia takes authentication requests coming from the proxy and targeting the 
-`/api/verify` endpoint exposed by Authelia. Two information are required for
+`/api/verify` endpoint exposed by Authelia. Two pieces of information are required for
 Authelia to be able to authenticate the user request:
 
 * The session cookie or a `Proxy-Authorization` header (see [single factor authentication](./features/single-factor)).
@@ -39,7 +39,7 @@ The endpoint `/api/verify` has different behaviors depending on whether
 the `rd` (for redirection) query parameter is provided.
 
 If redirection parameter is provided and contains the URL to the login portal
-served by Authelia, the request will either generates a 200 response
+served by Authelia, the request will either generate a 200 response
 if the request is authenticated or perform a redirection (302 response) to the
 login portal if not authenticated yet.
 
