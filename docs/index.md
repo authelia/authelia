@@ -35,7 +35,7 @@ Multiple 2-factor methods are available for satisfying every users.
 
 **Authelia** is available as Docker images, static binaries and AUR packages
 so that you can test it in minutes. Let's begin with the
-[Getting Started](./getting-started).
+[Getting Started](./getting-started.md).
 
 
 ## However, Authelia...

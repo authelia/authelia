@@ -14,7 +14,7 @@ logs, etc...
 
 The available options are:
 
-* [SQLite](./sqlite.html)
-* [MariaDB](./mariadb.html)
+* [SQLite](./sqlite.md)
+* [MariaDB](./mariadb.md)
 * ~~MySQL~~ ([#512](https://github.com/authelia/authelia/issues/512))
-* [Postgres]((./postgres.html))
+* [Postgres](./postgres.md)

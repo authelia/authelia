@@ -25,7 +25,7 @@ Beware that the name of the user must match the name of the user in Authelia.
 Then, in Duo interface, click on *Applications* and *Protect an Application*. Select the option
 *Partner Auth API*. This will generate an integration key, a secret key and a hostname. You can
 set the name of the application to **Authelia** and then you must add the generated information
-to Authelia [configuration](../deployment/configuration.md) as shown below:
+to Authelia [configuration](../../deployment/index.md) as shown below:
 
     duo_api:
       hostname: api-123456789.example.com
@@ -54,7 +54,7 @@ Users must be enrolled via the Duo Admin panel, they cannot enroll a device from
 ### Why don't I have access to the *Push Notification* option?
 
 It's likely that you have not configured **Authelia** correctly. Please read this
-documentation again and be sure you had a look at [config.template.yml](../../config.template.yml).
+documentation again and be sure you had a look at [config.template.yml](https://github.com/authelia/authelia/blob/master/config.template.yml).
 
 
 

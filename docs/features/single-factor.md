@@ -18,7 +18,7 @@ matching `app1.example.com/api/(.*)` with only a single factor and all
 resources matching `app1.example.com/admin` with two factors.
 
 To know more about the configuration of the feature, please visit the
-documentation about the [configuration](../deployment/configuration.md).
+documentation about the [configuration](../configuration/access-control.md).
 
 
 ## Proxy-Authorization header
