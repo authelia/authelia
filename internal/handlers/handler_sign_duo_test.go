@@ -174,7 +174,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 	response := duo.Response{}
 	response.Response.Result = "allow"
 
-	duoMock.EXPECT().Call(gomock.Any()).Return(&response, nil)
+	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
 		TargetURL: "http://mydomain.local",
