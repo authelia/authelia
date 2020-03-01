@@ -91,46 +91,46 @@
     "relUrl": "/deployment/supported-proxies/haproxy.html"
   }
   ,"15": {
-    "title": "Deployment",
-    "content": "Deployment .",
-    "url": "https://docs.authelia.com/deployment/",
-    "relUrl": "/deployment/"
-  }
-  ,"16": {
-    "title": "Contributing",
-    "content": "Contributing .",
-    "url": "https://docs.authelia.com/contributing/",
-    "relUrl": "/contributing/"
-  }
-  ,"17": {
-    "title": "Configuration",
-    "content": "Configuration . Authelia uses a YAML file as configuration file. A template with all possible options can be found here, at the root of the repository. . When running Authelia, you can specify your configuration by passing the file path as shown below. . $ authelia --config config.custom.yml .",
-    "url": "https://docs.authelia.com/configuration/",
-    "relUrl": "/configuration/"
-  }
-  ,"18": {
-    "title": "Storage backends",
-    "content": "Storage backends . Authelia supports multiple storage backends. This backend is used to store user preferences, 2FA device handles and secrets, authentication logs, etc… . The available options are: . SQLite | MariaDB | MySQL (#512) | Postgres | .",
-    "url": "https://docs.authelia.com/configuration/storage/",
-    "relUrl": "/configuration/storage/"
-  }
-  ,"19": {
-    "title": "Home",
-    "content": "Home . It has never been so easy to secure your applications with Single Sign-On and Two-Factor. . With Authelia you can login once and get access to all your web apps safely from the Web thanks to two-factor authentication. . . Authelia is an open source authentication and authorization server protecting modern web applications by collaborating with reverse proxies such as NGINX, Traefik and HAProxy. Consequently, no code is required to protect your apps. . . Multiple 2-factor methods are available for satisfying every users. . Time-based One-Time passwords with Google Authenticator. | Security Keys with tokens like Yubikey. | Push notifications on your mobile using Duo. | . Authelia is available as Docker images, static binaries and AUR packages so that you can test it in minutes. Let’s begin with the Getting Started. . However, Authelia… . is not an OAuth or OpenID Connect provider yet. | is not a SAML provider yet. | does not support authentication against an OAuth or OpenID Connect provider yet. | does not support authentication against a SAML provider yet. | does not support using hardware devices as single factor. | does not provide a PAM module yet. | .",
-    "url": "https://docs.authelia.com/",
-    "relUrl": "/"
-  }
-  ,"20": {
     "title": "Notifier",
     "content": "Notifier . Authelia sometimes needs to send messages to users in order to verify their identity. .",
     "url": "https://docs.authelia.com/configuration/notifier/",
     "relUrl": "/configuration/notifier/"
   }
+  ,"16": {
+    "title": "Home",
+    "content": "Home . It has never been so easy to secure your applications with Single Sign-On and Two-Factor. . With Authelia you can login once and get access to all your web apps safely from the Web thanks to two-factor authentication. . . Authelia is an open source authentication and authorization server protecting modern web applications by collaborating with reverse proxies such as NGINX, Traefik and HAProxy. Consequently, no code is required to protect your apps. . . Multiple 2-factor methods are available for satisfying every users. . Time-based One-Time passwords with Google Authenticator. | Security Keys with tokens like Yubikey. | Push notifications on your mobile using Duo. | . Authelia is available as Docker images, static binaries and AUR packages so that you can test it in minutes. Let’s begin with the Getting Started. . However, Authelia… . is not an OAuth or OpenID Connect provider yet. | is not a SAML provider yet. | does not support authentication against an OAuth or OpenID Connect provider yet. | does not support authentication against a SAML provider yet. | does not support using hardware devices as single factor. | does not provide a PAM module yet. | .",
+    "url": "https://docs.authelia.com/",
+    "relUrl": "/"
+  }
+  ,"17": {
+    "title": "Contributing",
+    "content": "Contributing .",
+    "url": "https://docs.authelia.com/contributing/",
+    "relUrl": "/contributing/"
+  }
+  ,"18": {
+    "title": "Deployment",
+    "content": "Deployment .",
+    "url": "https://docs.authelia.com/deployment/",
+    "relUrl": "/deployment/"
+  }
+  ,"19": {
+    "title": "Configuration",
+    "content": "Configuration . Authelia uses a YAML file as configuration file. A template with all possible options can be found here, at the root of the repository. . When running Authelia, you can specify your configuration by passing the file path as shown below. . $ authelia --config config.custom.yml .",
+    "url": "https://docs.authelia.com/configuration/",
+    "relUrl": "/configuration/"
+  }
+  ,"20": {
+    "title": "Community",
+    "content": "Community documentation . This section is meant to advertise and organize documentation produced by the community. This documentation is considered non-official and we will not guarantee that this documentation is up-to-date. If you think some of it should be considered official, please file an issue on Github. .",
+    "url": "https://docs.authelia.com/community/",
+    "relUrl": "/community/"
+  }
   ,"21": {
-    "title": "Second Factor",
-    "content": "Second Factor . There are multiple supported options for the second factor. . Time-based One-Time passwords with Google Authenticator | Security Keys with tokens like Yubikey. | Push notifications on your mobile using Duo. | . .",
-    "url": "https://docs.authelia.com/features/2fa/",
-    "relUrl": "/features/2fa/"
+    "title": "Proxy Integration",
+    "content": "Integration with proxies . Authelia works in collaboration with reverse proxies. In the sub-pages you can find the documentation of the configuration required for every supported proxy. . If you are not aware of the workflow of an authentication request, reading this documentation first is highly recommended. . How Authelia integrates with proxies? . Authelia takes authentication requests coming from the proxy and targeting the /api/verify endpoint exposed by Authelia. Two pieces of information are required for Authelia to be able to authenticate the user request: . The session cookie or a Proxy-Authorization header (see single factor authentication). | The target URL of the user request (used primarily for access control). | . The target URL can be provided using one of the following ways: . With X-Original-URL header containing the complete URL of the initial request. | With a combination of X-Forwarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers. | . In the case of Traefik, those headers are automatically provided and therefore don’t appear in the configuration examples. . Redirection to the login portal . The endpoint /api/verify has different behaviors depending on whether the rd (for redirection) query parameter is provided. . If redirection parameter is provided and contains the URL to the login portal served by Authelia, the request will either generate a 200 response if the request is authenticated or perform a redirection (302 response) to the login portal if not authenticated yet. . If no redirection parameter is provided, the response code is either 200 or 401. The redirection must then be handled by the proxy when an error is detected (see nginx example). .",
+    "url": "https://docs.authelia.com/deployment/supported-proxies/",
+    "relUrl": "/deployment/supported-proxies/"
   }
   ,"22": {
     "title": "Authentication backends",
@@ -145,52 +145,52 @@
     "relUrl": "/security/"
   }
   ,"24": {
+    "title": "Storage backends",
+    "content": "Storage backends . Authelia supports multiple storage backends. This backend is used to store user preferences, 2FA device handles and secrets, authentication logs, etc… . The available options are: . SQLite | MariaDB | MySQL (#512) | Postgres | .",
+    "url": "https://docs.authelia.com/configuration/storage/",
+    "relUrl": "/configuration/storage/"
+  }
+  ,"25": {
+    "title": "Second Factor",
+    "content": "Second Factor . There are multiple supported options for the second factor. . Time-based One-Time passwords with Google Authenticator | Security Keys with tokens like Yubikey. | Push notifications on your mobile using Duo. | . .",
+    "url": "https://docs.authelia.com/features/2fa/",
+    "relUrl": "/features/2fa/"
+  }
+  ,"26": {
     "title": "Features",
     "content": "Features . Authelia is a 2FA &amp; SSO authentication server which is dedicated to the security of applications and users. It can be considered as an extension of reverse proxies by providing features specific to authentication. You will find among other features: . Multiple two-factor methods. | Identity verification when registering second factor devices. | Reset password. | Ban account after too many attempts (known as regulation). | .",
     "url": "https://docs.authelia.com/features/",
     "relUrl": "/features/"
   }
-  ,"25": {
-    "title": "Proxy Integration",
-    "content": "Integration with proxies . Authelia works in collaboration with reverse proxies. In the sub-pages you can find the documentation of the configuration required for every supported proxy. . If you are not aware of the workflow of an authentication request, reading this documentation first is highly recommended. . How Authelia integrates with proxies? . Authelia takes authentication requests coming from the proxy and targeting the /api/verify endpoint exposed by Authelia. Two pieces of information are required for Authelia to be able to authenticate the user request: . The session cookie or a Proxy-Authorization header (see single factor authentication). | The target URL of the user request (used primarily for access control). | . The target URL can be provided using one of the following ways: . With X-Original-URL header containing the complete URL of the initial request. | With a combination of X-Forwarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers. | . In the case of Traefik, those headers are automatically provided and therefore don’t appear in the configuration examples. . Redirection to the login portal . The endpoint /api/verify has different behaviors depending on whether the rd (for redirection) query parameter is provided. . If redirection parameter is provided and contains the URL to the login portal served by Authelia, the request will either generate a 200 response if the request is authenticated or perform a redirection (302 response) to the login portal if not authenticated yet. . If no redirection parameter is provided, the response code is either 200 or 401. The redirection must then be handled by the proxy when an error is detected (see nginx example). .",
-    "url": "https://docs.authelia.com/deployment/supported-proxies/",
-    "relUrl": "/deployment/supported-proxies/"
-  }
-  ,"26": {
+  ,"27": {
     "title": "LDAP",
     "content": "LDAP . Authelia supports using a LDAP server as the users database. . Configuration . Configuration of the LDAP backend is done as follows . authentication_backend: ldap: # The url to the ldap server. Scheme can be ldap:// or ldaps:// url: ldap://127.0.0.1 # Skip verifying the server certificate (to allow self-signed certificate). skip_verify: false # The base dn for every entries base_dn: dc=example,dc=com # An additional dn to define the scope to all users additional_users_dn: ou=users # The users filter used to find the user DN # {0} is a matcher replaced by username. # &#39;cn={0}&#39; by default. users_filter: (cn={0}) # An additional dn to define the scope of groups additional_groups_dn: ou=groups # The groups filter used for retrieving groups of a given user. # {0} is a matcher replaced by username. # {dn} is a matcher replaced by user DN. # {uid} is a matcher replaced by user uid. # &#39;member={dn}&#39; by default. groups_filter: (&amp;(member={dn})(objectclass=groupOfNames)) # The attribute holding the name of the group group_name_attribute: cn # The attribute holding the mail address of the user mail_attribute: mail # The username and password of the admin user. user: cn=admin,dc=example,dc=com # This secret can also be set using the env variables AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD password: password . The user must have an email address in order for Authelia to perform identity verification when password reset request is initiated or when a second factor device is registered. .",
     "url": "https://docs.authelia.com/configuration/authentication/ldap.html",
     "relUrl": "/configuration/authentication/ldap.html"
   }
-  ,"27": {
+  ,"28": {
     "title": "MariaDB",
     "content": "MariaDB . storage: mysql: host: 127.0.0.1 port: 3306 database: authelia username: authelia # This secret can also be set using the env variables AUTHELIA_STORAGE_MYSQL_PASSWORD password: mypassword .",
     "url": "https://docs.authelia.com/configuration/storage/mariadb.html",
     "relUrl": "/configuration/storage/mariadb.html"
   }
-  ,"28": {
+  ,"29": {
     "title": "Security Measures",
     "content": "Security Measures . Protection against cookie theft . Authelia uses two mechanisms to protect against cookie theft: . session attribute httpOnly set to true make client-side code unable to read the cookie. | session attribute secure ensure the cookie will never be sent over an insecure HTTP connections. | Protection against multi-domain cookie attacks . Since Authelia uses multi-domain cookies to perform single sign-on, an attacker who poisoned a user’s DNS cache can easily retrieve the user’s cookies by making the user send a request to one of the attacker’s IPs. . To mitigate this risk, it’s advisable to only use HTTPS connections with valid certificates and enforce it with HTTP Strict Transport Security (HSTS) so that the attacker must also require the certificate to retrieve the cookies. . Note that using HSTS has consequences. That’s why you should read the blog post nginx has written on HSTS. . Notifier security measures (SMTP) . By default the SMTP Notifier implementation does not allow connections that are not secure. As such all connections require the following: . TLS Connection (STARTTLS or SMTPS) has been negotiated before authentication or sending emails (unauthenticated connections require it as well) | Valid X509 Certificate presented to the client during the TLS handshake | There is an option to disable both of these security measures however they are not recommended. You should only do this in a situation where you control all networks between Authelia and the SMTP server. The following configuration options exist to configure the security level: . SMTPS vs STARTTLS . By default all connections start as plain text and are upgraded via STARTTLS. SMTPS is supported, however due to the fact it was basically considered deprecated before the turn of the century, there is no way to configure it. It happens automatically when a SMTP notifier is configured with the SMTPS port of 465. . Configuration Option: disable_verify_cert . This is a YAML boolean type (true/false, y/n, 1/0, etc). This disables the X509 PKI verification mechanism. We recommend using the trusted_cert option over this, as disabling this security feature makes you vulnerable to MITM attacks. . Configuration Option: disable_require_tls . This is a YAML boolean type (true/false, y/n, 1/0, etc). This disables the requirement that all connections must be over TLS. This is only usable currently with authentication disabled (comment the password) and as such is only an option for SMTP servers that allow unauthenticated relay (bad practice). . Configuration Option: trusted_cert . This is a YAML string type. This specifies the file location of a pub certificate that can be used to validate the authenticity of a server with a self signed certificate. This can either be the public cert of the certificate authority used to sign the certificate or the public key itself. They must be in the PEM format. The certificate is added in addition to the certificates trusted by the host machine. If the certificate is invalid, inaccessible, or is otherwise not configured; Authelia just uses the hosts certificates. . Explanation . There are a few reasons for the security measures implemented: . Transmitting username’s and passwords over plain-text is an obvious vulnerability | The emails generated by Authelia, if transmitted in plain-text could allow an attacker to intercept a link used to setup 2FA; which reduces security | Not validating the identity of the server allows man-in-the-middle attacks | More protections measures with Nginx . You can also apply the following headers to your nginx configuration for improving security. Please read the documentation of those headers before applying them blindly. . # We don&#39;t want any credentials / TOTP secret key / QR code to be cached by # the client add_header Cache-Control &quot;no-store&quot;; add_header Pragma &quot;no-cache&quot;; # Clickjacking / XSS protection # We don&#39;t want Authelia&#39;s login page to be rendered within a &lt;frame&gt;, # &lt;iframe&gt; or &lt;object&gt; from an external website. add_header X-Frame-Options &quot;SAMEORIGIN&quot;; # Block pages from loading when they detect reflected XSS attacks. add_header X-XSS-Protection &quot;1; mode=block&quot;; .",
     "url": "https://docs.authelia.com/security/measures.html",
     "relUrl": "/security/measures.html"
   }
-  ,"29": {
+  ,"30": {
     "title": "Miscellaneous",
     "content": "Miscellaneous . Here are the main customizable options in Authelia. . Host &amp; Port . optional: true . Defines the address to listen on. . host: 0.0.0.0 port: 9091 . Logs level . optional: true . Defines the level of logs used by Authelia. This level can be set to trace, debug, info. . logs_level: debug . JWT Secret . optional: false . Defines the secret used to craft JWT tokens leveraged by the identity verification process . jwt_secret: v3ry_important_s3cr3t . Default redirection URL . optional: true . The default redirection URL is the URL where users are redirected when Authelia cannot detect the target URL where the user was heading. . In a normal authentication workflow, a user tries to access a website and she gets redirected to the sign-in portal in order to authenticate. Since the user initially targeted a website, the portal knows where the user was heading and can redirect her after the authentication process. However, when a user visits the sign in portal directly, the portal considers the targeted website is the portal. In that case and if the default redirection URL is configured, the user is redirected to that URL. If not defined, the user is not redirected after authentication. .",
     "url": "https://docs.authelia.com/configuration/miscellaneous.html",
     "relUrl": "/configuration/miscellaneous.html"
   }
-  ,"30": {
+  ,"31": {
     "title": "Nginx",
     "content": "Nginx . nginx is a reverse proxy supported by Authelia. . Configuration . Below you will find commented examples of the following configuration: . Authelia portal | Protected endpoint (Nextcloud) | Supplementary config | . With the below configuration you can add authelia.conf to virtual hosts to support protection with Authelia. auth.conf is utilised to enable the protection either at the root location or a more specific location/route. proxy.conf is included just for completeness. . Supplementary config . authelia.conf . # Virtual endpoint created by nginx to forward auth requests. location /authelia { internal; set $upstream_authelia http://authelia:9091/api/verify; proxy_pass_request_body off; proxy_pass $upstream_authelia; proxy_set_header Content-Length &quot;&quot;; # Timeout if the real server is dead proxy_next_upstream error timeout invalid_header http_500 http_502 http_503; # [REQUIRED] Needed by Authelia to check authorizations of the resource. # Provide either X-Original-URL and X-Forwarded-Proto or # X-Forwarded-Proto, X-Forwarded-Host and X-Forwarded-Uri or both. # Those headers will be used by Authelia to deduce the target url of the user. # Basic Proxy Config client_body_buffer_size 128k; proxy_set_header Host $host; proxy_set_header X-Original-URL $scheme://$http_host$request_uri; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $remote_addr; proxy_set_header X-Forwarded-Proto $scheme; proxy_set_header X-Forwarded-Host $http_host; proxy_set_header X-Forwarded-Uri $request_uri; proxy_set_header X-Forwarded-Ssl on; proxy_redirect http:// $scheme://; proxy_http_version 1.1; proxy_set_header Connection &quot;&quot;; proxy_cache_bypass $cookie_session; proxy_no_cache $cookie_session; proxy_buffers 4 32k; # Advanced Proxy Config send_timeout 5m; proxy_read_timeout 240; proxy_send_timeout 240; proxy_connect_timeout 240; } . auth.conf . # Basic Authelia Config # Send a subsequent request to Authelia to verify if the user is authenticated # and has the right permissions to access the resource. auth_request /authelia; # Set the `target_url` variable based on the request. It will be used to build the portal # URL with the correct redirection parameter. auth_request_set $target_url $scheme://$http_host$request_uri; # Set the X-Forwarded-User and X-Forwarded-Groups with the headers # returned by Authelia for the backends which can consume them. # This is not safe, as the backend must make sure that they come from the # proxy. In the future, it&#39;s gonna be safe to just use OAuth. auth_request_set $user $upstream_http_remote_user; auth_request_set $groups $upstream_http_remote_groups; proxy_set_header X-Forwarded-User $user; proxy_set_header X-Forwarded-Groups $groups; # If Authelia returns 401, then nginx redirects the user to the login portal. # If it returns 200, then the request pass through to the backend. # For other type of errors, nginx will handle them as usual. error_page 401 =302 https://auth.example.com/?rd=$target_url; . proxy.conf . client_body_buffer_size 128k; #Timeout if the real server is dead proxy_next_upstream error timeout invalid_header http_500 http_502 http_503; # Advanced Proxy Config send_timeout 5m; proxy_read_timeout 360; proxy_send_timeout 360; proxy_connect_timeout 360; # Basic Proxy Config proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; proxy_set_header X-Forwarded-Host $http_host; proxy_set_header X-Forwarded-Uri $request_uri; proxy_set_header X-Forwarded-Ssl on; proxy_redirect http:// $scheme://; proxy_http_version 1.1; proxy_set_header Connection &quot;&quot;; proxy_cache_bypass $cookie_session; proxy_no_cache $cookie_session; proxy_buffers 64 256k; # If behind reverse proxy, forwards the correct IP set_real_ip_from 10.0.0.0/8; set_real_ip_from 172.0.0.0/8; set_real_ip_from 192.168.0.0/16; set_real_ip_from fc00::/7; real_ip_header X-Forwarded-For; real_ip_recursive on; . Authelia Portal . server { server_name auth.example.com; listen 80; return 301 https://$server_name$request_uri; } server { server_name auth.example.com; listen 443 ssl http2; include /config/nginx/ssl.conf; location / { set $upstream_authelia http://authelia:9091; # This example assumes a Docker deployment proxy_pass $upstream_authelia; include /config/nginx/proxy.conf; # } } . Protected Endpoint . server { server_name nextcloud.example.com; listen 80; return 301 https://$server_name$request_uri; } server { server_name nextcloud.example.com; listen 443 ssl http2; include /config/nginx/ssl.conf; include /config/nginx/authelia.conf; # Virtual endpoint to forward auth requests location / { set $upstream_nextcloud https://nextcloud; proxy_pass $upstream_nextcloud; include /config/nginx/auth.conf; # Activates Authelia for specified route/location, please ensure you have setup the domain in your configuration.yml include /config/nginx/proxy.conf; # Reverse proxy configuration } } .",
     "url": "https://docs.authelia.com/deployment/supported-proxies/nginx.html",
     "relUrl": "/deployment/supported-proxies/nginx.html"
-  }
-  ,"31": {
-    "title": "One-Time Password",
-    "content": "Time-based One-Time Password . Authelia supports Time-base one-time password generated by apps like Google Authenticator. . . After having successfully completed the first factor, select One-Time Password method option and click on Not registered yet? link. This will send you an e-mail to confirm your identity. . NOTE: If you’re testing Authelia, this e-mail has likely been sent to the mailbox available at https://mail.example.com:8080/ . Once this validation step is completed, a QRCode gets displayed. . . You can then use Google Authenticator to scan the code in order to register your device. . From now on, you get tokens generated every 30 seconds that you can use to validate the second factor in Authelia. .",
-    "url": "https://docs.authelia.com/features/2fa/one-time-password.html",
-    "relUrl": "/features/2fa/one-time-password.html"
   }
   ,"32": {
     "title": "One-Time Password",
@@ -199,28 +199,28 @@
     "relUrl": "/configuration/one-time-password.html"
   }
   ,"33": {
+    "title": "One-Time Password",
+    "content": "Time-based One-Time Password . Authelia supports Time-base one-time password generated by apps like Google Authenticator. . . After having successfully completed the first factor, select One-Time Password method option and click on Not registered yet? link. This will send you an e-mail to confirm your identity. . NOTE: If you’re testing Authelia, this e-mail has likely been sent to the mailbox available at https://mail.example.com:8080/ . Once this validation step is completed, a QRCode gets displayed. . . You can then use Google Authenticator to scan the code in order to register your device. . From now on, you get tokens generated every 30 seconds that you can use to validate the second factor in Authelia. .",
+    "url": "https://docs.authelia.com/features/2fa/one-time-password.html",
+    "relUrl": "/features/2fa/one-time-password.html"
+  }
+  ,"34": {
     "title": "Password Reset",
     "content": "Password Reset . Authelia provides workflow to let users reset their password when they lose it. . A simple click on Forgot password? for starting the process. Note that resetting a password requires a new identity verification using the e-mail of the user. . . Give your username and receive an e-mail to verify your identity. . . Once your identity is verified, fill in the form to reset your password. . . Now you can authenticate with your new credentials. .",
     "url": "https://docs.authelia.com/features/password-reset.html",
     "relUrl": "/features/password-reset.html"
   }
-  ,"34": {
+  ,"35": {
     "title": "PostgreSQL",
     "content": "PostgreSQL . storage: postgres: host: 127.0.0.1 port: 3306 database: authelia username: authelia # This secret can also be set using the env variables AUTHELIA_STORAGE_POSTGRES_PASSWORD password: mypassword .",
     "url": "https://docs.authelia.com/configuration/storage/postgres.html",
     "relUrl": "/configuration/storage/postgres.html"
   }
-  ,"35": {
+  ,"36": {
     "title": "Push Notification",
     "content": "Mobile Push Notification . Mobile push notifications is the new trendy second factor method. When second factor is requested by Authelia, a notification is sent on your phone that you can either accept or deny. . . Authelia leverages Duo third party to provide this feature. . First, sign up on their website, log in, create a user account and attach it a mobile device. Beware that the name of the user must match the name of the user in Authelia. . Then, in Duo interface, click on Applications and Protect an Application. Select the option Partner Auth API. This will generate an integration key, a secret key and a hostname. You can set the name of the application to Authelia and then you must add the generated information to Authelia configuration as shown below: . duo_api: hostname: api-123456789.example.com integration_key: ABCDEF secret_key: 1234567890abcdefghifjkl . Now that Authelia is configured, pass the first factor and select the Push notification option. . . You should now receive a notification on your mobile phone with all the details about the authentication request. . Limitation . Users must be enrolled via the Duo Admin panel, they cannot enroll a device from Authelia yet. . FAQ . Why don’t I have access to the Push Notification option? . It’s likely that you have not configured Authelia correctly. Please read this documentation again and be sure you had a look at config.template.yml. .",
     "url": "https://docs.authelia.com/features/2fa/push-notifications.html",
     "relUrl": "/features/2fa/push-notifications.html"
-  }
-  ,"36": {
-    "title": "Regulation",
-    "content": "Regulation . Authelia takes the security of users very seriously and comes with a way to avoid brute forcing the first factor by regulating the authentication attempts and temporarily ban an account when too many attempts have been made. . Configuration . Please check the dedicated documentation. .",
-    "url": "https://docs.authelia.com/features/regulation.html",
-    "relUrl": "/features/regulation.html"
   }
   ,"37": {
     "title": "Regulation",
@@ -229,58 +229,70 @@
     "relUrl": "/configuration/regulation.html"
   }
   ,"38": {
+    "title": "Regulation",
+    "content": "Regulation . Authelia takes the security of users very seriously and comes with a way to avoid brute forcing the first factor by regulating the authentication attempts and temporarily ban an account when too many attempts have been made. . Configuration . Please check the dedicated documentation. .",
+    "url": "https://docs.authelia.com/features/regulation.html",
+    "relUrl": "/features/regulation.html"
+  }
+  ,"39": {
     "title": "Secrets",
     "content": "Secrets . Configuration of Authelia requires some secrets and passwords. Even if they can be set in the configuration file, the recommended way to set secrets is to use environment variables as described below. . Environment variables . A secret can be configured using an environment variable with name starting with AUTHELIA_ and followed by the path of the option capitalized and with dots replaced by underscores. . For instance the LDAP password is identified by the path authentication_backend.ldap.password, so this password could alternatively be set using the environment variable called AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD. . Here is the list of the environment variables which are considered secrets and can be defined. Any other option defined using an environment variable will not be replaced. . AUTHELIA_JWT_SECRET | AUTHELIA_DUO_API_SECRET_KEY | AUTHELIA_SESSION_SECRET | AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD | AUTHELIA_NOTIFIER_SMTP_PASSWORD | AUTHELIA_SESSION_REDIS_PASSWORD | AUTHELIA_STORAGE_MYSQL_PASSWORD | AUTHELIA_STORAGE_POSTGRES_PASSWORD | . Secrets in configuration file . If for some reason you prefer keeping the secrets in the configuration file, be sure to apply the right permissions to the file in order to prevent secret leaks if an another application gets compromised on your server. The UNIX permissions should probably be something like 600. .",
     "url": "https://docs.authelia.com/configuration/secrets.html",
     "relUrl": "/configuration/secrets.html"
   }
-  ,"39": {
+  ,"40": {
     "title": "Security Keys",
     "content": "Security Keys . Authelia supports hardware-based second factors leveraging security keys like Yubikeys. . Security keys are among the most secure second factor. This method is already supported by many major applications and platforms like Google, Facebook, Github, some banks, and much more… . . Normally, the protocol requires your security key to be enrolled on each site before being able to authenticate with it. Since Authelia provides Single Sign-On, your users will need to enroll their device only once to get access to all your applications. . . After having successfully passed the first factor, select Security Key method and click on Not registered yet? link. This will send you an email to verify your identity. . NOTE: This e-mail has likely been sent to the mailbox at https://mail.example.com:8080/ if you’re testing Authelia. . Confirm your identity by clicking on Register and you’ll be asked to touch the token of your security key to complete the enrollment. . Upon successful enrollment, you can authenticate using your security key by simply touching the token again when requested: . . Easy, right?! . FAQ . Why don’t I have access to the Security Key option? . U2F protocol is a new protocol that is only supported by recent browsers and might even be enabled on some of them. Please be sure your browser supports U2F and that the feature is enabled to make the option available in Authelia. .",
     "url": "https://docs.authelia.com/features/2fa/security-key.html",
     "relUrl": "/features/2fa/security-key.html"
   }
-  ,"40": {
+  ,"41": {
     "title": "Session",
     "content": "Session . Authelia relies on session cookies to authenticate users. When the user visits a website of the protected domain example.com for the first time, Authelia detects that there is no cookie for that user. Consequently, Authelia redirects the user to the login portal through which the user should authenticate to get a cookie which is valid for *.example.com, meaning all websites of the domain. At the next request, Authelia receives the cookie associated to the authenticated user and can then order the reverse proxy to let the request pass through to the application. . Configuration . session: # The name of the session cookie. (default: authelia_session). name: authelia_session # The secret to encrypt the session cookie. # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET secret: unsecure_session_secret # The time in seconds before the cookie expires and session is reset. expiration: 3600 # 1 hour # The inactivity time in seconds before the session is reset. inactivity: 300 # 5 minutes # The domain to protect. # Note: the login portal must also be a subdomain of that domain. domain: example.com # The redis connection details (optional) # If not provided, sessions will be stored in memory redis: host: 127.0.0.1 port: 6379 # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD password: authelia .",
     "url": "https://docs.authelia.com/configuration/session.html",
     "relUrl": "/configuration/session.html"
   }
-  ,"41": {
+  ,"42": {
     "title": "Single Factor",
     "content": "Single Factor . Authelia supports single factor authentication to let applications send authenticated requests to other applications. . Single or two-factor authentication can be configured per resource of an application for flexibility. . For instance, you can configure Authelia to grant access to all resources matching app1.example.com/api/(.*) with only a single factor and all resources matching app1.example.com/admin with two factors. . To know more about the configuration of the feature, please visit the documentation about the configuration. . Proxy-Authorization header . Authelia reads credentials from the header Proxy-Authorization instead of the usual Authorization header. This is because in some circumstances both Authelia and the application could require authentication in order to provide specific authorizations at the level of the application. .",
     "url": "https://docs.authelia.com/features/single-factor.html",
     "relUrl": "/features/single-factor.html"
   }
-  ,"42": {
+  ,"43": {
     "title": "SMTP",
     "content": "SMTP . Authelia can send emails to users through an SMTP server. It can be configured as described below. . notifier: # Use a SMTP server for sending notifications. Authelia uses PLAIN or LOGIN method to authenticate. # [Security] By default Authelia will: # - force all SMTP connections over TLS including unauthenticated connections # - use the disable_require_tls boolean value to disable this requirement (only works for unauthenticated connections) # - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates # - trusted_cert option: # - this is a string value, that may specify the path of a PEM format cert, it is completely optional # - if it is not set, a blank string, or an invalid path; will still trust the host machine/containers cert store # - defaults to the host machine (or docker container&#39;s) trusted certificate chain for validation # - use the trusted_cert string value to specify the path of a PEM format public cert to trust in addition to the hosts trusted certificates # - use the disable_verify_cert boolean value to disable the validation (prefer the trusted_cert option as it&#39;s more secure) smtp: username: test # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD password: password host: 127.0.0.1 port: 1025 sender: admin@example.com ## disable_require_tls: false ## disable_verify_cert: false ## trusted_cert: &quot;&quot; . Using Gmail . You need to generate an app password in order to use Gmail SMTP servers. The process is described here . notifier: smtp: username: myaccount@gmail.com # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD password: yourapppassword sender: admin@example.com host: smtp.gmail.com port: 587 .",
     "url": "https://docs.authelia.com/configuration/notifier/smtp.html",
     "relUrl": "/configuration/notifier/smtp.html"
   }
-  ,"43": {
+  ,"44": {
     "title": "SQLite",
     "content": "SQLite . If you don’t have a SQL server, you can use SQLite. However please note that this setup will prevent you from running multiple instances of Authelia since the database will be a local file. . Configuration . Just give the path to the sqlite database. It will be created if the file does not exist. . storage: local: path: /var/lib/authelia/db.sqlite3 .",
     "url": "https://docs.authelia.com/configuration/storage/sqlite.html",
     "relUrl": "/configuration/storage/sqlite.html"
   }
-  ,"44": {
+  ,"45": {
     "title": "Suites",
     "content": "Suites . Authelia is a single component in interaction with many others in a complete ecosystem. Consequently, testing the features is not as easy as we might think. In order to solve this problem, Authelia came up with the concept of suite which is a kind of virtual environment for Authelia and a set of tests. A suite can setup components such as nginx, redis or mariadb in which Authelia can run and be tested. . This abstraction allows to prepare an environment for manual testing during development and also to craft and run integration tests efficiently. . Start a suite. . Starting a suite called Standalone is done with the following command: . $ authelia-scripts suites setup Standalone . This command deploys the environment of the suite. . Run tests of a suite . Run tests of running suite . If a suite is already running, you can simply type the test command that will run the test related to the currently running suite: . $ authelia-scripts suites test . Run tests of non-running suite . However, if no suite is running yet and you just want to run the tests of a specific suite like HighAvailability, you can do so with the next command: . # Set up the env, run the tests and tear down the env $ authelia-scripts suites test HighAvailability . Run all tests of all suites . Running all tests is easy. Make sure that no suite is already running and run: . authelia-scripts suites test . Run tests in headless mode . As you might have noticed, the tests are run using chromedriver and selenium. It means that the tests open an instance of Chrome that might interfere with your other activities. In order to run the tests in headless mode to avoid the interference, use the following command: . $ authelia-scripts suites test --headless . Create a suite . Creating a suite is as easy. Let’s take the example of the Standalone suite: . suite_standalone.go - It defines the setup and teardown phases. It likely uses docker-compose to setup the ecosystem. This file also defines the timeouts. | suite_standalone_test.go - It defines the set of tests to run against the suite. | Standalone directory - It contains resources required by the suite and likely mounted in the containers. | . A suite can also be much more complex like setting up a complete Kubernetes ecosystem. You can check the Kubernetes suite as example. .",
     "url": "https://docs.authelia.com/contributing/suites.html",
     "relUrl": "/contributing/suites.html"
   }
-  ,"45": {
+  ,"46": {
     "title": "Traefik 1.x",
     "content": "Traefik . Traefik 1.x is a reverse proxy supported by Authelia. . Configuration . Below you will find commented examples of the following configuration: . Traefik 1.x | Authelia portal | Protected endpoint (Nextcloud) | . The below configuration looks to provide examples of running Traefik 1.x with labels to protect your endpoint (Nextcloud in this case). . Please ensure that you also setup the respective ACME configuration for your Traefik setup as this is not covered in the example below. . docker-compose.yml . version: &#39;3&#39; networks: net: driver: bridge services: traefik: image: traefik:v1.7.20-alpine container_name: traefik volumes: - &#39;/var/run/docker.sock:/var/run/docker.sock&#39; networks: - net labels: - &#39;traefik.frontend.rule=Host:traefik.example.com&#39; - &#39;traefik.port=8081&#39; ports: - 80:80 - 443:443 - 8081:8081 restart: unless-stopped command: - &#39;--api&#39; - &#39;--api.entrypoint=api&#39; - &#39;--docker&#39; - &#39;--defaultentrypoints=https&#39; - &#39;--logLevel=DEBUG&#39; - &#39;--traefiklog=true&#39; - &#39;--traefiklog.filepath=/var/log/traefik.log&#39; - &#39;--entryPoints=Name:http Address::80&#39; - &#39;--entryPoints=Name:https Address::443 TLS&#39; - &#39;--entryPoints=Name:api Address::8081&#39; authelia: image: authelia/authelia container_name: authelia volumes: - /path/to/authelia:/var/lib/authelia - /path/to/authelia/config.yml:/etc/authelia/configuration.yml:ro networks: - net labels: - &#39;traefik.frontend.rule=Host:login.example.com&#39; expose: - 9091 restart: unless-stopped environment: - TZ=Australia/Melbourne nextcloud: image: linuxserver/nextcloud container_name: nextcloud volumes: - /path/to/nextcloud/config:/config - /path/to/nextcloud/data:/data networks: - net labels: - &#39;traefik.frontend.rule=Host:nextcloud.example.com&#39; - &#39;traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?rd=https://login.example.com/&#39; expose: - 443 restart: unless-stopped environment: - PUID=1000 - PGID=1000 - TZ=Australia/Melbourne .",
     "url": "https://docs.authelia.com/deployment/supported-proxies/traefik1.x.html",
     "relUrl": "/deployment/supported-proxies/traefik1.x.html"
   }
-  ,"46": {
+  ,"47": {
     "title": "Traefik 2.x",
     "content": "Traefik2 . Traefik 2.x is a reverse proxy supported by Authelia. . Configuration . Below you will find commented examples of the following configuration: . Traefik 2.x | Authelia portal | Protected endpoint (Nextcloud) | . The below configuration looks to provide examples of running Traefik 2.x with labels to protect your endpoint (Nextcloud in this case). . Please ensure that you also setup the respective ACME configuration for your Traefik setup as this is not covered in the example below. . docker-compose.yml . version: &#39;3&#39; networks: net: driver: bridge services: traefik: image: traefik:v2.1.2 container_name: traefik volumes: - /var/run/docker.sock:/var/run/docker.sock networks: - net labels: - &#39;traefik.http.routers.api.rule=Host(`traefik.example.com`)&#39; - &#39;traefik.http.routers.api.entrypoints=https&#39; - &#39;traefik.http.routers.api.service=api@internal&#39; - &#39;traefik.http.routers.api.tls=true&#39; ports: - 80:80 - 443:443 command: - &#39;--api&#39; - &#39;--providers.docker=true&#39; - &#39;--entrypoints.http=true&#39; - &#39;--entrypoints.http.address=:80&#39; - &#39;--entrypoints.https=true&#39; - &#39;--entrypoints.https.address=:443&#39; - &#39;--log=true&#39; - &#39;--log.level=DEBUG&#39; - &#39;--log.filepath=/var/log/traefik.log&#39; authelia: image: authelia/authelia container_name: authelia volumes: - /path/to/authelia:/var/lib/authelia - /path/to/authelia/config.yml:/etc/authelia/configuration.yml:ro networks: - net labels: - &#39;traefik.http.routers.authelia.rule=Host(`login.example.com`)&#39; - &#39;traefik.http.routers.authelia.entrypoints=https&#39; - &#39;traefik.http.routers.authelia.tls=true&#39; expose: - 9091 restart: unless-stopped environment: - TZ=Australia/Melbourne nextcloud: image: linuxserver/nextcloud container_name: nextcloud volumes: - /path/to/nextcloud/config:/config - /path/to/nextcloud/data:/data networks: - net labels: - &#39;traefik.http.routers.nextcloud.rule=Host(`nextcloud.example.com`)&#39; - &#39;traefik.http.routers.nextcloud.entrypoints=https&#39; - &#39;traefik.http.routers.nextcloud.tls=true&#39; - &#39;traefik.http.routers.nextcloud.middlewares=authelia&#39; - &#39;traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https://login.example.com/&#39; expose: - 443 restart: unless-stopped environment: - PUID=1000 - PGID=1000 - TZ=Australia/Melbourne .",
     "url": "https://docs.authelia.com/deployment/supported-proxies/traefik2.x.html",
     "relUrl": "/deployment/supported-proxies/traefik2.x.html"
+  }
+  ,"48": {
+    "title": "2FA through basic auth",
+    "content": "The following documentation shows how to integrate one-time password second factor through basic auth. . Check the documentation available at https://github.com/ViRb3/authelia-basic-auth-2fa. .",
+    "url": "https://docs.authelia.com/community/two-factor-basic-auth.html",
+    "relUrl": "/community/two-factor-basic-auth.html"
   }
   
 }
