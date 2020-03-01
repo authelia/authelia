@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"regexp"
 	"testing"
 
 	"github.com/authelia/authelia/internal/duo"
@@ -165,6 +166,31 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 
 	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessionFixation() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	response := duo.Response{}
+	response.Response.Result = "allow"
+
+	duoMock.EXPECT().Call(gomock.Any()).Return(&response, nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{
+		TargetURL: "http://mydomain.local",
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	r := regexp.MustCompile("^authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), nil)
+
+	s.Assert().NotEqual(
+		res[0][1],
+		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 }
 
 func TestRunSecondFactorDuoPostSuite(t *testing.T) {

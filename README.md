@@ -52,9 +52,9 @@ Here is what Authelia's portal looks like
 Here is the list of the main available features:
 
 * Several kind of second factor:
-  * **[Security Key (U2F)](./docs/2factor/security-key.md)** with [Yubikey].
-  * **[Time-based One-Time password](./docs/2factor/time-based-one-time-password.md)** with [Google Authenticator].
-  * **[Mobile Push Notifications](./docs/2factor/duo-push-notifications.md)** with [Duo](https://duo.com/).
+  * **[Security Key (U2F)](https://docs.authelia.com/features/2fa/security-key)** with [Yubikey].
+  * **[Time-based One-Time password](https://docs.authelia.com/features/2fa/one-time-password)** with [Google Authenticator].
+  * **[Mobile Push Notifications](https://docs.authelia.com/features/2fa/push-notifications)** with [Duo](https://duo.com/).
 * Password reset with identity verification using email confirmation.
 * Single-factor only authentication method available.
 * Access restriction after too many authentication attempts.
@@ -63,7 +63,7 @@ Here is the list of the main available features:
 * Highly available using a remote database and Redis as a highly available KV store.
 * Compatible with Kubernetes [ingress-nginx](https://github.com/kubernetes/ingress-nginx) controller out of the box.
 
-For more details about the features, follow [Features](./docs/features.md).
+For more details about the features, follow [Features](https://docs.authelia.com/features/).
 
 ## Proxy support
 
@@ -84,36 +84,35 @@ You can start off with
     git clone https://github.com/authelia/authelia.git && cd authelia
     source bootstrap.sh
 
-If you want to go further, please read [Getting Started](./docs/getting-started.md).
+If you want to go further, please read [Getting Started](https://docs.authelia.com/getting-started).
 
 ## Deployment
 
 Now that you have tested **Authelia** and you want to try it out in your own infrastructure,
-you can learn how to deploy and use it with [Deployment](./docs/deployment-production.md).
+you can learn how to deploy and use it with [Deployment](https://docs.authelia.com/deployment/deployment-ha).
 This guide will show you how to deploy it on bare metal as well as on
 [Kubernetes](https://kubernetes.io/).
 
 ## Security
 
-### Security measures
+Security is taken very seriously here, therefore we follow the rule of responsible
+disclosure and we encourage you to do so.
 
-If you want more information about the security measures applied by
-**Authelia** and some tips on how to set up **Authelia** in a secure way,
-refer to [Security](./docs/security.md).
+Would you like to report any vulnerability discovered in Authelia, please first contact
+**clems4ever** on [Matrix](https://riot.im/app/#/room/#authelia:matrix.org) or by
+[email](mailto:clement.michaud34@gmail.com).
 
-### Vulnerability report
-
-Security is taken very seriously here, therefore we follow the rule of responsible disclosure and we encourage you to do so.
-
-Would you like to report any vulnerability discovered in Authelia, please first contact **clems4ever** on [Matrix](https://riot.im/app/#/room/#authelia:matrix.org) or by [email](mailto:clement.michaud34@gmail.com).
+For details about security measures implemented in Authelia, please follow
+this [link](https://docs.authelia.com/security/measures.html).
 
 ## Breaking changes
 
 See [BREAKING](./BREAKING.md).
 
-## Build Authelia
+## Contribute
 
-If you want to contribute with code, you should follow the documentation explaining how to [build](./docs/build-and-dev.md) the application.
+If you want to contribute to Authelia, check the documentation available
+[here](https://docs.authelia.com/contributing/).
 
 ## Sponsorship
 
