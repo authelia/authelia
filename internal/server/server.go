@@ -25,7 +25,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	if publicDir == "" {
 		publicDir = "./public_html"
 	}
-	fmt.Println("Selected public_html directory is ", publicDir)
+	logging.Logger().Infof("Selected public_html directory is %s", publicDir)
 
 	router.GET("/", fasthttp.FSHandler(publicDir, 0))
 	router.ServeFiles("/static/*filepath", publicDir+"/static")
