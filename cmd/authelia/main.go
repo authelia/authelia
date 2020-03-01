@@ -121,5 +121,8 @@ func main() {
 	}
 
 	rootCmd.AddCommand(versionCmd, commands.HashPasswordCmd, commands.MigrateCmd)
-	rootCmd.Execute()
+	rootCmd.AddCommand(commands.CertificatesCmd)
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }

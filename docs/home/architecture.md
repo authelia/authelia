@@ -46,3 +46,14 @@ Here is a description of the complete workflow:
   <img src="../images/sequence-diagram.png"/>
 </p>
 
+## HTTP/HTTPS
+
+Authelia only works for websites served over HTTPS because the session cookie can only be
+transmitted over secure connections. Please note that it has been decided that we won't
+support websites served over HTTP in order to avoid any risk due to misconfiguration.
+(see [#590](https://github.com/authelia/authelia/issues/590)).
+
+If a self-signed certificate is required, the following command can be used to generate one:
+
+    # Generate a certificate covering "example.com" for one year and stores it in /tmp/certs/ directory.
+    $ docker run authelia/authelia authelia certificates generate --host example.com --dir /tmp/certs/
