@@ -19,6 +19,18 @@ only two: a reverse proxy such as Nginx, Traefik or HAProxy and Authelia.
 Documentation for deploying a reverse proxy collaborating with Authelia is available
 [here](./supported-proxies/index.md).
 
+Please note that Authelia only works for websites served over HTTPS because the session cookie
+can only be transmitted over secure connections. Therefore, if you need to generate a
+self-signed certificate for your setup, you can use the dedicated helper function provided
+by the authelia binary.
+
+    # Generate a certificate covering "example.com" for one year in the /tmp/certs/ directory.
+    $ docker run authelia/authelia authelia certificates generate --host example.com --dir /tmp/certs/
+
+You can see all available options with the following command:
+
+    $ docker run authelia/authelia authelia certificates generate --help
+
 ## Discard components
 
 ### Discard SQL server
