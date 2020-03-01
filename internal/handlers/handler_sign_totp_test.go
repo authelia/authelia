@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"regexp"
 	"testing"
 
 	"github.com/authelia/authelia/internal/mocks"
@@ -120,6 +121,34 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 
 	SecondFactorTOTPPost(verifier)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
+}
+
+func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFixation() {
+	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
+
+	s.mock.StorageProviderMock.EXPECT().
+		LoadTOTPSecret(gomock.Any()).
+		Return("secret", nil)
+
+	verifier.EXPECT().
+		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
+		Return(true)
+
+	bodyBytes, err := json.Marshal(signTOTPRequestBody{
+		Token: "abc",
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	r := regexp.MustCompile("^authelia_session=(.*); path=")
+	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
+
+	SecondFactorTOTPPost(verifier)(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), nil)
+
+	s.Assert().NotEqual(
+		res[0][1],
+		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 }
 
 func TestRunHandlerSignTOTPSuite(t *testing.T) {
