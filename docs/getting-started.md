@@ -18,7 +18,7 @@ Then, start the *Standalone* [suite].
     $ authelia-scripts suites setup Standalone
 
 A [suite] is kind of a virtual environment for running Authelia in a complete ecosystem.
-If you want more details please read the related [documentation](./suites.md).
+If you want more details please read the related [documentation](./contributing/suites.md).
 
 ## Test it!
 

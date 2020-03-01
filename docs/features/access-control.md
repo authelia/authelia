@@ -26,4 +26,4 @@ is applied requiring the user to authenticate with two factors.
 
 ## Configuration
 
-Please check the dedicated [documentation](./deployment/configuration/access-control.md)
+Please check the dedicated [documentation](../configuration/access-control.md)

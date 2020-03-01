@@ -17,14 +17,14 @@ only two: a reverse proxy such as Nginx, Traefik or HAProxy and Authelia.
 ## Reverse Proxy
 
 Documentation for deploying a reverse proxy collaborating with Authelia is available
-[here](./supported-proxies/index).
+[here](./supported-proxies/index.md).
 
 ## Discard components
 
 ### Discard SQL server
 
 It's possible to use a SQLite file instead of a SQL server as documented
-[here](../configuration/storage/sqlite).
+[here](../configuration/storage/sqlite.md).
 
 ### Discard Redis
 
@@ -33,7 +33,7 @@ be stored in memory instead. This has the inconvenient of logging out users
 every time Authelia restarts.
 
 The documentation about session management is available
-[here](../configuration/session).
+[here](../configuration/session.md).
 
 
 ### Discard LDAP
@@ -42,7 +42,7 @@ The documentation about session management is available
 LDAP server or an Active Directory.
 
 To use a file backend instead of a LDAP server, please follow the related
-documentation [here](../configuration/authentication/file).
+documentation [here](../configuration/authentication/file.md).
 
 ## FAQ
 

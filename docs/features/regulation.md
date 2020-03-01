@@ -14,4 +14,4 @@ attempts have been made.
 
 ## Configuration
 
-Please check the dedicated [documentation](./deployement/configuration/regulation.md).
+Please check the dedicated [documentation](../configuration/regulation.md).

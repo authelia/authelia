@@ -37,7 +37,7 @@ the root of the repo.
 
 **NOTE**: Prefer using environment variables to set secrets in production otherwise
 pay attention to the permissions of the configuration file. See
-[configuration.md](./configuration.md#secrets) for more information.
+[configuration.md](../configuration/secrets.md) for more information.
 
 ### Deploy with the distributable version
 
@@ -58,7 +58,7 @@ an infrastructure on bare metal. We would be more than happy to review any PR on
 
 
 
-[config.template.yml]: ../config.template.yml
-[Getting Started]: ./getting-started.md
+[config.template.yml]: https://github.com/authelia/authelia/blob/master/config.template.yml
+[Getting Started]: ../getting-started.md
 [Deployment for Devs]: ./deployment-dev.md
 [Kubernetes]: https://kubernetes.io/
