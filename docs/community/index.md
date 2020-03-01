@@ -10,5 +10,4 @@ has_children: true
 This section is meant to advertise and organize documentation produced
 by the community. This documentation is considered non-official and we
 will not guarantee that this documentation is up-to-date. If you think
-some of it must be considered official, please file an issue on Github.
-
+some of it should be considered official, please file an issue on Github.
