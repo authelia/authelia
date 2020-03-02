@@ -120,7 +120,15 @@ func main() {
 		},
 	}
 
-	rootCmd.AddCommand(versionCmd, commands.HashPasswordCmd, commands.MigrateCmd)
+	hashPasswordCmd := commands.HashPasswordCmd
+	hashPasswordCmd.Flags().BoolP("sha512", "z", false, "use sha512 instead of argon2id")
+	hashPasswordCmd.Flags().IntP("times", "t", 3, "set the number of hashing rounds")
+	hashPasswordCmd.Flags().StringP("salt", "s", "", "set the salt string")
+	hashPasswordCmd.Flags().IntP("memory", "m", 65536, "set the argon2id memory param")
+	hashPasswordCmd.Flags().IntP("parallelism", "p", 2, "set the argon2id parallelism param")
+	hashPasswordCmd.Flags().IntP("salt-length", "l", 16, "set the auto-generated salt length")
+
+	rootCmd.AddCommand(versionCmd, hashPasswordCmd, commands.MigrateCmd)
 	rootCmd.AddCommand(commands.CertificatesCmd)
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)

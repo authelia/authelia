@@ -1,13 +1,13 @@
 package authentication
 
 import (
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/stretchr/testify/assert"
 )
 

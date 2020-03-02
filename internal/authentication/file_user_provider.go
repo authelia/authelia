@@ -3,12 +3,12 @@ package authentication
 import (
 	"errors"
 	"fmt"
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"io/ioutil"
 	"strings"
 	"sync"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/authelia/authelia/internal/configuration/schema"
 
 	"gopkg.in/yaml.v2"
 )

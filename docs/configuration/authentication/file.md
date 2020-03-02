@@ -75,3 +75,37 @@ crack the hash is not determined by the performance of the machine. The best cur
 [Password Hashing Competition](https://en.wikipedia.org/wiki/Password_Hashing_Competition) in 2015 and is currently
 considered the best hashing function. This was implemented due to community feedback as you can see in this closed
  [issue](https://github.com/authelia/authelia/issues/577).
+ 
+ ### Password Hash Algorithm Tuning
+ 
+ All algorithm tuning is supported by Argon2id except Key length. The only configuration variables that affects SHA512
+ are rounds and salt length. The configuration variables are unique to the file authentication provider, and as such are
+ subkeys of file key.
+ 
+ #### algorithm
+ - Value Type: String
+ - Possible Value: `argon2id` and `sha512`
+ - Recommended: `argon2id`
+ - What it Does: Changes the Hashing Algorithm
+ 
+ #### rounds
+   - Value Type: Int
+   - Possible Value: `1` or higher
+   - Recommended: `3` for the `argon2id` algorithm and `50000` for `sha512`
+   - What it Does: Adjusts the number of times we run the password through the hashing algorithm
+   
+ #### salt_length
+  - Value Type: Int
+  - Possible Value: between `1` and `16`
+  - Recommended: `16`
+  - What it Does: Adjusts the length of the random salt we add to the password, there is no reason not to set this to 16
+ 
+ #### parallelism
+ - Value Type: Int
+ - Possible Value: `1` or higher
+ - Recommended: `2`
+ 
+ #### memory
+ - Value Type: Int
+ - Possible Value: at least `8` times the value of `parallelism`
+ - Recommended: `‭65536‬`

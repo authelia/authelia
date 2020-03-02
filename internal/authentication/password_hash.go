@@ -11,7 +11,6 @@ import (
 
 // PasswordHash represents all characteristics of a password hash.
 // Authelia only supports salted SHA512 or salted argon2id method, i.e., $6$ mode or $argon2id$ mode.
-
 type PasswordHash struct {
 	Algorithm   string
 	Rounds      int

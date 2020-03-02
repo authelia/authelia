@@ -95,11 +95,17 @@ authentication_backend:
   # which is updated when users reset their passwords.
   # Therefore, this backend is meant to be used in a dev environment
   # and not in production since it prevents Authelia to be scaled to
-  # more than one instance.
+  # more than one instance. It is highly recommended before adjusting
+  # the values other than path you read the implications of these
+  # changes on https://docs.authelia.com/configuration/authentication/file.html#password-hash-algorithm-tuning
   #
   ## file:
   ##   path: ./users_database.yml
-
+  ##   algorithm: argon2id
+  ##   rounds: 3
+  ##   salt_length: 16
+  ##   memory: ‭65536‬
+  ##   parallelism: 2
 # Access Control
 #
 # Access control is a list of rules defining the authorizations applied for one
