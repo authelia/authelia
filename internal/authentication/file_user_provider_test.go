@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -83,6 +82,21 @@ func TestShouldRetrieveUserDetails(t *testing.T) {
 func TestShouldUpdatePassword(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
 		provider := NewFileUserProvider(path)
+		err := provider.UpdatePassword("harry", "newpassword")
+		assert.NoError(t, err)
+
+		// Reset the provider to force a read from disk.
+		provider = NewFileUserProvider(path)
+		ok, err := provider.CheckUserPassword("harry", "newpassword")
+		assert.NoError(t, err)
+		assert.True(t, ok)
+	})
+}
+
+// Checks both that the hashing algo changes and that it removes {CRYPT} from the start.
+func TestShouldUpdatePasswordHashingAlgorithm(t *testing.T) {
+	WithDatabase(UserDatabaseContent, func(path string) {
+		provider := NewFileUserProvider(path)
 		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].HashedPassword, "{CRYPT}$6$"))
 		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
@@ -92,8 +106,7 @@ func TestShouldUpdatePassword(t *testing.T) {
 		ok, err := provider.CheckUserPassword("harry", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
-		fmt.Println(provider.database.Users["harry"].HashedPassword)
-		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].HashedPassword, "{CRYPT}$argon2id$"))
+		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].HashedPassword, "$argon2id$"))
 	})
 }
 

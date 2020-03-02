@@ -114,8 +114,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		return fmt.Errorf("User '%s' does not exist in database", username)
 	}
 
-	hash := HashPassword(newPassword, "")
-	details.HashedPassword = fmt.Sprintf("{CRYPT}%s", hash)
+	details.HashedPassword = HashPassword(newPassword, "")
 
 	p.lock.Lock()
 	p.database.Users[username] = details

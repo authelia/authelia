@@ -7,9 +7,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestShouldHashPassword(t *testing.T) {
+func TestShouldHashSHA512Password(t *testing.T) {
 	hash := HashPassword("password", "$6$rounds=50000$aFr56HjK3DrB8t3S")
 	assert.Equal(t, "$6$rounds=50000$aFr56HjK3DrB8t3S$zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1", hash)
+}
+
+func TestShouldHashArgon2idPassword(t *testing.T) {
+	hash := HashPassword("password", "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q")
+	assert.Equal(t, "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM", hash)
 }
 
 func TestShouldCheckSHA512Password(t *testing.T) {
