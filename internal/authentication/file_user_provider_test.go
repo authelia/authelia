@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"io/ioutil"
 	"log"
 	"os"
@@ -32,7 +33,9 @@ func WithDatabase(content []byte, f func(path string)) {
 
 func TestShouldCheckUserArgon2idPasswordIsCorrect(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
-		provider := NewFileUserProvider(path)
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		provider := NewFileUserProvider(&config)
 		ok, err := provider.CheckUserPassword("john", "password")
 
 		assert.NoError(t, err)
@@ -42,7 +45,9 @@ func TestShouldCheckUserArgon2idPasswordIsCorrect(t *testing.T) {
 
 func TestShouldCheckUserSHA512PasswordIsCorrect(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
-		provider := NewFileUserProvider(path)
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		provider := NewFileUserProvider(&config)
 		ok, err := provider.CheckUserPassword("harry", "password")
 
 		assert.NoError(t, err)
@@ -52,7 +57,9 @@ func TestShouldCheckUserSHA512PasswordIsCorrect(t *testing.T) {
 
 func TestShouldCheckUserPasswordIsWrong(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
-		provider := NewFileUserProvider(path)
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		provider := NewFileUserProvider(&config)
 		ok, err := provider.CheckUserPassword("john", "wrong_password")
 
 		assert.NoError(t, err)
@@ -62,7 +69,9 @@ func TestShouldCheckUserPasswordIsWrong(t *testing.T) {
 
 func TestShouldCheckUserPasswordOfUnexistingUser(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
-		provider := NewFileUserProvider(path)
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		provider := NewFileUserProvider(&config)
 		_, err := provider.CheckUserPassword("fake", "password")
 		assert.Error(t, err)
 		assert.Equal(t, "User 'fake' does not exist in database", err.Error())
@@ -71,7 +80,9 @@ func TestShouldCheckUserPasswordOfUnexistingUser(t *testing.T) {
 
 func TestShouldRetrieveUserDetails(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
-		provider := NewFileUserProvider(path)
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		provider := NewFileUserProvider(&config)
 		details, err := provider.GetDetails("john")
 		assert.NoError(t, err)
 		assert.Equal(t, details.Emails, []string{"john.doe@authelia.com"})
@@ -81,12 +92,14 @@ func TestShouldRetrieveUserDetails(t *testing.T) {
 
 func TestShouldUpdatePassword(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
-		provider := NewFileUserProvider(path)
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		provider := NewFileUserProvider(&config)
 		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
 
 		// Reset the provider to force a read from disk.
-		provider = NewFileUserProvider(path)
+		provider = NewFileUserProvider(&config)
 		ok, err := provider.CheckUserPassword("harry", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
@@ -94,15 +107,17 @@ func TestShouldUpdatePassword(t *testing.T) {
 }
 
 // Checks both that the hashing algo changes and that it removes {CRYPT} from the start.
-func TestShouldUpdatePasswordHashingAlgorithm(t *testing.T) {
+func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
-		provider := NewFileUserProvider(path)
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		provider := NewFileUserProvider(&config)
 		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].HashedPassword, "{CRYPT}$6$"))
 		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
 
 		// Reset the provider to force a read from disk.
-		provider = NewFileUserProvider(path)
+		provider = NewFileUserProvider(&config)
 		ok, err := provider.CheckUserPassword("harry", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
@@ -110,46 +125,85 @@ func TestShouldUpdatePasswordHashingAlgorithm(t *testing.T) {
 	})
 }
 
+func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
+	WithDatabase(UserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.Algorithm = "sha512"
+		config.Rounds = 50000
+
+		provider := NewFileUserProvider(&config)
+		assert.True(t, strings.HasPrefix(provider.database.Users["john"].HashedPassword, "{CRYPT}$argon2id$"))
+		err := provider.UpdatePassword("john", "newpassword")
+		assert.NoError(t, err)
+
+		// Reset the provider to force a read from disk.
+		provider = NewFileUserProvider(&config)
+		ok, err := provider.CheckUserPassword("john", "newpassword")
+		assert.NoError(t, err)
+		assert.True(t, ok)
+		assert.True(t, strings.HasPrefix(provider.database.Users["john"].HashedPassword, "$6$"))
+	})
+}
+
 func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 	WithDatabase(MalformedUserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
 		assert.PanicsWithValue(t, "Unable to parse database: yaml: line 4: mapping values are not allowed in this context", func() {
-			NewFileUserProvider(path)
+			NewFileUserProvider(&config)
 		})
 	})
 }
 
 func TestShouldRaiseWhenLoadingDatabaseWithBadSchemaForFirstTime(t *testing.T) {
 	WithDatabase(BadSchemaUserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
 		assert.PanicsWithValue(t, "Invalid schema of database: Users: non zero value required", func() {
-			NewFileUserProvider(path)
+			NewFileUserProvider(&config)
 		})
 	})
 }
 
 func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *testing.T) {
 	WithDatabase(BadSHA512HashContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
 		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot match pattern 'rounds=<int>' to find the number of rounds. Cause: input does not match format", func() {
-			NewFileUserProvider(path)
+			NewFileUserProvider(&config)
 		})
 	})
 }
 
 func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashesForTheFirstTime(t *testing.T) {
 	WithDatabase(BADArgon2idHashContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
 		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot match pattern 'm=<int>,t=<int>,p=<int>' to find the argon2id params. Cause: input does not match format", func() {
-			NewFileUserProvider(path)
+			NewFileUserProvider(&config)
 		})
 	})
 }
 
 func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 	WithDatabase(UserDatabaseWithoutCryptContent, func(path string) {
-		provider := NewFileUserProvider(path)
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		provider := NewFileUserProvider(&config)
 		ok, err := provider.CheckUserPassword("john", "password")
 
 		assert.NoError(t, err)
 		assert.True(t, ok)
 	})
+}
+
+var DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackendConfiguration{
+	Rounds:      3,
+	SaltLength:  16,
+	Algorithm:   "argon2id",
+	Memory:      64 * 1024,
+	Parallelism: 2,
 }
 
 var UserDatabaseContent = []byte(`

@@ -19,12 +19,16 @@ const (
 	U2F = "u2f"
 	// Push Method using Duo application to receive push notifications.
 	Push = "mobile_push"
+)
 
+const (
 	//Argon2id Hash Identifier
-	Argon2id = "argon2id"
+	HashingAlgorithmArgon2id = "argon2id"
 	//SHA512 Hash Identifier
-	SHA512 = "6"
+	HashingAlgorithmSHA512 = "6"
 )
 
 // PossibleMethods is the set of all possible 2FA methods.
 var PossibleMethods = []string{TOTP, U2F, Push}
+
+var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")

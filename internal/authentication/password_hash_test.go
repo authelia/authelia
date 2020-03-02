@@ -8,13 +8,27 @@ import (
 )
 
 func TestShouldHashSHA512Password(t *testing.T) {
-	hash := HashPassword("password", "$6$rounds=50000$aFr56HjK3DrB8t3S")
+	hash, err := HashPassword("password", "aFr56HjK3DrB8t3S", HashingAlgorithmSHA512, 50000, 0, 0, 16)
+	assert.NoError(t, err)
 	assert.Equal(t, "$6$rounds=50000$aFr56HjK3DrB8t3S$zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1", hash)
 }
 
 func TestShouldHashArgon2idPassword(t *testing.T) {
-	hash := HashPassword("password", "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q")
+	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id, 3, 65536, 2, 16)
+	assert.NoError(t, err)
 	assert.Equal(t, "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM", hash)
+}
+
+func TestShouldNotHashPassword(t *testing.T) {
+	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", "bogus", 3, 65536, 2, 16)
+	assert.Equal(t, "", hash)
+	assert.EqualError(t, err, "Hashing Algorithm 'bogus' is Invalid (only support values of argon2id and 6).")
+}
+
+func TestShouldNotHashArgon2idPassword(t *testing.T) {
+	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id, 3, 8, 2, 16)
+	assert.Equal(t, "", hash)
+	assert.EqualError(t, err, "Memory for argon2id must be above 16 (parallelism * 8), you set memory to 8 and parallelism to 2.")
 }
 
 func TestShouldCheckSHA512Password(t *testing.T) {
@@ -85,9 +99,20 @@ func TestNumberOfRoundsNotInt(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestShouldCheckPasswordHashedWithAuthelia(t *testing.T) {
+func TestShouldCheckPasswordArgon2idHashedWithAuthelia(t *testing.T) {
 	password := "my;secure*password"
-	hash := HashPassword(password, "")
+	hash, err := HashPassword(password, "", HashingAlgorithmArgon2id, 3, 64*1024, 2, 16)
+	assert.NoError(t, err)
+	equal, err := CheckPassword(password, hash)
+
+	require.NoError(t, err)
+	assert.True(t, equal)
+}
+
+func TestShouldCheckPasswordSHA512HashedWithAuthelia(t *testing.T) {
+	password := "my;secure*password"
+	hash, err := HashPassword(password, "", HashingAlgorithmSHA512, 50000, 0, 0, 16)
+	assert.NoError(t, err)
 	equal, err := CheckPassword(password, hash)
 
 	require.NoError(t, err)

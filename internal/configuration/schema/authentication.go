@@ -17,7 +17,26 @@ type LDAPAuthenticationBackendConfiguration struct {
 
 // FileAuthenticationBackendConfiguration represents the configuration related to file-based backend
 type FileAuthenticationBackendConfiguration struct {
-	Path string `mapstructure:"path"`
+	Path        string `mapstructure:"path"`
+	Rounds      int    `mapstructure:"rounds"`
+	SaltLength  int    `mapstructure:"salt_length"`
+	Algorithm   string `mapstrucutre:"algorithm"`
+	Memory      int    `mapstructure:"memory"`
+	Parallelism int    `mapstructure:"parallelism"`
+}
+
+var DefaultFileAuthenticationBackendConfiguration = FileAuthenticationBackendConfiguration{
+	Rounds:      3,
+	SaltLength:  16,
+	Algorithm:   "argon2id",
+	Memory:      64 * 1024,
+	Parallelism: 2,
+}
+
+var DefaultFileAuthenticationBackendSHA512Configuration = FileAuthenticationBackendConfiguration{
+	Rounds:     50000,
+	SaltLength: 16,
+	Algorithm:  "sha512",
 }
 
 // AuthenticationBackendConfiguration represents the configuration related to the authentication backend.

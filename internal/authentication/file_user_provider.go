@@ -1,7 +1,9 @@
 package authentication
 
 import (
+	"errors"
 	"fmt"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"io/ioutil"
 	"strings"
 	"sync"
@@ -13,9 +15,9 @@ import (
 
 // FileUserProvider is a provider reading details from a file.
 type FileUserProvider struct {
-	path     *string
-	database *DatabaseModel
-	lock     *sync.Mutex
+	configuration *schema.FileAuthenticationBackendConfiguration
+	database      *DatabaseModel
+	lock          *sync.Mutex
 }
 
 // UserDetailsModel is the model of user details in the file database.
@@ -31,8 +33,8 @@ type DatabaseModel struct {
 }
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
-func NewFileUserProvider(filepath string) *FileUserProvider {
-	database, err := readDatabase(filepath)
+func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfiguration) *FileUserProvider {
+	database, err := readDatabase(configuration.Path)
 	if err != nil {
 		// Panic since the file does not exist when Authelia is starting.
 		panic(err.Error())
@@ -45,9 +47,9 @@ func NewFileUserProvider(filepath string) *FileUserProvider {
 	}
 
 	return &FileUserProvider{
-		path:     &filepath,
-		database: database,
-		lock:     &sync.Mutex{},
+		configuration: configuration,
+		database:      database,
+		lock:          &sync.Mutex{},
 	}
 }
 
@@ -113,8 +115,23 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	if !ok {
 		return fmt.Errorf("User '%s' does not exist in database", username)
 	}
-
-	details.HashedPassword = HashPassword(newPassword, "")
+	if p.configuration.Algorithm == "argon2id" {
+		hash, err := HashPassword(newPassword, "", HashingAlgorithmArgon2id,
+			p.configuration.Rounds, p.configuration.Memory, p.configuration.Parallelism, p.configuration.SaltLength)
+		if err != nil {
+			return err
+		}
+		details.HashedPassword = hash
+	} else if p.configuration.Algorithm == "sha512" {
+		hash, err := HashPassword(newPassword, "", HashingAlgorithmSHA512,
+			p.configuration.Rounds, 0, 0, p.configuration.SaltLength)
+		if err != nil {
+			return err
+		}
+		details.HashedPassword = hash
+	} else {
+		return errors.New("Invalid algorithm in configuration. It should be impossible to reach this error!")
+	}
 
 	p.lock.Lock()
 	p.database.Users[username] = details
@@ -124,7 +141,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		p.lock.Unlock()
 		return err
 	}
-	err = ioutil.WriteFile(*p.path, b, 0644)
+	err = ioutil.WriteFile(p.configuration.Path, b, 0644)
 	p.lock.Unlock()
 	return err
 }
