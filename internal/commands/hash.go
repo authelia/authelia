@@ -16,7 +16,7 @@ var HashPasswordCmd = &cobra.Command{
 		sha512, _ := cobraCmd.Flags().GetBool("sha512")
 		times, _ := cobraCmd.Flags().GetInt("times")
 		salt, _ := cobraCmd.Flags().GetString("salt")
-		saltLength, _ := cobraCmd.Flags().GetInt("salt_length")
+		saltLength, _ := cobraCmd.Flags().GetInt("salt-length")
 		memory, _ := cobraCmd.Flags().GetInt("memory")
 		parallelism, _ := cobraCmd.Flags().GetInt("parallelism")
 

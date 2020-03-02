@@ -25,10 +25,20 @@ func TestShouldNotHashPassword(t *testing.T) {
 	assert.EqualError(t, err, "Hashing Algorithm 'bogus' is Invalid (only support values of argon2id and 6).")
 }
 
-func TestShouldNotHashArgon2idPassword(t *testing.T) {
+func TestShouldNotHashArgon2idPasswordDueToMemoryParallelismMismatch(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id, 3, 8, 2, 16)
 	assert.Equal(t, "", hash)
 	assert.EqualError(t, err, "Memory for argon2id must be above 16 (parallelism * 8), you set memory to 8 and parallelism to 2.")
+}
+
+func TestShouldNotHashPasswordDueToSaltLength(t *testing.T) {
+	hash, err := HashPassword("password", "", HashingAlgorithmArgon2id, 3, 65536, 2, 0)
+	assert.Equal(t, "", hash)
+	assert.EqualError(t, err, "Salt length is 0 but it must be 1 or higher.")
+
+	hash, err = HashPassword("password", "", HashingAlgorithmArgon2id, 3, 65536, 2, 20)
+	assert.Equal(t, "", hash)
+	assert.EqualError(t, err, "Salt length is 20 but it must be 16 or lower.")
 }
 
 func TestShouldCheckSHA512Password(t *testing.T) {

@@ -80,15 +80,19 @@ func HashPassword(password, salt, algorithm string, rounds, memory, parallelism,
 		return "", fmt.Errorf("Hashing Algorithm '%s' is Invalid (only support values of %s and %s).", algorithm, HashingAlgorithmArgon2id, HashingAlgorithmSHA512)
 	}
 
+	if salt == "" {
+		if saltLength < 1 {
+			return "", fmt.Errorf("Salt length is %d but it must be 1 or higher.", saltLength)
+		} else if saltLength > 16 {
+			return "", fmt.Errorf("Salt length is %d but it must be 16 or lower.", saltLength)
+		}
+	}
 	if algorithm == HashingAlgorithmArgon2id {
 		if memory < 8 {
 			return "", fmt.Errorf("Memory for argon2id must be above 8, you set it to %d.", memory)
 		}
 		if parallelism < 1 {
 			return "", fmt.Errorf("Parallelism for argon2id must be above 0, you set it to %d.", parallelism)
-		}
-		if salt == "" && saltLength < 1 {
-			return "", fmt.Errorf("Salt length is  %d but it must be above 0.", saltLength)
 		}
 		if memory < parallelism*8 {
 			return "", fmt.Errorf("Memory for argon2id must be above %d (parallelism * 8), you set memory to %d and parallelism to %d.", parallelism*8, memory, parallelism)
@@ -99,7 +103,7 @@ func HashPassword(password, salt, algorithm string, rounds, memory, parallelism,
 		if salt != "" {
 			settings, _ = crypt.Argon2idSettings(memory, rounds, parallelism, salt)
 		} else {
-			settings, _ = crypt.Argon2idSettings(memory, rounds, parallelism)
+			settings, _ = crypt.Argon2idSettings(memory, rounds, parallelism, RandomString(saltLength))
 		}
 	} else if algorithm == HashingAlgorithmSHA512 {
 		if salt != "" {
