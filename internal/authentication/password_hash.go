@@ -48,7 +48,15 @@ func ParseHash(hash string) (*PasswordHash, error) {
 			return nil, fmt.Errorf("Cannot parse the Argon2id hash %s", hash)
 		}
 
-		_, err := fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &h.Memory, &h.Rounds, &h.Parallelism)
+		var version uint32
+		_, err := fmt.Sscanf(parts[2], "v=%d", version)
+		if version < 19 {
+			return nil, fmt.Errorf("Argon2 versions less than v19 are not supported (hash is version %d)", version)
+		} else if version > 19 {
+			return nil, fmt.Errorf("Argon2 versions greater than v19 are not supported (hash is version %d)", version)
+		}
+
+		_, err = fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &h.Memory, &h.Rounds, &h.Parallelism)
 		if err != nil {
 			return nil, fmt.Errorf("Cannot match pattern 'm=<int>,t=<int>,p=<int>' to find the argon2id params. Cause: %s", err)
 		}
@@ -98,10 +106,8 @@ func CheckPassword(password string, hash string) (bool, error) {
 	}
 	var salt string
 	if passwordHash.Type == Argon2id {
-		salt, err = crypt.Argon2idSettings(passwordHash.Memory, passwordHash.Rounds, passwordHash.Parallelism, passwordHash.Salt)
-		if err != nil {
-			return false, err
-		}
+		// Ignore err as it never errors upstream https://github.com/simia-tech/crypt/blob/master/argon2id.go#L47-L56
+		salt, _ = crypt.Argon2idSettings(passwordHash.Memory, passwordHash.Rounds, passwordHash.Parallelism, passwordHash.Salt)
 	} else if passwordHash.Type == SHA512 {
 		salt = fmt.Sprintf("$6$rounds=%d$%s$", passwordHash.Rounds, passwordHash.Salt)
 	}

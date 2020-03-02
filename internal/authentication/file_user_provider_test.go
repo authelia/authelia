@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,10 +30,20 @@ func WithDatabase(content []byte, f func(path string)) {
 	}
 }
 
-func TestShouldCheckUserPasswordIsCorrect(t *testing.T) {
+func TestShouldCheckUserArgon2idPasswordIsCorrect(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
 		provider := NewFileUserProvider(path)
 		ok, err := provider.CheckUserPassword("john", "password")
+
+		assert.NoError(t, err)
+		assert.True(t, ok)
+	})
+}
+
+func TestShouldCheckUserSHA512PasswordIsCorrect(t *testing.T) {
+	WithDatabase(UserDatabaseContent, func(path string) {
+		provider := NewFileUserProvider(path)
+		ok, err := provider.CheckUserPassword("harry", "password")
 
 		assert.NoError(t, err)
 		assert.True(t, ok)
@@ -71,14 +82,16 @@ func TestShouldRetrieveUserDetails(t *testing.T) {
 func TestShouldUpdatePassword(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
 		provider := NewFileUserProvider(path)
-		err := provider.UpdatePassword("john", "newpassword")
+		assert.True(t, strings.HasPrefix("$6$", provider.database.Users["harry"].HashedPassword))
+		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
 
 		// Reset the provider to force a read from disk.
 		provider = NewFileUserProvider(path)
-		ok, err := provider.CheckUserPassword("john", "newpassword")
+		ok, err := provider.CheckUserPassword("harry", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
+		assert.True(t, strings.HasPrefix("$argon2id$", provider.database.Users["harry"].HashedPassword))
 	})
 }
 
@@ -98,16 +111,24 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSchemaForFirstTime(t *testing.T) {
 	})
 }
 
-func TestShouldRaiseWhenLoadingDatabaseWithBadHashesForTheFirstTime(t *testing.T) {
-	WithDatabase(BadHashContent, func(path string) {
+func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *testing.T) {
+	WithDatabase(BadSHA512HashContent, func(path string) {
 		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot match pattern 'rounds=<int>' to find the number of rounds. Cause: input does not match format", func() {
 			NewFileUserProvider(path)
 		})
 	})
 }
 
+func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashesForTheFirstTime(t *testing.T) {
+	WithDatabase(BadSHA512HashContent, func(path string) {
+		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot match pattern 'm=<int>,t=<int>,p=<int>' to find the argon2id params. Cause: input does not match format", func() {
+			NewFileUserProvider(path)
+		})
+	})
+}
+
 func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
-	WithDatabase(UserDatabaseWithouCryptContent, func(path string) {
+	WithDatabase(UserDatabaseWithoutCryptContent, func(path string) {
 		provider := NewFileUserProvider(path)
 		ok, err := provider.CheckUserPassword("john", "password")
 
@@ -119,7 +140,7 @@ func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 var UserDatabaseContent = []byte(`
 users:
   john:
-    password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:
       - admins
@@ -161,7 +182,7 @@ user:
       - dev
 `)
 
-var UserDatabaseWithouCryptContent = []byte(`
+var UserDatabaseWithoutCryptContent = []byte(`
 users:
   john:
     password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
@@ -174,7 +195,7 @@ users:
     email: james.dean@authelia.com
 `)
 
-var BadHashContent = []byte(`
+var BadSHA512HashContent = []byte(`
 users:
   john:
     password: "$6$rounds00000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
@@ -184,5 +205,18 @@ users:
       - dev
   james:
     password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: james.dean@authelia.com
+`)
+
+var BADArgon2idHashContent = []byte(`
+users:
+  john:
+    password: "$argon2id$v=19$m65536,t3,p2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+  james:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: james.dean@authelia.com
 `)
