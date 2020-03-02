@@ -25,9 +25,9 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 	}
 
 	if configuration.SSLKey != "" && configuration.SSLCert == "" {
-		validator.Push(fmt.Errorf("SSL key provided but no certificate"))
+		validator.Push(fmt.Errorf("No SSL certificate provided, please check the "ssl_cert" which has been configured"))
 	} else if configuration.SSLKey == "" && configuration.SSLCert != "" {
-		validator.Push(fmt.Errorf("SSL certificate provided but no key"))
+		validator.Push(fmt.Errorf("No SSL key provided, please check the "ssl_key" which has been configured"))
 	}
 
 	if configuration.DefaultRedirectionURL != "" {

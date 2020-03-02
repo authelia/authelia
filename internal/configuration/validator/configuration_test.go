@@ -107,7 +107,7 @@ func TestShouldRaiseErrorWhenSSLCertWithoutKeyIsProvided(t *testing.T) {
 
 	Validate(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "SSL certificate provided but no key")
+	assert.EqualError(t, validator.Errors()[0], "No SSL key provided, please check the "ssl_key" which has been configured")
 }
 
 func TestShouldRaiseErrorWhenSSLKeyWithoutCertIsProvided(t *testing.T) {
@@ -117,7 +117,7 @@ func TestShouldRaiseErrorWhenSSLKeyWithoutCertIsProvided(t *testing.T) {
 
 	Validate(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "SSL key provided but no certificate")
+	assert.EqualError(t, validator.Errors()[0], "No SSL certificate provided, please check the "ssl_cert" which has been configured")
 }
 
 func TestShouldNotRaiseErrorWhenBothSSLCertificateAndKeyAreProvided(t *testing.T) {
