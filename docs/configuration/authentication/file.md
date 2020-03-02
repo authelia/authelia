@@ -56,9 +56,8 @@ resetting their passwords.
 The file contains hashed passwords instead of plain text passwords for security reasons.
 
 You can use Authelia binary or docker image to generate the hash of any password. The salt provided by the docker run
-command will not actually be random due to the ephemeral nature of containers. It's recommended you either randomly generate
-your own salt with a length of 16 or reset your password via the web ui if you use this method. You can view the flags used
-for this command by typing `authelia hash-password --help` instead.
+command will not actually be random due to the ephemeral nature of containers. If you'd like to configure the seed
+for increased entropy or tune any other password hashing values you can see how by doing `authelia hash-password --help`.
 
 For instance, with the docker image, just run
 
