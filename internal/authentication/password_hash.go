@@ -88,7 +88,7 @@ func HashPassword(password, salt, algorithm string, rounds, memory, parallelism,
 			return "", fmt.Errorf("Parallelism for argon2id must be above 0, you set it to %d.", parallelism)
 		}
 		if salt == "" && saltLength < 1 {
-			return "", fmt.Errorf("Salt length is  %d.", parallelism)
+			return "", fmt.Errorf("Salt length is  %d but it must be above 0.", saltLength)
 		}
 		if memory < parallelism*8 {
 			return "", fmt.Errorf("Memory for argon2id must be above %d (parallelism * 8), you set memory to %d and parallelism to %d.", parallelism*8, memory, parallelism)

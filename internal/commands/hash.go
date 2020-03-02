@@ -27,7 +27,7 @@ var HashPasswordCmd = &cobra.Command{
 		}
 
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(fmt.Sprintf("Error Occured During Hashing: %s", err))
 		} else {
 			fmt.Println(hash)
 		}
