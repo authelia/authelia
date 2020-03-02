@@ -1,10 +1,12 @@
 package authentication
 
 import (
+	cryptorand "crypto/rand"
 	"fmt"
 	"log"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/simia-tech/crypt"
 )
@@ -64,6 +66,12 @@ func ParseHash(hash string) (*PasswordHash, error) {
 
 // RandomString generate a random string of n characters.
 func RandomString(n int) string {
+	prime, err := cryptorand.Prime(cryptorand.Reader, 1024)
+	if err != nil {
+		rand.Seed(time.Now().UnixNano())
+	} else {
+		rand.Seed(prime.Int64())
+	}
 	b := make([]rune, n)
 	for i := range b {
 		b[i] = HashingPossibleSaltCharacters[rand.Intn(len(HashingPossibleSaltCharacters))]

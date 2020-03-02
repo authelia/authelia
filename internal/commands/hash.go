@@ -21,6 +21,9 @@ var HashPasswordCmd = &cobra.Command{
 		parallelism, _ := cobraCmd.Flags().GetInt("parallelism")
 
 		if sha512 {
+			if iterations == 3 {
+				iterations = 50000
+			}
 			hash, err = authentication.HashPassword(args[0], salt, authentication.HashingAlgorithmSHA512, iterations, memory, parallelism, saltLength)
 		} else {
 			hash, err = authentication.HashPassword(args[0], salt, authentication.HashingAlgorithmArgon2id, iterations, memory, parallelism, saltLength)

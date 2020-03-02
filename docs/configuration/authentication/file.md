@@ -71,7 +71,7 @@ For instance, with the docker image, just run
 The supported hash functions are salted Argon2id (default, version 19 only), and salted SHA512 for backwards compatibility.
 This is determined by the prefix `$argon2id$` and `$6$` respectively, as described in this [wiki page](https://en.wikipedia.org/wiki/Crypt_(C\)). 
 
-Although SHA512 is supported default hashes are generated with Argon2i. This is because it is
+Although SHA512 is supported default hashes are generated with Argon2id. This is because it is
 not the best hash function, while it is a decent algorithm given the number of rounds is big enough the difficulty to 
 crack the hash is not determined by the performance of the machine. The best current algorithm, 
 [Argon2](https://en.wikipedia.org/wiki/Argon2) does though. It won the 
