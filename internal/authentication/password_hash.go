@@ -13,7 +13,7 @@ import (
 // Authelia only supports salted SHA512 or salted argon2id method, i.e., $6$ mode or $argon2id$ mode.
 type PasswordHash struct {
 	Algorithm   string
-	Rounds      int
+	Iterations  int
 	Salt        string
 	Key         string
 	Memory      int
@@ -29,7 +29,7 @@ func ParseHash(hash string) (*PasswordHash, error) {
 		if len(parts) != 5 {
 			return nil, fmt.Errorf("Cannot parse the SHA512 hash %s", hash)
 		}
-		_, err := fmt.Sscanf(parts[2], "rounds=%d", &h.Rounds)
+		_, err := fmt.Sscanf(parts[2], "rounds=%d", &h.Iterations)
 		if err != nil {
 			return nil, fmt.Errorf("Cannot match pattern 'rounds=<int>' to find the number of rounds. Cause: %s", err)
 		}
@@ -49,7 +49,7 @@ func ParseHash(hash string) (*PasswordHash, error) {
 			return nil, fmt.Errorf("Argon2 versions greater than v19 are not supported (hash is version %d)", version)
 		}
 
-		_, err = fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &h.Memory, &h.Rounds, &h.Parallelism)
+		_, err = fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &h.Memory, &h.Iterations, &h.Parallelism)
 		if err != nil {
 			return nil, fmt.Errorf("Cannot match pattern 'm=<int>,t=<int>,p=<int>' to find the argon2id params. Cause: %s", err)
 		}
@@ -73,11 +73,11 @@ func RandomString(n int) string {
 
 // HashPassword generate a salt and hash the password with the salt and a constant
 // number of rounds.
-func HashPassword(password, salt, algorithm string, rounds, memory, parallelism, saltLength int) (string, error) {
+func HashPassword(password, salt, algorithm string, iterations, memory, parallelism, saltLength int) (string, error) {
 	var settings string
 
 	if algorithm != HashingAlgorithmArgon2id && algorithm != HashingAlgorithmSHA512 {
-		return "", fmt.Errorf("Hashing Algorithm '%s' is Invalid (only support values of %s and %s).", algorithm, HashingAlgorithmArgon2id, HashingAlgorithmSHA512)
+		return "", fmt.Errorf("Hashing algorithm '%s' is invalid only values of %s and %s are supported.", algorithm, HashingAlgorithmArgon2id, HashingAlgorithmSHA512)
 	}
 
 	if salt == "" {
@@ -95,22 +95,17 @@ func HashPassword(password, salt, algorithm string, rounds, memory, parallelism,
 			return "", fmt.Errorf("Parallelism for argon2id must be above 0, you set it to %d.", parallelism)
 		}
 		if memory < parallelism*8 {
-			return "", fmt.Errorf("Memory for argon2id must be above %d (parallelism * 8), you set memory to %d and parallelism to %d.", parallelism*8, memory, parallelism)
+			return "", fmt.Errorf("Memory for argon2id must be above %d (parallelism * 8), you set memory as %d and parallelism as %d.", parallelism*8, memory, parallelism)
 		}
 	}
 
+	if salt == "" {
+		salt = RandomString(saltLength)
+	}
 	if algorithm == HashingAlgorithmArgon2id {
-		if salt != "" {
-			settings, _ = crypt.Argon2idSettings(memory, rounds, parallelism, salt)
-		} else {
-			settings, _ = crypt.Argon2idSettings(memory, rounds, parallelism, RandomString(saltLength))
-		}
+		settings, _ = crypt.Argon2idSettings(memory, iterations, parallelism, salt)
 	} else if algorithm == HashingAlgorithmSHA512 {
-		if salt != "" {
-			settings = fmt.Sprintf("$6$rounds=%d$%s", rounds, salt)
-		} else {
-			settings = fmt.Sprintf("$6$rounds=%d$%s", rounds, RandomString(saltLength))
-		}
+		settings = fmt.Sprintf("$6$rounds=%d$%s", iterations, salt)
 	}
 
 	hash, err := crypt.Crypt(password, settings)
@@ -126,7 +121,7 @@ func CheckPassword(password, hash string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	expectedHash, err := HashPassword(password, passwordHash.Salt, passwordHash.Algorithm, passwordHash.Rounds, passwordHash.Memory, passwordHash.Parallelism, len(passwordHash.Salt))
+	expectedHash, err := HashPassword(password, passwordHash.Salt, passwordHash.Algorithm, passwordHash.Iterations, passwordHash.Memory, passwordHash.Parallelism, len(passwordHash.Salt))
 	if err != nil {
 		return false, err
 	}

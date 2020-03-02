@@ -129,8 +129,8 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		config.Algorithm = "sha512"
-		config.Rounds = 50000
+		config.PasswordHashing.Algorithm = "sha512"
+		config.PasswordHashing.Iterations = 50000
 
 		provider := NewFileUserProvider(&config)
 		assert.True(t, strings.HasPrefix(provider.database.Users["john"].HashedPassword, "{CRYPT}$argon2id$"))
@@ -198,13 +198,18 @@ func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 	})
 }
 
-var DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackendConfiguration{
-	Rounds:      3,
-	SaltLength:  16,
-	Algorithm:   "argon2id",
-	Memory:      64 * 1024,
-	Parallelism: 2,
-}
+var (
+	DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackendConfiguration{
+		Path: "",
+		PasswordHashing: &schema.PasswordHashingConfiguration{
+			Iterations:  3,
+			SaltLength:  16,
+			Algorithm:   "argon2id",
+			Memory:      64 * 1024,
+			Parallelism: 2,
+		},
+	}
+)
 
 var UserDatabaseContent = []byte(`
 users:

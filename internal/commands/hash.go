@@ -14,22 +14,22 @@ var HashPasswordCmd = &cobra.Command{
 		var err error
 		var hash string
 		sha512, _ := cobraCmd.Flags().GetBool("sha512")
-		times, _ := cobraCmd.Flags().GetInt("times")
+		iterations, _ := cobraCmd.Flags().GetInt("iterations")
 		salt, _ := cobraCmd.Flags().GetString("salt")
 		saltLength, _ := cobraCmd.Flags().GetInt("salt-length")
 		memory, _ := cobraCmd.Flags().GetInt("memory")
 		parallelism, _ := cobraCmd.Flags().GetInt("parallelism")
 
 		if sha512 {
-			hash, err = authentication.HashPassword(args[0], salt, authentication.HashingAlgorithmSHA512, times, memory, parallelism, saltLength)
+			hash, err = authentication.HashPassword(args[0], salt, authentication.HashingAlgorithmSHA512, iterations, memory, parallelism, saltLength)
 		} else {
-			hash, err = authentication.HashPassword(args[0], salt, authentication.HashingAlgorithmArgon2id, times, memory, parallelism, saltLength)
+			hash, err = authentication.HashPassword(args[0], salt, authentication.HashingAlgorithmArgon2id, iterations, memory, parallelism, saltLength)
 		}
 
 		if err != nil {
-			fmt.Println(fmt.Sprintf("Error Occured During Hashing: %s", err))
+			fmt.Println(fmt.Sprintf("Error occured during hashing: %s", err))
 		} else {
-			fmt.Println(hash)
+			fmt.Println(fmt.Sprintf("Password hash: %s", hash))
 		}
 	},
 	Args: cobra.MinimumNArgs(1),

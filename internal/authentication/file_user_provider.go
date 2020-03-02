@@ -115,16 +115,16 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	if !ok {
 		return fmt.Errorf("User '%s' does not exist in database", username)
 	}
-	if p.configuration.Algorithm == "argon2id" {
+	if p.configuration.PasswordHashing.Algorithm == "argon2id" {
 		hash, err := HashPassword(newPassword, "", HashingAlgorithmArgon2id,
-			p.configuration.Rounds, p.configuration.Memory, p.configuration.Parallelism, p.configuration.SaltLength)
+			p.configuration.PasswordHashing.Iterations, p.configuration.PasswordHashing.Memory, p.configuration.PasswordHashing.Parallelism, p.configuration.PasswordHashing.SaltLength)
 		if err != nil {
 			return err
 		}
 		details.HashedPassword = hash
-	} else if p.configuration.Algorithm == "sha512" {
+	} else if p.configuration.PasswordHashing.Algorithm == "sha512" {
 		hash, err := HashPassword(newPassword, "", HashingAlgorithmSHA512,
-			p.configuration.Rounds, 0, 0, p.configuration.SaltLength)
+			p.configuration.PasswordHashing.Iterations, 0, 0, p.configuration.PasswordHashing.SaltLength)
 		if err != nil {
 			return err
 		}

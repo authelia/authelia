@@ -55,7 +55,10 @@ resetting their passwords.
 
 The file contains hashed passwords instead of plain text passwords for security reasons.
 
-You can use Authelia binary or docker image to generate the hash of any password.
+You can use Authelia binary or docker image to generate the hash of any password. The salt provided by the docker run
+command will not actually be random due to the ephemeral nature of containers. It's recommended you either randomly generate
+your own salt with a length of 16 or reset your password via the web ui if you use this method. You can view the flags used
+for this command by typing `authelia hash-password --help` instead.
 
 For instance, with the docker image, just run
 
@@ -65,11 +68,11 @@ For instance, with the docker image, just run
 
 ## Password Hash Function
 
-The only supported hash functions are salted Argon2id (default, version 19 only), and salted SHA512 for backwards compatibility; determined
-by the prefix `$argon2id$` and `$6$` respectively, as described in this [wiki](https://en.wikipedia.org/wiki/Crypt_(C)) page. 
+The supported hash functions are salted Argon2id (default, version 19 only), and salted SHA512 for backwards compatibility.
+This is determined by the prefix `$argon2id$` and `$6$` respectively, as described in this [wiki page](https://en.wikipedia.org/wiki/Crypt_(C\)). 
 
-Although SHA512 is supported, we do not provide a method currently to generate these hashes. This is because it is
-not the best hash function; while it is a decent algorithm given the number of rounds is big enough, the difficulty to 
+Although SHA512 is supported default hashes are generated with Argon2i. This is because it is
+not the best hash function, while it is a decent algorithm given the number of rounds is big enough the difficulty to 
 crack the hash is not determined by the performance of the machine. The best current algorithm, 
 [Argon2](https://en.wikipedia.org/wiki/Argon2) does though. It won the 
 [Password Hashing Competition](https://en.wikipedia.org/wiki/Password_Hashing_Competition) in 2015 and is currently
@@ -79,8 +82,20 @@ considered the best hashing function. This was implemented due to community feed
  ### Password Hash Algorithm Tuning
  
  All algorithm tuning is supported by Argon2id except Key length. The only configuration variables that affects SHA512
- are rounds and salt length. The configuration variables are unique to the file authentication provider, and as such are
- subkeys of file key.
+ are rounds and salt length. The configuration variables are unique to the file authentication provider, and as such exist
+ under a subkey of file called `password_hashing`.
+ 
+ Example:
+ ```
+file:
+  path: /var/authelia.users.yml
+  password_hashing:
+    algorithm: argon2id
+    iterations: 3
+    salt_length: 16
+    parallelism: 2
+    memory: ‭65536‬
+```
  
  #### algorithm
  - Value Type: String
@@ -88,7 +103,7 @@ considered the best hashing function. This was implemented due to community feed
  - Recommended: `argon2id`
  - What it Does: Changes the Hashing Algorithm
  
- #### rounds
+ #### iterations
    - Value Type: Int
    - Possible Value: `1` or higher
    - Recommended: `3` for the `argon2id` algorithm and `50000` for `sha512`

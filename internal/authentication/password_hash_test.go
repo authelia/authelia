@@ -22,13 +22,25 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 func TestShouldNotHashPassword(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", "bogus", 3, 65536, 2, 16)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Hashing Algorithm 'bogus' is Invalid (only support values of argon2id and 6).")
+	assert.EqualError(t, err, "Hashing algorithm 'bogus' is invalid only values of argon2id and 6 are supported.")
 }
 
 func TestShouldNotHashArgon2idPasswordDueToMemoryParallelismMismatch(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id, 3, 8, 2, 16)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Memory for argon2id must be above 16 (parallelism * 8), you set memory to 8 and parallelism to 2.")
+	assert.EqualError(t, err, "Memory for argon2id must be above 16 (parallelism * 8), you set memory as 8 and parallelism as 2.")
+}
+
+func TestShouldNotHashArgon2idPasswordDueToMemoryLessThanEight(t *testing.T) {
+	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id, 3, 1, 2, 16)
+	assert.Equal(t, "", hash)
+	assert.EqualError(t, err, "Memory for argon2id must be above 8, you set it to 1.")
+}
+
+func TestShouldNotHashArgon2idPasswordDueParallelismLessThanOne(t *testing.T) {
+	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id, 3, 8, -1, 16)
+	assert.Equal(t, "", hash)
+	assert.EqualError(t, err, "Parallelism for argon2id must be above 0, you set it to -1.")
 }
 
 func TestShouldNotHashPasswordDueToSaltLength(t *testing.T) {

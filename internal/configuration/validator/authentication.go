@@ -17,43 +17,47 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 		validator.Push(errors.New("Please provide a `path` for the users database in `authentication_backend`"))
 	}
 
-	if configuration.Algorithm == "" {
-		configuration.Algorithm = schema.DefaultFileAuthenticationBackendConfiguration.Algorithm
+	if configuration.PasswordHashing == nil {
+		configuration.PasswordHashing = &schema.DefaultPasswordOptionsConfiguration
 	} else {
-		configuration.Algorithm = strings.ToLower(configuration.Algorithm)
-		if configuration.Algorithm != "argon2id" && configuration.Algorithm != "sha512" {
-			validator.Push(fmt.Errorf("Unknown hashing algorithm supplied, valid values are argon2id and sha512, you provided '%s'", configuration.Algorithm))
-		}
-	}
-
-	if configuration.Rounds == 0 {
-		if configuration.Algorithm == "argon2id" {
-			configuration.Rounds = schema.DefaultFileAuthenticationBackendConfiguration.Rounds
+		if configuration.PasswordHashing.Algorithm == "" {
+			configuration.PasswordHashing.Algorithm = schema.DefaultPasswordOptionsConfiguration.Algorithm
 		} else {
-			configuration.Rounds = schema.DefaultFileAuthenticationBackendSHA512Configuration.Rounds
+			configuration.PasswordHashing.Algorithm = strings.ToLower(configuration.PasswordHashing.Algorithm)
+			if configuration.PasswordHashing.Algorithm != "argon2id" && configuration.PasswordHashing.Algorithm != "sha512" {
+				validator.Push(fmt.Errorf("Unknown hashing algorithm supplied, valid values are argon2id and sha512, you configured '%s'", configuration.PasswordHashing.Algorithm))
+			}
 		}
-	} else if configuration.Rounds < 0 {
-		validator.Push(fmt.Errorf("The number of rounds specified is invalid, must be more than 0 but you specified %d", configuration.Rounds))
-	}
 
-	if configuration.SaltLength == 0 {
-		configuration.SaltLength = schema.DefaultFileAuthenticationBackendConfiguration.SaltLength
-	} else if configuration.SaltLength < 0 {
-		validator.Push(fmt.Errorf("The salt length must 1 or more, you set it to %d", configuration.SaltLength))
-	} else if configuration.SaltLength > 16 {
-		validator.Push(fmt.Errorf("The salt length must be 16 or less, you set it to %d", configuration.SaltLength))
-	}
-
-	if configuration.Algorithm == "argon2id" {
-		if configuration.Parallelism == 0 {
-			configuration.Parallelism = schema.DefaultFileAuthenticationBackendConfiguration.Parallelism
-		} else if configuration.Parallelism < 1 {
-			validator.Push(fmt.Errorf("Parallelism for argon2id must be 0 or more, you set %d", configuration.Parallelism))
+		if configuration.PasswordHashing.Iterations == 0 {
+			if configuration.PasswordHashing.Algorithm == "argon2id" {
+				configuration.PasswordHashing.Iterations = schema.DefaultPasswordOptionsConfiguration.Iterations
+			} else {
+				configuration.PasswordHashing.Iterations = schema.DefaultPasswordOptionsSHA512Configuration.Iterations
+			}
+		} else if configuration.PasswordHashing.Iterations < 0 {
+			validator.Push(fmt.Errorf("The number of iterations specified is invalid, must be 1 or more, you configured %d", configuration.PasswordHashing.Iterations))
 		}
-		if configuration.Memory == 0 {
-			configuration.Memory = schema.DefaultFileAuthenticationBackendConfiguration.Memory
-		} else if configuration.Memory < configuration.Parallelism*8 {
-			validator.Push(fmt.Errorf("Memory for argon2id must be %d or more (parallelism * 8), you set memory to %d and parallelism to %d", configuration.Parallelism*8, configuration.Memory, configuration.Parallelism))
+
+		if configuration.PasswordHashing.SaltLength == 0 {
+			configuration.PasswordHashing.SaltLength = schema.DefaultPasswordOptionsConfiguration.SaltLength
+		} else if configuration.PasswordHashing.SaltLength < 0 {
+			validator.Push(fmt.Errorf("The salt length must 1 or more, you configured %d", configuration.PasswordHashing.SaltLength))
+		} else if configuration.PasswordHashing.SaltLength > 16 {
+			validator.Push(fmt.Errorf("The salt length must be 16 or less, you configured %d", configuration.PasswordHashing.SaltLength))
+		}
+
+		if configuration.PasswordHashing.Algorithm == "argon2id" {
+			if configuration.PasswordHashing.Parallelism == 0 {
+				configuration.PasswordHashing.Parallelism = schema.DefaultPasswordOptionsConfiguration.Parallelism
+			} else if configuration.PasswordHashing.Parallelism < 1 {
+				validator.Push(fmt.Errorf("Parallelism for argon2id must be 1 or more, you configured %d", configuration.PasswordHashing.Parallelism))
+			}
+			if configuration.PasswordHashing.Memory == 0 {
+				configuration.PasswordHashing.Memory = schema.DefaultPasswordOptionsConfiguration.Memory
+			} else if configuration.PasswordHashing.Memory < configuration.PasswordHashing.Parallelism*8 {
+				validator.Push(fmt.Errorf("Memory for argon2id must be %d or more (parallelism * 8), you configured memory as %d and parallelism as %d", configuration.PasswordHashing.Parallelism*8, configuration.PasswordHashing.Memory, configuration.PasswordHashing.Parallelism))
+			}
 		}
 	}
 }
