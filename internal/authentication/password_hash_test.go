@@ -62,7 +62,7 @@ func TestCannotMatchArgon2idParamPattern(t *testing.T) {
 func TestArgon2idVersionLessThanSupported(t *testing.T) {
 	ok, err := CheckPassword("password", "$argon2id$v=18$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
 
-	assert.EqualError(t, err, "Argon2 versions greater than v19 are not supported (hash is version 18)")
+	assert.EqualError(t, err, "Argon2 versions less than v19 are not supported (hash is version 18)")
 	assert.False(t, ok)
 }
 

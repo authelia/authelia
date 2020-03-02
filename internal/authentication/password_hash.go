@@ -48,8 +48,8 @@ func ParseHash(hash string) (*PasswordHash, error) {
 			return nil, fmt.Errorf("Cannot parse the Argon2id hash %s", hash)
 		}
 
-		var version uint32
-		_, err := fmt.Sscanf(parts[2], "v=%d", version)
+		var version int
+		_, err := fmt.Sscanf(parts[2], "v=%d", &version)
 		if version < 19 {
 			return nil, fmt.Errorf("Argon2 versions less than v19 are not supported (hash is version %d)", version)
 		} else if version > 19 {

@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -82,7 +83,7 @@ func TestShouldRetrieveUserDetails(t *testing.T) {
 func TestShouldUpdatePassword(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
 		provider := NewFileUserProvider(path)
-		assert.True(t, strings.HasPrefix("$6$", provider.database.Users["harry"].HashedPassword))
+		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].HashedPassword, "{CRYPT}$6$"))
 		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
 
@@ -91,7 +92,8 @@ func TestShouldUpdatePassword(t *testing.T) {
 		ok, err := provider.CheckUserPassword("harry", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
-		assert.True(t, strings.HasPrefix("$argon2id$", provider.database.Users["harry"].HashedPassword))
+		fmt.Println(provider.database.Users["harry"].HashedPassword)
+		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].HashedPassword, "{CRYPT}$argon2id$"))
 	})
 }
 
@@ -120,7 +122,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *tes
 }
 
 func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashesForTheFirstTime(t *testing.T) {
-	WithDatabase(BadSHA512HashContent, func(path string) {
+	WithDatabase(BADArgon2idHashContent, func(path string) {
 		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot match pattern 'm=<int>,t=<int>,p=<int>' to find the argon2id params. Cause: input does not match format", func() {
 			NewFileUserProvider(path)
 		})
