@@ -4,8 +4,8 @@ package schema
 type Configuration struct {
 	Host    string `mapstructure:"host"`
 	Port    int    `mapstructure:"port"`
-	SSLCert string `mapstructure:"ssl_cert"`
-	SSLKey  string `mapstructure:"ssl_key"`
+	TLSCert string `mapstructure:"tls_cert"`
+	TLSKey  string `mapstructure:"tls_key"`
 
 	LogsLevel string `mapstructure:"logs_level"`
 

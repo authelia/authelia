@@ -25,8 +25,8 @@ Defines the address to listen on.
 Authelia can use TLS. Provide the certificate and the key with the
 following configuration options:
 
-    ssl_key: /var/lib/authelia/ssl/key.pem
-    ssl_cert: /var/lib/authelia/ssl/cert.pem
+    tls_key: /var/lib/authelia/ssl/key.pem
+    tls_cert: /var/lib/authelia/ssl/cert.pem
 
 
 ## Logs level

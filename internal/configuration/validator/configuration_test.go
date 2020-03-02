@@ -100,31 +100,31 @@ func TestShouldAddDefaultAccessControl(t *testing.T) {
 	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
 }
 
-func TestShouldRaiseErrorWhenSSLCertWithoutKeyIsProvided(t *testing.T) {
+func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.SSLCert = "/tmp/cert.pem"
+	config.TLSCert = "/tmp/cert.pem"
 
 	Validate(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "No SSL key provided, please check the "ssl_key" which has been configured")
+	assert.EqualError(t, validator.Errors()[0], "No TLS key provided, please check the \"tls_key\" which has been configured")
 }
 
-func TestShouldRaiseErrorWhenSSLKeyWithoutCertIsProvided(t *testing.T) {
+func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.SSLKey = "/tmp/key.pem"
+	config.TLSKey = "/tmp/key.pem"
 
 	Validate(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "No SSL certificate provided, please check the "ssl_cert" which has been configured")
+	assert.EqualError(t, validator.Errors()[0], "No TLS certificate provided, please check the \"tls_cert\" which has been configured")
 }
 
-func TestShouldNotRaiseErrorWhenBothSSLCertificateAndKeyAreProvided(t *testing.T) {
+func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.SSLCert = "/tmp/cert.pem"
-	config.SSLKey = "/tmp/key.pem"
+	config.TLSCert = "/tmp/cert.pem"
+	config.TLSKey = "/tmp/key.pem"
 
 	Validate(&config, validator)
 	require.Len(t, validator.Errors(), 0)
