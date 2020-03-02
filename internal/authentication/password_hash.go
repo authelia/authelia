@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -39,7 +38,7 @@ func ParseHash(hash string) (*PasswordHash, error) {
 		}
 		_, err := fmt.Sscanf(parts[2], "rounds=%d", &h.Rounds)
 		if err != nil {
-			return nil, errors.New("Cannot match pattern 'rounds=<int>' to find the number of rounds")
+			return nil, fmt.Errorf("Cannot match pattern 'rounds=<int>' to find the number of rounds. Cause: %s", err)
 		}
 		h.Salt = parts[3]
 		h.Key = parts[4]
@@ -51,7 +50,7 @@ func ParseHash(hash string) (*PasswordHash, error) {
 
 		_, err := fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &h.Memory, &h.Rounds, &h.Parallelism)
 		if err != nil {
-			return nil, errors.New("Cannot match pattern 'm=<int>,t=<int>,p=<int>' to find the argon2id params")
+			return nil, fmt.Errorf("Cannot match pattern 'm=<int>,t=<int>,p=<int>' to find the argon2id params. Cause: %s", err)
 		}
 		h.Salt = parts[4]
 		h.Key = parts[5]
