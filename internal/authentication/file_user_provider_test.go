@@ -100,7 +100,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSchemaForFirstTime(t *testing.T) {
 
 func TestShouldRaiseWhenLoadingDatabaseWithBadHashesForTheFirstTime(t *testing.T) {
 	WithDatabase(BadHashContent, func(path string) {
-		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot match pattern 'rounds=<int>' to find the number of rounds", func() {
+		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot match pattern 'rounds=<int>' to find the number of rounds. Cause: input does not match format", func() {
 			NewFileUserProvider(path)
 		})
 	})
