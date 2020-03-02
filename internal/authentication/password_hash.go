@@ -5,51 +5,61 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"strconv"
 	"strings"
 
 	"github.com/simia-tech/crypt"
 )
 
 // PasswordHash represents all characteristics of a password hash.
-// Authelia only supports salted SHA512 method, i.e., $6$ mode.
+// Authelia only supports salted SHA512 or salted argon2id method, i.e., $6$ mode or $argon2id$ mode.
 type PasswordHash struct {
-	// The number of rounds.
-	Rounds int
-	// The salt with a max size of 16 characters for SHA512.
-	Salt string
-	// The password hash.
-	Hash string
+	Type        string
+	Rounds      int
+	Salt        string
+	Key         string
+	Memory      int
+	Parallelism int
 }
+
+var defaultPasswordType = Argon2id
+var defaultPasswordArgon2idRounds = 3
+var defaultPasswordArgon2idMemory = 64 * 1024
+var defaultPasswordArgon2idParallelism = 2
+var defaultPasswordSHA512Rounds = 5000
+var defaultPasswordSaltLength = 16
 
 // ParseHash extracts all characteristics of a hash given its string representation.
 func ParseHash(hash string) (*PasswordHash, error) {
 	parts := strings.Split(hash, "$")
+	h := &PasswordHash{}
 
-	if len(parts) != 5 {
-		return nil, fmt.Errorf("Cannot parse the hash %s", hash)
+	if parts[1] == SHA512 {
+		if len(parts) != 5 {
+			return nil, fmt.Errorf("Cannot parse the SHA512 hash %s", hash)
+		}
+		_, err := fmt.Sscanf(parts[2], "rounds=%d", &h.Rounds)
+		if err != nil {
+			return nil, errors.New("Cannot match pattern 'rounds=<int>' to find the number of rounds")
+		}
+		h.Salt = parts[3]
+		h.Key = parts[4]
+		h.Type = SHA512
+	} else if parts[1] == Argon2id {
+		if len(parts) != 6 {
+			return nil, fmt.Errorf("Cannot parse the Argon2id hash %s", hash)
+		}
+
+		_, err := fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &h.Memory, &h.Rounds, &h.Parallelism)
+		if err != nil {
+			return nil, errors.New("Cannot match pattern 'm=<int>,t=<int>,p=<int>' to find the argon2id params")
+		}
+		h.Salt = parts[4]
+		h.Key = parts[5]
+		h.Type = Argon2id
+	} else {
+		return nil, fmt.Errorf("Authelia only supports salted SHA512 hashing ($6$) and salted argon2id ($argon2id$), not $%s$", parts[1])
 	}
-
-	// Only supports salted sha 512.
-	if parts[1] != "6" {
-		return nil, fmt.Errorf("Authelia only supports salted SHA512 hashing ($6$), not $%s$", parts[1])
-	}
-
-	roundsKV := strings.Split(parts[2], "=")
-	if len(roundsKV) != 2 {
-		return nil, errors.New("Cannot match pattern 'rounds=<int>' to find the number of rounds")
-	}
-
-	rounds, err := strconv.ParseInt(roundsKV[1], 10, 0)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot find the number of rounds from %s using pattern 'rounds=<int>'. Cause: %s", roundsKV[1], err.Error())
-	}
-
-	return &PasswordHash{
-		Rounds: int(rounds),
-		Salt:   parts[3],
-		Hash:   parts[4],
-	}, nil
+	return h, nil
 }
 
 // The set of letters RandomString can pick in.
@@ -68,7 +78,11 @@ func RandomString(n int) string {
 // number of rounds.
 func HashPassword(password string, salt string) string {
 	if salt == "" {
-		salt = fmt.Sprintf("$6$rounds=50000$%s", RandomString(16))
+		if defaultPasswordType == Argon2id {
+			salt, _ = crypt.Argon2idSettings(defaultPasswordArgon2idMemory, defaultPasswordArgon2idRounds, defaultPasswordArgon2idParallelism, RandomString(defaultPasswordSaltLength))
+		} else if defaultPasswordType == SHA512 {
+			salt = fmt.Sprintf("$6$rounds=%d$%s", defaultPasswordSHA512Rounds, RandomString(defaultPasswordSaltLength))
+		}
 	}
 	hash, err := crypt.Crypt(password, salt)
 	if err != nil {
@@ -83,7 +97,15 @@ func CheckPassword(password string, hash string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	salt := fmt.Sprintf("$6$rounds=%d$%s$", passwordHash.Rounds, passwordHash.Salt)
+	var salt string
+	if passwordHash.Type == Argon2id {
+		salt, err = crypt.Argon2idSettings(passwordHash.Memory, passwordHash.Rounds, passwordHash.Parallelism, passwordHash.Salt)
+		if err != nil {
+			return false, err
+		}
+	} else if passwordHash.Type == SHA512 {
+		salt = fmt.Sprintf("$6$rounds=%d$%s$", passwordHash.Rounds, passwordHash.Salt)
+	}
 	pHash := HashPassword(password, salt)
 	return pHash == hash, nil
 }

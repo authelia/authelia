@@ -19,6 +19,11 @@ const (
 	U2F = "u2f"
 	// Push Method using Duo application to receive push notifications.
 	Push = "mobile_push"
+
+	//Argon2id Hash Identifier
+	Argon2id = "argon2id"
+	//SHA512 Hash Identifier
+	SHA512 = "6"
 )
 
 // PossibleMethods is the set of all possible 2FA methods.
