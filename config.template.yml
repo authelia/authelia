@@ -5,6 +5,8 @@
 # The host and port to listen on
 host: 0.0.0.0
 port: 9091
+# tls_key: /var/lib/authelia/ssl/key.pem
+# tls_cert: /var/lib/authelia/ssl/cert.pem
 
 # Level of verbosity for logs: info, debug, trace
 logs_level: debug

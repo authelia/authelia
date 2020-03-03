@@ -5,8 +5,11 @@ parent: Community
 nav_order: 1
 ---
 
-The following documentation shows how to integrate one-time password
-second factor through basic auth.
+The following project allows you to use Authelia's one-time password (OTP) 2-factor authentication (2FA) through only
+[basic auth](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication)
+and a custom credentials format described below.
+This allows you to use 2FA on clients and scenarios
+that demand basic auth, e.g. [webdav](https://en.wikipedia.org/wiki/WebDAV) network streaming.
+More information:
 
-Check the documentation available at
-[https://github.com/ViRb3/authelia-basic-auth-2fa](https://github.com/ViRb3/authelia-basic-auth-2fa).
+## [authelia-basic-2fa](https://github.com/ViRb3/authelia-basic-2fa)

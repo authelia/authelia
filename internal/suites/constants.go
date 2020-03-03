@@ -39,4 +39,4 @@ var MX2MailBaseURL = fmt.Sprintf("https://mx2.mail.%s", BaseDomain)
 var DuoBaseURL = "https://duo.example.com"
 
 // AutheliaBaseURL the base URL of Authelia service
-var AutheliaBaseURL = "http://authelia.example.com:9091"
+var AutheliaBaseURL = "https://authelia.example.com:9091"

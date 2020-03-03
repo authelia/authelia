@@ -2,8 +2,11 @@ package schema
 
 // Configuration object extracted from YAML configuration file.
 type Configuration struct {
-	Host      string `mapstructure:"host"`
-	Port      int    `mapstructure:"port"`
+	Host    string `mapstructure:"host"`
+	Port    int    `mapstructure:"port"`
+	TLSCert string `mapstructure:"tls_cert"`
+	TLSKey  string `mapstructure:"tls_key"`
+
 	LogsLevel string `mapstructure:"logs_level"`
 
 	// This secret is used by the identity validation process to forge JWT tokens
