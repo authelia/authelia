@@ -109,6 +109,15 @@ func TestShouldNotHashArgon2idPasswordDueParallelismLessThanOne(t *testing.T) {
 	assert.EqualError(t, err, "Parallelism (argon2id) input of -1 is invalid, it must be 1 or higher.")
 }
 
+func TestShouldNotHashArgon2idPasswordDueIterationsLessThanOne(t *testing.T) {
+	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id,
+		0, schema.DefaultPasswordOptionsConfiguration.Memory, schema.DefaultPasswordOptionsConfiguration.Parallelism,
+		schema.DefaultPasswordOptionsConfiguration.KeyLength, schema.DefaultPasswordOptionsConfiguration.SaltLength)
+
+	assert.Equal(t, "", hash)
+	assert.EqualError(t, err, "Iterations (argon2id) input of 0 is invalid, it must be 1 or more.")
+}
+
 func TestShouldNotHashPasswordDueToSaltLength(t *testing.T) {
 	hash, err := HashPassword("password", "", HashingAlgorithmArgon2id,
 		schema.DefaultPasswordOptionsConfiguration.Iterations, schema.DefaultPasswordOptionsConfiguration.Memory,

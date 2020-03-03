@@ -122,12 +122,12 @@ func main() {
 	}
 
 	hashPasswordCmd := commands.HashPasswordCmd
-	hashPasswordCmd.Flags().BoolP("sha512", "z", false, "use sha512 instead of argon2id")
+	hashPasswordCmd.Flags().BoolP("sha512", "z", false, "use sha512 as the algorithm (instead of argon2id)")
 	hashPasswordCmd.Flags().IntP("iterations", "i", schema.DefaultPasswordOptionsConfiguration.Iterations, "set the number of hashing iterations")
 	hashPasswordCmd.Flags().StringP("salt", "s", "", "set the salt string")
-	hashPasswordCmd.Flags().IntP("memory", "m", schema.DefaultPasswordOptionsConfiguration.Memory, "set the amount of memory (in KB) argon2id param")
-	hashPasswordCmd.Flags().IntP("parallelism", "p", schema.DefaultPasswordOptionsConfiguration.Parallelism, "set the argon2id parallelism param")
-	hashPasswordCmd.Flags().IntP("key-length", "k", schema.DefaultPasswordOptionsConfiguration.KeyLength, "set the argon2id key length param")
+	hashPasswordCmd.Flags().IntP("memory", "m", schema.DefaultPasswordOptionsConfiguration.Memory, "[argon2id] set the amount of memory param (in KB)")
+	hashPasswordCmd.Flags().IntP("parallelism", "p", schema.DefaultPasswordOptionsConfiguration.Parallelism, "[argon2id] set the parallelism param")
+	hashPasswordCmd.Flags().IntP("key-length", "k", schema.DefaultPasswordOptionsConfiguration.KeyLength, "[argon2id] set the key length param")
 	hashPasswordCmd.Flags().IntP("salt-length", "l", schema.DefaultPasswordOptionsConfiguration.SaltLength, "set the auto-generated salt length")
 
 	rootCmd.AddCommand(versionCmd, hashPasswordCmd, commands.MigrateCmd)

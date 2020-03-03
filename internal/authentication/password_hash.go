@@ -123,6 +123,9 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 		if keyLength < 16 {
 			return "", fmt.Errorf("Key length (argon2id) input of %d is invalid, it must be 16 or higher.", keyLength)
 		}
+		if iterations < 1 {
+			return "", fmt.Errorf("Iterations (argon2id) input of %d is invalid, it must be 1 or more.", iterations)
+		}
 		// Caution: Increasing any of the values in the above block has a high chance in old passwords that cannot be verified.
 	}
 
