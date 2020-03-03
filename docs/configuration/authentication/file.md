@@ -84,7 +84,9 @@ considered the best hashing function. This was implemented due to community feed
  
  All algorithm tuning is supported by Argon2id except Key length. The only configuration variables that affects SHA512
  are rounds and salt length. The configuration variables are unique to the file authentication provider, thus they all
- exist in a key under the file authentication configuration called `password_hashing`.
+ exist in a key under the file authentication configuration key called `password_hashing`. We have set what are considered 
+ to  be sane and recommended defaults, if you're unsure about which settings to tune, please see the parameters below, or 
+ for a more in depth understanding see the referenced documentation.
  
  Example:
  ```
@@ -107,9 +109,15 @@ file:
  #### iterations
    - Value Type: Int
    - Possible Value: `1` or higher for argon2id and `1000` or higher for sha512 (will automatically be set to `1000` on lower settings)
-   - Recommended: `3` for the `argon2id` algorithm and `50000` for `sha512`
+   - Recommended: `1` for the `argon2id` algorithm and `50000` for `sha512`
    - What it Does: Adjusts the number of times we run the password through the hashing algorithm
-   
+ 
+ #### key_length
+ - Value Type: Int
+ - Possible Value: `16` or higher.
+ - Recommended: `32` or higher.
+ - What it Does: Adjusts the length of the actual hash
+ 
  #### salt_length
   - Value Type: Int
   - Possible Value: between `2` and `16`
@@ -119,9 +127,17 @@ file:
  #### parallelism
  - Value Type: Int
  - Possible Value: `1` or higher
- - Recommended: `2`
+ - Recommended: `4`
+ - What it Does: Sets the number of threads used for crypto
  
  #### memory
  - Value Type: Int
  - Possible Value: at least `8` times the value of `parallelism`
- - Recommended: `‭65536‬`
+ - Recommended: `65535‬‬` (64MB)
+ - What it Does: Sets the amount of RAM used in KB for crypto (1024 * MB desired)
+ 
+ #### Argon2 Links
+ [Go Documentation](https://godoc.org/golang.org/x/crypto/argon2)
+ 
+ [IETF Draft](https://tools.ietf.org/id/draft-irtf-cfrg-argon2-05.html)
+ 

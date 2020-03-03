@@ -2,8 +2,8 @@ package commands
 
 import (
 	"fmt"
-	"github.com/authelia/authelia/internal/authentication"
 
+	"github.com/authelia/authelia/internal/authentication"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +16,7 @@ var HashPasswordCmd = &cobra.Command{
 		sha512, _ := cobraCmd.Flags().GetBool("sha512")
 		iterations, _ := cobraCmd.Flags().GetInt("iterations")
 		salt, _ := cobraCmd.Flags().GetString("salt")
+		keyLength, _ := cobraCmd.Flags().GetInt("key-length")
 		saltLength, _ := cobraCmd.Flags().GetInt("salt-length")
 		memory, _ := cobraCmd.Flags().GetInt("memory")
 		parallelism, _ := cobraCmd.Flags().GetInt("parallelism")
@@ -30,7 +31,7 @@ var HashPasswordCmd = &cobra.Command{
 			algorithm = authentication.HashingAlgorithmArgon2id
 		}
 
-		hash, err = authentication.HashPassword(args[0], salt, algorithm, iterations, memory, parallelism, saltLength)
+		hash, err = authentication.HashPassword(args[0], salt, algorithm, iterations, memory, parallelism, keyLength, saltLength)
 		if err != nil {
 			fmt.Println(fmt.Sprintf("Error occured during hashing: %s", err))
 		} else {

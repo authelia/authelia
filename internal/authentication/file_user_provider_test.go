@@ -170,7 +170,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *tes
 	WithDatabase(BadSHA512HashContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot match pattern 'rounds=<int>' to find the number of rounds. Cause: input does not match format", func() {
+		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot parse hash key is not the last parameter, the hash is probably malformed ($6$rounds00000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/).", func() {
 			NewFileUserProvider(&config)
 		})
 	})
@@ -180,7 +180,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSettingsForTheFirstTim
 	WithDatabase(BadArgon2idHashSettingsContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot match pattern 'm=<int>,t=<int>,p=<int>' to find the argon2id params. Cause: input does not match format", func() {
+		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot parse hash key is not the last parameter, the hash is probably malformed ($argon2id$v=19$m65536,t3,p2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM).", func() {
 			NewFileUserProvider(&config)
 		})
 	})
@@ -190,7 +190,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashKeyForTheFirstTime(t *
 	WithDatabase(BadArgon2idHashKeyContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot parse hash argon2id key contains invalid base64 characters.", func() {
+		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot parse hash key contains invalid base64 characters.", func() {
 			NewFileUserProvider(&config)
 		})
 	})
@@ -200,7 +200,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSaltForTheFirstTime(t 
 	WithDatabase(BadArgon2idHashSaltContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot parse hash argon2id salt contains invalid base64 characters.", func() {
+		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot parse hash salt contains invalid base64 characters.", func() {
 			NewFileUserProvider(&config)
 		})
 	})
@@ -222,11 +222,12 @@ var (
 	DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackendConfiguration{
 		Path: "",
 		PasswordHashing: &schema.PasswordHashingConfiguration{
-			Iterations:  3,
-			SaltLength:  16,
-			Algorithm:   "argon2id",
-			Memory:      64 * 1024,
-			Parallelism: 2,
+			Iterations:  schema.DefaultPasswordOptionsConfiguration.Iterations,
+			KeyLength:   schema.DefaultPasswordOptionsConfiguration.KeyLength,
+			SaltLength:  schema.DefaultPasswordOptionsConfiguration.SaltLength,
+			Algorithm:   schema.DefaultPasswordOptionsConfiguration.Algorithm,
+			Memory:      schema.DefaultPasswordOptionsConfiguration.Memory,
+			Parallelism: schema.DefaultPasswordOptionsConfiguration.Parallelism,
 		},
 	}
 )

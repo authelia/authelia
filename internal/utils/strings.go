@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func IsStringInSlice(a string, list []string) bool {
+func IsStringInSlice(a string, list []string) (inSlice bool) {
 	for _, b := range list {
 		if b == a {
 			return true
@@ -15,7 +15,7 @@ func IsStringInSlice(a string, list []string) bool {
 	return false
 }
 
-func IsStringBase64Valid(s string) bool {
+func IsStringBase64Valid(s string) (valid bool) {
 	for _, r := range s {
 		if (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') && (r < '+' || r > '/') {
 			return false
@@ -25,21 +25,21 @@ func IsStringBase64Valid(s string) bool {
 }
 
 // Splits a string s into an array with each item being a max of int d
-func SplitStringToArrayOfStrings(s string, d int) (slice []string) {
+func SplitStringToArrayOfStrings(s string, d int) (array []string) {
 	l := len(s)
 	n := l / d
 	r := l & d
 	for i := 0; i < n; i++ {
-		slice = append(slice, s[i*d:i*d+d])
+		array = append(array, s[i*d:i*d+d])
 		if i+1 == n && r != 0 {
-			slice = append(slice, s[i*d+d:])
+			array = append(array, s[i*d+d:])
 		}
 	}
 	return
 }
 
 // RandomString generate a random string of n characters
-func RandomString(n int, characters []rune) string {
+func RandomString(n int, characters []rune) (randomString string) {
 	prime, err := cryptorand.Prime(cryptorand.Reader, 1024)
 	if err != nil {
 		rand.Seed(time.Now().UnixNano())

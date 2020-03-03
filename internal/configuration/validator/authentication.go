@@ -29,6 +29,7 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 			}
 		}
 
+		// Iterations (time)
 		if configuration.PasswordHashing.Iterations == 0 {
 			if configuration.PasswordHashing.Algorithm == "argon2id" {
 				configuration.PasswordHashing.Iterations = schema.DefaultPasswordOptionsConfiguration.Iterations
@@ -39,6 +40,7 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 			validator.Push(fmt.Errorf("The number of iterations specified is invalid, must be 1 or more, you configured %d", configuration.PasswordHashing.Iterations))
 		}
 
+		//Salt Length
 		if configuration.PasswordHashing.SaltLength == 0 {
 			configuration.PasswordHashing.SaltLength = schema.DefaultPasswordOptionsConfiguration.SaltLength
 		} else if configuration.PasswordHashing.SaltLength < 2 {
@@ -48,15 +50,26 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 		}
 
 		if configuration.PasswordHashing.Algorithm == "argon2id" {
+
+			// Parallelism
 			if configuration.PasswordHashing.Parallelism == 0 {
 				configuration.PasswordHashing.Parallelism = schema.DefaultPasswordOptionsConfiguration.Parallelism
 			} else if configuration.PasswordHashing.Parallelism < 1 {
 				validator.Push(fmt.Errorf("Parallelism for argon2id must be 1 or more, you configured %d", configuration.PasswordHashing.Parallelism))
 			}
+
+			// Memory
 			if configuration.PasswordHashing.Memory == 0 {
 				configuration.PasswordHashing.Memory = schema.DefaultPasswordOptionsConfiguration.Memory
 			} else if configuration.PasswordHashing.Memory < configuration.PasswordHashing.Parallelism*8 {
 				validator.Push(fmt.Errorf("Memory for argon2id must be %d or more (parallelism * 8), you configured memory as %d and parallelism as %d", configuration.PasswordHashing.Parallelism*8, configuration.PasswordHashing.Memory, configuration.PasswordHashing.Parallelism))
+			}
+
+			// Key Length
+			if configuration.PasswordHashing.KeyLength == 0 {
+				configuration.PasswordHashing.KeyLength = schema.DefaultPasswordOptionsConfiguration.KeyLength
+			} else if configuration.PasswordHashing.KeyLength < 16 {
+				validator.Push(fmt.Errorf("Key length for argon2id must be 16, you configured %d", configuration.PasswordHashing.KeyLength))
 			}
 		}
 	}

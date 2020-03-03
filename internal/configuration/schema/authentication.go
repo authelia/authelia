@@ -23,6 +23,7 @@ type FileAuthenticationBackendConfiguration struct {
 
 type PasswordHashingConfiguration struct {
 	Iterations  int    `mapstructure:"iterations"`
+	KeyLength   int    `mapstructure:"key_length"`
 	SaltLength  int    `mapstructure:"salt_length"`
 	Algorithm   string `mapstrucutre:"algorithm"`
 	Memory      int    `mapstructure:"memory"`
@@ -30,11 +31,12 @@ type PasswordHashingConfiguration struct {
 }
 
 var DefaultPasswordOptionsConfiguration = PasswordHashingConfiguration{
-	Iterations:  3,
+	Iterations:  1,
+	KeyLength:   32,
 	SaltLength:  16,
 	Algorithm:   "argon2id",
 	Memory:      64 * 1024,
-	Parallelism: 2,
+	Parallelism: 4,
 }
 
 var DefaultPasswordOptionsSHA512Configuration = PasswordHashingConfiguration{

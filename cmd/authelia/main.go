@@ -10,6 +10,7 @@ import (
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/commands"
 	"github.com/authelia/authelia/internal/configuration"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/notification"
@@ -122,11 +123,12 @@ func main() {
 
 	hashPasswordCmd := commands.HashPasswordCmd
 	hashPasswordCmd.Flags().BoolP("sha512", "z", false, "use sha512 instead of argon2id")
-	hashPasswordCmd.Flags().IntP("iterations", "i", 3, "set the number of hashing iterations")
+	hashPasswordCmd.Flags().IntP("iterations", "i", schema.DefaultPasswordOptionsConfiguration.Iterations, "set the number of hashing iterations")
 	hashPasswordCmd.Flags().StringP("salt", "s", "", "set the salt string")
-	hashPasswordCmd.Flags().IntP("memory", "m", 65536, "set the argon2id memory param")
-	hashPasswordCmd.Flags().IntP("parallelism", "p", 2, "set the argon2id parallelism param")
-	hashPasswordCmd.Flags().IntP("salt-length", "l", 16, "set the auto-generated salt length")
+	hashPasswordCmd.Flags().IntP("memory", "m", schema.DefaultPasswordOptionsConfiguration.Memory, "set the amount of memory (in KB) argon2id param")
+	hashPasswordCmd.Flags().IntP("parallelism", "p", schema.DefaultPasswordOptionsConfiguration.Parallelism, "set the argon2id parallelism param")
+	hashPasswordCmd.Flags().IntP("key-length", "k", schema.DefaultPasswordOptionsConfiguration.KeyLength, "set the argon2id key length param")
+	hashPasswordCmd.Flags().IntP("salt-length", "l", schema.DefaultPasswordOptionsConfiguration.SaltLength, "set the auto-generated salt length")
 
 	rootCmd.AddCommand(versionCmd, hashPasswordCmd, commands.MigrateCmd)
 	rootCmd.AddCommand(commands.CertificatesCmd)

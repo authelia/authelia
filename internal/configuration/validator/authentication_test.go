@@ -28,7 +28,15 @@ type FileBasedAuthenticationBackend struct {
 func (suite *FileBasedAuthenticationBackend) SetupTest() {
 	suite.validator = schema.NewStructValidator()
 	suite.configuration = schema.AuthenticationBackendConfiguration{}
-	suite.configuration.File = &schema.FileAuthenticationBackendConfiguration{Path: "/a/path", PasswordHashing: &schema.PasswordHashingConfiguration{}}
+	suite.configuration.File = &schema.FileAuthenticationBackendConfiguration{Path: "/a/path", PasswordHashing: &schema.PasswordHashingConfiguration{
+		Algorithm:   schema.DefaultPasswordOptionsConfiguration.Algorithm,
+		Iterations:  schema.DefaultPasswordOptionsConfiguration.Iterations,
+		Parallelism: schema.DefaultPasswordOptionsConfiguration.Parallelism,
+		Memory:      schema.DefaultPasswordOptionsConfiguration.Memory,
+		KeyLength:   schema.DefaultPasswordOptionsConfiguration.KeyLength,
+		SaltLength:  schema.DefaultPasswordOptionsConfiguration.SaltLength,
+	}}
+	suite.configuration.File.PasswordHashing.Algorithm = schema.DefaultPasswordOptionsConfiguration.Algorithm
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldValidateCompleteConfiguration() {
@@ -49,6 +57,13 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenMemoryNotMo
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 1)
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Memory for argon2id must be 16 or more (parallelism * 8), you configured memory as 8 and parallelism as 2")
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenKeyLengthTooLow() {
+	suite.configuration.File.PasswordHashing.KeyLength = 1
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	assert.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Key length for argon2id must be 16, you configured 1")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSaltLengthTooLow() {

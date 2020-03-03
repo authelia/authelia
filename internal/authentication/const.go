@@ -32,3 +32,12 @@ const (
 var PossibleMethods = []string{TOTP, U2F, Push}
 
 var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")
+
+// These are the default values from the upstream crypt module, we use them to for GetInt, and they need to be checked when updating  github.com/simia-tech/crypt
+const (
+	HashingDefaultArgon2idTime        = 1
+	HashingDefaultArgon2idMemory      = 32 * 1024
+	HashingDefaultArgon2idParallelism = 4
+	HashingDefaultArgon2idKeyLength   = 32
+	HashingDefaultSHA512Iterations    = 5000
+)

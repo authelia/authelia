@@ -9,7 +9,6 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/authelia/authelia/internal/configuration/schema"
-
 	"gopkg.in/yaml.v2"
 )
 
@@ -125,8 +124,11 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		return errors.New("Invalid algorithm in configuration. It should be impossible to reach this error!")
 	}
 
-	hash, err := HashPassword(newPassword, "", algorithm, p.configuration.PasswordHashing.Iterations,
-		p.configuration.PasswordHashing.Memory, p.configuration.PasswordHashing.Parallelism, p.configuration.PasswordHashing.SaltLength)
+	hash, err := HashPassword(
+		newPassword, "", algorithm, p.configuration.PasswordHashing.Iterations,
+		p.configuration.PasswordHashing.Memory, p.configuration.PasswordHashing.Parallelism,
+		p.configuration.PasswordHashing.KeyLength, p.configuration.PasswordHashing.SaltLength)
+
 	if err != nil {
 		return err
 	}
