@@ -24,6 +24,12 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 		configuration.LogsLevel = defaultLogsLevel
 	}
 
+	if configuration.TLSKey != "" && configuration.TLSCert == "" {
+		validator.Push(fmt.Errorf("No TLS certificate provided, please check the \"tls_cert\" which has been configured"))
+	} else if configuration.TLSKey == "" && configuration.TLSCert != "" {
+		validator.Push(fmt.Errorf("No TLS key provided, please check the \"tls_key\" which has been configured"))
+	}
+
 	if configuration.DefaultRedirectionURL != "" {
 		_, err := url.ParseRequestURI(configuration.DefaultRedirectionURL)
 		if err != nil {

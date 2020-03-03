@@ -99,3 +99,33 @@ func TestShouldAddDefaultAccessControl(t *testing.T) {
 	assert.NotNil(t, config.AccessControl)
 	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
 }
+
+func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.TLSCert = "/tmp/cert.pem"
+
+	Validate(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "No TLS key provided, please check the \"tls_key\" which has been configured")
+}
+
+func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.TLSKey = "/tmp/key.pem"
+
+	Validate(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "No TLS certificate provided, please check the \"tls_cert\" which has been configured")
+}
+
+func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.TLSCert = "/tmp/cert.pem"
+	config.TLSKey = "/tmp/key.pem"
+
+	Validate(&config, validator)
+	require.Len(t, validator.Errors(), 0)
+}

@@ -9,9 +9,14 @@ import (
 
 // Suite the definition of a suite
 type Suite struct {
-	SetUp          func(tmpPath string) error
-	SetUpTimeout   time.Duration
+	SetUp        func(tmpPath string) error
+	SetUpTimeout time.Duration
+
+	// Callback called when an error occur during setup phase.
 	OnSetupTimeout func() error
+
+	// Callback called when at least one test fail
+	OnError func() error
 
 	TestTimeout time.Duration
 
