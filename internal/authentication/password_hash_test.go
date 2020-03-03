@@ -59,6 +59,22 @@ func TestShouldNotHashPasswordDueToSaltCharLength(t *testing.T) {
 	assert.EqualError(t, err, "Salt input of abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 is invalid (62 characters), it must be 16 or fewer characters.")
 }
 
+func TestShouldNotHashWithNonBase64CharsInSalt(t *testing.T) {
+	hash, err := HashPassword("password", "abc&123", HashingAlgorithmArgon2id, 3, 65536, 2, 0)
+	assert.Equal(t, "", hash)
+	assert.EqualError(t, err, "Salt input of abc&123 is invalid, only characters [a-zA-Z0-9+/] are valid for input.")
+}
+
+func TestShouldNotParseWithNoneBase64CharsInHashKey(t *testing.T) {
+	_, err := ParseHash("$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$^^vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
+	assert.EqualError(t, err, "Cannot parse hash argon2id key contains invalid base64 characters.")
+}
+
+func TestShouldNotParseWithNoneBase64CharsInHashSalt(t *testing.T) {
+	_, err := ParseHash("$argon2id$v=19$m=65536,t=3,p=2$^^LnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
+	assert.EqualError(t, err, "Cannot parse hash argon2id salt contains invalid base64 characters.")
+}
+
 func TestShouldCheckSHA512Password(t *testing.T) {
 	ok, err := CheckPassword("password", "$6$rounds=50000$aFr56HjK3DrB8t3S$zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1")
 	assert.NoError(t, err)

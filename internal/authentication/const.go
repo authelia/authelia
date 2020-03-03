@@ -31,4 +31,4 @@ const (
 // PossibleMethods is the set of all possible 2FA methods.
 var PossibleMethods = []string{TOTP, U2F, Push}
 
-var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")

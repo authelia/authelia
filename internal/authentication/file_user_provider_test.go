@@ -176,11 +176,31 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *tes
 	})
 }
 
-func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashesForTheFirstTime(t *testing.T) {
-	WithDatabase(BADArgon2idHashContent, func(path string) {
+func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSettingsForTheFirstTime(t *testing.T) {
+	WithDatabase(BadArgon2idHashSettingsContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot match pattern 'm=<int>,t=<int>,p=<int>' to find the argon2id params. Cause: input does not match format", func() {
+			NewFileUserProvider(&config)
+		})
+	})
+}
+
+func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashKeyForTheFirstTime(t *testing.T) {
+	WithDatabase(BadArgon2idHashKeyContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot parse hash argon2id key contains invalid base64 characters.", func() {
+			NewFileUserProvider(&config)
+		})
+	})
+}
+
+func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSaltForTheFirstTime(t *testing.T) {
+	WithDatabase(BadArgon2idHashSaltContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		assert.PanicsWithValue(t, "Unable to parse hash of user john: Cannot parse hash argon2id salt contains invalid base64 characters.", func() {
 			NewFileUserProvider(&config)
 		})
 	})
@@ -282,7 +302,7 @@ users:
     email: james.dean@authelia.com
 `)
 
-var BADArgon2idHashContent = []byte(`
+var BadArgon2idHashSettingsContent = []byte(`
 users:
   john:
     password: "$argon2id$v=19$m65536,t3,p2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
@@ -293,4 +313,23 @@ users:
   james:
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: james.dean@authelia.com
+`)
+
+var BadArgon2idHashKeyContent = []byte(`
+users:
+  john:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$^^vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+`)
+var BadArgon2idHashSaltContent = []byte(`
+users:
+  john:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$^^LnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
 `)

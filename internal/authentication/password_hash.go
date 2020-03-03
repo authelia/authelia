@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/authelia/authelia/internal/utils"
 	"github.com/simia-tech/crypt"
 )
 
@@ -58,6 +59,12 @@ func ParseHash(hash string) (*PasswordHash, error) {
 		h.Salt = parts[4]
 		h.Key = parts[5]
 		h.Algorithm = HashingAlgorithmArgon2id
+		if !utils.IsStringBase64Valid(h.Key) {
+			return nil, fmt.Errorf("Cannot parse hash argon2id key contains invalid base64 characters.")
+		}
+		if !utils.IsStringBase64Valid(h.Salt) {
+			return nil, fmt.Errorf("Cannot parse hash argon2id salt contains invalid base64 characters.")
+		}
 	} else {
 		return nil, fmt.Errorf("Authelia only supports salted SHA512 hashing ($6$) and salted argon2id ($argon2id$), not $%s$", parts[1])
 	}
@@ -96,6 +103,8 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 		}
 	} else if len(salt) > 16 {
 		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 16 or fewer characters.", salt, len(salt))
+	} else if !utils.IsStringBase64Valid(salt) {
+		return "", fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input.", salt)
 	}
 	if algorithm == HashingAlgorithmArgon2id {
 		if memory < 8 {

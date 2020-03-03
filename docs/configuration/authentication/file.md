@@ -58,7 +58,8 @@ The file contains hashed passwords instead of plain text passwords for security 
 You can use Authelia binary or docker image to generate the hash of any password. The hash-password command has many 
 tunable options, you can view them with the `authelia hash-password --help` command. For example if you wanted to improve
 the entropy you could generate a 16 byte salt and provide it with the `--salt` flag. 
-Example: `authelia hash-password --salt abcdefghijklhijl`.
+Example: `authelia hash-password --salt abcdefghijklhijl`. For argon2id the salt must always be a valid for base64
+decoding (characters a through z, A through Z, 0 through 9, and +/).
 
 For instance, with the docker image, just run
 
