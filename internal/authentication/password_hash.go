@@ -108,7 +108,9 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 	} else if !utils.IsStringBase64Valid(salt) {
 		return "", fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input.", salt)
 	}
+
 	if algorithm == HashingAlgorithmArgon2id {
+		// Caution: Increasing any of the values in the below block has a high chance in old passwords that cannot be verified.
 		if memory < 8 {
 			return "", fmt.Errorf("Memory (argon2id) input of %d is invalid, it must be 8 or higher.", memory)
 		}
@@ -118,6 +120,10 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 		if memory < parallelism*8 {
 			return "", fmt.Errorf("Memory (argon2id) input of %d is invalid with a paraellelism input of %d, it must be %d (parallelism * 8) or higher.", memory, parallelism, parallelism*8)
 		}
+		if keyLength < 16 {
+			return "", fmt.Errorf("Key length (argon2id) input of %d is invalid, it must be 16 or higher.", keyLength)
+		}
+		// Caution: Increasing any of the values in the above block has a high chance in old passwords that cannot be verified.
 	}
 
 	if salt == "" {

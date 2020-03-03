@@ -105,10 +105,11 @@ authentication_backend:
   ##   path: ./users_database.yml
   ##   password_options:
   ##     algorithm: argon2id
-  ##     iterations: 3
+  ##     iterations: 1
+  ##     key_length: 32
   ##     salt_length: 16
   ##     memory: ‭65536‬
-  ##     parallelism: 2
+  ##     parallelism: 4
 # Access Control
 #
 # Access control is a list of rules defining the authorizations applied for one

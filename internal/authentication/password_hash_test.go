@@ -91,6 +91,15 @@ func TestShouldNotHashArgon2idPasswordDueToMemoryLessThanEight(t *testing.T) {
 	assert.EqualError(t, err, "Memory (argon2id) input of 1 is invalid, it must be 8 or higher.")
 }
 
+func TestShouldNotHashArgon2idPasswordDueToKeyLengthLessThanSixteen(t *testing.T) {
+	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id,
+		schema.DefaultPasswordOptionsConfiguration.Iterations, schema.DefaultPasswordOptionsConfiguration.Memory,
+		schema.DefaultPasswordOptionsConfiguration.Parallelism, 5, schema.DefaultPasswordOptionsConfiguration.SaltLength)
+
+	assert.Equal(t, "", hash)
+	assert.EqualError(t, err, "Key length (argon2id) input of 5 is invalid, it must be 16 or higher.")
+}
+
 func TestShouldNotHashArgon2idPasswordDueParallelismLessThanOne(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id,
 		schema.DefaultPasswordOptionsConfiguration.Iterations, schema.DefaultPasswordOptionsConfiguration.Memory, -1,
