@@ -53,6 +53,12 @@ func TestShouldNotHashPasswordDueToSaltLength(t *testing.T) {
 	assert.EqualError(t, err, "Salt length input of 20 is invalid, it must be 16 or lower.")
 }
 
+func TestShouldNotHashPasswordDueToSaltCharLength(t *testing.T) {
+	hash, err := HashPassword("password", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", HashingAlgorithmArgon2id, 3, 65536, 2, 0)
+	assert.Equal(t, "", hash)
+	assert.EqualError(t, err, "Salt input of abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 is invalid (62 characters), it must be 16 or fewer characters.")
+}
+
 func TestShouldCheckSHA512Password(t *testing.T) {
 	ok, err := CheckPassword("password", "$6$rounds=50000$aFr56HjK3DrB8t3S$zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1")
 	assert.NoError(t, err)

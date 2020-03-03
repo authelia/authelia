@@ -55,9 +55,10 @@ resetting their passwords.
 
 The file contains hashed passwords instead of plain text passwords for security reasons.
 
-You can use Authelia binary or docker image to generate the hash of any password. The salt provided by the docker run
-command will not actually be random due to the ephemeral nature of containers. If you'd like to configure the seed
-for increased entropy or tune any other password hashing values you can see how by doing `authelia hash-password --help`.
+You can use Authelia binary or docker image to generate the hash of any password. The hash-password command has many 
+tunable options, you can view them with the `authelia hash-password --help` command. For example if you wanted to improve
+the entropy you could generate a 16 byte salt and provide it with the `--salt` flag. 
+Example: `authelia hash-password --salt abcdefghijklhijl`.
 
 For instance, with the docker image, just run
 
@@ -68,7 +69,7 @@ For instance, with the docker image, just run
 ## Password Hash Function
 
 The supported hash functions are salted Argon2id (default, version 19 only), and salted SHA512 for backwards compatibility.
-This is determined by the prefix `$argon2id$` and `$6$` respectively, as described in this [wiki page](https://en.wikipedia.org/wiki/Crypt_(C\)). 
+This is determined by the prefix `$argon2id$` and `$6$` respectively, as described in this [wiki page](https://en.wikipedia.org/wiki/Crypt_(C)). 
 
 Although SHA512 is supported default hashes are generated with Argon2id. This is because it is
 not the best hash function, while it is a decent algorithm given the number of rounds is big enough the difficulty to 
@@ -81,8 +82,8 @@ considered the best hashing function. This was implemented due to community feed
  ### Password Hash Algorithm Tuning
  
  All algorithm tuning is supported by Argon2id except Key length. The only configuration variables that affects SHA512
- are rounds and salt length. The configuration variables are unique to the file authentication provider, and as such exist
- under a subkey of file called `password_hashing`.
+ are rounds and salt length. The configuration variables are unique to the file authentication provider, thus they all
+ exist in a key under the file authentication configuration called `password_hashing`.
  
  Example:
  ```

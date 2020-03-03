@@ -94,6 +94,8 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 		} else if saltLength > 16 {
 			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 16 or lower.", saltLength)
 		}
+	} else if len(salt) > 16 {
+		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 16 or fewer characters.", salt, len(salt))
 	}
 	if algorithm == HashingAlgorithmArgon2id {
 		if memory < 8 {
