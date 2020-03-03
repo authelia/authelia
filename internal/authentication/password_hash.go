@@ -46,9 +46,9 @@ func ParseHash(hash string) (*PasswordHash, error) {
 		var version int
 		_, err := fmt.Sscanf(parts[2], "v=%d", &version)
 		if version < 19 {
-			return nil, fmt.Errorf("Argon2 versions less than v19 are not supported (hash is version %d)", version)
+			return nil, fmt.Errorf("Argon2id versions less than v19 are not supported (hash is version %d).", version)
 		} else if version > 19 {
-			return nil, fmt.Errorf("Argon2 versions greater than v19 are not supported (hash is version %d)", version)
+			return nil, fmt.Errorf("Argon2id versions greater than v19 are not supported (hash is version %d).", version)
 		}
 
 		_, err = fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &h.Memory, &h.Iterations, &h.Parallelism)
@@ -85,25 +85,25 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 	var settings string
 
 	if algorithm != HashingAlgorithmArgon2id && algorithm != HashingAlgorithmSHA512 {
-		return "", fmt.Errorf("Hashing algorithm '%s' is invalid only values of %s and %s are supported.", algorithm, HashingAlgorithmArgon2id, HashingAlgorithmSHA512)
+		return "", fmt.Errorf("Hashing algorithm input of '%s' is invalid, only values of %s and %s are supported.", algorithm, HashingAlgorithmArgon2id, HashingAlgorithmSHA512)
 	}
 
 	if salt == "" {
 		if saltLength < 1 {
-			return "", fmt.Errorf("Salt length is %d but it must be 1 or higher.", saltLength)
+			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 1 or higher.", saltLength)
 		} else if saltLength > 16 {
-			return "", fmt.Errorf("Salt length is %d but it must be 16 or lower.", saltLength)
+			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 16 or lower.", saltLength)
 		}
 	}
 	if algorithm == HashingAlgorithmArgon2id {
 		if memory < 8 {
-			return "", fmt.Errorf("Memory for argon2id must be above 8, you set it to %d.", memory)
+			return "", fmt.Errorf("Memory (argon2id) input of %d is invalid, it must be 8 or higher.", memory)
 		}
 		if parallelism < 1 {
-			return "", fmt.Errorf("Parallelism for argon2id must be above 0, you set it to %d.", parallelism)
+			return "", fmt.Errorf("Parallelism (argon2id) input of %d is invalid, it must be 1 or higher.", parallelism)
 		}
 		if memory < parallelism*8 {
-			return "", fmt.Errorf("Memory for argon2id must be above %d (parallelism * 8), you set memory as %d and parallelism as %d.", parallelism*8, memory, parallelism)
+			return "", fmt.Errorf("Memory (argon2id) input of %d is invalid with a paraellelism input of %d, it must be %d (parallelism * 8) or higher.", memory, parallelism, parallelism*8)
 		}
 	}
 

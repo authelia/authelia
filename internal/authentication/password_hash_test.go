@@ -22,35 +22,35 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 func TestShouldNotHashPassword(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", "bogus", 3, 65536, 2, 16)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Hashing algorithm 'bogus' is invalid only values of argon2id and 6 are supported.")
+	assert.EqualError(t, err, "Hashing algorithm input of 'bogus' is invalid, only values of argon2id and 6 are supported.")
 }
 
 func TestShouldNotHashArgon2idPasswordDueToMemoryParallelismMismatch(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id, 3, 8, 2, 16)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Memory for argon2id must be above 16 (parallelism * 8), you set memory as 8 and parallelism as 2.")
+	assert.EqualError(t, err, "Memory (argon2id) input of 8 is invalid with a paraellelism input of 2, it must be 16 (parallelism * 8) or higher.")
 }
 
 func TestShouldNotHashArgon2idPasswordDueToMemoryLessThanEight(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id, 3, 1, 2, 16)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Memory for argon2id must be above 8, you set it to 1.")
+	assert.EqualError(t, err, "Memory (argon2id) input of 1 is invalid, it must be 8 or higher.")
 }
 
 func TestShouldNotHashArgon2idPasswordDueParallelismLessThanOne(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id, 3, 8, -1, 16)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Parallelism for argon2id must be above 0, you set it to -1.")
+	assert.EqualError(t, err, "Parallelism (argon2id) input of -1 is invalid, it must be 1 or higher.")
 }
 
 func TestShouldNotHashPasswordDueToSaltLength(t *testing.T) {
 	hash, err := HashPassword("password", "", HashingAlgorithmArgon2id, 3, 65536, 2, 0)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt length is 0 but it must be 1 or higher.")
+	assert.EqualError(t, err, "Salt length input of 0 is invalid, it must be 1 or higher.")
 
 	hash, err = HashPassword("password", "", HashingAlgorithmArgon2id, 3, 65536, 2, 20)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt length is 20 but it must be 16 or lower.")
+	assert.EqualError(t, err, "Salt length input of 20 is invalid, it must be 16 or lower.")
 }
 
 func TestShouldCheckSHA512Password(t *testing.T) {
@@ -103,14 +103,14 @@ func TestCannotMatchArgon2idParamPattern(t *testing.T) {
 func TestArgon2idVersionLessThanSupported(t *testing.T) {
 	ok, err := CheckPassword("password", "$argon2id$v=18$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
 
-	assert.EqualError(t, err, "Argon2 versions less than v19 are not supported (hash is version 18)")
+	assert.EqualError(t, err, "Argon2id versions less than v19 are not supported (hash is version 18).")
 	assert.False(t, ok)
 }
 
 func TestArgon2idVersionGreaterThanSupported(t *testing.T) {
 	ok, err := CheckPassword("password", "$argon2id$v=20$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
 
-	assert.EqualError(t, err, "Argon2 versions greater than v19 are not supported (hash is version 20)")
+	assert.EqualError(t, err, "Argon2id versions greater than v19 are not supported (hash is version 20).")
 	assert.False(t, ok)
 }
 
