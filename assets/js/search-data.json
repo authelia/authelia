@@ -290,7 +290,7 @@
   }
   ,"48": {
     "title": "2FA through basic auth",
-    "content": "The following documentation shows how to integrate one-time password second factor through basic auth. . Check the documentation available at https://github.com/ViRb3/authelia-basic-auth-2fa. .",
+    "content": "The following project allows you to use Authelia’s one-time password (OTP) 2-factor authentication (2FA) through only basic auth and a custom credentials format described below. This allows you to use 2FA on clients and scenarios that demand basic auth, e.g. webdav network streaming. More information: . authelia-basic-2fa .",
     "url": "https://docs.authelia.com/community/two-factor-basic-auth.html",
     "relUrl": "/community/two-factor-basic-auth.html"
   }
