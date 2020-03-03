@@ -1,12 +1,9 @@
 package authentication
 
 import (
-	cryptorand "crypto/rand"
 	"fmt"
 	"log"
-	"math/rand"
 	"strings"
-	"time"
 
 	"github.com/authelia/authelia/internal/utils"
 	"github.com/simia-tech/crypt"
@@ -71,21 +68,6 @@ func ParseHash(hash string) (*PasswordHash, error) {
 	return h, nil
 }
 
-// RandomString generate a random string of n characters.
-func RandomString(n int) string {
-	prime, err := cryptorand.Prime(cryptorand.Reader, 1024)
-	if err != nil {
-		rand.Seed(time.Now().UnixNano())
-	} else {
-		rand.Seed(prime.Int64())
-	}
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = HashingPossibleSaltCharacters[rand.Intn(len(HashingPossibleSaltCharacters))]
-	}
-	return string(b)
-}
-
 // HashPassword generate a salt and hash the password with the salt and a constant
 // number of rounds.
 func HashPassword(password, salt, algorithm string, iterations, memory, parallelism, saltLength int) (string, error) {
@@ -96,13 +78,15 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 	}
 
 	if salt == "" {
-		if saltLength < 1 {
-			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 1 or higher.", saltLength)
+		if saltLength < 2 {
+			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 2 or higher.", saltLength)
 		} else if saltLength > 16 {
 			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 16 or lower.", saltLength)
 		}
 	} else if len(salt) > 16 {
 		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 16 or fewer characters.", salt, len(salt))
+	} else if len(salt) < 2 {
+		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 2 or more characters.", salt, len(salt))
 	} else if !utils.IsStringBase64Valid(salt) {
 		return "", fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input.", salt)
 	}
@@ -119,7 +103,7 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 	}
 
 	if salt == "" {
-		salt = RandomString(saltLength)
+		salt = utils.RandomString(saltLength, HashingPossibleSaltCharacters)
 	}
 	if algorithm == HashingAlgorithmArgon2id {
 		settings, _ = crypt.Argon2idSettings(memory, iterations, parallelism, salt)

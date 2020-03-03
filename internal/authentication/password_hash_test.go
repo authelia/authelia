@@ -1,8 +1,10 @@
 package authentication
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/authelia/authelia/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -13,13 +15,39 @@ func TestShouldHashSHA512Password(t *testing.T) {
 	assert.Equal(t, "$6$rounds=50000$aFr56HjK3DrB8t3S$zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1", hash)
 }
 
+// This checks the method of hashing (for argon2id) supports all the characters we allow in Authelia's hash function
+func TestArgon2idHashSaltValidValues(t *testing.T) {
+	data := string(HashingPossibleSaltCharacters)
+	datas := utils.SplitStringToArrayOfStrings(data, 16)
+	var hash string
+	var err error
+	for _, salt := range datas {
+		hash, err = HashPassword("password", salt, HashingAlgorithmArgon2id, 1, 8, 1, 16)
+		assert.NoError(t, err)
+		assert.Equal(t, fmt.Sprintf("$argon2id$v=19$m=8,t=1,p=1$%s$", salt), hash[0:44])
+	}
+}
+
+// This checks the method of hashing (for sha512) supports all the characters we allow in Authelia's hash function
+func TestSHA512HashSaltValidValues(t *testing.T) {
+	data := string(HashingPossibleSaltCharacters)
+	datas := utils.SplitStringToArrayOfStrings(data, 16)
+	var hash string
+	var err error
+	for _, salt := range datas {
+		hash, err = HashPassword("password", salt, HashingAlgorithmSHA512, 1000, 0, 0, 16)
+		assert.NoError(t, err)
+		assert.Equal(t, fmt.Sprintf("$6$rounds=1000$%s$", salt), hash[0:32])
+	}
+}
+
 func TestShouldHashArgon2idPassword(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id, 3, 65536, 2, 16)
 	assert.NoError(t, err)
 	assert.Equal(t, "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM", hash)
 }
 
-func TestShouldNotHashPassword(t *testing.T) {
+func TestShouldNotHashPasswordWithNonExistentAlgorithm(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", "bogus", 3, 65536, 2, 16)
 	assert.Equal(t, "", hash)
 	assert.EqualError(t, err, "Hashing algorithm input of 'bogus' is invalid, only values of argon2id and 6 are supported.")
@@ -46,17 +74,23 @@ func TestShouldNotHashArgon2idPasswordDueParallelismLessThanOne(t *testing.T) {
 func TestShouldNotHashPasswordDueToSaltLength(t *testing.T) {
 	hash, err := HashPassword("password", "", HashingAlgorithmArgon2id, 3, 65536, 2, 0)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt length input of 0 is invalid, it must be 1 or higher.")
+	assert.EqualError(t, err, "Salt length input of 0 is invalid, it must be 2 or higher.")
 
 	hash, err = HashPassword("password", "", HashingAlgorithmArgon2id, 3, 65536, 2, 20)
 	assert.Equal(t, "", hash)
 	assert.EqualError(t, err, "Salt length input of 20 is invalid, it must be 16 or lower.")
 }
 
-func TestShouldNotHashPasswordDueToSaltCharLength(t *testing.T) {
+func TestShouldNotHashPasswordDueToSaltCharLengthTooLong(t *testing.T) {
 	hash, err := HashPassword("password", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", HashingAlgorithmArgon2id, 3, 65536, 2, 0)
 	assert.Equal(t, "", hash)
 	assert.EqualError(t, err, "Salt input of abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 is invalid (62 characters), it must be 16 or fewer characters.")
+}
+
+func TestShouldNotHashPasswordDueToSaltCharLengthTooShort(t *testing.T) {
+	hash, err := HashPassword("password", "a", HashingAlgorithmArgon2id, 3, 65536, 2, 0)
+	assert.Equal(t, "", hash)
+	assert.EqualError(t, err, "Salt input of a is invalid (1 characters), it must be 2 or more characters.")
 }
 
 func TestShouldNotHashWithNonBase64CharsInSalt(t *testing.T) {

@@ -106,13 +106,13 @@ file:
  
  #### iterations
    - Value Type: Int
-   - Possible Value: `1` or higher
+   - Possible Value: `1` or higher for argon2id and `1000` or higher for sha512 (will automatically be set to `1000` on lower settings)
    - Recommended: `3` for the `argon2id` algorithm and `50000` for `sha512`
    - What it Does: Adjusts the number of times we run the password through the hashing algorithm
    
  #### salt_length
   - Value Type: Int
-  - Possible Value: between `1` and `16`
+  - Possible Value: between `2` and `16`
   - Recommended: `16`
   - What it Does: Adjusts the length of the random salt we add to the password, there is no reason not to set this to 16
  

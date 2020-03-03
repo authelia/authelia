@@ -5,5 +5,3 @@ type UserDetails struct {
 	Emails []string
 	Groups []string
 }
-
-type HashingAlgorithm string

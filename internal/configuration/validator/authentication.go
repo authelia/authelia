@@ -35,14 +35,14 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 			} else {
 				configuration.PasswordHashing.Iterations = schema.DefaultPasswordOptionsSHA512Configuration.Iterations
 			}
-		} else if configuration.PasswordHashing.Iterations < 0 {
+		} else if configuration.PasswordHashing.Iterations < 1 {
 			validator.Push(fmt.Errorf("The number of iterations specified is invalid, must be 1 or more, you configured %d", configuration.PasswordHashing.Iterations))
 		}
 
 		if configuration.PasswordHashing.SaltLength == 0 {
 			configuration.PasswordHashing.SaltLength = schema.DefaultPasswordOptionsConfiguration.SaltLength
-		} else if configuration.PasswordHashing.SaltLength < 0 {
-			validator.Push(fmt.Errorf("The salt length must 1 or more, you configured %d", configuration.PasswordHashing.SaltLength))
+		} else if configuration.PasswordHashing.SaltLength < 2 {
+			validator.Push(fmt.Errorf("The salt length must 2 or more, you configured %d", configuration.PasswordHashing.SaltLength))
 		} else if configuration.PasswordHashing.SaltLength > 16 {
 			validator.Push(fmt.Errorf("The salt length must be 16 or less, you configured %d", configuration.PasswordHashing.SaltLength))
 		}

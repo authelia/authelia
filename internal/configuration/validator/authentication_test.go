@@ -55,7 +55,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSaltLengthT
 	suite.configuration.File.PasswordHashing.SaltLength = -1
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The salt length must 1 or more, you configured -1")
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The salt length must 2 or more, you configured -1")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenBadAlgorithmDefined() {
