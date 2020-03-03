@@ -20,15 +20,17 @@ var HashPasswordCmd = &cobra.Command{
 		memory, _ := cobraCmd.Flags().GetInt("memory")
 		parallelism, _ := cobraCmd.Flags().GetInt("parallelism")
 
+		var algorithm string
 		if sha512 {
 			if iterations == 3 {
 				iterations = 50000
 			}
-			hash, err = authentication.HashPassword(args[0], salt, authentication.HashingAlgorithmSHA512, iterations, memory, parallelism, saltLength)
+			algorithm = authentication.HashingAlgorithmSHA512
 		} else {
-			hash, err = authentication.HashPassword(args[0], salt, authentication.HashingAlgorithmArgon2id, iterations, memory, parallelism, saltLength)
+			algorithm = authentication.HashingAlgorithmArgon2id
 		}
 
+		hash, err = authentication.HashPassword(args[0], salt, algorithm, iterations, memory, parallelism, saltLength)
 		if err != nil {
 			fmt.Println(fmt.Sprintf("Error occured during hashing: %s", err))
 		} else {

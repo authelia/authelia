@@ -115,24 +115,22 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	if !ok {
 		return fmt.Errorf("User '%s' does not exist in database", username)
 	}
+
+	var algorithm string
 	if p.configuration.PasswordHashing.Algorithm == "argon2id" {
-		hash, err := HashPassword(newPassword, "", HashingAlgorithmArgon2id,
-			p.configuration.PasswordHashing.Iterations, p.configuration.PasswordHashing.Memory, p.configuration.PasswordHashing.Parallelism, p.configuration.PasswordHashing.SaltLength)
-		if err != nil {
-			return err
-		}
-		details.HashedPassword = hash
+		algorithm = HashingAlgorithmArgon2id
 	} else if p.configuration.PasswordHashing.Algorithm == "sha512" {
-		hash, err := HashPassword(newPassword, "", HashingAlgorithmSHA512,
-			p.configuration.PasswordHashing.Iterations, 0, 0, p.configuration.PasswordHashing.SaltLength)
-		if err != nil {
-			return err
-		}
-		details.HashedPassword = hash
+		algorithm = HashingAlgorithmSHA512
 	} else {
 		return errors.New("Invalid algorithm in configuration. It should be impossible to reach this error!")
 	}
 
+	hash, err := HashPassword(newPassword, "", algorithm, p.configuration.PasswordHashing.Iterations,
+		p.configuration.PasswordHashing.Memory, p.configuration.PasswordHashing.Parallelism, p.configuration.PasswordHashing.SaltLength)
+	if err != nil {
+		return err
+	}
+	details.HashedPassword = hash
 	p.lock.Lock()
 	p.database.Users[username] = details
 
