@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/spf13/cobra"
 )
 
@@ -23,8 +24,8 @@ var HashPasswordCmd = &cobra.Command{
 
 		var algorithm string
 		if sha512 {
-			if iterations == 3 {
-				iterations = 50000
+			if iterations == schema.DefaultPasswordOptionsConfiguration.Iterations {
+				iterations = schema.DefaultPasswordOptionsSHA512Configuration.Iterations
 			}
 			algorithm = authentication.HashingAlgorithmSHA512
 		} else {
