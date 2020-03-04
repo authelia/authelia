@@ -151,6 +151,14 @@ func runOnSetupTimeout(suite string) error {
 	return utils.RunCommandWithTimeout(cmd, 15*time.Second)
 }
 
+func runOnError(suite string) error {
+	cmd := utils.CommandWithStdout("go", "run", "cmd/authelia-suites/main.go", "error", suite)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
+	return utils.RunCommandWithTimeout(cmd, 15*time.Second)
+}
+
 func setupSuite(suiteName string) error {
 	log.Infof("Setup environment for suite %s...", suiteName)
 	signalChannel := make(chan os.Signal)
@@ -261,11 +269,19 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 
 	testErr := cmd.Run()
 
-	if withEnv {
-		err := teardownSuite(suiteName)
+	// If the tests failed, run the error hook.
+	if testErr != nil {
+		if err := runOnError(suiteName); err != nil {
+			// Do not return this error to return the test error instead
+			// and not skip the teardown phase.
+			log.Errorf("Error executing OnError callback: %v", err)
+		}
+	}
 
-		if err != nil {
-			log.Error(err)
+	if withEnv {
+		if err := teardownSuite(suiteName); err != nil {
+			// Do not return this error to return the test error instead
+			log.Errorf("Error running teardown: %v", err)
 		}
 	}
 
