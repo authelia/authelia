@@ -1,8 +1,8 @@
 package authentication
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -25,41 +25,41 @@ type PasswordHash struct {
 // ParseHash extracts all characteristics of a hash given its string representation.
 func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 	parts := strings.Split(hash, "$")
-	code, parameters, salt, key, err := crypt.DecodeSettings(hash)
-	if err != nil {
-		return nil, err
-	}
+
+	// This error can be ignored as it's always nil
+	code, parameters, salt, key, _ := crypt.DecodeSettings(hash)
 	h := &PasswordHash{}
 
 	h.Salt = salt
 	h.Key = key
+
 	if h.Key != parts[len(parts)-1] {
-		return nil, fmt.Errorf("Cannot parse hash key is not the last parameter, the hash is probably malformed (%s).", hash)
+		return nil, fmt.Errorf("Hash key is not the last parameter, the hash is likely malformed (%s).", hash)
 	}
+	if h.Key == "" {
+		return nil, fmt.Errorf("Hash key contains no characters or the field length is invalid (%s)", hash)
+	}
+
+	_, err = crypt.Base64Encoding.DecodeString(h.Salt)
+	if err != nil {
+		return nil, errors.New("Salt contains invalid base64 characters.")
+	}
+
 	if code == HashingAlgorithmSHA512 {
 		h.Iterations = parameters.GetInt("rounds", HashingDefaultSHA512Iterations)
 		h.Algorithm = HashingAlgorithmSHA512
-		if h.Key == "" {
-			return nil, fmt.Errorf("Cannot parse hash key contains no characters or the field length is invalid (%s)", hash)
-		}
-		if !utils.IsStringBase64Valid(h.Key) {
-			return nil, fmt.Errorf("Cannot parse hash key contains invalid base64 characters.")
-		}
-		if !utils.IsStringBase64Valid(h.Salt) {
-			return nil, fmt.Errorf("Cannot parse hash salt contains invalid base64 characters.")
-		}
 		if parameters["rounds"] != "" && parameters["rounds"] != strconv.Itoa(h.Iterations) {
-			return nil, fmt.Errorf("Cannot parse hash sha512 rounds is not numeric (%s).", parameters["rounds"])
+			return nil, fmt.Errorf("SHA512 rounds is not numeric (%s).", parameters["rounds"])
 		}
 	} else if code == HashingAlgorithmArgon2id {
 		version := parameters.GetInt("v", 0)
 		if version < 19 {
 			if version == 0 {
-				return nil, fmt.Errorf("Cannot parse hash argon2id version parameter not found (%s)", hash)
+				return nil, fmt.Errorf("Argon2id version parameter not found (%s)", hash)
 			}
-			return nil, fmt.Errorf("Cannot parse hash argon2id versions less than v19 are not supported (hash is version %d).", version)
+			return nil, fmt.Errorf("Argon2id versions less than v19 are not supported (hash is version %d).", version)
 		} else if version > 19 {
-			return nil, fmt.Errorf("Cannot parse hash argon2id versions greater than v19 are not supported (hash is version %d).", version)
+			return nil, fmt.Errorf("Argon2id versions greater than v19 are not supported (hash is version %d).", version)
 		}
 		h.Algorithm = HashingAlgorithmArgon2id
 		h.Memory = parameters.GetInt("m", HashingDefaultArgon2idMemory)
@@ -67,18 +67,12 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 		h.Parallelism = parameters.GetInt("p", HashingDefaultArgon2idParallelism)
 		h.KeyLength = parameters.GetInt("k", HashingDefaultArgon2idKeyLength)
 
-		if h.Key == "" {
-			return nil, fmt.Errorf("Cannot parse hash key contains no characters or the field length is invalid (%s)", hash)
+		decodedKey, err := crypt.Base64Encoding.DecodeString(h.Key)
+		if err != nil {
+			return nil, errors.New("Hash key contains invalid base64 characters.")
 		}
-		if !utils.IsStringBase64Valid(h.Key) {
-			return nil, fmt.Errorf("Cannot parse hash key contains invalid base64 characters.")
-		}
-		if !utils.IsStringBase64Valid(h.Salt) {
-			return nil, fmt.Errorf("Cannot parse hash salt contains invalid base64 characters.")
-		}
-		decodedKey, _ := crypt.Base64Encoding.DecodeString(h.Key)
 		if len(decodedKey) != h.KeyLength {
-			return nil, fmt.Errorf("Cannot parse hash argon2id key length parameter (%d) does not match the actual key length (%d).", h.KeyLength, len(decodedKey))
+			return nil, fmt.Errorf("Argon2id key length parameter (%d) does not match the actual key length (%d).", h.KeyLength, len(decodedKey))
 		}
 	} else {
 		return nil, fmt.Errorf("Authelia only supports salted SHA512 hashing ($6$) and salted argon2id ($argon2id$), not $%s$", code)
@@ -105,7 +99,7 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 16 or fewer characters.", salt, len(salt))
 	} else if len(salt) < 2 {
 		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 2 or more characters.", salt, len(salt))
-	} else if !utils.IsStringBase64Valid(salt) {
+	} else if _, err = crypt.Base64Encoding.DecodeString(salt); err != nil {
 		return "", fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input.", salt)
 	}
 
@@ -138,10 +132,8 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 		settings = fmt.Sprintf("$6$rounds=%d$%s", iterations, salt)
 	}
 
-	hash, err = crypt.Crypt(password, settings)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// This error can be ignored because we check for it before a user gets here
+	hash, _ = crypt.Crypt(password, settings)
 	return hash, nil
 }
 

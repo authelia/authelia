@@ -18,12 +18,56 @@ file in the configuration file.
     authentication_backend:
         file:
             path: /var/lib/authelia/users.yml
+                password_hashing:
+                    algorithm: argon2id
+                    iterations: 3
+                    salt_length: 16
+                    parallelism: 2
+                    memory: ‭65536‬
 
 
+### Password Hashing Configuration Settings
+
+ #### algorithm
+ - Value Type: String
+ - Possible Value: `argon2id` and `sha512`
+ - Recommended: `argon2id`
+ - What it Does: Changes the Hashing Algorithm
+ 
+ #### iterations
+   - Value Type: Int
+   - Possible Value: `1` or higher for argon2id and `1000` or higher for sha512 (will automatically be set to `1000` on lower settings)
+   - Recommended: `1` for the `argon2id` algorithm and `50000` for `sha512`
+   - What it Does: Adjusts the number of times we run the password through the hashing algorithm
+ 
+ #### key_length
+ - Value Type: Int
+ - Possible Value: `16` or higher.
+ - Recommended: `32` or higher.
+ - What it Does: Adjusts the length of the actual hash
+ 
+ #### salt_length
+  - Value Type: Int
+  - Possible Value: between `2` and `16`
+  - Recommended: `16`
+  - What it Does: Adjusts the length of the random salt we add to the password, there is no reason not to set this to 16
+ 
+ #### parallelism
+ - Value Type: Int
+ - Possible Value: `1` or higher
+ - Recommended: `4`
+ - What it Does: Sets the number of threads used for crypto
+ 
+ #### memory
+ - Value Type: Int
+ - Possible Value: at least `8` times the value of `parallelism`
+ - Recommended: `65535‬‬` (64MB)
+ - What it Does: Sets the amount of RAM used in KB for crypto (1024 * MB desired)
+ 
 ## Format
 
 
-The format of the file is as follows.
+The format of the users file is as follows.
 
     users:
         john:
@@ -50,7 +94,7 @@ The format of the file is as follows.
 
 This file should be set with read/write permissions as it could be updated by users
 resetting their passwords.
-
+ 
 ## Passwords
 
 The file contains hashed passwords instead of plain text passwords for security reasons.
@@ -58,7 +102,7 @@ The file contains hashed passwords instead of plain text passwords for security 
 You can use Authelia binary or docker image to generate the hash of any password. The hash-password command has many 
 tunable options, you can view them with the `authelia hash-password --help` command. For example if you wanted to improve
 the entropy you could generate a 16 byte salt and provide it with the `--salt` flag. 
-Example: `authelia hash-password --salt abcdefghijklhijl`. For argon2id the salt must always be a valid for base64
+Example: `authelia hash-password --salt abcdefghijklhijl`. For argon2id the salt must always be valid for base64
 decoding (characters a through z, A through Z, 0 through 9, and +/).
 
 For instance to generate a hash with the docker image just run:
@@ -105,54 +149,6 @@ considered the best hashing function. This was implemented due to community feed
  exist in a key under the file authentication configuration key called `password_hashing`. We have set what are considered 
  as sane and recommended defaults, if you're unsure about which settings to tune, please see the parameters below, or 
  for a more in depth understanding see the referenced documentation.
- 
- Example:
- ```
-file:
-  path: /var/authelia.users.yml
-  password_hashing:
-    algorithm: argon2id
-    iterations: 3
-    salt_length: 16
-    parallelism: 2
-    memory: ‭65536‬
-```
- 
- #### algorithm
- - Value Type: String
- - Possible Value: `argon2id` and `sha512`
- - Recommended: `argon2id`
- - What it Does: Changes the Hashing Algorithm
- 
- #### iterations
-   - Value Type: Int
-   - Possible Value: `1` or higher for argon2id and `1000` or higher for sha512 (will automatically be set to `1000` on lower settings)
-   - Recommended: `1` for the `argon2id` algorithm and `50000` for `sha512`
-   - What it Does: Adjusts the number of times we run the password through the hashing algorithm
- 
- #### key_length
- - Value Type: Int
- - Possible Value: `16` or higher.
- - Recommended: `32` or higher.
- - What it Does: Adjusts the length of the actual hash
- 
- #### salt_length
-  - Value Type: Int
-  - Possible Value: between `2` and `16`
-  - Recommended: `16`
-  - What it Does: Adjusts the length of the random salt we add to the password, there is no reason not to set this to 16
- 
- #### parallelism
- - Value Type: Int
- - Possible Value: `1` or higher
- - Recommended: `4`
- - What it Does: Sets the number of threads used for crypto
- 
- #### memory
- - Value Type: Int
- - Possible Value: at least `8` times the value of `parallelism`
- - Recommended: `65535‬‬` (64MB)
- - What it Does: Sets the amount of RAM used in KB for crypto (1024 * MB desired)
  
  #### Argon2 Links
  [Go Documentation](https://godoc.org/golang.org/x/crypto/argon2)

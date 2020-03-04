@@ -44,7 +44,7 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 		if configuration.PasswordHashing.SaltLength == 0 {
 			configuration.PasswordHashing.SaltLength = schema.DefaultPasswordOptionsConfiguration.SaltLength
 		} else if configuration.PasswordHashing.SaltLength < 2 {
-			validator.Push(fmt.Errorf("The salt length must 2 or more, you configured %d", configuration.PasswordHashing.SaltLength))
+			validator.Push(fmt.Errorf("The salt length must be 2 or more, you configured %d", configuration.PasswordHashing.SaltLength))
 		} else if configuration.PasswordHashing.SaltLength > 16 {
 			validator.Push(fmt.Errorf("The salt length must be 16 or less, you configured %d", configuration.PasswordHashing.SaltLength))
 		}

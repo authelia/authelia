@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Checks if a single string is in an array of strings
 func IsStringInSlice(a string, list []string) (inSlice bool) {
 	for _, b := range list {
 		if b == a {
@@ -15,23 +16,15 @@ func IsStringInSlice(a string, list []string) (inSlice bool) {
 	return false
 }
 
-func IsStringBase64Valid(s string) (valid bool) {
-	for _, r := range s {
-		if (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') && (r < '+' || r > '/') {
-			return false
-		}
-	}
-	return true
-}
-
 // Splits a string s into an array with each item being a max of int d
-func SplitStringToArrayOfStrings(s string, d int) (array []string) {
-	l := len(s)
-	n := l / d
-	r := l & d
-	for i := 0; i < n; i++ {
+// d = denominator, n = numerator, q = quotient, r = remainder
+func SliceString(s string, d int) (array []string) {
+	n := len(s)
+	q := n / d
+	r := n % d
+	for i := 0; i < q; i++ {
 		array = append(array, s[i*d:i*d+d])
-		if i+1 == n && r != 0 {
+		if i+1 == q && r != 0 {
 			array = append(array, s[i*d+d:])
 		}
 	}

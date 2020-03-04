@@ -21,17 +21,15 @@ const (
 	Push = "mobile_push"
 )
 
+// PossibleMethods is the set of all possible 2FA methods.
+var PossibleMethods = []string{TOTP, U2F, Push}
+
 const (
 	//Argon2id Hash Identifier
 	HashingAlgorithmArgon2id = "argon2id"
 	//SHA512 Hash Identifier
 	HashingAlgorithmSHA512 = "6"
 )
-
-// PossibleMethods is the set of all possible 2FA methods.
-var PossibleMethods = []string{TOTP, U2F, Push}
-
-var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")
 
 // These are the default values from the upstream crypt module, we use them to for GetInt, and they need to be checked when updating  github.com/simia-tech/crypt
 const (
@@ -41,3 +39,6 @@ const (
 	HashingDefaultArgon2idKeyLength   = 32
 	HashingDefaultSHA512Iterations    = 5000
 )
+
+// Valid Hashing runes
+var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")

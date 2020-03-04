@@ -38,7 +38,6 @@ func (suite *FileBasedAuthenticationBackend) SetupTest() {
 	}}
 	suite.configuration.File.PasswordHashing.Algorithm = schema.DefaultPasswordOptionsConfiguration.Algorithm
 }
-
 func (suite *FileBasedAuthenticationBackend) TestShouldValidateCompleteConfiguration() {
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
@@ -59,6 +58,42 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenMemoryNotMo
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Memory for argon2id must be 16 or more (parallelism * 8), you configured memory as 8 and parallelism as 2")
 }
 
+func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWhenBlank() {
+	suite.configuration.File.PasswordHashing = &schema.PasswordHashingConfiguration{}
+
+	assert.Equal(suite.T(), 0, suite.configuration.File.PasswordHashing.KeyLength)
+	assert.Equal(suite.T(), 0, suite.configuration.File.PasswordHashing.Iterations)
+	assert.Equal(suite.T(), 0, suite.configuration.File.PasswordHashing.SaltLength)
+	assert.Equal(suite.T(), "", suite.configuration.File.PasswordHashing.Algorithm)
+	assert.Equal(suite.T(), 0, suite.configuration.File.PasswordHashing.Memory)
+	assert.Equal(suite.T(), 0, suite.configuration.File.PasswordHashing.Parallelism)
+
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+
+	assert.Len(suite.T(), suite.validator.Errors(), 0)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsConfiguration.KeyLength, suite.configuration.File.PasswordHashing.KeyLength)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsConfiguration.Iterations, suite.configuration.File.PasswordHashing.Iterations)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsConfiguration.SaltLength, suite.configuration.File.PasswordHashing.SaltLength)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsConfiguration.Algorithm, suite.configuration.File.PasswordHashing.Algorithm)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsConfiguration.Memory, suite.configuration.File.PasswordHashing.Memory)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsConfiguration.Parallelism, suite.configuration.File.PasswordHashing.Parallelism)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWhenOnlySHA512Set() {
+	suite.configuration.File.PasswordHashing = &schema.PasswordHashingConfiguration{}
+	assert.Equal(suite.T(), "", suite.configuration.File.PasswordHashing.Algorithm)
+	suite.configuration.File.PasswordHashing.Algorithm = "sha512"
+
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+
+	assert.Len(suite.T(), suite.validator.Errors(), 0)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsSHA512Configuration.KeyLength, suite.configuration.File.PasswordHashing.KeyLength)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsSHA512Configuration.Iterations, suite.configuration.File.PasswordHashing.Iterations)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsSHA512Configuration.SaltLength, suite.configuration.File.PasswordHashing.SaltLength)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsSHA512Configuration.Algorithm, suite.configuration.File.PasswordHashing.Algorithm)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsSHA512Configuration.Memory, suite.configuration.File.PasswordHashing.Memory)
+	assert.Equal(suite.T(), schema.DefaultPasswordOptionsSHA512Configuration.Parallelism, suite.configuration.File.PasswordHashing.Parallelism)
+}
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenKeyLengthTooLow() {
 	suite.configuration.File.PasswordHashing.KeyLength = 1
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
@@ -70,7 +105,14 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSaltLengthT
 	suite.configuration.File.PasswordHashing.SaltLength = -1
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The salt length must 2 or more, you configured -1")
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The salt length must be 2 or more, you configured -1")
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSaltLengthTooHigh() {
+	suite.configuration.File.PasswordHashing.SaltLength = 20
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	assert.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The salt length must be 16 or less, you configured 20")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenBadAlgorithmDefined() {

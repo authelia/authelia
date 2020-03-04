@@ -8,12 +8,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	HashPasswordCmd.Flags().BoolP("sha512", "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordOptionsSHA512Configuration.Iterations))
+	HashPasswordCmd.Flags().IntP("iterations", "i", schema.DefaultPasswordOptionsConfiguration.Iterations, "set the number of hashing iterations")
+	HashPasswordCmd.Flags().StringP("salt", "s", "", "set the salt string")
+	HashPasswordCmd.Flags().IntP("memory", "m", schema.DefaultPasswordOptionsConfiguration.Memory, "[argon2id] set the amount of memory param (in KB)")
+	HashPasswordCmd.Flags().IntP("parallelism", "p", schema.DefaultPasswordOptionsConfiguration.Parallelism, "[argon2id] set the parallelism param")
+	HashPasswordCmd.Flags().IntP("key-length", "k", schema.DefaultPasswordOptionsConfiguration.KeyLength, "[argon2id] set the key length param")
+	HashPasswordCmd.Flags().IntP("salt-length", "l", schema.DefaultPasswordOptionsConfiguration.SaltLength, "set the auto-generated salt length")
+}
+
 var HashPasswordCmd = &cobra.Command{
 	Use:   "hash-password [password]",
 	Short: "Hash a password to be used in file-based users database. Default algorithm is argon2id.",
 	Run: func(cobraCmd *cobra.Command, args []string) {
-		var err error
-		var hash string
 		sha512, _ := cobraCmd.Flags().GetBool("sha512")
 		iterations, _ := cobraCmd.Flags().GetInt("iterations")
 		salt, _ := cobraCmd.Flags().GetString("salt")
@@ -22,7 +30,10 @@ var HashPasswordCmd = &cobra.Command{
 		memory, _ := cobraCmd.Flags().GetInt("memory")
 		parallelism, _ := cobraCmd.Flags().GetInt("parallelism")
 
+		var err error
+		var hash string
 		var algorithm string
+
 		if sha512 {
 			if iterations == schema.DefaultPasswordOptionsConfiguration.Iterations {
 				iterations = schema.DefaultPasswordOptionsSHA512Configuration.Iterations

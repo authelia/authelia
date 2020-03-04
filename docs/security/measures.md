@@ -28,6 +28,23 @@ that the attacker must also require the certificate to retrieve the cookies.
 Note that using [HSTS] has consequences. That's why you should read the blog
 post nginx has written on [HSTS].
 
+## Protections Against Password Cracking (File Authentication Provider)
+
+Authelia implements a variety of measures to prevent an attacker cracking passwords if they
+somehow obtain the file used by the file authentication provider, this is unrelated to LDAP auth.
+
+First and foremost Authelia only uses very secure hashing algorithms with sane and secure defaults.
+The first and default hashing algorithm we use is Argon2id which is currently considered
+the most secure hashing algorithm. We also support SHA512, which previously was the default.
+
+Secondly Authelia uses salting with all hashing algorithms. These salts are generated with a random 
+string generator, which is seeded every time it's used by a cryptographically secure 1024bit prime number. 
+This ensures that even if an attacker obtains the file, each password has to be brute forced individually.
+
+Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the key length, salt
+used, iterations (time), paralellism, and memory usage. To read more about this please read how to
+[configure](../configuration/authentication/file.md) file authentication.
+
 ## Notifier security measures (SMTP)
 
 By default the SMTP Notifier implementation does not allow connections that are not secure.

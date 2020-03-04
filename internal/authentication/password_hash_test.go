@@ -13,24 +13,31 @@ import (
 
 func TestShouldHashSHA512Password(t *testing.T) {
 	hash, err := HashPassword("password", "aFr56HjK3DrB8t3S", HashingAlgorithmSHA512, 50000, 0, 0, 0, 16)
+
 	assert.NoError(t, err)
-	assert.Equal(t, "$6$rounds=50000$aFr56HjK3DrB8t3S$zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1", hash)
+
+	code, parameters, salt, hash, err := crypt.DecodeSettings(hash)
+
+	assert.Equal(t, "6", code)
+	assert.Equal(t, "aFr56HjK3DrB8t3S", salt)
+	assert.Equal(t, "zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1", hash)
+	assert.Equal(t, schema.DefaultPasswordOptionsSHA512Configuration.Iterations, parameters.GetInt("rounds", HashingDefaultSHA512Iterations))
 }
 
 func TestShouldHashArgon2idPassword(t *testing.T) {
-	hashString, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id,
+	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id,
 		schema.DefaultPasswordOptionsConfiguration.Iterations, schema.DefaultPasswordOptionsConfiguration.Memory,
 		schema.DefaultPasswordOptionsConfiguration.Parallelism, schema.DefaultPasswordOptionsConfiguration.KeyLength,
 		schema.DefaultPasswordOptionsConfiguration.SaltLength)
 
 	assert.NoError(t, err)
 
-	code, parameters, salt, hash, err := crypt.DecodeSettings(hashString)
+	code, parameters, salt, key, err := crypt.DecodeSettings(hash)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "argon2id", code)
 	assert.Equal(t, "BpLnfgDsc2WD8F2q", salt)
-	assert.Equal(t, "2t9X8nNCN2n3/kFYJ3xWNBg5k/rO782Qr7JJoJIK7G4", hash)
+	assert.Equal(t, "2t9X8nNCN2n3/kFYJ3xWNBg5k/rO782Qr7JJoJIK7G4", key)
 	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.Iterations, parameters.GetInt("t", HashingDefaultArgon2idTime))
 	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.Memory, parameters.GetInt("m", HashingDefaultArgon2idMemory))
 	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.Parallelism, parameters.GetInt("p", HashingDefaultArgon2idParallelism))
@@ -40,7 +47,7 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 // This checks the method of hashing (for argon2id) supports all the characters we allow in Authelia's hash function
 func TestArgon2idHashSaltValidValues(t *testing.T) {
 	data := string(HashingPossibleSaltCharacters)
-	datas := utils.SplitStringToArrayOfStrings(data, 16)
+	datas := utils.SliceString(data, 16)
 	var hash string
 	var err error
 	for _, salt := range datas {
@@ -53,7 +60,7 @@ func TestArgon2idHashSaltValidValues(t *testing.T) {
 // This checks the method of hashing (for sha512) supports all the characters we allow in Authelia's hash function
 func TestSHA512HashSaltValidValues(t *testing.T) {
 	data := string(HashingPossibleSaltCharacters)
-	datas := utils.SplitStringToArrayOfStrings(data, 16)
+	datas := utils.SliceString(data, 16)
 	var hash string
 	var err error
 	for _, salt := range datas {
@@ -152,7 +159,7 @@ func TestShouldNotHashPasswordDueToSaltCharLengthTooShort(t *testing.T) {
 	assert.EqualError(t, err, "Salt input of a is invalid (1 characters), it must be 2 or more characters.")
 }
 
-func TestShouldNotHashWithNonBase64CharsInSalt(t *testing.T) {
+func TestShouldNotHashPasswordWithNonBase64CharsInSalt(t *testing.T) {
 	hash, err := HashPassword("password", "abc&123", HashingAlgorithmArgon2id,
 		schema.DefaultPasswordOptionsConfiguration.Iterations, schema.DefaultPasswordOptionsConfiguration.Memory,
 		schema.DefaultPasswordOptionsConfiguration.Parallelism, schema.DefaultPasswordOptionsConfiguration.KeyLength,
@@ -161,14 +168,64 @@ func TestShouldNotHashWithNonBase64CharsInSalt(t *testing.T) {
 	assert.EqualError(t, err, "Salt input of abc&123 is invalid, only characters [a-zA-Z0-9+/] are valid for input.")
 }
 
-func TestShouldNotParseWithNoneBase64CharsInHashKey(t *testing.T) {
-	_, err := ParseHash("$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$^^vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
-	assert.EqualError(t, err, "Cannot parse hash key contains invalid base64 characters.")
+func TestShouldNotParseHashWithNoneBase64CharsInKey(t *testing.T) {
+	passwordHash, err := ParseHash("$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$^^vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
+	assert.EqualError(t, err, "Hash key contains invalid base64 characters.")
+	assert.Nil(t, passwordHash)
 }
 
-func TestShouldNotParseWithNoneBase64CharsInHashSalt(t *testing.T) {
-	_, err := ParseHash("$argon2id$v=19$m=65536,t=3,p=2$^^LnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
-	assert.EqualError(t, err, "Cannot parse hash salt contains invalid base64 characters.")
+func TestShouldNotParseHashWithNoneBase64CharsInSalt(t *testing.T) {
+	passwordHash, err := ParseHash("$argon2id$v=19$m=65536$^^wTFoFjITudo57a$Z4NH/EKkdv6PJ01Ye1twJ61fsmRJujZZn1IXdUOyrJY")
+	assert.EqualError(t, err, "Salt contains invalid base64 characters.")
+	assert.Nil(t, passwordHash)
+}
+
+func TestShouldNotParseWithMalformedHash(t *testing.T) {
+	hashExtraField := "$argon2id$v=19$m=65536,t=3,p=2$abc$BpLnfgDsc2WD8F2q$^^vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+	hashMissingSaltAndParams := "$argon2id$v=1$2t9X8nNCN2n3/kFYJ3xWNBg5k/rO782Qr7JJoJIK7G4"
+	hashMissingSalt := "$argon2id$v=1$m=65536,t=3,p=2$2t9X8nNCN2n3/kFYJ3xWNBg5k/rO782Qr7JJoJIK7G4"
+
+	passwordHash, err := ParseHash(hashExtraField)
+	assert.EqualError(t, err, fmt.Sprintf("Hash key is not the last parameter, the hash is likely malformed (%s).", hashExtraField))
+	assert.Nil(t, passwordHash)
+
+	passwordHash, err = ParseHash(hashMissingSaltAndParams)
+	assert.EqualError(t, err, fmt.Sprintf("Hash key is not the last parameter, the hash is likely malformed (%s).", hashMissingSaltAndParams))
+	assert.Nil(t, passwordHash)
+
+	passwordHash, err = ParseHash(hashMissingSalt)
+	assert.EqualError(t, err, fmt.Sprintf("Hash key is not the last parameter, the hash is likely malformed (%s).", hashMissingSalt))
+	assert.Nil(t, passwordHash)
+}
+
+func TestShouldNotParseHashWithEmptyKey(t *testing.T) {
+	hash := "$argon2id$v=19$m=65536$fvwTFoFjITudo57a$"
+	passwordHash, err := ParseHash(hash)
+	assert.EqualError(t, err, fmt.Sprintf("Hash key contains no characters or the field length is invalid (%s)", hash))
+	assert.Nil(t, passwordHash)
+}
+
+func TestShouldNotParseArgon2idHashWithEmptyVersion(t *testing.T) {
+	hash := "$argon2id$m=65536$fvwTFoFjITudo57a$Z4NH/EKkdv6PJ01Ye1twJ61fsmRJujZZn1IXdUOyrJY"
+	passwordHash, err := ParseHash(hash)
+	assert.EqualError(t, err, fmt.Sprintf("Argon2id version parameter not found (%s)", hash))
+	assert.Nil(t, passwordHash)
+}
+
+func TestShouldNotParseArgon2idHashWithWrongKeyLength(t *testing.T) {
+	hash := "$argon2id$v=19$m=65536,k=50$fvwTFoFjITudo57a$Z4NH/EKkdv6PJ01Ye1twJ61fsmRJujZZn1IXdUOyrJY"
+	passwordHash, err := ParseHash(hash)
+	assert.EqualError(t, err, "Argon2id key length parameter (50) does not match the actual key length (32).")
+	assert.Nil(t, passwordHash)
+}
+
+func TestShouldParseArgon2idHash(t *testing.T) {
+	passwordHash, err := ParseHash("$argon2id$v=19$m=65536$BpLnfgDsc2WD8F2q$2t9X8nNCN2n3/kFYJ3xWNBg5k/rO782Qr7JJoJIK7G4")
+	assert.NoError(t, err)
+	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.Iterations, passwordHash.Iterations)
+	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.Parallelism, passwordHash.Parallelism)
+	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.KeyLength, passwordHash.KeyLength)
+	assert.Equal(t, 65536, passwordHash.Memory)
 }
 
 func TestShouldCheckSHA512Password(t *testing.T) {
@@ -186,14 +243,14 @@ func TestShouldCheckArgon2idPassword(t *testing.T) {
 func TestCannotParseSHA512Hash(t *testing.T) {
 	ok, err := CheckPassword("password", "$6$roSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1")
 
-	assert.EqualError(t, err, "Cannot parse hash key is not the last parameter, the hash is probably malformed ($6$roSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1).")
+	assert.EqualError(t, err, "Hash key is not the last parameter, the hash is likely malformed ($6$roSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1).")
 	assert.False(t, ok)
 }
 
 func TestCannotParseArgon2idHash(t *testing.T) {
 	ok, err := CheckPassword("password", "$argon2id$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
 
-	assert.EqualError(t, err, "Cannot parse hash key is not the last parameter, the hash is probably malformed ($argon2id$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM).")
+	assert.EqualError(t, err, "Hash key is not the last parameter, the hash is likely malformed ($argon2id$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM).")
 	assert.False(t, ok)
 }
 
@@ -207,33 +264,33 @@ func TestOnlySupportSHA512AndArgon2id(t *testing.T) {
 func TestCannotFindNumberOfRounds(t *testing.T) {
 	hash := "$6$rounds50000$aFr56HjK3DrB8t3S$zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1"
 	ok, err := CheckPassword("password", hash)
-	assert.EqualError(t, err, fmt.Sprintf("Cannot parse hash key is not the last parameter, the hash is probably malformed (%s).", hash))
+	assert.EqualError(t, err, fmt.Sprintf("Hash key is not the last parameter, the hash is likely malformed (%s).", hash))
 	assert.False(t, ok)
 }
 
 func TestCannotMatchArgon2idParamPattern(t *testing.T) {
 	ok, err := CheckPassword("password", "$argon2id$v=19$m65536,t3,p2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
 
-	assert.EqualError(t, err, "Cannot parse hash key is not the last parameter, the hash is probably malformed ($argon2id$v=19$m65536,t3,p2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM).")
+	assert.EqualError(t, err, "Hash key is not the last parameter, the hash is likely malformed ($argon2id$v=19$m65536,t3,p2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM).")
 	assert.False(t, ok)
 }
 
 func TestArgon2idVersionLessThanSupported(t *testing.T) {
 	ok, err := CheckPassword("password", "$argon2id$v=18$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
 
-	assert.EqualError(t, err, "Cannot parse hash argon2id versions less than v19 are not supported (hash is version 18).")
+	assert.EqualError(t, err, "Argon2id versions less than v19 are not supported (hash is version 18).")
 	assert.False(t, ok)
 }
 
 func TestArgon2idVersionGreaterThanSupported(t *testing.T) {
 	ok, err := CheckPassword("password", "$argon2id$v=20$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
-	assert.EqualError(t, err, "Cannot parse hash argon2id versions greater than v19 are not supported (hash is version 20).")
+	assert.EqualError(t, err, "Argon2id versions greater than v19 are not supported (hash is version 20).")
 	assert.False(t, ok)
 }
 
 func TestNumberOfRoundsNotInt(t *testing.T) {
 	ok, err := CheckPassword("password", "$6$rounds=abc$aFr56HjK3DrB8t3S$zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1")
-	assert.EqualError(t, err, "Cannot parse hash sha512 rounds is not numeric (abc).")
+	assert.EqualError(t, err, "SHA512 rounds is not numeric (abc).")
 	assert.False(t, ok)
 }
 
