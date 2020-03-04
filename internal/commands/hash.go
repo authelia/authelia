@@ -10,7 +10,7 @@ import (
 
 var HashPasswordCmd = &cobra.Command{
 	Use:   "hash-password [password]",
-	Short: "Hash a password to be used in file-based users database",
+	Short: "Hash a password to be used in file-based users database. Default algorithm is argon2id.",
 	Run: func(cobraCmd *cobra.Command, args []string) {
 		var err error
 		var hash string

@@ -122,7 +122,7 @@ func main() {
 	}
 
 	hashPasswordCmd := commands.HashPasswordCmd
-	hashPasswordCmd.Flags().BoolP("sha512", "z", false, "use sha512 as the algorithm (instead of argon2id)")
+	hashPasswordCmd.Flags().BoolP("sha512", "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordOptionsSHA512Configuration.Iterations))
 	hashPasswordCmd.Flags().IntP("iterations", "i", schema.DefaultPasswordOptionsConfiguration.Iterations, "set the number of hashing iterations")
 	hashPasswordCmd.Flags().StringP("salt", "s", "", "set the salt string")
 	hashPasswordCmd.Flags().IntP("memory", "m", schema.DefaultPasswordOptionsConfiguration.Memory, "[argon2id] set the amount of memory param (in KB)")

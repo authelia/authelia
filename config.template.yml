@@ -98,9 +98,9 @@ authentication_backend:
   # Therefore, this backend is meant to be used in a dev environment
   # and not in production since it prevents Authelia to be scaled to
   # more than one instance. The options under password_options have sane
-  # defaults, and as it has security implications, it is highly recommended
-  # you leave them undefined and before setting them that you read the
-  # docs page below:
+  # defaults, and as it has security implications it is highly recommended
+  # you leave the default values. Before considering changing these settings
+  # please read the docs page below:
   # https://docs.authelia.com/configuration/authentication/file.html#password-hash-algorithm-tuning
   #
   ## file:

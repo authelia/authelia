@@ -61,11 +61,29 @@ the entropy you could generate a 16 byte salt and provide it with the `--salt` f
 Example: `authelia hash-password --salt abcdefghijklhijl`. For argon2id the salt must always be a valid for base64
 decoding (characters a through z, A through Z, 0 through 9, and +/).
 
-For instance, with the docker image, just run
+For instance to generate a hash with the docker image just run:
 
     $ docker run authelia/authelia:latest authelia hash-password yourpassword
-    $argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$RNAy4ppk5taziCtvH48b6PadEz7r88vZV5n7WmU7yGk
+    $ Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
 
+Full CLI Help Documentation:
+
+```
+Hash a password to be used in file-based users database. Default algorithm is argon2id.
+
+Usage:
+  authelia hash-password [password] [flags]
+
+Flags:
+  -h, --help              help for hash-password
+  -i, --iterations int    set the number of hashing iterations (default 1)
+  -k, --key-length int    [argon2id] set the key length param (default 32)
+  -m, --memory int        [argon2id] set the amount of memory param (in KB) (default 65536)
+  -p, --parallelism int   [argon2id] set the parallelism param (default 4)
+  -s, --salt string       set the salt string
+  -l, --salt-length int   set the auto-generated salt length (default 16)
+  -z, --sha512            use sha512 as the algorithm (defaults iterations to 50000, change with -i)
+```
 
 ## Password Hash Function
 
@@ -82,10 +100,10 @@ considered the best hashing function. This was implemented due to community feed
  
  ### Password Hash Algorithm Tuning
  
- All algorithm tuning is supported by Argon2id except Key length. The only configuration variables that affects SHA512
- are rounds and salt length. The configuration variables are unique to the file authentication provider, thus they all
+ All algorithm tuning is supported for Argon2id. The only configuration variables that affect SHA512
+ are iterations and salt length. The configuration variables are unique to the file authentication provider, thus they all
  exist in a key under the file authentication configuration key called `password_hashing`. We have set what are considered 
- to  be sane and recommended defaults, if you're unsure about which settings to tune, please see the parameters below, or 
+ as sane and recommended defaults, if you're unsure about which settings to tune, please see the parameters below, or 
  for a more in depth understanding see the referenced documentation.
  
  Example:
