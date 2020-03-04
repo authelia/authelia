@@ -3,7 +3,7 @@ layout: default
 title: SQLite
 parent: Storage backends
 grand_parent: Configuration
-nav_order: 3
+nav_order: 4
 ---
 
 # SQLite

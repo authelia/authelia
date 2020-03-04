@@ -16,5 +16,5 @@ The available options are:
 
 * [SQLite](./sqlite.md)
 * [MariaDB](./mariadb.md)
-* ~~MySQL~~ ([#512](https://github.com/authelia/authelia/issues/512))
+* [MySQL](./mysql.md)
 * [Postgres](./postgres.md)

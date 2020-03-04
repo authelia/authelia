@@ -13,6 +13,13 @@ import (
 type SQLProvider struct {
 	db *sql.DB
 
+	sqlCreateUserPreferencesTable            string
+	sqlCreateIdentityVerificationTokensTable string
+	sqlCreateTOTPSecretsTable                string
+	sqlCreateU2FDeviceHandlesTable           string
+	sqlCreateAuthenticationLogsTable         string
+	sqlCreateAuthenticationLogsUserTimeIndex string
+
 	sqlGetPreferencesByUsername     string
 	sqlUpsertSecondFactorPreference string
 
@@ -34,51 +41,39 @@ type SQLProvider struct {
 func (p *SQLProvider) initialize(db *sql.DB) error {
 	p.db = db
 
-	_, err := db.Exec(fmt.Sprintf(`
-CREATE TABLE IF NOT EXISTS %s (
-	username VARCHAR(100) PRIMARY KEY,
-	second_factor_method VARCHAR(11)
-)`, preferencesTableName))
+	_, err := db.Exec(p.sqlCreateUserPreferencesTable)
 	if err != nil {
 		return fmt.Errorf("Unable to create table %s: %v", preferencesTableName, err)
 	}
 
-	_, err = db.Exec(fmt.Sprintf(`
-CREATE TABLE IF NOT EXISTS %s (token VARCHAR(512))
-`, identityVerificationTokensTableName))
+	_, err = db.Exec(p.sqlCreateIdentityVerificationTokensTable)
 	if err != nil {
 		return fmt.Errorf("Unable to create table %s: %v", identityVerificationTokensTableName, err)
 	}
 
-	_, err = db.Exec(fmt.Sprintf(`
-CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100) PRIMARY KEY, secret VARCHAR(64))
-`, totpSecretsTableName))
+	_, err = db.Exec(p.sqlCreateTOTPSecretsTable)
 	if err != nil {
 		return fmt.Errorf("Unable to create table %s: %v", totpSecretsTableName, err)
 	}
 
 	// keyHandle and publicKey are stored in base64 format
-	_, err = db.Exec(fmt.Sprintf(`
-CREATE TABLE IF NOT EXISTS %s (
-	username VARCHAR(100) PRIMARY KEY,
-	keyHandle TEXT,
-	publicKey TEXT
-)`, u2fDeviceHandlesTableName))
+	_, err = db.Exec(p.sqlCreateU2FDeviceHandlesTable)
 	if err != nil {
 		return fmt.Errorf("Unable to create table %s: %v", u2fDeviceHandlesTableName, err)
 	}
 
-	// Create an index on (username, time) because this couple is highly used by the regulation module
-	// to check whether a user is banned.
-	_, err = db.Exec(fmt.Sprintf(`
-CREATE TABLE IF NOT EXISTS %s (
-	username VARCHAR(100),
-	successful BOOL,
-	time INTEGER,
-	INDEX usr_time_idx (username, time)
-)`, authenticationLogsTableName))
+	_, err = db.Exec(p.sqlCreateAuthenticationLogsTable)
 	if err != nil {
 		return fmt.Errorf("Unable to create table %s: %v", authenticationLogsTableName, err)
+	}
+
+	// Create an index on (username, time) because this couple is highly used by the regulation module
+	// to check whether a user is banned.
+	if p.sqlCreateAuthenticationLogsUserTimeIndex != "" {
+		_, err = db.Exec(p.sqlCreateAuthenticationLogsUserTimeIndex)
+		if err != nil {
+			return fmt.Errorf("Unable to create table %s: %v", authenticationLogsTableName, err)
+		}
 	}
 	return nil
 }

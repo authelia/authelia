@@ -43,6 +43,12 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 
 	provider := MySQLProvider{
 		SQLProvider{
+			sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
+			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
+			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
+			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
+			sqlCreateAuthenticationLogsTable:         SQLCreateAuthenticationLogsTable,
+
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", preferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", preferencesTableName),
 
