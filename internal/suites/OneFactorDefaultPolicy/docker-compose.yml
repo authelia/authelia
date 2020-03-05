@@ -1,6 +1,0 @@
-version: '3'
-services:
-  authelia-backend:
-    volumes:
-      - './OneFactorDefaultPolicy/configuration.yml:/etc/authelia/configuration.yml:ro'
-      - './OneFactorDefaultPolicy/users.yml:/var/lib/authelia/users.yml'

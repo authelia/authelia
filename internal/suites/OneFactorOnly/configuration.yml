@@ -25,7 +25,16 @@ storage:
     path: /var/lib/authelia/db.sqlite
 
 access_control:
-  default_policy: one_factor
+  default_policy: deny
+  rules:
+    - domain: singlefactor.example.com
+      policy: one_factor
+    - domain: public.example.com
+      policy: bypass
+    - domain: home.example.com
+      policy: bypass
+    - domain: unsafe.local
+      policy: bypass
 
 notifier:
   smtp:
