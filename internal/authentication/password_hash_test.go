@@ -37,7 +37,7 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "argon2id", code)
 	assert.Equal(t, "BpLnfgDsc2WD8F2q", salt)
-	assert.Equal(t, "2t9X8nNCN2n3/kFYJ3xWNBg5k/rO782Qr7JJoJIK7G4", key)
+	assert.Equal(t, "UpLinNv7PPDiQ/4Hwo61+JrGTh4ag4qeBuQsz95lWvk", key)
 	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.Iterations, parameters.GetInt("t", HashingDefaultArgon2idTime))
 	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.Memory, parameters.GetInt("m", HashingDefaultArgon2idMemory))
 	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.Parallelism, parameters.GetInt("p", HashingDefaultArgon2idParallelism))
@@ -220,12 +220,12 @@ func TestShouldNotParseArgon2idHashWithWrongKeyLength(t *testing.T) {
 }
 
 func TestShouldParseArgon2idHash(t *testing.T) {
-	passwordHash, err := ParseHash("$argon2id$v=19$m=65536$BpLnfgDsc2WD8F2q$2t9X8nNCN2n3/kFYJ3xWNBg5k/rO782Qr7JJoJIK7G4")
+	passwordHash, err := ParseHash("$argon2id$v=19$m=1048576,t=1,p=8$BpLnfgDsc2WD8F2q$G4fD5nJwXHDMS+u0eEMKvU0LF23jxbSmJSxhSLTteHE")
 	assert.NoError(t, err)
 	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.Iterations, passwordHash.Iterations)
 	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.Parallelism, passwordHash.Parallelism)
 	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.KeyLength, passwordHash.KeyLength)
-	assert.Equal(t, 65536, passwordHash.Memory)
+	assert.Equal(t, schema.DefaultPasswordOptionsConfiguration.Memory, passwordHash.Memory)
 }
 
 func TestShouldCheckSHA512Password(t *testing.T) {
@@ -264,6 +264,7 @@ func TestOnlySupportSHA512AndArgon2id(t *testing.T) {
 func TestCannotFindNumberOfRounds(t *testing.T) {
 	hash := "$6$rounds50000$aFr56HjK3DrB8t3S$zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1"
 	ok, err := CheckPassword("password", hash)
+
 	assert.EqualError(t, err, fmt.Sprintf("Hash key is not the last parameter, the hash is likely malformed (%s).", hash))
 	assert.False(t, ok)
 }
@@ -284,12 +285,14 @@ func TestArgon2idVersionLessThanSupported(t *testing.T) {
 
 func TestArgon2idVersionGreaterThanSupported(t *testing.T) {
 	ok, err := CheckPassword("password", "$argon2id$v=20$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
+
 	assert.EqualError(t, err, "Argon2id versions greater than v19 are not supported (hash is version 20).")
 	assert.False(t, ok)
 }
 
 func TestNumberOfRoundsNotInt(t *testing.T) {
 	ok, err := CheckPassword("password", "$6$rounds=abc$aFr56HjK3DrB8t3S$zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1")
+
 	assert.EqualError(t, err, "SHA512 iterations is not numeric (abc).")
 	assert.False(t, ok)
 }
@@ -309,7 +312,9 @@ func TestShouldCheckPasswordArgon2idHashedWithAuthelia(t *testing.T) {
 func TestShouldCheckPasswordSHA512HashedWithAuthelia(t *testing.T) {
 	password := "my;secure*password"
 	hash, err := HashPassword(password, "", HashingAlgorithmSHA512, schema.DefaultPasswordOptionsSHA512Configuration.Iterations, 0, 0, 0, schema.DefaultPasswordOptionsSHA512Configuration.SaltLength)
+
 	assert.NoError(t, err)
+
 	equal, err := CheckPassword(password, hash)
 
 	require.NoError(t, err)

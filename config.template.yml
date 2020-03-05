@@ -110,8 +110,8 @@ authentication_backend:
   ##     iterations: 1
   ##     key_length: 32
   ##     salt_length: 16
-  ##     memory: ‭65536‬
-  ##     parallelism: 4
+  ##     memory: ‭1048576‬
+  ##     parallelism: 8
 # Access Control
 #
 # Access control is a list of rules defining the authorizations applied for one

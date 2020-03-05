@@ -121,7 +121,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	} else if p.configuration.PasswordHashing.Algorithm == "sha512" {
 		algorithm = HashingAlgorithmSHA512
 	} else {
-		return errors.New("Invalid algorithm in configuration. It should be impossible to reach this error!")
+		return errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
 	}
 
 	hash, err := HashPassword(

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	cryptorand "crypto/rand"
 	"math/rand"
 	"time"
 )
@@ -33,12 +32,7 @@ func SliceString(s string, d int) (array []string) {
 
 // RandomString generate a random string of n characters
 func RandomString(n int, characters []rune) (randomString string) {
-	prime, err := cryptorand.Prime(cryptorand.Reader, 1024)
-	if err != nil {
-		rand.Seed(time.Now().UnixNano())
-	} else {
-		rand.Seed(prime.Int64())
-	}
+	rand.Seed(time.Now().UnixNano())
 	b := make([]rune, n)
 	for i := range b {
 		b[i] = characters[rand.Intn(len(characters))]

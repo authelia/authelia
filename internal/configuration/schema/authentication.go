@@ -35,8 +35,8 @@ var DefaultPasswordOptionsConfiguration = PasswordHashingConfiguration{
 	KeyLength:   32,
 	SaltLength:  16,
 	Algorithm:   "argon2id",
-	Memory:      64 * 1024,
-	Parallelism: 4,
+	Memory:      1024 * 1024,
+	Parallelism: 8,
 }
 
 var DefaultPasswordOptionsSHA512Configuration = PasswordHashingConfiguration{
