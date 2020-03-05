@@ -49,7 +49,7 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 		h.Iterations = parameters.GetInt("rounds", HashingDefaultSHA512Iterations)
 		h.Algorithm = HashingAlgorithmSHA512
 		if parameters["rounds"] != "" && parameters["rounds"] != strconv.Itoa(h.Iterations) {
-			return nil, fmt.Errorf("SHA512 rounds is not numeric (%s).", parameters["rounds"])
+			return nil, fmt.Errorf("SHA512 iterations is not numeric (%s).", parameters["rounds"])
 		}
 	} else if code == HashingAlgorithmArgon2id {
 		version := parameters.GetInt("v", 0)

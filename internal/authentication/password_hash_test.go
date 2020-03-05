@@ -290,7 +290,7 @@ func TestArgon2idVersionGreaterThanSupported(t *testing.T) {
 
 func TestNumberOfRoundsNotInt(t *testing.T) {
 	ok, err := CheckPassword("password", "$6$rounds=abc$aFr56HjK3DrB8t3S$zhPQiS85cgBlNhUKKE6n/AHMlpqrvYSnSL3fEVkK0yHFQ.oFFAd8D4OhPAy18K5U61Z2eBhxQXExGU/eknXlY1")
-	assert.EqualError(t, err, "SHA512 rounds is not numeric (abc).")
+	assert.EqualError(t, err, "SHA512 iterations is not numeric (abc).")
 	assert.False(t, ok)
 }
 
