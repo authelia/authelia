@@ -20,10 +20,10 @@ file in the configuration file.
             path: /var/lib/authelia/users.yml
                 password_hashing:
                     algorithm: argon2id
-                    iterations: 3
+                    iterations: 1
                     salt_length: 16
-                    parallelism: 2
-                    memory: ‭65536‬
+                    parallelism: 8
+                    memory: ‭1048576
 
 
 ### Password hashing configuration settings
@@ -38,7 +38,7 @@ file in the configuration file.
    - Value Type: Int
    - Possible Value: `1` or higher for argon2id and `1000` or higher for sha512 
    (will automatically be set to `1000` on lower settings)
-   - Recommended: `3` for the `argon2id` algorithm and `50000` for `sha512`
+   - Recommended: `1` for the `argon2id` algorithm and `50000` for `sha512`
    - What it Does: Adjusts the number of times we run the password through the hashing algorithm
  
  #### key_length
