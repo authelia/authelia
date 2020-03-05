@@ -26,7 +26,7 @@ file in the configuration file.
                     memory: ‭65536‬
 
 
-### Password Hashing Configuration Settings
+### Password hashing configuration settings
 
  #### algorithm
  - Value Type: String
@@ -129,7 +129,7 @@ Flags:
   -z, --sha512            use sha512 as the algorithm (defaults iterations to 50000, change with -i)
 ```
 
-## Password Hash Function
+## Password hash function
 
 The supported hash functions are salted Argon2id (default, version 19 only), and salted SHA512 for backwards compatibility.
 This is determined by the prefix `$argon2id$` and `$6$` respectively, as described in this [wiki page](https://en.wikipedia.org/wiki/Crypt_(C)). 
@@ -142,7 +142,7 @@ crack the hash is not determined by the performance of the machine. The best cur
 considered the best hashing function. This was implemented due to community feedback as you can see in this closed
  [issue](https://github.com/authelia/authelia/issues/577).
  
- ### Password Hash Algorithm Tuning
+ ### Password hash algorithm tuning
  
  All algorithm tuning is supported for Argon2id. The only configuration variables that affect SHA512
  are iterations and salt length. The configuration variables are unique to the file authentication provider, thus they all

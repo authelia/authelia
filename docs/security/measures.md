@@ -28,7 +28,7 @@ that the attacker must also require the certificate to retrieve the cookies.
 Note that using [HSTS] has consequences. That's why you should read the blog
 post nginx has written on [HSTS].
 
-## Protections Against Password Cracking (File Authentication Provider)
+## Protections against password cracking (File authentication provider)
 
 Authelia implements a variety of measures to prevent an attacker cracking passwords if they
 somehow obtain the file used by the file authentication provider, this is unrelated to LDAP auth.
