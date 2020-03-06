@@ -13,7 +13,7 @@ can find the documentation of the configuration required for every supported
 proxy.
 
 If you are not aware of the workflow of an authentication request, reading this
-[documentation](./home/architecture) first is highly recommended.
+[documentation](../../home/architecture.md) first is highly recommended.
 
 
 ## How Authelia integrates with proxies?
@@ -22,8 +22,8 @@ Authelia takes authentication requests coming from the proxy and targeting the
 `/api/verify` endpoint exposed by Authelia. Two pieces of information are required for
 Authelia to be able to authenticate the user request:
 
-* The session cookie or a `Proxy-Authorization` header (see [single factor authentication](./features/single-factor)).
-* The target URL of the user request (used primarily for [access control](./features/access-control)).
+* The session cookie or a `Proxy-Authorization` header (see [single factor authentication](../../features/single-factor.md)).
+* The target URL of the user request (used primarily for [access control](../../features/access-control.md)).
 
 The target URL can be provided using one of the following ways:
 
@@ -45,4 +45,4 @@ login portal if not authenticated yet.
 
 If no redirection parameter is provided, the response code is either 200 or 401. The
 redirection must then be handled by the proxy when an error is detected
-(see [nginx](./deployment/supported-proxies/nginx) example).
+(see [nginx](./nginx.md) example).

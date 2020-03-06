@@ -59,7 +59,7 @@ func startServer() {
 	var userProvider authentication.UserProvider
 
 	if config.AuthenticationBackend.File != nil {
-		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File.Path)
+		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	} else if config.AuthenticationBackend.Ldap != nil {
 		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.Ldap)
 	} else {
@@ -120,7 +120,7 @@ func main() {
 		},
 	}
 
-	rootCmd.AddCommand(versionCmd, commands.HashPasswordCmd, commands.MigrateCmd)
+	rootCmd.AddCommand(versionCmd, commands.MigrateCmd, commands.HashPasswordCmd)
 	rootCmd.AddCommand(commands.CertificatesCmd)
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
