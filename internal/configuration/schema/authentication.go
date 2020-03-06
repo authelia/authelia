@@ -39,6 +39,15 @@ var DefaultPasswordOptionsConfiguration = PasswordHashingConfiguration{
 	Parallelism: 8,
 }
 
+var DefaultCIPasswordOptionsConfiguration = PasswordHashingConfiguration{
+	Iterations:  1,
+	KeyLength:   32,
+	SaltLength:  16,
+	Algorithm:   "argon2id",
+	Memory:      128 * 1024,
+	Parallelism: 8,
+}
+
 var DefaultPasswordOptionsSHA512Configuration = PasswordHashingConfiguration{
 	Iterations: 50000,
 	SaltLength: 16,

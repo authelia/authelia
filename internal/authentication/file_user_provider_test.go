@@ -222,12 +222,12 @@ var (
 	DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackendConfiguration{
 		Path: "",
 		PasswordHashing: &schema.PasswordHashingConfiguration{
-			Iterations:  schema.DefaultPasswordOptionsConfiguration.Iterations,
-			KeyLength:   schema.DefaultPasswordOptionsConfiguration.KeyLength,
-			SaltLength:  schema.DefaultPasswordOptionsConfiguration.SaltLength,
-			Algorithm:   schema.DefaultPasswordOptionsConfiguration.Algorithm,
-			Memory:      schema.DefaultPasswordOptionsConfiguration.Memory,
-			Parallelism: schema.DefaultPasswordOptionsConfiguration.Parallelism,
+			Iterations:  schema.DefaultCIPasswordOptionsConfiguration.Iterations,
+			KeyLength:   schema.DefaultCIPasswordOptionsConfiguration.KeyLength,
+			SaltLength:  schema.DefaultCIPasswordOptionsConfiguration.SaltLength,
+			Algorithm:   schema.DefaultCIPasswordOptionsConfiguration.Algorithm,
+			Memory:      schema.DefaultCIPasswordOptionsConfiguration.Memory,
+			Parallelism: schema.DefaultCIPasswordOptionsConfiguration.Parallelism,
 		},
 	}
 )
