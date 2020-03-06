@@ -105,6 +105,10 @@ func (c *AutheliaCtx) XOriginalURL() []byte {
 	return c.RequestCtx.Request.Header.Peek(xOriginalURLHeader)
 }
 
+func (c *AutheliaCtx) XForwardedMethod() []byte {
+	return c.RequestCtx.Request.Header.Peek(xForwardedMethodHeader)
+}
+
 // GetSession return the user session. Any update will be saved in cache.
 func (c *AutheliaCtx) GetSession() session.UserSession {
 	userSession, err := c.Providers.SessionProvider.GetSession(c.RequestCtx)

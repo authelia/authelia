@@ -8,6 +8,7 @@ import { postFirstFactor } from "../../../services/FirstFactor";
 import { ResetPasswordStep1Route } from "../../../Routes";
 import { useRedirectionURL } from "../../../hooks/RedirectionURL";
 import FixedTextField from "../../../components/FixedTextField";
+import {useRequestMethod} from "../../../hooks/RequestMethod";
 
 export interface Props {
     disabled: boolean;
@@ -21,6 +22,7 @@ export default function (props: Props) {
     const style = useStyles();
     const history = useHistory();
     const redirectionURL = useRedirectionURL();
+    const requestMethod = useRequestMethod();
 
     const [rememberMe, setRememberMe] = useState(false);
     const [username, setUsername] = useState("");
@@ -49,7 +51,7 @@ export default function (props: Props) {
 
         props.onAuthenticationStart();
         try {
-            const res = await postFirstFactor(username, password, rememberMe, redirectionURL);
+            const res = await postFirstFactor(username, password, rememberMe, redirectionURL, requestMethod);
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);

@@ -11,15 +11,18 @@ import LoadingPage from "../LoadingPage/LoadingPage";
 import { AuthenticationLevel } from "../../services/State";
 import { useNotifications } from "../../hooks/NotificationsContext";
 import { useRedirectionURL } from "../../hooks/RedirectionURL";
+import { useRequestMethod } from "../../hooks/RequestMethod";
 import { useUserPreferences as userUserInfo } from "../../hooks/UserInfo";
 import { SecondFactorMethod } from "../../models/Methods";
 import { useExtendedConfiguration } from "../../hooks/Configuration";
 import AuthenticatedView from "./AuthenticatedView/AuthenticatedView";
 
+
 export default function () {
     const history = useHistory();
     const location = useLocation();
     const redirectionURL = useRedirectionURL();
+    const requestMethod = useRequestMethod();
     const { createErrorNotification } = useNotifications();
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
 
@@ -72,9 +75,8 @@ export default function () {
     useEffect(() => {
         if (state) {
             const redirectionSuffix = redirectionURL
-                ? `?rd=${encodeURIComponent(redirectionURL)}`
-                : '';
-
+                ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ''}`
+                : requestMethod ? '?rm=' + requestMethod  : '';
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
                 redirect(`${FirstFactorRoute}${redirectionSuffix}`);
@@ -92,7 +94,7 @@ export default function () {
                 }
             }
         }
-    }, [state, redirectionURL, redirect, userInfo, setFirstFactorDisabled, configuration]);
+    }, [state, redirectionURL, requestMethod, redirect, userInfo, setFirstFactorDisabled, configuration]);
 
     const handleAuthSuccess = async (redirectionURL: string | undefined) => {
         if (redirectionURL) {

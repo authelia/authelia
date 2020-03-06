@@ -6,6 +6,7 @@ const jwtIssuer = "Authelia"
 const xForwardedProtoHeader = "X-Forwarded-Proto"
 const xForwardedHostHeader = "X-Forwarded-Host"
 const xForwardedURIHeader = "X-Forwarded-URI"
+const xForwardedMethodHeader = "X-Forwarded-Method"
 
 const xOriginalURLHeader = "X-Original-URL"
 

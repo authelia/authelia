@@ -40,9 +40,10 @@ type signDuoRequestBody struct {
 
 // firstFactorBody represents the JSON body received by the endpoint.
 type firstFactorRequestBody struct {
-	Username  string `json:"username" valid:"required"`
-	Password  string `json:"password" valid:"required"`
-	TargetURL string `json:"targetURL"`
+	Username      string `json:"username" valid:"required"`
+	Password      string `json:"password" valid:"required"`
+	TargetURL     string `json:"targetURL"`
+	RequestMethod string `json:"requestMethod""`
 	// Cannot require this field because of https://github.com/asaskevich/govalidator/pull/329
 	// TODO(c.michaud): add required validation once the above PR is merged.
 	KeepMeLoggedIn *bool `json:"keepMeLoggedIn"`

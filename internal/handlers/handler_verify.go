@@ -35,10 +35,9 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
 		}
 		return url, nil
-	} else {
-		ctx.Logger.Debug("No X-Original-URL header detected, fallback to combination of " +
-			"X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers")
 	}
+	ctx.Logger.Debug("No X-Original-URL header detected, fallback to combination of " +
+		"X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers")
 
 	forwardedProto := ctx.XForwardedProto()
 	forwardedHost := ctx.XForwardedHost()
@@ -83,14 +82,14 @@ func parseBasicAuth(auth string) (username, password string, err error) {
 }
 
 // isTargetURLAuthorized check whether the given user is authorized to access the resource.
-func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.URL,
+func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.URL, method []byte,
 	username string, userGroups []string, clientIP net.IP, authLevel authentication.Level) authorizationMatching {
 
 	level := authorizer.GetRequiredLevel(authorization.Subject{
 		Username: username,
 		Groups:   userGroups,
 		IP:       clientIP,
-	}, targetURL)
+	}, targetURL, method)
 
 	if level == authorization.Bypass {
 		return Authorized
@@ -205,6 +204,8 @@ func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (u
 func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.Tracef("Headers=%s", ctx.Request.Header.String())
 	targetURL, err := getOriginalURL(ctx)
+	method := ctx.XForwardedMethod()
+	ctx.Logger.Debugf("VerifyGet() - X-Forwarded-Method: %s", method)
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to parse target URL: %s", err), operationFailedMessage)
@@ -244,7 +245,7 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
+	authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, method, username,
 		groups, ctx.RemoteIP(), authLevel)
 
 	if authorization == Forbidden {
@@ -257,7 +258,13 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		// is computed from X-Fowarded-* headers or X-Original-URL.
 		rd := string(ctx.QueryArgs().Peek("rd"))
 		if rd != "" {
-			redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
+			methodStr := string(method)
+			var redirectionURL string
+			if methodStr != "" {
+				redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), methodStr)
+			} else {
+				redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
+			}
 			if strings.Contains(redirectionURL, "/%23/") {
 				ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
 			}

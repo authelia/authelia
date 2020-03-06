@@ -108,5 +108,5 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	Handle1FAResponse(ctx, bodyJSON.TargetURL, userSession.Username, userSession.Groups)
+	Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 }

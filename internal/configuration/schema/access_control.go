@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"strings"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // ACLRule represent one ACL rule
@@ -11,6 +13,7 @@ type ACLRule struct {
 	Domain    string   `mapstructure:"domain"`
 	Policy    string   `mapstructure:"policy"`
 	Subject   string   `mapstructure:"subject"`
+	Methods   []string `mapstructure:"methods"`
 	Networks  []string `mapstructure:"networks"`
 	Resources []string `mapstructure:"resources"`
 }
@@ -29,6 +32,10 @@ func IsSubjectValid(subject string) bool {
 func IsNetworkValid(network string) bool {
 	_, _, err := net.ParseCIDR(network)
 	return err == nil
+}
+
+func IsMethodValid(method string) bool {
+	return utils.IsStringInSlice(method, HTTPRequestMethods)
 }
 
 // Validate validate an ACL Rule
@@ -50,6 +57,12 @@ func (r *ACLRule) Validate(validator *StructValidator) {
 			validator.Push(fmt.Errorf("Network %d must be a valid CIDR", i))
 		}
 	}
+
+	for _, method := range r.Methods {
+		if !IsMethodValid(method) {
+			validator.Push(fmt.Errorf("Method %s must be a valid HTTP request method", method))
+		}
+	}
 }
 
 // AccessControlConfiguration represents the configuration related to ACLs.
@@ -68,3 +81,6 @@ func (acc *AccessControlConfiguration) Validate(validator *StructValidator) {
 		validator.Push(fmt.Errorf("'default_policy' must either be 'deny', 'two_factor', 'one_factor' or 'bypass'"))
 	}
 }
+
+// Valid HTTP request methods for access_control
+var HTTPRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH"}

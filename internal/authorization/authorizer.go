@@ -40,6 +40,7 @@ func (s Subject) String() string {
 type Object struct {
 	Domain string
 	Path   string
+	Method []byte
 }
 
 // selectMatchingSubjectRules take a set of rules and select only the rules matching the subject constraints.
@@ -60,7 +61,8 @@ func selectMatchingObjectRules(rules []schema.ACLRule, object Object) []schema.A
 
 	for _, rule := range rules {
 		if isDomainMatching(object.Domain, rule.Domain) &&
-			isPathMatching(object.Path, rule.Resources) {
+			isPathMatching(object.Path, rule.Resources) &&
+			isMethodMatching(object.Method, rule.Methods) {
 			selectedRules = append(selectedRules, rule)
 		}
 	}
@@ -103,13 +105,14 @@ func (p *Authorizer) IsSecondFactorEnabled() bool {
 }
 
 // GetRequiredLevel retrieve the required level of authorization to access the object.
-func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL) Level {
+func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL, method []byte) Level {
 	logging.Logger().Tracef("Check authorization of subject %s and url %s.",
 		subject.String(), requestURL.String())
 
 	matchingRules := selectMatchingRules(p.configuration.Rules, subject, Object{
 		Domain: requestURL.Hostname(),
 		Path:   requestURL.Path,
+		Method: method,
 	})
 
 	if len(matchingRules) > 0 {

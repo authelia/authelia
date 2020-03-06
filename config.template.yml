@@ -209,6 +209,20 @@ access_control:
       subject: "user:bob"
       policy: two_factor
 
+    # Rules applied to request method
+    # OPTIONS and HEAD will bypass auth, one factor required for GET, and everything else requires two factor
+    - domain: "method.example.com"
+      policy: bypass
+      methods:
+        - OPTIONS
+        - HEAD
+    - domain: "method.example.com"
+      policy: one_factor
+      methods:
+        - GET
+    - domain: "method.example.com"
+      policy: two_factor
+
 # Configuration of session cookies
 #
 # The session cookies identify the user once logged in.

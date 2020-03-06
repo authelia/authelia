@@ -13,3 +13,5 @@ const (
 	// Denied denied level.
 	Denied Level = iota
 )
+
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods

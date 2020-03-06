@@ -21,18 +21,8 @@ no rule matches the resource a customizable default policy is applied.
 
 A rule defines two things:
 
-* the matching criteria of the request presented to the reverse proxy
-* the policy applied when all criteria match.
-
-The criteria are:
-
-* domain: domain targeted by the request.
-* resources: list of patterns that the path should match (one is sufficient).
-* subject: the user or group of users to define the policy for.
-* networks: the network range from where should comes the request.
-
-A rule is matched when all criteria of the rule match.
-
+* the policy to apply to the rule
+* the criteria that must match the request presented to the reverse proxy
 
 ## Policies
 
@@ -48,18 +38,51 @@ the resource.
 * two_factor: the user needs to pass two factors to get access to the resource.
 * deny: the user does not have access to the resource.
 
-## Domains
 
-The domains defined in rules must obviously be either a subdomain of the domain
+## Criteria
+
+The criteria are:
+
+* domain: domain targeted by the request.
+* resources: list of patterns that the path should match (one is sufficient).
+* subject: the user or group of users to define the policy for.
+* networks: the network range from where should comes the request.
+
+A rule is matched when all criteria of the rule match.
+
+
+## Domain
+
+The domain defined in rules must be either a subdomain of the domain
 protected by Authelia or the protected domain itself. In order to match multiple
 subdomains, the wildcard matcher character `*.` can be used as prefix of the domain.
 For instance, to define a rule for all subdomains of *example.com*, one would use
 `*.example.com` in the rule.
 
+
+### Methods
+
+A rule can define multiple methods used for matching a request. If any one of them matches,
+the methodsThis is useful for 
+configuring bypass rules for situations like in this 
+[issue](https://github.com/authelia/authelia/issues/648). Available methods follow 
+the methods documented by the 
+[MDN web docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods). The expected
+format for these names is uppercase strings in a YAML list. 
+
+If this feature is used it expects the X-Forwarded-Method header. This header is sent
+by default with Traefik forward auth configurations, but other proxies will have to be 
+configured for this. Please see the [nginx](../deployment/supported-proxies/nginx.md) and
+[haproxy](../deployment/supported-proxies/haproxy.md) deployment guides for more information.
+If you specify a rule with methods, and the X-Forwarded-Method header is not present or
+does not match one of the available methods described by MDN, the rule will effectively
+be completely disabled. If no method is defined the rule will match all methods. 
+
+
 ## Resources
 
 A rule can define multiple regular expressions for matching the path of the resource. If
-any one of them matches, the resource criteria of the rule matches.
+any one of them matches, the resources criteria of the rule matches.
 
 
 ## Subjects
@@ -129,3 +152,10 @@ Here is a complete example of complex access control list that can be defined in
           - "^/users/john/.*$"
           subject: "user:john"
           policy: two_factor
+          
+        - domain: api.example.com
+          policy: bypass
+          methods:
+          - OPTIONS
+        - domain api.example.com
+          policy: one_factor
