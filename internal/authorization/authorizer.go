@@ -87,6 +87,21 @@ func PolicyToLevel(policy string) Level {
 	return Denied
 }
 
+// IsSecondFactorEnabled return true if at least one policy is set to second factor.
+func (p *Authorizer) IsSecondFactorEnabled() bool {
+	if PolicyToLevel(p.configuration.DefaultPolicy) == TwoFactor {
+		return true
+	}
+
+	for _, r := range p.configuration.Rules {
+		if PolicyToLevel(r.Policy) == TwoFactor {
+			return true
+		}
+	}
+
+	return false
+}
+
 // GetRequiredLevel retrieve the required level of authorization to access the object.
 func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL) Level {
 	logging.Logger().Tracef("Check authorization of subject %s and url %s.",

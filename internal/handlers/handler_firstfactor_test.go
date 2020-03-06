@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/authelia/authelia/internal/models"
 
@@ -239,7 +240,13 @@ type FirstFactorRedirectionSuite struct {
 func (s *FirstFactorRedirectionSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = "https://default.local"
-	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = "one_factor"
+	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = "bypass"
+	s.mock.Ctx.Configuration.AccessControl.Rules = []schema.ACLRule{
+		schema.ACLRule{
+			Domain: "default.local",
+			Policy: "one_factor",
+		},
+	}
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(
 		s.mock.Ctx.Configuration.AccessControl)
 
@@ -266,9 +273,13 @@ func (s *FirstFactorRedirectionSuite) TearDownTest() {
 	s.mock.Close()
 }
 
-// When the target url is unknown, default policy is to one_factor and default_redirect_url
-// is provided, the user should be redirected to the default url.
-func (s *FirstFactorRedirectionSuite) TestShouldRedirectUserToDefaultRedirectionURLWhenNoTargetURLProvided() {
+// When:
+//   1/ the target url is unknown
+//   2/ two_factor is disabled (no policy is set to two_factor)
+//   3/ default_redirect_url is provided
+// Then:
+//   the user should be redirected to the default url.
+func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTargetURLProvidedAndTwoFactorDisabled() {
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -277,14 +288,16 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectUserToDefaultRedirection
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.
-	s.mock.Assert200OK(s.T(), redirectResponse{
-		Redirect: "https://default.local",
-	})
+	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://default.local"})
 }
 
-// When the target url is unsafe, default policy is set to one_factor and default_redirect_url
-// is provided, the user should be redirected to the default url.
-func (s *FirstFactorRedirectionSuite) TestShouldRedirectUserToDefaultRedirectionURLWhenURLIsUnsafe() {
+// When:
+//   1/ the target url is unsafe
+//   2/ two_factor is disabled (no policy is set to two_factor)
+//   3/ default_redirect_url is provided
+// Then:
+//   the user should be redirected to the default url.
+func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUnsafeAndTwoFactorDisabled() {
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -294,9 +307,55 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectUserToDefaultRedirection
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.
-	s.mock.Assert200OK(s.T(), redirectResponse{
-		Redirect: "https://default.local",
+	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://default.local"})
+}
+
+// When:
+//   1/ two_factor is enabled (default policy)
+// Then:
+//   the user should receive 200 without redirection URL.
+func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedAndTwoFactorEnabled() {
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
+		DefaultPolicy: "two_factor",
 	})
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": false
+	}`)
+	FirstFactorPost(s.mock.Ctx)
+
+	// Respond with 200.
+	s.mock.Assert200OK(s.T(), nil)
+}
+
+// When:
+//   1/ two_factor is enabled (some rule)
+// Then:
+//   the user should receive 200 without redirection URL.
+func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvidedAndTwoFactorEnabled() {
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
+		DefaultPolicy: "one_factor",
+		Rules: []schema.ACLRule{
+			schema.ACLRule{
+				Domain: "test.example.com",
+				Policy: "one_factor",
+			},
+			schema.ACLRule{
+				Domain: "example.com",
+				Policy: "two_factor",
+			},
+		},
+	})
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": false
+	}`)
+	FirstFactorPost(s.mock.Ctx)
+
+	// Respond with 200.
+	s.mock.Assert200OK(s.T(), nil)
 }
 
 func TestFirstFactorSuite(t *testing.T) {
