@@ -37,8 +37,7 @@ authentication_backend:
         
         # The users filter used to find the user DN
         # {0} is a matcher replaced by username.
-        # 'cn={0}' by default.
-        users_filter: (cn={0})
+        users_filter: (uid={0})
         
         # An additional dn to define the scope of groups
         additional_groups_dn: ou=groups
@@ -47,7 +46,6 @@ authentication_backend:
         # {0} is a matcher replaced by username.
         # {dn} is a matcher replaced by user DN.
         # {uid} is a matcher replaced by user uid.
-        # 'member={dn}' by default.
         groups_filter: (&(member={dn})(objectclass=groupOfNames))
         
         # The attribute holding the name of the group

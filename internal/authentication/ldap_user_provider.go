@@ -249,7 +249,7 @@ func (p *LDAPUserProvider) GetDetails(username string) (*UserDetails, error) {
 
 	searchEmailRequest := ldap.NewSearchRequest(
 		userDN, ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		0, 0, false, "(cn=*)", []string{p.configuration.MailAttribute}, nil,
+		0, 0, false, "", []string{p.configuration.MailAttribute}, nil,
 	)
 
 	sr, err = conn.Search(searchEmailRequest)
