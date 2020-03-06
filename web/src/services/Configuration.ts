@@ -9,7 +9,7 @@ export async function getConfiguration(): Promise<Configuration> {
 
 interface ExtendedConfigurationPayload {
     available_methods: Method2FA[];
-    one_factor_default_policy: boolean;
+    second_factor_enabled: boolean;
 }
 
 export async function getExtendedConfiguration(): Promise<ExtendedConfiguration> {

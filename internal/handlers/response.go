@@ -9,10 +9,10 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+// Handle1FAResponse handle the redirection upon 1FA authentication
 func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username string, groups []string) {
 	if targetURI == "" {
-		if authorization.PolicyToLevel(ctx.Configuration.AccessControl.DefaultPolicy) == authorization.OneFactor &&
-			ctx.Configuration.DefaultRedirectionURL != "" {
+		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
 			ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
 		} else {
 			ctx.ReplyOK()
@@ -43,8 +43,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username 
 	safeRedirection := utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain)
 
 	if !safeRedirection {
-		if authorization.PolicyToLevel(ctx.Configuration.AccessControl.DefaultPolicy) == authorization.OneFactor &&
-			ctx.Configuration.DefaultRedirectionURL != "" {
+		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
 			ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
 		} else {
 			ctx.ReplyOK()
@@ -57,6 +56,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username 
 	ctx.SetJSONBody(response)
 }
 
+// Handle2FAResponse handle the redirection upon 2FA authentication
 func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	if targetURI == "" {
 		if ctx.Configuration.DefaultRedirectionURL != "" {

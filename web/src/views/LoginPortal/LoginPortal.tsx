@@ -79,7 +79,7 @@ export default function () {
                 setFirstFactorDisabled(false);
                 redirect(`${FirstFactorRoute}${redirectionSuffix}`);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
-                if (configuration.one_factor_default_policy) {
+                if (!configuration.second_factor_enabled) {
                     redirect(AuthenticatedRoute);
                 } else {
                     if (userInfo.method === SecondFactorMethod.U2F) {

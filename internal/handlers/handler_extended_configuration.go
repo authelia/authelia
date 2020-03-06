@@ -2,15 +2,15 @@ package handlers
 
 import (
 	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
+// ExtendedConfigurationBody the content returned by extended configuration endpoint
 type ExtendedConfigurationBody struct {
 	AvailableMethods MethodList `json:"available_methods"`
 
-	// OneFactorDefaultPolicy is set if default policy is 'one_factor'
-	OneFactorDefaultPolicy bool `json:"one_factor_default_policy"`
+	// SecondFactorEnabled whether second factor is enabled
+	SecondFactorEnabled bool `json:"second_factor_enabled"`
 }
 
 // ExtendedConfigurationGet get the extended configuration accessible to authenticated users.
@@ -22,9 +22,8 @@ func ExtendedConfigurationGet(ctx *middlewares.AutheliaCtx) {
 		body.AvailableMethods = append(body.AvailableMethods, authentication.Push)
 	}
 
-	defaultPolicy := authorization.PolicyToLevel(ctx.Configuration.AccessControl.DefaultPolicy)
-	body.OneFactorDefaultPolicy = defaultPolicy == authorization.OneFactor
-	ctx.Logger.Tracef("Default policy set to one factor: %v", body.OneFactorDefaultPolicy)
+	body.SecondFactorEnabled = ctx.Providers.Authorizer.IsSecondFactorEnabled()
+	ctx.Logger.Tracef("Second factor enabled: %v", body.SecondFactorEnabled)
 
 	ctx.Logger.Tracef("Available methods are %s", body.AvailableMethods)
 	ctx.SetJSONBody(body)
