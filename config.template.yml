@@ -110,7 +110,7 @@ authentication_backend:
   ##     iterations: 1
   ##     key_length: 32
   ##     salt_length: 16
-  ##     memory: ‭1048576‬
+  ##     memory: 1024
   ##     parallelism: 8
 # Access Control
 #
