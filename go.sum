@@ -187,6 +187,8 @@ github.com/savsgio/gotils v0.0.0-20190925070755-524bc4f47500 h1:9Pi10H7E8E79/x2H
 github.com/savsgio/gotils v0.0.0-20190925070755-524bc4f47500/go.mod h1:lHhJedqxCoHN+zMtwGNTXWmF0u9Jt363FYRhV6g0CdY=
 github.com/simia-tech/crypt v0.2.0 h1:cU8qdqUYNuEFKSMq15yaB2aI1aC5vrn6dFOonT6Kg6o=
 github.com/simia-tech/crypt v0.2.0/go.mod h1:DMwvjPTzsiHrjqHVW5HvIbF4vUUzMCYDKVLsPWmLdTo=
+github.com/simia-tech/crypt v0.4.2 h1:ZQFyCxgImhXpyxWNXEtBfAmV6T8dT1w481fpm8blQww=
+github.com/simia-tech/crypt v0.4.2/go.mod h1:DMwvjPTzsiHrjqHVW5HvIbF4vUUzMCYDKVLsPWmLdTo=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.2 h1:SPIRibHv4MatM3XXNO2BJeFLZwZ2LvZgfQ5+UNI2im4=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=

@@ -9,19 +9,19 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type OneFactorDefaultPolicySuite struct {
+type OneFactorOnlySuite struct {
 	suite.Suite
 }
 
-type OneFactorDefaultPolicyWebSuite struct {
+type OneFactorOnlyWebSuite struct {
 	*SeleniumSuite
 }
 
-func NewOneFactorDefaultPolicyWebSuite() *OneFactorDefaultPolicyWebSuite {
-	return &OneFactorDefaultPolicyWebSuite{SeleniumSuite: new(SeleniumSuite)}
+func NewOneFactorOnlyWebSuite() *OneFactorOnlyWebSuite {
+	return &OneFactorOnlyWebSuite{SeleniumSuite: new(SeleniumSuite)}
 }
 
-func (s *OneFactorDefaultPolicyWebSuite) SetupSuite() {
+func (s *OneFactorOnlyWebSuite) SetupSuite() {
 	wds, err := StartWebDriver()
 
 	if err != nil {
@@ -31,7 +31,7 @@ func (s *OneFactorDefaultPolicyWebSuite) SetupSuite() {
 	s.WebDriverSession = wds
 }
 
-func (s *OneFactorDefaultPolicyWebSuite) TearDownSuite() {
+func (s *OneFactorOnlyWebSuite) TearDownSuite() {
 	err := s.WebDriverSession.Stop()
 
 	if err != nil {
@@ -39,7 +39,7 @@ func (s *OneFactorDefaultPolicyWebSuite) TearDownSuite() {
 	}
 }
 
-func (s *OneFactorDefaultPolicyWebSuite) SetupTest() {
+func (s *OneFactorOnlyWebSuite) SetupTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -47,7 +47,7 @@ func (s *OneFactorDefaultPolicyWebSuite) SetupTest() {
 }
 
 // No target url is provided, then the user should be redirect to the default url.
-func (s *OneFactorDefaultPolicyWebSuite) TestShouldRedirectUserToDefaultURL() {
+func (s *OneFactorOnlyWebSuite) TestShouldRedirectUserToDefaultURL() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -56,7 +56,7 @@ func (s *OneFactorDefaultPolicyWebSuite) TestShouldRedirectUserToDefaultURL() {
 }
 
 // Unsafe URL is provided, then the user should be redirect to the default url.
-func (s *OneFactorDefaultPolicyWebSuite) TestShouldRedirectUserToDefaultURLWhenURLIsUnsafe() {
+func (s *OneFactorOnlyWebSuite) TestShouldRedirectUserToDefaultURLWhenURLIsUnsafe() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -65,7 +65,7 @@ func (s *OneFactorDefaultPolicyWebSuite) TestShouldRedirectUserToDefaultURLWhenU
 }
 
 // When use logged in and visit the portal again, she gets redirect to the authenticated view.
-func (s *OneFactorDefaultPolicyWebSuite) TestShouldDisplayAuthenticatedView() {
+func (s *OneFactorOnlyWebSuite) TestShouldDisplayAuthenticatedView() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -75,10 +75,10 @@ func (s *OneFactorDefaultPolicyWebSuite) TestShouldDisplayAuthenticatedView() {
 	s.verifyIsAuthenticatedPage(ctx, s.T())
 }
 
-func (s *OneFactorDefaultPolicySuite) TestWeb() {
-	suite.Run(s.T(), NewOneFactorDefaultPolicyWebSuite())
+func (s *OneFactorOnlySuite) TestWeb() {
+	suite.Run(s.T(), NewOneFactorOnlyWebSuite())
 }
 
-func TestOneFactorDefaultPolicySuite(t *testing.T) {
-	suite.Run(t, new(OneFactorDefaultPolicySuite))
+func TestOneFactorOnlySuite(t *testing.T) {
+	suite.Run(t, new(OneFactorOnlySuite))
 }

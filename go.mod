@@ -25,7 +25,7 @@ require (
 	github.com/onsi/gomega v1.7.1 // indirect
 	github.com/otiai10/copy v1.0.2
 	github.com/pquerna/otp v1.2.0
-	github.com/simia-tech/crypt v0.2.0
+	github.com/simia-tech/crypt v0.4.2
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.6.2

@@ -16,6 +16,63 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 	if configuration.Path == "" {
 		validator.Push(errors.New("Please provide a `path` for the users database in `authentication_backend`"))
 	}
+
+	if configuration.PasswordHashing == nil {
+		configuration.PasswordHashing = &schema.DefaultPasswordOptionsConfiguration
+	} else {
+		if configuration.PasswordHashing.Algorithm == "" {
+			configuration.PasswordHashing.Algorithm = schema.DefaultPasswordOptionsConfiguration.Algorithm
+		} else {
+			configuration.PasswordHashing.Algorithm = strings.ToLower(configuration.PasswordHashing.Algorithm)
+			if configuration.PasswordHashing.Algorithm != "argon2id" && configuration.PasswordHashing.Algorithm != "sha512" {
+				validator.Push(fmt.Errorf("Unknown hashing algorithm supplied, valid values are argon2id and sha512, you configured '%s'", configuration.PasswordHashing.Algorithm))
+			}
+		}
+
+		// Iterations (time)
+		if configuration.PasswordHashing.Iterations == 0 {
+			if configuration.PasswordHashing.Algorithm == "argon2id" {
+				configuration.PasswordHashing.Iterations = schema.DefaultPasswordOptionsConfiguration.Iterations
+			} else {
+				configuration.PasswordHashing.Iterations = schema.DefaultPasswordOptionsSHA512Configuration.Iterations
+			}
+		} else if configuration.PasswordHashing.Iterations < 1 {
+			validator.Push(fmt.Errorf("The number of iterations specified is invalid, must be 1 or more, you configured %d", configuration.PasswordHashing.Iterations))
+		}
+
+		//Salt Length
+		if configuration.PasswordHashing.SaltLength == 0 {
+			configuration.PasswordHashing.SaltLength = schema.DefaultPasswordOptionsConfiguration.SaltLength
+		} else if configuration.PasswordHashing.SaltLength < 2 {
+			validator.Push(fmt.Errorf("The salt length must be 2 or more, you configured %d", configuration.PasswordHashing.SaltLength))
+		} else if configuration.PasswordHashing.SaltLength > 16 {
+			validator.Push(fmt.Errorf("The salt length must be 16 or less, you configured %d", configuration.PasswordHashing.SaltLength))
+		}
+
+		if configuration.PasswordHashing.Algorithm == "argon2id" {
+
+			// Parallelism
+			if configuration.PasswordHashing.Parallelism == 0 {
+				configuration.PasswordHashing.Parallelism = schema.DefaultPasswordOptionsConfiguration.Parallelism
+			} else if configuration.PasswordHashing.Parallelism < 1 {
+				validator.Push(fmt.Errorf("Parallelism for argon2id must be 1 or more, you configured %d", configuration.PasswordHashing.Parallelism))
+			}
+
+			// Memory
+			if configuration.PasswordHashing.Memory == 0 {
+				configuration.PasswordHashing.Memory = schema.DefaultPasswordOptionsConfiguration.Memory
+			} else if configuration.PasswordHashing.Memory < configuration.PasswordHashing.Parallelism*8 {
+				validator.Push(fmt.Errorf("Memory for argon2id must be %d or more (parallelism * 8), you configured memory as %d and parallelism as %d", configuration.PasswordHashing.Parallelism*8, configuration.PasswordHashing.Memory, configuration.PasswordHashing.Parallelism))
+			}
+
+			// Key Length
+			if configuration.PasswordHashing.KeyLength == 0 {
+				configuration.PasswordHashing.KeyLength = schema.DefaultPasswordOptionsConfiguration.KeyLength
+			} else if configuration.PasswordHashing.KeyLength < 16 {
+				validator.Push(fmt.Errorf("Key length for argon2id must be 16, you configured %d", configuration.PasswordHashing.KeyLength))
+			}
+		}
+	}
 }
 
 func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
