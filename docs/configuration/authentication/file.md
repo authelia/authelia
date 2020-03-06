@@ -26,61 +26,6 @@ file in the configuration file.
                     memory: 1024
 
 
-### Password hashing configuration settings
-
-#### algorithm
- - Value Type: String
- - Possible Value: `argon2id` and `sha512`
- - Recommended: `argon2id`
- - What it Does: Changes the hashing algorithm
-
-#### iterations
-   - Value Type: Int
-   - Possible Value: `1` or higher for argon2id and `1000` or higher for sha512 
-   (will automatically be set to `1000` on lower settings)
-   - Recommended: `1` for the `argon2id` algorithm and `50000` for `sha512`
-   - What it Does: Adjusts the number of times we run the password through the hashing algorithm
-
-#### key_length
- - Value Type: Int
- - Possible Value: `16` or higher.
- - Recommended: `32` or higher.
- - What it Does: Adjusts the length of the actual hash
-
-#### salt_length
-  - Value Type: Int
-  - Possible Value: between `2` and `16`
-  - Recommended: `16`
-  - What it Does: Adjusts the length of the random salt we add to the password, there
-   is no reason not to set this to 16
-
-#### parallelism
- - Value Type: Int
- - Possible Value: `1` or higher
- - Recommended: `8` or twice your CPU cores
- - What it Does: Sets the number of threads used for hashing
-
-#### memory
- - Value Type: Int
- - Possible Value: at least `8` times the value of `parallelism`
- - Recommended: `1024‬‬` (1GB) or as much RAM as you can afford to give to hashing
- - What it Does: Sets the amount of RAM used in MB for hashing
-
-#### Examples for specific systems
-
-These examples have been tested against a single system to make sure they roughly take 
-0.5 seconds each. Your results may vary depending on individual specification and
-utilization, but they are a good guide to get started. You should however read
-[How to choose the right parameters for Argon2].
-
-|    System     |Iterations|Parallelism|Memory |
-|:------------: |:--------:|:---------:|:-----:|
-|Raspberry Pi 2 |    1     |     8     |    64 |
-|Raspberry Pi 3 |    1     |     8     |   128 |
-|Raspberry Pi 4 |    1     |     8     |   128 |
-|Intel G5 i5 NUC|    1     |     8     |  1024 |
-
-
 ## Format
 
 The format of the users file is as follows.
@@ -111,7 +56,7 @@ The format of the users file is as follows.
 
 This file should be set with read/write permissions as it could be updated by users
 resetting their passwords.
- 
+
 
 ## Passwords
 
@@ -148,7 +93,9 @@ Flags:
   -z, --sha512            use sha512 as the algorithm (defaults iterations to 50000, change with -i)
 ```
 
+
 ## Password hash algorithm
+
 The default hash algorithm is salted Argon2id version 19. Argon2id is currently considered 
 the best hashing algorithm, and in 2015 won the 
 [Password Hashing Competition](https://en.wikipedia.org/wiki/Password_Hashing_Competition).
@@ -170,16 +117,77 @@ SHA512 are iterations and salt length. The configuration variables are unique to
 authentication provider, thus they all exist in a key under the file authentication configuration
 key called `password_hashing`. We have set what are considered as sane and recommended defaults
 to cater for a reasonable system, if you're unsure about which settings to tune, please see the 
-parameters above, or for a more in depth understanding see the referenced documentation.
- 
+parameters below, or for a more in depth understanding see the referenced documentation in
+[Argon2 links](./file.md#argon2-links).
+
+
+### Password hashing configuration settings
+
+#### algorithm
+ - Value Type: String
+ - Possible Value: `argon2id` or `sha512`
+ - Recommended: `argon2id`
+ - What it Does: Changes the hashing algorithm
+
+
+#### iterations
+   - Value Type: Int
+   - Possible Value: `1` or higher for argon2id and `1000` or higher for sha512 
+   (will automatically be set to `1000` on lower settings)
+   - Recommended: `1` for the `argon2id` algorithm and `50000` for `sha512`
+   - What it Does: Adjusts the number of times we run the password through the hashing algorithm
+
+
+#### key_length
+ - Value Type: Int
+ - Possible Value: `16` or higher.
+ - Recommended: `32` or higher.
+ - What it Does: Adjusts the length of the actual hash
+
+
+#### salt_length
+  - Value Type: Int
+  - Possible Value: between `2` and `16`
+  - Recommended: `16`
+  - What it Does: Adjusts the length of the random salt we add to the password, there
+   is no reason not to set this to 16
+
+
+#### parallelism
+ - Value Type: Int
+ - Possible Value: `1` or higher
+ - Recommended: `8` or twice your CPU cores
+ - What it Does: Sets the number of threads used for hashing
+
+
+#### memory
+ - Value Type: Int
+ - Possible Value: at least `8` times the value of `parallelism`
+ - Recommended: `1024‬‬` (1GB) or as much RAM as you can afford to give to hashing
+ - What it Does: Sets the amount of RAM used in MB for hashing
+
+
+#### Examples for specific systems
+
+These examples have been tested against a single system to make sure they roughly take 
+0.5 seconds each. Your results may vary depending on individual specification and
+utilization, but they are a good guide to get started. You should however read the 
+linked documents in [Argon2 links](./file.md#argon2-links).
+
+|    System     |Iterations|Parallelism|Memory |
+|:------------: |:--------:|:---------:|:-----:|
+|Raspberry Pi 2 |    1     |     8     |    64 |
+|Raspberry Pi 3 |    1     |     8     |   128 |
+|Raspberry Pi 4 |    1     |     8     |   128 |
+|Intel G5 i5 NUC|    1     |     8     |  1024 |
+
+
 #### Argon2 Links
 [How to choose the right parameters for Argon2]
- 
-[How to choose the right parameters for Argon2](https://www.twelve21.io/how-to-choose-the-right-parameters-for-argon2/)
- 
+
 [Go Documentation](https://godoc.org/golang.org/x/crypto/argon2)
- 
+
 [IETF Draft](https://tools.ietf.org/id/draft-irtf-cfrg-argon2-09.html)
- 
- 
+
+
 [How to choose the right parameters for Argon2]: https://www.twelve21.io/how-to-choose-the-right-parameters-for-argon2/
