@@ -29,7 +29,9 @@ following configuration options:
     tls_cert: /var/lib/authelia/ssl/cert.pem
 
 
-## Logs level
+## Logs
+
+### Logs level
 
 `optional: true`
 
@@ -37,6 +39,15 @@ Defines the level of logs used by Authelia. This level can be set to
 `trace`, `debug`, `info`.
 
     logs_level: debug
+
+### Logs file path
+
+`optional: true`
+
+Logs can be stored in a file when file path is provided. Otherwise logs
+are written to standard output.
+
+    logs_file_path: /var/log/authelia.log
 
 
 ## JWT Secret
