@@ -75,12 +75,12 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 	}
 	defer adminClient.Close()
 
-	userDN, err := p.getUserDN(adminClient, username)
+	profile, err := p.getUserProfile(adminClient, username)
 	if err != nil {
 		return false, err
 	}
 
-	conn, err := p.connect(userDN, password)
+	conn, err := p.connect(profile.DN, password)
 	if err != nil {
 		return false, fmt.Errorf("Authentication of user %s failed. Cause: %s", username, err)
 	}
@@ -100,13 +100,13 @@ func (p *LDAPUserProvider) ldapEscape(input string) string {
 	return input
 }
 
-func (p *LDAPUserProvider) getUserAttribute(conn LDAPConnection, username string, attribute string) ([]string, error) {
-	client, err := p.connect(p.configuration.User, p.configuration.Password)
-	if err != nil {
-		return nil, err
-	}
-	defer client.Close()
+type ldapUserProfile struct {
+	DN       string
+	Emails   []string
+	Username string
+}
 
+func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, username string) (*ldapUserProfile, error) {
 	username = p.ldapEscape(username)
 	userFilter := strings.Replace(p.configuration.UsersFilter, "{0}", username, -1)
 	baseDN := p.configuration.BaseDN
@@ -114,89 +114,65 @@ func (p *LDAPUserProvider) getUserAttribute(conn LDAPConnection, username string
 		baseDN = p.configuration.AdditionalUsersDN + "," + baseDN
 	}
 
+	attributes := []string{"dn",
+		p.configuration.MailAttribute,
+		p.configuration.UsernameAttribute}
+
 	// Search for the given username
 	searchRequest := ldap.NewSearchRequest(
 		baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, userFilter, []string{attribute}, nil,
+		1, 0, false, userFilter, attributes, nil,
 	)
 
-	sr, err := client.Search(searchRequest)
+	sr, err := conn.Search(searchRequest)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot find user DN of user %s. Cause: %s", username, err)
 	}
 
-	if len(sr.Entries) != 1 {
-		return nil, fmt.Errorf("No entry when searching for attribute %s of user %s", attribute, username)
+	if len(sr.Entries) == 0 {
+		return nil, fmt.Errorf("No user %s found", username)
 	}
 
-	if attribute == "dn" {
-		return []string{sr.Entries[0].DN}, nil
+	if len(sr.Entries) > 1 {
+		return nil, fmt.Errorf("Multiple users %s found", username)
 	}
 
-	if len(sr.Entries[0].Attributes) != 1 {
-		return nil, fmt.Errorf("No attribute values when searching for attribute %s of user %s", attribute, username)
+	userProfile := ldapUserProfile{
+		DN: sr.Entries[0].DN,
+	}
+	for _, attr := range sr.Entries[0].Attributes {
+		if attr.Name == p.configuration.MailAttribute {
+			userProfile.Emails = attr.Values
+		} else if attr.Name == p.configuration.UsernameAttribute {
+			if len(attr.Values) != 1 {
+				return nil, fmt.Errorf("User %s cannot have multiple value for attribute %s", username, p.configuration.UsernameAttribute)
+			}
+			userProfile.Username = attr.Values[0]
+		}
 	}
 
-	return sr.Entries[0].Attributes[0].Values, nil
-}
-
-func (p *LDAPUserProvider) getUserDN(conn LDAPConnection, username string) (string, error) {
-	values, err := p.getUserAttribute(conn, username, "dn")
-
-	if err != nil {
-		return "", err
+	if userProfile.DN == "" {
+		return nil, fmt.Errorf("No DN has been found for user %s", username)
 	}
 
-	if len(values) != 1 {
-		return "", fmt.Errorf("DN attribute of user %s must be set", username)
-	}
-
-	return values[0], nil
-}
-
-func (p *LDAPUserProvider) getUsernameAttribute(conn LDAPConnection, username string) (string, error) {
-	values, err := p.getUserAttribute(conn, username, p.configuration.UsernameAttribute)
-
-	if err != nil {
-		return "", err
-	}
-
-	if len(values) != 1 {
-		return "", fmt.Errorf("%s attribute of user %s must be set", p.configuration.UsernameAttribute, username)
-	}
-
-	return values[0], nil
-}
-
-func (p *LDAPUserProvider) getUserUID(conn LDAPConnection, username string) (string, error) {
-	values, err := p.getUserAttribute(conn, username, "uid")
-
-	if err != nil {
-		return "", err
-	}
-
-	if len(values) != 1 {
-		return "", fmt.Errorf("UID attribute of user %s must be set", username)
-	}
-
-	return values[0], nil
+	return &userProfile, nil
 }
 
 func (p *LDAPUserProvider) createGroupsFilter(conn LDAPConnection, username string) (string, error) {
 	if strings.Contains(p.configuration.GroupsFilter, "{0}") {
 		return strings.Replace(p.configuration.GroupsFilter, "{0}", username, -1), nil
 	} else if strings.Contains(p.configuration.GroupsFilter, "{dn}") {
-		userDN, err := p.getUserDN(conn, username)
+		profile, err := p.getUserProfile(conn, username)
 		if err != nil {
 			return "", err
 		}
-		return strings.Replace(p.configuration.GroupsFilter, "{dn}", userDN, -1), nil
-	} else if strings.Contains(p.configuration.GroupsFilter, "{uid}") {
-		userUID, err := p.getUserUID(conn, username)
+		return strings.Replace(p.configuration.GroupsFilter, "{dn}", profile.DN, -1), nil
+	} else if strings.Contains(p.configuration.GroupsFilter, "{1}") {
+		profile, err := p.getUserProfile(conn, username)
 		if err != nil {
 			return "", err
 		}
-		return strings.Replace(p.configuration.GroupsFilter, "{uid}", userUID, -1), nil
+		return strings.Replace(p.configuration.GroupsFilter, "{1}", profile.Username, -1), nil
 	}
 	return p.configuration.GroupsFilter, nil
 }
@@ -241,42 +217,14 @@ func (p *LDAPUserProvider) GetDetails(username string) (*UserDetails, error) {
 		groups = append(groups, res.Attributes[0].Values...)
 	}
 
-	userDN, err := p.getUserDN(conn, username)
-
-	if err != nil {
-		return nil, err
-	}
-
-	searchEmailRequest := ldap.NewSearchRequest(
-		userDN, ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		0, 0, false, "", []string{p.configuration.MailAttribute}, nil,
-	)
-
-	sr, err = conn.Search(searchEmailRequest)
-
-	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve email of user %s. Cause: %s", username, err)
-	}
-
-	emails := make([]string, 0)
-
-	for _, res := range sr.Entries {
-		if len(res.Attributes) == 0 {
-			logging.Logger().Warningf("No email retrieved from LDAP for user %s", username)
-			break
-		}
-		// append all values of the document. Normally there should be only one per document.
-		emails = append(emails, res.Attributes[0].Values...)
-	}
-
-	userID, err := p.getUsernameAttribute(conn, username)
+	profile, err := p.getUserProfile(conn, username)
 	if err != nil {
 		return nil, err
 	}
 
 	return &UserDetails{
-		Username: userID,
-		Emails:   emails,
+		Username: profile.Username,
+		Emails:   profile.Emails,
 		Groups:   groups,
 	}, nil
 }
@@ -289,13 +237,13 @@ func (p *LDAPUserProvider) UpdatePassword(username string, newPassword string) e
 		return fmt.Errorf("Unable to update password. Cause: %s", err)
 	}
 
-	userDN, err := p.getUserDN(client, username)
+	profile, err := p.getUserProfile(client, username)
 
 	if err != nil {
 		return fmt.Errorf("Unable to update password. Cause: %s", err)
 	}
 
-	modifyRequest := ldap.NewModifyRequest(userDN, nil)
+	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
 
 	modifyRequest.Replace("userPassword", []string{newPassword})
 

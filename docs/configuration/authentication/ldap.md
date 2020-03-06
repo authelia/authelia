@@ -43,9 +43,10 @@ authentication_backend:
         additional_groups_dn: ou=groups
         
         # The groups filter used for retrieving groups of a given user.
-        # {0} is a matcher replaced by username.
+        # {0} is a matcher replaced by username (as provided in login portal).
+        # {1} is a matcher replaced by username (as stored in LDAP).
         # {dn} is a matcher replaced by user DN.
-        # {uid} is a matcher replaced by user uid.
+        # 'member={dn}' by default.
         groups_filter: (&(member={dn})(objectclass=groupOfNames))
         
         # The attribute holding the name of the group

@@ -31,7 +31,7 @@ func init() {
 		return waitUntilAutheliaBackendIsReady(haDockerEnvironment)
 	}
 
-	onSetupTimeout := func() error {
+	displayAutheliaLogs := func() error {
 		backendLogs, err := haDockerEnvironment.Logs("authelia-backend", nil)
 		if err != nil {
 			return err
@@ -53,10 +53,11 @@ func init() {
 	GlobalRegistry.Register(highAvailabilitySuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
-		OnSetupTimeout:  onSetupTimeout,
+		OnSetupTimeout:  displayAutheliaLogs,
 		TestTimeout:     5 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
+		OnError:         displayAutheliaLogs,
 		Description: `This suite is made to test Authelia in a *complete*
 environment, that is, with all components making Authelia highly available.`,
 	})

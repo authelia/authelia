@@ -116,23 +116,12 @@ func TestShouldEscapeUserInput(t *testing.T) {
 		BaseDN:            "dc=example,dc=com",
 	}, mockFactory)
 
-	mockFactory.EXPECT().
-		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
-		Return(mockConn, nil)
-
-	mockConn.EXPECT().
-		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
-		Return(nil)
-
-	mockConn.EXPECT().
-		Close()
-
 	mockConn.EXPECT().
 		// Here we ensure that the input has been correctly escaped.
 		Search(NewSearchRequestMatcher("uid=john\\=abc")).
 		Return(&ldap.SearchResult{}, nil)
 
-	ldapClient.getUserAttribute(mockConn, "john=abc", "dn")
+	ldapClient.getUserProfile(mockConn, "john=abc")
 }
 
 func createSearchResultWithAttributes(attributes ...*ldap.EntryAttribute) *ldap.SearchResult {
@@ -161,6 +150,7 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 		User:              "cn=admin,dc=example,dc=com",
 		Password:          "password",
 		UsernameAttribute: "uid",
+		MailAttribute:     "mail",
 		UsersFilter:       "uid={0}",
 		AdditionalUsersDN: "ou=users",
 		BaseDN:            "dc=example,dc=com",
@@ -168,31 +158,39 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 
 	mockFactory.EXPECT().
 		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
-		Return(mockConn, nil).Times(3)
+		Return(mockConn, nil)
 
 	mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
-		Return(nil).
-		Times(3)
+		Return(nil)
 
 	mockConn.EXPECT().
-		Close().
-		Times(3)
+		Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(createSearchResultWithAttributes(), nil)
-	searchUserDN := mockConn.EXPECT().
+	searchProfile := mockConn.EXPECT().
 		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("uid=john,dc=example,dc=com"), nil)
-	searchEmails := mockConn.EXPECT().
-		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("test@example.com"), nil)
-	searchUserName := mockConn.EXPECT().
-		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("john"), nil)
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				&ldap.Entry{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						&ldap.EntryAttribute{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						&ldap.EntryAttribute{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+					},
+				},
+			},
+		}, nil)
 
-	gomock.InOrder(searchGroups, searchUserDN, searchEmails, searchUserName)
+	gomock.InOrder(searchGroups, searchProfile)
 
 	details, err := ldapClient.GetDetails("john")
 	require.NoError(t, err)
@@ -213,6 +211,7 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 		URL:               "ldap://127.0.0.1:389",
 		User:              "cn=admin,dc=example,dc=com",
 		Password:          "password",
+		UsernameAttribute: "uid",
 		UsersFilter:       "uid={0}",
 		AdditionalUsersDN: "ou=users",
 		BaseDN:            "dc=example,dc=com",
@@ -220,32 +219,35 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 
 	mockFactory.EXPECT().
 		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
-		Return(mockConn, nil).
-		Times(3)
+		Return(mockConn, nil)
 
 	mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
-		Return(nil).
-		Times(3)
+		Return(nil)
 
 	mockConn.EXPECT().
-		Close().
-		Times(3)
+		Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(createSearchResultWithAttributeValues("group1", "group2"), nil)
-	searchUserDN := mockConn.EXPECT().
+	searchProfile := mockConn.EXPECT().
 		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("uid=john,dc=example,dc=com"), nil)
-	searchEmails := mockConn.EXPECT().
-		Search(gomock.Any()).
-		Return(createSearchResultWithAttributes(), nil)
-	searchUserName := mockConn.EXPECT().
-		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("john"), nil)
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				&ldap.Entry{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						&ldap.EntryAttribute{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+					},
+				},
+			},
+		}, nil)
 
-	gomock.InOrder(searchGroups, searchUserDN, searchEmails, searchUserName)
+	gomock.InOrder(searchGroups, searchProfile)
 
 	details, err := ldapClient.GetDetails("john")
 	require.NoError(t, err)
@@ -267,6 +269,7 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 		User:              "cn=admin,dc=example,dc=com",
 		Password:          "password",
 		UsernameAttribute: "uid",
+		MailAttribute:     "mail",
 		UsersFilter:       "uid={0}",
 		AdditionalUsersDN: "ou=users",
 		BaseDN:            "dc=example,dc=com",
@@ -274,31 +277,39 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 
 	mockFactory.EXPECT().
 		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
-		Return(mockConn, nil).Times(3)
+		Return(mockConn, nil)
 
 	mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
-		Return(nil).
-		Times(3)
+		Return(nil)
 
 	mockConn.EXPECT().
-		Close().
-		Times(3)
+		Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(createSearchResultWithAttributeValues("group1", "group2"), nil)
-	searchUserDN := mockConn.EXPECT().
+	searchProfile := mockConn.EXPECT().
 		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("uid=john,dc=example,dc=com"), nil)
-	searchEmails := mockConn.EXPECT().
-		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("test@example.com"), nil)
-	searchUserName := mockConn.EXPECT().
-		Search(gomock.Any()).
-		Return(createSearchResultWithAttributeValues("John"), nil)
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				&ldap.Entry{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						&ldap.EntryAttribute{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						&ldap.EntryAttribute{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
 
-	gomock.InOrder(searchGroups, searchUserDN, searchEmails, searchUserName)
+	gomock.InOrder(searchGroups, searchProfile)
 
 	details, err := ldapClient.GetDetails("john")
 	require.NoError(t, err)

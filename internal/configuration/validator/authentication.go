@@ -121,7 +121,7 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	}
 
 	if configuration.UsersFilter == "" {
-		validator.Push(errors.New("Provide a users filter with `users_filter` attribute"))
+		validator.Push(errors.New("Please provide a users filter with `users_filter` attribute"))
 	} else {
 		if !strings.HasPrefix(configuration.UsersFilter, "(") || !strings.HasSuffix(configuration.UsersFilter, ")") {
 			validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance uid={0} should be (uid={0})"))
@@ -129,11 +129,15 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	}
 
 	if configuration.GroupsFilter == "" {
-		validator.Push(errors.New("Provide a groups filter with `groups_filter` attribute"))
+		validator.Push(errors.New("Please provide a groups filter with `groups_filter` attribute"))
 	} else {
 		if !strings.HasPrefix(configuration.GroupsFilter, "(") || !strings.HasSuffix(configuration.GroupsFilter, ")") {
 			validator.Push(errors.New("The groups filter should contain enclosing parenthesis. For instance cn={0} should be (cn={0})"))
 		}
+	}
+
+	if configuration.UsernameAttribute == "" {
+		validator.Push(errors.New("Please provide a username attribute with `username_attribute`"))
 	}
 
 	if configuration.GroupNameAttribute == "" {

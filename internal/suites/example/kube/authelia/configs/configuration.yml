@@ -12,6 +12,7 @@ authentication_backend:
     url: ldaps://ldap-service
     skip_verify: true
     base_dn: dc=example,dc=com
+    username_attribute: uid
     additional_users_dn: ou=users
     users_filter: (uid={0})
     additional_groups_dn: ou=groups
