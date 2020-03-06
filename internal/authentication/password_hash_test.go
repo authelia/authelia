@@ -26,7 +26,7 @@ func TestShouldHashSHA512Password(t *testing.T) {
 
 func TestShouldHashArgon2idPassword(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory,
+		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024,
 		schema.DefaultCIPasswordOptionsConfiguration.Parallelism, schema.DefaultCIPasswordOptionsConfiguration.KeyLength,
 		schema.DefaultCIPasswordOptionsConfiguration.SaltLength)
 
@@ -39,7 +39,7 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 	assert.Equal(t, "BpLnfgDsc2WD8F2q", salt)
 	assert.Equal(t, "O126GHPeZ5fwj7OLSs7PndXsTbje76R+QW9/EGfhkJg", key)
 	assert.Equal(t, schema.DefaultCIPasswordOptionsConfiguration.Iterations, parameters.GetInt("t", HashingDefaultArgon2idTime))
-	assert.Equal(t, schema.DefaultCIPasswordOptionsConfiguration.Memory, parameters.GetInt("m", HashingDefaultArgon2idMemory))
+	assert.Equal(t, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024, parameters.GetInt("m", HashingDefaultArgon2idMemory))
 	assert.Equal(t, schema.DefaultCIPasswordOptionsConfiguration.Parallelism, parameters.GetInt("p", HashingDefaultArgon2idParallelism))
 	assert.Equal(t, schema.DefaultCIPasswordOptionsConfiguration.KeyLength, parameters.GetInt("k", HashingDefaultArgon2idKeyLength))
 }
@@ -72,7 +72,7 @@ func TestSHA512HashSaltValidValues(t *testing.T) {
 
 func TestShouldNotHashPasswordWithNonExistentAlgorithm(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", "bogus",
-		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory,
+		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024,
 		schema.DefaultCIPasswordOptionsConfiguration.Parallelism, schema.DefaultCIPasswordOptionsConfiguration.KeyLength,
 		schema.DefaultCIPasswordOptionsConfiguration.SaltLength)
 
@@ -100,7 +100,7 @@ func TestShouldNotHashArgon2idPasswordDueToMemoryLessThanEight(t *testing.T) {
 
 func TestShouldNotHashArgon2idPasswordDueToKeyLengthLessThanSixteen(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory,
+		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024,
 		schema.DefaultCIPasswordOptionsConfiguration.Parallelism, 5, schema.DefaultCIPasswordOptionsConfiguration.SaltLength)
 
 	assert.Equal(t, "", hash)
@@ -109,7 +109,7 @@ func TestShouldNotHashArgon2idPasswordDueToKeyLengthLessThanSixteen(t *testing.T
 
 func TestShouldNotHashArgon2idPasswordDueParallelismLessThanOne(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory, -1,
+		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024, -1,
 		schema.DefaultCIPasswordOptionsConfiguration.KeyLength, schema.DefaultCIPasswordOptionsConfiguration.SaltLength)
 
 	assert.Equal(t, "", hash)
@@ -118,7 +118,7 @@ func TestShouldNotHashArgon2idPasswordDueParallelismLessThanOne(t *testing.T) {
 
 func TestShouldNotHashArgon2idPasswordDueIterationsLessThanOne(t *testing.T) {
 	hash, err := HashPassword("password", "BpLnfgDsc2WD8F2q", HashingAlgorithmArgon2id,
-		0, schema.DefaultCIPasswordOptionsConfiguration.Memory, schema.DefaultCIPasswordOptionsConfiguration.Parallelism,
+		0, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024, schema.DefaultCIPasswordOptionsConfiguration.Parallelism,
 		schema.DefaultCIPasswordOptionsConfiguration.KeyLength, schema.DefaultCIPasswordOptionsConfiguration.SaltLength)
 
 	assert.Equal(t, "", hash)
@@ -127,14 +127,14 @@ func TestShouldNotHashArgon2idPasswordDueIterationsLessThanOne(t *testing.T) {
 
 func TestShouldNotHashPasswordDueToSaltLength(t *testing.T) {
 	hash, err := HashPassword("password", "", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory,
+		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024,
 		schema.DefaultCIPasswordOptionsConfiguration.Parallelism, schema.DefaultCIPasswordOptionsConfiguration.KeyLength, 0)
 
 	assert.Equal(t, "", hash)
 	assert.EqualError(t, err, "Salt length input of 0 is invalid, it must be 2 or higher.")
 
 	hash, err = HashPassword("password", "", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory,
+		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024,
 		schema.DefaultCIPasswordOptionsConfiguration.Parallelism, schema.DefaultCIPasswordOptionsConfiguration.KeyLength, 20)
 
 	assert.Equal(t, "", hash)
@@ -143,7 +143,7 @@ func TestShouldNotHashPasswordDueToSaltLength(t *testing.T) {
 
 func TestShouldNotHashPasswordDueToSaltCharLengthTooLong(t *testing.T) {
 	hash, err := HashPassword("password", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory,
+		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024,
 		schema.DefaultCIPasswordOptionsConfiguration.Parallelism, schema.DefaultCIPasswordOptionsConfiguration.KeyLength,
 		schema.DefaultCIPasswordOptionsConfiguration.SaltLength)
 	assert.Equal(t, "", hash)
@@ -152,7 +152,7 @@ func TestShouldNotHashPasswordDueToSaltCharLengthTooLong(t *testing.T) {
 
 func TestShouldNotHashPasswordDueToSaltCharLengthTooShort(t *testing.T) {
 	hash, err := HashPassword("password", "a", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory,
+		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024,
 		schema.DefaultCIPasswordOptionsConfiguration.Parallelism, schema.DefaultCIPasswordOptionsConfiguration.KeyLength,
 		schema.DefaultCIPasswordOptionsConfiguration.SaltLength)
 	assert.Equal(t, "", hash)
@@ -161,7 +161,7 @@ func TestShouldNotHashPasswordDueToSaltCharLengthTooShort(t *testing.T) {
 
 func TestShouldNotHashPasswordWithNonBase64CharsInSalt(t *testing.T) {
 	hash, err := HashPassword("password", "abc&123", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory,
+		schema.DefaultCIPasswordOptionsConfiguration.Iterations, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024,
 		schema.DefaultCIPasswordOptionsConfiguration.Parallelism, schema.DefaultCIPasswordOptionsConfiguration.KeyLength,
 		schema.DefaultCIPasswordOptionsConfiguration.SaltLength)
 	assert.Equal(t, "", hash)
@@ -225,7 +225,7 @@ func TestShouldParseArgon2idHash(t *testing.T) {
 	assert.Equal(t, schema.DefaultCIPasswordOptionsConfiguration.Iterations, passwordHash.Iterations)
 	assert.Equal(t, schema.DefaultCIPasswordOptionsConfiguration.Parallelism, passwordHash.Parallelism)
 	assert.Equal(t, schema.DefaultCIPasswordOptionsConfiguration.KeyLength, passwordHash.KeyLength)
-	assert.Equal(t, schema.DefaultCIPasswordOptionsConfiguration.Memory, passwordHash.Memory)
+	assert.Equal(t, schema.DefaultCIPasswordOptionsConfiguration.Memory*1024, passwordHash.Memory)
 }
 
 func TestShouldCheckSHA512Password(t *testing.T) {
@@ -300,7 +300,7 @@ func TestNumberOfRoundsNotInt(t *testing.T) {
 func TestShouldCheckPasswordArgon2idHashedWithAuthelia(t *testing.T) {
 	password := "my;secure*password"
 	hash, err := HashPassword(password, "", HashingAlgorithmArgon2id, schema.DefaultCIPasswordOptionsConfiguration.Iterations,
-		schema.DefaultCIPasswordOptionsConfiguration.Memory, schema.DefaultCIPasswordOptionsConfiguration.Parallelism,
+		schema.DefaultCIPasswordOptionsConfiguration.Memory*1024, schema.DefaultCIPasswordOptionsConfiguration.Parallelism,
 		schema.DefaultCIPasswordOptionsConfiguration.KeyLength, schema.DefaultCIPasswordOptionsConfiguration.SaltLength)
 
 	assert.NoError(t, err)

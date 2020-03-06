@@ -126,7 +126,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 
 	hash, err := HashPassword(
 		newPassword, "", algorithm, p.configuration.PasswordHashing.Iterations,
-		p.configuration.PasswordHashing.Memory, p.configuration.PasswordHashing.Parallelism,
+		p.configuration.PasswordHashing.Memory*1024, p.configuration.PasswordHashing.Parallelism,
 		p.configuration.PasswordHashing.KeyLength, p.configuration.PasswordHashing.SaltLength)
 
 	if err != nil {

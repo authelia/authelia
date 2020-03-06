@@ -23,7 +23,7 @@ file in the configuration file.
                     iterations: 1
                     salt_length: 16
                     parallelism: 8
-                    memory: ‭1048576
+                    memory: 1024
 
 
 ### Password hashing configuration settings
@@ -63,8 +63,8 @@ file in the configuration file.
  #### memory
  - Value Type: Int
  - Possible Value: at least `8` times the value of `parallelism`
- - Recommended: `1048576‬‬` (1GB) or as much RAM as you can afford to give to hashing
- - What it Does: Sets the amount of RAM used in KB for hashing (1024 * MB desired)
+ - Recommended: `1024‬‬` (1GB) or as much RAM as you can afford to give to hashing
+ - What it Does: Sets the amount of RAM used in MB for hashing
  
  
 #### Examples for specific systems
@@ -76,10 +76,10 @@ utilization, but they are a good guide to get started. You should however read
 
 |    System     |Iterations|Parallelism|Memory |
 |:------------: |:--------:|:---------:|:-----:|
-|Raspberry Pi 2 |    1     |     8     |‭65536‬  |
-|Raspberry Pi 3 |    1     |     8     |‭131072 |
-|Raspberry Pi 4 |    1     |     8     |‭‭131072 |
-|Intel G5 i5 NUC|    1     |     8     |1048576‬‬|
+|Raspberry Pi 2 |    1     |     8     |    64 |
+|Raspberry Pi 3 |    1     |     8     |   128 |
+|Raspberry Pi 4 |    1     |     8     |   128 |
+|Intel G5 i5 NUC|    1     |     8     |  1024 |
 
 
 ## Format
@@ -141,7 +141,7 @@ Flags:
   -h, --help              help for hash-password
   -i, --iterations int    set the number of hashing iterations (default 1)
   -k, --key-length int    [argon2id] set the key length param (default 32)
-  -m, --memory int        [argon2id] set the amount of memory param (in KB) (default 1048576‬‬)
+  -m, --memory int        [argon2id] set the amount of memory param (in MB) (default 1024)
   -p, --parallelism int   [argon2id] set the parallelism param (default 8)
   -s, --salt string       set the salt string
   -l, --salt-length int   set the auto-generated salt length (default 16)

@@ -12,7 +12,7 @@ func init() {
 	HashPasswordCmd.Flags().BoolP("sha512", "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordOptionsSHA512Configuration.Iterations))
 	HashPasswordCmd.Flags().IntP("iterations", "i", schema.DefaultPasswordOptionsConfiguration.Iterations, "set the number of hashing iterations")
 	HashPasswordCmd.Flags().StringP("salt", "s", "", "set the salt string")
-	HashPasswordCmd.Flags().IntP("memory", "m", schema.DefaultPasswordOptionsConfiguration.Memory, "[argon2id] set the amount of memory param (in KB)")
+	HashPasswordCmd.Flags().IntP("memory", "m", schema.DefaultPasswordOptionsConfiguration.Memory, "[argon2id] set the amount of memory param (in MB)")
 	HashPasswordCmd.Flags().IntP("parallelism", "p", schema.DefaultPasswordOptionsConfiguration.Parallelism, "[argon2id] set the parallelism param")
 	HashPasswordCmd.Flags().IntP("key-length", "k", schema.DefaultPasswordOptionsConfiguration.KeyLength, "[argon2id] set the key length param")
 	HashPasswordCmd.Flags().IntP("salt-length", "l", schema.DefaultPasswordOptionsConfiguration.SaltLength, "set the auto-generated salt length")
@@ -43,7 +43,7 @@ var HashPasswordCmd = &cobra.Command{
 			algorithm = authentication.HashingAlgorithmArgon2id
 		}
 
-		hash, err = authentication.HashPassword(args[0], salt, algorithm, iterations, memory, parallelism, keyLength, saltLength)
+		hash, err = authentication.HashPassword(args[0], salt, algorithm, iterations, memory*1024, parallelism, keyLength, saltLength)
 		if err != nil {
 			fmt.Println(fmt.Sprintf("Error occured during hashing: %s", err))
 		} else {

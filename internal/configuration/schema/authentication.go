@@ -30,24 +30,27 @@ type PasswordHashingConfiguration struct {
 	Parallelism int    `mapstructure:"parallelism"`
 }
 
+// Default Argon2id Configuration
 var DefaultPasswordOptionsConfiguration = PasswordHashingConfiguration{
 	Iterations:  1,
 	KeyLength:   32,
 	SaltLength:  16,
 	Algorithm:   "argon2id",
-	Memory:      1024 * 1024,
+	Memory:      1024,
 	Parallelism: 8,
 }
 
+// Default Argon2id Configuration for CI testing when calling HashPassword()
 var DefaultCIPasswordOptionsConfiguration = PasswordHashingConfiguration{
 	Iterations:  1,
 	KeyLength:   32,
 	SaltLength:  16,
 	Algorithm:   "argon2id",
-	Memory:      128 * 1024,
+	Memory:      128,
 	Parallelism: 8,
 }
 
+// Default SHA512 Cofniguration
 var DefaultPasswordOptionsSHA512Configuration = PasswordHashingConfiguration{
 	Iterations: 50000,
 	SaltLength: 16,
