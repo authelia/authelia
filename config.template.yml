@@ -9,9 +9,9 @@ port: 9091
 # tls_cert: /var/lib/authelia/ssl/cert.pem
 
 # Level of verbosity for logs: info, debug, trace
-logs_level: debug
+log_level: debug
 ## File path where the logs will be written. If not set logs are written to stdout.
-# logs_file_path: /var/log/authelia
+# log_file_path: /var/log/authelia
 
 # The secret used to generate JWT tokens when validating user identity by
 # email confirmation.

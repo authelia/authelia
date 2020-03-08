@@ -38,11 +38,11 @@ func startServer() {
 		panic(errors.New("Some errors have been reported"))
 	}
 
-	if err := logging.InitializeLogger(config.LogsFilePath); err != nil {
+	if err := logging.InitializeLogger(config.LogFilePath); err != nil {
 		log.Fatalf("Cannot initialize logger: %v", err)
 	}
 
-	switch config.LogsLevel {
+	switch config.LogLevel {
 	case "info":
 		logging.Logger().Info("Logging severity set to info")
 		logging.SetLevel(logrus.InfoLevel)
