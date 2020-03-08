@@ -8,7 +8,7 @@ breaking changes and about what you should do to overcome those changes.
 
 ## Breaking in v4.7.0
 
-`logs_level` configuration is renamed `log_level`.
+`logs_level` configuration key has been renamed to `log_level`.
 
 ## Breaking in v4.0.0
 
