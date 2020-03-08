@@ -12,13 +12,13 @@ cat << EOF
 EOF
 if [[ "${AUR_PACKAGE}" != "authelia-git" ]]; then
 cat << EOF
-  depends_on:
-    - "artifacts"
-  if: build.tag != null
+    depends_on:
+      - "artifacts"
+    if: build.tag != null
 EOF
 else
 cat << EOF
-  if: build.branch == "master"
+    if: build.branch == "master"
 EOF
 fi
 done
