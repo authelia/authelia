@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Traefik 1.x
-parent: Supported Proxies
+parent: Proxy Integration
 grand_parent: Deployment
 nav_order: 3
 ---
