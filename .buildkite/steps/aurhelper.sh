@@ -1,6 +1,5 @@
 #! /bin/bash
 
-git fetch && \
 GITTAG=$(git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g')
 
 echo "--- :linux: Deploy AUR package: ${PACKAGE}"
