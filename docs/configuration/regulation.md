@@ -8,7 +8,7 @@ nav_order: 7
 # Regulation
 
 **Authelia** can temporarily ban accounts when there are too many
-authentication attempts. This helps prevent brute force attacks.
+authentication attempts. This helps prevent brute-force attacks.
 
 ## Configuration
 

@@ -14,8 +14,8 @@ below.
 
 ## Environment variables
 
-A secret can be configured using an environment variable with prefix
-AUTHELIA_ and followed by the path of the option capitalized
+A secret can be configured using an environment variable with the
+prefix AUTHELIA_ followed by the path of the option capitalized
 and with dots replaced by underscores.
 
 For instance the LDAP password is identified by the path

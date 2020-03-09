@@ -21,8 +21,8 @@ the reverse proxy but never directly connected to application backends.
 ## Workflow
 
 Reverse proxies are configured so that every incoming request generates an authentication
-request sent to Authelia. To which Authelia responds to instruct the reverse
-proxy to let the incoming request pass through or block it because the user is not authenticated
+request sent to Authelia. Authelia responds and will instruct the reverse proxy to either allow
+the incoming request to pass through, or block it because the user is not authenticated
 or is not sufficiently authorized.
 
 ### Step by step
