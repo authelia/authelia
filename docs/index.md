@@ -5,6 +5,8 @@ nav_order: 1
 has_children: true
 ---
 
+# stupid docs change don't merge
+
 # Home
 
 *It has never been so easy to secure your applications with Single Sign-On
