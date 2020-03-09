@@ -18,7 +18,7 @@ safely from the Web thanks to two-factor authentication.
   <img src="./images/1FA.png" width="400" />
 </p>
 
-**Authelia** is an open source authentication and authorization server
+***Authelia*** is an open source authentication and authorization server
 protecting modern web applications by collaborating with reverse proxies
 such as NGINX, Traefik and HAProxy. Consequently, no code is required to
 protect your apps.
