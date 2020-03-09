@@ -6,6 +6,10 @@ recommended not to use the 'latest' Docker image tag blindly but pick a version 
 and read this documentation before upgrading. This is where you will get information about
 breaking changes and about what you should do to overcome those changes.
 
+## Breaking in v4.7.0
+
+`logs_level` configuration key has been renamed to `log_level`.
+
 ## Breaking in v4.0.0
 
 Authelia has been rewritten in Go for better code maintainability and for performance and

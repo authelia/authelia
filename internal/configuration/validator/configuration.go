@@ -8,7 +8,7 @@ import (
 )
 
 var defaultPort = 8080
-var defaultLogsLevel = "info"
+var defaultLogLevel = "info"
 
 // Validate and adapt the configuration read from file.
 func Validate(configuration *schema.Configuration, validator *schema.StructValidator) {
@@ -20,8 +20,8 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 		configuration.Port = defaultPort
 	}
 
-	if configuration.LogsLevel == "" {
-		configuration.LogsLevel = defaultLogsLevel
+	if configuration.LogLevel == "" {
+		configuration.LogLevel = defaultLogLevel
 	}
 
 	if configuration.TLSKey != "" && configuration.TLSCert == "" {

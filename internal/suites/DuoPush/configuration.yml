@@ -4,7 +4,7 @@
 
 port: 9091
 
-logs_level: trace
+log_level: trace
 
 default_redirection_url: https://home.example.com:8080/
 
