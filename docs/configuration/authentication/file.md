@@ -183,11 +183,8 @@ linked documents in [Argon2 links](./file.md#argon2-links).
 
 
 #### Argon2 Links
-[How to choose the right parameters for Argon2]
+[How to choose the right parameters for Argon2](https://www.twelve21.io/how-to-choose-the-right-parameters-for-argon2/)
 
 [Go Documentation](https://godoc.org/golang.org/x/crypto/argon2)
 
 [IETF Draft](https://tools.ietf.org/id/draft-irtf-cfrg-argon2-09.html)
-
-
-[How to choose the right parameters for Argon2]: https://www.twelve21.io/how-to-choose-the-right-parameters-for-argon2/

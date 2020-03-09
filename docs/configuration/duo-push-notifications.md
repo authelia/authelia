@@ -21,7 +21,7 @@ The configuration is as follows:
         integration_key: ABCDEF
         secret_key: 1234567890abcdefghifjkl
 
-The secret key is shown as an example but you'd better set it using an environment
+The secret key is shown as an example, you also have the option to set it using an environment
 variable as described [here](./secrets.md).
 
 [Duo]: https://duo.com/

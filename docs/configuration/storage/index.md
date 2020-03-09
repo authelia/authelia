@@ -8,13 +8,13 @@ has_children: true
 
 # Storage backends
 
-**Authelia** supports multiple storage backends. This backend is used
+**Authelia** supports multiple storage backends. The backend is used
 to store user preferences, 2FA device handles and secrets, authentication
 logs, etc...
 
 The available options are:
 
-* [SQLite](./sqlite.md)
 * [MariaDB](./mariadb.md)
 * [MySQL](./mysql.md)
 * [Postgres](./postgres.md)
+* [SQLite](./sqlite.md)

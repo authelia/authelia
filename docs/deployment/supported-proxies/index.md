@@ -30,7 +30,7 @@ The target URL can be provided using one of the following ways:
 * With `X-Original-URL` header containing the complete URL of the initial request.
 * With a combination of `X-Forwarded-Proto`, `X-Forwarded-Host` and `X-Forwarded-URI` headers.
 
-In the case of Traefik, those headers are automatically provided and therefore don't
+In the case of Traefik, these headers are automatically provided and therefore don't
 appear in the configuration examples.
 
 ## Redirection to the login portal

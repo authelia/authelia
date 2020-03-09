@@ -28,7 +28,7 @@ be used with Authelia. With such a setup **Authelia** can easily be scaled to
 multiple instances to evenly handle the traffic.
 
 **NOTE**: If you don't have all those components, don't worry, there is a way to
-deploy **Authelia** with only nginx. This is described in [Deployment for Devs].
+deploy **Authelia** with only nginx. This is described in [Deployment - Lite](./deployment-lite.md).
 
 Here are the available steps to deploy **Authelia** given 
 the configuration file is **/path/to/your/configuration.yml**. Note that you can
@@ -37,7 +37,7 @@ the root of the repo.
 
 **NOTE**: Prefer using environment variables to set secrets in production otherwise
 pay attention to the permissions of the configuration file. See
-[configuration.md](../configuration/secrets.md) for more information.
+[secrets](../configuration/secrets.md) for more information.
 
 ### Deploy with the distributable version
 

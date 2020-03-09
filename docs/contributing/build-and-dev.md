@@ -24,7 +24,7 @@ your machine.
 In order to ease development, Authelia uses the concept of [suites] to
 run Authelia from source code so that your patches are included. This
 is a kind of virtual environment running **Authelia** in a complete
-ecosystem (LDAP, Redis, SQL server). Note that Authelia is hotreloaded
+ecosystem (LDAP, Redis, SQL server). Note that Authelia is hot-reloaded
 in the environment so that your patches are instantly included.
 
 The next command starts the suite called *Standalone*:
