@@ -9,7 +9,7 @@ nav_order: 1
 # Filesystem
 
 With this configuration, the message will be sent to a file. This option
-should be used only for testing purpose.
+should only be used for testing purposes.
 
 ```yaml
 notifier:

@@ -13,7 +13,7 @@ Here are the main customizable options in Authelia.
 
 `optional: true`
 
-Defines the address to listen on.
+Defines the address and port to listen on.
 
     host: 0.0.0.0
     port: 9091
@@ -34,7 +34,7 @@ following configuration options:
 `optional: true`
 
 Defines the level of logs used by Authelia. This level can be set to
-`trace`, `debug`, `info`.
+`trace`, `debug` or `info`.
 
     logs_level: debug
 

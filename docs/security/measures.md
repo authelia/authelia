@@ -42,7 +42,7 @@ string generator, which is seeded every time it's used by a cryptographically se
 This ensures that even if an attacker obtains the file, each password has to be brute forced individually.
 
 Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the key length, salt
-used, iterations (time), paralellism, and memory usage. To read more about this please read how to
+used, iterations (time), parallelism, and memory usage. To read more about this please read how to
 [configure](../configuration/authentication/file.md) file authentication.
 
 ## Notifier security measures (SMTP)

@@ -11,27 +11,27 @@ nav_order: 2
 ## Access Control List
 
 With **Authelia** you can define a list of rules that are going to be evaluated in
-order when authorization is delegated to Authelia.
+sequential order when authorization is delegated to Authelia.
 
-The first matching rule of the list defines the policy applied to the resource and, if
-no rule matches the resource, a customizable default policy is applied.
+The first matching rule of the list defines the policy applied to the resource, if
+no rule matches the resource a customizable default policy is applied.
 
 
 ## Access Control Rule
 
 A rule defines two things:
 
-* the matching criterion of the request presented to the reverse proxy
-* the policy applied when all criterion match.
+* the matching criteria of the request presented to the reverse proxy
+* the policy applied when all criteria match.
 
-The criterion are:
+The criteria are:
 
 * domain: domain targeted by the request.
 * resources: list of patterns that the path should match (one is sufficient).
 * subject: the user or group of users to define the policy for.
 * networks: the network range from where should comes the request.
 
-A rule is matched when all criterion of the rule match
+A rule is matched when all criteria of the rule match.
 
 
 ## Policies
@@ -78,12 +78,12 @@ a rule, one can just duplicate the rule as many times as there are subjects.
 A list of network ranges can be specified in a rule in order to apply different policies when
 requests come from different networks.
 
-The main use case is when, let say a resource should be exposed both on the Internet and from an
+The main use case is when, lets say a resource should be exposed both on the Internet and from an
 authenticated VPN for instance. Passing a second factor a first time to get access to the VPN and
-a second time to get access to the application  can sometimes be cumbersome if the endpoint is not
-that much sensitive.
+a second time to get access to the application can sometimes be cumbersome if the endpoint is not
+considered overly sensitive.
 
-Even if Authelia provides that flexbility, you might prefer higher level of security and avoid
+Even if Authelia provides this flexibility, you might prefer a higher level of security and avoid
 this option entirely. You and only you can define your security policy and it's up to you to
 configure Authelia accordingly.
 
