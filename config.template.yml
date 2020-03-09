@@ -74,7 +74,7 @@ authentication_backend:
     # case insensitive search queries: #561).
     # Microsoft Active Directory usually uses 'sAMAccountName'
     # OpenLDAP usually uses 'uid'
-    username_attribute: cn
+    username_attribute: uid
     # An additional dn to define the scope to all users
     additional_users_dn: ou=users
     # The users filter used to find the user DN
