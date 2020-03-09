@@ -1,15 +1,23 @@
+#!/bin/bash
+set -u
+
+cat << EOF
+env:
+  CI_DOCS_BYPASS: $(git diff --name-only `git merge-base --fork-point master` | sed -rn '/^docs\/.*/!{q1}' && echo true || echo false)
+
 steps:
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
     concurrency: 1
     concurrency_group: "deployments"
-    if: build.branch == "master"
+    if: build.branch == "master" && build.env("CI_DOCS_BYPASS") != "true"
 
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
-    if: build.branch != "master"
+    if: build.branch != "master" && build.env("CI_DOCS_BYPASS") != "true"
 
-  - wait
+  - wait:
+    if: build.env("CI_DOCS_BYPASS") != "true"
 
   - label: ":docker: Deploy Manifests"
     command: "authelia-scripts docker push-manifest"
@@ -17,13 +25,13 @@ steps:
     concurrency_group: "deployments"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
-    if: build.branch == "master"
+    if: build.branch == "master" && build.env("CI_DOCS_BYPASS") != "true"
 
   - label: ":docker: Deploy Manifests"
     command: "authelia-scripts docker push-manifest"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
-    if: build.branch != "master"
+    if: build.branch != "master" && build.env("CI_DOCS_BYPASS") != "true"
 
   - label: ":github: Deploy Artifacts"
     command: "ghartifacts.sh"
@@ -38,7 +46,7 @@ steps:
   - label: ":linux: Deploy AUR"
     command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
     depends_on: ~
-    if: build.tag != null || build.branch == "master"
+    if: build.tag != null || build.branch == "master" && build.env("CI_DOCS_BYPASS") != "true"
 
   - label: ":book: Deploy Documentation"
     command: "syncdoc.sh"
@@ -46,3 +54,4 @@ steps:
     agents:
       upload: "fast"
     if: build.branch == "master"
+EOF
