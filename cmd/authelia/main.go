@@ -29,10 +29,6 @@ func startServer() {
 		log.Fatal(errors.New("No config file path provided"))
 	}
 
-	if os.Getenv("ENVIRONMENT") == "dev" {
-		logging.Logger().Info("===> Authelia is running in development mode. <===")
-	}
-
 	config, errs := configuration.Read(configPathFlag)
 
 	if len(errs) > 0 {
@@ -42,7 +38,11 @@ func startServer() {
 		panic(errors.New("Some errors have been reported"))
 	}
 
-	switch config.LogsLevel {
+	if err := logging.InitializeLogger(config.LogFilePath); err != nil {
+		log.Fatalf("Cannot initialize logger: %v", err)
+	}
+
+	switch config.LogLevel {
 	case "info":
 		logging.Logger().Info("Logging severity set to info")
 		logging.SetLevel(logrus.InfoLevel)
@@ -54,6 +54,10 @@ func startServer() {
 	case "trace":
 		logging.Logger().Info("Logging severity set to trace")
 		logging.SetLevel(logrus.TraceLevel)
+	}
+
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		logging.Logger().Info("===> Authelia is running in development mode. <===")
 	}
 
 	var userProvider authentication.UserProvider
