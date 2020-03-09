@@ -1,19 +1,22 @@
 #!/bin/bash
 set -eu
 
-for SUITE_NAME in $(authelia-scripts suites list);
-do
-  echo "  - label: \":selenium: ${SUITE_NAME} Suite\""
-  echo "    commands:"
-  echo "      - \"authelia-scripts --log-level debug suites test ${SUITE_NAME} --headless\""
-  echo "    retry:"
-  echo "      "automatic: true""
-  if [[ "${SUITE_NAME}" != "Kubernetes" ]];
-  then
-    echo "    agents:"
-    echo "      "suite: all""
-  else
-    echo "    agents:"
-    echo "      "suite: kubernetes""
-  fi
+for SUITE_NAME in $(authelia-scripts suites list); do
+cat << EOF
+  - label: ":selenium: ${SUITE_NAME} Suite"
+    command: "authelia-scripts --log-level debug suites test ${SUITE_NAME} --headless"
+    retry:
+      automatic: true
+EOF
+if [[ "${SUITE_NAME}" != "Kubernetes" ]]; then
+cat << EOF
+    agents:
+      suite: "all"
+EOF
+else
+cat << EOF
+    agents:
+      suite: "kubernetes"
+EOF
+fi
 done
