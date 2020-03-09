@@ -10,6 +10,10 @@ if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Bu
   fi
 fi
 
+if [[ $BUILDKITE_LABEL == ":docker: Image Deployments" ]]; then
+  cat .buildkite/annotations/artifacts | buildkite-agent annotate --style "success"
+fi
+
 if [[ $BUILDKITE_LABEL =~ ":docker: Deploy" ]]; then
   docker logout
 fi
@@ -32,4 +36,8 @@ if [[ $BUILDKITE_LABEL == ":docker: Deploy Manifests" ]] && [[ $BUILDKITE_BRANCH
     echo "Removing tag ${PR_TAG}"
     curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: JWT ${authtoken}" https://hub.docker.com/v2/repositories/authelia/authelia/tags/${PR_TAG}/
   done
+fi
+
+if [[ $BUILDKITE_LABEL == ":book: Deploy Documentation" ]]; then
+  cat .buildkite/annotations/documentation | buildkite-agent annotate --style "info"
 fi
