@@ -10,6 +10,10 @@ if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Bu
   fi
 fi
 
+if [[ $BUILDKITE_LABEL == ":docker: Image Deployments" ]]; then
+  cat .buildkite/annotations/artifacts | buildkite-agent annotate --style "success" --context "ctx-success"
+fi
+
 if [[ $BUILDKITE_LABEL =~ ":docker: Deploy" ]]; then
   docker logout
 fi
