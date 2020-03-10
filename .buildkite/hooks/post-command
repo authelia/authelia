@@ -11,7 +11,7 @@ if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Bu
 fi
 
 if [[ $BUILDKITE_LABEL == ":docker: Image Deployments" ]]; then
-  cat .buildkite/annotations/artifacts | buildkite-agent annotate --style "success"
+  cat .buildkite/annotations/artifacts | buildkite-agent annotate --style "success" --context "ctx-success"
 fi
 
 if [[ $BUILDKITE_LABEL =~ ":docker: Deploy" ]]; then
@@ -39,5 +39,5 @@ if [[ $BUILDKITE_LABEL == ":docker: Deploy Manifests" ]] && [[ $BUILDKITE_BRANCH
 fi
 
 if [[ $BUILDKITE_LABEL == ":book: Deploy Documentation" ]]; then
-  cat .buildkite/annotations/documentation | buildkite-agent annotate --style "info"
+  cat .buildkite/annotations/documentation | buildkite-agent annotate --style "info" --context "ctx-info"
 fi
