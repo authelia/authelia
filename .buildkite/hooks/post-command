@@ -37,7 +37,3 @@ if [[ $BUILDKITE_LABEL == ":docker: Deploy Manifests" ]] && [[ $BUILDKITE_BRANCH
     curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: JWT ${authtoken}" https://hub.docker.com/v2/repositories/authelia/authelia/tags/${PR_TAG}/
   done
 fi
-
-if [[ $BUILDKITE_LABEL == ":book: Deploy Documentation" ]]; then
-  cat .buildkite/annotations/documentation | buildkite-agent annotate --style "info" --context "ctx-info"
-fi

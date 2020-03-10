@@ -7,6 +7,10 @@ else
   CI_DOCS_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^docs\/.*/!{q1}' && echo true || echo false)
 fi
 
+if [[ $CI_DOCS_BYPASS == "true" ]]; then
+  cat .buildkite/annotations/documentation | buildkite-agent annotate --style "info" --context "ctx-info"
+fi
+
 cat << EOF
 env:
   CI_DOCS_BYPASS: ${CI_DOCS_BYPASS}
