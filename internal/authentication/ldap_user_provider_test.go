@@ -110,18 +110,42 @@ func TestShouldEscapeUserInput(t *testing.T) {
 	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
 		URL:               "ldap://127.0.0.1:389",
 		User:              "cn=admin,dc=example,dc=com",
+		UsernameAttribute: "uid",
 		Password:          "password",
-		UsersFilter:       "uid={0}",
 		AdditionalUsersDN: "ou=users",
 		BaseDN:            "dc=example,dc=com",
 	}, mockFactory)
 
 	mockConn.EXPECT().
 		// Here we ensure that the input has been correctly escaped.
-		Search(NewSearchRequestMatcher("uid=john\\=abc")).
+		Search(NewSearchRequestMatcher("(uid=john\\=abc)")).
 		Return(&ldap.SearchResult{}, nil)
 
 	ldapClient.getUserProfile(mockConn, "john=abc")
+}
+
+func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
+		URL:               "ldap://127.0.0.1:389",
+		User:              "cn=admin,dc=example,dc=com",
+		UsernameAttribute: "uid",
+		UsersFilter:       "(&(objectCategory=person)(objectClass=user))",
+		Password:          "password",
+		AdditionalUsersDN: "ou=users",
+		BaseDN:            "dc=example,dc=com",
+	}, mockFactory)
+
+	mockConn.EXPECT().
+		Search(NewSearchRequestMatcher("(&(uid=john)(&(objectCategory=person)(objectClass=user)))")).
+		Return(&ldap.SearchResult{}, nil)
+
+	ldapClient.getUserProfile(mockConn, "john")
 }
 
 func createSearchResultWithAttributes(attributes ...*ldap.EntryAttribute) *ldap.SearchResult {
