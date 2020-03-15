@@ -11,6 +11,8 @@ if [[ $BUILDKITE_TAG == "" ]]; then
   if [[ $CI_DOCS_BYPASS == "true" ]]; then
   cat .buildkite/annotations/documentation | buildkite-agent annotate --style "info" --context "ctx-info"
   fi
+else
+  CI_DOCS_BYPASS="false"
 fi
 
 cat << EOF
