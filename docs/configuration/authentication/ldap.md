@@ -35,12 +35,14 @@ authentication_backend:
         # An additional dn to define the scope to all users
         additional_users_dn: ou=users
         
-        # This attribute is optional. The user filter used in the LDAP search query
-        # is a conjonction of this filter and a filter based on the username attribute.
-        # Concretely, this filter is used to reduce the scope of users targeted by the LDAP
-        # search query.
-        # For instance, if the username attribute is set to uid, the computed filter is
+        # This attribute is optional. The user filter used in the LDAP search queries
+        # is a combination of this filter and the username attribute.
+        # This filter is used to reduce the scope of users targeted by the LDAP search query.
+        # For instance, if the username attribute is set to 'uid', the computed filter is
         # (&(uid=<username>)(&(objectCategory=person)(objectClass=user)))
+        # Recommended settings are as follows:
+        # Microsoft Active Directory '(&(objectCategory=person)(objectClass=user))'
+        # OpenLDAP '(objectClass=person)' or '(objectClass=inetOrgPerson)'
         users_filter: (&(objectCategory=person)(objectClass=user))
         
         # An additional dn to define the scope of groups

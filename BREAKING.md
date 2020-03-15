@@ -9,13 +9,12 @@ breaking changes and about what you should do to overcome those changes.
 ## Breaking in v4.7.0
 
 * `logs_level` configuration key has been renamed to `log_level`.
-* `users_filter` was a pattern of research for a given user with {0} matcher replaced by
+* `users_filter` was a search pattern for a given user with the `{0}` matcher replaced with the
 actual username. In v4.7.0, `username_attribute` has been introduced. Consequently, the computed
-user filter used by the LDAP search finding the user is a conjonction of a filter based
-on the username attribute and the filter provided in `users_filter`. Concretely, `users_filter` now
-reduces the scope of users targeted by the LDAP search query. For instance if
-`username_attribute` is set to `uid` and `users_filter` is set to `(objectClass=user)` then
-the computed filter is `(&(uid=john)(objectClass=user))`.
+user filter utilised by the LDAP search query is a combination of filters based on the
+`username_attribute` and `users_filter`. `users_filter` now reduces the scope of users targeted by
+the LDAP search query. For instance if `username_attribute` is set to `uid` and `users_filter` is
+set to `(objectClass=person)` then the computed filter is `(&(uid=john)(objectClass=person))`.
 
 ## Breaking in v4.0.0
 

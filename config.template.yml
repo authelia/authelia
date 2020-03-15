@@ -56,7 +56,7 @@ duo_api:
 # and retrieve information such as email address and groups
 # users belong to.
 #
-# There are two supported backends: `ldap` and `file`.
+# There are two supported backends: 'ldap' and 'file'.
 authentication_backend:
   # LDAP backend configuration.
   #
@@ -82,12 +82,14 @@ authentication_backend:
     # An additional dn to define the scope to all users
     additional_users_dn: ou=users
 
-    # This attribute is optional. The user filter used in the LDAP search query
-    # is a conjonction of this filter and a filter based on the username attribute.
-    # Concretely, this filter is used to reduce the scope of users targeted by the LDAP
-    # search query.
-    # For instance, if the username attribute is set to uid, the computed filter is
+    # This attribute is optional. The user filter used in the LDAP search queries
+    # is a combination of this filter and the username attribute.
+    # This filter is used to reduce the scope of users targeted by the LDAP search query.
+    # For instance, if the username attribute is set to 'uid', the computed filter is
     # (&(uid=<username>)(&(objectCategory=person)(objectClass=user)))
+    # Recommended settings are as follows:
+    # Microsoft Active Directory '(&(objectCategory=person)(objectClass=user))'
+    # OpenLDAP '(objectClass=person)' or '(objectClass=inetOrgPerson)'
     users_filter: (&(objectCategory=person)(objectClass=user))
 
     # An additional dn to define the scope of groups
@@ -137,7 +139,7 @@ authentication_backend:
 # Access control is a list of rules defining the authorizations applied for one
 # resource to users or group of users.
 #
-# If 'access_control' is not defined, ACL rules are disabled and the `bypass`
+# If 'access_control' is not defined, ACL rules are disabled and the 'bypass'
 # rule is applied, i.e., access is allowed to anyone. Otherwise restrictions follow
 # the rules defined.
 #
@@ -147,27 +149,27 @@ authentication_backend:
 # Note: You must put patterns containing wildcards between simple quotes for the YAML
 # to be syntactically correct.
 #
-# Definition: A `rule` is an object with the following keys: `domain`, `subject`,
-# `policy` and `resources`.
+# Definition: A 'rule' is an object with the following keys: 'domain', 'subject',
+# 'policy' and 'resources'.
 #
-# - `domain` defines which domain or set of domains the rule applies to.
+# - 'domain' defines which domain or set of domains the rule applies to.
 #
-# - `subject` defines the subject to apply authorizations to. This parameter is
+# - 'subject' defines the subject to apply authorizations to. This parameter is
 #    optional and matching any user if not provided. If provided, the parameter
 #    represents either a user or a group. It should be of the form 'user:<username>'
 #    or 'group:<groupname>'.
 #
-# - `policy` is the policy to apply to resources. It must be either `bypass`,
-#   `one_factor`, `two_factor` or `deny`.
+# - 'policy' is the policy to apply to resources. It must be either 'bypass',
+#   'one_factor', 'two_factor' or 'deny'.
 #
-# - `resources` is a list of regular expressions that matches a set of resources to
+# - 'resources' is a list of regular expressions that matches a set of resources to
 #    apply the policy to. This parameter is optional and matches any resource if not
 #    provided.
 #
 # Note: the order of the rules is important. The first policy matching
 # (domain, resource, subject) applies.
 access_control:
-  # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
+  # Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'.
   # It is the policy applied to any resource if there is no policy to be applied
   # to the user.
   default_policy: deny
@@ -269,7 +271,7 @@ regulation:
   max_retries: 3
 
   # The time range during which the user can attempt login before being banned.
-  # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
+  # The user is banned if the authentication failed 'max_retries' times in a 'find_time' seconds window.
   find_time: 120
 
   # The length of time before a banned user can login again.
