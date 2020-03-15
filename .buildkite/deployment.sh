@@ -20,10 +20,10 @@ steps:
 
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
-    if: build.branch != "master" && build.env("CI_DOCS_BYPASS") != "true"
+    if: build.branch != "master" && build.branch !~ /^dependabot\/.*/ && build.env("CI_DOCS_BYPASS") != "true"
 
   - wait:
-    if: build.env("CI_DOCS_BYPASS") != "true"
+    if: build.branch !~ /^dependabot\/.*/ && build.env("CI_DOCS_BYPASS") != "true"
 
   - label: ":docker: Deploy Manifests"
     command: "authelia-scripts docker push-manifest"
@@ -37,7 +37,7 @@ steps:
     command: "authelia-scripts docker push-manifest"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
-    if: build.branch != "master" && build.env("CI_DOCS_BYPASS") != "true"
+    if: build.branch != "master" && build.branch !~ /^dependabot\/.*/ && build.env("CI_DOCS_BYPASS") != "true"
 
   - label: ":github: Deploy Artifacts"
     command: "ghartifacts.sh"
