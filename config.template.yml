@@ -86,11 +86,11 @@ authentication_backend:
     # is a combination of this filter and the username attribute.
     # This filter is used to reduce the scope of users targeted by the LDAP search query.
     # For instance, if the username attribute is set to 'uid', the computed filter is
-    # (&(uid=<username>)(&(objectCategory=person)(objectClass=user)))
+    # (&(uid=<username>)(objectClass=person))
     # Recommended settings are as follows:
     # Microsoft Active Directory '(&(objectCategory=person)(objectClass=user))'
     # OpenLDAP '(objectClass=person)' or '(objectClass=inetOrgPerson)'
-    users_filter: (&(objectCategory=person)(objectClass=user))
+    users_filter: (objectClass=person)
 
     # An additional dn to define the scope of groups
     additional_groups_dn: ou=groups
