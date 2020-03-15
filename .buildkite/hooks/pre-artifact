@@ -8,11 +8,17 @@ if [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]]; then
   echo "--- :docker: Saving artifacts for :buildkite: :docker: :github: releases"
   # Save binary for buildkite and github artifacts
   docker create --name authelia-binary ${DOCKER_IMAGE}:latest
-  docker cp authelia-binary:/usr/app/authelia ./authelia-linux-"${ARCH}"
+  docker cp authelia-binary:/usr/app/authelia ./authelia-"${OS}"-"${ARCH}"
   docker cp authelia-binary:/usr/app/public_html ./
   docker rm -f authelia-binary
-  tar -czf authelia-linux-"${ARCH}".tar.gz authelia-linux-"${ARCH}" authelia.service config.template.yml public_html
-  sha256sum authelia-linux-"${ARCH}".tar.gz > authelia-linux-"${ARCH}".tar.gz.sha256
+  if [[ $OS == "linux" ]]; then
+    tar -czf authelia-"${OS}"-"${ARCH}".tar.gz authelia-"${OS}"-"${ARCH}" authelia.service config.template.yml public_html
+  else
+    tar -czf authelia-"${OS}"-"${ARCH}".tar.gz authelia-"${OS}"-"${ARCH}" config.template.yml public_html
+  fi
+  sha256sum authelia-"${OS}"-"${ARCH}".tar.gz > authelia-"${OS}"-"${ARCH}".tar.gz.sha256
   # Saving image for push to docker hub
-  docker save ${DOCKER_IMAGE} | zstdmt -T0 -12 > authelia-image-"${ARCH}".tar.zst
+  if [[ $BUILDKITE_LABEL != ":docker: Build Image [darwin]" ]]; then
+    docker save ${DOCKER_IMAGE} | zstdmt -T0 -12 > authelia-image-"${ARCH}".tar.zst
+  fi
 fi
