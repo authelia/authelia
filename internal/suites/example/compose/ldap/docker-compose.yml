@@ -16,5 +16,7 @@ services:
       - './example/compose/ldap/ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom'
     command:
       - '--copy-service'
+      - '--loglevel'
+      - 'debug'
     networks:
       - authelianet

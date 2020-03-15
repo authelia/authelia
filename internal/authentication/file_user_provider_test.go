@@ -85,6 +85,7 @@ func TestShouldRetrieveUserDetails(t *testing.T) {
 		provider := NewFileUserProvider(&config)
 		details, err := provider.GetDetails("john")
 		assert.NoError(t, err)
+		assert.Equal(t, details.Username, "john")
 		assert.Equal(t, details.Emails, []string{"john.doe@authelia.com"})
 		assert.Equal(t, details.Groups, []string{"admins", "dev"})
 	})

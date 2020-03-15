@@ -19,8 +19,9 @@ authentication_backend:
   ldap:
     url: ldap://127.0.0.1
     base_dn: dc=example,dc=com
+    username_attribute: uid
     additional_users_dn: ou=users
-    users_filter: (cn={0})
+    users_filter: (&(objectCategory=person)(objectClass=user))
     additional_groups_dn: ou=groups
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
     group_name_attribute: cn

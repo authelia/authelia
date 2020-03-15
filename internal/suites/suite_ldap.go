@@ -30,7 +30,7 @@ func init() {
 		return waitUntilAutheliaBackendIsReady(dockerEnvironment)
 	}
 
-	onSetupTimeout := func() error {
+	displayAutheliaLogs := func() error {
 		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
 		if err != nil {
 			return err
@@ -53,9 +53,10 @@ func init() {
 	GlobalRegistry.Register(ldapSuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
-		OnSetupTimeout:  onSetupTimeout,
+		OnSetupTimeout:  displayAutheliaLogs,
 		TestTimeout:     1 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
+		OnError:         displayAutheliaLogs,
 	})
 }

@@ -25,22 +25,33 @@ authentication_backend:
 
         # The base dn for every entries
         base_dn: dc=example,dc=com
+
+        # The attribute holding the username of the user (introduced to handle
+        # case insensitive search queries: #561).
+        # Microsoft Active Directory usually uses 'sAMAccountName'
+        # OpenLDAP usually uses 'uid'
+        username_attribute: uid
         
         # An additional dn to define the scope to all users
         additional_users_dn: ou=users
         
-        # The users filter used to find the user DN
-        # {0} is a matcher replaced by username.
-        # 'cn={0}' by default.
-        users_filter: (cn={0})
+        # This attribute is optional. The user filter used in the LDAP search queries
+        # is a combination of this filter and the username attribute.
+        # This filter is used to reduce the scope of users targeted by the LDAP search query.
+        # For instance, if the username attribute is set to 'uid', the computed filter is
+        # (&(uid=<username>)(objectClass=person))
+        # Recommended settings are as follows:
+        # Microsoft Active Directory '(&(objectCategory=person)(objectClass=user))'
+        # OpenLDAP '(objectClass=person)' or '(objectClass=inetOrgPerson)'
+        users_filter: (objectClass=person)
         
         # An additional dn to define the scope of groups
         additional_groups_dn: ou=groups
         
         # The groups filter used for retrieving groups of a given user.
-        # {0} is a matcher replaced by username.
+        # {0} is a matcher replaced by username (as provided in login portal).
+        # {1} is a matcher replaced by username (as stored in LDAP).
         # {dn} is a matcher replaced by user DN.
-        # {uid} is a matcher replaced by user uid.
         # 'member={dn}' by default.
         groups_filter: (&(member={dn})(objectclass=groupOfNames))
         
