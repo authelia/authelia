@@ -8,22 +8,33 @@
 
         <span class="c1"># The base dn for every entries</span>
         <span class="na">base_dn</span><span class="pi">:</span> <span class="s">dc=example,dc=com</span>
+
+        <span class="c1"># The attribute holding the username of the user (introduced to handle</span>
+        <span class="c1"># case insensitive search queries: #561).</span>
+        <span class="c1"># Microsoft Active Directory usually uses 'sAMAccountName'</span>
+        <span class="c1"># OpenLDAP usually uses 'uid'</span>
+        <span class="na">username_attribute</span><span class="pi">:</span> <span class="s">uid</span>
         
         <span class="c1"># An additional dn to define the scope to all users</span>
         <span class="na">additional_users_dn</span><span class="pi">:</span> <span class="s">ou=users</span>
         
-        <span class="c1"># The users filter used to find the user DN</span>
-        <span class="c1"># {0} is a matcher replaced by username.</span>
-        <span class="c1"># 'cn={0}' by default.</span>
-        <span class="na">users_filter</span><span class="pi">:</span> <span class="s">(cn={0})</span>
+        <span class="c1"># This attribute is optional. The user filter used in the LDAP search queries</span>
+        <span class="c1"># is a combination of this filter and the username attribute.</span>
+        <span class="c1"># This filter is used to reduce the scope of users targeted by the LDAP search query.</span>
+        <span class="c1"># For instance, if the username attribute is set to 'uid', the computed filter is</span>
+        <span class="c1"># (&amp;(uid=&lt;username&gt;)(objectClass=person))</span>
+        <span class="c1"># Recommended settings are as follows:</span>
+        <span class="c1"># Microsoft Active Directory '(&amp;(objectCategory=person)(objectClass=user))'</span>
+        <span class="c1"># OpenLDAP '(objectClass=person)' or '(objectClass=inetOrgPerson)'</span>
+        <span class="na">users_filter</span><span class="pi">:</span> <span class="s">(objectClass=person)</span>
         
         <span class="c1"># An additional dn to define the scope of groups</span>
         <span class="na">additional_groups_dn</span><span class="pi">:</span> <span class="s">ou=groups</span>
         
         <span class="c1"># The groups filter used for retrieving groups of a given user.</span>
-        <span class="c1"># {0} is a matcher replaced by username.</span>
+        <span class="c1"># {0} is a matcher replaced by username (as provided in login portal).</span>
+        <span class="c1"># {1} is a matcher replaced by username (as stored in LDAP).</span>
         <span class="c1"># {dn} is a matcher replaced by user DN.</span>
-        <span class="c1"># {uid} is a matcher replaced by user uid.</span>
         <span class="c1"># 'member={dn}' by default.</span>
         <span class="na">groups_filter</span><span class="pi">:</span> <span class="s">(&amp;(member={dn})(objectclass=groupOfNames))</span>
         
