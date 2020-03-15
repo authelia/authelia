@@ -120,9 +120,7 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		validator.Push(errors.New("Please provide a base DN to connect to the LDAP server"))
 	}
 
-	if configuration.UsersFilter == "" {
-		validator.Push(errors.New("Please provide a users filter with `users_filter` attribute"))
-	} else {
+	if configuration.UsersFilter != "" {
 		if !strings.HasPrefix(configuration.UsersFilter, "(") || !strings.HasSuffix(configuration.UsersFilter, ")") {
 			validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance uid={0} should be (uid={0})"))
 		}
