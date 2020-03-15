@@ -1,10 +1,14 @@
 #!/bin/bash
 set -u
 
-if [[ $BUILDKITE_BRANCH == "master" ]]; then
-  CI_DOCS_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^docs\/.*/!{q1}' && echo true || echo false)
+if [[ $BUILDKITE_TAG == "" ]]; then
+  if [[ $BUILDKITE_BRANCH == "master" ]]; then
+    CI_DOCS_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^docs\/.*/!{q1}' && echo true || echo false)
+  else
+    CI_DOCS_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^docs\/.*/!{q1}' && echo true || echo false)
+  fi
 else
-  CI_DOCS_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^docs\/.*/!{q1}' && echo true || echo false)
+  CI_DOCS_BYPASS="false"
 fi
 
 cat << EOF
