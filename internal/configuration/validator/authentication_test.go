@@ -207,13 +207,17 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenBaseDNNotPr
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Please provide a base DN to connect to the LDAP server")
 }
 
-func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyFilterAndGroupsFilter() {
-	suite.configuration.Ldap.UsersFilter = ""
+func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyGroupsFilter() {
 	suite.configuration.Ldap.GroupsFilter = ""
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
-	require.Len(suite.T(), suite.validator.Errors(), 2)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Please provide a users filter with `users_filter` attribute")
-	assert.EqualError(suite.T(), suite.validator.Errors()[1], "Please provide a groups filter with `groups_filter` attribute")
+	require.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Please provide a groups filter with `groups_filter` attribute")
+}
+
+func (suite *LdapAuthenticationBackendSuite) TestShouldAllowEmptyUsersGroupsFilter() {
+	suite.configuration.Ldap.UsersFilter = ""
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	require.Len(suite.T(), suite.validator.Errors(), 0)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsernameAttribute() {
