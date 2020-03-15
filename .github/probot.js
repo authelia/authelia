@@ -4,6 +4,10 @@ on('pull_request.opened')
         context =>
             context.payload.pull_request.head.label.slice(0, 9) === 'authelia:'
     )
+    .filter(
+        context =>
+            context.payload.pull_request.head.ref.slice(0, 11) !== 'dependabot/'
+    )
     .comment(`# Docker Container
 These changes are published for testing at the following location:
 * \`docker pull authelia/authelia:{{ pull_request.head.ref }}\``)
