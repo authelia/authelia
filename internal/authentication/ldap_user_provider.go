@@ -169,7 +169,7 @@ func (p *LDAPUserProvider) createGroupsFilter(conn LDAPConnection, username stri
 		if err != nil {
 			return "", err
 		}
-		return strings.Replace(p.configuration.GroupsFilter, "{dn}", profile.DN, -1), nil
+		return strings.Replace(p.configuration.GroupsFilter, "{dn}", ldap.EscapeFilter(profile.DN), -1), nil
 	} else if strings.Contains(p.configuration.GroupsFilter, "{1}") {
 		profile, err := p.getUserProfile(conn, username)
 		if err != nil {
