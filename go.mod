@@ -39,5 +39,5 @@ require (
 	go.mongodb.org/mongo-driver v1.1.3
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/ldap.v3 v3.1.0
-	gopkg.in/yaml.v2 v2.2.4
+	gopkg.in/yaml.v2 v2.2.8
 )
