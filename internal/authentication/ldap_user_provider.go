@@ -8,7 +8,7 @@ import (
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
-	"gopkg.in/ldap.v3"
+	"github.com/go-ldap/ldap/v3"
 )
 
 // LDAPUserProvider is a provider using a LDAP or AD as a user database.
