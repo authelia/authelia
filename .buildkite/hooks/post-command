@@ -5,7 +5,7 @@ set +u
 if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]]; then
   CONTAINERS=$(docker ps -a -q)
   if [[ ${CONTAINERS} != "" ]]; then
-    echo "--- :docker: Clean environment"
+    echo "--- :docker: Remove lingering containers"
     docker rm -f ${CONTAINERS}
   fi
 fi
