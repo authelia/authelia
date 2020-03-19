@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
-	github.com/Workiva/go-datastructures v1.0.50
+	github.com/Workiva/go-datastructures v1.0.52
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a
 	github.com/cespare/reflex v0.2.0 // indirect
 	github.com/deckarep/golang-set v1.7.1
