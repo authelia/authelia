@@ -30,7 +30,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.6.2
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	github.com/tebeka/selenium v0.9.9
 	github.com/tidwall/pretty v1.0.0 // indirect
 	github.com/tstranex/u2f v1.0.0
