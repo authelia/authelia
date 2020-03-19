@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set +u
+
+echo "--- :docker: Clean environment"
+docker system prune -af --volumes
