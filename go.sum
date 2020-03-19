@@ -60,6 +60,8 @@ github.com/fasthttp/router v0.6.1 h1:cPfY4S9tZSh0J62O6h4n6Kxwg9eskQ2GPCNWvXDsa1s
 github.com/fasthttp/router v0.6.1/go.mod h1:00BQmm3xiThNypescxIQ+Gfgw2I/3QWKvuagFoENUb4=
 github.com/fasthttp/session v1.1.3 h1:2qjxNltI7iv0yh7frsIdhbsGmSoRnTajU8xtpC6Hd80=
 github.com/fasthttp/session v1.1.3/go.mod h1:DRxVb1PWFtAUTE4U+GgggsVkUaQyacoL8TN+3o4/yLw=
+github.com/fasthttp/session v1.1.7 h1:dTLeicJrpzb6pulR/c9X5RJWyYxI/WMwfJjcblt52Ic=
+github.com/fasthttp/session v1.1.7/go.mod h1:rBmyCAu0bLIqKYUL2Wij7DZ4mmC6iL4RGRbmShWcIow=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
@@ -199,6 +201,8 @@ github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6So
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/savsgio/dictpool v0.0.0-20191028211042-a886cee3358a h1:HHo8bk/5tOTL+UJ2VBkzGWhurfjyrLMRnvdRBnXYlfs=
 github.com/savsgio/dictpool v0.0.0-20191028211042-a886cee3358a/go.mod h1:hnGRFeigcU3gTEMTWW8OjfoSYztn2GPcriOY9iIzCrA=
+github.com/savsgio/dictpool v0.0.0-20200105105721-dcc5d0fb3336 h1:uNTNuA2SMv/dDb1qpS+dHt1CpfF/bn+Ha9Rtdnea1WM=
+github.com/savsgio/dictpool v0.0.0-20200105105721-dcc5d0fb3336/go.mod h1:NGDLryN7sdZ8/cG7QNKNaHBwUIPBgF0WeLZos9SpUi8=
 github.com/savsgio/gotils v0.0.0-20190925070755-524bc4f47500 h1:9Pi10H7E8E79/x2HSe1FmMGd7BJ1WAqDKzwjpv+ojFg=
 github.com/savsgio/gotils v0.0.0-20190925070755-524bc4f47500/go.mod h1:lHhJedqxCoHN+zMtwGNTXWmF0u9Jt363FYRhV6g0CdY=
 github.com/savsgio/gotils v0.0.0-20200117113501-90175b0fbe3f h1:PgA+Olipyj258EIEYnpFFONrrCcAIWNUNoFhUfMqAGY=
@@ -246,6 +250,8 @@ github.com/tidwall/pretty v1.0.0 h1:HsD+QiTn7sK6flMKIvNmpqz1qrpP3Ps6jOKIKMooyg4=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
 github.com/tinylib/msgp v1.1.0 h1:9fQd+ICuRIu/ue4vxJZu6/LzxN0HwMds2nq/0cFvxHU=
 github.com/tinylib/msgp v1.1.0/go.mod h1:+d+yLhGm8mzTaHzB+wgMYrodPfmZrzkirds8fDWklFE=
+github.com/tinylib/msgp v1.1.1 h1:TnCZ3FIuKeaIy+F45+Cnp+caqdXGy4z74HvwXN+570Y=
+github.com/tinylib/msgp v1.1.1/go.mod h1:+d+yLhGm8mzTaHzB+wgMYrodPfmZrzkirds8fDWklFE=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tstranex/u2f v1.0.0 h1:HhJkSzDDlVSVIVt7pDJwCHQj67k7A5EeBgPmeD+pVsQ=
 github.com/tstranex/u2f v1.0.0/go.mod h1:eahSLaqAS0zsIEv80+vXT7WanXs7MQQDg3j3wGBSayo=
