@@ -11,7 +11,7 @@
     "@material-ui/icons": "^4.5.1",
     "@types/chai": "^4.2.5",
     "@types/classnames": "^2.2.9",
-    "@types/enzyme": "^3.10.3",
+    "@types/enzyme": "^3.10.5",
     "@types/jest": "24.0.23",
     "@types/node": "12.12.12",
     "@types/qrcode.react": "^1.0.0",
