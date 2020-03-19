@@ -56,6 +56,8 @@ github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojt
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
 github.com/fasthttp/router v0.5.2 h1:xdmx8uYc9IFDtlbG2/FhE1Gyowv7/sqMgMonRjoW0Yo=
 github.com/fasthttp/router v0.5.2/go.mod h1:Y5JAeRTSPwSLoUgH4x75UnT1j1IcAgVshMDMMrnNmKQ=
+github.com/fasthttp/router v0.6.1 h1:cPfY4S9tZSh0J62O6h4n6Kxwg9eskQ2GPCNWvXDsa1s=
+github.com/fasthttp/router v0.6.1/go.mod h1:00BQmm3xiThNypescxIQ+Gfgw2I/3QWKvuagFoENUb4=
 github.com/fasthttp/session v1.1.3 h1:2qjxNltI7iv0yh7frsIdhbsGmSoRnTajU8xtpC6Hd80=
 github.com/fasthttp/session v1.1.3/go.mod h1:DRxVb1PWFtAUTE4U+GgggsVkUaQyacoL8TN+3o4/yLw=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
@@ -189,6 +191,8 @@ github.com/savsgio/dictpool v0.0.0-20191028211042-a886cee3358a h1:HHo8bk/5tOTL+U
 github.com/savsgio/dictpool v0.0.0-20191028211042-a886cee3358a/go.mod h1:hnGRFeigcU3gTEMTWW8OjfoSYztn2GPcriOY9iIzCrA=
 github.com/savsgio/gotils v0.0.0-20190925070755-524bc4f47500 h1:9Pi10H7E8E79/x2HSe1FmMGd7BJ1WAqDKzwjpv+ojFg=
 github.com/savsgio/gotils v0.0.0-20190925070755-524bc4f47500/go.mod h1:lHhJedqxCoHN+zMtwGNTXWmF0u9Jt363FYRhV6g0CdY=
+github.com/savsgio/gotils v0.0.0-20200117113501-90175b0fbe3f h1:PgA+Olipyj258EIEYnpFFONrrCcAIWNUNoFhUfMqAGY=
+github.com/savsgio/gotils v0.0.0-20200117113501-90175b0fbe3f/go.mod h1:lHhJedqxCoHN+zMtwGNTXWmF0u9Jt363FYRhV6g0CdY=
 github.com/simia-tech/crypt v0.2.0 h1:cU8qdqUYNuEFKSMq15yaB2aI1aC5vrn6dFOonT6Kg6o=
 github.com/simia-tech/crypt v0.2.0/go.mod h1:DMwvjPTzsiHrjqHVW5HvIbF4vUUzMCYDKVLsPWmLdTo=
 github.com/simia-tech/crypt v0.4.2 h1:ZQFyCxgImhXpyxWNXEtBfAmV6T8dT1w481fpm8blQww=
@@ -238,6 +242,8 @@ github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6Kllzaw
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.6.0 h1:uWF8lgKmeaIewWVPwi4GRq2P6+R46IgYZdxWtM+GtEY=
 github.com/valyala/fasthttp v1.6.0/go.mod h1:FstJa9V+Pj9vQ7OJie2qMHdwemEDaDiSdBnvPM1Su9w=
+github.com/valyala/fasthttp v1.9.0 h1:hNpmUdy/+ZXYpGy0OBfm7K0UQTzb73W0T0U4iJIVrMw=
+github.com/valyala/fasthttp v1.9.0/go.mod h1:FstJa9V+Pj9vQ7OJie2qMHdwemEDaDiSdBnvPM1Su9w=
 github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a/go.mod h1:v3UYOV9WzVtRmSR+PDvWpU/qWl4Wa5LApYYX4ZtKbio=
 github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c h1:u40Z8hqBAAQyv+vATcGgV0YCnDjqSL7/q/JyPhhJSPk=
 github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c/go.mod h1:lB8K/P019DLNhemzwFU4jHLhdvlE6uDZjXFejJXr49I=
