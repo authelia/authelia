@@ -15,7 +15,7 @@ require (
 	github.com/fasthttp/session v1.1.3
 	github.com/go-ldap/ldap/v3 v3.1.7 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/golang/mock v1.3.1
+	github.com/golang/mock v1.4.3
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/kr/pty v1.1.8 // indirect
