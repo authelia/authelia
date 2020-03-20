@@ -20,19 +20,19 @@ export type Level = keyof typeof variantIcon;
 
 export interface Props extends SnackbarContentProps {
     className?: string;
-    variant: Level;
+    level: Level;
     message: string;
 }
 
 export default function (props: Props) {
     const classes = useStyles();
-    const Icon = variantIcon[props.variant];
+    const Icon = variantIcon[props.level];
 
     const { className, variant, message, ...others } = props;
 
     return (
         <SnackbarContent
-            className={classnames(classes[props.variant], className)}
+            className={classnames(classes[props.level], className)}
             message={
                 <span className={classes.message}>
                     <Icon className={classnames(classes.icon, classes.iconVariant)} />

@@ -29,7 +29,7 @@ export default function (props: Props) {
             onExited={() => setTmpNotification(null)}>
             <ColoredSnackbarContent
                 className="notification"
-                variant={tmpNotification ? tmpNotification.level : "info"}
+                level={tmpNotification ? tmpNotification.level : "info"}
                 message={tmpNotification ? tmpNotification.message : ""} />
         </Snackbar>
     )
