@@ -29,7 +29,7 @@
     "qrcode.react": "^1.0.0",
     "query-string": "^6.11.1",
     "react": "^16.13.1",
-    "react-dom": "^16.13.0",
+    "react-dom": "^16.13.1",
     "react-ga": "^2.7.0",
     "react-loading": "^2.0.3",
     "react-otp-input": "^1.0.1",
