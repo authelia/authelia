@@ -1,15 +1,21 @@
 #!/bin/bash
 set -u
 
-if [[ $BUILDKITE_TAG == "" ]]; then
-  if [[ $BUILDKITE_BRANCH == "master" ]]; then
-    CI_DOCS_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^docs\/.*/!{q1}' && echo true || echo false)
-  else
-    CI_DOCS_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^docs\/.*/!{q1}' && echo true || echo false)
-  fi
+DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
 
-  if [[ $CI_DOCS_BYPASS == "true" ]]; then
-  cat .buildkite/annotations/documentation | buildkite-agent annotate --style "info" --context "ctx-info"
+if [[ $DIVERGED -eq 0 ]]; then
+  if [[ $BUILDKITE_TAG == "" ]]; then
+    if [[ $BUILDKITE_BRANCH == "master" ]]; then
+      CI_DOCS_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^docs\/.*/!{q1}' && echo true || echo false)
+    else
+      CI_DOCS_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^docs\/.*/!{q1}' && echo true || echo false)
+    fi
+
+    if [[ $CI_DOCS_BYPASS == "true" ]]; then
+      cat .buildkite/annotations/documentation | buildkite-agent annotate --style "info" --context "ctx-info"
+    fi
+  else
+    CI_DOCS_BYPASS="false"
   fi
 else
   CI_DOCS_BYPASS="false"
