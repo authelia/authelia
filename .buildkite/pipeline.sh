@@ -28,7 +28,7 @@ env:
 steps:
   - label: ":hammer_and_wrench: Unit Test"
     command: "authelia-scripts --log-level debug ci"
-    if: build.branch != "master" || build.tag !~ /^v.*/ && build.env("CI_DOCS_BYPASS") != "true"
+    if: (build.branch != "master" || build.tag !~ /^v.*/) && build.env("CI_DOCS_BYPASS") != "true"
 
   - wait:
     if: build.env("CI_DOCS_BYPASS") != "true"
@@ -45,5 +45,5 @@ steps:
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
     depends_on:
       - "build-docker-amd64"
-    if: build.branch != "master" || build.tag !~ /^v.*/ && build.env("CI_DOCS_BYPASS") != "true"
+    if: (build.branch != "master" || build.tag !~ /^v.*/) && build.env("CI_DOCS_BYPASS") != "true"
 EOF
