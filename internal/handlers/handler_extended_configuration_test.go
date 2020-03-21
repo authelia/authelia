@@ -31,6 +31,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
 	expectedBody := ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: false,
+		TOTPPeriod:          30,
 	}
 	ExtendedConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
@@ -43,6 +44,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMo
 	expectedBody := ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f", "mobile_push"},
 		SecondFactorEnabled: false,
+		TOTPPeriod:          30,
 	}
 	ExtendedConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
@@ -70,6 +72,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisab
 	s.mock.Assert200OK(s.T(), ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: false,
+		TOTPPeriod:          30,
 	})
 }
 
@@ -95,6 +98,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 	s.mock.Assert200OK(s.T(), ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: true,
+		TOTPPeriod:          30,
 	})
 }
 
@@ -120,6 +124,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 	s.mock.Assert200OK(s.T(), ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: true,
+		TOTPPeriod:          30,
 	})
 }
 

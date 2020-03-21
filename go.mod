@@ -13,7 +13,7 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fasthttp/router v0.7.0
 	github.com/fasthttp/session v1.1.7
-	github.com/go-ldap/ldap/v3 v3.1.7 // indirect
+	github.com/go-ldap/ldap/v3 v3.1.7
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.4.3
 	github.com/golang/snappy v0.0.1 // indirect

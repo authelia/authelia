@@ -40,7 +40,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 
 	verifier.EXPECT().
 		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
-		Return(true)
+		Return(true, nil)
 
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = "http://redirection.local"
 
@@ -65,7 +65,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 
 	verifier.EXPECT().
 		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
-		Return(true)
+		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token: "abc",
@@ -86,7 +86,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 
 	verifier.EXPECT().
 		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
-		Return(true)
+		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token:     "abc",
@@ -110,7 +110,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 
 	verifier.EXPECT().
 		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
-		Return(true)
+		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token:     "abc",
@@ -132,7 +132,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 
 	verifier.EXPECT().
 		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
-		Return(true)
+		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token: "abc",

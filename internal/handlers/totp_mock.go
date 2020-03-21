@@ -33,11 +33,12 @@ func (m *MockTOTPVerifier) EXPECT() *MockTOTPVerifierMockRecorder {
 }
 
 // Verify mocks base method
-func (m *MockTOTPVerifier) Verify(token, secret string) bool {
+func (m *MockTOTPVerifier) Verify(token, secret string) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Verify", token, secret)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Verify indicates an expected call of Verify
