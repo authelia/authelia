@@ -27,9 +27,6 @@ persist user configurations and one or more nginx reverse proxies configured to
 be used with Authelia. With such a setup **Authelia** can easily be scaled to
 multiple instances to evenly handle the traffic.
 
-**NOTE**: If you don't have all those components, don't worry, there is a way to
-deploy **Authelia** with only nginx. This is described in [Deployment - Lite](./deployment-lite.md).
-
 Here are the available steps to deploy **Authelia** given 
 the configuration file is **/path/to/your/configuration.yml**. Note that you can
 create your own configuration file from [config.template.yml] located at

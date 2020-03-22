@@ -82,7 +82,8 @@ Docker or on top of [Kubernetes].
 You can start utilising Authelia with the provided `docker-compose` bundles:
 
 ##### Local
-The Local compose bundle is intended for scenarios where the server will not be exposed to the internet, domains will be defined in the local hosts file and self-signed certificates will be utilised.  
+The Local compose bundle is intended for scenarios where the server will not be exposed to the internet, domains will be defined in the local hosts file and self-signed certificates will be utilised.
+This bundle includes a script to generate all the required configuration and is intended as the quickest method to demo Authelia.
 
 ##### Lite
 The Lite compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will need to be setup accordingly and certificates will be generated through LetsEncrypt.
@@ -90,13 +91,7 @@ The Lite element refers to minimal external dependencies; File based user storag
 
 ##### Full
 The Full compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will need to be setup accordingly and certificates will be generated through LetsEncrypt.
-The Full element refers to a scalable setup which includes external dependencies; LDAP based user storage, Database based configuration storage (MariaDB or Postgres). 
-
-- `git clone https://github.com/authelia/authelia.git`
-- `cd authelia/compose/{local,lite,full}` based on the bundle you plan to run
-- If running Local or Lite modify the `users_database.yml` the default username and password is `authelia`
-- Modify the `configuration.yml` and `docker-compose.yml` with your respective domains and secrets
-- `docker-compose up -d`
+The Full element refers to a scalable setup which includes external dependencies; LDAP based user storage, Database based configuration storage (MariaDB, MySQL or Postgres). 
 
 If you want to go further, please read [Getting Started](https://docs.authelia.com/getting-started).
 

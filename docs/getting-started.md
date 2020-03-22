@@ -6,10 +6,83 @@ nav_order: 2
 
 # Getting Started
 
-**Authelia** can be tested in a matter of seconds with Docker and docker-compose.
+## Docker Compose
 
-In order to deploy the current version of Authelia locally, run the following
-command and follow the instructions of bootstrap.sh:
+**Authelia** can be deployed as a local setup not requiring SQL server, Redis cluster
+or an LDAP server. In some cases, like protecting personal projects/websites, it can be
+fine to use this setup but beware that this setup is non-resilient to failures so it should
+be used at your own risk.
+
+The setup is called local since it reduces the number of components in the architecture to
+only two: a reverse proxy such as Nginx, Traefik or HAProxy and Authelia.
+
+## Steps
+
+- `git clone https://github.com/authelia/authelia.git`
+- `cd authelia/compose/local`
+- `sudo ./setup.sh`
+- `docker-compose up -d`
+
+You can now visit the following locations; replace example.com with the domain you specified in the setup script:
+- https://public.example.com - Bypasses Authelia
+- https://traefik.example.com - Secured with Authelia one-factor authentication
+- https://secure.example.com - Secured with Authelia two-factor authentication
+
+Once you have registered an OTP device, the link to generate your QR code will be in `compose/local/authelia/notifications.txt`.
+`grep "<a href=" compose/local/authelia/notifications.txt` 
+
+## Reverse Proxy
+
+Documentation for deploying a reverse proxy collaborating with Authelia is available
+[here](./supported-proxies/index.md).
+
+## Discarded components
+
+### Discard SQL server
+
+It's possible to use a SQLite file instead of a SQL server as documented
+[here](../configuration/storage/sqlite.md).
+
+### Discard Redis
+
+Connection details to Redis are optional. If not provided, sessions will
+be stored in memory instead. This has the inconvenience of logging out users
+every time Authelia restarts.
+
+The documentation about session management is available
+[here](../configuration/session.md).
+
+### Discard LDAP
+
+**Authelia** can use a file backend in order to store users instead of a
+LDAP server or Active Directory.
+
+To use a file backend instead of a LDAP server, please follow the related
+documentation [here](../configuration/authentication/file.md).
+
+## FAQ
+
+### Can you give more details on why this is not suitable for production environments?
+
+This documentation gives instructions that will make **Authelia** non
+resilient to failures and non scalable by preventing you from running multiple
+instances of the application. This means that **Authelia** won't be able to distribute
+the load across multiple servers and it will prevent failover in case of a
+crash or an hardware issue. Moreover, users will be logged out every time
+Authelia restarts.
+
+### Why aren't all those steps automated?
+
+We would really be more than happy to review any contribution with an Ansible playbook,
+a Chef cookbook or whatever else to automate the process.
+
+## Development workflow
+
+**Authelia** and its development workflow can be tested in a matter of seconds with Docker and
+docker-compose on Linux.
+
+In order to deploy the current version of Authelia locally, run the following command and
+follow the instructions of bootstrap.sh:
 
     $ source bootstrap.sh
 
