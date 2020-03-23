@@ -11,18 +11,16 @@ export interface Props {
 }
 
 export default function (props: Props) {
-    const maxTimeProgress = 1000;
+    const radius = 31.6;
     const [timeProgress, setTimeProgress] = useState(0);
 
     useEffect(() => {
         // Get the current number of seconds to initialize timer.
-        const periodMs = props.period * 1000;
-        const initialValue = Math.floor((new Date().getSeconds() % props.period) / props.period * maxTimeProgress);
+        const initialValue = (new Date().getTime() / 1000) % props.period / props.period * radius;
         setTimeProgress(initialValue);
 
         const interval = setInterval(() => {
-            const ms = new Date().getSeconds() * 1000.0 + new Date().getMilliseconds();
-            const value = (ms % periodMs) / periodMs * maxTimeProgress;
+            const value = (new Date().getTime() / 1000) % props.period / props.period * radius;
             setTimeProgress(value);
         }, 100);
         return () => clearInterval(interval);
@@ -30,8 +28,7 @@ export default function (props: Props) {
 
     return (
         <PieChartIcon width={props.width} height={props.height}
-            maxProgress={maxTimeProgress}
-            progress={timeProgress}
+            progress={timeProgress} maxProgress={radius}
             backgroundColor={props.backgroundColor} color={props.color} />
     )
 }

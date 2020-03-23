@@ -42,7 +42,8 @@ totp:
   # The issuer name displayed in the Authenticator application of your choice
   # See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
   issuer: authelia.com
-  # The period in seconds a one-time password is current for. Warning: before changing read the docs link below.
+  # The period in seconds a one-time password is current for. Changing this may require all users to register
+  # their TOTP applications again. Warning: before changing read the docs link below.
   # https://docs.authelia.com/configuration/one-time-password.html#period-and-skew
   period: 30
   # The skew controls number of one-time passwords either side of the current one that are valid. Warning: before

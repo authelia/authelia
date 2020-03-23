@@ -38,7 +38,9 @@ seconds of validity, and period 30 and skew 2 would result in 150 seconds of val
 
 ### Period
 
-Configures the period of time in seconds a one-time password is current for.
+Configures the period of time in seconds a one-time password is current for. It is important
+to note that changing this value will likely require your users to register their application
+again.
 
 It is recommended to keep this value set to 30, the minimum is 1.
   
