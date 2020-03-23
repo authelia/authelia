@@ -62,8 +62,8 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityFinish)))
 	router.POST("/api/secondfactor/totp", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost(&handlers.TOTPVerifierImpl{
-			Period: configuration.TOTP.Period,
-			Skew:   configuration.TOTP.Skew,
+			Period: uint(configuration.TOTP.Period),
+			Skew:   uint(*configuration.TOTP.Skew),
 		}))))
 
 	// U2F related endpoints

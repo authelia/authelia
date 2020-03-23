@@ -39,6 +39,8 @@ seconds of validity, and period 30 and skew 2 would result in 150 seconds of val
 ### period
 
 Configures the period of time in seconds a one-time password is current for.
+
+It is recommended to keep this value set to 30, but the minimum is 1.
   
 ### skew
 
@@ -47,4 +49,4 @@ considered valid, each time you increase this it makes two more one-time passwor
 For example the default of 1 has a total of 3 keys valid. A value of 2 has 5 one-time passwords 
 valid.
 
-It is recommended to keep this value set to 0 or 1.
+It is recommended to keep this value set to 0 or 1, but the minimum is 0.

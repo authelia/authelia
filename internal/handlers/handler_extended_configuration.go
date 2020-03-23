@@ -13,7 +13,7 @@ type ExtendedConfigurationBody struct {
 	SecondFactorEnabled bool `json:"second_factor_enabled"`
 
 	// TOTP Period
-	TOTPPeriod uint `json:"totp_period"`
+	TOTPPeriod int `json:"totp_period"`
 }
 
 // ExtendedConfigurationGet get the extended configuration accessible to authenticated users.
