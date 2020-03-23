@@ -34,10 +34,8 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
 		}
+		ctx.Logger.Debug("Using X-Original-URL header content as targeted site URL")
 		return url, nil
-	} else {
-		ctx.Logger.Debug("No X-Original-URL header detected, fallback to combination of " +
-			"X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers")
 	}
 
 	forwardedProto := ctx.XForwardedProto()
@@ -61,6 +59,8 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
 	}
+	ctx.Logger.Debugf("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
+		"to construct targeted site URL")
 	return url, nil
 }
 
