@@ -16,8 +16,8 @@ func TestShouldSetDefaultTOTPValues(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, "Authelia", config.Issuer)
-	assert.Equal(t, defaultTOTPSkew, *config.Skew)
-	assert.Equal(t, 30, config.Period)
+	assert.Equal(t, DefaultTOTPSkew, *config.Skew)
+	assert.Equal(t, DefaultTOTPPeriod, config.Period)
 }
 
 func TestShouldRaiseErrorWhenInvalidTOTPMinimumValues(t *testing.T) {

@@ -25,7 +25,11 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 			return
 		}
 
-		isValid, _ := totpVerifier.Verify(bodyJSON.Token, secret)
+		isValid, err := totpVerifier.Verify(bodyJSON.Token, secret)
+		if err != nil {
+			ctx.Error(fmt.Errorf("Error occurred during OTP validation for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
+			return
+		}
 
 		if !isValid {
 			ctx.Error(fmt.Errorf("Wrong passcode during TOTP validation for user %s", userSession.Username), mfaValidationFailedMessage)
