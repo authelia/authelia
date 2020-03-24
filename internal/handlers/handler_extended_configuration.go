@@ -20,11 +20,7 @@ type ExtendedConfigurationBody struct {
 func ExtendedConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	body := ExtendedConfigurationBody{}
 	body.AvailableMethods = MethodList{authentication.TOTP, authentication.U2F}
-	if ctx.Configuration.TOTP != nil {
-		body.TOTPPeriod = ctx.Configuration.TOTP.Period
-	} else {
-		body.TOTPPeriod = 30
-	}
+	body.TOTPPeriod = ctx.Configuration.TOTP.Period
 
 	if ctx.Configuration.DuoAPI != nil {
 		body.AvailableMethods = append(body.AvailableMethods, authentication.Push)

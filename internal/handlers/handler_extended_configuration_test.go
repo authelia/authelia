@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/validator"
 	"github.com/authelia/authelia/internal/mocks"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -28,10 +29,15 @@ func (s *SecondFactorAvailableMethodsFixture) TearDownTest() {
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Period: validator.DefaultTOTPPeriod,
+		},
+	}
 	expectedBody := ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: false,
-		TOTPPeriod:          30,
+		TOTPPeriod:          validator.DefaultTOTPPeriod,
 	}
 	ExtendedConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
@@ -40,17 +46,25 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
 func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMobilePush() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: &schema.DuoAPIConfiguration{},
+		TOTP: &schema.TOTPConfiguration{
+			Period: validator.DefaultTOTPPeriod,
+		},
 	}
 	expectedBody := ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f", "mobile_push"},
 		SecondFactorEnabled: false,
-		TOTPPeriod:          30,
+		TOTPPeriod:          validator.DefaultTOTPPeriod,
 	}
 	ExtendedConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisabledWhenNoRuleIsSetToTwoFactor() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Period: validator.DefaultTOTPPeriod,
+		},
+	}
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
 		DefaultPolicy: "bypass",
 		Rules: []schema.ACLRule{
@@ -72,11 +86,16 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisab
 	s.mock.Assert200OK(s.T(), ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: false,
-		TOTPPeriod:          30,
+		TOTPPeriod:          validator.DefaultTOTPPeriod,
 	})
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabledWhenDefaultPolicySetToTwoFactor() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Period: validator.DefaultTOTPPeriod,
+		},
+	}
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
 		DefaultPolicy: "two_factor",
 		Rules: []schema.ACLRule{
@@ -98,11 +117,16 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 	s.mock.Assert200OK(s.T(), ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: true,
-		TOTPPeriod:          30,
+		TOTPPeriod:          validator.DefaultTOTPPeriod,
 	})
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabledWhenSomePolicySetToTwoFactor() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Period: validator.DefaultTOTPPeriod,
+		},
+	}
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
 		DefaultPolicy: "bypass",
 		Rules: []schema.ACLRule{
@@ -124,7 +148,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 	s.mock.Assert200OK(s.T(), ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: true,
-		TOTPPeriod:          30,
+		TOTPPeriod:          validator.DefaultTOTPPeriod,
 	})
 }
 
