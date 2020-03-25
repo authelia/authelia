@@ -39,7 +39,7 @@ steps:
     if: build.env("CI_DOCS_BYPASS") != "true"
 
   - wait:
-    if: build.branch != "master" && build.env("CI_DOCS_BYPASS") != "true"
+    if: build.branch !~ /^(master)|(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_DOCS_BYPASS") != "true"
 
   - label: ":chrome: Integration Tests"
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
