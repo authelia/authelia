@@ -26,7 +26,7 @@ export default function (props: Props) {
             <circle r="5" cx="13" cy="13" fill="none"
                 stroke={color}
                 strokeWidth="10"
-                strokeDasharray={`calc(${props.progress} * 31.6 / ${maxProgress}) 31.6`}
+                strokeDasharray={`${props.progress} ${maxProgress}`}
                 transform="rotate(-90) translate(-26)" />
         </svg>
     )

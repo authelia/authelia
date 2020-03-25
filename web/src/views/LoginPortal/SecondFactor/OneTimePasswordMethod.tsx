@@ -16,6 +16,7 @@ export interface Props {
     id: string;
     authenticationLevel: AuthenticationLevel;
     registered: boolean;
+    totp_period: number
 
     onRegisterClick: () => void;
     onSignInError: (err: Error) => void;
@@ -83,7 +84,8 @@ export default function (props: Props) {
             <OTPDial
                 passcode={passcode}
                 onChange={setPasscode}
-                state={state} />
+                state={state}
+                period={props.totp_period} />
         </MethodContainer>
     )
 }

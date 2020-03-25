@@ -46,8 +46,8 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 
 	if configuration.TOTP == nil {
 		configuration.TOTP = &schema.TOTPConfiguration{}
-		ValidateTOTP(configuration.TOTP, validator)
 	}
+	ValidateTOTP(configuration.TOTP, validator)
 
 	if configuration.Notifier == nil {
 		validator.Push(fmt.Errorf("A notifier configuration must be provided"))

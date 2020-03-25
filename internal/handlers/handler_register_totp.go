@@ -41,6 +41,7 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 		Issuer:      ctx.Configuration.TOTP.Issuer,
 		AccountName: username,
 		SecretSize:  32,
+		Period:      uint(ctx.Configuration.TOTP.Period),
 	})
 
 	if err != nil {

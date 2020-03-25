@@ -11,12 +11,16 @@ type ExtendedConfigurationBody struct {
 
 	// SecondFactorEnabled whether second factor is enabled
 	SecondFactorEnabled bool `json:"second_factor_enabled"`
+
+	// TOTP Period
+	TOTPPeriod int `json:"totp_period"`
 }
 
 // ExtendedConfigurationGet get the extended configuration accessible to authenticated users.
 func ExtendedConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	body := ExtendedConfigurationBody{}
 	body.AvailableMethods = MethodList{authentication.TOTP, authentication.U2F}
+	body.TOTPPeriod = ctx.Configuration.TOTP.Period
 
 	if ctx.Configuration.DuoAPI != nil {
 		body.AvailableMethods = append(body.AvailableMethods, authentication.Push)
