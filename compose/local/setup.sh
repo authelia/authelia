@@ -33,10 +33,10 @@ MODIFIED=$(cat /etc/hosts | grep $DOMAIN && echo true || echo false)
 
 if [[ $MODIFIED == "false" ]]; then
 echo "\
-172.31.255.100  authelia.$DOMAIN
-172.31.255.100  public.$DOMAIN
-172.31.255.100  traefik.$DOMAIN
-172.31.255.100  secure.$DOMAIN" >> /etc/hosts
+127.0.0.1  authelia.$DOMAIN
+127.0.0.1  public.$DOMAIN
+127.0.0.1  traefik.$DOMAIN
+127.0.0.1  secure.$DOMAIN" >> /etc/hosts
 fi
 
 echo "Generating SSL certificate for *.$DOMAIN"
