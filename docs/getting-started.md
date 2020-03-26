@@ -16,6 +16,9 @@ be used at your own risk.
 The setup is called local since it reduces the number of components in the architecture to
 only two: a reverse proxy such as Nginx, Traefik or HAProxy and Authelia.
 
+Connection details to Redis are optional. If not provided, sessions will be stored in
+memory instead. This has the inconvenience of logging out users every time Authelia restarts.
+
 ## Steps
 
 - `git clone https://github.com/authelia/authelia.git`
@@ -36,30 +39,6 @@ Once you have registered an OTP device, the link to generate your QR code will b
 Documentation for deploying a reverse proxy collaborating with Authelia is available
 [here](./supported-proxies/index.md).
 
-## Discarded components
-
-### Discard SQL server
-
-It's possible to use a SQLite file instead of a SQL server as documented
-[here](../configuration/storage/sqlite.md).
-
-### Discard Redis
-
-Connection details to Redis are optional. If not provided, sessions will
-be stored in memory instead. This has the inconvenience of logging out users
-every time Authelia restarts.
-
-The documentation about session management is available
-[here](../configuration/session.md).
-
-### Discard LDAP
-
-**Authelia** can use a file backend in order to store users instead of a
-LDAP server or Active Directory.
-
-To use a file backend instead of a LDAP server, please follow the related
-documentation [here](../configuration/authentication/file.md).
-
 ## FAQ
 
 ### Can you give more details on why this is not suitable for production environments?
@@ -71,15 +50,9 @@ the load across multiple servers and it will prevent failover in case of a
 crash or an hardware issue. Moreover, users will be logged out every time
 Authelia restarts.
 
-### Why aren't all those steps automated?
-
-We would really be more than happy to review any contribution with an Ansible playbook,
-a Chef cookbook or whatever else to automate the process.
-
 ## Development workflow
 
-**Authelia** and its development workflow can be tested in a matter of seconds with Docker and
-docker-compose on Linux.
+**Authelia** and its development workflow can be tested with Docker and docker-compose on Linux.
 
 In order to deploy the current version of Authelia locally, run the following command and
 follow the instructions of bootstrap.sh:
@@ -93,7 +66,7 @@ Then, start the *Standalone* [suite].
 A [suite] is kind of a virtual environment for running Authelia in a complete ecosystem.
 If you want more details please read the related [documentation](./contributing/suites.md).
 
-## Test it!
+### Test it!
 
 After few seconds the services should be running and you should be able to
 visit [https://home.example.com:8080/](https://home.example.com:8080/).
