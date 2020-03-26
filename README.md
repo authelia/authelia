@@ -82,8 +82,9 @@ Docker or on top of [Kubernetes].
 You can start utilising Authelia with the provided `docker-compose` bundles:
 
 ##### Local
-The Local compose bundle is intended for scenarios where the server will not be exposed to the internet, domains will be defined in the local hosts file and self-signed certificates will be utilised.
-This bundle includes a script to generate all the required configuration and is intended as the quickest method to demo Authelia.
+The Local compose bundle is intended to test Authelia without worrying about configuration.
+It's meant to be used for scenarios where the server is not be exposed to the internet.
+Domains will be defined in the local hosts file and self-signed certificates will be utilised.
 
 ##### Lite
 The Lite compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will need to be setup accordingly and certificates will be generated through LetsEncrypt.

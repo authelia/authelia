@@ -77,15 +77,17 @@ else
   password
 fi
 
-cat << EOF
-Setup completed successfully, please start up containers with 'docker-compose up -d'.
+docker-compose up -d
 
-Once containers have been started you can now visit the following locations:
+cat << EOF
+Setup completed successfully.
+
+You can now visit the following locations:
 - https://public.$DOMAIN - Bypasses Authelia
 - https://traefik.$DOMAIN - Secured with Authelia one-factor authentication
 - https://secure.$DOMAIN - Secured with Authelia two-factor authentication (see note below)
 
-To visit https://secure.$DOMAIN you will need to register an OTP device, the email/link to generate your QR code will be in stored in: './authelia/notification.txt'.
+To visit https://secure.$DOMAIN you will need to register a device for second factor authentication and confirm by clicking on a link sent by email. Since this is a demo with a fake email address, the content of the email will be stored in './authelia/notification.txt'.
 Upon registering, you can grab this link easily by running the following command: 'grep -Eo '"https://.*" ' ./authelia/notification.txt'.
 EOF
 

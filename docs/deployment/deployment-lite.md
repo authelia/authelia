@@ -43,4 +43,10 @@ out for any of the [supported proxies](./supported-proxies/index.md).
 
 ## FAQ
 
-Under construction.
+### Can you give more details on why this is not suitable for production environments?
+
+This documentation gives instructions that will make **Authelia** non
+resilient to failures and non scalable by preventing you from running multiple
+instances of the application. This means that **Authelia** won't be able to distribute
+the load across multiple servers and it will prevent failover in case of a
+crash or an hardware issue.
