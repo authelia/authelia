@@ -36,7 +36,7 @@ services:
     image: traefik:v1.7.20-alpine
     container_name: traefik
     volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock'
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - net
     labels:
