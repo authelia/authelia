@@ -11,7 +11,7 @@ services:
     volumes:
       - ./authelia:/var/lib/authelia
       - ./configuration.yml:/etc/authelia/configuration.yml:ro
-      - ./users_database.yml:/etc/authelia/users_database.yml:ro
+      - ./users_database.yml:/etc/authelia/users_database.yml
     networks:
       - net
     labels:
