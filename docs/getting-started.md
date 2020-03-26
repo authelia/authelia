@@ -21,6 +21,8 @@ memory instead. This has the inconvenience of logging out users every time Authe
 
 ## Steps
 
+These commands are intended to be run sequentially:
+
 - `git clone https://github.com/authelia/authelia.git`
 - `cd authelia/compose/local`
 - `sudo ./setup.sh`
@@ -29,10 +31,10 @@ memory instead. This has the inconvenience of logging out users every time Authe
 You can now visit the following locations; replace example.com with the domain you specified in the setup script:
 - https://public.example.com - Bypasses Authelia
 - https://traefik.example.com - Secured with Authelia one-factor authentication
-- https://secure.example.com - Secured with Authelia two-factor authentication
+- https://secure.example.com - Secured with Authelia two-factor authentication (see note below)
 
-Once you have registered an OTP device, the link to generate your QR code will be in `compose/local/authelia/notifications.txt`.
-`grep "<a href=" compose/local/authelia/notifications.txt` 
+To visit https://secure.example.com you will need to register an OTP device, the email/link to generate your QR code will be in stored in: `./authelia/notification.txt`.
+Upon registering, you can grab this link easily by running the following command: `grep -Eo '"https://.*" ' ./authelia/notification.txt`.
 
 ## Reverse Proxy
 

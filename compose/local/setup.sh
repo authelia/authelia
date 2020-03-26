@@ -43,13 +43,21 @@ echo "Generating SSL certificate for *.$DOMAIN"
 docker run -a stdout -v $PWD/traefik/certs:/tmp/certs authelia/authelia authelia certificates generate --host *.$DOMAIN --dir /tmp/certs/ > /dev/null
 
 if [[ $DOMAIN != "example.com" ]]; then
-  sed -i "s/example.com/$DOMAIN/g" {docker-compose.yml,configuration.yml}
+  if [[ $(uname) == "Darwin" ]]; then
+    sed -i '' "s/example.com/$DOMAIN/g" {docker-compose.yml,configuration.yml}
+  else
+    sed -i "s/example.com/$DOMAIN/g" {docker-compose.yml,configuration.yml}
+  fi
 fi
 
 username
 
 if [[ $USERNAME != "" ]]; then
-  sed -i "s/<USERNAME>/$USERNAME/g" users_database.yml
+  if [[ $(uname) == "Darwin" ]]; then
+    sed -i '' "s/<USERNAME>/$USERNAME/g" users_database.yml
+  else
+    sed -i "s/<USERNAME>/$USERNAME/g" users_database.yml
+  fi
 else
   echo "Username cannot be empty"
   username
@@ -58,8 +66,13 @@ fi
 password
 
 if [[ $PASSWORD != "" ]]; then
-  PASSWORD=$(docker run authelia/authelia authelia hash-password $PASSWORD | sed 's/Password hash: //g')
-  sed -i "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" users_database.yml
+  if [[ $(uname) == "Darwin" ]]; then
+    PASSWORD=$(docker run authelia/authelia authelia hash-password $PASSWORD | sed 's/Password hash: //g')
+    sed -i '' "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" users_database.yml
+  else
+    PASSWORD=$(docker run authelia/authelia authelia hash-password $PASSWORD | sed 's/Password hash: //g')
+    sed -i "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" users_database.yml
+  fi
 else
   echo "Password cannot be empty"
   password
@@ -71,9 +84,9 @@ Setup completed successfully, please start up containers with 'docker-compose up
 Once containers have been started you can now visit the following locations:
 - https://public.$DOMAIN - Bypasses Authelia
 - https://traefik.$DOMAIN - Secured with Authelia one-factor authentication
-- https://secure.$DOMAIN - Secured with Authelia two-factor authentication
+- https://secure.$DOMAIN - Secured with Authelia two-factor authentication (see note below)
 
-Once you have registered an OTP device, the link to generate your QR code will be in 'compose/local/authelia/notifications.txt'.
-'grep "<a href=" compose/local/authelia/notifications.txt'
+To visit https://secure.$DOMAIN you will need to register an OTP device, the email/link to generate your QR code will be in stored in: './authelia/notification.txt'.
+Upon registering, you can grab this link easily by running the following command: 'grep -Eo '"https://.*" ' ./authelia/notification.txt'.
 EOF
 
