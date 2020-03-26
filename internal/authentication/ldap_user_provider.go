@@ -106,12 +106,23 @@ type ldapUserProfile struct {
 	Username string
 }
 
+func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, input string) string {
+	// We keep placeholder {0} for backward compatibility
+	userFilter = strings.ReplaceAll(userFilter, "{0}", input)
+
+	// The {username} placeholder is equivalent to {0}, it's the new way, a named placeholder.
+	userFilter = strings.ReplaceAll(userFilter, "{input}", input)
+
+	// {username_attribute} and {mail_attribute} are replaced by the content of the attribute defined
+	// in configuration.
+	userFilter = strings.ReplaceAll(userFilter, "{username_attribute}", p.configuration.UsernameAttribute)
+	userFilter = strings.ReplaceAll(userFilter, "{mail_attribute}", p.configuration.MailAttribute)
+	return userFilter
+}
+
 func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, username string) (*ldapUserProfile, error) {
 	username = p.ldapEscape(username)
-	userFilter := fmt.Sprintf("(%s=%s)", p.configuration.UsernameAttribute, username)
-	if p.configuration.UsersFilter != "" {
-		userFilter = fmt.Sprintf("(&%s%s)", userFilter, p.configuration.UsersFilter)
-	}
+	userFilter := p.resolveUsersFilter(p.configuration.UsersFilter, username)
 	baseDN := p.configuration.BaseDN
 	if p.configuration.AdditionalUsersDN != "" {
 		baseDN = p.configuration.AdditionalUsersDN + "," + baseDN

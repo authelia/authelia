@@ -170,7 +170,7 @@ func (suite *LdapAuthenticationBackendSuite) SetupTest() {
 	suite.configuration.Ldap.Password = "password"
 	suite.configuration.Ldap.BaseDN = "base_dn"
 	suite.configuration.Ldap.UsernameAttribute = "uid"
-	suite.configuration.Ldap.UsersFilter = "(uid={0})"
+	suite.configuration.Ldap.UsersFilter = "(uid={input})"
 	suite.configuration.Ldap.GroupsFilter = "(cn={0})"
 }
 
@@ -240,10 +240,10 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultMailAttribute()
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesNotContainEnclosingParenthesis() {
-	suite.configuration.Ldap.UsersFilter = "uid={0}"
+	suite.configuration.Ldap.UsersFilter = "uid={input}"
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The users filter should contain enclosing parenthesis. For instance uid={0} should be (uid={0})")
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The users filter should contain enclosing parenthesis. For instance uid={input} should be (uid={input})")
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenGroupsFilterDoesNotContainEnclosingParenthesis() {

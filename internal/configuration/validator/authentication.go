@@ -122,7 +122,7 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 
 	if configuration.UsersFilter != "" {
 		if !strings.HasPrefix(configuration.UsersFilter, "(") || !strings.HasSuffix(configuration.UsersFilter, ")") {
-			validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance uid={0} should be (uid={0})"))
+			validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance uid={input} should be (uid={input})"))
 		}
 	}
 

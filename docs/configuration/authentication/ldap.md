@@ -26,24 +26,30 @@ authentication_backend:
         # The base dn for every entries
         base_dn: dc=example,dc=com
 
-        # The attribute holding the username of the user (introduced to handle
-        # case insensitive search queries: #561).
-        # Microsoft Active Directory usually uses 'sAMAccountName'
-        # OpenLDAP usually uses 'uid'
+        # The attribute holding the username of the user. This attribute is used to populate
+        # the username in the session information. It was introduced due to #561 to handle case
+        # insensitive search queries.
+        # For you information, Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP
+        # usually uses 'uid'
         username_attribute: uid
         
         # An additional dn to define the scope to all users
         additional_users_dn: ou=users
         
-        # This attribute is optional. The user filter used in the LDAP search queries
-        # is a combination of this filter and the username attribute.
-        # This filter is used to reduce the scope of users targeted by the LDAP search query.
-        # For instance, if the username attribute is set to 'uid', the computed filter is
-        # (&(uid=<username>)(objectClass=person))
+        # The users filter used in search queries to find the user profile based on input filled in login form.
+        # Various placeholders are available to represent the user input and back reference other options of the configuration:
+        # - {input} is a placeholder replaced by what the user inputs in the login form. 
+        # - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
+        # - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
+        # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
+        #
         # Recommended settings are as follows:
-        # Microsoft Active Directory '(&(objectCategory=person)(objectClass=user))'
-        # OpenLDAP '(objectClass=person)' or '(objectClass=inetOrgPerson)'
-        users_filter: (objectClass=person)
+        # - Microsoft Active Directory: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
+        # - OpenLDAP: (&({username_attribute}={input})(objectClass=person))' or '(&({username_attribute}={input})(objectClass=inetOrgPerson))
+        #
+        # To allow sign in both with username and email, one can use a filter like
+        # (&(|({username_attribute}={input})({mail_attribute={input}))(objectClass=person))
+        users_filter: (&({username_attribute}={input})(objectClass=person))
         
         # An additional dn to define the scope of groups
         additional_groups_dn: ou=groups
