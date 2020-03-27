@@ -81,16 +81,16 @@ Docker or on top of [Kubernetes].
 
 You can start utilising Authelia with the provided `docker-compose` bundles:
 
-##### [Local](https://docs.authelia.com/getting-started)
+#### [Local](https://docs.authelia.com/getting-started)
 The Local compose bundle is intended to test Authelia without worrying about configuration.
 It's meant to be used for scenarios where the server is not be exposed to the internet.
 Domains will be defined in the local hosts file and self-signed certificates will be utilised.
 
-##### [Lite](https://docs.authelia.com/deployment/deployment-lite)
+#### [Lite](https://docs.authelia.com/deployment/deployment-lite)
 The Lite compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will need to be setup accordingly and certificates will be generated through LetsEncrypt.
 The Lite element refers to minimal external dependencies; File based user storage, SQLite based configuration storage. In this configuration, the service will not scale well.
 
-##### [Full](https://docs.authelia.com/deployment/deployment-ha)
+#### [Full](https://docs.authelia.com/deployment/deployment-ha)
 The Full compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will need to be setup accordingly and certificates will be generated through LetsEncrypt.
 The Full element refers to a scalable setup which includes external dependencies; LDAP based user storage, Database based configuration storage (MariaDB, MySQL or Postgres). 
 
