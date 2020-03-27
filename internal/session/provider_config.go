@@ -42,15 +42,18 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 	// If redis configuration is provided, then use the redis provider.
 	if configuration.Redis != nil {
 		providerName = "redis"
+		serializer := NewEncryptingSerializer(configuration.Secret)
 		providerConfig = &redis.Config{
 			Host:     configuration.Redis.Host,
 			Port:     configuration.Redis.Port,
 			Password: configuration.Redis.Password,
 			// DbNumber is the fasthttp/session property for the Redis DB Index
-			DbNumber:    configuration.Redis.DatabaseIndex,
-			PoolSize:    8,
-			IdleTimeout: 300,
-			KeyPrefix:   "authelia-session",
+			DbNumber:        configuration.Redis.DatabaseIndex,
+			PoolSize:        8,
+			IdleTimeout:     300,
+			KeyPrefix:       "authelia-session",
+			SerializeFunc:   serializer.Encode,
+			UnSerializeFunc: serializer.Decode,
 		}
 	} else { // if no option is provided, use the memory provider.
 		providerName = "memory"

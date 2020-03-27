@@ -24,10 +24,18 @@ func TestShouldSetDefaultSessionName(t *testing.T) {
 	assert.Equal(t, "authelia_session", config.Name)
 }
 
-func TestShouldRaiseErrorWhenPasswordNotSet(t *testing.T) {
+func TestShouldRaiseErrorWhenRedisIsUsedAndPasswordNotSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 	config.Secret = ""
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	validator.Clear()
+
+	// Set redis config because password must be set only when redis is used.
+	config.Redis = &schema.RedisSessionConfiguration{}
 
 	ValidateSession(&config, validator)
 

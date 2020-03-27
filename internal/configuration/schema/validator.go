@@ -127,3 +127,8 @@ func (v *StructValidator) HasErrors() bool {
 func (v *StructValidator) Errors() []error {
 	return v.errors
 }
+
+// Clear errors
+func (v *StructValidator) Clear() {
+	v.errors = []error{}
+}
