@@ -8,9 +8,6 @@ import (
 	"github.com/fasthttp/session"
 )
 
-// The implementation of Encode and Decode method comes from
-// https://github.com/gtank/cryptopasta/blob/master/hash.go
-
 // EncryptingSerializer a serializer encrypting the data with AES-GCM with 256-bit keys.
 type EncryptingSerializer struct {
 	key [32]byte
