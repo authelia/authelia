@@ -1,13 +1,17 @@
 package session
 
 import (
+	"crypto/sha256"
 	"testing"
 	"time"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/utils"
+	"github.com/fasthttp/session"
 	"github.com/fasthttp/session/memory"
 	"github.com/fasthttp/session/redis"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestShouldCreateInMemorySessionProvider(t *testing.T) {
@@ -75,4 +79,32 @@ func TestShouldSetDbNumber(t *testing.T) {
 	pConfig := providerConfig.providerConfig.(*redis.Config)
 	// DbNumber is the fasthttp/session property for the Redis DB Index
 	assert.Equal(t, 5, pConfig.DbNumber)
+}
+
+func TestShouldUseEncryptingSerializerWithRedis(t *testing.T) {
+	configuration := schema.SessionConfiguration{}
+	configuration.Secret = "abc"
+	configuration.Redis = &schema.RedisSessionConfiguration{
+		Host:          "redis.example.com",
+		Port:          6379,
+		Password:      "pass",
+		DatabaseIndex: 5,
+	}
+	providerConfig := NewProviderConfig(configuration)
+	pConfig := providerConfig.providerConfig.(*redis.Config)
+
+	payload := session.Dict{}
+	payload.Set("key", "value")
+
+	encoded, err := pConfig.SerializeFunc(payload)
+	require.NoError(t, err)
+
+	// Now we try to decrypt what has been serialized
+	key := sha256.Sum256([]byte("abc"))
+	decrypted, err := utils.Decrypt(encoded, &key)
+	require.NoError(t, err)
+
+	decoded := session.Dict{}
+	_, err = decoded.UnmarshalMsg(decrypted)
+	assert.Equal(t, "value", decoded.Get("key"))
 }

@@ -12,7 +12,7 @@ func ValidateSession(configuration *schema.SessionConfiguration, validator *sche
 		configuration.Name = schema.DefaultSessionConfiguration.Name
 	}
 
-	if configuration.Secret == "" {
+	if configuration.Redis != nil && configuration.Secret == "" {
 		validator.Push(errors.New("Set secret of the session object"))
 	}
 
