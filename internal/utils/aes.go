@@ -8,6 +8,9 @@ import (
 	"io"
 )
 
+// The implementation of Encrypt and Decrypt methods comes from
+// https://github.com/gtank/cryptopasta
+
 // Encrypt encrypts data using 256-bit AES-GCM.  This both hides the content of
 // the data and provides a check that it hasn't been altered. Output takes the
 // form nonce|ciphertext|tag where '|' indicates concatenation.
