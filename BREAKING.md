@@ -6,6 +6,13 @@ recommended not to use the 'latest' Docker image tag blindly but pick a version 
 and read this documentation before upgrading. This is where you will get information about
 breaking changes and about what you should do to overcome those changes.
 
+## Breaking in v4.10.0
+
+* Revert of `users_filter` purpose. This option now represents the complete search filter again, meaning
+there is no more automatic filter computation based on username. This gives the most flexibility.
+For instance, this allows administrators to choose whether they want the users to be able to sign in with
+username or email.
+
 ## Breaking in v4.7.0
 
 * `logs_level` configuration key has been renamed to `log_level`.
