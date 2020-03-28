@@ -214,10 +214,11 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyGroupsFilter(
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Please provide a groups filter with `groups_filter` attribute")
 }
 
-func (suite *LdapAuthenticationBackendSuite) TestShouldAllowEmptyUsersGroupsFilter() {
+func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsersFilter() {
 	suite.configuration.Ldap.UsersFilter = ""
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
-	require.Len(suite.T(), suite.validator.Errors(), 0)
+	require.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Please provide a users filter with `users_filter` attribute")
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsernameAttribute() {
@@ -251,6 +252,13 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenGroupsFilterDoes
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 1)
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The groups filter should contain enclosing parenthesis. For instance cn={input} should be (cn={input})")
+}
+
+func (suite *LdapAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlaceholder() {
+	suite.configuration.Ldap.UsersFilter = "(objectClass=person)"
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	assert.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Unable to detect {input} placeholder in users_filter, your configuration might be broken. Please review configuration options listed at https://docs.authelia.com/configuration/authentication/ldap.html")
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {

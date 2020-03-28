@@ -22,6 +22,10 @@ func (s *LDAPSuite) TestTwoFactorScenario() {
 	suite.Run(s.T(), NewTwoFactorScenario())
 }
 
+func (s *LDAPSuite) TestResetPassword() {
+	suite.Run(s.T(), NewResetPasswordScenario())
+}
+
 func (s *LDAPSuite) TestSigninEmailScenario() {
 	suite.Run(s.T(), NewSigninEmailScenario())
 }
