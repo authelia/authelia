@@ -171,7 +171,7 @@ func (suite *LdapAuthenticationBackendSuite) SetupTest() {
 	suite.configuration.Ldap.BaseDN = "base_dn"
 	suite.configuration.Ldap.UsernameAttribute = "uid"
 	suite.configuration.Ldap.UsersFilter = "(uid={input})"
-	suite.configuration.Ldap.GroupsFilter = "(cn={0})"
+	suite.configuration.Ldap.GroupsFilter = "(cn={input})"
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldValidateCompleteConfiguration() {
@@ -247,10 +247,10 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesN
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenGroupsFilterDoesNotContainEnclosingParenthesis() {
-	suite.configuration.Ldap.GroupsFilter = "cn={0}"
+	suite.configuration.Ldap.GroupsFilter = "cn={input}"
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The groups filter should contain enclosing parenthesis. For instance cn={0} should be (cn={0})")
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The groups filter should contain enclosing parenthesis. For instance cn={input} should be (cn={input})")
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {

@@ -130,7 +130,7 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		validator.Push(errors.New("Please provide a groups filter with `groups_filter` attribute"))
 	} else {
 		if !strings.HasPrefix(configuration.GroupsFilter, "(") || !strings.HasSuffix(configuration.GroupsFilter, ")") {
-			validator.Push(errors.New("The groups filter should contain enclosing parenthesis. For instance cn={0} should be (cn={0})"))
+			validator.Push(errors.New("The groups filter should contain enclosing parenthesis. For instance cn={input} should be (cn={input})"))
 		}
 	}
 

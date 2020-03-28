@@ -95,9 +95,9 @@ authentication_backend:
     # The users filter used in search queries to find the user profile based on input filled in login form.
     # Various placeholders are available to represent the user input and back reference other options of the configuration:
     # - {input} is a placeholder replaced by what the user inputs in the login form. 
-    # - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
     # - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
     # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
+    # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
     #
     # Recommended settings are as follows:
     # - Microsoft Active Directory: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
@@ -110,11 +110,14 @@ authentication_backend:
     # An additional dn to define the scope of groups
     additional_groups_dn: ou=groups
     
-    # The groups filter used for retrieving groups of a given user.
-    # {0} is a matcher replaced by username (as provided in login portal).
-    # {1} is a matcher replaced by username (as stored in LDAP).
-    # {dn} is a matcher replaced by user DN.
-    # 'member={dn}' by default.
+    # The groups filter used in search queries to find the groups of the user.
+    # - {input} is a placeholder replaced by what the user inputs in the login form.
+    # - {username} is a placeholder replace by the username stored in LDAP (based on `username_attribute`).
+    # - {dn} is a matcher replaced by the user distinguished name, aka, user DN.
+    # - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
+    # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
+    # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
+    # - DON'T USE - {1} is an alias for {username} supported for backward compatibility but it will be deprecated in later version, so please don't use it.
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
     
     # The attribute holding the name of the group

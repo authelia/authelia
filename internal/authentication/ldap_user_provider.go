@@ -107,7 +107,7 @@ type ldapUserProfile struct {
 }
 
 func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, input string) string {
-	// We keep placeholder {0} for backward compatibility
+	// We temporarily keep placeholder {0} for backward compatibility
 	userFilter = strings.ReplaceAll(userFilter, "{0}", input)
 
 	// The {username} placeholder is equivalent to {0}, it's the new way, a named placeholder.
@@ -172,23 +172,34 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, username string) 
 	return &userProfile, nil
 }
 
-func (p *LDAPUserProvider) createGroupsFilter(conn LDAPConnection, username string) (string, error) {
-	if strings.Contains(p.configuration.GroupsFilter, "{0}") {
-		return strings.Replace(p.configuration.GroupsFilter, "{0}", username, -1), nil
-	} else if strings.Contains(p.configuration.GroupsFilter, "{dn}") {
-		profile, err := p.getUserProfile(conn, username)
+func (p *LDAPUserProvider) createGroupsFilter(conn LDAPConnection, input string) (string, error) {
+	input = p.ldapEscape(input)
+
+	profileRequired := strings.Contains(p.configuration.GroupsFilter, "{username}") ||
+		strings.Contains(p.configuration.GroupsFilter, "{1}") ||
+		strings.Contains(p.configuration.GroupsFilter, "{dn}")
+
+	var err error
+	var profile *ldapUserProfile
+
+	if profileRequired {
+		profile, err = p.getUserProfile(conn, input)
 		if err != nil {
 			return "", err
 		}
-		return strings.Replace(p.configuration.GroupsFilter, "{dn}", ldap.EscapeFilter(profile.DN), -1), nil
-	} else if strings.Contains(p.configuration.GroupsFilter, "{1}") {
-		profile, err := p.getUserProfile(conn, username)
-		if err != nil {
-			return "", err
-		}
-		return strings.Replace(p.configuration.GroupsFilter, "{1}", profile.Username, -1), nil
 	}
-	return p.configuration.GroupsFilter, nil
+
+	// We temporarily keep placeholder {0} for backward compatibility
+	groupFilter := strings.ReplaceAll(p.configuration.GroupsFilter, "{0}", input)
+	groupFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{input}", input)
+	if profile != nil {
+		// We temporarily keep placeholder {1} for backward compatibility
+		groupFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{1}", profile.Username)
+		groupFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{username}", profile.Username)
+		groupFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{dn}", profile.DN)
+	}
+
+	return groupFilter, nil
 }
 
 // GetDetails retrieve the groups a user belongs to.
