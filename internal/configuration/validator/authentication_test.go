@@ -170,8 +170,8 @@ func (suite *LdapAuthenticationBackendSuite) SetupTest() {
 	suite.configuration.Ldap.Password = "password"
 	suite.configuration.Ldap.BaseDN = "base_dn"
 	suite.configuration.Ldap.UsernameAttribute = "uid"
-	suite.configuration.Ldap.UsersFilter = "(uid={0})"
-	suite.configuration.Ldap.GroupsFilter = "(cn={0})"
+	suite.configuration.Ldap.UsersFilter = "(uid={input})"
+	suite.configuration.Ldap.GroupsFilter = "(cn={input})"
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldValidateCompleteConfiguration() {
@@ -214,10 +214,11 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyGroupsFilter(
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Please provide a groups filter with `groups_filter` attribute")
 }
 
-func (suite *LdapAuthenticationBackendSuite) TestShouldAllowEmptyUsersGroupsFilter() {
+func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsersFilter() {
 	suite.configuration.Ldap.UsersFilter = ""
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
-	require.Len(suite.T(), suite.validator.Errors(), 0)
+	require.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Please provide a users filter with `users_filter` attribute")
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsernameAttribute() {
@@ -240,17 +241,24 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultMailAttribute()
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesNotContainEnclosingParenthesis() {
-	suite.configuration.Ldap.UsersFilter = "uid={0}"
+	suite.configuration.Ldap.UsersFilter = "uid={input}"
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The users filter should contain enclosing parenthesis. For instance uid={0} should be (uid={0})")
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The users filter should contain enclosing parenthesis. For instance uid={input} should be (uid={input})")
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenGroupsFilterDoesNotContainEnclosingParenthesis() {
-	suite.configuration.Ldap.GroupsFilter = "cn={0}"
+	suite.configuration.Ldap.GroupsFilter = "cn={input}"
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The groups filter should contain enclosing parenthesis. For instance cn={0} should be (cn={0})")
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The groups filter should contain enclosing parenthesis. For instance cn={input} should be (cn={input})")
+}
+
+func (suite *LdapAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlaceholder() {
+	suite.configuration.Ldap.UsersFilter = "(objectClass=person)"
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	assert.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Unable to detect {input} placeholder in users_filter, your configuration might be broken. Please review configuration options listed at https://docs.authelia.com/configuration/authentication/ldap.html")
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {
