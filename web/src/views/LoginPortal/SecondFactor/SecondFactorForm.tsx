@@ -44,7 +44,11 @@ export default function (props: Props) {
     const [u2fSupported, setU2fSupported] = useState(false);
 
     // Check that U2F is supported.
-    useEffect(() => { u2fApi.ensureSupport().then(() => setU2fSupported(true)) }, [setU2fSupported]);
+    useEffect(() => {
+        u2fApi.ensureSupport().then(
+            () => setU2fSupported(true),
+            () => console.error("U2F not supported"));
+    }, [setU2fSupported]);
 
     const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>) => {
         return async () => {
