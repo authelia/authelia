@@ -177,7 +177,7 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	return &userProfile, nil
 }
 
-func (p *LDAPUserProvider) createGroupsFilter(inputUsername string, profile *ldapUserProfile) (string, error) {
+func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (string, error) {
 	inputUsername = p.ldapEscape(inputUsername)
 
 	// We temporarily keep placeholder {0} for backward compatibility
@@ -206,11 +206,10 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 		return nil, err
 	}
 
-	groupsFilter, err := p.createGroupsFilter(inputUsername, profile)
+	groupsFilter, err := p.resolveGroupsFilter(inputUsername, profile)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create group filter for user %s. Cause: %s", inputUsername, err)
 	}
-	fmt.Println(groupsFilter)
 	logging.Logger().Tracef("Computed groups filter is %s", groupsFilter)
 
 	groupBaseDN := p.configuration.BaseDN

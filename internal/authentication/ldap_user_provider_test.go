@@ -101,10 +101,10 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 		Emails:   []string{"john.doe@authelia.com"},
 	}
 
-	filter, _ := ldap.createGroupsFilter("john", &profile)
+	filter, _ := ldap.resolveGroupsFilter("john", &profile)
 	assert.Equal(t, "(|(member=cn=john \\28external\\29,dc=example,dc=com)(uid=john)(uid=john))", filter)
 
-	filter, _ = ldap.createGroupsFilter("john#=(abc,def)", &profile)
+	filter, _ = ldap.resolveGroupsFilter("john#=(abc,def)", &profile)
 	assert.Equal(t, "(|(member=cn=john \\28external\\29,dc=example,dc=com)(uid=john)(uid=john\\#\\=\\28abc\\,def\\29))", filter)
 }
 
