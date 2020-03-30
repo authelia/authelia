@@ -14,7 +14,6 @@ For instance, this allows administrators to choose whether they want the users t
 username or email.
 
 ## Breaking in v4.7.0
-
 * `logs_level` configuration key has been renamed to `log_level`.
 * `users_filter` was a search pattern for a given user with the `{0}` matcher replaced with the
 actual username. In v4.7.0, `username_attribute` has been introduced. Consequently, the computed
@@ -24,7 +23,6 @@ the LDAP search query. For instance if `username_attribute` is set to `uid` and 
 set to `(objectClass=person)` then the computed filter is `(&(uid=john)(objectClass=person))`.
 
 ## Breaking in v4.0.0
-
 Authelia has been rewritten in Go for better code maintainability and for performance and
 security reasons.
 
@@ -34,7 +32,6 @@ induced breaking the previous data model and the configuration to bring new feat
 fortunately migration tools are provided to ease the task.
 
 ### Major updates
-
 * The configuration mostly remained the same, only one major key has been added: `jwt_secret`
 and one key removed: `secure` from the SMTP notifier as the Go SMTP library default to TLS
 if available.
@@ -51,25 +48,24 @@ available like allowing device cloning detection.
 large performance gain in order to use Authelia in demanding environments.
 
 ### Data migration tools
-
 An authelia-scripts command is provided to perform the data model migration from a local database
 or a mongo database created by Authelia v3 into a target SQL database (sqlite3, mysql, postgres)
 supported by Authelia v4.
 
 Example of usage:
-
-    # Migrate a local database into the targeted database defined in config-v4.yml with Docker
-    docker run --rm -v /path/to/config-v4.yml:/config.yml -v /old/db/path:/db authelia/authelia authelia migrate local --config=/config.yml --db-path=/db
+```
+# Migrate a local database into the targeted database defined in config-v4.yml with Docker
+docker run --rm -v /path/to/config-v4.yml:/config.yml -v /old/db/path:/db authelia/authelia authelia migrate local --config=/config.yml --db-path=/db
     
-    # Migrate a mongo database into the targeted database defined in config-v4.yml with Docker
-    docker run --rm -v /path/to/config-v4.yml:/config.yml authelia/authelia authelia migrate mongo --config=/config.yml --url=mongodb://myuser:mypassword@mymongo:27017 --database=authelia
+# Migrate a mongo database into the targeted database defined in config-v4.yml with Docker
+docker run --rm -v /path/to/config-v4.yml:/config.yml authelia/authelia authelia migrate mongo --config=/config.yml --url=mongodb://myuser:mypassword@mymongo:27017 --database=authelia
 
-    # Migrate a local database into the targeted database defined in config-v4.yml
-    authelia-scripts migrate local --config=/path/to/config-v4.yml --db-path=/old/db/path
+# Migrate a local database into the targeted database defined in config-v4.yml
+authelia-scripts migrate local --config=/path/to/config-v4.yml --db-path=/old/db/path
 
-    # Migrate a mongo database into the targeted database defined in config-v4.yml
-    authelia-scripts migrate mongo --config=/path/to/config-v4.yml --url=mongodb://myuser:mypassword@mymongo:27017 --database=authelia
-
+# Migrate a mongo database into the targeted database defined in config-v4.yml
+authelia-scripts migrate mongo --config=/path/to/config-v4.yml --url=mongodb://myuser:mypassword@mymongo:27017 --database=authelia
+```
 
 Those commands migrate TOTP secrets, U2F devices, authentication traces and user preferences so
 that the migration is almost seamless for your users.
@@ -82,7 +78,6 @@ device. This is because their identity verification token will not be usable in 
 ## Breaking in v3.14.0
 
 ### Headers in nginx configuration
-
 In order to support Traefik as a third party proxy interacting with Authelia some changes had to be made
 to Authelia and the nginx proxy configuration.
 
@@ -93,14 +88,13 @@ headers are used to build the URL.
 Authelia endpoint /api/verify does not produce the `Redirect` header containing the target URL the user is trying to visit.
 This header was used in early versions to redirect the user to the login portal providing the target URL as a query parameter.
 However this target URL can be computed automatically with the following statement:
-
-    set                         $target_url $scheme://$http_host$request_uri;
-
+```
+set                         $target_url $scheme://$http_host$request_uri;
+```
 
 ## Breaking in v3.11.0
 
 ### ACL configuration
-
 ACL definition in the configuration file has been updated to allow more authorization use cases.
 The change basically removed the three categories "any", "groups" and "users" to introduce an
 iptables-like format where the authorization policy is just an ordered list of rules with a few
