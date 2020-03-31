@@ -31,7 +31,7 @@
         <span class="c1"># - OpenLDAP: (&amp;({username_attribute}={input})(objectClass=person))' or '(&amp;({username_attribute}={input})(objectClass=inetOrgPerson))</span>
         <span class="c1">#</span>
         <span class="c1"># To allow sign in both with username and email, one can use a filter like</span>
-        <span class="c1"># (&amp;(|({username_attribute}={input})({mail_attribute={input}))(objectClass=person))</span>
+        <span class="c1"># (&amp;(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))</span>
         <span class="na">users_filter</span><span class="pi">:</span> <span class="s">(&amp;({username_attribute}={input})(objectClass=person))</span>
         
         <span class="c1"># An additional dn to define the scope of groups</span>
