@@ -28,6 +28,7 @@ export default function (props: Props) {
     const [password, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState(false);
     const { createErrorNotification } = useNotifications();
+    // TODO (PR: #806, Issue: #511) potentially refactor
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
     useEffect(() => {
@@ -79,6 +80,7 @@ export default function (props: Props) {
             <Grid container spacing={2} className={style.root}>
                 <Grid item xs={12}>
                     <FixedTextField
+                      // TODO (PR: #806, Issue: #511) potentially refactor
                         inputRef={usernameRef}
                         id="username-textfield"
                         label="Username"
@@ -98,6 +100,7 @@ export default function (props: Props) {
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField
+                      // TODO (PR: #806, Issue: #511) potentially refactor
                         inputRef={passwordRef}
                         id="password-textfield"
                         label="Password"
