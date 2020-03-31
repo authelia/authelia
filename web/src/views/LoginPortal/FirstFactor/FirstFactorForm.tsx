@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 import classnames from "classnames";
 import { makeStyles, Grid, Button, FormControlLabel, Checkbox, Link } from "@material-ui/core";
 import { useHistory } from "react-router";
@@ -28,6 +28,13 @@ export default function (props: Props) {
     const [password, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState(false);
     const { createErrorNotification } = useNotifications();
+    // TODO (PR: #806, Issue: #511) potentially refactor
+    const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
+    useEffect(() => {
+        const timeout = setTimeout(() => usernameRef.current.focus(), 10);
+        return () => clearTimeout(timeout);
+    }, [usernameRef]);
 
     const disabled = props.disabled;
 
@@ -54,8 +61,10 @@ export default function (props: Props) {
         } catch (err) {
             console.error(err);
             createErrorNotification(
-                "There was a problem. Username or password might be incorrect.");
+                "Incorrect username or password.");
             props.onAuthenticationFailure();
+            setPassword("");
+            passwordRef.current.focus();
         }
     }
 
@@ -71,6 +80,8 @@ export default function (props: Props) {
             <Grid container spacing={2} className={style.root}>
                 <Grid item xs={12}>
                     <FixedTextField
+                      // TODO (PR: #806, Issue: #511) potentially refactor
+                        inputRef={usernameRef}
                         id="username-textfield"
                         label="Username"
                         variant="outlined"
@@ -80,10 +91,17 @@ export default function (props: Props) {
                         disabled={disabled}
                         fullWidth
                         onChange={v => setUsername(v.target.value)}
-                        onFocus={() => setUsernameError(false)} />
+                        onFocus={() => setUsernameError(false)}
+                        onKeyPress={(ev) => {
+                            if (ev.key === 'Enter') {
+                                passwordRef.current.focus();
+                            }
+                        }} />
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField
+                      // TODO (PR: #806, Issue: #511) potentially refactor
+                        inputRef={passwordRef}
                         id="password-textfield"
                         label="Password"
                         variant="outlined"

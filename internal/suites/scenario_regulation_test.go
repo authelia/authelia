@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/tebeka/selenium"
 )
 
 type RegulationScenario struct {
@@ -53,27 +52,26 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 
 	s.doVisitLoginPage(ctx, s.T(), "")
 	s.doFillLoginPageAndClick(ctx, s.T(), "john", "bad-password", false)
-	s.verifyNotificationDisplayed(ctx, s.T(), "There was a problem. Username or password might be incorrect.")
+	s.verifyNotificationDisplayed(ctx, s.T(), "Incorrect username or password.")
 
 	for i := 0; i < 3; i++ {
+		s.WaitElementLocatedByID(ctx, s.T(), "password-textfield").SendKeys("bad-password")
 		s.WaitElementLocatedByID(ctx, s.T(), "sign-in-button").Click()
 		time.Sleep(1 * time.Second)
 	}
 
-	// Reset password field
-	s.WaitElementLocatedByID(ctx, s.T(), "password-textfield").
-		SendKeys(selenium.ControlKey + "a" + selenium.BackspaceKey)
-
-	// And enter the correct password
+	// Enter the correct password and test the regulation lock out
 	s.WaitElementLocatedByID(ctx, s.T(), "password-textfield").SendKeys("password")
 	s.WaitElementLocatedByID(ctx, s.T(), "sign-in-button").Click()
-	s.verifyNotificationDisplayed(ctx, s.T(), "There was a problem. Username or password might be incorrect.")
+	s.verifyNotificationDisplayed(ctx, s.T(), "Incorrect username or password.")
 
 	time.Sleep(1 * time.Second)
 	s.verifyIsFirstFactorPage(ctx, s.T())
 
 	time.Sleep(9 * time.Second)
 
+	// Enter the correct password and test a successful login
+	s.WaitElementLocatedByID(ctx, s.T(), "password-textfield").SendKeys("password")
 	s.WaitElementLocatedByID(ctx, s.T(), "sign-in-button").Click()
 	s.verifyIsSecondFactorPage(ctx, s.T())
 }

@@ -20,6 +20,7 @@ export default function (props: Props) {
     const dial = (
         <span className={style.otpInput} id="otp-input">
             <OtpInput
+                shouldAutoFocus
                 onChange={props.onChange}
                 value={props.passcode}
                 numInputs={6}
