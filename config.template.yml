@@ -104,7 +104,7 @@ authentication_backend:
     # - OpenLDAP: (&({username_attribute}={input})(objectClass=person))' or '(&({username_attribute}={input})(objectClass=inetOrgPerson))
     #
     # To allow sign in both with username and email, one can use a filter like
-    # (&(|({username_attribute}={input})({mail_attribute={input}))(objectClass=person))
+    # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     users_filter: (&({username_attribute}={input})(objectClass=person))
 
     # An additional dn to define the scope of groups
