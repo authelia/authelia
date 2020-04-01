@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/authelia/authelia/internal/utils"
 	"net"
 	"net/url"
 	"strings"
@@ -197,6 +198,8 @@ func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (u
 
 			return "", nil, authentication.NotAuthenticated, fmt.Errorf("User %s has been inactive for too long", userSession.Username)
 		}
+	} else if userSession.KeepMeLoggedIn && ctx.Configuration.Session.RememberMe.Duration != 0 {
+		_ = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, utils.GetDuration(ctx.Configuration.Session.RememberMe.Duration, ctx.Configuration.Session.RememberMe.DurationUnit))
 	}
 	return userSession.Username, userSession.Groups, userSession.AuthenticationLevel, nil
 }

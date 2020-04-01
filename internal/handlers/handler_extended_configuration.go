@@ -7,13 +7,9 @@ import (
 
 // ExtendedConfigurationBody the content returned by extended configuration endpoint
 type ExtendedConfigurationBody struct {
-	AvailableMethods MethodList `json:"available_methods"`
-
-	// SecondFactorEnabled whether second factor is enabled
-	SecondFactorEnabled bool `json:"second_factor_enabled"`
-
-	// TOTP Period
-	TOTPPeriod int `json:"totp_period"`
+	AvailableMethods    MethodList `json:"available_methods"`
+	SecondFactorEnabled bool       `json:"second_factor_enabled"` // whether second factor is enabled or not
+	TOTPPeriod          int        `json:"totp_period"`
 }
 
 // ExtendedConfigurationGet get the extended configuration accessible to authenticated users.

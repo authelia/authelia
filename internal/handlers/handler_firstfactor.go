@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/authelia/authelia/internal/utils"
 	"time"
 
 	"github.com/authelia/authelia/internal/authentication"
@@ -74,9 +75,10 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	// set the cookie to expire in 1 year if "Remember me" was ticked.
-	if *bodyJSON.KeepMeLoggedIn {
-		err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, time.Duration(31556952*time.Second))
+	// Set the cookie to expire if remember me is enabled
+	if *bodyJSON.KeepMeLoggedIn && ctx.Configuration.Session.RememberMe.Duration != 0 {
+
+		err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, utils.GetDuration(ctx.Configuration.Session.RememberMe.Duration, ctx.Configuration.Session.RememberMe.DurationUnit))
 		if err != nil {
 			ctx.Error(fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
 			return
@@ -100,7 +102,11 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	userSession.Emails = userDetails.Emails
 	userSession.AuthenticationLevel = authentication.OneFactor
 	userSession.LastActivity = time.Now().Unix()
-	userSession.KeepMeLoggedIn = *bodyJSON.KeepMeLoggedIn
+	if ctx.Configuration.Session.RememberMe.Duration != 0 {
+		userSession.KeepMeLoggedIn = *bodyJSON.KeepMeLoggedIn
+	} else {
+		userSession.KeepMeLoggedIn = false
+	}
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {

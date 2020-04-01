@@ -79,6 +79,9 @@ session:
   redis:
     host: redis-service
     port: 6379
+  remember_me:
+    duration: 1
+    duration_unit: "y"
 
 regulation:
   max_retries: 3

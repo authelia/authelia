@@ -269,6 +269,13 @@ session:
   # is restricted to the subdomain of the issuer.
   domain: example.com
 
+  # The remember me configuration
+  # Set duration to 0 to disable
+  remember_me:
+    duration: 1 # 1y or 1 year
+    duration_unit: "y"
+    refresh: false
+
   # The redis connection details
   redis:
     host: 127.0.0.1

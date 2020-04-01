@@ -11,6 +11,7 @@ import FixedTextField from "../../../components/FixedTextField";
 
 export interface Props {
     disabled: boolean;
+    rememberMe: boolean | undefined;
 
     onAuthenticationStart: () => void;
     onAuthenticationFailure: () => void;
@@ -121,19 +122,20 @@ export default function (props: Props) {
                         }} />
                 </Grid>
                 <Grid item xs={12} className={classnames(style.leftAlign, style.actionRow)}>
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                id="remember-checkbox"
-                                disabled={disabled}
-                                checked={rememberMe}
-                                onChange={handleRememberMeChange}
-                                value="rememberMe"
-                                color="primary" />
-                        }
-                        className={style.rememberMe}
-                        label="Remember me"
-                    />
+                    {props.rememberMe === undefined || props.rememberMe ?
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    id="remember-checkbox"
+                                    disabled={disabled}
+                                    checked={rememberMe}
+                                    onChange={handleRememberMeChange}
+                                    value="rememberMe"
+                                    color="primary"/>
+                            }
+                            className={style.rememberMe}
+                            label="Remember me"
+                        /> : null}
                     <Link
                         id="reset-password-button"
                         component="button"
