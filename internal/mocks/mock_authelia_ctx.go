@@ -67,9 +67,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia.Clock.Set(datetime)
 
 	configuration := schema.Configuration{}
-	configuration.Session.RememberMe = &schema.RememberMeConfiguration{}
-	configuration.Session.RememberMe.Duration = 1
-	configuration.Session.RememberMe.DurationUnit = "y"
+	configuration.Session.RememberMeDuration = "1y"
 	configuration.Session.Name = "authelia_session"
 	configuration.AccessControl.DefaultPolicy = "deny"
 	configuration.AccessControl.Rules = []schema.ACLRule{schema.ACLRule{

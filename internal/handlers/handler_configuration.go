@@ -10,7 +10,7 @@ type ConfigurationBody struct {
 func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	body := ConfigurationBody{
 		GoogleAnalyticsTrackingID: ctx.Configuration.GoogleAnalyticsTrackingID,
-		RememberMeEnabled:         ctx.Configuration.Session.RememberMe.Duration != 0,
+		RememberMeEnabled:         ctx.Providers.SessionProvider.RememberMe != 0,
 	}
 	ctx.SetJSONBody(body)
 }

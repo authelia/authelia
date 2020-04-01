@@ -269,12 +269,11 @@ session:
   # is restricted to the subdomain of the issuer.
   domain: example.com
 
-  # The remember me configuration
-  # Set duration to 0 to disable
-  remember_me:
-    duration: 1 # 1y or 1 year
-    duration_unit: "y"
-    refresh: false
+  # The remember me duration.
+  # Value of 0 disables remember me.
+  # Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/session.html#duration-notation
+  # Longer periods are less secure. Currently the default is 1m or 1 month.
+  remember_me_duration: "1m"
 
   # The redis connection details
   redis:

@@ -2,12 +2,10 @@ package validator
 
 import (
 	"errors"
-	"github.com/authelia/authelia/internal/utils"
-
+	"fmt"
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/utils"
 )
-
-var validRememberMeDurationUnits = []string{"y", "m", "w", "d", "h"}
 
 // ValidateSession validates and update session configuration.
 func ValidateSession(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
@@ -29,12 +27,12 @@ func ValidateSession(configuration *schema.SessionConfiguration, validator *sche
 		validator.Push(errors.New("Set inactivity of the session above 0"))
 	}
 
-	if configuration.RememberMe == nil {
-		configuration.RememberMe = &schema.DefaultSessionRememberMeConfiguration
-	} else if configuration.RememberMe.Duration < 0 {
-		validator.Push(errors.New("Set remember me duration of the session 0 or above"))
-	} else if !utils.IsStringInSlice(configuration.RememberMe.DurationUnit, validRememberMeDurationUnits) {
-		validator.Push(errors.New("Set rememebr me duration unit to one of y, m, w, d, h"))
+	if configuration.RememberMeDuration == "" {
+		configuration.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
+	} else {
+		if _, err := utils.ParseDurationString(configuration.RememberMeDuration); err != nil {
+			validator.Push(errors.New(fmt.Sprintf("Error occurred parsing remember_me_duration string: %s", err)))
+		}
 	}
 
 	if configuration.Domain == "" {

@@ -19,9 +19,7 @@ session:
   domain: example.com
   inactivity: 5
   expiration: 8
-  remember_me:
-    duration: 1
-    duration_unit: "y"
+  remember_me_duration: "1y"
 
 storage:
   local:
