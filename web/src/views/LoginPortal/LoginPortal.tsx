@@ -121,7 +121,7 @@ export default function (props: Props) {
                         rememberMe={props.rememberMe}
                         onAuthenticationStart={() => setFirstFactorDisabled(true)}
                         onAuthenticationFailure={() => setFirstFactorDisabled(false)}
-                        onAuthenticationSuccess={handleAuthSuccess}/>
+                        onAuthenticationSuccess={handleAuthSuccess} />
                 </ComponentOrLoading>
             </Route>
             <Route path={SecondFactorRoute}>

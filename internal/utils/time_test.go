@@ -7,37 +7,37 @@ import (
 )
 
 func TestShouldParseDurationString(t *testing.T) {
-	input := "1h10M"
+	input := "1h10m"
 	duration, err := ParseDurationString(input)
 	assert.NoError(t, err)
 	assert.Equal(t, 70*time.Minute, duration)
 }
 
 func TestShouldParseDurationStringWithZeroValues(t *testing.T) {
-	input := "0h10M"
+	input := "0h10m"
 	duration, err := ParseDurationString(input)
 	assert.NoError(t, err)
 	assert.Equal(t, 10*time.Minute, duration)
 }
 
 func TestShouldParseDurationStringWithRepeatingUnits(t *testing.T) {
-	input := "10M10M"
+	input := "10m10m"
 	duration, err := ParseDurationString(input)
 	assert.NoError(t, err)
 	assert.Equal(t, 20*time.Minute, duration)
 }
 
 func TestShouldParseDurationStringWithSpacingBetweenItems(t *testing.T) {
-	input := "1h 10M"
+	input := "1h 10m"
 	duration, err := ParseDurationString(input)
 	assert.NoError(t, err)
 	assert.Equal(t, 70*time.Minute, duration)
 }
 
 func TestShouldNotParseDurationStringWithOutOfOrderQuantitiesAndUnits(t *testing.T) {
-	input := "h1M10"
+	input := "h1m10"
 	duration, err := ParseDurationString(input)
-	assert.EqualError(t, err, "could not convert the input string of h1M10 into a duration")
+	assert.EqualError(t, err, "could not convert the input string of h1m10 into a duration")
 	assert.Equal(t, time.Duration(0), duration)
 }
 

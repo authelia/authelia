@@ -43,7 +43,7 @@ func ParseDurationString(input string) (duration time.Duration, err error) {
 					switch u {
 					case "y":
 						duration += time.Duration(d) * Year
-					case "m":
+					case "M":
 						duration += time.Duration(d) * Month
 					case "w":
 						duration += time.Duration(d) * Week
@@ -51,7 +51,7 @@ func ParseDurationString(input string) (duration time.Duration, err error) {
 						duration += time.Duration(d) * Day
 					case "h":
 						duration += time.Duration(d) * Hour
-					case "M":
+					case "m":
 						duration += time.Duration(d) * time.Minute
 					case "s":
 						duration += time.Duration(d) * time.Second

@@ -29,5 +29,5 @@ type SessionConfiguration struct {
 var DefaultSessionConfiguration = SessionConfiguration{
 	Name:               "authelia_session",
 	Expiration:         3600,
-	RememberMeDuration: "1y",
+	RememberMeDuration: "1M",
 }

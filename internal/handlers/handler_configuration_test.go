@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/stretchr/testify/suite"
 )
@@ -22,7 +23,7 @@ func (s *ConfigurationSuite) TearDownTest() {
 func (s *ConfigurationSuite) TestShouldReturnConfiguredGATrackingID() {
 	GATrackingID := "ABC"
 	s.mock.Ctx.Configuration.GoogleAnalyticsTrackingID = GATrackingID
-	s.mock.Ctx.Configuration.Session.RememberMeDuration = "1y"
+	s.mock.Ctx.Configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
 
 	expectedBody := ConfigurationBody{
 		GoogleAnalyticsTrackingID: GATrackingID,

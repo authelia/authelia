@@ -256,7 +256,7 @@ session:
 
   # The secret to encrypt the session data. This is only used with Redis.
   # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET
-  secret: unsecure_session_secret
+  secret: insecure_session_secret
 
   # The time in seconds before the cookie expires and session is reset.
   expiration: 3600 # 1 hour
@@ -264,16 +264,16 @@ session:
   # The inactivity time in seconds before the session is reset.
   inactivity: 300 # 5 minutes
 
+  # The remember me duration.
+  # Value of 0 disables remember me.
+  # Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/session.html#duration-notation
+  # Longer periods are less secure. Currently the default is 1M or 1 month.
+  remember_me_duration: 1M
+
   # The domain to protect.
   # Note: the authenticator must also be in that domain. If empty, the cookie
   # is restricted to the subdomain of the issuer.
   domain: example.com
-
-  # The remember me duration.
-  # Value of 0 disables remember me.
-  # Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/session.html#duration-notation
-  # Longer periods are less secure. Currently the default is 1m or 1 month.
-  remember_me_duration: "1m"
 
   # The redis connection details
   redis:

@@ -85,7 +85,7 @@ session:
     host: redis
     port: 6379
     password: authelia
-  remember_me_duration: "1y"
+  remember_me_duration: 1y
 
 regulation:
   max_retries: 3

@@ -32,14 +32,15 @@ session:
   # The inactivity time in seconds before the session is reset.
   inactivity: 300 # 5 minutes
 
+  # The remember me duration.
+  # Value of 0 disables remember me.
+  # Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/session.html#duration-notation
+  # Longer periods are less secure. Currently the default is 1M or 1 month.
+  remember_me_duration:  1M
+
   # The domain to protect.
   # Note: the login portal must also be a subdomain of that domain.
   domain: example.com
-
-  # The remember me duration
-  # Value of 0 disables remember me
-  # Value is in seconds, or duration notation
-  remember_me_duration: "1"
 
   # The redis connection details (optional)
   # If not provided, sessions will be stored in memory
@@ -50,12 +51,18 @@ session:
     password: authelia
 ```
 
+### Security
+
+Configuration of this section has an impact on security. You should read notes in
+[security measures](../security/measures.md#session-security) for more information.
+
 # Duration Notation
 
 We have implemented a string based notation for configuration options that take a duration. This section describes its
 usage.
 
-**NOTE:** At the time of this writing, only remember_me_duration uses this value type.
+**NOTE:** At the time of this writing, only remember_me_duration uses this value type. But we plan to change expiration
+and inactivity.
  
 The notation is comprised of a number and a unit, and if more than one of these combinations exist it combines
 them additively. For example `1h10M` or 1 hour and 10 minutes is the same as `10M1h`, both equal a total of 70 minutes.
@@ -64,9 +71,9 @@ The table below describes the units of time and the associated letter.
 |Unit   |Associated Letter|
 |:-----:|:---------------:|
 |Years  |y                |
-|Months |m                |
+|Months |M                |
 |Weeks  |w                |
 |Days   |d                |
 |Hours  |h                |
-|Minutes|M                |
+|Minutes|m                |
 |Seconds|s                |
