@@ -11,7 +11,7 @@ import FixedTextField from "../../../components/FixedTextField";
 
 export interface Props {
     disabled: boolean;
-    rememberMe: boolean | undefined;
+    rememberMe: boolean;
 
     onAuthenticationStart: () => void;
     onAuthenticationFailure: () => void;
@@ -122,7 +122,7 @@ export default function (props: Props) {
                         }} />
                 </Grid>
                 <Grid item xs={12} className={classnames(style.leftAlign, style.actionRow)}>
-                    {props.rememberMe === undefined || props.rememberMe ?
+                    {props.rememberMe ?
                         <FormControlLabel
                             control={
                                 <Checkbox

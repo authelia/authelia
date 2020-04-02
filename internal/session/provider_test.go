@@ -18,6 +18,7 @@ func TestShouldInitializerSession(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = "example.com"
 	configuration.Name = "my_session"
+	// TODO(james-d-elliott): Convert to duration notation
 	configuration.Expiration = 40
 
 	provider := NewProvider(configuration)
@@ -32,6 +33,7 @@ func TestShouldUpdateSession(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = "example.com"
 	configuration.Name = "my_session"
+	// TODO(james-d-elliott): Convert to duration notation
 	configuration.Expiration = 40
 
 	provider := NewProvider(configuration)
@@ -57,6 +59,7 @@ func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = "example.com"
 	configuration.Name = "my_session"
+	// TODO(james-d-elliott): Convert to duration notation
 	configuration.Expiration = 40
 
 	provider := NewProvider(configuration)

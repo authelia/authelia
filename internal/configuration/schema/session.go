@@ -8,14 +8,9 @@ type RedisSessionConfiguration struct {
 	DatabaseIndex int    `mapstructure:"database_index"`
 }
 
-type RememberMeConfiguration struct {
-	Duration     int64  `mapstructure:"duration"`
-	DurationUnit string `mapstructure:"duration_unit"`
-	Refresh      bool   `mapstructure:"refresh"`
-}
-
 // SessionConfiguration represents the configuration related to user sessions.
 type SessionConfiguration struct {
+	// TODO(james-d-elliott): Convert to duration notation (Both Expiration and Activity need to be strings, and default needs to be changed)
 	Name               string                     `mapstructure:"name"`
 	Secret             string                     `mapstructure:"secret"`
 	Expiration         int64                      `mapstructure:"expiration"` // Expiration in seconds

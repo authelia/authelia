@@ -74,9 +74,14 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	// Set the cookie to expire if remember me is enabled
-	if *bodyJSON.KeepMeLoggedIn && ctx.Providers.SessionProvider.RememberMe != 0 {
+	// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data
+	keepMeLoggedIn := false
+	if bodyJSON.KeepMeLoggedIn != nil {
+		keepMeLoggedIn = ctx.Providers.SessionProvider.RememberMe != 0 && *bodyJSON.KeepMeLoggedIn
+	}
 
+	// Set the cookie to expire if remember me is enabled and the user has asked us to
+	if keepMeLoggedIn {
 		err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, ctx.Providers.SessionProvider.RememberMe)
 		if err != nil {
 			ctx.Error(fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
@@ -101,11 +106,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	userSession.Emails = userDetails.Emails
 	userSession.AuthenticationLevel = authentication.OneFactor
 	userSession.LastActivity = time.Now().Unix()
-	if ctx.Providers.SessionProvider.RememberMe != 0 {
-		userSession.KeepMeLoggedIn = *bodyJSON.KeepMeLoggedIn
-	} else {
-		userSession.KeepMeLoggedIn = false
-	}
+	userSession.KeepMeLoggedIn = keepMeLoggedIn
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {

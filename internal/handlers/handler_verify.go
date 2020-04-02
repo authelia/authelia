@@ -154,6 +154,8 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, grou
 
 // hasUserBeenInactiveLongEnough check whether the user has been inactive for too long.
 func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
+
+	// TODO(james-d-elliott): Convert to duration notation
 	maxInactivityPeriod := ctx.Configuration.Session.Inactivity
 	if maxInactivityPeriod == 0 {
 		return false, nil

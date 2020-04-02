@@ -24,6 +24,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 	// Only serve the header over HTTPS.
 	config.Secure = true
 
+	// TODO(james-d-elliott): Convert to duration notation
 	if configuration.Expiration > 0 {
 		config.Expires = time.Duration(configuration.Expiration) * time.Second
 	} else {

@@ -53,3 +53,37 @@ func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {
 	assert.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "Set domain of the session object")
 }
+
+func TestShouldRaiseErrorWhenBadInactivityAndExpirationSet(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Inactivity = -1
+	config.Expiration = -1
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 2)
+	assert.EqualError(t, validator.Errors()[0], "Set expiration of the session above 0")
+	assert.EqualError(t, validator.Errors()[1], "Set inactivity of the session 0 or above")
+}
+
+func TestShouldRaiseErrorWhenBadRememberMeDurationSet(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.RememberMeDuration = "1 year"
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "Error occurred parsing remember_me_duration string: could not convert the input string of 1 year into a duration")
+}
+
+func TestShouldSetDefaultRememberMeDuration(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Equal(t, config.RememberMeDuration, schema.DefaultSessionConfiguration.RememberMeDuration)
+}

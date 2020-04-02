@@ -17,7 +17,7 @@ import { useExtendedConfiguration } from "../../hooks/Configuration";
 import AuthenticatedView from "./AuthenticatedView/AuthenticatedView";
 
 export interface Props {
-    rememberMe: boolean | undefined;
+    rememberMe: boolean;
 }
 
 export default function (props: Props) {

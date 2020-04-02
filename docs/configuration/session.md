@@ -64,9 +64,8 @@ usage.
 **NOTE:** At the time of this writing, only remember_me_duration uses this value type. But we plan to change expiration
 and inactivity.
  
-The notation is comprised of a number and a unit, and if more than one of these combinations exist it combines
-them additively. For example `1h10M` or 1 hour and 10 minutes is the same as `10M1h`, both equal a total of 70 minutes.
-The table below describes the units of time and the associated letter.
+The notation is comprised of a number which must be positive and not have leading zeros, followed by a letter
+denoting the unit of time measurement. The table below describes the units of time and the associated letter.
 
 |Unit   |Associated Letter|
 |:-----:|:---------------:|
@@ -77,3 +76,8 @@ The table below describes the units of time and the associated letter.
 |Hours  |h                |
 |Minutes|m                |
 |Seconds|s                |
+
+Examples:
+* 1 hour and 30 minutes: 90m
+* 1 day: 1d
+* 10 hours: 10h
