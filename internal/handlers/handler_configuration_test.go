@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/session"
 	"github.com/stretchr/testify/suite"
+	"testing"
 )
 
 type ConfigurationSuite struct {
@@ -22,11 +25,33 @@ func (s *ConfigurationSuite) TearDownTest() {
 func (s *ConfigurationSuite) TestShouldReturnConfiguredGATrackingID() {
 	GATrackingID := "ABC"
 	s.mock.Ctx.Configuration.GoogleAnalyticsTrackingID = GATrackingID
+	s.mock.Ctx.Configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
 
 	expectedBody := ConfigurationBody{
 		GoogleAnalyticsTrackingID: GATrackingID,
+		RememberMeEnabled:         true,
 	}
 
 	ConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
+}
+
+func (s *ConfigurationSuite) TestShouldDisableRememberMe() {
+	GATrackingID := "ABC"
+	s.mock.Ctx.Configuration.GoogleAnalyticsTrackingID = GATrackingID
+	s.mock.Ctx.Configuration.Session.RememberMeDuration = "0"
+	s.mock.Ctx.Providers.SessionProvider = session.NewProvider(
+		s.mock.Ctx.Configuration.Session)
+	expectedBody := ConfigurationBody{
+		GoogleAnalyticsTrackingID: GATrackingID,
+		RememberMeEnabled:         false,
+	}
+
+	ConfigurationGet(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), expectedBody)
+}
+
+func TestRunHandlerConfigurationSuite(t *testing.T) {
+	s := new(ConfigurationSuite)
+	suite.Run(t, s)
 }

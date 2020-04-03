@@ -2,6 +2,7 @@ package session
 
 import (
 	"encoding/json"
+	"github.com/authelia/authelia/internal/utils"
 	"time"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -12,6 +13,7 @@ import (
 // Provider a session provider.
 type Provider struct {
 	sessionHolder *fasthttpsession.Session
+	RememberMe    time.Duration
 }
 
 // NewProvider instantiate a session provider given a configuration.
@@ -20,7 +22,12 @@ func NewProvider(configuration schema.SessionConfiguration) *Provider {
 
 	provider := new(Provider)
 	provider.sessionHolder = fasthttpsession.New(providerConfig.config)
-	err := provider.sessionHolder.SetProvider(providerConfig.providerName, providerConfig.providerConfig)
+	duration, err := utils.ParseDurationString(configuration.RememberMeDuration)
+	if err != nil {
+		panic(err)
+	}
+	provider.RememberMe = duration
+	err = provider.sessionHolder.SetProvider(providerConfig.providerName, providerConfig.providerConfig)
 	if err != nil {
 		panic(err)
 	}

@@ -95,7 +95,21 @@ There are a few reasons for the security measures implemented:
 an attacker to intercept a link used to setup 2FA; which reduces security
 3. Not validating the identity of the server allows man-in-the-middle attacks
 
-## More protections measures with Nginx
+## Additional security
+
+### Session security
+
+We have a few options to configure the security of a session. The main and most important
+one is the session secret. This is used to encrypt the session data when when stored in the 
+Redis key value database. This should be as random as possible.
+
+Additionally you can configure the validity period of sessions. For example in a highly 
+security conscious domain you would probably want to set the session remember_me_duration 
+to 0 to disable this feature, and set an expiration of something like 2 hours and inactivity
+of 10 minutes. This means the hard limit or the time the session will be destroyed no matter
+what is 2 hours, and the soft limit or the time a user can be inactive for is 10 minutes. 
+
+### More protections measures with Nginx
 
 You can also apply the following headers to your nginx configuration for
 improving security. Please read the documentation of those headers before

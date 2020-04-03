@@ -469,6 +469,7 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
+	// TODO(james-d-elliott): Convert to duration notation
 	mock.Ctx.Configuration.Session.Inactivity = 10
 
 	userSession := mock.Ctx.GetSession()
@@ -494,6 +495,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
+	// TODO(james-d-elliott): Convert to duration notation
 	mock.Ctx.Configuration.Session.Inactivity = 10
 
 	userSession := mock.Ctx.GetSession()
@@ -520,6 +522,7 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
+	// TODO(james-d-elliott): Convert to duration notation
 	mock.Ctx.Configuration.Session.Inactivity = 10
 
 	userSession := mock.Ctx.GetSession()
