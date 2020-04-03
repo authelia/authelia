@@ -12,6 +12,13 @@
   <span class="c1"># The inactivity time in seconds before the session is reset.</span>
   <span class="na">inactivity</span><span class="pi">:</span> <span class="m">300</span> <span class="c1"># 5 minutes</span>
 
+  <span class="c1"># The remember me duration.</span>
+  <span class="c1"># Value of 0 disables remember me.</span>
+  <span class="c1"># Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/session.html#duration-notation</span>
+  <span class="c1"># Longer periods are considered less secure because a stolen cookie will last longer giving attackers more time to spy</span>
+  <span class="c1"># or attack. Currently the default is 1M or 1 month.</span>
+  <span class="na">remember_me_duration</span><span class="pi">:</span>  <span class="s">1M</span>
+
   <span class="c1"># The domain to protect.</span>
   <span class="c1"># Note: the login portal must also be a subdomain of that domain.</span>
   <span class="na">domain</span><span class="pi">:</span> <span class="s">example.com</span>
@@ -23,4 +30,4 @@
     <span class="na">port</span><span class="pi">:</span> <span class="m">6379</span>
     <span class="c1"># This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD</span>
     <span class="na">password</span><span class="pi">:</span> <span class="s">authelia</span>
-</code></pre></div></div> <hr> <footer role="contentinfo"> <p class="text-small text-grey-dk-000 mb-0">Copyright &copy; 2020 Authelia. Distributed by an <a href="https://github.com/authelia/authelia/blob/master/LICENSE">Apache 2.0 license.</a></p> </footer> </div> </div> </div> </div> </body> </html>
+</code></pre></div></div> <h3 id="security"> <a href="#security" class="anchor-heading"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#link"></use></svg></a> Security </h3> <p>Configuration of this section has an impact on security. You should read notes in <a href="/security/measures.html#session-security">security measures</a> for more information.</p> <h1 id="duration-notation"> <a href="#duration-notation" class="anchor-heading"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#link"></use></svg></a> Duration Notation </h1> <p>We have implemented a string based notation for configuration options that take a duration. This section describes its usage.</p> <p><strong>NOTE:</strong> At the time of this writing, only remember_me_duration uses this value type. But we plan to change expiration and inactivity.</p> <p>The notation is comprised of a number which must be positive and not have leading zeros, followed by a letter denoting the unit of time measurement. The table below describes the units of time and the associated letter.</p> <div class="table-wrapper"><table> <thead> <tr> <th style="text-align: center">Unit</th> <th style="text-align: center">Associated Letter</th> </tr> </thead> <tbody> <tr> <td style="text-align: center">Years</td> <td style="text-align: center">y</td> </tr> <tr> <td style="text-align: center">Months</td> <td style="text-align: center">M</td> </tr> <tr> <td style="text-align: center">Weeks</td> <td style="text-align: center">w</td> </tr> <tr> <td style="text-align: center">Days</td> <td style="text-align: center">d</td> </tr> <tr> <td style="text-align: center">Hours</td> <td style="text-align: center">h</td> </tr> <tr> <td style="text-align: center">Minutes</td> <td style="text-align: center">m</td> </tr> <tr> <td style="text-align: center">Seconds</td> <td style="text-align: center">s</td> </tr> </tbody> </table></div> <p>Examples:</p> <ul> <li>1 hour and 30 minutes: 90m</li> <li>1 day: 1d</li> <li>10 hours: 10h</li> </ul> <hr> <footer role="contentinfo"> <p class="text-small text-grey-dk-000 mb-0">Copyright &copy; 2020 Authelia. Distributed by an <a href="https://github.com/authelia/authelia/blob/master/LICENSE">Apache 2.0 license.</a></p> </footer> </div> </div> </div> </div> </body> </html>
