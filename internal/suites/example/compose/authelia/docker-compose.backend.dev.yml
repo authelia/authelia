@@ -23,6 +23,7 @@ services:
       - 'traefik.http.services.authelia_backend.loadbalancer.server.scheme=https'
     environment:
       - ENVIRONMENT=dev
+      - PUBLIC_DIR=/tmp/authelia-web
     networks:
       authelianet:
         ipv4_address: 192.168.240.50
