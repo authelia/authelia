@@ -3,7 +3,9 @@ package handlers
 import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/session"
 	"github.com/stretchr/testify/suite"
+	"testing"
 )
 
 type ConfigurationSuite struct {
@@ -37,8 +39,9 @@ func (s *ConfigurationSuite) TestShouldReturnConfiguredGATrackingID() {
 func (s *ConfigurationSuite) TestShouldDisableRememberMe() {
 	GATrackingID := "ABC"
 	s.mock.Ctx.Configuration.GoogleAnalyticsTrackingID = GATrackingID
-	s.mock.Ctx.Configuration.Session.RememberMeDuration = "0y"
-
+	s.mock.Ctx.Configuration.Session.RememberMeDuration = "0"
+	s.mock.Ctx.Providers.SessionProvider = session.NewProvider(
+		s.mock.Ctx.Configuration.Session)
 	expectedBody := ConfigurationBody{
 		GoogleAnalyticsTrackingID: GATrackingID,
 		RememberMeEnabled:         false,
@@ -46,4 +49,9 @@ func (s *ConfigurationSuite) TestShouldDisableRememberMe() {
 
 	ConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
+}
+
+func TestRunHandlerConfigurationSuite(t *testing.T) {
+	s := new(ConfigurationSuite)
+	suite.Run(t, s)
 }

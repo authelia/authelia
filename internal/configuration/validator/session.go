@@ -26,7 +26,7 @@ func ValidateSession(configuration *schema.SessionConfiguration, validator *sche
 
 	// TODO(james-d-elliott): Convert to duration notation
 	if configuration.Inactivity < 0 {
-		validator.Push(errors.New("Set inactivity of the session 0 or above"))
+		validator.Push(errors.New("Set inactivity of the session to 0 or above"))
 	}
 
 	if configuration.RememberMeDuration == "" {

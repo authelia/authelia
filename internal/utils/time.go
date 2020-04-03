@@ -15,7 +15,7 @@ func ParseDurationString(input string) (duration time.Duration, err error) {
 	duration = 0
 	err = nil
 	matches := parseDurationRegexp.FindStringSubmatch(input)
-	if len(matches) >= 1 {
+	if len(matches) == 3 && matches[2] != "" {
 		d, _ := strconv.Atoi(matches[1])
 		switch matches[2] {
 		case "y":
@@ -33,7 +33,7 @@ func ParseDurationString(input string) (duration time.Duration, err error) {
 		case "s":
 			duration = time.Duration(d) * time.Second
 		}
-	} else if parseDurationSecondsRegexp.MatchString(input) {
+	} else if input == "0" || len(matches) == 3 {
 		seconds, err := strconv.Atoi(input)
 		if err != nil {
 			err = errors.New(fmt.Sprintf("could not convert the input string of %s into a duration: %s", input, err))

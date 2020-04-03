@@ -64,7 +64,7 @@ func TestShouldRaiseErrorWhenBadInactivityAndExpirationSet(t *testing.T) {
 
 	assert.Len(t, validator.Errors(), 2)
 	assert.EqualError(t, validator.Errors()[0], "Set expiration of the session above 0")
-	assert.EqualError(t, validator.Errors()[1], "Set inactivity of the session 0 or above")
+	assert.EqualError(t, validator.Errors()[1], "Set inactivity of the session to 0 or above")
 }
 
 func TestShouldRaiseErrorWhenBadRememberMeDurationSet(t *testing.T) {

@@ -267,7 +267,8 @@ session:
   # The remember me duration.
   # Value of 0 disables remember me.
   # Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/session.html#duration-notation
-  # Longer periods are less secure. Currently the default is 1M or 1 month.
+  # Longer periods are considered less secure because a stolen cookie will last longer giving attackers more time to spy
+  # or attack. Currently the default is 1M or 1 month.
   remember_me_duration: 1M
 
   # The domain to protect.

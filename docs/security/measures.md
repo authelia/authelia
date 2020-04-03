@@ -101,9 +101,7 @@ an attacker to intercept a link used to setup 2FA; which reduces security
 
 We have a few options to configure the security of a session. The main and most important
 one is the session secret. This is used to encrypt the session data when when stored in the 
-Redis key value database. This should be as random as possible. As such for a highly security
-conscious domain we recommend using Redis as this encryption feature only works when it is
-the session storage provider.
+Redis key value database. This should be as random as possible.
 
 Additionally you can configure the validity period of sessions. For example in a highly 
 security conscious domain you would probably want to set the session remember_me_duration 
