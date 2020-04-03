@@ -18,4 +18,4 @@ spec:
       - path: /
         backend:
           serviceName: authelia-service
-          servicePort: 80
+          servicePort: 443

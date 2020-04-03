@@ -4,3 +4,4 @@ services:
     volumes:
       - './OneFactorOnly/configuration.yml:/etc/authelia/configuration.yml:ro'
       - './OneFactorOnly/users.yml:/var/lib/authelia/users.yml'
+      - './common/ssl:/var/lib/authelia/ssl:ro'

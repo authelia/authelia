@@ -20,10 +20,12 @@ spec:
         - name: authelia
           image: authelia:dist
           ports:
-            - containerPort: 80
+            - containerPort: 443
           volumeMounts:
             - name: config-volume
               mountPath: /etc/authelia
+            - name: ssl-volume
+              mountPath: /var/lib/authelia/ssl
           env:
             # We set secrets directly here for ease of deployment but all secrets
             # should be stored in the Kube Vault in production.
@@ -42,3 +44,12 @@ spec:
             items:
               - key: configuration.yml
                 path: configuration.yml
+        - name: ssl-volume
+          configMap:
+            name: authelia-ssl
+            items:
+              - key: cert.pem
+                path: cert.pem
+              - key: key.pem
+                path: key.pem
+
