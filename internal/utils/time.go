@@ -40,7 +40,8 @@ func ParseDurationString(input string) (duration time.Duration, err error) {
 		} else {
 			duration = time.Duration(seconds) * time.Second
 		}
-	} else {
+	} else if input != "" {
+		// Throw this error if input is anything other than a blank string, blank string will default to a duration of nothing
 		err = errors.New(fmt.Sprintf("could not convert the input string of %s into a duration", input))
 	}
 	return
