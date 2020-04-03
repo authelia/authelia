@@ -14,7 +14,7 @@ import (
 
 var arch string
 
-var supportedArch = []string{"amd64", "arm32v7", "arm64v8"}
+var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "darwin"}
 var defaultArch = "amd64"
 var buildkiteQEMU = os.Getenv("BUILDKITE_AGENT_META_DATA_QEMU")
 var ciBranch = os.Getenv("BUILDKITE_BRANCH")

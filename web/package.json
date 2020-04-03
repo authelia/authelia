@@ -12,7 +12,7 @@
     "@types/chai": "^4.2.11",
     "@types/classnames": "^2.2.10",
     "@types/enzyme": "^3.10.5",
-    "@types/jest": "25.1.5",
+    "@types/jest": "25.2.0",
     "@types/node": "13.11.0",
     "@types/qrcode.react": "^1.0.0",
     "@types/query-string": "^6.3.0",
