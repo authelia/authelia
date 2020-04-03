@@ -173,6 +173,8 @@ const useStyles = makeStyles(theme => ({
     },
     resetLink: {
         cursor: "pointer",
+        paddingTop: 13.5,
+        paddingBottom: 13.5,
     },
     rememberMe: {
         flexGrow: 1,
