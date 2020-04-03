@@ -75,10 +75,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	}
 
 	// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data
-	keepMeLoggedIn := false
-	if bodyJSON.KeepMeLoggedIn != nil {
-		keepMeLoggedIn = ctx.Providers.SessionProvider.RememberMe != 0 && *bodyJSON.KeepMeLoggedIn
-	}
+	keepMeLoggedIn := ctx.Providers.SessionProvider.RememberMe != 0 && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
 
 	// Set the cookie to expire if remember me is enabled and the user has asked us to
 	if keepMeLoggedIn {
