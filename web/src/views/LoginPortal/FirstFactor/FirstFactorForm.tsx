@@ -12,6 +12,7 @@ import FixedTextField from "../../../components/FixedTextField";
 export interface Props {
     disabled: boolean;
     rememberMe: boolean;
+    resetPassword: boolean;
 
     onAuthenticationStart: () => void;
     onAuthenticationFailure: () => void;
@@ -121,29 +122,31 @@ export default function (props: Props) {
                             }
                         }} />
                 </Grid>
-                <Grid item xs={12} className={classnames(style.leftAlign, style.actionRow)}>
-                    {props.rememberMe ?
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    id="remember-checkbox"
-                                    disabled={disabled}
-                                    checked={rememberMe}
-                                    onChange={handleRememberMeChange}
-                                    value="rememberMe"
-                                    color="primary"/>
-                            }
-                            className={style.rememberMe}
-                            label="Remember me"
-                        /> : null}
-                    <Link
-                        id="reset-password-button"
-                        component="button"
-                        onClick={handleResetPasswordClick}
-                        className={style.resetLink}>
-                        Reset password?
-                    </Link>
-                </Grid>
+                {props.rememberMe || props.resetPassword ?
+                    <Grid item xs={12} className={classnames(style.leftAlign, style.actionRow)}>
+                        {props.rememberMe ?
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        id="remember-checkbox"
+                                        disabled={disabled}
+                                        checked={rememberMe}
+                                        onChange={handleRememberMeChange}
+                                        value="rememberMe"
+                                        color="primary"/>
+                                }
+                                className={style.rememberMe}
+                                label="Remember me"
+                            /> : null}
+                        {props.resetPassword ?
+                            <Link
+                                id="reset-password-button"
+                                component="button"
+                                onClick={handleResetPasswordClick}
+                                className={style.resetLink}>
+                                Reset password?
+                            </Link> : null}
+                    </Grid> : null}
                 <Grid item xs={12}>
                     <Button
                         id="sign-in-button"

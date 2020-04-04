@@ -16,6 +16,7 @@ Configuration of the LDAP backend is done as follows
 
 ```yaml
 authentication_backend:
+    disable_reset_password: false
     ldap:
         # The url to the ldap server. Scheme can be ldap:// or ldaps://
         url: ldap://127.0.0.1
