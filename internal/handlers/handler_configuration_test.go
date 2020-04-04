@@ -29,7 +29,8 @@ func (s *ConfigurationSuite) TestShouldReturnConfiguredGATrackingID() {
 
 	expectedBody := ConfigurationBody{
 		GoogleAnalyticsTrackingID: GATrackingID,
-		RememberMeEnabled:         true,
+		RememberMe:                true,
+		ResetPassword:             true,
 	}
 
 	ConfigurationGet(s.mock.Ctx)
@@ -44,7 +45,22 @@ func (s *ConfigurationSuite) TestShouldDisableRememberMe() {
 		s.mock.Ctx.Configuration.Session)
 	expectedBody := ConfigurationBody{
 		GoogleAnalyticsTrackingID: GATrackingID,
-		RememberMeEnabled:         false,
+		RememberMe:                false,
+		ResetPassword:             true,
+	}
+
+	ConfigurationGet(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), expectedBody)
+}
+
+func (s *ConfigurationSuite) TestShouldDisableResetPassword() {
+	GATrackingID := "ABC"
+	s.mock.Ctx.Configuration.GoogleAnalyticsTrackingID = GATrackingID
+	s.mock.Ctx.Configuration.AuthenticationBackend.DisableResetPassword = true
+	expectedBody := ConfigurationBody{
+		GoogleAnalyticsTrackingID: GATrackingID,
+		RememberMe:                true,
+		ResetPassword:             false,
 	}
 
 	ConfigurationGet(s.mock.Ctx)

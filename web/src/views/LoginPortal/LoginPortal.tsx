@@ -18,6 +18,7 @@ import AuthenticatedView from "./AuthenticatedView/AuthenticatedView";
 
 export interface Props {
     rememberMe: boolean;
+    resetPassword: boolean;
 }
 
 export default function (props: Props) {
@@ -119,6 +120,7 @@ export default function (props: Props) {
                     <FirstFactorForm
                         disabled={firstFactorDisabled}
                         rememberMe={props.rememberMe}
+                        resetPassword={props.resetPassword}
                         onAuthenticationStart={() => setFirstFactorDisabled(true)}
                         onAuthenticationFailure={() => setFirstFactorDisabled(false)}
                         onAuthenticationSuccess={handleAuthSuccess} />

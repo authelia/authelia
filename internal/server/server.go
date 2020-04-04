@@ -41,13 +41,16 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	router.POST("/api/firstfactor", autheliaMiddleware(handlers.FirstFactorPost))
 	router.POST("/api/logout", autheliaMiddleware(handlers.LogoutPost))
 
-	// Password reset related endpoints.
-	router.POST("/api/reset-password/identity/start", autheliaMiddleware(
-		handlers.ResetPasswordIdentityStart))
-	router.POST("/api/reset-password/identity/finish", autheliaMiddleware(
-		handlers.ResetPasswordIdentityFinish))
-	router.POST("/api/reset-password", autheliaMiddleware(
-		handlers.ResetPasswordPost))
+	// only register endpoints if forgot password is not disabled
+	if !configuration.AuthenticationBackend.DisableResetPassword {
+		// Password reset related endpoints.
+		router.POST("/api/reset-password/identity/start", autheliaMiddleware(
+			handlers.ResetPasswordIdentityStart))
+		router.POST("/api/reset-password/identity/finish", autheliaMiddleware(
+			handlers.ResetPasswordIdentityFinish))
+		router.POST("/api/reset-password", autheliaMiddleware(
+			handlers.ResetPasswordPost))
+	}
 
 	// Information about the user
 	router.GET("/api/user/info", autheliaMiddleware(

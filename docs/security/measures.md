@@ -97,6 +97,12 @@ an attacker to intercept a link used to setup 2FA; which reduces security
 
 ## Additional security
 
+### Reset Password
+
+It's possible to disable the reset password functionality and is recommended for anyone
+wanting to increase security. See the [configuration](../configuration/authentication/index.md)
+for information.
+
 ### Session security
 
 We have a few options to configure the security of a session. The main and most important
