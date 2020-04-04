@@ -28,7 +28,7 @@ func init() {
 		return waitUntilAutheliaIsReady(dockerEnvironment)
 	}
 
-	onSetupTimeout := func() error {
+	displayAutheliaLogs := func() error {
 		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
 		if err != nil {
 			return err
@@ -51,7 +51,8 @@ func init() {
 	GlobalRegistry.Register(mariadbSuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
-		OnSetupTimeout:  onSetupTimeout,
+		OnSetupTimeout:  displayAutheliaLogs,
+		OnError:         displayAutheliaLogs,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 	})
