@@ -42,7 +42,7 @@ export default function (props: Props) {
 
     const handleRememberMeChange = () => {
         setRememberMe(!rememberMe);
-    }
+    };
 
     const handleSignIn = async () => {
         if (username === "" || password === "") {
@@ -68,11 +68,11 @@ export default function (props: Props) {
             setPassword("");
             passwordRef.current.focus();
         }
-    }
+    };
 
     const handleResetPasswordClick = () => {
         history.push(ResetPasswordStep1Route);
-    }
+    };
 
     return (
         <LoginLayout
@@ -82,7 +82,7 @@ export default function (props: Props) {
             <Grid container spacing={2} className={style.root}>
                 <Grid item xs={12}>
                     <FixedTextField
-                      // TODO (PR: #806, Issue: #511) potentially refactor
+                        // TODO (PR: #806, Issue: #511) potentially refactor
                         inputRef={usernameRef}
                         id="username-textfield"
                         label="Username"
@@ -102,7 +102,7 @@ export default function (props: Props) {
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField
-                      // TODO (PR: #806, Issue: #511) potentially refactor
+                        // TODO (PR: #806, Issue: #511) potentially refactor
                         inputRef={passwordRef}
                         id="password-textfield"
                         label="Password"
@@ -123,7 +123,9 @@ export default function (props: Props) {
                         }} />
                 </Grid>
                 {props.rememberMe || props.resetPassword ?
-                    <Grid item xs={12} className={classnames(style.leftAlign, style.actionRow)}>
+                    <Grid item xs={12} className={props.rememberMe
+                        ? classnames(style.leftAlign, style.actionRow)
+                        : classnames(style.leftAlign, style.flexEnd, style.actionRow)}>
                         {props.rememberMe ?
                             <FormControlLabel
                                 control={
@@ -182,6 +184,9 @@ const useStyles = makeStyles(theme => ({
     rememberMe: {
         flexGrow: 1,
     },
+    flexEnd: {
+        justifyContent: "flex-end",
+    },
     leftAlign: {
         textAlign: "left",
     },
@@ -189,4 +194,4 @@ const useStyles = makeStyles(theme => ({
         textAlign: "right",
         verticalAlign: "bottom",
     },
-}))
+}));

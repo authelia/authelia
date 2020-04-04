@@ -108,10 +108,12 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		configuration.URL = validateLdapURL(configuration.URL, validator)
 	}
 
+	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387)
 	if configuration.User == "" {
 		validator.Push(errors.New("Please provide a user name to connect to the LDAP server"))
 	}
 
+	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387)
 	if configuration.Password == "" {
 		validator.Push(errors.New("Please provide a password to connect to the LDAP server"))
 	}
