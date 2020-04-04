@@ -27,14 +27,14 @@ session:
   secret: unsecure_session_secret
 
   # The time in seconds before the cookie expires and session is reset.
-  expiration: 3600 # 1 hour
+  expiration: 1h
 
   # The inactivity time in seconds before the session is reset.
-  inactivity: 300 # 5 minutes
+  inactivity: 5m
 
   # The remember me duration.
   # Value of 0 disables remember me.
-  # Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/session.html#duration-notation
+  # Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
   # Longer periods are considered less secure because a stolen cookie will last longer giving attackers more time to spy
   # or attack. Currently the default is 1M or 1 month.
   remember_me_duration:  1M
@@ -57,28 +57,7 @@ session:
 Configuration of this section has an impact on security. You should read notes in
 [security measures](../security/measures.md#session-security) for more information.
 
-# Duration Notation
+### Duration Notation
 
-We have implemented a string based notation for configuration options that take a duration. This section describes its
-usage.
-
-**NOTE:** At the time of this writing, only remember_me_duration uses this value type. But we plan to change expiration
-and inactivity.
- 
-The notation is comprised of a number which must be positive and not have leading zeros, followed by a letter
-denoting the unit of time measurement. The table below describes the units of time and the associated letter.
-
-|Unit   |Associated Letter|
-|:-----:|:---------------:|
-|Years  |y                |
-|Months |M                |
-|Weeks  |w                |
-|Days   |d                |
-|Hours  |h                |
-|Minutes|m                |
-|Seconds|s                |
-
-Examples:
-* 1 hour and 30 minutes: 90m
-* 1 day: 1d
-* 10 hours: 10h
+The configuration parameters expiration, inactivity, and remember_me_duration use duration notation. See the documentation
+for [duration notation format](index.md#duration-notation-format) for more information.

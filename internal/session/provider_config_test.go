@@ -19,8 +19,7 @@ func TestShouldCreateInMemorySessionProvider(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = "example.com"
 	configuration.Name = "my_session"
-	// TODO(james-d-elliott): Convert to duration notation
-	configuration.Expiration = 40
+	configuration.Expiration = "40"
 	providerConfig := NewProviderConfig(configuration)
 
 	assert.Equal(t, "my_session", providerConfig.config.CookieName)
@@ -38,8 +37,7 @@ func TestShouldCreateRedisSessionProvider(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = "example.com"
 	configuration.Name = "my_session"
-	// TODO(james-d-elliott): Convert to duration notation
-	configuration.Expiration = 40
+	configuration.Expiration = "40"
 	configuration.Redis = &schema.RedisSessionConfiguration{
 		Host:     "redis.example.com",
 		Port:     6379,
@@ -68,8 +66,7 @@ func TestShouldSetDbNumber(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = "example.com"
 	configuration.Name = "my_session"
-	// TODO(james-d-elliott): Convert to duration notation
-	configuration.Expiration = 40
+	configuration.Expiration = "40"
 	configuration.Redis = &schema.RedisSessionConfiguration{
 		Host:          "redis.example.com",
 		Port:          6379,

@@ -6,3 +6,10 @@ type TOTPConfiguration struct {
 	Period int    `mapstructure:"period"`
 	Skew   *int   `mapstructure:"skew"`
 }
+
+var defaultOtpSkew = 1
+var DefaultTOTPConfiguration = TOTPConfiguration{
+	Issuer: "Authelia",
+	Period: 30,
+	Skew:   &defaultOtpSkew,
+}
