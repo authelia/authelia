@@ -4,5 +4,15 @@ services:
     image: nginx:alpine
     volumes:
       - './example/compose/authelia/resources/nginx.conf:/etc/nginx/nginx.conf'
+    labels:
+      # Traefik 1.x
+      - 'traefik.frontend.rule=Host:login.example.com'
+      # Traefik 2.x
+      - 'traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`)'
+      - 'traefik.http.routers.authelia_frontend.entrypoints=https'
+      - 'traefik.http.routers.authelia_frontend.tls=true'
+      - 'traefik.http.services.authelia-frontend-authelia.loadbalancer.server.port=3000'
     networks:
       - authelianet
+    expose:
+      - 3000

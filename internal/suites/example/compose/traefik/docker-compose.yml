@@ -17,6 +17,7 @@ services:
       - '--traefiklog.filepath=/var/log/traefik.log'
       - '--entryPoints=Name:https Address::8080 TLS'
       - '--entryPoints=Name:api Address::8081'
+      - '--insecureSkipVerify=true'
     networks:
       authelianet:
         # Set the IP to be able to query on port 8080

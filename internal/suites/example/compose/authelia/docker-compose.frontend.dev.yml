@@ -14,7 +14,9 @@ services:
       - './example/compose/authelia/resources/:/resources'
       - '../../web:/app'
     labels:
+    # Traefik 1.x
       - 'traefik.frontend.rule=Host:login.example.com'
+      # Traefik 2.x
       - 'traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`)'
       - 'traefik.http.routers.authelia_frontend.entrypoints=https'
       - 'traefik.http.routers.authelia_frontend.tls=true'

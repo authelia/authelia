@@ -14,10 +14,13 @@ services:
       - '../..:/app'
       - '${GOPATH}:/go'
     labels:
+      # Traefik 1.x
       - 'traefik.frontend.rule=Host:login.example.com;PathPrefix:/api'
+      # Traefik 2.x
       - 'traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) && PathPrefix(`/api`)'
       - 'traefik.http.routers.authelia_backend.entrypoints=https'
       - 'traefik.http.routers.authelia_backend.tls=true'
+      - 'traefik.http.services.authelia-backend-authelia.loadbalancer.server.scheme=https'
     environment:
       - ENVIRONMENT=dev
     networks:

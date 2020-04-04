@@ -3,10 +3,14 @@ services:
   authelia-backend:
     image: authelia:dist
     labels:
-      - 'traefik.frontend.rule=Host:login.example.com'
-      - 'traefik.http.routers.authelia.rule=Host(`login.example.com`)'
-      - 'traefik.http.routers.authelia.entrypoints=https'
-      - 'traefik.http.routers.authelia.tls=true'
+      # Traefik 1.x
+      - 'traefik.frontend.rule=Host:login.example.com;PathPrefix:/api'
+      - 'traefik.protocol=https'
+      # Traefik 2.x
+      - 'traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) && PathPrefix(`/api`)'
+      - 'traefik.http.routers.authelia_backend.entrypoints=https'
+      - 'traefik.http.routers.authelia_backend.tls=true'
+      - 'traefik.http.services.authelia-backend-authelia.loadbalancer.server.scheme=https'
     environment:
       - ENVIRONMENT=dev
     restart: always
