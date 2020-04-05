@@ -31,7 +31,7 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 	}
 
 	if configuration.JWTSecret == "" {
-		validator.Push(fmt.Errorf("Provide a JWT secret using `jwt_secret` key"))
+		validator.Push(fmt.Errorf("Provide a JWT secret using \"jwt_secret\" key"))
 	}
 
 	if configuration.DefaultRedirectionURL != "" {

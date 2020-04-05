@@ -130,3 +130,23 @@ func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T
 	Validate(&config, validator)
 	require.Len(t, validator.Errors(), 0)
 }
+
+func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.JWTSecret = ""
+
+	Validate(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "Provide a JWT secret using \"jwt_secret\" key")
+}
+
+func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.DefaultRedirectionURL = "abc"
+
+	Validate(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "Unable to parse default redirection url")
+}
