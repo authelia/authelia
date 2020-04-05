@@ -20,11 +20,11 @@ func TestFullLoginAuth(t *testing.T) {
 	auth := newLoginAuth(username, password, "mail.authelia.com")
 
 	proto, _, err := auth.Start(serverInfo)
-	assert.Equal(t,"LOGIN", proto)
+	assert.Equal(t, "LOGIN", proto)
 	require.NoError(t, err)
 
 	toServer, err := auth.Next([]byte("Username:"), true)
-	assert.Equal(t,[]byte(username), toServer)
+	assert.Equal(t, []byte(username), toServer)
 	require.NoError(t, err)
 
 	toServer, err = auth.Next([]byte("Password:"), true)
@@ -32,7 +32,7 @@ func TestFullLoginAuth(t *testing.T) {
 	require.NoError(t, err)
 
 	toServer, err = auth.Next([]byte(nil), false)
-	assert.Equal(t,[]byte(nil), toServer)
+	assert.Equal(t, []byte(nil), toServer)
 	require.NoError(t, err)
 
 	toServer, err = auth.Next([]byte("test"), true)
@@ -60,7 +60,7 @@ func TestTLSNotNeededForLocalhost(t *testing.T) {
 	auth := newLoginAuth("john", "strongpw123", "localhost")
 
 	proto, _, err := auth.Start(serverInfo)
-	assert.Equal(t,"LOGIN", proto)
+	assert.Equal(t, "LOGIN", proto)
 	require.NoError(t, err)
 }
 

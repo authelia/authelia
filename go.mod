@@ -13,10 +13,9 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fasthttp/router v0.7.0
 	github.com/fasthttp/session v1.1.7
-	github.com/go-ldap/ldap/v3 v3.1.7
+	github.com/go-ldap/ldap/v3 v3.1.8
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.4.3
-	github.com/golang/snappy v0.0.1 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/lib/pq v1.3.0
@@ -32,10 +31,8 @@ require (
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
 	github.com/tebeka/selenium v0.9.9
-	github.com/tidwall/pretty v1.0.0 // indirect
 	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.9.0
-	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
 	go.mongodb.org/mongo-driver v1.3.1
 	google.golang.org/appengine v1.6.5 // indirect

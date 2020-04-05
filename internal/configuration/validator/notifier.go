@@ -1,8 +1,10 @@
 package validator
 
-import "github.com/authelia/authelia/internal/configuration/schema"
+import (
+	"fmt"
 
-import "fmt"
+	"github.com/authelia/authelia/internal/configuration/schema"
+)
 
 // ValidateSession validates and update session configuration.
 func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *schema.StructValidator) {

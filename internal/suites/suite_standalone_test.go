@@ -10,9 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authelia/authelia/internal/storage"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/internal/storage"
 )
 
 type StandaloneWebDriverSuite struct {

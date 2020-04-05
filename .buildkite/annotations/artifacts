@@ -21,4 +21,11 @@
       <a href="artifact://authelia-linux-arm64v8.tar.gz.sha256">authelia-linux-arm64v8.tar.gz.sha256</a>
     </dd>
   </div>
+  <div class="m1">
+      <dt>darwin</dt>
+      <dd>
+        <a href="artifact://authelia-darwin-amd64.tar.gz">authelia-darwin-amd64.tar.gz</a><br>
+        <a href="artifact://authelia-darwin-amd64.tar.gz.sha256">authelia-darwin-amd64.tar.gz.sha256</a>
+      </dd>
+    </div>
 </dl>

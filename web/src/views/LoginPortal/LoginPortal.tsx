@@ -16,7 +16,12 @@ import { SecondFactorMethod } from "../../models/Methods";
 import { useExtendedConfiguration } from "../../hooks/Configuration";
 import AuthenticatedView from "./AuthenticatedView/AuthenticatedView";
 
-export default function () {
+export interface Props {
+    rememberMe: boolean;
+    resetPassword: boolean;
+}
+
+export default function (props: Props) {
     const history = useHistory();
     const location = useLocation();
     const redirectionURL = useRedirectionURL();
@@ -114,6 +119,8 @@ export default function () {
                 <ComponentOrLoading ready={firstFactorReady}>
                     <FirstFactorForm
                         disabled={firstFactorDisabled}
+                        rememberMe={props.rememberMe}
+                        resetPassword={props.resetPassword}
                         onAuthenticationStart={() => setFirstFactorDisabled(true)}
                         onAuthenticationFailure={() => setFirstFactorDisabled(false)}
                         onAuthenticationSuccess={handleAuthSuccess} />

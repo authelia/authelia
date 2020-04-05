@@ -11,6 +11,8 @@ import FixedTextField from "../../../components/FixedTextField";
 
 export interface Props {
     disabled: boolean;
+    rememberMe: boolean;
+    resetPassword: boolean;
 
     onAuthenticationStart: () => void;
     onAuthenticationFailure: () => void;
@@ -40,7 +42,7 @@ export default function (props: Props) {
 
     const handleRememberMeChange = () => {
         setRememberMe(!rememberMe);
-    }
+    };
 
     const handleSignIn = async () => {
         if (username === "" || password === "") {
@@ -66,11 +68,11 @@ export default function (props: Props) {
             setPassword("");
             passwordRef.current.focus();
         }
-    }
+    };
 
     const handleResetPasswordClick = () => {
         history.push(ResetPasswordStep1Route);
-    }
+    };
 
     return (
         <LoginLayout
@@ -80,7 +82,7 @@ export default function (props: Props) {
             <Grid container spacing={2} className={style.root}>
                 <Grid item xs={12}>
                     <FixedTextField
-                      // TODO (PR: #806, Issue: #511) potentially refactor
+                        // TODO (PR: #806, Issue: #511) potentially refactor
                         inputRef={usernameRef}
                         id="username-textfield"
                         label="Username"
@@ -100,7 +102,7 @@ export default function (props: Props) {
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField
-                      // TODO (PR: #806, Issue: #511) potentially refactor
+                        // TODO (PR: #806, Issue: #511) potentially refactor
                         inputRef={passwordRef}
                         id="password-textfield"
                         label="Password"
@@ -120,28 +122,33 @@ export default function (props: Props) {
                             }
                         }} />
                 </Grid>
-                <Grid item xs={12} className={classnames(style.leftAlign, style.actionRow)}>
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                id="remember-checkbox"
-                                disabled={disabled}
-                                checked={rememberMe}
-                                onChange={handleRememberMeChange}
-                                value="rememberMe"
-                                color="primary" />
-                        }
-                        className={style.rememberMe}
-                        label="Remember me"
-                    />
-                    <Link
-                        id="reset-password-button"
-                        component="button"
-                        onClick={handleResetPasswordClick}
-                        className={style.resetLink}>
-                        Reset password?
-                    </Link>
-                </Grid>
+                {props.rememberMe || props.resetPassword ?
+                    <Grid item xs={12} className={props.rememberMe
+                        ? classnames(style.leftAlign, style.actionRow)
+                        : classnames(style.leftAlign, style.flexEnd, style.actionRow)}>
+                        {props.rememberMe ?
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        id="remember-checkbox"
+                                        disabled={disabled}
+                                        checked={rememberMe}
+                                        onChange={handleRememberMeChange}
+                                        value="rememberMe"
+                                        color="primary"/>
+                                }
+                                className={style.rememberMe}
+                                label="Remember me"
+                            /> : null}
+                        {props.resetPassword ?
+                            <Link
+                                id="reset-password-button"
+                                component="button"
+                                onClick={handleResetPasswordClick}
+                                className={style.resetLink}>
+                                Reset password?
+                            </Link> : null}
+                    </Grid> : null}
                 <Grid item xs={12}>
                     <Button
                         id="sign-in-button"
@@ -171,9 +178,14 @@ const useStyles = makeStyles(theme => ({
     },
     resetLink: {
         cursor: "pointer",
+        paddingTop: 13.5,
+        paddingBottom: 13.5,
     },
     rememberMe: {
         flexGrow: 1,
+    },
+    flexEnd: {
+        justifyContent: "flex-end",
     },
     leftAlign: {
         textAlign: "left",
@@ -182,4 +194,4 @@ const useStyles = makeStyles(theme => ({
         textAlign: "right",
         verticalAlign: "bottom",
     },
-}))
+}));

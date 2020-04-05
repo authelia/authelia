@@ -9,9 +9,10 @@ import (
 	"net/smtp"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 // SMTPNotifier a notifier to send emails to SMTP servers.

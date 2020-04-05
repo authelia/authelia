@@ -67,6 +67,9 @@ duo_api:
 #
 # There are two supported backends: 'ldap' and 'file'.
 authentication_backend:
+  # Disable both the HTML element and the API for reset password functionality
+  disable_reset_password: false
+
   # LDAP backend configuration.
   #
   # This backend allows Authelia to be scaled to more
@@ -256,13 +259,20 @@ session:
 
   # The secret to encrypt the session data. This is only used with Redis.
   # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET
-  secret: unsecure_session_secret
+  secret: insecure_session_secret
 
   # The time in seconds before the cookie expires and session is reset.
-  expiration: 3600 # 1 hour
+  expiration: 1h
 
   # The inactivity time in seconds before the session is reset.
-  inactivity: 300 # 5 minutes
+  inactivity: 5m
+
+  # The remember me duration.
+  # Value of 0 disables remember me.
+  # Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+  # Longer periods are considered less secure because a stolen cookie will last longer giving attackers more time to spy
+  # or attack. Currently the default is 1M or 1 month.
+  remember_me_duration: 1M
 
   # The domain to protect.
   # Note: the authenticator must also be in that domain. If empty, the cookie
@@ -290,10 +300,12 @@ regulation:
 
   # The time range during which the user can attempt login before being banned.
   # The user is banned if the authentication failed 'max_retries' times in a 'find_time' seconds window.
-  find_time: 120
+  # Find Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+  find_time: 2m
 
   # The length of time before a banned user can login again.
-  ban_time: 300
+  # Ban Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+  ban_time: 5m
 
 # Configuration of the storage backend used to store data and secrets.
 #

@@ -4,14 +4,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/authelia/authelia/internal/models"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/storage"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 )
 
 type RegulatorSuite struct {
@@ -29,8 +30,8 @@ func (s *RegulatorSuite) SetupTest() {
 
 	s.configuration = schema.RegulationConfiguration{
 		MaxRetries: 3,
-		BanTime:    180,
-		FindTime:   30,
+		BanTime:    "180",
+		FindTime:   "30",
 	}
 	s.clock.Set(time.Now())
 }
@@ -282,8 +283,8 @@ func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
 	// Check Disabled Functionality
 	configuration := schema.RegulationConfiguration{
 		MaxRetries: 0,
-		FindTime:   180,
-		BanTime:    180,
+		FindTime:   "180",
+		BanTime:    "180",
 	}
 
 	regulator := regulation.NewRegulator(&configuration, s.storageMock, &s.clock)
@@ -293,8 +294,8 @@ func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
 	// Check Enabled Functionality
 	configuration = schema.RegulationConfiguration{
 		MaxRetries: 1,
-		FindTime:   180,
-		BanTime:    180,
+		FindTime:   "180",
+		BanTime:    "180",
 	}
 
 	regulator = regulation.NewRegulator(&configuration, s.storageMock, &s.clock)

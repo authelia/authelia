@@ -7,11 +7,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/authelia/authelia/internal/duo"
-	"github.com/authelia/authelia/internal/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/internal/duo"
+	"github.com/authelia/authelia/internal/mocks"
 )
 
 type SecondFactorDuoPostSuite struct {

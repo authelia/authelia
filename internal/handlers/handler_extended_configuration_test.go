@@ -3,12 +3,11 @@ package handlers
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/configuration/validator"
 	"github.com/authelia/authelia/internal/mocks"
-
-	"github.com/stretchr/testify/suite"
 )
 
 type SecondFactorAvailableMethodsFixture struct {
@@ -31,13 +30,13 @@ func (s *SecondFactorAvailableMethodsFixture) TearDownTest() {
 func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		TOTP: &schema.TOTPConfiguration{
-			Period: validator.DefaultTOTPPeriod,
+			Period: schema.DefaultTOTPConfiguration.Period,
 		},
 	}
 	expectedBody := ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: false,
-		TOTPPeriod:          validator.DefaultTOTPPeriod,
+		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	}
 	ExtendedConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
@@ -47,13 +46,13 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMo
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: &schema.DuoAPIConfiguration{},
 		TOTP: &schema.TOTPConfiguration{
-			Period: validator.DefaultTOTPPeriod,
+			Period: schema.DefaultTOTPConfiguration.Period,
 		},
 	}
 	expectedBody := ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f", "mobile_push"},
 		SecondFactorEnabled: false,
-		TOTPPeriod:          validator.DefaultTOTPPeriod,
+		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	}
 	ExtendedConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
@@ -62,7 +61,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMo
 func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisabledWhenNoRuleIsSetToTwoFactor() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		TOTP: &schema.TOTPConfiguration{
-			Period: validator.DefaultTOTPPeriod,
+			Period: schema.DefaultTOTPConfiguration.Period,
 		},
 	}
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
@@ -86,14 +85,14 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisab
 	s.mock.Assert200OK(s.T(), ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: false,
-		TOTPPeriod:          validator.DefaultTOTPPeriod,
+		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	})
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabledWhenDefaultPolicySetToTwoFactor() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		TOTP: &schema.TOTPConfiguration{
-			Period: validator.DefaultTOTPPeriod,
+			Period: schema.DefaultTOTPConfiguration.Period,
 		},
 	}
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
@@ -117,14 +116,14 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 	s.mock.Assert200OK(s.T(), ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: true,
-		TOTPPeriod:          validator.DefaultTOTPPeriod,
+		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	})
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabledWhenSomePolicySetToTwoFactor() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		TOTP: &schema.TOTPConfiguration{
-			Period: validator.DefaultTOTPPeriod,
+			Period: schema.DefaultTOTPConfiguration.Period,
 		},
 	}
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
@@ -148,7 +147,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 	s.mock.Assert200OK(s.T(), ExtendedConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: true,
-		TOTPPeriod:          validator.DefaultTOTPPeriod,
+		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	})
 }
 

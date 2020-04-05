@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/utils"
 	"github.com/simia-tech/crypt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 func TestShouldHashSHA512Password(t *testing.T) {

@@ -8,10 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/valyala/fasthttp"
 )
 
 func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
@@ -154,7 +155,8 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, grou
 
 // hasUserBeenInactiveLongEnough check whether the user has been inactive for too long.
 func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
-	maxInactivityPeriod := ctx.Configuration.Session.Inactivity
+
+	maxInactivityPeriod := int64(ctx.Providers.SessionProvider.Inactivity.Seconds())
 	if maxInactivityPeriod == 0 {
 		return false, nil
 	}

@@ -3,9 +3,10 @@ package handlers
 import (
 	"fmt"
 
+	"github.com/pquerna/otp/totp"
+
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/session"
-	"github.com/pquerna/otp/totp"
 )
 
 // identityRetrieverFromSession retriever computing the identity from the cookie session.

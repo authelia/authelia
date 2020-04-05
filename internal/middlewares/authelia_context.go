@@ -7,11 +7,12 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/sirupsen/logrus"
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/utils"
-	"github.com/sirupsen/logrus"
-	"github.com/valyala/fasthttp"
 )
 
 // NewRequestLogger create a new request logger for the given request.

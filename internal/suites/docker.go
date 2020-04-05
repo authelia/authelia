@@ -6,8 +6,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // DockerEnvironment represent a docker environment

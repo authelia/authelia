@@ -16,6 +16,7 @@ Configuring Authelia to use a file is done by specifying the path to the
 file in the configuration file.
 
     authentication_backend:
+        disable_reset_password: false
         file:
             path: /var/lib/authelia/users.yml
                 password_hashing:
