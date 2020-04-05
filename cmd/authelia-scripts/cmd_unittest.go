@@ -1,10 +1,12 @@
 package main
 
 import (
-	"github.com/authelia/authelia/internal/utils"
+	"os"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"os"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // RunUnitTest run the unit tests

@@ -3,10 +3,11 @@
 package main
 
 import (
-	"github.com/authelia/authelia/internal/commands"
-	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/internal/commands"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 var logLevel string

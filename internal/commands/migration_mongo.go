@@ -5,12 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/authelia/authelia/internal/models"
-	"github.com/authelia/authelia/internal/storage"
 	"github.com/spf13/cobra"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/authelia/authelia/internal/models"
+	"github.com/authelia/authelia/internal/storage"
 )
 
 var mongoURL string

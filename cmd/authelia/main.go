@@ -6,6 +6,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/commands"
@@ -18,8 +21,6 @@ import (
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/storage"
 	"github.com/authelia/authelia/internal/utils"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 )
 
 var configPathFlag string
@@ -50,7 +51,6 @@ func startServer() {
 	case "debug":
 		logging.Logger().Info("Logging severity set to debug")
 		logging.SetLevel(logrus.DebugLevel)
-		break
 	case "trace":
 		logging.Logger().Info("Logging severity set to trace")
 		logging.SetLevel(logrus.TraceLevel)

@@ -5,11 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/authelia/authelia/internal/suites"
-	"github.com/authelia/authelia/internal/utils"
 	"github.com/otiai10/copy"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/internal/suites"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 var tmpDirectory = "/tmp/authelia/suites/"

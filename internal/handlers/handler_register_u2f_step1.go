@@ -3,8 +3,9 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/tstranex/u2f"
+
+	"github.com/authelia/authelia/internal/middlewares"
 )
 
 var u2fConfig = &u2f.Config{

@@ -5,12 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/mocks"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/mocks"
 )
 
 type HandlerRegisterU2FStep1Suite struct {

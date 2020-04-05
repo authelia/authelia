@@ -8,8 +8,9 @@ import (
 	"sync"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"gopkg.in/yaml.v2"
+
+	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
 // FileUserProvider is a provider reading details from a file.

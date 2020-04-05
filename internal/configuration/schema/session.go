@@ -10,11 +10,10 @@ type RedisSessionConfiguration struct {
 
 // SessionConfiguration represents the configuration related to user sessions.
 type SessionConfiguration struct {
-	// TODO(james-d-elliott): Convert to duration notation (Both Expiration and Activity need to be strings, and default needs to be changed)
 	Name               string                     `mapstructure:"name"`
 	Secret             string                     `mapstructure:"secret"`
-	Expiration         int64                      `mapstructure:"expiration"` // Expiration in seconds
-	Inactivity         int64                      `mapstructure:"inactivity"` // Inactivity in seconds
+	Expiration         string                     `mapstructure:"expiration"`
+	Inactivity         string                     `mapstructure:"inactivity"`
 	RememberMeDuration string                     `mapstructure:"remember_me_duration"`
 	Domain             string                     `mapstructure:"domain"`
 	Redis              *RedisSessionConfiguration `mapstructure:"redis"`
@@ -23,6 +22,7 @@ type SessionConfiguration struct {
 // DefaultSessionConfiguration is the default session configuration
 var DefaultSessionConfiguration = SessionConfiguration{
 	Name:               "authelia_session",
-	Expiration:         3600,
+	Expiration:         "1h",
+	Inactivity:         "5m",
 	RememberMeDuration: "1M",
 }

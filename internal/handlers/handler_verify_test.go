@@ -7,14 +7,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/authorization"
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/session"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/mocks"
 )
 
 // Test getOriginalURL
@@ -469,8 +472,38 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	// TODO(james-d-elliott): Convert to duration notation
-	mock.Ctx.Configuration.Session.Inactivity = 10
+	mock.Ctx.Configuration.Session.Inactivity = "10"
+	// Reload the session provider since the configuration is indirect
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session)
+	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = "john"
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
+	mock.Ctx.SaveSession(userSession)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+
+	VerifyGet(mock.Ctx)
+
+	// The session has been destroyed
+	newUserSession := mock.Ctx.GetSession()
+	assert.Equal(t, "", newUserSession.Username)
+	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel)
+}
+
+func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	mock.Ctx.Configuration.Session.Inactivity = "10s"
+	// Reload the session provider since the configuration is indirect
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session)
+	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = "john"
@@ -495,8 +528,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	// TODO(james-d-elliott): Convert to duration notation
-	mock.Ctx.Configuration.Session.Inactivity = 10
+	mock.Ctx.Configuration.Session.Inactivity = "10"
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = "john"
@@ -522,8 +554,7 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	// TODO(james-d-elliott): Convert to duration notation
-	mock.Ctx.Configuration.Session.Inactivity = 10
+	mock.Ctx.Configuration.Session.Inactivity = "10"
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = "john"

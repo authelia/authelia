@@ -5,14 +5,15 @@ import (
 	"os"
 	"path"
 
+	duoapi "github.com/duosecurity/duo_api_golang"
+	"github.com/fasthttp/router"
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/duo"
 	"github.com/authelia/authelia/internal/handlers"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
-	duoapi "github.com/duosecurity/duo_api_golang"
-	"github.com/fasthttp/router"
-	"github.com/valyala/fasthttp"
 )
 
 // StartServer start Authelia server with the given configuration and providers.

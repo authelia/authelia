@@ -3,11 +3,12 @@ package authentication
 import (
 	"testing"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/go-ldap/ldap/v3"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
 func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {

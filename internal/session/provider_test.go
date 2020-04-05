@@ -3,13 +3,11 @@ package session
 import (
 	"testing"
 
-	"github.com/authelia/authelia/internal/authentication"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
@@ -18,8 +16,7 @@ func TestShouldInitializerSession(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = "example.com"
 	configuration.Name = "my_session"
-	// TODO(james-d-elliott): Convert to duration notation
-	configuration.Expiration = 40
+	configuration.Expiration = "40"
 
 	provider := NewProvider(configuration)
 	session, err := provider.GetSession(ctx)
@@ -33,8 +30,7 @@ func TestShouldUpdateSession(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = "example.com"
 	configuration.Name = "my_session"
-	// TODO(james-d-elliott): Convert to duration notation
-	configuration.Expiration = 40
+	configuration.Expiration = "40"
 
 	provider := NewProvider(configuration)
 	session, _ := provider.GetSession(ctx)
@@ -59,8 +55,7 @@ func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = "example.com"
 	configuration.Name = "my_session"
-	// TODO(james-d-elliott): Convert to duration notation
-	configuration.Expiration = 40
+	configuration.Expiration = "40"
 
 	provider := NewProvider(configuration)
 	session, err := provider.GetSession(ctx)

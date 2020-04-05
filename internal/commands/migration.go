@@ -4,9 +4,10 @@ import (
 	"encoding/base64"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/authelia/authelia/internal/configuration"
 	"github.com/authelia/authelia/internal/storage"
-	"github.com/spf13/cobra"
 )
 
 var MigrateCmd *cobra.Command

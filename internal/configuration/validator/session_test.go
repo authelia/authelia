@@ -3,8 +3,9 @@ package validator
 import (
 	"testing"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
 func newDefaultSessionConfig() schema.SessionConfiguration {
@@ -21,7 +22,27 @@ func TestShouldSetDefaultSessionName(t *testing.T) {
 	ValidateSession(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, "authelia_session", config.Name)
+	assert.Equal(t, schema.DefaultSessionConfiguration.Name, config.Name)
+}
+
+func TestShouldSetDefaultSessionInactivity(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
+}
+
+func TestShouldSetDefaultSessionExpiration(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
 }
 
 func TestShouldRaiseErrorWhenRedisIsUsedAndPasswordNotSet(t *testing.T) {
@@ -57,14 +78,14 @@ func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {
 func TestShouldRaiseErrorWhenBadInactivityAndExpirationSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
-	config.Inactivity = -1
-	config.Expiration = -1
+	config.Inactivity = "-1"
+	config.Expiration = "-1"
 
 	ValidateSession(&config, validator)
 
 	assert.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], "Set expiration of the session above 0")
-	assert.EqualError(t, validator.Errors()[1], "Set inactivity of the session to 0 or above")
+	assert.EqualError(t, validator.Errors()[0], "Error occurred parsing session expiration string: could not convert the input string of -1 into a duration")
+	assert.EqualError(t, validator.Errors()[1], "Error occurred parsing session inactivity string: could not convert the input string of -1 into a duration")
 }
 
 func TestShouldRaiseErrorWhenBadRememberMeDurationSet(t *testing.T) {
@@ -75,7 +96,7 @@ func TestShouldRaiseErrorWhenBadRememberMeDurationSet(t *testing.T) {
 	ValidateSession(&config, validator)
 
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "Error occurred parsing remember_me_duration string: could not convert the input string of 1 year into a duration")
+	assert.EqualError(t, validator.Errors()[0], "Error occurred parsing session remember_me_duration string: could not convert the input string of 1 year into a duration")
 }
 
 func TestShouldSetDefaultRememberMeDuration(t *testing.T) {

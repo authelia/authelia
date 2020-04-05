@@ -20,14 +20,18 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 		configuration.Port = defaultPort
 	}
 
-	if configuration.LogLevel == "" {
-		configuration.LogLevel = defaultLogLevel
-	}
-
 	if configuration.TLSKey != "" && configuration.TLSCert == "" {
 		validator.Push(fmt.Errorf("No TLS certificate provided, please check the \"tls_cert\" which has been configured"))
 	} else if configuration.TLSKey == "" && configuration.TLSCert != "" {
 		validator.Push(fmt.Errorf("No TLS key provided, please check the \"tls_key\" which has been configured"))
+	}
+
+	if configuration.LogLevel == "" {
+		configuration.LogLevel = defaultLogLevel
+	}
+
+	if configuration.JWTSecret == "" {
+		validator.Push(fmt.Errorf("Provide a JWT secret using \"jwt_secret\" key"))
 	}
 
 	if configuration.DefaultRedirectionURL != "" {
@@ -37,27 +41,29 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 		}
 	}
 
-	if configuration.JWTSecret == "" {
-		validator.Push(fmt.Errorf("Provide a JWT secret using `jwt_secret` key"))
-	}
-
-	ValidateAuthenticationBackend(&configuration.AuthenticationBackend, validator)
-	ValidateSession(&configuration.Session, validator)
-
 	if configuration.TOTP == nil {
 		configuration.TOTP = &schema.TOTPConfiguration{}
 	}
 	ValidateTOTP(configuration.TOTP, validator)
+
+	ValidateAuthenticationBackend(&configuration.AuthenticationBackend, validator)
+
+	if configuration.AccessControl.DefaultPolicy == "" {
+		configuration.AccessControl.DefaultPolicy = "deny"
+	}
+
+	ValidateSession(&configuration.Session, validator)
+
+	if configuration.Regulation == nil {
+		configuration.Regulation = &schema.RegulationConfiguration{}
+	}
+	ValidateRegulation(configuration.Regulation, validator)
+
+	ValidateStorage(configuration.Storage, validator)
 
 	if configuration.Notifier == nil {
 		validator.Push(fmt.Errorf("A notifier configuration must be provided"))
 	} else {
 		ValidateNotifier(configuration.Notifier, validator)
 	}
-
-	if configuration.AccessControl.DefaultPolicy == "" {
-		configuration.AccessControl.DefaultPolicy = "deny"
-	}
-
-	ValidateStorage(configuration.Storage, validator)
 }

@@ -1,9 +1,10 @@
 package session
 
 import (
-	"github.com/authelia/authelia/internal/authentication"
 	"github.com/fasthttp/session"
 	"github.com/tstranex/u2f"
+
+	"github.com/authelia/authelia/internal/authentication"
 )
 
 // ProviderConfig is the configuration used to create the session provider.

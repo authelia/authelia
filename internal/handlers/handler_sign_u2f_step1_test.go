@@ -3,9 +3,10 @@ package handlers
 import (
 	"testing"
 
-	"github.com/authelia/authelia/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/internal/mocks"
 )
 
 type HandlerSignU2FStep1Suite struct {
