@@ -5,8 +5,10 @@
 
     <span class="c1"># The time range during which the user can attempt login before being banned.</span>
     <span class="c1"># The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.</span>
-    <span class="na">find_time</span><span class="pi">:</span> <span class="m">120</span>
+    <span class="c1"># Find Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format</span>
+    <span class="na">find_time</span><span class="pi">:</span> <span class="s">2m</span>
 
     <span class="c1"># The length of time before a banned user can sign in again.</span>
-    <span class="na">ban_time</span><span class="pi">:</span> <span class="m">300</span>
-</code></pre></div></div> <hr> <footer role="contentinfo"> <p class="text-small text-grey-dk-000 mb-0">Copyright &copy; 2020 Authelia. Distributed by an <a href="https://github.com/authelia/authelia/blob/master/LICENSE">Apache 2.0 license.</a></p> </footer> </div> </div> </div> </div> </body> </html>
+    <span class="c1"># Find Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format</span>
+    <span class="na">ban_time</span><span class="pi">:</span> <span class="s">5m</span>
+</code></pre></div></div> <h3 id="duration-notation"> <a href="#duration-notation" class="anchor-heading"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#link"></use></svg></a> Duration Notation </h3> <p>The configuration parameters find_time, and ban_time use duration notation. See the documentation for <a href="/configuration/#duration-notation-format">duration notation format</a> for more information.</p> <hr> <footer role="contentinfo"> <p class="text-small text-grey-dk-000 mb-0">Copyright &copy; 2020 Authelia. Distributed by an <a href="https://github.com/authelia/authelia/blob/master/LICENSE">Apache 2.0 license.</a></p> </footer> </div> </div> </div> </div> </body> </html>
