@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/authelia/authelia/internal/utils"
 	"github.com/simia-tech/crypt"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // PasswordHash represents all characteristics of a password hash.

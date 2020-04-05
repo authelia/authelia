@@ -5,12 +5,13 @@ import (
 
 	"github.com/authelia/authelia/internal/session"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/mocks"
 )
 
 func TestShouldCallNextWithAutheliaCtx(t *testing.T) {

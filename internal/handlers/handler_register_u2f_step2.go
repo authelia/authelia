@@ -4,8 +4,9 @@ import (
 	"crypto/elliptic"
 	"fmt"
 
-	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/tstranex/u2f"
+
+	"github.com/authelia/authelia/internal/middlewares"
 )
 
 // SecondFactorU2FRegister handler validating the client has successfully validated the challenge

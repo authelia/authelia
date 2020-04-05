@@ -5,11 +5,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/authelia/authelia/internal/mocks"
-	"github.com/authelia/authelia/internal/session"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 	"github.com/tstranex/u2f"
+
+	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/session"
 )
 
 type HandlerSignU2FStep2Suite struct {

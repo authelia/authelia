@@ -11,10 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/authelia/authelia/internal/suites"
-	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/internal/suites"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // ErrNotAvailableSuite error raised when suite is not available.

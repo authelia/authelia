@@ -8,9 +8,10 @@ import (
 	"path"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/authelia/authelia/internal/models"
 	"github.com/authelia/authelia/internal/storage"
-	"github.com/spf13/cobra"
 )
 
 var configurationPath string

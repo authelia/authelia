@@ -12,8 +12,8 @@ type RedisSessionConfiguration struct {
 type SessionConfiguration struct {
 	Name               string                     `mapstructure:"name"`
 	Secret             string                     `mapstructure:"secret"`
-	Expiration         string                     `mapstructure:"expiration"` // Expiration in seconds
-	Inactivity         string                     `mapstructure:"inactivity"` // Inactivity in seconds
+	Expiration         string                     `mapstructure:"expiration"`
+	Inactivity         string                     `mapstructure:"inactivity"`
 	RememberMeDuration string                     `mapstructure:"remember_me_duration"`
 	Domain             string                     `mapstructure:"domain"`
 	Redis              *RedisSessionConfiguration `mapstructure:"redis"`

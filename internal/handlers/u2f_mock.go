@@ -5,9 +5,10 @@
 package handlers
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	u2f "github.com/tstranex/u2f"
-	reflect "reflect"
 )
 
 // MockU2FVerifier is a mock of U2FVerifier interface

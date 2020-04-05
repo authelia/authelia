@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/authelia/authelia/internal/session"
-	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type ConfigurationSuite struct {

@@ -3,9 +3,10 @@ package validator
 import (
 	"testing"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
 func newDefaultConfig() schema.Configuration {

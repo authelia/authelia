@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/authelia/authelia/internal/templates"
 	jwt "github.com/dgrijalva/jwt-go"
+
+	"github.com/authelia/authelia/internal/templates"
 )
 
 // IdentityVerificationStart the handler for initiating the identity validation process.

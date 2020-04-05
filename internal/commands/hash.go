@@ -3,9 +3,10 @@ package commands
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/spf13/cobra"
 )
 
 func init() {

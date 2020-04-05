@@ -5,13 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/utils"
 	"github.com/fasthttp/session"
 	"github.com/fasthttp/session/memory"
 	"github.com/fasthttp/session/redis"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 func TestShouldCreateInMemorySessionProvider(t *testing.T) {

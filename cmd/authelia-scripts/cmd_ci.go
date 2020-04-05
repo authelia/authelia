@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 const dockerPullCommandLine = "docker-compose -p authelia -f internal/suites/docker-compose.yml " +

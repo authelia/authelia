@@ -9,11 +9,12 @@ import (
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/authelia/authelia/internal/models"
 
-	"github.com/authelia/authelia/internal/authentication"
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/internal/authentication"
 )
 
 type FirstFactorSuite struct {

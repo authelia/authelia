@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/authelia/authelia/internal/session"
 	"net"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/authelia/authelia/internal/session"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

@@ -5,8 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 func waitUntilServiceLogDetected(

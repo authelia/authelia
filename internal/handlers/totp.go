@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
-	"time"
 )
 
 type TOTPVerifier interface {

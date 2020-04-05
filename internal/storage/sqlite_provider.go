@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/authelia/authelia/internal/logging"
 	_ "github.com/mattn/go-sqlite3" // Load the SQLite Driver used in the connection string.
+
+	"github.com/authelia/authelia/internal/logging"
 )
 
 // SQLiteProvider is a sqlite3 provider
