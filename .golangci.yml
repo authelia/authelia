@@ -1,0 +1,28 @@
+run:
+  timeout: 3m
+  skip-files:
+    - "migration_local.go$"
+    - "migration_mongo.go$"
+
+linters-settings:
+  gocyclo:
+    min-complexity: 15
+  goimports:
+    local-prefixes: github.com/authelia/authelia
+
+linters:
+  enable:
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - interfacer
+    - maligned
+    - misspell
+    - prealloc
+    - unparam
+    - whitespace
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

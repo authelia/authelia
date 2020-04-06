@@ -2,6 +2,14 @@
 
 set +u
 
+if [[ $BUILDKITE_PULL_REQUEST != "false" ]]; then
+  if [[ $BUILDKITE_LABEL == ":hammer_and_wrench: Unit Test" ]]; then
+    echo "--- :go::service_dog: Linting pull request"
+    export CI_PULL_REQUEST=${BUILDKITE_PULL_REQUEST} CI_REPO_OWNER=${BUILDKITE_PIPELINE_SLUG} CI_REPO_NAME=${BUILDKITE_PIPELINE_SLUG} CI_COMMIT=${BUILDKITE_COMMIT}
+    reviewdog -reporter=github-pr-review
+  fi
+fi
+
 if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]]; then
   CONTAINERS=$(docker ps -a -q)
   if [[ ${CONTAINERS} != "" ]]; then
