@@ -7,6 +7,8 @@ host: 0.0.0.0
 port: 9091
 # tls_key: /var/lib/authelia/ssl/key.pem
 # tls_cert: /var/lib/authelia/ssl/cert.pem
+# Read buffer size configures the fasthttp server's equivalent option (in bytes)
+read_buffer_size: 4096
 
 # Level of verbosity for logs: info, debug, trace
 log_level: debug

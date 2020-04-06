@@ -110,16 +110,16 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	addrPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
 
+	server := &fasthttp.Server{
+		Handler:        middlewares.LogRequestMiddleware(router.Handler),
+		ReadBufferSize: configuration.ReadBufferSize,
+	}
+
 	if configuration.TLSCert != "" && configuration.TLSKey != "" {
 		logging.Logger().Infof("Authelia is listening for TLS connections on %s", addrPattern)
-
-		logging.Logger().Fatal(fasthttp.ListenAndServeTLS(addrPattern,
-			configuration.TLSCert, configuration.TLSKey,
-			middlewares.LogRequestMiddleware(router.Handler)))
+		logging.Logger().Fatal(server.ListenAndServeTLS(addrPattern, configuration.TLSCert, configuration.TLSKey))
 	} else {
 		logging.Logger().Infof("Authelia is listening for non-TLS connections on %s", addrPattern)
-
-		logging.Logger().Fatal(fasthttp.ListenAndServe(addrPattern,
-			middlewares.LogRequestMiddleware(router.Handler)))
+		logging.Logger().Fatal(server.ListenAndServe(addrPattern))
 	}
 }

@@ -9,6 +9,7 @@ import (
 
 var defaultPort = 8080
 var defaultLogLevel = "info"
+var defaultReadBufferSize = 4096
 
 // Validate and adapt the configuration read from file.
 func Validate(configuration *schema.Configuration, validator *schema.StructValidator) {
@@ -18,6 +19,10 @@ func Validate(configuration *schema.Configuration, validator *schema.StructValid
 
 	if configuration.Port == 0 {
 		configuration.Port = defaultPort
+	}
+
+	if configuration.ReadBufferSize == 0 {
+		configuration.ReadBufferSize = defaultReadBufferSize
 	}
 
 	if configuration.TLSKey != "" && configuration.TLSCert == "" {

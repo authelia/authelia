@@ -50,6 +50,14 @@ are written to standard output.
     log_file_path: /var/log/authelia.log
 
 
+## Read Buffer Size
+
+`optional: true`
+
+Defines the read buffer size in bytes used by the fasthttp server.
+
+    read_buffer_size: 4096
+
 ## JWT Secret
 
 `optional: false`
