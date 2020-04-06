@@ -115,6 +115,11 @@ to 0 to disable this feature, and set an expiration of something like 2 hours an
 of 10 minutes. This means the hard limit or the time the session will be destroyed no matter
 what is 2 hours, and the soft limit or the time a user can be inactive for is 10 minutes. 
 
+You can also decrease the security by setting disable_ip_check to `true`. The IP check ensures
+that when a users remote IP address changes that their session is completely destroyed and they 
+must reauthenticate. This can help prevent stolen devices with saved credentials compremising
+security, as such it's recommended you do not alter this option. 
+ 
 ### More protections measures with Nginx
 
 You can also apply the following headers to your nginx configuration for

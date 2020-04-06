@@ -26,8 +26,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 	// Ignore the error as it will be handled by validator
 	config.Expires, _ = utils.ParseDurationString(configuration.Expiration)
 
-	// TODO(c.michaud): Make this configurable by giving the list of IPs that are trustable.
-	config.IsSecureFunc = func(*fasthttp.RequestCtx) bool {
+	config.IsSecureFunc = func(ctx *fasthttp.RequestCtx) bool {
 		return true
 	}
 
@@ -39,11 +38,10 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 		providerName = "redis"
 		serializer := NewEncryptingSerializer(configuration.Secret)
 		providerConfig = &redis.Config{
-			Host:     configuration.Redis.Host,
-			Port:     configuration.Redis.Port,
-			Password: configuration.Redis.Password,
-			// DbNumber is the fasthttp/session property for the Redis DB Index
-			DbNumber:        configuration.Redis.DatabaseIndex,
+			Host:            configuration.Redis.Host,
+			Port:            configuration.Redis.Port,
+			Password:        configuration.Redis.Password,
+			DbNumber:        configuration.Redis.DatabaseIndex, // DbNumber is the fasthttp/session property for the Redis DB Index
 			PoolSize:        8,
 			IdleTimeout:     300,
 			KeyPrefix:       "authelia-session",

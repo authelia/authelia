@@ -49,7 +49,7 @@ func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 	store, err := p.sessionHolder.Get(ctx)
 
 	if err != nil {
-		return NewDefaultUserSession(), err
+		return NewDefaultUserSession(ctx), err
 	}
 
 	userSessionJSON, ok := store.Get(userSessionStorerKey).([]byte)
@@ -57,7 +57,7 @@ func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 	// If userSession is not yet defined we create the new session with default values
 	// and save it in the store.
 	if !ok {
-		userSession := NewDefaultUserSession()
+		userSession := NewDefaultUserSession(ctx)
 		store.Set(userSessionStorerKey, userSession)
 		return userSession, nil
 	}
@@ -66,7 +66,7 @@ func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 	err = json.Unmarshal(userSessionJSON, &userSession)
 
 	if err != nil {
-		return NewDefaultUserSession(), err
+		return NewDefaultUserSession(ctx), err
 	}
 
 	return userSession, nil

@@ -22,22 +22,19 @@ type U2FRegistration struct {
 
 // UserSession is the structure representing the session of a user.
 type UserSession struct {
-	Username string
-	// TODO(c.michaud): move groups out of the session.
-	Groups []string
-	Emails []string
-
+	Username            string
+	Groups              []string // TODO(c.michaud): move groups out of the session.
+	Emails              []string
+	IP                  string
 	KeepMeLoggedIn      bool
 	AuthenticationLevel authentication.Level
 	LastActivity        int64
-
 	// The challenge generated in first step of U2F registration (after identity verification) or authentication.
 	// This is used reused in the second phase to check that the challenge has been completed.
 	U2FChallenge *u2f.Challenge
 	// The registration representing a U2F device in DB set after identity verification.
 	// This is used in second phase of a U2F authentication.
 	U2FRegistration *U2FRegistration
-
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.
 	PasswordResetUsername *string

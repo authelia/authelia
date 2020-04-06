@@ -60,7 +60,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	}
 
 	// Reset all values from previous session before regenerating the cookie.
-	err = ctx.SaveSession(session.NewDefaultUserSession())
+	err = ctx.SaveSession(session.NewDefaultUserSession(ctx.RequestCtx))
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)

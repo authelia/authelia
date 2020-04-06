@@ -22,7 +22,7 @@ func TestShouldInitializerSession(t *testing.T) {
 	session, err := provider.GetSession(ctx)
 	require.NoError(t, err)
 
-	assert.Equal(t, NewDefaultUserSession(), session)
+	assert.Equal(t, NewDefaultUserSession(ctx), session)
 }
 
 func TestShouldUpdateSession(t *testing.T) {
@@ -47,6 +47,7 @@ func TestShouldUpdateSession(t *testing.T) {
 	assert.Equal(t, UserSession{
 		Username:            "john",
 		AuthenticationLevel: authentication.TwoFactor,
+		IP:                  "0.0.0.0",
 	}, session)
 }
 

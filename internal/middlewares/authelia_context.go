@@ -111,7 +111,7 @@ func (c *AutheliaCtx) GetSession() session.UserSession {
 	userSession, err := c.Providers.SessionProvider.GetSession(c.RequestCtx)
 	if err != nil {
 		c.Logger.Error("Unable to retrieve user session")
-		return session.NewDefaultUserSession()
+		return session.NewDefaultUserSession(c.RequestCtx)
 	}
 	return userSession
 }

@@ -153,8 +153,12 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, grou
 	}
 }
 
-// hasUserBeenInactiveLongEnough check whether the user has been inactive for too long.
-func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
+func isRemoteIPValidForSession(ctx *middlewares.AutheliaCtx) bool {
+	return ctx.Configuration.Session.DisableIPCheck || ctx.RequestCtx.RemoteIP().String() == ctx.GetSession().IP
+}
+
+// hasUserBeenInactiveTooLong check whether the user has been inactive for too long.
+func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) {
 
 	maxInactivityPeriod := int64(ctx.Providers.SessionProvider.Inactivity.Seconds())
 	if maxInactivityPeriod == 0 {
@@ -185,7 +189,7 @@ func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (u
 	}
 
 	if !userSession.KeepMeLoggedIn && !isUserAnonymous {
-		inactiveLongEnough, err := hasUserBeenInactiveLongEnough(ctx)
+		inactiveLongEnough, err := hasUserBeenInactiveTooLong(ctx)
 		if err != nil {
 			return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check if user has been inactive for a long time: %s", err)
 		}
@@ -199,6 +203,13 @@ func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (u
 
 			return "", nil, authentication.NotAuthenticated, fmt.Errorf("User %s has been inactive for too long", userSession.Username)
 		}
+	}
+	if !isRemoteIPValidForSession(ctx) {
+		err := ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
+		if err != nil {
+			return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to destroy user session with invalid IP: %s", err)
+		}
+		return "", nil, authentication.NotAuthenticated, fmt.Errorf("User %s with IP of %s is invalid for the session which has an IP of %s", userSession.Username, ctx.RequestCtx.RemoteIP().String(), userSession.IP)
 	}
 	return userSession.Username, userSession.Groups, userSession.AuthenticationLevel, nil
 }

@@ -43,6 +43,9 @@ session:
   # Note: the login portal must also be a subdomain of that domain.
   domain: example.com
 
+  # Disable the IP check for sessions
+  disable_ip_check: false
+
   # The redis connection details (optional)
   # If not provided, sessions will be stored in memory
   redis:

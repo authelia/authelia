@@ -16,6 +16,7 @@ type SessionConfiguration struct {
 	Inactivity         string                     `mapstructure:"inactivity"`
 	RememberMeDuration string                     `mapstructure:"remember_me_duration"`
 	Domain             string                     `mapstructure:"domain"`
+	DisableIPCheck     bool                       `mapstructure:"disable_ip_check"`
 	Redis              *RedisSessionConfiguration `mapstructure:"redis"`
 }
 
