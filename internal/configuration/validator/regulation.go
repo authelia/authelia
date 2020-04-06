@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -18,13 +17,13 @@ func ValidateRegulation(configuration *schema.RegulationConfiguration, validator
 	}
 	findTime, err := utils.ParseDurationString(configuration.FindTime)
 	if err != nil {
-		validator.Push(errors.New(fmt.Sprintf("Error occurred parsing regulation find_time string: %s", err)))
+		validator.Push(fmt.Errorf("Error occurred parsing regulation find_time string: %s", err))
 	}
 	banTime, err := utils.ParseDurationString(configuration.BanTime)
 	if err != nil {
-		validator.Push(errors.New(fmt.Sprintf("Error occurred parsing regulation ban_time string: %s", err)))
+		validator.Push(fmt.Errorf("Error occurred parsing regulation ban_time string: %s", err))
 	}
 	if findTime > banTime {
-		validator.Push(errors.New(fmt.Sprintf("find_time cannot be greater than ban_time")))
+		validator.Push(fmt.Errorf("find_time cannot be greater than ban_time"))
 	}
 }

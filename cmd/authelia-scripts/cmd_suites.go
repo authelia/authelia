@@ -106,9 +106,7 @@ var SuitesTestCmd = &cobra.Command{
 
 func listSuites() []string {
 	suiteNames := make([]string, 0)
-	for _, k := range suites.GlobalRegistry.Suites() {
-		suiteNames = append(suiteNames, k)
-	}
+	suiteNames = append(suiteNames, suites.GlobalRegistry.Suites()...)
 	sort.Strings(suiteNames)
 	return suiteNames
 }

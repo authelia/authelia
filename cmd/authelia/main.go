@@ -47,7 +47,6 @@ func startServer() {
 	case "info":
 		logging.Logger().Info("Logging severity set to info")
 		logging.SetLevel(logrus.InfoLevel)
-		break
 	case "debug":
 		logging.Logger().Info("Logging severity set to debug")
 		logging.SetLevel(logrus.DebugLevel)

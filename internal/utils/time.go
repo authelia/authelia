@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -36,13 +35,13 @@ func ParseDurationString(input string) (duration time.Duration, err error) {
 	} else if input == "0" || len(matches) == 3 {
 		seconds, err := strconv.Atoi(input)
 		if err != nil {
-			err = errors.New(fmt.Sprintf("could not convert the input string of %s into a duration: %s", input, err))
+			err = fmt.Errorf("could not convert the input string of %s into a duration: %s", input, err)
 		} else {
 			duration = time.Duration(seconds) * time.Second
 		}
 	} else if input != "" {
 		// Throw this error if input is anything other than a blank string, blank string will default to a duration of nothing
-		err = errors.New(fmt.Sprintf("could not convert the input string of %s into a duration", input))
+		err = fmt.Errorf("could not convert the input string of %s into a duration", input)
 	}
 	return
 }
