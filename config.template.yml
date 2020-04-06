@@ -361,6 +361,9 @@ notifier:
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com
+    # Subject configuration of the emails sent.
+    # {title} is replaced by the text from the notifier
+    subject: "[Authelia] {title}"
     ## disable_require_tls: false
     ## disable_verify_cert: false
     ## trusted_cert: ""

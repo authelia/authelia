@@ -37,6 +37,10 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 		if configuration.SMTP.Sender == "" {
 			validator.Push(fmt.Errorf("Sender of SMTP notifier must be provided"))
 		}
+
+		if configuration.SMTP.Subject == "" {
+			configuration.SMTP.Subject = schema.DefaultSMTPNotifierConfiguration.Subject
+		}
 		return
 	}
 }
