@@ -50,7 +50,6 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 		}
 
 		if configuration.PasswordHashing.Algorithm == "argon2id" {
-
 			// Parallelism
 			if configuration.PasswordHashing.Parallelism == 0 {
 				configuration.PasswordHashing.Parallelism = schema.DefaultPasswordOptionsConfiguration.Parallelism

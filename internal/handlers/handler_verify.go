@@ -86,7 +86,6 @@ func parseBasicAuth(auth string) (username, password string, err error) {
 // isTargetURLAuthorized check whether the given user is authorized to access the resource.
 func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.URL,
 	username string, userGroups []string, clientIP net.IP, authLevel authentication.Level) authorizationMatching {
-
 	level := authorizer.GetRequiredLevel(authorization.Subject{
 		Username: username,
 		Groups:   userGroups,
@@ -155,7 +154,6 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, grou
 
 // hasUserBeenInactiveLongEnough check whether the user has been inactive for too long.
 func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
-
 	maxInactivityPeriod := int64(ctx.Providers.SessionProvider.Inactivity.Seconds())
 	if maxInactivityPeriod == 0 {
 		return false, nil

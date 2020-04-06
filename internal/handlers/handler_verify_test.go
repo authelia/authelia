@@ -147,21 +147,21 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 		ExpectedMatching authorizationMatching
 	}
 	rules := []Rule{
-		Rule{"bypass", authentication.NotAuthenticated, Authorized},
-		Rule{"bypass", authentication.OneFactor, Authorized},
-		Rule{"bypass", authentication.TwoFactor, Authorized},
+		{"bypass", authentication.NotAuthenticated, Authorized},
+		{"bypass", authentication.OneFactor, Authorized},
+		{"bypass", authentication.TwoFactor, Authorized},
 
-		Rule{"one_factor", authentication.NotAuthenticated, NotAuthorized},
-		Rule{"one_factor", authentication.OneFactor, Authorized},
-		Rule{"one_factor", authentication.TwoFactor, Authorized},
+		{"one_factor", authentication.NotAuthenticated, NotAuthorized},
+		{"one_factor", authentication.OneFactor, Authorized},
+		{"one_factor", authentication.TwoFactor, Authorized},
 
-		Rule{"two_factor", authentication.NotAuthenticated, NotAuthorized},
-		Rule{"two_factor", authentication.OneFactor, NotAuthorized},
-		Rule{"two_factor", authentication.TwoFactor, Authorized},
+		{"two_factor", authentication.NotAuthenticated, NotAuthorized},
+		{"two_factor", authentication.OneFactor, NotAuthorized},
+		{"two_factor", authentication.TwoFactor, Authorized},
 
-		Rule{"deny", authentication.NotAuthenticated, NotAuthorized},
-		Rule{"deny", authentication.OneFactor, Forbidden},
-		Rule{"deny", authentication.TwoFactor, Forbidden},
+		{"deny", authentication.NotAuthenticated, NotAuthorized},
+		{"deny", authentication.OneFactor, Forbidden},
+		{"deny", authentication.TwoFactor, Forbidden},
 	}
 
 	url, _ := url.ParseRequestURI("https://test.example.com")
@@ -169,7 +169,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 	for _, rule := range rules {
 		authorizer := authorization.NewAuthorizer(schema.AccessControlConfiguration{
 			DefaultPolicy: "deny",
-			Rules: []schema.ACLRule{schema.ACLRule{
+			Rules: []schema.ACLRule{{
 				Domain: "test.example.com",
 				Policy: rule.Policy,
 			}},
@@ -419,23 +419,23 @@ func (p Pair) String() string {
 
 func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 	testCases := []Pair{
-		Pair{"https://test.example.com", "", authentication.NotAuthenticated, 401},
-		Pair{"https://bypass.example.com", "", authentication.NotAuthenticated, 200},
-		Pair{"https://one-factor.example.com", "", authentication.NotAuthenticated, 401},
-		Pair{"https://two-factor.example.com", "", authentication.NotAuthenticated, 401},
-		Pair{"https://deny.example.com", "", authentication.NotAuthenticated, 401},
+		{"https://test.example.com", "", authentication.NotAuthenticated, 401},
+		{"https://bypass.example.com", "", authentication.NotAuthenticated, 200},
+		{"https://one-factor.example.com", "", authentication.NotAuthenticated, 401},
+		{"https://two-factor.example.com", "", authentication.NotAuthenticated, 401},
+		{"https://deny.example.com", "", authentication.NotAuthenticated, 401},
 
-		Pair{"https://test.example.com", "john", authentication.OneFactor, 403},
-		Pair{"https://bypass.example.com", "john", authentication.OneFactor, 200},
-		Pair{"https://one-factor.example.com", "john", authentication.OneFactor, 200},
-		Pair{"https://two-factor.example.com", "john", authentication.OneFactor, 401},
-		Pair{"https://deny.example.com", "john", authentication.OneFactor, 403},
+		{"https://test.example.com", "john", authentication.OneFactor, 403},
+		{"https://bypass.example.com", "john", authentication.OneFactor, 200},
+		{"https://one-factor.example.com", "john", authentication.OneFactor, 200},
+		{"https://two-factor.example.com", "john", authentication.OneFactor, 401},
+		{"https://deny.example.com", "john", authentication.OneFactor, 403},
 
-		Pair{"https://test.example.com", "john", authentication.TwoFactor, 403},
-		Pair{"https://bypass.example.com", "john", authentication.TwoFactor, 200},
-		Pair{"https://one-factor.example.com", "john", authentication.TwoFactor, 200},
-		Pair{"https://two-factor.example.com", "john", authentication.TwoFactor, 200},
-		Pair{"https://deny.example.com", "john", authentication.TwoFactor, 403},
+		{"https://test.example.com", "john", authentication.TwoFactor, 403},
+		{"https://bypass.example.com", "john", authentication.TwoFactor, 200},
+		{"https://one-factor.example.com", "john", authentication.TwoFactor, 200},
+		{"https://two-factor.example.com", "john", authentication.TwoFactor, 200},
+		{"https://deny.example.com", "john", authentication.TwoFactor, 403},
 	}
 
 	for _, testCase := range testCases {
@@ -628,7 +628,6 @@ func TestSchemeIsHTTPS(t *testing.T) {
 		GetURL("wss://mytest.example.com/abc/?query=abc")))
 	assert.True(t, isSchemeHTTPS(
 		GetURL("https://mytest.example.com/abc/?query=abc")))
-
 }
 
 func TestSchemeIsWSS(t *testing.T) {
@@ -646,5 +645,4 @@ func TestSchemeIsWSS(t *testing.T) {
 		GetURL("https://mytest.example.com/abc/?query=abc")))
 	assert.True(t, isSchemeWSS(
 		GetURL("wss://mytest.example.com/abc/?query=abc")))
-
 }

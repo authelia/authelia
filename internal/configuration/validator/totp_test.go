@@ -32,5 +32,4 @@ func TestShouldRaiseErrorWhenInvalidTOTPMinimumValues(t *testing.T) {
 	assert.Len(t, validator.Errors(), 2)
 	assert.EqualError(t, validator.Errors()[0], "TOTP Period must be 1 or more")
 	assert.EqualError(t, validator.Errors()[1], "TOTP Skew must be 0 or more")
-
 }

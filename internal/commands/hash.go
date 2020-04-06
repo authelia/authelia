@@ -46,7 +46,7 @@ var HashPasswordCmd = &cobra.Command{
 
 		hash, err = authentication.HashPassword(args[0], salt, algorithm, iterations, memory*1024, parallelism, keyLength, saltLength)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("Error occured during hashing: %s", err))
+			fmt.Println(fmt.Sprintf("Error occurred during hashing: %s", err))
 		} else {
 			fmt.Println(fmt.Sprintf("Password hash: %s", hash))
 		}

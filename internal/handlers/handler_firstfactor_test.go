@@ -288,7 +288,7 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = "https://default.local"
 	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = "bypass"
 	s.mock.Ctx.Configuration.AccessControl.Rules = []schema.ACLRule{
-		schema.ACLRule{
+		{
 			Domain: "default.local",
 			Policy: "one_factor",
 		},
@@ -384,11 +384,11 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
 		DefaultPolicy: "one_factor",
 		Rules: []schema.ACLRule{
-			schema.ACLRule{
+			{
 				Domain: "test.example.com",
 				Policy: "one_factor",
 			},
-			schema.ACLRule{
+			{
 				Domain: "example.com",
 				Policy: "two_factor",
 			},
