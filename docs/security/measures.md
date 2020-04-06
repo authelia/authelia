@@ -117,9 +117,9 @@ what is 2 hours, and the soft limit or the time a user can be inactive for is 10
 
 You can also decrease the security by setting disable_ip_check to `true`. The IP check ensures
 that when a users remote IP address changes that their session is completely destroyed and they 
-must reauthenticate. This can help prevent stolen devices with saved credentials compremising
+must re-authenticate. This can help prevent stolen devices with saved credentials compromising
 security, as such it's recommended you do not alter this option. 
- 
+
 ### More protections measures with Nginx
 
 You can also apply the following headers to your nginx configuration for
