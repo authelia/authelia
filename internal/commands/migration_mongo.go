@@ -54,6 +54,7 @@ func migrateMongo(cmd *cobra.Command, args []string) {
 	migrateMongoU2FDevices(db, dbProvider)
 	migrateMongoTOTPDevices(db, dbProvider)
 	migrateMongoPreferences(db, dbProvider)
+	migrateMongoAuthenticationTraces(db, dbProvider)
 
 	log.Println("Migration done!")
 }
