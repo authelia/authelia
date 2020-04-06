@@ -4,11 +4,11 @@ package authentication
 type Level int
 
 const (
-	// NotAuthenticated if the user is not authenticated yet.
+	// NotAuthenticated if the user is not authenticated yet
 	NotAuthenticated Level = iota
-	// OneFactor if the user has passed first factor only.
+	// OneFactor if the user has passed first factor only
 	OneFactor Level = iota
-	// TwoFactor if the user has passed two factors.
+	// TwoFactor if the user has passed two factors
 	TwoFactor Level = iota
 )
 
@@ -17,11 +17,11 @@ const (
 	TOTP = "totp"
 	// U2F Method using U2F devices like Yubikeys
 	U2F = "u2f"
-	// Push Method using Duo application to receive push notifications.
+	// Push Method using Duo application to receive push notifications
 	Push = "mobile_push"
 )
 
-// PossibleMethods is the set of all possible 2FA methods.
+// PossibleMethods is the set of all possible 2FA methods
 var PossibleMethods = []string{TOTP, U2F, Push}
 
 const (
@@ -40,5 +40,5 @@ const (
 	HashingDefaultSHA512Iterations    = 5000
 )
 
-// Valid Hashing runes
+// HashingPossibleSaltCharacters represents valid hashing runes
 var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")

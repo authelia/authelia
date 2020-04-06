@@ -1,6 +1,6 @@
 package schema
 
-// LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server.
+// LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server
 type LDAPAuthenticationBackendConfiguration struct {
 	URL                string `mapstructure:"url"`
 	SkipVerify         bool   `mapstructure:"skip_verify"`
@@ -31,7 +31,7 @@ type PasswordHashingConfiguration struct {
 	Parallelism int    `mapstructure:"parallelism"`
 }
 
-// Default Argon2id Configuration
+// DefaultPasswordOptionsConfiguration represents the default configuration related to Argon2id hashing
 var DefaultPasswordOptionsConfiguration = PasswordHashingConfiguration{
 	Iterations:  1,
 	KeyLength:   32,
@@ -41,7 +41,7 @@ var DefaultPasswordOptionsConfiguration = PasswordHashingConfiguration{
 	Parallelism: 8,
 }
 
-// Default Argon2id Configuration for CI testing when calling HashPassword()
+// DefaultCIPasswordOptionsConfiguration represents the default configuration related to Argon2id hashing for CI
 var DefaultCIPasswordOptionsConfiguration = PasswordHashingConfiguration{
 	Iterations:  1,
 	KeyLength:   32,
@@ -51,14 +51,14 @@ var DefaultCIPasswordOptionsConfiguration = PasswordHashingConfiguration{
 	Parallelism: 8,
 }
 
-// Default SHA512 Cofniguration
+// DefaultPasswordOptionsSHA512Configuration represents the default configuration related to SHA512 hashing
 var DefaultPasswordOptionsSHA512Configuration = PasswordHashingConfiguration{
 	Iterations: 50000,
 	SaltLength: 16,
 	Algorithm:  "sha512",
 }
 
-// AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
+// AuthenticationBackendConfiguration represents the configuration related to the authentication backend
 type AuthenticationBackendConfiguration struct {
 	DisableResetPassword bool                                    `mapstructure:"disable_reset_password"`
 	Ldap                 *LDAPAuthenticationBackendConfiguration `mapstructure:"ldap"`

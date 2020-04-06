@@ -47,25 +47,25 @@ func TestShouldParseSecondsString(t *testing.T) {
 
 func TestShouldNotParseDurationStringWithOutOfOrderQuantitiesAndUnits(t *testing.T) {
 	duration, err := ParseDurationString("h1")
-	assert.EqualError(t, err, "could not convert the input string of h1 into a duration")
+	assert.EqualError(t, err, "Could not convert the input string of h1 into a duration")
 	assert.Equal(t, time.Duration(0), duration)
 }
 
 func TestShouldNotParseBadDurationString(t *testing.T) {
 	duration, err := ParseDurationString("10x")
-	assert.EqualError(t, err, "could not convert the input string of 10x into a duration")
+	assert.EqualError(t, err, "Could not convert the input string of 10x into a duration")
 	assert.Equal(t, time.Duration(0), duration)
 }
 
 func TestShouldNotParseDurationStringWithMultiValueUnits(t *testing.T) {
 	duration, err := ParseDurationString("10ms")
-	assert.EqualError(t, err, "could not convert the input string of 10ms into a duration")
+	assert.EqualError(t, err, "Could not convert the input string of 10ms into a duration")
 	assert.Equal(t, time.Duration(0), duration)
 }
 
 func TestShouldNotParseDurationStringWithLeadingZero(t *testing.T) {
 	duration, err := ParseDurationString("005h")
-	assert.EqualError(t, err, "could not convert the input string of 005h into a duration")
+	assert.EqualError(t, err, "Could not convert the input string of 005h into a duration")
 	assert.Equal(t, time.Duration(0), duration)
 }
 
