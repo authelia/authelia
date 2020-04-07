@@ -50,6 +50,7 @@ func (wds *WebDriverSession) doLoginAndRegisterTOTP(ctx context.Context, t *test
 }
 
 // Register a user with TOTP, logout and then authenticate until TOTP-2FA.
+//nolint:unparam
 func (wds *WebDriverSession) doRegisterAndLogin2FA(ctx context.Context, t *testing.T, username, password string, keepMeLoggedIn bool, targetURL string) string {
 	// Register TOTP secret and logout.
 	secret := wds.doRegisterThenLogout(ctx, t, username, password)

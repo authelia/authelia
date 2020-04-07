@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+//nolint:unparam
 func waitUntilServiceLogDetected(
 	interval time.Duration,
 	timeout time.Duration,

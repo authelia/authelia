@@ -32,6 +32,7 @@ type QueueItem struct {
 	path  string
 }
 
+//nolint:unparam
 func (v *Validator) validateOne(item QueueItem, q *queue.Queue) error {
 	if item.value.Type().Kind() == reflect.Ptr {
 		if item.value.IsNil() {
