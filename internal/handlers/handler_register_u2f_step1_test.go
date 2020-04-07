@@ -46,13 +46,6 @@ func createToken(secret string, username string, action string, expiresAt time.T
 	return ss
 }
 
-func newFinishArgs() middlewares.IdentityVerificationFinishArgs {
-	return middlewares.IdentityVerificationFinishArgs{
-		ActionClaim:          U2FRegistrationAction,
-		IsTokenUserValidFunc: func(ctx *middlewares.AutheliaCtx, username string) bool { return true },
-	}
-}
-
 func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissing() {
 	token := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", U2FRegistrationAction,
 		time.Now().Add(1*time.Minute))

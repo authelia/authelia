@@ -49,12 +49,6 @@ type firstFactorRequestBody struct {
 	KeepMeLoggedIn *bool `json:"keepMeLoggedIn"`
 }
 
-// FirstFactorMessageResponse represents the response sent by the first factor endpoint
-// when no redirection URL has been provided by the user.
-type firstFactorMessageResponse struct {
-	Message string `json:"message"`
-}
-
 // redirectResponse represent the response sent by the first factor endpoint
 // when a redirection URL has been provided.
 type redirectResponse struct {

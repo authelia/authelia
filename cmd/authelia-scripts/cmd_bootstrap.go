@@ -71,16 +71,6 @@ func checkCommandExist(cmd string) {
 	fmt.Println("		OK")
 }
 
-func installClientNpmPackages() {
-	command := utils.CommandWithStdout("yarn", "install")
-	command.Dir = "client"
-	err := command.Run()
-
-	if err != nil {
-		panic(err)
-	}
-}
-
 func createTemporaryDirectory() {
 	err := os.MkdirAll("/tmp/authelia", 0755)
 

@@ -10,12 +10,6 @@ import (
 	"github.com/authelia/authelia/internal/configuration/validator"
 )
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 // Read a YAML configuration and create a Configuration object out of it.
 func Read(configPath string) (*schema.Configuration, []error) {
 	viper.SetEnvPrefix("AUTHELIA")

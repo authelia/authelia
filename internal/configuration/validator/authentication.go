@@ -9,9 +9,6 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
-var ldapProtocolPrefix = "ldap://"
-var ldapsProtocolPrefix = "ldaps://"
-
 func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.Path == "" {
 		validator.Push(errors.New("Please provide a `path` for the users database in `authentication_backend`"))

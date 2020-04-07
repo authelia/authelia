@@ -2,6 +2,7 @@ package suites
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -61,8 +62,10 @@ func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
 		return err
 	}
 
-	if err := waitUntilAutheliaFrontendIsReady(dockerEnvironment); err != nil {
-		return err
+	if os.Getenv("CI") != "true" {
+		if err := waitUntilAutheliaFrontendIsReady(dockerEnvironment); err != nil {
+			return err
+		}
 	}
 	log.Info("Authelia is now ready!")
 	return nil
