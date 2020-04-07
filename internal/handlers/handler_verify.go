@@ -116,8 +116,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 
 // verifyBasicAuth verify that the provided username and password are correct and
 // that the user is authorized to target the resource
-//nolint:unparam
-func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) {
+func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
 	username, password, err := parseBasicAuth(string(auth))
 
 	if err != nil {
@@ -154,8 +153,7 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, grou
 }
 
 // hasUserBeenInactiveLongEnough check whether the user has been inactive for too long
-//nolint:unparam
-func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
+func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) { //nolint:unparam
 	maxInactivityPeriod := int64(ctx.Providers.SessionProvider.Inactivity.Seconds())
 	if maxInactivityPeriod == 0 {
 		return false, nil
@@ -175,8 +173,7 @@ func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
 }
 
 // verifyFromSessionCookie verify if a user identified by a cookie is allowed to access target URL
-//nolint:unparam
-func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) {
+func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
 	userSession := ctx.GetSession()
 	// No username in the session means the user is anonymous
 	isUserAnonymous := userSession.Username == ""

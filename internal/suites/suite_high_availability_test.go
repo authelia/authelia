@@ -133,9 +133,8 @@ var expectedAuthorizations = map[string](map[string]bool){
 	},
 }
 
-//nolint:unparam
 func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
-	verifyUserIsAuthorized := func(ctx context.Context, t *testing.T, username, targetURL string, authorized bool) {
+	verifyUserIsAuthorized := func(ctx context.Context, t *testing.T, username, targetURL string, authorized bool) { //nolint:unparam
 		s.doVisit(t, targetURL)
 		s.verifyURLIs(ctx, t, targetURL)
 		if authorized {
