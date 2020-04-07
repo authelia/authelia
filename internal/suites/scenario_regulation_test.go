@@ -67,7 +67,6 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 
 	time.Sleep(1 * time.Second)
 	s.verifyIsFirstFactorPage(ctx, s.T())
-
 	time.Sleep(9 * time.Second)
 
 	// Enter the correct password and test a successful login
