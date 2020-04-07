@@ -10,7 +10,6 @@ import (
 	"github.com/authelia/authelia/internal/models"
 
 	"github.com/golang/mock/gomock"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -29,13 +28,6 @@ func (s *FirstFactorSuite) SetupTest() {
 
 func (s *FirstFactorSuite) TearDownTest() {
 	s.mock.Close()
-}
-
-func (s *FirstFactorSuite) assertError500(err string) {
-	assert.Equal(s.T(), 500, s.mock.Ctx.Response.StatusCode())
-	assert.Equal(s.T(), []byte(InternalError), s.mock.Ctx.Response.Body())
-	assert.Equal(s.T(), err, s.mock.Hook.LastEntry().Message)
-	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {

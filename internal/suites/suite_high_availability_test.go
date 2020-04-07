@@ -161,7 +161,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 		}
 	}
 
-	for _, user := range []string{UserJohn, UserBob, UserHarry} {
+	for _, user := range Users {
 		s.T().Run(user, verifyAuthorization(user))
 	}
 }
