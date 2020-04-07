@@ -126,7 +126,7 @@ func migrateMongoTOTPDevices(db *mongo.Database, dbProvider storage.Provider) {
 }
 
 func migrateMongoPreferences(db *mongo.Database, dbProvider storage.Provider) {
-	u2fCollection := db.Collection("prefered_2fa_method")
+	u2fCollection := db.Collection("prefered_2fa_method") //nolint:misspell
 
 	cur, err := u2fCollection.Find(context.Background(), bson.D{})
 	if err != nil {

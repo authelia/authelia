@@ -1,8 +1,5 @@
 run:
   timeout: 3m
-  skip-files:
-    - "migration_local.go$"
-    - "migration_mongo.go$"
 
 linters-settings:
   gocyclo:
