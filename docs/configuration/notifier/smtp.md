@@ -16,7 +16,7 @@ It can be configured as described below.
 #
 # Notifications are sent to users when they require a password reset, a u2f
 # registration or a TOTP registration.
-# Use only an available configuration: filesystem, gmail
+# Use only an available configuration: filesystem, smtp
 notifier:
   # For testing purpose, notifications can be sent in a file
   ## filesystem:
