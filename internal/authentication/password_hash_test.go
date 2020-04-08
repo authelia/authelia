@@ -17,7 +17,7 @@ func TestShouldHashSHA512Password(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	code, parameters, salt, hash, err := crypt.DecodeSettings(hash)
+	code, parameters, salt, hash, _ := crypt.DecodeSettings(hash)
 
 	assert.Equal(t, "6", code)
 	assert.Equal(t, "aFr56HjK3DrB8t3S", salt)

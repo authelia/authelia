@@ -13,7 +13,7 @@ import (
 // to complete the U2F registration.
 func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 	responseBody := u2f.RegisterResponse{}
-	err := ctx.ParseBody(&responseBody)
+	_ = ctx.ParseBody(&responseBody)
 
 	userSession := ctx.GetSession()
 
