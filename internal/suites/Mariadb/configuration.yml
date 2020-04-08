@@ -4,7 +4,7 @@
 
 port: 9091
 
-logs_level: debug
+log_level: debug
 
 default_redirection_url: https://home.example.com:8080/
 
@@ -19,6 +19,7 @@ session:
   domain: example.com
   expiration: 3600 # 1 hour
   inactivity: 300 # 5 minutes
+  remember_me_duration: 1y
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:

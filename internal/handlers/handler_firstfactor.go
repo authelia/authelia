@@ -2,11 +2,9 @@ package handlers
 
 import (
 	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/session"
@@ -76,9 +74,12 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	// set the cookie to expire in 1 year if "Remember me" was ticked.
-	if *bodyJSON.KeepMeLoggedIn {
-		err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, time.Duration(31556952 * time.Second))
+	// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data
+	keepMeLoggedIn := ctx.Providers.SessionProvider.RememberMe != 0 && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
+
+	// Set the cookie to expire if remember me is enabled and the user has asked us to
+	if keepMeLoggedIn {
+		err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, ctx.Providers.SessionProvider.RememberMe)
 		if err != nil {
 			ctx.Error(fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
 			return
@@ -97,12 +98,12 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 
 	// And set those information in the new session.
 	userSession := ctx.GetSession()
-	userSession.Username = bodyJSON.Username
+	userSession.Username = userDetails.Username
 	userSession.Groups = userDetails.Groups
 	userSession.Emails = userDetails.Emails
 	userSession.AuthenticationLevel = authentication.OneFactor
 	userSession.LastActivity = time.Now().Unix()
-	userSession.KeepMeLoggedIn = *bodyJSON.KeepMeLoggedIn
+	userSession.KeepMeLoggedIn = keepMeLoggedIn
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {
@@ -110,30 +111,5 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if bodyJSON.TargetURL != "" {
-		targetURL, err := url.ParseRequestURI(bodyJSON.TargetURL)
-		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to parse target URL %s: %s", bodyJSON.TargetURL, err), authenticationFailedMessage)
-			return
-		}
-		requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(authorization.Subject{
-			Username: userSession.Username,
-			Groups:   userSession.Groups,
-			IP:       ctx.RemoteIP(),
-		}, *targetURL)
-
-		ctx.Logger.Debugf("Required level for the URL %s is %d", targetURL.String(), requiredLevel)
-
-		safeRedirection := isRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain)
-
-		if safeRedirection && requiredLevel <= authorization.OneFactor {
-			ctx.Logger.Debugf("Redirection is safe, redirecting...")
-			response := redirectResponse{bodyJSON.TargetURL}
-			ctx.SetJSONBody(response)
-		} else {
-			ctx.ReplyOK()
-		}
-	} else {
-		ctx.ReplyOK()
-	}
+	Handle1FAResponse(ctx, bodyJSON.TargetURL, userSession.Username, userSession.Groups)
 }

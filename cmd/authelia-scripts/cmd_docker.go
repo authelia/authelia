@@ -7,16 +7,16 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 var arch string
 
-var supportedArch = []string{"amd64", "arm32v7", "arm64v8"}
+var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "darwin"}
 var defaultArch = "amd64"
-var buildkite = os.Getenv("BUILDKITE")
 var buildkiteQEMU = os.Getenv("BUILDKITE_AGENT_META_DATA_QEMU")
 var ciBranch = os.Getenv("BUILDKITE_BRANCH")
 var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
@@ -45,7 +45,7 @@ func dockerBuildOfficialImage(arch string) error {
 	// Set default Architecture Dockerfile to amd64
 	dockerfile := "Dockerfile"
 	// Set version of QEMU
-	qemuversion := "v4.2.0-2"
+	qemuversion := "v4.2.0-6"
 
 	// If not the default value
 	if arch != defaultArch {
@@ -145,10 +145,6 @@ func login(docker *Docker) {
 	username := os.Getenv("DOCKER_USERNAME")
 	password := os.Getenv("DOCKER_PASSWORD")
 
-	if buildkite == "true" {
-		return
-	}
-
 	if username == "" {
 		log.Fatal(errors.New("DOCKER_USERNAME is empty"))
 	}
@@ -203,16 +199,7 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 func publishDockerImage(arch string) {
 	docker := &Docker{}
 
-	if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
-		login(docker)
-		deploy(docker, ciBranch+"-"+arch)
-	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
-		login(docker)
-		deploy(docker, "PR"+ciPullRequest+"-"+arch)
-	} else if ciBranch == "master" && ciPullRequest == "false" {
-		login(docker)
-		deploy(docker, "master-"+arch)
-	} else if ciTag != "" {
+	if ciTag != "" {
 		if len(tags) == 4 {
 			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 
@@ -226,6 +213,15 @@ func publishDockerImage(arch string) {
 		} else {
 			log.Fatal("Docker image will not be published, the specified tag does not conform to the standard")
 		}
+	} else if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deploy(docker, ciBranch+"-"+arch)
+	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deploy(docker, "PR"+ciPullRequest+"-"+arch)
+	} else if ciBranch == "master" && ciPullRequest == "false" {
+		login(docker)
+		deploy(docker, "master-"+arch)
 	} else {
 		log.Info("Docker image will not be published")
 	}
@@ -234,17 +230,7 @@ func publishDockerImage(arch string) {
 func publishDockerManifest() {
 	docker := &Docker{}
 
-	if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
-		login(docker)
-		deployManifest(docker, ciBranch, ciBranch+"-amd64", ciBranch+"-arm32v7", ciBranch+"-arm64v8")
-	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
-		login(docker)
-		deployManifest(docker, "PR"+ciPullRequest, "PR"+ciPullRequest+"-amd64", "PR"+ciPullRequest+"-arm32v7", "PR"+ciPullRequest+"-arm64v8")
-	} else if ciBranch == "master" && ciPullRequest == "false" {
-		login(docker)
-		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
-		publishDockerReadme(docker)
-	} else if ciTag != "" {
+	if ciTag != "" {
 		if len(tags) == 4 {
 			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 
@@ -262,6 +248,16 @@ func publishDockerManifest() {
 		} else {
 			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
 		}
+	} else if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deployManifest(docker, ciBranch, ciBranch+"-amd64", ciBranch+"-arm32v7", ciBranch+"-arm64v8")
+	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
+		login(docker)
+		deployManifest(docker, "PR"+ciPullRequest, "PR"+ciPullRequest+"-amd64", "PR"+ciPullRequest+"-arm32v7", "PR"+ciPullRequest+"-arm64v8")
+	} else if ciBranch == "master" && ciPullRequest == "false" {
+		login(docker)
+		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
+		publishDockerReadme(docker)
 	} else {
 		log.Info("Docker manifest will not be published")
 	}

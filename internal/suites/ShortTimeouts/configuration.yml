@@ -4,7 +4,7 @@
 
 port: 9091
 
-logs_level: debug
+log_level: debug
 
 jwt_secret: unsecure_secret
 
@@ -19,6 +19,7 @@ session:
   domain: example.com
   inactivity: 5
   expiration: 8
+  remember_me_duration: 1y
 
 storage:
   local:

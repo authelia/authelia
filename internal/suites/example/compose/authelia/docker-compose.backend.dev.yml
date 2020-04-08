@@ -1,0 +1,25 @@
+version: '3'
+services:
+  authelia-backend:
+    build:
+      context: example/compose/authelia
+      dockerfile: Dockerfile.backend
+      args:
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+    command: /resources/entrypoint-backend.sh
+    working_dir: /app
+    volumes:
+      - './example/compose/authelia/resources/:/resources'
+      - '../..:/app'
+      - '${GOPATH}:/go'
+    labels:
+      - 'traefik.frontend.rule=Host:login.example.com;PathPrefix:/api'
+      - 'traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) && PathPrefix(`/api`)'
+      - 'traefik.http.routers.authelia_backend.entrypoints=https'
+      - 'traefik.http.routers.authelia_backend.tls=true'
+    environment:
+      - ENVIRONMENT=dev
+    networks:
+      authelianet:
+        ipv4_address: 192.168.240.50

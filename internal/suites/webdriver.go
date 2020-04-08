@@ -27,8 +27,13 @@ func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) 
 		return nil, err
 	}
 
+	browserPath := os.Getenv("BROWSER_PATH")
+	if browserPath == "" {
+		browserPath = "/usr/bin/chromium-browser"
+	}
+
 	chromeCaps := chrome.Capabilities{
-		Path: "/usr/bin/chromium-browser",
+		Path: browserPath,
 	}
 
 	chromeCaps.Args = append(chromeCaps.Args, "--ignore-certificate-errors")

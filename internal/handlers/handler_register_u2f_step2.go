@@ -4,8 +4,9 @@ import (
 	"crypto/elliptic"
 	"fmt"
 
-	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/tstranex/u2f"
+
+	"github.com/authelia/authelia/internal/middlewares"
 )
 
 // SecondFactorU2FRegister handler validating the client has successfully validated the challenge
@@ -30,11 +31,6 @@ func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to verify U2F registration: %v", err), unableToRegisterSecurityKeyMessage)
-		return
-	}
-
-	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to marshal U2F registration data: %v", err), unableToRegisterSecurityKeyMessage)
 		return
 	}
 

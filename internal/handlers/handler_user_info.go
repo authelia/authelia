@@ -5,11 +5,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/storage"
 	"github.com/authelia/authelia/internal/utils"
-	"github.com/sirupsen/logrus"
 )
 
 func loadInfo(username string, storageProvider storage.Provider, preferences *UserPreferences, logger *logrus.Entry) []error {

@@ -5,13 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/mocks"
-	"github.com/authelia/authelia/internal/session"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/session"
 )
 
 func newArgs(retriever func(ctx *middlewares.AutheliaCtx) (*session.Identity, error)) middlewares.IdentityVerificationStartArgs {
@@ -42,7 +43,6 @@ func TestShouldFailStartingProcessIfUserHasNoEmailAddress(t *testing.T) {
 
 	middlewares.IdentityVerificationStart(newArgs(retriever))(mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "User does not have any email", mock.Hook.LastEntry().Message)
 }
@@ -60,7 +60,6 @@ func TestShouldFailIfJWTCannotBeSaved(t *testing.T) {
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "cannot save", mock.Hook.LastEntry().Message)
 }
@@ -70,6 +69,8 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	defer mock.Close()
 
 	mock.Ctx.Configuration.JWTSecret = "abc"
+	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
+	mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
 
 	mock.StorageProviderMock.EXPECT().
 		SaveIdentityVerificationToken(gomock.Any()).
@@ -82,9 +83,44 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
-	// Return 200 KO
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "no notif", mock.Hook.LastEntry().Message)
+}
+
+func TestShouldFailWhenXForwardedProtoHeaderIsMissing(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Configuration.JWTSecret = "abc"
+	mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
+
+	mock.StorageProviderMock.EXPECT().
+		SaveIdentityVerificationToken(gomock.Any()).
+		Return(nil)
+
+	args := newArgs(defaultRetriever)
+	middlewares.IdentityVerificationStart(args)(mock.Ctx)
+
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, "Missing header X-Fowarded-Proto", mock.Hook.LastEntry().Message)
+}
+
+func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Configuration.JWTSecret = "abc"
+	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
+
+	mock.StorageProviderMock.EXPECT().
+		SaveIdentityVerificationToken(gomock.Any()).
+		Return(nil)
+
+	args := newArgs(defaultRetriever)
+	middlewares.IdentityVerificationStart(args)(mock.Ctx)
+
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, "Missing header X-Fowarded-Host", mock.Hook.LastEntry().Message)
 }
 
 func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
@@ -92,6 +128,8 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	defer mock.Close()
 
 	mock.Ctx.Configuration.JWTSecret = "abc"
+	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
+	mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
 
 	mock.StorageProviderMock.EXPECT().
 		SaveIdentityVerificationToken(gomock.Any()).

@@ -56,7 +56,7 @@ func (s *ResetPasswordScenario) TestShouldResetPassword() {
 
 	// Try to login with the old password
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
-	s.verifyNotificationDisplayed(ctx, s.T(), "There was a problem. Username or password might be incorrect.")
+	s.verifyNotificationDisplayed(ctx, s.T(), "Incorrect username or password.")
 
 	// Try to login with the new password
 	s.doLoginOneFactor(ctx, s.T(), "john", "abc", false, "")

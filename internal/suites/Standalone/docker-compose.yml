@@ -5,5 +5,8 @@ services:
       - AUTHELIA_JWT_SECRET=very_important_secret
       - AUTHELIA_SESSION_SECRET=unsecure_session_secret
     volumes:
-      - './internal/suites/Standalone/configuration.yml:/etc/authelia/configuration.yml:ro'
-      - './internal/suites/Standalone/users.yml:/var/lib/authelia/users.yml'
+      - './Standalone/configuration.yml:/etc/authelia/configuration.yml:ro'
+      - './Standalone/users.yml:/var/lib/authelia/users.yml'
+      - './Standalone/ssl:/var/lib/authelia/ssl'
+      - '/tmp:/tmp'
+    user: ${USER_ID}:${GROUP_ID}

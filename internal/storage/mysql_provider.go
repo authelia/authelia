@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 
+	_ "github.com/go-sql-driver/mysql" // Load the MySQL Driver used in the connection string.
+
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
-	_ "github.com/go-sql-driver/mysql" // Load the MySQL Driver used in the connection string.
 )
 
 // MySQLProvider is a MySQL provider
@@ -43,6 +44,12 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 
 	provider := MySQLProvider{
 		SQLProvider{
+			sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
+			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
+			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
+			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
+			sqlCreateAuthenticationLogsTable:         SQLCreateAuthenticationLogsTable,
+
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", preferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", preferencesTableName),
 

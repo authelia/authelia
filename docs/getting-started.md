@@ -1,73 +1,34 @@
+---
+layout: default
+title: Getting Started
+nav_order: 2
+---
+
 # Getting Started
 
-**Authelia** can be tested in a matter of seconds with Docker and docker-compose.
+## Docker Compose
 
-In order to deploy the current version of Authelia locally, run the following
-command and follow the instructions of bootstrap.sh:
+### Steps
 
-    $ source bootstrap.sh
+These commands are intended to be run sequentially:
 
-Then, start the *Standalone* [suite].
+- `git clone https://github.com/authelia/authelia.git`
+- `cd authelia/compose/local`
+- `sudo ./setup.sh` *sudo is required to modify the `/etc/hosts` file*
 
-    $ authelia-scripts suites setup Standalone
+You can now visit the following locations; replace example.com with the domain you specified in the setup script:
+- https://public.example.com - Bypasses Authelia
+- https://traefik.example.com - Secured with Authelia one-factor authentication
+- https://secure.example.com - Secured with Authelia two-factor authentication (see note below)
 
-A [suite] is kind of a virtual environment for running Authelia in a complete ecosystem.
-If you want more details please read the related [documentation](./suites.md).
+You will need to authorize the self-signed certificate upon visiting each domain.
+To visit https://secure.example.com you will need to register a device for second factor authentication and confirm by clicking on a link sent by email.
+Since this is a demo with a fake email address, the content of the email will be stored in `./authelia/notification.txt`.
+Upon registering, you can grab this link easily by running the following command: `grep -Eo '"https://.*" ' ./authelia/notification.txt`.
 
-## Test it!
+## Deployment
 
-After few seconds the services should be running and you should be able to
-visit [https://home.example.com:8080/](https://home.example.com:8080/).
-
-When accessing the login page, since this is a test environment a
-self-signed certificate exception should appear, it has to be trusted
-before you can get to the home page.
-The certificate must also be trusted for each subdomain, therefore it is
-normal to see this exception several times.
-
-Below is what the login page looks like after you accepted all exceptions:
-
-<p align="center">
-  <img src="../docs/images/1FA.png" width="400">
-</p>
-
-You can use one of the users listed in
-[https://home.example.com:8080/](https://home.example.com:8080/).
-The rights granted to each user and group is also provided in the page as
-a list of rules.
-
-At some point, you'll be required to register your second factor device.
-Since your security is **Authelia**'s priority, it will send 
-an email to the email address of the user to confirm the user identity.
-Since you are running a test environment, a fake webmail called
-*MailCatcher* has been deployed for you to check out the email and
-confirm your identity.
-The webmail is accessible at
-[http://mail.example.com:8080](http://mail.example.com:8080).
-
-Enjoy!
-
-## FAQ
-
-### What version of Docker and docker-compose should I use?
-
-Here are the versions used for testing in Buildkite:
-
-    $ docker --version
-    Docker version 19.03.5, build 633a0ea838
-
-    $ docker-compose --version
-    docker-compose version 1.24.1, build unknown
-
-### How am I supposed to access the subdomains of example.com?
-
-In order to test Authelia, Authelia fakes your browser by adding entries
-in /etc/hosts when you first source the bootstrap.sh script.
-
-### What should I do if I want to contribute?
-
-You can refer to the dedicated documentation [here](./build-and-dev.md).
-
-[config.template.yml]: ../config.template.yml
-[DockerHub]: https://hub.docker.com/r/authelia/authelia/
-[suite]: ./suites.md
+So you're convinced that Authelia is what you need. You can head to the deployment documentation [here](./deployment/index.md).
+Some recipes have been crafted for helping with the bootstrap of your environment.
+You can choose between a [lite](./deployment/deployment-lite.md) deployment which is deployment advised for a single server setup.
+However, this setup just does not scale. If you want a full environment that can scale out, use the [HA](./deployment/deployment-ha.md) or [Kubernetes](./deployment/deployment-kubernetes.md) deployment documentation.

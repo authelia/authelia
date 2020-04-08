@@ -5,14 +5,15 @@ import (
 	"os"
 	"path"
 
+	duoapi "github.com/duosecurity/duo_api_golang"
+	"github.com/fasthttp/router"
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/duo"
 	"github.com/authelia/authelia/internal/handlers"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
-	duoapi "github.com/duosecurity/duo_api_golang"
-	"github.com/fasthttp/router"
-	"github.com/valyala/fasthttp"
 )
 
 // StartServer start Authelia server with the given configuration and providers.
@@ -25,7 +26,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	if publicDir == "" {
 		publicDir = "./public_html"
 	}
-	fmt.Println("Selected public_html directory is ", publicDir)
+	logging.Logger().Infof("Selected public_html directory is %s", publicDir)
 
 	router.GET("/", fasthttp.FSHandler(publicDir, 0))
 	router.ServeFiles("/static/*filepath", publicDir+"/static")
@@ -41,13 +42,16 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	router.POST("/api/firstfactor", autheliaMiddleware(handlers.FirstFactorPost))
 	router.POST("/api/logout", autheliaMiddleware(handlers.LogoutPost))
 
-	// Password reset related endpoints.
-	router.POST("/api/reset-password/identity/start", autheliaMiddleware(
-		handlers.ResetPasswordIdentityStart))
-	router.POST("/api/reset-password/identity/finish", autheliaMiddleware(
-		handlers.ResetPasswordIdentityFinish))
-	router.POST("/api/reset-password", autheliaMiddleware(
-		handlers.ResetPasswordPost))
+	// only register endpoints if forgot password is not disabled
+	if !configuration.AuthenticationBackend.DisableResetPassword {
+		// Password reset related endpoints.
+		router.POST("/api/reset-password/identity/start", autheliaMiddleware(
+			handlers.ResetPasswordIdentityStart))
+		router.POST("/api/reset-password/identity/finish", autheliaMiddleware(
+			handlers.ResetPasswordIdentityFinish))
+		router.POST("/api/reset-password", autheliaMiddleware(
+			handlers.ResetPasswordPost))
+	}
 
 	// Information about the user
 	router.GET("/api/user/info", autheliaMiddleware(
@@ -61,7 +65,10 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	router.POST("/api/secondfactor/totp/identity/finish", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityFinish)))
 	router.POST("/api/secondfactor/totp", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost)))
+		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost(&handlers.TOTPVerifierImpl{
+			Period: uint(configuration.TOTP.Period),
+			Skew:   uint(*configuration.TOTP.Skew),
+		}))))
 
 	// U2F related endpoints
 	router.POST("/api/secondfactor/u2f/identity/start", autheliaMiddleware(
@@ -74,8 +81,9 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	router.POST("/api/secondfactor/u2f/sign_request", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignGet)))
+
 	router.POST("/api/secondfactor/u2f/sign", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignPost)))
+		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignPost(&handlers.U2FVerifierImpl{}))))
 
 	// Configure DUO api endpoint only if configuration exists
 	if configuration.DuoAPI != nil {
@@ -100,9 +108,18 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		ctx.SendFile(path.Join(publicDir, "index.html"))
 	}
 
-	portPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
-	logging.Logger().Infof("Authelia is listening on %s", portPattern)
+	addrPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
 
-	logging.Logger().Fatal(fasthttp.ListenAndServe(portPattern,
-		middlewares.LogRequestMiddleware(router.Handler)))
+	if configuration.TLSCert != "" && configuration.TLSKey != "" {
+		logging.Logger().Infof("Authelia is listening for TLS connections on %s", addrPattern)
+
+		logging.Logger().Fatal(fasthttp.ListenAndServeTLS(addrPattern,
+			configuration.TLSCert, configuration.TLSKey,
+			middlewares.LogRequestMiddleware(router.Handler)))
+	} else {
+		logging.Logger().Infof("Authelia is listening for non-TLS connections on %s", addrPattern)
+
+		logging.Logger().Fatal(fasthttp.ListenAndServe(addrPattern,
+			middlewares.LogRequestMiddleware(router.Handler)))
+	}
 }

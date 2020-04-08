@@ -1,0 +1,69 @@
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+port: 9091
+
+log_level: debug
+
+default_redirection_url: https://home.example.com:8080/
+
+jwt_secret: very_important_secret
+
+authentication_backend:
+  file:
+    path: /var/lib/authelia/users.yml
+
+session:
+  secret: unsecure_session_secret
+  domain: example.com
+  expiration: 3600 # 1 hour
+  inactivity: 300 # 5 minutes
+  remember_me_duration: 1y
+
+# Configuration of the storage backend used to store data and secrets. i.e. totp data
+storage:
+  mysql:
+    host: mysql
+    port: 3306
+    database: authelia
+    username: admin
+    password: password
+
+# TOTP Issuer Name
+#
+# This will be the issuer name displayed in Google Authenticator
+# See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
+totp:
+  issuer: example.com
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: "public.example.com"
+      policy: bypass
+    - domain: "admin.example.com"
+      policy: two_factor
+    - domain: "secure.example.com"
+      policy: two_factor
+    - domain: "singlefactor.example.com"
+      policy: one_factor
+
+# Configuration of the authentication regulation mechanism.
+regulation:
+  # Set it to 0 to disable max_retries.
+  max_retries: 3
+
+  # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
+  find_time: 8
+
+  # The length of time before a banned user can login again.
+  ban_time: 10
+
+notifier:
+  # Use a SMTP server for sending notifications
+  smtp:
+    host: smtp
+    port: 1025
+    sender: admin@example.com
+    disable_require_tls: true

@@ -9,4 +9,5 @@ const InternalError = "Internal error."
 // UnauthorizedError is the error message sent when the user is not authorized.
 const UnauthorizedError = "You're not authorized."
 
-var errMissingHeadersForTargetURL = errors.New("Missing headers for detecting target URL")
+var errMissingXForwardedHost = errors.New("Missing header X-Fowarded-Host")
+var errMissingXForwardedProto = errors.New("Missing header X-Fowarded-Proto")

@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/authelia/authelia/internal/templates"
 	jwt "github.com/dgrijalva/jwt-go"
+
+	"github.com/authelia/authelia/internal/templates"
 )
 
 // IdentityVerificationStart the handler for initiating the identity validation process.
@@ -46,6 +47,16 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 		err = ctx.Providers.StorageProvider.SaveIdentityVerificationToken(ss)
 		if err != nil {
 			ctx.Error(err, operationFailedMessage)
+			return
+		}
+
+		if ctx.XForwardedProto() == nil {
+			ctx.Error(errMissingXForwardedProto, operationFailedMessage)
+			return
+		}
+
+		if ctx.XForwardedHost() == nil {
+			ctx.Error(errMissingXForwardedHost, operationFailedMessage)
 			return
 		}
 

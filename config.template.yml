@@ -5,12 +5,17 @@
 # The host and port to listen on
 host: 0.0.0.0
 port: 9091
+# tls_key: /var/lib/authelia/ssl/key.pem
+# tls_cert: /var/lib/authelia/ssl/cert.pem
 
 # Level of verbosity for logs: info, debug, trace
-logs_level: debug
+log_level: debug
+## File path where the logs will be written. If not set logs are written to stdout.
+# log_file_path: /var/log/authelia
 
 # The secret used to generate JWT tokens when validating user identity by
 # email confirmation.
+# This secret can also be set using the env variables AUTHELIA_JWT_SECRET
 jwt_secret: a_very_important_secret
 
 # Default redirection URL
@@ -30,12 +35,21 @@ default_redirection_url: https://home.example.com:8080/
 #
 ## google_analytics: UA-00000-01
 
-# TOTP Issuer Name
+# TOTP Settings
 #
-# This will be the issuer name displayed in Google Authenticator
-# See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
+# Parameters used for TOTP generation
 totp:
+  # The issuer name displayed in the Authenticator application of your choice
+  # See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
   issuer: authelia.com
+  # The period in seconds a one-time password is current for. Changing this will require all users to register
+  # their TOTP applications again.
+  # Warning: before changing period read the docs link below.
+  period: 30
+  # The skew controls number of one-time passwords either side of the current one that are valid.
+  # Warning: before changing skew read the docs link below.
+  skew: 1
+  #  See: https://docs.authelia.com/configuration/one-time-password.html#period-and-skew to read the documentation.
 
 # Duo Push API
 #
@@ -44,14 +58,18 @@ totp:
 duo_api:
   hostname: api-123456789.example.com
   integration_key: ABCDEF
+  # This secret can also be set using the env variables AUTHELIA_DUO_API_SECRET_KEY
   secret_key: 1234567890abcdefghifjkl
 
 # The authentication backend to use for verifying user passwords
 # and retrieve information such as email address and groups
 # users belong to.
 #
-# There are two supported backends: `ldap` and `file`.
+# There are two supported backends: 'ldap' and 'file'.
 authentication_backend:
+  # Disable both the HTML element and the API for reset password functionality
+  disable_reset_password: false
+
   # LDAP backend configuration.
   #
   # This backend allows Authelia to be scaled to more
@@ -60,37 +78,60 @@ authentication_backend:
   ldap:
     # The url to the ldap server. Scheme can be ldap:// or ldaps://
     url: ldap://127.0.0.1
+    
     # Skip verifying the server certificate (to allow self-signed certificate).
     skip_verify: false
+    
     # The base dn for every entries
     base_dn: dc=example,dc=com
-
+    
+    # The attribute holding the username of the user. This attribute is used to populate
+    # the username in the session information. It was introduced due to #561 to handle case
+    # insensitive search queries.
+    # For you information, Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP
+    # usually uses 'uid'
+    username_attribute: uid
+    
     # An additional dn to define the scope to all users
     additional_users_dn: ou=users
 
-    # The users filter used to find the user DN
-    # {0} is a matcher replaced by username.
-    # 'cn={0}' by default.
-    users_filter: (cn={0})
+    # The users filter used in search queries to find the user profile based on input filled in login form.
+    # Various placeholders are available to represent the user input and back reference other options of the configuration:
+    # - {input} is a placeholder replaced by what the user inputs in the login form. 
+    # - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
+    # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
+    # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
+    #
+    # Recommended settings are as follows:
+    # - Microsoft Active Directory: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
+    # - OpenLDAP: (&({username_attribute}={input})(objectClass=person))' or '(&({username_attribute}={input})(objectClass=inetOrgPerson))
+    #
+    # To allow sign in both with username and email, one can use a filter like
+    # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
+    users_filter: (&({username_attribute}={input})(objectClass=person))
 
     # An additional dn to define the scope of groups
     additional_groups_dn: ou=groups
-
-    # The groups filter used for retrieving groups of a given user.
-    # {0} is a matcher replaced by username.
-    # {dn} is a matcher replaced by user DN.
-    # {uid} is a matcher replaced by user uid.
-    # 'member={dn}' by default.
+    
+    # The groups filter used in search queries to find the groups of the user.
+    # - {input} is a placeholder replaced by what the user inputs in the login form.
+    # - {username} is a placeholder replace by the username stored in LDAP (based on `username_attribute`).
+    # - {dn} is a matcher replaced by the user distinguished name, aka, user DN.
+    # - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
+    # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
+    # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
+    # - DON'T USE - {1} is an alias for {username} supported for backward compatibility but it will be deprecated in later version, so please don't use it.
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
-
+    
     # The attribute holding the name of the group
     group_name_attribute: cn
-
+    
     # The attribute holding the mail address of the user
     mail_attribute: mail
-
+    
     # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
+    # This secret can also be set using the env variables AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD
     password: password
 
   # File backend configuration.
@@ -99,17 +140,27 @@ authentication_backend:
   # which is updated when users reset their passwords.
   # Therefore, this backend is meant to be used in a dev environment
   # and not in production since it prevents Authelia to be scaled to
-  # more than one instance.
+  # more than one instance. The options under password_options have sane
+  # defaults, and as it has security implications it is highly recommended
+  # you leave the default values. Before considering changing these settings
+  # please read the docs page below:
+  # https://docs.authelia.com/configuration/authentication/file.html#password-hash-algorithm-tuning
   #
   ## file:
   ##   path: ./users_database.yml
-
+  ##   password_options:
+  ##     algorithm: argon2id
+  ##     iterations: 1
+  ##     key_length: 32
+  ##     salt_length: 16
+  ##     memory: 1024
+  ##     parallelism: 8
 # Access Control
 #
 # Access control is a list of rules defining the authorizations applied for one
 # resource to users or group of users.
 #
-# If 'access_control' is not defined, ACL rules are disabled and the `bypass`
+# If 'access_control' is not defined, ACL rules are disabled and the 'bypass'
 # rule is applied, i.e., access is allowed to anyone. Otherwise restrictions follow
 # the rules defined.
 #
@@ -119,27 +170,27 @@ authentication_backend:
 # Note: You must put patterns containing wildcards between simple quotes for the YAML
 # to be syntactically correct.
 #
-# Definition: A `rule` is an object with the following keys: `domain`, `subject`,
-# `policy` and `resources`.
+# Definition: A 'rule' is an object with the following keys: 'domain', 'subject',
+# 'policy' and 'resources'.
 #
-# - `domain` defines which domain or set of domains the rule applies to.
+# - 'domain' defines which domain or set of domains the rule applies to.
 #
-# - `subject` defines the subject to apply authorizations to. This parameter is
+# - 'subject' defines the subject to apply authorizations to. This parameter is
 #    optional and matching any user if not provided. If provided, the parameter
 #    represents either a user or a group. It should be of the form 'user:<username>'
 #    or 'group:<groupname>'.
 #
-# - `policy` is the policy to apply to resources. It must be either `bypass`,
-#   `one_factor`, `two_factor` or `deny`.
+# - 'policy' is the policy to apply to resources. It must be either 'bypass',
+#   'one_factor', 'two_factor' or 'deny'.
 #
-# - `resources` is a list of regular expressions that matches a set of resources to
+# - 'resources' is a list of regular expressions that matches a set of resources to
 #    apply the policy to. This parameter is optional and matches any resource if not
 #    provided.
 #
 # Note: the order of the rules is important. The first policy matching
 # (domain, resource, subject) applies.
 access_control:
-  # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
+  # Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'.
   # It is the policy applied to any resource if there is no policy to be applied
   # to the user.
   default_policy: deny
@@ -206,14 +257,22 @@ session:
   # The name of the session cookie. (default: authelia_session).
   name: authelia_session
 
-  # The secret to encrypt the session cookie.
-  secret: unsecure_session_secret
+  # The secret to encrypt the session data. This is only used with Redis.
+  # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET
+  secret: insecure_session_secret
 
   # The time in seconds before the cookie expires and session is reset.
-  expiration: 3600 # 1 hour
+  expiration: 1h
 
   # The inactivity time in seconds before the session is reset.
-  inactivity: 300 # 5 minutes
+  inactivity: 5m
+
+  # The remember me duration.
+  # Value of 0 disables remember me.
+  # Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+  # Longer periods are considered less secure because a stolen cookie will last longer giving attackers more time to spy
+  # or attack. Currently the default is 1M or 1 month.
+  remember_me_duration: 1M
 
   # The domain to protect.
   # Note: the authenticator must also be in that domain. If empty, the cookie
@@ -224,7 +283,10 @@ session:
   redis:
     host: 127.0.0.1
     port: 6379
+    # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD
     password: authelia
+    # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
+    database_index: 0
 
 # Configuration of the authentication regulation mechanism.
 #
@@ -237,15 +299,17 @@ regulation:
   max_retries: 3
 
   # The time range during which the user can attempt login before being banned.
-  # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
-  find_time: 120
+  # The user is banned if the authentication failed 'max_retries' times in a 'find_time' seconds window.
+  # Find Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+  find_time: 2m
 
   # The length of time before a banned user can login again.
-  ban_time: 300
+  # Ban Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+  ban_time: 5m
 
 # Configuration of the storage backend used to store data and secrets.
 #
-# You must use only an available configuration: local, sql
+# You must use only an available configuration: local, mysql, postgres
 storage:
   # The directory where the DB files will be saved
   ## local:
@@ -257,6 +321,7 @@ storage:
     port: 3306
     database: authelia
     username: authelia
+    # This secret can also be set using the env variables AUTHELIA_STORAGE_MYSQL_PASSWORD
     password: mypassword
 
   # Settings to connect to MySQL server
@@ -265,6 +330,7 @@ storage:
   #   port: 3306
   #   database: authelia
   #   username: authelia
+  #   # This secret can also be set using the env variables AUTHELIA_STORAGE_POSTGRES_PASSWORD
   #   password: mypassword
 
 # Configuration of the notification system.
@@ -290,6 +356,7 @@ notifier:
   #     - use the disable_verify_cert boolean value to disable the validation (prefer the trusted_cert option as it's more secure)
   smtp:
     username: test
+    # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
     password: password
     host: 127.0.0.1
     port: 1025
@@ -297,10 +364,12 @@ notifier:
     ## disable_require_tls: false
     ## disable_verify_cert: false
     ## trusted_cert: ""
+
   # Sending an email using a Gmail account is as simple as the next section.
   # You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
   ## smtp:
   ##   username: myaccount@gmail.com
+  ##   # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
   ##   password: yourapppassword
   ##   sender: admin@example.com
   ##   host: smtp.gmail.com

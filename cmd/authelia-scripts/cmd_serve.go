@@ -3,9 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // ServeCmd serve authelia with the provided configuration

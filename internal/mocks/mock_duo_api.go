@@ -8,8 +8,10 @@ import (
 	url "net/url"
 	reflect "reflect"
 
-	duo "github.com/authelia/authelia/internal/duo"
 	gomock "github.com/golang/mock/gomock"
+
+	duo "github.com/authelia/authelia/internal/duo"
+	"github.com/authelia/authelia/internal/middlewares"
 )
 
 // MockAPI is a mock of API interface
@@ -36,16 +38,16 @@ func (m *MockAPI) EXPECT() *MockAPIMockRecorder {
 }
 
 // Call mocks base method
-func (m *MockAPI) Call(arg0 url.Values) (*duo.Response, error) {
+func (m *MockAPI) Call(arg0 url.Values, arg1 *middlewares.AutheliaCtx) (*duo.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Call", arg0)
+	ret := m.ctrl.Call(m, "Call", arg0, arg1)
 	ret0, _ := ret[0].(*duo.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Call indicates an expected call of Call
-func (mr *MockAPIMockRecorder) Call(arg0 interface{}) *gomock.Call {
+func (mr *MockAPIMockRecorder) Call(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockAPI)(nil).Call), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockAPI)(nil).Call), arg0, arg1)
 }

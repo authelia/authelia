@@ -6,9 +6,10 @@ import (
 
 	"github.com/authelia/authelia/internal/mocks"
 
-	"github.com/authelia/authelia/internal/authentication"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/internal/authentication"
 )
 
 type StateGetSuite struct {

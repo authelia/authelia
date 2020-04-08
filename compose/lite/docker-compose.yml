@@ -1,0 +1,110 @@
+version: '3.3'
+
+networks:
+  net:
+    driver: bridge
+
+services:
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    volumes:
+      - ./authelia:/var/lib/authelia
+      - ./configuration.yml:/etc/authelia/configuration.yml:ro
+      - ./users_database.yml:/etc/authelia/users_database.yml
+    networks:
+      - net
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.authelia.rule=Host(`auth.example.com`)'
+      - 'traefik.http.routers.authelia.entrypoints=https'
+      - 'traefik.http.routers.authelia.tls=true'
+      - 'traefik.http.routers.authelia.tls.certresolver=letsencrypt'
+      - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://auth.example.com'
+      - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
+    expose:
+      - 9091
+    restart: unless-stopped
+    environment:
+      - TZ=Australia/Melbourne
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    volumes:
+      - ./redis:/data
+    networks:
+      - net
+    expose:
+      - 6379
+    restart: unless-stopped
+    environment:
+      - TZ=Australia/Melbourne
+
+  traefik:
+    image: traefik:v2.2
+    container_name: traefik
+    volumes:
+      - ./traefik/acme.json:/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - net
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.api.rule=Host(`traefik.example.com`)'
+      - 'traefik.http.routers.api.entrypoints=https'
+      - 'traefik.http.routers.api.service=api@internal'
+      - 'traefik.http.routers.api.tls=true'
+      - 'traefik.http.routers.api.tls.certresolver=letsencrypt'
+      - 'traefik.http.routers.api.middlewares=authelia@docker'
+    ports:
+      - 80:80
+      - 443:443
+    command:
+      - '--api'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedByDefault=false'
+      - '--entrypoints.http=true'
+      - '--entrypoints.http.address=:80'
+      - '--entrypoints.http.http.redirections.entrypoint.to=https'
+      - '--entrypoints.http.http.redirections.entrypoint.scheme=https'
+      - '--entrypoints.https=true'
+      - '--entrypoints.https.address=:443'
+      - '--certificatesResolvers.letsencrypt.acme.email=your-email@your-domain.com'
+      - '--certificatesResolvers.letsencrypt.acme.storage=acme.json'
+      - '--certificatesResolvers.letsencrypt.acme.httpChallenge.entryPoint=http'
+      - '--log=true'
+      - '--log.level=DEBUG'
+      - '--log.filepath=/var/log/traefik.log'
+
+  secure:
+    image: containous/whoami
+    container_name: secure
+    networks:
+      - net
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.secure.rule=Host(`secure.example.com`)'
+      - 'traefik.http.routers.secure.entrypoints=https'
+      - 'traefik.http.routers.secure.tls=true'
+      - 'traefik.http.routers.secure.tls.certresolver=letsencrypt'
+      - 'traefik.http.routers.secure.middlewares=authelia@docker'
+    expose:
+      - 80
+    restart: unless-stopped
+
+    public:
+      image: containous/whoami
+      container_name: public
+      networks:
+        - net
+      labels:
+        - 'traefik.enable=true'
+        - 'traefik.http.routers.public.rule=Host(`public.example.com`)'
+        - 'traefik.http.routers.public.entrypoints=https'
+        - 'traefik.http.routers.public.tls=true'
+        - 'traefik.http.routers.public.tls.certresolver=letsencrypt'
+        - 'traefik.http.routers.public.middlewares=authelia@docker'
+      expose:
+        - 80
+      restart: unless-stopped

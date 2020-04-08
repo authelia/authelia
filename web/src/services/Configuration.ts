@@ -9,6 +9,8 @@ export async function getConfiguration(): Promise<Configuration> {
 
 interface ExtendedConfigurationPayload {
     available_methods: Method2FA[];
+    second_factor_enabled: boolean;
+    totp_period: number;
 }
 
 export async function getExtendedConfiguration(): Promise<ExtendedConfiguration> {

@@ -15,14 +15,24 @@ func NewRegulator(configuration *schema.RegulationConfiguration, provider storag
 	regulator := &Regulator{storageProvider: provider}
 	regulator.clock = clock
 	if configuration != nil {
-		if configuration.FindTime > configuration.BanTime {
+		findTime, err := utils.ParseDurationString(configuration.FindTime)
+		if err != nil {
+			panic(err)
+		}
+		banTime, err := utils.ParseDurationString(configuration.BanTime)
+		if err != nil {
+			panic(err)
+		}
+
+		if findTime > banTime {
 			panic(fmt.Errorf("find_time cannot be greater than ban_time"))
 		}
+
 		// Set regulator enabled only if MaxRetries is not 0.
 		regulator.enabled = configuration.MaxRetries > 0
 		regulator.maxRetries = configuration.MaxRetries
-		regulator.findTime = time.Duration(configuration.FindTime) * time.Second
-		regulator.banTime = time.Duration(configuration.BanTime) * time.Second
+		regulator.findTime = findTime
+		regulator.banTime = banTime
 	}
 	return regulator
 }

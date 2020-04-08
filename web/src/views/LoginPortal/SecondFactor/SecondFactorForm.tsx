@@ -44,7 +44,11 @@ export default function (props: Props) {
     const [u2fSupported, setU2fSupported] = useState(false);
 
     // Check that U2F is supported.
-    useEffect(() => { u2fApi.ensureSupport().then(() => setU2fSupported(true)) }, [setU2fSupported]);
+    useEffect(() => {
+        u2fApi.ensureSupport().then(
+            () => setU2fSupported(true),
+            () => console.error("U2F not supported"));
+    }, [setU2fSupported]);
 
     const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>) => {
         return async () => {
@@ -111,6 +115,7 @@ export default function (props: Props) {
                                 authenticationLevel={props.authenticationLevel}
                                 // Whether the user has a TOTP secret registered already
                                 registered={props.userInfo.has_totp}
+                                totp_period={props.configuration.totp_period}
                                 onRegisterClick={initiateRegistration(initiateTOTPRegistrationProcess)}
                                 onSignInError={err => createErrorNotification(err.message)}
                                 onSignInSuccess={props.onAuthenticationSuccess} />

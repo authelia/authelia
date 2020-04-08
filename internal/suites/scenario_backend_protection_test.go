@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+// WARNING: This scenario is intended to be used with TLS enabled in the authelia backend.
+
 type BackendProtectionScenario struct {
 	suite.Suite
 }

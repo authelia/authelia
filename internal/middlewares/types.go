@@ -1,6 +1,10 @@
 package middlewares
 
 import (
+	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -9,9 +13,6 @@ import (
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/storage"
 	"github.com/authelia/authelia/internal/utils"
-	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/sirupsen/logrus"
-	"github.com/valyala/fasthttp"
 )
 
 // AutheliaCtx contains all server variables related to Authelia.
@@ -93,7 +94,7 @@ type IdentityVerificationFinishBody struct {
 // OKResponse model  of a status OK response
 type OKResponse struct {
 	Status string      `json:"status"`
-	Data   interface{} `json:"data"`
+	Data   interface{} `json:"data,omitempty"`
 }
 
 // ErrorResponse model of an error response

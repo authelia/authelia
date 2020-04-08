@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/viper"
+
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/configuration/validator"
-	"github.com/spf13/viper"
 )
 
 func check(e error) {

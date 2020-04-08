@@ -5,10 +5,12 @@
 package storage
 
 import (
-	models "github.com/authelia/authelia/internal/models"
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
+
+	gomock "github.com/golang/mock/gomock"
+
+	models "github.com/authelia/authelia/internal/models"
 )
 
 // MockProvider is a mock of Provider interface

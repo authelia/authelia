@@ -9,9 +9,10 @@ import (
 	"net/smtp"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 // SMTPNotifier a notifier to send emails to SMTP servers.
@@ -199,12 +200,25 @@ func (n *SMTPNotifier) compose(recipient, subject, body string) error {
 // Dial the SMTP server with the SMTPNotifier config.
 func (n *SMTPNotifier) dial() error {
 	log.Debugf("Notifier SMTP client attempting connection to %s", n.address)
-	client, err := smtp.Dial(n.address)
-	if err != nil {
-		return err
+	if n.port == 465 {
+		log.Warnf("Notifier SMTP client configured to connect to a SMTPS server. It's highly recommended you use a non SMTPS port and STARTTLS instead of SMTPS, as the protocol is long deprecated.")
+		conn, err := tls.Dial("tcp", n.address, n.tlsConfig)
+		if err != nil {
+			return err
+		}
+		client, err := smtp.NewClient(conn, n.host)
+		if err != nil {
+			return err
+		}
+		n.client = client
+	} else {
+		client, err := smtp.Dial(n.address)
+		if err != nil {
+			return err
+		}
+		n.client = client
 	}
 	log.Debug("Notifier SMTP client connected successfully")
-	n.client = client
 	return nil
 }
 

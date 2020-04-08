@@ -10,9 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authelia/authelia/internal/storage"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/internal/storage"
 )
 
 type StandaloneWebDriverSuite struct {
@@ -62,10 +63,7 @@ func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed
 	s.doVisit(s.T(), LoginBaseURL)
-	s.verifyIsSecondFactorPage(ctx, s.T())
-
-	// Check whether the success icon is displayed
-	s.WaitElementLocatedByClassName(ctx, s.T(), "success-icon")
+	s.verifyIsAuthenticatedPage(ctx, s.T())
 }
 
 func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() {

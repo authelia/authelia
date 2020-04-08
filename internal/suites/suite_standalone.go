@@ -9,13 +9,13 @@ var standaloneSuiteName = "Standalone"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"docker-compose.yml",
+		"internal/suites/docker-compose.yml",
 		"internal/suites/Standalone/docker-compose.yml",
-		"example/compose/authelia/docker-compose.backend.{}.yml",
-		"example/compose/authelia/docker-compose.frontend.{}.yml",
-		"example/compose/nginx/backend/docker-compose.yml",
-		"example/compose/nginx/portal/docker-compose.yml",
-		"example/compose/smtp/docker-compose.yml",
+		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
+		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
+		"internal/suites/example/compose/nginx/portal/docker-compose.https.yml",
+		"internal/suites/example/compose/smtp/docker-compose.yml",
 	})
 
 	setup := func(suitePath string) error {
@@ -28,7 +28,7 @@ func init() {
 		return waitUntilAutheliaBackendIsReady(dockerEnvironment)
 	}
 
-	onSetupTimeout := func() error {
+	displayAutheliaLogs := func() error {
 		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
 		if err != nil {
 			return err
@@ -51,7 +51,8 @@ func init() {
 	GlobalRegistry.Register(standaloneSuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
-		OnSetupTimeout:  onSetupTimeout,
+		OnError:         displayAutheliaLogs,
+		OnSetupTimeout:  displayAutheliaLogs,
 		TearDown:        teardown,
 		TestTimeout:     3 * time.Minute,
 		TearDownTimeout: 2 * time.Minute,

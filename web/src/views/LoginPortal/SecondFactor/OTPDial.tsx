@@ -10,16 +10,17 @@ import SuccessIcon from "../../../components/SuccessIcon";
 export interface Props {
     passcode: string;
     state: State;
+    period: number
 
     onChange: (passcode: string) => void;
 }
 
 export default function (props: Props) {
     const style = useStyles();
-
     const dial = (
         <span className={style.otpInput} id="otp-input">
             <OtpInput
+                shouldAutoFocus
                 onChange={props.onChange}
                 value={props.passcode}
                 numInputs={6}
@@ -31,7 +32,7 @@ export default function (props: Props) {
 
     return (
         <IconWithContext
-            icon={<Icon state={props.state} />}
+            icon={<Icon state={props.state} period={props.period} />}
             context={dial} />
     )
 }
@@ -61,12 +62,13 @@ const useStyles = makeStyles(theme => ({
 
 interface IconProps {
     state: State;
+    period: number;
 }
 
 function Icon(props: IconProps) {
     return (
         <Fragment>
-            {props.state !== State.Success ? <TimerIcon backgroundColor="#000" color="#FFFFFF" width={64} height={64} /> : null}
+            {props.state !== State.Success ? <TimerIcon backgroundColor="#000" color="#FFFFFF" width={64} height={64} period={props.period} /> : null}
             {props.state === State.Success ? <SuccessIcon /> : null}
         </Fragment>
     )

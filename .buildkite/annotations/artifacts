@@ -1,0 +1,31 @@
+<h4>Artifacts</h4>
+<dl class="flex flex-wrap mxn1">
+  <div class="m1">
+    <dt>amd64</dt>
+    <dd>
+      <a href="artifact://authelia-linux-amd64.tar.gz">authelia-linux-amd64.tar.gz</a><br>
+      <a href="artifact://authelia-linux-amd64.tar.gz.sha256">authelia-linux-amd64.tar.gz.sha256</a>
+    </dd>
+  </div>
+  <div class="m1">
+    <dt>arm32v7</dt>
+    <dd>
+      <a href="artifact://authelia-linux-arm32v7.tar.gz">authelia-linux-arm32v7.tar.gz</a><br>
+      <a href="artifact://authelia-linux-arm32v7.tar.gz.sha256">authelia-linux-arm32v7.tar.gz.sha256</a>
+    </dd>
+  </div>
+  <div class="m1">
+    <dt>arm64v8</dt>
+    <dd>
+      <a href="artifact://authelia-linux-arm64v8.tar.gz">authelia-linux-arm64v8.tar.gz</a><br>
+      <a href="artifact://authelia-linux-arm64v8.tar.gz.sha256">authelia-linux-arm64v8.tar.gz.sha256</a>
+    </dd>
+  </div>
+  <div class="m1">
+      <dt>darwin</dt>
+      <dd>
+        <a href="artifact://authelia-darwin-amd64.tar.gz">authelia-darwin-amd64.tar.gz</a><br>
+        <a href="artifact://authelia-darwin-amd64.tar.gz.sha256">authelia-darwin-amd64.tar.gz.sha256</a>
+      </dd>
+    </div>
+</dl>

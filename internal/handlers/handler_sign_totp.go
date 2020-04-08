@@ -2,58 +2,55 @@ package handlers
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/pquerna/otp/totp"
 )
 
 // SecondFactorTOTPPost validate the TOTP passcode provided by the user.
-func SecondFactorTOTPPost(ctx *middlewares.AutheliaCtx) {
-	bodyJSON := signTOTPRequestBody{}
-	err := ctx.ParseBody(&bodyJSON)
+func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler {
+	return func(ctx *middlewares.AutheliaCtx) {
+		bodyJSON := signTOTPRequestBody{}
+		err := ctx.ParseBody(&bodyJSON)
 
-	if err != nil {
-		ctx.Error(err, mfaValidationFailedMessage)
-		return
-	}
-
-	userSession := ctx.GetSession()
-	secret, err := ctx.Providers.StorageProvider.LoadTOTPSecret(userSession.Username)
-	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to load TOTP secret: %s", err), mfaValidationFailedMessage)
-		return
-	}
-
-	isValid := totp.Validate(bodyJSON.Token, secret)
-
-	if !isValid {
-		ctx.Error(fmt.Errorf("Wrong passcode during TOTP validation for user %s", userSession.Username), mfaValidationFailedMessage)
-		return
-	}
-
-	userSession.AuthenticationLevel = authentication.TwoFactor
-	err = ctx.SaveSession(userSession)
-
-	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to update the authentication level with TOTP: %s", err), mfaValidationFailedMessage)
-		return
-	}
-
-	if bodyJSON.TargetURL != "" {
-		targetURL, err := url.ParseRequestURI(bodyJSON.TargetURL)
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to parse URL with TOTP: %s", err), mfaValidationFailedMessage)
+			ctx.Error(err, mfaValidationFailedMessage)
 			return
 		}
 
-		if targetURL != nil && isRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain) {
-			ctx.SetJSONBody(redirectResponse{bodyJSON.TargetURL})
-		} else {
-			ctx.ReplyOK()
+		userSession := ctx.GetSession()
+		secret, err := ctx.Providers.StorageProvider.LoadTOTPSecret(userSession.Username)
+		if err != nil {
+			ctx.Error(fmt.Errorf("Unable to load TOTP secret: %s", err), mfaValidationFailedMessage)
+			return
 		}
-	} else {
-		ctx.ReplyOK()
+
+		isValid, err := totpVerifier.Verify(bodyJSON.Token, secret)
+		if err != nil {
+			ctx.Error(fmt.Errorf("Error occurred during OTP validation for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
+			return
+		}
+
+		if !isValid {
+			ctx.Error(fmt.Errorf("Wrong passcode during TOTP validation for user %s", userSession.Username), mfaValidationFailedMessage)
+			return
+		}
+
+		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+
+		if err != nil {
+			ctx.Error(fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), authenticationFailedMessage)
+			return
+		}
+
+		userSession.AuthenticationLevel = authentication.TwoFactor
+		err = ctx.SaveSession(userSession)
+
+		if err != nil {
+			ctx.Error(fmt.Errorf("Unable to update the authentication level with TOTP: %s", err), mfaValidationFailedMessage)
+			return
+		}
+
+		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}
 }

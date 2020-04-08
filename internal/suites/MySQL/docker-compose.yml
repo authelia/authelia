@@ -1,0 +1,6 @@
+version: '3'
+services:
+  authelia-backend:
+    volumes:
+      - './MySQL/configuration.yml:/etc/authelia/configuration.yml:ro'
+      - './MySQL/users.yml:/var/lib/authelia/users.yml'

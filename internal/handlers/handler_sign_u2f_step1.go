@@ -4,15 +4,24 @@ import (
 	"crypto/elliptic"
 	"fmt"
 
+	"github.com/tstranex/u2f"
+
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/storage"
-	"github.com/tstranex/u2f"
 )
 
 // SecondFactorU2FSignGet handler for initiating a signing request.
 func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
-	userSession := ctx.GetSession()
+	if ctx.XForwardedProto() == nil {
+		ctx.Error(errMissingXForwardedProto, operationFailedMessage)
+		return
+	}
+
+	if ctx.XForwardedHost() == nil {
+		ctx.Error(errMissingXForwardedHost, operationFailedMessage)
+		return
+	}
 
 	appID := fmt.Sprintf("%s://%s", ctx.XForwardedProto(), ctx.XForwardedHost())
 	var trustedFacets = []string{appID}
@@ -23,6 +32,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	userSession := ctx.GetSession()
 	keyHandleBytes, publicKeyBytes, err := ctx.Providers.StorageProvider.LoadU2FDeviceHandle(userSession.Username)
 
 	if err != nil {

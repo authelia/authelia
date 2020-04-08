@@ -1,0 +1,22 @@
+version: '3'
+services:
+  authelia-frontend:
+    build:
+      context: example/compose/authelia
+      dockerfile: Dockerfile.frontend
+      args:
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+    command: '/resources/entrypoint-frontend.sh'
+    working_dir: /app
+    tty: true
+    volumes:
+      - './example/compose/authelia/resources/:/resources'
+      - '../../web:/app'
+    labels:
+      - 'traefik.frontend.rule=Host:login.example.com'
+      - 'traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`)'
+      - 'traefik.http.routers.authelia_frontend.entrypoints=https'
+      - 'traefik.http.routers.authelia_frontend.tls=true'
+    networks:
+      - authelianet

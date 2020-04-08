@@ -4,7 +4,7 @@
 
 port: 9091
 
-logs_level: debug
+log_level: debug
 
 default_redirection_url: https://home.example.com:8080/
 
@@ -12,39 +12,16 @@ jwt_secret: very_important_secret
 
 authentication_backend:
   ldap:
-    # The url of the ldap server
     url: ldaps://openldap
-
-    # Skip certificate verification (for self-signed certificates)
     skip_verify: true
-
-    # The base dn for every entries
     base_dn: dc=example,dc=com
-
-    # An additional dn to define the scope to all users
+    username_attribute: uid
     additional_users_dn: ou=users
-
-    # The users filter used to find the user DN
-    # {0} is a matcher replaced by username.
-    # 'cn={0}' by default.
-    users_filter: (cn={0})
-
-    # An additional dn to define the scope of groups
+    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(objectClass=inetOrgPerson))
     additional_groups_dn: ou=groups
-
-    # The groups filter used for retrieving groups of a given user.
-    # {0} is a matcher replaced by username.
-    # {dn} is a matcher replaced by user DN.
-    # 'member={dn}' by default.
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
-
-    # The attribute holding the name of the group
     group_name_attribute: cn
-
-    # The attribute holding the mail address of the user
     mail_attribute: mail
-
-    # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
     password: password
 
@@ -53,16 +30,12 @@ session:
   domain: example.com
   expiration: 3600 # 1 hour
   inactivity: 300 # 5 minutes
+  remember_me_duration: 1y
 
-# Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
   local:
     path: /var/lib/authelia/db.sqlite3
 
-# TOTP Issuer Name
-#
-# This will be the issuer name displayed in Google Authenticator
-# See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
 totp:
   issuer: example.com
 
@@ -78,19 +51,12 @@ access_control:
     - domain: "singlefactor.example.com"
       policy: one_factor
 
-# Configuration of the authentication regulation mechanism.
 regulation:
-  # Set it to 0 to disable max_retries.
   max_retries: 3
-
-  # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
   find_time: 300
-
-  # The length of time before a banned user can login again.
   ban_time: 900
 
 notifier:
-  # Use a SMTP server for sending notifications
   smtp:
     host: smtp
     port: 1025

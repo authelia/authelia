@@ -6,8 +6,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // DockerEnvironment represent a docker environment
@@ -30,13 +31,13 @@ func NewDockerEnvironment(files []string) *DockerEnvironment {
 }
 
 func (de *DockerEnvironment) createCommandWithStdout(cmd string) *exec.Cmd {
-	dockerCmdLine := fmt.Sprintf("docker-compose -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
+	dockerCmdLine := fmt.Sprintf("docker-compose -p authelia -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
 	log.Trace(dockerCmdLine)
 	return utils.CommandWithStdout("bash", "-c", dockerCmdLine)
 }
 
 func (de *DockerEnvironment) createCommand(cmd string) *exec.Cmd {
-	dockerCmdLine := fmt.Sprintf("docker-compose -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
+	dockerCmdLine := fmt.Sprintf("docker-compose -p authelia -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
 	log.Trace(dockerCmdLine)
 	return utils.Command("bash", "-c", dockerCmdLine)
 }

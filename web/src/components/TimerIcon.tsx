@@ -4,32 +4,31 @@ import PieChartIcon from "./PieChartIcon";
 export interface Props {
     width: number;
     height: number;
+    period: number;
 
     color?: string;
     backgroundColor?: string;
 }
 
 export default function (props: Props) {
-    const maxTimeProgress = 1000;
+    const radius = 31.6;
     const [timeProgress, setTimeProgress] = useState(0);
 
     useEffect(() => {
         // Get the current number of seconds to initialize timer.
-        const initialValue = Math.floor((new Date().getSeconds() % 30) / 30 * maxTimeProgress);
+        const initialValue = (new Date().getTime() / 1000) % props.period / props.period * radius;
         setTimeProgress(initialValue);
 
         const interval = setInterval(() => {
-            const ms = new Date().getSeconds() * 1000.0 + new Date().getMilliseconds();
-            const value = (ms % 30000) / 30000 * maxTimeProgress;
+            const value = (new Date().getTime() / 1000) % props.period / props.period * radius;
             setTimeProgress(value);
         }, 100);
         return () => clearInterval(interval);
-    }, []);
+    }, [props]);
 
     return (
         <PieChartIcon width={props.width} height={props.height}
-            maxProgress={maxTimeProgress}
-            progress={timeProgress}
+            progress={timeProgress} maxProgress={radius}
             backgroundColor={props.backgroundColor} color={props.color} />
     )
 }

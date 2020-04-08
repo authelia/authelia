@@ -65,11 +65,6 @@ func (b *AuthorizerTesterBuilder) Build() *AuthorizerTester {
 	return NewAuthorizerTester(b.config)
 }
 
-type Request struct {
-	subject Subject
-	object  Object
-}
-
 var AnonymousUser = Subject{
 	Username: "",
 	Groups:   []string{},
@@ -253,6 +248,15 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/ABC", Denied)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/one_factor/abc", OneFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/xyz/embedded/abc", Bypass)
+}
+
+func (s *AuthorizerSuite) TestPolicyToLevel() {
+	s.Assert().Equal(Bypass, PolicyToLevel("bypass"))
+	s.Assert().Equal(OneFactor, PolicyToLevel("one_factor"))
+	s.Assert().Equal(TwoFactor, PolicyToLevel("two_factor"))
+	s.Assert().Equal(Denied, PolicyToLevel("deny"))
+
+	s.Assert().Equal(Denied, PolicyToLevel("whatever"))
 }
 
 func TestRunSuite(t *testing.T) {

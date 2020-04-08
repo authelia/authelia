@@ -16,5 +16,5 @@ if [[ $BUILDKITE_LABEL =~ ":docker: Deploy Image" ]]; then
 fi
 
 if [[ $BUILDKITE_LABEL == ":github: Deploy Artifacts" ]]; then
-  buildkite-agent artifact download "authelia-linux-*" .
+  buildkite-agent artifact download "authelia-*-*.tar.gz*" .
 fi

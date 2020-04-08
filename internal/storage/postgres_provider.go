@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	_ "github.com/lib/pq" // Load the PostgreSQL Driver used in the connection string.
+
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
-	_ "github.com/lib/pq" // Load the PostgreSQL Driver used in the connection string.
 )
 
 // PostgreSQLProvider is a Postrgres provider
@@ -51,6 +52,13 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 
 	provider := PostgreSQLProvider{
 		SQLProvider{
+			sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
+			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
+			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
+			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
+			sqlCreateAuthenticationLogsTable:         fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100), successful BOOL, time INTEGER)", authenticationLogsTableName),
+			sqlCreateAuthenticationLogsUserTimeIndex: fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
+
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=$1", preferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("INSERT INTO %s (username, second_factor_method) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET second_factor_method=$2", preferencesTableName),
 

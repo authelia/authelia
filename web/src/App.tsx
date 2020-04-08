@@ -56,7 +56,9 @@ const App: React.FC = () => {
                             <SignOut />
                         </Route>
                         <Route path={FirstFactorRoute}>
-                            <LoginPortal />
+                            <LoginPortal
+                                rememberMe={configuration?.remember_me === true}
+                                resetPassword={configuration?.reset_password === true} />
                         </Route>
                         <Route path="/">
                             <Redirect to={FirstFactorRoute}></Redirect>

@@ -1,8 +1,8 @@
 import React, { ReactNode, Fragment } from "react";
 import { makeStyles, Typography, Link, useTheme } from "@material-ui/core";
-import SuccessIcon from "../../../components/SuccessIcon";
 import InformationIcon from "../../../components/InformationIcon";
 import classnames from "classnames";
+import Authenticated from "../Authenticated";
 
 export enum State {
     ALREADY_AUTHENTICATED = 1,
@@ -27,7 +27,7 @@ export default function (props: Props) {
     let stateClass: string = '';
     switch (props.state) {
         case State.ALREADY_AUTHENTICATED:
-            container = <AlreadyAuthenticatedContainer />
+            container = <Authenticated />
             stateClass = "state-already-authenticated";
             break;
         case State.NOT_REGISTERED:
@@ -41,6 +41,7 @@ export default function (props: Props) {
             stateClass = "state-method";
             break;
     }
+
 
     return (
         <div id={props.id}>
@@ -75,16 +76,6 @@ const useStyles = makeStyles(theme => ({
         justifyContent: "center",
     }
 }));
-
-function AlreadyAuthenticatedContainer() {
-    const theme = useTheme();
-    return (
-        <Fragment>
-            <div style={{ marginBottom: theme.spacing(2), flex: "0 0 100%" }}><SuccessIcon /></div>
-            <Typography style={{ color: "green" }}>Authenticated!</Typography>
-        </Fragment>
-    )
-}
 
 function NotRegisteredContainer() {
     const theme = useTheme();

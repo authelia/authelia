@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/authelia/authelia/internal/logging"
 	_ "github.com/mattn/go-sqlite3" // Load the SQLite Driver used in the connection string.
+
+	"github.com/authelia/authelia/internal/logging"
 )
 
 // SQLiteProvider is a sqlite3 provider
@@ -22,6 +23,13 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 
 	provider := SQLiteProvider{
 		SQLProvider{
+			sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
+			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
+			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
+			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
+			sqlCreateAuthenticationLogsTable:         fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100), successful BOOL, time INTEGER)", authenticationLogsTableName),
+			sqlCreateAuthenticationLogsUserTimeIndex: fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
+
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", preferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", preferencesTableName),
 

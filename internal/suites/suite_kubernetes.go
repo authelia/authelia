@@ -5,8 +5,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 var kubernetesSuiteName = "Kubernetes"
@@ -16,12 +17,12 @@ func init() {
 	kubectl := Kubectl{}
 
 	setup := func(suitePath string) error {
-		cmd := utils.Shell("docker-compose -f docker-compose.yml -f example/compose/kind/docker-compose.yml build")
+		cmd := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml build")
 		if err := cmd.Run(); err != nil {
 			return err
 		}
 
-		cmd = utils.Shell("docker build -t nginx-backend example/compose/nginx/backend")
+		cmd = utils.Shell("docker build -t nginx-backend internal/suites/example/compose/nginx/backend")
 		if err := cmd.Run(); err != nil {
 			return err
 		}

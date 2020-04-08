@@ -2,4 +2,4 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './internal/suites/LDAP/configuration.yml:/etc/authelia/configuration.yml:ro'
+      - './LDAP/configuration.yml:/etc/authelia/configuration.yml:ro'

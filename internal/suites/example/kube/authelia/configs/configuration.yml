@@ -1,0 +1,101 @@
+###############################################################
+#                   Authelia configuration                    #
+###############################################################
+
+port: 80
+log_level: debug
+
+default_redirection_url: https://home.example.com:8080
+
+authentication_backend:
+  ldap:
+    url: ldaps://ldap-service
+    skip_verify: true
+    base_dn: dc=example,dc=com
+    username_attribute: uid
+    additional_users_dn: ou=users
+    users_filter: (&({username_attribute}={input})(objectClass=person))
+    additional_groups_dn: ou=groups
+    groups_filter: (&(member={dn})(objectclass=groupOfNames))
+    group_name_attribute: cn
+    mail_attribute: mail
+    user: cn=admin,dc=example,dc=com
+
+access_control:
+  default_policy: deny
+
+  rules:
+    # Rules applied to everyone
+    - domain: public.example.com
+      policy: bypass
+    - domain: secure.example.com
+      policy: two_factor
+    - domain: singlefactor.example.com
+      policy: one_factor
+
+    # Rules applied to 'admins' group
+    - domain: "mx2.mail.example.com"
+      subject: "group:admins"
+      policy: deny
+    - domain: "*.example.com"
+      subject: "group:admins"
+      policy: two_factor
+
+    # Rules applied to 'dev' group
+    - domain: dev.example.com
+      resources:
+        - "^/groups/dev/.*$"
+      subject: "group:dev"
+      policy: two_factor
+
+    # Rules applied to user 'john'
+    - domain: dev.example.com
+      resources:
+        - "^/users/john/.*$"
+      subject: "user:john"
+      policy: two_factor
+
+    # Rules applied to user 'harry'
+    - domain: dev.example.com
+      resources:
+        - "^/users/harry/.*$"
+      subject: "user:harry"
+      policy: two_factor
+
+    # Rules applied to user 'bob'
+    - domain: "*.mail.example.com"
+      subject: "user:bob"
+      policy: two_factor
+    - domain: "dev.example.com"
+      resources:
+        - "^/users/bob/.*$"
+      subject: "user:bob"
+      policy: two_factor
+
+session:
+  expiration: 3600 # 1 hour
+  inactivity: 300 # 5 minutes
+  remember_me_duration: 1y
+  domain: example.com
+  redis:
+    host: redis-service
+    port: 6379
+
+regulation:
+  max_retries: 3
+  find_time: 120
+  ban_time: 300
+
+storage:
+  mysql:
+    host: mariadb-service
+    port: 3306
+    database: authelia
+    username: admin
+
+notifier:
+  smtp:
+    host: "mailcatcher-service"
+    port: 1025
+    sender: admin@example.com
+    disable_require_tls: true

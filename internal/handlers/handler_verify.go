@@ -8,11 +8,24 @@ import (
 	"strings"
 	"time"
 
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/valyala/fasthttp"
 )
+
+func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
+	return strings.HasSuffix(url.Hostname(), domain)
+}
+
+func isSchemeHTTPS(url *url.URL) bool {
+	return url.Scheme == "https"
+}
+
+func isSchemeWSS(url *url.URL) bool {
+	return url.Scheme == "wss"
+}
 
 // getOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers).
 func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
@@ -20,8 +33,9 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	if originalURL != nil {
 		url, err := url.ParseRequestURI(string(originalURL))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
 		}
+		ctx.Logger.Debug("Using X-Original-URL header content as targeted site URL")
 		return url, nil
 	}
 
@@ -29,23 +43,25 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	forwardedHost := ctx.XForwardedHost()
 	forwardedURI := ctx.XForwardedURI()
 
-	if forwardedProto == nil || forwardedHost == nil {
-		return nil, errMissingHeadersForTargetURL
+	if forwardedProto == nil {
+		return nil, errMissingXForwardedProto
+	}
+
+	if forwardedHost == nil {
+		return nil, errMissingXForwardedHost
 	}
 
 	var requestURI string
 	scheme := append(forwardedProto, protoHostSeparator...)
-	if forwardedURI == nil {
-		requestURI = string(append(scheme, forwardedHost...))
-	}
-
 	requestURI = string(append(scheme,
 		append(forwardedHost, forwardedURI...)...))
 
-	url, err := url.ParseRequestURI(string(requestURI))
+	url, err := url.ParseRequestURI(requestURI)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
 	}
+	ctx.Logger.Debugf("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
+		"to construct targeted site URL")
 	return url, nil
 }
 
@@ -53,7 +69,7 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 // "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true).
 func parseBasicAuth(auth string) (username, password string, err error) {
 	if !strings.HasPrefix(auth, authPrefix) {
-		return "", "", fmt.Errorf("%s prefix not found in authorization header", strings.Trim(authPrefix, " "))
+		return "", "", fmt.Errorf("%s prefix not found in %s header", strings.Trim(authPrefix, " "), AuthorizationHeader)
 	}
 	c, err := base64.StdEncoding.DecodeString(auth[len(authPrefix):])
 	if err != nil {
@@ -62,7 +78,7 @@ func parseBasicAuth(auth string) (username, password string, err error) {
 	cs := string(c)
 	s := strings.IndexByte(cs, ':')
 	if s < 0 {
-		return "", "", fmt.Errorf("Format for basic auth must be user:password")
+		return "", "", fmt.Errorf("Format of %s header must be user:password", AuthorizationHeader)
 	}
 	return cs[:s], cs[s+1:], nil
 }
@@ -105,13 +121,13 @@ func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCt
 	username, password, err := parseBasicAuth(string(auth))
 
 	if err != nil {
-		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to parse basic auth: %s", err)
+		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to parse content of %s header: %s", AuthorizationHeader, err)
 	}
 
 	authenticated, err := ctx.Providers.UserProvider.CheckUserPassword(username, password)
 
 	if err != nil {
-		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check password in basic auth mode: %s", err)
+		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check credentials extracted from %s header: %s", AuthorizationHeader, err)
 	}
 
 	// If the user is not correctly authenticated, send a 401.
@@ -123,7 +139,7 @@ func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCt
 	details, err := ctx.Providers.UserProvider.GetDetails(username)
 
 	if err != nil {
-		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to retrieve user details in basic auth mode: %s", err)
+		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to retrieve details of user %s: %s", username, err)
 	}
 
 	return username, details.Groups, authentication.OneFactor, nil
@@ -139,7 +155,8 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, grou
 
 // hasUserBeenInactiveLongEnough check whether the user has been inactive for too long.
 func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
-	maxInactivityPeriod := ctx.Configuration.Session.Inactivity
+
+	maxInactivityPeriod := int64(ctx.Providers.SessionProvider.Inactivity.Seconds())
 	if maxInactivityPeriod == 0 {
 		return false, nil
 	}
@@ -196,11 +213,25 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if !isSchemeHTTPS(targetURL) && !isSchemeWSS(targetURL) {
+		ctx.Logger.Error(fmt.Errorf("Scheme of target URL %s must be secure since cookies are "+
+			"only transported over a secure connection for security reasons", targetURL.String()))
+		ctx.ReplyUnauthorized()
+		return
+	}
+
+	if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domain) {
+		ctx.Logger.Error(fmt.Errorf("The target URL %s is not under the protected domain %s",
+			targetURL.String(), ctx.Configuration.Session.Domain))
+		ctx.ReplyUnauthorized()
+		return
+	}
+
 	var username string
 	var groups []string
 	var authLevel authentication.Level
 
-	proxyAuthorization := ctx.Request.Header.Peek(authorizationHeader)
+	proxyAuthorization := ctx.Request.Header.Peek(AuthorizationHeader)
 	hasBasicAuth := proxyAuthorization != nil
 
 	if hasBasicAuth {

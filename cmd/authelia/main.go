@@ -6,6 +6,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/commands"
@@ -18,8 +21,6 @@ import (
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/storage"
 	"github.com/authelia/authelia/internal/utils"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 )
 
 var configPathFlag string
@@ -27,10 +28,6 @@ var configPathFlag string
 func startServer() {
 	if configPathFlag == "" {
 		log.Fatal(errors.New("No config file path provided"))
-	}
-
-	if os.Getenv("ENVIRONMENT") == "dev" {
-		logging.Logger().Info("===> Authelia is running in development mode. <===")
 	}
 
 	config, errs := configuration.Read(configPathFlag)
@@ -42,7 +39,11 @@ func startServer() {
 		panic(errors.New("Some errors have been reported"))
 	}
 
-	switch config.LogsLevel {
+	if err := logging.InitializeLogger(config.LogFilePath); err != nil {
+		log.Fatalf("Cannot initialize logger: %v", err)
+	}
+
+	switch config.LogLevel {
 	case "info":
 		logging.Logger().Info("Logging severity set to info")
 		logging.SetLevel(logrus.InfoLevel)
@@ -50,16 +51,19 @@ func startServer() {
 	case "debug":
 		logging.Logger().Info("Logging severity set to debug")
 		logging.SetLevel(logrus.DebugLevel)
-		break
 	case "trace":
 		logging.Logger().Info("Logging severity set to trace")
 		logging.SetLevel(logrus.TraceLevel)
 	}
 
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		logging.Logger().Info("===> Authelia is running in development mode. <===")
+	}
+
 	var userProvider authentication.UserProvider
 
 	if config.AuthenticationBackend.File != nil {
-		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File.Path)
+		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	} else if config.AuthenticationBackend.Ldap != nil {
 		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.Ldap)
 	} else {
@@ -87,7 +91,7 @@ func startServer() {
 	}
 
 	clock := utils.RealClock{}
-	authorizer := authorization.NewAuthorizer(*config.AccessControl)
+	authorizer := authorization.NewAuthorizer(config.AccessControl)
 	sessionProvider := session.NewProvider(config.Session)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
 
@@ -120,6 +124,9 @@ func main() {
 		},
 	}
 
-	rootCmd.AddCommand(versionCmd, commands.HashPasswordCmd, commands.MigrateCmd)
-	rootCmd.Execute()
+	rootCmd.AddCommand(versionCmd, commands.MigrateCmd, commands.HashPasswordCmd)
+	rootCmd.AddCommand(commands.CertificatesCmd)
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }

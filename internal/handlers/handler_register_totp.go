@@ -3,9 +3,10 @@ package handlers
 import (
 	"fmt"
 
+	"github.com/pquerna/otp/totp"
+
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/session"
-	"github.com/pquerna/otp/totp"
 )
 
 // identityRetrieverFromSession retriever computing the identity from the cookie session.
@@ -41,6 +42,7 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 		Issuer:      ctx.Configuration.TOTP.Issuer,
 		AccountName: username,
 		SecretSize:  32,
+		Period:      uint(ctx.Configuration.TOTP.Period),
 	})
 
 	if err != nil {

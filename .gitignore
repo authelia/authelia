@@ -31,7 +31,7 @@ dist/
 /config.yml
 /config.test.yml
 
-example/ldap/private.ldif
+internal/suites/example/ldap/private.ldif
 
 Configuration.schema.json
 

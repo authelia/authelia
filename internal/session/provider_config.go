@@ -1,14 +1,13 @@
 package session
 
 import (
-	"time"
-
-	"github.com/valyala/fasthttp"
-
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/fasthttp/session"
 	"github.com/fasthttp/session/memory"
 	"github.com/fasthttp/session/redis"
+	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // NewProviderConfig creates a configuration for creating the session provider
@@ -24,12 +23,8 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 	// Only serve the header over HTTPS.
 	config.Secure = true
 
-	if configuration.Expiration > 0 {
-		config.Expires = time.Duration(configuration.Expiration) * time.Second
-	} else {
-		// If Expiration is 0 then cookie expiration is disabled.
-		config.Expires = 0
-	}
+	// Ignore the error as it will be handled by validator
+	config.Expires, _ = utils.ParseDurationString(configuration.Expiration)
 
 	// TODO(c.michaud): Make this configurable by giving the list of IPs that are trustable.
 	config.IsSecureFunc = func(*fasthttp.RequestCtx) bool {
@@ -42,13 +37,18 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 	// If redis configuration is provided, then use the redis provider.
 	if configuration.Redis != nil {
 		providerName = "redis"
+		serializer := NewEncryptingSerializer(configuration.Secret)
 		providerConfig = &redis.Config{
-			Host:        configuration.Redis.Host,
-			Port:        configuration.Redis.Port,
-			Password:    configuration.Redis.Password,
-			PoolSize:    8,
-			IdleTimeout: 300,
-			KeyPrefix:   "authelia-session",
+			Host:     configuration.Redis.Host,
+			Port:     configuration.Redis.Port,
+			Password: configuration.Redis.Password,
+			// DbNumber is the fasthttp/session property for the Redis DB Index
+			DbNumber:        configuration.Redis.DatabaseIndex,
+			PoolSize:        8,
+			IdleTimeout:     300,
+			KeyPrefix:       "authelia-session",
+			SerializeFunc:   serializer.Encode,
+			UnSerializeFunc: serializer.Decode,
 		}
 	} else { // if no option is provided, use the memory provider.
 		providerName = "memory"

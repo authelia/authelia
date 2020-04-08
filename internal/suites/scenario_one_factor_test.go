@@ -72,7 +72,7 @@ func (s *OneFactorSuite) TestShouldDenyAccessOnBadPassword() {
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
 	s.doLoginOneFactor(ctx, s.T(), "john", "bad-password", false, targetURL)
 	s.verifyIsFirstFactorPage(ctx, s.T())
-	s.verifyNotificationDisplayed(ctx, s.T(), "There was a problem. Username or password might be incorrect.")
+	s.verifyNotificationDisplayed(ctx, s.T(), "Incorrect username or password.")
 }
 
 func TestRunOneFactor(t *testing.T) {

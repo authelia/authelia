@@ -5,10 +5,11 @@
 package mock_session
 
 import (
-	session "github.com/fasthttp/session"
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
+
+	session "github.com/fasthttp/session"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockStorer is a mock of Storer interface

@@ -1,19 +1,20 @@
 package main
 
 import (
-	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
-const dockerPullCommandLine = "docker-compose -f docker-compose.yml " +
-	"-f example/compose/mariadb/docker-compose.yml " +
-	"-f example/compose/redis/docker-compose.yml " +
-	"-f example/compose/nginx/portal/docker-compose.yml " +
-	"-f example/compose/smtp/docker-compose.yml " +
-	"-f example/compose/httpbin/docker-compose.yml " +
-	"-f example/compose/ldap/docker-compose.admin.yml " +
-	"-f example/compose/ldap/docker-compose.yml " +
+const dockerPullCommandLine = "docker-compose -p authelia -f internal/suites/docker-compose.yml " +
+	"-f internal/suites/example/compose/mariadb/docker-compose.yml " +
+	"-f internal/suites/example/compose/redis/docker-compose.yml " +
+	"-f internal/suites/example/compose/nginx/portal/docker-compose.yml " +
+	"-f internal/suites/example/compose/smtp/docker-compose.yml " +
+	"-f internal/suites/example/compose/httpbin/docker-compose.yml " +
+	"-f internal/suites/example/compose/ldap/docker-compose.admin.yml " +
+	"-f internal/suites/example/compose/ldap/docker-compose.yml " +
 	"pull"
 
 // RunCI run the CI scripts

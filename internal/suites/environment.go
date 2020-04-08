@@ -5,8 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authelia/authelia/internal/utils"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 func waitUntilServiceLogDetected(
@@ -41,7 +42,7 @@ func waitUntilAutheliaBackendIsReady(dockerEnvironment *DockerEnvironment) error
 		90*time.Second,
 		dockerEnvironment,
 		"authelia-backend",
-		[]string{"Authelia is listening on"})
+		[]string{"Authelia is listening for"})
 }
 
 func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) error {
