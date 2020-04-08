@@ -9,6 +9,7 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
 func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.Path == "" {
 		validator.Push(errors.New("Please provide a `path` for the users database in `authentication_backend`"))
@@ -97,6 +98,7 @@ func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
 	return u.String()
 }
 
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
 func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))

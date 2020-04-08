@@ -82,6 +82,7 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 }
 
 // HashPassword generate a salt and hash the password with the salt and a constant number of rounds
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
 func HashPassword(password, salt, algorithm string, iterations, memory, parallelism, keyLength, saltLength int) (hash string, err error) {
 	var settings string
 

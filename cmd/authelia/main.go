@@ -25,6 +25,7 @@ import (
 
 var configPathFlag string
 
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
 func startServer() {
 	if configPathFlag == "" {
 		log.Fatal(errors.New("No config file path provided"))
