@@ -129,22 +129,22 @@ Authelia exists thanks to all the people who contribute. [[Contribute](./CONTRIB
 ## Backers
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/authelia-sponsors/contribute)] and help us sustain our community.
-<a href="https://opencollective.com/authelia-sponsors#backers"><img src="https://opencollective.com/authelia-sponsors/individuals.svg?width=890"></a>
+<a href="https://opencollective.com/authelia-sponsors#backers"><img src="https://opencollective.com/authelia-sponsors/backers.svg?width=890"></a>
 
 ## Sponsors
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/authelia-sponsors#sponsor)]
 
-<a href="https://opencollective.com/authelia-sponsors/organization/0/website"><img src="https://opencollective.com/authelia-sponsors/organization/0/avatar.svg"></a>
-<a href="https://opencollective.com/authelia-sponsors/sponsors/1/website"><img src="https://opencollective.com/authelia-sponsors/organization/1/avatar.svg"></a>
-<a href="https://opencollective.com/authelia-sponsors/sponsors/2/website"><img src="https://opencollective.com/authelia-sponsors/organization/2/avatar.svg"></a>
-<a href="https://opencollective.com/authelia-sponsors/sponsors/3/website"><img src="https://opencollective.com/authelia-sponsors/organization/3/avatar.svg"></a>
-<a href="https://opencollective.com/authelia-sponsors/sponsors/4/website"><img src="https://opencollective.com/authelia-sponsors/organization/4/avatar.svg"></a>
-<a href="https://opencollective.com/authelia-sponsors/sponsors/5/website"><img src="https://opencollective.com/authelia-sponsors/organization/5/avatar.svg"></a>
-<a href="https://opencollective.com/authelia-sponsors/sponsors/6/website"><img src="https://opencollective.com/authelia-sponsors/organization/6/avatar.svg"></a>
-<a href="https://opencollective.com/authelia-sponsors/sponsors/7/website"><img src="https://opencollective.com/authelia-sponsors/organization/7/avatar.svg"></a>
-<a href="https://opencollective.com/authelia-sponsors/sponsors/8/website"><img src="https://opencollective.com/authelia-sponsors/organization/8/avatar.svg"></a>
-<a href="https://opencollective.com/authelia-sponsors/sponsors/9/website"><img src="https://opencollective.com/authelia-sponsors/organization/9/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/sponsor/0/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/sponsor/1/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/sponsor/2/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/sponsor/3/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/sponsor/4/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/sponsor/5/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/sponsor/6/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/sponsor/7/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/sponsor/8/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/authelia-sponsors/sponsor/9/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/9/avatar.svg"></a>
 
 ## License
 
