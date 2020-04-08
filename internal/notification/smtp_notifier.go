@@ -179,7 +179,7 @@ func (n *SMTPNotifier) compose(recipient, subject, body string) error {
 		"MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n" +
 		body
 
-	_, err = fmt.Fprintf(wc, msg)
+	_, err = fmt.Fprint(wc, msg)
 	if err != nil {
 		log.Debugf("Notifier SMTP client error while sending email body over WriteCloser: %s", err)
 		return err
