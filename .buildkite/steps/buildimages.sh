@@ -18,7 +18,7 @@ EOF
 fi
 cat << EOF
     agents:
-      build: "true"
+      build: "${BUILD_OS}-${BUILD_ARCH}"
     artifact_paths:
 EOF
 if [[ "${BUILD_OS}" == "linux" ]]; then
