@@ -2,5 +2,7 @@
 
 set +u
 
-echo "--- :docker: Clean environment"
-docker system prune -af --volumes
+if [[ $BUILDKITE_AGENT_META_DATA_CLEANBUILD != "false" ]]; then
+  echo "--- :docker: Clean environment"
+  docker system prune -af --volumes
+fi
