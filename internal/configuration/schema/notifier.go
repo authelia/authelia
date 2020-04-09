@@ -10,6 +10,7 @@ type SMTPNotifierConfiguration struct {
 	Username          string `mapstructure:"username"`
 	Password          string `mapstructure:"password"`
 	Sender            string `mapstructure:"sender"`
+	Subject           string `mapstructure:"subject"`
 	Host              string `mapstructure:"host"`
 	Port              int    `mapstructure:"port"`
 	TrustedCert       string `mapstructure:"trusted_cert"`
@@ -21,4 +22,8 @@ type SMTPNotifierConfiguration struct {
 type NotifierConfiguration struct {
 	FileSystem *FileSystemNotifierConfiguration `mapstructure:"filesystem"`
 	SMTP       *SMTPNotifierConfiguration       `mapstructure:"smtp"`
+}
+
+var DefaultSMTPNotifierConfiguration = SMTPNotifierConfiguration{
+	Subject: "[Authelia] {title}",
 }

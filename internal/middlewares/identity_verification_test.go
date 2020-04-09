@@ -19,7 +19,6 @@ func newArgs(retriever func(ctx *middlewares.AutheliaCtx) (*session.Identity, er
 	return middlewares.IdentityVerificationStartArgs{
 		ActionClaim:           "Claim",
 		MailButtonContent:     "Register",
-		MailSubject:           "Subject",
 		MailTitle:             "Title",
 		TargetEndpoint:        "/target",
 		IdentityRetrieverFunc: retriever,
@@ -77,7 +76,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq("john@example.com"), gomock.Eq("Subject"), gomock.Any()).
+		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any()).
 		Return(fmt.Errorf("no notif"))
 
 	args := newArgs(defaultRetriever)
@@ -136,7 +135,7 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq("john@example.com"), gomock.Eq("Subject"), gomock.Any()).
+		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any()).
 		Return(nil)
 
 	args := newArgs(defaultRetriever)
