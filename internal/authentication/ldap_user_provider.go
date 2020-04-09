@@ -178,7 +178,7 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	return &userProfile, nil
 }
 
-func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (string, error) {
+func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (string, error) { //nolint:unparam
 	inputUsername = p.ldapEscape(inputUsername)
 
 	// We temporarily keep placeholder {0} for backward compatibility

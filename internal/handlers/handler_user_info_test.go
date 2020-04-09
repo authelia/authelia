@@ -62,25 +62,24 @@ func setPreferencesExpectations(preferences UserPreferences, provider *storage.M
 			LoadTOTPSecret(gomock.Eq("john")).
 			Return("", storage.ErrNoTOTPSecret)
 	}
-
 }
 
 func TestMethodSetToU2F(t *testing.T) {
 	table := []UserPreferences{
-		UserPreferences{
+		{
 			Method: "totp",
 		},
-		UserPreferences{
+		{
 			Method:  "u2f",
 			HasU2F:  true,
 			HasTOTP: true,
 		},
-		UserPreferences{
+		{
 			Method:  "u2f",
 			HasU2F:  true,
 			HasTOTP: false,
 		},
-		UserPreferences{
+		{
 			Method:  "mobile_push",
 			HasU2F:  false,
 			HasTOTP: false,

@@ -15,6 +15,10 @@ func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 	responseBody := u2f.RegisterResponse{}
 	err := ctx.ParseBody(&responseBody)
 
+	if err != nil {
+		ctx.Error(fmt.Errorf("Unable to parse response body: %v", err), unableToRegisterSecurityKeyMessage)
+	}
+
 	userSession := ctx.GetSession()
 
 	if userSession.U2FChallenge == nil {

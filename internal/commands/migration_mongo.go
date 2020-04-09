@@ -54,6 +54,7 @@ func migrateMongo(cmd *cobra.Command, args []string) {
 	migrateMongoU2FDevices(db, dbProvider)
 	migrateMongoTOTPDevices(db, dbProvider)
 	migrateMongoPreferences(db, dbProvider)
+	migrateMongoAuthenticationTraces(db, dbProvider)
 
 	log.Println("Migration done!")
 }
@@ -125,7 +126,7 @@ func migrateMongoTOTPDevices(db *mongo.Database, dbProvider storage.Provider) {
 }
 
 func migrateMongoPreferences(db *mongo.Database, dbProvider storage.Provider) {
-	u2fCollection := db.Collection("prefered_2fa_method")
+	u2fCollection := db.Collection("prefered_2fa_method") //nolint:misspell
 
 	cur, err := u2fCollection.Find(context.Background(), bson.D{})
 	if err != nil {

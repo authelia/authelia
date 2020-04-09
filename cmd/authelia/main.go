@@ -25,6 +25,7 @@ import (
 
 var configPathFlag string
 
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
 func startServer() {
 	if configPathFlag == "" {
 		log.Fatal(errors.New("No config file path provided"))
@@ -47,7 +48,6 @@ func startServer() {
 	case "info":
 		logging.Logger().Info("Logging severity set to info")
 		logging.SetLevel(logrus.InfoLevel)
-		break
 	case "debug":
 		logging.Logger().Info("Logging severity set to debug")
 		logging.SetLevel(logrus.DebugLevel)

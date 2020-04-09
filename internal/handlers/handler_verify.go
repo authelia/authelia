@@ -27,7 +27,7 @@ func isSchemeWSS(url *url.URL) bool {
 	return url.Scheme == "wss"
 }
 
-// getOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers).
+// getOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers)
 func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	originalURL := ctx.XOriginalURL()
 	if originalURL != nil {
@@ -65,8 +65,8 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	return url, nil
 }
 
-// parseBasicAuth parses an HTTP Basic Authentication string.
-// "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true).
+// parseBasicAuth parses an HTTP Basic Authentication string
+// "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true)
 func parseBasicAuth(auth string) (username, password string, err error) {
 	if !strings.HasPrefix(auth, authPrefix) {
 		return "", "", fmt.Errorf("%s prefix not found in %s header", strings.Trim(authPrefix, " "), AuthorizationHeader)
@@ -83,10 +83,9 @@ func parseBasicAuth(auth string) (username, password string, err error) {
 	return cs[:s], cs[s+1:], nil
 }
 
-// isTargetURLAuthorized check whether the given user is authorized to access the resource.
+// isTargetURLAuthorized check whether the given user is authorized to access the resource
 func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.URL,
 	username string, userGroups []string, clientIP net.IP, authLevel authentication.Level) authorizationMatching {
-
 	level := authorizer.GetRequiredLevel(authorization.Subject{
 		Username: username,
 		Groups:   userGroups,
@@ -98,10 +97,10 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 	} else if username != "" && level == authorization.Denied {
 		// If the user is not anonymous, it means that we went through
 		// all the rules related to that user and knowing who he is we can
-		// deduce the access is forbidden.
+		// deduce the access is forbidden
 		// For anonymous users though, we cannot be sure that she
 		// could not be granted the rights to access the resource. Consequently
-		// for anonymous users we send Unauthorized instead of Forbidden.
+		// for anonymous users we send Unauthorized instead of Forbidden
 		return Forbidden
 	} else {
 		if level == authorization.OneFactor &&
@@ -116,8 +115,8 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 }
 
 // verifyBasicAuth verify that the provided username and password are correct and
-// that the user is authorized to target the resource.
-func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) {
+// that the user is authorized to target the resource
+func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
 	username, password, err := parseBasicAuth(string(auth))
 
 	if err != nil {
@@ -130,7 +129,7 @@ func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCt
 		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check credentials extracted from %s header: %s", AuthorizationHeader, err)
 	}
 
-	// If the user is not correctly authenticated, send a 401.
+	// If the user is not correctly authenticated, send a 401
 	if !authenticated {
 		// Request Basic Authentication otherwise
 		return "", nil, authentication.NotAuthenticated, fmt.Errorf("User %s is not authenticated", username)
@@ -145,7 +144,7 @@ func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCt
 	return username, details.Groups, authentication.OneFactor, nil
 }
 
-// setForwardedHeaders set the forwarded User and Groups headers.
+// setForwardedHeaders set the forwarded User and Groups headers
 func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, groups []string) {
 	if username != "" {
 		headers.Set(remoteUserHeader, username)
@@ -153,9 +152,8 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, grou
 	}
 }
 
-// hasUserBeenInactiveLongEnough check whether the user has been inactive for too long.
-func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
-
+// hasUserBeenInactiveLongEnough check whether the user has been inactive for too long
+func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) { //nolint:unparam
 	maxInactivityPeriod := int64(ctx.Providers.SessionProvider.Inactivity.Seconds())
 	if maxInactivityPeriod == 0 {
 		return false, nil
@@ -174,10 +172,10 @@ func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
 	return false, nil
 }
 
-// verifyFromSessionCookie verify if a user identified by a cookie is allowed to access target URL.
-func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) {
+// verifyFromSessionCookie verify if a user identified by a cookie is allowed to access target URL
+func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
 	userSession := ctx.GetSession()
-	// No username in the session means the user is anonymous.
+	// No username in the session means the user is anonymous
 	isUserAnonymous := userSession.Username == ""
 
 	if isUserAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
@@ -191,7 +189,7 @@ func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (u
 		}
 
 		if inactiveLongEnough {
-			// Destroy the session a new one will be regenerated on next request.
+			// Destroy the session a new one will be regenerated on next request
 			err := ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 			if err != nil {
 				return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to destroy user session after long inactivity: %s", err)
@@ -203,7 +201,7 @@ func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (u
 	return userSession.Username, userSession.Groups, userSession.AuthenticationLevel, nil
 }
 
-// VerifyGet is the handler verifying if a request is allowed to go through.
+// VerifyGet is the handler verifying if a request is allowed to go through
 func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.Tracef("Headers=%s", ctx.Request.Header.String())
 	targetURL, err := getOriginalURL(ctx)
@@ -256,7 +254,7 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	} else if authorization == NotAuthorized {
 		// Kubernetes ingress controller and Traefik use the rd parameter of the verify
 		// endpoint to provide the URL of the login portal. The target URL of the user
-		// is computed from X-Fowarded-* headers or X-Original-URL.
+		// is computed from X-Fowarded-* headers or X-Original-URL
 		rd := string(ctx.QueryArgs().Peek("rd"))
 		if rd != "" {
 			redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
@@ -273,7 +271,7 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		setForwardedHeaders(&ctx.Response.Header, username, groups)
 	}
 
-	// We mark activity of the current user if he comes with a session cookie.
+	// We mark activity of the current user if he comes with a session cookie
 	if !hasBasicAuth && username != "" {
 		// Mark current activity
 		userSession := ctx.GetSession()

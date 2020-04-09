@@ -33,4 +33,3 @@ const unableToRegisterOneTimePasswordMessage = "Unable to set up one-time passwo
 const unableToRegisterSecurityKeyMessage = "Unable to register your security key."
 const unableToResetPasswordMessage = "Unable to reset your password."
 const mfaValidationFailedMessage = "Authentication failed, please retry later."
-const badBasicAuthFormatMessage = "Content of Proxy-Authorization header is wrong."

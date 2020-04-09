@@ -2,6 +2,13 @@
 
 set +u
 
+if [[ $BUILDKITE_PULL_REQUEST != "false" ]]; then
+  if [[ $BUILDKITE_LABEL == ":hammer_and_wrench: Unit Test" ]]; then
+    echo "--- :go::service_dog: Linting pull request"
+    reviewdog -reporter=github-pr-review
+  fi
+fi
+
 if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]]; then
   CONTAINERS=$(docker ps -a -q)
   if [[ ${CONTAINERS} != "" ]]; then

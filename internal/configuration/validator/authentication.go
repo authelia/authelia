@@ -9,9 +9,7 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
-var ldapProtocolPrefix = "ldap://"
-var ldapsProtocolPrefix = "ldaps://"
-
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
 func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.Path == "" {
 		validator.Push(errors.New("Please provide a `path` for the users database in `authentication_backend`"))
@@ -50,7 +48,6 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 		}
 
 		if configuration.PasswordHashing.Algorithm == "argon2id" {
-
 			// Parallelism
 			if configuration.PasswordHashing.Parallelism == 0 {
 				configuration.PasswordHashing.Parallelism = schema.DefaultPasswordOptionsConfiguration.Parallelism
@@ -101,6 +98,7 @@ func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
 	return u.String()
 }
 
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
 func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))

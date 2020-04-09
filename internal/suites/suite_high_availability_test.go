@@ -134,7 +134,7 @@ var expectedAuthorizations = map[string](map[string]bool){
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
-	verifyUserIsAuthorized := func(ctx context.Context, t *testing.T, username, targetURL string, authorized bool) {
+	verifyUserIsAuthorized := func(ctx context.Context, t *testing.T, username, targetURL string, authorized bool) { //nolint:unparam
 		s.doVisit(t, targetURL)
 		s.verifyURLIs(ctx, t, targetURL)
 		if authorized {
@@ -161,8 +161,8 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 		}
 	}
 
-	for _, user := range []string{UserJohn, UserBob, UserHarry} {
-		s.T().Run(fmt.Sprintf("%s", user), verifyAuthorization(user))
+	for _, user := range Users {
+		s.T().Run(user, verifyAuthorization(user))
 	}
 }
 

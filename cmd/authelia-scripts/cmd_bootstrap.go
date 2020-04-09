@@ -21,33 +21,33 @@ type HostEntry struct {
 
 var hostEntries = []HostEntry{
 	// For authelia backend
-	HostEntry{Domain: "authelia.example.com", IP: "192.168.240.50"},
+	{Domain: "authelia.example.com", IP: "192.168.240.50"},
 	// For common tests
-	HostEntry{Domain: "login.example.com", IP: "192.168.240.100"},
-	HostEntry{Domain: "admin.example.com", IP: "192.168.240.100"},
-	HostEntry{Domain: "singlefactor.example.com", IP: "192.168.240.100"},
-	HostEntry{Domain: "dev.example.com", IP: "192.168.240.100"},
-	HostEntry{Domain: "home.example.com", IP: "192.168.240.100"},
-	HostEntry{Domain: "mx1.mail.example.com", IP: "192.168.240.100"},
-	HostEntry{Domain: "mx2.mail.example.com", IP: "192.168.240.100"},
-	HostEntry{Domain: "public.example.com", IP: "192.168.240.100"},
-	HostEntry{Domain: "secure.example.com", IP: "192.168.240.100"},
-	HostEntry{Domain: "mail.example.com", IP: "192.168.240.100"},
-	HostEntry{Domain: "duo.example.com", IP: "192.168.240.100"},
+	{Domain: "login.example.com", IP: "192.168.240.100"},
+	{Domain: "admin.example.com", IP: "192.168.240.100"},
+	{Domain: "singlefactor.example.com", IP: "192.168.240.100"},
+	{Domain: "dev.example.com", IP: "192.168.240.100"},
+	{Domain: "home.example.com", IP: "192.168.240.100"},
+	{Domain: "mx1.mail.example.com", IP: "192.168.240.100"},
+	{Domain: "mx2.mail.example.com", IP: "192.168.240.100"},
+	{Domain: "public.example.com", IP: "192.168.240.100"},
+	{Domain: "secure.example.com", IP: "192.168.240.100"},
+	{Domain: "mail.example.com", IP: "192.168.240.100"},
+	{Domain: "duo.example.com", IP: "192.168.240.100"},
 
 	// For Traefik suite
-	HostEntry{Domain: "traefik.example.com", IP: "192.168.240.100"},
+	{Domain: "traefik.example.com", IP: "192.168.240.100"},
 
 	// For HAProxy suite
-	HostEntry{Domain: "haproxy.example.com", IP: "192.168.240.100"},
+	{Domain: "haproxy.example.com", IP: "192.168.240.100"},
 
 	// For testing network ACLs
-	HostEntry{Domain: "proxy-client1.example.com", IP: "192.168.240.201"},
-	HostEntry{Domain: "proxy-client2.example.com", IP: "192.168.240.202"},
-	HostEntry{Domain: "proxy-client3.example.com", IP: "192.168.240.203"},
+	{Domain: "proxy-client1.example.com", IP: "192.168.240.201"},
+	{Domain: "proxy-client2.example.com", IP: "192.168.240.202"},
+	{Domain: "proxy-client3.example.com", IP: "192.168.240.203"},
 
 	// Kubernetes dashboard
-	HostEntry{Domain: "kubernetes.example.com", IP: "192.168.240.110"},
+	{Domain: "kubernetes.example.com", IP: "192.168.240.110"},
 }
 
 func runCommand(cmd string, args ...string) {
@@ -69,16 +69,6 @@ func checkCommandExist(cmd string) {
 	}
 
 	fmt.Println("		OK")
-}
-
-func installClientNpmPackages() {
-	command := utils.CommandWithStdout("yarn", "install")
-	command.Dir = "client"
-	err := command.Run()
-
-	if err != nil {
-		panic(err)
-	}
 }
 
 func createTemporaryDirectory() {

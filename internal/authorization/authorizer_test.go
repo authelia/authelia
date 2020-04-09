@@ -12,12 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var NoNet = []string{}
-var LocalNet = []string{"127.0.0.1"}
-var PrivateNet = []string{"192.168.1.0/24"}
-var MultipleNet = []string{"192.168.1.0/24", "10.0.0.0/8"}
-var MixedNetIP = []string{"192.168.1.0/24", "192.168.2.4"}
-
 type AuthorizerSuite struct {
 	suite.Suite
 }
