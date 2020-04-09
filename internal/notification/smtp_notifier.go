@@ -26,6 +26,7 @@ type SMTPNotifier struct {
 	disableVerifyCert bool
 	disableRequireTLS bool
 	address           string
+	subject           string
 	client            *smtp.Client
 	tlsConfig         *tls.Config
 }
@@ -42,6 +43,7 @@ func NewSMTPNotifier(configuration schema.SMTPNotifierConfiguration) *SMTPNotifi
 		disableVerifyCert: configuration.DisableVerifyCert,
 		disableRequireTLS: configuration.DisableRequireTLS,
 		address:           fmt.Sprintf("%s:%d", configuration.Host, configuration.Port),
+		subject:           configuration.Subject,
 	}
 	notifier.initializeTLSConfig()
 	return notifier
@@ -227,7 +229,8 @@ func (n *SMTPNotifier) cleanup() {
 }
 
 // Send an email
-func (n *SMTPNotifier) Send(recipient, subject, body string) error {
+func (n *SMTPNotifier) Send(recipient, title, body string) error {
+	subject := strings.ReplaceAll(n.subject, "{title}", title)
 	if err := n.dial(); err != nil {
 		return err
 	}

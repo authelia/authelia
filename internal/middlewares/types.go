@@ -47,7 +47,6 @@ type Middleware = func(RequestHandler) RequestHandler
 // of the identity verification process.
 type IdentityVerificationStartArgs struct {
 	// Email template needs a subject, a title and the content of the button.
-	MailSubject       string
 	MailTitle         string
 	MailButtonContent string
 

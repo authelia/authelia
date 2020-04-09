@@ -29,7 +29,6 @@ func isTokenUserValidFor2FARegistration(ctx *middlewares.AutheliaCtx, username s
 
 // SecondFactorTOTPIdentityStart the handler for initiating the identity validation.
 var SecondFactorTOTPIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
-	MailSubject:           "[Authelia] Register your mobile",
 	MailTitle:             "Register your mobile",
 	MailButtonContent:     "Register",
 	TargetEndpoint:        "/one-time-password/register",

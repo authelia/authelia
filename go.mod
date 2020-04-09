@@ -34,7 +34,7 @@ require (
 	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.9.0
 	github.com/xdg/stringprep v1.0.0 // indirect
-	go.mongodb.org/mongo-driver v1.3.1
+	go.mongodb.org/mongo-driver v1.3.2
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/yaml.v2 v2.2.8

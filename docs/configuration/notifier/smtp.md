@@ -12,7 +12,16 @@ nav_order: 2
 It can be configured as described below.
 
 ```yaml
+# Configuration of the notification system.
+#
+# Notifications are sent to users when they require a password reset, a u2f
+# registration or a TOTP registration.
+# Use only an available configuration: filesystem, smtp
 notifier:
+  # For testing purpose, notifications can be sent in a file
+  ## filesystem:
+  ##   filename: /tmp/authelia/notification.txt
+
   # Use a SMTP server for sending notifications. Authelia uses PLAIN or LOGIN method to authenticate.
   # [Security] By default Authelia will:
   #   - force all SMTP connections over TLS including unauthenticated connections
@@ -31,6 +40,9 @@ notifier:
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com
+    # Subject configuration of the emails sent.
+    # {title} is replaced by the text from the notifier
+    subject: "[Authelia] {title}"
     ## disable_require_tls: false
     ## disable_verify_cert: false
     ## trusted_cert: ""
