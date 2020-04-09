@@ -67,9 +67,9 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 
 // parseBasicAuth parses an HTTP Basic Authentication string
 // "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true)
-func parseBasicAuth(auth string) (username, password string, err error) {
+func parseBasicAuth(authorizationHeaderName string, auth string) (username, password string, err error) {
 	if !strings.HasPrefix(auth, authPrefix) {
-		return "", "", fmt.Errorf("%s prefix not found in %s header", strings.Trim(authPrefix, " "), AuthorizationHeader)
+		return "", "", fmt.Errorf("%s prefix not found in %s header", strings.Trim(authPrefix, " "), authorizationHeaderName)
 	}
 	c, err := base64.StdEncoding.DecodeString(auth[len(authPrefix):])
 	if err != nil {
@@ -78,7 +78,7 @@ func parseBasicAuth(auth string) (username, password string, err error) {
 	cs := string(c)
 	s := strings.IndexByte(cs, ':')
 	if s < 0 {
-		return "", "", fmt.Errorf("Format of %s header must be user:password", AuthorizationHeader)
+		return "", "", fmt.Errorf("Format of %s header must be user:password", authorizationHeaderName)
 	}
 	return cs[:s], cs[s+1:], nil
 }
@@ -116,17 +116,17 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 
 // verifyBasicAuth verify that the provided username and password are correct and
 // that the user is authorized to target the resource
-func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
-	username, password, err := parseBasicAuth(string(auth))
+func verifyBasicAuth(authorizationHeaderName string, auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
+	username, password, err := parseBasicAuth(authorizationHeaderName, string(auth))
 
 	if err != nil {
-		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to parse content of %s header: %s", AuthorizationHeader, err)
+		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to parse content of %s header: %s", authorizationHeaderName, err)
 	}
 
 	authenticated, err := ctx.Providers.UserProvider.CheckUserPassword(username, password)
 
 	if err != nil {
-		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check credentials extracted from %s header: %s", AuthorizationHeader, err)
+		return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check credentials extracted from %s header: %s", authorizationHeaderName, err)
 	}
 
 	// If the user is not correctly authenticated, send a 401
@@ -228,12 +228,21 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	var username string
 	var groups []string
 	var authLevel authentication.Level
+	var authorizationHeader []byte
+	var authorizationHeaderName string
 
-	proxyAuthorization := ctx.Request.Header.Peek(AuthorizationHeader)
-	hasBasicAuth := proxyAuthorization != nil
+	if authorizationHeader = ctx.Request.Header.Peek(ProxyAuthorizationHeaderName); authorizationHeader != nil {
+		authorizationHeaderName = ProxyAuthorizationHeaderName
+		ctx.Logger.Tracef("AuthorizationHeader found=%s", ProxyAuthorizationHeaderName)
+	} else if authorizationHeader = ctx.Request.Header.Peek(AuthorizationHeaderName); authorizationHeader != nil {
+		authorizationHeaderName = AuthorizationHeaderName
+		ctx.Logger.Tracef("AuthorizationHeader found=%s", AuthorizationHeaderName)
+	}
+
+	hasBasicAuth := authorizationHeader != nil
 
 	if hasBasicAuth {
-		username, groups, authLevel, err = verifyBasicAuth(proxyAuthorization, *targetURL, ctx)
+		username, groups, authLevel, err = verifyBasicAuth(authorizationHeaderName, authorizationHeader, *targetURL, ctx)
 	} else {
 		username, groups, authLevel, err = verifyFromSessionCookie(*targetURL, ctx)
 	}
