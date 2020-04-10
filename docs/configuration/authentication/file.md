@@ -19,12 +19,12 @@ file in the configuration file.
         disable_reset_password: false
         file:
             path: /var/lib/authelia/users.yml
-                password_hashing:
-                    algorithm: argon2id
-                    iterations: 1
-                    salt_length: 16
-                    parallelism: 8
-                    memory: 1024
+            password_hashing:
+                algorithm: argon2id
+                iterations: 1
+                salt_length: 16
+                parallelism: 8
+                memory: 1024
 
 
 ## Format
