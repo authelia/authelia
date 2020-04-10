@@ -29,7 +29,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	router := router.New()
 	router.GET("/", fasthttp.FSHandler(publicDir, 0))
-	router.ServeFiles("/static/*filepath", publicDir+"/static")
+	router.ServeFiles("/static/{filepath:*}", publicDir+"/static")
 
 	router.GET("/api/state", autheliaMiddleware(handlers.StateGet))
 
@@ -106,7 +106,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	// If trace is set, enable pprofhandler and expvarhandler
 	if configuration.LogLevel == "trace" {
-		router.GET("/debug/pprof/:name", pprofhandler.PprofHandler)
+		router.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
 		router.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
@@ -114,11 +114,10 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		ctx.SendFile(path.Join(publicDir, "index.html"))
 	}
 
-	addrPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
-
 	server := &fasthttp.Server{
 		Handler: middlewares.LogRequestMiddleware(router.Handler),
 	}
+	addrPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
 
 	if configuration.TLSCert != "" && configuration.TLSKey != "" {
 		logging.Logger().Infof("Authelia is listening for TLS connections on %s", addrPattern)
