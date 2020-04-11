@@ -33,11 +33,11 @@
     <span class="c1">## disable_verify_cert: false</span>
     <span class="c1">## trusted_cert: ""</span>
 </code></pre></div></div> <h2 id="using-gmail"> <a href="#using-gmail" class="anchor-heading"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#link"></use></svg></a> Using Gmail </h2> <p>You need to generate an app password in order to use Gmail SMTP servers. The process is described <a href="https://support.google.com/accounts/answer/185833?hl=en">here</a></p> <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">notifier</span><span class="pi">:</span>
-    <span class="na">smtp</span><span class="pi">:</span>
-        <span class="na">username</span><span class="pi">:</span> <span class="s">myaccount@gmail.com</span>
-        <span class="c1"># This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD</span>
-        <span class="na">password</span><span class="pi">:</span> <span class="s">yourapppassword</span>
-        <span class="na">sender</span><span class="pi">:</span> <span class="s">admin@example.com</span>
-        <span class="na">host</span><span class="pi">:</span> <span class="s">smtp.gmail.com</span>
-        <span class="na">port</span><span class="pi">:</span> <span class="m">587</span>
+  <span class="na">smtp</span><span class="pi">:</span>
+    <span class="na">username</span><span class="pi">:</span> <span class="s">myaccount@gmail.com</span>
+    <span class="c1"># This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD</span>
+    <span class="na">password</span><span class="pi">:</span> <span class="s">yourapppassword</span>
+    <span class="na">sender</span><span class="pi">:</span> <span class="s">admin@example.com</span>
+    <span class="na">host</span><span class="pi">:</span> <span class="s">smtp.gmail.com</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">587</span>
 </code></pre></div></div> <hr> <footer role="contentinfo"> <p class="text-small text-grey-dk-000 mb-0">Copyright &copy; 2020 Authelia. Distributed by an <a href="https://github.com/authelia/authelia/blob/master/LICENSE">Apache 2.0 license.</a></p> </footer> </div> </div> </div> </div> </body> </html>
