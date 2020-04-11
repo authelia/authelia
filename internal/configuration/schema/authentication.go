@@ -19,7 +19,7 @@ type LDAPAuthenticationBackendConfiguration struct {
 // FileAuthenticationBackendConfiguration represents the configuration related to file-based backend
 type FileAuthenticationBackendConfiguration struct {
 	Path            string                        `mapstructure:"path"`
-	PasswordHashing *PasswordHashingConfiguration `mapstructure:"password"`
+	PasswordHashing *PasswordHashingConfiguration `mapstructure:"password_hashing"`
 }
 
 type PasswordHashingConfiguration struct {
