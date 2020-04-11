@@ -36,7 +36,9 @@ following configuration options:
 `optional: true`
 
 Defines the level of logs used by Authelia. This level can be set to
-`trace`, `debug` or `info`.
+`trace`, `debug` or `info`. When setting log_level to trace, you will
+generate a large amount of log entries and expose the /debug/vars and
+/debug/pprof/ endpoints which should not be enabled in production.
 
     log_level: debug
 
