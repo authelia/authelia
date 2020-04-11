@@ -19,7 +19,7 @@ file in the configuration file.
         disable_reset_password: false
         file:
             path: /var/lib/authelia/users.yml
-            password_hashing:
+            password:
                 algorithm: argon2id
                 iterations: 1
                 salt_length: 16
@@ -97,26 +97,34 @@ Flags:
 
 ## Password hash algorithm
 
-The default hash algorithm is salted Argon2id version 19. Argon2id is currently considered 
+The default hash algorithm Argon2id version 19 with a salt. Argon2id is currently considered 
 the best hashing algorithm, and in 2015 won the 
 [Password Hashing Competition](https://en.wikipedia.org/wiki/Password_Hashing_Competition).
 It benefits from customizable parameters allowing the cost of computing a hash to scale 
 into the future which makes it harder to brute-force. Argon2id was implemented due to community 
 feedback as you can see in this closed [issue](https://github.com/authelia/authelia/issues/577).
 
-Additionally SHA512 is supported for backwards compatibility and user choice. While it's a reasonable
-hash function given high enough iterations, as hardware gets better it has a higher chance of being 
-brute-forced.
+For backwards compatibility and user choice support for the SHA512 algorithm is available. While it's a 
+reasonable hashing function given high enough iterations, as hardware gets better it has a higher chance 
+of being brute-forced.
 
 Hashes are identifiable as argon2id or SHA512 by their prefix of either `$argon2id$` and `$6$` 
 respectively,  as described in this [wiki page](https://en.wikipedia.org/wiki/Crypt_(C)).
 
+**Important Note:** When using argon2id Authelia will appear to remain using the memory allocated
+to creating the hash. This is due to how [Go](https://golang.org/) allocates memory to the heap when
+generating an argon2id hash. Go periodically garbage collects the heap, however this does
+not explicitly free the memory on the OS side. When the OS is under pressure it will
+automatically reclaim that memory. As such the amount of memory used by Authelia is just visually
+wrong. If this is not desirable you can always revert to the less secure SHA512 or lower the memory
+parameter. 
+
 ### Password hash algorithm tuning
  
-All algorithm tuning is supported for Argon2id. The only configuration variables that affect 
+All algorithm tuning for Argon2id is supported. The only configuration variables that affect 
 SHA512 are iterations and salt length. The configuration variables are unique to the file
 authentication provider, thus they all exist in a key under the file authentication configuration
-key called `password_hashing`. We have set what are considered as sane and recommended defaults
+key called `password`. We have set what are considered as sane and recommended defaults
 to cater for a reasonable system, if you're unsure about which settings to tune, please see the 
 parameters below, or for a more in depth understanding see the referenced documentation in
 [Argon2 links](./file.md#argon2-links).
