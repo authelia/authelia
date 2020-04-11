@@ -104,20 +104,22 @@ It benefits from customizable parameters allowing the cost of computing a hash t
 into the future which makes it harder to brute-force. Argon2id was implemented due to community 
 feedback as you can see in this closed [issue](https://github.com/authelia/authelia/issues/577).
 
-For backwards compatibility and user choice support for the SHA512 algorithm is available. While it's a 
-reasonable hashing function given high enough iterations, as hardware gets better it has a higher chance 
-of being brute-forced.
+For backwards compatibility and user choice support for the SHA512 algorithm is still available. 
+While it's a reasonable hashing function given high enough iterations, as hardware gets better it 
+has a higher chance of being brute-forced.
 
 Hashes are identifiable as argon2id or SHA512 by their prefix of either `$argon2id$` and `$6$` 
 respectively,  as described in this [wiki page](https://en.wikipedia.org/wiki/Crypt_(C)).
 
 **Important Note:** When using argon2id Authelia will appear to remain using the memory allocated
 to creating the hash. This is due to how [Go](https://golang.org/) allocates memory to the heap when
-generating an argon2id hash. Go periodically garbage collects the heap, however this does
-not explicitly free the memory on the OS side. When the OS is under pressure it will
-automatically reclaim that memory. As such the amount of memory used by Authelia is just visually
-wrong. If this is not desirable you can always revert to the less secure SHA512 or lower the memory
-parameter. 
+generating an argon2id hash. Go periodically garbage collects the heap, however this doesn't remove
+the memory allocation, it keeps it allocated even though it's technically unused. Under memory
+pressure the unused allocated memory will be reclaimed by the operating system, you can test
+this on linux with 
+`stress-ng --vm-bytes $(awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo)k --vm-keep -m 1`.
+If this is not desirable you can always reduce the memory parameter, or use the less secure SHA512
+algorithm. 
 
 ### Password hash algorithm tuning
  
