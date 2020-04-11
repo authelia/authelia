@@ -13,6 +13,6 @@ should only be used for testing purposes.
 
 ```yaml
 notifier:
-    filesystem:
-        filename: /tmp/authelia/notification.txt
+  filesystem:
+    filename: /tmp/authelia/notification.txt
 ```

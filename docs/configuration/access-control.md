@@ -92,40 +92,41 @@ configure Authelia accordingly.
 
 Here is a complete example of complex access control list that can be defined in Authelia.
 
-    access_control:
-        default_policy: deny
+```yaml
+access_control:
+  default_policy: deny
+  rules:
+    - domain: public.example.com
+      policy: bypass
 
-        rules:
-        - domain: public.example.com
-          policy: bypass
+    - domain: secure.example.com
+      policy: one_factor
+      networks:
+      - 192.168.1.0/24
 
-        - domain: secure.example.com
-          policy: one_factor
-          networks:
-          - 192.168.1.0/24
-      
-        - domain: secure.example.com
-          policy: two_factor
+    - domain: secure.example.com
+      policy: two_factor
 
-        - domain: singlefactor.example.com
-          policy: one_factor
+    - domain: singlefactor.example.com
+      policy: one_factor
 
-        - domain: "mx2.mail.example.com"
-          subject: "group:admins"
-          policy: deny
-        
-        - domain: "*.example.com"
-          subject: "group:admins"
-          policy: two_factor
+    - domain: "mx2.mail.example.com"
+      subject: "group:admins"
+      policy: deny
 
-        - domain: dev.example.com
-          resources:
-          - "^/groups/dev/.*$"
-          subject: "group:dev"
-          policy: two_factor
+    - domain: "*.example.com"
+      subject: "group:admins"
+      policy: two_factor
 
-        - domain: dev.example.com
-          resources:
-          - "^/users/john/.*$"
-          subject: "user:john"
-          policy: two_factor
+    - domain: dev.example.com
+      resources:
+      - "^/groups/dev/.*$"
+      subject: "group:dev"
+      policy: two_factor
+
+    - domain: dev.example.com
+      resources:
+      - "^/users/john/.*$"
+      subject: "user:john"
+      policy: two_factor
+```

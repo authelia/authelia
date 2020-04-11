@@ -55,11 +55,11 @@ described [here](https://support.google.com/accounts/answer/185833?hl=en)
 
 ```yaml
 notifier:
-    smtp:
-        username: myaccount@gmail.com
-        # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
-        password: yourapppassword
-        sender: admin@example.com
-        host: smtp.gmail.com
-        port: 587
+  smtp:
+    username: myaccount@gmail.com
+    # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
+    password: yourapppassword
+    sender: admin@example.com
+    host: smtp.gmail.com
+    port: 587
 ```

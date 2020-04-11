@@ -11,10 +11,13 @@ Authelia uses time based one-time passwords as the OTP method. You have
 the option to tune the settings of the TOTP generation and you can see a
 full example of TOTP configuration below, as well as sections describing them.
 
-    totp:
-        issuer: authelia.com
-        period: 30
-        skew: 1
+```yaml
+totp:
+  issuer: authelia.com
+  period: 30
+  skew: 1
+```
+
         
 ## Issuer
 

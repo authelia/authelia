@@ -15,44 +15,46 @@ nav_order: 1
 Configuring Authelia to use a file is done by specifying the path to the
 file in the configuration file.
 
-    authentication_backend:
-        disable_reset_password: false
-        file:
-            path: /var/lib/authelia/users.yml
-            password:
-                algorithm: argon2id
-                iterations: 1
-                salt_length: 16
-                parallelism: 8
-                memory: 1024
+```yaml
+authentication_backend:
+  disable_reset_password: false
+  file:
+    path: /var/lib/authelia/users.yml
+    password:
+      algorithm: argon2id
+      iterations: 1
+      salt_length: 16
+      parallelism: 8
+      memory: 1024
+```
+
 
 
 ## Format
 
 The format of the users file is as follows.
 
-    users:
-        john:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: john.doe@authelia.com
-            groups:
-                - admins
-                - dev
-
-        harry:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: harry.potter@authelia.com
-            groups: []
-
-        bob:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: bob.dylan@authelia.com
-            groups:
-                - dev
-
-        james:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: james.dean@authelia.com
+```yaml
+users:
+  john:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+  harry:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: harry.potter@authelia.com
+    groups: []
+  bob:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: bob.dylan@authelia.com
+    groups:
+      - dev
+  james:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: james.dean@authelia.com
+```
 
 
 This file should be set with read/write permissions as it could be updated by users
@@ -73,7 +75,7 @@ always be valid for base64 decoding (characters a through z, A through Z, 0 thro
 For instance to generate a hash with the docker image just run:
 
     $ docker run authelia/authelia:latest authelia hash-password yourpassword
-    $ Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
+    Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
 
 Full CLI Help Documentation:
 
@@ -116,8 +118,10 @@ to creating the hash. This is due to how [Go](https://golang.org/) allocates mem
 generating an argon2id hash. Go periodically garbage collects the heap, however this doesn't remove
 the memory allocation, it keeps it allocated even though it's technically unused. Under memory
 pressure the unused allocated memory will be reclaimed by the operating system, you can test
-this on linux with 
-`stress-ng --vm-bytes $(awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo)k --vm-keep -m 1`.
+this on linux with: 
+
+    $ stress-ng --vm-bytes $(awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo)k --vm-keep -m 1
+    
 If this is not desirable we recommend investigating the following options in order of most to least secure:
   1. using the [LDAP authentication provider](./ldap.md)
   2. adjusting the [memory](#memory) parameter
