@@ -118,8 +118,10 @@ the memory allocation, it keeps it allocated even though it's technically unused
 pressure the unused allocated memory will be reclaimed by the operating system, you can test
 this on linux with 
 `stress-ng --vm-bytes $(awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo)k --vm-keep -m 1`.
-If this is not desirable you can always reduce the memory parameter, or use the less secure SHA512
-algorithm. 
+If this is not desirable we recommend investigating the following options in order of most to least secure:
+  1. using the [LDAP authentication provider](./ldap.md)
+  2. adjusting the [memory](#memory) parameter
+  3. changing the [algorithm](#algorithm)
 
 ### Password hash algorithm tuning
  
