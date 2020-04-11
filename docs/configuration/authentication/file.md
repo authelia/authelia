@@ -97,7 +97,7 @@ Flags:
 
 ## Password hash algorithm
 
-The default hash algorithm Argon2id version 19 with a salt. Argon2id is currently considered 
+The default hash algorithm is Argon2id version 19 with a salt. Argon2id is currently considered 
 the best hashing algorithm, and in 2015 won the 
 [Password Hashing Competition](https://en.wikipedia.org/wiki/Password_Hashing_Competition).
 It benefits from customizable parameters allowing the cost of computing a hash to scale 
@@ -105,7 +105,7 @@ into the future which makes it harder to brute-force. Argon2id was implemented d
 feedback as you can see in this closed [issue](https://github.com/authelia/authelia/issues/577).
 
 For backwards compatibility and user choice support for the SHA512 algorithm is still available. 
-While it's a reasonable hashing function given high enough iterations, as hardware gets better it 
+While it's a reasonable hashing function given high enough iterations, as hardware improves it 
 has a higher chance of being brute-forced.
 
 Hashes are identifiable as argon2id or SHA512 by their prefix of either `$argon2id$` and `$6$` 
