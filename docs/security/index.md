@@ -7,8 +7,9 @@ has_children: true
 
 # Security
 
-Authelia takes security very seriously. We follow the rule of responsible disclosure, and we encourage the 
-community to as well.
+Authelia takes security very seriously. We follow the rule of 
+[responsible disclosure](https://en.wikipedia.org/wiki/Responsible_disclosure), and we 
+encourage the community to as well.
 
 
 If you discover a vulnerability in Authelia, please first contact **clems4ever** on 
