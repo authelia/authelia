@@ -8,6 +8,8 @@ import (
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasthttp/expvarhandler"
+	"github.com/valyala/fasthttp/pprofhandler"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/duo"
@@ -18,18 +20,16 @@ import (
 
 // StartServer start Authelia server with the given configuration and providers.
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
-	router := router.New()
-
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-
 	publicDir := os.Getenv("PUBLIC_DIR")
 	if publicDir == "" {
 		publicDir = "./public_html"
 	}
 	logging.Logger().Infof("Selected public_html directory is %s", publicDir)
 
+	router := router.New()
 	router.GET("/", fasthttp.FSHandler(publicDir, 0))
-	router.ServeFiles("/static/*filepath", publicDir+"/static")
+	router.ServeFiles("/static/{filepath:*}", publicDir+"/static")
 
 	router.GET("/api/state", autheliaMiddleware(handlers.StateGet))
 
@@ -105,22 +105,26 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 			middlewares.RequireFirstFactor(handlers.SecondFactorDuoPost(duoAPI))))
 	}
 
+	// If trace is set, enable pprofhandler and expvarhandler
+	if configuration.LogLevel == "trace" {
+		router.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
+		router.GET("/debug/vars", expvarhandler.ExpvarHandler)
+	}
+
 	router.NotFound = func(ctx *fasthttp.RequestCtx) {
 		ctx.SendFile(path.Join(publicDir, "index.html"))
 	}
 
+	server := &fasthttp.Server{
+		Handler: middlewares.LogRequestMiddleware(router.Handler),
+	}
 	addrPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
 
 	if configuration.TLSCert != "" && configuration.TLSKey != "" {
 		logging.Logger().Infof("Authelia is listening for TLS connections on %s", addrPattern)
-
-		logging.Logger().Fatal(fasthttp.ListenAndServeTLS(addrPattern,
-			configuration.TLSCert, configuration.TLSKey,
-			middlewares.LogRequestMiddleware(router.Handler)))
+		logging.Logger().Fatal(server.ListenAndServeTLS(addrPattern, configuration.TLSCert, configuration.TLSKey))
 	} else {
 		logging.Logger().Infof("Authelia is listening for non-TLS connections on %s", addrPattern)
-
-		logging.Logger().Fatal(fasthttp.ListenAndServe(addrPattern,
-			middlewares.LogRequestMiddleware(router.Handler)))
+		logging.Logger().Fatal(server.ListenAndServe(addrPattern))
 	}
 }
