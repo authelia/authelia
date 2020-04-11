@@ -75,7 +75,7 @@ always be valid for base64 decoding (characters a through z, A through Z, 0 thro
 For instance to generate a hash with the docker image just run:
 
     $ docker run authelia/authelia:latest authelia hash-password yourpassword
-    $ Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
+    Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
 
 Full CLI Help Documentation:
 
@@ -118,8 +118,10 @@ to creating the hash. This is due to how [Go](https://golang.org/) allocates mem
 generating an argon2id hash. Go periodically garbage collects the heap, however this doesn't remove
 the memory allocation, it keeps it allocated even though it's technically unused. Under memory
 pressure the unused allocated memory will be reclaimed by the operating system, you can test
-this on linux with 
-`stress-ng --vm-bytes $(awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo)k --vm-keep -m 1`.
+this on linux with: 
+
+    $ stress-ng --vm-bytes $(awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo)k --vm-keep -m 1
+    
 If this is not desirable we recommend investigating the following options in order of most to least secure:
   1. using the [LDAP authentication provider](./ldap.md)
   2. adjusting the [memory](#memory) parameter
