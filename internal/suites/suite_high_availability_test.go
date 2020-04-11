@@ -39,7 +39,7 @@ func (s *HighAvailabilityWebDriverSuite) TearDownSuite() {
 }
 
 func (s *HighAvailabilityWebDriverSuite) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	s.doLogout(ctx, s.T())
