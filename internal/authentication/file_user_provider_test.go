@@ -131,8 +131,8 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		config.PasswordHashing.Algorithm = "sha512"
-		config.PasswordHashing.Iterations = 50000
+		config.Password.Algorithm = "sha512"
+		config.Password.Iterations = 50000
 
 		provider := NewFileUserProvider(&config)
 		assert.True(t, strings.HasPrefix(provider.database.Users["john"].HashedPassword, "{CRYPT}$argon2id$"))
@@ -223,13 +223,13 @@ func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 var (
 	DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackendConfiguration{
 		Path: "",
-		PasswordHashing: &schema.PasswordHashingConfiguration{
-			Iterations:  schema.DefaultCIPasswordOptionsConfiguration.Iterations,
-			KeyLength:   schema.DefaultCIPasswordOptionsConfiguration.KeyLength,
-			SaltLength:  schema.DefaultCIPasswordOptionsConfiguration.SaltLength,
-			Algorithm:   schema.DefaultCIPasswordOptionsConfiguration.Algorithm,
-			Memory:      schema.DefaultCIPasswordOptionsConfiguration.Memory,
-			Parallelism: schema.DefaultCIPasswordOptionsConfiguration.Parallelism,
+		Password: &schema.PasswordConfiguration{
+			Iterations:  schema.DefaultCIPasswordConfiguration.Iterations,
+			KeyLength:   schema.DefaultCIPasswordConfiguration.KeyLength,
+			SaltLength:  schema.DefaultCIPasswordConfiguration.SaltLength,
+			Algorithm:   schema.DefaultCIPasswordConfiguration.Algorithm,
+			Memory:      schema.DefaultCIPasswordConfiguration.Memory,
+			Parallelism: schema.DefaultCIPasswordConfiguration.Parallelism,
 		},
 	}
 )

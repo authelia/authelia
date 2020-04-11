@@ -140,7 +140,7 @@ authentication_backend:
   # which is updated when users reset their passwords.
   # Therefore, this backend is meant to be used in a dev environment
   # and not in production since it prevents Authelia to be scaled to
-  # more than one instance. The options under password_options have sane
+  # more than one instance. The options under 'password' have sane
   # defaults, and as it has security implications it is highly recommended
   # you leave the default values. Before considering changing these settings
   # please read the docs page below:
@@ -148,7 +148,7 @@ authentication_backend:
   #
   ## file:
   ##   path: ./users_database.yml
-  ##   password_options:
+  ##   password:
   ##     algorithm: argon2id
   ##     iterations: 1
   ##     key_length: 32
@@ -324,10 +324,10 @@ storage:
     # This secret can also be set using the env variables AUTHELIA_STORAGE_MYSQL_PASSWORD
     password: mypassword
 
-  # Settings to connect to MySQL server
+  # Settings to connect to PostgreSQL server
   # postgres:
   #   host: 127.0.0.1
-  #   port: 3306
+  #   port: 5432
   #   database: authelia
   #   username: authelia
   #   # This secret can also be set using the env variables AUTHELIA_STORAGE_POSTGRES_PASSWORD

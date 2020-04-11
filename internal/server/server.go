@@ -38,6 +38,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		middlewares.RequireFirstFactor(handlers.ExtendedConfigurationGet)))
 
 	router.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet))
+	router.HEAD("/api/verify", autheliaMiddleware(handlers.VerifyGet))
 
 	router.POST("/api/firstfactor", autheliaMiddleware(handlers.FirstFactorPost))
 	router.POST("/api/logout", autheliaMiddleware(handlers.LogoutPost))

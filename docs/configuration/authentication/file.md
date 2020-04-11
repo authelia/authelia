@@ -15,44 +15,46 @@ nav_order: 1
 Configuring Authelia to use a file is done by specifying the path to the
 file in the configuration file.
 
-    authentication_backend:
-        disable_reset_password: false
-        file:
-            path: /var/lib/authelia/users.yml
-            password_hashing:
-                algorithm: argon2id
-                iterations: 1
-                salt_length: 16
-                parallelism: 8
-                memory: 1024
+```yaml
+authentication_backend:
+  disable_reset_password: false
+  file:
+    path: /var/lib/authelia/users.yml
+    password:
+      algorithm: argon2id
+      iterations: 1
+      salt_length: 16
+      parallelism: 8
+      memory: 1024
+```
+
 
 
 ## Format
 
 The format of the users file is as follows.
 
-    users:
-        john:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: john.doe@authelia.com
-            groups:
-                - admins
-                - dev
-
-        harry:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: harry.potter@authelia.com
-            groups: []
-
-        bob:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: bob.dylan@authelia.com
-            groups:
-                - dev
-
-        james:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: james.dean@authelia.com
+```yaml
+users:
+  john:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+  harry:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: harry.potter@authelia.com
+    groups: []
+  bob:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: bob.dylan@authelia.com
+    groups:
+      - dev
+  james:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: james.dean@authelia.com
+```
 
 
 This file should be set with read/write permissions as it could be updated by users
@@ -73,7 +75,7 @@ always be valid for base64 decoding (characters a through z, A through Z, 0 thro
 For instance to generate a hash with the docker image just run:
 
     $ docker run authelia/authelia:latest authelia hash-password yourpassword
-    $ Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
+    Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
 
 Full CLI Help Documentation:
 
@@ -97,26 +99,40 @@ Flags:
 
 ## Password hash algorithm
 
-The default hash algorithm is salted Argon2id version 19. Argon2id is currently considered 
+The default hash algorithm is Argon2id version 19 with a salt. Argon2id is currently considered 
 the best hashing algorithm, and in 2015 won the 
 [Password Hashing Competition](https://en.wikipedia.org/wiki/Password_Hashing_Competition).
 It benefits from customizable parameters allowing the cost of computing a hash to scale 
 into the future which makes it harder to brute-force. Argon2id was implemented due to community 
 feedback as you can see in this closed [issue](https://github.com/authelia/authelia/issues/577).
 
-Additionally SHA512 is supported for backwards compatibility and user choice. While it's a reasonable
-hash function given high enough iterations, as hardware gets better it has a higher chance of being 
-brute-forced.
+For backwards compatibility and user choice support for the SHA512 algorithm is still available. 
+While it's a reasonable hashing function given high enough iterations, as hardware improves it 
+has a higher chance of being brute-forced.
 
 Hashes are identifiable as argon2id or SHA512 by their prefix of either `$argon2id$` and `$6$` 
 respectively,  as described in this [wiki page](https://en.wikipedia.org/wiki/Crypt_(C)).
 
+**Important Note:** When using argon2id Authelia will appear to remain using the memory allocated
+to creating the hash. This is due to how [Go](https://golang.org/) allocates memory to the heap when
+generating an argon2id hash. Go periodically garbage collects the heap, however this doesn't remove
+the memory allocation, it keeps it allocated even though it's technically unused. Under memory
+pressure the unused allocated memory will be reclaimed by the operating system, you can test
+this on linux with: 
+
+    $ stress-ng --vm-bytes $(awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo)k --vm-keep -m 1
+    
+If this is not desirable we recommend investigating the following options in order of most to least secure:
+  1. using the [LDAP authentication provider](./ldap.md)
+  2. adjusting the [memory](#memory) parameter
+  3. changing the [algorithm](#algorithm)
+
 ### Password hash algorithm tuning
  
-All algorithm tuning is supported for Argon2id. The only configuration variables that affect 
+All algorithm tuning for Argon2id is supported. The only configuration variables that affect 
 SHA512 are iterations and salt length. The configuration variables are unique to the file
 authentication provider, thus they all exist in a key under the file authentication configuration
-key called `password_hashing`. We have set what are considered as sane and recommended defaults
+key called `password`. We have set what are considered as sane and recommended defaults
 to cater for a reasonable system, if you're unsure about which settings to tune, please see the 
 parameters below, or for a more in depth understanding see the referenced documentation in
 [Argon2 links](./file.md#argon2-links).
