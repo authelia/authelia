@@ -47,8 +47,9 @@
       <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.http.routers.authelia.rule=Host(`login.example.com`)'</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.http.routers.authelia.entrypoints=https'</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.http.routers.authelia.tls=true'</span>
-      <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https://login.example.com/'</span>
+      <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.example.com/'</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'</span>
+      <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,</span><span class="nv"> </span><span class="s">Remote-Groups'</span>
     <span class="na">expose</span><span class="pi">:</span>
       <span class="pi">-</span> <span class="m">9091</span>
     <span class="na">restart</span><span class="pi">:</span> <span class="s">unless-stopped</span>

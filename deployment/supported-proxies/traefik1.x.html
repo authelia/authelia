@@ -60,6 +60,8 @@
     <span class="na">labels</span><span class="pi">:</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.frontend.rule=Host:nextcloud.example.com'</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?rd=https://login.example.com/'</span>
+      <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.frontend.auth.forward.trustForwardHeader=true'</span>
+      <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups'</span>
     <span class="na">expose</span><span class="pi">:</span>
       <span class="pi">-</span> <span class="m">443</span>
     <span class="na">restart</span><span class="pi">:</span> <span class="s">unless-stopped</span>
