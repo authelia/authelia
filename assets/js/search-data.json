@@ -218,7 +218,7 @@
   }
   ,"36": {
     "title": "PostgreSQL",
-    "content": "PostgreSQL . storage: postgres: host: 127.0.0.1 port: 3306 database: authelia username: authelia # This secret can also be set using the env variables AUTHELIA_STORAGE_POSTGRES_PASSWORD password: mypassword .",
+    "content": "PostgreSQL . storage: postgres: host: 127.0.0.1 port: 5432 database: authelia username: authelia # This secret can also be set using the env variables AUTHELIA_STORAGE_POSTGRES_PASSWORD password: mypassword .",
     "url": "https://docs.authelia.com/configuration/storage/postgres.html",
     "relUrl": "/configuration/storage/postgres.html"
   }
