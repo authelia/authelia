@@ -15,44 +15,46 @@ nav_order: 1
 Configuring Authelia to use a file is done by specifying the path to the
 file in the configuration file.
 
-    authentication_backend:
-        disable_reset_password: false
-        file:
-            path: /var/lib/authelia/users.yml
-            password:
-                algorithm: argon2id
-                iterations: 1
-                salt_length: 16
-                parallelism: 8
-                memory: 1024
+```yaml
+authentication_backend:
+  disable_reset_password: false
+  file:
+    path: /var/lib/authelia/users.yml
+    password:
+      algorithm: argon2id
+      iterations: 1
+      salt_length: 16
+      parallelism: 8
+      memory: 1024
+```
+
 
 
 ## Format
 
 The format of the users file is as follows.
 
-    users:
-        john:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: john.doe@authelia.com
-            groups:
-                - admins
-                - dev
-
-        harry:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: harry.potter@authelia.com
-            groups: []
-
-        bob:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: bob.dylan@authelia.com
-            groups:
-                - dev
-
-        james:
-            password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
-            email: james.dean@authelia.com
+```yaml
+users:
+  john:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+  harry:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: harry.potter@authelia.com
+    groups: []
+  bob:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: bob.dylan@authelia.com
+    groups:
+      - dev
+  james:
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: james.dean@authelia.com
+```
 
 
 This file should be set with read/write permissions as it could be updated by users
