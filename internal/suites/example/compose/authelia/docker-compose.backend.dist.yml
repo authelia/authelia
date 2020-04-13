@@ -10,7 +10,7 @@ services:
       - 'traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) && PathPrefix(`/api`)'
       - 'traefik.http.routers.authelia_backend.entrypoints=https'
       - 'traefik.http.routers.authelia_backend.tls=true'
-      - 'traefik.http.services.authelia-backend-authelia.loadbalancer.server.scheme=https'
+      - 'traefik.http.services.authelia_backend.loadbalancer.server.scheme=https'
     environment:
       - ENVIRONMENT=dev
     restart: always

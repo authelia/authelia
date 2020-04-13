@@ -11,7 +11,7 @@ services:
       - 'traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`)'
       - 'traefik.http.routers.authelia_frontend.entrypoints=https'
       - 'traefik.http.routers.authelia_frontend.tls=true'
-      - 'traefik.http.services.authelia-frontend-authelia.loadbalancer.server.port=3000'
+      - 'traefik.http.services.authelia_frontend.loadbalancer.server.port=3000'
     networks:
       - authelianet
     expose:
