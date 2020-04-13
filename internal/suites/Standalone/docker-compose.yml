@@ -7,6 +7,6 @@ services:
     volumes:
       - './Standalone/configuration.yml:/etc/authelia/configuration.yml:ro'
       - './Standalone/users.yml:/var/lib/authelia/users.yml'
-      - './Standalone/ssl:/var/lib/authelia/ssl'
+      - './common/ssl:/var/lib/authelia/ssl:ro'
       - '/tmp:/tmp'
     user: ${USER_ID}:${GROUP_ID}

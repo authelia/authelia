@@ -3,6 +3,7 @@ package suites
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -38,6 +39,10 @@ func (wds *WebDriverSession) doLoginTwoFactor(ctx context.Context, t *testing.T,
 	wds.doLoginOneFactor(ctx, t, username, password, keepMeLoggedIn, targetURL)
 	wds.verifyIsSecondFactorPage(ctx, t)
 	wds.doValidateTOTP(ctx, t, otpSecret)
+	// timeout when targetURL is not defined to prevent a show stopping redirect when visiting a protected domain
+	if targetURL == "" {
+		time.Sleep(1 * time.Second)
+	}
 }
 
 // Login 1FA and register 2FA.
@@ -53,6 +58,6 @@ func (wds *WebDriverSession) doLoginAndRegisterTOTP(ctx context.Context, t *test
 func (wds *WebDriverSession) doRegisterAndLogin2FA(ctx context.Context, t *testing.T, username, password string, keepMeLoggedIn bool, targetURL string) string { //nolint:unparam
 	// Register TOTP secret and logout.
 	secret := wds.doRegisterThenLogout(ctx, t, username, password)
-	wds.doLoginTwoFactor(ctx, t, username, password, false, secret, targetURL)
+	wds.doLoginTwoFactor(ctx, t, username, password, keepMeLoggedIn, secret, targetURL)
 	return secret
 }

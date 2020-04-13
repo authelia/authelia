@@ -4,3 +4,4 @@ services:
     volumes:
       - './Traefik/configuration.yml:/etc/authelia/configuration.yml:ro'
       - './Traefik/users.yml:/var/lib/authelia/users.yml'
+      - './common/ssl:/var/lib/authelia/ssl:ro'
