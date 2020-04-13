@@ -12,22 +12,22 @@ testing the code, etc...
 
 Those scripts becomes available after sourcing the bootstrap.sh script with
 
-    source bootstrap.sh
+    $ source bootstrap.sh
 
 Then, you can access the scripts usage by running the following command:
 
-    authelia-scripts --help
+    $ authelia-scripts --help
 
 For instance, you can build Authelia (Go binary and frontend) with:
 
-    authelia-scripts build
+    $ authelia-scripts build
 
 Or build the official Docker image with:
 
-    authelia-scripts docker build
+    $ authelia-scripts docker build
 
 Or start the *Standalone* suite with:
 
-    authelia-scripts suites setup Standalone
+    $ authelia-scripts suites setup Standalone
 
 You will find more information in the scripts usage helpers.

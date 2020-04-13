@@ -10,13 +10,13 @@ import (
 )
 
 func init() {
-	HashPasswordCmd.Flags().BoolP("sha512", "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordOptionsSHA512Configuration.Iterations))
-	HashPasswordCmd.Flags().IntP("iterations", "i", schema.DefaultPasswordOptionsConfiguration.Iterations, "set the number of hashing iterations")
+	HashPasswordCmd.Flags().BoolP("sha512", "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordSHA512Configuration.Iterations))
+	HashPasswordCmd.Flags().IntP("iterations", "i", schema.DefaultPasswordConfiguration.Iterations, "set the number of hashing iterations")
 	HashPasswordCmd.Flags().StringP("salt", "s", "", "set the salt string")
-	HashPasswordCmd.Flags().IntP("memory", "m", schema.DefaultPasswordOptionsConfiguration.Memory, "[argon2id] set the amount of memory param (in MB)")
-	HashPasswordCmd.Flags().IntP("parallelism", "p", schema.DefaultPasswordOptionsConfiguration.Parallelism, "[argon2id] set the parallelism param")
-	HashPasswordCmd.Flags().IntP("key-length", "k", schema.DefaultPasswordOptionsConfiguration.KeyLength, "[argon2id] set the key length param")
-	HashPasswordCmd.Flags().IntP("salt-length", "l", schema.DefaultPasswordOptionsConfiguration.SaltLength, "set the auto-generated salt length")
+	HashPasswordCmd.Flags().IntP("memory", "m", schema.DefaultPasswordConfiguration.Memory, "[argon2id] set the amount of memory param (in MB)")
+	HashPasswordCmd.Flags().IntP("parallelism", "p", schema.DefaultPasswordConfiguration.Parallelism, "[argon2id] set the parallelism param")
+	HashPasswordCmd.Flags().IntP("key-length", "k", schema.DefaultPasswordConfiguration.KeyLength, "[argon2id] set the key length param")
+	HashPasswordCmd.Flags().IntP("salt-length", "l", schema.DefaultPasswordConfiguration.SaltLength, "set the auto-generated salt length")
 }
 
 var HashPasswordCmd = &cobra.Command{
@@ -36,8 +36,8 @@ var HashPasswordCmd = &cobra.Command{
 		var algorithm string
 
 		if sha512 {
-			if iterations == schema.DefaultPasswordOptionsConfiguration.Iterations {
-				iterations = schema.DefaultPasswordOptionsSHA512Configuration.Iterations
+			if iterations == schema.DefaultPasswordConfiguration.Iterations {
+				iterations = schema.DefaultPasswordSHA512Configuration.Iterations
 			}
 			algorithm = authentication.HashingAlgorithmSHA512
 		} else {

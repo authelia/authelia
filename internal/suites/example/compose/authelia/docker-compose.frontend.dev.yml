@@ -9,7 +9,7 @@ services:
         GROUP_ID: ${GROUP_ID}
     command: '/resources/entrypoint-frontend.sh'
     working_dir: /app
-    tty: true
+    stdin_open: true
     volumes:
       - './example/compose/authelia/resources/:/resources'
       - '../../web:/app'

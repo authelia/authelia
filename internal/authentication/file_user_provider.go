@@ -118,18 +118,18 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	}
 
 	var algorithm string
-	if p.configuration.PasswordHashing.Algorithm == "argon2id" {
+	if p.configuration.Password.Algorithm == "argon2id" {
 		algorithm = HashingAlgorithmArgon2id
-	} else if p.configuration.PasswordHashing.Algorithm == "sha512" {
+	} else if p.configuration.Password.Algorithm == "sha512" {
 		algorithm = HashingAlgorithmSHA512
 	} else {
 		return errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
 	}
 
 	hash, err := HashPassword(
-		newPassword, "", algorithm, p.configuration.PasswordHashing.Iterations,
-		p.configuration.PasswordHashing.Memory*1024, p.configuration.PasswordHashing.Parallelism,
-		p.configuration.PasswordHashing.KeyLength, p.configuration.PasswordHashing.SaltLength)
+		newPassword, "", algorithm, p.configuration.Password.Iterations,
+		p.configuration.Password.Memory*1024, p.configuration.Password.Parallelism,
+		p.configuration.Password.KeyLength, p.configuration.Password.SaltLength)
 
 	if err != nil {
 		return err
