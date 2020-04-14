@@ -73,17 +73,17 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	configuration.Session.Name = "authelia_session"
 	configuration.AccessControl.DefaultPolicy = "deny"
 	configuration.AccessControl.Rules = []schema.ACLRule{{
-		Domain: "bypass.example.com",
-		Policy: "bypass",
+		Domains: []string{"bypass.example.com"},
+		Policy:  "bypass",
 	}, {
-		Domain: "one-factor.example.com",
-		Policy: "one_factor",
+		Domains: []string{"one-factor.example.com"},
+		Policy:  "one_factor",
 	}, {
-		Domain: "two-factor.example.com",
-		Policy: "two_factor",
+		Domains: []string{"two-factor.example.com"},
+		Policy:  "two_factor",
 	}, {
-		Domain: "deny.example.com",
-		Policy: "deny",
+		Domains: []string{"deny.example.com"},
+		Policy:  "deny",
 	}}
 
 	providers := middlewares.Providers{}

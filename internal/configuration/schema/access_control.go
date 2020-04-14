@@ -8,9 +8,9 @@ import (
 
 // ACLRule represent one ACL rule
 type ACLRule struct {
-	Domain    string   `mapstructure:"domain"`
+	Domains   []string `mapstructure:"domain,weak"`
 	Policy    string   `mapstructure:"policy"`
-	Subject   string   `mapstructure:"subject"`
+	Subjects  []string `mapstructure:"subject,weak"`
 	Networks  []string `mapstructure:"networks"`
 	Resources []string `mapstructure:"resources"`
 }
@@ -33,7 +33,8 @@ func IsNetworkValid(network string) bool {
 
 // Validate validate an ACL Rule
 func (r *ACLRule) Validate(validator *StructValidator) {
-	if r.Domain == "" {
+
+	if len(r.Domains) == 0 {
 		validator.Push(fmt.Errorf("Domain must be provided"))
 	}
 
@@ -41,8 +42,10 @@ func (r *ACLRule) Validate(validator *StructValidator) {
 		validator.Push(fmt.Errorf("A policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'"))
 	}
 
-	if !IsSubjectValid(r.Subject) {
-		validator.Push(fmt.Errorf("A subject must start with 'user:' or 'group:'"))
+	for i, subject := range r.Subjects {
+		if !IsSubjectValid(subject) {
+			validator.Push(fmt.Errorf("Subject %d must start with 'user:' or 'group:'", i))
+		}
 	}
 
 	for i, network := range r.Networks {

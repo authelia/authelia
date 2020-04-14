@@ -40,5 +40,5 @@ func TestShouldParseConfigFile(t *testing.T) {
 	assert.Equal(t, "postgres_secret_from_env", config.Storage.PostgreSQL.Password)
 
 	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
-	assert.Len(t, config.AccessControl.Rules, 11)
+	assert.Len(t, config.AccessControl.Rules, 12)
 }
