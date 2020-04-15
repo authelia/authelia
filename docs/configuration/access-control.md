@@ -101,7 +101,9 @@ access_control:
       networks:
       - 192.168.1.0/24
 
-    - domain: ["secure.example.com", "private.example.com"]
+    - domain:
+      - secure.example.com
+      - private.example.com
       policy: two_factor
 
     - domain: singlefactor.example.com
@@ -112,7 +114,9 @@ access_control:
       policy: deny
 
     - domain: "*.example.com"
-      subject: ["group:admins", "group:moderators"]
+      subject:
+        - "group:admins"
+        - "group:moderators"
       policy: two_factor
 
     - domain: dev.example.com
