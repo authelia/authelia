@@ -162,7 +162,8 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	for _, attr := range sr.Entries[0].Attributes {
 		if attr.Name == p.configuration.MailAttribute {
 			userProfile.Emails = attr.Values
-		} else if attr.Name == p.configuration.UsernameAttribute {
+		}
+		if attr.Name == p.configuration.UsernameAttribute {
 			if len(attr.Values) != 1 {
 				return nil, fmt.Errorf("User %s cannot have multiple value for attribute %s",
 					inputUsername, p.configuration.UsernameAttribute)
