@@ -54,7 +54,7 @@ The domains defined in rules must obviously be either a subdomain of the domain
 protected by Authelia or the protected domain itself. In order to match multiple
 subdomains, the wildcard matcher character `*.` can be used as prefix of the domain.
 For instance, to define a rule for all subdomains of *example.com*, one would use
-`*.example.com` in the rule.
+`*.example.com` in the rule. A single rule can define multiple domains for matching.
 
 ## Resources
 
@@ -67,11 +67,8 @@ any one of them matches, the resource criteria of the rule matches.
 A subject is a representation of a user or a group of user for who the rule should apply.
 
 For a user with unique identifier `john`, the subject should be `user:john` and for a group
-uniquely identified by `developers`, the subject should be `group:developers`. Unlike resources
-there can be only one subject per rule. However, if multiple users or group must be matched by
-a rule, one can just duplicate the rule as many times as there are subjects.
-
-*Note: Any PR to make it a list instead of a single item is welcome.*
+uniquely identified by `developers`, the subject should be `group:developers`. Similar to resources
+and domains you can define multiple subjects in a single rule.
 
 ## Networks
 
@@ -104,7 +101,7 @@ access_control:
       networks:
       - 192.168.1.0/24
 
-    - domain: secure.example.com
+    - domain: ["secure.example.com", "private.example.com"]
       policy: two_factor
 
     - domain: singlefactor.example.com
@@ -115,7 +112,7 @@ access_control:
       policy: deny
 
     - domain: "*.example.com"
-      subject: "group:admins"
+      subject: ["group:admins", "group:moderators"]
       policy: two_factor
 
     - domain: dev.example.com
