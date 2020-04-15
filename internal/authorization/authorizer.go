@@ -54,7 +54,7 @@ func selectMatchingSubjectRules(rules []schema.ACLRule, subject Subject) []schem
 				}
 			}
 		} else {
-			if isSubjectMatching(subject, "") && isIPMatching(subject.IP, rule.Networks) {
+			if isIPMatching(subject.IP, rule.Networks) {
 				selectedRules = append(selectedRules, rule)
 			}
 		}
