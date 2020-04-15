@@ -3,7 +3,7 @@ services:
   haproxy:
     build: ./example/compose/haproxy/
     volumes:
-      - ./example/compose/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - ./example/compose/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     networks:
       authelianet:
         # Set the IP to be able to query on port 8080

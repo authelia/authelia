@@ -3,6 +3,8 @@
 ###############################################################
 
 port: 9091
+tls_cert: /var/lib/authelia/ssl/cert.pem
+tls_key: /var/lib/authelia/ssl/key.pem
 
 log_level: trace
 

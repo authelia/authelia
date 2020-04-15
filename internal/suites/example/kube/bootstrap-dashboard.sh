@@ -1,7 +1,7 @@
 #!/bin/bash
 
 start_dashboard() {
-  kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
   kubectl apply -f dashboard.yml
 
   echo "Bearer token for UI user."
