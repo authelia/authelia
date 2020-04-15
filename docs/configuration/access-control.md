@@ -114,7 +114,9 @@ access_control:
       policy: deny
 
     - domain: "*.example.com"
-      subject: ["group:admins", "group:moderators"]
+      subject:
+        - "group:admins"
+        - "group:moderators"
       policy: two_factor
 
     - domain: dev.example.com
