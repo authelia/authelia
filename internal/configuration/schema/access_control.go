@@ -7,6 +7,7 @@ import (
 )
 
 // ACLRule represent one ACL rule
+// "weak" coerces a single value into string slice
 type ACLRule struct {
 	Domains   []string `mapstructure:"domain,weak"`
 	Policy    string   `mapstructure:"policy"`
