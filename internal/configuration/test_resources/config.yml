@@ -44,7 +44,7 @@ access_control:
     - domain: secure.example.com
       policy: two_factor
 
-    - domain: singlefactor.example.com
+    - domain: [singlefactor.example.com, onefactor.example.com]
       policy: one_factor
 
     # Rules applied to 'admins' group
@@ -68,6 +68,13 @@ access_control:
         - "^/users/john/.*$"
       subject: "user:john"
       policy: two_factor
+
+    # Rules applied to 'dev' group and user 'john'
+    - domain: dev.example.com
+      resources:
+        - "^/deny-all.*$"
+      subject: ["group:dev", "user:john"]
+      policy: denied
 
     # Rules applied to user 'harry'
     - domain: dev.example.com

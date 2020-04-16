@@ -32,6 +32,12 @@ authentication_backend:
     # insensitive search queries.
     # For you information, Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP
     # usually uses 'uid'
+    # Beware that this attribute holds the unique identifiers for the users binding the user and the configuration
+    # stored in database. Therefore only single value attributes are allowed and the value
+    # must never be changed once attributed to a user otherwise it would break the configuration
+    # for that user. Technically, non-unique attributes like 'mail' can also be used but we don't recommend using
+    # them, we instead advise to use the attributes mentioned above (sAMAccountName and uid) to follow
+    # https://www.ietf.org/rfc/rfc2307.txt.
     username_attribute: uid
     
     # An additional dn to define the scope to all users
@@ -71,7 +77,8 @@ authentication_backend:
     # The attribute holding the mail address of the user
     mail_attribute: mail
     
-    # The username and password of the admin user.
+    # The username and password of the admin user. If multiple email addresses are defined for a user, only the first
+    # one returned by the LDAP server is used.
     user: cn=admin,dc=example,dc=com
     
     # This secret can also be set using the env variables AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD
@@ -81,3 +88,14 @@ authentication_backend:
 The user must have an email address in order for Authelia to perform
 identity verification when password reset request is initiated or
 when a second factor device is registered.
+
+## Important notes
+
+Users must be uniquely identified by an attribute, this attribute must obviously contain a single value and
+be guaranteed by the administrator to be unique. If multiple users have the same value, Authelia will simply
+fail authenticating the user and display an error message in the logs.
+
+In order to avoid such problems, we highly recommended you follow https://www.ietf.org/rfc/rfc2307.txt by using
+`sAMAccountName` for Microsoft Active Directory and `uid` for other implementations as the attribute holding the
+unique identifier for your users.
+
