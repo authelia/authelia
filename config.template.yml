@@ -212,7 +212,10 @@ access_control:
       # Network based rule, if not provided any network matches.
       networks:
         - 192.168.1.0/24
-    - domain: secure.example.com
+
+    - domain:
+      - secure.example.com
+      - private.example.com
       policy: two_factor
 
     - domain: singlefactor.example.com
@@ -222,8 +225,11 @@ access_control:
     - domain: "mx2.mail.example.com"
       subject: "group:admins"
       policy: deny
+
     - domain: "*.example.com"
-      subject: "group:admins"
+      subject:
+        - "group:admins"
+        - "group:moderators"
       policy: two_factor
 
     # Rules applied to 'dev' group

@@ -68,16 +68,16 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisab
 		DefaultPolicy: "bypass",
 		Rules: []schema.ACLRule{
 			{
-				Domain: "example.com",
-				Policy: "deny",
+				Domains: []string{"example.com"},
+				Policy:  "deny",
 			},
 			{
-				Domain: "abc.example.com",
-				Policy: "single_factor",
+				Domains: []string{"abc.example.com"},
+				Policy:  "single_factor",
 			},
 			{
-				Domain: "def.example.com",
-				Policy: "bypass",
+				Domains: []string{"def.example.com"},
+				Policy:  "bypass",
 			},
 		},
 	})
@@ -99,16 +99,16 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 		DefaultPolicy: "two_factor",
 		Rules: []schema.ACLRule{
 			{
-				Domain: "example.com",
-				Policy: "deny",
+				Domains: []string{"example.com"},
+				Policy:  "deny",
 			},
 			{
-				Domain: "abc.example.com",
-				Policy: "single_factor",
+				Domains: []string{"abc.example.com"},
+				Policy:  "single_factor",
 			},
 			{
-				Domain: "def.example.com",
-				Policy: "bypass",
+				Domains: []string{"def.example.com"},
+				Policy:  "bypass",
 			},
 		},
 	})
@@ -130,16 +130,16 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 		DefaultPolicy: "bypass",
 		Rules: []schema.ACLRule{
 			{
-				Domain: "example.com",
-				Policy: "deny",
+				Domains: []string{"example.com"},
+				Policy:  "deny",
 			},
 			{
-				Domain: "abc.example.com",
-				Policy: "two_factor",
+				Domains: []string{"abc.example.com"},
+				Policy:  "two_factor",
 			},
 			{
-				Domain: "def.example.com",
-				Policy: "bypass",
+				Domains: []string{"def.example.com"},
+				Policy:  "bypass",
 			},
 		},
 	})

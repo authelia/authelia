@@ -170,8 +170,8 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 		authorizer := authorization.NewAuthorizer(schema.AccessControlConfiguration{
 			DefaultPolicy: "deny",
 			Rules: []schema.ACLRule{{
-				Domain: "test.example.com",
-				Policy: rule.Policy,
+				Domains: []string{"test.example.com"},
+				Policy:  rule.Policy,
 			}},
 		})
 
