@@ -9,7 +9,7 @@ nav_order: 2
 
 The design goals for Authelia is to protect access to applications by collaborating with reverse proxies to prevent
 attacks coming from the edge of the network. This document gives an overview of what Authelia is protecting against but some
-of those bullets are also detailed in [Security Measures](./security/measures.md).
+of those points are also detailed in [Security Measures](./security/measures.md).
 
 ## General assumptions
 
