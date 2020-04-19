@@ -34,8 +34,8 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username 
 
 	ctx.Logger.Debugf("Required level for the URL %s is %d", targetURI, requiredLevel)
 
-	if requiredLevel > authorization.OneFactor {
-		ctx.Logger.Warnf("%s requires more than 1FA, cannot be redirected to", targetURI)
+	if requiredLevel == authorization.TwoFactor {
+		ctx.Logger.Warnf("%s requires 2FA, cannot be redirected yet", targetURI)
 		ctx.ReplyOK()
 		return
 	}
