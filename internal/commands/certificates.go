@@ -171,11 +171,13 @@ func generateSelfSignedCertificate(cmd *cobra.Command, args []string) {
 	log.Printf("wrote %s\n", keyPath)
 }
 
+// CertificatesCmd certificate helper command.
 var CertificatesCmd = &cobra.Command{
 	Use:   "certificates",
 	Short: "Commands related to certificate generation",
 }
 
+// CertificatesGenerateCmd certificate generation command.
 var CertificatesGenerateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate a self-signed certificate",

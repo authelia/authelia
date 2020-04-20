@@ -1,6 +1,6 @@
 package schema
 
-// LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server
+// LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server.
 type LDAPAuthenticationBackendConfiguration struct {
 	URL                string `mapstructure:"url"`
 	SkipVerify         bool   `mapstructure:"skip_verify"`
@@ -16,12 +16,13 @@ type LDAPAuthenticationBackendConfiguration struct {
 	Password           string `mapstructure:"password"`
 }
 
-// FileAuthenticationBackendConfiguration represents the configuration related to file-based backend
+// FileAuthenticationBackendConfiguration represents the configuration related to file-based backend.
 type FileAuthenticationBackendConfiguration struct {
 	Path     string                 `mapstructure:"path"`
 	Password *PasswordConfiguration `mapstructure:"password"`
 }
 
+// PasswordConfiguration represents the configuration related to password hashing.
 type PasswordConfiguration struct {
 	Iterations  int    `mapstructure:"iterations"`
 	KeyLength   int    `mapstructure:"key_length"`
@@ -31,7 +32,7 @@ type PasswordConfiguration struct {
 	Parallelism int    `mapstructure:"parallelism"`
 }
 
-// DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing
+// DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing.
 var DefaultPasswordConfiguration = PasswordConfiguration{
 	Iterations:  1,
 	KeyLength:   32,
@@ -41,7 +42,7 @@ var DefaultPasswordConfiguration = PasswordConfiguration{
 	Parallelism: 8,
 }
 
-// DefaultCIPasswordConfiguration represents the default configuration related to Argon2id hashing for CI
+// DefaultCIPasswordConfiguration represents the default configuration related to Argon2id hashing for CI.
 var DefaultCIPasswordConfiguration = PasswordConfiguration{
 	Iterations:  1,
 	KeyLength:   32,
@@ -51,14 +52,14 @@ var DefaultCIPasswordConfiguration = PasswordConfiguration{
 	Parallelism: 8,
 }
 
-// DefaultPasswordSHA512Configuration represents the default configuration related to SHA512 hashing
+// DefaultPasswordSHA512Configuration represents the default configuration related to SHA512 hashing.
 var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 	Iterations: 50000,
 	SaltLength: 16,
 	Algorithm:  "sha512",
 }
 
-// AuthenticationBackendConfiguration represents the configuration related to the authentication backend
+// AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
 type AuthenticationBackendConfiguration struct {
 	DisableResetPassword bool                                    `mapstructure:"disable_reset_password"`
 	Ldap                 *LDAPAuthenticationBackendConfiguration `mapstructure:"ldap"`

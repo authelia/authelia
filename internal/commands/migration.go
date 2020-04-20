@@ -10,6 +10,7 @@ import (
 	"github.com/authelia/authelia/internal/storage"
 )
 
+// MigrateCmd migration helper command.
 var MigrateCmd *cobra.Command
 
 func init() {
@@ -20,7 +21,7 @@ func init() {
 	MigrateCmd.AddCommand(MigrateLocalCmd, MigrateMongoCmd)
 }
 
-// TOTPSecretsV3 one entry of TOTP secrets in v3
+// TOTPSecretsV3 one entry of TOTP secrets in v3.
 type TOTPSecretsV3 struct {
 	UserID string `json:"userId"`
 	Secret struct {
@@ -28,7 +29,7 @@ type TOTPSecretsV3 struct {
 	} `json:"secret"`
 }
 
-// U2FDeviceHandleV3 one entry of U2F device handle in v3
+// U2FDeviceHandleV3 one entry of U2F device handle in v3.
 type U2FDeviceHandleV3 struct {
 	UserID       string `json:"userId"`
 	Registration struct {
@@ -37,13 +38,13 @@ type U2FDeviceHandleV3 struct {
 	} `json:"registration"`
 }
 
-// PreferencesV3 one entry of preferences in v3
+// PreferencesV3 one entry of preferences in v3.
 type PreferencesV3 struct {
 	UserID string `json:"userId"`
 	Method string `json:"method"`
 }
 
-// AuthenticationTraceV3 one authentication trace in v3
+// AuthenticationTraceV3 one authentication trace in v3.
 type AuthenticationTraceV3 struct {
 	UserID     string `json:"userId"`
 	Successful bool   `json:"isAuthenticationSuccessful"`

@@ -6,7 +6,7 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
-// ValidateSession validates and update session configuration.
+// ValidateNotifier validates and update notifier configuration.
 func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *schema.StructValidator) {
 	if configuration.SMTP == nil && configuration.FileSystem == nil {
 		validator.Push(fmt.Errorf("Notifier should be either `smtp` or `filesystem`"))

@@ -6,8 +6,7 @@ import (
 	"strings"
 )
 
-// ACLRule represent one ACL rule
-// "weak" coerces a single value into string slice
+// ACLRule represent one ACL rule "weak" coerces a single value into string slice.
 type ACLRule struct {
 	Domains   []string `mapstructure:"domain,weak"`
 	Policy    string   `mapstructure:"policy"`
@@ -16,25 +15,24 @@ type ACLRule struct {
 	Resources []string `mapstructure:"resources"`
 }
 
-// IsPolicyValid check if policy is valid
+// IsPolicyValid check if policy is valid.
 func IsPolicyValid(policy string) bool {
 	return policy == "deny" || policy == "one_factor" || policy == "two_factor" || policy == "bypass"
 }
 
-// IsSubjectValid check if a subject is valid
+// IsSubjectValid check if a subject is valid.
 func IsSubjectValid(subject string) bool {
 	return subject == "" || strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:")
 }
 
-// IsNetworkValid check if a network is valid
+// IsNetworkValid check if a network is valid.
 func IsNetworkValid(network string) bool {
 	_, _, err := net.ParseCIDR(network)
 	return err == nil
 }
 
-// Validate validate an ACL Rule
+// Validate validate an ACL Rule.
 func (r *ACLRule) Validate(validator *StructValidator) {
-
 	if len(r.Domains) == 0 {
 		validator.Push(fmt.Errorf("Domain must be provided"))
 	}
@@ -62,7 +60,7 @@ type AccessControlConfiguration struct {
 	Rules         []ACLRule `mapstructure:"rules"`
 }
 
-// Validate validate the access control configuration
+// Validate validate the access control configuration.
 func (acc *AccessControlConfiguration) Validate(validator *StructValidator) {
 	if acc.DefaultPolicy == "" {
 		acc.DefaultPolicy = "deny"

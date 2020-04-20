@@ -7,7 +7,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// ValidateSession validates and update session configuration.
+// ValidateRegulation validates and update regulator configuration.
 func ValidateRegulation(configuration *schema.RegulationConfiguration, validator *schema.StructValidator) {
 	if configuration.FindTime == "" {
 		configuration.FindTime = schema.DefaultRegulationConfiguration.FindTime // 2 min
