@@ -7,13 +7,15 @@ type FileSystemNotifierConfiguration struct {
 
 // SMTPNotifierConfiguration represents the configuration of the SMTP server to send emails with.
 type SMTPNotifierConfiguration struct {
+	Host              string `mapstructure:"host"`
+	Port              int    `mapstructure:"port"`
 	Username          string `mapstructure:"username"`
 	Password          string `mapstructure:"password"`
 	Sender            string `mapstructure:"sender"`
 	Subject           string `mapstructure:"subject"`
-	Host              string `mapstructure:"host"`
-	Port              int    `mapstructure:"port"`
 	TrustedCert       string `mapstructure:"trusted_cert"`
+	ValidateAddress   string `mapstructure:"validate_address"`
+	ValidateSkip      bool   `mapstructure:"validate_skip"`
 	DisableVerifyCert bool   `mapstructure:"disable_verify_cert"`
 	DisableRequireTLS bool   `mapstructure:"disable_require_tls"`
 }

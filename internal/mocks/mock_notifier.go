@@ -33,6 +33,11 @@ func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 	return m.recorder
 }
 
+// Validate mocks base method
+func (m *MockNotifier) Validate() (bool, error) {
+	return true, nil
+}
+
 // Send mocks base method
 func (m *MockNotifier) Send(arg0, arg1, arg2 string) error {
 	m.ctrl.T.Helper()

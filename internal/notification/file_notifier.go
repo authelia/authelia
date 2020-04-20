@@ -20,6 +20,13 @@ func NewFileNotifier(configuration schema.FileSystemNotifierConfiguration) *File
 	}
 }
 
+// TODO: Implement this method correctly.
+// Validate checks the file provider can write to the specified file
+func (n *FileNotifier) Validate() (ok bool, err error) {
+	ok = true
+	return
+}
+
 // Send send a identity verification link to a user.
 func (n *FileNotifier) Send(recipient, subject, body string) error {
 	content := fmt.Sprintf("Date: %s\nRecipient: %s\nSubject: %s\nBody: %s", time.Now(), recipient, subject, body)

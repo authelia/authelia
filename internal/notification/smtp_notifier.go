@@ -27,6 +27,7 @@ type SMTPNotifier struct {
 	disableRequireTLS bool
 	address           string
 	subject           string
+	validateAddress   string
 	client            *smtp.Client
 	tlsConfig         *tls.Config
 }
@@ -44,6 +45,7 @@ func NewSMTPNotifier(configuration schema.SMTPNotifierConfiguration) *SMTPNotifi
 		disableRequireTLS: configuration.DisableRequireTLS,
 		address:           fmt.Sprintf("%s:%d", configuration.Host, configuration.Port),
 		subject:           configuration.Subject,
+		validateAddress:   configuration.ValidateAddress,
 	}
 	notifier.initializeTLSConfig()
 	return notifier
@@ -53,10 +55,6 @@ func (n *SMTPNotifier) initializeTLSConfig() {
 	// Do not allow users to disable verification of certs if they have also set a trusted cert that was loaded
 	// The second part of this check happens in the Configure Cert Pool code block
 	log.Debug("Notifier SMTP client initializing TLS configuration")
-	insecureSkipVerify := false
-	if n.disableVerifyCert {
-		insecureSkipVerify = true
-	}
 
 	//Configure Cert Pool
 	certPool, err := x509.SystemCertPool()
@@ -77,7 +75,7 @@ func (n *SMTPNotifier) initializeTLSConfig() {
 					log.Debug("Notifier SMTP successfully loaded certificate")
 					if n.disableVerifyCert {
 						log.Warn("Notifier SMTP when trusted_cert is specified we force disable_verify_cert to false, if you want to disable certificate validation please comment/delete trusted_cert from your config")
-						insecureSkipVerify = false
+						n.disableVerifyCert = false
 					}
 				}
 			}
@@ -86,7 +84,7 @@ func (n *SMTPNotifier) initializeTLSConfig() {
 		}
 	}
 	n.tlsConfig = &tls.Config{
-		InsecureSkipVerify: insecureSkipVerify,
+		InsecureSkipVerify: n.disableVerifyCert, //nolint:gosec  this is an intended config, we never default true, provide alternate options, and we constantly warn the user
 		ServerName:         n.host,
 		RootCAs:            certPool,
 	}
@@ -226,6 +224,45 @@ func (n *SMTPNotifier) cleanup() {
 	if err != nil {
 		log.Warnf("Notifier SMTP client encountered error during cleanup: %s", err)
 	}
+}
+
+// Validate checks the server is functioning correctly
+func (n *SMTPNotifier) Validate() (ok bool, err error) {
+	ok = true
+
+	if err = n.dial(); err != nil {
+		ok = false
+		return
+	}
+
+	defer n.cleanup()
+
+	if _, err = n.startTLS(); err != nil {
+		ok = false
+		return
+	}
+
+	if _, err = n.auth(); err != nil {
+		ok = false
+		return
+	}
+
+	if err = n.client.Mail(n.sender); err != nil {
+		ok = false
+		return
+	}
+
+	if err = n.client.Rcpt(n.validateAddress); err != nil {
+		ok = false
+		return
+	}
+
+	if err = n.client.Reset(); err != nil {
+		ok = false
+		return
+	}
+
+	return
 }
 
 // Send an email
