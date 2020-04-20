@@ -7,6 +7,7 @@ type RegulationConfiguration struct {
 	BanTime    string `mapstructure:"ban_time"`
 }
 
+// DefaultRegulationConfiguration represents default configuration parameters for the regulator.
 var DefaultRegulationConfiguration = RegulationConfiguration{
 	MaxRetries: 3,
 	FindTime:   "2m",

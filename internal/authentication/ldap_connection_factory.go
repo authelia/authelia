@@ -17,35 +17,39 @@ type LDAPConnection interface {
 	Modify(modifyRequest *ldap.ModifyRequest) error
 }
 
-// LDAPConnectionImpl the production implementation of an ldap connection
+// LDAPConnectionImpl the production implementation of an ldap connection.
 type LDAPConnectionImpl struct {
 	conn *ldap.Conn
 }
 
-// NewLDAPConnectionImpl create a new ldap connection
+// NewLDAPConnectionImpl create a new ldap connection.
 func NewLDAPConnectionImpl(conn *ldap.Conn) *LDAPConnectionImpl {
 	return &LDAPConnectionImpl{conn}
 }
 
+// Bind binds ldap connection to a username/password.
 func (lc *LDAPConnectionImpl) Bind(username, password string) error {
 	return lc.conn.Bind(username, password)
 }
 
+// Close closes a ldap connection.
 func (lc *LDAPConnectionImpl) Close() {
 	lc.conn.Close()
 }
 
+// Search searches a ldap server.
 func (lc *LDAPConnectionImpl) Search(searchRequest *ldap.SearchRequest) (*ldap.SearchResult, error) {
 	return lc.conn.Search(searchRequest)
 }
 
+// Modify modifies an ldap object.
 func (lc *LDAPConnectionImpl) Modify(modifyRequest *ldap.ModifyRequest) error {
 	return lc.conn.Modify(modifyRequest)
 }
 
 // ********************* FACTORY ***********************
 
-// LDAPConnectionFactory an interface of factory of ldap connections
+// LDAPConnectionFactory an interface of factory of ldap connections.
 type LDAPConnectionFactory interface {
 	DialTLS(network, addr string, config *tls.Config) (LDAPConnection, error)
 	Dial(network, addr string) (LDAPConnection, error)
@@ -54,7 +58,7 @@ type LDAPConnectionFactory interface {
 // LDAPConnectionFactoryImpl the production implementation of an ldap connection factory.
 type LDAPConnectionFactoryImpl struct{}
 
-// NewLDAPConnectionFactoryImpl create a concrete ldap connection factory
+// NewLDAPConnectionFactoryImpl create a concrete ldap connection factory.
 func NewLDAPConnectionFactoryImpl() *LDAPConnectionFactoryImpl {
 	return &LDAPConnectionFactoryImpl{}
 }

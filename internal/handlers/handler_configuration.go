@@ -2,12 +2,14 @@ package handlers
 
 import "github.com/authelia/authelia/internal/middlewares"
 
+// ConfigurationBody configuration parameters exposed to the frontend.
 type ConfigurationBody struct {
 	GoogleAnalyticsTrackingID string `json:"ga_tracking_id,omitempty"`
 	RememberMe                bool   `json:"remember_me"` // whether remember me is enabled or not
 	ResetPassword             bool   `json:"reset_password"`
 }
 
+// ConfigurationGet fetches configuration parameters for frontend mutation.
 func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	body := ConfigurationBody{
 		GoogleAnalyticsTrackingID: ctx.Configuration.GoogleAnalyticsTrackingID,

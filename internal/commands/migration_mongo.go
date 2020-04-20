@@ -17,7 +17,7 @@ import (
 var mongoURL string
 var mongoDatabase string
 
-// MigrateMongoCmd migration command
+// MigrateMongoCmd migration command.
 var MigrateMongoCmd = &cobra.Command{
 	Use:   "mongo",
 	Short: "Migrate data from v3 mongo database into database configured in v4 configuration file",

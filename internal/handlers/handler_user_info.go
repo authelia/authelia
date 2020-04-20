@@ -79,6 +79,7 @@ func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 	ctx.SetJSONBody(preferences)
 }
 
+// MethodBody the selected 2FA method.
 type MethodBody struct {
 	Method string `json:"method" valid:"required"`
 }

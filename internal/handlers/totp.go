@@ -7,15 +7,18 @@ import (
 	"github.com/pquerna/otp/totp"
 )
 
+// TOTPVerifier is the interface for verifying TOTPs.
 type TOTPVerifier interface {
 	Verify(token, secret string) (bool, error)
 }
 
+// TOTPVerifierImpl the production implementation for TOTP verification.
 type TOTPVerifierImpl struct {
 	Period uint
 	Skew   uint
 }
 
+// Verify verifies TOTPs.
 func (tv *TOTPVerifierImpl) Verify(token, secret string) (bool, error) {
 	opts := totp.ValidateOpts{
 		Period:    tv.Period,

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Checks if a single string is in an array of strings
+// IsStringInSlice checks if a single string is in an array of strings.
 func IsStringInSlice(a string, list []string) (inSlice bool) {
 	for _, b := range list {
 		if b == a {
@@ -15,8 +15,8 @@ func IsStringInSlice(a string, list []string) (inSlice bool) {
 	return false
 }
 
-// Splits a string s into an array with each item being a max of int d
-// d = denominator, n = numerator, q = quotient, r = remainder
+// SliceString splits a string s into an array with each item being a max of int d
+// d = denominator, n = numerator, q = quotient, r = remainder.
 func SliceString(s string, d int) (array []string) {
 	n := len(s)
 	q := n / d
@@ -30,7 +30,7 @@ func SliceString(s string, d int) (array []string) {
 	return
 }
 
-// RandomString generate a random string of n characters
+// RandomString generate a random string of n characters.
 func RandomString(n int, characters []rune) (randomString string) {
 	rand.Seed(time.Now().UnixNano())
 	b := make([]rune, n)

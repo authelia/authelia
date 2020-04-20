@@ -82,6 +82,7 @@ func selectMatchingRules(rules []schema.ACLRule, subject Subject, object Object)
 	return selectMatchingObjectRules(matchingRules, object)
 }
 
+// PolicyToLevel converts a string policy to int authorization level.
 func PolicyToLevel(policy string) Level {
 	switch policy {
 	case "bypass":

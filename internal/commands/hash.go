@@ -19,6 +19,7 @@ func init() {
 	HashPasswordCmd.Flags().IntP("salt-length", "l", schema.DefaultPasswordConfiguration.SaltLength, "set the auto-generated salt length")
 }
 
+// HashPasswordCmd password hashing command.
 var HashPasswordCmd = &cobra.Command{
 	Use:   "hash-password [password]",
 	Short: "Hash a password to be used in file-based users database. Default algorithm is argon2id.",

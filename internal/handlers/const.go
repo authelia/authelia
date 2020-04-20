@@ -11,6 +11,7 @@ const ResetPasswordAction = "ResetPassword"
 
 const authPrefix = "Basic "
 
+// AuthorizationHeader is the basic-auth HTTP header Authelia utilises.
 const AuthorizationHeader = "Proxy-Authorization"
 const remoteUserHeader = "Remote-User"
 const remoteGroupsHeader = "Remote-Groups"
@@ -18,7 +19,7 @@ const remoteGroupsHeader = "Remote-Groups"
 var protoHostSeparator = []byte("://")
 
 const (
-	// Forbidden means the user is forbidden the access to a resource
+	// Forbidden means the user is forbidden the access to a resource.
 	Forbidden authorizationMatching = iota
 	// NotAuthorized means the user can access the resource with more permissions.
 	NotAuthorized authorizationMatching = iota

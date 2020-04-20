@@ -24,6 +24,7 @@ type NotifierConfiguration struct {
 	SMTP       *SMTPNotifierConfiguration       `mapstructure:"smtp"`
 }
 
+// DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.
 var DefaultSMTPNotifierConfiguration = SMTPNotifierConfiguration{
 	Subject: "[Authelia] {title}",
 }

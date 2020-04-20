@@ -17,7 +17,7 @@ import (
 var configurationPath string
 var localDatabasePath string
 
-// MigrateLocalCmd migration command
+// MigrateLocalCmd migration command.
 var MigrateLocalCmd = &cobra.Command{
 	Use:   "localdb",
 	Short: "Migrate data from v3 local database into database configured in v4 configuration file",
@@ -32,7 +32,7 @@ func init() {
 	MigrateLocalCmd.MarkPersistentFlagRequired("config")
 }
 
-// migrateLocal data from v3 to v4
+// migrateLocal data from v3 to v4.
 func migrateLocal(cmd *cobra.Command, args []string) {
 	dbProvider := createDBProvider(configurationPath)
 
