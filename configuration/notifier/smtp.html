@@ -2,9 +2,12 @@
 <span class="c1">#</span>
 <span class="c1"># Notifications are sent to users when they require a password reset, a u2f</span>
 <span class="c1"># registration or a TOTP registration.</span>
-<span class="c1"># Use only an available configuration: filesystem, smtp</span>
+<span class="c1"># Use only an available configuration: filesystem, smtp.</span>
 <span class="na">notifier</span><span class="pi">:</span>
-  <span class="c1"># For testing purpose, notifications can be sent in a file</span>
+  <span class="c1"># You can disable the notifier startup check by setting this to true.</span>
+  <span class="na">disable_startup_check</span><span class="pi">:</span> <span class="no">false</span>
+
+  <span class="c1"># For testing purpose, notifications can be sent in a file.</span>
   <span class="c1">## filesystem:</span>
   <span class="c1">##   filename: /tmp/authelia/notification.txt</span>
 
@@ -29,9 +32,11 @@
     <span class="c1"># Subject configuration of the emails sent.</span>
     <span class="c1"># {title} is replaced by the text from the notifier</span>
     <span class="na">subject</span><span class="pi">:</span> <span class="s2">"</span><span class="s">[Authelia]</span><span class="nv"> </span><span class="s">{title}"</span>
+    <span class="c1"># This address is used during the startup check to verify the email configuration is correct. It's not important what it is except if your email server only allows local delivery.</span>
+    <span class="c1">## startup_check_address: test@authelia.com</span>
+    <span class="c1">## trusted_cert: ""</span>
     <span class="c1">## disable_require_tls: false</span>
     <span class="c1">## disable_verify_cert: false</span>
-    <span class="c1">## trusted_cert: ""</span>
 </code></pre></div></div> <h2 id="using-gmail"> <a href="#using-gmail" class="anchor-heading"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#link"></use></svg></a> Using Gmail </h2> <p>You need to generate an app password in order to use Gmail SMTP servers. The process is described <a href="https://support.google.com/accounts/answer/185833?hl=en">here</a></p> <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">notifier</span><span class="pi">:</span>
   <span class="na">smtp</span><span class="pi">:</span>
     <span class="na">username</span><span class="pi">:</span> <span class="s">myaccount@gmail.com</span>
