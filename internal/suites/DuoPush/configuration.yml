@@ -97,9 +97,5 @@ regulation:
   ban_time: 900
 
 notifier:
-  # Use a SMTP server for sending notifications
-  smtp:
-    host: smtp
-    port: 1025
-    sender: admin@example.com
-    disable_require_tls: true
+  filesystem:
+    filename: /tmp/notifier.html

@@ -15,15 +15,15 @@ type SMTPNotifierConfiguration struct {
 	Subject           string `mapstructure:"subject"`
 	TrustedCert       string `mapstructure:"trusted_cert"`
 	ValidateAddress   string `mapstructure:"validate_address"`
-	ValidateSkip      bool   `mapstructure:"validate_skip"`
 	DisableVerifyCert bool   `mapstructure:"disable_verify_cert"`
 	DisableRequireTLS bool   `mapstructure:"disable_require_tls"`
 }
 
 // NotifierConfiguration represents the configuration of the notifier to use when sending notifications to users.
 type NotifierConfiguration struct {
-	FileSystem *FileSystemNotifierConfiguration `mapstructure:"filesystem"`
-	SMTP       *SMTPNotifierConfiguration       `mapstructure:"smtp"`
+	ValidateSkip bool                             `mapstructure:"validate_skip"`
+	FileSystem   *FileSystemNotifierConfiguration `mapstructure:"filesystem"`
+	SMTP         *SMTPNotifierConfiguration       `mapstructure:"smtp"`
 }
 
 // DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.

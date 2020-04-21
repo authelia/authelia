@@ -10,35 +10,35 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockNotifier is a mock of Notifier interface
+// MockNotifier is a mock of Notifier interface.
 type MockNotifier struct {
 	ctrl     *gomock.Controller
 	recorder *MockNotifierMockRecorder
 }
 
-// MockNotifierMockRecorder is the mock recorder for MockNotifier
+// MockNotifierMockRecorder is the mock recorder for MockNotifier.
 type MockNotifierMockRecorder struct {
 	mock *MockNotifier
 }
 
-// NewMockNotifier creates a new mock instance
+// NewMockNotifier creates a new mock instance.
 func NewMockNotifier(ctrl *gomock.Controller) *MockNotifier {
 	mock := &MockNotifier{ctrl: ctrl}
 	mock.recorder = &MockNotifierMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 	return m.recorder
 }
 
-// Validate mocks base method
+// Validate mocks base method.
 func (m *MockNotifier) Validate() (bool, error) {
 	return true, nil
 }
 
-// Send mocks base method
+// Send mocks base method.
 func (m *MockNotifier) Send(arg0, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Send", arg0, arg1, arg2)
@@ -46,7 +46,7 @@ func (m *MockNotifier) Send(arg0, arg1, arg2 string) error {
 	return ret0
 }
 
-// Send indicates an expected call of Send
+// Send indicates an expected call of Send.
 func (mr *MockNotifierMockRecorder) Send(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockNotifier)(nil).Send), arg0, arg1, arg2)

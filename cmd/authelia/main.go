@@ -89,9 +89,11 @@ func startServer() {
 	} else {
 		log.Fatalf("Unrecognized notifier")
 	}
-	_, err := notifier.Validate()
-	if err != nil {
-		log.Fatalf("Error during notifier startup validation: %s", err)
+	if !config.Notifier.ValidateSkip {
+		_, err := notifier.Validate()
+		if err != nil {
+			log.Fatalf("Error during notifier startup validation: %s", err)
+		}
 	}
 
 	clock := utils.RealClock{}
