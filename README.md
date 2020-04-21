@@ -27,7 +27,7 @@ The architecture is shown in the diagram below.
 <p align="center" style="margin:50px">
   <img src="./docs/images/archi.png"/>
 </p>
-
+blah blah blah
 **BREAKING NEWS: Authelia v4 has been released!
 Please read BREAKING.md if you want to migrate from v3 to v4. Otherwise, start fresh in v4 and enjoy!**
 
