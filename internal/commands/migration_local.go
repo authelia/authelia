@@ -26,10 +26,10 @@ var MigrateLocalCmd = &cobra.Command{
 
 func init() {
 	MigrateLocalCmd.PersistentFlags().StringVarP(&localDatabasePath, "db-path", "p", "", "The path to the v3 local database")
-	MigrateLocalCmd.MarkPersistentFlagRequired("db-path")
+	MigrateLocalCmd.MarkPersistentFlagRequired("db-path") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	MigrateLocalCmd.PersistentFlags().StringVarP(&configurationPath, "config", "c", "", "The configuration file of Authelia v4")
-	MigrateLocalCmd.MarkPersistentFlagRequired("config")
+	MigrateLocalCmd.MarkPersistentFlagRequired("config") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 // migrateLocal data from v3 to v4.
@@ -58,7 +58,7 @@ func migrateLocalTOTPSecret(dbProvider storage.Provider) {
 		data := scanner.Text()
 
 		entry := TOTPSecretsV3{}
-		json.Unmarshal([]byte(data), &entry)
+		json.Unmarshal([]byte(data), &entry) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 		err := dbProvider.SaveTOTPSecret(entry.UserID, entry.Secret.Base32)
 
 		if err != nil {
@@ -80,7 +80,7 @@ func migrateLocalU2FSecret(dbProvider storage.Provider) {
 		data := scanner.Text()
 
 		entry := U2FDeviceHandleV3{}
-		json.Unmarshal([]byte(data), &entry)
+		json.Unmarshal([]byte(data), &entry) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 		kH, err := decodeWebsafeBase64(entry.Registration.KeyHandle)
 
@@ -115,7 +115,7 @@ func migrateLocalPreferences(dbProvider storage.Provider) {
 		data := scanner.Text()
 
 		entry := PreferencesV3{}
-		json.Unmarshal([]byte(data), &entry)
+		json.Unmarshal([]byte(data), &entry) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 		err := dbProvider.SavePreferred2FAMethod(entry.UserID, entry.Method)
 
 		if err != nil {
@@ -137,7 +137,7 @@ func migrateLocalAuthenticationTraces(dbProvider storage.Provider) {
 		data := scanner.Text()
 
 		entry := AuthenticationTraceV3{}
-		json.Unmarshal([]byte(data), &entry)
+		json.Unmarshal([]byte(data), &entry) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 		attempt := models.AuthenticationAttempt{
 			Username:   entry.UserID,

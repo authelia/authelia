@@ -24,7 +24,7 @@ func (s *FetchSuite) SetupTest() {
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = "john"
 	userSession.AuthenticationLevel = 1
-	s.mock.Ctx.SaveSession(userSession)
+	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func (s *FetchSuite) TearDownTest() {
@@ -92,7 +92,7 @@ func TestMethodSetToU2F(t *testing.T) {
 		userSession := mock.Ctx.GetSession()
 		userSession.Username = "john"
 		userSession.AuthenticationLevel = 1
-		mock.Ctx.SaveSession(userSession)
+		mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 		setPreferencesExpectations(expectedPreferences, mock.StorageProviderMock)
 		UserInfoGet(mock.Ctx)
@@ -170,7 +170,7 @@ func (s *SaveSuite) SetupTest() {
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = "john"
 	userSession.AuthenticationLevel = 1
-	s.mock.Ctx.SaveSession(userSession)
+	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func (s *SaveSuite) TearDownTest() {

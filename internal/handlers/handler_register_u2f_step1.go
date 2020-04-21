@@ -55,7 +55,7 @@ func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string
 		return
 	}
 
-	ctx.SetJSONBody(u2f.NewWebRegisterRequest(challenge, []u2f.Registration{}))
+	ctx.SetJSONBody(u2f.NewWebRegisterRequest(challenge, []u2f.Registration{})) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 // SecondFactorU2FIdentityFinish the handler for finishing the identity validation
