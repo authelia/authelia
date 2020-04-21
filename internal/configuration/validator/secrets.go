@@ -82,7 +82,7 @@ func ValidateSecrets(configuration *schema.Configuration, validator *schema.Stru
 	}
 }
 
-func checkSecretValue(name string, viper *viper.Viper) (value string, err error) {
+func checkSecretValue(name string, viper *viper.Viper) (string, error) {
 	configValue := viper.GetString(name)
 	envValue := viper.GetString("authelia." + name)
 	fileEnvValue := viper.GetString("authelia." + name + ".file")
@@ -103,5 +103,5 @@ func checkSecretValue(name string, viper *viper.Viper) (value string, err error)
 	} else {
 		return configValue, nil
 	}
-	return
+	return "", nil
 }
