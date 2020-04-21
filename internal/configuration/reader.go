@@ -16,23 +16,23 @@ func Read(configPath string) (*schema.Configuration, []error) {
 
 	// we need to bind all env variables as long as https://github.com/spf13/viper/issues/761
 	// is not resolved.
-	viper.BindEnv("authelia.jwt_secret")
-	viper.BindEnv("authelia.duo_api.secret_key")
-	viper.BindEnv("authelia.session.secret")
-	viper.BindEnv("authelia.authentication_backend.ldap.password")
-	viper.BindEnv("authelia.notifier.smtp.password")
-	viper.BindEnv("authelia.session.redis.password")
-	viper.BindEnv("authelia.storage.mysql.password")
-	viper.BindEnv("authelia.storage.postgres.password")
+	_ = viper.BindEnv("authelia.jwt_secret")
+	_ = viper.BindEnv("authelia.duo_api.secret_key")
+	_ = viper.BindEnv("authelia.session.secret")
+	_ = viper.BindEnv("authelia.authentication_backend.ldap.password")
+	_ = viper.BindEnv("authelia.notifier.smtp.password")
+	_ = viper.BindEnv("authelia.session.redis.password")
+	_ = viper.BindEnv("authelia.storage.mysql.password")
+	_ = viper.BindEnv("authelia.storage.postgres.password")
 
-	viper.BindEnv("authelia.jwt_secret.file")
-	viper.BindEnv("authelia.duo_api.secret_key.file")
-	viper.BindEnv("authelia.session.secret.file")
-	viper.BindEnv("authelia.authentication_backend.ldap.password.file")
-	viper.BindEnv("authelia.notifier.smtp.password.file")
-	viper.BindEnv("authelia.session.redis.password.file")
-	viper.BindEnv("authelia.storage.mysql.password.file")
-	viper.BindEnv("authelia.storage.postgres.password.file")
+	_ = viper.BindEnv("authelia.jwt_secret.file")
+	_ = viper.BindEnv("authelia.duo_api.secret_key.file")
+	_ = viper.BindEnv("authelia.session.secret.file")
+	_ = viper.BindEnv("authelia.authentication_backend.ldap.password.file")
+	_ = viper.BindEnv("authelia.notifier.smtp.password.file")
+	_ = viper.BindEnv("authelia.session.redis.password.file")
+	_ = viper.BindEnv("authelia.storage.mysql.password.file")
+	_ = viper.BindEnv("authelia.storage.postgres.password.file")
 
 	viper.SetConfigFile(configPath)
 
@@ -43,7 +43,7 @@ func Read(configPath string) (*schema.Configuration, []error) {
 	}
 
 	var configuration schema.Configuration
-	viper.Unmarshal(&configuration)
+	_ = viper.Unmarshal(&configuration)
 
 	val := schema.NewStructValidator()
 	validator.ValidateSecrets(&configuration, val, viper.GetViper())

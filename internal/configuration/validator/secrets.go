@@ -10,98 +10,60 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
-//nolint:gocyclo // This check is not required the layout of the function takes care of the complexity and it can't easily be simplified.
 // ValidateSecrets checks that secrets are either specified by config file/env or by file references
 func ValidateSecrets(configuration *schema.Configuration, validator *schema.StructValidator, viper *viper.Viper) {
-	jwtSecret, err := checkSecretValue("jwt_secret", viper)
-	if err != nil {
-		validator.Push(err)
-	} else {
-		configuration.JWTSecret = jwtSecret
-	}
+	configuration.JWTSecret = getSecretValue("jwt_secret", validator, viper)
+	configuration.Session.Secret = getSecretValue("session.secret", validator, viper)
 
 	if configuration.DuoAPI != nil {
-		duoAPISecretKey, err := checkSecretValue("duo_api.secret_key", viper)
-		if err != nil {
-			validator.Push(err)
-		} else {
-			configuration.DuoAPI.SecretKey = duoAPISecretKey
-		}
-	}
-
-	sessionSecret, err := checkSecretValue("session.secret", viper)
-	if err != nil {
-		validator.Push(err)
-	} else {
-		configuration.Session.Secret = sessionSecret
+		configuration.DuoAPI.SecretKey = getSecretValue("duo_api.secret_key", validator, viper)
 	}
 
 	if configuration.Session.Redis != nil {
-		redisPassword, err := checkSecretValue("session.redis.password", viper)
-		if err != nil {
-			validator.Push(err)
-		} else {
-			configuration.Session.Redis.Password = redisPassword
-		}
+		configuration.Session.Redis.Password = getSecretValue("session.redis.password", validator, viper)
 	}
 
 	if configuration.AuthenticationBackend.Ldap != nil {
-		ldapPassword, err := checkSecretValue("authentication_backend.ldap.password", viper)
-		if err != nil {
-			validator.Push(err)
-		} else {
-			configuration.AuthenticationBackend.Ldap.Password = ldapPassword
-		}
+		configuration.AuthenticationBackend.Ldap.Password = getSecretValue("authentication_backend.ldap.password", validator, viper)
 	}
 
 	if configuration.Notifier != nil && configuration.Notifier.SMTP != nil {
-		smtpPassword, err := checkSecretValue("notifier.smtp.password", viper)
-		if err != nil {
-			validator.Push(err)
-		} else {
-			configuration.Notifier.SMTP.Password = smtpPassword
-		}
+		configuration.Notifier.SMTP.Password = getSecretValue("notifier.smtp.password", validator, viper)
 	}
 
 	if configuration.Storage.MySQL != nil {
-		mysqlPassword, err := checkSecretValue("storage.mysql.password", viper)
-		if err != nil {
-			validator.Push(err)
-		} else {
-			configuration.Storage.MySQL.Password = mysqlPassword
-		}
+		configuration.Storage.MySQL.Password = getSecretValue("storage.mysql.password", validator, viper)
 	}
 
 	if configuration.Storage.PostgreSQL != nil {
-		postgresPassword, err := checkSecretValue("storage.postgres.password", viper)
-		if err != nil {
-			validator.Push(err)
-		} else {
-			configuration.Storage.PostgreSQL.Password = postgresPassword
-		}
+		configuration.Storage.PostgreSQL.Password = getSecretValue("storage.postgres.password", validator, viper)
 	}
 }
 
-func checkSecretValue(name string, viper *viper.Viper) (string, error) {
+func getSecretValue(name string, validator *schema.StructValidator, viper *viper.Viper) string {
 	configValue := viper.GetString(name)
 	envValue := viper.GetString("authelia." + name)
 	fileEnvValue := viper.GetString("authelia." + name + ".file")
 
+	// Error Checking
 	if envValue != "" && fileEnvValue != "" {
-		return "", fmt.Errorf("secret is defined in multiple areas: %s", name)
-	} else if configValue == "" && (envValue != "" || fileEnvValue != "") {
-		if fileEnvValue != "" {
-			content, err := ioutil.ReadFile(fileEnvValue)
-			// Replace newlines to prevent editor issues. Note this will not work with CRLF just LF.
-			return strings.Replace(string(content), "\n", "", -1), err
-		} else if envValue != "" {
-			return envValue, nil
-		}
-	} else if envValue != "" || fileEnvValue != "" {
-		err := fmt.Errorf("error loading secret (%s): it's already defined in the config file", name)
-		return "", err
-	} else {
-		return configValue, nil
+		validator.Push(fmt.Errorf("secret is defined in multiple areas: %s", name))
 	}
-	return "", nil
+	if (envValue != "" || fileEnvValue != "") && configValue != "" {
+		validator.Push(fmt.Errorf("error loading secret (%s): it's already defined in the config file", name))
+	}
+
+	// Derive Secret
+	if fileEnvValue != "" {
+		content, err := ioutil.ReadFile(fileEnvValue)
+		if err != nil {
+			validator.Push(fmt.Errorf("error loading secret file (%s): %s", name, err))
+		} else {
+			return strings.Replace(string(content), "\n", "", -1)
+		}
+	}
+	if envValue != "" {
+		return envValue
+	}
+	return configValue
 }
