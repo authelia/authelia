@@ -146,7 +146,7 @@ func (m *MockAutheliaCtx) Assert200OK(t *testing.T, data interface{}) {
 	assert.Equal(t, string(b), string(m.Ctx.Response.Body()))
 }
 
-//  GetResponseData retrieves a response from the service.
+// GetResponseData retrieves a response from the service.
 func (m *MockAutheliaCtx) GetResponseData(t *testing.T, data interface{}) {
 	okResponse := middlewares.OKResponse{}
 	okResponse.Data = data

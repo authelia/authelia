@@ -38,7 +38,7 @@ WORKDIR /node/src/app
 COPY web .
 
 # Install the dependencies and build
-RUN yarn install --frozen-lockfile && yarn build
+RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn build
 
 # ===================================
 # ===== Authelia official image =====
