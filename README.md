@@ -28,9 +28,6 @@ The architecture is shown in the diagram below.
   <img src="./docs/images/archi.png"/>
 </p>
 
-**BREAKING NEWS: Authelia v4 has been released!
-Please read BREAKING.md if you want to migrate from v3 to v4. Otherwise, start fresh in v4 and enjoy!**
-
 **Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/), using a [Static binary](https://github.com/authelia/authelia/releases/latest), [Docker]
 or can also be deployed easily on [Kubernetes] leveraging ingress controllers and ingress configuration.
 
