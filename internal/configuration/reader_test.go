@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -86,7 +87,7 @@ func TestShouldOnlyAllowOneEnvType(t *testing.T) {
 
 	require.Len(t, errors, 2)
 	assert.EqualError(t, errors[0], "secret is defined in multiple areas: storage.postgres.password")
-	assert.EqualError(t, errors[1], "error loading secret file (storage.postgres.password): open /tmp/postgres_secret: The system cannot find the path specified.")
+	assert.True(t, strings.HasPrefix(errors[1].Error(), "error loading secret file (storage.postgres.password): open /tmp/postgres_secret: "))
 }
 
 func TestShouldOnlyAllowEnvOrConfig(t *testing.T) {
