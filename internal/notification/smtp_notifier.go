@@ -17,35 +17,35 @@ import (
 
 // SMTPNotifier a notifier to send emails to SMTP servers.
 type SMTPNotifier struct {
-	username          string
-	password          string
-	sender            string
-	host              string
-	port              int
-	trustedCert       string
-	disableVerifyCert bool
-	disableRequireTLS bool
-	address           string
-	subject           string
-	validateAddress   string
-	client            *smtp.Client
-	tlsConfig         *tls.Config
+	username            string
+	password            string
+	sender              string
+	host                string
+	port                int
+	trustedCert         string
+	disableVerifyCert   bool
+	disableRequireTLS   bool
+	address             string
+	subject             string
+	startupCheckAddress string
+	client              *smtp.Client
+	tlsConfig           *tls.Config
 }
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
 func NewSMTPNotifier(configuration schema.SMTPNotifierConfiguration) *SMTPNotifier {
 	notifier := &SMTPNotifier{
-		username:          configuration.Username,
-		password:          configuration.Password,
-		sender:            configuration.Sender,
-		host:              configuration.Host,
-		port:              configuration.Port,
-		trustedCert:       configuration.TrustedCert,
-		disableVerifyCert: configuration.DisableVerifyCert,
-		disableRequireTLS: configuration.DisableRequireTLS,
-		address:           fmt.Sprintf("%s:%d", configuration.Host, configuration.Port),
-		subject:           configuration.Subject,
-		validateAddress:   configuration.ValidateAddress,
+		username:            configuration.Username,
+		password:            configuration.Password,
+		sender:              configuration.Sender,
+		host:                configuration.Host,
+		port:                configuration.Port,
+		trustedCert:         configuration.TrustedCert,
+		disableVerifyCert:   configuration.DisableVerifyCert,
+		disableRequireTLS:   configuration.DisableRequireTLS,
+		address:             fmt.Sprintf("%s:%d", configuration.Host, configuration.Port),
+		subject:             configuration.Subject,
+		startupCheckAddress: configuration.StartupCheckAddress,
 	}
 	notifier.initializeTLSConfig()
 	return notifier
@@ -226,8 +226,8 @@ func (n *SMTPNotifier) cleanup() {
 	}
 }
 
-// Validate checks the server is functioning correctly and the configuration is correct.
-func (n *SMTPNotifier) Validate() (ok bool, err error) {
+// StartupCheck checks the server is functioning correctly and the configuration is correct.
+func (n *SMTPNotifier) StartupCheck() (ok bool, err error) {
 	ok = true
 
 	if err = n.dial(); err != nil {
@@ -252,7 +252,7 @@ func (n *SMTPNotifier) Validate() (ok bool, err error) {
 		return
 	}
 
-	if err = n.client.Rcpt(n.validateAddress); err != nil {
+	if err = n.client.Rcpt(n.startupCheckAddress); err != nil {
 		ok = false
 		return
 	}

@@ -89,10 +89,10 @@ func startServer() {
 	} else {
 		log.Fatalf("Unrecognized notifier")
 	}
-	if !config.Notifier.ValidateSkip {
-		_, err := notifier.Validate()
+	if !config.Notifier.DisableStartupCheck {
+		_, err := notifier.StartupCheck()
 		if err != nil {
-			log.Fatalf("Error during notifier startup validation: %s", err)
+			log.Fatalf("Error during notifier startup check: %s", err)
 		}
 	}
 

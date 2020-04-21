@@ -7,23 +7,23 @@ type FileSystemNotifierConfiguration struct {
 
 // SMTPNotifierConfiguration represents the configuration of the SMTP server to send emails with.
 type SMTPNotifierConfiguration struct {
-	Host              string `mapstructure:"host"`
-	Port              int    `mapstructure:"port"`
-	Username          string `mapstructure:"username"`
-	Password          string `mapstructure:"password"`
-	Sender            string `mapstructure:"sender"`
-	Subject           string `mapstructure:"subject"`
-	TrustedCert       string `mapstructure:"trusted_cert"`
-	ValidateAddress   string `mapstructure:"validate_address"`
-	DisableVerifyCert bool   `mapstructure:"disable_verify_cert"`
-	DisableRequireTLS bool   `mapstructure:"disable_require_tls"`
+	Host                string `mapstructure:"host"`
+	Port                int    `mapstructure:"port"`
+	Username            string `mapstructure:"username"`
+	Password            string `mapstructure:"password"`
+	Sender              string `mapstructure:"sender"`
+	Subject             string `mapstructure:"subject"`
+	TrustedCert         string `mapstructure:"trusted_cert"`
+	StartupCheckAddress string `mapstructure:"startup_check_address"`
+	DisableVerifyCert   bool   `mapstructure:"disable_verify_cert"`
+	DisableRequireTLS   bool   `mapstructure:"disable_require_tls"`
 }
 
 // NotifierConfiguration represents the configuration of the notifier to use when sending notifications to users.
 type NotifierConfiguration struct {
-	ValidateSkip bool                             `mapstructure:"validate_skip"`
-	FileSystem   *FileSystemNotifierConfiguration `mapstructure:"filesystem"`
-	SMTP         *SMTPNotifierConfiguration       `mapstructure:"smtp"`
+	DisableStartupCheck bool                             `mapstructure:"disable_startup_check"`
+	FileSystem          *FileSystemNotifierConfiguration `mapstructure:"filesystem"`
+	SMTP                *SMTPNotifierConfiguration       `mapstructure:"smtp"`
 }
 
 // DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.

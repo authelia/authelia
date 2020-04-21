@@ -33,8 +33,8 @@ func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 	return m.recorder
 }
 
-// Validate mocks base method.
-func (m *MockNotifier) Validate() (bool, error) {
+// StartupCheck mocks base method.
+func (m *MockNotifier) StartupCheck() (bool, error) {
 	return true, nil
 }
 

@@ -26,8 +26,8 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 	}
 
 	if configuration.SMTP != nil {
-		if configuration.SMTP.ValidateAddress == "" {
-			configuration.SMTP.ValidateAddress = "test@authelia.com"
+		if configuration.SMTP.StartupCheckAddress == "" {
+			configuration.SMTP.StartupCheckAddress = "test@authelia.com"
 		}
 		if configuration.SMTP.Host == "" {
 			validator.Push(fmt.Errorf("Host of SMTP notifier must be provided"))

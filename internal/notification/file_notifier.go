@@ -21,8 +21,8 @@ func NewFileNotifier(configuration schema.FileSystemNotifierConfiguration) *File
 }
 
 // TODO: Implement this method correctly.
-// Validate checks the file provider can write to the specified file
-func (n *FileNotifier) Validate() (ok bool, err error) {
+// StartupCheck checks the file provider can write to the specified file
+func (n *FileNotifier) StartupCheck() (ok bool, err error) {
 	ok = true
 	return
 }
