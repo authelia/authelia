@@ -67,7 +67,7 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 
 // parseBasicAuth parses an HTTP Basic Authentication string
 // "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true)
-func parseBasicAuth(authorizationHeaderName string, auth string) (username, password string, err error) {
+func parseBasicAuth(authorizationHeaderName, auth string) (username, password string, err error) {
 	if !strings.HasPrefix(auth, authPrefix) {
 		return "", "", fmt.Errorf("%s prefix not found in %s header", strings.Trim(authPrefix, " "), authorizationHeaderName)
 	}
