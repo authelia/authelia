@@ -16,9 +16,12 @@ It can be configured as described below.
 #
 # Notifications are sent to users when they require a password reset, a u2f
 # registration or a TOTP registration.
-# Use only an available configuration: filesystem, smtp
+# Use only an available configuration: filesystem, smtp.
 notifier:
-  # For testing purpose, notifications can be sent in a file
+  # You can disable the notifier startup check by setting this to true.
+  disable_startup_check: false
+
+  # For testing purpose, notifications can be sent in a file.
   ## filesystem:
   ##   filename: /tmp/authelia/notification.txt
 
@@ -43,9 +46,11 @@ notifier:
     # Subject configuration of the emails sent.
     # {title} is replaced by the text from the notifier
     subject: "[Authelia] {title}"
+    # This address is used during the startup check to verify the email configuration is correct. It's not important what it is except if your email server only allows local delivery.
+    ## startup_check_address: test@authelia.com
+    ## trusted_cert: ""
     ## disable_require_tls: false
     ## disable_verify_cert: false
-    ## trusted_cert: ""
 ```
 
 ## Using Gmail

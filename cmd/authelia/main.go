@@ -89,6 +89,12 @@ func startServer() {
 	} else {
 		log.Fatalf("Unrecognized notifier")
 	}
+	if !config.Notifier.DisableStartupCheck {
+		_, err := notifier.StartupCheck()
+		if err != nil {
+			log.Fatalf("Error during notifier startup check: %s", err)
+		}
+	}
 
 	clock := utils.RealClock{}
 	authorizer := authorization.NewAuthorizer(config.AccessControl)
