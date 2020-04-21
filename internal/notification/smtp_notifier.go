@@ -84,7 +84,7 @@ func (n *SMTPNotifier) initializeTLSConfig() {
 		}
 	}
 	n.tlsConfig = &tls.Config{
-		InsecureSkipVerify: n.disableVerifyCert, //nolint:gosec  this is an intended config, we never default true, provide alternate options, and we constantly warn the user.
+		InsecureSkipVerify: n.disableVerifyCert, //nolint:gosec // This is an intended config, we never default true, provide alternate options, and we constantly warn the user.
 		ServerName:         n.host,
 		RootCAs:            certPool,
 	}
