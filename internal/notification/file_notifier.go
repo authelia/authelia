@@ -23,36 +23,29 @@ func NewFileNotifier(configuration schema.FileSystemNotifierConfiguration) *File
 }
 
 // StartupCheck checks the file provider can write to the specified file
-func (n *FileNotifier) StartupCheck() (ok bool, err error) {
-	ok = true
+func (n *FileNotifier) StartupCheck() (bool, error) {
 	dir := filepath.Dir(n.path)
-	if _, err = os.Stat(dir); err != nil {
+	if _, err := os.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
 			if err = os.MkdirAll(dir, fileNotifierMode); err != nil {
-				ok = false
-				return
-			}
-			if err = ioutil.WriteFile(n.path, []byte(""), fileNotifierMode); err != nil {
-				ok = false
-				return
+				return false, err
 			}
 		} else {
-			ok = false
-			return
+			return false, err
 		}
 	} else if _, err = os.Stat(n.path); err != nil {
-		if os.IsNotExist(err) {
-			if err = ioutil.WriteFile(n.path, []byte(""), fileNotifierMode); err != nil {
-				ok = false
-				return
-			}
-		} else {
-			ok = false
-			return
+		if !os.IsNotExist(err) {
+			return false, err
+		}
+	} else {
+		if err = os.Remove(n.path); err != nil {
+			return false, err
 		}
 	}
-	err = nil
-	return
+	if err := ioutil.WriteFile(n.path, []byte(""), fileNotifierMode); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Send send a identity verification link to a user.
