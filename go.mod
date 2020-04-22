@@ -18,7 +18,7 @@ require (
 	github.com/golang/mock v1.4.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/kr/pty v1.1.8 // indirect
-	github.com/lib/pq v1.3.0
+	github.com/lib/pq v1.4.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/ogier/pflag v0.0.1 // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect
@@ -32,7 +32,7 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
-	github.com/valyala/fasthttp v1.11.0
+	github.com/valyala/fasthttp v1.12.0
 	github.com/xdg/stringprep v1.0.0 // indirect
 	go.mongodb.org/mongo-driver v1.3.2
 	google.golang.org/appengine v1.6.5 // indirect
