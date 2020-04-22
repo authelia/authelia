@@ -12,5 +12,5 @@ func StateGet(ctx *middlewares.AutheliaCtx) {
 		AuthenticationLevel:   userSession.AuthenticationLevel,
 		DefaultRedirectionURL: ctx.Configuration.DefaultRedirectionURL,
 	}
-	ctx.SetJSONBody(stateResponse)
+	ctx.SetJSONBody(stateResponse) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }

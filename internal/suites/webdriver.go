@@ -52,7 +52,7 @@ func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) 
 
 	wd, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", port))
 	if err != nil {
-		service.Stop()
+		service.Stop() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 		panic(err)
 	}
 
@@ -86,7 +86,7 @@ func WithWebdriver(fn func(webdriver selenium.WebDriver) error) error {
 		return err
 	}
 
-	defer wds.Stop()
+	defer wds.Stop() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	return fn(wds.WebDriver)
 }
