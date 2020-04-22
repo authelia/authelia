@@ -17,14 +17,14 @@ func Read(configPath string) (*schema.Configuration, []error) {
 
 	// we need to bind all env variables as long as https://github.com/spf13/viper/issues/761
 	// is not resolved.
-	viper.BindEnv("jwt_secret")
-	viper.BindEnv("duo_api.secret_key")
-	viper.BindEnv("session.secret")
-	viper.BindEnv("authentication_backend.ldap.password")
-	viper.BindEnv("notifier.smtp.password")
-	viper.BindEnv("session.redis.password")
-	viper.BindEnv("storage.mysql.password")
-	viper.BindEnv("storage.postgres.password")
+	viper.BindEnv("jwt_secret")                           //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("duo_api.secret_key")                   //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("session.secret")                       //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("authentication_backend.ldap.password") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("notifier.smtp.password")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("session.redis.password")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("storage.mysql.password")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("storage.postgres.password")            //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	viper.SetConfigFile(configPath)
 
@@ -35,7 +35,7 @@ func Read(configPath string) (*schema.Configuration, []error) {
 	}
 
 	var configuration schema.Configuration
-	viper.Unmarshal(&configuration)
+	viper.Unmarshal(&configuration) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	val := schema.NewStructValidator()
 	validator.Validate(&configuration, val)

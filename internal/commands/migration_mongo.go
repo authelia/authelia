@@ -26,13 +26,13 @@ var MigrateMongoCmd = &cobra.Command{
 
 func init() {
 	MigrateMongoCmd.PersistentFlags().StringVar(&mongoURL, "url", "", "The address to the mongo server")
-	MigrateMongoCmd.MarkPersistentFlagRequired("url")
+	MigrateMongoCmd.MarkPersistentFlagRequired("url") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	MigrateMongoCmd.PersistentFlags().StringVar(&mongoDatabase, "database", "", "The mongo database")
-	MigrateMongoCmd.MarkPersistentFlagRequired("database")
+	MigrateMongoCmd.MarkPersistentFlagRequired("database") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	MigrateMongoCmd.PersistentFlags().StringVarP(&configurationPath, "config", "c", "", "The configuration file of Authelia v4")
-	MigrateMongoCmd.MarkPersistentFlagRequired("config")
+	MigrateMongoCmd.MarkPersistentFlagRequired("config") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func migrateMongo(cmd *cobra.Command, args []string) {

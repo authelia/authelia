@@ -25,7 +25,7 @@ func (s *HandlerSignTOTPSuite) SetupTest() {
 	userSession.Username = "john"
 	userSession.U2FChallenge = &u2f.Challenge{}
 	userSession.U2FRegistration = &session.U2FRegistration{}
-	s.mock.Ctx.SaveSession(userSession)
+	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func (s *HandlerSignTOTPSuite) TearDownTest() {

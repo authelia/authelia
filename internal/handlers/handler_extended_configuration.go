@@ -26,5 +26,5 @@ func ExtendedConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.Tracef("Second factor enabled: %v", body.SecondFactorEnabled)
 
 	ctx.Logger.Tracef("Available methods are %s", body.AvailableMethods)
-	ctx.SetJSONBody(body)
+	ctx.SetJSONBody(body) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
