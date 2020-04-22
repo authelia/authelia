@@ -447,7 +447,7 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 			userSession := mock.Ctx.GetSession()
 			userSession.Username = testCase.Username
 			userSession.AuthenticationLevel = testCase.AuthenticationLevel
-			mock.Ctx.SaveSession(userSession)
+			mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 			mock.Ctx.Request.Header.Set("X-Original-URL", testCase.URL)
 
@@ -481,7 +481,7 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	userSession.Username = "john"
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
-	mock.Ctx.SaveSession(userSession)
+	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
@@ -509,7 +509,7 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 	userSession.Username = "john"
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
-	mock.Ctx.SaveSession(userSession)
+	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
@@ -535,7 +535,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
 	userSession.KeepMeLoggedIn = true
-	mock.Ctx.SaveSession(userSession)
+	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
@@ -560,7 +560,7 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 	userSession.Username = "john"
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = clock.Now().Add(-1 * time.Second).Unix()
-	mock.Ctx.SaveSession(userSession)
+	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
@@ -579,7 +579,7 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = "john"
 	userSession.AuthenticationLevel = authentication.NotAuthenticated
-	mock.Ctx.SaveSession(userSession)
+	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.SetHost("mydomain.com")

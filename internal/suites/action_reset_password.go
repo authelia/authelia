@@ -6,20 +6,20 @@ import (
 )
 
 func (wds *WebDriverSession) doInitiatePasswordReset(ctx context.Context, t *testing.T, username string) {
-	wds.WaitElementLocatedByID(ctx, t, "reset-password-button").Click()
+	wds.WaitElementLocatedByID(ctx, t, "reset-password-button").Click() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	// Fill in username
-	wds.WaitElementLocatedByID(ctx, t, "username-textfield").SendKeys(username)
+	wds.WaitElementLocatedByID(ctx, t, "username-textfield").SendKeys(username) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	// And click on the reset button
-	wds.WaitElementLocatedByID(ctx, t, "reset-button").Click()
+	wds.WaitElementLocatedByID(ctx, t, "reset-button").Click() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func (wds *WebDriverSession) doCompletePasswordReset(ctx context.Context, t *testing.T, newPassword1, newPassword2 string) {
 	link := doGetLinkFromLastMail(t)
 	wds.doVisit(t, link)
 
-	wds.WaitElementLocatedByID(ctx, t, "password1-textfield").SendKeys(newPassword1)
-	wds.WaitElementLocatedByID(ctx, t, "password2-textfield").SendKeys(newPassword2)
-	wds.WaitElementLocatedByID(ctx, t, "reset-button").Click()
+	wds.WaitElementLocatedByID(ctx, t, "password1-textfield").SendKeys(newPassword1) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	wds.WaitElementLocatedByID(ctx, t, "password2-textfield").SendKeys(newPassword2) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	wds.WaitElementLocatedByID(ctx, t, "reset-button").Click()                       //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func (wds *WebDriverSession) doSuccessfullyCompletePasswordReset(ctx context.Context, t *testing.T, newPassword1, newPassword2 string) {

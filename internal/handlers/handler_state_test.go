@@ -29,7 +29,7 @@ func (s *StateGetSuite) TearDownTest() {
 func (s *StateGetSuite) TestShouldReturnUsernameFromSession() {
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = "username"
-	s.mock.Ctx.SaveSession(userSession)
+	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	StateGet(s.mock.Ctx)
 
@@ -48,7 +48,7 @@ func (s *StateGetSuite) TestShouldReturnUsernameFromSession() {
 	}
 	actualBody := Response{}
 
-	json.Unmarshal(s.mock.Ctx.Response.Body(), &actualBody)
+	json.Unmarshal(s.mock.Ctx.Response.Body(), &actualBody) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("application/json"), s.mock.Ctx.Response.Header.ContentType())
 	assert.Equal(s.T(), expectedBody, actualBody)
@@ -57,7 +57,7 @@ func (s *StateGetSuite) TestShouldReturnUsernameFromSession() {
 func (s *StateGetSuite) TestShouldReturnAuthenticationLevelFromSession() {
 	userSession := s.mock.Ctx.GetSession()
 	userSession.AuthenticationLevel = authentication.OneFactor
-	s.mock.Ctx.SaveSession(userSession)
+	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	StateGet(s.mock.Ctx)
 
@@ -76,7 +76,7 @@ func (s *StateGetSuite) TestShouldReturnAuthenticationLevelFromSession() {
 	}
 	actualBody := Response{}
 
-	json.Unmarshal(s.mock.Ctx.Response.Body(), &actualBody)
+	json.Unmarshal(s.mock.Ctx.Response.Body(), &actualBody) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("application/json"), s.mock.Ctx.Response.Header.ContentType())
 	assert.Equal(s.T(), expectedBody, actualBody)
