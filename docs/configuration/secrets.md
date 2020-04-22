@@ -72,6 +72,7 @@ Secrets can be mounted as files using the following sample manifests.
 
 
 ### Kustomization
+
 - **Filename:** ./kustomization.yaml
 - **Command:** kubectl apply -k
 - **Notes:** this kustomization expects the Authelia configuration.yml in
@@ -104,6 +105,7 @@ secretGenerator:
 ```
 
 ### DaemonSet
+
 - **Filename:** ./daemonset.yaml
 - **Command:** kubectl apply -f ./daemonset.yaml
 - **Notes:** assumes Kubernetes API 1.16 or greater

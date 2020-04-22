@@ -11,7 +11,7 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 )
 
-// ValidateSecrets checks that secrets are either specified by config file/env or by file references
+// ValidateSecrets checks that secrets are either specified by config file/env or by file references.
 func ValidateSecrets(configuration *schema.Configuration, validator *schema.StructValidator, viper *viper.Viper) {
 	configuration.JWTSecret = getSecretValue("jwt_secret", validator, viper)
 	configuration.Session.Secret = getSecretValue("session.secret", validator, viper)

@@ -21,6 +21,7 @@ storage:
 ```
 
 ## SSL Mode
+
 SSL mode configures how to handle SSL connections with Postgres. 
 Valid options are 'disable', 'require', 'verify-ca', or 'verify-full'.
 See the [PostgreSQL Documentation](https://www.postgresql.org/docs/12/libpq-ssl.html)
