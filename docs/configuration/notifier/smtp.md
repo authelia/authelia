@@ -70,4 +70,5 @@ notifier:
 ```
 
 ## Loading a password from a secret instead of inside the configuration
+
 Password can also be defined using a [secret](../secrets.md).

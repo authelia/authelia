@@ -16,14 +16,14 @@ func Read(configPath string) (*schema.Configuration, []error) {
 
 	// we need to bind all env variables as long as https://github.com/spf13/viper/issues/761
 	// is not resolved.
-	viper.BindEnv("authelia.jwt_secret")                                //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.duo_api.secret_key")                        //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.session.secret")                            //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.authentication_backend.ldap.password")      //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.notifier.smtp.password")                    //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.session.redis.password")                    //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.storage.mysql.password")                    //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.storage.postgres.password")                 //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("authelia.jwt_secret")                           //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("authelia.duo_api.secret_key")                   //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("authelia.session.secret")                       //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("authelia.authentication_backend.ldap.password") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("authelia.notifier.smtp.password")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("authelia.session.redis.password")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("authelia.storage.mysql.password")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("authelia.storage.postgres.password")            //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	viper.BindEnv("authelia.jwt_secret.file")                           //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	viper.BindEnv("authelia.duo_api.secret_key.file")                   //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -47,7 +47,7 @@ func Read(configPath string) (*schema.Configuration, []error) {
 
 	val := schema.NewStructValidator()
 	validator.ValidateSecrets(&configuration, val, viper.GetViper())
-	validator.Validate(&configuration, val)
+	validator.ValidateConfiguration(&configuration, val)
 
 	if val.HasErrors() {
 		return nil, val.Errors()

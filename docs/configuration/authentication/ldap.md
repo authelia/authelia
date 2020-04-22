@@ -100,5 +100,6 @@ In order to avoid such problems, we highly recommended you follow https://www.ie
 unique identifier for your users.
 
 ## Loading a password from a secret instead of inside the configuration
+
 Password can also be defined using a [secret](../secrets.md).
 
