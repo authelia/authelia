@@ -88,8 +88,8 @@ func init() {
 	}
 
 	teardown := func(suitePath string) error {
-		kubectl.StopDashboard()
-		kubectl.StopProxy()
+		kubectl.StopDashboard() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+		kubectl.StopProxy()     //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 		return kind.DeleteCluster()
 	}
 
