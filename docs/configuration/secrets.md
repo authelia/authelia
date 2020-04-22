@@ -70,10 +70,18 @@ server. The UNIX permissions should probably be something like 600.
 
 Secrets can be mounted as files using the following sample manifests.
 
+
+### Kustomization
+- **Filename:** ./kustomization.yaml
+- **Command:** kubectl apply -k
+- **Notes:** this kustomization expects the Authelia configuration.yml in
+the same directory. You will need to edit the kustomization.yaml with your
+desired secrets after the equal signs. If you change the value before the
+equal sign you'll have to adjust the volumes section of the daemonset
+template (or deployment template if you're using it).
+ 
 ```yaml
 #filename: ./kustomization.yaml
-#command: kubectl apply -k
-#notes: expects configuration.yml to exist as well, though you can remove the configMapGenerator
 generatorOptions:
   disableNameSuffixHash: true
   labels:
@@ -93,9 +101,12 @@ secretGenerator:
       - ldap_password=myldappassword
       - duo_secret=myduosecretkey
       - smtp_password=mysmtppassword
-    
 ```
 
+### DaemonSet
+- **Filename:** ./daemonset.yaml
+- **Command:** kubectl apply -f ./daemonset.yaml
+- **Notes:** assumes Kubernetes API 1.16 or greater
 ```yaml
 #filename: daemonset.yaml
 #command: kubectl apply -f daemonset.yaml
