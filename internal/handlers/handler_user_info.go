@@ -76,7 +76,7 @@ func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 		ctx.Error(fmt.Errorf("Unable to load user information"), operationFailedMessage)
 		return
 	}
-	ctx.SetJSONBody(preferences)
+	ctx.SetJSONBody(preferences) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 // MethodBody the selected 2FA method.

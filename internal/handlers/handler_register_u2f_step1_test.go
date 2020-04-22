@@ -25,7 +25,7 @@ func (s *HandlerRegisterU2FStep1Suite) SetupTest() {
 
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = "john"
-	s.mock.Ctx.SaveSession(userSession)
+	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func (s *HandlerRegisterU2FStep1Suite) TearDownTest() {

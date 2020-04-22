@@ -16,5 +16,5 @@ func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 		RememberMe:                ctx.Providers.SessionProvider.RememberMe != 0,
 		ResetPassword:             !ctx.Configuration.AuthenticationBackend.DisableResetPassword,
 	}
-	ctx.SetJSONBody(body)
+	ctx.SetJSONBody(body) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
