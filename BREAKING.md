@@ -54,16 +54,10 @@ supported by Authelia v4.
 Example of usage:
 ```
 # Migrate a local database into the targeted database defined in config-v4.yml with Docker
-docker run --rm -v /path/to/config-v4.yml:/config.yml -v /old/db/path:/db authelia/authelia authelia migrate local --config=/config.yml --db-path=/db
+docker run --rm -v /path/to/config-v4.yml:/config.yml -v /old/db/path:/db authelia/authelia:4.14.2 authelia migrate local --config=/config.yml --db-path=/db
     
 # Migrate a mongo database into the targeted database defined in config-v4.yml with Docker
-docker run --rm -v /path/to/config-v4.yml:/config.yml authelia/authelia authelia migrate mongo --config=/config.yml --url=mongodb://myuser:mypassword@mymongo:27017 --database=authelia
-
-# Migrate a local database into the targeted database defined in config-v4.yml
-authelia-scripts migrate local --config=/path/to/config-v4.yml --db-path=/old/db/path
-
-# Migrate a mongo database into the targeted database defined in config-v4.yml
-authelia-scripts migrate mongo --config=/path/to/config-v4.yml --url=mongodb://myuser:mypassword@mymongo:27017 --database=authelia
+docker run --rm -v /path/to/config-v4.yml:/config.yml authelia/authelia:4.14.2 authelia migrate mongo --config=/config.yml --url=mongodb://myuser:mypassword@mymongo:27017 --database=authelia
 ```
 
 Those commands migrate TOTP secrets, U2F devices, authentication traces and user preferences so
