@@ -64,7 +64,7 @@ log_file_path: /var/log/authelia.log
 `optional: false`
 
 Defines the secret used to craft JWT tokens leveraged by the identity
-verification process
+verification process. This can also be defined using a [secret](./secrets.md).
 
 ```yaml
 jwt_secret: v3ry_important_s3cr3t

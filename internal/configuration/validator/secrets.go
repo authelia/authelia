@@ -8,10 +8,15 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/logging"
 )
+
+var envUsed []string
 
 // ValidateSecrets checks that secrets are either specified by config file/env or by file references
 func ValidateSecrets(configuration *schema.Configuration, validator *schema.StructValidator, viper *viper.Viper) {
+	envUsed = []string{}
+
 	configuration.JWTSecret = getSecretValue("jwt_secret", validator, viper)
 	configuration.Session.Secret = getSecretValue("session.secret", validator, viper)
 
@@ -38,6 +43,10 @@ func ValidateSecrets(configuration *schema.Configuration, validator *schema.Stru
 	if configuration.Storage.PostgreSQL != nil {
 		configuration.Storage.PostgreSQL.Password = getSecretValue("storage.postgres.password", validator, viper)
 	}
+
+	if len(envUsed) > 0 {
+		logging.Logger().Warnf("The following secrets are defined via environment variables, it's recommended to use the file secrets instead (https://docs.authelia.com/configuration/secrets.html): %s", strings.Join(envUsed[:], ", "))
+	}
 }
 
 func getSecretValue(name string, validator *schema.StructValidator, viper *viper.Viper) string {
@@ -63,6 +72,7 @@ func getSecretValue(name string, validator *schema.StructValidator, viper *viper
 		}
 	}
 	if envValue != "" {
+		envUsed = append(envUsed, name)
 		return envValue
 	}
 	return configValue

@@ -38,7 +38,7 @@ notifier:
   #     - use the disable_verify_cert boolean value to disable the validation (prefer the trusted_cert option as it's more secure)
   smtp:
     username: test
-    # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: password
     host: 127.0.0.1
     port: 1025
@@ -62,9 +62,12 @@ described [here](https://support.google.com/accounts/answer/185833?hl=en)
 notifier:
   smtp:
     username: myaccount@gmail.com
-    # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: yourapppassword
     sender: admin@example.com
     host: smtp.gmail.com
     port: 587
 ```
+
+## Loading a password from a secret instead of inside the configuration
+Password can also be defined using a [secret](../secrets.md).
