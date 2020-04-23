@@ -42,22 +42,6 @@ environment variable will not be replaced.
 |notifier.smtp.password              |AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE              |
 |authentication_backend.ldap.password|AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE|
 
-
-## Secrets exposed in an environment variable
-
-Prior to implementing file secrets you were able to define the
-values of secrets in the environment variables themselves
-in plain text instead of referencing a file. This is still
-supported but discouraged. If you still want to do this
-just remove _FILE from the environment variable name
-and define the value in insecure plain text. See 
-[this article](https://diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/)
-for reasons why this is considered insecure and is discouraged.
-
-**DEPRECATION NOTICE:** This backwards compatibility feature will be
-**removed** in 4.18.0+. 
-
-
 ## Secrets in configuration file
 
 If for some reason you prefer keeping the secrets in the configuration
@@ -65,6 +49,16 @@ file, be sure to apply the right permissions to the file in order to
 prevent secret leaks if an another application gets compromised on your
 server. The UNIX permissions should probably be something like 600.
 
+## Secrets exposed in an environment variable
+
+**DEPRECATION NOTICE:** This backwards compatibility feature **has been removed** in 4.18.0+. 
+
+Prior to implementing file secrets you were able to define the
+values of secrets in the environment variables themselves
+in plain text instead of referencing a file. **This is no longer available
+as an option**, please see the table above for the file based replacements. See 
+[this article](https://diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/)
+for reasons why this was removed.
 
 ## Kubernetes
 
