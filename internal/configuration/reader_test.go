@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"os"
+	"sort"
 	"strings"
 	"testing"
 
@@ -29,6 +30,7 @@ func TestShouldParseConfigFile(t *testing.T) {
 	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD", "smtp_secret_from_env"))
 	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD", "redis_secret_from_env"))
 	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD", "mysql_secret_from_env"))
+	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD", "postgres_secret_from_env"))
 
 	config, errors := Read("./test_resources/config.yml")
 
@@ -71,6 +73,33 @@ func TestShouldParseAltConfigFile(t *testing.T) {
 
 	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
 	assert.Len(t, config.AccessControl.Rules, 12)
+}
+
+func TestShouldNotParseConfigFileWithOldOrUnexpectedKeys(t *testing.T) {
+	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET", "secret_from_env"))
+	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY", "duo_secret_from_env"))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET", "session_secret_from_env"))
+	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD", "ldap_secret_from_env"))
+	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD", "smtp_secret_from_env"))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD", "redis_secret_from_env"))
+	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD", "mysql_secret_from_env"))
+	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD", "postgres_secret_from_env"))
+
+	_, errors := Read("./test_resources/config_bad_keys.yml")
+	require.Len(t, errors, 2)
+
+	// Sort error slice to prevent shenanigans that somehow occur
+	sort.Slice(errors, func(i, j int) bool {
+		return errors[i].Error() < errors[j].Error()
+	})
+	assert.EqualError(t, errors[0], "config key not expected: loggy_file")
+	assert.EqualError(t, errors[1], "config key replaced: logs_level is now log_level")
+}
+
+func TestShouldValidateConfigurationTemplate(t *testing.T) {
+	resetEnv()
+	_, errors := Read("../../config.template.yml")
+	assert.Len(t, errors, 0)
 }
 
 func TestShouldOnlyAllowOneEnvType(t *testing.T) {

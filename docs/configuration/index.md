@@ -14,7 +14,23 @@ When running **Authelia**, you can specify your configuration by passing
 the file path as shown below.
 
     $ authelia --config config.custom.yml
+ 
+ 
+## Validation
+
+Authelia validates the configuration when it starts. This process checks multiple factors including configuration keys
+that don't exist, configuration keys that have changed, the values of the keys are valid, and that a configuration
+key isn't supplied at the same time as a secret for the same configuration option.
+
+You may also optionally validate your configuration against this validation process manually by using the validate-config
+option with the Authelia binary as shown below. Keep in mind if you're using [secrets](./secrets.md) you will have to 
+manually provide these if you don't want to get certain validation errors (specifically requesting you provide one of 
+the secret values). You can choose to ignore them if you know what you're doing. This command is useful prior to 
+upgrading to prevent configuration changes from impacting downtime in an upgrade.
+
+    $ authelia validate-config configuration.yml
     
+   
 ## Duration Notation Format
 
 We have implemented a string based notation for configuration options that take a duration. This section describes its

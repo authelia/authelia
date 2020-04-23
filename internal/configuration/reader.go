@@ -48,6 +48,7 @@ func Read(configPath string) (*schema.Configuration, []error) {
 	val := schema.NewStructValidator()
 	validator.ValidateSecrets(&configuration, val, viper.GetViper())
 	validator.ValidateConfiguration(&configuration, val)
+	validator.ValidateKeys(val, viper.AllKeys())
 
 	if val.HasErrors() {
 		return nil, val.Errors()

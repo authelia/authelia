@@ -382,10 +382,10 @@ notifier:
     # {title} is replaced by the text from the notifier
     subject: "[Authelia] {title}"
     # This address is used during the startup check to verify the email configuration is correct. It's not important what it is except if your email server only allows local delivery.
-    ## startup_check_address: test@authelia.com
-    ## trusted_cert: ""
-    ## disable_require_tls: false
-    ## disable_verify_cert: false
+    startup_check_address: test@authelia.com
+    trusted_cert: ""
+    disable_require_tls: false
+    disable_verify_cert: false
 
   # Sending an email using a Gmail account is as simple as the next section.
   # You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
