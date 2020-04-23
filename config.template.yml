@@ -15,7 +15,7 @@ log_level: debug
 
 # The secret used to generate JWT tokens when validating user identity by
 # email confirmation.
-# This secret can also be set using the env variables AUTHELIA_JWT_SECRET
+# JWT Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
 jwt_secret: a_very_important_secret
 
 # Default redirection URL
@@ -58,7 +58,7 @@ totp:
 duo_api:
   hostname: api-123456789.example.com
   integration_key: ABCDEF
-  # This secret can also be set using the env variables AUTHELIA_DUO_API_SECRET_KEY
+  # Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   secret_key: 1234567890abcdefghifjkl
 
 # The authentication backend to use for verifying user passwords
@@ -138,7 +138,7 @@ authentication_backend:
     
     # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
-    # This secret can also be set using the env variables AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: password
 
   # File backend configuration.
@@ -271,7 +271,7 @@ session:
   name: authelia_session
 
   # The secret to encrypt the session data. This is only used with Redis.
-  # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET
+  # Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   secret: insecure_session_secret
 
   # The time in seconds before the cookie expires and session is reset.
@@ -296,7 +296,7 @@ session:
   redis:
     host: 127.0.0.1
     port: 6379
-    # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: authelia
     # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     database_index: 0
@@ -334,7 +334,7 @@ storage:
     port: 3306
     database: authelia
     username: authelia
-    # This secret can also be set using the env variables AUTHELIA_STORAGE_MYSQL_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: mypassword
 
   # Settings to connect to PostgreSQL server
@@ -343,8 +343,9 @@ storage:
   #   port: 5432
   #   database: authelia
   #   username: authelia
-  #   # This secret can also be set using the env variables AUTHELIA_STORAGE_POSTGRES_PASSWORD
+  #   # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   #   password: mypassword
+  #   sslmode: disable
 
 # Configuration of the notification system.
 #
@@ -372,7 +373,7 @@ notifier:
   #     - use the disable_verify_cert boolean value to disable the validation (prefer the trusted_cert option as it's more secure)
   smtp:
     username: test
-    # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: password
     host: 127.0.0.1
     port: 1025
@@ -381,16 +382,16 @@ notifier:
     # {title} is replaced by the text from the notifier
     subject: "[Authelia] {title}"
     # This address is used during the startup check to verify the email configuration is correct. It's not important what it is except if your email server only allows local delivery.
-    ## startup_check_address: test@authelia.com
-    ## trusted_cert: ""
-    ## disable_require_tls: false
-    ## disable_verify_cert: false
+    startup_check_address: test@authelia.com
+    trusted_cert: ""
+    disable_require_tls: false
+    disable_verify_cert: false
 
   # Sending an email using a Gmail account is as simple as the next section.
   # You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
   ## smtp:
   ##   username: myaccount@gmail.com
-  ##   # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
+  ##   # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   ##   password: yourapppassword
   ##   sender: admin@example.com
   ##   host: smtp.gmail.com

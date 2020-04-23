@@ -94,7 +94,7 @@ func (s *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
 	ValidateStorage(s.configuration, validator)
 
 	s.Require().Len(validator.Errors(), 1)
-	s.Assert().EqualError(validator.Errors()[0], "SSL mode must be 'disable', 'require', 'verify-ca' or 'verify-full'")
+	s.Assert().EqualError(validator.Errors()[0], "SSL mode must be 'disable', 'require', 'verify-ca', or 'verify-full'")
 }
 
 func TestShouldRunStorageSuite(t *testing.T) {
