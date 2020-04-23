@@ -46,7 +46,7 @@ func getSecretValue(name string, validator *schema.StructValidator, viper *viper
 	envValue := viper.GetString("authelia." + name)
 	fileEnvValue := viper.GetString("authelia." + name + ".file")
 
-	// Error Checking
+	// Error Checking.
 	if envValue != "" && fileEnvValue != "" {
 		validator.Push(fmt.Errorf("secret is defined in multiple areas: %s", name))
 	}
@@ -54,7 +54,7 @@ func getSecretValue(name string, validator *schema.StructValidator, viper *viper
 		validator.Push(fmt.Errorf("error loading secret (%s): it's already defined in the config file", name))
 	}
 
-	// Derive Secret
+	// Derive Secret.
 	if fileEnvValue != "" {
 		content, err := ioutil.ReadFile(fileEnvValue)
 		if err != nil {
