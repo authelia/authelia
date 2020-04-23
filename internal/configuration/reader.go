@@ -12,7 +12,6 @@ import (
 
 // Read a YAML configuration and create a Configuration object out of it.
 func Read(configPath string) (*schema.Configuration, []error) {
-	viper.SetEnvPrefix("AUTHELIA")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	// we need to bind all env variables as long as https://github.com/spf13/viper/issues/761
@@ -49,7 +48,6 @@ func Read(configPath string) (*schema.Configuration, []error) {
 	val := schema.NewStructValidator()
 	validator.ValidateSecrets(&configuration, val, viper.GetViper())
 	validator.ValidateConfiguration(&configuration, val)
-	validator.Validate(&configuration, val)
 	validator.ValidateKeys(val, viper.AllKeys())
 
 	if val.HasErrors() {

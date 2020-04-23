@@ -2,8 +2,8 @@ package configuration
 
 import (
 	"os"
-	"strings"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -97,6 +97,7 @@ func TestShouldNotParseConfigFileWithOldOrUnexpectedKeys(t *testing.T) {
 }
 
 func TestShouldValidateConfigurationTemplate(t *testing.T) {
+	resetEnv()
 	_, errors := Read("../../config.template.yml")
 	assert.Len(t, errors, 0)
 }
