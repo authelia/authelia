@@ -107,7 +107,8 @@ Would you like to report any vulnerability discovered in Authelia, please first 
 [email](mailto:clement.michaud34@gmail.com).
 
 For details about security measures implemented in Authelia, please follow
-this [link](https://docs.authelia.com/security/measures.html).
+this [link](https://docs.authelia.com/security/measures.html) and for reading about 
+the threat model follow this [link](https://docs.authelia.com/security/threat-model.html).
 
 ## Breaking changes
 
