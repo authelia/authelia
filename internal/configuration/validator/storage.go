@@ -40,7 +40,7 @@ func validatePostgreSQLConfiguration(configuration *schema.PostgreSQLStorageConf
 
 	if !(configuration.SSLMode == "disable" || configuration.SSLMode == "require" ||
 		configuration.SSLMode == "verify-ca" || configuration.SSLMode == "verify-full") {
-		validator.Push(errors.New("SSL mode must be 'disable', 'require', 'verify-ca' or 'verify-full'"))
+		validator.Push(errors.New("SSL mode must be 'disable', 'require', 'verify-ca', or 'verify-full'"))
 	}
 }
 

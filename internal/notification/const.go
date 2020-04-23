@@ -1,3 +1,3 @@
 package notification
 
-const fileNotifierMode = 0755
+const fileNotifierMode = 0600

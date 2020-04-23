@@ -81,13 +81,13 @@ authentication_backend:
     # one returned by the LDAP server is used.
     user: cn=admin,dc=example,dc=com
     
-    # This secret can also be set using the env variables AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: password
 ```
 
 The user must have an email address in order for Authelia to perform
-identity verification when password reset request is initiated or
-when a second factor device is registered.
+identity verification when a user attempts to reset their password or
+register a second factor device.
 
 ## Important notes
 
@@ -98,4 +98,8 @@ fail authenticating the user and display an error message in the logs.
 In order to avoid such problems, we highly recommended you follow https://www.ietf.org/rfc/rfc2307.txt by using
 `sAMAccountName` for Microsoft Active Directory and `uid` for other implementations as the attribute holding the
 unique identifier for your users.
+
+## Loading a password from a secret instead of inside the configuration
+
+Password can also be defined using a [secret](../secrets.md).
 
