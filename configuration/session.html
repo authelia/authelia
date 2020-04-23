@@ -3,7 +3,7 @@
   <span class="na">name</span><span class="pi">:</span> <span class="s">authelia_session</span>
 
   <span class="c1"># The secret to encrypt the session cookie.</span>
-  <span class="c1"># This secret can also be set using the env variables AUTHELIA_SESSION_SECRET</span>
+  <span class="c1"># Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html</span>
   <span class="na">secret</span><span class="pi">:</span> <span class="s">unsecure_session_secret</span>
 
   <span class="c1"># The time in seconds before the cookie expires and session is reset.</span>
@@ -28,6 +28,6 @@
   <span class="na">redis</span><span class="pi">:</span>
     <span class="na">host</span><span class="pi">:</span> <span class="s">127.0.0.1</span>
     <span class="na">port</span><span class="pi">:</span> <span class="m">6379</span>
-    <span class="c1"># This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD</span>
+    <span class="c1"># Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html</span>
     <span class="na">password</span><span class="pi">:</span> <span class="s">authelia</span>
 </code></pre></div></div> <h3 id="security"> <a href="#security" class="anchor-heading"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#link"></use></svg></a> Security </h3> <p>Configuration of this section has an impact on security. You should read notes in <a href="/security/measures.html#session-security">security measures</a> for more information.</p> <h3 id="duration-notation"> <a href="#duration-notation" class="anchor-heading"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#link"></use></svg></a> Duration Notation </h3> <p>The configuration parameters expiration, inactivity, and remember_me_duration use duration notation. See the documentation for <a href="/configuration/#duration-notation-format">duration notation format</a> for more information.</p> <hr> <footer role="contentinfo"> <p class="text-small text-grey-dk-000 mb-0">Copyright &copy; 2020 Authelia. Distributed by an <a href="https://github.com/authelia/authelia/blob/master/LICENSE">Apache 2.0 license.</a></p> </footer> </div> </div> </div> </div> </body> </html>
