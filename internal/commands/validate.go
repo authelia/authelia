@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -16,8 +17,7 @@ var ValidateConfigCmd = &cobra.Command{
 	Run: func(cobraCmd *cobra.Command, args []string) {
 		configPath := args[0]
 		if _, err := os.Stat(configPath); err != nil {
-			fmt.Printf("Error Loading Configuration: %s\n", err)
-			os.Exit(2)
+			log.Fatalf("Error Loading Configuration: %s\n", err)
 		}
 
 		// TODO: Actually use the configuration to validate some providers like Notifier
@@ -27,14 +27,13 @@ var ValidateConfigCmd = &cobra.Command{
 			if len(errs) == 1 {
 				str = "Error"
 			}
-			fmt.Printf("%s occurred parsing configuration:\n", str)
+			errors := ""
 			for _, err := range errs {
-				fmt.Printf("\t%s\n", err)
+				errors += fmt.Sprintf("\t%s\n", err.Error())
 			}
-			os.Exit(1)
+			log.Fatalf("%s occurred parsing configuration:\n%s", str, errors)
 		} else {
-			fmt.Printf("Configuration parsed successfully without errors.\n")
-			os.Exit(0)
+			log.Println("Configuration parsed successfully without errors.")
 		}
 	},
 	Args: cobra.MinimumNArgs(1),

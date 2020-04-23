@@ -9,11 +9,11 @@ import (
 )
 
 func ValidateKeys(validator *schema.StructValidator, keys []string) {
+	var errStrings []string
 	for _, key := range keys {
 		if utils.IsStringInSlice(key, validKeys) {
 			continue
 		}
-		var errStrings []string
 
 		if err, ok := specificErrorKeys[key]; ok {
 			if !utils.IsStringInSlice(err, errStrings) {
@@ -22,8 +22,8 @@ func ValidateKeys(validator *schema.StructValidator, keys []string) {
 		} else {
 			validator.Push(fmt.Errorf("config key not expected: %s", key))
 		}
-		for _, err := range errStrings {
-			validator.Push(errors.New(err))
-		}
+	}
+	for _, err := range errStrings {
+		validator.Push(errors.New(err))
 	}
 }
