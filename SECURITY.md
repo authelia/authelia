@@ -1,5 +1,8 @@
-Security is taken very seriously here, therefore we follow the rule of responsible
-disclosure and we encourage you to do so.
+# Security
+
+Authelia takes security very seriously. We follow the rule of
+[responsible disclosure](https://en.wikipedia.org/wiki/Responsible_disclosure), and we
+encourage the community to as well.
 
 Would you like to report any vulnerability discovered in Authelia, please first contact
 **clems4ever** on [Matrix](https://riot.im/app/#/room/#authelia:matrix.org) or by
