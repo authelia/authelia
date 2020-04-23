@@ -17,7 +17,9 @@ Authelia will not start. If the File Notifier is used and the file is not writab
 not start.
 * Authelia v3 migration tools are being removed in this release due to the length of time which
 has passed since v4 release. Older versions will still be available for migration if needed.
-* **DEPRECATION NOTICE:** Environment variable secrets are insecure and have been replaced by a file based alternative
+
+### Deprecation Notice(s)
+* Environment variable secrets are insecure and have been replaced by a file based alternative
 instead of having the plain text secret in the environment variables. In version 4.18.0 the old method
 will be completely removed. Read more in the [docs](https://docs.authelia.com/configuration/secrets.html).
 
