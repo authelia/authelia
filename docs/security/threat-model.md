@@ -27,6 +27,7 @@ If properly configured, Authelia guarantees the following for security of your u
 * Identity validation is required for performing administrative actions such as registering 2FA devices, preventing attackers to pass second factor by auto-registering their own 2FA device. An email with a link is sent to the user and a click is required to confirm the action.
 * Prevention against session fixation by regenerating a new session after each privilege elevation.
 * Prevention against LDAP injection by following OWASP recommendations regarding valid input characters (https://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html).
+* Connections between Authelia and thirdparty components like mail server, database, cache and LDAP server can be made over TLS to protect against man-in-the-middle attacks from within the infrastructure.
 
 ## Potential future guarantees
 
