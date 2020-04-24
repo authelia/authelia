@@ -201,6 +201,24 @@ func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (u
 	return userSession.Username, userSession.Groups, userSession.AuthenticationLevel, nil
 }
 
+func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, username string) {
+	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
+	// endpoint to provide the URL of the login portal. The target URL of the user
+	// is computed from X-Fowarded-* headers or X-Original-URL
+	rd := string(ctx.QueryArgs().Peek("rd"))
+	if rd != "" {
+		redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
+		if strings.Contains(redirectionURL, "/%23/") {
+			ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
+		}
+		ctx.Redirect(redirectionURL, 302)
+		ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
+	} else {
+		ctx.ReplyUnauthorized()
+		ctx.Logger.Errorf("Access to %s is not authorized to user %s", targetURL.String(), username)
+	}
+}
+
 // VerifyGet is the handler verifying if a request is allowed to go through
 func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.Tracef("Headers=%s", ctx.Request.Header.String())
@@ -240,7 +258,7 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		ctx.Logger.Error(fmt.Sprintf("Error caught when verifying user authorization: %s", err))
-		ctx.ReplyUnauthorized()
+		handleUnauthorized(ctx, targetURL, username)
 		return
 	}
 
@@ -252,21 +270,7 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Errorf("Access to %s is forbidden to user %s", targetURL.String(), username)
 		return
 	} else if authorization == NotAuthorized {
-		// Kubernetes ingress controller and Traefik use the rd parameter of the verify
-		// endpoint to provide the URL of the login portal. The target URL of the user
-		// is computed from X-Fowarded-* headers or X-Original-URL
-		rd := string(ctx.QueryArgs().Peek("rd"))
-		if rd != "" {
-			redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
-			if strings.Contains(redirectionURL, "/%23/") {
-				ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
-			}
-			ctx.Redirect(redirectionURL, 302)
-			ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
-		} else {
-			ctx.ReplyUnauthorized()
-			ctx.Logger.Errorf("Access to %s is not authorized to user %s", targetURL.String(), username)
-		}
+		handleUnauthorized(ctx, targetURL, username)
 	} else if authorization == Authorized {
 		setForwardedHeaders(&ctx.Response.Header, username, groups)
 	}

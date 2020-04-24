@@ -572,6 +572,36 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
 }
 
+// In the case of Traefik and Nginx ingress controller in Kube, the response to an inactive
+// session is 302 instead of 401.
+func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	mock.Ctx.Configuration.Session.Inactivity = "10"
+	// Reload the session provider since the configuration is indirect
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session)
+	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = "john"
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
+	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+
+	VerifyGet(mock.Ctx)
+
+	assert.Equal(t, "Found. Redirecting to https://login.example.com?rd=https%3A%2F%2Ftwo-factor.example.com",
+		string(mock.Ctx.Response.Body()))
+	assert.Equal(t, 302, mock.Ctx.Response.StatusCode())
+}
+
 func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
