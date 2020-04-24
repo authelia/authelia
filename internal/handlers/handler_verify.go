@@ -211,12 +211,23 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, us
 		if strings.Contains(redirectionURL, "/%23/") {
 			ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
 		}
+		ctx.Logger.Infof("Access to %s is not authorized to user %s, redirecting to %s", targetURL.String(), username, redirectionURL)
 		ctx.Redirect(redirectionURL, 302)
 		ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
 	} else {
+		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response", targetURL.String(), username)
 		ctx.ReplyUnauthorized()
-		ctx.Logger.Errorf("Access to %s is not authorized to user %s", targetURL.String(), username)
 	}
+}
+
+func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, username string) error {
+	if isBasicAuth || username == "" {
+		return nil
+	}
+	// Mark current activity
+	userSession := ctx.GetSession()
+	userSession.LastActivity = time.Now().Unix()
+	return ctx.SaveSession(userSession)
 }
 
 // VerifyGet is the handler verifying if a request is allowed to go through
@@ -248,9 +259,9 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	var authLevel authentication.Level
 
 	proxyAuthorization := ctx.Request.Header.Peek(AuthorizationHeader)
-	hasBasicAuth := proxyAuthorization != nil
+	isBasicAuth := proxyAuthorization != nil
 
-	if hasBasicAuth {
+	if isBasicAuth {
 		username, groups, authLevel, err = verifyBasicAuth(proxyAuthorization, *targetURL, ctx)
 	} else {
 		username, groups, authLevel, err = verifyFromSessionCookie(*targetURL, ctx)
@@ -258,6 +269,10 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		ctx.Logger.Error(fmt.Sprintf("Error caught when verifying user authorization: %s", err))
+		if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
+			ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
+			return
+		}
 		handleUnauthorized(ctx, targetURL, username)
 		return
 	}
@@ -266,24 +281,15 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		groups, ctx.RemoteIP(), authLevel)
 
 	if authorization == Forbidden {
+		ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 		ctx.ReplyForbidden()
-		ctx.Logger.Errorf("Access to %s is forbidden to user %s", targetURL.String(), username)
 	} else if authorization == NotAuthorized {
 		handleUnauthorized(ctx, targetURL, username)
 	} else if authorization == Authorized {
 		setForwardedHeaders(&ctx.Response.Header, username, groups)
 	}
 
-	// We mark activity of the current user if he comes with a session cookie
-	if !hasBasicAuth && username != "" {
-		// Mark current activity
-		userSession := ctx.GetSession()
-		userSession.LastActivity = time.Now().Unix()
-		err = ctx.SaveSession(userSession)
-
-		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
-			return
-		}
+	if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
+		ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
 	}
 }
