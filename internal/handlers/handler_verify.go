@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/valyala/fasthttp"
 
@@ -195,7 +194,7 @@ func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (u
 				return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to destroy user session after long inactivity: %s", err)
 			}
 
-			return "", nil, authentication.NotAuthenticated, fmt.Errorf("User %s has been inactive for too long", userSession.Username)
+			return userSession.Username, userSession.Groups, authentication.NotAuthenticated, fmt.Errorf("User %s has been inactive for too long", userSession.Username)
 		}
 	}
 	return userSession.Username, userSession.Groups, userSession.AuthenticationLevel, nil
@@ -224,9 +223,15 @@ func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, use
 	if isBasicAuth || username == "" {
 		return nil
 	}
-	// Mark current activity
+
 	userSession := ctx.GetSession()
-	userSession.LastActivity = time.Now().Unix()
+	// We don't need to update the activity timestamp when user checked keep me logged in.
+	if userSession.KeepMeLoggedIn {
+		return nil
+	}
+
+	// Mark current activity
+	userSession.LastActivity = ctx.Clock.Now().Unix()
 	return ctx.SaveSession(userSession)
 }
 
