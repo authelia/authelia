@@ -1,0 +1,45 @@
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+port: 9091
+tls_cert: /var/lib/authelia/ssl/cert.pem
+tls_key: /var/lib/authelia/ssl/key.pem
+
+log_level: debug
+
+jwt_secret: unsecure_secret
+
+authentication_backend:
+  file:
+    path: /var/lib/authelia/users.yml
+
+session:
+  secret: unsecure_session_secret
+  domain: example.com
+  expiration: 3600 # 1 hour
+  inactivity: 300 # 5 minutes
+  remember_me_duration: 1y
+
+storage:
+  local:
+    path: /var/lib/authelia/db.sqlite
+
+access_control:
+  default_policy: bypass
+  rules:
+    - domain: "public.example.com"
+      policy: bypass
+    - domain: "admin.example.com"
+      policy: two_factor
+    - domain: "secure.example.com"
+      policy: two_factor
+    - domain: "singlefactor.example.com"
+      policy: one_factor
+
+notifier:
+  smtp:
+    host: smtp
+    port: 1025
+    sender: admin@example.com
+    disable_require_tls: true

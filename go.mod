@@ -20,8 +20,8 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
+	github.com/ory/fosite v0.32.0
 	github.com/otiai10/copy v1.2.0
-	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/pquerna/otp v1.2.0
 	github.com/simia-tech/crypt v0.4.3
 	github.com/sirupsen/logrus v1.6.0

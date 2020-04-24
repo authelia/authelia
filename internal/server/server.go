@@ -16,6 +16,7 @@ import (
 	"github.com/authelia/authelia/internal/handlers"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/oidc"
 )
 
 // StartServer start Authelia server with the given configuration and providers.
@@ -119,6 +120,8 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	if configuration.Server.Path != "" {
 		handler = middlewares.StripPathMiddleware(handler)
 	}
+
+	oidc.RegisterHandlers(router)
 
 	server := &fasthttp.Server{
 		ErrorHandler:          autheliaErrorHandler,

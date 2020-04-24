@@ -1,0 +1,7 @@
+version: '3'
+services:
+  authelia-backend:
+    volumes:
+      - './OIDC/configuration.yml:/etc/authelia/configuration.yml:ro'
+      - './OIDC/users.yml:/var/lib/authelia/users.yml'
+      - './common/ssl:/var/lib/authelia/ssl:ro'
