@@ -268,7 +268,6 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	if authorization == Forbidden {
 		ctx.ReplyForbidden()
 		ctx.Logger.Errorf("Access to %s is forbidden to user %s", targetURL.String(), username)
-		return
 	} else if authorization == NotAuthorized {
 		handleUnauthorized(ctx, targetURL, username)
 	} else if authorization == Authorized {
