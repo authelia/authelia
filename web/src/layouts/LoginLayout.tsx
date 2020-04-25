@@ -21,7 +21,7 @@ export default function (props: Props) {
             spacing={0}
             alignItems="center"
             justify="center">
-            <Container maxWidth="xs">
+            <Container maxWidth="xs" className={style.rootContainer}>
                 <Grid container>
                     <Grid item xs={12}>
                         <UserSvg className={style.icon}></UserSvg>
@@ -55,6 +55,10 @@ const useStyles = makeStyles(theme => ({
         minHeight: '90vh',
         textAlign: "center",
         // marginTop: theme.spacing(10),
+    },
+    rootContainer: {
+        paddingLeft: 32,
+        paddingRight: 32,
     },
     title: {},
     icon: {
