@@ -78,3 +78,7 @@ func (mr *MockUserProviderMockRecorder) UpdatePassword(arg0, arg1 interface{}) *
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUserProvider)(nil).UpdatePassword), arg0, arg1)
 }
+
+func (m *MockUserProvider) ProviderType() authentication.UserProviderType {
+	return authentication.MockUserProviderType
+}

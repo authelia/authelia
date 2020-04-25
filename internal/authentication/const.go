@@ -12,6 +12,14 @@ const (
 	TwoFactor Level = iota
 )
 
+type UserProviderType int
+
+const (
+	MockUserProviderType UserProviderType = iota
+	FileUserProviderType UserProviderType = iota
+	LDAPUserProviderType UserProviderType = iota
+)
+
 const (
 	// TOTP Method using Time-Based One-Time Password applications like Google Authenticator.
 	TOTP = "totp"

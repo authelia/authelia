@@ -147,3 +147,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	p.lock.Unlock()
 	return err
 }
+
+func (p *FileUserProvider) ProviderType() UserProviderType {
+	return FileUserProviderType
+}

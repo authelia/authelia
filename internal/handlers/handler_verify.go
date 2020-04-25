@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
@@ -172,8 +173,8 @@ func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) {
 	return false, nil
 }
 
-// verifyFromSessionCookie verify if a user identified by a cookie is allowed to access target URL
-func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
+// verifySessionCookie verify if a user identified by a cookie
+func verifySessionCookie(ctx *middlewares.AutheliaCtx) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
 	userSession := ctx.GetSession()
 	// No username in the session means the user is anonymous
 	isUserAnonymous := userSession.Username == ""
@@ -199,6 +200,41 @@ func verifyFromSessionCookie(targetURL url.URL, ctx *middlewares.AutheliaCtx) (u
 		}
 	}
 	return userSession.Username, userSession.Groups, userSession.AuthenticationLevel, nil
+}
+
+func verifySessionHasUpdatedLDAPGroups(ctx *middlewares.AutheliaCtx) (updated bool, groups []string, err error) {
+	userSession := ctx.GetSession()
+	details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
+	if err != nil {
+		return false, userSession.Groups, err
+	}
+
+	// check for diffs
+	diff := false
+	for _, group := range userSession.Groups {
+		if !utils.IsStringInSlice(group, details.Groups) {
+			diff = true
+			break
+		}
+	}
+	if !diff {
+		for _, group := range details.Groups {
+			if !utils.IsStringInSlice(group, userSession.Groups) {
+				diff = true
+				break
+			}
+		}
+	}
+
+	if diff {
+		userSession.Groups = details.Groups
+		err := ctx.SaveSession(userSession)
+		if err != nil {
+			return false, nil, err
+		}
+		return true, userSession.Groups, nil
+	}
+	return false, userSession.Groups, nil
 }
 
 // VerifyGet is the handler verifying if a request is allowed to go through
@@ -235,7 +271,7 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	if hasBasicAuth {
 		username, groups, authLevel, err = verifyBasicAuth(proxyAuthorization, *targetURL, ctx)
 	} else {
-		username, groups, authLevel, err = verifyFromSessionCookie(*targetURL, ctx)
+		username, groups, authLevel, err = verifySessionCookie(ctx)
 	}
 
 	if err != nil {
@@ -246,6 +282,13 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 
 	authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
 		groups, ctx.RemoteIP(), authLevel)
+
+	if ctx.Providers.UserProvider.ProviderType() == authentication.LDAPUserProviderType && authorization == Forbidden && ctx.Providers.Authorizer.URLHasGroupSubjects(*targetURL) {
+		updated, groups, err := verifySessionHasUpdatedLDAPGroups(ctx)
+		if err == nil && updated {
+			authorization = isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username, groups, ctx.RemoteIP(), authLevel)
+		}
+	}
 
 	if authorization == Forbidden {
 		ctx.ReplyForbidden()
