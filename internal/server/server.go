@@ -3,7 +3,6 @@ package server
 import (
 	"fmt"
 	"os"
-	"path"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
@@ -112,9 +111,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		router.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	router.NotFound = func(ctx *fasthttp.RequestCtx) {
-		ctx.SendFile(path.Join(publicDir, "index.html"))
-	}
+	router.NotFound = ServeIndex(publicDir)
 
 	server := &fasthttp.Server{
 		Handler: middlewares.LogRequestMiddleware(router.Handler),
