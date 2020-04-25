@@ -41,7 +41,7 @@ RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn build
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.11.3
+FROM alpine:3.11.6
 
 RUN apk --no-cache add ca-certificates tzdata
 
