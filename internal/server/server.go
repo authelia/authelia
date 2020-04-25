@@ -1,14 +1,15 @@
+//go:generate broccoli -src ../../public_html -o public_html
 package server
 
 import (
 	"fmt"
 	"os"
-	"path"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/expvarhandler"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"github.com/valyala/fasthttp/pprofhandler"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -21,16 +22,29 @@ import (
 // StartServer start Authelia server with the given configuration and providers.
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-	publicDir := os.Getenv("PUBLIC_DIR")
-	if publicDir == "" {
-		publicDir = "./public_html"
+	publicDir := "/public_html"
+
+	if os.Getenv("LOCAL_ASSETS") == "true" {
+		publicDir = os.Getenv("PUBLIC_DIR")
+		if publicDir == "" {
+			publicDir = "./public_html"
+		}
+		logging.Logger().Infof("Selected public_html directory is %s", publicDir)
+	} else {
+		logging.Logger().Info("Embedded public_html directory is being served")
 	}
-	logging.Logger().Infof("Selected public_html directory is %s", publicDir)
 
 	router := router.New()
 
-	router.GET("/", ServeIndex(publicDir))
-	router.ServeFiles("/static/{filepath:*}", publicDir+"/static")
+	if os.Getenv("LOCAL_ASSETS") == "true" {
+		router.GET("/", ServeLocalIndex(publicDir))
+		router.ServeFiles("/static/{filepath:*}", publicDir+"/static")
+		router.NotFound = ServeLocalIndex(publicDir)
+	} else {
+		router.GET("/", ServeEmbeddedIndex(publicDir))
+		router.GET("/static/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(publicDir)))
+		router.NotFound = ServeEmbeddedIndex(publicDir)
+	}
 
 	router.GET("/api/state", autheliaMiddleware(handlers.StateGet))
 
@@ -110,10 +124,6 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	if configuration.LogLevel == "trace" {
 		router.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
 		router.GET("/debug/vars", expvarhandler.ExpvarHandler)
-	}
-
-	router.NotFound = func(ctx *fasthttp.RequestCtx) {
-		ctx.SendFile(path.Join(publicDir, "index.html"))
 	}
 
 	server := &fasthttp.Server{
