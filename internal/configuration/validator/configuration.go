@@ -9,8 +9,10 @@ import (
 
 var defaultPort = 8080
 var defaultLogLevel = "info"
+var defaultAssets = "/public_html"
 
 // ValidateConfiguration and adapt the configuration read from file.
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
 func ValidateConfiguration(configuration *schema.Configuration, validator *schema.StructValidator) {
 	if configuration.Host == "" {
 		configuration.Host = "0.0.0.0"
@@ -24,6 +26,10 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		validator.Push(fmt.Errorf("No TLS certificate provided, please check the \"tls_cert\" which has been configured"))
 	} else if configuration.TLSKey == "" && configuration.TLSCert != "" {
 		validator.Push(fmt.Errorf("No TLS key provided, please check the \"tls_key\" which has been configured"))
+	}
+
+	if configuration.Assets == "" {
+		configuration.Assets = defaultAssets
 	}
 
 	if configuration.LogLevel == "" {

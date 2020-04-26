@@ -22,28 +22,23 @@ import (
 // StartServer start Authelia server with the given configuration and providers.
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-	publicDir := "/public_html"
 
-	if os.Getenv("LOCAL_ASSETS") == "true" {
-		publicDir = os.Getenv("PUBLIC_DIR")
-		if publicDir == "" {
-			publicDir = "./public_html"
-		}
-		logging.Logger().Infof("Selected public_html directory is %s", publicDir)
-	} else {
-		logging.Logger().Info("Embedded public_html directory is being served")
+	// TODO: Remove in v4.18.0
+	if os.Getenv("PUBLIC_DIR") != "" {
+		logging.Logger().Warn("PUBLIC_DIR environment variable has been deprecated, assets are now embedded," +
+			" if required they can be served from the local filesystem with the 'Assets' configuration key")
 	}
 
 	router := router.New()
 
-	if os.Getenv("LOCAL_ASSETS") == "true" {
-		router.GET("/", ServeLocalIndex(publicDir))
-		router.ServeFiles("/static/{filepath:*}", publicDir+"/static")
-		router.NotFound = ServeLocalIndex(publicDir)
+	router.GET("/", ServeIndex(configuration.Assets))
+
+	if configuration.Assets == "/public_html" {
+		router.GET("/static/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(configuration.Assets)))
+		logging.Logger().Info("Embedded public_html directory is being served")
 	} else {
-		router.GET("/", ServeEmbeddedIndex(publicDir))
-		router.GET("/static/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(publicDir)))
-		router.NotFound = ServeEmbeddedIndex(publicDir)
+		router.ServeFiles("/static/{filepath:*}", configuration.Assets+"/static")
+		logging.Logger().Infof("Selected public_html directory is %s", configuration.Assets)
 	}
 
 	router.GET("/api/state", autheliaMiddleware(handlers.StateGet))
@@ -125,6 +120,8 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		router.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
 		router.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
+
+	router.NotFound = ServeIndex(configuration.Assets)
 
 	server := &fasthttp.Server{
 		Handler: middlewares.LogRequestMiddleware(router.Handler),
