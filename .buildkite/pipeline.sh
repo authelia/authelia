@@ -32,6 +32,9 @@ steps:
 
   - label: ":hammer_and_wrench: Unit Test"
     command: "authelia-scripts --log-level debug ci"
+    artifact_paths:
+      - "authelia-public_html.tar.gz"
+      - "authelia-public_html.tar.gz.sha256"
     if: build.branch !~ /^(master)|(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
 
   - wait:
