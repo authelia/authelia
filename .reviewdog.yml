@@ -5,4 +5,4 @@ runner:
       - '%E%f:%l:%c: %m'
       - '%E%f:%l: %m'
       - '%C%.%#'
-    level: warning
+    level: error
