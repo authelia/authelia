@@ -9,14 +9,14 @@ nav_order: 2
 
 The design goals for Authelia is to protect access to applications by collaborating with reverse proxies to prevent
 attacks coming from the edge of the network. This document gives an overview of what Authelia is protecting against but some
-of those points are also detailed in [Security Measures](./security/measures.md).
+of those points are also detailed in [Security Measures](./measures.md).
 
-## General assumptions
+## General assumptions
 
 Authelia is considered to be running within a trusted network and it heavily relies on the first level of security provided by reverse proxies. It's very important that you take time configuring your reverse proxy properly to get all the authentication benefits brought by Authelia.
-Some general security tweaks are listed in [Security Measures](./security/measures.md) to give you some ideas.
+Some general security tweaks are listed in [Security Measures](./measures.md) to give you some ideas.
 
-## Guarantees
+## Guarantees
 
 If properly configured, Authelia guarantees the following for security of your users and your apps:
 
@@ -27,6 +27,7 @@ If properly configured, Authelia guarantees the following for security of your u
 * Identity validation is required for performing administrative actions such as registering 2FA devices, preventing attackers to pass second factor by auto-registering their own 2FA device. An email with a link is sent to the user and a click is required to confirm the action.
 * Prevention against session fixation by regenerating a new session after each privilege elevation.
 * Prevention against LDAP injection by following OWASP recommendations regarding valid input characters (https://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html).
+* Connections between Authelia and thirdparty components like mail server, database, cache and LDAP server can be made over TLS to protect against man-in-the-middle attacks from within the infrastructure.
 
 ## Potential future guarantees
 
@@ -37,7 +38,6 @@ If properly configured, Authelia guarantees the following for security of your u
 * Securely transmit authentication data to backends (OAuth2 with bearer tokens).
 * Protect secrets stored in DB with encryption to prevent secrets leak by DB exfiltration.
 * Least privilege on LDAP binding operations (currently administrative user is used to bind while it could be anonymous).
-
 
 ## Trusted environment
 
