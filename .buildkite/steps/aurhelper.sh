@@ -8,9 +8,11 @@ cd "${PACKAGE}" || exit
 
 if [[ $PACKAGE != "authelia-git" ]]; then
   sed -i "/pkgver=/c\pkgver=${BUILDKITE_TAG//v/}" PKGBUILD && \
+  sed -i "/pkgrel=/c\pkgrel=1" PKGBUILD && \
   docker run --rm -v $PWD:/build authelia/aurpackager bash -c "cd /build && updpkgsums"
 else
-  sed -i "/pkgver=/c\pkgver=${GITTAG}" PKGBUILD
+  sed -i "/pkgver=/c\pkgver=${GITTAG}" PKGBUILD && \
+  sed -i "/pkgrel=/c\pkgrel=1" PKGBUILD
 fi
 
 docker run --rm -v $PWD:/build authelia/aurpackager bash -c "cd /build && makepkg --printsrcinfo >| .SRCINFO" && \
