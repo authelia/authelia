@@ -10,6 +10,7 @@ type LDAPAuthenticationBackendConfiguration struct {
 	AdditionalGroupsDN string `mapstructure:"additional_groups_dn"`
 	GroupsFilter       string `mapstructure:"groups_filter"`
 	GroupNameAttribute string `mapstructure:"group_name_attribute"`
+	RefreshInterval    string `mapstructure:"refresh_interval"`
 	UsernameAttribute  string `mapstructure:"username_attribute"`
 	MailAttribute      string `mapstructure:"mail_attribute"`
 	User               string `mapstructure:"user"`

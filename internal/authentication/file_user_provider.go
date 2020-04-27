@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/asaskevich/govalidator"
 	"gopkg.in/yaml.v2"
@@ -148,6 +149,6 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	return err
 }
 
-func (p *FileUserProvider) ProviderType() UserProviderType {
-	return FileUserProviderType
+func (p *FileUserProvider) GetRefreshSettings() (enabled bool, interval time.Duration) {
+	return false, 0
 }
