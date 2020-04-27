@@ -1,4 +1,3 @@
-//go:generate broccoli -src ../../public_html -o public_html
 package server
 
 import (
