@@ -50,7 +50,7 @@ GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc go build -tags n
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM arm32v7/alpine:3.11.3
+FROM arm32v7/alpine:3.11.6
 
 COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 

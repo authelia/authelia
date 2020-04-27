@@ -1,4 +1,4 @@
-FROM alpine:3.11.3
+FROM alpine:3.11.6
 
 WORKDIR /kind
 

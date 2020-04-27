@@ -47,7 +47,7 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w -linkmod
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.11.3
+FROM alpine:3.11.6
 
 RUN apk --no-cache add ca-certificates tzdata
 

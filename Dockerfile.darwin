@@ -49,7 +49,7 @@ GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 CC=o64-clang go build -tags netgo -ldflag
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.11.3
+FROM alpine:3.11.6
 
 RUN apk --no-cache add ca-certificates tzdata
 

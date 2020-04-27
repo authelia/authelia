@@ -471,6 +471,7 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
+	past := clock.Now().Add(-1 * time.Hour)
 
 	mock.Ctx.Configuration.Session.Inactivity = "10"
 	// Reload the session provider since the configuration is indirect
@@ -480,7 +481,7 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = "john"
 	userSession.AuthenticationLevel = authentication.TwoFactor
-	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
+	userSession.LastActivity = past.Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
@@ -491,6 +492,9 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	newUserSession := mock.Ctx.GetSession()
 	assert.Equal(t, "", newUserSession.Username)
 	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel)
+
+	// Check the inactivity timestamp has been updated to current time in the new session.
+	assert.Equal(t, clock.Now().Unix(), newUserSession.LastActivity)
 }
 
 func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *testing.T) {
@@ -533,7 +537,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = "john"
 	userSession.AuthenticationLevel = authentication.TwoFactor
-	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
+	userSession.LastActivity = 0
 	userSession.KeepMeLoggedIn = true
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
@@ -545,6 +549,9 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 	newUserSession := mock.Ctx.GetSession()
 	assert.Equal(t, "john", newUserSession.Username)
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
+
+	// Check the inactivity timestamp is set to 0 in case remember me is checked.
+	assert.Equal(t, int64(0), newUserSession.LastActivity)
 }
 
 func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) {
@@ -556,10 +563,12 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 
 	mock.Ctx.Configuration.Session.Inactivity = "10"
 
+	past := clock.Now().Add(-1 * time.Hour)
+
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = "john"
 	userSession.AuthenticationLevel = authentication.TwoFactor
-	userSession.LastActivity = clock.Now().Add(-1 * time.Second).Unix()
+	userSession.LastActivity = past.Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
@@ -570,6 +579,74 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 	newUserSession := mock.Ctx.GetSession()
 	assert.Equal(t, "john", newUserSession.Username)
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
+
+	// Check the inactivity timestamp has been updated to current time in the new session.
+	assert.Equal(t, clock.Now().Unix(), newUserSession.LastActivity)
+}
+
+// In the case of Traefik and Nginx ingress controller in Kube, the response to an inactive
+// session is 302 instead of 401.
+func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	mock.Ctx.Configuration.Session.Inactivity = "10"
+	// Reload the session provider since the configuration is indirect
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session)
+	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+
+	past := clock.Now().Add(-1 * time.Hour)
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = "john"
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = past.Unix()
+	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+
+	VerifyGet(mock.Ctx)
+
+	assert.Equal(t, "Found. Redirecting to https://login.example.com?rd=https%3A%2F%2Ftwo-factor.example.com",
+		string(mock.Ctx.Response.Body()))
+	assert.Equal(t, 302, mock.Ctx.Response.StatusCode())
+
+	// Check the inactivity timestamp has been updated to current time in the new session.
+	newUserSession := mock.Ctx.GetSession()
+	assert.Equal(t, clock.Now().Unix(), newUserSession.LastActivity)
+}
+
+func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	mock.Ctx.Configuration.Session.Inactivity = "10"
+
+	past := clock.Now().Add(-1 * time.Hour)
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = "john"
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = past.Unix()
+	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://deny.example.com")
+
+	VerifyGet(mock.Ctx)
+
+	// The resource if forbidden
+	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
+
+	// Check the inactivity timestamp has been updated to current time in the new session.
+	newUserSession := mock.Ctx.GetSession()
+	assert.Equal(t, clock.Now().Unix(), newUserSession.LastActivity)
 }
 
 func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
