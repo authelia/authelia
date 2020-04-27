@@ -12,6 +12,12 @@ update_configs:
     commit_message:
       prefix: "[MISC] "
       include_scope: true
+  - package_manager: "ruby:bundler"
+    directory: "/docs"
+    update_schedule: "live"
+    commit_message:
+      prefix: "[MISC] "
+      include_scope: true
   - package_manager: "docker"
     directory: "/"
     update_schedule: "daily"
