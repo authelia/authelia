@@ -13,7 +13,6 @@ func newDefaultConfig() schema.Configuration {
 	config := schema.Configuration{}
 	config.Host = "127.0.0.1"
 	config.Port = 9090
-	config.Assets = "/some_location"
 	config.LogLevel = "info"
 	config.JWTSecret = "a_secret"
 	config.AuthenticationBackend.File = new(schema.FileAuthenticationBackendConfiguration)
@@ -65,17 +64,6 @@ func TestShouldValidateAndUpdateHost(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, "0.0.0.0", config.Host)
-}
-
-func TestShouldValidateAndUpdateAssets(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.Assets = ""
-
-	ValidateConfiguration(&config, validator)
-
-	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, "/public_html", config.Assets)
 }
 
 func TestShouldValidateAndUpdateLogsLevel(t *testing.T) {

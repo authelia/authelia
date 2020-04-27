@@ -4,9 +4,7 @@ package server
 import (
 	"fmt"
 	"html/template"
-	"io"
 	"io/ioutil"
-	"os"
 
 	"github.com/valyala/fasthttp"
 
@@ -17,39 +15,21 @@ import (
 var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
 // ServeIndex serve the index.html file with nonce generated for supporting
-// restrictive CSP while using material-ui from the local or embedded
-// virtual filesystem.
+// restrictive CSP while using material-ui from the embedded virtual filesystem.
 func ServeIndex(publicDir string) fasthttp.RequestHandler {
-	var f io.Reader
-	var err error
-
-	if publicDir == "/public_html" {
-		f, err = br.Open(publicDir + "/index.html")
-	} else {
-		f, err = os.Open(publicDir + "/index.html")
-	}
-
+	f, err := br.Open(publicDir + "/index.html")
 	if err != nil {
 		logging.Logger().Fatalf("Unable to open index.html: %v", err)
-		return func(ctx *fasthttp.RequestCtx) {
-			ctx.Error("An error occurred", 500)
-		}
 	}
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
 		logging.Logger().Fatalf("Unable to read index.html: %v", err)
-		return func(ctx *fasthttp.RequestCtx) {
-			ctx.Error("An error occurred", 500)
-		}
 	}
 
 	tmpl, err := template.New("index").Parse(string(b))
 	if err != nil {
 		logging.Logger().Fatalf("Unable to parse index.html template: %v", err)
-		return func(ctx *fasthttp.RequestCtx) {
-			ctx.Error("An error occurred", 500)
-		}
 	}
 
 	return func(ctx *fasthttp.RequestCtx) {

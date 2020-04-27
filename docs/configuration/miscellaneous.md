@@ -32,18 +32,6 @@ tls_key: /var/lib/authelia/ssl/key.pem
 tls_cert: /var/lib/authelia/ssl/cert.pem
 ```
 
-## Assets
-
-`optional: true`
-
-Authelia now embeds all serves static assets directly from the binary.
-You can still serve assets from the local filesystem.
-Provide the location with the following configuration option:
-
-```yaml
-assets: /path/to/assets/
-```
-
 ## Log
 
 ### Log level

@@ -7,9 +7,6 @@ host: 0.0.0.0
 port: 9091
 # tls_key: /var/lib/authelia/ssl/key.pem
 # tls_cert: /var/lib/authelia/ssl/cert.pem
-# Assets are now embedded in the Go binary, this configuration option
-# is for advanced/development use cases.
-# assets: /local/path/to/assets
 
 # Level of verbosity for logs: info, debug, trace
 log_level: debug
