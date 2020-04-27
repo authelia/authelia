@@ -33,7 +33,7 @@ GOOS=linux GOARCH=arm64 CGO_ENABLED=1 CC=aarch64-linux-musl-gcc go build -tags n
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:12-alpine AS builder-frontend
+FROM node:14-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 COPY web .

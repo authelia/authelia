@@ -30,7 +30,7 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w -linkmod
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:12-alpine AS builder-frontend
+FROM node:14-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 COPY web .
