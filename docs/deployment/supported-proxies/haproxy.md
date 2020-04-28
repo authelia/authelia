@@ -17,14 +17,14 @@ You need the following to run Authelia with HAProxy:
 * HAProxy 1.8.4+
   * `USE_LUA=1` set at compile time
 * [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
-* LuaSocket with commit [0b03eec16b](https://github.com/diegonehab/luasocket/commit/0b03eec16be0b3a5efe71bcb8887719d1ea87d60) (that is: newer than 2014-11-10) in your Lua library path (`LUA_PATH`).
-  * `lua-socket` from Debian Stretch works.
-  * `lua-socket` from Ubuntu Xenial works.
-  * `lua-socket` from Ubuntu Bionic works.
-  * `lua5.3-socket` from Alpine 3.8 works.
-  * `luasocket` from luarocks *does not* work.
-  * `lua-socket` v3.0.0.17.rc1 from EPEL *does not* work.
-  * `lua-socket` from Fedora 28 *does not* work.
+* LuaSocket with commit [0b03eec16b](https://github.com/diegonehab/luasocket/commit/0b03eec16be0b3a5efe71bcb8887719d1ea87d60) (that is: newer than 2014-11-10) in your Lua library path (`LUA_PATH`)
+  * `lua-socket` from Debian Stretch works
+  * `lua-socket` from Ubuntu Xenial works
+  * `lua-socket` from Ubuntu Bionic works
+  * `lua5.3-socket` from Alpine 3.8 works
+  * `luasocket` from luarocks *does not* work
+  * `lua-socket` v3.0.0.17.rc1 from EPEL *does not* work
+  * `lua-socket` from Fedora 28 *does not* work
 
 
 ## Configuration
