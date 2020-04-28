@@ -39,7 +39,7 @@ With this configuration you can protect your virtual hosts with Authelia, by fol
 1. Add host(s) to the `protected-frontends` ACL to support protection with Authelia.
 You can separate each subdomain with a `|` in the regex, for example:
     ```
-    acl protected-frontends hdr(host) -m reg -i ^(jenkins|nextcloud|phpmyadmin)\.example\.com`
+    acl protected-frontends hdr(host) -m reg -i ^(jenkins|nextcloud|phpmyadmin)\.example\.com
     ```
 2. Add host ACL(s) in the form of `host-service`, this will be utilised to route to the correct
 backend upon successful authentication, for example:
