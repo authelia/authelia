@@ -149,7 +149,7 @@ func TestShouldEscapeUserInput(t *testing.T) {
 		Search(NewSearchRequestMatcher("(|(uid=john\\=abc)(mail=john\\=abc))")).
 		Return(&ldap.SearchResult{}, nil)
 
-	ldapClient.getUserProfile(mockConn, "john=abc")
+	ldapClient.getUserProfile(mockConn, "john=abc") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
@@ -174,7 +174,7 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 		Search(NewSearchRequestMatcher("(&(uid=john)(&(objectCategory=person)(objectClass=user)))")).
 		Return(&ldap.SearchResult{}, nil)
 
-	ldapClient.getUserProfile(mockConn, "john")
+	ldapClient.getUserProfile(mockConn, "john") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func createSearchResultWithAttributes(attributes ...*ldap.EntryAttribute) *ldap.SearchResult {

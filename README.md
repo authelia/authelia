@@ -28,9 +28,6 @@ The architecture is shown in the diagram below.
   <img src="./docs/images/archi.png"/>
 </p>
 
-**BREAKING NEWS: Authelia v4 has been released!
-Please read BREAKING.md if you want to migrate from v3 to v4. Otherwise, start fresh in v4 and enjoy!**
-
 **Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/), using a [Static binary](https://github.com/authelia/authelia/releases/latest), [Docker]
 or can also be deployed easily on [Kubernetes] leveraging ingress controllers and ingress configuration.
 
@@ -102,15 +99,17 @@ This guide will show you how to deploy it on bare metal as well as on
 
 ## Security
 
-Security is taken very seriously here, therefore we follow the rule of responsible
-disclosure and we encourage you to do so.
+Authelia takes security very seriously. We follow the rule of
+[responsible disclosure](https://en.wikipedia.org/wiki/Responsible_disclosure), and we
+encourage the community to as well.
 
 Would you like to report any vulnerability discovered in Authelia, please first contact
 **clems4ever** on [Matrix](https://riot.im/app/#/room/#authelia:matrix.org) or by
 [email](mailto:clement.michaud34@gmail.com).
 
 For details about security measures implemented in Authelia, please follow
-this [link](https://docs.authelia.com/security/measures.html).
+this [link](https://docs.authelia.com/security/measures.html) and for reading about 
+the threat model follow this [link](https://docs.authelia.com/security/threat-model.html).
 
 ## Breaking changes
 

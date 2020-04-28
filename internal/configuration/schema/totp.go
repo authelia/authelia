@@ -8,6 +8,8 @@ type TOTPConfiguration struct {
 }
 
 var defaultOtpSkew = 1
+
+// DefaultTOTPConfiguration represents default configuration parameters for TOTP generation.
 var DefaultTOTPConfiguration = TOTPConfiguration{
 	Issuer: "Authelia",
 	Period: 30,

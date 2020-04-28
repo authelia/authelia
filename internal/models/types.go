@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// Attempt represent an authentication attempt.
+// AuthenticationAttempt represent an authentication attempt.
 type AuthenticationAttempt struct {
 	// The user who tried to authenticate.
 	Username string

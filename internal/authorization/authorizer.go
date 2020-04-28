@@ -47,8 +47,16 @@ func selectMatchingSubjectRules(rules []schema.ACLRule, subject Subject) []schem
 	selectedRules := []schema.ACLRule{}
 
 	for _, rule := range rules {
-		if isSubjectMatching(subject, rule.Subject) && isIPMatching(subject.IP, rule.Networks) {
-			selectedRules = append(selectedRules, rule)
+		if len(rule.Subjects) > 0 {
+			for _, subjectRule := range rule.Subjects {
+				if isSubjectMatching(subject, subjectRule) && isIPMatching(subject.IP, rule.Networks) {
+					selectedRules = append(selectedRules, rule)
+				}
+			}
+		} else {
+			if isIPMatching(subject.IP, rule.Networks) {
+				selectedRules = append(selectedRules, rule)
+			}
 		}
 	}
 
@@ -59,9 +67,11 @@ func selectMatchingObjectRules(rules []schema.ACLRule, object Object) []schema.A
 	selectedRules := []schema.ACLRule{}
 
 	for _, rule := range rules {
-		if isDomainMatching(object.Domain, rule.Domain) &&
-			isPathMatching(object.Path, rule.Resources) {
-			selectedRules = append(selectedRules, rule)
+		for _, domain := range rule.Domains {
+			if isDomainMatching(object.Domain, domain) &&
+				isPathMatching(object.Path, rule.Resources) {
+				selectedRules = append(selectedRules, rule)
+			}
 		}
 	}
 	return selectedRules
@@ -72,6 +82,7 @@ func selectMatchingRules(rules []schema.ACLRule, subject Subject, object Object)
 	return selectMatchingObjectRules(matchingRules, object)
 }
 
+// PolicyToLevel converts a string policy to int authorization level.
 func PolicyToLevel(policy string) Level {
 	switch policy {
 	case "bypass":

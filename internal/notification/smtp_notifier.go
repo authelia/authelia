@@ -15,35 +15,37 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// SMTPNotifier a notifier to send emails to SMTP servers
+// SMTPNotifier a notifier to send emails to SMTP servers.
 type SMTPNotifier struct {
-	username          string
-	password          string
-	sender            string
-	host              string
-	port              int
-	trustedCert       string
-	disableVerifyCert bool
-	disableRequireTLS bool
-	address           string
-	subject           string
-	client            *smtp.Client
-	tlsConfig         *tls.Config
+	username            string
+	password            string
+	sender              string
+	host                string
+	port                int
+	trustedCert         string
+	disableVerifyCert   bool
+	disableRequireTLS   bool
+	address             string
+	subject             string
+	startupCheckAddress string
+	client              *smtp.Client
+	tlsConfig           *tls.Config
 }
 
-// NewSMTPNotifier create an SMTPNotifier targeting a given address
+// NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
 func NewSMTPNotifier(configuration schema.SMTPNotifierConfiguration) *SMTPNotifier {
 	notifier := &SMTPNotifier{
-		username:          configuration.Username,
-		password:          configuration.Password,
-		sender:            configuration.Sender,
-		host:              configuration.Host,
-		port:              configuration.Port,
-		trustedCert:       configuration.TrustedCert,
-		disableVerifyCert: configuration.DisableVerifyCert,
-		disableRequireTLS: configuration.DisableRequireTLS,
-		address:           fmt.Sprintf("%s:%d", configuration.Host, configuration.Port),
-		subject:           configuration.Subject,
+		username:            configuration.Username,
+		password:            configuration.Password,
+		sender:              configuration.Sender,
+		host:                configuration.Host,
+		port:                configuration.Port,
+		trustedCert:         configuration.TrustedCert,
+		disableVerifyCert:   configuration.DisableVerifyCert,
+		disableRequireTLS:   configuration.DisableRequireTLS,
+		address:             fmt.Sprintf("%s:%d", configuration.Host, configuration.Port),
+		subject:             configuration.Subject,
+		startupCheckAddress: configuration.StartupCheckAddress,
 	}
 	notifier.initializeTLSConfig()
 	return notifier
@@ -53,10 +55,6 @@ func (n *SMTPNotifier) initializeTLSConfig() {
 	// Do not allow users to disable verification of certs if they have also set a trusted cert that was loaded
 	// The second part of this check happens in the Configure Cert Pool code block
 	log.Debug("Notifier SMTP client initializing TLS configuration")
-	insecureSkipVerify := false
-	if n.disableVerifyCert {
-		insecureSkipVerify = true
-	}
 
 	//Configure Cert Pool
 	certPool, err := x509.SystemCertPool()
@@ -77,7 +75,7 @@ func (n *SMTPNotifier) initializeTLSConfig() {
 					log.Debug("Notifier SMTP successfully loaded certificate")
 					if n.disableVerifyCert {
 						log.Warn("Notifier SMTP when trusted_cert is specified we force disable_verify_cert to false, if you want to disable certificate validation please comment/delete trusted_cert from your config")
-						insecureSkipVerify = false
+						n.disableVerifyCert = false
 					}
 				}
 			}
@@ -86,54 +84,53 @@ func (n *SMTPNotifier) initializeTLSConfig() {
 		}
 	}
 	n.tlsConfig = &tls.Config{
-		InsecureSkipVerify: insecureSkipVerify,
+		InsecureSkipVerify: n.disableVerifyCert, //nolint:gosec // This is an intended config, we never default true, provide alternate options, and we constantly warn the user.
 		ServerName:         n.host,
 		RootCAs:            certPool,
 	}
 }
 
-// Do startTLS if available (some servers only provide the auth extension after, and encryption is preferred)
-func (n *SMTPNotifier) startTLS() (bool, error) {
+// Do startTLS if available (some servers only provide the auth extension after, and encryption is preferred).
+func (n *SMTPNotifier) startTLS() error {
 	// Only start if not already encrypted
 	if _, ok := n.client.TLSConnectionState(); ok {
 		log.Debugf("Notifier SMTP connection is already encrypted, skipping STARTTLS")
-		return ok, nil
+		return nil
 	}
 
 	ok, _ := n.client.Extension("STARTTLS")
 	if ok {
 		log.Debugf("Notifier SMTP server supports STARTTLS (disableVerifyCert: %t, ServerName: %s), attempting", n.tlsConfig.InsecureSkipVerify, n.tlsConfig.ServerName)
 
-		err := n.client.StartTLS(n.tlsConfig)
-		if err != nil {
-			return ok, err
+		if err := n.client.StartTLS(n.tlsConfig); err != nil {
+			return err
 		}
 		log.Debug("Notifier SMTP STARTTLS completed without error")
 	} else if n.disableRequireTLS {
 		log.Warn("Notifier SMTP server does not support STARTTLS and SMTP configuration is set to disable the TLS requirement (only useful for unauthenticated emails over plain text)")
 	} else {
-		return ok, errors.New("Notifier SMTP server does not support TLS and it is required by default (see documentation if you want to disable this highly recommended requirement)")
+		return errors.New("Notifier SMTP server does not support TLS and it is required by default (see documentation if you want to disable this highly recommended requirement)")
 	}
-	return ok, nil
+	return nil
 }
 
-// Attempt Authentication
-func (n *SMTPNotifier) auth() (bool, error) {
-	// Attempt AUTH if password is specified only
+// Attempt Authentication.
+func (n *SMTPNotifier) auth() error {
+	// Attempt AUTH if password is specified only.
 	if n.password != "" {
 		_, ok := n.client.TLSConnectionState()
 		if !ok {
-			return false, errors.New("Notifier SMTP client does not support authentication over plain text and the connection is currently plain text")
+			return errors.New("Notifier SMTP client does not support authentication over plain text and the connection is currently plain text")
 		}
 
-		// Check the server supports AUTH, and get the mechanisms
+		// Check the server supports AUTH, and get the mechanisms.
 		ok, m := n.client.Extension("AUTH")
 		if ok {
 			log.Debugf("Notifier SMTP server supports authentication with the following mechanisms: %s", m)
 			mechanisms := strings.Split(m, " ")
 			var auth smtp.Auth
 
-			// Adaptively select the AUTH mechanism to use based on what the server advertised
+			// Adaptively select the AUTH mechanism to use based on what the server advertised.
 			if utils.IsStringInSlice("PLAIN", mechanisms) {
 				auth = smtp.PlainAuth("", n.username, n.password, n.host)
 				log.Debug("Notifier SMTP client attempting AUTH PLAIN with server")
@@ -142,23 +139,22 @@ func (n *SMTPNotifier) auth() (bool, error) {
 				log.Debug("Notifier SMTP client attempting AUTH LOGIN with server")
 			}
 
-			// Throw error since AUTH extension is not supported
+			// Throw error since AUTH extension is not supported.
 			if auth == nil {
-				return false, fmt.Errorf("notifier SMTP server does not advertise a AUTH mechanism that are supported by Authelia (PLAIN or LOGIN are supported, but server advertised %s mechanisms)", m)
+				return fmt.Errorf("notifier SMTP server does not advertise a AUTH mechanism that are supported by Authelia (PLAIN or LOGIN are supported, but server advertised %s mechanisms)", m)
 			}
 
-			// Authenticate
-			err := n.client.Auth(auth)
-			if err != nil {
-				return false, err
+			// Authenticate.
+			if err := n.client.Auth(auth); err != nil {
+				return err
 			}
 			log.Debug("Notifier SMTP client authenticated successfully with the server")
-			return true, nil
+			return nil
 		}
-		return false, errors.New("Notifier SMTP server does not advertise the AUTH extension but config requires AUTH (password specified), either disable AUTH, or use an SMTP host that supports AUTH PLAIN or AUTH LOGIN")
+		return errors.New("Notifier SMTP server does not advertise the AUTH extension but config requires AUTH (password specified), either disable AUTH, or use an SMTP host that supports AUTH PLAIN or AUTH LOGIN")
 	}
 	log.Debug("Notifier SMTP config has no password specified so authentication is being skipped")
-	return false, nil
+	return nil
 }
 
 func (n *SMTPNotifier) compose(recipient, subject, body string) error {
@@ -195,7 +191,7 @@ func (n *SMTPNotifier) compose(recipient, subject, body string) error {
 	return nil
 }
 
-// Dial the SMTP server with the SMTPNotifier config
+// Dial the SMTP server with the SMTPNotifier config.
 func (n *SMTPNotifier) dial() error {
 	log.Debugf("Notifier SMTP client attempting connection to %s", n.address)
 	if n.port == 465 {
@@ -220,7 +216,7 @@ func (n *SMTPNotifier) dial() error {
 	return nil
 }
 
-// Closes the connection properly
+// Closes the connection properly.
 func (n *SMTPNotifier) cleanup() {
 	err := n.client.Quit()
 	if err != nil {
@@ -228,25 +224,56 @@ func (n *SMTPNotifier) cleanup() {
 	}
 }
 
-// Send an email
+// StartupCheck checks the server is functioning correctly and the configuration is correct.
+func (n *SMTPNotifier) StartupCheck() (bool, error) {
+	if err := n.dial(); err != nil {
+		return false, err
+	}
+
+	defer n.cleanup()
+
+	if err := n.startTLS(); err != nil {
+		return false, err
+	}
+
+	if err := n.auth(); err != nil {
+		return false, err
+	}
+
+	if err := n.client.Mail(n.sender); err != nil {
+		return false, err
+	}
+
+	if err := n.client.Rcpt(n.startupCheckAddress); err != nil {
+		return false, err
+	}
+
+	if err := n.client.Reset(); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// Send is used to send an email to a recipient.
 func (n *SMTPNotifier) Send(recipient, title, body string) error {
 	subject := strings.ReplaceAll(n.subject, "{title}", title)
 	if err := n.dial(); err != nil {
 		return err
 	}
 
-	// Always execute QUIT at the end once we're connected
+	// Always execute QUIT at the end once we're connected.
 	defer n.cleanup()
 
-	// Start TLS and then Authenticate
-	if _, err := n.startTLS(); err != nil {
+	// Start TLS and then Authenticate.
+	if err := n.startTLS(); err != nil {
 		return err
 	}
-	if _, err := n.auth(); err != nil {
+	if err := n.auth(); err != nil {
 		return err
 	}
 
-	// Set the sender and recipient first
+	// Set the sender and recipient first.
 	if err := n.client.Mail(n.sender); err != nil {
 		log.Debugf("Notifier SMTP failed while sending MAIL FROM (using sender) with error: %s", err)
 		return err
@@ -256,7 +283,7 @@ func (n *SMTPNotifier) Send(recipient, title, body string) error {
 		return err
 	}
 
-	// Compose and send the email body to the server
+	// Compose and send the email body to the server.
 	if err := n.compose(recipient, subject, body); err != nil {
 		return err
 	}

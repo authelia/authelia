@@ -10,7 +10,7 @@ import (
 )
 
 func (wds *WebDriverSession) doRegisterTOTP(ctx context.Context, t *testing.T) string {
-	wds.WaitElementLocatedByID(ctx, t, "register-link").Click()
+	wds.WaitElementLocatedByID(ctx, t, "register-link").Click() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	wds.verifyMailNotificationDisplayed(ctx, t)
 	link := doGetLinkFromLastMail(t)
 	wds.doVisit(t, link)
@@ -25,7 +25,7 @@ func (wds *WebDriverSession) doEnterOTP(ctx context.Context, t *testing.T, code 
 	inputs := wds.WaitElementsLocatedByCSSSelector(ctx, t, "#otp-input input")
 
 	for i := 0; i < 6; i++ {
-		inputs[i].SendKeys(string(code[i]))
+		inputs[i].SendKeys(string(code[i])) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	}
 }
 

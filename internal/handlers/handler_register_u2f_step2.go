@@ -28,7 +28,7 @@ func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 	// Ensure the challenge is cleared if anything goes wrong.
 	defer func() {
 		userSession.U2FChallenge = nil
-		ctx.SaveSession(userSession)
+		ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	}()
 
 	registration, err := u2f.Register(responseBody, *userSession.U2FChallenge, u2fConfig)

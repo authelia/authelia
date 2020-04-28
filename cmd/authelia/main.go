@@ -89,6 +89,12 @@ func startServer() {
 	} else {
 		log.Fatalf("Unrecognized notifier")
 	}
+	if !config.Notifier.DisableStartupCheck {
+		_, err := notifier.StartupCheck()
+		if err != nil {
+			log.Fatalf("Error during notifier startup check: %s", err)
+		}
+	}
 
 	clock := utils.RealClock{}
 	authorizer := authorization.NewAuthorizer(config.AccessControl)
@@ -124,8 +130,9 @@ func main() {
 		},
 	}
 
-	rootCmd.AddCommand(versionCmd, commands.MigrateCmd, commands.HashPasswordCmd)
-	rootCmd.AddCommand(commands.CertificatesCmd)
+	rootCmd.AddCommand(versionCmd, commands.HashPasswordCmd,
+		commands.ValidateConfigCmd, commands.CertificatesCmd)
+
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}

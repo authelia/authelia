@@ -23,7 +23,7 @@ session:
   name: authelia_session
 
   # The secret to encrypt the session cookie.
-  # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET
+  # Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   secret: unsecure_session_secret
 
   # The time in seconds before the cookie expires and session is reset.
@@ -48,7 +48,7 @@ session:
   redis:
     host: 127.0.0.1
     port: 6379
-    # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: authelia
 ```
 

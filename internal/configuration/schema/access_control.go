@@ -6,34 +6,34 @@ import (
 	"strings"
 )
 
-// ACLRule represent one ACL rule
+// ACLRule represent one ACL rule "weak" coerces a single value into string slice.
 type ACLRule struct {
-	Domain    string   `mapstructure:"domain"`
+	Domains   []string `mapstructure:"domain,weak"`
 	Policy    string   `mapstructure:"policy"`
-	Subject   string   `mapstructure:"subject"`
+	Subjects  []string `mapstructure:"subject,weak"`
 	Networks  []string `mapstructure:"networks"`
 	Resources []string `mapstructure:"resources"`
 }
 
-// IsPolicyValid check if policy is valid
+// IsPolicyValid check if policy is valid.
 func IsPolicyValid(policy string) bool {
 	return policy == "deny" || policy == "one_factor" || policy == "two_factor" || policy == "bypass"
 }
 
-// IsSubjectValid check if a subject is valid
+// IsSubjectValid check if a subject is valid.
 func IsSubjectValid(subject string) bool {
 	return subject == "" || strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:")
 }
 
-// IsNetworkValid check if a network is valid
+// IsNetworkValid check if a network is valid.
 func IsNetworkValid(network string) bool {
 	_, _, err := net.ParseCIDR(network)
 	return err == nil
 }
 
-// Validate validate an ACL Rule
+// Validate validate an ACL Rule.
 func (r *ACLRule) Validate(validator *StructValidator) {
-	if r.Domain == "" {
+	if len(r.Domains) == 0 {
 		validator.Push(fmt.Errorf("Domain must be provided"))
 	}
 
@@ -41,8 +41,10 @@ func (r *ACLRule) Validate(validator *StructValidator) {
 		validator.Push(fmt.Errorf("A policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'"))
 	}
 
-	if !IsSubjectValid(r.Subject) {
-		validator.Push(fmt.Errorf("A subject must start with 'user:' or 'group:'"))
+	for i, subject := range r.Subjects {
+		if !IsSubjectValid(subject) {
+			validator.Push(fmt.Errorf("Subject %d must start with 'user:' or 'group:'", i))
+		}
 	}
 
 	for i, network := range r.Networks {
@@ -58,7 +60,7 @@ type AccessControlConfiguration struct {
 	Rules         []ACLRule `mapstructure:"rules"`
 }
 
-// Validate validate the access control configuration
+// Validate validate the access control configuration.
 func (acc *AccessControlConfiguration) Validate(validator *StructValidator) {
 	if acc.DefaultPolicy == "" {
 		acc.DefaultPolicy = "deny"
