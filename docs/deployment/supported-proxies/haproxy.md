@@ -38,24 +38,24 @@ Below you will find commented examples of the following configuration:
 With this configuration you can protect your virtual hosts with Authelia, by following the steps below:
 1. Add host(s) to the `protected-frontends` ACL to support protection with Authelia.
 You can separate each subdomain with a `|` in the regex, for example:
-    ```editorconfig
-    acl protected-frontends hdr(host) -m reg -i ^(jenkins|nextcloud|phpmyadmin)\.example\.com
+    ```
+    acl protected-frontends hdr(host) -m reg -i ^(jenkins|nextcloud|phpmyadmin)\.example\.com`
     ```
 2. Add host ACL(s) in the form of `host-service`, this will be utilised to route to the correct
 backend upon successful authentication, for example:
-    ```editorconfig
+    ```
     acl host-jenkins hdr(host) -i jenkins.example.com
     acl host-jenkins hdr(host) -i nextcloud.example.com
     acl host-phpmyadmin hdr(host) -i phpmyadmin.example.com
     ```
 3. Add backend route for your service(s), for example:
-    ```editorconfig
+    ```
     use_backend be_jenkins if host-jenkins
     use_backend be_nextcloud if host-nextcloud
     use_backend be_phpmyadmin if host-phpmyadmin
     ```
 4. Add backend definitions for your service(s), for example:
-    ```editorconfig
+    ```
     backend be_jenkins
         server jenkins jenkins:8080
     backend be_nextcloud
@@ -73,7 +73,7 @@ to TLS verification as well as header rewriting. An example of this configuratio
 #### Configuration
 
 ##### haproxy.cfg
-```editorconfig
+```
 global
     # Path to haproxy-auth-request
     lua-load /usr/local/etc/haproxy/auth-request.lua
@@ -122,7 +122,7 @@ backend be_nextcloud
 ```
 
 ##### haproxy.cfg (TLS enabled Authelia)
-```editorconfig
+```
 global
     # Path to haproxy-auth-request
     lua-load /usr/local/etc/haproxy/auth-request.lua
