@@ -1,4 +1,3 @@
-//go:generate broccoli -src ../../public_html -o public_html
 package server
 
 import (
@@ -16,6 +15,7 @@ var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV
 
 // ServeIndex serve the index.html file with nonce generated for supporting
 // restrictive CSP while using material-ui from the embedded virtual filesystem.
+//go:generate broccoli -src ../../public_html -o public_html
 func ServeIndex(publicDir string) fasthttp.RequestHandler {
 	f, err := br.Open(publicDir + "/index.html")
 	if err != nil {
