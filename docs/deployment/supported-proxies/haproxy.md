@@ -66,9 +66,9 @@ backend upon successful authentication, for example:
 
 ### Secure Authelia with TLS
 There is a [known limitation](https://github.com/TimWolla/haproxy-auth-request/issues/12) with haproxy-auth-request with regard to TLS-enabled backends.
-If you want to run Authelia TLS enabled the recommended workaround utilising HAProxy itself to proxy the requests.
+If you want to run Authelia TLS enabled the recommended workaround utilises HAProxy itself to proxy the requests.
 This comes at a cost of two additional TCP connections, but allows the full HAProxy configuration flexbility with regard
-to TLS verification as well as header rewriting. An example of this configuration will also be provided below.
+to TLS verification as well as header rewriting. An example of this configuration is also be provided below.
 
 #### Configuration
 
