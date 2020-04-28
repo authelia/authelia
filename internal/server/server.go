@@ -22,10 +22,6 @@ import (
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
 	embeddedAssets := "/public_html"
-	// TODO: Remove in v4.18.0.
-	if os.Getenv("PUBLIC_DIR") != "" {
-		logging.Logger().Warn("PUBLIC_DIR environment variable has been deprecated, assets are now embedded.")
-	}
 
 	router := router.New()
 
