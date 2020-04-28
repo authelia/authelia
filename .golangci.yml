@@ -21,5 +21,16 @@ linters:
     - whitespace
 
 issues:
+  exclude:
+    - Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked
+    - func name will be used as test\.Test.* by other packages, and that stutters; consider calling this
+    - (possible misuse of unsafe.Pointer|should have signature)
+    - ineffective break statement. Did you mean to break out of the outer loop
+    - Use of unsafe calls should be audited
+    - Subprocess launch(ed with variable|ing should be audited)
+    - (G104|G307)
+    - (Expect directory permissions to be 0750 or less|Expect file permissions to be 0600 or less)
+    - Potential file inclusion via variable
+  exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
