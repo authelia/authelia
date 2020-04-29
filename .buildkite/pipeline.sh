@@ -28,6 +28,8 @@ env:
 steps:
   - label: ":service_dog: Linting"
     command: "reviewdog -reporter=github-check"
+    retry:
+      automatic: true
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/
 
   - label: ":hammer_and_wrench: Unit Test"
