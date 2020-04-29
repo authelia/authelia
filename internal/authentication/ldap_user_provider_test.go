@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"testing"
+	"time"
 
 	"github.com/go-ldap/ldap/v3"
 	gomock "github.com/golang/mock/gomock"
@@ -107,6 +108,38 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 
 	filter, _ = ldap.resolveGroupsFilter("john#=(abc,def)", &profile)
 	assert.Equal(t, "(|(member=cn=john \\28external\\29,dc=example,dc=com)(uid=john)(uid=john\\#\\=\\28abc\\,def\\29))", filter)
+}
+
+func TestShouldDisableRefresh(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	ldap := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
+		URL:             "ldaps://127.0.0.1:389",
+		GroupsFilter:    "(|(member={dn})(uid={username})(uid={input}))",
+		RefreshInterval: "disable",
+	}, mockFactory)
+
+	refresh, refreshInterval := ldap.GetRefreshSettings()
+	assert.Equal(t, false, refresh)
+	assert.Equal(t, time.Duration(0), refreshInterval)
+}
+
+func TestShouldSetRefreshToTenMinutes(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	ldap := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
+		URL:             "ldaps://127.0.0.1:389",
+		GroupsFilter:    "(|(member={dn})(uid={username})(uid={input}))",
+		RefreshInterval: "10m",
+	}, mockFactory)
+
+	refresh, refreshInterval := ldap.GetRefreshSettings()
+	assert.Equal(t, true, refresh)
+	assert.Equal(t, 10*time.Minute, refreshInterval)
 }
 
 type SearchRequestMatcher struct {

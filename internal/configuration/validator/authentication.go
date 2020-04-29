@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
@@ -147,11 +148,20 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	}
 
 	if configuration.GroupNameAttribute == "" {
-		configuration.GroupNameAttribute = "cn"
+		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.GroupNameAttribute
 	}
 
 	if configuration.MailAttribute == "" {
-		configuration.MailAttribute = "mail"
+		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.MailAttribute
+	}
+
+	if configuration.RefreshInterval == "" {
+		configuration.RefreshInterval = schema.DefaultLDAPAuthenticationBackendConfiguration.RefreshInterval
+	} else {
+		_, err := utils.ParseDurationString(configuration.RefreshInterval)
+		if err != nil && configuration.RefreshInterval != "disable" && configuration.RefreshInterval != "disabled" {
+			validator.Push(fmt.Errorf("LDAP `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'disabled'. Error from parser: %s", configuration.RefreshInterval, err))
+		}
 	}
 }
 

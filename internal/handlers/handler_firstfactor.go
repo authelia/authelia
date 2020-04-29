@@ -106,7 +106,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	userSession.KeepMeLoggedIn = keepMeLoggedIn
 	refresh, refreshInterval := ctx.Providers.UserProvider.GetRefreshSettings()
 	if refresh {
-		userSession.RefreshTTL = time.Now().Add(refreshInterval)
+		userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
 	}
 	err = ctx.SaveSession(userSession)
 

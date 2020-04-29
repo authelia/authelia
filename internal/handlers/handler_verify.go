@@ -153,8 +153,8 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, grou
 	}
 }
 
-// hasUserBeenInactiveLongEnough check whether the user has been inactive for too long
-func hasUserBeenInactiveLongEnough(ctx *middlewares.AutheliaCtx) (bool, error) { //nolint:unparam
+// hasUserBeenInactiveTooLong check whether the user has been inactive for too long
+func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) { //nolint:unparam
 	maxInactivityPeriod := int64(ctx.Providers.SessionProvider.Inactivity.Seconds())
 	if maxInactivityPeriod == 0 {
 		return false, nil
@@ -183,7 +183,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, userSession session.UserS
 	}
 
 	if !userSession.KeepMeLoggedIn && !isUserAnonymous {
-		inactiveLongEnough, err := hasUserBeenInactiveLongEnough(ctx)
+		inactiveLongEnough, err := hasUserBeenInactiveTooLong(ctx)
 		if err != nil {
 			return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check if user has been inactive for a long time: %s", err)
 		}
@@ -201,16 +201,19 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, userSession session.UserS
 	return userSession.Username, userSession.Groups, userSession.AuthenticationLevel, nil
 }
 
-func verifySessionHasUpdatedLDAPGroups(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession session.UserSession) {
+func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession session.UserSession) error {
 	refresh, interval := ctx.Providers.UserProvider.GetRefreshSettings()
 
 	if refresh && userSession.Username != "" && userSession.RefreshTTL.Before(time.Now()) && targetURL != nil && ctx.Providers.Authorizer.URLHasGroupSubjects(*targetURL) {
 		details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
+		// Only update the session if we could get the new details.
 		if err != nil {
-			userSession.Groups = details.Groups
+			return err
 		}
-		userSession.RefreshTTL = time.Now().Add(interval)
+		userSession.Groups = details.Groups
+		userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
 	}
+	return nil
 }
 
 // VerifyGet is the handler verifying if a request is allowed to go through
@@ -257,7 +260,15 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	verifySessionHasUpdatedLDAPGroups(ctx, targetURL, userSession)
+	err = verifySessionIsUpToDate(ctx, targetURL, userSession)
+	if err != nil && err.Error() == authentication.UserNotFoundMessage {
+		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
+		if err != nil {
+			ctx.Logger.Error(fmt.Errorf("Unable to destroy user session after provider refresh didn't find the user: %s", err))
+		}
+		ctx.ReplyUnauthorized()
+		return
+	}
 
 	authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
 		groups, ctx.RemoteIP(), authLevel)

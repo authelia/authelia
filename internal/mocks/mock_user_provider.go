@@ -5,9 +5,10 @@
 package mocks
 
 import (
-	reflect "reflect"
+	"time"
 
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 
 	authentication "github.com/authelia/authelia/internal/authentication"
 )
@@ -79,6 +80,6 @@ func (mr *MockUserProviderMockRecorder) UpdatePassword(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUserProvider)(nil).UpdatePassword), arg0, arg1)
 }
 
-func (m *MockUserProvider) ProviderType() authentication.UserProviderType {
-	return authentication.MockUserProviderType
+func (m *MockUserProvider) GetRefreshSettings() (bool, time.Duration) {
+	return false, 0
 }

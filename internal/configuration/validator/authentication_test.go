@@ -229,6 +229,13 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsernameAttri
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Please provide a username attribute with `username_attribute`")
 }
 
+func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval() {
+	suite.configuration.Ldap.RefreshInterval = "blah"
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	require.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "LDAP `refresh_interval` is configured to 'blah' but it must be either a duration notation or one of 'disable', or 'disabled'. Error from parser: Could not convert the input string of blah into a duration")
+}
+
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultGroupNameAttribute() {
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
@@ -239,6 +246,12 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultMailAttribute()
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
 	assert.Equal(suite.T(), "mail", suite.configuration.Ldap.MailAttribute)
+}
+
+func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultRefreshInterval() {
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	assert.Len(suite.T(), suite.validator.Errors(), 0)
+	assert.Equal(suite.T(), "5m", suite.configuration.Ldap.RefreshInterval)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesNotContainEnclosingParenthesis() {
