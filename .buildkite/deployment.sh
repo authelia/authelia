@@ -61,11 +61,15 @@ steps:
 
   - label: ":linux: Deploy AUR"
     command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
+    concurrency: 1
+    concurrency_group: "aur"
     depends_on: ~
     if: build.tag != null || build.branch == "master" && build.env("CI_BYPASS") != "true"
 
   - label: ":book: Deploy Documentation"
     command: "syncdoc.sh"
+    concurrency: 1
+    concurrency_group: "documentation"
     depends_on: ~
     agents:
       upload: "fast"
