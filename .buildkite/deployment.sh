@@ -24,30 +24,16 @@ env:
 steps:
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
-    concurrency: 1
-    concurrency_group: "deployments"
-    if: build.branch == "master" && build.env("CI_BYPASS") != "true"
-
-  - label: ":docker: Image Deployments"
-    command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
-    if: build.branch != "master" && build.env("CI_BYPASS") != "true"
+    if: build.env("CI_BYPASS") != "true"
 
   - wait:
     if: build.env("CI_BYPASS") != "true"
 
   - label: ":docker: Deploy Manifests"
     command: "authelia-scripts docker push-manifest"
-    concurrency: 1
-    concurrency_group: "deployments"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
-    if: build.branch == "master" && build.env("CI_BYPASS") != "true"
-
-  - label: ":docker: Deploy Manifests"
-    command: "authelia-scripts docker push-manifest"
-    env:
-      DOCKER_CLI_EXPERIMENTAL: "enabled"
-    if: build.branch != "master" && build.env("CI_BYPASS") != "true"
+    if: build.env("CI_BYPASS") != "true"
 
   - label: ":github: Deploy Artifacts"
     command: "ghartifacts.sh"
@@ -61,15 +47,11 @@ steps:
 
   - label: ":linux: Deploy AUR"
     command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
-    concurrency: 1
-    concurrency_group: "aur"
     depends_on: ~
     if: build.tag != null || build.branch == "master" && build.env("CI_BYPASS") != "true"
 
   - label: ":book: Deploy Documentation"
     command: "syncdoc.sh"
-    concurrency: 1
-    concurrency_group: "documentation"
     depends_on: ~
     agents:
       upload: "fast"
