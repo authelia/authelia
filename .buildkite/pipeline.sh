@@ -28,7 +28,7 @@ env:
 steps:
   - label: ":service_dog: Linting"
     command: "reviewdog -reporter=github-check"
-    if: build.branch !~ /^(master)|(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/
 
   - label: ":hammer_and_wrench: Unit Test"
     command: "authelia-scripts --log-level debug ci"
