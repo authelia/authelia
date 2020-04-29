@@ -11,11 +11,10 @@ func tokenEndpoint(rw http.ResponseWriter, req *http.Request) {
 	// This context will be passed to all methods.
 	ctx := req.Context()
 
-	// Create an empty session object which will be passed to the request handlers
-	mySessionData := newSession("")
+	session := newSession("")
 
 	// This will create an access request object and iterate through the registered TokenEndpointHandlers to validate the request.
-	accessRequest, err := oauth2.NewAccessRequest(ctx, req, mySessionData)
+	accessRequest, err := oauth2.NewAccessRequest(ctx, req, session)
 
 	// Catch any errors, e.g.:
 	// * unknown client

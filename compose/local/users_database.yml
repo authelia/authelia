@@ -6,9 +6,9 @@
 
 # List of users
 users:
-  <USERNAME>:
-    password: "<PASSWORD>"
-    email: <USERNAME>@example.com
+  cmichaud:
+    password: $argon2id$v=19$m=1048576,t=1,p=8$NmxmeTZhQUJmL1dqQ054OA$AL0ejLatFFmFmgYg1rN1VaUFaK6ggJaE+pPln5yfJnQ
+    email: cmichaud@example.com
     groups:
       - admins
       - dev

@@ -31,5 +31,6 @@ require (
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.14.0
+	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v2 v2.3.0
 )

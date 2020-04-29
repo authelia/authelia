@@ -37,7 +37,7 @@ func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration
 }
 
 // AutheliaMiddleware is wrapping the RequestCtx into an AutheliaCtx providing Authelia related objects.
-func AutheliaMiddleware(configuration schema.Configuration, providers Providers) func(next RequestHandler) fasthttp.RequestHandler {
+func AutheliaMiddleware(configuration schema.Configuration, providers Providers) RequestHandlerBridge {
 	return func(next RequestHandler) fasthttp.RequestHandler {
 		return func(ctx *fasthttp.RequestCtx) {
 			autheliaCtx, err := NewAutheliaCtx(ctx, configuration, providers)
@@ -175,11 +175,4 @@ func (c *AutheliaCtx) RemoteIP() net.IP {
 	}
 
 	return c.RequestCtx.RemoteIP()
-}
-
-func (c *AutheliaCtx) NetHTTPCtx() *NetHTTPCtx {
-	if c.netHTTPCtx == nil {
-		c.netHTTPCtx = &NetHTTPCtx{AutheliaCtx: c}
-	}
-	return c.netHTTPCtx
 }

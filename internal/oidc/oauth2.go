@@ -3,27 +3,69 @@ package oidc
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"fmt"
 	"time"
 
+	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/fasthttp/router"
+	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/storage"
 	"github.com/ory/fosite/token/jwt"
+	"github.com/valyala/fasthttp"
 )
 
-func RegisterHandlers(router *router.Router) {
-	// Set up oauth2 endpoints. You could also use gorilla/mux or any other router.
-	router.GET("/api/oauth2/auth", authEndpoint)
-	// router.GET("/api/oauth2/token", tokenEndpoint)
+var privateKey *rsa.PrivateKey = mustRSAKey()
+
+func RegisterHandlers(router *router.Router, autheliaMiddleware middlewares.RequestHandlerBridge) {
+	// OpenID Connect discovery: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
+	router.GET("/.well-known/openid-configuration", autheliaMiddleware(WellKnownConfigurationGet))
+
+	router.GET("/api/oidc/jwks", autheliaMiddleware(JWKsGet))
+	router.GET("/api/oidc/auth", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthEndpointGet)))
+	router.POST("/api/oidc/token", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(tokenEndpoint)))
+	router.GET("/api/oidc/callback", func(req *fasthttp.RequestCtx) {
+		fmt.Println("CALLBACK")
+	})
 
 	// revoke tokens
 	// http.HandleFunc("/oauth2/revoke", revokeEndpoint)
 	// http.HandleFunc("/oauth2/introspect", introspectionEndpoint)
 }
 
+func NewStore() *storage.MemoryStore {
+	return &storage.MemoryStore{
+		IDSessions: make(map[string]fosite.Requester),
+		Clients: map[string]fosite.Client{
+			"authelia": &fosite.DefaultClient{
+				ID:            "authelia",
+				Secret:        []byte(`$2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO`), // = "foobar"
+				RedirectURIs:  []string{"http://localhost:8080/oauth2/callback"},
+				ResponseTypes: []string{"code"},
+				GrantTypes:    []string{"implicit", "refresh_token", "authorization_code"},
+				Scopes:        []string{"openid"},
+			},
+		},
+		Users: map[string]storage.MemoryUserRelation{
+			"john": {
+				// This store simply checks for equality, a real storage implementation would obviously use
+				// a hashing algorithm for encrypting the user password.
+				Username: "john",
+				Password: "secret",
+			},
+		},
+		AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
+		AccessTokens:           map[string]fosite.Requester{},
+		RefreshTokens:          map[string]fosite.Requester{},
+		PKCES:                  map[string]fosite.Requester{},
+		AccessTokenRequestIDs:  map[string]string{},
+		RefreshTokenRequestIDs: map[string]string{},
+	}
+}
+
 // This is an exemplary storage instance. We will add a client and a user to it so we can use these later on.
-var store = storage.NewExampleStore()
+var store = NewStore()
 
 var config = new(compose.Config)
 
@@ -35,7 +77,7 @@ var start = compose.CommonStrategy{
 	CoreStrategy: compose.NewOAuth2HMACStrategy(config, []byte("some-super-cool-secret-that-nobody-knows"), nil),
 
 	// open id connect strategy
-	OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(config, mustRSAKey()),
+	OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(config, privateKey),
 }
 
 var oauth2 = compose.Compose(
@@ -72,15 +114,20 @@ var oauth2 = compose.Compose(
 //
 //  session = new(fosite.DefaultSession)
 func newSession(user string) *openid.DefaultSession {
+	extra := map[string]interface{}{
+		"email": fmt.Sprintf("%s@authelia.com", user),
+	}
+
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{
-			Issuer:      "https://fosite.my-application.com",
+			Issuer:      "https://login.example.com:8080",
 			Subject:     user,
 			Audience:    []string{"https://my-client.my-application.com"},
 			ExpiresAt:   time.Now().Add(time.Hour * 6),
 			IssuedAt:    time.Now(),
 			RequestedAt: time.Now(),
 			AuthTime:    time.Now(),
+			Extra:       extra,
 		},
 		Headers: &jwt.Headers{
 			Extra: make(map[string]interface{}),

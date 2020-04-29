@@ -1,8 +1,6 @@
 package middlewares
 
 import (
-	"net/http"
-
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -20,7 +18,6 @@ import (
 // AutheliaCtx contains all server variables related to Authelia.
 type AutheliaCtx struct {
 	*fasthttp.RequestCtx
-	netHTTPCtx *NetHTTPCtx
 
 	Logger        *logrus.Entry
 	Providers     Providers
@@ -40,28 +37,14 @@ type Providers struct {
 	Notifier        notification.Notifier
 }
 
-// NetHTTPCtx Provides a minimal abstract adaptor layer for fasthttp to emulate net/http
-type NetHTTPCtx struct {
-	AutheliaCtx    *AutheliaCtx
-	responseWriter *NetHTTPResponseWriter
-}
-
-// NetHTTPResponseWriter is a minimal implementation of the net/http ResponseWriter interface
-type NetHTTPResponseWriter struct {
-	AutheliaCtx *AutheliaCtx
-	headers     http.Header
-	statusCode  int
-}
-
-type netHTTPBody struct {
-	b []byte
-}
-
 // RequestHandler represents an Authelia request handler.
 type RequestHandler = func(*AutheliaCtx)
 
 // Middleware represent an Authelia middleware.
 type Middleware = func(RequestHandler) RequestHandler
+
+// RequestHandlerBridge bridge a AutheliaCtx handle to a RequestHandler handler
+type RequestHandlerBridge = func(RequestHandler) fasthttp.RequestHandler
 
 // IdentityVerificationStartArgs represent the arguments used to customize the starting phase
 // of the identity verification process.
