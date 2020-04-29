@@ -46,7 +46,7 @@ specific suite like *HighAvailability*, you can do so with the next command:
 
 Running all tests is easy. Make sure that no suite is already running and run:
 
-    authelia-scripts suites test
+    $ authelia-scripts suites test
 
 ### Run tests in headless mode
 

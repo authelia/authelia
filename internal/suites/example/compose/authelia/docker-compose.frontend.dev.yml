@@ -9,12 +9,14 @@ services:
         GROUP_ID: ${GROUP_ID}
     command: '/resources/entrypoint-frontend.sh'
     working_dir: /app
-    tty: true
+    stdin_open: true
     volumes:
       - './example/compose/authelia/resources/:/resources'
       - '../../web:/app'
     labels:
+      # Traefik 1.x
       - 'traefik.frontend.rule=Host:login.example.com'
+      # Traefik 2.x
       - 'traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`)'
       - 'traefik.http.routers.authelia_frontend.entrypoints=https'
       - 'traefik.http.routers.authelia_frontend.tls=true'

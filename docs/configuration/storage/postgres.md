@@ -10,11 +10,24 @@ nav_order: 3
 
 ```yaml
 storage:
-    postgres:
-        host: 127.0.0.1
-        port: 3306
-        database: authelia
-        username: authelia
-        # This secret can also be set using the env variables AUTHELIA_STORAGE_POSTGRES_PASSWORD
-        password: mypassword
+  postgres:
+    host: 127.0.0.1
+    port: 5432
+    database: authelia
+    username: authelia
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    password: mypassword
+    sslmode: disable
 ```
+
+## SSL Mode
+
+SSL mode configures how to handle SSL connections with Postgres. 
+Valid options are 'disable', 'require', 'verify-ca', or 'verify-full'.
+See the [PostgreSQL Documentation](https://www.postgresql.org/docs/12/libpq-ssl.html)
+or [Pure Go Postgres driver Documentation](https://godoc.org/github.com/lib/pq) 
+for more information.
+
+## Loading a password from a secret instead of inside the configuration
+
+Password can also be defined using a [secret](../secrets.md).

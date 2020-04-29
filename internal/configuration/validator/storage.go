@@ -6,7 +6,7 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
-// ValidateSQLStorage validates storage configuration.
+// ValidateStorage validates storage configuration.
 func ValidateStorage(configuration schema.StorageConfiguration, validator *schema.StructValidator) {
 	if configuration.Local == nil && configuration.MySQL == nil && configuration.PostgreSQL == nil {
 		validator.Push(errors.New("A storage configuration must be provided. It could be 'local', 'mysql' or 'postgres'"))
@@ -40,7 +40,7 @@ func validatePostgreSQLConfiguration(configuration *schema.PostgreSQLStorageConf
 
 	if !(configuration.SSLMode == "disable" || configuration.SSLMode == "require" ||
 		configuration.SSLMode == "verify-ca" || configuration.SSLMode == "verify-full") {
-		validator.Push(errors.New("SSL mode must be 'disable', 'require', 'verify-ca' or 'verify-full'"))
+		validator.Push(errors.New("SSL mode must be 'disable', 'require', 'verify-ca', or 'verify-full'"))
 	}
 }
 

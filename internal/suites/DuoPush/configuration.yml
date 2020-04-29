@@ -3,6 +3,8 @@
 ###############################################################
 
 port: 9091
+tls_cert: /var/lib/authelia/ssl/cert.pem
+tls_key: /var/lib/authelia/ssl/key.pem
 
 log_level: trace
 
@@ -95,9 +97,5 @@ regulation:
   ban_time: 900
 
 notifier:
-  # Use a SMTP server for sending notifications
-  smtp:
-    host: smtp
-    port: 1025
-    sender: admin@example.com
-    disable_require_tls: true
+  filesystem:
+    filename: /tmp/notifier.html

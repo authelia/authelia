@@ -11,6 +11,7 @@ const ResetPasswordAction = "ResetPassword"
 
 const authPrefix = "Basic "
 
+// AuthorizationHeader is the basic-auth HTTP header Authelia utilises.
 const AuthorizationHeader = "Proxy-Authorization"
 const remoteUserHeader = "Remote-User"
 const remoteGroupsHeader = "Remote-Groups"
@@ -18,7 +19,7 @@ const remoteGroupsHeader = "Remote-Groups"
 var protoHostSeparator = []byte("://")
 
 const (
-	// Forbidden means the user is forbidden the access to a resource
+	// Forbidden means the user is forbidden the access to a resource.
 	Forbidden authorizationMatching = iota
 	// NotAuthorized means the user can access the resource with more permissions.
 	NotAuthorized authorizationMatching = iota
@@ -29,8 +30,7 @@ const (
 const operationFailedMessage = "Operation failed."
 const authenticationFailedMessage = "Authentication failed. Check your credentials."
 const userBannedMessage = "Please retry in a few minutes."
-const unableToRegisterOneTimePasswordMessage = "Unable to set up one-time passwords."
+const unableToRegisterOneTimePasswordMessage = "Unable to set up one-time passwords." //nolint:gosec
 const unableToRegisterSecurityKeyMessage = "Unable to register your security key."
 const unableToResetPasswordMessage = "Unable to reset your password."
 const mfaValidationFailedMessage = "Authentication failed, please retry later."
-const badBasicAuthFormatMessage = "Content of Proxy-Authorization header is wrong."

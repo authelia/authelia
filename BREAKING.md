@@ -6,6 +6,23 @@ recommended not to use the 'latest' Docker image tag blindly but pick a version 
 and read this documentation before upgrading. This is where you will get information about
 breaking changes and about what you should do to overcome those changes.
 
+## Breaking in v4.15.0
+* Previously if a configuration value did not exist we ignored it. Now we will error if someone has
+specified either an unknown configuration key or one that has changed. In the instance of a changed
+key a more specific error is intended. This may cause some people who have not updated their config
+to see new errors.
+* Authelia now checks the Notifier is configured correctly before becoming available. If the 
+SMTP Notifier is used and the configuration is wrong or there is something wrong with the server
+Authelia will not start. If the File Notifier is used and the file is not writable Authelia will
+not start.
+* Authelia v3 migration tools are being removed in this release due to the length of time which
+has passed since v4 release. Older versions will still be available for migration if needed.
+
+### Deprecation Notice(s)
+* Environment variable secrets are insecure and have been replaced by a file based alternative
+instead of having the plain text secret in the environment variables. In version 4.18.0 the old method
+will be completely removed. Read more in the [docs](https://docs.authelia.com/configuration/secrets.html).
+
 ## Breaking in v4.10.0
 * Revert of `users_filter` purpose. This option now represents the complete search filter again, meaning
 there is no more automatic filter computation based on username. This gives the most flexibility.
@@ -54,16 +71,10 @@ supported by Authelia v4.
 Example of usage:
 ```
 # Migrate a local database into the targeted database defined in config-v4.yml with Docker
-docker run --rm -v /path/to/config-v4.yml:/config.yml -v /old/db/path:/db authelia/authelia authelia migrate local --config=/config.yml --db-path=/db
+docker run --rm -v /path/to/config-v4.yml:/config.yml -v /old/db/path:/db authelia/authelia:4.14.2 authelia migrate local --config=/config.yml --db-path=/db
     
 # Migrate a mongo database into the targeted database defined in config-v4.yml with Docker
-docker run --rm -v /path/to/config-v4.yml:/config.yml authelia/authelia authelia migrate mongo --config=/config.yml --url=mongodb://myuser:mypassword@mymongo:27017 --database=authelia
-
-# Migrate a local database into the targeted database defined in config-v4.yml
-authelia-scripts migrate local --config=/path/to/config-v4.yml --db-path=/old/db/path
-
-# Migrate a mongo database into the targeted database defined in config-v4.yml
-authelia-scripts migrate mongo --config=/path/to/config-v4.yml --url=mongodb://myuser:mypassword@mymongo:27017 --database=authelia
+docker run --rm -v /path/to/config-v4.yml:/config.yml authelia/authelia:4.14.2 authelia migrate mongo --config=/config.yml --url=mongodb://myuser:mypassword@mymongo:27017 --database=authelia
 ```
 
 Those commands migrate TOTP secrets, U2F devices, authentication traces and user preferences so

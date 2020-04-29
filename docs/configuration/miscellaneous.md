@@ -15,8 +15,10 @@ Here are the main customizable options in Authelia.
 
 Defines the address and port to listen on.
 
-    host: 0.0.0.0
-    port: 9091
+```yaml
+host: 0.0.0.0
+port: 9091
+```
 
 ## TLS
 
@@ -25,9 +27,10 @@ Defines the address and port to listen on.
 Authelia can use TLS. Provide the certificate and the key with the
 following configuration options:
 
-    tls_key: /var/lib/authelia/ssl/key.pem
-    tls_cert: /var/lib/authelia/ssl/cert.pem
-
+```yaml
+tls_key: /var/lib/authelia/ssl/key.pem
+tls_cert: /var/lib/authelia/ssl/cert.pem
+```
 
 ## Log
 
@@ -36,9 +39,13 @@ following configuration options:
 `optional: true`
 
 Defines the level of logs used by Authelia. This level can be set to
-`trace`, `debug` or `info`.
+`trace`, `debug` or `info`. When setting log_level to trace, you will
+generate a large amount of log entries and expose the /debug/vars and
+/debug/pprof/ endpoints which should not be enabled in production.
 
-    log_level: debug
+```yaml
+log_level: debug
+```
 
 ### Log file path
 
@@ -47,7 +54,9 @@ Defines the level of logs used by Authelia. This level can be set to
 Logs can be stored in a file when file path is provided. Otherwise logs
 are written to standard output.
 
-    log_file_path: /var/log/authelia.log
+```yaml
+log_file_path: /var/log/authelia.log
+```
 
 
 ## Read Buffer Size
@@ -63,9 +72,11 @@ Defines the read buffer size in bytes used by the fasthttp server.
 `optional: false`
 
 Defines the secret used to craft JWT tokens leveraged by the identity
-verification process
+verification process. This can also be defined using a [secret](./secrets.md).
 
-    jwt_secret: v3ry_important_s3cr3t
+```yaml
+jwt_secret: v3ry_important_s3cr3t
+```
 
 ## Default redirection URL
 

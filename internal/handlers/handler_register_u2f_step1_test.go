@@ -25,7 +25,7 @@ func (s *HandlerRegisterU2FStep1Suite) SetupTest() {
 
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = "john"
-	s.mock.Ctx.SaveSession(userSession)
+	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func (s *HandlerRegisterU2FStep1Suite) TearDownTest() {
@@ -44,13 +44,6 @@ func createToken(secret string, username string, action string, expiresAt time.T
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, _ := token.SignedString([]byte(secret))
 	return ss
-}
-
-func newFinishArgs() middlewares.IdentityVerificationFinishArgs {
-	return middlewares.IdentityVerificationFinishArgs{
-		ActionClaim:          U2FRegistrationAction,
-		IsTokenUserValidFunc: func(ctx *middlewares.AutheliaCtx, username string) bool { return true },
-	}
 }
 
 func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissing() {

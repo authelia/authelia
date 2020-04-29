@@ -106,6 +106,6 @@ func TestShouldUseEncryptingSerializerWithRedis(t *testing.T) {
 	require.NoError(t, err)
 
 	decoded := session.Dict{}
-	_, err = decoded.UnmarshalMsg(decrypted)
+	_, _ = decoded.UnmarshalMsg(decrypted)
 	assert.Equal(t, "value", decoded.Get("key"))
 }

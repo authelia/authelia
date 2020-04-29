@@ -32,14 +32,14 @@ type QueueItem struct {
 	path  string
 }
 
-func (v *Validator) validateOne(item QueueItem, q *queue.Queue) error {
+func (v *Validator) validateOne(item QueueItem, q *queue.Queue) error { //nolint:unparam
 	if item.value.Type().Kind() == reflect.Ptr {
 		if item.value.IsNil() {
 			return nil
 		}
 
 		elem := item.value.Elem()
-		q.Put(QueueItem{
+		q.Put(QueueItem{ //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 			value: elem,
 			path:  item.path,
 		})
@@ -58,7 +58,7 @@ func (v *Validator) validateOne(item QueueItem, q *queue.Queue) error {
 			field := item.value.Type().Field(i)
 			value := item.value.Field(i)
 
-			q.Put(QueueItem{
+			q.Put(QueueItem{ //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 				value: value,
 				path:  item.path + "." + field.Name,
 			})
@@ -70,7 +70,7 @@ func (v *Validator) validateOne(item QueueItem, q *queue.Queue) error {
 // Validate validate a struct
 func (v *Validator) Validate(s interface{}) error {
 	q := queue.New(40)
-	q.Put(QueueItem{value: reflect.ValueOf(s), path: "root"})
+	q.Put(QueueItem{value: reflect.ValueOf(s), path: "root"}) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	for !q.Empty() {
 		val, err := q.Get(1)
@@ -81,7 +81,7 @@ func (v *Validator) Validate(s interface{}) error {
 		if !ok {
 			return fmt.Errorf("Cannot convert item into QueueItem")
 		}
-		v.validateOne(item, q)
+		v.validateOne(item, q) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	}
 	return nil
 }

@@ -11,15 +11,15 @@ type MethodList = []string
 
 type authorizationMatching int
 
-// UserInfo is the model of user second factor preferences
+// UserPreferences is the model of user second factor preferences.
 type UserPreferences struct {
 	// The preferred 2FA method.
 	Method string `json:"method" valid:"required"`
 
-	// True if a security key has been registered
+	// True if a security key has been registered.
 	HasU2F bool `json:"has_u2f" valid:"required"`
 
-	// True if a TOTP device has been registered
+	// True if a TOTP device has been registered.
 	HasTOTP bool `json:"has_totp" valid:"required"`
 }
 
@@ -49,12 +49,6 @@ type firstFactorRequestBody struct {
 	KeepMeLoggedIn *bool `json:"keepMeLoggedIn"`
 }
 
-// FirstFactorMessageResponse represents the response sent by the first factor endpoint
-// when no redirection URL has been provided by the user.
-type firstFactorMessageResponse struct {
-	Message string `json:"message"`
-}
-
 // redirectResponse represent the response sent by the first factor endpoint
 // when a redirection URL has been provided.
 type redirectResponse struct {
@@ -74,12 +68,12 @@ type StateResponse struct {
 	DefaultRedirectionURL string               `json:"default_redirection_url"`
 }
 
-// resetPasswordStep1RequestBody model of the reset password (step1) request body
+// resetPasswordStep1RequestBody model of the reset password (step1) request body.
 type resetPasswordStep1RequestBody struct {
 	Username string `json:"username"`
 }
 
-// resetPasswordStep2RequestBody model of the reset password (step2) request body
+// resetPasswordStep2RequestBody model of the reset password (step2) request body.
 type resetPasswordStep2RequestBody struct {
 	Password string `json:"password"`
 }

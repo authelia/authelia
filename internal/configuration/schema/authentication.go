@@ -16,13 +16,14 @@ type LDAPAuthenticationBackendConfiguration struct {
 	Password           string `mapstructure:"password"`
 }
 
-// FileAuthenticationBackendConfiguration represents the configuration related to file-based backend
+// FileAuthenticationBackendConfiguration represents the configuration related to file-based backend.
 type FileAuthenticationBackendConfiguration struct {
-	Path            string                        `mapstructure:"path"`
-	PasswordHashing *PasswordHashingConfiguration `mapstructure:"password"`
+	Path     string                 `mapstructure:"path"`
+	Password *PasswordConfiguration `mapstructure:"password"`
 }
 
-type PasswordHashingConfiguration struct {
+// PasswordConfiguration represents the configuration related to password hashing.
+type PasswordConfiguration struct {
 	Iterations  int    `mapstructure:"iterations"`
 	KeyLength   int    `mapstructure:"key_length"`
 	SaltLength  int    `mapstructure:"salt_length"`
@@ -31,8 +32,8 @@ type PasswordHashingConfiguration struct {
 	Parallelism int    `mapstructure:"parallelism"`
 }
 
-// Default Argon2id Configuration
-var DefaultPasswordOptionsConfiguration = PasswordHashingConfiguration{
+// DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing.
+var DefaultPasswordConfiguration = PasswordConfiguration{
 	Iterations:  1,
 	KeyLength:   32,
 	SaltLength:  16,
@@ -41,8 +42,8 @@ var DefaultPasswordOptionsConfiguration = PasswordHashingConfiguration{
 	Parallelism: 8,
 }
 
-// Default Argon2id Configuration for CI testing when calling HashPassword()
-var DefaultCIPasswordOptionsConfiguration = PasswordHashingConfiguration{
+// DefaultCIPasswordConfiguration represents the default configuration related to Argon2id hashing for CI.
+var DefaultCIPasswordConfiguration = PasswordConfiguration{
 	Iterations:  1,
 	KeyLength:   32,
 	SaltLength:  16,
@@ -51,8 +52,8 @@ var DefaultCIPasswordOptionsConfiguration = PasswordHashingConfiguration{
 	Parallelism: 8,
 }
 
-// Default SHA512 Cofniguration
-var DefaultPasswordOptionsSHA512Configuration = PasswordHashingConfiguration{
+// DefaultPasswordSHA512Configuration represents the default configuration related to SHA512 hashing.
+var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 	Iterations: 50000,
 	SaltLength: 16,
 	Algorithm:  "sha512",

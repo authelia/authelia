@@ -23,14 +23,14 @@ import (
 	"github.com/authelia/authelia/internal/session"
 )
 
-// MockAutheliaCtx a mock of AutheliaCtx
+// MockAutheliaCtx a mock of AutheliaCtx.
 type MockAutheliaCtx struct {
-	// Logger hook
+	// Logger hook.
 	Hook *test.Hook
 	Ctx  *middlewares.AutheliaCtx
 	Ctrl *gomock.Controller
 
-	// Providers
+	// Providers.
 	UserProviderMock    *MockUserProvider
 	StorageProviderMock *storage.MockProvider
 	NotifierMock        *MockNotifier
@@ -40,27 +40,27 @@ type MockAutheliaCtx struct {
 	Clock TestingClock
 }
 
-// TestingClock implementation of clock for tests
+// TestingClock implementation of clock for tests.
 type TestingClock struct {
 	now time.Time
 }
 
-// Now return the stored clock
+// Now return the stored clock.
 func (dc *TestingClock) Now() time.Time {
 	return dc.now
 }
 
-// After return a channel receiving the time after duration has elapsed
+// After return a channel receiving the time after duration has elapsed.
 func (dc *TestingClock) After(d time.Duration) <-chan time.Time {
 	return time.After(d)
 }
 
-// Set set the time of the clock
+// Set set the time of the clock.
 func (dc *TestingClock) Set(now time.Time) {
 	dc.now = now
 }
 
-// NewMockAutheliaCtx create an instance of AutheliaCtx mock
+// NewMockAutheliaCtx create an instance of AutheliaCtx mock.
 func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia := new(MockAutheliaCtx)
 	mockAuthelia.Clock = TestingClock{}
@@ -72,18 +72,18 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
 	configuration.Session.Name = "authelia_session"
 	configuration.AccessControl.DefaultPolicy = "deny"
-	configuration.AccessControl.Rules = []schema.ACLRule{schema.ACLRule{
-		Domain: "bypass.example.com",
-		Policy: "bypass",
-	}, schema.ACLRule{
-		Domain: "one-factor.example.com",
-		Policy: "one_factor",
-	}, schema.ACLRule{
-		Domain: "two-factor.example.com",
-		Policy: "two_factor",
-	}, schema.ACLRule{
-		Domain: "deny.example.com",
-		Policy: "deny",
+	configuration.AccessControl.Rules = []schema.ACLRule{{
+		Domains: []string{"bypass.example.com"},
+		Policy:  "bypass",
+	}, {
+		Domains: []string{"one-factor.example.com"},
+		Policy:  "one_factor",
+	}, {
+		Domains: []string{"two-factor.example.com"},
+		Policy:  "two_factor",
+	}, {
+		Domains: []string{"deny.example.com"},
+		Policy:  "deny",
 	}}
 
 	providers := middlewares.Providers{}
@@ -107,7 +107,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.Regulator = regulation.NewRegulator(configuration.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
 
 	request := &fasthttp.RequestCtx{}
-	// Set a cookie to identify this client throughout the test
+	// Set a cookie to identify this client throughout the test.
 	// request.Request.Header.SetCookie("authelia_session", "client_cookie")
 
 	autheliaCtx, _ := middlewares.NewAutheliaCtx(request, configuration, providers)
@@ -120,7 +120,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	return mockAuthelia
 }
 
-// Close close the mock
+// Close close the mock.
 func (m *MockAutheliaCtx) Close() {
 	m.Hook.Reset()
 	m.Ctrl.Finish()
@@ -146,6 +146,7 @@ func (m *MockAutheliaCtx) Assert200OK(t *testing.T, data interface{}) {
 	assert.Equal(t, string(b), string(m.Ctx.Response.Body()))
 }
 
+// GetResponseData retrieves a response from the service.
 func (m *MockAutheliaCtx) GetResponseData(t *testing.T, data interface{}) {
 	okResponse := middlewares.OKResponse{}
 	okResponse.Data = data

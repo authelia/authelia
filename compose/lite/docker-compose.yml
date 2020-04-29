@@ -22,6 +22,7 @@ services:
       - 'traefik.http.routers.authelia.tls.certresolver=letsencrypt'
       - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://auth.example.com'
       - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
+      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups'
     expose:
       - 9091
     restart: unless-stopped
@@ -93,18 +94,18 @@ services:
       - 80
     restart: unless-stopped
 
-    public:
-      image: containous/whoami
-      container_name: public
-      networks:
-        - net
-      labels:
-        - 'traefik.enable=true'
-        - 'traefik.http.routers.public.rule=Host(`public.example.com`)'
-        - 'traefik.http.routers.public.entrypoints=https'
-        - 'traefik.http.routers.public.tls=true'
-        - 'traefik.http.routers.public.tls.certresolver=letsencrypt'
-        - 'traefik.http.routers.public.middlewares=authelia@docker'
-      expose:
-        - 80
-      restart: unless-stopped
+  public:
+    image: containous/whoami
+    container_name: public
+    networks:
+      - net
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.public.rule=Host(`public.example.com`)'
+      - 'traefik.http.routers.public.entrypoints=https'
+      - 'traefik.http.routers.public.tls=true'
+      - 'traefik.http.routers.public.tls.certresolver=letsencrypt'
+      - 'traefik.http.routers.public.middlewares=authelia@docker'
+    expose:
+      - 80
+    restart: unless-stopped

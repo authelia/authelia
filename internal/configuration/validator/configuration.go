@@ -11,8 +11,8 @@ var defaultPort = 8080
 var defaultLogLevel = "info"
 var defaultReadBufferSize = 4096
 
-// Validate and adapt the configuration read from file.
-func Validate(configuration *schema.Configuration, validator *schema.StructValidator) {
+// ValidateConfiguration and adapt the configuration read from file.
+func ValidateConfiguration(configuration *schema.Configuration, validator *schema.StructValidator) {
 	if configuration.Host == "" {
 		configuration.Host = "0.0.0.0"
 	}

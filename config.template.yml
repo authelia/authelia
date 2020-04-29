@@ -17,7 +17,7 @@ log_level: debug
 
 # The secret used to generate JWT tokens when validating user identity by
 # email confirmation.
-# This secret can also be set using the env variables AUTHELIA_JWT_SECRET
+# JWT Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
 jwt_secret: a_very_important_secret
 
 # Default redirection URL
@@ -60,7 +60,7 @@ totp:
 duo_api:
   hostname: api-123456789.example.com
   integration_key: ABCDEF
-  # This secret can also be set using the env variables AUTHELIA_DUO_API_SECRET_KEY
+  # Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   secret_key: 1234567890abcdefghifjkl
 
 # The authentication backend to use for verifying user passwords
@@ -92,6 +92,12 @@ authentication_backend:
     # insensitive search queries.
     # For you information, Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP
     # usually uses 'uid'
+    # Beware that this attribute holds the unique identifiers for the users binding the user and the configuration
+    # stored in database. Therefore only single value attributes are allowed and the value
+    # must never be changed once attributed to a user otherwise it would break the configuration
+    # for that user. Technically, non-unique attributes like 'mail' can also be used but we don't recommend using
+    # them, we instead advise to use the attributes mentioned above (sAMAccountName and uid) to follow
+    # https://www.ietf.org/rfc/rfc2307.txt.
     username_attribute: uid
     
     # An additional dn to define the scope to all users
@@ -128,12 +134,13 @@ authentication_backend:
     # The attribute holding the name of the group
     group_name_attribute: cn
     
-    # The attribute holding the mail address of the user
+    # The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the first
+    # one returned by the LDAP server is used.
     mail_attribute: mail
     
     # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
-    # This secret can also be set using the env variables AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: password
 
   # File backend configuration.
@@ -142,7 +149,7 @@ authentication_backend:
   # which is updated when users reset their passwords.
   # Therefore, this backend is meant to be used in a dev environment
   # and not in production since it prevents Authelia to be scaled to
-  # more than one instance. The options under password_options have sane
+  # more than one instance. The options under 'password' have sane
   # defaults, and as it has security implications it is highly recommended
   # you leave the default values. Before considering changing these settings
   # please read the docs page below:
@@ -150,7 +157,7 @@ authentication_backend:
   #
   ## file:
   ##   path: ./users_database.yml
-  ##   password_options:
+  ##   password:
   ##     algorithm: argon2id
   ##     iterations: 1
   ##     key_length: 32
@@ -207,7 +214,10 @@ access_control:
       # Network based rule, if not provided any network matches.
       networks:
         - 192.168.1.0/24
-    - domain: secure.example.com
+
+    - domain:
+      - secure.example.com
+      - private.example.com
       policy: two_factor
 
     - domain: singlefactor.example.com
@@ -217,8 +227,11 @@ access_control:
     - domain: "mx2.mail.example.com"
       subject: "group:admins"
       policy: deny
+
     - domain: "*.example.com"
-      subject: "group:admins"
+      subject:
+        - "group:admins"
+        - "group:moderators"
       policy: two_factor
 
     # Rules applied to 'dev' group
@@ -260,7 +273,7 @@ session:
   name: authelia_session
 
   # The secret to encrypt the session data. This is only used with Redis.
-  # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET
+  # Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   secret: insecure_session_secret
 
   # The time in seconds before the cookie expires and session is reset.
@@ -285,7 +298,7 @@ session:
   redis:
     host: 127.0.0.1
     port: 6379
-    # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: authelia
     # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     database_index: 0
@@ -323,24 +336,28 @@ storage:
     port: 3306
     database: authelia
     username: authelia
-    # This secret can also be set using the env variables AUTHELIA_STORAGE_MYSQL_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: mypassword
 
-  # Settings to connect to MySQL server
+  # Settings to connect to PostgreSQL server
   # postgres:
   #   host: 127.0.0.1
-  #   port: 3306
+  #   port: 5432
   #   database: authelia
   #   username: authelia
-  #   # This secret can also be set using the env variables AUTHELIA_STORAGE_POSTGRES_PASSWORD
+  #   # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   #   password: mypassword
+  #   sslmode: disable
 
 # Configuration of the notification system.
 #
 # Notifications are sent to users when they require a password reset, a u2f
 # registration or a TOTP registration.
-# Use only an available configuration: filesystem, gmail
+# Use only an available configuration: filesystem, smtp.
 notifier:
+  # You can disable the notifier startup check by setting this to true.
+  disable_startup_check: false
+
   # For testing purpose, notifications can be sent in a file
   ## filesystem:
   ##   filename: /tmp/authelia/notification.txt
@@ -358,20 +375,25 @@ notifier:
   #     - use the disable_verify_cert boolean value to disable the validation (prefer the trusted_cert option as it's more secure)
   smtp:
     username: test
-    # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: password
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com
-    ## disable_require_tls: false
-    ## disable_verify_cert: false
-    ## trusted_cert: ""
+    # Subject configuration of the emails sent.
+    # {title} is replaced by the text from the notifier
+    subject: "[Authelia] {title}"
+    # This address is used during the startup check to verify the email configuration is correct. It's not important what it is except if your email server only allows local delivery.
+    startup_check_address: test@authelia.com
+    trusted_cert: ""
+    disable_require_tls: false
+    disable_verify_cert: false
 
   # Sending an email using a Gmail account is as simple as the next section.
   # You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
   ## smtp:
   ##   username: myaccount@gmail.com
-  ##   # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
+  ##   # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   ##   password: yourapppassword
   ##   sender: admin@example.com
   ##   host: smtp.gmail.com

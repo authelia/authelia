@@ -106,9 +106,7 @@ var SuitesTestCmd = &cobra.Command{
 
 func listSuites() []string {
 	suiteNames := make([]string, 0)
-	for _, k := range suites.GlobalRegistry.Suites() {
-		suiteNames = append(suiteNames, k)
-	}
+	suiteNames = append(suiteNames, suites.GlobalRegistry.Suites()...)
 	sort.Strings(suiteNames)
 	return suiteNames
 }
@@ -174,9 +172,9 @@ func setupSuite(suiteName string) error {
 
 	if errSetup := runSuiteSetupTeardown("setup", suiteName); errSetup != nil || interrupted {
 		if errSetup == utils.ErrTimeoutReached {
-			runOnSetupTimeout(suiteName)
+			runOnSetupTimeout(suiteName) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 		}
-		teardownSuite(suiteName)
+		teardownSuite(suiteName) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 		return errSetup
 	}
 

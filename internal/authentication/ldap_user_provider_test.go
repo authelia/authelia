@@ -149,7 +149,7 @@ func TestShouldEscapeUserInput(t *testing.T) {
 		Search(NewSearchRequestMatcher("(|(uid=john\\=abc)(mail=john\\=abc))")).
 		Return(&ldap.SearchResult{}, nil)
 
-	ldapClient.getUserProfile(mockConn, "john=abc")
+	ldapClient.getUserProfile(mockConn, "john=abc") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
@@ -174,13 +174,13 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 		Search(NewSearchRequestMatcher("(&(uid=john)(&(objectCategory=person)(objectClass=user)))")).
 		Return(&ldap.SearchResult{}, nil)
 
-	ldapClient.getUserProfile(mockConn, "john")
+	ldapClient.getUserProfile(mockConn, "john") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 func createSearchResultWithAttributes(attributes ...*ldap.EntryAttribute) *ldap.SearchResult {
 	return &ldap.SearchResult{
 		Entries: []*ldap.Entry{
-			&ldap.Entry{Attributes: attributes},
+			{Attributes: attributes},
 		},
 	}
 }
@@ -227,14 +227,14 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
-				&ldap.Entry{
+				{
 					DN: "uid=test,dc=example,dc=com",
 					Attributes: []*ldap.EntryAttribute{
-						&ldap.EntryAttribute{
+						{
 							Name:   "mail",
 							Values: []string{"test@example.com"},
 						},
-						&ldap.EntryAttribute{
+						{
 							Name:   "uid",
 							Values: []string{"john"},
 						},
@@ -288,10 +288,10 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
-				&ldap.Entry{
+				{
 					DN: "uid=test,dc=example,dc=com",
 					Attributes: []*ldap.EntryAttribute{
-						&ldap.EntryAttribute{
+						{
 							Name:   "uid",
 							Values: []string{"john"},
 						},
@@ -346,14 +346,14 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
-				&ldap.Entry{
+				{
 					DN: "uid=test,dc=example,dc=com",
 					Attributes: []*ldap.EntryAttribute{
-						&ldap.EntryAttribute{
+						{
 							Name:   "mail",
 							Values: []string{"test@example.com"},
 						},
-						&ldap.EntryAttribute{
+						{
 							Name:   "uid",
 							Values: []string{"John"},
 						},

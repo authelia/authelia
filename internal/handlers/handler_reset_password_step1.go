@@ -35,7 +35,6 @@ func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identi
 // ResetPasswordIdentityStart the handler for initiating the identity validation for resetting a password.
 // We need to ensure the attacker cannot perform user enumeration by always replying with 200 whatever what happens in backend.
 var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
-	MailSubject:           "[Authelia] Reset your password",
 	MailTitle:             "Reset your password",
 	MailButtonContent:     "Reset",
 	TargetEndpoint:        "/reset-password/step2",
@@ -47,7 +46,7 @@ func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) 
 	userSession := ctx.GetSession()
 	// TODO(c.michaud): use JWT tokens to expire the request in only few seconds for better security.
 	userSession.PasswordResetUsername = &username
-	ctx.SaveSession(userSession)
+	ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	ctx.ReplyOK()
 }

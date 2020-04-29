@@ -17,6 +17,7 @@ services:
       - '--log=true'
       - '--log.level=DEBUG'
       - '--log.filepath=/var/log/traefik.log'
+      - '--serversTransport.insecureSkipVerify=true'
     networks:
       authelianet:
         # Set the IP to be able to query on port 8080

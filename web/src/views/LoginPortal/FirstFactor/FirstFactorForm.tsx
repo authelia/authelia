@@ -96,7 +96,14 @@ export default function (props: Props) {
                         onFocus={() => setUsernameError(false)}
                         onKeyPress={(ev) => {
                             if (ev.key === 'Enter') {
-                                passwordRef.current.focus();
+                                if (!username.length) {
+                                    setUsernameError(true)
+                                } else if (username.length && password.length) {
+                                    handleSignIn();
+                                } else {
+                                    setUsernameError(false)
+                                    passwordRef.current.focus();
+                                }
                             }
                         }} />
                 </Grid>
@@ -117,6 +124,11 @@ export default function (props: Props) {
                         type="password"
                         onKeyPress={(ev) => {
                             if (ev.key === 'Enter') {
+                                if (!username.length) {
+                                    usernameRef.current.focus();
+                                } else if (!password.length) {
+                                    passwordRef.current.focus();
+                                }
                                 handleSignIn();
                                 ev.preventDefault();
                             }
@@ -134,6 +146,16 @@ export default function (props: Props) {
                                         disabled={disabled}
                                         checked={rememberMe}
                                         onChange={handleRememberMeChange}
+                                        onKeyPress={(ev) => {
+                                            if (ev.key === 'Enter') {
+                                                if (!username.length) {
+                                                    usernameRef.current.focus();
+                                                } else if (!password.length) {
+                                                    passwordRef.current.focus();
+                                                }
+                                                handleSignIn();
+                                            }
+                                        }}
                                         value="rememberMe"
                                         color="primary"/>
                                 }

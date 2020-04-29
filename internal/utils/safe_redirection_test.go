@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func isURLSafe(requestURI string, domain string) bool {
+func isURLSafe(requestURI string, domain string) bool { //nolint:unparam
 	url, _ := url.ParseRequestURI(requestURI)
 	return IsRedirectionSafe(*url, domain)
 }

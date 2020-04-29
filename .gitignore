@@ -42,3 +42,5 @@ Configuration.schema.json
 .authelia-interrupt
 
 qemu-*-static
+
+public_html.gen.go

@@ -16,7 +16,6 @@ var u2fConfig = &u2f.Config{
 
 // SecondFactorU2FIdentityStart the handler for initiating the identity validation.
 var SecondFactorU2FIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
-	MailSubject:           "[Authelia] Register your key",
 	MailTitle:             "Register your key",
 	MailButtonContent:     "Register",
 	TargetEndpoint:        "/security-key/register",
@@ -56,7 +55,7 @@ func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string
 		return
 	}
 
-	ctx.SetJSONBody(u2f.NewWebRegisterRequest(challenge, []u2f.Registration{}))
+	ctx.SetJSONBody(u2f.NewWebRegisterRequest(challenge, []u2f.Registration{})) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
 // SecondFactorU2FIdentityFinish the handler for finishing the identity validation

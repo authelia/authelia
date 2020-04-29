@@ -62,6 +62,7 @@ func publicKey(priv interface{}) interface{} {
 	}
 }
 
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
 func generateSelfSignedCertificate(cmd *cobra.Command, args []string) {
 	// implementation retrieved from https://golang.org/src/crypto/tls/generate_cert.go
 	var priv interface{}
@@ -170,11 +171,13 @@ func generateSelfSignedCertificate(cmd *cobra.Command, args []string) {
 	log.Printf("wrote %s\n", keyPath)
 }
 
+// CertificatesCmd certificate helper command.
 var CertificatesCmd = &cobra.Command{
 	Use:   "certificates",
 	Short: "Commands related to certificate generation",
 }
 
+// CertificatesGenerateCmd certificate generation command.
 var CertificatesGenerateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate a self-signed certificate",

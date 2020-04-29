@@ -28,35 +28,35 @@ type CobraCommands = []*cobra.Command
 
 // Commands is the list of commands of authelia-scripts
 var Commands = []AutheliaCommandDefinition{
-	AutheliaCommandDefinition{
+	{
 		Name:  "bootstrap",
 		Short: "Prepare environment for development and testing.",
 		Long: `Prepare environment for development and testing. This command prepares docker
 		images and download tools like Kind for Kubernetes testing.`,
 		Func: Bootstrap,
 	},
-	AutheliaCommandDefinition{
+	{
 		Name:  "build",
 		Short: "Build Authelia binary and static assets",
 		Func:  Build,
 	},
-	AutheliaCommandDefinition{
+	{
 		Name:  "clean",
 		Short: "Clean build artifacts",
 		Func:  Clean,
 	},
-	AutheliaCommandDefinition{
+	{
 		Name:        "docker",
 		Short:       "Commands related to building and publishing docker image",
 		SubCommands: CobraCommands{DockerBuildCmd, DockerPushCmd, DockerManifestCmd},
 	},
-	AutheliaCommandDefinition{
+	{
 		Name:  "serve [config]",
 		Short: "Serve compiled version of Authelia",
 		Func:  ServeCmd,
 		Args:  cobra.MinimumNArgs(1),
 	},
-	AutheliaCommandDefinition{
+	{
 		Name:  "suites",
 		Short: "Compute hash of a password for creating a file-based users database",
 		SubCommands: CobraCommands{
@@ -66,12 +66,12 @@ var Commands = []AutheliaCommandDefinition{
 			SuitesTeardownCmd,
 		},
 	},
-	AutheliaCommandDefinition{
+	{
 		Name:  "ci",
 		Short: "Run continuous integration script",
 		Func:  RunCI,
 	},
-	AutheliaCommandDefinition{
+	{
 		Name:  "unittest",
 		Short: "Run unit tests",
 		Func:  RunUnitTest,
@@ -130,7 +130,7 @@ func main() {
 
 		cobraCommands = append(cobraCommands, command)
 	}
-	cobraCommands = append(cobraCommands, commands.HashPasswordCmd, commands.MigrateCmd)
+	cobraCommands = append(cobraCommands, commands.HashPasswordCmd)
 
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Set the log level for the command")
 	rootCmd.AddCommand(cobraCommands...)

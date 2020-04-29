@@ -3,6 +3,8 @@
 ###############################################################
 
 port: 9091
+tls_cert: /var/lib/authelia/ssl/cert.pem
+tls_key: /var/lib/authelia/ssl/key.pem
 
 log_level: debug
 
@@ -38,8 +40,5 @@ access_control:
       policy: bypass
 
 notifier:
-  smtp:
-    host: smtp
-    port: 1025
-    sender: admin@example.com
-    disable_require_tls: true
+  filesystem:
+    filename: /tmp/notifier.html

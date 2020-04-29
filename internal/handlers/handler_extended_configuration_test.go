@@ -67,17 +67,17 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisab
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
 		DefaultPolicy: "bypass",
 		Rules: []schema.ACLRule{
-			schema.ACLRule{
-				Domain: "example.com",
-				Policy: "deny",
+			{
+				Domains: []string{"example.com"},
+				Policy:  "deny",
 			},
-			schema.ACLRule{
-				Domain: "abc.example.com",
-				Policy: "single_factor",
+			{
+				Domains: []string{"abc.example.com"},
+				Policy:  "single_factor",
 			},
-			schema.ACLRule{
-				Domain: "def.example.com",
-				Policy: "bypass",
+			{
+				Domains: []string{"def.example.com"},
+				Policy:  "bypass",
 			},
 		},
 	})
@@ -98,17 +98,17 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
 		DefaultPolicy: "two_factor",
 		Rules: []schema.ACLRule{
-			schema.ACLRule{
-				Domain: "example.com",
-				Policy: "deny",
+			{
+				Domains: []string{"example.com"},
+				Policy:  "deny",
 			},
-			schema.ACLRule{
-				Domain: "abc.example.com",
-				Policy: "single_factor",
+			{
+				Domains: []string{"abc.example.com"},
+				Policy:  "single_factor",
 			},
-			schema.ACLRule{
-				Domain: "def.example.com",
-				Policy: "bypass",
+			{
+				Domains: []string{"def.example.com"},
+				Policy:  "bypass",
 			},
 		},
 	})
@@ -129,17 +129,17 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
 		DefaultPolicy: "bypass",
 		Rules: []schema.ACLRule{
-			schema.ACLRule{
-				Domain: "example.com",
-				Policy: "deny",
+			{
+				Domains: []string{"example.com"},
+				Policy:  "deny",
 			},
-			schema.ACLRule{
-				Domain: "abc.example.com",
-				Policy: "two_factor",
+			{
+				Domains: []string{"abc.example.com"},
+				Policy:  "two_factor",
 			},
-			schema.ACLRule{
-				Domain: "def.example.com",
-				Policy: "bypass",
+			{
+				Domains: []string{"def.example.com"},
+				Policy:  "bypass",
 			},
 		},
 	})

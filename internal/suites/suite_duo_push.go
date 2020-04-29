@@ -23,10 +23,10 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaBackendIsReady(dockerEnvironment)
+		return waitUntilAutheliaIsReady(dockerEnvironment)
 	}
 
-	onSetupTimeout := func() error {
+	displayAutheliaLogs := func() error {
 		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
 		if err != nil {
 			return err
@@ -48,7 +48,8 @@ func init() {
 	GlobalRegistry.Register(duoPushSuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
-		OnSetupTimeout:  onSetupTimeout,
+		OnSetupTimeout:  displayAutheliaLogs,
+		OnError:         displayAutheliaLogs,
 		TestTimeout:     2 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,

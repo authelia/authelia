@@ -4,3 +4,4 @@ services:
     volumes:
       - './MySQL/configuration.yml:/etc/authelia/configuration.yml:ro'
       - './MySQL/users.yml:/var/lib/authelia/users.yml'
+      - './common/ssl:/var/lib/authelia/ssl:ro'

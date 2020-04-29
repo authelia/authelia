@@ -3,6 +3,8 @@
 ###############################################################
 
 port: 9091
+tls_cert: /var/lib/authelia/ssl/cert.pem
+tls_key: /var/lib/authelia/ssl/key.pem
 
 log_level: debug
 
@@ -64,7 +66,7 @@ access_control:
 regulation:
   max_retries: 3
   find_time: 3
-  ban_time: 5
+  ban_time: 10
 
 notifier:
   smtp:

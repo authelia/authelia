@@ -25,6 +25,7 @@ import (
 
 var configPathFlag string
 
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
 func startServer() {
 	if configPathFlag == "" {
 		log.Fatal(errors.New("No config file path provided"))
@@ -47,7 +48,6 @@ func startServer() {
 	case "info":
 		logging.Logger().Info("Logging severity set to info")
 		logging.SetLevel(logrus.InfoLevel)
-		break
 	case "debug":
 		logging.Logger().Info("Logging severity set to debug")
 		logging.SetLevel(logrus.DebugLevel)
@@ -89,6 +89,12 @@ func startServer() {
 	} else {
 		log.Fatalf("Unrecognized notifier")
 	}
+	if !config.Notifier.DisableStartupCheck {
+		_, err := notifier.StartupCheck()
+		if err != nil {
+			log.Fatalf("Error during notifier startup check: %s", err)
+		}
+	}
 
 	clock := utils.RealClock{}
 	authorizer := authorization.NewAuthorizer(config.AccessControl)
@@ -124,8 +130,9 @@ func main() {
 		},
 	}
 
-	rootCmd.AddCommand(versionCmd, commands.MigrateCmd, commands.HashPasswordCmd)
-	rootCmd.AddCommand(commands.CertificatesCmd)
+	rootCmd.AddCommand(versionCmd, commands.HashPasswordCmd,
+		commands.ValidateConfigCmd, commands.CertificatesCmd)
+
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}

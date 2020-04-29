@@ -1,0 +1,8 @@
+runner:
+  golangci:
+    cmd: golangci-lint run
+    errorformat:
+      - '%E%f:%l:%c: %m'
+      - '%E%f:%l: %m'
+      - '%C%.%#'
+    level: error

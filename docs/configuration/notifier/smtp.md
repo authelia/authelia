@@ -12,7 +12,19 @@ nav_order: 2
 It can be configured as described below.
 
 ```yaml
+# Configuration of the notification system.
+#
+# Notifications are sent to users when they require a password reset, a u2f
+# registration or a TOTP registration.
+# Use only an available configuration: filesystem, smtp.
 notifier:
+  # You can disable the notifier startup check by setting this to true.
+  disable_startup_check: false
+
+  # For testing purpose, notifications can be sent in a file.
+  ## filesystem:
+  ##   filename: /tmp/authelia/notification.txt
+
   # Use a SMTP server for sending notifications. Authelia uses PLAIN or LOGIN method to authenticate.
   # [Security] By default Authelia will:
   #   - force all SMTP connections over TLS including unauthenticated connections
@@ -26,14 +38,19 @@ notifier:
   #     - use the disable_verify_cert boolean value to disable the validation (prefer the trusted_cert option as it's more secure)
   smtp:
     username: test
-    # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: password
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com
+    # Subject configuration of the emails sent.
+    # {title} is replaced by the text from the notifier
+    subject: "[Authelia] {title}"
+    # This address is used during the startup check to verify the email configuration is correct. It's not important what it is except if your email server only allows local delivery.
+    ## startup_check_address: test@authelia.com
+    ## trusted_cert: ""
     ## disable_require_tls: false
     ## disable_verify_cert: false
-    ## trusted_cert: ""
 ```
 
 ## Using Gmail
@@ -43,11 +60,15 @@ described [here](https://support.google.com/accounts/answer/185833?hl=en)
 
 ```yaml
 notifier:
-    smtp:
-        username: myaccount@gmail.com
-        # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
-        password: yourapppassword
-        sender: admin@example.com
-        host: smtp.gmail.com
-        port: 587
+  smtp:
+    username: myaccount@gmail.com
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    password: yourapppassword
+    sender: admin@example.com
+    host: smtp.gmail.com
+    port: 587
 ```
+
+## Loading a password from a secret instead of inside the configuration
+
+Password can also be defined using a [secret](../secrets.md).

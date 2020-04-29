@@ -35,7 +35,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
-		ctx.Providers.Regulator.Mark(bodyJSON.Username, false)
+		ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 		ctx.Error(fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 		return
@@ -43,7 +43,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 
 	if !userPasswordOk {
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
-		ctx.Providers.Regulator.Mark(bodyJSON.Username, false)
+		ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 		ctx.ReplyError(fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
 		return

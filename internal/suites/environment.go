@@ -2,6 +2,7 @@ package suites
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+//nolint:unparam
 func waitUntilServiceLogDetected(
 	interval time.Duration,
 	timeout time.Duration,
@@ -61,8 +63,10 @@ func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
 		return err
 	}
 
-	if err := waitUntilAutheliaFrontendIsReady(dockerEnvironment); err != nil {
-		return err
+	if os.Getenv("CI") != "true" {
+		if err := waitUntilAutheliaFrontendIsReady(dockerEnvironment); err != nil {
+			return err
+		}
 	}
 	log.Info("Authelia is now ready!")
 	return nil
