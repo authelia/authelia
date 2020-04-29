@@ -115,8 +115,11 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	router.NotFound = ServeIndex(embeddedAssets)
 
 	server := &fasthttp.Server{
-		Handler: middlewares.LogRequestMiddleware(router.Handler),
+		Handler:        middlewares.LogRequestMiddleware(router.Handler),
+		ErrorHandler:   autheliaFastHTTPErrorHandler,
+		ReadBufferSize: configuration.ReadBufferSize,
 	}
+
 	addrPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
 
 	if configuration.TLSCert != "" && configuration.TLSKey != "" {

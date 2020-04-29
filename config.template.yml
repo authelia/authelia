@@ -8,6 +8,9 @@ port: 9091
 # tls_key: /var/lib/authelia/ssl/key.pem
 # tls_cert: /var/lib/authelia/ssl/cert.pem
 
+# Read buffer size configures the http server's equivalent option (in bytes)
+read_buffer_size: 4096
+
 # Level of verbosity for logs: info, debug, trace
 log_level: debug
 ## File path where the logs will be written. If not set logs are written to stdout.
