@@ -8,9 +8,10 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 )
 
-func autheliaFastHTTPErrorHandler(ctx *fasthttp.RequestCtx, err error) {
+// Replacement for the default error handler in fasthttp.
+func autheliaErrorHandler(ctx *fasthttp.RequestCtx, err error) {
 	if _, ok := err.(*fasthttp.ErrSmallBuffer); ok {
-		logging.Logger().Tracef("Request was too large (header size: %d, body size: %d) to handle from client %s: %s", ctx.Request.Header.Len(), len(ctx.Request.Body()), ctx.RemoteIP().String(), ctx.RequestURI())
+		logging.Logger().Tracef("Request was too large to handle from client %s: %s", ctx.RemoteIP().String(), ctx.RequestURI())
 		ctx.Error("Too big request header", fasthttp.StatusRequestHeaderFieldsTooLarge)
 	} else if netErr, ok := err.(*net.OpError); ok && netErr.Timeout() {
 		logging.Logger().Tracef("Request timeout occurred while handling from client %s: %s", ctx.RemoteIP().String(), ctx.RequestURI())

@@ -9,7 +9,6 @@ import (
 
 var defaultPort = 8080
 var defaultLogLevel = "info"
-var defaultReadBufferSize = 4096
 
 // ValidateConfiguration and adapt the configuration read from file.
 func ValidateConfiguration(configuration *schema.Configuration, validator *schema.StructValidator) { //nolint:gocyclo // This function is naturally going to have lots of if/else statements. However the flow is very clean.
@@ -25,12 +24,6 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		validator.Push(fmt.Errorf("No TLS certificate provided, please check the \"tls_cert\" which has been configured"))
 	} else if configuration.TLSKey == "" && configuration.TLSCert != "" {
 		validator.Push(fmt.Errorf("No TLS key provided, please check the \"tls_key\" which has been configured"))
-	}
-
-	if configuration.ReadBufferSize == 0 {
-		configuration.ReadBufferSize = defaultReadBufferSize
-	} else if configuration.ReadBufferSize < 0 {
-		validator.Push(fmt.Errorf("read buffer size must be above 0"))
 	}
 
 	if configuration.LogLevel == "" {
@@ -49,7 +42,7 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	}
 
 	if configuration.TOTP == nil {
-		configuration.TOTP = &schema.TOTPConfiguration{}
+		configuration.TOTP = &schema.DefaultTOTPConfiguration
 	}
 	ValidateTOTP(configuration.TOTP, validator)
 
@@ -62,9 +55,11 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	ValidateSession(&configuration.Session, validator)
 
 	if configuration.Regulation == nil {
-		configuration.Regulation = &schema.RegulationConfiguration{}
+		configuration.Regulation = &schema.DefaultRegulationConfiguration
 	}
 	ValidateRegulation(configuration.Regulation, validator)
+
+	ValidateServer(&configuration.Server, validator)
 
 	ValidateStorage(configuration.Storage, validator)
 

@@ -6,13 +6,13 @@ type Configuration struct {
 	Port                      int    `mapstructure:"port"`
 	TLSCert                   string `mapstructure:"tls_cert"`
 	TLSKey                    string `mapstructure:"tls_key"`
-	ReadBufferSize            int    `mapstructure:"read_buffer_size"`
 	LogLevel                  string `mapstructure:"log_level"`
 	LogFilePath               string `mapstructure:"log_file_path"`
 	JWTSecret                 string `mapstructure:"jwt_secret"`
 	DefaultRedirectionURL     string `mapstructure:"default_redirection_url"`
 	GoogleAnalyticsTrackingID string `mapstructure:"google_analytics"`
 
+	// TODO: Consider refactoring the following pointers as they don't seem to need to be pointers: TOTP, Notifier, Regulation
 	AuthenticationBackend AuthenticationBackendConfiguration `mapstructure:"authentication_backend"`
 	Session               SessionConfiguration               `mapstructure:"session"`
 	TOTP                  *TOTPConfiguration                 `mapstructure:"totp"`
@@ -21,4 +21,5 @@ type Configuration struct {
 	Regulation            *RegulationConfiguration           `mapstructure:"regulation"`
 	Storage               StorageConfiguration               `mapstructure:"storage"`
 	Notifier              *NotifierConfiguration             `mapstructure:"notifier"`
+	Server                ServerConfiguration                `mapstructure:"server"`
 }

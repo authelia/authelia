@@ -31,15 +31,6 @@ following configuration options:
 tls_key: /var/lib/authelia/ssl/key.pem
 tls_cert: /var/lib/authelia/ssl/cert.pem
 ```
-
-## Read Buffer Size
-
-`optional: true`
-
-Defines the read buffer size in bytes used by the fasthttp server.
-```yaml
-read_buffer_size: 4096
-```
     
 ## Log
 

@@ -4,7 +4,6 @@ var validKeys = []string{
 	// Root Keys.
 	"host",
 	"port",
-	"read_buffer_size",
 	"log_level",
 	"log_file_path",
 	"default_redirection_url",
@@ -12,6 +11,10 @@ var validKeys = []string{
 	"tls_key",
 	"tls_cert",
 	"google_analytics",
+
+	// Server Keys
+	"server.read_buffer_size",
+	"server.write_buffer_size",
 
 	// TOTP Keys
 	"totp.issuer",
@@ -126,8 +129,9 @@ var validKeys = []string{
 }
 
 var specificErrorKeys = map[string]string{
-	"logs_file_path": "config key replaced: logs_file is now log_file",
-	"logs_level":     "config key replaced: logs_level is now log_level",
+	"logs_file_path":   "config key replaced: logs_file is now log_file",
+	"logs_level":       "config key replaced: logs_level is now log_level",
+	"read_buffer_size": "config key moved: read_buffer_size is now under a new block called server, making it server.read_buffer_size",
 	"authentication_backend.file.password_options.algorithm":   "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
 	"authentication_backend.file.password_options.iterations":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
 	"authentication_backend.file.password_options.key_length":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
