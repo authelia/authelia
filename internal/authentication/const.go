@@ -44,5 +44,5 @@ const (
 // HashingPossibleSaltCharacters represents valid hashing runes.
 var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")
 
-// UserNotFoundMessage indicates the user wasn't found in the authentication backend
+// UserNotFoundMessage indicates the user wasn't found in the authentication backend.
 const UserNotFoundMessage = "user not found"

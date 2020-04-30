@@ -31,7 +31,7 @@ func groupRefreshSettings(configuration schema.LDAPAuthenticationBackendConfigur
 	if configuration.RefreshInterval == "always" {
 		return true, 0
 	}
-	// Check the duration string parses in validator
+	// Check the duration string parses in validator.
 	refreshInterval, _ := utils.ParseDurationString(configuration.RefreshInterval)
 	return true, refreshInterval
 }
