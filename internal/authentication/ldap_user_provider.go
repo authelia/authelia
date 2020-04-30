@@ -296,6 +296,7 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 	return nil
 }
 
+// GetRefreshSettings returns refresh settings for the provider.
 func (p *LDAPUserProvider) GetRefreshSettings() (enabled bool, interval time.Duration) {
 	return p.refresh, p.refreshInterval
 }

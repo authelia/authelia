@@ -96,7 +96,7 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 		}
 		return ok, nil
 	}
-	return false, fmt.Errorf("User '%s' does not exist in database", username)
+	return false, fmt.Errorf(UserNotFoundMessage)
 }
 
 // GetDetails retrieve the groups a user belongs to.
@@ -149,6 +149,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	return err
 }
 
+// GetRefreshSettings returns refresh settings for the provider, in the case of the FileProvider it's disabled.
 func (p *FileUserProvider) GetRefreshSettings() (enabled bool, interval time.Duration) {
 	return false, 0
 }

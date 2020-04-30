@@ -75,7 +75,7 @@ func TestShouldCheckUserPasswordOfUnexistingUser(t *testing.T) {
 		provider := NewFileUserProvider(&config)
 		_, err := provider.CheckUserPassword("fake", "password")
 		assert.Error(t, err)
-		assert.Equal(t, "User 'fake' does not exist in database", err.Error())
+		assert.Equal(t, UserNotFoundMessage, err.Error())
 	})
 }
 
