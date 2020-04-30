@@ -83,11 +83,33 @@ authentication_backend:
     
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: password
+
+    # The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
+    # See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+    # To disable this feature set it to 'disabled'.
+    # To force update on every verification you can set this to 0. But it is not recommended.
+    refresh_interval: 5m
 ```
 
 The user must have an email address in order for Authelia to perform
 identity verification when a user attempts to reset their password or
 register a second factor device.
+
+
+## Refresh Interval
+
+This setting takes a [duration notation](../index.md#duration-notation-format) that sets the frequency
+of how often Authelia contacts the backend to verify the user still exists and that the groups stored 
+in the session are up to date. This allows us to destroy sessions when the user no longer matches the
+user_filter, or deny access to resources as they are removed from groups.
+
+In addition to the duration notation, you may provide the value `disabled` or `disable` which is not
+recommended. This completely prevents Authelia from refreshing this information, and it would only be
+refreshed when the user session gets destroyed by other means like inactivity.
+
+This value can be any value including 0, setting it to 0 would automatically refresh the session on
+every single request. This means Authelia will have to contact the LDAP backend every time an element
+on a page loads which could be substantially costly. 
 
 ## Important notes
 

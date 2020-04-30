@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
@@ -199,7 +200,6 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	}
 
 	err = verifySessionIsUpToDate(ctx, targetURL, userSession)
-	ctx.Logger.Debugf("User groups for %s after refresh are: %s", username, strings.Join(groups, ", "))
 	if err != nil && err.Error() == authentication.UserNotFoundMessage {
 		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 		if err != nil {
@@ -250,17 +250,44 @@ func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, u
 	refresh, interval := ctx.Providers.UserProvider.GetRefreshSettings()
 
 	ctx.Logger.Tracef("Checking if we need to update session")
-	if refresh && userSession.Username != "" && userSession.RefreshTTL.Before(ctx.Clock.Now()) && targetURL != nil && ctx.Providers.Authorizer.URLHasGroupSubjects(*targetURL) {
+	if refresh && userSession.Username != "" && targetURL != nil && ctx.Providers.Authorizer.URLHasGroupSubjects(*targetURL) && (interval == 0 || userSession.RefreshTTL.Before(ctx.Clock.Now())) {
 		ctx.Logger.Debugf("Checking for updated groups from the authentication backend for user %s", userSession.Username)
 		details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
 		// Only update the session if we could get the new details.
 		if err != nil {
 			return err
 		}
+
+		// Check for changes before hammering session storage if the interval is 0. This is because we don't need to update the RefreshTTL.
+		// TODO: Investigate if this is faster when not using Redis and possibly skip this verification if it is.
+		if interval == 0 {
+			unchanged := true
+			for _, group := range userSession.Groups {
+				if !utils.IsStringInSlice(group, details.Groups) {
+					unchanged = false
+					break
+				}
+			}
+			if !unchanged {
+				for _, group := range details.Groups {
+					if !utils.IsStringInSlice(group, userSession.Groups) {
+						unchanged = false
+						break
+					}
+				}
+			}
+			if unchanged {
+				// Skip updating the session if nothing changed and interval is 0.
+				return nil
+			}
+		} else {
+			// Only update the RefreshTTL if interval is not 0.
+			userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
+		}
+
 		// TODO: Change to Tracef for release.
 		ctx.Logger.Debugf("Groups for user %s are as follows: groups in session: %s; groups in backend: %s", userSession.Username, strings.Join(userSession.Groups, ", "), strings.Join(details.Groups, ", "))
 		userSession.Groups = details.Groups
-		userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
 		return ctx.SaveSession(*userSession)
 	}
 	return nil
