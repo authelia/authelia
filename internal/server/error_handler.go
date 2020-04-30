@@ -17,7 +17,7 @@ func autheliaErrorHandler(ctx *fasthttp.RequestCtx, err error) {
 		logging.Logger().Tracef("Request timeout occurred while handling from client %s: %s. Response Code %d.", ctx.RemoteIP().String(), ctx.RequestURI(), fasthttp.StatusRequestTimeout)
 		ctx.Error("Request timeout", fasthttp.StatusRequestTimeout)
 	} else {
-		logging.Logger().Tracef("An unknown error occurred while handling from client %s: %s. Response Code %d.", ctx.RemoteIP().String(), ctx.RequestURI(), fasthttp.StatusBadRequest)
+		logging.Logger().Tracef("An unknown error occurred while handling a request from client %s: %s. Response Code %d.", ctx.RemoteIP().String(), ctx.RequestURI(), fasthttp.StatusBadRequest)
 		ctx.Error("Error when parsing request", fasthttp.StatusBadRequest)
 	}
 }
