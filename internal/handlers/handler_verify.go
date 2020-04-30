@@ -266,7 +266,14 @@ func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, u
 				return nil
 			}
 		} else {
-			ctx.Logger.Debugf("Updated groups detected for %s. Added: %s. Removed: %s.", userSession.Username, strings.Join(added, ", "), strings.Join(removed, ", "))
+			var delta []string
+			if len(added) != 0 {
+				delta = append(delta, fmt.Sprintf("Added: %s.", strings.Join(added, ", ")))
+			}
+			if len(removed) != 0 {
+				delta = append(delta, fmt.Sprintf("Removed: %s.", strings.Join(removed, ", ")))
+			}
+			ctx.Logger.Debugf("Updated groups detected for %s. %s", userSession.Username, strings.Join(delta, " "))
 			userSession.Groups = details.Groups
 		}
 
