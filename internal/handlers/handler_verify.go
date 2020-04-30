@@ -200,12 +200,16 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	}
 
 	err = verifySessionIsUpToDate(ctx, targetURL, userSession)
-	if err != nil && err.Error() == authentication.UserNotFoundMessage {
-		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
-		if err != nil {
-			ctx.Logger.Error(fmt.Errorf("Unable to destroy user session after provider refresh didn't find the user: %s", err))
+	if err != nil {
+		if err.Error() == authentication.UserNotFoundMessage {
+			err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
+			if err != nil {
+				ctx.Logger.Error(fmt.Errorf("Unable to destroy user session after provider refresh didn't find the user: %s", err))
+			}
+			return userSession.Username, userSession.Groups, authentication.NotAuthenticated, err
+		} else {
+			ctx.Logger.Warnf("Error occurred while attempting to update user details from LDAP: %s", err)
 		}
-		return userSession.Username, userSession.Groups, authentication.NotAuthenticated, err
 	}
 
 	return userSession.Username, userSession.Groups, userSession.AuthenticationLevel, nil

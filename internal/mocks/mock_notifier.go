@@ -38,6 +38,12 @@ func (m *MockNotifier) StartupCheck() (bool, error) {
 	return true, nil
 }
 
+// StartupCheck indicates an expected call of StartupCheck.
+func (mr *MockNotifierMockRecorder) StartupCheck() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockNotifier)(nil).StartupCheck))
+}
+
 // Send mocks base method.
 func (m *MockNotifier) Send(arg0, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
