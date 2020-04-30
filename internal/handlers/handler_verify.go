@@ -246,6 +246,7 @@ func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, use
 	return ctx.SaveSession(userSession)
 }
 
+//nolint:gocyclo // TODO: Figure out if this can be safely refactored time permitting.
 func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession) (err error) {
 	refresh, interval := ctx.Providers.UserProvider.GetRefreshSettings()
 
@@ -258,36 +259,34 @@ func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, u
 			return err
 		}
 
-		// Check for changes before hammering session storage if the interval is 0. This is because we don't need to update the RefreshTTL.
-		// TODO: Investigate if this is faster when not using Redis and possibly skip this verification if it is.
-		if interval == 0 {
-			unchanged := true
-			for _, group := range userSession.Groups {
-				if !utils.IsStringInSlice(group, details.Groups) {
-					unchanged = false
-					break
-				}
+		var added []string
+		var removed []string
+
+		for _, group := range userSession.Groups {
+			if !utils.IsStringInSlice(group, details.Groups) {
+				removed = append(removed, group)
 			}
-			if !unchanged {
-				for _, group := range details.Groups {
-					if !utils.IsStringInSlice(group, userSession.Groups) {
-						unchanged = false
-						break
-					}
-				}
+		}
+		for _, group := range details.Groups {
+			if !utils.IsStringInSlice(group, userSession.Groups) {
+				added = append(added, group)
 			}
-			if unchanged {
+		}
+
+		if len(added) == 0 && len(removed) == 0 {
+			ctx.Logger.Debugf("No updated groups detected for %s", userSession.Username)
+			if interval == 0 {
 				// Skip updating the session if nothing changed and interval is 0.
 				return nil
 			}
 		} else {
-			// Only update the RefreshTTL if interval is not 0.
-			userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
+			ctx.Logger.Debugf("Updated groups detected for %s. Added: %s. Removed: %s.", userSession.Username, strings.Join(added, ", "), strings.Join(removed, ", "))
+			userSession.Groups = details.Groups
 		}
 
-		// TODO: Change to Tracef for release.
-		ctx.Logger.Debugf("Groups for user %s are as follows: groups in session: %s; groups in backend: %s", userSession.Username, strings.Join(userSession.Groups, ", "), strings.Join(details.Groups, ", "))
-		userSession.Groups = details.Groups
+		if interval != 0 {
+			userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
+		}
 		return ctx.SaveSession(*userSession)
 	}
 	return nil
