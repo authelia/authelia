@@ -5,9 +5,8 @@
 package mocks
 
 import (
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockNotifier is a mock of Notifier interface.
@@ -35,7 +34,11 @@ func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 
 // StartupCheck mocks base method.
 func (m *MockNotifier) StartupCheck() (bool, error) {
-	return true, nil
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartupCheck")
+	ret0 := ret[0].(bool)
+	ret1 := ret[1].(error)
+	return ret0, ret1
 }
 
 // StartupCheck indicates an expected call of StartupCheck.

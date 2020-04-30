@@ -3,17 +3,17 @@ package handlers
 import (
 	"fmt"
 	"testing"
-
-	"github.com/authelia/authelia/internal/authorization"
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/mocks"
-	"github.com/authelia/authelia/internal/models"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/models"
 )
 
 type FirstFactorSuite struct {
@@ -161,6 +161,8 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 			Groups:   []string{"dev", "admins"},
 		}, nil)
 
+	s.mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
+
 	s.mock.StorageProviderMock.
 		EXPECT().
 		AppendAuthenticationLog(gomock.Any()).
@@ -200,6 +202,8 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},
 		}, nil)
+
+	s.mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
 
 	s.mock.StorageProviderMock.
 		EXPECT().
@@ -243,6 +247,8 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},
 		}, nil)
+
+	s.mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
 
 	s.mock.StorageProviderMock.
 		EXPECT().
@@ -319,6 +325,7 @@ func (s *FirstFactorRedirectionSuite) TearDownTest() {
 // Then:
 //   the user should be redirected to the default url.
 func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTargetURLProvidedAndTwoFactorDisabled() {
+	s.mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -343,6 +350,9 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 		"keepMeLoggedIn": false,
 		"targetURL": "http://notsafe.local"
 	}`)
+
+	s.mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
+
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.
@@ -362,6 +372,9 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 		"password": "hello",
 		"keepMeLoggedIn": false
 	}`)
+
+	s.mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
+
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.
@@ -391,6 +404,9 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 		"password": "hello",
 		"keepMeLoggedIn": false
 	}`)
+
+	s.mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
+
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.

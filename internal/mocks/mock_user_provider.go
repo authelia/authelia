@@ -5,10 +5,10 @@
 package mocks
 
 import (
-	reflect "reflect"
 	"time"
 
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 
 	authentication "github.com/authelia/authelia/internal/authentication"
 )
@@ -82,7 +82,11 @@ func (mr *MockUserProviderMockRecorder) UpdatePassword(arg0, arg1 interface{}) *
 
 // GetRefreshSettings mocks base method.
 func (m *MockUserProvider) GetRefreshSettings() (bool, time.Duration) {
-	return false, 0
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRefreshSettings")
+	ret0 := ret[0].(bool)
+	ret1 := ret[1].(time.Duration)
+	return ret0, ret1
 }
 
 // GetRefreshSettings indicates an expected call of GetRefreshSettings.

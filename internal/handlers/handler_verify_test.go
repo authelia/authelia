@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authelia/authelia/internal/session"
-
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,6 +16,7 @@ import (
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/session"
 )
 
 // Test getOriginalURL
@@ -94,6 +93,7 @@ func TestShouldRaiseWhenXForwardedProtoIsNotParseable(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "!:;;:,")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
+
 	_, err := getOriginalURL(mock.Ctx)
 	assert.Error(t, err)
 	assert.Equal(t, "Unable to parse URL !:;;:,://myhost.local: parse !:;;:,://myhost.local: invalid URI for request", err.Error())
@@ -106,6 +106,7 @@ func TestShouldRaiseWhenXForwardedURIIsNotParseable(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
 	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "!:;;:,")
+
 	_, err := getOriginalURL(mock.Ctx)
 	require.Error(t, err)
 	assert.Equal(t, "Unable to parse URL https://myhost.local!:;;:,: parse https://myhost.local!:;;:,: invalid port \":,\" after host", err.Error())
@@ -451,6 +452,8 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 
 			mock.Ctx.Request.Header.Set("X-Original-URL", testCase.URL)
 
+			mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
+
 			VerifyGet(mock.Ctx)
 			expStatus, actualStatus := testCase.ExpectedStatusCode, mock.Ctx.Response.StatusCode()
 			assert.Equal(t, expStatus, actualStatus, "URL=%s -> AuthLevel=%d, StatusCode=%d != ExpectedStatusCode=%d",
@@ -543,6 +546,8 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
+	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
+
 	VerifyGet(mock.Ctx)
 
 	// The session has been destroyed
@@ -572,6 +577,8 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+
+	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
 
 	VerifyGet(mock.Ctx)
 
@@ -639,6 +646,8 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://deny.example.com")
 
+	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
+
 	VerifyGet(mock.Ctx)
 
 	// The resource if forbidden
@@ -661,6 +670,8 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.SetHost("mydomain.com")
 	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.mydomain.com")
+
+	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
 
 	VerifyGet(mock.Ctx)
 
