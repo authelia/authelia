@@ -233,7 +233,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval
 	suite.configuration.Ldap.RefreshInterval = "blah"
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	require.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "LDAP `refresh_interval` is configured to 'blah' but it must be either a duration notation or one of 'disable', or 'disabled'. Error from parser: Could not convert the input string of blah into a duration")
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "LDAP `refresh_interval` is configured to 'blah' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: Could not convert the input string of blah into a duration")
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultGroupNameAttribute() {

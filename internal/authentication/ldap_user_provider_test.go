@@ -126,6 +126,22 @@ func TestShouldDisableRefresh(t *testing.T) {
 	assert.Equal(t, time.Duration(0), refreshInterval)
 }
 
+func TestShouldSetRefreshToAlways(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	ldap := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
+		URL:             "ldaps://127.0.0.1:389",
+		GroupsFilter:    "(|(member={dn})(uid={username})(uid={input}))",
+		RefreshInterval: "always",
+	}, mockFactory)
+
+	refresh, refreshInterval := ldap.GetRefreshSettings()
+	assert.Equal(t, true, refresh)
+	assert.Equal(t, time.Duration(0), refreshInterval)
+}
+
 func TestShouldSetRefreshToTenMinutes(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

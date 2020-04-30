@@ -159,8 +159,8 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		configuration.RefreshInterval = schema.DefaultLDAPAuthenticationBackendConfiguration.RefreshInterval
 	} else {
 		_, err := utils.ParseDurationString(configuration.RefreshInterval)
-		if err != nil && configuration.RefreshInterval != "disable" && configuration.RefreshInterval != "disabled" {
-			validator.Push(fmt.Errorf("LDAP `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'disabled'. Error from parser: %s", configuration.RefreshInterval, err))
+		if err != nil && configuration.RefreshInterval != "disable" && configuration.RefreshInterval != "always" {
+			validator.Push(fmt.Errorf("LDAP `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
 		}
 	}
 }

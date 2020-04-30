@@ -151,9 +151,11 @@ authentication_backend:
     password: password
 
     # The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
-    # See: https://docs.authelia.com/configuration/index.html#duration-notation-format
-    # To disable this feature set it to 'disabled'.
-    # To force update on every verification you can set this to 0. But it is not recommended.
+    # To disable this feature set it to 'disable', this will slightly reduce security.
+    # To force update on every request you can set this to '0' or 'always', this will increase processor demand.
+    # See the below documentation for more information.
+    # Duration Notation docs:  https://docs.authelia.com/configuration/index.html#duration-notation-format
+    # Refresh Interval docs: https://docs.authelia.com/configuration/authentication/ldap.html#refresh-interval
     refresh_interval: 5m
 
   # File backend configuration.
