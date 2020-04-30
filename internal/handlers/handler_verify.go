@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/valyala/fasthttp"
 
@@ -239,7 +238,7 @@ func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, use
 func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession session.UserSession) error {
 	refresh, interval := ctx.Providers.UserProvider.GetRefreshSettings()
 
-	if refresh && userSession.Username != "" && userSession.RefreshTTL.Before(time.Now()) && targetURL != nil && ctx.Providers.Authorizer.URLHasGroupSubjects(*targetURL) {
+	if refresh && userSession.Username != "" && userSession.RefreshTTL.Before(ctx.Clock.Now()) && targetURL != nil && ctx.Providers.Authorizer.URLHasGroupSubjects(*targetURL) {
 		details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
 		// Only update the session if we could get the new details.
 		if err != nil {
