@@ -3,12 +3,12 @@ package server
 import (
 	"fmt"
 	"os"
-	"path"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/expvarhandler"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"github.com/valyala/fasthttp/pprofhandler"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -21,16 +21,16 @@ import (
 // StartServer start Authelia server with the given configuration and providers.
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-	publicDir := os.Getenv("PUBLIC_DIR")
-	if publicDir == "" {
-		publicDir = "./public_html"
+	embeddedAssets := "/public_html"
+	// TODO: Remove in v4.18.0.
+	if os.Getenv("PUBLIC_DIR") != "" {
+		logging.Logger().Warn("PUBLIC_DIR environment variable has been deprecated, assets are now embedded.")
 	}
-	logging.Logger().Infof("Selected public_html directory is %s", publicDir)
 
 	router := router.New()
 
-	router.GET("/", ServeIndex(publicDir))
-	router.ServeFiles("/static/{filepath:*}", publicDir+"/static")
+	router.GET("/", ServeIndex(embeddedAssets))
+	router.GET("/static/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
 
 	router.GET("/api/state", autheliaMiddleware(handlers.StateGet))
 
@@ -44,7 +44,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	router.POST("/api/firstfactor", autheliaMiddleware(handlers.FirstFactorPost))
 	router.POST("/api/logout", autheliaMiddleware(handlers.LogoutPost))
 
-	// only register endpoints if forgot password is not disabled
+	// Only register endpoints if forgot password is not disabled.
 	if !configuration.AuthenticationBackend.DisableResetPassword {
 		// Password reset related endpoints.
 		router.POST("/api/reset-password/identity/start", autheliaMiddleware(
@@ -55,13 +55,13 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 			handlers.ResetPasswordPost))
 	}
 
-	// Information about the user
+	// Information about the user.
 	router.GET("/api/user/info", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.UserInfoGet)))
 	router.POST("/api/user/info/2fa_method", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
 
-	// TOTP related endpoints
+	// TOTP related endpoints.
 	router.POST("/api/secondfactor/totp/identity/start", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityStart)))
 	router.POST("/api/secondfactor/totp/identity/finish", autheliaMiddleware(
@@ -72,7 +72,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 			Skew:   uint(*configuration.TOTP.Skew),
 		}))))
 
-	// U2F related endpoints
+	// U2F related endpoints.
 	router.POST("/api/secondfactor/u2f/identity/start", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FIdentityStart)))
 	router.POST("/api/secondfactor/u2f/identity/finish", autheliaMiddleware(
@@ -87,7 +87,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	router.POST("/api/secondfactor/u2f/sign", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignPost(&handlers.U2FVerifierImpl{}))))
 
-	// Configure DUO api endpoint only if configuration exists
+	// Configure DUO api endpoint only if configuration exists.
 	if configuration.DuoAPI != nil {
 		var duoAPI duo.API
 		if os.Getenv("ENVIRONMENT") == "dev" {
@@ -106,19 +106,21 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 			middlewares.RequireFirstFactor(handlers.SecondFactorDuoPost(duoAPI))))
 	}
 
-	// If trace is set, enable pprofhandler and expvarhandler
+	// If trace is set, enable pprofhandler and expvarhandler.
 	if configuration.LogLevel == "trace" {
 		router.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
 		router.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	router.NotFound = func(ctx *fasthttp.RequestCtx) {
-		ctx.SendFile(path.Join(publicDir, "index.html"))
-	}
+	router.NotFound = ServeIndex(embeddedAssets)
 
 	server := &fasthttp.Server{
-		Handler: middlewares.LogRequestMiddleware(router.Handler),
+		Handler:         middlewares.LogRequestMiddleware(router.Handler),
+		ErrorHandler:    autheliaErrorHandler,
+		ReadBufferSize:  configuration.Server.ReadBufferSize,
+		WriteBufferSize: configuration.Server.WriteBufferSize,
 	}
+
 	addrPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
 
 	if configuration.TLSCert != "" && configuration.TLSKey != "" {

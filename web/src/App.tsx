@@ -20,6 +20,10 @@ import SignOut from './views/LoginPortal/SignOut/SignOut';
 import { useConfiguration } from './hooks/Configuration';
 import Tracker from "./components/Tracker";
 import { useTracking } from "./hooks/Tracking";
+import '@fortawesome/fontawesome-svg-core/styles.css'
+import {config as faConfig} from '@fortawesome/fontawesome-svg-core';
+
+faConfig.autoAddCss = false;
 
 const App: React.FC = () => {
     const [notification, setNotification] = useState(null as Notification | null);

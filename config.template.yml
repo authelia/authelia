@@ -8,6 +8,15 @@ port: 9091
 # tls_key: /var/lib/authelia/ssl/key.pem
 # tls_cert: /var/lib/authelia/ssl/cert.pem
 
+# Configuration options specific to the internal http server
+server:
+  # Buffers usually should be configured to be the same value.
+  # Explanation at https://docs.authelia.com/configuration/server.html
+  # Read buffer size configures the http server's maximum incoming request size in bytes.
+  read_buffer_size: 4096
+  # Write buffer size configures the http server's maximum outgoing response size in bytes.
+  write_buffer_size: 4096
+
 # Level of verbosity for logs: info, debug, trace
 log_level: debug
 ## File path where the logs will be written. If not set logs are written to stdout.

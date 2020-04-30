@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"os"
 
 	"github.com/valyala/fasthttp"
 
@@ -15,9 +14,10 @@ import (
 var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
 // ServeIndex serve the index.html file with nonce generated for supporting
-// restrictive CSP while using material-ui.
+// restrictive CSP while using material-ui from the embedded virtual filesystem.
+//go:generate broccoli -src ../../public_html -o public_html
 func ServeIndex(publicDir string) fasthttp.RequestHandler {
-	f, err := os.Open(publicDir + "/index.html")
+	f, err := br.Open(publicDir + "/index.html")
 	if err != nil {
 		logging.Logger().Fatalf("Unable to open index.html: %v", err)
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+// ValidateKeys determines if a provided key is valid.
 func ValidateKeys(validator *schema.StructValidator, keys []string) {
 	var errStrings []string
 	for _, key := range keys {
