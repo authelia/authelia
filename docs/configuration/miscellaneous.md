@@ -31,7 +31,7 @@ following configuration options:
 tls_key: /var/lib/authelia/ssl/key.pem
 tls_cert: /var/lib/authelia/ssl/cert.pem
 ```
-    
+
 ## Log
 
 ### Log level

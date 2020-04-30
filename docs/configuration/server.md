@@ -14,7 +14,8 @@ The server section configures and tunes the http server module Authelia uses.
 ```yaml
 # Configuration options specific to the internal http server
 server:
-  # Buffers usually should be configured to be the same value. Explanation at https://docs.authelia.com/configuration/server.html
+  # Buffers usually should be configured to be the same value.
+  # Explanation at https://docs.authelia.com/configuration/server.html
   # Write buffer size configures the http server's maximum incoming request size in bytes.
   read_buffer_size: 4096
   # Write buffer size configures the http server's maximum outgoing response size in bytes.

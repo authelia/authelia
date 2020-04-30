@@ -129,9 +129,8 @@ var validKeys = []string{
 }
 
 var specificErrorKeys = map[string]string{
-	"logs_file_path":   "config key replaced: logs_file is now log_file",
-	"logs_level":       "config key replaced: logs_level is now log_level",
-	"read_buffer_size": "config key moved: read_buffer_size is now under a new block called server, making it server.read_buffer_size",
+	"logs_file_path": "config key replaced: logs_file is now log_file",
+	"logs_level":     "config key replaced: logs_level is now log_level",
 	"authentication_backend.file.password_options.algorithm":   "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
 	"authentication_backend.file.password_options.iterations":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
 	"authentication_backend.file.password_options.key_length":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
