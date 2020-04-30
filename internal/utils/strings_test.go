@@ -35,3 +35,21 @@ func TestShouldSplitIntoUnevenStringsOfFour(t *testing.T) {
 	assert.Equal(t, "ijkl", arrayOfStrings[2])
 	assert.Equal(t, "m", arrayOfStrings[3])
 }
+
+func TestShouldFindSliceDifferences(t *testing.T) {
+	before := []string{"abc", "onetwothree"}
+	after := []string{"abc", "xyz"}
+	added, removed := SliceStringDelta(before, after)
+	assert.Len(t, added, 1)
+	assert.Len(t, removed, 1)
+	assert.Equal(t, "onetwothree", removed[0])
+	assert.Equal(t, "xyz", added[0])
+}
+
+func TestShouldNotFindSliceDifferences(t *testing.T) {
+	before := []string{"abc", "onetwothree"}
+	after := []string{"abc", "onetwothree"}
+	added, removed := SliceStringDelta(before, after)
+	assert.Len(t, added, 0)
+	assert.Len(t, removed, 0)
+}

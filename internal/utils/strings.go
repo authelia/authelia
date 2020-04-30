@@ -34,12 +34,12 @@ func SliceString(s string, d int) (array []string) {
 func SliceStringDelta(before, after []string) (added, removed []string) {
 	for _, s := range before {
 		if !IsStringInSlice(s, after) {
-			added = append(added, s)
+			removed = append(removed, s)
 		}
 	}
 	for _, s := range after {
 		if !IsStringInSlice(s, before) {
-			removed = append(removed, s)
+			added = append(added, s)
 		}
 	}
 	return added, removed
