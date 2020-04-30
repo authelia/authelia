@@ -12,7 +12,7 @@ var validKeys = []string{
 	"tls_cert",
 	"google_analytics",
 
-	// Server Keys
+	// Server Keys.
 	"server.read_buffer_size",
 	"server.write_buffer_size",
 
