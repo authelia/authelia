@@ -195,10 +195,45 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, userSession session.UserS
 				return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to destroy user session after long inactivity: %s", err)
 			}
 
-			return "", nil, authentication.NotAuthenticated, fmt.Errorf("User %s has been inactive for too long", userSession.Username)
+			return userSession.Username, userSession.Groups, authentication.NotAuthenticated, fmt.Errorf("User %s has been inactive for too long", userSession.Username)
 		}
 	}
 	return userSession.Username, userSession.Groups, userSession.AuthenticationLevel, nil
+}
+
+func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, username string) {
+	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
+	// endpoint to provide the URL of the login portal. The target URL of the user
+	// is computed from X-Fowarded-* headers or X-Original-URL
+	rd := string(ctx.QueryArgs().Peek("rd"))
+	if rd != "" {
+		redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
+		if strings.Contains(redirectionURL, "/%23/") {
+			ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
+		}
+		ctx.Logger.Infof("Access to %s is not authorized to user %s, redirecting to %s", targetURL.String(), username, redirectionURL)
+		ctx.Redirect(redirectionURL, 302)
+		ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
+	} else {
+		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response", targetURL.String(), username)
+		ctx.ReplyUnauthorized()
+	}
+}
+
+func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, username string) error {
+	if isBasicAuth || username == "" {
+		return nil
+	}
+
+	userSession := ctx.GetSession()
+	// We don't need to update the activity timestamp when user checked keep me logged in.
+	if userSession.KeepMeLoggedIn {
+		return nil
+	}
+
+	// Mark current activity
+	userSession.LastActivity = ctx.Clock.Now().Unix()
+	return ctx.SaveSession(userSession)
 }
 
 func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession session.UserSession) error {
@@ -212,6 +247,7 @@ func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, u
 		}
 		userSession.Groups = details.Groups
 		userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
+		return ctx.SaveSession(userSession)
 	}
 	return nil
 }
@@ -245,10 +281,10 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	var authLevel authentication.Level
 
 	proxyAuthorization := ctx.Request.Header.Peek(AuthorizationHeader)
-	hasBasicAuth := proxyAuthorization != nil
+	isBasicAuth := proxyAuthorization != nil
 	userSession := ctx.GetSession()
 
-	if hasBasicAuth {
+	if isBasicAuth {
 		username, groups, authLevel, err = verifyBasicAuth(proxyAuthorization, *targetURL, ctx)
 	} else {
 		username, groups, authLevel, err = verifySessionCookie(ctx, userSession)
@@ -256,7 +292,11 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		ctx.Logger.Error(fmt.Sprintf("Error caught when verifying user authorization: %s", err))
-		ctx.ReplyUnauthorized()
+		if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
+			ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
+			return
+		}
+		handleUnauthorized(ctx, targetURL, username)
 		return
 	}
 
@@ -266,7 +306,7 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		if err != nil {
 			ctx.Logger.Error(fmt.Errorf("Unable to destroy user session after provider refresh didn't find the user: %s", err))
 		}
-		ctx.ReplyUnauthorized()
+		handleUnauthorized(ctx, targetURL, username)
 		return
 	}
 
@@ -274,38 +314,15 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		groups, ctx.RemoteIP(), authLevel)
 
 	if authorization == Forbidden {
+		ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 		ctx.ReplyForbidden()
-		ctx.Logger.Errorf("Access to %s is forbidden to user %s", targetURL.String(), username)
-		return
 	} else if authorization == NotAuthorized {
-		// Kubernetes ingress controller and Traefik use the rd parameter of the verify
-		// endpoint to provide the URL of the login portal. The target URL of the user
-		// is computed from X-Fowarded-* headers or X-Original-URL
-		rd := string(ctx.QueryArgs().Peek("rd"))
-		if rd != "" {
-			redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
-			if strings.Contains(redirectionURL, "/%23/") {
-				ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
-			}
-			ctx.Redirect(redirectionURL, 302)
-			ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
-		} else {
-			ctx.ReplyUnauthorized()
-			ctx.Logger.Errorf("Access to %s is not authorized to user %s", targetURL.String(), username)
-		}
+		handleUnauthorized(ctx, targetURL, username)
 	} else if authorization == Authorized {
 		setForwardedHeaders(&ctx.Response.Header, username, groups)
 	}
 
-	// We mark activity of the current user if he comes with a session cookie
-	if !hasBasicAuth && username != "" {
-		// Mark current activity
-		userSession.LastActivity = time.Now().Unix()
-		err = ctx.SaveSession(userSession)
-
-		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
-			return
-		}
+	if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
+		ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
 	}
 }
