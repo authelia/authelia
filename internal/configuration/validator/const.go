@@ -12,6 +12,10 @@ var validKeys = []string{
 	"tls_cert",
 	"google_analytics",
 
+	// Server Keys.
+	"server.read_buffer_size",
+	"server.write_buffer_size",
+
 	// TOTP Keys
 	"totp.issuer",
 	"totp.period",
