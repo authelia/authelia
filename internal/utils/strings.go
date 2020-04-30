@@ -30,6 +30,21 @@ func SliceString(s string, d int) (array []string) {
 	return
 }
 
+// SliceStringDelta takes a before and after []string and compares them returning a added and removed []string.
+func SliceStringDelta(before, after []string) (added, removed []string) {
+	for _, s := range before {
+		if !IsStringInSlice(s, after) {
+			added = append(added, s)
+		}
+	}
+	for _, s := range after {
+		if !IsStringInSlice(s, before) {
+			removed = append(removed, s)
+		}
+	}
+	return added, removed
+}
+
 // RandomString generate a random string of n characters.
 func RandomString(n int, characters []rune) (randomString string) {
 	rand.Seed(time.Now().UnixNano())

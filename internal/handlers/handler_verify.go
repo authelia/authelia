@@ -246,7 +246,6 @@ func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, use
 	return ctx.SaveSession(userSession)
 }
 
-//nolint:gocyclo // TODO: Figure out if this can be safely refactored time permitting.
 func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession) (err error) {
 	refresh, interval := ctx.Providers.UserProvider.GetRefreshSettings()
 
@@ -259,20 +258,7 @@ func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, u
 			return err
 		}
 
-		var added []string
-		var removed []string
-
-		for _, group := range userSession.Groups {
-			if !utils.IsStringInSlice(group, details.Groups) {
-				removed = append(removed, group)
-			}
-		}
-		for _, group := range details.Groups {
-			if !utils.IsStringInSlice(group, userSession.Groups) {
-				added = append(added, group)
-			}
-		}
-
+		added, removed := utils.SliceStringDelta(userSession.Groups, details.Groups)
 		if len(added) == 0 && len(removed) == 0 {
 			ctx.Logger.Debugf("No updated groups detected for %s", userSession.Username)
 			if interval == 0 {
