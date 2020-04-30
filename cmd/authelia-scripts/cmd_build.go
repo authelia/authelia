@@ -40,7 +40,30 @@ func buildFrontend() {
 		log.Fatal(err)
 	}
 
-	if err := os.Rename("web/build", OutputDir+"/public_html"); err != nil {
+	if err := os.Rename("web/build", "./public_html"); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func generateEmbeddedAssets() {
+	cmd := utils.CommandWithStdout("go", "get", "-u", "aletheia.icu/broccoli")
+
+	err := cmd.Run()
+
+	if err != nil {
+		panic(err)
+	}
+
+	cmd = utils.CommandWithStdout("go", "generate", ".")
+	cmd.Dir = "internal/server"
+
+	err = cmd.Run()
+
+	if err != nil {
+		panic(err)
+	}
+
+	if err := os.Rename("./public_html", OutputDir+"/public_html"); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -58,9 +81,10 @@ func Build(cobraCmd *cobra.Command, args []string) {
 		panic(err)
 	}
 
-	log.Debug("Building Authelia Go binary...")
-	buildAutheliaBinary()
-
 	log.Debug("Building Authelia frontend...")
 	buildFrontend()
+
+	log.Debug("Building Authelia Go binary...")
+	generateEmbeddedAssets()
+	buildAutheliaBinary()
 }
