@@ -137,14 +137,20 @@ authentication_backend:
     # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
     # - DON'T USE - {1} is an alias for {username} supported for backward compatibility but it will be deprecated in later version, so please don't use it.
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
-    
+
     # The attribute holding the name of the group
     group_name_attribute: cn
-    
+
+    # The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
+    # See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+    # To disable this feature set it to 'disabled'.
+    # To force update on every verification you can set this to 0. But it is not recommended.
+    refresh_interval: 5m
+
     # The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the first
     # one returned by the LDAP server is used.
     mail_attribute: mail
-    
+
     # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html

@@ -173,7 +173,7 @@ func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) { //
 }
 
 // verifySessionCookie verify if a user identified by a cookie.
-func verifySessionCookie(ctx *middlewares.AutheliaCtx, userSession session.UserSession) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
+func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
 	// No username in the session means the user is anonymous
 	isUserAnonymous := userSession.Username == ""
 
@@ -197,6 +197,17 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, userSession session.UserS
 			return userSession.Username, userSession.Groups, authentication.NotAuthenticated, fmt.Errorf("User %s has been inactive for too long", userSession.Username)
 		}
 	}
+
+	err = verifySessionIsUpToDate(ctx, targetURL, userSession)
+	ctx.Logger.Debugf("User groups for %s after refresh are: %s", username, strings.Join(groups, ", "))
+	if err != nil && err.Error() == authentication.UserNotFoundMessage {
+		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
+		if err != nil {
+			ctx.Logger.Error(fmt.Errorf("Unable to destroy user session after provider refresh didn't find the user: %s", err))
+		}
+		return userSession.Username, userSession.Groups, authentication.NotAuthenticated, err
+	}
+
 	return userSession.Username, userSession.Groups, userSession.AuthenticationLevel, nil
 }
 
@@ -235,7 +246,7 @@ func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, use
 	return ctx.SaveSession(userSession)
 }
 
-func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession session.UserSession) error {
+func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession) (err error) {
 	refresh, interval := ctx.Providers.UserProvider.GetRefreshSettings()
 
 	ctx.Logger.Tracef("Checking if we need to update session")
@@ -250,7 +261,7 @@ func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, u
 		ctx.Logger.Debugf("Groups for user %s are as follows: groups in session: %s; groups in backend: %s", userSession.Username, strings.Join(userSession.Groups, ", "), strings.Join(details.Groups, ", "))
 		userSession.Groups = details.Groups
 		userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
-		return ctx.SaveSession(userSession)
+		return ctx.SaveSession(*userSession)
 	}
 	return nil
 }
@@ -290,7 +301,7 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	if isBasicAuth {
 		username, groups, authLevel, err = verifyBasicAuth(proxyAuthorization, *targetURL, ctx)
 	} else {
-		username, groups, authLevel, err = verifySessionCookie(ctx, userSession)
+		username, groups, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession)
 	}
 
 	if err != nil {
@@ -298,16 +309,6 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 		if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
 			ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
 			return
-		}
-		handleUnauthorized(ctx, targetURL, username)
-		return
-	}
-
-	err = verifySessionIsUpToDate(ctx, targetURL, userSession)
-	if err != nil && err.Error() == authentication.UserNotFoundMessage {
-		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
-		if err != nil {
-			ctx.Logger.Error(fmt.Errorf("Unable to destroy user session after provider refresh didn't find the user: %s", err))
 		}
 		handleUnauthorized(ctx, targetURL, username)
 		return
