@@ -12,6 +12,7 @@ import (
 
 // FirstFactorPost is the handler performing the first factory.
 func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
+	postRecieved := time.Now()
 	bodyJSON := firstFactorRequestBody{}
 	err := ctx.ParseBody(&bodyJSON)
 
@@ -37,8 +38,11 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 		ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
+		ctx.Providers.Regulator.FirstFactorDelay(postRecieved, err.Error() == authentication.ErrUserNotExist.Error())
 		ctx.Error(fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 		return
+	} else {
+		ctx.Providers.Regulator.FirstFactorDelay(postRecieved, true)
 	}
 
 	if !userPasswordOk {

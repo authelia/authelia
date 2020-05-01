@@ -114,7 +114,8 @@ func (p *FileUserProvider) GetDetails(username string) (*UserDetails, error) {
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) error {
 	details, ok := p.database.Users[username]
 	if !ok {
-		return fmt.Errorf("User '%s' does not exist in database", username)
+		//return fmt.Errorf("User '%s' does not exist in database", username)
+		return ErrUserNotExist
 	}
 
 	var algorithm string

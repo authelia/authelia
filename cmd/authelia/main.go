@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -99,7 +100,19 @@ func startServer() {
 	clock := utils.RealClock{}
 	authorizer := authorization.NewAuthorizer(config.AccessControl)
 	sessionProvider := session.NewProvider(config.Session)
-	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
+
+	var firstFactorDelay time.Duration
+	if config.AuthenticationBackend.File != nil {
+		password := utils.RandomString(20, authentication.HashingPossibleSaltCharacters)
+		start := time.Now()
+		_, _ = authentication.HashPassword(password, "",
+			config.AuthenticationBackend.File.Password.Algorithm, config.AuthenticationBackend.File.Password.Iterations,
+			config.AuthenticationBackend.File.Password.Memory*1024, config.AuthenticationBackend.File.Password.Parallelism,
+			config.AuthenticationBackend.File.Password.KeyLength, config.AuthenticationBackend.File.Password.SaltLength)
+		firstFactorDelay = time.Now().Sub(start)
+	}
+
+	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock, firstFactorDelay)
 
 	providers := middlewares.Providers{
 		Authorizer:      authorizer,

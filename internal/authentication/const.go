@@ -1,5 +1,9 @@
 package authentication
 
+import (
+	"errors"
+)
+
 // Level is the type representing a level of authentication.
 type Level int
 
@@ -43,3 +47,5 @@ const (
 
 // HashingPossibleSaltCharacters represents valid hashing runes.
 var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")
+
+var ErrUserNotExist = errors.New("user does not exist")

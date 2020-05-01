@@ -2,6 +2,7 @@ package regulation
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -11,9 +12,18 @@ import (
 )
 
 // NewRegulator create a regulator instance.
-func NewRegulator(configuration *schema.RegulationConfiguration, provider storage.Provider, clock utils.Clock) *Regulator {
+func NewRegulator(configuration *schema.RegulationConfiguration, provider storage.Provider, clock utils.Clock, firstFactorDelay time.Duration) *Regulator {
 	regulator := &Regulator{storageProvider: provider}
 	regulator.clock = clock
+	if firstFactorDelay < 0 {
+		regulator.firstFactorDelay = 0 * time.Millisecond
+	} else if firstFactorDelay > 500*time.Millisecond {
+		rand.Seed(time.Now().UnixNano())
+		ms := rand.Int31n(50) + 150
+		regulator.firstFactorDelay = firstFactorDelay + (time.Millisecond * time.Duration(ms))
+	} else {
+		regulator.firstFactorDelay = 500 * time.Millisecond
+	}
 	if configuration != nil {
 		findTime, err := utils.ParseDurationString(configuration.FindTime)
 		if err != nil {
@@ -91,4 +101,39 @@ func (r *Regulator) Regulate(username string) (time.Time, error) {
 		return bannedUntil, ErrUserIsBanned
 	}
 	return time.Time{}, nil
+}
+
+// FirstFactorDelay delays the first factor return to prevent username enumeration.
+func (r *Regulator) FirstFactorDelay(postTime time.Time, real bool) {
+	/*
+		// This section contains a basic adaptive algorithm.
+		// It's possible the algorithm could cause massive delays due to various reasons.
+		// IT's questionable if we want this.
+
+		if real {
+			r.firstFactorDelays = append(r.firstFactorDelays, time.Now().Sub(postTime))
+		}
+		if len(r.firstFactorDelays) <= 10 {
+			// Copy r.firstFactorDelays so we can reset it ASAP.
+			delays := r.firstFactorDelays
+			r.firstFactorDelays = []time.Duration{}
+
+			// Find the highest duration in the list of real logins.
+			var max time.Duration
+			for _, delay := range delays {
+				if delay > max {
+					max = delay
+				}
+			}
+			r.firstFactorDelay = max
+		}
+	*/
+	// For test purposes.
+	if r.firstFactorDelay < 0 {
+		return
+	}
+	delayTime := postTime.Add(r.firstFactorDelay)
+	if time.Now().Before(delayTime) {
+		time.Sleep(time.Until(delayTime))
+	}
 }

@@ -21,4 +21,8 @@ type Regulator struct {
 	storageProvider storage.Provider
 
 	clock utils.Clock
+
+	firstFactorDelay time.Duration
+
+	// firstFactorDelays []time.Duration // Used for the adaptive algorithm.
 }

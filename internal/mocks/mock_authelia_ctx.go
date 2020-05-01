@@ -102,7 +102,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.SessionProvider = session.NewProvider(
 		configuration.Session)
 
-	providers.Regulator = regulation.NewRegulator(configuration.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
+	providers.Regulator = regulation.NewRegulator(configuration.Regulation, providers.StorageProvider, &mockAuthelia.Clock, -1*time.Second)
 
 	request := &fasthttp.RequestCtx{}
 	// Set a cookie to identify this client throughout the test.
