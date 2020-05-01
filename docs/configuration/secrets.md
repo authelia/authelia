@@ -66,6 +66,109 @@ prevent secret leaks if an another application gets compromised on your
 server. The UNIX permissions should probably be something like 600.
 
 
+## Docker
+
+Secrets can be provided in a `docker-compose.yml` either with Docker secrets or
+bind mounted secret files, examples of these are provided below. 
+
+
+### Compose with Docker secrets
+
+This example assumes secrets are stored in `/path/to/authelia/secrets/{secretname}`
+on the host and are exposed with Docker secrets in a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+
+networks:
+  net:
+    driver: bridge
+
+secrets:
+  jwt:
+    file: /path/to/authelia/secrets/jwt
+  duo:
+    file: /path/to/authelia/secrets/duo
+  session:
+    file: /path/to/authelia/secrets/session
+  redis:
+    file: /path/to/authelia/secrets/redis
+  mysql:
+    file: /path/to/authelia/secrets/mysql
+  smtp:
+    file: /path/to/authelia/secrets/smtp
+  ldap:
+    file: /path/to/authelia/secrets/ldap
+
+services:
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    secrets:
+      - jwt
+      - duo
+      - session
+      - redis
+      - mysql
+      - smtp
+      - ldap
+    volumes:
+      - /path/to/authelia:/var/lib/authelia
+      - /path/to/authelia/configuration.yml:/etc/authelia/configuration.yml:ro
+    networks:
+      - net
+    expose:
+      - 9091
+    restart: unless-stopped
+    environment:
+      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/jwt
+      - AUTHELIA_DUO_API_SECRET_KEY_FILE=/run/secrets/duo
+      - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/session
+      - AUTHELIA_SESSION_REDIS_PASSWORD_FILE=/run/secrets/redis
+      - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/run/secrets/mysql
+      - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/run/secrets/smtp
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE=/run/secrets/ldap
+      - TZ=Australia/Melbourne
+```
+
+### Compose with bind mounted secret files
+
+This example assumes secrets are stored in `/path/to/authelia/secrets/{secretname}`
+on the host and are exposed with bind mounted secret files in a `docker-compose.yml` file
+at `/etc/authelia/secrets/`:
+
+```yaml
+version: '3.8'
+
+networks:
+  net:
+    driver: bridge
+
+services:
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    volumes:
+      - /path/to/authelia:/var/lib/authelia
+      - /path/to/authelia/configuration.yml:/etc/authelia/configuration.yml:ro
+      - /path/to/authelia/secrets:/etc/authelia/secrets
+    networks:
+      - net
+    expose:
+      - 9091
+    restart: unless-stopped
+    environment:
+      - AUTHELIA_JWT_SECRET_FILE=/etc/authelia/secrets/jwt
+      - AUTHELIA_DUO_API_SECRET_KEY_FILE=/etc/authelia/secrets/duo
+      - AUTHELIA_SESSION_SECRET_FILE=/etc/authelia/secrets/session
+      - AUTHELIA_SESSION_REDIS_PASSWORD_FILE=/etc/authelia/secrets/redis
+      - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/etc/authelia/secrets/mysql
+      - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/etc/authelia/secrets/smtp
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE=/etc/authelia/secrets/ldap
+      - TZ=Australia/Melbourne
+```
+
+
 ## Kubernetes
 
 Secrets can be mounted as files using the following sample manifests.
