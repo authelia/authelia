@@ -5,10 +5,10 @@
 package mocks
 
 import (
+	reflect "reflect"
 	"time"
 
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 
 	authentication "github.com/authelia/authelia/internal/authentication"
 )
@@ -66,6 +66,21 @@ func (mr *MockUserProviderMockRecorder) GetDetails(arg0 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetails", reflect.TypeOf((*MockUserProvider)(nil).GetDetails), arg0)
 }
 
+// GetRefreshSettings mocks base method.
+func (m *MockUserProvider) GetRefreshSettings() (bool, time.Duration) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRefreshSettings")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(time.Duration)
+	return ret0, ret1
+}
+
+// GetRefreshSettings indicates an expected call of GetRefreshSettings.
+func (mr *MockUserProviderMockRecorder) GetRefreshSettings() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefreshSettings", reflect.TypeOf((*MockUserProvider)(nil).GetRefreshSettings))
+}
+
 // UpdatePassword mocks base method
 func (m *MockUserProvider) UpdatePassword(arg0, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -78,19 +93,4 @@ func (m *MockUserProvider) UpdatePassword(arg0, arg1 string) error {
 func (mr *MockUserProviderMockRecorder) UpdatePassword(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUserProvider)(nil).UpdatePassword), arg0, arg1)
-}
-
-// GetRefreshSettings mocks base method.
-func (m *MockUserProvider) GetRefreshSettings() (bool, time.Duration) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRefreshSettings")
-	ret0 := ret[0].(bool)
-	ret1 := ret[1].(time.Duration)
-	return ret0, ret1
-}
-
-// GetRefreshSettings indicates an expected call of GetRefreshSettings.
-func (mr *MockUserProviderMockRecorder) GetRefreshSettings() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefreshSettings", reflect.TypeOf((*MockUserProvider)(nil).GetRefreshSettings))
 }

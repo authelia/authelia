@@ -10,20 +10,20 @@ import (
 var ErrTimeoutReached = errors.New("timeout reached")
 var parseDurationRegexp = regexp.MustCompile(`^(?P<Duration>[1-9]\d*?)(?P<Unit>[smhdwMy])?$`)
 
-// Hour is an int based representation of the time unit
+// Hour is an int based representation of the time unit.
 const Hour = time.Minute * 60
 
-// Day is an int based representation of the time unit
+// Day is an int based representation of the time unit.
 const Day = Hour * 24
 
-// Week is an int based representation of the time unit
+// Week is an int based representation of the time unit.
 const Week = Day * 7
 
-// Year is an int based representation of the time unit
+// Year is an int based representation of the time unit.
 const Year = Day * 365
 
-// Month is an int based representation of the time unit
+// Month is an int based representation of the time unit.
 const Month = Year / 12
 
-// RFC3339Zero is the default value for time.Time.Unix()
+// RFC3339Zero is the default value for time.Time.Unix().
 const RFC3339Zero = int64(-62135596800)
