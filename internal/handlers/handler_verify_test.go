@@ -19,7 +19,7 @@ import (
 	"github.com/authelia/authelia/internal/session"
 )
 
-// Test getOriginalURL
+// Test getOriginalURL.
 func TestShouldGetOriginalURLFromOriginalURLHeader(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -87,7 +87,7 @@ func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testi
 	assert.Equal(t, "Missing header X-Fowarded-Host", err.Error())
 }
 
-func TestShouldRaiseWhenXForwardedProtoIsNotParseable(t *testing.T) {
+func TestShouldRaiseWhenXForwardedProtoIsNotParsable(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
@@ -99,7 +99,7 @@ func TestShouldRaiseWhenXForwardedProtoIsNotParseable(t *testing.T) {
 	assert.Equal(t, "Unable to parse URL !:;;:,://myhost.local: parse !:;;:,://myhost.local: invalid URI for request", err.Error())
 }
 
-func TestShouldRaiseWhenXForwardedURIIsNotParseable(t *testing.T) {
+func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
@@ -112,7 +112,7 @@ func TestShouldRaiseWhenXForwardedURIIsNotParseable(t *testing.T) {
 	assert.Equal(t, "Unable to parse URL https://myhost.local!:;;:,: parse https://myhost.local!:;;:,: invalid port \":,\" after host", err.Error())
 }
 
-// Test parseBasicAuth
+// Test parseBasicAuth.
 func TestShouldRaiseWhenHeaderDoesNotContainBasicPrefix(t *testing.T) {
 	_, _, err := parseBasicAuth("alzefzlfzemjfej==")
 	assert.Error(t, err)
@@ -126,7 +126,7 @@ func TestShouldRaiseWhenCredentialsAreNotInBase64(t *testing.T) {
 }
 
 func TestShouldRaiseWhenCredentialsAreNotInCorrectForm(t *testing.T) {
-	// the decoded format should be user:password.
+	// The decoded format should be user:password.
 	_, _, err := parseBasicAuth("Basic am9obiBwYXNzd29yZA==")
 	assert.Error(t, err)
 	assert.Equal(t, "Format of Proxy-Authorization header must be user:password", err.Error())
@@ -477,7 +477,7 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	past := clock.Now().Add(-1 * time.Hour)
 
 	mock.Ctx.Configuration.Session.Inactivity = "10"
-	// Reload the session provider since the configuration is indirect
+	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session)
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
@@ -491,7 +491,7 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 
 	VerifyGet(mock.Ctx)
 
-	// The session has been destroyed
+	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
 	assert.Equal(t, "", newUserSession.Username)
 	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel)
@@ -508,7 +508,7 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 	clock.Set(time.Now())
 
 	mock.Ctx.Configuration.Session.Inactivity = "10s"
-	// Reload the session provider since the configuration is indirect
+	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session)
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
@@ -522,7 +522,7 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 
 	VerifyGet(mock.Ctx)
 
-	// The session has been destroyed
+	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
 	assert.Equal(t, "", newUserSession.Username)
 	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel)
@@ -550,7 +550,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 
 	VerifyGet(mock.Ctx)
 
-	// The session has been destroyed
+	// Check the session is still active.
 	newUserSession := mock.Ctx.GetSession()
 	assert.Equal(t, "john", newUserSession.Username)
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
@@ -733,4 +733,137 @@ func TestSchemeIsWSS(t *testing.T) {
 		GetURL("https://mytest.example.com/abc/?query=abc")))
 	assert.True(t, isSchemeWSS(
 		GetURL("wss://mytest.example.com/abc/?query=abc")))
+}
+
+func TestLDAPRefreshDoesNotHappenOnNonGroupSubjectDomains(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	// Setup user john.
+	user := &authentication.UserDetails{
+		Username: "john",
+		Groups: []string{
+			"admin",
+			"users",
+		},
+		Emails: []string{
+			"john@example.com",
+		},
+	}
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = user.Username
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Unix()
+	userSession.RefreshTTL = clock.Now().Add(-1 * time.Minute)
+	userSession.Groups = user.Groups
+	userSession.Emails = user.Emails
+	userSession.KeepMeLoggedIn = true
+	err := mock.Ctx.SaveSession(userSession)
+
+	require.NoError(t, err)
+
+	mock.UserProviderMock.
+		EXPECT().
+		GetRefreshSettings().
+		Return(true, 5*time.Minute)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	VerifyGet(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// Session time should NOT have been updated, it should still have a refresh TTL 1 minute in the past.
+	userSession = mock.Ctx.GetSession()
+	assert.Equal(t, clock.Now().Add(-1*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+}
+
+func TestLDAPChangedGroupsRefresh(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	// Setup pointer to john so we can adjust it during the test.
+	user := &authentication.UserDetails{
+		Username: "john",
+		Groups: []string{
+			"admin",
+			"users",
+		},
+		Emails: []string{
+			"john@example.com",
+		},
+	}
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = user.Username
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Unix()
+	userSession.RefreshTTL = clock.Now().Add(-1 * time.Minute)
+	userSession.Groups = user.Groups
+	userSession.Emails = user.Emails
+	userSession.KeepMeLoggedIn = true
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
+
+	mock.UserProviderMock.
+		EXPECT().
+		GetRefreshSettings().
+		Return(true, 5*time.Minute)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	VerifyGet(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// Request should get refresh settings and new user details.
+	mock.UserProviderMock.
+		EXPECT().
+		GetRefreshSettings().
+		Return(true, 5*time.Minute)
+	mock.UserProviderMock.
+		EXPECT().
+		GetDetails("john").
+		Return(user, nil)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
+	VerifyGet(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// Check Refresh TTL has been updated since admin.example.com has a group subject and refresh is enabled.
+	userSession = mock.Ctx.GetSession()
+
+	// Check user groups are correct.
+	require.Len(t, userSession.Groups, len(user.Groups))
+	assert.Equal(t, clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+	assert.Equal(t, "admin", userSession.Groups[0])
+	assert.Equal(t, "users", userSession.Groups[1])
+
+	// Remove the admin group, and force the next request to refresh.
+	user.Groups = []string{"users"}
+	userSession.RefreshTTL = clock.Now().Add(-1 * time.Second)
+	err = mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
+
+	mock.UserProviderMock.
+		EXPECT().
+		GetRefreshSettings().
+		Return(true, 5*time.Minute)
+
+	mock.UserProviderMock.
+		EXPECT().
+		GetDetails("john").
+		Return(user, nil)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
+	VerifyGet(mock.Ctx)
+	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
+
+	// Check admin group is removed from the session.
+	userSession = mock.Ctx.GetSession()
+	require.Len(t, userSession.Groups, 1)
+	assert.Equal(t, "users", userSession.Groups[0])
 }
