@@ -127,11 +127,7 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 	if salt == "" {
 		salt = utils.RandomString(saltLength, HashingPossibleSaltCharacters)
 	}
-	if algorithm == HashingAlgorithmArgon2id {
-		settings, _ = crypt.Argon2idSettings(memory, iterations, parallelism, keyLength, salt)
-	} else if algorithm == HashingAlgorithmSHA512 {
-		settings = fmt.Sprintf("$6$rounds=%d$%s", iterations, salt)
-	}
+	settings = getCryptSettings(salt, algorithm, iterations, memory, parallelism, keyLength)
 
 	// This error can be ignored because we check for it before a user gets here
 	hash, _ = crypt.Crypt(password, settings)
@@ -149,4 +145,13 @@ func CheckPassword(password, hash string) (ok bool, err error) {
 		return false, err
 	}
 	return hash == expectedHash, nil
+}
+
+func getCryptSettings(salt, algorithm string, iterations, memory, parallelism, keyLength int) (settings string) {
+	if algorithm == HashingAlgorithmArgon2id {
+		settings, _ = crypt.Argon2idSettings(memory, iterations, parallelism, keyLength, salt)
+	} else if algorithm == HashingAlgorithmSHA512 {
+		settings = fmt.Sprintf("$6$rounds=%d$%s", iterations, salt)
+	}
+	return settings
 }

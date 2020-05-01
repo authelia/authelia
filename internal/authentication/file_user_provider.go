@@ -11,6 +11,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // FileUserProvider is a provider reading details from a file.
@@ -18,6 +19,9 @@ type FileUserProvider struct {
 	configuration *schema.FileAuthenticationBackendConfiguration
 	database      *DatabaseModel
 	lock          *sync.Mutex
+
+	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
+	fakeHash string
 }
 
 // UserDetailsModel is the model of user details in the file database.
@@ -46,10 +50,22 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 		panic(err.Error())
 	}
 
+	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
+	// This generates a hash that should be usable to do a fake CheckUserPassword
+	algorithm := configuration.Password.Algorithm
+	if configuration.Password.Algorithm == "sha512" {
+		algorithm = HashingAlgorithmSHA512
+	}
+	settings := getCryptSettings(utils.RandomString(configuration.Password.SaltLength, HashingPossibleSaltCharacters),
+		algorithm, configuration.Password.Iterations, configuration.Password.Memory, configuration.Password.Parallelism,
+		configuration.Password.KeyLength)
+	fakeHash := fmt.Sprintf("%s$%s", settings, utils.RandomString(configuration.Password.KeyLength, HashingPossibleSaltCharacters))
+
 	return &FileUserProvider{
 		configuration: configuration,
 		database:      database,
 		lock:          &sync.Mutex{},
+		fakeHash:      fakeHash,
 	}
 }
 
@@ -95,6 +111,10 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 		}
 		return ok, nil
 	}
+
+	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
+	_, _ = CheckPassword(password, p.fakeHash)
+
 	return false, fmt.Errorf("User '%s' does not exist in database", username)
 }
 
