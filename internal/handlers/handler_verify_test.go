@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // Test getOriginalURL.
@@ -735,7 +736,81 @@ func TestSchemeIsWSS(t *testing.T) {
 		GetURL("wss://mytest.example.com/abc/?query=abc")))
 }
 
-func TestLDAPRefreshDoesNotHappenOnNonGroupSubjectDomains(t *testing.T) {
+func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	// Setup pointer to john so we can adjust it during the test.
+	user := &authentication.UserDetails{
+		Username: "john",
+		Groups: []string{
+			"admin",
+			"users",
+		},
+		Emails: []string{
+			"john@example.com",
+		},
+	}
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = user.Username
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Unix()
+	userSession.Groups = user.Groups
+	userSession.Emails = user.Emails
+	userSession.KeepMeLoggedIn = true
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
+
+	mock.UserProviderMock.
+		EXPECT().
+		GetRefreshSettings().
+		Return(false, 0*time.Second)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	VerifyGet(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// Request should get refresh settings and not get new user details.
+	mock.UserProviderMock.
+		EXPECT().
+		GetRefreshSettings().
+		Return(false, 0*time.Minute)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
+	VerifyGet(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// Check Refresh TTL has not been updated.
+	userSession = mock.Ctx.GetSession()
+
+	// Check user groups are correct.
+	require.Len(t, userSession.Groups, len(user.Groups))
+	assert.Equal(t, utils.RFC3339Zero, userSession.RefreshTTL.Unix())
+	assert.Equal(t, "admin", userSession.Groups[0])
+	assert.Equal(t, "users", userSession.Groups[1])
+
+	mock.UserProviderMock.
+		EXPECT().
+		GetRefreshSettings().
+		Return(false, 0*time.Minute)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
+	VerifyGet(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// Check admin group is not removed from the session.
+	userSession = mock.Ctx.GetSession()
+	assert.Equal(t, utils.RFC3339Zero, userSession.RefreshTTL.Unix())
+	require.Len(t, userSession.Groups, 2)
+	assert.Equal(t, "admin", userSession.Groups[0])
+	assert.Equal(t, "users", userSession.Groups[1])
+}
+
+func TestShouldNotRefreshUserGroupsFromBackendWhenNoGroupSubject(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
@@ -780,7 +855,7 @@ func TestLDAPRefreshDoesNotHappenOnNonGroupSubjectDomains(t *testing.T) {
 	assert.Equal(t, clock.Now().Add(-1*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 }
 
-func TestLDAPRemovedGroupsRefresh(t *testing.T) {
+func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
@@ -869,7 +944,7 @@ func TestLDAPRemovedGroupsRefresh(t *testing.T) {
 	assert.Equal(t, "users", userSession.Groups[0])
 }
 
-func TestLDAPAddedGroupsRefresh(t *testing.T) {
+func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	//defer mock.Close()
 

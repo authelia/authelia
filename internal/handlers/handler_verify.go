@@ -250,6 +250,8 @@ func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, use
 }
 
 func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession) (err error) {
+	// TODO: Add a check for LDAP password changes based on a time format attribute. See https://docs.authelia.com/security/threat-model.html#potential-future-guarantees
+
 	refresh, interval := ctx.Providers.UserProvider.GetRefreshSettings()
 
 	ctx.Logger.Tracef("Checking if we need to update session")
