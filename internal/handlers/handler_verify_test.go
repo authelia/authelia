@@ -780,7 +780,7 @@ func TestLDAPRefreshDoesNotHappenOnNonGroupSubjectDomains(t *testing.T) {
 	assert.Equal(t, clock.Now().Add(-1*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 }
 
-func TestLDAPChangedGroupsRefresh(t *testing.T) {
+func TestLDAPRemovedGroupsRefresh(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
@@ -864,6 +864,107 @@ func TestLDAPChangedGroupsRefresh(t *testing.T) {
 
 	// Check admin group is removed from the session.
 	userSession = mock.Ctx.GetSession()
+	assert.Equal(t, clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 	require.Len(t, userSession.Groups, 1)
 	assert.Equal(t, "users", userSession.Groups[0])
+}
+
+func TestLDAPAddedGroupsRefresh(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	//defer mock.Close()
+
+	// Setup pointer to john so we can adjust it during the test.
+	user := &authentication.UserDetails{
+		Username: "john",
+		Groups: []string{
+			"admin",
+			"users",
+		},
+		Emails: []string{
+			"john@example.com",
+		},
+	}
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = user.Username
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Unix()
+	userSession.RefreshTTL = clock.Now().Add(-1 * time.Minute)
+	userSession.Groups = user.Groups
+	userSession.Emails = user.Emails
+	userSession.KeepMeLoggedIn = true
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
+
+	mock.UserProviderMock.
+		EXPECT().
+		GetRefreshSettings().
+		Return(true, 5*time.Minute)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	VerifyGet(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// Request should get refresh settings and new user details.
+	mock.UserProviderMock.
+		EXPECT().
+		GetRefreshSettings().
+		Return(true, 5*time.Minute)
+	mock.UserProviderMock.
+		EXPECT().
+		GetDetails("john").
+		Return(user, nil)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://grafana.example.com")
+	VerifyGet(mock.Ctx)
+	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
+
+	// Check Refresh TTL has been updated since grafana.example.com has a group subject and refresh is enabled.
+	userSession = mock.Ctx.GetSession()
+
+	// Check user groups are correct.
+	require.Len(t, userSession.Groups, len(user.Groups))
+	assert.Equal(t, clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+	assert.Equal(t, "admin", userSession.Groups[0])
+	assert.Equal(t, "users", userSession.Groups[1])
+
+	// Add the grafana group, and force the next request to refresh.
+	user.Groups = append(user.Groups, "grafana")
+	userSession.RefreshTTL = clock.Now().Add(-1 * time.Second)
+	err = mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
+
+	// Reset otherwise we get the last 403 when we check the Response. Is there a better way to do this?
+	mock.Close()
+	mock = mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+	err = mock.Ctx.SaveSession(userSession)
+	assert.NoError(t, err)
+
+	mock.UserProviderMock.
+		EXPECT().
+		GetRefreshSettings().
+		Return(true, 5*time.Minute)
+
+	mock.UserProviderMock.
+		EXPECT().
+		GetDetails("john").
+		Return(user, nil)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://grafana.example.com")
+	VerifyGet(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// Check admin group is removed from the session.
+	userSession = mock.Ctx.GetSession()
+	assert.Equal(t, true, userSession.KeepMeLoggedIn)
+	assert.Equal(t, authentication.TwoFactor, userSession.AuthenticationLevel)
+	assert.Equal(t, clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+	require.Len(t, userSession.Groups, 3)
+	assert.Equal(t, "admin", userSession.Groups[0])
+	assert.Equal(t, "users", userSession.Groups[1])
+	assert.Equal(t, "grafana", userSession.Groups[2])
 }
