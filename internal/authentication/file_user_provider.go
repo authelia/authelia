@@ -114,9 +114,9 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 
 	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
 	hashedPassword := strings.ReplaceAll(p.fakeHash, "{CRYPT}", "")
-	_, _ = CheckPassword(password, hashedPassword)
+	_, err := CheckPassword(password, hashedPassword)
 
-	return false, fmt.Errorf("User '%s' does not exist in database", username)
+	return false, err
 }
 
 // GetDetails retrieve the groups a user belongs to.
