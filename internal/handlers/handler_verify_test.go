@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authelia/authelia/internal/session"
-
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,6 +16,7 @@ import (
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/session"
 )
 
 // Test getOriginalURL
