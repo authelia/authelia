@@ -6,7 +6,7 @@ encourage the community to as well.
 
 If you discover a vulnerability in Authelia, please first contact **clems4ever** on 
 [Matrix](https://riot.im/app/#/room/#authelia:matrix.org) or by
-[email](mailto:clement.michaud34@gmail.com). This way we can 
+[email](mailto:clement.michaud34@gmail.com).
 
 For details about security measures implemented in Authelia, please follow
 this [link](https://docs.authelia.com/security/measures.html) and for reading about 

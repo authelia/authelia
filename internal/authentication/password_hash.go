@@ -152,6 +152,8 @@ func getCryptSettings(salt, algorithm string, iterations, memory, parallelism, k
 		settings, _ = crypt.Argon2idSettings(memory, iterations, parallelism, keyLength, salt)
 	} else if algorithm == HashingAlgorithmSHA512 {
 		settings = fmt.Sprintf("$6$rounds=%d$%s", iterations, salt)
+	} else {
+		panic("invalid password hashing algorithm provided")
 	}
 	return settings
 }

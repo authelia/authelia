@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/simia-tech/crypt"
 	"gopkg.in/yaml.v2"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -57,9 +58,10 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 		algorithm = HashingAlgorithmSHA512
 	}
 	settings := getCryptSettings(utils.RandomString(configuration.Password.SaltLength, HashingPossibleSaltCharacters),
-		algorithm, configuration.Password.Iterations, configuration.Password.Memory, configuration.Password.Parallelism,
+		algorithm, configuration.Password.Iterations, configuration.Password.Memory*1024, configuration.Password.Parallelism,
 		configuration.Password.KeyLength)
-	fakeHash := fmt.Sprintf("%s$%s", settings, utils.RandomString(configuration.Password.KeyLength, HashingPossibleSaltCharacters))
+	data := crypt.Base64Encoding.EncodeToString([]byte(utils.RandomString(configuration.Password.KeyLength, HashingPossibleSaltCharacters)))
+	fakeHash := fmt.Sprintf("%s$%s", settings, data)
 
 	return &FileUserProvider{
 		configuration: configuration,
