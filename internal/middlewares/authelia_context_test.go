@@ -3,8 +3,6 @@ package middlewares_test
 import (
 	"testing"
 
-	"github.com/authelia/authelia/internal/session"
-
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
@@ -12,6 +10,7 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/session"
 )
 
 func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
