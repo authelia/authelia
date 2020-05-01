@@ -43,6 +43,65 @@ environment variable will not be replaced.
 |authentication_backend.ldap.password|AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE|
 
 
+### Docker Compose examples
+
+The example below assumes secrets are stored in `/path/to/authelia/secrets/{secretname}`
+and are exposed via Docker secrets in a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+
+networks:
+  net:
+    driver: bridge
+
+secrets:
+  jwt:
+    file: /path/to/authelia/secrets/jwt
+  duo:
+    file: /path/to/authelia/secrets/duo
+  session:
+    file: /path/to/authelia/secrets/session
+  redis:
+    file: /path/to/authelia/secrets/redis
+  mysql:
+    file: /path/to/authelia/secrets/mysql
+  smtp:
+    file: /path/to/authelia/secrets/smtp
+  ldap:
+    file: /path/to/authelia/secrets/ldap
+
+services:
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    secrets:
+      - jwt
+      - duo
+      - session
+      - redis
+      - mysql
+      - smtp
+      - ldap
+    volumes:
+      - /path/to/authelia:/var/lib/authelia
+      - /path/to/authelia/configuration.yml:/etc/authelia/configuration.yml:ro
+    networks:
+      - net
+    expose:
+      - 9091
+    restart: unless-stopped
+    environment:
+      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/jwt
+      - AUTHELIA_DUO_API_SECRET_KEY_FILE=/run/secrets/duo
+      - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/session
+      - AUTHELIA_SESSION_REDIS_PASSWORD_FILE=/run/secrets/redis
+      - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/run/secrets/mysql
+      - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/run/secrets/smtp
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE=/run/secrets/ldap
+      - TZ=Australia/Melbourne
+```
+
 ## Secrets exposed in an environment variable
 
 Prior to implementing file secrets you were able to define the
