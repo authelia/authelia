@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/authelia/authelia/internal/mocks"
-	"github.com/authelia/authelia/internal/storage"
-
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/storage"
 )
 
 type FetchSuite struct {

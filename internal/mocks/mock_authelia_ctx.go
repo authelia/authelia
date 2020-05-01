@@ -6,21 +6,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/authelia/authelia/internal/regulation"
-	"github.com/authelia/authelia/internal/storage"
-
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/internal/storage"
 )
 
 // MockAutheliaCtx a mock of AutheliaCtx.
