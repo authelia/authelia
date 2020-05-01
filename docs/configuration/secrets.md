@@ -43,7 +43,7 @@ environment variable will not be replaced.
 |authentication_backend.ldap.password|AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE|
 
 
-### Docker Compose examples
+### Docker Compose example
 
 The example below assumes secrets are stored in `/path/to/authelia/secrets/{secretname}`
 and are exposed via Docker secrets in a `docker-compose.yml` file:
