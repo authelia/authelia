@@ -113,7 +113,8 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 	}
 
 	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
-	_, _ = CheckPassword(password, p.fakeHash)
+	hashedPassword := strings.ReplaceAll(p.fakeHash, "{CRYPT}", "")
+	_, _ = CheckPassword(password, hashedPassword)
 
 	return false, fmt.Errorf("User '%s' does not exist in database", username)
 }
