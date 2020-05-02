@@ -1,3 +1,3 @@
 package schema
 
-const defaultPolicy = "deny"
+const denyPolicy = "deny"
