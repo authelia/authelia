@@ -78,7 +78,6 @@ func (c *AutheliaCtx) ReplyError(err error, message string) {
 // ReplyUnauthorized response sent when user is unauthorized.
 func (c *AutheliaCtx) ReplyUnauthorized() {
 	c.RequestCtx.Error(fasthttp.StatusMessage(fasthttp.StatusUnauthorized), fasthttp.StatusUnauthorized)
-	// c.Response.Header.Set("WWW-Authenticate", "Basic realm=Restricted")
 }
 
 // ReplyForbidden response sent when access is forbidden to user.
