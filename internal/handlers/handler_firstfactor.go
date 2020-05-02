@@ -18,7 +18,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	err := ctx.ParseBody(&bodyJSON)
 
 	if err != nil {
-		handleFirstFactorError(ctx, err, authenticationFailedMessage, false)
+		handleErrorResponse(ctx, err, authenticationFailedMessage)
 		return
 	}
 
@@ -26,10 +26,10 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		if err == regulation.ErrUserIsBanned {
-			handleFirstFactorError(ctx, fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), userBannedMessage, false)
+			handleErrorResponse(ctx, fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), userBannedMessage)
 			return
 		}
-		handleFirstFactorError(ctx, fmt.Errorf("Unable to regulate authentication: %s", err.Error()), authenticationFailedMessage, false)
+		handleErrorResponse(ctx, fmt.Errorf("Unable to regulate authentication: %s", err.Error()), authenticationFailedMessage)
 		return
 	}
 
@@ -38,14 +38,15 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	if err != nil {
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 		ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-		handleFirstFactorError(ctx, fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage, false)
+		handleErrorResponse(ctx, fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 		return
 	}
 
 	if !userPasswordOk {
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 		ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-		handleFirstFactorError(ctx, fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage, true)
+		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
+		ctx.ReplyError(fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
 		return
 	}
 
@@ -55,7 +56,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	err = ctx.Providers.Regulator.Mark(bodyJSON.Username, true)
 
 	if err != nil {
-		handleFirstFactorError(ctx, fmt.Errorf("Unable to mark authentication: %s", err.Error()), authenticationFailedMessage, false)
+		handleErrorResponse(ctx, fmt.Errorf("Unable to mark authentication: %s", err.Error()), authenticationFailedMessage)
 		return
 	}
 
@@ -63,14 +64,14 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	err = ctx.SaveSession(session.NewDefaultUserSession())
 
 	if err != nil {
-		handleFirstFactorError(ctx, fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage, false)
+		handleErrorResponse(ctx, fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 		return
 	}
 
 	err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 	if err != nil {
-		handleFirstFactorError(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage, false)
+		handleErrorResponse(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 		return
 	}
 
@@ -81,7 +82,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	if keepMeLoggedIn {
 		err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, ctx.Providers.SessionProvider.RememberMe)
 		if err != nil {
-			handleFirstFactorError(ctx, fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage, false)
+			handleErrorResponse(ctx, fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 			return
 		}
 	}
@@ -90,7 +91,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	userDetails, err := ctx.Providers.UserProvider.GetDetails(bodyJSON.Username)
 
 	if err != nil {
-		handleFirstFactorError(ctx, fmt.Errorf("Error while retrieving details from user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage, false)
+		handleErrorResponse(ctx, fmt.Errorf("Error while retrieving details from user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 		return
 	}
 
@@ -107,19 +108,9 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {
-		handleFirstFactorError(ctx, fmt.Errorf("Unable to save session of user %s", bodyJSON.Username), authenticationFailedMessage, false)
+		handleErrorResponse(ctx, fmt.Errorf("Unable to save session of user %s", bodyJSON.Username), authenticationFailedMessage)
 		return
 	}
 
 	Handle1FAResponse(ctx, bodyJSON.TargetURL, userSession.Username, userSession.Groups)
-}
-
-// handleFirstFactorError provides harmonized response codes for 1FA.
-func handleFirstFactorError(ctx *middlewares.AutheliaCtx, err error, message string, reply bool) {
-	ctx.SetStatusCode(fasthttp.StatusUnauthorized)
-	if reply {
-		ctx.ReplyError(err, message)
-	} else {
-		ctx.Error(err, message)
-	}
 }

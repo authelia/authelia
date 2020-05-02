@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/utils"
@@ -79,4 +81,10 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	} else {
 		ctx.ReplyOK()
 	}
+}
+
+// handleErrorResponse provides harmonized response codes for 1FA.
+func handleErrorResponse(ctx *middlewares.AutheliaCtx, err error, message string) {
+	ctx.SetStatusCode(fasthttp.StatusUnauthorized)
+	ctx.Error(err, message)
 }
