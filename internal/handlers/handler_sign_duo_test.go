@@ -92,7 +92,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 
 	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
