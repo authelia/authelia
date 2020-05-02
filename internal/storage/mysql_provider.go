@@ -10,12 +10,12 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 )
 
-// MySQLProvider is a MySQL provider
+// MySQLProvider is a MySQL provider.
 type MySQLProvider struct {
 	SQLProvider
 }
 
-// NewMySQLProvider a MySQL provider
+// NewMySQLProvider a MySQL provider.
 func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProvider {
 	connectionString := configuration.Username
 

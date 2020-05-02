@@ -4,10 +4,10 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// Docker a docker object
+// Docker a docker object.
 type Docker struct{}
 
-// Build build a docker image
+// Build build a docker image.
 func (d *Docker) Build(tag, dockerfile, target, gitTag, gitCommit string) error {
 	return utils.CommandWithStdout(
 		"docker", "build", "-t", tag, "-f", dockerfile, "--build-arg",

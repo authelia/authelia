@@ -14,7 +14,7 @@ type ProviderConfig struct {
 	providerConfig session.ProviderConfig
 }
 
-// U2FRegistration is a serializable version of a U2F registration
+// U2FRegistration is a serializable version of a U2F registration.
 type U2FRegistration struct {
 	KeyHandle []byte
 	PublicKey []byte

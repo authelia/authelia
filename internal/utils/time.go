@@ -9,7 +9,7 @@ import (
 // ParseDurationString parses a string to a duration
 // Duration notations are an integer followed by a unit
 // Units are s = second, m = minute, d = day, w = week, M = month, y = year
-// Example 1y is the same as 1 year
+// Example 1y is the same as 1 year.
 func ParseDurationString(input string) (time.Duration, error) {
 	var duration time.Duration
 	matches := parseDurationRegexp.FindStringSubmatch(input)

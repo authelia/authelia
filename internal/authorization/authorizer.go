@@ -36,7 +36,7 @@ func (s Subject) String() string {
 	return fmt.Sprintf("username=%s groups=%s ip=%s", s.Username, strings.Join(s.Groups, ","), s.IP.String())
 }
 
-// Object object to check access control for
+// Object object to check access control for.
 type Object struct {
 	Domain string
 	Path   string

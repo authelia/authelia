@@ -45,7 +45,7 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 	assert.Equal(t, schema.DefaultCIPasswordConfiguration.KeyLength, parameters.GetInt("k", HashingDefaultArgon2idKeyLength))
 }
 
-// This checks the method of hashing (for argon2id) supports all the characters we allow in Authelia's hash function
+// This checks the method of hashing (for argon2id) supports all the characters we allow in Authelia's hash function.
 func TestArgon2idHashSaltValidValues(t *testing.T) {
 	data := string(HashingPossibleSaltCharacters)
 	datas := utils.SliceString(data, 16)
@@ -58,7 +58,7 @@ func TestArgon2idHashSaltValidValues(t *testing.T) {
 	}
 }
 
-// This checks the method of hashing (for sha512) supports all the characters we allow in Authelia's hash function
+// This checks the method of hashing (for sha512) supports all the characters we allow in Authelia's hash function.
 func TestSHA512HashSaltValidValues(t *testing.T) {
 	data := string(HashingPossibleSaltCharacters)
 	datas := utils.SliceString(data, 16)

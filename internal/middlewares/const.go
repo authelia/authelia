@@ -1,6 +1,6 @@
 package middlewares
 
-// JWTIssuer is
+// JWTIssuer is.
 const jwtIssuer = "Authelia"
 
 const xForwardedProtoHeader = "X-Forwarded-Proto"
