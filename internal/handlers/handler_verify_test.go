@@ -22,7 +22,7 @@ import (
 
 var verifyGetCfg = schema.Configuration{
 	AuthenticationBackend: schema.AuthenticationBackendConfiguration{
-		RefreshInterval: "5m",
+		RefreshInterval: schema.RefreshIntervalDefault,
 		Ldap:            &schema.LDAPAuthenticationBackendConfiguration{},
 	},
 }

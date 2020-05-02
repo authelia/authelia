@@ -301,7 +301,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	ctx.Logger.Tracef("Checking if we need check the authentication backend for an updated profile for %s.", userSession.Username)
 	if refreshProfile && userSession.Username != "" && targetURL != nil &&
 		ctx.Providers.Authorizer.IsURLMatchingRuleWithGroupSubjects(*targetURL) &&
-		(refreshProfileInterval == 0 || userSession.RefreshTTL.Before(ctx.Clock.Now())) {
+		(refreshProfileInterval == schema.RefreshIntervalAlways || userSession.RefreshTTL.Before(ctx.Clock.Now())) {
 		ctx.Logger.Debugf("Checking the authentication backend for an updated profile for user %s", userSession.Username)
 		details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
 		// Only update the session if we could get the new details.
@@ -324,7 +324,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 			userSession.Emails = details.Emails
 
 			// Only update TTL if the user has a interval set.
-			if refreshProfileInterval != 0 {
+			if refreshProfileInterval != schema.RefreshIntervalAlways {
 				userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
 				return ctx.SaveSession(*userSession)
 			}
@@ -332,7 +332,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 		// Only update TTL if the user has a interval set.
 		// Also make sure to update the session even if no difference was found.
 		// This is so that we don't check every subsequent request after this one.
-		if refreshProfileInterval != 0 {
+		if refreshProfileInterval != schema.RefreshIntervalAlways {
 			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
 			return ctx.SaveSession(*userSession)
 		}
@@ -342,11 +342,13 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 
 func getProfileRefreshSettings(cfg schema.Configuration) (refresh bool, refreshInterval time.Duration) {
 	if cfg.AuthenticationBackend.Ldap != nil {
-		if cfg.AuthenticationBackend.RefreshInterval != "disable" {
+		if cfg.AuthenticationBackend.RefreshInterval != schema.ProfileRefreshDisabled {
 			refresh = true
-			if cfg.AuthenticationBackend.RefreshInterval != "always" {
+			if cfg.AuthenticationBackend.RefreshInterval != schema.ProfileRefreshAlways {
 				// Skip Error Check since validator checks it
 				refreshInterval, _ = utils.ParseDurationString(cfg.AuthenticationBackend.RefreshInterval)
+			} else {
+				refreshInterval = schema.RefreshIntervalAlways
 			}
 		}
 	}

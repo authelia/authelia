@@ -173,10 +173,10 @@ func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendCo
 	}
 
 	if configuration.RefreshInterval == "" {
-		configuration.RefreshInterval = "5m"
+		configuration.RefreshInterval = schema.RefreshIntervalDefault
 	} else {
 		_, err := utils.ParseDurationString(configuration.RefreshInterval)
-		if err != nil && configuration.RefreshInterval != "disable" && configuration.RefreshInterval != "always" {
+		if err != nil && configuration.RefreshInterval != schema.ProfileRefreshDisabled && configuration.RefreshInterval != schema.ProfileRefreshAlways {
 			validator.Push(fmt.Errorf("Auth Backend `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
 		}
 	}
