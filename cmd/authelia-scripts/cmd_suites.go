@@ -21,10 +21,10 @@ import (
 // ErrNotAvailableSuite error raised when suite is not available.
 var ErrNotAvailableSuite = errors.New("unavailable suite")
 
-// ErrNoRunningSuite error raised when no suite is running
+// ErrNoRunningSuite error raised when no suite is running.
 var ErrNoRunningSuite = errors.New("no running suite")
 
-// runningSuiteFile name of the file containing the currently running suite
+// runningSuiteFile name of the file containing the currently running suite.
 var runningSuiteFile = ".suite"
 
 var headless bool
@@ -68,7 +68,7 @@ var SuitesSetupCmd = &cobra.Command{
 	Args: cobra.ExactArgs(1),
 }
 
-// SuitesTeardownCmd Command for tearing down a suite environment
+// SuitesTeardownCmd Command for tearing down a suite environment.
 var SuitesTeardownCmd = &cobra.Command{
 	Use:   "teardown [suite]",
 	Short: "Teardown a Go suite environment. Suites can be listed using the list command.",
@@ -96,7 +96,7 @@ var SuitesTeardownCmd = &cobra.Command{
 	Args: cobra.MaximumNArgs(1),
 }
 
-// SuitesTestCmd Command for testing a suite
+// SuitesTestCmd Command for testing a suite.
 var SuitesTestCmd = &cobra.Command{
 	Use:   "test [suite]",
 	Short: "Test a suite. Suites can be listed using the list command.",
@@ -192,7 +192,7 @@ func testSuite(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	// If suite(s) are provided as argument
+	// If suite(s) are provided as argument.
 	if len(args) >= 1 {
 		suiteArg := args[0]
 
@@ -242,7 +242,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 
 	suite := suites.GlobalRegistry.Get(suiteName)
 
-	// Default value is 1 minute
+	// Default value is 1 minute.
 	timeout := "60s"
 	if suite.TestTimeout > 0 {
 		timeout = fmt.Sprintf("%ds", int64(suite.TestTimeout/time.Second))
@@ -279,7 +279,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 
 	if withEnv {
 		if err := teardownSuite(suiteName); err != nil {
-			// Do not return this error to return the test error instead
+			// Do not return this error to return the test error instead.
 			log.Errorf("Error running teardown: %v", err)
 		}
 	}

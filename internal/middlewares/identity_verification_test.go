@@ -144,8 +144,7 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 }
 
-// Test Finish process
-
+// Test Finish process.
 type IdentityVerificationFinishProcess struct {
 	suite.Suite
 

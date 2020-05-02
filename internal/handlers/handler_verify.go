@@ -69,7 +69,7 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 }
 
 // parseBasicAuth parses an HTTP Basic Authentication string.
-// "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true)
+// "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true).
 func parseBasicAuth(auth string) (username, password string, err error) {
 	if !strings.HasPrefix(auth, authPrefix) {
 		return "", "", fmt.Errorf("%s prefix not found in %s header", strings.Trim(authPrefix, " "), AuthorizationHeader)
@@ -147,7 +147,7 @@ func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCt
 	return username, details.Groups, authentication.OneFactor, nil
 }
 
-// setForwardedHeaders set the forwarded User and Groups headers
+// setForwardedHeaders set the forwarded User and Groups headers.
 func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, groups []string) {
 	if username != "" {
 		headers.Set(remoteUserHeader, username)
@@ -177,7 +177,7 @@ func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) { //
 
 // verifySessionCookie verify if a user identified by a cookie.
 func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
-	// No username in the session means the user is anonymous
+	// No username in the session means the user is anonymous.
 	isUserAnonymous := userSession.Username == ""
 
 	if isUserAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
@@ -191,7 +191,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 		}
 
 		if inactiveLongEnough {
-			// Destroy the session a new one will be regenerated on next request
+			// Destroy the session a new one will be regenerated on next request.
 			err := ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 			if err != nil {
 				return "", nil, authentication.NotAuthenticated, fmt.Errorf("Unable to destroy user session after long inactivity: %s", err)

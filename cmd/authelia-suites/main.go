@@ -15,7 +15,7 @@ import (
 
 var tmpDirectory = "/tmp/authelia/suites/"
 
-// runningSuiteFile name of the file containing the currently running suite
+// runningSuiteFile name of the file containing the currently running suite.
 var runningSuiteFile = ".suite"
 
 func init() {

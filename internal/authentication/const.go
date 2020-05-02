@@ -25,7 +25,7 @@ const (
 	Push = "mobile_push"
 )
 
-// PossibleMethods is the set of all possible 2FA methods
+// PossibleMethods is the set of all possible 2FA methods.
 var PossibleMethods = []string{TOTP, U2F, Push}
 
 const (

@@ -33,7 +33,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon2FA() {
 	wds.verifySecretAuthorized(ctx, s.T())
 }
 
-// from network 192.168.240.201/32
+// from network 192.168.240.201/32.
 func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -51,7 +51,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 	wds.verifySecretAuthorized(ctx, s.T())
 }
 
-// from network 192.168.240.202/32
+// from network 192.168.240.202/32.
 func (s *NetworkACLSuite) TestShouldAccessSecretUpon0FA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

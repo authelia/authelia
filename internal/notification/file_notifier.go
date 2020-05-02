@@ -22,7 +22,7 @@ func NewFileNotifier(configuration schema.FileSystemNotifierConfiguration) *File
 	}
 }
 
-// StartupCheck checks the file provider can write to the specified file
+// StartupCheck checks the file provider can write to the specified file.
 func (n *FileNotifier) StartupCheck() (bool, error) {
 	dir := filepath.Dir(n.path)
 	if _, err := os.Stat(dir); err != nil {

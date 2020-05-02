@@ -42,12 +42,12 @@ func checkArchIsSupported(arch string) {
 
 func dockerBuildOfficialImage(arch string) error {
 	docker := &Docker{}
-	// Set default Architecture Dockerfile to amd64
+	// Set default Architecture Dockerfile to amd64.
 	dockerfile := "Dockerfile"
-	// Set version of QEMU
+	// Set version of QEMU.
 	qemuversion := "v4.2.0-7"
 
-	// If not the default value
+	// If not the default value.
 	if arch != defaultArch {
 		dockerfile = fmt.Sprintf("%s.%s", dockerfile, arch)
 	}
@@ -120,7 +120,7 @@ var DockerBuildCmd = &cobra.Command{
 	},
 }
 
-// DockerPushCmd Command for pushing Authelia docker image to Docker Hub
+// DockerPushCmd Command for pushing Authelia docker image to DockerHub.
 var DockerPushCmd = &cobra.Command{
 	Use:   "push-image",
 	Short: "Publish Authelia docker image to Docker Hub",
@@ -131,7 +131,7 @@ var DockerPushCmd = &cobra.Command{
 	},
 }
 
-// DockerManifestCmd Command for pushing Authelia docker manifest to Docker Hub
+// DockerManifestCmd Command for pushing Authelia docker manifest to DockerHub.
 var DockerManifestCmd = &cobra.Command{
 	Use:   "push-manifest",
 	Short: "Publish Authelia docker manifest to Docker Hub",

@@ -285,7 +285,7 @@ groups:
 - dev
 `)
 
-// The YAML is valid but the root key is user instead of users
+// The YAML is valid but the root key is user instead of users.
 var BadSchemaUserDatabaseContent = []byte(`
 user:
   john:

@@ -11,7 +11,7 @@ type Clock interface {
 // RealClock is the implementation of a clock for production code.
 type RealClock struct{}
 
-// Now return the current time
+// Now return the current time.
 func (RealClock) Now() time.Time {
 	return time.Now()
 }

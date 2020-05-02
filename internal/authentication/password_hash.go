@@ -12,7 +12,7 @@ import (
 )
 
 // PasswordHash represents all characteristics of a password hash.
-// Authelia only supports salted SHA512 or salted argon2id method, i.e., $6$ mode or $argon2id$ mode
+// Authelia only supports salted SHA512 or salted argon2id method, i.e., $6$ mode or $argon2id$ mode.
 type PasswordHash struct {
 	Algorithm   string
 	Iterations  int
@@ -23,11 +23,11 @@ type PasswordHash struct {
 	Parallelism int
 }
 
-// ParseHash extracts all characteristics of a hash given its string representation
+// ParseHash extracts all characteristics of a hash given its string representation.
 func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 	parts := strings.Split(hash, "$")
 
-	// This error can be ignored as it's always nil
+	// This error can be ignored as it's always nil.
 	code, parameters, salt, key, _ := crypt.DecodeSettings(hash)
 	h := &PasswordHash{}
 
@@ -81,8 +81,8 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 	return h, nil
 }
 
-// HashPassword generate a salt and hash the password with the salt and a constant number of rounds
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
+// HashPassword generate a salt and hash the password with the salt and a constant number of rounds.
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func HashPassword(password, salt, algorithm string, iterations, memory, parallelism, keyLength, saltLength int) (hash string, err error) {
 	var settings string
 
@@ -105,7 +105,7 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 	}
 
 	if algorithm == HashingAlgorithmArgon2id {
-		// Caution: Increasing any of the values in the below block has a high chance in old passwords that cannot be verified
+		// Caution: Increasing any of the values in the below block has a high chance in old passwords that cannot be verified.
 		if memory < 8 {
 			return "", fmt.Errorf("Memory (argon2id) input of %d is invalid, it must be 8 or higher", memory)
 		}
@@ -121,7 +121,7 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 		if iterations < 1 {
 			return "", fmt.Errorf("Iterations (argon2id) input of %d is invalid, it must be 1 or more", iterations)
 		}
-		// Caution: Increasing any of the values in the above block has a high chance in old passwords that cannot be verified
+		// Caution: Increasing any of the values in the above block has a high chance in old passwords that cannot be verified.
 	}
 
 	if salt == "" {
@@ -129,12 +129,12 @@ func HashPassword(password, salt, algorithm string, iterations, memory, parallel
 	}
 	settings = getCryptSettings(salt, algorithm, iterations, memory, parallelism, keyLength)
 
-	// This error can be ignored because we check for it before a user gets here
+	// This error can be ignored because we check for it before a user gets here.
 	hash, _ = crypt.Crypt(password, settings)
 	return hash, nil
 }
 
-// CheckPassword check a password against a hash
+// CheckPassword check a password against a hash.
 func CheckPassword(password, hash string) (ok bool, err error) {
 	passwordHash, err := ParseHash(hash)
 	if err != nil {

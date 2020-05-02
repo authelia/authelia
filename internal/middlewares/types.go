@@ -54,23 +54,23 @@ type IdentityVerificationStartArgs struct {
 	// is completed successfully.
 	TargetEndpoint string
 
-	// The action claim that will be stored in the JWT token
+	// The action claim that will be stored in the JWT token.
 	ActionClaim string
 
 	// The function retrieving the identity to who the email will be sent.
 	IdentityRetrieverFunc func(ctx *AutheliaCtx) (*session.Identity, error)
 
-	// The function for checking the user in the token is valid for the current action
+	// The function for checking the user in the token is valid for the current action.
 	IsTokenUserValidFunc func(ctx *AutheliaCtx, username string) bool
 }
 
 // IdentityVerificationFinishArgs represent the arguments used to customize the finishing phase
 // of the identity verification process.
 type IdentityVerificationFinishArgs struct {
-	// The action claim that should be in the token to consider the action legitimate
+	// The action claim that should be in the token to consider the action legitimate.
 	ActionClaim string
 
-	// The function for checking the user in the token is valid for the current action
+	// The function for checking the user in the token is valid for the current action.
 	IsTokenUserValidFunc func(ctx *AutheliaCtx, username string) bool
 }
 
@@ -90,13 +90,13 @@ type IdentityVerificationFinishBody struct {
 	Token string `json:"token"`
 }
 
-// OKResponse model  of a status OK response
+// OKResponse model of a status OK response.
 type OKResponse struct {
 	Status string      `json:"status"`
 	Data   interface{} `json:"data,omitempty"`
 }
 
-// ErrorResponse model of an error response
+// ErrorResponse model of an error response.
 type ErrorResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`

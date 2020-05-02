@@ -9,14 +9,14 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-// NewDuoAPI create duo API instance
+// NewDuoAPI create duo API instance.
 func NewDuoAPI(duoAPI *duoapi.DuoApi) *APIImpl {
 	api := new(APIImpl)
 	api.DuoApi = duoAPI
 	return api
 }
 
-// Call call to the DuoAPI
+// Call call to the DuoAPI.
 func (d *APIImpl) Call(values url.Values, ctx *middlewares.AutheliaCtx) (*Response, error) {
 	_, responseBytes, err := d.DuoApi.SignedCall("POST", "/auth/v2/auth", values)
 
