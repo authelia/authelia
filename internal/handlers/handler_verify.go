@@ -251,7 +251,8 @@ func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, use
 	return ctx.SaveSession(userSession)
 }
 
-// generateVerifySessionIsUpToDateTraceLogs is used to generate trace logs only when trace logging is enabled. The information calculated in this function is completely useless other than trace for now.
+// generateVerifySessionIsUpToDateTraceLogs is used to generate trace logs only when trace logging is enabled.
+// The information calculated in this function is completely useless other than trace for now.
 func generateVerifySessionIsUpToDateTraceLogs(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails) {
 	groupsAdded, groupsRemoved := utils.StringSlicesDelta(userSession.Groups, details.Groups)
 	emailsAdded, emailsRemoved := utils.StringSlicesDelta(userSession.Emails, details.Emails)

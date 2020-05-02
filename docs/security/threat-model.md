@@ -28,7 +28,7 @@ If properly configured, Authelia guarantees the following for security of your u
 * Prevention against session fixation by regenerating a new session after each privilege elevation.
 * Prevention against LDAP injection by following OWASP recommendations regarding valid input characters (https://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html).
 * Connections between Authelia and thirdparty components like mail server, database, cache and LDAP server can be made over TLS to protect against man-in-the-middle attacks from within the infrastructure.
-* The validity of user session group memberships gets refreshed regularly from the authentication backend (LDAP only)
+* Validation of user session group memberships gets refreshed regularly from the authentication backend (LDAP only).
  
 ## Potential future guarantees
 
@@ -39,8 +39,8 @@ If properly configured, Authelia guarantees the following for security of your u
 * Securely transmit authentication data to backends (OAuth2 with bearer tokens).
 * Protect secrets stored in DB with encryption to prevent secrets leak by DB exfiltration.
 * Least privilege on LDAP binding operations (currently administrative user is used to bind while it could be anonymous).
-* Extend the check of user group memberships to authentication backends other than LDAP (File currently)
-* Invalidate user session after profile or membership has changed in order to drop remaining privileges on the fly
+* Extend the check of user group memberships to authentication backends other than LDAP (File currently).
+* Invalidate user session after profile or membership has changed in order to drop remaining privileges on the fly.
 
 ## Trusted environment
 

@@ -109,7 +109,7 @@ user_filter, or deny access to resources as they are removed from groups.
 In addition to the duration notation, you may provide the value `always` or `disable`. Setting to `always`
 is the same as setting it to 0 which will refresh on every request, `disable` turns the feature off, which is 
 not recommended. This completely prevents Authelia from refreshing this information, and it would only be
-refreshed when the user session gets destroyed by other means like inactivity, session expiration, or logging 
+refreshed when the user session gets destroyed by other means like inactivity, session expiration or logging 
 out and in.
 
 This value can be any value including 0, setting it to 0 would automatically refresh the session on

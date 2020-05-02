@@ -52,7 +52,7 @@ will invalidate any session where the user could not be retrieved from LDAP base
 example if they were deleted or disabled provided the user filter set correctly. These updates occur when
 a user accesses a resource protected by Authelia.
 
-hese protections can be [tuned](../configuration/authentication/ldap.md) according to your security policy 
+These protections can be [tuned](../configuration/authentication/ldap.md) according to your security policy 
 by changing refresh_interval, however we believe that 5 minutes is a fairly safe interval.
 
 ## Notifier security measures (SMTP)
