@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/simia-tech/crypt"
 	"gopkg.in/yaml.v2"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // FileUserProvider is a provider reading details from a file.
@@ -19,6 +21,9 @@ type FileUserProvider struct {
 	configuration *schema.FileAuthenticationBackendConfiguration
 	database      *DatabaseModel
 	lock          *sync.Mutex
+
+	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
+	fakeHash string
 }
 
 // UserDetailsModel is the model of user details in the file database.
@@ -47,10 +52,23 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 		panic(err.Error())
 	}
 
+	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
+	// This generates a hash that should be usable to do a fake CheckUserPassword
+	algorithm := configuration.Password.Algorithm
+	if configuration.Password.Algorithm == "sha512" {
+		algorithm = HashingAlgorithmSHA512
+	}
+	settings := getCryptSettings(utils.RandomString(configuration.Password.SaltLength, HashingPossibleSaltCharacters),
+		algorithm, configuration.Password.Iterations, configuration.Password.Memory*1024, configuration.Password.Parallelism,
+		configuration.Password.KeyLength)
+	data := crypt.Base64Encoding.EncodeToString([]byte(utils.RandomString(configuration.Password.KeyLength, HashingPossibleSaltCharacters)))
+	fakeHash := fmt.Sprintf("%s$%s", settings, data)
+
 	return &FileUserProvider{
 		configuration: configuration,
 		database:      database,
 		lock:          &sync.Mutex{},
+		fakeHash:      fakeHash,
 	}
 }
 
@@ -96,7 +114,12 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 		}
 		return ok, nil
 	}
-	return false, ErrUserNotFound
+
+	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
+	hashedPassword := strings.ReplaceAll(p.fakeHash, "{CRYPT}", "")
+	_, err := CheckPassword(password, hashedPassword)
+
+	return false, err
 }
 
 // GetDetails retrieve the groups a user belongs to.
