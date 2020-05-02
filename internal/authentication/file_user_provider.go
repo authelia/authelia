@@ -54,7 +54,7 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
 	// This generates a hash that should be usable to do a fake CheckUserPassword
 	algorithm := configuration.Password.Algorithm
-	if configuration.Password.Algorithm == "sha512" {
+	if configuration.Password.Algorithm == sha512 {
 		algorithm = HashingAlgorithmSHA512
 	}
 	settings := getCryptSettings(utils.RandomString(configuration.Password.SaltLength, HashingPossibleSaltCharacters),
@@ -143,7 +143,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	var algorithm string
 	if p.configuration.Password.Algorithm == "argon2id" {
 		algorithm = HashingAlgorithmArgon2id
-	} else if p.configuration.Password.Algorithm == "sha512" {
+	} else if p.configuration.Password.Algorithm == sha512 {
 		algorithm = HashingAlgorithmSHA512
 	} else {
 		return errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")

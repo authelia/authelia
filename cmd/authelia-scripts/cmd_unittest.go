@@ -17,7 +17,7 @@ func RunUnitTest(cobraCmd *cobra.Command, args []string) {
 	}
 
 	cmd := utils.Shell("yarn test")
-	cmd.Dir = "web"
+	cmd.Dir = webDirectory
 	cmd.Env = append(os.Environ(), "CI=true")
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)

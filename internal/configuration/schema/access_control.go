@@ -17,7 +17,7 @@ type ACLRule struct {
 
 // IsPolicyValid check if policy is valid.
 func IsPolicyValid(policy string) bool {
-	return policy == "deny" || policy == "one_factor" || policy == "two_factor" || policy == "bypass"
+	return policy == denyPolicy || policy == "one_factor" || policy == "two_factor" || policy == "bypass"
 }
 
 // IsSubjectValid check if a subject is valid.
@@ -63,7 +63,7 @@ type AccessControlConfiguration struct {
 // Validate validate the access control configuration.
 func (acc *AccessControlConfiguration) Validate(validator *StructValidator) {
 	if acc.DefaultPolicy == "" {
-		acc.DefaultPolicy = "deny"
+		acc.DefaultPolicy = denyPolicy
 	}
 
 	if !IsPolicyValid(acc.DefaultPolicy) {

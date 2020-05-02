@@ -151,3 +151,15 @@ var specificErrorKeys = map[string]string{
 	"authentication_backend.file.hashing.memory":               "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 	"authentication_backend.file.hashing.parallelism":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 }
+
+const argon2id = "argon2id"
+const sha512 = "sha512"
+
+const schemeLDAP = "ldap"
+const schemeLDAPS = "ldaps"
+
+const testBadTimer = "-1"
+const testModeDisabled = "disable"
+const testJWTSecret = "a_secret"
+const testTLSCert = "/tmp/cert.pem"
+const testTLSKey = "/tmp/key.pem"

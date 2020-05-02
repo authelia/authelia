@@ -27,3 +27,5 @@ const Month = Year / 12
 
 // RFC3339Zero is the default value for time.Time.Unix().
 const RFC3339Zero = int64(-62135596800)
+
+const testStringInput = "abcdefghijkl"

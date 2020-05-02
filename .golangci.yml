@@ -2,6 +2,9 @@ run:
   timeout: 3m
 
 linters-settings:
+  goconst:
+    min-len: 2
+    min-occurrences: 2
   gocyclo:
     min-complexity: 15
   godot:
@@ -11,6 +14,7 @@ linters-settings:
 
 linters:
   enable:
+    - goconst
     - gocyclo
     - godot
     - gofmt
