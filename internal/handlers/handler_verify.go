@@ -265,10 +265,10 @@ func generateVerifySessionIsUpToDateTraceLogs(ctx *middlewares.AutheliaCtx, user
 		groupsDelta = append(groupsDelta, fmt.Sprintf("Removed: %s.", strings.Join(groupsRemoved, ", ")))
 	}
 	if len(groupsDelta) != 0 {
-		// TODO: Tracef for release.
+		// TODO: FOR 4.16.1 RELEASE change Debugf to Tracef
 		ctx.Logger.Debugf("Updated groups detected for %s. %s", userSession.Username, strings.Join(groupsDelta, " "))
 	} else {
-		// TODO: Tracef for release.
+		// TODO: FOR 4.16.1 RELEASE change Debugf to Tracef
 		ctx.Logger.Debugf("No updated groups detected for %s", userSession.Username)
 	}
 
@@ -281,10 +281,10 @@ func generateVerifySessionIsUpToDateTraceLogs(ctx *middlewares.AutheliaCtx, user
 		emailsDelta = append(emailsDelta, fmt.Sprintf("Removed: %s.", strings.Join(emailsRemoved, ", ")))
 	}
 	if len(emailsDelta) != 0 {
-		// TODO: Tracef for release.
+		// TODO: FOR 4.16.1 RELEASE change Debugf to Tracef
 		ctx.Logger.Debugf("Updated emails detected for %s. %s", userSession.Username, strings.Join(emailsDelta, " "))
 	} else {
-		// TODO: Tracef for release.
+		// TODO: FOR 4.16.1 RELEASE change Debugf to Tracef
 		ctx.Logger.Debugf("No updated emails detected for %s", userSession.Username)
 	}
 }
@@ -294,9 +294,9 @@ func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, u
 
 	refresh, interval := ctx.Providers.UserProvider.GetRefreshSettings()
 
-	ctx.Logger.Tracef("Checking if we need to update session")
+	ctx.Logger.Tracef("Checking if we need check the authentication backend for an updated profile for %s.", userSession.Username)
 	if refresh && userSession.Username != "" && targetURL != nil && ctx.Providers.Authorizer.URLHasGroupSubjects(*targetURL) && (interval == 0 || userSession.RefreshTTL.Before(ctx.Clock.Now())) {
-		ctx.Logger.Debugf("Checking for updated groups from the authentication backend for user %s", userSession.Username)
+		ctx.Logger.Debugf("Checking the authentication backend for an updated profile for user %s", userSession.Username)
 		details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
 		// Only update the session if we could get the new details.
 		if err != nil {
@@ -306,11 +306,11 @@ func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, u
 		groupsDiff := utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
 		emailsDiff := utils.IsStringSlicesDifferent(userSession.Emails, details.Emails)
 		if !groupsDiff && !emailsDiff {
-			// TODO: Tracef for release.
-			ctx.Logger.Debugf("No updated groups or emails detected for %s.", userSession.Username)
+			// TODO: FOR 4.16.1 RELEASE change Debugf to Tracef
+			ctx.Logger.Debugf("Updated profile not detected for %s.", userSession.Username)
 		} else {
-			ctx.Logger.Debugf("Updated groups or emails detected for %s.", userSession.Username)
-			// TODO: trace for release.
+			ctx.Logger.Debugf("Updated profile detected for %s.", userSession.Username)
+			// TODO: FOR 4.16.1 RELEASE: change "debug" to "trace"
 			if ctx.Configuration.LogLevel == "debug" {
 				generateVerifySessionIsUpToDateTraceLogs(ctx, userSession, details)
 			}

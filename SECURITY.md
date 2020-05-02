@@ -4,10 +4,25 @@ Authelia takes security very seriously. We follow the rule of
 [responsible disclosure](https://en.wikipedia.org/wiki/Responsible_disclosure), and we
 encourage the community to as well.
 
-If you discover a vulnerability in Authelia, please first contact **clems4ever** on 
-[Matrix](https://riot.im/app/#/room/#authelia:matrix.org) or by
-[email](mailto:clement.michaud34@gmail.com).
+If you discover a vulnerability in Authelia, please first contact one of the maintainers privately
+either via [Matrix](#matrix) or [email](#email) as described in the [contact options](#contact-options) below.
 
 For details about security measures implemented in Authelia, please follow
 this [link](https://docs.authelia.com/security/measures.html) and for reading about 
 the threat model follow this [link](https://docs.authelia.com/security/threat-model.html).
+
+## Contact Options
+
+### Matrix
+
+Join the [Matrix Room](https://riot.im/app/#/room/#authelia:matrix.org) and locate one of the maintainers.
+You can identify them as they are the room administrators. Alternatively you can just ask for one of the
+maintainers. Once you've made contact we ask you privately message the maintainer to communicate the vulnerability.
+
+### Email
+
+You can contact any of the maintainers for security vulnerability related issues by emailing 
+[security@authelia.com](mailto:security@authelia.com). Alternatively you may contact one of the maintainers
+directly via the following addresses:
+
+- **clems4ever:** [clement.michaud34@gmail.com](mailto:clement.michaud34@gmail.com)
