@@ -34,7 +34,7 @@ var HashPasswordCmd = &cobra.Command{
 
 		var err error
 		var hash string
-		var algorithm string
+		var algorithm authentication.CryptAlgo
 
 		if sha512 {
 			if iterations == schema.DefaultPasswordConfiguration.Iterations {

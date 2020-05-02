@@ -51,14 +51,14 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 		panic(err.Error())
 	}
 
+	var cryptAlgo CryptAlgo = HashingAlgorithmArgon2id
 	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
 	// This generates a hash that should be usable to do a fake CheckUserPassword
-	algorithm := configuration.Password.Algorithm
 	if configuration.Password.Algorithm == "sha512" {
-		algorithm = HashingAlgorithmSHA512
+		cryptAlgo = HashingAlgorithmSHA512
 	}
 	settings := getCryptSettings(utils.RandomString(configuration.Password.SaltLength, HashingPossibleSaltCharacters),
-		algorithm, configuration.Password.Iterations, configuration.Password.Memory*1024, configuration.Password.Parallelism,
+		cryptAlgo, configuration.Password.Iterations, configuration.Password.Memory*1024, configuration.Password.Parallelism,
 		configuration.Password.KeyLength)
 	data := crypt.Base64Encoding.EncodeToString([]byte(utils.RandomString(configuration.Password.KeyLength, HashingPossibleSaltCharacters)))
 	fakeHash := fmt.Sprintf("%s$%s", settings, data)
@@ -140,7 +140,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		return fmt.Errorf("User '%s' does not exist in database", username)
 	}
 
-	var algorithm string
+	var algorithm CryptAlgo
 	if p.configuration.Password.Algorithm == "argon2id" {
 		algorithm = HashingAlgorithmArgon2id
 	} else if p.configuration.Password.Algorithm == "sha512" {

@@ -14,7 +14,7 @@ import (
 // PasswordHash represents all characteristics of a password hash.
 // Authelia only supports salted SHA512 or salted argon2id method, i.e., $6$ mode or $argon2id$ mode.
 type PasswordHash struct {
-	Algorithm   string
+	Algorithm   CryptAlgo
 	Iterations  int
 	Salt        string
 	Key         string
@@ -28,7 +28,8 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 	parts := strings.Split(hash, "$")
 
 	// This error can be ignored as it's always nil.
-	code, parameters, salt, key, _ := crypt.DecodeSettings(hash)
+	c, parameters, salt, key, _ := crypt.DecodeSettings(hash)
+	code := CryptAlgo(c)
 	h := &PasswordHash{}
 
 	h.Salt = salt
@@ -83,7 +84,7 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 
 // HashPassword generate a salt and hash the password with the salt and a constant number of rounds.
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
-func HashPassword(password, salt, algorithm string, iterations, memory, parallelism, keyLength, saltLength int) (hash string, err error) {
+func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory, parallelism, keyLength, saltLength int) (hash string, err error) {
 	var settings string
 
 	if algorithm != HashingAlgorithmArgon2id && algorithm != HashingAlgorithmSHA512 {
@@ -147,7 +148,7 @@ func CheckPassword(password, hash string) (ok bool, err error) {
 	return hash == expectedHash, nil
 }
 
-func getCryptSettings(salt, algorithm string, iterations, memory, parallelism, keyLength int) (settings string) {
+func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, parallelism, keyLength int) (settings string) {
 	if algorithm == HashingAlgorithmArgon2id {
 		settings, _ = crypt.Argon2idSettings(memory, iterations, parallelism, keyLength, salt)
 	} else if algorithm == HashingAlgorithmSHA512 {
