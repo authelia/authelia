@@ -249,7 +249,41 @@ func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, use
 	return ctx.SaveSession(userSession)
 }
 
-func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession) (err error) {
+// generateVerifySessionIsUpToDateTraceLogs is used to generate trace logs only when trace logging is enabled. The information calculated in this function is completely useless other than trace for now.
+func generateVerifySessionIsUpToDateTraceLogs(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails) {
+	groupsAdded, groupsRemoved := utils.StringSlicesDelta(userSession.Groups, details.Groups)
+	emailsAdded, emailsRemoved := utils.StringSlicesDelta(userSession.Emails, details.Emails)
+
+	// Check Groups.
+	var groupsDelta []string
+	if len(groupsAdded) != 0 {
+		groupsDelta = append(groupsDelta, fmt.Sprintf("Added: %s.", strings.Join(groupsAdded, ", ")))
+	}
+	if len(groupsRemoved) != 0 {
+		groupsDelta = append(groupsDelta, fmt.Sprintf("Removed: %s.", strings.Join(groupsRemoved, ", ")))
+	}
+	if len(groupsDelta) != 0 {
+		ctx.Logger.Tracef("Updated groups detected for %s. %s", userSession.Username, strings.Join(groupsDelta, " "))
+	} else {
+		ctx.Logger.Tracef("No updated groups detected for %s", userSession.Username)
+	}
+
+	// Check Emails.
+	var emailsDelta []string
+	if len(emailsAdded) != 0 {
+		emailsDelta = append(emailsDelta, fmt.Sprintf("Added: %s.", strings.Join(emailsAdded, ", ")))
+	}
+	if len(emailsRemoved) != 0 {
+		emailsDelta = append(emailsDelta, fmt.Sprintf("Removed: %s.", strings.Join(emailsRemoved, ", ")))
+	}
+	if len(emailsDelta) != 0 {
+		ctx.Logger.Tracef("Updated emails detected for %s. %s", userSession.Username, strings.Join(emailsDelta, " "))
+	} else {
+		ctx.Logger.Tracef("No updated emails detected for %s", userSession.Username)
+	}
+}
+
+func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession) error {
 	// TODO: Add a check for LDAP password changes based on a time format attribute. See https://docs.authelia.com/security/threat-model.html#potential-future-guarantees
 
 	refresh, interval := ctx.Providers.UserProvider.GetRefreshSettings()
@@ -263,29 +297,29 @@ func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, u
 			return err
 		}
 
-		added, removed := utils.SliceStringDelta(userSession.Groups, details.Groups)
-		if len(added) == 0 && len(removed) == 0 {
-			ctx.Logger.Debugf("No updated groups detected for %s", userSession.Username)
-			if interval == 0 {
-				// Skip updating the session if nothing changed and interval is 0.
-				return nil
-			}
+		groupsDiff := utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
+		emailsDiff := utils.IsStringSlicesDifferent(userSession.Emails, details.Emails)
+		if !groupsDiff && !emailsDiff {
+			ctx.Logger.Tracef("No updated groups or emails detected for %s.", userSession.Username)
 		} else {
-			var delta []string
-			if len(added) != 0 {
-				delta = append(delta, fmt.Sprintf("Added: %s.", strings.Join(added, ", ")))
+			ctx.Logger.Debugf("Updated groups or emails detected for %s.", userSession.Username)
+			if ctx.Configuration.LogLevel == "trace" {
+				generateVerifySessionIsUpToDateTraceLogs(ctx, userSession, details)
 			}
-			if len(removed) != 0 {
-				delta = append(delta, fmt.Sprintf("Removed: %s.", strings.Join(removed, ", ")))
-			}
-			ctx.Logger.Debugf("Updated groups detected for %s. %s", userSession.Username, strings.Join(delta, " "))
 			userSession.Groups = details.Groups
-		}
+			userSession.Emails = details.Emails
 
+			// Only update TTL if the user has a interval set.
+			if interval != 0 {
+				userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
+				return ctx.SaveSession(*userSession)
+			}
+		}
+		// Only update TTL if the user has a interval set. Also make sure to update the session even if no difference was found so that wwe don't check every subsequent request after this one.
 		if interval != 0 {
 			userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
+			return ctx.SaveSession(*userSession)
 		}
-		return ctx.SaveSession(*userSession)
 	}
 	return nil
 }

@@ -2,7 +2,7 @@ package authorization
 
 import "strings"
 
-func isDomainMatching(domain string, domainRules []string) (match bool) {
+func isDomainMatching(domain string, domainRules []string) bool {
 	for _, domainRule := range domainRules {
 		if domain == domainRule {
 			return true

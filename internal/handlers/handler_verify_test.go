@@ -752,6 +752,9 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 		},
 	}
 
+	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(false, 0*time.Minute).Times(1)
+	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
+
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
@@ -793,11 +796,6 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 	assert.Equal(t, "admin", userSession.Groups[0])
 	assert.Equal(t, "users", userSession.Groups[1])
 
-	mock.UserProviderMock.
-		EXPECT().
-		GetRefreshSettings().
-		Return(false, 0*time.Minute)
-
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
 	VerifyGet(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
@@ -826,6 +824,9 @@ func TestShouldNotRefreshUserGroupsFromBackendWhenNoGroupSubject(t *testing.T) {
 		},
 	}
 
+	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute).Times(1)
+	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
+
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
@@ -840,11 +841,6 @@ func TestShouldNotRefreshUserGroupsFromBackendWhenNoGroupSubject(t *testing.T) {
 	err := mock.Ctx.SaveSession(userSession)
 
 	require.NoError(t, err)
-
-	mock.UserProviderMock.
-		EXPECT().
-		GetRefreshSettings().
-		Return(true, 5*time.Minute)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	VerifyGet(mock.Ctx)
@@ -871,6 +867,13 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 		},
 	}
 
+	gomock.InOrder(
+		mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute).Times(2),
+		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+		mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute).Times(1),
+		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+	)
+
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
@@ -885,24 +888,11 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
-	mock.UserProviderMock.
-		EXPECT().
-		GetRefreshSettings().
-		Return(true, 5*time.Minute)
-
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	VerifyGet(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Request should get refresh settings and new user details.
-	mock.UserProviderMock.
-		EXPECT().
-		GetRefreshSettings().
-		Return(true, 5*time.Minute)
-	mock.UserProviderMock.
-		EXPECT().
-		GetDetails("john").
-		Return(user, nil)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
 	VerifyGet(mock.Ctx)
@@ -922,16 +912,6 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 	userSession.RefreshTTL = clock.Now().Add(-1 * time.Second)
 	err = mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
-
-	mock.UserProviderMock.
-		EXPECT().
-		GetRefreshSettings().
-		Return(true, 5*time.Minute)
-
-	mock.UserProviderMock.
-		EXPECT().
-		GetDetails("john").
-		Return(user, nil)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
 	VerifyGet(mock.Ctx)
@@ -960,6 +940,9 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 		},
 	}
 
+	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute).Times(1)
+	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
+
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
@@ -973,11 +956,6 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	userSession.KeepMeLoggedIn = true
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
-
-	mock.UserProviderMock.
-		EXPECT().
-		GetRefreshSettings().
-		Return(true, 5*time.Minute)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	VerifyGet(mock.Ctx)
@@ -1019,15 +997,10 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	err = mock.Ctx.SaveSession(userSession)
 	assert.NoError(t, err)
 
-	mock.UserProviderMock.
-		EXPECT().
-		GetRefreshSettings().
-		Return(true, 5*time.Minute)
-
-	mock.UserProviderMock.
-		EXPECT().
-		GetDetails("john").
-		Return(user, nil)
+	gomock.InOrder(
+		mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute).Times(1),
+		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+	)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://grafana.example.com")
 	VerifyGet(mock.Ctx)

@@ -30,8 +30,23 @@ func SliceString(s string, d int) (array []string) {
 	return
 }
 
-// SliceStringDelta takes a before and after []string and compares them returning a added and removed []string.
-func SliceStringDelta(before, after []string) (added, removed []string) {
+// IsStringSlicesDifferent checks two slices of strings and on the first occurrence of a difference returns true.
+func IsStringSlicesDifferent(a, b []string) (different bool) {
+	for _, s := range a {
+		if !IsStringInSlice(s, b) {
+			return true
+		}
+	}
+	for _, s := range b {
+		if !IsStringInSlice(s, a) {
+			return true
+		}
+	}
+	return false
+}
+
+// StringSlicesDelta takes a before and after []string and compares them returning a added and removed []string.
+func StringSlicesDelta(before, after []string) (added, removed []string) {
 	for _, s := range before {
 		if !IsStringInSlice(s, after) {
 			removed = append(removed, s)
