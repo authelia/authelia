@@ -39,8 +39,7 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 		if err != nil {
-			// TODO: Shouldn't this be mfaValidationFailedMessage like the rest?
-			handleErrorResponse(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), authenticationFailedMessage)
+			handleErrorResponse(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
 			return
 		}
 

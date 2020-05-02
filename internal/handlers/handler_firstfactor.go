@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/valyala/fasthttp"
-
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/regulation"
@@ -45,8 +43,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	if !userPasswordOk {
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 		ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
-		ctx.ReplyError(fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
+		handleErrorResponse(ctx, fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
 		return
 	}
 
