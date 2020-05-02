@@ -36,7 +36,8 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
 		}
-		ctx.Logger.Debug("Using X-Original-URL header content as targeted site URL")
+		// TODO: change to Debug for release?
+		ctx.Logger.Trace("Using X-Original-URL header content as targeted site URL")
 		return url, nil
 	}
 
@@ -61,7 +62,8 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
 	}
-	ctx.Logger.Debugf("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
+	// TODO: change to Debugf for release?
+	ctx.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
 		"to construct targeted site URL")
 	return url, nil
 }
@@ -263,9 +265,11 @@ func generateVerifySessionIsUpToDateTraceLogs(ctx *middlewares.AutheliaCtx, user
 		groupsDelta = append(groupsDelta, fmt.Sprintf("Removed: %s.", strings.Join(groupsRemoved, ", ")))
 	}
 	if len(groupsDelta) != 0 {
-		ctx.Logger.Tracef("Updated groups detected for %s. %s", userSession.Username, strings.Join(groupsDelta, " "))
+		// TODO: Tracef for release.
+		ctx.Logger.Debugf("Updated groups detected for %s. %s", userSession.Username, strings.Join(groupsDelta, " "))
 	} else {
-		ctx.Logger.Tracef("No updated groups detected for %s", userSession.Username)
+		// TODO: Tracef for release.
+		ctx.Logger.Debugf("No updated groups detected for %s", userSession.Username)
 	}
 
 	// Check Emails.
@@ -277,9 +281,11 @@ func generateVerifySessionIsUpToDateTraceLogs(ctx *middlewares.AutheliaCtx, user
 		emailsDelta = append(emailsDelta, fmt.Sprintf("Removed: %s.", strings.Join(emailsRemoved, ", ")))
 	}
 	if len(emailsDelta) != 0 {
-		ctx.Logger.Tracef("Updated emails detected for %s. %s", userSession.Username, strings.Join(emailsDelta, " "))
+		// TODO: Tracef for release.
+		ctx.Logger.Debugf("Updated emails detected for %s. %s", userSession.Username, strings.Join(emailsDelta, " "))
 	} else {
-		ctx.Logger.Tracef("No updated emails detected for %s", userSession.Username)
+		// TODO: Tracef for release.
+		ctx.Logger.Debugf("No updated emails detected for %s", userSession.Username)
 	}
 }
 
@@ -300,10 +306,12 @@ func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, u
 		groupsDiff := utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
 		emailsDiff := utils.IsStringSlicesDifferent(userSession.Emails, details.Emails)
 		if !groupsDiff && !emailsDiff {
-			ctx.Logger.Tracef("No updated groups or emails detected for %s.", userSession.Username)
+			// TODO: Tracef for release.
+			ctx.Logger.Debugf("No updated groups or emails detected for %s.", userSession.Username)
 		} else {
 			ctx.Logger.Debugf("Updated groups or emails detected for %s.", userSession.Username)
-			if ctx.Configuration.LogLevel == "trace" {
+			// TODO: trace for release.
+			if ctx.Configuration.LogLevel == "debug" {
 				generateVerifySessionIsUpToDateTraceLogs(ctx, userSession, details)
 			}
 			userSession.Groups = details.Groups
