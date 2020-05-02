@@ -15,11 +15,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Command create a command at the project root
+// Command create a command at the project root.
 func Command(name string, args ...string) *exec.Cmd {
 	cmd := exec.Command(name, args...)
 
-	// By default set the working directory to the project root directory
+	// By default set the working directory to the project root directory.
 	wd, _ := os.Getwd()
 	for !strings.HasSuffix(wd, "authelia") {
 		wd = filepath.Dir(wd)
@@ -28,7 +28,7 @@ func Command(name string, args ...string) *exec.Cmd {
 	return cmd
 }
 
-// CommandWithStdout create a command forwarding stdout and stderr to the OS streams
+// CommandWithStdout create a command forwarding stdout and stderr to the OS streams.
 func CommandWithStdout(name string, args ...string) *exec.Cmd {
 	cmd := Command(name, args...)
 	cmd.Stdout = os.Stdout
@@ -36,12 +36,12 @@ func CommandWithStdout(name string, args ...string) *exec.Cmd {
 	return cmd
 }
 
-// Shell create a shell command
+// Shell create a shell command.
 func Shell(command string) *exec.Cmd {
 	return CommandWithStdout("bash", "-c", command)
 }
 
-// RunCommandUntilCtrlC run a command until ctrl-c is hit
+// RunCommandUntilCtrlC run a command until ctrl-c is hit.
 func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 	mutex := sync.Mutex{}
 	cond := sync.NewCond(&mutex)
@@ -74,7 +74,7 @@ func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 	cond.Wait()
 }
 
-// RunFuncUntilCtrlC run a function until ctrl-c is hit
+// RunFuncUntilCtrlC run a function until ctrl-c is hit.
 func RunFuncUntilCtrlC(fn func() error) error {
 	mutex := sync.Mutex{}
 	cond := sync.NewCond(&mutex)

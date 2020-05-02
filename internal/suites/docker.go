@@ -11,12 +11,12 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// DockerEnvironment represent a docker environment
+// DockerEnvironment represent a docker environment.
 type DockerEnvironment struct {
 	dockerComposeFiles []string
 }
 
-// NewDockerEnvironment create a new docker environment
+// NewDockerEnvironment create a new docker environment.
 func NewDockerEnvironment(files []string) *DockerEnvironment {
 	if os.Getenv("CI") == "true" {
 		for i := range files {
@@ -42,22 +42,22 @@ func (de *DockerEnvironment) createCommand(cmd string) *exec.Cmd {
 	return utils.Command("bash", "-c", dockerCmdLine)
 }
 
-// Up spawn a docker environment
+// Up spawn a docker environment.
 func (de *DockerEnvironment) Up() error {
 	return de.createCommandWithStdout("up --build -d").Run()
 }
 
-// Restart restarts a service
+// Restart restarts a service.
 func (de *DockerEnvironment) Restart(service string) error {
 	return de.createCommandWithStdout(fmt.Sprintf("restart %s", service)).Run()
 }
 
-// Down spawn a docker environment
+// Down spawn a docker environment.
 func (de *DockerEnvironment) Down() error {
 	return de.createCommandWithStdout("down -v").Run()
 }
 
-// Logs get logs of a given service of the environment
+// Logs get logs of a given service of the environment.
 func (de *DockerEnvironment) Logs(service string, flags []string) (string, error) {
 	cmd := de.createCommand(fmt.Sprintf("logs %s %s", strings.Join(flags, " "), service))
 	content, err := cmd.Output()

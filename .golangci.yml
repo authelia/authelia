@@ -4,12 +4,15 @@ run:
 linters-settings:
   gocyclo:
     min-complexity: 15
+  godot:
+    check-all: true
   goimports:
     local-prefixes: github.com/authelia/authelia
 
 linters:
   enable:
     - gocyclo
+    - godot
     - gofmt
     - goimports
     - golint

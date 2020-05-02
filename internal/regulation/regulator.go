@@ -38,7 +38,7 @@ func NewRegulator(configuration *schema.RegulationConfiguration, provider storag
 }
 
 // Mark mark an authentication attempt.
-// We split Mark and Regulate in order to avoid timing attacks since if
+// We split Mark and Regulate in order to avoid timing attacks.
 func (r *Regulator) Mark(username string, successful bool) error {
 	return r.storageProvider.AppendAuthenticationLog(models.AuthenticationAttempt{
 		Username:   username,

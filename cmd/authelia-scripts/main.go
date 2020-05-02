@@ -1,4 +1,5 @@
 //usr/bin/env go run "$0" "$@"; exit
+//nolint:godot
 
 package main
 
@@ -23,10 +24,10 @@ type AutheliaCommandDefinition struct {
 	SubCommands []*cobra.Command
 }
 
-// CobraCommands list of cobra commands
+// CobraCommands list of cobra commands.
 type CobraCommands = []*cobra.Command
 
-// Commands is the list of commands of authelia-scripts
+// Commands is the list of commands of authelia-scripts.
 var Commands = []AutheliaCommandDefinition{
 	{
 		Name:  "bootstrap",

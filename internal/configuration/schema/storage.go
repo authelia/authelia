@@ -5,7 +5,7 @@ type LocalStorageConfiguration struct {
 	Path string `mapstructure:"path"`
 }
 
-// SQLStorageConfiguration represents the configuration of the SQL database
+// SQLStorageConfiguration represents the configuration of the SQL database.
 type SQLStorageConfiguration struct {
 	Host     string `mapstructure:"host"`
 	Port     int    `mapstructure:"port"`
@@ -14,12 +14,12 @@ type SQLStorageConfiguration struct {
 	Password string `mapstructure:"password"`
 }
 
-// MySQLStorageConfiguration represents the configuration of a MySQL database
+// MySQLStorageConfiguration represents the configuration of a MySQL database.
 type MySQLStorageConfiguration struct {
 	SQLStorageConfiguration `mapstructure:",squash"`
 }
 
-// PostgreSQLStorageConfiguration represents the configuration of a Postgres database
+// PostgreSQLStorageConfiguration represents the configuration of a Postgres database.
 type PostgreSQLStorageConfiguration struct {
 	SQLStorageConfiguration `mapstructure:",squash"`
 	SSLMode                 string `mapstructure:"sslmode"`

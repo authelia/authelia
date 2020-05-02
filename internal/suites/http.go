@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// NewHTTPClient create a new client skipping TLS verification and not redirecting
+// NewHTTPClient create a new client skipping TLS verification and not redirecting.
 func NewHTTPClient() *http.Client {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{

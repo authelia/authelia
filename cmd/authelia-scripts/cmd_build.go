@@ -23,7 +23,7 @@ func buildAutheliaBinary() {
 }
 
 func buildFrontend() {
-	// Install npm dependencies
+	// Install npm dependencies.
 	cmd := utils.CommandWithStdout("yarn", "install")
 	cmd.Dir = "web"
 
@@ -31,7 +31,7 @@ func buildFrontend() {
 		log.Fatal(err)
 	}
 
-	// Then build the frontend
+	// Then build the frontend.
 	cmd = utils.CommandWithStdout("yarn", "build")
 	cmd.Dir = "web"
 	cmd.Env = append(os.Environ(), "INLINE_RUNTIME_CHUNK=false")
@@ -68,7 +68,7 @@ func generateEmbeddedAssets() {
 	}
 }
 
-// Build build Authelia
+// Build build Authelia.
 func Build(cobraCmd *cobra.Command, args []string) {
 	log.Info("Building Authelia...")
 

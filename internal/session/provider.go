@@ -44,7 +44,7 @@ func NewProvider(configuration schema.SessionConfiguration) *Provider {
 	return provider
 }
 
-// GetSession return the user session from a request
+// GetSession return the user session from a request.
 func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 	store, err := p.sessionHolder.Get(ctx)
 

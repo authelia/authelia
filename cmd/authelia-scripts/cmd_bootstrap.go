@@ -13,16 +13,16 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// HostEntry represents an entry in /etc/hosts
+// HostEntry represents an entry in /etc/hosts.
 type HostEntry struct {
 	Domain string
 	IP     string
 }
 
 var hostEntries = []HostEntry{
-	// For authelia backend
+	// For authelia backend.
 	{Domain: "authelia.example.com", IP: "192.168.240.50"},
-	// For common tests
+	// For common tests.
 	{Domain: "login.example.com", IP: "192.168.240.100"},
 	{Domain: "admin.example.com", IP: "192.168.240.100"},
 	{Domain: "singlefactor.example.com", IP: "192.168.240.100"},
@@ -34,19 +34,15 @@ var hostEntries = []HostEntry{
 	{Domain: "secure.example.com", IP: "192.168.240.100"},
 	{Domain: "mail.example.com", IP: "192.168.240.100"},
 	{Domain: "duo.example.com", IP: "192.168.240.100"},
-
-	// For Traefik suite
+	// For Traefik suite.
 	{Domain: "traefik.example.com", IP: "192.168.240.100"},
-
-	// For HAProxy suite
+	// For HAProxy suite.
 	{Domain: "haproxy.example.com", IP: "192.168.240.100"},
-
-	// For testing network ACLs
+	// For testing network ACLs.
 	{Domain: "proxy-client1.example.com", IP: "192.168.240.201"},
 	{Domain: "proxy-client2.example.com", IP: "192.168.240.202"},
 	{Domain: "proxy-client3.example.com", IP: "192.168.240.203"},
-
-	// Kubernetes dashboard
+	// Kubernetes dashboard.
 	{Domain: "kubernetes.example.com", IP: "192.168.240.110"},
 }
 
@@ -170,7 +166,7 @@ func readVersions() {
 	readVersion("docker-compose", "--version")
 }
 
-// Bootstrap bootstrap authelia dev environment
+// Bootstrap bootstrap authelia dev environment.
 func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	bootstrapPrintln("Checking command installation...")
 	checkCommandExist("node")

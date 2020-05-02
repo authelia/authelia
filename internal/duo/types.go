@@ -8,17 +8,17 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-// API interface wrapping duo api library for testing purpose
+// API interface wrapping duo api library for testing purpose.
 type API interface {
 	Call(values url.Values, ctx *middlewares.AutheliaCtx) (*Response, error)
 }
 
-// APIImpl implementation of DuoAPI interface
+// APIImpl implementation of DuoAPI interface.
 type APIImpl struct {
 	*duoapi.DuoApi
 }
 
-// Response response coming from Duo API
+// Response response coming from Duo API.
 type Response struct {
 	Response struct {
 		Result        string `json:"result"`

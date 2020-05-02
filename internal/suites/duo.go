@@ -8,17 +8,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// DuoPolicy a type of policy
+// DuoPolicy a type of policy.
 type DuoPolicy int32
 
 const (
-	// Deny deny policy
+	// Deny deny policy.
 	Deny DuoPolicy = iota
-	// Allow allow policy
+	// Allow allow policy.
 	Allow DuoPolicy = iota
 )
 
-// ConfigureDuo configure duo api to allow or block auth requests
+// ConfigureDuo configure duo api to allow or block auth requests.
 func ConfigureDuo(t *testing.T, allowDeny DuoPolicy) {
 	url := fmt.Sprintf("%s/allow", DuoBaseURL)
 	if allowDeny == Deny {

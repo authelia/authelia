@@ -7,19 +7,19 @@ import (
 	"github.com/Workiva/go-datastructures/queue"
 )
 
-// ErrorContainer represents a container where we can add errors and retrieve them
+// ErrorContainer represents a container where we can add errors and retrieve them.
 type ErrorContainer interface {
 	Push(err error)
 	HasErrors() bool
 	Errors() []error
 }
 
-// Validator represents the validator interface
+// Validator represents the validator interface.
 type Validator struct {
 	errors map[string][]error
 }
 
-// NewValidator create a validator
+// NewValidator create a validator.
 func NewValidator() *Validator {
 	validator := new(Validator)
 	validator.errors = make(map[string][]error)
@@ -67,7 +67,7 @@ func (v *Validator) validateOne(item QueueItem, q *queue.Queue) error { //nolint
 	return nil
 }
 
-// Validate validate a struct
+// Validate validate a struct.
 func (v *Validator) Validate(s interface{}) error {
 	q := queue.New(40)
 	q.Put(QueueItem{value: reflect.ValueOf(s), path: "root"}) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -86,7 +86,7 @@ func (v *Validator) Validate(s interface{}) error {
 	return nil
 }
 
-// PrintErrors display the errors thrown during validation
+// PrintErrors display the errors thrown during validation.
 func (v *Validator) PrintErrors() {
 	for path, errs := range v.errors {
 		fmt.Printf("Errors at %s:\n", path)
@@ -96,17 +96,17 @@ func (v *Validator) PrintErrors() {
 	}
 }
 
-// Errors return the errors thrown during validation
+// Errors return the errors thrown during validation.
 func (v *Validator) Errors() map[string][]error {
 	return v.errors
 }
 
-// StructValidator is a validator for structs
+// StructValidator is a validator for structs.
 type StructValidator struct {
 	errors []error
 }
 
-// NewStructValidator is a constructor of struct validator
+// NewStructValidator is a constructor of struct validator.
 func NewStructValidator() *StructValidator {
 	val := new(StructValidator)
 	val.errors = make([]error, 0)
@@ -128,7 +128,7 @@ func (v *StructValidator) Errors() []error {
 	return v.errors
 }
 
-// Clear errors
+// Clear errors.
 func (v *StructValidator) Clear() {
 	v.errors = []error{}
 }
