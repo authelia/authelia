@@ -8,3 +8,8 @@ var DockerImageName = "authelia/authelia"
 
 // IntermediateDockerImageName local name of the docker image.
 var IntermediateDockerImageName = "authelia:dist"
+
+const masterTag = "master"
+const stringFalse = "false"
+const stringTrue = "true"
+const webDirectory = "web"

@@ -22,7 +22,7 @@ type HandlerSignU2FStep2Suite struct {
 func (s *HandlerSignU2FStep2Suite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	userSession := s.mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.U2FChallenge = &u2f.Challenge{}
 	userSession.U2FRegistration = &session.U2FRegistration{}
 	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -39,7 +39,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToDefaultURL() {
 		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
-	s.mock.Ctx.Configuration.DefaultRedirectionURL = "http://redirection.local"
+	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
 
 	bodyBytes, err := json.Marshal(signU2FRequestBody{
 		SignResponse: u2f.SignResponse{},
@@ -49,7 +49,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToDefaultURL() {
 
 	SecondFactorU2FSignPost(u2fVerifier)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
-		Redirect: "http://redirection.local",
+		Redirect: testRedirectionURL,
 	})
 }
 

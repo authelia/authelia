@@ -22,7 +22,7 @@ type HandlerSignTOTPSuite struct {
 func (s *HandlerSignTOTPSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	userSession := s.mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.U2FChallenge = &u2f.Challenge{}
 	userSession.U2FRegistration = &session.U2FRegistration{}
 	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -43,7 +43,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
 		Return(true, nil)
 
-	s.mock.Ctx.Configuration.DefaultRedirectionURL = "http://redirection.local"
+	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token: "abc",
@@ -53,7 +53,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 
 	SecondFactorTOTPPost(verifier)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
-		Redirect: "http://redirection.local",
+		Redirect: testRedirectionURL,
 	})
 }
 

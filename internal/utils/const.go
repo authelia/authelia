@@ -24,3 +24,5 @@ const Year = Day * 365
 
 // Month is an int based representation of the time unit.
 const Month = Year / 12
+
+const testStringInput = "abcdefghijkl"
