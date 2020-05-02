@@ -40,9 +40,7 @@ If properly configured, Authelia guarantees the following for security of your u
 * Protect secrets stored in DB with encryption to prevent secrets leak by DB exfiltration.
 * Least privilege on LDAP binding operations (currently administrative user is used to bind while it could be anonymous).
 * Extend the check of user group memberships to authentication backends other than LDAP (File currently)
-* Extend the check of user group memberships to things other than the groups such as:
-    * Emails
-    * Require 1FA authentication again with password changes in the authentication backend (detect via attribute if configured)
+* Invalidate user session after profile or membership has changed in order to drop remaining privileges on the fly
 
 ## Trusted environment
 

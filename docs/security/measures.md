@@ -45,15 +45,15 @@ Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the
 used, iterations (time), parallelism, and memory usage. To read more about this please read how to
 [configure](../configuration/authentication/file.md) file authentication.
 
-## Protections against using existing session to compremise security (LDAP authentication provider)
+## User profile and group membership always kept up-to-date (LDAP authentication provider)
 
-Authelia by default refreshes the LDAP groups a user belongs to every 5 minutes provided it receives
-a request by the associated session. Additionally, it will invalidate any session where the user
-could not be retrieved from LDAP based on the user filter, for example if they were deleted or
-disabled provided with the user filter set correctly. 
+Authelia by default refreshes the user's profile and membership at most every 5 minutes. Additionally, it 
+will invalidate any session where the user could not be retrieved from LDAP based on the user filter, for 
+example if they were deleted or disabled provided the user filter set correctly. These updates occur when
+a user accesses a resource protected by Authelia.
 
-These protections can be [tuned](../configuration/authentication/ldap.md) to your desired level 
-of security by changing refresh_interval, however we believe that 5 minutes is a fairly safe interval. 
+hese protections can be [tuned](../configuration/authentication/ldap.md) according to your security policy 
+by changing refresh_interval, however we believe that 5 minutes is a fairly safe interval.
 
 ## Notifier security measures (SMTP)
 

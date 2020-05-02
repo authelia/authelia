@@ -2,7 +2,6 @@ package authentication
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -173,7 +172,7 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	}
 
 	if len(sr.Entries) == 0 {
-		return nil, errors.New(UserNotFoundMessage)
+		return nil, UserNotFoundError
 	}
 
 	if len(sr.Entries) > 1 {

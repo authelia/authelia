@@ -85,7 +85,8 @@ authentication_backend:
     password: password
 
     # The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
-    # To disable this feature set it to 'disable', this will slightly reduce security. 
+    # To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users
+    # will always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
     # To force update on every request you can set this to '0' or 'always', this will increase processor demand.
     # See the below documentation for more information.
     # Duration Notation docs:  https://docs.authelia.com/configuration/index.html#duration-notation-format

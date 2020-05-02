@@ -1,5 +1,9 @@
 package authentication
 
+import (
+	"errors"
+)
+
 // Level is the type representing a level of authentication.
 type Level int
 
@@ -44,5 +48,5 @@ const (
 // HashingPossibleSaltCharacters represents valid hashing runes.
 var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")
 
-// UserNotFoundMessage indicates the user wasn't found in the authentication backend.
-const UserNotFoundMessage = "user not found"
+// UserNotFoundError indicates the user wasn't found in the authentication backend.
+var UserNotFoundError = errors.New("user not found")
