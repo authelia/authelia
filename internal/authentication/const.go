@@ -24,7 +24,7 @@ const (
 // PossibleMethods is the set of all possible 2FA methods.
 var PossibleMethods = []string{TOTP, U2F, Push}
 
-// CryptAlgo
+// CryptAlgo the crypt representation of an algorithm used in the prefix of the hash.
 type CryptAlgo string
 
 const (
