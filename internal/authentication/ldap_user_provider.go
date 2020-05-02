@@ -172,7 +172,7 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	}
 
 	if len(sr.Entries) == 0 {
-		return nil, UserNotFoundError
+		return nil, ErrUserNotFound
 	}
 
 	if len(sr.Entries) > 1 {

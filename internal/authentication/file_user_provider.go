@@ -96,7 +96,7 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 		}
 		return ok, nil
 	}
-	return false, UserNotFoundError
+	return false, ErrUserNotFound
 }
 
 // GetDetails retrieve the groups a user belongs to.

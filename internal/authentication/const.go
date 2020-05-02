@@ -48,5 +48,5 @@ const (
 // HashingPossibleSaltCharacters represents valid hashing runes.
 var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")
 
-// UserNotFoundError indicates the user wasn't found in the authentication backend.
-var UserNotFoundError = errors.New("user not found")
+// ErrUserNotFound indicates the user wasn't found in the authentication backend.
+var ErrUserNotFound = errors.New("user not found")

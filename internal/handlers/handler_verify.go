@@ -201,7 +201,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 
 	err = verifySessionIsUpToDate(ctx, targetURL, userSession)
 	if err != nil {
-		if err.Error() == authentication.UserNotFoundError.Error() {
+		if err.Error() == authentication.ErrUserNotFound.Error() {
 			err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 			if err != nil {
 				ctx.Logger.Error(fmt.Errorf("Unable to destroy user session after provider refresh didn't find the user: %s", err))
