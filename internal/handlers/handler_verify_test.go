@@ -20,6 +20,13 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+var verifyGetCfg = schema.Configuration{
+	AuthenticationBackend: schema.AuthenticationBackendConfiguration{
+		RefreshInterval: "5m",
+		Ldap:            &schema.LDAPAuthenticationBackendConfiguration{},
+	},
+}
+
 // Test getOriginalURL.
 func TestShouldGetOriginalURLFromOriginalURLHeader(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
@@ -228,7 +235,7 @@ func (s *BasicAuthorizationSuite) TestShouldNotBeAbleToParseBasicAuth() {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpaaaaaaaaaaaaaaaa")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
 }
@@ -251,7 +258,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyDefaultPolicy() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 403, mock.Ctx.Response.StatusCode())
 }
@@ -274,7 +281,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfBypassDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
 }
@@ -297,7 +304,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
 }
@@ -320,7 +327,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
 }
@@ -343,7 +350,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfDenyDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 403, mock.Ctx.Response.StatusCode())
 }
@@ -363,7 +370,7 @@ func TestShouldVerifyWrongCredentialsInBasicAuth(t *testing.T) {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objp3cm9uZ3Bhc3M=")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 	expStatus, actualStatus := 401, mock.Ctx.Response.StatusCode()
 	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
 		"https://test.example.com", actualStatus, expStatus)
@@ -380,7 +387,7 @@ func TestShouldVerifyFailingPasswordCheckingInBasicAuth(t *testing.T) {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objp3cm9uZ3Bhc3M=")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 	expStatus, actualStatus := 401, mock.Ctx.Response.StatusCode()
 	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
 		"https://test.example.com", actualStatus, expStatus)
@@ -401,7 +408,7 @@ func TestShouldVerifyFailingDetailsFetchingInBasicAuth(t *testing.T) {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 	expStatus, actualStatus := 401, mock.Ctx.Response.StatusCode()
 	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
 		"https://test.example.com", actualStatus, expStatus)
@@ -453,9 +460,7 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 
 			mock.Ctx.Request.Header.Set("X-Original-URL", testCase.URL)
 
-			mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
-
-			VerifyGet(mock.Ctx)
+			VerifyGet(verifyGetCfg)(mock.Ctx)
 			expStatus, actualStatus := testCase.ExpectedStatusCode, mock.Ctx.Response.StatusCode()
 			assert.Equal(t, expStatus, actualStatus, "URL=%s -> AuthLevel=%d, StatusCode=%d != ExpectedStatusCode=%d",
 				testCase.URL, testCase.AuthenticationLevel, actualStatus, expStatus)
@@ -490,7 +495,7 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
@@ -521,7 +526,7 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
@@ -547,9 +552,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
-
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	// Check the session is still active.
 	newUserSession := mock.Ctx.GetSession()
@@ -579,9 +582,7 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
-
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
@@ -617,7 +618,7 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, "Found. Redirecting to https://login.example.com?rd=https%3A%2F%2Ftwo-factor.example.com",
 		string(mock.Ctx.Response.Body()))
@@ -647,9 +648,7 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://deny.example.com")
 
-	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
-
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	// The resource if forbidden.
 	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
@@ -672,9 +671,7 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	mock.Ctx.Request.SetHost("mydomain.com")
 	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.mydomain.com")
 
-	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute)
-
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, "Found. Redirecting to https://auth.mydomain.com?rd=https%3A%2F%2Ftwo-factor.example.com",
 		string(mock.Ctx.Response.Body()))
@@ -752,7 +749,10 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 		},
 	}
 
-	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(false, 0*time.Minute).Times(1)
+	cfg := verifyGetCfg
+	cfg.AuthenticationBackend.RefreshInterval = "disable"
+	verifyGet := VerifyGet(cfg)
+
 	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
 
 	clock := mocks.TestingClock{}
@@ -768,23 +768,12 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
-	mock.UserProviderMock.
-		EXPECT().
-		GetRefreshSettings().
-		Return(false, 0*time.Second)
-
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
-	VerifyGet(mock.Ctx)
+	verifyGet(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
-	// Request should get refresh settings and not get new user details.
-	mock.UserProviderMock.
-		EXPECT().
-		GetRefreshSettings().
-		Return(false, 0*time.Minute)
-
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
-	VerifyGet(mock.Ctx)
+	verifyGet(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Check Refresh TTL has not been updated.
@@ -797,7 +786,7 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 	assert.Equal(t, "users", userSession.Groups[1])
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
-	VerifyGet(mock.Ctx)
+	verifyGet(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Check admin group is not removed from the session.
@@ -824,7 +813,6 @@ func TestShouldNotRefreshUserGroupsFromBackendWhenNoGroupSubject(t *testing.T) {
 		},
 	}
 
-	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute).Times(1)
 	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
 
 	clock := mocks.TestingClock{}
@@ -843,7 +831,7 @@ func TestShouldNotRefreshUserGroupsFromBackendWhenNoGroupSubject(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Session time should NOT have been updated, it should still have a refresh TTL 1 minute in the past.
@@ -867,12 +855,8 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 		},
 	}
 
-	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute).Times(2),
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
-		mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute).Times(1),
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
-	)
+	verifyGet := VerifyGet(verifyGetCfg)
+	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(2)
 
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
@@ -889,13 +873,13 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
-	VerifyGet(mock.Ctx)
+	verifyGet(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Request should get refresh settings and new user details.
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
-	VerifyGet(mock.Ctx)
+	verifyGet(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Check Refresh TTL has been updated since admin.example.com has a group subject and refresh is enabled.
@@ -914,7 +898,7 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
-	VerifyGet(mock.Ctx)
+	verifyGet(mock.Ctx)
 	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
 
 	// Check admin group is removed from the session.
@@ -940,8 +924,9 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 		},
 	}
 
-	mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute).Times(1)
 	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
+
+	verifyGet := VerifyGet(verifyGetCfg)
 
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
@@ -958,21 +943,14 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
-	VerifyGet(mock.Ctx)
+	verifyGet(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
-	// Request should get refresh settings and new user details.
-	mock.UserProviderMock.
-		EXPECT().
-		GetRefreshSettings().
-		Return(true, 5*time.Minute)
-	mock.UserProviderMock.
-		EXPECT().
-		GetDetails("john").
-		Return(user, nil)
+	// Request should get refresh user profile.
+	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://grafana.example.com")
-	VerifyGet(mock.Ctx)
+	verifyGet(mock.Ctx)
 	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
 
 	// Check Refresh TTL has been updated since grafana.example.com has a group subject and refresh is enabled.
@@ -998,12 +976,11 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	assert.NoError(t, err)
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().GetRefreshSettings().Return(true, 5*time.Minute).Times(1),
 		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
 	)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://grafana.example.com")
-	VerifyGet(mock.Ctx)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Check admin group is removed from the session.

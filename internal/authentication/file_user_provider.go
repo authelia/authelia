@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/simia-tech/crypt"
@@ -170,9 +169,4 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	err = ioutil.WriteFile(p.configuration.Path, b, 0644)
 	p.lock.Unlock()
 	return err
-}
-
-// GetRefreshSettings returns refresh settings for the provider, in the case of the FileProvider it's disabled.
-func (p *FileUserProvider) GetRefreshSettings() (enabled bool, interval time.Duration) {
-	return false, 0
 }

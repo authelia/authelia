@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
-	"github.com/authelia/authelia/internal/utils"
 )
 
 // LDAPUserProvider is a provider using a LDAP or AD as a user database.
@@ -19,42 +17,22 @@ type LDAPUserProvider struct {
 	configuration schema.LDAPAuthenticationBackendConfiguration
 
 	connectionFactory LDAPConnectionFactory
-	refresh           bool
-	refreshInterval   time.Duration
-}
-
-func groupRefreshSettings(configuration schema.LDAPAuthenticationBackendConfiguration) (enabled bool, interval time.Duration) {
-	if configuration.RefreshInterval == "disable" || configuration.RefreshInterval == "disabled" {
-		return false, 0
-	}
-	if configuration.RefreshInterval == "always" {
-		return true, 0
-	}
-	// Check the duration string parses in validator.
-	refreshInterval, _ := utils.ParseDurationString(configuration.RefreshInterval)
-	return true, refreshInterval
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
 func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration) *LDAPUserProvider {
-	refresh, refreshInterval := groupRefreshSettings(configuration)
 	return &LDAPUserProvider{
 		configuration:     configuration,
 		connectionFactory: NewLDAPConnectionFactoryImpl(),
-		refresh:           refresh,
-		refreshInterval:   refreshInterval,
 	}
 }
 
 // NewLDAPUserProviderWithFactory creates a new instance of LDAPUserProvider with existing factory.
 func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBackendConfiguration,
 	connectionFactory LDAPConnectionFactory) *LDAPUserProvider {
-	refresh, refreshInterval := groupRefreshSettings(configuration)
 	return &LDAPUserProvider{
 		configuration:     configuration,
 		connectionFactory: connectionFactory,
-		refresh:           refresh,
-		refreshInterval:   refreshInterval,
 	}
 }
 
@@ -296,9 +274,4 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 	}
 
 	return nil
-}
-
-// GetRefreshSettings returns refresh settings for the provider.
-func (p *LDAPUserProvider) GetRefreshSettings() (enabled bool, interval time.Duration) {
-	return p.refresh, p.refreshInterval
 }

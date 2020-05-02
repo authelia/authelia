@@ -16,7 +16,18 @@ Configuration of the LDAP backend is done as follows
 
 ```yaml
 authentication_backend:
+  # Disable both the HTML element and the API for reset password functionality
   disable_reset_password: false
+
+  # The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
+  # To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users
+  # will always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
+  # To force update on every request you can set this to '0' or 'always', this will increase processor demand.
+  # See the below documentation for more information.
+  # Duration Notation docs:  https://docs.authelia.com/configuration/index.html#duration-notation-format
+  # Refresh Interval docs: https://docs.authelia.com/configuration/authentication/ldap.html#refresh-interval
+  refresh_interval: 5m
+
   ldap:
     # The url to the ldap server. Scheme can be ldap:// or ldaps://
     url: ldap://127.0.0.1
@@ -83,15 +94,6 @@ authentication_backend:
     
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: password
-
-    # The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
-    # To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users
-    # will always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
-    # To force update on every request you can set this to '0' or 'always', this will increase processor demand.
-    # See the below documentation for more information.
-    # Duration Notation docs:  https://docs.authelia.com/configuration/index.html#duration-notation-format
-    # Refresh Interval docs: https://docs.authelia.com/configuration/authentication/ldap.html#refresh-interval
-    refresh_interval: 5m
 ```
 
 The user must have an email address in order for Authelia to perform

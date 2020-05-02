@@ -5,12 +5,11 @@
 package mocks
 
 import (
-	reflect "reflect"
-	"time"
+	"reflect"
 
-	gomock "github.com/golang/mock/gomock"
+	"github.com/golang/mock/gomock"
 
-	authentication "github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/authentication"
 )
 
 // MockUserProvider is a mock of UserProvider interface.
@@ -64,21 +63,6 @@ func (m *MockUserProvider) GetDetails(arg0 string) (*authentication.UserDetails,
 func (mr *MockUserProviderMockRecorder) GetDetails(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetails", reflect.TypeOf((*MockUserProvider)(nil).GetDetails), arg0)
-}
-
-// GetRefreshSettings mocks base method.
-func (m *MockUserProvider) GetRefreshSettings() (bool, time.Duration) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRefreshSettings")
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(time.Duration)
-	return ret0, ret1
-}
-
-// GetRefreshSettings indicates an expected call of GetRefreshSettings.
-func (mr *MockUserProviderMockRecorder) GetRefreshSettings() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefreshSettings", reflect.TypeOf((*MockUserProvider)(nil).GetRefreshSettings))
 }
 
 // UpdatePassword mocks base method

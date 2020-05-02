@@ -6,11 +6,13 @@ import (
 	"net"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/utils"
@@ -176,7 +178,7 @@ func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) { //
 }
 
 // verifySessionCookie verify if a user identified by a cookie.
-func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
+func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession, refreshProfile bool, refreshProfileInterval time.Duration) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
 	// No username in the session means the user is anonymous.
 	isUserAnonymous := userSession.Username == ""
 
@@ -201,7 +203,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 		}
 	}
 
-	err = verifySessionIsUpToDate(ctx, targetURL, userSession)
+	err = verifySessionHasUpToDateProfile(ctx, targetURL, userSession, refreshProfile, refreshProfileInterval)
 	if err != nil {
 		if err.Error() == authentication.ErrUserNotFound.Error() {
 			err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
@@ -251,9 +253,10 @@ func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, use
 	return ctx.SaveSession(userSession)
 }
 
-// generateVerifySessionIsUpToDateTraceLogs is used to generate trace logs only when trace logging is enabled.
+// generateVerifySessionHasUpToDateProfileTraceLogs is used to generate trace logs only when trace logging is enabled.
 // The information calculated in this function is completely useless other than trace for now.
-func generateVerifySessionIsUpToDateTraceLogs(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails) {
+func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
+	details *authentication.UserDetails) {
 	groupsAdded, groupsRemoved := utils.StringSlicesDelta(userSession.Groups, details.Groups)
 	emailsAdded, emailsRemoved := utils.StringSlicesDelta(userSession.Emails, details.Emails)
 
@@ -290,13 +293,15 @@ func generateVerifySessionIsUpToDateTraceLogs(ctx *middlewares.AutheliaCtx, user
 	}
 }
 
-func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession) error {
-	// TODO: Add a check for LDAP password changes based on a time format attribute. See https://docs.authelia.com/security/threat-model.html#potential-future-guarantees
-
-	refresh, interval := ctx.Providers.UserProvider.GetRefreshSettings()
+func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession,
+	refreshProfile bool, refreshProfileInterval time.Duration) error {
+	// TODO: Add a check for LDAP password changes based on a time format attribute.
+	// See https://docs.authelia.com/security/threat-model.html#potential-future-guarantees
 
 	ctx.Logger.Tracef("Checking if we need check the authentication backend for an updated profile for %s.", userSession.Username)
-	if refresh && userSession.Username != "" && targetURL != nil && ctx.Providers.Authorizer.URLHasGroupSubjects(*targetURL) && (interval == 0 || userSession.RefreshTTL.Before(ctx.Clock.Now())) {
+	if refreshProfile && userSession.Username != "" && targetURL != nil &&
+		ctx.Providers.Authorizer.IsURLMatchingRuleWithGroupSubjects(*targetURL) &&
+		(refreshProfileInterval == 0 || userSession.RefreshTTL.Before(ctx.Clock.Now())) {
 		ctx.Logger.Debugf("Checking the authentication backend for an updated profile for user %s", userSession.Username)
 		details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
 		// Only update the session if we could get the new details.
@@ -313,87 +318,107 @@ func verifySessionIsUpToDate(ctx *middlewares.AutheliaCtx, targetURL *url.URL, u
 			ctx.Logger.Debugf("Updated profile detected for %s.", userSession.Username)
 			// TODO: FOR 4.16.1 RELEASE: change "debug" to "trace"
 			if ctx.Configuration.LogLevel == "debug" {
-				generateVerifySessionIsUpToDateTraceLogs(ctx, userSession, details)
+				generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
 			}
 			userSession.Groups = details.Groups
 			userSession.Emails = details.Emails
 
 			// Only update TTL if the user has a interval set.
-			if interval != 0 {
-				userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
+			if refreshProfileInterval != 0 {
+				userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
 				return ctx.SaveSession(*userSession)
 			}
 		}
-		// Only update TTL if the user has a interval set. Also make sure to update the session even if no difference was found so that wwe don't check every subsequent request after this one.
-		if interval != 0 {
-			userSession.RefreshTTL = ctx.Clock.Now().Add(interval)
+		// Only update TTL if the user has a interval set.
+		// Also make sure to update the session even if no difference was found.
+		// This is so that we don't check every subsequent request after this one.
+		if refreshProfileInterval != 0 {
+			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
 			return ctx.SaveSession(*userSession)
 		}
 	}
 	return nil
 }
 
-// VerifyGet is the handler verifying if a request is allowed to go through.
-func VerifyGet(ctx *middlewares.AutheliaCtx) {
-	ctx.Logger.Tracef("Headers=%s", ctx.Request.Header.String())
-	targetURL, err := getOriginalURL(ctx)
-
-	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to parse target URL: %s", err), operationFailedMessage)
-		return
+func getProfileRefreshSettings(cfg schema.Configuration) (refresh bool, refreshInterval time.Duration) {
+	if cfg.AuthenticationBackend.Ldap != nil {
+		if cfg.AuthenticationBackend.RefreshInterval != "disable" {
+			refresh = true
+			if cfg.AuthenticationBackend.RefreshInterval != "always" {
+				// Skip Error Check since validator checks it
+				refreshInterval, _ = utils.ParseDurationString(cfg.AuthenticationBackend.RefreshInterval)
+			}
+		}
 	}
+	return refresh, refreshInterval
+}
 
-	if !isSchemeHTTPS(targetURL) && !isSchemeWSS(targetURL) {
-		ctx.Logger.Error(fmt.Errorf("Scheme of target URL %s must be secure since cookies are "+
-			"only transported over a secure connection for security reasons", targetURL.String()))
-		ctx.ReplyUnauthorized()
-		return
-	}
+// VerifyGet returns the handler verifying if a request is allowed to go through.
+func VerifyGet(cfg schema.Configuration) middlewares.RequestHandler {
+	refreshProfile, refreshProfileInterval := getProfileRefreshSettings(cfg)
 
-	if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domain) {
-		ctx.Logger.Error(fmt.Errorf("The target URL %s is not under the protected domain %s",
-			targetURL.String(), ctx.Configuration.Session.Domain))
-		ctx.ReplyUnauthorized()
-		return
-	}
+	return func(ctx *middlewares.AutheliaCtx) {
+		ctx.Logger.Tracef("Headers=%s", ctx.Request.Header.String())
+		targetURL, err := getOriginalURL(ctx)
 
-	var username string
-	var groups []string
-	var authLevel authentication.Level
-
-	proxyAuthorization := ctx.Request.Header.Peek(AuthorizationHeader)
-	isBasicAuth := proxyAuthorization != nil
-	userSession := ctx.GetSession()
-
-	if isBasicAuth {
-		username, groups, authLevel, err = verifyBasicAuth(proxyAuthorization, *targetURL, ctx)
-	} else {
-		username, groups, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession)
-	}
-
-	if err != nil {
-		ctx.Logger.Error(fmt.Sprintf("Error caught when verifying user authorization: %s", err))
-		if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
-			ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
+		if err != nil {
+			ctx.Error(fmt.Errorf("Unable to parse target URL: %s", err), operationFailedMessage)
 			return
 		}
-		handleUnauthorized(ctx, targetURL, username)
-		return
-	}
 
-	authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
-		groups, ctx.RemoteIP(), authLevel)
+		if !isSchemeHTTPS(targetURL) && !isSchemeWSS(targetURL) {
+			ctx.Logger.Error(fmt.Errorf("Scheme of target URL %s must be secure since cookies are "+
+				"only transported over a secure connection for security reasons", targetURL.String()))
+			ctx.ReplyUnauthorized()
+			return
+		}
 
-	if authorization == Forbidden {
-		ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
-		ctx.ReplyForbidden()
-	} else if authorization == NotAuthorized {
-		handleUnauthorized(ctx, targetURL, username)
-	} else if authorization == Authorized {
-		setForwardedHeaders(&ctx.Response.Header, username, groups)
-	}
+		if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domain) {
+			ctx.Logger.Error(fmt.Errorf("The target URL %s is not under the protected domain %s",
+				targetURL.String(), ctx.Configuration.Session.Domain))
+			ctx.ReplyUnauthorized()
+			return
+		}
 
-	if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
-		ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
+		var username string
+		var groups []string
+		var authLevel authentication.Level
+
+		proxyAuthorization := ctx.Request.Header.Peek(AuthorizationHeader)
+		isBasicAuth := proxyAuthorization != nil
+		userSession := ctx.GetSession()
+
+		if isBasicAuth {
+			username, groups, authLevel, err = verifyBasicAuth(proxyAuthorization, *targetURL, ctx)
+		} else {
+			username, groups, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession,
+				refreshProfile, refreshProfileInterval)
+		}
+
+		if err != nil {
+			ctx.Logger.Error(fmt.Sprintf("Error caught when verifying user authorization: %s", err))
+			if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
+				ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
+				return
+			}
+			handleUnauthorized(ctx, targetURL, username)
+			return
+		}
+
+		authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
+			groups, ctx.RemoteIP(), authLevel)
+
+		if authorization == Forbidden {
+			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
+			ctx.ReplyForbidden()
+		} else if authorization == NotAuthorized {
+			handleUnauthorized(ctx, targetURL, username)
+		} else if authorization == Authorized {
+			setForwardedHeaders(&ctx.Response.Header, username, groups)
+		}
+
+		if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
+			ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
+		}
 	}
 }

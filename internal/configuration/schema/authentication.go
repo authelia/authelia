@@ -10,7 +10,6 @@ type LDAPAuthenticationBackendConfiguration struct {
 	AdditionalGroupsDN string `mapstructure:"additional_groups_dn"`
 	GroupsFilter       string `mapstructure:"groups_filter"`
 	GroupNameAttribute string `mapstructure:"group_name_attribute"`
-	RefreshInterval    string `mapstructure:"refresh_interval"`
 	UsernameAttribute  string `mapstructure:"username_attribute"`
 	MailAttribute      string `mapstructure:"mail_attribute"`
 	User               string `mapstructure:"user"`
@@ -36,6 +35,7 @@ type PasswordConfiguration struct {
 // AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
 type AuthenticationBackendConfiguration struct {
 	DisableResetPassword bool                                    `mapstructure:"disable_reset_password"`
+	RefreshInterval      string                                  `mapstructure:"refresh_interval"`
 	Ldap                 *LDAPAuthenticationBackendConfiguration `mapstructure:"ldap"`
 	File                 *FileAuthenticationBackendConfiguration `mapstructure:"file"`
 }
@@ -71,5 +71,4 @@ var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendConfiguration{
 	MailAttribute:      "mail",
 	GroupNameAttribute: "cn",
-	RefreshInterval:    "5m",
 }

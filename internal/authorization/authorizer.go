@@ -129,9 +129,9 @@ func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL) Level
 	return PolicyToLevel(p.configuration.DefaultPolicy)
 }
 
-// URLHasGroupSubjects returns true if the request has at least one
+// IsURLMatchingRuleWithGroupSubjects returns true if the request has at least one
 // matching ACL with a subject of type group attached to it, otherwise false.
-func (p *Authorizer) URLHasGroupSubjects(requestURL url.URL) (hasGroupSubjects bool) {
+func (p *Authorizer) IsURLMatchingRuleWithGroupSubjects(requestURL url.URL) (hasGroupSubjects bool) {
 	for _, rule := range p.configuration.Rules {
 		if isDomainMatching(requestURL.Hostname(), rule.Domains) && isPathMatching(requestURL.Path, rule.Resources) {
 			for _, subjectRule := range rule.Subjects {

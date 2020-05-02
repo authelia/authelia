@@ -154,15 +154,6 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	if configuration.MailAttribute == "" {
 		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.MailAttribute
 	}
-
-	if configuration.RefreshInterval == "" {
-		configuration.RefreshInterval = schema.DefaultLDAPAuthenticationBackendConfiguration.RefreshInterval
-	} else {
-		_, err := utils.ParseDurationString(configuration.RefreshInterval)
-		if err != nil && configuration.RefreshInterval != "disable" && configuration.RefreshInterval != "always" {
-			validator.Push(fmt.Errorf("LDAP `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
-		}
-	}
 }
 
 // ValidateAuthenticationBackend validates and update authentication backend configuration.
@@ -179,5 +170,14 @@ func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendCo
 		validateFileAuthenticationBackend(configuration.File, validator)
 	} else if configuration.Ldap != nil {
 		validateLdapAuthenticationBackend(configuration.Ldap, validator)
+	}
+
+	if configuration.RefreshInterval == "" {
+		configuration.RefreshInterval = "5m"
+	} else {
+		_, err := utils.ParseDurationString(configuration.RefreshInterval)
+		if err != nil && configuration.RefreshInterval != "disable" && configuration.RefreshInterval != "always" {
+			validator.Push(fmt.Errorf("Auth Backend `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
+		}
 	}
 }
