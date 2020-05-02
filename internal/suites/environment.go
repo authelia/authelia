@@ -63,7 +63,7 @@ func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
 		return err
 	}
 
-	if os.Getenv("CI") != "true" {
+	if os.Getenv("CI") != stringTrue {
 		if err := waitUntilAutheliaFrontendIsReady(dockerEnvironment); err != nil {
 			return err
 		}

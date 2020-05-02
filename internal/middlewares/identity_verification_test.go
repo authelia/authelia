@@ -15,6 +15,8 @@ import (
 	"github.com/authelia/authelia/internal/session"
 )
 
+const testJWTSecret = "abc"
+
 func newArgs(retriever func(ctx *middlewares.AutheliaCtx) (*session.Identity, error)) middlewares.IdentityVerificationStartArgs {
 	return middlewares.IdentityVerificationStartArgs{
 		ActionClaim:           "Claim",
@@ -50,7 +52,7 @@ func TestShouldFailIfJWTCannotBeSaved(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Configuration.JWTSecret = "abc"
+	mock.Ctx.Configuration.JWTSecret = testJWTSecret
 
 	mock.StorageProviderMock.EXPECT().
 		SaveIdentityVerificationToken(gomock.Any()).
@@ -67,7 +69,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Configuration.JWTSecret = "abc"
+	mock.Ctx.Configuration.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
 	mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
 
@@ -90,7 +92,7 @@ func TestShouldFailWhenXForwardedProtoHeaderIsMissing(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Configuration.JWTSecret = "abc"
+	mock.Ctx.Configuration.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
 
 	mock.StorageProviderMock.EXPECT().
@@ -108,7 +110,7 @@ func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Configuration.JWTSecret = "abc"
+	mock.Ctx.Configuration.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
 
 	mock.StorageProviderMock.EXPECT().
@@ -126,7 +128,7 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Configuration.JWTSecret = "abc"
+	mock.Ctx.Configuration.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
 	mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
 
@@ -154,7 +156,7 @@ type IdentityVerificationFinishProcess struct {
 func (s *IdentityVerificationFinishProcess) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 
-	s.mock.Ctx.Configuration.JWTSecret = "abc"
+	s.mock.Ctx.Configuration.JWTSecret = testJWTSecret
 }
 
 func (s *IdentityVerificationFinishProcess) TearDownTest() {
