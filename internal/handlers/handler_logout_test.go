@@ -19,7 +19,7 @@ type LogoutSuite struct {
 func (s *LogoutSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	userSession := s.mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 

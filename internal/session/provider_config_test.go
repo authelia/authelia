@@ -18,13 +18,13 @@ import (
 func TestShouldCreateInMemorySessionProvider(t *testing.T) {
 	// The redis configuration is not provided so we create a in-memory provider.
 	configuration := schema.SessionConfiguration{}
-	configuration.Domain = "example.com"
-	configuration.Name = "my_session"
-	configuration.Expiration = "40"
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
 	providerConfig := NewProviderConfig(configuration)
 
 	assert.Equal(t, "my_session", providerConfig.config.CookieName)
-	assert.Equal(t, "example.com", providerConfig.config.Domain)
+	assert.Equal(t, testDomain, providerConfig.config.Domain)
 	assert.Equal(t, true, providerConfig.config.Secure)
 	assert.Equal(t, time.Duration(40)*time.Second, providerConfig.config.Expires)
 	assert.True(t, providerConfig.config.IsSecureFunc(nil))
@@ -36,9 +36,9 @@ func TestShouldCreateInMemorySessionProvider(t *testing.T) {
 func TestShouldCreateRedisSessionProvider(t *testing.T) {
 	// The redis configuration is not provided so we create a in-memory provider.
 	configuration := schema.SessionConfiguration{}
-	configuration.Domain = "example.com"
-	configuration.Name = "my_session"
-	configuration.Expiration = "40"
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
 	configuration.Redis = &schema.RedisSessionConfiguration{
 		Host:     "redis.example.com",
 		Port:     6379,
@@ -47,7 +47,7 @@ func TestShouldCreateRedisSessionProvider(t *testing.T) {
 	providerConfig := NewProviderConfig(configuration)
 
 	assert.Equal(t, "my_session", providerConfig.config.CookieName)
-	assert.Equal(t, "example.com", providerConfig.config.Domain)
+	assert.Equal(t, testDomain, providerConfig.config.Domain)
 	assert.Equal(t, true, providerConfig.config.Secure)
 	assert.Equal(t, time.Duration(40)*time.Second, providerConfig.config.Expires)
 	assert.True(t, providerConfig.config.IsSecureFunc(nil))
@@ -65,9 +65,9 @@ func TestShouldCreateRedisSessionProvider(t *testing.T) {
 
 func TestShouldSetDbNumber(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
-	configuration.Domain = "example.com"
-	configuration.Name = "my_session"
-	configuration.Expiration = "40"
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
 	configuration.Redis = &schema.RedisSessionConfiguration{
 		Host:          "redis.example.com",
 		Port:          6379,

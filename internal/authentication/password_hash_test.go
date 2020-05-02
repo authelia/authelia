@@ -299,7 +299,7 @@ func TestNumberOfRoundsNotInt(t *testing.T) {
 }
 
 func TestShouldCheckPasswordArgon2idHashedWithAuthelia(t *testing.T) {
-	password := "my;secure*password"
+	password := testPassword
 	hash, err := HashPassword(password, "", HashingAlgorithmArgon2id, schema.DefaultCIPasswordConfiguration.Iterations,
 		schema.DefaultCIPasswordConfiguration.Memory*1024, schema.DefaultCIPasswordConfiguration.Parallelism,
 		schema.DefaultCIPasswordConfiguration.KeyLength, schema.DefaultCIPasswordConfiguration.SaltLength)
@@ -313,7 +313,7 @@ func TestShouldCheckPasswordArgon2idHashedWithAuthelia(t *testing.T) {
 }
 
 func TestShouldCheckPasswordSHA512HashedWithAuthelia(t *testing.T) {
-	password := "my;secure*password"
+	password := testPassword
 	hash, err := HashPassword(password, "", HashingAlgorithmSHA512, schema.DefaultPasswordSHA512Configuration.Iterations,
 		0, 0, 0, schema.DefaultPasswordSHA512Configuration.SaltLength)
 

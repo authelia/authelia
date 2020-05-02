@@ -14,9 +14,9 @@ import (
 func TestShouldInitializerSession(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 	configuration := schema.SessionConfiguration{}
-	configuration.Domain = "example.com"
-	configuration.Name = "my_session"
-	configuration.Expiration = "40"
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
 
 	provider := NewProvider(configuration)
 	session, err := provider.GetSession(ctx)
@@ -28,14 +28,14 @@ func TestShouldInitializerSession(t *testing.T) {
 func TestShouldUpdateSession(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 	configuration := schema.SessionConfiguration{}
-	configuration.Domain = "example.com"
-	configuration.Name = "my_session"
-	configuration.Expiration = "40"
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
 
 	provider := NewProvider(configuration)
 	session, _ := provider.GetSession(ctx)
 
-	session.Username = "john"
+	session.Username = testUsername
 	session.AuthenticationLevel = authentication.TwoFactor
 
 	err := provider.SaveSession(ctx, session)
@@ -45,7 +45,7 @@ func TestShouldUpdateSession(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, UserSession{
-		Username:            "john",
+		Username:            testUsername,
 		AuthenticationLevel: authentication.TwoFactor,
 	}, session)
 }
@@ -53,15 +53,15 @@ func TestShouldUpdateSession(t *testing.T) {
 func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 	configuration := schema.SessionConfiguration{}
-	configuration.Domain = "example.com"
-	configuration.Name = "my_session"
-	configuration.Expiration = "40"
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
 
 	provider := NewProvider(configuration)
 	session, err := provider.GetSession(ctx)
 	require.NoError(t, err)
 
-	session.Username = "john"
+	session.Username = testUsername
 	session.AuthenticationLevel = authentication.TwoFactor
 
 	err = provider.SaveSession(ctx, session)
@@ -69,7 +69,7 @@ func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 
 	newUserSession, err := provider.GetSession(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, "john", newUserSession.Username)
+	assert.Equal(t, testUsername, newUserSession.Username)
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
 
 	err = provider.DestroySession(ctx)

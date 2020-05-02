@@ -52,7 +52,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 			}
 		}
 
-		if duoResponse.Response.Result != "allow" {
+		if duoResponse.Response.Result != testResultAllow {
 			ctx.ReplyUnauthorized()
 			return
 		}
