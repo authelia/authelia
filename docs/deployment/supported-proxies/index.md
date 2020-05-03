@@ -39,15 +39,15 @@ The only way Authelia can share information about the authenticated user current
 `Remote-User` and `Remote-Groups`.
 Those headers are returned by Authelia on requests to `/api/verify` and must be forwarded by the reverse proxy to the backends
 needing them.
-Please note that the backend must support the use of those headers to leverage that information but please note that many
-backends still don't (and probably won't) support it. However, we are working on solving this issue with OpenID Connect which
-is far more supported lately.
+Please note that the backend must support the use of those headers to leverage that information, many
+backends still don't (and probably won't) support it. However, we are working on solving this issue with OpenID Connect/OAuth2
+which is a widely adopted open standard for access delegation.
 
 So, if you're developing your own application, you can read those headers and use them. If you don't own the codebase of the
 backend, you need to check whether it supports this type of authentication or not. If it does not, you have three options:
 
 1. Enable authentication on the backend and make your users authenticate twice (not user-friendly).
-2. Disable completely the authentication of your backend. This works only if all your users share the same privileges in the backend.
+2. Completely disable the authentication of your backend. This works only if all your users share the same privileges in the backend.
 3. Many applications support OAuth2 so the last option would be to just wait for Authelia to be an OpenID Connect provider (https://github.com/authelia/authelia/issues/189).
 
 ## Redirection to the login portal
