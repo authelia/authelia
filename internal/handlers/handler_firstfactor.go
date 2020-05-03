@@ -105,7 +105,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	userSession.AuthenticationLevel = authentication.OneFactor
 	userSession.LastActivity = time.Now().Unix()
 	userSession.KeepMeLoggedIn = keepMeLoggedIn
-	refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration)
+	refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend)
 	if refresh {
 		userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
 	}

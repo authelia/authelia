@@ -30,7 +30,8 @@ func SliceString(s string, d int) (array []string) {
 	return
 }
 
-// IsStringSlicesDifferent checks two slices of strings and on the first occurrence of a difference returns true.
+// IsStringSlicesDifferent checks two slices of strings and on the first occurrence of a string item not existing in the
+// other slice returns true, otherwise returns false.
 func IsStringSlicesDifferent(a, b []string) (different bool) {
 	for _, s := range a {
 		if !IsStringInSlice(s, b) {

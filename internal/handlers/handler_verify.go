@@ -38,7 +38,6 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
 		}
-		// TODO: change to Debug for release?
 		ctx.Logger.Trace("Using X-Original-URL header content as targeted site URL")
 		return url, nil
 	}
@@ -64,7 +63,6 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
 	}
-	// TODO: change to Debugf for release?
 	ctx.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
 		"to construct targeted site URL")
 	return url, nil
@@ -157,7 +155,7 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username string, grou
 	}
 }
 
-// hasUserBeenInactiveTooLong check whether the user has been inactive for too long.
+// hasUserBeenInactiveTooLong checks whether the user has been inactive for too long.
 func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) { //nolint:unparam
 	maxInactivityPeriod := int64(ctx.Providers.SessionProvider.Inactivity.Seconds())
 	if maxInactivityPeriod == 0 {
@@ -177,7 +175,7 @@ func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) { //
 	return false, nil
 }
 
-// verifySessionCookie verify if a user identified by a cookie.
+// verifySessionCookie verifies if a user is identified by a cookie.
 func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession, refreshProfile bool, refreshProfileInterval time.Duration) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
 	// No username in the session means the user is anonymous.
 	isUserAnonymous := userSession.Username == ""
@@ -205,7 +203,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 
 	err = verifySessionHasUpToDateProfile(ctx, targetURL, userSession, refreshProfile, refreshProfileInterval)
 	if err != nil {
-		if err.Error() == authentication.ErrUserNotFound.Error() {
+		if err == authentication.ErrUserNotFound {
 			err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 			if err != nil {
 				ctx.Logger.Error(fmt.Errorf("Unable to destroy user session after provider refresh didn't find the user: %s", err))
@@ -269,11 +267,9 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 		groupsDelta = append(groupsDelta, fmt.Sprintf("Removed: %s.", strings.Join(groupsRemoved, ", ")))
 	}
 	if len(groupsDelta) != 0 {
-		// TODO: FOR 4.16.1 RELEASE change Debugf to Tracef
-		ctx.Logger.Debugf("Updated groups detected for %s. %s", userSession.Username, strings.Join(groupsDelta, " "))
+		ctx.Logger.Tracef("Updated groups detected for %s. %s", userSession.Username, strings.Join(groupsDelta, " "))
 	} else {
-		// TODO: FOR 4.16.1 RELEASE change Debugf to Tracef
-		ctx.Logger.Debugf("No updated groups detected for %s", userSession.Username)
+		ctx.Logger.Tracef("No updated groups detected for %s", userSession.Username)
 	}
 
 	// Check Emails.
@@ -285,11 +281,9 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 		emailsDelta = append(emailsDelta, fmt.Sprintf("Removed: %s.", strings.Join(emailsRemoved, ", ")))
 	}
 	if len(emailsDelta) != 0 {
-		// TODO: FOR 4.16.1 RELEASE change Debugf to Tracef
-		ctx.Logger.Debugf("Updated emails detected for %s. %s", userSession.Username, strings.Join(emailsDelta, " "))
+		ctx.Logger.Tracef("Updated emails detected for %s. %s", userSession.Username, strings.Join(emailsDelta, " "))
 	} else {
-		// TODO: FOR 4.16.1 RELEASE change Debugf to Tracef
-		ctx.Logger.Debugf("No updated emails detected for %s", userSession.Username)
+		ctx.Logger.Tracef("No updated emails detected for %s", userSession.Username)
 	}
 }
 
@@ -312,12 +306,10 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 		groupsDiff := utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
 		emailsDiff := utils.IsStringSlicesDifferent(userSession.Emails, details.Emails)
 		if !groupsDiff && !emailsDiff {
-			// TODO: FOR 4.16.1 RELEASE change Debugf to Tracef
-			ctx.Logger.Debugf("Updated profile not detected for %s.", userSession.Username)
+			ctx.Logger.Tracef("Updated profile not detected for %s.", userSession.Username)
 		} else {
 			ctx.Logger.Debugf("Updated profile detected for %s.", userSession.Username)
-			// TODO: FOR 4.16.1 RELEASE: change "debug" to "trace"
-			if ctx.Configuration.LogLevel == "debug" {
+			if ctx.Logger.Level.String() == "trace" {
 				generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
 			}
 			userSession.Groups = details.Groups
@@ -326,8 +318,8 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 			// Only update TTL if the user has a interval set.
 			if refreshProfileInterval != schema.RefreshIntervalAlways {
 				userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
-				return ctx.SaveSession(*userSession)
 			}
+			return ctx.SaveSession(*userSession)
 		}
 		// Only update TTL if the user has a interval set.
 		// Also make sure to update the session even if no difference was found.
@@ -340,13 +332,13 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	return nil
 }
 
-func getProfileRefreshSettings(cfg schema.Configuration) (refresh bool, refreshInterval time.Duration) {
-	if cfg.AuthenticationBackend.Ldap != nil {
-		if cfg.AuthenticationBackend.RefreshInterval != schema.ProfileRefreshDisabled {
+func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (refresh bool, refreshInterval time.Duration) {
+	if cfg.Ldap != nil {
+		if cfg.RefreshInterval != schema.ProfileRefreshDisabled {
 			refresh = true
-			if cfg.AuthenticationBackend.RefreshInterval != schema.ProfileRefreshAlways {
+			if cfg.RefreshInterval != schema.ProfileRefreshAlways {
 				// Skip Error Check since validator checks it
-				refreshInterval, _ = utils.ParseDurationString(cfg.AuthenticationBackend.RefreshInterval)
+				refreshInterval, _ = utils.ParseDurationString(cfg.RefreshInterval)
 			} else {
 				refreshInterval = schema.RefreshIntervalAlways
 			}
@@ -356,7 +348,7 @@ func getProfileRefreshSettings(cfg schema.Configuration) (refresh bool, refreshI
 }
 
 // VerifyGet returns the handler verifying if a request is allowed to go through.
-func VerifyGet(cfg schema.Configuration) middlewares.RequestHandler {
+func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.RequestHandler {
 	refreshProfile, refreshProfileInterval := getProfileRefreshSettings(cfg)
 
 	return func(ctx *middlewares.AutheliaCtx) {

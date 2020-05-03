@@ -20,11 +20,9 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-var verifyGetCfg = schema.Configuration{
-	AuthenticationBackend: schema.AuthenticationBackendConfiguration{
-		RefreshInterval: schema.RefreshIntervalDefault,
-		Ldap:            &schema.LDAPAuthenticationBackendConfiguration{},
-	},
+var verifyGetCfg = schema.AuthenticationBackendConfiguration{
+	RefreshInterval: schema.RefreshIntervalDefault,
+	Ldap:            &schema.LDAPAuthenticationBackendConfiguration{},
 }
 
 // Test getOriginalURL.
@@ -750,7 +748,7 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 	}
 
 	cfg := verifyGetCfg
-	cfg.AuthenticationBackend.RefreshInterval = "disable"
+	cfg.RefreshInterval = "disable"
 	verifyGet := VerifyGet(cfg)
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
