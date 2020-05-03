@@ -38,7 +38,6 @@ steps:
   - label: ":github: Deploy Artifacts"
     command: "ghartifacts.sh"
     depends_on:
-      - "build-docker-darwin-amd64"
       - "build-docker-linux-amd64"
       - "build-docker-linux-arm32v7"
       - "build-docker-linux-arm64v8"
