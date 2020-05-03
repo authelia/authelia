@@ -46,3 +46,7 @@ const (
 
 // HashingPossibleSaltCharacters represents valid hashing runes.
 var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")
+
+const sha512 = "sha512"
+
+const testPassword = "my;secure*password"

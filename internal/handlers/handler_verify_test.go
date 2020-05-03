@@ -176,7 +176,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 
 		username := ""
 		if rule.AuthLevel > authentication.NotAuthenticated {
-			username = "john"
+			username = testUsername
 		}
 
 		matching := isTargetURLAuthorized(authorizer, *url, username, []string{}, net.ParseIP("127.0.0.1"), rule.AuthLevel)
@@ -472,13 +472,13 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	clock.Set(time.Now())
 	past := clock.Now().Add(-1 * time.Hour)
 
-	mock.Ctx.Configuration.Session.Inactivity = "10"
+	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session)
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -509,7 +509,7 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -531,10 +531,10 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = "10"
+	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = 0
 	userSession.KeepMeLoggedIn = true
@@ -560,12 +560,12 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = "10"
+	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 
 	past := clock.Now().Add(-1 * time.Hour)
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -592,7 +592,7 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = "10"
+	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session)
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
@@ -600,7 +600,7 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	past := clock.Now().Add(-1 * time.Hour)
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -626,12 +626,12 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = "10"
+	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 
 	past := clock.Now().Add(-1 * time.Hour)
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -653,7 +653,7 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	defer mock.Close()
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.NotAuthenticated
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 

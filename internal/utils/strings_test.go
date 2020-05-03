@@ -7,7 +7,7 @@ import (
 )
 
 func TestShouldSplitIntoEvenStringsOfFour(t *testing.T) {
-	input := "abcdefghijkl"
+	input := testStringInput
 	arrayOfStrings := SliceString(input, 4)
 	assert.Equal(t, len(arrayOfStrings), 3)
 	assert.Equal(t, "abcd", arrayOfStrings[0])
@@ -16,7 +16,7 @@ func TestShouldSplitIntoEvenStringsOfFour(t *testing.T) {
 }
 
 func TestShouldSplitIntoEvenStringsOfOne(t *testing.T) {
-	input := "abcdefghijkl"
+	input := testStringInput
 	arrayOfStrings := SliceString(input, 1)
 	assert.Equal(t, 12, len(arrayOfStrings))
 	assert.Equal(t, "a", arrayOfStrings[0])
@@ -27,7 +27,7 @@ func TestShouldSplitIntoEvenStringsOfOne(t *testing.T) {
 }
 
 func TestShouldSplitIntoUnevenStringsOfFour(t *testing.T) {
-	input := "abcdefghijklm"
+	input := testStringInput + "m"
 	arrayOfStrings := SliceString(input, 4)
 	assert.Equal(t, len(arrayOfStrings), 4)
 	assert.Equal(t, "abcd", arrayOfStrings[0])

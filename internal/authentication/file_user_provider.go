@@ -143,7 +143,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	var algorithm CryptAlgo
 	if p.configuration.Password.Algorithm == "argon2id" {
 		algorithm = HashingAlgorithmArgon2id
-	} else if p.configuration.Password.Algorithm == "sha512" {
+	} else if p.configuration.Password.Algorithm == sha512 {
 		algorithm = HashingAlgorithmSHA512
 	} else {
 		return errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
