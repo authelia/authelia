@@ -16,7 +16,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		err := ctx.ParseBody(&requestBody)
 
 		if err != nil {
-			handleErrorResponse(ctx, err, mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, err, mfaValidationFailedMessage)
 			return
 		}
 
@@ -37,7 +37,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 
 		duoResponse, err := duoAPI.Call(values, ctx)
 		if err != nil {
-			handleErrorResponse(ctx, fmt.Errorf("Duo API errored: %s", err), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Duo API errored: %s", err), mfaValidationFailedMessage)
 			return
 		}
 
@@ -60,7 +60,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 		if err != nil {
-			handleErrorResponse(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
 			return
 		}
 
@@ -68,7 +68,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		err = ctx.SaveSession(userSession)
 
 		if err != nil {
-			handleErrorResponse(ctx, fmt.Errorf("Unable to update authentication level with Duo: %s", err), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update authentication level with Duo: %s", err), mfaValidationFailedMessage)
 			return
 		}
 

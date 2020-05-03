@@ -30,7 +30,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 	challenge, err := u2f.NewChallenge(appID, trustedFacets)
 
 	if err != nil {
-		handleErrorResponse(ctx, fmt.Errorf("Unable to create U2F challenge: %s", err), mfaValidationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to create U2F challenge: %s", err), mfaValidationFailedMessage)
 		return
 	}
 
@@ -39,10 +39,10 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		if err == storage.ErrNoU2FDeviceHandle {
-			handleErrorResponse(ctx, fmt.Errorf("No device handle found for user %s", userSession.Username), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("No device handle found for user %s", userSession.Username), mfaValidationFailedMessage)
 			return
 		}
-		handleErrorResponse(ctx, fmt.Errorf("Unable to retrieve U2F device handle: %s", err), mfaValidationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to retrieve U2F device handle: %s", err), mfaValidationFailedMessage)
 		return
 	}
 
@@ -62,7 +62,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {
-		handleErrorResponse(ctx, fmt.Errorf("Unable to save U2F challenge and registration in session: %s", err), mfaValidationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to save U2F challenge and registration in session: %s", err), mfaValidationFailedMessage)
 		return
 	}
 
@@ -70,7 +70,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 	err = ctx.SetJSONBody(signRequest)
 
 	if err != nil {
-		handleErrorResponse(ctx, fmt.Errorf("Unable to set sign request in body: %s", err), mfaValidationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to set sign request in body: %s", err), mfaValidationFailedMessage)
 		return
 	}
 }

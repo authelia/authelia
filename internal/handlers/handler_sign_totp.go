@@ -14,32 +14,32 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 		err := ctx.ParseBody(&bodyJSON)
 
 		if err != nil {
-			handleErrorResponse(ctx, err, mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, err, mfaValidationFailedMessage)
 			return
 		}
 
 		userSession := ctx.GetSession()
 		secret, err := ctx.Providers.StorageProvider.LoadTOTPSecret(userSession.Username)
 		if err != nil {
-			handleErrorResponse(ctx, fmt.Errorf("Unable to load TOTP secret: %s", err), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to load TOTP secret: %s", err), mfaValidationFailedMessage)
 			return
 		}
 
 		isValid, err := totpVerifier.Verify(bodyJSON.Token, secret)
 		if err != nil {
-			handleErrorResponse(ctx, fmt.Errorf("Error occurred during OTP validation for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error occurred during OTP validation for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
 			return
 		}
 
 		if !isValid {
-			handleErrorResponse(ctx, fmt.Errorf("Wrong passcode during TOTP validation for user %s", userSession.Username), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Wrong passcode during TOTP validation for user %s", userSession.Username), mfaValidationFailedMessage)
 			return
 		}
 
 		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 		if err != nil {
-			handleErrorResponse(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
 			return
 		}
 
@@ -47,7 +47,7 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 		err = ctx.SaveSession(userSession)
 
 		if err != nil {
-			handleErrorResponse(ctx, fmt.Errorf("Unable to update the authentication level with TOTP: %s", err), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update the authentication level with TOTP: %s", err), mfaValidationFailedMessage)
 			return
 		}
 

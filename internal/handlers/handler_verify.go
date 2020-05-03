@@ -285,12 +285,13 @@ func VerifyGet(ctx *middlewares.AutheliaCtx) {
 	authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
 		groups, ctx.RemoteIP(), authLevel)
 
-	if authorization == Forbidden {
+	switch authorization {
+	case Forbidden:
 		ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 		ctx.ReplyForbidden()
-	} else if authorization == NotAuthorized {
+	case NotAuthorized:
 		handleUnauthorized(ctx, targetURL, username)
-	} else if authorization == Authorized {
+	case Authorized:
 		setForwardedHeaders(&ctx.Response.Header, username, groups)
 	}
 

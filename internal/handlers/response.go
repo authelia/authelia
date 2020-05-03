@@ -83,8 +83,8 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	}
 }
 
-// handleErrorResponse provides harmonized response codes for 1FA.
-func handleErrorResponse(ctx *middlewares.AutheliaCtx, err error, message string) {
+// handleAuthenticationUnauthorized provides harmonized response codes for 1FA.
+func handleAuthenticationUnauthorized(ctx *middlewares.AutheliaCtx, err error, message string) {
 	ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 	ctx.Error(err, message)
 }
