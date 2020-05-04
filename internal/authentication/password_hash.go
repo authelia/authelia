@@ -57,13 +57,14 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 		return nil, errors.New("Salt contains invalid base64 characters")
 	}
 
-	if code == HashingAlgorithmSHA512 {
+	switch code {
+	case HashingAlgorithmSHA512:
 		h.Iterations = parameters.GetInt("rounds", HashingDefaultSHA512Iterations)
 		h.Algorithm = HashingAlgorithmSHA512
 		if parameters["rounds"] != "" && parameters["rounds"] != strconv.Itoa(h.Iterations) {
 			return nil, fmt.Errorf("SHA512 iterations is not numeric (%s)", parameters["rounds"])
 		}
-	} else if code == HashingAlgorithmArgon2id {
+	case HashingAlgorithmArgon2id:
 		version := parameters.GetInt("v", 0)
 		if version < 19 {
 			if version == 0 {
@@ -86,7 +87,7 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 		if len(decodedKey) != h.KeyLength {
 			return nil, fmt.Errorf("Argon2id key length parameter (%d) does not match the actual key length (%d)", h.KeyLength, len(decodedKey))
 		}
-	} else {
+	default:
 		return nil, fmt.Errorf("Authelia only supports salted SHA512 hashing ($6$) and salted argon2id ($argon2id$), not $%s$", code)
 	}
 	return h, nil
@@ -133,11 +134,13 @@ func CheckPassword(password, hash string) (ok bool, err error) {
 }
 
 func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, parallelism, keyLength int) (settings string) {
-	if algorithm == HashingAlgorithmArgon2id {
+	switch algorithm {
+	case HashingAlgorithmArgon2id:
 		settings, _ = crypt.Argon2idSettings(memory, iterations, parallelism, keyLength, salt)
-	} else if algorithm == HashingAlgorithmSHA512 {
+
+	case HashingAlgorithmSHA512:
 		settings = fmt.Sprintf("$6$rounds=%d$%s", iterations, salt)
-	} else {
+	default:
 		panic("invalid password hashing algorithm provided")
 	}
 	return settings
