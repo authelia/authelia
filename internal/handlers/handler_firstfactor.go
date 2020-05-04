@@ -15,6 +15,8 @@ import (
 )
 
 func getDelayAuthSettings(config schema.AuthenticationBackendConfiguration) (bool, time.Duration) {
+	log := logging.Logger()
+
 	if !config.DisableDelayAuth {
 		rand.Seed(time.Now().UnixNano())
 		var duration time.Duration
@@ -34,10 +36,12 @@ func getDelayAuthSettings(config schema.AuthenticationBackendConfiguration) (boo
 		if duration < 450*time.Millisecond {
 			duration = time.Duration(rand.Intn(50)+450) * time.Millisecond
 		}
+		log.Debugf("1FA authentication requests will not return to clients until %dms after the request was received "+
+			"to prevent username enumeration.", duration/time.Millisecond)
 		return true, duration
 	}
-	logging.Logger().Warn("The security measure to prevent username enumeration has been disabled by configuration " +
-		"setting authentication_backend.disable_delay_auth, this reduces security and is not recommended.")
+	log.Warn("1FA authentication requests will not be delayed as it has been disabled by configuration option " +
+		"authentication_backend.disable_delay_auth, this reduces security and is not recommended.")
 	return false, 0 * time.Millisecond
 }
 
