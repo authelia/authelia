@@ -11,6 +11,7 @@ import (
 )
 
 // FirstFactorPost is the handler performing the first factory.
+//nolint:gocyclo // TODO: Consider refactoring time permitting.
 func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	bodyJSON := firstFactorRequestBody{}
 	err := ctx.ParseBody(&bodyJSON)
@@ -104,6 +105,10 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	userSession.AuthenticationLevel = authentication.OneFactor
 	userSession.LastActivity = time.Now().Unix()
 	userSession.KeepMeLoggedIn = keepMeLoggedIn
+	refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend)
+	if refresh {
+		userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
+	}
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {

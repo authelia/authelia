@@ -82,6 +82,14 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	}, {
 		Domains: []string{"deny.example.com"},
 		Policy:  "deny",
+	}, {
+		Domains:  []string{"admin.example.com"},
+		Policy:   "two_factor",
+		Subjects: []string{"group:admin"},
+	}, {
+		Domains:  []string{"grafana.example.com"},
+		Policy:   "two_factor",
+		Subjects: []string{"group:grafana"},
 	}}
 
 	providers := middlewares.Providers{}
