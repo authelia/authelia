@@ -9,6 +9,7 @@ tls_key: /var/lib/authelia/ssl/key.pem
 log_level: debug
 
 authentication_backend:
+  disable_delay_auth: true
   file:
     path: /var/lib/authelia/users.yml
 

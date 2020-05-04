@@ -13,6 +13,7 @@ jwt_secret: unsecure_secret
 default_redirection_url: https://home.example.com:8080/
 
 authentication_backend:
+  disable_delay_auth: true
   file:
     path: /var/lib/authelia/users.yml
 

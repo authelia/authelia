@@ -79,6 +79,10 @@ authentication_backend:
   # Disable both the HTML element and the API for reset password functionality
   disable_reset_password: false
 
+  # Disable delaying authentication to prevent username enumeration.
+  # Enabling this could allow attackers to find valid usernames. It's highly discouraged to change this to true.
+  disable_delay_auth: false
+
   # LDAP backend configuration.
   #
   # This backend allows Authelia to be scaled to more
@@ -87,7 +91,7 @@ authentication_backend:
   ldap:
     # The url to the ldap server. Scheme can be ldap:// or ldaps://
     url: ldap://127.0.0.1
-    
+
     # Skip verifying the server certificate (to allow self-signed certificate).
     skip_verify: false
     

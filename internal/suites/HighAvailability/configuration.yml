@@ -14,6 +14,7 @@ totp:
   issuer: authelia.com
 
 authentication_backend:
+  disable_delay_auth: true
   ldap:
     url: ldap://openldap
     base_dn: dc=example,dc=com

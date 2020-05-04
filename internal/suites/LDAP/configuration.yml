@@ -13,6 +13,7 @@ default_redirection_url: https://home.example.com:8080/
 jwt_secret: very_important_secret
 
 authentication_backend:
+  disable_delay_auth: true
   ldap:
     url: ldaps://openldap
     skip_verify: true
