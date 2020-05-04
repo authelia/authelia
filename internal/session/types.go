@@ -1,6 +1,8 @@
 package session
 
 import (
+	"time"
+
 	"github.com/fasthttp/session"
 	"github.com/tstranex/u2f"
 
@@ -41,6 +43,8 @@ type UserSession struct {
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.
 	PasswordResetUsername *string
+
+	RefreshTTL time.Time
 }
 
 // Identity identity of the user who is being verified.

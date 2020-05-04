@@ -48,7 +48,7 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 	if url.Scheme == "ldaps" {
 		logging.Logger().Trace("LDAP client starts a TLS session")
 		conn, err := p.connectionFactory.DialTLS("tcp", url.Host, &tls.Config{
-			InsecureSkipVerify: p.configuration.SkipVerify, //nolint:gosec // Intended configuration, must manually be turned on by user.
+			InsecureSkipVerify: p.configuration.SkipVerify, //nolint:gosec // This is a configurable option, is desirable in some situations and is off by default
 		})
 		if err != nil {
 			return nil, err
@@ -150,7 +150,7 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	}
 
 	if len(sr.Entries) == 0 {
-		return nil, fmt.Errorf("No user %s found", inputUsername)
+		return nil, ErrUserNotFound
 	}
 
 	if len(sr.Entries) > 1 {

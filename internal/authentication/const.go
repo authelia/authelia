@@ -51,6 +51,9 @@ const (
 // HashingPossibleSaltCharacters represents valid hashing runes.
 var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")
 
+// ErrUserNotFound indicates the user wasn't found in the authentication backend.
+var ErrUserNotFound = errors.New("user not found")
+
 const sha512 = "sha512"
 
 const testPassword = "my;secure*password"

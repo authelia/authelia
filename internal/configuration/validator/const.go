@@ -86,6 +86,7 @@ var validKeys = []string{
 	// Authentication Backend Keys.
 	"authentication_backend.disable_reset_password",
 	"authentication_backend.disable_delay_auth",
+	"authentication_backend.refresh_interval",
 
 	// LDAP Authentication Backend Keys.
 	"authentication_backend.ldap.url",

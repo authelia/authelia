@@ -167,6 +167,10 @@ func FirstFactorPost(cfg schema.AuthenticationBackendConfiguration) middlewares.
 		userSession.AuthenticationLevel = authentication.OneFactor
 		userSession.LastActivity = time.Now().Unix()
 		userSession.KeepMeLoggedIn = keepMeLoggedIn
+		refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend)
+		if refresh {
+			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
+		}
 		err = ctx.SaveSession(userSession)
 
 		if err != nil {

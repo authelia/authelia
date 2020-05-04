@@ -14,30 +14,30 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-// MockAPI is a mock of API interface
+// MockAPI is a mock of API interface.
 type MockAPI struct {
 	ctrl     *gomock.Controller
 	recorder *MockAPIMockRecorder
 }
 
-// MockAPIMockRecorder is the mock recorder for MockAPI
+// MockAPIMockRecorder is the mock recorder for MockAPI.
 type MockAPIMockRecorder struct {
 	mock *MockAPI
 }
 
-// NewMockAPI creates a new mock instance
+// NewMockAPI creates a new mock instance.
 func NewMockAPI(ctrl *gomock.Controller) *MockAPI {
 	mock := &MockAPI{ctrl: ctrl}
 	mock.recorder = &MockAPIMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAPI) EXPECT() *MockAPIMockRecorder {
 	return m.recorder
 }
 
-// Call mocks base method
+// Call mocks base method.
 func (m *MockAPI) Call(arg0 url.Values, arg1 *middlewares.AutheliaCtx) (*duo.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Call", arg0, arg1)
@@ -46,7 +46,7 @@ func (m *MockAPI) Call(arg0 url.Values, arg1 *middlewares.AutheliaCtx) (*duo.Res
 	return ret0, ret1
 }
 
-// Call indicates an expected call of Call
+// Call indicates an expected call of Call.
 func (mr *MockAPIMockRecorder) Call(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockAPI)(nil).Call), arg0, arg1)

@@ -34,6 +34,7 @@ func (s *FirstFactorSuite) TearDownTest() {
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
+
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	// No body
@@ -46,6 +47,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test"
 	}`)
+
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Unable to validate body: password: non zero value required", s.mock.Hook.LastEntry().Message)
@@ -71,6 +73,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
+
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Error while checking password for user test: Failed", s.mock.Hook.LastEntry().Message)
@@ -121,6 +124,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
+
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Error while retrieving details from user test: Failed", s.mock.Hook.LastEntry().Message)
@@ -143,6 +147,7 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
+
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Unable to mark authentication: failed", s.mock.Hook.LastEntry().Message)
@@ -174,6 +179,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
+
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	// Respond with 200.
@@ -214,6 +220,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 		"password": "hello",
 		"keepMeLoggedIn": false
 	}`)
+
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	// Respond with 200.
@@ -346,6 +353,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 		"keepMeLoggedIn": false,
 		"targetURL": "http://notsafe.local"
 	}`)
+
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	// Respond with 200.
@@ -365,6 +373,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 		"password": "hello",
 		"keepMeLoggedIn": false
 	}`)
+
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	// Respond with 200.
@@ -394,6 +403,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 		"password": "hello",
 		"keepMeLoggedIn": false
 	}`)
+
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	// Respond with 200.
