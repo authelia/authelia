@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Clean artifacts built and installed by authelia-scripts
+// Clean artifacts built and installed by authelia-scripts.
 func Clean(cobraCmd *cobra.Command, args []string) {
 	log.Debug("Removing `" + OutputDir + "` directory")
 	err := os.RemoveAll(OutputDir)

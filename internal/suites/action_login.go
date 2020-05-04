@@ -28,13 +28,13 @@ func (wds *WebDriverSession) doFillLoginPageAndClick(ctx context.Context, t *tes
 	require.NoError(t, err)
 }
 
-// Login 1FA
+// Login 1FA.
 func (wds *WebDriverSession) doLoginOneFactor(ctx context.Context, t *testing.T, username, password string, keepMeLoggedIn bool, targetURL string) {
 	wds.doVisitLoginPage(ctx, t, targetURL)
 	wds.doFillLoginPageAndClick(ctx, t, username, password, keepMeLoggedIn)
 }
 
-// Login 1FA and 2FA subsequently (must already be registered)
+// Login 1FA and 2FA subsequently (must already be registered).
 func (wds *WebDriverSession) doLoginTwoFactor(ctx context.Context, t *testing.T, username, password string, keepMeLoggedIn bool, otpSecret, targetURL string) {
 	wds.doLoginOneFactor(ctx, t, username, password, keepMeLoggedIn, targetURL)
 	wds.verifyIsSecondFactorPage(ctx, t)

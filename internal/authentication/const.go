@@ -1,9 +1,5 @@
 package authentication
 
-import (
-	"errors"
-)
-
 // Level is the type representing a level of authentication.
 type Level int
 
@@ -25,14 +21,17 @@ const (
 	Push = "mobile_push"
 )
 
-// PossibleMethods is the set of all possible 2FA methods
+// PossibleMethods is the set of all possible 2FA methods.
 var PossibleMethods = []string{TOTP, U2F, Push}
+
+// CryptAlgo the crypt representation of an algorithm used in the prefix of the hash.
+type CryptAlgo string
 
 const (
 	// HashingAlgorithmArgon2id Argon2id hash identifier.
-	HashingAlgorithmArgon2id = "argon2id"
+	HashingAlgorithmArgon2id CryptAlgo = "argon2id"
 	// HashingAlgorithmSHA512 SHA512 hash identifier.
-	HashingAlgorithmSHA512 = "6"
+	HashingAlgorithmSHA512 CryptAlgo = "6"
 )
 
 // These are the default values from the upstream crypt module we use them to for GetInt
@@ -50,3 +49,7 @@ var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJ
 
 // ErrUserNotExist returned when the user doesn't exist.
 var ErrUserNotExist = errors.New("user does not exist")
+
+const sha512 = "sha512"
+
+const testPassword = "my;secure*password"

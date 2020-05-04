@@ -68,14 +68,26 @@ func TestShouldCheckUserPasswordIsWrong(t *testing.T) {
 	})
 }
 
-func TestShouldCheckUserPasswordOfUnexistingUser(t *testing.T) {
+func TestShouldCheckUserPasswordIsWrongForEnumerationCompare(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
-		_, err := provider.CheckUserPassword("fake", "password")
-		assert.Error(t, err)
-		assert.Equal(t, "User 'fake' does not exist in database", err.Error())
+
+		ok, err := provider.CheckUserPassword("enumeration", "wrong_password")
+		assert.NoError(t, err)
+		assert.False(t, ok)
+	})
+}
+
+func TestShouldCheckUserPasswordOfUserThatDoesNotExist(t *testing.T) {
+	WithDatabase(UserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		provider := NewFileUserProvider(&config)
+		ok, err := provider.CheckUserPassword("fake", "password")
+		assert.NoError(t, err)
+		assert.Equal(t, false, ok)
 	})
 }
 
@@ -257,6 +269,11 @@ users:
   james:
     password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: james.dean@authelia.com
+
+
+  enumeration:
+    password: "$argon2id$v=19$m=131072,p=8$BpLnfgDsc2WD8F2q$O126GHPeZ5fwj7OLSs7PndXsTbje76R+QW9/EGfhkJg"
+    email: james.dean@authelia.com
 `)
 
 var MalformedUserDatabaseContent = []byte(`
@@ -268,7 +285,7 @@ groups:
 - dev
 `)
 
-// The YAML is valid but the root key is user instead of users
+// The YAML is valid but the root key is user instead of users.
 var BadSchemaUserDatabaseContent = []byte(`
 user:
   john:

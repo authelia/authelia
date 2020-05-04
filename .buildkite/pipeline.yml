@@ -1,0 +1,40 @@
+# This represents the hardcoded pipeline set in Buildkite interface which executes the repo provided dynamic pipeline.
+# It is used to ensure that insecure code from external PR cannot be executed before a maintainers approval, to avoid secret leaks.
+steps:
+  # Blocking pipeline for master branch deployments (concurrency_group).
+  - label: ":pipeline: Setup Pipeline"
+    command: ".buildkite/pipeline.sh | buildkite-agent pipeline upload"
+    concurrency: 1
+    concurrency_group: "deployments"
+    if: build.branch == "master"
+
+  # Non-blocking pipeline for all others (tagged commits/local branches/PRs).
+  - label: ":pipeline: Setup Pipeline"
+    command: ".buildkite/pipeline.sh | buildkite-agent pipeline upload"
+    if: build.branch != "master"
+
+  - wait:
+    if: build.pull_request.repository.fork != true && build.branch !~ /^dependabot\/.*/
+
+  # Manual intervention by team required to deploy for forked PRs (prevent secret leakage).
+  - block: "Public fork needs approval"
+    if: build.pull_request.repository.fork == true
+
+  # Blocking deployment for master branch deployments (concurrency_group).
+  - label: ":rocket: Setup Deployment"
+    command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
+    concurrency: 1
+    concurrency_group: "deployments"
+    depends_on: ~
+    if: build.branch == "master"
+
+  # Non-blocking deployment for all others (tagged commits/local branches).
+  - label: ":rocket: Setup Deployment"
+    command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
+    depends_on: ~
+    if: build.branch != "master" && build.branch !~ /^dependabot\/.*/ && build.pull_request.repository.fork != true
+
+  # Removed dependency optimisation for forked PRs to enforce block step.
+  - label: ":rocket: Setup Deployment"
+    command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
+    if: build.pull_request.repository.fork == true

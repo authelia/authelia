@@ -7,7 +7,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// ServeCmd serve authelia with the provided configuration
+// ServeCmd serve Authelia with the provided configuration.
 func ServeCmd(cobraCmd *cobra.Command, args []string) {
 	log.Infof("Running Authelia with config %s...", args[0])
 	cmd := utils.CommandWithStdout(OutputDir+"/authelia", "--config", args[0])

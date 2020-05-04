@@ -37,7 +37,10 @@ steps:
 
   - label: ":github: Deploy Artifacts"
     command: "ghartifacts.sh"
-    depends_on: ~
+    depends_on:
+      - "build-docker-linux-amd64"
+      - "build-docker-linux-arm32v7"
+      - "build-docker-linux-arm64v8"
     retry:
       automatic: true
     agents:

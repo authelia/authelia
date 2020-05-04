@@ -19,7 +19,7 @@ import (
 	"github.com/authelia/authelia/internal/session"
 )
 
-// Test getOriginalURL
+// Test getOriginalURL.
 func TestShouldGetOriginalURLFromOriginalURLHeader(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -110,7 +110,7 @@ func TestShouldRaiseWhenXForwardedURIIsNotParseable(t *testing.T) {
 	assert.Equal(t, "Unable to parse URL https://myhost.local!:;;:,: parse https://myhost.local!:;;:,: invalid port \":,\" after host", err.Error())
 }
 
-// Test parseBasicAuth
+// Test parseBasicAuth.
 func TestShouldRaiseWhenHeaderDoesNotContainBasicPrefix(t *testing.T) {
 	_, _, err := parseBasicAuth("alzefzlfzemjfej==")
 	assert.Error(t, err)
@@ -138,7 +138,7 @@ func TestShouldReturnUsernameAndPassword(t *testing.T) {
 	assert.Equal(t, "password", password)
 }
 
-// Test isTargetURLAuthorized
+// Test isTargetURLAuthorized.
 func TestShouldCheckAuthorizationMatching(t *testing.T) {
 	type Rule struct {
 		Policy           string
@@ -176,7 +176,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 
 		username := ""
 		if rule.AuthLevel > authentication.NotAuthenticated {
-			username = "john"
+			username = testUsername
 		}
 
 		matching := isTargetURLAuthorized(authorizer, *url, username, []string{}, net.ParseIP("127.0.0.1"), rule.AuthLevel)
@@ -185,7 +185,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 	}
 }
 
-// Test verifyBasicAuth
+// Test verifyBasicAuth.
 func TestShouldVerifyWrongCredentials(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -472,13 +472,13 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	clock.Set(time.Now())
 	past := clock.Now().Add(-1 * time.Hour)
 
-	mock.Ctx.Configuration.Session.Inactivity = "10"
-	// Reload the session provider since the configuration is indirect
+	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session)
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -487,7 +487,7 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 
 	VerifyGet(mock.Ctx)
 
-	// The session has been destroyed
+	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
 	assert.Equal(t, "", newUserSession.Username)
 	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel)
@@ -504,12 +504,12 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 	clock.Set(time.Now())
 
 	mock.Ctx.Configuration.Session.Inactivity = "10s"
-	// Reload the session provider since the configuration is indirect
+	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session)
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -518,7 +518,7 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 
 	VerifyGet(mock.Ctx)
 
-	// The session has been destroyed
+	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
 	assert.Equal(t, "", newUserSession.Username)
 	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel)
@@ -531,10 +531,10 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = "10"
+	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = 0
 	userSession.KeepMeLoggedIn = true
@@ -544,7 +544,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 
 	VerifyGet(mock.Ctx)
 
-	// The session has been destroyed
+	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
 	assert.Equal(t, "john", newUserSession.Username)
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
@@ -560,12 +560,12 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = "10"
+	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 
 	past := clock.Now().Add(-1 * time.Hour)
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -574,7 +574,7 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 
 	VerifyGet(mock.Ctx)
 
-	// The session has been destroyed
+	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
 	assert.Equal(t, "john", newUserSession.Username)
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
@@ -592,15 +592,15 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = "10"
-	// Reload the session provider since the configuration is indirect
+	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session)
 	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
 
 	past := clock.Now().Add(-1 * time.Hour)
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -626,12 +626,12 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = "10"
+	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 
 	past := clock.Now().Add(-1 * time.Hour)
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -640,7 +640,7 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 
 	VerifyGet(mock.Ctx)
 
-	// The resource if forbidden
+	// The resource if forbidden.
 	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
 
 	// Check the inactivity timestamp has been updated to current time in the new session.
@@ -653,7 +653,7 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	defer mock.Close()
 
 	userSession := mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.NotAuthenticated
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
@@ -683,8 +683,8 @@ func TestIsDomainProtected(t *testing.T) {
 	assert.True(t, isURLUnderProtectedDomain(
 		GetURL("https://mytest.example.com/abc/?query=abc"), "example.com"))
 
-	// cookies readable by a service on a machine is also readable by a service on the same machine
-	// with a different port as mentioned in https://tools.ietf.org/html/rfc6265#section-8.5
+	// Cookies readable by a service on a machine is also readable by a service on the same machine
+	// with a different port as mentioned in https://tools.ietf.org/html/rfc6265#section-8.5.
 	assert.True(t, isURLUnderProtectedDomain(
 		GetURL("https://mytest.example.com:8080/abc/?query=abc"), "example.com"))
 }

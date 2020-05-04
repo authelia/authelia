@@ -22,7 +22,7 @@ func (s *FetchSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	// Set the initial user session.
 	userSession := s.mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = 1
 	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
@@ -90,7 +90,7 @@ func TestMethodSetToU2F(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		// Set the initial user session.
 		userSession := mock.Ctx.GetSession()
-		userSession.Username = "john"
+		userSession.Username = testUsername
 		userSession.AuthenticationLevel = 1
 		mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
@@ -168,7 +168,7 @@ func (s *SaveSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	// Set the initial user session.
 	userSession := s.mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	userSession.AuthenticationLevel = 1
 	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }

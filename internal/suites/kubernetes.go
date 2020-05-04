@@ -12,7 +12,7 @@ import (
 var kindImageName = "authelia-kind-proxy"
 var dockerCmdLine = fmt.Sprintf("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml run --rm %s", kindImageName)
 
-// Kind used for running kind commands
+// Kind used for running kind commands.
 type Kind struct{}
 
 func kindCommand(cmdline string) *exec.Cmd {
@@ -20,7 +20,7 @@ func kindCommand(cmdline string) *exec.Cmd {
 	return utils.Shell(cmd)
 }
 
-// CreateCluster create a new Kubernetes cluster
+// CreateCluster create a new Kubernetes cluster.
 func (k Kind) CreateCluster() error {
 	cmd := kindCommand("kind create cluster --config /etc/kind/config.yml")
 	if err := cmd.Run(); err != nil {
@@ -32,7 +32,7 @@ func (k Kind) CreateCluster() error {
 		return err
 	}
 
-	// This command is necessary to fix the coredns loop detected when using user-defined docker network
+	// This command is necessary to fix the coredns loop detected when using user-defined docker network.
 	// In that case /etc/resolv.conf use 127.0.0.11 as DNS and CoreDNS thinks it is talking to itself which is wrong.
 	// This IP is the docker internal DNS so it is safe to disable the loop check.
 	cmd = kindCommand("sh -c 'kubectl -n kube-system get configmap/coredns -o yaml | grep -v loop | kubectl replace -f -'")
@@ -42,13 +42,13 @@ func (k Kind) CreateCluster() error {
 	return nil
 }
 
-// DeleteCluster delete a Kubernetes cluster
+// DeleteCluster delete a Kubernetes cluster.
 func (k Kind) DeleteCluster() error {
 	cmd := kindCommand("kind delete cluster")
 	return cmd.Run()
 }
 
-// ClusterExists check whether a cluster exists
+// ClusterExists check whether a cluster exists.
 func (k Kind) ClusterExists() (bool, error) {
 	cmd := kindCommand("kind get clusters")
 	cmd.Stdout = nil
@@ -62,28 +62,28 @@ func (k Kind) ClusterExists() (bool, error) {
 	return strings.Contains(string(output), "kind"), nil
 }
 
-// LoadImage load an image in the Kubernetes container
+// LoadImage load an image in the Kubernetes container.
 func (k Kind) LoadImage(imageName string) error {
 	cmd := kindCommand(fmt.Sprintf("kind load docker-image %s", imageName))
 	return cmd.Run()
 }
 
-// Kubectl used for running kubectl commands
+// Kubectl used for running kubectl commands.
 type Kubectl struct{}
 
-// StartProxy start a proxy
+// StartProxy start a proxy.
 func (k Kubectl) StartProxy() error {
 	cmd := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml up -d authelia-kind-proxy")
 	return cmd.Run()
 }
 
-// StopProxy stop a proxy
+// StopProxy stop a proxy.
 func (k Kubectl) StopProxy() error {
 	cmd := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml rm -s -f authelia-kind-proxy")
 	return cmd.Run()
 }
 
-// StartDashboard start Kube dashboard
+// StartDashboard start Kube dashboard.
 func (k Kubectl) StartDashboard() error {
 	if err := kindCommand("sh -c 'cd /authelia && ./bootstrap-dashboard.sh'").Run(); err != nil {
 		return err
@@ -95,25 +95,25 @@ func (k Kubectl) StartDashboard() error {
 	return nil
 }
 
-// StopDashboard stop kube dashboard
+// StopDashboard stop kube dashboard.
 func (k Kubectl) StopDashboard() error {
 	cmd := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml rm -s -f kube-dashboard")
 	return cmd.Run()
 }
 
-// DeployThirdparties deploy thirdparty services (ldap, db, ingress controllers, etc...)
+// DeployThirdparties deploy thirdparty services (ldap, db, ingress controllers, etc...).
 func (k Kubectl) DeployThirdparties() error {
 	cmd := kindCommand("sh -c 'cd /authelia && ./bootstrap.sh'")
 	return cmd.Run()
 }
 
-// DeployAuthelia deploy Authelia application
+// DeployAuthelia deploy Authelia application.
 func (k Kubectl) DeployAuthelia() error {
 	cmd := kindCommand("sh -c 'cd /authelia && ./bootstrap-authelia.sh'")
 	return cmd.Run()
 }
 
-// WaitPodsReady wait for all pods to be ready
+// WaitPodsReady wait for all pods to be ready.
 func (k Kubectl) WaitPodsReady(timeout time.Duration) error {
 	return utils.CheckUntil(5*time.Second, timeout, func() (bool, error) {
 		cmd := kindCommand("kubectl get -n authelia pods --no-headers")
