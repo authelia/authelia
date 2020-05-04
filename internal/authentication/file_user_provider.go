@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -141,13 +140,9 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		return ErrUserNotExist
 	}
 
-	var algorithm CryptAlgo
-	if p.configuration.Password.Algorithm == "argon2id" {
-		algorithm = HashingAlgorithmArgon2id
-	} else if p.configuration.Password.Algorithm == sha512 {
-		algorithm = HashingAlgorithmSHA512
-	} else {
-		return errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
+	algorithm, err := ConfigAlgoToCryptoAlgo(p.configuration.Password.Algorithm)
+	if err != nil {
+		return err
 	}
 
 	hash, err := HashPassword(
@@ -167,7 +162,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		p.lock.Unlock()
 		return err
 	}
-	err = ioutil.WriteFile(p.configuration.Path, b, 0644)
+	err = ioutil.WriteFile(p.configuration.Path, b, fileAuthenticationMode)
 	p.lock.Unlock()
 	return err
 }

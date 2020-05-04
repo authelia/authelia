@@ -1,5 +1,9 @@
 package authentication
 
+import (
+	"errors"
+)
+
 // Level is the type representing a level of authentication.
 type Level int
 
@@ -53,3 +57,5 @@ var ErrUserNotExist = errors.New("user does not exist")
 const sha512 = "sha512"
 
 const testPassword = "my;secure*password"
+
+const fileAuthenticationMode = 0600

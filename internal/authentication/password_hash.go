@@ -23,6 +23,16 @@ type PasswordHash struct {
 	Parallelism int
 }
 
+// ConfigAlgoToCryptoAlgo returns a CryptAlgo and nil error if valid, otherwise it returns argon2id and an error.
+func ConfigAlgoToCryptoAlgo(fromConfig string) (CryptAlgo, error) {
+	if fromConfig == "argon2id" {
+		return HashingAlgorithmArgon2id, nil
+	} else if fromConfig == sha512 {
+		return HashingAlgorithmSHA512, nil
+	}
+	return HashingAlgorithmArgon2id, errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
+}
+
 // ParseHash extracts all characteristics of a hash given its string representation.
 func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 	parts := strings.Split(hash, "$")
