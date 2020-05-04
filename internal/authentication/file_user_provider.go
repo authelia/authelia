@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -140,13 +139,9 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		return fmt.Errorf("User '%s' does not exist in database", username)
 	}
 
-	var algorithm CryptAlgo
-	if p.configuration.Password.Algorithm == "argon2id" {
-		algorithm = HashingAlgorithmArgon2id
-	} else if p.configuration.Password.Algorithm == sha512 {
-		algorithm = HashingAlgorithmSHA512
-	} else {
-		return errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
+	algorithm, err := ConfigAlgoToCryptoAlgo(p.configuration.Password.Algorithm)
+	if err != nil {
+		return err
 	}
 
 	hash, err := HashPassword(

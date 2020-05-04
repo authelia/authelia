@@ -62,6 +62,7 @@ var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 // AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
 type AuthenticationBackendConfiguration struct {
 	DisableResetPassword bool                                    `mapstructure:"disable_reset_password"`
+	DisableDelayAuth     bool                                    `mapstructure:"disable_delay_auth"`
 	Ldap                 *LDAPAuthenticationBackendConfiguration `mapstructure:"ldap"`
 	File                 *FileAuthenticationBackendConfiguration `mapstructure:"file"`
 }
