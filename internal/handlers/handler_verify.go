@@ -398,15 +398,15 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
 			groups, ctx.RemoteIP(), authLevel)
 
-	switch authorization {
-	case Forbidden:
-		ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
-		ctx.ReplyForbidden()
-	case NotAuthorized:
-		handleUnauthorized(ctx, targetURL, username)
-	case Authorized:
-		setForwardedHeaders(&ctx.Response.Header, username, groups)
-	}
+		switch authorization {
+		case Forbidden:
+			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
+			ctx.ReplyForbidden()
+		case NotAuthorized:
+			handleUnauthorized(ctx, targetURL, username)
+		case Authorized:
+			setForwardedHeaders(&ctx.Response.Header, username, groups)
+		}
 
 		if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
 			ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
