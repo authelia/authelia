@@ -9,7 +9,7 @@ import (
 func NewHTTPClient() *http.Client {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: true, //nolint:gosec // Needed for suite.
 		},
 	}
 	return &http.Client{
