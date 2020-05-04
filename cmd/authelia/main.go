@@ -109,7 +109,7 @@ func startServer() {
 			config.AuthenticationBackend.File.Password.Algorithm, config.AuthenticationBackend.File.Password.Iterations,
 			config.AuthenticationBackend.File.Password.Memory*1024, config.AuthenticationBackend.File.Password.Parallelism,
 			config.AuthenticationBackend.File.Password.KeyLength, config.AuthenticationBackend.File.Password.SaltLength)
-		firstFactorDelay = time.Now().Sub(start)
+		firstFactorDelay = time.Since(start)
 	}
 
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock, firstFactorDelay)

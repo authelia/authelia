@@ -41,9 +41,8 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		ctx.Providers.Regulator.FirstFactorDelay(postRecieved, err.Error() == authentication.ErrUserNotExist.Error())
 		ctx.Error(fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 		return
-	} else {
-		ctx.Providers.Regulator.FirstFactorDelay(postRecieved, true)
 	}
+	ctx.Providers.Regulator.FirstFactorDelay(postRecieved, true)
 
 	if !userPasswordOk {
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)

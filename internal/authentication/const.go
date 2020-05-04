@@ -48,4 +48,5 @@ const (
 // HashingPossibleSaltCharacters represents valid hashing runes.
 var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")
 
+// ErrUserNotExist returned when the user doesn't exist.
 var ErrUserNotExist = errors.New("user does not exist")
