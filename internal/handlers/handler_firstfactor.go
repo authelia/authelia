@@ -7,6 +7,7 @@ import (
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/session"
@@ -35,17 +36,23 @@ func getDelayAuthSettings(config schema.AuthenticationBackendConfiguration) (boo
 		}
 		return true, duration
 	}
+	logging.Logger().Warn("The security measure to prevent username enumeration has been disabled by configuration " +
+		"setting authentication_backend.disable_delay_auth, this reduces security and is not recommended.")
 	return false, 0 * time.Millisecond
 }
 
-func doDelayAuth(receivedTime time.Time, enabled bool, duration time.Duration) {
+func doDelayAuth(ctx *middlewares.AutheliaCtx, username string, receivedTime time.Time, enabled bool, duration time.Duration) {
 	if !enabled {
+		ctx.Logger.Warnf("Skipping the authentication delay of user %s since authentication delay is disabled by configuration", username)
 		return
 	}
 	delayTime := receivedTime.Add(duration)
 	if time.Now().Before(delayTime) {
-		time.Sleep(time.Until(delayTime))
+		sleepFor := time.Until(delayTime)
+		ctx.Logger.Debugf("Starting the authentication delay of user %s for %dms", username, sleepFor/time.Millisecond)
+		time.Sleep(sleepFor)
 	}
+	ctx.Logger.Warnf("Skipping the authentication delay of user %s since authentication took longer than the expected delay", username)
 }
 
 // FirstFactorPost generates the handler performing the first factor authentication factory.
@@ -79,11 +86,11 @@ func FirstFactorPost(config schema.Configuration) middlewares.RequestHandler {
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 			ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
-			doDelayAuth(receivedTime, delayAuth, delayAuthDuration)
+			doDelayAuth(ctx, bodyJSON.Username, receivedTime, delayAuth, delayAuthDuration)
 			ctx.Error(fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 			return
 		}
-		doDelayAuth(receivedTime, delayAuth, delayAuthDuration)
+		doDelayAuth(ctx, bodyJSON.Username, receivedTime, delayAuth, delayAuthDuration)
 		if !userPasswordOk {
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 			ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
