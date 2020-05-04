@@ -34,7 +34,6 @@ func (s *FirstFactorSuite) TearDownTest() {
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
-
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	// No body

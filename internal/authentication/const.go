@@ -59,6 +59,3 @@ const sha512 = "sha512"
 const testPassword = "my;secure*password"
 
 const fileAuthenticationMode = 0600
-
-// ErrUserNotFound is the error thrown when a user wasn't found in the file user database.
-var ErrUserNotFound = errors.New("user not found")
