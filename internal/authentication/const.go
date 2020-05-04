@@ -24,11 +24,14 @@ const (
 // PossibleMethods is the set of all possible 2FA methods.
 var PossibleMethods = []string{TOTP, U2F, Push}
 
+// CryptAlgo the crypt representation of an algorithm used in the prefix of the hash.
+type CryptAlgo string
+
 const (
 	// HashingAlgorithmArgon2id Argon2id hash identifier.
-	HashingAlgorithmArgon2id = "argon2id"
+	HashingAlgorithmArgon2id CryptAlgo = "argon2id"
 	// HashingAlgorithmSHA512 SHA512 hash identifier.
-	HashingAlgorithmSHA512 = "6"
+	HashingAlgorithmSHA512 CryptAlgo = "6"
 )
 
 // These are the default values from the upstream crypt module we use them to for GetInt

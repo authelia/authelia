@@ -15,14 +15,8 @@ if [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]]; then
   docker create --name authelia-binary ${DOCKER_IMAGE}:latest
   docker cp authelia-binary:/usr/app/authelia ./authelia-"${OS}"-"${ARCH}"
   docker rm -f authelia-binary
-  if [[ $OS == "linux" ]]; then
-    tar -czf authelia-"${OS}"-"${ARCH}".tar.gz authelia-"${OS}"-"${ARCH}" authelia.service config.template.yml
-  else
-    tar -czf authelia-"${OS}"-"${ARCH}".tar.gz authelia-"${OS}"-"${ARCH}" config.template.yml
-  fi
+  tar -czf authelia-"${OS}"-"${ARCH}".tar.gz authelia-"${OS}"-"${ARCH}" authelia.service config.template.yml
   sha256sum authelia-"${OS}"-"${ARCH}".tar.gz > authelia-"${OS}"-"${ARCH}".tar.gz.sha256
-  # Saving image for push to docker hub, darwin image is not required as OSX utilses linux manifests
-  if [[ $BUILDKITE_LABEL != ":docker: Build Image [darwin]" ]]; then
-    docker save ${DOCKER_IMAGE} | zstdmt -T0 -12 > authelia-image-"${ARCH}".tar.zst
-  fi
+  # Saving image for push to docker hub
+  docker save ${DOCKER_IMAGE} | zstdmt -T0 -12 > authelia-image-"${ARCH}".tar.zst
 fi
