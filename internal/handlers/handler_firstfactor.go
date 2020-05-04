@@ -45,12 +45,21 @@ func getDelayAuthSettings(config schema.AuthenticationBackendConfiguration) (boo
 	return false, 0 * time.Millisecond
 }
 
-func doDelayAuth(ctx *middlewares.AutheliaCtx, username string, receivedTime time.Time, enabled bool, duration time.Duration) {
+func doDelayAuth(ctx *middlewares.AutheliaCtx, username string, receivedTime time.Time, enabled, successful bool, duration *time.Duration) {
 	if !enabled {
 		ctx.Logger.Warnf("Skipping the authentication delay of user %s since authentication delay is disabled by configuration", username)
 		return
 	}
-	delayTime := receivedTime.Add(duration)
+
+	// Automatically grow to the largest detected successful login.
+	if successful {
+		delay := time.Since(receivedTime)
+		if delay > *duration {
+			duration = &delay
+		}
+	}
+
+	delayTime := receivedTime.Add(*duration)
 	if time.Now().Before(delayTime) {
 		sleepFor := time.Until(delayTime)
 		ctx.Logger.Debugf("Starting the authentication delay of user %s for %dms", username, sleepFor/time.Millisecond)
@@ -90,11 +99,11 @@ func FirstFactorPost(config schema.Configuration) middlewares.RequestHandler {
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 			ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
-			doDelayAuth(ctx, bodyJSON.Username, receivedTime, delayAuth, delayAuthDuration)
+			doDelayAuth(ctx, bodyJSON.Username, receivedTime, delayAuth, false, &delayAuthDuration)
 			ctx.Error(fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 			return
 		}
-		doDelayAuth(ctx, bodyJSON.Username, receivedTime, delayAuth, delayAuthDuration)
+		doDelayAuth(ctx, bodyJSON.Username, receivedTime, delayAuth, true, &delayAuthDuration)
 		if !userPasswordOk {
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 			ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.

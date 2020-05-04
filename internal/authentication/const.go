@@ -1,5 +1,9 @@
 package authentication
 
+import (
+	"errors"
+)
+
 // Level is the type representing a level of authentication.
 type Level int
 
@@ -50,3 +54,8 @@ var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJ
 const sha512 = "sha512"
 
 const testPassword = "my;secure*password"
+
+const fileAuthenticationMode = 0600
+
+// ErrUserNotFound is the error thrown when a user wasn't found in the file user database.
+var ErrUserNotFound = errors.New("user not found")

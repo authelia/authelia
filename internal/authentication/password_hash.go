@@ -93,7 +93,6 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 }
 
 // HashPassword generate a salt and hash the password with the salt and a constant number of rounds.
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory, parallelism, keyLength, saltLength int) (hash string, err error) {
 	var settings string
 
@@ -101,43 +100,18 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 		return "", fmt.Errorf("Hashing algorithm input of '%s' is invalid, only values of %s and %s are supported", algorithm, HashingAlgorithmArgon2id, HashingAlgorithmSHA512)
 	}
 
-	if salt == "" {
-		if saltLength < 2 {
-			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 2 or higher", saltLength)
-		} else if saltLength > 16 {
-			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 16 or lower", saltLength)
-		}
-	} else if len(salt) > 16 {
-		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 16 or fewer characters", salt, len(salt))
-	} else if len(salt) < 2 {
-		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 2 or more characters", salt, len(salt))
-	} else if _, err = crypt.Base64Encoding.DecodeString(salt); err != nil {
-		return "", fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input", salt)
-	}
-
 	if algorithm == HashingAlgorithmArgon2id {
-		// Caution: Increasing any of the values in the below block has a high chance in old passwords that cannot be verified.
-		if memory < 8 {
-			return "", fmt.Errorf("Memory (argon2id) input of %d is invalid, it must be 8 or higher", memory)
+		err := validateArgon2idSettings(memory, parallelism, iterations, keyLength)
+		if err != nil {
+			return "", err
 		}
-		if parallelism < 1 {
-			return "", fmt.Errorf("Parallelism (argon2id) input of %d is invalid, it must be 1 or higher", parallelism)
-		}
-		if memory < parallelism*8 {
-			return "", fmt.Errorf("Memory (argon2id) input of %d is invalid with a parallelism input of %d, it must be %d (parallelism * 8) or higher", memory, parallelism, parallelism*8)
-		}
-		if keyLength < 16 {
-			return "", fmt.Errorf("Key length (argon2id) input of %d is invalid, it must be 16 or higher", keyLength)
-		}
-		if iterations < 1 {
-			return "", fmt.Errorf("Iterations (argon2id) input of %d is invalid, it must be 1 or more", iterations)
-		}
-		// Caution: Increasing any of the values in the above block has a high chance in old passwords that cannot be verified.
 	}
 
-	if salt == "" {
-		salt = utils.RandomString(saltLength, HashingPossibleSaltCharacters)
+	salt, err = getSalt(salt, saltLength)
+	if err != nil {
+		return "", err
 	}
+
 	settings = getCryptSettings(salt, algorithm, iterations, memory, parallelism, keyLength)
 
 	// This error can be ignored because we check for it before a user gets here.
@@ -167,4 +141,45 @@ func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, para
 		panic("invalid password hashing algorithm provided")
 	}
 	return settings
+}
+
+func getSalt(salt string, saltLength int) (string, error) {
+	if salt != "" {
+		return salt, nil
+	}
+	if salt == "" {
+		if saltLength < 2 {
+			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 2 or higher", saltLength)
+		} else if saltLength > 16 {
+			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 16 or lower", saltLength)
+		}
+	} else if len(salt) > 16 {
+		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 16 or fewer characters", salt, len(salt))
+	} else if len(salt) < 2 {
+		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 2 or more characters", salt, len(salt))
+	} else if _, err := crypt.Base64Encoding.DecodeString(salt); err != nil {
+		return "", fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input", salt)
+	}
+	return utils.RandomString(saltLength, HashingPossibleSaltCharacters), nil
+}
+
+func validateArgon2idSettings(memory, parallelism, iterations, keyLength int) error {
+	// Caution: Increasing any of the values in the below block has a high chance in old passwords that cannot be verified.
+	if memory < 8 {
+		return fmt.Errorf("Memory (argon2id) input of %d is invalid, it must be 8 or higher", memory)
+	}
+	if parallelism < 1 {
+		return fmt.Errorf("Parallelism (argon2id) input of %d is invalid, it must be 1 or higher", parallelism)
+	}
+	if memory < parallelism*8 {
+		return fmt.Errorf("Memory (argon2id) input of %d is invalid with a parallelism input of %d, it must be %d (parallelism * 8) or higher", memory, parallelism, parallelism*8)
+	}
+	if keyLength < 16 {
+		return fmt.Errorf("Key length (argon2id) input of %d is invalid, it must be 16 or higher", keyLength)
+	}
+	if iterations < 1 {
+		return fmt.Errorf("Iterations (argon2id) input of %d is invalid, it must be 1 or more", iterations)
+	}
+	// Caution: Increasing any of the values in the above block has a high chance in old passwords that cannot be verified.
+	return nil
 }

@@ -7,11 +7,9 @@ import (
 	"sync"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/simia-tech/crypt"
 	"gopkg.in/yaml.v2"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/utils"
 )
 
 // FileUserProvider is a provider reading details from a file.
@@ -19,9 +17,6 @@ type FileUserProvider struct {
 	configuration *schema.FileAuthenticationBackendConfiguration
 	database      *DatabaseModel
 	lock          *sync.Mutex
-
-	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
-	fakeHash string
 }
 
 // UserDetailsModel is the model of user details in the file database.
@@ -50,32 +45,21 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 		panic(err.Error())
 	}
 
-	var cryptAlgo CryptAlgo = HashingAlgorithmArgon2id
-	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
-	// This generates a hash that should be usable to do a fake CheckUserPassword
-	if configuration.Password.Algorithm == sha512 {
-		cryptAlgo = HashingAlgorithmSHA512
-	}
-	settings := getCryptSettings(utils.RandomString(configuration.Password.SaltLength, HashingPossibleSaltCharacters),
-		cryptAlgo, configuration.Password.Iterations, configuration.Password.Memory*1024, configuration.Password.Parallelism,
-		configuration.Password.KeyLength)
-	data := crypt.Base64Encoding.EncodeToString([]byte(utils.RandomString(configuration.Password.KeyLength, HashingPossibleSaltCharacters)))
-	fakeHash := fmt.Sprintf("%s$%s", settings, data)
-
 	return &FileUserProvider{
 		configuration: configuration,
 		database:      database,
 		lock:          &sync.Mutex{},
-		fakeHash:      fakeHash,
 	}
 }
 
 func checkPasswordHashes(database *DatabaseModel) error {
 	for u, v := range database.Users {
+		v.HashedPassword = strings.ReplaceAll(v.HashedPassword, "{CRYPT}", "")
 		_, err := ParseHash(v.HashedPassword)
 		if err != nil {
 			return fmt.Errorf("Unable to parse hash of user %s: %s", u, err)
 		}
+		database.Users[u] = v
 	}
 	return nil
 }
@@ -105,19 +89,14 @@ func readDatabase(path string) (*DatabaseModel, error) {
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *FileUserProvider) CheckUserPassword(username string, password string) (bool, error) {
 	if details, ok := p.database.Users[username]; ok {
-		hashedPassword := strings.ReplaceAll(details.HashedPassword, "{CRYPT}", "")
-		ok, err := CheckPassword(password, hashedPassword)
+		ok, err := CheckPassword(password, details.HashedPassword)
 		if err != nil {
 			return false, err
 		}
 		return ok, nil
 	}
 
-	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
-	hashedPassword := strings.ReplaceAll(p.fakeHash, "{CRYPT}", "")
-	_, err := CheckPassword(password, hashedPassword)
-
-	return false, err
+	return false, ErrUserNotFound
 }
 
 // GetDetails retrieve the groups a user belongs to.
@@ -136,7 +115,7 @@ func (p *FileUserProvider) GetDetails(username string) (*UserDetails, error) {
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) error {
 	details, ok := p.database.Users[username]
 	if !ok {
-		return fmt.Errorf("User '%s' does not exist in database", username)
+		return ErrUserNotFound
 	}
 
 	algorithm, err := ConfigAlgoToCryptoAlgo(p.configuration.Password.Algorithm)
@@ -161,7 +140,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		p.lock.Unlock()
 		return err
 	}
-	err = ioutil.WriteFile(p.configuration.Path, b, 0644)
+	err = ioutil.WriteFile(p.configuration.Path, b, fileAuthenticationMode)
 	p.lock.Unlock()
 	return err
 }
