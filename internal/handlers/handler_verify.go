@@ -94,7 +94,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 	switch {
 	case level == authorization.Bypass:
 		return Authorized
-	case level == authorization.Denied && username == "":
+	case level == authorization.Denied && username != "":
 		// If the user is not anonymous, it means that we went through
 		// all the rules related to that user and knowing who he is we can
 		// deduce the access is forbidden
@@ -102,8 +102,8 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 		// could not be granted the rights to access the resource. Consequently
 		// for anonymous users we send Unauthorized instead of Forbidden
 		return Forbidden
-	case level == authorization.OneFactor && authLevel >= authentication.OneFactor:
-	case level == authorization.TwoFactor && authLevel >= authentication.TwoFactor:
+	case level == authorization.OneFactor && authLevel >= authentication.OneFactor,
+		level == authorization.TwoFactor && authLevel >= authentication.TwoFactor:
 		return Authorized
 	}
 	return NotAuthorized
