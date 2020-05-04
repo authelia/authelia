@@ -342,6 +342,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 		"keepMeLoggedIn": false,
 		"targetURL": "http://notsafe.local"
 	}`)
+
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.
@@ -361,6 +362,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 		"password": "hello",
 		"keepMeLoggedIn": false
 	}`)
+
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.
@@ -390,6 +392,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 		"password": "hello",
 		"keepMeLoggedIn": false
 	}`)
+
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.
