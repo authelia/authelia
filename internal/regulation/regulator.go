@@ -135,6 +135,8 @@ func (r *Regulator) FirstFactorDelay(postTime time.Time, real bool) {
 	}
 	delayTime := postTime.Add(r.firstFactorDelay)
 	if time.Now().Before(delayTime) {
-		time.Sleep(time.Until(delayTime))
+		sleepFor := time.Until(delayTime)
+		fmt.Printf("Sleeping for %dms", sleepFor/time.Millisecond)
+		time.Sleep(sleepFor)
 	}
 }
