@@ -15,10 +15,8 @@ import (
 	"github.com/authelia/authelia/internal/models"
 )
 
-var firstFactorSuiteDefaultConfig = schema.Configuration{
-	AuthenticationBackend: schema.AuthenticationBackendConfiguration{
-		DisableDelayAuth: true,
-	},
+var firstFactorSuiteDefaultConfig = schema.AuthenticationBackendConfiguration{
+	DisableDelayAuth: true,
 }
 
 type FirstFactorSuite struct {

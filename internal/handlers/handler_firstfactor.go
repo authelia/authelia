@@ -69,8 +69,8 @@ func doDelayAuth(ctx *middlewares.AutheliaCtx, username string, receivedTime tim
 }
 
 // FirstFactorPost generates the handler performing the first factor authentication factory.
-func FirstFactorPost(config schema.Configuration) middlewares.RequestHandler {
-	delayAuth, delayAuthDuration := getDelayAuthSettings(config.AuthenticationBackend)
+func FirstFactorPost(cfg schema.AuthenticationBackendConfiguration) middlewares.RequestHandler {
+	delayAuth, delayAuthDuration := getDelayAuthSettings(cfg)
 
 	return func(ctx *middlewares.AutheliaCtx) {
 		receivedTime := time.Now()
