@@ -13,15 +13,13 @@ import (
 
 // SecondFactorU2FSignGet handler for initiating a signing request.
 func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
-	// TODO: Should this be operationFailedMessage?
 	if ctx.XForwardedProto() == nil {
-		ctx.Error(errMissingXForwardedProto, operationFailedMessage)
+		ctx.Error(errMissingXForwardedProto, mfaValidationFailedMessage)
 		return
 	}
 
 	if ctx.XForwardedHost() == nil {
-		// TODO: Should this be operationFailedMessage?
-		ctx.Error(errMissingXForwardedHost, operationFailedMessage)
+		ctx.Error(errMissingXForwardedHost, mfaValidationFailedMessage)
 		return
 	}
 

@@ -303,6 +303,15 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 		emailsDiff := utils.IsStringSlicesDifferent(userSession.Emails, details.Emails)
 		if !groupsDiff && !emailsDiff {
 			ctx.Logger.Tracef("Updated profile not detected for %s.", userSession.Username)
+			// Only update TTL if the user has a interval set.
+			// We get to this check when there were no changes.
+			// Also make sure to update the session even if no difference was found.
+			// This is so that we don't check every subsequent request after this one.
+			if refreshProfileInterval != schema.RefreshIntervalAlways {
+				// Update RefreshTTL and save session if refresh is not set to always.
+				userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
+				return ctx.SaveSession(*userSession)
+			}
 		} else {
 			ctx.Logger.Debugf("Updated profile detected for %s.", userSession.Username)
 			if ctx.Logger.Level.String() == "trace" {
@@ -315,16 +324,11 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 			if refreshProfileInterval != schema.RefreshIntervalAlways {
 				userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
 			}
-			return ctx.SaveSession(*userSession)
-		}
-		// Only update TTL if the user has a interval set.
-		// Also make sure to update the session even if no difference was found.
-		// This is so that we don't check every subsequent request after this one.
-		if refreshProfileInterval != schema.RefreshIntervalAlways {
-			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
+			// Return the result of save session if there were changes.
 			return ctx.SaveSession(*userSession)
 		}
 	}
+	// Return nil if disabled or if no changes and refresh interval set to always.
 	return nil
 }
 
