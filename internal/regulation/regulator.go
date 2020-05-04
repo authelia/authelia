@@ -22,7 +22,8 @@ func NewRegulator(configuration *schema.RegulationConfiguration, provider storag
 		ms := rand.Int31n(50) + 150
 		regulator.firstFactorDelay = firstFactorDelay + (time.Millisecond * time.Duration(ms))
 	} else {
-		regulator.firstFactorDelay = 500 * time.Millisecond
+		ms := rand.Intn(50) + 450
+		regulator.firstFactorDelay = time.Millisecond * time.Duration(ms)
 	}
 	if configuration != nil {
 		findTime, err := utils.ParseDurationString(configuration.FindTime)

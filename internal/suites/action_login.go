@@ -26,6 +26,7 @@ func (wds *WebDriverSession) doFillLoginPageAndClick(ctx context.Context, t *tes
 	buttonElement := wds.WaitElementLocatedByID(ctx, t, "sign-in-button")
 	err = buttonElement.Click()
 	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
 }
 
 // Login 1FA.
