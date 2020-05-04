@@ -107,7 +107,7 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 		}
 	}
 
-	salt, err = getSalt(salt, saltLength)
+	salt, err = validateSalt(salt, saltLength)
 	if err != nil {
 		return "", err
 	}
@@ -143,7 +143,8 @@ func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, para
 	return settings
 }
 
-func getSalt(salt string, saltLength int) (string, error) {
+// validateSalt checks the salt input and settings are valid and returns it and a nil error if they are, otherwise returns an error.
+func validateSalt(salt string, saltLength int) (string, error) {
 	if salt == "" {
 		if saltLength < 2 {
 			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 2 or higher", saltLength)
@@ -163,6 +164,7 @@ func getSalt(salt string, saltLength int) (string, error) {
 	return salt, nil
 }
 
+// validateArgon2idSettings checks the argon2id settings are valid.
 func validateArgon2idSettings(memory, parallelism, iterations, keyLength int) error {
 	// Caution: Increasing any of the values in the below block has a high chance in old passwords that cannot be verified.
 	if memory < 8 {
