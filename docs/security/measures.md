@@ -47,7 +47,7 @@ used, iterations (time), parallelism, and memory usage. To read more about this 
 
 ## User profile and group membership always kept up-to-date (LDAP authentication provider)
 
-Authelia by default refreshes the user's profile and membership at most every 5 minutes. Additionally, it 
+Authelia by default refreshes the user's profile and membership every 5 minutes. Additionally, it 
 will invalidate any session where the user could not be retrieved from LDAP based on the user filter, for 
 example if they were deleted or disabled provided the user filter is set correctly. These updates occur when
 a user accesses a resource protected by Authelia.

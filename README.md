@@ -123,7 +123,7 @@ maintainers. Once you've made contact we ask you privately message the maintaine
 You can contact any of the maintainers for security vulnerability related issues by emailing 
 [security@authelia.com](mailto:security@authelia.com). This email is strictly reserved for security and vulnerability
 disclosure related matters. If you need to contact us for another reason please use [Matrix](#matrix) or
-[team@authelia.com](mailto:security@authelia.com).
+[team@authelia.com](mailto:team@authelia.com).
 
 ## Breaking changes
 
