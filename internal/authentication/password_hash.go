@@ -144,9 +144,6 @@ func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, para
 }
 
 func getSalt(salt string, saltLength int) (string, error) {
-	if salt != "" {
-		return salt, nil
-	}
 	if salt == "" {
 		if saltLength < 2 {
 			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 2 or higher", saltLength)
@@ -160,7 +157,10 @@ func getSalt(salt string, saltLength int) (string, error) {
 	} else if _, err := crypt.Base64Encoding.DecodeString(salt); err != nil {
 		return "", fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input", salt)
 	}
-	return utils.RandomString(saltLength, HashingPossibleSaltCharacters), nil
+	if salt == "" {
+		return utils.RandomString(saltLength, HashingPossibleSaltCharacters), nil
+	}
+	return salt, nil
 }
 
 func validateArgon2idSettings(memory, parallelism, iterations, keyLength int) error {
