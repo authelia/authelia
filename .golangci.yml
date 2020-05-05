@@ -21,6 +21,7 @@ linters:
     - gofmt
     - goimports
     - golint
+    - gosec
     - interfacer
     - maligned
     - misspell

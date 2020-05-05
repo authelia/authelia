@@ -176,7 +176,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		return err
 	}
 
-	err = ioutil.WriteFile(p.configuration.Path, b, 0644)
+	err = ioutil.WriteFile(p.configuration.Path, b, 0644) //nolint:gosec // Fixed in future PR.
 	p.lock.Unlock()
 
 	return err
