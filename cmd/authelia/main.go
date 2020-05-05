@@ -73,6 +73,7 @@ func startServer() {
 	}
 
 	var storageProvider storage.Provider
+
 	switch {
 	case config.Storage.PostgreSQL != nil:
 		storageProvider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL)
@@ -85,6 +86,7 @@ func startServer() {
 	}
 
 	var notifier notification.Notifier
+
 	switch {
 	case config.Notifier.SMTP != nil:
 		notifier = notification.NewSMTPNotifier(*config.Notifier.SMTP)

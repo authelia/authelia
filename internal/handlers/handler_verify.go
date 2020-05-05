@@ -104,9 +104,10 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 		IP:       clientIP,
 	}, targetURL)
 
-	if level == authorization.Bypass {
+	switch {
+	case level == authorization.Bypass:
 		return Authorized
-	} else if username != "" && level == authorization.Denied {
+	case username != "", level == authorization.Denied:
 		// If the user is not anonymous, it means that we went through
 		// all the rules related to that user and knowing who he is we can
 		// deduce the access is forbidden
@@ -114,7 +115,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 		// could not be granted the rights to access the resource. Consequently
 		// for anonymous users we send Unauthorized instead of Forbidden
 		return Forbidden
-	} else {
+	default:
 		if level == authorization.OneFactor &&
 			authLevel >= authentication.OneFactor {
 			return Authorized
@@ -431,12 +432,13 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
 			groups, ctx.RemoteIP(), authLevel)
 
-		if authorization == Forbidden {
+		switch authorization {
+		case Forbidden:
 			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 			ctx.ReplyForbidden()
-		} else if authorization == NotAuthorized {
+		case NotAuthorized:
 			handleUnauthorized(ctx, targetURL, username)
-		} else if authorization == Authorized {
+		case Authorized:
 			setForwardedHeaders(&ctx.Response.Header, username, groups)
 		}
 

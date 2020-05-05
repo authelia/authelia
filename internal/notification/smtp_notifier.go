@@ -104,6 +104,7 @@ func (n *SMTPNotifier) startTLS() error {
 	switch ok, _ := n.client.Extension("STARTTLS"); ok {
 	case true:
 		log.Debugf("Notifier SMTP server supports STARTTLS (disableVerifyCert: %t, ServerName: %s), attempting", n.tlsConfig.InsecureSkipVerify, n.tlsConfig.ServerName)
+
 		if err := n.client.StartTLS(n.tlsConfig); err != nil {
 			return err
 		}

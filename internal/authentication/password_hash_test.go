@@ -36,7 +36,7 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 	code, parameters, salt, key, err := crypt.DecodeSettings(hash)
 
 	assert.NoError(t, err)
-	assert.Equal(t, "argon2id", code)
+	assert.Equal(t, argon2id, code)
 	assert.Equal(t, "BpLnfgDsc2WD8F2q", salt)
 	assert.Equal(t, "O126GHPeZ5fwj7OLSs7PndXsTbje76R+QW9/EGfhkJg", key)
 	assert.Equal(t, schema.DefaultCIPasswordConfiguration.Iterations, parameters.GetInt("t", HashingDefaultArgon2idTime))
