@@ -37,6 +37,7 @@ func startServer() {
 		for _, err := range errs {
 			logging.Logger().Error(err)
 		}
+
 		panic(errors.New("Some errors have been reported"))
 	}
 

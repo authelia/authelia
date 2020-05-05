@@ -3,11 +3,11 @@ package storage
 import "fmt"
 
 // Keep table names in lower case because some DB does not support upper case.
-var preferencesTableName = "user_preferences"
-var identityVerificationTokensTableName = "identity_verification_tokens"
-var totpSecretsTableName = "totp_secrets"
-var u2fDeviceHandlesTableName = "u2f_devices"
-var authenticationLogsTableName = "authentication_logs"
+const preferencesTableName = "user_preferences"
+const identityVerificationTokensTableName = "identity_verification_tokens"
+const totpSecretsTableName = "totp_secrets"
+const u2fDeviceHandlesTableName = "u2f_devices"
+const authenticationLogsTableName = "authentication_logs"
 
 // SQLCreateUserPreferencesTable common SQL query to create user_preferences table.
 var SQLCreateUserPreferencesTable = fmt.Sprintf(`

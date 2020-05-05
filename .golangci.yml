@@ -14,6 +14,7 @@ linters-settings:
 
 linters:
   enable:
+    - asciicheck
     - goconst
     - gocritic
     - gocyclo
@@ -21,12 +22,16 @@ linters:
     - gofmt
     - goimports
     - golint
+    - gosec
     - interfacer
     - maligned
     - misspell
+    - nolintlint
     - prealloc
+    - unconvert
     - unparam
     - whitespace
+    - wsl
 
 issues:
   exclude:

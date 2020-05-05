@@ -31,8 +31,8 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 	if configuration.Port > 0 {
 		address += fmt.Sprintf(":%d", configuration.Port)
 	}
-	connectionString += fmt.Sprintf("tcp(%s)", address)
 
+	connectionString += fmt.Sprintf("tcp(%s)", address)
 	if configuration.Database != "" {
 		connectionString += fmt.Sprintf("/%s", configuration.Database)
 	}
@@ -71,5 +71,6 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 	if err := provider.initialize(db); err != nil {
 		logging.Logger().Fatalf("Unable to initialize SQL database: %v", err)
 	}
+
 	return &provider
 }

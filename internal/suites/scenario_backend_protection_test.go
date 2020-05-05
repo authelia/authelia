@@ -25,7 +25,7 @@ func (s *BackendProtectionScenario) AssertRequestStatusCode(method, url string, 
 		s.Assert().NoError(err)
 
 		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Needs to be enabled in suites. Not used in production.
 		}
 		client := &http.Client{
 			Transport: tr,

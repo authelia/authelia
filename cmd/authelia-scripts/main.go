@@ -85,11 +85,13 @@ func levelStringToLevel(level string) log.Level {
 	} else if level == "warning" {
 		return log.WarnLevel
 	}
+
 	return log.InfoLevel
 }
 
 func main() {
 	var rootCmd = &cobra.Command{Use: "authelia-scripts"}
+
 	cobraCommands := make([]*cobra.Command, 0)
 
 	for _, autheliaCommand := range Commands {
@@ -99,6 +101,7 @@ func main() {
 			cmdline := autheliaCommand.CommandLine
 			fn = func(cobraCmd *cobra.Command, args []string) {
 				cmd := utils.CommandWithStdout(cmdline, args...)
+
 				err := cmd.Run()
 				if err != nil {
 					panic(err)
@@ -131,6 +134,7 @@ func main() {
 
 		cobraCommands = append(cobraCommands, command)
 	}
+
 	cobraCommands = append(cobraCommands, commands.HashPasswordCmd)
 
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Set the log level for the command")

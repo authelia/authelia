@@ -9,6 +9,7 @@ import (
 
 func TestShouldCallNextFunction(t *testing.T) {
 	var val = false
+
 	f := func(ctx *fasthttp.RequestCtx) { val = true }
 
 	context := &fasthttp.RequestCtx{}

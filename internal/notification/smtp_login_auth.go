@@ -21,9 +21,11 @@ func (a *loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
 	if !server.TLS && !(server.Name == "localhost" || server.Name == "127.0.0.1" || server.Name == "::1") {
 		return "", nil, errors.New("connection over plain-text")
 	}
+
 	if server.Name != a.host {
 		return "", nil, errors.New("unexpected hostname from server")
 	}
+
 	return "LOGIN", []byte{}, nil
 }
 
@@ -31,6 +33,7 @@ func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 	if !more {
 		return nil, nil
 	}
+
 	switch {
 	case bytes.Equal(fromServer, []byte("Username:")):
 		return []byte(a.username), nil

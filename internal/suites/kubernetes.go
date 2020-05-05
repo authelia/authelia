@@ -39,6 +39,7 @@ func (k Kind) CreateCluster() error {
 	if err := cmd.Run(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -92,6 +93,7 @@ func (k Kubectl) StartDashboard() error {
 	if err := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml up -d kube-dashboard").Run(); err != nil {
 		return err
 	}
+
 	return nil
 }
 

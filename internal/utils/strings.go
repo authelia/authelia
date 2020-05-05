@@ -12,6 +12,7 @@ func IsStringInSlice(a string, list []string) (inSlice bool) {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -21,12 +22,14 @@ func SliceString(s string, d int) (array []string) {
 	n := len(s)
 	q := n / d
 	r := n % d
+
 	for i := 0; i < q; i++ {
 		array = append(array, s[i*d:i*d+d])
 		if i+1 == q && r != 0 {
 			array = append(array, s[i*d+d:])
 		}
 	}
+
 	return
 }
 
@@ -38,11 +41,13 @@ func IsStringSlicesDifferent(a, b []string) (different bool) {
 			return true
 		}
 	}
+
 	for _, s := range b {
 		if !IsStringInSlice(s, a) {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -53,20 +58,24 @@ func StringSlicesDelta(before, after []string) (added, removed []string) {
 			removed = append(removed, s)
 		}
 	}
+
 	for _, s := range after {
 		if !IsStringInSlice(s, before) {
 			added = append(added, s)
 		}
 	}
+
 	return added, removed
 }
 
 // RandomString generate a random string of n characters.
 func RandomString(n int, characters []rune) (randomString string) {
 	rand.Seed(time.Now().UnixNano())
+
 	b := make([]rune, n)
 	for i := range b {
 		b[i] = characters[rand.Intn(len(characters))]
 	}
+
 	return string(b)
 }

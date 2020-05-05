@@ -57,7 +57,7 @@ func runCommand(cmd string, args ...string) {
 
 func checkCommandExist(cmd string) {
 	fmt.Print("Checking if '" + cmd + "' command is installed...")
-	command := exec.Command("bash", "-c", "command -v "+cmd)
+	command := exec.Command("bash", "-c", "command -v "+cmd) //nolint:gosec // Used only in development.
 	err := command.Run()
 
 	if err != nil {
@@ -99,6 +99,7 @@ func prepareHostsFile() {
 
 	for _, entry := range hostEntries {
 		domainInHostFile := false
+
 		for i, line := range lines {
 			domainFound := strings.Contains(line, entry.Domain)
 			ipFound := strings.Contains(line, entry.IP)
@@ -127,15 +128,24 @@ func prepareHostsFile() {
 		modified = true
 	}
 
-	err = ioutil.WriteFile("/tmp/authelia/hosts", []byte(strings.Join(lines, "\n")), 0644)
+	fd, err := ioutil.TempFile("/tmp/authelia/", "hosts")
+	if err != nil {
+		panic(err)
+	}
 
+	_, err = fd.Write([]byte(strings.Join(lines, "\n")))
 	if err != nil {
 		panic(err)
 	}
 
 	if modified {
 		bootstrapPrintln("/etc/hosts needs to be updated")
-		shell("cat /tmp/authelia/hosts | sudo tee -a /etc/hosts > /dev/null")
+		shell(fmt.Sprintf("cat %s | sudo tee /etc/hosts > /dev/null", fd.Name()))
+	}
+
+	err = fd.Close()
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -145,6 +155,7 @@ func readHostsFile() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return bs, nil
 }
 
@@ -179,6 +190,7 @@ func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	bootstrapPrintln("Checking if GOPATH is set")
 
 	goPathFound := false
+
 	for _, v := range os.Environ() {
 		if strings.HasPrefix(v, "GOPATH=") {
 			goPathFound = true

@@ -37,6 +37,7 @@ func checkArchIsSupported(arch string) {
 			return
 		}
 	}
+
 	log.Fatal("Architecture is not supported. Please select one of " + strings.Join(supportedArch, ", ") + ".")
 }
 
@@ -90,9 +91,11 @@ func dockerBuildOfficialImage(arch string) error {
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	commitBytes, err := cmd.Output()
+
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	commitHash := strings.Trim(string(commitBytes), "\n")
 
 	return docker.Build(IntermediateDockerImageName, dockerfile, ".", gitTag, commitHash)

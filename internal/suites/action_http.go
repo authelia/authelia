@@ -19,5 +19,6 @@ func doHTTPGetQuery(t *testing.T, url string) []byte {
 
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
+
 	return body
 }

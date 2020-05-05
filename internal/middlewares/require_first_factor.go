@@ -11,6 +11,7 @@ func RequireFirstFactor(next RequestHandler) RequestHandler {
 			ctx.ReplyForbidden()
 			return
 		}
+
 		next(ctx)
 	}
 }

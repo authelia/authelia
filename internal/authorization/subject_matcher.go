@@ -25,5 +25,6 @@ func isSubjectMatching(subject Subject, subjectRule string) bool {
 			return true
 		}
 	}
+
 	return false
 }
