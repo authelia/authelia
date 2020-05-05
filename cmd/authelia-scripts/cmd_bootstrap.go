@@ -99,6 +99,7 @@ func prepareHostsFile() {
 
 	for _, entry := range hostEntries {
 		domainInHostFile := false
+
 		for i, line := range lines {
 			domainFound := strings.Contains(line, entry.Domain)
 			ipFound := strings.Contains(line, entry.IP)
@@ -145,6 +146,7 @@ func readHostsFile() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return bs, nil
 }
 
@@ -179,6 +181,7 @@ func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	bootstrapPrintln("Checking if GOPATH is set")
 
 	goPathFound := false
+
 	for _, v := range os.Environ() {
 		if strings.HasPrefix(v, "GOPATH=") {
 			goPathFound = true

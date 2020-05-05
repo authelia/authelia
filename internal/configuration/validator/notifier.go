@@ -22,6 +22,7 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 		if configuration.FileSystem.Filename == "" {
 			validator.Push(fmt.Errorf("Filename of filesystem notifier must not be empty"))
 		}
+
 		return
 	}
 
@@ -29,6 +30,7 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 		if configuration.SMTP.StartupCheckAddress == "" {
 			configuration.SMTP.StartupCheckAddress = "test@authelia.com"
 		}
+
 		if configuration.SMTP.Host == "" {
 			validator.Push(fmt.Errorf("Host of SMTP notifier must be provided"))
 		}
@@ -44,6 +46,7 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 		if configuration.SMTP.Subject == "" {
 			configuration.SMTP.Subject = schema.DefaultSMTPNotifierConfiguration.Subject
 		}
+
 		return
 	}
 }

@@ -32,6 +32,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 	}
 
 	var providerConfig session.ProviderConfig
+
 	var providerName string
 
 	// If redis configuration is provided, then use the redis provider.
@@ -54,6 +55,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 		providerName = "memory"
 		providerConfig = &memory.Config{}
 	}
+
 	return ProviderConfig{
 		config:         config,
 		providerName:   providerName,

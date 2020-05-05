@@ -47,10 +47,13 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 
 // This checks the method of hashing (for argon2id) supports all the characters we allow in Authelia's hash function.
 func TestArgon2idHashSaltValidValues(t *testing.T) {
+	var err error
+
+	var hash string
+
 	data := string(HashingPossibleSaltCharacters)
 	datas := utils.SliceString(data, 16)
-	var hash string
-	var err error
+
 	for _, salt := range datas {
 		hash, err = HashPassword("password", salt, HashingAlgorithmArgon2id, 1, 8, 1, 32, 16)
 		assert.NoError(t, err)
@@ -60,10 +63,13 @@ func TestArgon2idHashSaltValidValues(t *testing.T) {
 
 // This checks the method of hashing (for sha512) supports all the characters we allow in Authelia's hash function.
 func TestSHA512HashSaltValidValues(t *testing.T) {
+	var err error
+
+	var hash string
+
 	data := string(HashingPossibleSaltCharacters)
 	datas := utils.SliceString(data, 16)
-	var hash string
-	var err error
+
 	for _, salt := range datas {
 		hash, err = HashPassword("password", salt, HashingAlgorithmSHA512, 1000, 0, 0, 0, 16)
 		assert.NoError(t, err)

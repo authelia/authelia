@@ -12,6 +12,7 @@ func NewHTTPClient() *http.Client {
 			InsecureSkipVerify: true,
 		},
 	}
+
 	return &http.Client{
 		Transport: tr,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {

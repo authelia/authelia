@@ -28,7 +28,9 @@ func InitializeLogger(filename string) error {
 		if err != nil {
 			return err
 		}
+
 		logrus.SetOutput(f)
 	}
+
 	return nil
 }

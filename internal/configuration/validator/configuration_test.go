@@ -30,6 +30,7 @@ func newDefaultConfig() schema.Configuration {
 			Filename: "/tmp/file",
 		},
 	}
+
 	return config
 }
 

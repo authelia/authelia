@@ -31,6 +31,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		values.Set("ipaddr", remoteIP)
 		values.Set("factor", "push")
 		values.Set("device", "auto")
+
 		if requestBody.TargetURL != "" {
 			values.Set("pushinfo", fmt.Sprintf("target%%20url=%s", requestBody.TargetURL))
 		}
