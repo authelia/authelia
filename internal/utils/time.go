@@ -13,7 +13,8 @@ import (
 func ParseDurationString(input string) (time.Duration, error) {
 	var duration time.Duration
 	matches := parseDurationRegexp.FindStringSubmatch(input)
-	if len(matches) == 3 && matches[2] != "" {
+	switch {
+	case len(matches) == 3 && matches[2] != "":
 		d, _ := strconv.Atoi(matches[1])
 		switch matches[2] {
 		case "y":
@@ -31,13 +32,13 @@ func ParseDurationString(input string) (time.Duration, error) {
 		case "s":
 			duration = time.Duration(d) * time.Second
 		}
-	} else if input == "0" || len(matches) == 3 {
+	case input == "0" || len(matches) == 3:
 		seconds, err := strconv.Atoi(input)
 		if err != nil {
 			return 0, fmt.Errorf("Could not convert the input string of %s into a duration: %s", input, err)
 		}
 		duration = time.Duration(seconds) * time.Second
-	} else if input != "" {
+	case input != "":
 		// Throw this error if input is anything other than a blank string, blank string will default to a duration of nothing
 		return 0, fmt.Errorf("Could not convert the input string of %s into a duration", input)
 	}
