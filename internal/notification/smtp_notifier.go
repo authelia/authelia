@@ -98,10 +98,6 @@ func (n *SMTPNotifier) startTLS() error {
 		return nil
 	}
 
-	if n.disableRequireTLS {
-		log.Warn("Notifier SMTP server does not support STARTTLS and SMTP configuration is set to disable the TLS requirement (only useful for unauthenticated emails over plain text)")
-	}
-
 	switch ok, _ := n.client.Extension("STARTTLS"); ok {
 	case true:
 		log.Debugf("Notifier SMTP server supports STARTTLS (disableVerifyCert: %t, ServerName: %s), attempting", n.tlsConfig.InsecureSkipVerify, n.tlsConfig.ServerName)
@@ -109,8 +105,13 @@ func (n *SMTPNotifier) startTLS() error {
 			return err
 		}
 		log.Debug("Notifier SMTP STARTTLS completed without error")
-	case false:
-		return errors.New("Notifier SMTP server does not support TLS and it is required by default (see documentation if you want to disable this highly recommended requirement)")
+	default:
+		switch n.disableRequireTLS {
+		case true:
+			log.Warn("Notifier SMTP server does not support STARTTLS and SMTP configuration is set to disable the TLS requirement (only useful for unauthenticated emails over plain text)")
+		default:
+			return errors.New("Notifier SMTP server does not support TLS and it is required by default (see documentation if you want to disable this highly recommended requirement)")
+		}
 	}
 	return nil
 }
