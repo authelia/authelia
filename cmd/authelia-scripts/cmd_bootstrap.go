@@ -57,7 +57,7 @@ func runCommand(cmd string, args ...string) {
 
 func checkCommandExist(cmd string) {
 	fmt.Print("Checking if '" + cmd + "' command is installed...")
-	command := exec.Command("bash", "-c", "command -v "+cmd)
+	command := exec.Command("bash", "-c", "command -v "+cmd) //nolint:gosec // Used only in development.
 	err := command.Run()
 
 	if err != nil {
@@ -127,7 +127,8 @@ func prepareHostsFile() {
 		modified = true
 	}
 
-	err = ioutil.WriteFile("/tmp/authelia/hosts", []byte(strings.Join(lines, "\n")), 0644)
+	// TODO: Look at using ioutil.TempFile instead.
+	err = ioutil.WriteFile("/tmp/authelia/hosts", []byte(strings.Join(lines, "\n")), 0600) //nolint:gosec
 
 	if err != nil {
 		panic(err)
