@@ -14,6 +14,7 @@ linters-settings:
 
 linters:
   enable:
+    - asciicheck
     - goconst
     - gocyclo
     - godot
@@ -24,7 +25,9 @@ linters:
     - interfacer
     - maligned
     - misspell
+    - nolintlint
     - prealloc
+    - unconvert
     - unparam
     - whitespace
 
