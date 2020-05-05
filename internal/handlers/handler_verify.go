@@ -107,7 +107,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 	switch {
 	case level == authorization.Bypass:
 		return Authorized
-	case username != "", level == authorization.Denied:
+	case username != "" && level == authorization.Denied:
 		// If the user is not anonymous, it means that we went through
 		// all the rules related to that user and knowing who he is we can
 		// deduce the access is forbidden
