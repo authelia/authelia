@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	// Register the Postgres SQL provider.
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // Load the PostgreSQL Driver used in the connection string.
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
-	// Load the PostgreSQL Driver used in the connection string.
 )
 
 // PostgreSQLProvider is a PostgreSQL provider.
