@@ -29,6 +29,7 @@ linters:
     - unconvert
     - unparam
     - whitespace
+    - wsl
 
 issues:
   exclude:
