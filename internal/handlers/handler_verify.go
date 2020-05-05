@@ -176,7 +176,7 @@ func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) { //
 }
 
 // verifySessionCookie verifies if a user is identified by a cookie.
-func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession, refreshProfile bool, refreshProfileInterval time.Duration) (username string, groups []string, authLevel authentication.Level, err error) { //nolint:unparam
+func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession, refreshProfile bool, refreshProfileInterval time.Duration) (username string, groups []string, authLevel authentication.Level, err error) {
 	// No username in the session means the user is anonymous.
 	isUserAnonymous := userSession.Username == ""
 
