@@ -49,6 +49,7 @@ func (sr *Registry) Register(name string, suite Suite) {
 	if _, found := sr.registry[name]; found {
 		log.Fatal(fmt.Sprintf("Trying to register the suite %s multiple times", name))
 	}
+
 	sr.registry[name] = suite
 }
 
@@ -58,6 +59,7 @@ func (sr *Registry) Get(name string) Suite {
 	if !found {
 		log.Fatal(fmt.Sprintf("The suite %s does not exist", name))
 	}
+
 	return s
 }
 
@@ -67,5 +69,6 @@ func (sr *Registry) Suites() []string {
 	for k := range sr.registry {
 		suites = append(suites, k)
 	}
+
 	return suites
 }

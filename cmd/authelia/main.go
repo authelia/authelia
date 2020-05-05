@@ -37,6 +37,7 @@ func startServer() {
 		for _, err := range errs {
 			logging.Logger().Error(err)
 		}
+
 		panic(errors.New("Some errors have been reported"))
 	}
 
@@ -89,6 +90,7 @@ func startServer() {
 	} else {
 		log.Fatalf("Unrecognized notifier")
 	}
+
 	if !config.Notifier.DisableStartupCheck {
 		_, err := notifier.StartupCheck()
 		if err != nil {

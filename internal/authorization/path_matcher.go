@@ -20,5 +20,6 @@ func isPathMatching(path string, pathRegexps []string) bool {
 			return true
 		}
 	}
+
 	return false
 }

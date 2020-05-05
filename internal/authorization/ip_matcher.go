@@ -17,9 +17,12 @@ func isIPMatching(ip net.IP, networks []string) bool {
 			if ip.String() == network {
 				return true
 			}
+
 			continue
 		}
+
 		_, ipNet, err := net.ParseCIDR(network)
+
 		if err != nil {
 			// TODO(c.michaud): make sure the rule is valid at startup to
 			// to such a case here.
@@ -30,5 +33,6 @@ func isIPMatching(ip net.IP, networks []string) bool {
 			return true
 		}
 	}
+
 	return false
 }

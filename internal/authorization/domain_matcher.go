@@ -10,5 +10,6 @@ func isDomainMatching(domain string, domainRules []string) bool {
 			return true
 		}
 	}
+
 	return false
 }

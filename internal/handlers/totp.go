@@ -26,5 +26,6 @@ func (tv *TOTPVerifierImpl) Verify(token, secret string) (bool, error) {
 		Digits:    otp.DigitsSix,
 		Algorithm: otp.AlgorithmSHA1,
 	}
+
 	return totp.ValidateCustom(token, secret, time.Now().UTC(), opts)
 }

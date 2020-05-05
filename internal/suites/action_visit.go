@@ -23,5 +23,6 @@ func (wds *WebDriverSession) doVisitLoginPage(ctx context.Context, t *testing.T,
 	if targetURL != "" {
 		suffix = fmt.Sprintf("?rd=%s", targetURL)
 	}
+
 	wds.doVisitAndVerifyOneFactorStep(ctx, t, fmt.Sprintf("%s/%s", LoginBaseURL, suffix))
 }

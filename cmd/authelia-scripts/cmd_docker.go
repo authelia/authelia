@@ -37,6 +37,7 @@ func checkArchIsSupported(arch string) {
 			return
 		}
 	}
+
 	log.Fatal("Architecture is not supported. Please select one of " + strings.Join(supportedArch, ", ") + ".")
 }
 
@@ -90,9 +91,11 @@ func dockerBuildOfficialImage(arch string) error {
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	commitBytes, err := cmd.Output()
+
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	commitHash := strings.Trim(string(commitBytes), "\n")
 
 	return docker.Build(IntermediateDockerImageName, dockerfile, ".", gitTag, commitHash)
@@ -202,9 +205,9 @@ func publishDockerImage(arch string) {
 	if ciTag != "" {
 		if len(tags) == 4 {
 			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
-
 			login(docker)
 			deploy(docker, tags[1]+"-"+arch)
+
 			if !ignoredSuffixes.MatchString(ciTag) {
 				deploy(docker, tags[2]+"-"+arch)
 				deploy(docker, tags[3]+"-"+arch)
@@ -233,7 +236,6 @@ func publishDockerManifest() {
 	if ciTag != "" {
 		if len(tags) == 4 {
 			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
-
 			login(docker)
 			deployManifest(docker, tags[1], tags[1]+"-amd64", tags[1]+"-arm32v7", tags[1]+"-arm64v8")
 			publishDockerReadme(docker)

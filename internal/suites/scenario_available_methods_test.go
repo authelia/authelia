@@ -54,6 +54,7 @@ func IsStringInList(str string, list []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -73,9 +74,11 @@ func (s *AvailableMethodsScenario) TestShouldCheckAvailableMethods() {
 	s.Assert().Len(options, len(s.methods))
 
 	optionsList := make([]string, 0)
+
 	for _, o := range options {
 		txt, err := o.Text()
 		s.Assert().NoError(err)
+
 		optionsList = append(optionsList, txt)
 	}
 
