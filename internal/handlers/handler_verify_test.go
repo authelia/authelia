@@ -968,6 +968,7 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 
 	// Reset otherwise we get the last 403 when we check the Response. Is there a better way to do this?
 	mock.Close()
+
 	mock = mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 	err = mock.Ctx.SaveSession(userSession)
