@@ -139,7 +139,7 @@ func prepareHostsFile() {
 
 	if modified {
 		bootstrapPrintln("/etc/hosts needs to be updated")
-		shell(fmt.Sprintf("cat %s | sudo tee -a /etc/hosts > /dev/null", fd.Name()))
+		shell(fmt.Sprintf("cat %s | sudo tee /etc/hosts > /dev/null", fd.Name()))
 	}
 
 	err = fd.Close()
