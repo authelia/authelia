@@ -137,6 +137,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 	verifyUserIsAuthorized := func(ctx context.Context, t *testing.T, username, targetURL string, authorized bool) { //nolint:unparam
 		s.doVisit(t, targetURL)
 		s.verifyURLIs(ctx, t, targetURL)
+
 		if authorized {
 			s.verifySecretAuthorized(ctx, t)
 		} else {
@@ -182,6 +183,7 @@ func DoGetWithAuth(t *testing.T, username, password string) int {
 
 	res, err := client.Do(req)
 	assert.NoError(t, err)
+
 	return res.StatusCode
 }
 

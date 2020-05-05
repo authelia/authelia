@@ -14,5 +14,6 @@ func IsRedirectionSafe(url url.URL, protectedDomain string) bool {
 	if !strings.HasSuffix(url.Hostname(), protectedDomain) {
 		return false
 	}
+
 	return true
 }

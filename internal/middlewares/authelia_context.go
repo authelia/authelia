@@ -32,6 +32,7 @@ func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration
 	autheliaCtx.Configuration = configuration
 	autheliaCtx.Logger = NewRequestLogger(autheliaCtx)
 	autheliaCtx.Clock = utils.RealClock{}
+
 	return autheliaCtx, nil
 }
 
@@ -44,6 +45,7 @@ func AutheliaMiddleware(configuration schema.Configuration, providers Providers)
 				autheliaCtx.Error(err, operationFailedMessage)
 				return
 			}
+
 			next(autheliaCtx)
 		}
 	}
@@ -112,6 +114,7 @@ func (c *AutheliaCtx) GetSession() session.UserSession {
 		c.Logger.Error("Unable to retrieve user session")
 		return session.NewDefaultUserSession()
 	}
+
 	return userSession
 }
 
@@ -143,6 +146,7 @@ func (c *AutheliaCtx) ParseBody(value interface{}) error {
 	if !valid {
 		return fmt.Errorf("Body is not valid")
 	}
+
 	return nil
 }
 
@@ -155,6 +159,7 @@ func (c *AutheliaCtx) SetJSONBody(value interface{}) error {
 
 	c.SetContentType("application/json")
 	c.SetBody(b)
+
 	return nil
 }
 
@@ -168,5 +173,6 @@ func (c *AutheliaCtx) RemoteIP() net.IP {
 			return net.ParseIP(strings.Trim(ips[0], " "))
 		}
 	}
+
 	return c.RequestCtx.RemoteIP()
 }

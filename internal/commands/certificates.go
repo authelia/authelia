@@ -34,6 +34,7 @@ var (
 func init() {
 	CertificatesGenerateCmd.PersistentFlags().StringVar(&host, "host", "", "Comma-separated hostnames and IPs to generate a certificate for")
 	err := CertificatesGenerateCmd.MarkPersistentFlagRequired("host")
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,7 +67,9 @@ func publicKey(priv interface{}) interface{} {
 func generateSelfSignedCertificate(cmd *cobra.Command, args []string) {
 	// implementation retrieved from https://golang.org/src/crypto/tls/generate_cert.go
 	var priv interface{}
+
 	var err error
+
 	switch ecdsaCurve {
 	case "":
 		if ed25519Key {
@@ -85,6 +88,7 @@ func generateSelfSignedCertificate(cmd *cobra.Command, args []string) {
 	default:
 		log.Fatalf("Unrecognized elliptic curve: %q", ecdsaCurve)
 	}
+
 	if err != nil {
 		log.Fatalf("Failed to generate private key: %v", err)
 	}
@@ -103,6 +107,7 @@ func generateSelfSignedCertificate(cmd *cobra.Command, args []string) {
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+
 	if err != nil {
 		log.Fatalf("Failed to generate serial number: %v", err)
 	}
@@ -141,33 +146,42 @@ func generateSelfSignedCertificate(cmd *cobra.Command, args []string) {
 
 	certPath := path.Join(targetDirectory, "cert.pem")
 	certOut, err := os.Create(certPath)
+
 	if err != nil {
 		log.Fatalf("Failed to open %s for writing: %v", certPath, err)
 	}
+
 	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes}); err != nil {
 		log.Fatalf("Failed to write data to cert.pem: %v", err)
 	}
+
 	if err := certOut.Close(); err != nil {
 		log.Fatalf("Error closing %s: %v", certPath, err)
 	}
+
 	log.Printf("wrote %s\n", certPath)
 
 	keyPath := path.Join(targetDirectory, "key.pem")
 	keyOut, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+
 	if err != nil {
 		log.Fatalf("Failed to open %s for writing: %v", keyPath, err)
 		return
 	}
+
 	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
 	if err != nil {
 		log.Fatalf("Unable to marshal private key: %v", err)
 	}
+
 	if err := pem.Encode(keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}); err != nil {
 		log.Fatalf("Failed to write data to %s: %v", keyPath, err)
 	}
+
 	if err := keyOut.Close(); err != nil {
 		log.Fatalf("Error closing %s: %v", keyPath, err)
 	}
+
 	log.Printf("wrote %s\n", keyPath)
 }
 

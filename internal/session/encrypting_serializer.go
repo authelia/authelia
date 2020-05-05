@@ -46,6 +46,7 @@ func (e *EncryptingSerializer) Decode(dst *session.Dict, src []byte) error {
 	}
 
 	dst.Reset()
+
 	decryptedSrc, err := utils.Decrypt(src, &e.key)
 	if err != nil {
 		// If an error is thrown while decrypting, it's probably an old unencrypted session
@@ -56,9 +57,11 @@ func (e *EncryptingSerializer) Decode(dst *session.Dict, src []byte) error {
 		if uerr != nil {
 			return fmt.Errorf("Unable to decrypt session: %s", err)
 		}
+
 		return nil
 	}
 
 	_, err = dst.UnmarshalMsg(decryptedSrc)
+
 	return err
 }

@@ -28,7 +28,9 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), userBannedMessage)
 			return
 		}
+
 		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regulate authentication: %s", err.Error()), authenticationFailedMessage)
+
 		return
 	}
 
@@ -37,14 +39,20 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	if err != nil {
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 		ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
 		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+
 		return
 	}
 
 	if !userPasswordOk {
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 		ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
 		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
+
+		ctx.ReplyError(fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
+
 		return
 	}
 
@@ -104,9 +112,11 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	userSession.LastActivity = time.Now().Unix()
 	userSession.KeepMeLoggedIn = keepMeLoggedIn
 	refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend)
+
 	if refresh {
 		userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
 	}
+
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {

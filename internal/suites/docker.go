@@ -27,18 +27,21 @@ func NewDockerEnvironment(files []string) *DockerEnvironment {
 			files[i] = strings.ReplaceAll(files[i], "{}", "dev")
 		}
 	}
+
 	return &DockerEnvironment{dockerComposeFiles: files}
 }
 
 func (de *DockerEnvironment) createCommandWithStdout(cmd string) *exec.Cmd {
 	dockerCmdLine := fmt.Sprintf("docker-compose -p authelia -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
 	log.Trace(dockerCmdLine)
+
 	return utils.CommandWithStdout("bash", "-c", dockerCmdLine)
 }
 
 func (de *DockerEnvironment) createCommand(cmd string) *exec.Cmd {
 	dockerCmdLine := fmt.Sprintf("docker-compose -p authelia -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
 	log.Trace(dockerCmdLine)
+
 	return utils.Command("bash", "-c", dockerCmdLine)
 }
 
@@ -61,5 +64,6 @@ func (de *DockerEnvironment) Down() error {
 func (de *DockerEnvironment) Logs(service string, flags []string) (string, error) {
 	cmd := de.createCommand(fmt.Sprintf("logs %s %s", strings.Join(flags, " "), service))
 	content, err := cmd.Output()
+
 	return string(content), err
 }

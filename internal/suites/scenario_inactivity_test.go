@@ -60,8 +60,8 @@ func (s *InactivityScenario) TestShouldRequireReauthenticationAfterInactivityPer
 	defer cancel()
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, s.secret, "")
 
+	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, s.secret, "")
 	s.doVisit(s.T(), HomeBaseURL)
 	s.verifyIsHome(ctx, s.T())
 
@@ -76,6 +76,7 @@ func (s *InactivityScenario) TestShouldRequireReauthenticationAfterCookieExpirat
 	defer cancel()
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
+
 	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, s.secret, "")
 
 	for i := 0; i < 3; i++ {
@@ -83,6 +84,7 @@ func (s *InactivityScenario) TestShouldRequireReauthenticationAfterCookieExpirat
 		s.verifyIsHome(ctx, s.T())
 
 		time.Sleep(2 * time.Second)
+
 		s.doVisit(s.T(), targetURL)
 		s.verifySecretAuthorized(ctx, s.T())
 	}
@@ -101,8 +103,8 @@ func (s *InactivityScenario) TestShouldDisableCookieExpirationAndInactivity() {
 	defer cancel()
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	s.doLoginTwoFactor(ctx, s.T(), "john", "password", true, s.secret, "")
 
+	s.doLoginTwoFactor(ctx, s.T(), "john", "password", true, s.secret, "")
 	s.doVisit(s.T(), HomeBaseURL)
 	s.verifyIsHome(ctx, s.T())
 

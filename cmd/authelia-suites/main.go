@@ -55,6 +55,7 @@ func main() {
 	rootCmd.AddCommand(setupTimeoutCmd)
 	rootCmd.AddCommand(errorCmd)
 	rootCmd.AddCommand(stopCmd)
+
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
@@ -125,6 +126,7 @@ func setupTimeoutSuite(cmd *cobra.Command, args []string) {
 	if s.OnSetupTimeout == nil {
 		return
 	}
+
 	if err := s.OnSetupTimeout(); err != nil {
 		log.Fatal(err)
 	}
@@ -137,6 +139,7 @@ func runErrorCallback(cmd *cobra.Command, args []string) {
 	if s.OnError == nil {
 		return
 	}
+
 	if err := s.OnError(); err != nil {
 		log.Fatal(err)
 	}

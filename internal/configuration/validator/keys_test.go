@@ -34,11 +34,13 @@ func TestShouldNotValidateBadKeys(t *testing.T) {
 
 func TestAllSpecificErrorKeys(t *testing.T) {
 	var configKeys []string //nolint:prealloc // This is because the test is dynamic based on the keys that exist in the map
+
 	var uniqueValues []string
 
 	// Setup configKeys and uniqueValues expected.
 	for key, value := range specificErrorKeys {
 		configKeys = append(configKeys, key)
+
 		if !utils.IsStringInSlice(value, uniqueValues) {
 			uniqueValues = append(uniqueValues, value)
 		}

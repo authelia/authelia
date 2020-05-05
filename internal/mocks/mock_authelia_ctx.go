@@ -123,6 +123,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia.Hook = hook
 
 	mockAuthelia.Ctx.Logger = logrus.NewEntry(logger)
+
 	return mockAuthelia
 }
 
@@ -147,6 +148,7 @@ func (m *MockAutheliaCtx) Assert200KO(t *testing.T, message string) {
 // Assert200OK assert a successful response from the service.
 func (m *MockAutheliaCtx) Assert200OK(t *testing.T, data interface{}) {
 	assert.Equal(t, 200, m.Ctx.Response.StatusCode())
+
 	response := middlewares.OKResponse{
 		Status: "OK",
 		Data:   data,

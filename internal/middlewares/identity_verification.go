@@ -24,6 +24,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			// In that case we reply ok to avoid user enumeration.
 			ctx.Logger.Error(err)
 			ctx.ReplyOK()
+
 			return
 		}
 
@@ -78,6 +79,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
+
 		err = ctx.Providers.Notifier.Send(identity.Email, args.MailTitle, buf.String())
 
 		if err != nil {
@@ -93,6 +95,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(ctx *AutheliaCtx, username string)) RequestHandler {
 	return func(ctx *AutheliaCtx) {
 		var finishBody IdentityVerificationFinishBody
+
 		b := ctx.PostBody()
 
 		err := json.Unmarshal(b, &finishBody)
@@ -139,7 +142,9 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 					return
 				}
 			}
+
 			ctx.Error(err, operationFailedMessage)
+
 			return
 		}
 

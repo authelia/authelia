@@ -51,5 +51,6 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 	if err := provider.initialize(db); err != nil {
 		logging.Logger().Fatalf("Unable to initialize SQLite database %s: %s", path, err)
 	}
+
 	return &provider
 }

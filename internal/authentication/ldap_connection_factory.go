@@ -69,6 +69,7 @@ func (lcf *LDAPConnectionFactoryImpl) DialTLS(network, addr string, config *tls.
 	if err != nil {
 		return nil, err
 	}
+
 	return NewLDAPConnectionImpl(conn), nil
 }
 
@@ -78,5 +79,6 @@ func (lcf *LDAPConnectionFactoryImpl) Dial(network, addr string) (LDAPConnection
 	if err != nil {
 		return nil, err
 	}
+
 	return NewLDAPConnectionImpl(conn), nil
 }

@@ -12,6 +12,7 @@ func newDefaultSessionConfig() schema.SessionConfiguration {
 	config := schema.SessionConfiguration{}
 	config.Secret = testJWTSecret
 	config.Domain = "example.com"
+
 	return config
 }
 

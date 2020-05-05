@@ -23,6 +23,7 @@ type Validator struct {
 func NewValidator() *Validator {
 	validator := new(Validator)
 	validator.errors = make(map[string][]error)
+
 	return validator
 }
 
@@ -39,6 +40,7 @@ func (v *Validator) validateOne(item QueueItem, q *queue.Queue) error { //nolint
 		}
 
 		elem := item.value.Elem()
+
 		q.Put(QueueItem{ //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 			value: elem,
 			path:  item.path,
@@ -64,6 +66,7 @@ func (v *Validator) validateOne(item QueueItem, q *queue.Queue) error { //nolint
 			})
 		}
 	}
+
 	return nil
 }
 
@@ -77,12 +80,15 @@ func (v *Validator) Validate(s interface{}) error {
 		if err != nil {
 			return err
 		}
+
 		item, ok := val[0].(QueueItem)
 		if !ok {
 			return fmt.Errorf("Cannot convert item into QueueItem")
 		}
+
 		v.validateOne(item, q) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	}
+
 	return nil
 }
 
@@ -90,6 +96,7 @@ func (v *Validator) Validate(s interface{}) error {
 func (v *Validator) PrintErrors() {
 	for path, errs := range v.errors {
 		fmt.Printf("Errors at %s:\n", path)
+
 		for _, err := range errs {
 			fmt.Printf("--> %s\n", err)
 		}
@@ -110,6 +117,7 @@ type StructValidator struct {
 func NewStructValidator() *StructValidator {
 	val := new(StructValidator)
 	val.errors = make([]error, 0)
+
 	return val
 }
 

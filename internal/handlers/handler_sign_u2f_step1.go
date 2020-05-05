@@ -24,6 +24,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 	}
 
 	appID := fmt.Sprintf("%s://%s", ctx.XForwardedProto(), ctx.XForwardedHost())
+
 	var trustedFacets = []string{appID}
 	challenge, err := u2f.NewChallenge(appID, trustedFacets)
 
@@ -40,7 +41,9 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("No device handle found for user %s", userSession.Username), mfaValidationFailedMessage)
 			return
 		}
+
 		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to retrieve U2F device handle: %s", err), mfaValidationFailedMessage)
+
 		return
 	}
 

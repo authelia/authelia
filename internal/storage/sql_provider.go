@@ -75,21 +75,26 @@ func (p *SQLProvider) initialize(db *sql.DB) error {
 			return fmt.Errorf("Unable to create table %s: %v", authenticationLogsTableName, err)
 		}
 	}
+
 	return nil
 }
 
 // LoadPreferred2FAMethod load the preferred method for 2FA from sqlite db.
 func (p *SQLProvider) LoadPreferred2FAMethod(username string) (string, error) {
+	var method string
+
 	rows, err := p.db.Query(p.sqlGetPreferencesByUsername, username)
 	if err != nil {
 		return "", err
 	}
 	defer rows.Close()
+
 	if !rows.Next() {
 		return "", nil
 	}
-	var method string
+
 	err = rows.Scan(&method)
+
 	return method, err
 }
 
@@ -102,10 +107,12 @@ func (p *SQLProvider) SavePreferred2FAMethod(username string, method string) err
 // FindIdentityVerificationToken look for an identity verification token in DB.
 func (p *SQLProvider) FindIdentityVerificationToken(token string) (bool, error) {
 	var found bool
+
 	err := p.db.QueryRow(p.sqlTestIdentityVerificationTokenExistence, token).Scan(&found)
 	if err != nil {
 		return false, err
 	}
+
 	return found, nil
 }
 
@@ -134,8 +141,10 @@ func (p *SQLProvider) LoadTOTPSecret(username string) (string, error) {
 		if err == sql.ErrNoRows {
 			return "", ErrNoTOTPSecret
 		}
+
 		return "", err
 	}
+
 	return secret, nil
 }
 
@@ -151,6 +160,7 @@ func (p *SQLProvider) SaveU2FDeviceHandle(username string, keyHandle []byte, pub
 		username,
 		base64.StdEncoding.EncodeToString(keyHandle),
 		base64.StdEncoding.EncodeToString(publicKey))
+
 	return err
 }
 
@@ -161,6 +171,7 @@ func (p *SQLProvider) LoadU2FDeviceHandle(username string) ([]byte, []byte, erro
 		if err == sql.ErrNoRows {
 			return nil, nil, ErrNoU2FDeviceHandle
 		}
+
 		return nil, nil, err
 	}
 
@@ -187,6 +198,8 @@ func (p *SQLProvider) AppendAuthenticationLog(attempt models.AuthenticationAttem
 
 // LoadLatestAuthenticationLogs retrieve the latest marks from the authentication log.
 func (p *SQLProvider) LoadLatestAuthenticationLogs(username string, fromDate time.Time) ([]models.AuthenticationAttempt, error) {
+	var t int64
+
 	rows, err := p.db.Query(p.sqlGetLatestAuthenticationLogs, fromDate.Unix(), username)
 
 	if err != nil {
@@ -194,18 +207,20 @@ func (p *SQLProvider) LoadLatestAuthenticationLogs(username string, fromDate tim
 	}
 
 	attempts := make([]models.AuthenticationAttempt, 0, 10)
+
 	for rows.Next() {
 		attempt := models.AuthenticationAttempt{
 			Username: username,
 		}
-		var t int64
 		err = rows.Scan(&attempt.Successful, &t)
 		attempt.Time = time.Unix(t, 0)
 
 		if err != nil {
 			return nil, err
 		}
+
 		attempts = append(attempts, attempt)
 	}
+
 	return attempts, nil
 }

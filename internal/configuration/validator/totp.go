@@ -11,6 +11,7 @@ func ValidateTOTP(configuration *schema.TOTPConfiguration, validator *schema.Str
 	if configuration.Issuer == "" {
 		configuration.Issuer = schema.DefaultTOTPConfiguration.Issuer
 	}
+
 	if configuration.Period == 0 {
 		configuration.Period = schema.DefaultTOTPConfiguration.Period
 	} else if configuration.Period < 0 {
