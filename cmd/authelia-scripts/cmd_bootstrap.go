@@ -127,16 +127,24 @@ func prepareHostsFile() {
 		modified = true
 	}
 
-	// TODO: Look at using ioutil.TempFile instead.
-	err = ioutil.WriteFile("/tmp/authelia/hosts", []byte(strings.Join(lines, "\n")), 0600) //nolint:gosec
+	fd, err := ioutil.TempFile("/tmp/authelia/", "hosts")
+	if err != nil {
+		panic(err)
+	}
 
+	_, err = fd.Write([]byte(strings.Join(lines, "\n")))
 	if err != nil {
 		panic(err)
 	}
 
 	if modified {
 		bootstrapPrintln("/etc/hosts needs to be updated")
-		shell("cat /tmp/authelia/hosts | sudo tee -a /etc/hosts > /dev/null")
+		shell(fmt.Sprintf("cat %s | sudo tee -a /etc/hosts > /dev/null", fd.Name()))
+	}
+
+	err = fd.Close()
+	if err != nil {
+		panic(err)
 	}
 }
 
