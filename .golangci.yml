@@ -15,6 +15,7 @@ linters-settings:
 linters:
   enable:
     - goconst
+    - gocritic
     - gocyclo
     - godot
     - gofmt
