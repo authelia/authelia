@@ -61,7 +61,7 @@ func main() {
 }
 
 func createRunningSuiteFile(suite string) error {
-	return ioutil.WriteFile(runningSuiteFile, []byte(suite), 0644)
+	return ioutil.WriteFile(runningSuiteFile, []byte(suite), 0600)
 }
 
 func removeRunningSuiteFile() error {
