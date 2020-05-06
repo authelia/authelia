@@ -117,9 +117,13 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 		}
 	}
 
-	salt, err = validateSalt(salt, saltLength)
+	err = validateSalt(salt, saltLength)
 	if err != nil {
 		return "", err
+	}
+
+	if salt == "" {
+		return utils.RandomString(saltLength, HashingPossibleSaltCharacters), nil
 	}
 
 	settings = getCryptSettings(salt, algorithm, iterations, memory, parallelism, keyLength)
@@ -160,26 +164,22 @@ func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, para
 }
 
 // validateSalt checks the salt input and settings are valid and returns it and a nil error if they are, otherwise returns an error.
-func validateSalt(salt string, saltLength int) (string, error) {
+func validateSalt(salt string, saltLength int) error {
 	if salt == "" {
 		if saltLength < 2 {
-			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 2 or higher", saltLength)
+			return fmt.Errorf("Salt length input of %d is invalid, it must be 2 or higher", saltLength)
 		} else if saltLength > 16 {
-			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 16 or lower", saltLength)
+			return fmt.Errorf("Salt length input of %d is invalid, it must be 16 or lower", saltLength)
 		}
 	} else if len(salt) > 16 {
-		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 16 or fewer characters", salt, len(salt))
+		return fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 16 or fewer characters", salt, len(salt))
 	} else if len(salt) < 2 {
-		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 2 or more characters", salt, len(salt))
+		return fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 2 or more characters", salt, len(salt))
 	} else if _, err := crypt.Base64Encoding.DecodeString(salt); err != nil {
-		return "", fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input", salt)
+		return fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input", salt)
 	}
 
-	if salt == "" {
-		return utils.RandomString(saltLength, HashingPossibleSaltCharacters), nil
-	}
-
-	return salt, nil
+	return nil
 }
 
 // validateArgon2idSettings checks the argon2id settings are valid.
