@@ -29,7 +29,6 @@ const (
 
 const operationFailedMessage = "Operation failed."
 const authenticationFailedMessage = "Authentication failed. Check your credentials."
-const userBannedMessage = "Please retry in a few minutes."
 const unableToRegisterOneTimePasswordMessage = "Unable to set up one-time passwords." //nolint:gosec
 const unableToRegisterSecurityKeyMessage = "Unable to register your security key."
 const unableToResetPasswordMessage = "Unable to reset your password."
