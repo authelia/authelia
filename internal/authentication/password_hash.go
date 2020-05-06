@@ -123,7 +123,7 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 	}
 
 	if salt == "" {
-		return utils.RandomString(saltLength, HashingPossibleSaltCharacters), nil
+		salt = utils.RandomString(saltLength, HashingPossibleSaltCharacters)
 	}
 
 	settings = getCryptSettings(salt, algorithm, iterations, memory, parallelism, keyLength)
@@ -153,7 +153,6 @@ func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, para
 	switch algorithm {
 	case HashingAlgorithmArgon2id:
 		settings, _ = crypt.Argon2idSettings(memory, iterations, parallelism, keyLength, salt)
-
 	case HashingAlgorithmSHA512:
 		settings = fmt.Sprintf("$6$rounds=%d$%s", iterations, salt)
 	default:
