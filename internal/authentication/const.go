@@ -58,3 +58,5 @@ const argon2id = "argon2id"
 const sha512 = "sha512"
 
 const testPassword = "my;secure*password"
+
+const fileAuthenticationMode = 0600

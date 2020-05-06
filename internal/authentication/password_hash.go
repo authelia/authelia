@@ -23,6 +23,18 @@ type PasswordHash struct {
 	Parallelism int
 }
 
+// ConfigAlgoToCryptoAlgo returns a CryptAlgo and nil error if valid, otherwise it returns argon2id and an error.
+func ConfigAlgoToCryptoAlgo(fromConfig string) (CryptAlgo, error) {
+	switch fromConfig {
+	case argon2id:
+		return HashingAlgorithmArgon2id, nil
+	case sha512:
+		return HashingAlgorithmSHA512, nil
+	default:
+		return HashingAlgorithmArgon2id, errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
+	}
+}
+
 // ParseHash extracts all characteristics of a hash given its string representation.
 func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 	parts := strings.Split(hash, "$")
@@ -91,7 +103,6 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 }
 
 // HashPassword generate a salt and hash the password with the salt and a constant number of rounds.
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory, parallelism, keyLength, saltLength int) (hash string, err error) {
 	var settings string
 
@@ -99,45 +110,16 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 		return "", fmt.Errorf("Hashing algorithm input of '%s' is invalid, only values of %s and %s are supported", algorithm, HashingAlgorithmArgon2id, HashingAlgorithmSHA512)
 	}
 
-	if salt == "" {
-		if saltLength < 2 {
-			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 2 or higher", saltLength)
-		} else if saltLength > 16 {
-			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 16 or lower", saltLength)
-		}
-	} else if len(salt) > 16 {
-		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 16 or fewer characters", salt, len(salt))
-	} else if len(salt) < 2 {
-		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 2 or more characters", salt, len(salt))
-	} else if _, err = crypt.Base64Encoding.DecodeString(salt); err != nil {
-		return "", fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input", salt)
-	}
-
 	if algorithm == HashingAlgorithmArgon2id {
-		// Caution: Increasing any of the values in the below block has a high chance in old passwords that cannot be verified.
-		if memory < 8 {
-			return "", fmt.Errorf("Memory (argon2id) input of %d is invalid, it must be 8 or higher", memory)
-		}
-
-		if parallelism < 1 {
-			return "", fmt.Errorf("Parallelism (argon2id) input of %d is invalid, it must be 1 or higher", parallelism)
-		}
-
-		if memory < parallelism*8 {
-			return "", fmt.Errorf("Memory (argon2id) input of %d is invalid with a parallelism input of %d, it must be %d (parallelism * 8) or higher", memory, parallelism, parallelism*8)
-		}
-
-		if keyLength < 16 {
-			return "", fmt.Errorf("Key length (argon2id) input of %d is invalid, it must be 16 or higher", keyLength)
-		}
-
-		if iterations < 1 {
-			return "", fmt.Errorf("Iterations (argon2id) input of %d is invalid, it must be 1 or more", iterations)
+		err := validateArgon2idSettings(memory, parallelism, iterations, keyLength)
+		if err != nil {
+			return "", err
 		}
 	}
 
-	if salt == "" {
-		salt = utils.RandomString(saltLength, HashingPossibleSaltCharacters)
+	salt, err = validateSalt(salt, saltLength)
+	if err != nil {
+		return "", err
 	}
 
 	settings = getCryptSettings(salt, algorithm, iterations, memory, parallelism, keyLength)
@@ -167,6 +149,7 @@ func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, para
 	switch algorithm {
 	case HashingAlgorithmArgon2id:
 		settings, _ = crypt.Argon2idSettings(memory, iterations, parallelism, keyLength, salt)
+
 	case HashingAlgorithmSHA512:
 		settings = fmt.Sprintf("$6$rounds=%d$%s", iterations, salt)
 	default:
@@ -174,4 +157,54 @@ func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, para
 	}
 
 	return settings
+}
+
+// validateSalt checks the salt input and settings are valid and returns it and a nil error if they are, otherwise returns an error.
+func validateSalt(salt string, saltLength int) (string, error) {
+	if salt == "" {
+		if saltLength < 2 {
+			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 2 or higher", saltLength)
+		} else if saltLength > 16 {
+			return "", fmt.Errorf("Salt length input of %d is invalid, it must be 16 or lower", saltLength)
+		}
+	} else if len(salt) > 16 {
+		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 16 or fewer characters", salt, len(salt))
+	} else if len(salt) < 2 {
+		return "", fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 2 or more characters", salt, len(salt))
+	} else if _, err := crypt.Base64Encoding.DecodeString(salt); err != nil {
+		return "", fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input", salt)
+	}
+
+	if salt == "" {
+		return utils.RandomString(saltLength, HashingPossibleSaltCharacters), nil
+	}
+
+	return salt, nil
+}
+
+// validateArgon2idSettings checks the argon2id settings are valid.
+func validateArgon2idSettings(memory, parallelism, iterations, keyLength int) error {
+	// Caution: Increasing any of the values in the below block has a high chance in old passwords that cannot be verified.
+	if memory < 8 {
+		return fmt.Errorf("Memory (argon2id) input of %d is invalid, it must be 8 or higher", memory)
+	}
+
+	if parallelism < 1 {
+		return fmt.Errorf("Parallelism (argon2id) input of %d is invalid, it must be 1 or higher", parallelism)
+	}
+
+	if memory < parallelism*8 {
+		return fmt.Errorf("Memory (argon2id) input of %d is invalid with a parallelism input of %d, it must be %d (parallelism * 8) or higher", memory, parallelism, parallelism*8)
+	}
+
+	if keyLength < 16 {
+		return fmt.Errorf("Key length (argon2id) input of %d is invalid, it must be 16 or higher", keyLength)
+	}
+
+	if iterations < 1 {
+		return fmt.Errorf("Iterations (argon2id) input of %d is invalid, it must be 1 or more", iterations)
+	}
+
+	// Caution: Increasing any of the values in the above block has a high chance in old passwords that cannot be verified.
+	return nil
 }
