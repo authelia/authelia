@@ -86,8 +86,9 @@ func TestShouldCheckUserPasswordOfUserThatDoesNotExist(t *testing.T) {
 		config.Path = path
 		provider := NewFileUserProvider(&config)
 		ok, err := provider.CheckUserPassword("fake", "password")
-		assert.NoError(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, false, ok)
+		assert.EqualError(t, err, "user not found")
 	})
 }
 
@@ -126,7 +127,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
-		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].HashedPassword, "{CRYPT}$6$"))
+		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].HashedPassword, "$6$"))
 		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
 
@@ -147,7 +148,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 		config.Password.Iterations = 50000
 
 		provider := NewFileUserProvider(&config)
-		assert.True(t, strings.HasPrefix(provider.database.Users["john"].HashedPassword, "{CRYPT}$argon2id$"))
+		assert.True(t, strings.HasPrefix(provider.database.Users["john"].HashedPassword, "$argon2id$"))
 		err := provider.UpdatePassword("john", "newpassword")
 		assert.NoError(t, err)
 
