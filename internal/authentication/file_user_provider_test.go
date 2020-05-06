@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
