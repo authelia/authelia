@@ -107,7 +107,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 	switch {
 	case level == authorization.Bypass:
 		return Authorized
-	case username != "" && level == authorization.Denied:
+	case level == authorization.Denied && username != "":
 		// If the user is not anonymous, it means that we went through
 		// all the rules related to that user and knowing who he is we can
 		// deduce the access is forbidden
@@ -115,14 +115,9 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 		// could not be granted the rights to access the resource. Consequently
 		// for anonymous users we send Unauthorized instead of Forbidden
 		return Forbidden
-	default:
-		if level == authorization.OneFactor &&
-			authLevel >= authentication.OneFactor {
-			return Authorized
-		} else if level == authorization.TwoFactor &&
-			authLevel >= authentication.TwoFactor {
-			return Authorized
-		}
+	case level == authorization.OneFactor && authLevel >= authentication.OneFactor,
+		level == authorization.TwoFactor && authLevel >= authentication.TwoFactor:
+		return Authorized
 	}
 
 	return NotAuthorized
@@ -187,7 +182,8 @@ func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) { //
 }
 
 // verifySessionCookie verifies if a user is identified by a cookie.
-func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession, refreshProfile bool, refreshProfileInterval time.Duration) (username string, groups []string, authLevel authentication.Level, err error) {
+func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession, refreshProfile bool,
+	refreshProfileInterval time.Duration) (username string, groups []string, authLevel authentication.Level, err error) {
 	// No username in the session means the user is anonymous.
 	isUserAnonymous := userSession.Username == ""
 
@@ -327,6 +323,15 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 
 		if !groupsDiff && !emailsDiff {
 			ctx.Logger.Tracef("Updated profile not detected for %s.", userSession.Username)
+			// Only update TTL if the user has a interval set.
+			// We get to this check when there were no changes.
+			// Also make sure to update the session even if no difference was found.
+			// This is so that we don't check every subsequent request after this one.
+			if refreshProfileInterval != schema.RefreshIntervalAlways {
+				// Update RefreshTTL and save session if refresh is not set to always.
+				userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
+				return ctx.SaveSession(*userSession)
+			}
 		} else {
 			ctx.Logger.Debugf("Updated profile detected for %s.", userSession.Username)
 			if ctx.Logger.Level.String() == "trace" {
@@ -339,17 +344,12 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 			if refreshProfileInterval != schema.RefreshIntervalAlways {
 				userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
 			}
-			return ctx.SaveSession(*userSession)
-		}
-		// Only update TTL if the user has a interval set.
-		// Also make sure to update the session even if no difference was found.
-		// This is so that we don't check every subsequent request after this one.
-		if refreshProfileInterval != schema.RefreshIntervalAlways {
-			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
+			// Return the result of save session if there were changes.
 			return ctx.SaveSession(*userSession)
 		}
 	}
 
+	// Return nil if disabled or if no changes and refresh interval set to always.
 	return nil
 }
 

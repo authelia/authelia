@@ -20,12 +20,12 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 
 		userSession := ctx.GetSession()
 		if userSession.U2FChallenge == nil {
-			ctx.Error(fmt.Errorf("U2F signing has not been initiated yet (no challenge)"), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("U2F signing has not been initiated yet (no challenge)"), mfaValidationFailedMessage)
 			return
 		}
 
 		if userSession.U2FRegistration == nil {
-			ctx.Error(fmt.Errorf("U2F signing has not been initiated yet (no registration)"), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("U2F signing has not been initiated yet (no registration)"), mfaValidationFailedMessage)
 			return
 		}
 
@@ -43,7 +43,7 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
 			return
 		}
 
@@ -51,7 +51,7 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 		err = ctx.SaveSession(userSession)
 
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to update authentication level with U2F: %s", err), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update authentication level with U2F: %s", err), mfaValidationFailedMessage)
 			return
 		}
 

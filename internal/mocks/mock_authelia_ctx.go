@@ -133,6 +133,12 @@ func (m *MockAutheliaCtx) Close() {
 	m.Ctrl.Finish()
 }
 
+// Assert401KO assert an error response from the service.
+func (m *MockAutheliaCtx) Assert401KO(t *testing.T, message string) {
+	assert.Equal(t, 401, m.Ctx.Response.StatusCode())
+	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"message\":\"%s\"}", message), string(m.Ctx.Response.Body()))
+}
+
 // Assert200KO assert an error response from the service.
 func (m *MockAutheliaCtx) Assert200KO(t *testing.T, message string) {
 	assert.Equal(t, 200, m.Ctx.Response.StatusCode())
