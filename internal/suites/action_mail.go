@@ -28,5 +28,6 @@ func doGetLinkFromLastMail(t *testing.T) string {
 	matches := re.FindStringSubmatch(string(res))
 
 	assert.Len(t, matches, 2, "Number of match for link in email is not equal to one")
+
 	return matches[1]
 }

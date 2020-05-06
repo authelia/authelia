@@ -26,6 +26,7 @@ func Encrypt(plaintext []byte, key *[32]byte) (ciphertext []byte, err error) {
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
+
 	_, err = io.ReadFull(rand.Reader, nonce)
 	if err != nil {
 		return nil, err

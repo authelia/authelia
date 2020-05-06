@@ -16,6 +16,7 @@ linters:
   enable:
     - asciicheck
     - goconst
+    - gocritic
     - gocyclo
     - godot
     - gofmt
@@ -30,6 +31,7 @@ linters:
     - unconvert
     - unparam
     - whitespace
+    - wsl
 
 issues:
   exclude:

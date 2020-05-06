@@ -24,7 +24,9 @@ func Command(name string, args ...string) *exec.Cmd {
 	for !strings.HasSuffix(wd, "authelia") {
 		wd = filepath.Dir(wd)
 	}
+
 	cmd.Dir = wd
+
 	return cmd
 }
 
@@ -33,6 +35,7 @@ func CommandWithStdout(name string, args ...string) *exec.Cmd {
 	cmd := Command(name, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	return cmd
 }
 
@@ -52,6 +55,7 @@ func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 
 	go func() {
 		mutex.Lock()
+
 		f := bufio.NewWriter(os.Stdout)
 		defer f.Flush()
 
@@ -63,6 +67,7 @@ func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 			fmt.Println(err)
 			cond.Broadcast()
 			mutex.Unlock()
+
 			return
 		}
 
@@ -86,6 +91,7 @@ func RunFuncUntilCtrlC(fn func() error) error {
 
 	go func() {
 		mutex.Lock()
+
 		f := bufio.NewWriter(os.Stdout)
 		defer f.Flush()
 
@@ -98,16 +104,19 @@ func RunFuncUntilCtrlC(fn func() error) error {
 			fmt.Println(err)
 			cond.Broadcast()
 			mutex.Unlock()
+
 			return
 		}
 
 		errorChannel <- nil
+
 		<-signalChannel
 		cond.Broadcast()
 		mutex.Unlock()
 	}()
 
 	cond.Wait()
+
 	return <-errorChannel
 }
 
@@ -120,6 +129,7 @@ func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
 
 	// Wait for the process to finish or kill it after a timeout (whichever happens first):
 	done := make(chan error, 1)
+
 	go func() {
 		done <- cmd.Wait()
 	}()
@@ -131,6 +141,7 @@ func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
 		if err := cmd.Process.Kill(); err != nil {
 			return err
 		}
+
 		return ErrTimeoutReached
 	case err := <-done:
 		return err

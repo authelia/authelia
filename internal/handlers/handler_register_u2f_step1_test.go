@@ -43,6 +43,7 @@ func createToken(secret string, username string, action string, expiresAt time.T
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, _ := token.SignedString([]byte(secret))
+
 	return ss
 }
 

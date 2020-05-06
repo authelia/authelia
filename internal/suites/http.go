@@ -12,6 +12,7 @@ func NewHTTPClient() *http.Client {
 			InsecureSkipVerify: true, //nolint:gosec // Needs to be enabled in suites. Not used in production.
 		},
 	}
+
 	return &http.Client{
 		Transport: tr,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {

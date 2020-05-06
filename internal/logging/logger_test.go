@@ -16,6 +16,7 @@ func TestShouldWriteLogsToFile(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer os.RemoveAll(dir)
 
 	path := fmt.Sprintf("%s/authelia.log", dir)

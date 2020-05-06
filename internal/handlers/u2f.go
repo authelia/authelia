@@ -27,5 +27,6 @@ func (uv *U2FVerifierImpl) Verify(keyHandle []byte, publicKey []byte,
 	// TODO(c.michaud): store the counter to help detecting cloned U2F keys.
 	_, err := registration.Authenticate(
 		signResponse, challenge, 0)
+
 	return err
 }

@@ -57,6 +57,7 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 	if configuration.Password.Algorithm == sha512 {
 		cryptAlgo = HashingAlgorithmSHA512
 	}
+
 	settings := getCryptSettings(utils.RandomString(configuration.Password.SaltLength, HashingPossibleSaltCharacters),
 		cryptAlgo, configuration.Password.Iterations, configuration.Password.Memory*1024, configuration.Password.Parallelism,
 		configuration.Password.KeyLength)
@@ -78,6 +79,7 @@ func checkPasswordHashes(database *DatabaseModel) error {
 			return fmt.Errorf("Unable to parse hash of user %s: %s", u, err)
 		}
 	}
+
 	return nil
 }
 
@@ -86,7 +88,9 @@ func readDatabase(path string) (*DatabaseModel, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read database from file %s: %s", path, err)
 	}
+
 	db := DatabaseModel{}
+
 	err = yaml.Unmarshal(content, &db)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse database: %s", err)
@@ -100,6 +104,7 @@ func readDatabase(path string) (*DatabaseModel, error) {
 	if !ok {
 		return nil, fmt.Errorf("The database format is invalid: %s", err)
 	}
+
 	return &db, nil
 }
 
@@ -107,10 +112,12 @@ func readDatabase(path string) (*DatabaseModel, error) {
 func (p *FileUserProvider) CheckUserPassword(username string, password string) (bool, error) {
 	if details, ok := p.database.Users[username]; ok {
 		hashedPassword := strings.ReplaceAll(details.HashedPassword, "{CRYPT}", "")
+
 		ok, err := CheckPassword(password, hashedPassword)
 		if err != nil {
 			return false, err
 		}
+
 		return ok, nil
 	}
 
@@ -130,6 +137,7 @@ func (p *FileUserProvider) GetDetails(username string) (*UserDetails, error) {
 			Emails:   []string{details.Email},
 		}, nil
 	}
+
 	return nil, fmt.Errorf("User '%s' does not exist in database", username)
 }
 
@@ -141,11 +149,13 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	}
 
 	var algorithm CryptAlgo
-	if p.configuration.Password.Algorithm == "argon2id" {
+
+	switch p.configuration.Password.Algorithm {
+	case argon2id:
 		algorithm = HashingAlgorithmArgon2id
-	} else if p.configuration.Password.Algorithm == sha512 {
+	case sha512:
 		algorithm = HashingAlgorithmSHA512
-	} else {
+	default:
 		return errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
 	}
 
@@ -153,11 +163,12 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		newPassword, "", algorithm, p.configuration.Password.Iterations,
 		p.configuration.Password.Memory*1024, p.configuration.Password.Parallelism,
 		p.configuration.Password.KeyLength, p.configuration.Password.SaltLength)
-
 	if err != nil {
 		return err
 	}
+
 	details.HashedPassword = hash
+
 	p.lock.Lock()
 	p.database.Users[username] = details
 
@@ -166,7 +177,9 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		p.lock.Unlock()
 		return err
 	}
+
 	err = ioutil.WriteFile(p.configuration.Path, b, 0644) //nolint:gosec // Fixed in future PR.
 	p.lock.Unlock()
+
 	return err
 }

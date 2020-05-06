@@ -33,7 +33,7 @@ type CryptAlgo string
 
 const (
 	// HashingAlgorithmArgon2id Argon2id hash identifier.
-	HashingAlgorithmArgon2id CryptAlgo = "argon2id"
+	HashingAlgorithmArgon2id CryptAlgo = argon2id
 	// HashingAlgorithmSHA512 SHA512 hash identifier.
 	HashingAlgorithmSHA512 CryptAlgo = "6"
 )
@@ -54,6 +54,7 @@ var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJ
 // ErrUserNotFound indicates the user wasn't found in the authentication backend.
 var ErrUserNotFound = errors.New("user not found")
 
+const argon2id = "argon2id"
 const sha512 = "sha512"
 
 const testPassword = "my;secure*password"

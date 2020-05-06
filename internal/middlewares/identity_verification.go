@@ -24,6 +24,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			// In that case we reply ok to avoid user enumeration.
 			ctx.Logger.Error(err)
 			ctx.ReplyOK()
+
 			return
 		}
 
@@ -78,6 +79,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
+
 		err = ctx.Providers.Notifier.Send(identity.Email, args.MailTitle, buf.String())
 
 		if err != nil {
@@ -93,6 +95,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(ctx *AutheliaCtx, username string)) RequestHandler {
 	return func(ctx *AutheliaCtx) {
 		var finishBody IdentityVerificationFinishBody
+
 		b := ctx.PostBody()
 
 		err := json.Unmarshal(b, &finishBody)
@@ -127,19 +130,22 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 
 		if err != nil {
 			if ve, ok := err.(*jwt.ValidationError); ok {
-				if ve.Errors&jwt.ValidationErrorMalformed != 0 {
+				switch {
+				case ve.Errors&jwt.ValidationErrorMalformed != 0:
 					ctx.Error(fmt.Errorf("Cannot parse token"), operationFailedMessage)
 					return
-				} else if ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
+				case ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0:
 					// Token is either expired or not active yet
 					ctx.Error(fmt.Errorf("Token expired"), identityVerificationTokenHasExpiredMessage)
 					return
-				} else {
+				default:
 					ctx.Error(fmt.Errorf("Cannot handle this token: %s", ve), operationFailedMessage)
 					return
 				}
 			}
+
 			ctx.Error(err, operationFailedMessage)
+
 			return
 		}
 

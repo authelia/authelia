@@ -12,11 +12,12 @@ func ValidateStorage(configuration schema.StorageConfiguration, validator *schem
 		validator.Push(errors.New("A storage configuration must be provided. It could be 'local', 'mysql' or 'postgres'"))
 	}
 
-	if configuration.MySQL != nil {
+	switch {
+	case configuration.MySQL != nil:
 		validateSQLConfiguration(&configuration.MySQL.SQLStorageConfiguration, validator)
-	} else if configuration.PostgreSQL != nil {
+	case configuration.PostgreSQL != nil:
 		validatePostgreSQLConfiguration(configuration.PostgreSQL, validator)
-	} else if configuration.Local != nil {
+	case configuration.Local != nil:
 		validateLocalStorageConfiguration(configuration.Local, validator)
 	}
 }

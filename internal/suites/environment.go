@@ -19,6 +19,7 @@ func waitUntilServiceLogDetected(
 	service string,
 	logPatterns []string) error {
 	log.Debug("Waiting for service " + service + " to be ready...")
+
 	err := utils.CheckUntil(5*time.Second, 1*time.Minute, func() (bool, error) {
 		logs, err := dockerEnvironment.Logs(service, []string{"--tail", "20"})
 		fmt.Printf(".")
@@ -35,6 +36,7 @@ func waitUntilServiceLogDetected(
 	})
 
 	fmt.Print("\n")
+
 	return err
 }
 
@@ -68,6 +70,8 @@ func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
 			return err
 		}
 	}
+
 	log.Info("Authelia is now ready!")
+
 	return nil
 }

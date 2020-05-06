@@ -50,6 +50,7 @@ func getSecretValue(name string, validator *schema.StructValidator, viper *viper
 	if envValue != "" && fileEnvValue != "" {
 		validator.Push(fmt.Errorf("secret is defined in multiple areas: %s", name))
 	}
+
 	if (envValue != "" || fileEnvValue != "") && configValue != "" {
 		validator.Push(fmt.Errorf("error loading secret (%s): it's already defined in the config file", name))
 	}
@@ -63,9 +64,11 @@ func getSecretValue(name string, validator *schema.StructValidator, viper *viper
 			return strings.Replace(string(content), "\n", "", -1)
 		}
 	}
+
 	if envValue != "" {
 		logging.Logger().Warnf("The following secret is defined as an environment variable, this is insecure and being removed in 4.18.0+, it's recommended to use the file secrets instead (https://docs.authelia.com/configuration/secrets.html): %s", name)
 		return envValue
 	}
+
 	return configValue
 }

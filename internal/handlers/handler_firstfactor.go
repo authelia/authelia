@@ -17,7 +17,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	err := ctx.ParseBody(&bodyJSON)
 
 	if err != nil {
-		ctx.Error(err, authenticationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, err, authenticationFailedMessage)
 		return
 	}
 
@@ -25,10 +25,12 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		if err == regulation.ErrUserIsBanned {
-			ctx.Error(fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), userBannedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), userBannedMessage)
 			return
 		}
-		ctx.Error(fmt.Errorf("Unable to regulate authentication: %s", err), authenticationFailedMessage)
+
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regulate authentication: %s", err.Error()), authenticationFailedMessage)
+
 		return
 	}
 
@@ -38,7 +40,8 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 		ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
-		ctx.Error(fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+
 		return
 	}
 
@@ -46,7 +49,10 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 		ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
+
 		ctx.ReplyError(fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
+
 		return
 	}
 
@@ -56,7 +62,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	err = ctx.Providers.Regulator.Mark(bodyJSON.Username, true)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to mark authentication: %s", err), authenticationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to mark authentication: %s", err.Error()), authenticationFailedMessage)
 		return
 	}
 
@@ -64,14 +70,14 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	err = ctx.SaveSession(session.NewDefaultUserSession())
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 		return
 	}
 
 	err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 		return
 	}
 
@@ -82,7 +88,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	if keepMeLoggedIn {
 		err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, ctx.Providers.SessionProvider.RememberMe)
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 			return
 		}
 	}
@@ -91,7 +97,7 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	userDetails, err := ctx.Providers.UserProvider.GetDetails(bodyJSON.Username)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Error while retrieving details from user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error while retrieving details from user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 		return
 	}
 
@@ -106,13 +112,15 @@ func FirstFactorPost(ctx *middlewares.AutheliaCtx) {
 	userSession.LastActivity = time.Now().Unix()
 	userSession.KeepMeLoggedIn = keepMeLoggedIn
 	refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend)
+
 	if refresh {
 		userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
 	}
+
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to save session of user %s", bodyJSON.Username), authenticationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to save session of user %s", bodyJSON.Username), authenticationFailedMessage)
 		return
 	}
 

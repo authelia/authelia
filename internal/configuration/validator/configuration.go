@@ -45,6 +45,7 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	if configuration.TOTP == nil {
 		configuration.TOTP = &schema.DefaultTOTPConfiguration
 	}
+
 	ValidateTOTP(configuration.TOTP, validator)
 
 	ValidateAuthenticationBackend(&configuration.AuthenticationBackend, validator)
@@ -58,6 +59,7 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	if configuration.Regulation == nil {
 		configuration.Regulation = &schema.DefaultRegulationConfiguration
 	}
+
 	ValidateRegulation(configuration.Regulation, validator)
 
 	ValidateServer(&configuration.Server, validator)

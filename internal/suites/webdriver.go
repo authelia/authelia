@@ -94,6 +94,7 @@ func WithWebdriver(fn func(webdriver selenium.WebDriver) error) error {
 // Wait wait until condition holds true.
 func (wds *WebDriverSession) Wait(ctx context.Context, condition selenium.Condition) error {
 	done := make(chan error, 1)
+
 	go func() {
 		done <- wds.WebDriver.Wait(condition)
 	}()
@@ -108,6 +109,7 @@ func (wds *WebDriverSession) Wait(ctx context.Context, condition selenium.Condit
 
 func (wds *WebDriverSession) waitElementLocated(ctx context.Context, t *testing.T, by, value string) selenium.WebElement {
 	var el selenium.WebElement
+
 	err := wds.Wait(ctx, func(driver selenium.WebDriver) (bool, error) {
 		var err error
 		el, err = driver.FindElement(by, value)
@@ -124,11 +126,13 @@ func (wds *WebDriverSession) waitElementLocated(ctx context.Context, t *testing.
 
 	require.NoError(t, err)
 	require.NotNil(t, el)
+
 	return el
 }
 
 func (wds *WebDriverSession) waitElementsLocated(ctx context.Context, t *testing.T, by, value string) []selenium.WebElement {
 	var el []selenium.WebElement
+
 	err := wds.Wait(ctx, func(driver selenium.WebDriver) (bool, error) {
 		var err error
 		el, err = driver.FindElements(by, value)
@@ -145,6 +149,7 @@ func (wds *WebDriverSession) waitElementsLocated(ctx context.Context, t *testing
 
 	require.NoError(t, err)
 	require.NotNil(t, el)
+
 	return el
 }
 
