@@ -29,7 +29,7 @@ func ConfigAlgoToCryptoAlgo(fromConfig string) (CryptAlgo, error) {
 	case argon2id:
 		return HashingAlgorithmArgon2id, nil
 	case sha512:
-		return sha512, nil
+		return HashingAlgorithmSHA512, nil
 	default:
 		return HashingAlgorithmArgon2id, errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
 	}
