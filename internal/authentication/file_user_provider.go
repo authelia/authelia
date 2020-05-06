@@ -41,13 +41,13 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 	database, err := readDatabase(configuration.Path)
 	if err != nil {
 		// Panic since the file does not exist when Authelia is starting.
-		panic(err.Error())
+		panic(err)
 	}
 
 	// Early check whether hashed passwords are correct for all users
 	err = checkPasswordHashes(database)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	var cryptAlgo CryptAlgo = HashingAlgorithmArgon2id
