@@ -90,10 +90,10 @@ func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
 	s.doRegisterThenLogout(ctx, s.T(), testUsername, testPassword)
 
 	wrongPasscode := "123456"
+
 	s.doLoginOneFactor(ctx, s.T(), testUsername, testPassword, false, "")
 	s.verifyIsSecondFactorPage(ctx, s.T())
 	s.doEnterOTP(ctx, s.T(), wrongPasscode)
-
 	s.verifyNotificationDisplayed(ctx, s.T(), "The one-time password might be wrong")
 }
 

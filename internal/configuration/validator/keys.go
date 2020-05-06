@@ -11,6 +11,7 @@ import (
 // ValidateKeys determines if a provided key is valid.
 func ValidateKeys(validator *schema.StructValidator, keys []string) {
 	var errStrings []string
+
 	for _, key := range keys {
 		if utils.IsStringInSlice(key, validKeys) {
 			continue
@@ -24,6 +25,7 @@ func ValidateKeys(validator *schema.StructValidator, keys []string) {
 			validator.Push(fmt.Errorf("config key not expected: %s", key))
 		}
 	}
+
 	for _, err := range errStrings {
 		validator.Push(errors.New(err))
 	}

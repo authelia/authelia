@@ -12,6 +12,7 @@ import (
 func buildAutheliaBinary() {
 	cmd := utils.CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia")
 	cmd.Dir = "cmd/authelia"
+
 	cmd.Env = append(os.Environ(),
 		"GOOS=linux", "GOARCH=amd64", "CGO_ENABLED=1")
 
@@ -34,6 +35,7 @@ func buildFrontend() {
 	// Then build the frontend.
 	cmd = utils.CommandWithStdout("yarn", "build")
 	cmd.Dir = webDirectory
+
 	cmd.Env = append(os.Environ(), "INLINE_RUNTIME_CHUNK=false")
 
 	if err := cmd.Run(); err != nil {

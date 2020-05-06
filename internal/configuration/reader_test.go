@@ -58,6 +58,7 @@ func TestShouldParseConfigFile(t *testing.T) {
 
 func TestShouldParseAltConfigFile(t *testing.T) {
 	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD", "postgres_secret_from_env"))
+
 	config, errors := Read("./test_resources/config_alt.yml")
 	require.Len(t, errors, 0)
 
@@ -98,6 +99,7 @@ func TestShouldNotParseConfigFileWithOldOrUnexpectedKeys(t *testing.T) {
 
 func TestShouldValidateConfigurationTemplate(t *testing.T) {
 	resetEnv()
+
 	_, errors := Read("../../config.template.yml")
 	assert.Len(t, errors, 0)
 }
@@ -112,6 +114,7 @@ func TestShouldOnlyAllowOneEnvType(t *testing.T) {
 	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD", "ldap_secret_from_env"))
 	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD", "smtp_secret_from_env"))
 	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD", "redis_secret_from_env"))
+
 	_, errors := Read("./test_resources/config_alt.yml")
 
 	require.Len(t, errors, 2)
@@ -128,6 +131,7 @@ func TestShouldOnlyAllowEnvOrConfig(t *testing.T) {
 	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD", "ldap_secret_from_env"))
 	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD", "smtp_secret_from_env"))
 	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD", "redis_secret_from_env"))
+
 	_, errors := Read("./test_resources/config_with_secret.yml")
 
 	require.Len(t, errors, 1)

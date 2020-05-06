@@ -42,9 +42,11 @@ func (n *FileNotifier) StartupCheck() (bool, error) {
 			return false, err
 		}
 	}
+
 	if err := ioutil.WriteFile(n.path, []byte(""), fileNotifierMode); err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
@@ -57,5 +59,6 @@ func (n *FileNotifier) Send(recipient, subject, body string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

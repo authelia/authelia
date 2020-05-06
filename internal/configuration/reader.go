@@ -43,6 +43,7 @@ func Read(configPath string) (*schema.Configuration, []error) {
 	}
 
 	var configuration schema.Configuration
+
 	viper.Unmarshal(&configuration) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	val := schema.NewStructValidator()

@@ -38,7 +38,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
 
 	// No body
 	assert.Equal(s.T(), "Unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
@@ -50,7 +50,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Unable to validate body: password: non zero value required", s.mock.Hook.LastEntry().Message)
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
@@ -76,7 +76,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Error while checking password for user test: Failed", s.mock.Hook.LastEntry().Message)
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCredentials() {
@@ -127,7 +127,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Error while retrieving details from user test: Failed", s.mock.Hook.LastEntry().Message)
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
@@ -150,7 +150,7 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 	FirstFactorPost(firstFactorSuiteDefaultConfig)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Unable to mark authentication: failed", s.mock.Hook.LastEntry().Message)
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {

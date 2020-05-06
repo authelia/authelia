@@ -153,6 +153,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 		AuthLevel        authentication.Level
 		ExpectedMatching authorizationMatching
 	}
+
 	rules := []Rule{
 		{"bypass", authentication.NotAuthenticated, Authorized},
 		{"bypass", authentication.OneFactor, Authorized},
@@ -679,6 +680,7 @@ func TestIsDomainProtected(t *testing.T) {
 	GetURL := func(u string) *url.URL {
 		x, err := url.ParseRequestURI(u)
 		require.NoError(t, err)
+
 		return x
 	}
 
@@ -701,6 +703,7 @@ func TestSchemeIsHTTPS(t *testing.T) {
 	GetURL := func(u string) *url.URL {
 		x, err := url.ParseRequestURI(u)
 		require.NoError(t, err)
+
 		return x
 	}
 
@@ -718,6 +721,7 @@ func TestSchemeIsWSS(t *testing.T) {
 	GetURL := func(u string) *url.URL {
 		x, err := url.ParseRequestURI(u)
 		require.NoError(t, err)
+
 		return x
 	}
 
@@ -854,6 +858,7 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 	}
 
 	verifyGet := VerifyGet(verifyGetCfg)
+
 	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(2)
 
 	clock := mocks.TestingClock{}
@@ -968,6 +973,7 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 
 	// Reset otherwise we get the last 403 when we check the Response. Is there a better way to do this?
 	mock.Close()
+
 	mock = mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 	err = mock.Ctx.SaveSession(userSession)

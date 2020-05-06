@@ -51,6 +51,7 @@ func (wds *WebDriverSession) doLoginAndRegisterTOTP(ctx context.Context, t *test
 	secret := wds.doRegisterTOTP(ctx, t)
 	wds.doVisit(t, LoginBaseURL)
 	wds.verifyIsSecondFactorPage(ctx, t)
+
 	return secret
 }
 
@@ -59,5 +60,6 @@ func (wds *WebDriverSession) doRegisterAndLogin2FA(ctx context.Context, t *testi
 	// Register TOTP secret and logout.
 	secret := wds.doRegisterThenLogout(ctx, t, username, password)
 	wds.doLoginTwoFactor(ctx, t, username, password, keepMeLoggedIn, secret, targetURL)
+
 	return secret
 }

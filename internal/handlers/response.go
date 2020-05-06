@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/utils"
@@ -17,6 +19,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username 
 		} else {
 			ctx.ReplyOK()
 		}
+
 		return
 	}
 
@@ -37,6 +40,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username 
 	if requiredLevel == authorization.TwoFactor {
 		ctx.Logger.Warnf("%s requires 2FA, cannot be redirected yet", targetURI)
 		ctx.ReplyOK()
+
 		return
 	}
 
@@ -48,10 +52,12 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username 
 		} else {
 			ctx.ReplyOK()
 		}
+
 		return
 	}
 
 	ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
+
 	response := redirectResponse{Redirect: targetURI}
 	ctx.SetJSONBody(response) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
@@ -64,6 +70,7 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		} else {
 			ctx.ReplyOK()
 		}
+
 		return
 	}
 
@@ -79,4 +86,10 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	} else {
 		ctx.ReplyOK()
 	}
+}
+
+// handleAuthenticationUnauthorized provides harmonized response codes for 1FA.
+func handleAuthenticationUnauthorized(ctx *middlewares.AutheliaCtx, err error, message string) {
+	ctx.SetStatusCode(fasthttp.StatusUnauthorized)
+	ctx.Error(err, message)
 }

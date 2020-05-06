@@ -108,6 +108,7 @@ func listSuites() []string {
 	suiteNames := make([]string, 0)
 	suiteNames = append(suiteNames, suites.GlobalRegistry.Suites()...)
 	sort.Strings(suiteNames)
+
 	return suiteNames
 }
 
@@ -119,6 +120,7 @@ func checkSuiteAvailable(suite string) error {
 			return nil
 		}
 	}
+
 	return ErrNotAvailableSuite
 }
 
@@ -130,6 +132,7 @@ func runSuiteSetupTeardown(command string, suite string) error {
 		if err == ErrNotAvailableSuite {
 			log.Fatal(errors.New("Suite named " + selectedSuite + " does not exist"))
 		}
+
 		log.Fatal(err)
 	}
 
@@ -139,6 +142,7 @@ func runSuiteSetupTeardown(command string, suite string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
+
 	return utils.RunCommandWithTimeout(cmd, s.SetUpTimeout)
 }
 
@@ -147,6 +151,7 @@ func runOnSetupTimeout(suite string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
+
 	return utils.RunCommandWithTimeout(cmd, 15*time.Second)
 }
 
@@ -155,11 +160,13 @@ func runOnError(suite string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
+
 	return utils.RunCommandWithTimeout(cmd, 15*time.Second)
 }
 
 func setupSuite(suiteName string) error {
 	log.Infof("Setup environment for suite %s...", suiteName)
+
 	signalChannel := make(chan os.Signal)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 
@@ -167,6 +174,7 @@ func setupSuite(suiteName string) error {
 
 	go func() {
 		<-signalChannel
+
 		interrupted = true
 	}()
 
@@ -174,7 +182,9 @@ func setupSuite(suiteName string) error {
 		if errSetup == utils.ErrTimeoutReached {
 			runOnSetupTimeout(suiteName) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 		}
+
 		teardownSuite(suiteName) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
 		return errSetup
 	}
 
@@ -230,6 +240,7 @@ func getRunningSuite() (string, error) {
 	}
 
 	b, err := ioutil.ReadFile(runningSuiteFile)
+
 	return string(b), err
 }
 
@@ -247,6 +258,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	if suite.TestTimeout > 0 {
 		timeout = fmt.Sprintf("%ds", int64(suite.TestTimeout/time.Second))
 	}
+
 	testCmdLine := fmt.Sprintf("go test -count=1 -v ./internal/suites -timeout %s ", timeout)
 
 	if testPattern != "" {
@@ -262,6 +274,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
+
 	if headless {
 		cmd.Env = append(cmd.Env, "HEADLESS=y")
 	}
@@ -293,16 +306,20 @@ func runMultipleSuitesTests(suiteNames []string, withEnv bool) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
 func runAllSuites() error {
 	log.Info("Start running all suites")
+
 	for _, s := range listSuites() {
 		if err := runSuiteTests(s, true); err != nil {
 			return err
 		}
 	}
+
 	log.Info("All suites passed successfully")
+
 	return nil
 }

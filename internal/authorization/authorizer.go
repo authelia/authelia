@@ -47,13 +47,14 @@ func selectMatchingSubjectRules(rules []schema.ACLRule, subject Subject) []schem
 	selectedRules := []schema.ACLRule{}
 
 	for _, rule := range rules {
-		if len(rule.Subjects) > 0 {
+		switch {
+		case len(rule.Subjects) > 0:
 			for _, subjectRule := range rule.Subjects {
 				if isSubjectMatching(subject, subjectRule) && isIPMatching(subject.IP, rule.Networks) {
 					selectedRules = append(selectedRules, rule)
 				}
 			}
-		} else {
+		default:
 			if isIPMatching(subject.IP, rule.Networks) {
 				selectedRules = append(selectedRules, rule)
 			}
@@ -71,6 +72,7 @@ func selectMatchingObjectRules(rules []schema.ACLRule, object Object) []schema.A
 			selectedRules = append(selectedRules, rule)
 		}
 	}
+
 	return selectedRules
 }
 
@@ -123,6 +125,7 @@ func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL) Level
 	if len(matchingRules) > 0 {
 		return PolicyToLevel(matchingRules[0].Policy)
 	}
+
 	logging.Logger().Tracef("No matching rule for subject %s and url %s... Applying default policy.",
 		subject.String(), requestURL.String())
 
@@ -141,5 +144,6 @@ func (p *Authorizer) IsURLMatchingRuleWithGroupSubjects(requestURL url.URL) (has
 			}
 		}
 	}
+
 	return false
 }

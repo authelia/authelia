@@ -40,11 +40,12 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 		}
 
 		//Salt Length
-		if configuration.Password.SaltLength == 0 {
+		switch {
+		case configuration.Password.SaltLength == 0:
 			configuration.Password.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
-		} else if configuration.Password.SaltLength < 2 {
+		case configuration.Password.SaltLength < 2:
 			validator.Push(fmt.Errorf("The salt length must be 2 or more, you configured %d", configuration.Password.SaltLength))
-		} else if configuration.Password.SaltLength > 16 {
+		case configuration.Password.SaltLength > 16:
 			validator.Push(fmt.Errorf("The salt length must be 16 or less, you configured %d", configuration.Password.SaltLength))
 		}
 
@@ -137,10 +138,8 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 
 	if configuration.GroupsFilter == "" {
 		validator.Push(errors.New("Please provide a groups filter with `groups_filter` attribute"))
-	} else {
-		if !strings.HasPrefix(configuration.GroupsFilter, "(") || !strings.HasSuffix(configuration.GroupsFilter, ")") {
-			validator.Push(errors.New("The groups filter should contain enclosing parenthesis. For instance cn={input} should be (cn={input})"))
-		}
+	} else if !strings.HasPrefix(configuration.GroupsFilter, "(") || !strings.HasSuffix(configuration.GroupsFilter, ")") {
+		validator.Push(errors.New("The groups filter should contain enclosing parenthesis. For instance cn={input} should be (cn={input})"))
 	}
 
 	if configuration.UsernameAttribute == "" {

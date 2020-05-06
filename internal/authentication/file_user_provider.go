@@ -61,6 +61,7 @@ func checkPasswordHashes(database *DatabaseModel) error {
 		}
 		database.Users[u] = v
 	}
+
 	return nil
 }
 
@@ -69,7 +70,9 @@ func readDatabase(path string) (*DatabaseModel, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read database from file %s: %s", path, err)
 	}
+
 	db := DatabaseModel{}
+
 	err = yaml.Unmarshal(content, &db)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse database: %s", err)
@@ -83,16 +86,19 @@ func readDatabase(path string) (*DatabaseModel, error) {
 	if !ok {
 		return nil, fmt.Errorf("The database format is invalid: %s", err)
 	}
+
 	return &db, nil
 }
 
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *FileUserProvider) CheckUserPassword(username string, password string) (bool, error) {
 	if details, ok := p.database.Users[username]; ok {
+
 		ok, err := CheckPassword(password, details.HashedPassword)
 		if err != nil {
 			return false, err
 		}
+
 		return ok, nil
 	}
 
@@ -108,6 +114,7 @@ func (p *FileUserProvider) GetDetails(username string) (*UserDetails, error) {
 			Emails:   []string{details.Email},
 		}, nil
 	}
+
 	return nil, fmt.Errorf("User '%s' does not exist in database", username)
 }
 
@@ -131,7 +138,9 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	if err != nil {
 		return err
 	}
+
 	details.HashedPassword = hash
+
 	p.lock.Lock()
 	p.database.Users[username] = details
 
@@ -140,7 +149,9 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		p.lock.Unlock()
 		return err
 	}
+
 	err = ioutil.WriteFile(p.configuration.Path, b, fileAuthenticationMode)
 	p.lock.Unlock()
+
 	return err
 }

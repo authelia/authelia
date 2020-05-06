@@ -48,6 +48,7 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 	if h.Key != parts[len(parts)-1] {
 		return nil, fmt.Errorf("Hash key is not the last parameter, the hash is likely malformed (%s)", hash)
 	}
+
 	if h.Key == "" {
 		return nil, fmt.Errorf("Hash key contains no characters or the field length is invalid (%s)", hash)
 	}
@@ -61,6 +62,7 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 	case HashingAlgorithmSHA512:
 		h.Iterations = parameters.GetInt("rounds", HashingDefaultSHA512Iterations)
 		h.Algorithm = HashingAlgorithmSHA512
+
 		if parameters["rounds"] != "" && parameters["rounds"] != strconv.Itoa(h.Iterations) {
 			return nil, fmt.Errorf("SHA512 iterations is not numeric (%s)", parameters["rounds"])
 		}
@@ -70,10 +72,12 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 			if version == 0 {
 				return nil, fmt.Errorf("Argon2id version parameter not found (%s)", hash)
 			}
+
 			return nil, fmt.Errorf("Argon2id versions less than v19 are not supported (hash is version %d)", version)
 		} else if version > 19 {
 			return nil, fmt.Errorf("Argon2id versions greater than v19 are not supported (hash is version %d)", version)
 		}
+
 		h.Algorithm = HashingAlgorithmArgon2id
 		h.Memory = parameters.GetInt("m", HashingDefaultArgon2idMemory)
 		h.Iterations = parameters.GetInt("t", HashingDefaultArgon2idTime)
@@ -81,15 +85,18 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 		h.KeyLength = parameters.GetInt("k", HashingDefaultArgon2idKeyLength)
 
 		decodedKey, err := crypt.Base64Encoding.DecodeString(h.Key)
+
 		if err != nil {
 			return nil, errors.New("Hash key contains invalid base64 characters")
 		}
+
 		if len(decodedKey) != h.KeyLength {
 			return nil, fmt.Errorf("Argon2id key length parameter (%d) does not match the actual key length (%d)", h.KeyLength, len(decodedKey))
 		}
 	default:
 		return nil, fmt.Errorf("Authelia only supports salted SHA512 hashing ($6$) and salted argon2id ($argon2id$), not $%s$", code)
 	}
+
 	return h, nil
 }
 
@@ -117,6 +124,7 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 
 	// This error can be ignored because we check for it before a user gets here.
 	hash, _ = crypt.Crypt(password, settings)
+
 	return hash, nil
 }
 
@@ -126,10 +134,12 @@ func CheckPassword(password, hash string) (ok bool, err error) {
 	if err != nil {
 		return false, err
 	}
+
 	expectedHash, err := HashPassword(password, passwordHash.Salt, passwordHash.Algorithm, passwordHash.Iterations, passwordHash.Memory, passwordHash.Parallelism, passwordHash.KeyLength, len(passwordHash.Salt))
 	if err != nil {
 		return false, err
 	}
+
 	return hash == expectedHash, nil
 }
 
@@ -143,6 +153,7 @@ func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, para
 	default:
 		panic("invalid password hashing algorithm provided")
 	}
+
 	return settings
 }
 
