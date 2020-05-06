@@ -25,12 +25,14 @@ type PasswordHash struct {
 
 // ConfigAlgoToCryptoAlgo returns a CryptAlgo and nil error if valid, otherwise it returns argon2id and an error.
 func ConfigAlgoToCryptoAlgo(fromConfig string) (CryptAlgo, error) {
-	if fromConfig == "argon2id" {
+	switch fromConfig {
+	case argon2id:
 		return HashingAlgorithmArgon2id, nil
-	} else if fromConfig == sha512 {
-		return HashingAlgorithmSHA512, nil
+	case sha512:
+		return sha512, nil
+	default:
+		return HashingAlgorithmArgon2id, errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
 	}
-	return HashingAlgorithmArgon2id, errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
 }
 
 // ParseHash extracts all characteristics of a hash given its string representation.
@@ -172,9 +174,11 @@ func validateSalt(salt string, saltLength int) (string, error) {
 	} else if _, err := crypt.Base64Encoding.DecodeString(salt); err != nil {
 		return "", fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input", salt)
 	}
+
 	if salt == "" {
 		return utils.RandomString(saltLength, HashingPossibleSaltCharacters), nil
 	}
+
 	return salt, nil
 }
 
@@ -184,18 +188,23 @@ func validateArgon2idSettings(memory, parallelism, iterations, keyLength int) er
 	if memory < 8 {
 		return fmt.Errorf("Memory (argon2id) input of %d is invalid, it must be 8 or higher", memory)
 	}
+
 	if parallelism < 1 {
 		return fmt.Errorf("Parallelism (argon2id) input of %d is invalid, it must be 1 or higher", parallelism)
 	}
+
 	if memory < parallelism*8 {
 		return fmt.Errorf("Memory (argon2id) input of %d is invalid with a parallelism input of %d, it must be %d (parallelism * 8) or higher", memory, parallelism, parallelism*8)
 	}
+
 	if keyLength < 16 {
 		return fmt.Errorf("Key length (argon2id) input of %d is invalid, it must be 16 or higher", keyLength)
 	}
+
 	if iterations < 1 {
 		return fmt.Errorf("Iterations (argon2id) input of %d is invalid, it must be 1 or more", iterations)
 	}
+
 	// Caution: Increasing any of the values in the above block has a high chance in old passwords that cannot be verified.
 	return nil
 }

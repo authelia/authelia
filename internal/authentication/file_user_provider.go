@@ -56,9 +56,11 @@ func checkPasswordHashes(database *DatabaseModel) error {
 	for u, v := range database.Users {
 		v.HashedPassword = strings.ReplaceAll(v.HashedPassword, "{CRYPT}", "")
 		_, err := ParseHash(v.HashedPassword)
+
 		if err != nil {
 			return fmt.Errorf("Unable to parse hash of user %s: %s", u, err)
 		}
+
 		database.Users[u] = v
 	}
 
@@ -93,7 +95,6 @@ func readDatabase(path string) (*DatabaseModel, error) {
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *FileUserProvider) CheckUserPassword(username string, password string) (bool, error) {
 	if details, ok := p.database.Users[username]; ok {
-
 		ok, err := CheckPassword(password, details.HashedPassword)
 		if err != nil {
 			return false, err

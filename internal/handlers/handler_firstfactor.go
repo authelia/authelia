@@ -18,13 +18,16 @@ func getDelayAuthSettings(config schema.AuthenticationBackendConfiguration) (boo
 	log := logging.Logger()
 
 	if !config.DisableDelayAuth {
-		rand.Seed(time.Now().UnixNano())
 		var duration time.Duration
+
+		rand.Seed(time.Now().UnixNano())
+
 		if config.File != nil {
 			algorithm, err := authentication.ConfigAlgoToCryptoAlgo(config.File.Password.Algorithm)
 			if err != nil {
 				panic(err)
 			}
+
 			password := utils.RandomString(20, authentication.HashingPossibleSaltCharacters)
 			start := time.Now()
 			_, _ = authentication.HashPassword(password, "",
@@ -33,15 +36,20 @@ func getDelayAuthSettings(config schema.AuthenticationBackendConfiguration) (boo
 				config.File.Password.KeyLength, config.File.Password.SaltLength)
 			duration = time.Since(start) + (time.Duration(rand.Int31n(50) + 150))
 		}
+
 		if duration < 450*time.Millisecond {
 			duration = time.Duration(rand.Intn(50)+450) * time.Millisecond
 		}
+
 		log.Debugf("1FA authentication requests will not return to clients until %dms after the request was received "+
 			"to prevent username enumeration.", duration/time.Millisecond)
+
 		return true, duration
 	}
+
 	log.Warn("1FA authentication requests will not be delayed as it has been disabled by configuration option " +
 		"authentication_backend.disable_delay_auth, this reduces security and is not recommended.")
+
 	return false, 0 * time.Millisecond
 }
 
@@ -65,6 +73,7 @@ func doDelayAuth(ctx *middlewares.AutheliaCtx, username string, receivedTime tim
 		ctx.Logger.Debugf("Starting the authentication delay of user %s for %dms", username, sleepFor/time.Millisecond)
 		time.Sleep(sleepFor)
 	}
+
 	ctx.Logger.Warnf("Skipping the authentication delay of user %s since authentication took longer than the expected delay", username)
 }
 
@@ -79,7 +88,7 @@ func FirstFactorPost(cfg schema.AuthenticationBackendConfiguration) middlewares.
 		err := ctx.ParseBody(&bodyJSON)
 
 		if err != nil {
-			ctx.Error(err, authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, err, authenticationFailedMessage)
 			return
 		}
 
@@ -87,10 +96,12 @@ func FirstFactorPost(cfg schema.AuthenticationBackendConfiguration) middlewares.
 
 		if err != nil {
 			if err == regulation.ErrUserIsBanned {
-				ctx.Error(fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), userBannedMessage)
+				handleAuthenticationUnauthorized(ctx, fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), authenticationFailedMessage)
 				return
 			}
-			ctx.Error(fmt.Errorf("Unable to regulate authentication: %s", err), authenticationFailedMessage)
+
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regulate authentication: %s", err), authenticationFailedMessage)
+
 			return
 		}
 
@@ -101,15 +112,19 @@ func FirstFactorPost(cfg schema.AuthenticationBackendConfiguration) middlewares.
 			ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 			doDelayAuth(ctx, bodyJSON.Username, receivedTime, delayAuth, false, &delayAuthDuration)
-			ctx.Error(fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+
 			return
 		}
+
 		doDelayAuth(ctx, bodyJSON.Username, receivedTime, delayAuth, true, &delayAuthDuration)
+
 		if !userPasswordOk {
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 			ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
-			ctx.ReplyError(fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
+
 			return
 		}
 
@@ -119,7 +134,7 @@ func FirstFactorPost(cfg schema.AuthenticationBackendConfiguration) middlewares.
 		err = ctx.Providers.Regulator.Mark(bodyJSON.Username, true)
 
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to mark authentication: %s", err), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to mark authentication: %s", err), authenticationFailedMessage)
 			return
 		}
 
@@ -127,14 +142,14 @@ func FirstFactorPost(cfg schema.AuthenticationBackendConfiguration) middlewares.
 		err = ctx.SaveSession(session.NewDefaultUserSession())
 
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
 			return
 		}
 
 		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
 			return
 		}
 
@@ -145,7 +160,7 @@ func FirstFactorPost(cfg schema.AuthenticationBackendConfiguration) middlewares.
 		if keepMeLoggedIn {
 			err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, ctx.Providers.SessionProvider.RememberMe)
 			if err != nil {
-				ctx.Error(fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
+				handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err), authenticationFailedMessage)
 				return
 			}
 		}
@@ -154,7 +169,7 @@ func FirstFactorPost(cfg schema.AuthenticationBackendConfiguration) middlewares.
 		userDetails, err := ctx.Providers.UserProvider.GetDetails(bodyJSON.Username)
 
 		if err != nil {
-			ctx.Error(fmt.Errorf("Error while retrieving details from user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error while retrieving details from user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 			return
 		}
 
@@ -169,13 +184,15 @@ func FirstFactorPost(cfg schema.AuthenticationBackendConfiguration) middlewares.
 		userSession.LastActivity = time.Now().Unix()
 		userSession.KeepMeLoggedIn = keepMeLoggedIn
 		refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend)
+
 		if refresh {
 			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
 		}
+
 		err = ctx.SaveSession(userSession)
 
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to save session of user %s", bodyJSON.Username), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to save session of user %s", bodyJSON.Username), authenticationFailedMessage)
 			return
 		}
 
