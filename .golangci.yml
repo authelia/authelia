@@ -16,6 +16,7 @@ linters:
   enable:
     - asciicheck
     - goconst
+    - gocritic
     - gocyclo
     - godot
     - gofmt

@@ -47,13 +47,14 @@ func selectMatchingSubjectRules(rules []schema.ACLRule, subject Subject) []schem
 	selectedRules := []schema.ACLRule{}
 
 	for _, rule := range rules {
-		if len(rule.Subjects) > 0 {
+		switch {
+		case len(rule.Subjects) > 0:
 			for _, subjectRule := range rule.Subjects {
 				if isSubjectMatching(subject, subjectRule) && isIPMatching(subject.IP, rule.Networks) {
 					selectedRules = append(selectedRules, rule)
 				}
 			}
-		} else {
+		default:
 			if isIPMatching(subject.IP, rule.Networks) {
 				selectedRules = append(selectedRules, rule)
 			}

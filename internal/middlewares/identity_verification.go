@@ -130,14 +130,15 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 
 		if err != nil {
 			if ve, ok := err.(*jwt.ValidationError); ok {
-				if ve.Errors&jwt.ValidationErrorMalformed != 0 {
+				switch {
+				case ve.Errors&jwt.ValidationErrorMalformed != 0:
 					ctx.Error(fmt.Errorf("Cannot parse token"), operationFailedMessage)
 					return
-				} else if ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
+				case ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0:
 					// Token is either expired or not active yet
 					ctx.Error(fmt.Errorf("Token expired"), identityVerificationTokenHasExpiredMessage)
 					return
-				} else {
+				default:
 					ctx.Error(fmt.Errorf("Cannot handle this token: %s", ve), operationFailedMessage)
 					return
 				}
