@@ -149,17 +149,32 @@ func TestShouldOnlyAllowOneEnvType(t *testing.T) {
 }
 
 func TestShouldOnlyAllowEnvOrConfig(t *testing.T) {
+	dir := "/tmp/authelia" + utils.RandomString(10, authentication.HashingPossibleSaltCharacters) + "/"
+	err := os.MkdirAll(dir, 0700)
+	require.NoError(t, err)
+
+	createTestingTempFile(t, dir, "jwt", "secret_from_env")
+	createTestingTempFile(t, dir, "duo", "duo_secret_from_env")
+	createTestingTempFile(t, dir, "session", "session_secret_from_env")
+	createTestingTempFile(t, dir, "authentication", "ldap_secret_from_env")
+	createTestingTempFile(t, dir, "notifier", "smtp_secret_from_env")
+	createTestingTempFile(t, dir, "redis", "redis_secret_from_env")
+	createTestingTempFile(t, dir, "mysql", "mysql_secret_from_env")
+
 	resetEnv()
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD", "mysql_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET", "secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY", "duo_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET", "session_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD", "ldap_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD", "smtp_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD", "redis_secret_from_env"))
+	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", dir+"jwt"))
+	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY_FILE", dir+"duo"))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET_FILE", dir+"session"))
+	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", dir+"authentication"))
+	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE", dir+"notifier"))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD_FILE", dir+"redis"))
+	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE", dir+"mysql"))
 
 	_, errors := Read("./test_resources/config_with_secret.yml")
 
 	require.Len(t, errors, 1)
 	require.EqualError(t, errors[0], "error loading secret (jwt_secret): it's already defined in the config file")
+
+	err = os.RemoveAll(dir)
+	assert.NoError(t, err)
 }
