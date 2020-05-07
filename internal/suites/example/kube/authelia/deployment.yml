@@ -54,6 +54,7 @@ spec:
               - key: cert.pem
                 path: cert.pem
               - key: key.pem
+                path: key.pem
         - name: secrets
           secret:
             secretName: authelia
