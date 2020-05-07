@@ -22,7 +22,7 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		configuration.Port = defaultPort
 	}
 
-	if configuration.Path == "" {
+	if configuration.Path != "" {
 		configuration.Path = path.Clean(configuration.Path)
 	}
 
