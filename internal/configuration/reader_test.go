@@ -1,36 +1,59 @@
 package configuration
 
 import (
+	"io/ioutil"
 	"os"
+	"path"
 	"sort"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/utils"
 )
 
+func createTestingTempFile(t *testing.T, dir, name, content string) {
+	err := ioutil.WriteFile(path.Join(dir, name), []byte(content), 0700)
+	require.NoError(t, err)
+}
+
 func resetEnv() {
-	_ = os.Unsetenv("AUTHELIA_JWT_SECRET")
-	_ = os.Unsetenv("AUTHELIA_DUO_API_SECRET_KEY")
-	_ = os.Unsetenv("AUTHELIA_SESSION_SECRET")
-	_ = os.Unsetenv("AUTHELIA_SESSION_SECRET")
-	_ = os.Unsetenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD")
-	_ = os.Unsetenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD")
-	_ = os.Unsetenv("AUTHELIA_SESSION_REDIS_PASSWORD")
-	_ = os.Unsetenv("AUTHELIA_STORAGE_MYSQL_PASSWORD")
-	_ = os.Unsetenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD")
+	_ = os.Unsetenv("AUTHELIA_JWT_SECRET_FILE")
+	_ = os.Unsetenv("AUTHELIA_DUO_API_SECRET_KEY_FILE")
+	_ = os.Unsetenv("AUTHELIA_SESSION_SECRET_FILE")
+	_ = os.Unsetenv("AUTHELIA_SESSION_SECRET_FILE")
+	_ = os.Unsetenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE")
+	_ = os.Unsetenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE")
+	_ = os.Unsetenv("AUTHELIA_SESSION_REDIS_PASSWORD_FILE")
+	_ = os.Unsetenv("AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE")
+	_ = os.Unsetenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE")
 }
 
 func TestShouldParseConfigFile(t *testing.T) {
-	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET", "secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY", "duo_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET", "session_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD", "ldap_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD", "smtp_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD", "redis_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD", "mysql_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD", "postgres_secret_from_env"))
+	dir := "/tmp/authelia" + utils.RandomString(10, authentication.HashingPossibleSaltCharacters) + "/"
+	err := os.MkdirAll(dir, 0700)
+	require.NoError(t, err)
+
+	createTestingTempFile(t, dir, "jwt", "secret_from_env")
+	createTestingTempFile(t, dir, "duo", "duo_secret_from_env")
+	createTestingTempFile(t, dir, "session", "session_secret_from_env")
+	createTestingTempFile(t, dir, "authentication", "ldap_secret_from_env")
+	createTestingTempFile(t, dir, "notifier", "smtp_secret_from_env")
+	createTestingTempFile(t, dir, "redis", "redis_secret_from_env")
+	createTestingTempFile(t, dir, "mysql", "mysql_secret_from_env")
+	createTestingTempFile(t, dir, "postgres", "postgres_secret_from_env")
+
+	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", dir+"jwt"))
+	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY_FILE", dir+"duo"))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET_FILE", dir+"session"))
+	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", dir+"authentication"))
+	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE", dir+"notifier"))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD_FILE", dir+"redis"))
+	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE", dir+"mysql"))
+	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE", dir+"postgres"))
 
 	config, errors := Read("./test_resources/config.yml")
 
@@ -54,6 +77,9 @@ func TestShouldParseConfigFile(t *testing.T) {
 
 	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
 	assert.Len(t, config.AccessControl.Rules, 12)
+
+	err = os.RemoveAll(dir)
+	assert.NoError(t, err)
 }
 
 func TestShouldParseAltConfigFile(t *testing.T) {
