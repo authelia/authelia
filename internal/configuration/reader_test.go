@@ -53,6 +53,7 @@ func setupEnv(t *testing.T) string {
 	createTestingTempFile(t, dir, "postgres", "postgres_secret_from_env")
 
 	require.NoError(t, os.Setenv("AUTHELIA_TESTING_DIR", dir))
+
 	return dir
 }
 

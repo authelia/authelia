@@ -2,12 +2,18 @@ package suites
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"time"
 )
 
 var standaloneSuiteName = "Standalone"
 
 func init() {
+	_ = os.MkdirAll("/tmp/authelia/StandaloneSuite/", 0700) //nolint:gosec
+	_ = ioutil.WriteFile("/tmp/authelia/StandaloneSuite/jwt", []byte("very_important_secret"), 0600)
+	_ = ioutil.WriteFile("/tmp/authelia/StandaloneSuite/session", []byte("unsecure_session_secret"), 0600)
+
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/docker-compose.yml",
 		"internal/suites/Standalone/docker-compose.yml",
