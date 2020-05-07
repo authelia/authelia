@@ -4,6 +4,7 @@ export interface Configuration {
     ga_tracking_id: string;
     remember_me: boolean;
     reset_password: boolean;
+    path: string;
 }
 
 export interface ExtendedConfiguration {

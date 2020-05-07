@@ -40,7 +40,7 @@ const App: React.FC = () => {
 
     return (
         <NotificationsContext.Provider value={{ notification, setNotification }} >
-            <Router>
+            <Router basename={configuration?.path}>
                 <Tracker tracker={tracker}>
                     <NotificationBar onClose={() => setNotification(null)} />
                     <Switch>
