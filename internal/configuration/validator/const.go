@@ -4,6 +4,7 @@ var validKeys = []string{
 	// Root Keys.
 	"host",
 	"port",
+	"path",
 	"log_level",
 	"log_file_path",
 	"default_redirection_url",

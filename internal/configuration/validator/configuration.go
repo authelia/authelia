@@ -3,6 +3,7 @@ package validator
 import (
 	"fmt"
 	"net/url"
+	"path"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
@@ -19,6 +20,10 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 
 	if configuration.Port == 0 {
 		configuration.Port = defaultPort
+	}
+
+	if configuration.Path == "" {
+		configuration.Path = path.Clean(configuration.Path)
 	}
 
 	if configuration.TLSKey != "" && configuration.TLSCert == "" {
