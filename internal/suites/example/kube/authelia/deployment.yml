@@ -58,3 +58,12 @@ spec:
         - name: secrets
           secret:
             secretName: authelia
+            items:
+              - key: jwt_secret
+                path: jwt_secret
+              - key: session
+                path: session
+              - key: sql_password
+                path: sql_password
+              - key: ldap_password
+                path: ldap_password
