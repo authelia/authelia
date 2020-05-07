@@ -28,11 +28,13 @@ func (s *ConfigurationSuite) TestShouldReturnConfiguredGATrackingID() {
 	GATrackingID := testGATrackingID
 	s.mock.Ctx.Configuration.GoogleAnalyticsTrackingID = GATrackingID
 	s.mock.Ctx.Configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
+	s.mock.Ctx.Configuration.Path = "/"
 
 	expectedBody := ConfigurationBody{
 		GoogleAnalyticsTrackingID: GATrackingID,
 		RememberMe:                true,
 		ResetPassword:             true,
+		Path:                      "/",
 	}
 
 	ConfigurationGet(s.mock.Ctx)
@@ -43,12 +45,14 @@ func (s *ConfigurationSuite) TestShouldDisableRememberMe() {
 	GATrackingID := testGATrackingID
 	s.mock.Ctx.Configuration.GoogleAnalyticsTrackingID = GATrackingID
 	s.mock.Ctx.Configuration.Session.RememberMeDuration = "0"
+	s.mock.Ctx.Configuration.Path = "/"
 	s.mock.Ctx.Providers.SessionProvider = session.NewProvider(
 		s.mock.Ctx.Configuration.Session)
 	expectedBody := ConfigurationBody{
 		GoogleAnalyticsTrackingID: GATrackingID,
 		RememberMe:                false,
 		ResetPassword:             true,
+		Path:                      "/",
 	}
 
 	ConfigurationGet(s.mock.Ctx)
@@ -59,10 +63,12 @@ func (s *ConfigurationSuite) TestShouldDisableResetPassword() {
 	GATrackingID := testGATrackingID
 	s.mock.Ctx.Configuration.GoogleAnalyticsTrackingID = GATrackingID
 	s.mock.Ctx.Configuration.AuthenticationBackend.DisableResetPassword = true
+	s.mock.Ctx.Configuration.Path = "/"
 	expectedBody := ConfigurationBody{
 		GoogleAnalyticsTrackingID: GATrackingID,
 		RememberMe:                true,
 		ResetPassword:             false,
+		Path:                      "/",
 	}
 
 	ConfigurationGet(s.mock.Ctx)

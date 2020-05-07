@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
@@ -22,8 +23,14 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		configuration.Port = defaultPort
 	}
 
-	if configuration.Path != "" {
-		configuration.Path = path.Clean(configuration.Path)
+	if configuration.Path == "" {
+		configuration.Path = "/"
+	} else {
+		if strings.HasPrefix(configuration.Path, "/") {
+			configuration.Path = path.Clean(configuration.Path)
+		} else {
+			configuration.Path = "/" + path.Clean(configuration.Path)
+		}
 	}
 
 	if configuration.TLSKey != "" && configuration.TLSCert == "" {

@@ -12,16 +12,11 @@ type ConfigurationBody struct {
 
 // ConfigurationGet fetches configuration parameters for frontend mutation.
 func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
-	path := ctx.Configuration.Path
-	if path == "" {
-		path = "/"
-	}
-
 	body := ConfigurationBody{
 		GoogleAnalyticsTrackingID: ctx.Configuration.GoogleAnalyticsTrackingID,
 		RememberMe:                ctx.Providers.SessionProvider.RememberMe != 0,
 		ResetPassword:             !ctx.Configuration.AuthenticationBackend.DisableResetPassword,
-		Path:                      path,
+		Path:                      ctx.Configuration.Path,
 	}
 	ctx.SetJSONBody(body) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
