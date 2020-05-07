@@ -22,6 +22,7 @@ import (
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
 	embeddedAssets := "/public_html"
+	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 	// TODO: Remove in v4.18.0.
 	if os.Getenv("PUBLIC_DIR") != "" {
 		logging.Logger().Warn("PUBLIC_DIR environment variable has been deprecated, assets are now embedded.")
@@ -30,6 +31,11 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	router := router.New()
 
 	router.GET("/", ServeIndex(embeddedAssets))
+
+	for _, f := range rootFiles {
+		router.GET("/"+f, fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
+	}
+
 	router.GET("/static/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
 
 	router.GET("/api/state", autheliaMiddleware(handlers.StateGet))
