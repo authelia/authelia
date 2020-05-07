@@ -16,6 +16,7 @@ func init() {
 		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
 		"internal/suites/example/compose/traefik2/docker-compose.yml",
 		"internal/suites/example/compose/smtp/docker-compose.yml",
+		"internal/suites/example/compose/httpbin/docker-compose.yml",
 	})
 
 	setup := func(suitePath string) error {
@@ -33,13 +34,16 @@ func init() {
 		if err != nil {
 			return err
 		}
+
 		fmt.Println(backendLogs)
 
 		frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
 		if err != nil {
 			return err
 		}
+
 		fmt.Println(frontendLogs)
+
 		return nil
 	}
 

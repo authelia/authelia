@@ -36,7 +36,7 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 	code, parameters, salt, key, err := crypt.DecodeSettings(hash)
 
 	assert.NoError(t, err)
-	assert.Equal(t, "argon2id", code)
+	assert.Equal(t, argon2id, code)
 	assert.Equal(t, "BpLnfgDsc2WD8F2q", salt)
 	assert.Equal(t, "O126GHPeZ5fwj7OLSs7PndXsTbje76R+QW9/EGfhkJg", key)
 	assert.Equal(t, schema.DefaultCIPasswordConfiguration.Iterations, parameters.GetInt("t", HashingDefaultArgon2idTime))
@@ -45,12 +45,15 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 	assert.Equal(t, schema.DefaultCIPasswordConfiguration.KeyLength, parameters.GetInt("k", HashingDefaultArgon2idKeyLength))
 }
 
-// This checks the method of hashing (for argon2id) supports all the characters we allow in Authelia's hash function
+// This checks the method of hashing (for argon2id) supports all the characters we allow in Authelia's hash function.
 func TestArgon2idHashSaltValidValues(t *testing.T) {
+	var err error
+
+	var hash string
+
 	data := string(HashingPossibleSaltCharacters)
 	datas := utils.SliceString(data, 16)
-	var hash string
-	var err error
+
 	for _, salt := range datas {
 		hash, err = HashPassword("password", salt, HashingAlgorithmArgon2id, 1, 8, 1, 32, 16)
 		assert.NoError(t, err)
@@ -58,12 +61,15 @@ func TestArgon2idHashSaltValidValues(t *testing.T) {
 	}
 }
 
-// This checks the method of hashing (for sha512) supports all the characters we allow in Authelia's hash function
+// This checks the method of hashing (for sha512) supports all the characters we allow in Authelia's hash function.
 func TestSHA512HashSaltValidValues(t *testing.T) {
+	var err error
+
+	var hash string
+
 	data := string(HashingPossibleSaltCharacters)
 	datas := utils.SliceString(data, 16)
-	var hash string
-	var err error
+
 	for _, salt := range datas {
 		hash, err = HashPassword("password", salt, HashingAlgorithmSHA512, 1000, 0, 0, 0, 16)
 		assert.NoError(t, err)
@@ -299,7 +305,7 @@ func TestNumberOfRoundsNotInt(t *testing.T) {
 }
 
 func TestShouldCheckPasswordArgon2idHashedWithAuthelia(t *testing.T) {
-	password := "my;secure*password"
+	password := testPassword
 	hash, err := HashPassword(password, "", HashingAlgorithmArgon2id, schema.DefaultCIPasswordConfiguration.Iterations,
 		schema.DefaultCIPasswordConfiguration.Memory*1024, schema.DefaultCIPasswordConfiguration.Parallelism,
 		schema.DefaultCIPasswordConfiguration.KeyLength, schema.DefaultCIPasswordConfiguration.SaltLength)
@@ -313,7 +319,7 @@ func TestShouldCheckPasswordArgon2idHashedWithAuthelia(t *testing.T) {
 }
 
 func TestShouldCheckPasswordSHA512HashedWithAuthelia(t *testing.T) {
-	password := "my;secure*password"
+	password := testPassword
 	hash, err := HashPassword(password, "", HashingAlgorithmSHA512, schema.DefaultPasswordSHA512Configuration.Iterations,
 		0, 0, 0, schema.DefaultPasswordSHA512Configuration.SaltLength)
 

@@ -51,8 +51,8 @@ func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	username := "john"
-	password := "password"
+	username := testUsername
+	password := testPassword
 
 	// Login one factor
 	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")
@@ -68,7 +68,7 @@ func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 
 	// Login again with 1FA & 2FA
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, targetURL)
+	s.doLoginTwoFactor(ctx, s.T(), testUsername, testPassword, false, secret, targetURL)
 
 	// And check if the user is redirected to the secret.
 	s.verifySecretAuthorized(ctx, s.T())
@@ -87,13 +87,13 @@ func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
 	defer cancel()
 
 	// Register TOTP secret and logout.
-	s.doRegisterThenLogout(ctx, s.T(), "john", "password")
+	s.doRegisterThenLogout(ctx, s.T(), testUsername, testPassword)
 
 	wrongPasscode := "123456"
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
+
+	s.doLoginOneFactor(ctx, s.T(), testUsername, testPassword, false, "")
 	s.verifyIsSecondFactorPage(ctx, s.T())
 	s.doEnterOTP(ctx, s.T(), wrongPasscode)
-
 	s.verifyNotificationDisplayed(ctx, s.T(), "The one-time password might be wrong")
 }
 

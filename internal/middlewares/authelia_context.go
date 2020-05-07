@@ -32,6 +32,7 @@ func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration
 	autheliaCtx.Configuration = configuration
 	autheliaCtx.Logger = NewRequestLogger(autheliaCtx)
 	autheliaCtx.Clock = utils.RealClock{}
+
 	return autheliaCtx, nil
 }
 
@@ -44,6 +45,7 @@ func AutheliaMiddleware(configuration schema.Configuration, providers Providers)
 				autheliaCtx.Error(err, operationFailedMessage)
 				return
 			}
+
 			next(autheliaCtx)
 		}
 	}
@@ -62,7 +64,7 @@ func (c *AutheliaCtx) Error(err error, message string) {
 	c.Logger.Error(err)
 }
 
-// ReplyError reply with an error but does not display any stack trace in the logs
+// ReplyError reply with an error but does not display any stack trace in the logs.
 func (c *AutheliaCtx) ReplyError(err error, message string) {
 	b, marshalErr := json.Marshal(ErrorResponse{Status: "KO", Message: message})
 
@@ -75,33 +77,32 @@ func (c *AutheliaCtx) ReplyError(err error, message string) {
 	c.Logger.Debug(err)
 }
 
-// ReplyUnauthorized response sent when user is unauthorized
+// ReplyUnauthorized response sent when user is unauthorized.
 func (c *AutheliaCtx) ReplyUnauthorized() {
 	c.RequestCtx.Error(fasthttp.StatusMessage(fasthttp.StatusUnauthorized), fasthttp.StatusUnauthorized)
-	// c.Response.Header.Set("WWW-Authenticate", "Basic realm=Restricted")
 }
 
-// ReplyForbidden response sent when access is forbidden to user
+// ReplyForbidden response sent when access is forbidden to user.
 func (c *AutheliaCtx) ReplyForbidden() {
 	c.RequestCtx.Error(fasthttp.StatusMessage(fasthttp.StatusForbidden), fasthttp.StatusForbidden)
 }
 
-// XForwardedProto return the content of the header X-Forwarded-Proto
+// XForwardedProto return the content of the header X-Forwarded-Proto.
 func (c *AutheliaCtx) XForwardedProto() []byte {
 	return c.RequestCtx.Request.Header.Peek(xForwardedProtoHeader)
 }
 
-// XForwardedHost return the content of the header X-Forwarded-Host
+// XForwardedHost return the content of the header X-Forwarded-Host.
 func (c *AutheliaCtx) XForwardedHost() []byte {
 	return c.RequestCtx.Request.Header.Peek(xForwardedHostHeader)
 }
 
-// XForwardedURI return the content of the header X-Forwarded-URI
+// XForwardedURI return the content of the header X-Forwarded-URI.
 func (c *AutheliaCtx) XForwardedURI() []byte {
 	return c.RequestCtx.Request.Header.Peek(xForwardedURIHeader)
 }
 
-// XOriginalURL return the content of the header X-Original-URL
+// XOriginalURL return the content of the header X-Original-URL.
 func (c *AutheliaCtx) XOriginalURL() []byte {
 	return c.RequestCtx.Request.Header.Peek(xOriginalURLHeader)
 }
@@ -113,6 +114,7 @@ func (c *AutheliaCtx) GetSession() session.UserSession {
 		c.Logger.Error("Unable to retrieve user session")
 		return session.NewDefaultUserSession()
 	}
+
 	return userSession
 }
 
@@ -121,13 +123,13 @@ func (c *AutheliaCtx) SaveSession(userSession session.UserSession) error {
 	return c.Providers.SessionProvider.SaveSession(c.RequestCtx, userSession)
 }
 
-// ReplyOK is a helper method to reply ok
+// ReplyOK is a helper method to reply ok.
 func (c *AutheliaCtx) ReplyOK() {
 	c.SetContentType(applicationJSONContentType)
 	c.SetBody(okMessageBytes)
 }
 
-// ParseBody parse the request body into the type of value
+// ParseBody parse the request body into the type of value.
 func (c *AutheliaCtx) ParseBody(value interface{}) error {
 	err := json.Unmarshal(c.PostBody(), &value)
 
@@ -144,10 +146,11 @@ func (c *AutheliaCtx) ParseBody(value interface{}) error {
 	if !valid {
 		return fmt.Errorf("Body is not valid")
 	}
+
 	return nil
 }
 
-// SetJSONBody Set json body
+// SetJSONBody Set json body.
 func (c *AutheliaCtx) SetJSONBody(value interface{}) error {
 	b, err := json.Marshal(OKResponse{Status: "OK", Data: value})
 	if err != nil {
@@ -156,6 +159,7 @@ func (c *AutheliaCtx) SetJSONBody(value interface{}) error {
 
 	c.SetContentType("application/json")
 	c.SetBody(b)
+
 	return nil
 }
 
@@ -169,5 +173,6 @@ func (c *AutheliaCtx) RemoteIP() net.IP {
 			return net.ParseIP(strings.Trim(ips[0], " "))
 		}
 	}
+
 	return c.RequestCtx.RemoteIP()
 }

@@ -57,11 +57,11 @@ func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated
 
 	_ = s.doRegisterAndLogin2FA(ctx, s.T(), "john", "password", false, "")
 
-	// Visit home page to change context
+	// Visit home page to change context.
 	s.doVisit(s.T(), HomeBaseURL)
 	s.verifyIsHome(ctx, s.T())
 
-	// Visit the login page and wait for redirection to 2FA page with success icon displayed
+	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), LoginBaseURL)
 	s.verifyIsAuthenticatedPage(ctx, s.T())
 }
@@ -73,22 +73,22 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	username := "john"
 	password := "password"
 
-	// Clean up any TOTP secret already in DB
+	// Clean up any TOTP secret already in DB.
 	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 	require.NoError(s.T(), provider.DeleteTOTPSecret(username))
 
-	// Login one factor
+	// Login one factor.
 	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")
 
-	// Check the user is asked to register a new device
+	// Check the user is asked to register a new device.
 	s.WaitElementLocatedByClassName(ctx, s.T(), "state-not-registered")
 
-	// Then register the TOTP factor
+	// Then register the TOTP factor.
 	s.doRegisterTOTP(ctx, s.T())
-	// And logout
+	// And logout.
 	s.doLogout(ctx, s.T())
 
-	// Login one factor again
+	// Login one factor again.
 	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")
 
 	// now the user should be asked to perform 2FA
@@ -103,7 +103,7 @@ func NewStandaloneSuite() *StandaloneSuite {
 	return &StandaloneSuite{}
 }
 
-// Standard case using nginx
+// Standard case using nginx.
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorize() {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify", AutheliaBaseURL), nil)
 	s.Assert().NoError(err)
@@ -119,7 +119,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorize() {
 	s.Assert().Equal(string(body), "Unauthorized")
 }
 
-// Standard case using Kubernetes
+// Standard case using Kubernetes.
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, LoginBaseURL), nil)
 	s.Assert().NoError(err)

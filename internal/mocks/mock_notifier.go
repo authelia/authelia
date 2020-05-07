@@ -33,11 +33,6 @@ func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 	return m.recorder
 }
 
-// StartupCheck mocks base method.
-func (m *MockNotifier) StartupCheck() (bool, error) {
-	return true, nil
-}
-
 // Send mocks base method.
 func (m *MockNotifier) Send(arg0, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
@@ -50,4 +45,19 @@ func (m *MockNotifier) Send(arg0, arg1, arg2 string) error {
 func (mr *MockNotifierMockRecorder) Send(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockNotifier)(nil).Send), arg0, arg1, arg2)
+}
+
+// StartupCheck mocks base method.
+func (m *MockNotifier) StartupCheck() (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartupCheck")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StartupCheck indicates an expected call of StartupCheck.
+func (mr *MockNotifierMockRecorder) StartupCheck() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockNotifier)(nil).StartupCheck))
 }

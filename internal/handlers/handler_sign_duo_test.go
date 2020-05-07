@@ -24,7 +24,7 @@ type SecondFactorDuoPostSuite struct {
 func (s *SecondFactorDuoPostSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	userSession := s.mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
@@ -43,7 +43,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndAllowAccess() {
 	values.Set("pushinfo", "target%20url=https://target.example.com")
 
 	response := duo.Response{}
-	response.Response.Result = "allow"
+	response.Response.Result = testResultAllow
 
 	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
 
@@ -92,18 +92,18 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 
 	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
 
-	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
 	response := duo.Response{}
-	response.Response.Result = "allow"
+	response.Response.Result = testResultAllow
 
 	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 
-	s.mock.Ctx.Configuration.DefaultRedirectionURL = "http://redirection.local"
+	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{})
 	s.Require().NoError(err)
@@ -111,7 +111,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 
 	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
-		Redirect: "http://redirection.local",
+		Redirect: testRedirectionURL,
 	})
 }
 
@@ -119,7 +119,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
 	response := duo.Response{}
-	response.Response.Result = "allow"
+	response.Response.Result = testResultAllow
 
 	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 
@@ -135,7 +135,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
 	response := duo.Response{}
-	response.Response.Result = "allow"
+	response.Response.Result = testResultAllow
 
 	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 
@@ -155,7 +155,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
 	response := duo.Response{}
-	response.Response.Result = "allow"
+	response.Response.Result = testResultAllow
 
 	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 
@@ -173,7 +173,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
 	response := duo.Response{}
-	response.Response.Result = "allow"
+	response.Response.Result = testResultAllow
 
 	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 

@@ -4,11 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/authelia/authelia/internal/mocks"
-
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/internal/mocks"
 )
 
 type LogoutSuite struct {
@@ -20,7 +19,7 @@ type LogoutSuite struct {
 func (s *LogoutSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	userSession := s.mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 

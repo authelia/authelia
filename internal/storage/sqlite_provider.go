@@ -9,12 +9,12 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 )
 
-// SQLiteProvider is a sqlite3 provider
+// SQLiteProvider is a SQLite3 provider.
 type SQLiteProvider struct {
 	SQLProvider
 }
 
-// NewSQLiteProvider construct a sqlite provider.
+// NewSQLiteProvider constructs a SQLite provider.
 func NewSQLiteProvider(path string) *SQLiteProvider {
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
@@ -51,5 +51,6 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 	if err := provider.initialize(db); err != nil {
 		logging.Logger().Fatalf("Unable to initialize SQLite database %s: %s", path, err)
 	}
+
 	return &provider
 }

@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/authelia/authelia/internal/authorization"
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/mocks"
-	"github.com/authelia/authelia/internal/models"
-
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/internal/models"
 )
 
 type FirstFactorSuite struct {
@@ -35,7 +34,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
 
 	// No body
 	assert.Equal(s.T(), "Unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
@@ -46,7 +45,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
 	FirstFactorPost(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Unable to validate body: password: non zero value required", s.mock.Hook.LastEntry().Message)
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
@@ -71,7 +70,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 	FirstFactorPost(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Error while checking password for user test: Failed", s.mock.Hook.LastEntry().Message)
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCredentials() {
@@ -121,7 +120,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 	FirstFactorPost(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Error while retrieving details from user test: Failed", s.mock.Hook.LastEntry().Message)
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
@@ -143,7 +142,7 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 	FirstFactorPost(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Unable to mark authentication: failed", s.mock.Hook.LastEntry().Message)
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
@@ -343,6 +342,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 		"keepMeLoggedIn": false,
 		"targetURL": "http://notsafe.local"
 	}`)
+
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.
@@ -362,6 +362,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 		"password": "hello",
 		"keepMeLoggedIn": false
 	}`)
+
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.
@@ -391,6 +392,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 		"password": "hello",
 		"keepMeLoggedIn": false
 	}`)
+
 	FirstFactorPost(s.mock.Ctx)
 
 	// Respond with 200.

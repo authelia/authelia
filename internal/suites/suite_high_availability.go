@@ -36,13 +36,16 @@ func init() {
 		if err != nil {
 			return err
 		}
+
 		fmt.Println(backendLogs)
 
 		frontendLogs, err := haDockerEnvironment.Logs("authelia-frontend", nil)
 		if err != nil {
 			return err
 		}
+
 		fmt.Println(frontendLogs)
+
 		return nil
 	}
 

@@ -32,12 +32,20 @@ type PasswordConfiguration struct {
 	Parallelism int    `mapstructure:"parallelism"`
 }
 
+// AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
+type AuthenticationBackendConfiguration struct {
+	DisableResetPassword bool                                    `mapstructure:"disable_reset_password"`
+	RefreshInterval      string                                  `mapstructure:"refresh_interval"`
+	Ldap                 *LDAPAuthenticationBackendConfiguration `mapstructure:"ldap"`
+	File                 *FileAuthenticationBackendConfiguration `mapstructure:"file"`
+}
+
 // DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing.
 var DefaultPasswordConfiguration = PasswordConfiguration{
 	Iterations:  1,
 	KeyLength:   32,
 	SaltLength:  16,
-	Algorithm:   "argon2id",
+	Algorithm:   argon2id,
 	Memory:      1024,
 	Parallelism: 8,
 }
@@ -47,7 +55,7 @@ var DefaultCIPasswordConfiguration = PasswordConfiguration{
 	Iterations:  1,
 	KeyLength:   32,
 	SaltLength:  16,
-	Algorithm:   "argon2id",
+	Algorithm:   argon2id,
 	Memory:      128,
 	Parallelism: 8,
 }
@@ -59,9 +67,8 @@ var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 	Algorithm:  "sha512",
 }
 
-// AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
-type AuthenticationBackendConfiguration struct {
-	DisableResetPassword bool                                    `mapstructure:"disable_reset_password"`
-	Ldap                 *LDAPAuthenticationBackendConfiguration `mapstructure:"ldap"`
-	File                 *FileAuthenticationBackendConfiguration `mapstructure:"file"`
+// DefaultLDAPAuthenticationBackendConfiguration represents the default LDAP config.
+var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendConfiguration{
+	MailAttribute:      "mail",
+	GroupNameAttribute: "cn",
 }

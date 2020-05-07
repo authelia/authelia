@@ -18,6 +18,7 @@ func (wds *WebDriverSession) doRegisterTOTP(ctx context.Context, t *testing.T) s
 	assert.NoError(t, err)
 	assert.NotEqual(t, "", secret)
 	assert.NotNil(t, secret)
+
 	return secret
 }
 

@@ -5,11 +5,10 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
-
-	"github.com/stretchr/testify/assert"
 )
 
 type AuthorizerSuite struct {

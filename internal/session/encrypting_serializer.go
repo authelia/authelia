@@ -14,13 +14,13 @@ type EncryptingSerializer struct {
 	key [32]byte
 }
 
-// NewEncryptingSerializer return new encrypt instance
+// NewEncryptingSerializer return new encrypt instance.
 func NewEncryptingSerializer(secret string) *EncryptingSerializer {
 	key := sha256.Sum256([]byte(secret))
 	return &EncryptingSerializer{key}
 }
 
-// Encode encode and encrypt session
+// Encode encode and encrypt session.
 func (e *EncryptingSerializer) Encode(src session.Dict) ([]byte, error) {
 	if len(src.D) == 0 {
 		return nil, nil
@@ -39,13 +39,14 @@ func (e *EncryptingSerializer) Encode(src session.Dict) ([]byte, error) {
 	return encryptedDst, nil
 }
 
-// Decode decrypt and decode session
+// Decode decrypt and decode session.
 func (e *EncryptingSerializer) Decode(dst *session.Dict, src []byte) error {
 	if len(src) == 0 {
 		return nil
 	}
 
 	dst.Reset()
+
 	decryptedSrc, err := utils.Decrypt(src, &e.key)
 	if err != nil {
 		// If an error is thrown while decrypting, it's probably an old unencrypted session
@@ -56,9 +57,11 @@ func (e *EncryptingSerializer) Decode(dst *session.Dict, src []byte) error {
 		if uerr != nil {
 			return fmt.Errorf("Unable to decrypt session: %s", err)
 		}
+
 		return nil
 	}
 
 	_, err = dst.UnmarshalMsg(decryptedSrc)
+
 	return err
 }

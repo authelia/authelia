@@ -1,6 +1,8 @@
 package session
 
 import (
+	"time"
+
 	"github.com/fasthttp/session"
 	"github.com/tstranex/u2f"
 
@@ -14,7 +16,7 @@ type ProviderConfig struct {
 	providerConfig session.ProviderConfig
 }
 
-// U2FRegistration is a serializable version of a U2F registration
+// U2FRegistration is a serializable version of a U2F registration.
 type U2FRegistration struct {
 	KeyHandle []byte
 	PublicKey []byte
@@ -41,6 +43,8 @@ type UserSession struct {
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.
 	PasswordResetUsername *string
+
+	RefreshTTL time.Time
 }
 
 // Identity identity of the user who is being verified.

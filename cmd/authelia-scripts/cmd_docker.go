@@ -37,23 +37,24 @@ func checkArchIsSupported(arch string) {
 			return
 		}
 	}
+
 	log.Fatal("Architecture is not supported. Please select one of " + strings.Join(supportedArch, ", ") + ".")
 }
 
 func dockerBuildOfficialImage(arch string) error {
 	docker := &Docker{}
-	// Set default Architecture Dockerfile to amd64
+	// Set default Architecture Dockerfile to amd64.
 	dockerfile := "Dockerfile"
-	// Set version of QEMU
+	// Set version of QEMU.
 	qemuversion := "v4.2.0-7"
 
-	// If not the default value
+	// If not the default value.
 	if arch != defaultArch {
 		dockerfile = fmt.Sprintf("%s.%s", dockerfile, arch)
 	}
 
 	if arch == "arm32v7" {
-		if buildkiteQEMU != "true" {
+		if buildkiteQEMU != stringTrue {
 			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
 			if err != nil {
 				panic(err)
@@ -66,7 +67,7 @@ func dockerBuildOfficialImage(arch string) error {
 			panic(err)
 		}
 	} else if arch == "arm64v8" {
-		if buildkiteQEMU != "true" {
+		if buildkiteQEMU != stringTrue {
 			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
 			if err != nil {
 				panic(err)
@@ -83,16 +84,18 @@ func dockerBuildOfficialImage(arch string) error {
 	gitTag := ciTag
 	if gitTag == "" {
 		// If commit is not tagged, mark the build has having master tag.
-		gitTag = "master"
+		gitTag = masterTag
 	}
 
 	cmd := utils.Shell("git rev-parse HEAD")
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	commitBytes, err := cmd.Output()
+
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	commitHash := strings.Trim(string(commitBytes), "\n")
 
 	return docker.Build(IntermediateDockerImageName, dockerfile, ".", gitTag, commitHash)
@@ -120,7 +123,7 @@ var DockerBuildCmd = &cobra.Command{
 	},
 }
 
-// DockerPushCmd Command for pushing Authelia docker image to Docker Hub
+// DockerPushCmd Command for pushing Authelia docker image to DockerHub.
 var DockerPushCmd = &cobra.Command{
 	Use:   "push-image",
 	Short: "Publish Authelia docker image to Docker Hub",
@@ -131,7 +134,7 @@ var DockerPushCmd = &cobra.Command{
 	},
 }
 
-// DockerManifestCmd Command for pushing Authelia docker manifest to Docker Hub
+// DockerManifestCmd Command for pushing Authelia docker manifest to DockerHub.
 var DockerManifestCmd = &cobra.Command{
 	Use:   "push-manifest",
 	Short: "Publish Authelia docker manifest to Docker Hub",
@@ -199,12 +202,13 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 func publishDockerImage(arch string) {
 	docker := &Docker{}
 
-	if ciTag != "" {
+	switch {
+	case ciTag != "":
 		if len(tags) == 4 {
 			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
-
 			login(docker)
 			deploy(docker, tags[1]+"-"+arch)
+
 			if !ignoredSuffixes.MatchString(ciTag) {
 				deploy(docker, tags[2]+"-"+arch)
 				deploy(docker, tags[3]+"-"+arch)
@@ -213,16 +217,16 @@ func publishDockerImage(arch string) {
 		} else {
 			log.Fatal("Docker image will not be published, the specified tag does not conform to the standard")
 		}
-	} else if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
+	case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
 		login(docker)
 		deploy(docker, ciBranch+"-"+arch)
-	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
+	case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
 		login(docker)
 		deploy(docker, "PR"+ciPullRequest+"-"+arch)
-	} else if ciBranch == "master" && ciPullRequest == "false" {
+	case ciBranch == masterTag && ciPullRequest == stringFalse:
 		login(docker)
 		deploy(docker, "master-"+arch)
-	} else {
+	default:
 		log.Info("Docker image will not be published")
 	}
 }
@@ -230,10 +234,10 @@ func publishDockerImage(arch string) {
 func publishDockerManifest() {
 	docker := &Docker{}
 
-	if ciTag != "" {
+	switch {
+	case ciTag != "":
 		if len(tags) == 4 {
 			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
-
 			login(docker)
 			deployManifest(docker, tags[1], tags[1]+"-amd64", tags[1]+"-arm32v7", tags[1]+"-arm64v8")
 			publishDockerReadme(docker)
@@ -248,17 +252,17 @@ func publishDockerManifest() {
 		} else {
 			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
 		}
-	} else if ciBranch != "master" && !publicRepo.MatchString(ciBranch) {
+	case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
 		login(docker)
 		deployManifest(docker, ciBranch, ciBranch+"-amd64", ciBranch+"-arm32v7", ciBranch+"-arm64v8")
-	} else if ciBranch != "master" && publicRepo.MatchString(ciBranch) {
+	case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
 		login(docker)
 		deployManifest(docker, "PR"+ciPullRequest, "PR"+ciPullRequest+"-amd64", "PR"+ciPullRequest+"-arm32v7", "PR"+ciPullRequest+"-arm64v8")
-	} else if ciBranch == "master" && ciPullRequest == "false" {
+	case ciBranch == masterTag && ciPullRequest == stringFalse:
 		login(docker)
 		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
 		publishDockerReadme(docker)
-	} else {
+	default:
 		log.Info("Docker manifest will not be published")
 	}
 }

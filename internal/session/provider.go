@@ -29,22 +29,25 @@ func NewProvider(configuration schema.SessionConfiguration) *Provider {
 	if err != nil {
 		panic(err)
 	}
+
 	provider.RememberMe = duration
 
 	duration, err = utils.ParseDurationString(configuration.Inactivity)
 	if err != nil {
 		panic(err)
 	}
+
 	provider.Inactivity = duration
 
 	err = provider.sessionHolder.SetProvider(providerConfig.providerName, providerConfig.providerConfig)
 	if err != nil {
 		panic(err)
 	}
+
 	return provider
 }
 
-// GetSession return the user session from a request
+// GetSession return the user session from a request.
 func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 	store, err := p.sessionHolder.Get(ctx)
 
@@ -59,6 +62,7 @@ func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 	if !ok {
 		userSession := NewDefaultUserSession()
 		store.Set(userSessionStorerKey, userSession)
+
 		return userSession, nil
 	}
 
@@ -88,6 +92,7 @@ func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession
 
 	store.Set(userSessionStorerKey, userSessionJSON)
 	p.sessionHolder.Save(ctx, store)
+
 	return nil
 }
 
@@ -117,6 +122,7 @@ func (p *Provider) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Du
 	}
 
 	p.sessionHolder.Save(ctx, store)
+
 	return nil
 }
 

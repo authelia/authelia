@@ -22,6 +22,10 @@ func (s *Traefik2Suite) TestTwoFactorScenario() {
 	suite.Run(s.T(), NewTwoFactorScenario())
 }
 
+func (s *Traefik2Suite) TestCustomHeaders() {
+	suite.Run(s.T(), NewCustomHeadersScenario())
+}
+
 func TestTraefik2Suite(t *testing.T) {
 	suite.Run(t, NewTraefik2Suite())
 }

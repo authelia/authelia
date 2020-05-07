@@ -38,6 +38,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
 		SecondFactorEnabled: false,
 		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	}
+
 	ExtendedConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
 }
@@ -54,6 +55,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMo
 		SecondFactorEnabled: false,
 		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	}
+
 	ExtendedConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
 }

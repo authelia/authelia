@@ -6,21 +6,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/authelia/authelia/internal/regulation"
-	"github.com/authelia/authelia/internal/storage"
-
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/internal/storage"
 )
 
 // MockAutheliaCtx a mock of AutheliaCtx.
@@ -84,6 +82,14 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	}, {
 		Domains: []string{"deny.example.com"},
 		Policy:  "deny",
+	}, {
+		Domains:  []string{"admin.example.com"},
+		Policy:   "two_factor",
+		Subjects: []string{"group:admin"},
+	}, {
+		Domains:  []string{"grafana.example.com"},
+		Policy:   "two_factor",
+		Subjects: []string{"group:grafana"},
 	}}
 
 	providers := middlewares.Providers{}
@@ -117,6 +123,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia.Hook = hook
 
 	mockAuthelia.Ctx.Logger = logrus.NewEntry(logger)
+
 	return mockAuthelia
 }
 
@@ -124,6 +131,12 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 func (m *MockAutheliaCtx) Close() {
 	m.Hook.Reset()
 	m.Ctrl.Finish()
+}
+
+// Assert401KO assert an error response from the service.
+func (m *MockAutheliaCtx) Assert401KO(t *testing.T, message string) {
+	assert.Equal(t, 401, m.Ctx.Response.StatusCode())
+	assert.Equal(t, fmt.Sprintf("{\"status\":\"KO\",\"message\":\"%s\"}", message), string(m.Ctx.Response.Body()))
 }
 
 // Assert200KO assert an error response from the service.
@@ -135,6 +148,7 @@ func (m *MockAutheliaCtx) Assert200KO(t *testing.T, message string) {
 // Assert200OK assert a successful response from the service.
 func (m *MockAutheliaCtx) Assert200OK(t *testing.T, data interface{}) {
 	assert.Equal(t, 200, m.Ctx.Response.StatusCode())
+
 	response := middlewares.OKResponse{
 		Status: "OK",
 		Data:   data,

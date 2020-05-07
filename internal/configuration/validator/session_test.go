@@ -10,8 +10,9 @@ import (
 
 func newDefaultSessionConfig() schema.SessionConfiguration {
 	config := schema.SessionConfiguration{}
-	config.Secret = "a_secret"
+	config.Secret = testJWTSecret
 	config.Domain = "example.com"
+
 	return config
 }
 
@@ -78,8 +79,8 @@ func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {
 func TestShouldRaiseErrorWhenBadInactivityAndExpirationSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
-	config.Inactivity = "-1"
-	config.Expiration = "-1"
+	config.Inactivity = testBadTimer
+	config.Expiration = testBadTimer
 
 	ValidateSession(&config, validator)
 

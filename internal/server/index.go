@@ -34,12 +34,15 @@ func ServeIndex(publicDir string) fasthttp.RequestHandler {
 
 	return func(ctx *fasthttp.RequestCtx) {
 		nonce := utils.RandomString(32, alphaNumericRunes)
+
 		ctx.SetContentType("text/html; charset=utf-8")
 		ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self'; style-src 'self' 'nonce-%s'", nonce))
+
 		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ CSPNonce string }{CSPNonce: nonce})
 		if err != nil {
 			ctx.Error("An error occurred", 503)
 			logging.Logger().Errorf("Unable to execute template: %v", err)
+
 			return
 		}
 	}

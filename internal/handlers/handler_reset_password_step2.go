@@ -6,13 +6,13 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-// ResetPasswordPost handler for resetting passwords
+// ResetPasswordPost handler for resetting passwords.
 func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	// Those checks unsure that the identity verification process has been initiated and completed successfully
 	// otherwise PasswordReset would not be set to true. We can improve the security of this check by making the
-	// request expire at some point because here it only expires when the cookie expires...
+	// request expire at some point because here it only expires when the cookie expires.
 	if userSession.PasswordResetUsername == nil {
 		ctx.Error(fmt.Errorf("No identity verification process has been initiated"), unableToResetPasswordMessage)
 		return

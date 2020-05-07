@@ -10,7 +10,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// NewProviderConfig creates a configuration for creating the session provider
+// NewProviderConfig creates a configuration for creating the session provider.
 func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig {
 	config := session.NewDefaultConfig()
 
@@ -23,7 +23,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 	// Only serve the header over HTTPS.
 	config.Secure = true
 
-	// Ignore the error as it will be handled by validator
+	// Ignore the error as it will be handled by validator.
 	config.Expires, _ = utils.ParseDurationString(configuration.Expiration)
 
 	// TODO(c.michaud): Make this configurable by giving the list of IPs that are trustable.
@@ -32,6 +32,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 	}
 
 	var providerConfig session.ProviderConfig
+
 	var providerName string
 
 	// If redis configuration is provided, then use the redis provider.
@@ -42,7 +43,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 			Host:     configuration.Redis.Host,
 			Port:     configuration.Redis.Port,
 			Password: configuration.Redis.Password,
-			// DbNumber is the fasthttp/session property for the Redis DB Index
+			// DbNumber is the fasthttp/session property for the Redis DB Index.
 			DbNumber:        configuration.Redis.DatabaseIndex,
 			PoolSize:        8,
 			IdleTimeout:     300,
@@ -54,6 +55,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 		providerName = "memory"
 		providerConfig = &memory.Config{}
 	}
+
 	return ProviderConfig{
 		config:         config,
 		providerName:   providerName,

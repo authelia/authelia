@@ -26,6 +26,10 @@ func (s *TraefikSuite) TestRedirectionURLScenario() {
 	suite.Run(s.T(), NewRedirectionURLScenario())
 }
 
+func (s *TraefikSuite) TestCustomHeaders() {
+	suite.Run(s.T(), NewCustomHeadersScenario())
+}
+
 func TestTraefikSuite(t *testing.T) {
 	suite.Run(t, NewTraefikSuite())
 }

@@ -1,4 +1,5 @@
 //usr/bin/env go run "$0" "$@"; exit
+//nolint:godot
 
 package main
 
@@ -23,10 +24,10 @@ type AutheliaCommandDefinition struct {
 	SubCommands []*cobra.Command
 }
 
-// CobraCommands list of cobra commands
+// CobraCommands list of cobra commands.
 type CobraCommands = []*cobra.Command
 
-// Commands is the list of commands of authelia-scripts
+// Commands is the list of commands of authelia-scripts.
 var Commands = []AutheliaCommandDefinition{
 	{
 		Name:  "bootstrap",
@@ -84,11 +85,13 @@ func levelStringToLevel(level string) log.Level {
 	} else if level == "warning" {
 		return log.WarnLevel
 	}
+
 	return log.InfoLevel
 }
 
 func main() {
 	var rootCmd = &cobra.Command{Use: "authelia-scripts"}
+
 	cobraCommands := make([]*cobra.Command, 0)
 
 	for _, autheliaCommand := range Commands {
@@ -98,6 +101,7 @@ func main() {
 			cmdline := autheliaCommand.CommandLine
 			fn = func(cobraCmd *cobra.Command, args []string) {
 				cmd := utils.CommandWithStdout(cmdline, args...)
+
 				err := cmd.Run()
 				if err != nil {
 					panic(err)
@@ -130,6 +134,7 @@ func main() {
 
 		cobraCommands = append(cobraCommands, command)
 	}
+
 	cobraCommands = append(cobraCommands, commands.HashPasswordCmd)
 
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Set the log level for the command")

@@ -2,23 +2,36 @@ run:
   timeout: 3m
 
 linters-settings:
+  goconst:
+    min-len: 2
+    min-occurrences: 2
   gocyclo:
     min-complexity: 15
+  godot:
+    check-all: true
   goimports:
     local-prefixes: github.com/authelia/authelia
 
 linters:
   enable:
+    - asciicheck
+    - goconst
+    - gocritic
     - gocyclo
+    - godot
     - gofmt
     - goimports
     - golint
+    - gosec
     - interfacer
     - maligned
     - misspell
+    - nolintlint
     - prealloc
+    - unconvert
     - unparam
     - whitespace
+    - wsl
 
 issues:
   exclude:

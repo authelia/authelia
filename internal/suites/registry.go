@@ -7,7 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Suite the definition of a suite
+// Suite the definition of a suite.
 type Suite struct {
 	SetUp        func(tmpPath string) error
 	SetUpTimeout time.Duration
@@ -15,7 +15,7 @@ type Suite struct {
 	// Callback called when an error occur during setup phase.
 	OnSetupTimeout func() error
 
-	// Callback called when at least one test fail
+	// Callback called when at least one test fail.
 	OnError func() error
 
 	TestTimeout time.Duration
@@ -27,45 +27,48 @@ type Suite struct {
 	Description string
 }
 
-// Registry represent a registry of suite by name
+// Registry represent a registry of suite by name.
 type Registry struct {
 	registry map[string]Suite
 }
 
-// GlobalRegistry a global registry used by Authelia tooling
+// GlobalRegistry a global registry used by Authelia tooling.
 var GlobalRegistry *Registry
 
 func init() {
 	GlobalRegistry = NewSuitesRegistry()
 }
 
-// NewSuitesRegistry create a suites registry
+// NewSuitesRegistry create a suites registry.
 func NewSuitesRegistry() *Registry {
 	return &Registry{make(map[string]Suite)}
 }
 
-// Register register a suite by name
+// Register register a suite by name.
 func (sr *Registry) Register(name string, suite Suite) {
 	if _, found := sr.registry[name]; found {
 		log.Fatal(fmt.Sprintf("Trying to register the suite %s multiple times", name))
 	}
+
 	sr.registry[name] = suite
 }
 
-// Get return a suite by name
+// Get return a suite by name.
 func (sr *Registry) Get(name string) Suite {
 	s, found := sr.registry[name]
 	if !found {
 		log.Fatal(fmt.Sprintf("The suite %s does not exist", name))
 	}
+
 	return s
 }
 
-// Suites list available suites
+// Suites list available suites.
 func (sr *Registry) Suites() []string {
 	suites := make([]string, 0)
 	for k := range sr.registry {
 		suites = append(suites, k)
 	}
+
 	return suites
 }

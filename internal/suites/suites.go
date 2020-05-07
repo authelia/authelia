@@ -5,14 +5,14 @@ import (
 	"github.com/tebeka/selenium"
 )
 
-// SeleniumSuite is a selenium suite
+// SeleniumSuite is a selenium suite.
 type SeleniumSuite struct {
 	suite.Suite
 
 	*WebDriverSession
 }
 
-// WebDriver return the webdriver of the suite
+// WebDriver return the webdriver of the suite.
 func (s *SeleniumSuite) WebDriver() selenium.WebDriver {
 	return s.WebDriverSession.WebDriver
 }
