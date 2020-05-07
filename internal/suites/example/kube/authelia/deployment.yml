@@ -27,7 +27,7 @@ spec:
             - name: ssl-volume
               mountPath: /var/lib/authelia/ssl
             - name: secrets
-            - mountPath: /usr/app/secrets
+              mountPath: /usr/app/secrets
               readOnly: true
           env:
             # We set secrets directly here for ease of deployment but all secrets

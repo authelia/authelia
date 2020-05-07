@@ -58,5 +58,6 @@ func getSecretValue(name string, validator *schema.StructValidator, viper *viper
 			return strings.Replace(string(content), "\n", "", -1)
 		}
 	}
+
 	return configValue
 }
