@@ -5,7 +5,6 @@ import (
 	"os"
 	"path"
 	"sort"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,7 +15,7 @@ import (
 )
 
 func createTestingTempFile(t *testing.T, dir, name, content string) {
-	err := ioutil.WriteFile(path.Join(dir, name), []byte(content), 0700)
+	err := ioutil.WriteFile(path.Join(dir, name), []byte(content), 0600)
 	require.NoError(t, err)
 }
 
@@ -32,7 +31,14 @@ func resetEnv() {
 	_ = os.Unsetenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE")
 }
 
-func TestShouldParseConfigFile(t *testing.T) {
+func setupEnv(t *testing.T) string {
+	resetEnv()
+
+	dirEnv := os.Getenv("AUTHELIA_TESTING_DIR")
+	if dirEnv != "" {
+		return dirEnv
+	}
+
 	dir := "/tmp/authelia" + utils.RandomString(10, authentication.HashingPossibleSaltCharacters) + "/"
 	err := os.MkdirAll(dir, 0700)
 	require.NoError(t, err)
@@ -45,6 +51,13 @@ func TestShouldParseConfigFile(t *testing.T) {
 	createTestingTempFile(t, dir, "redis", "redis_secret_from_env")
 	createTestingTempFile(t, dir, "mysql", "mysql_secret_from_env")
 	createTestingTempFile(t, dir, "postgres", "postgres_secret_from_env")
+
+	require.NoError(t, os.Setenv("AUTHELIA_TESTING_DIR", dir))
+	return dir
+}
+
+func TestShouldParseConfigFile(t *testing.T) {
+	dir := setupEnv(t)
 
 	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", dir+"jwt"))
 	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY_FILE", dir+"duo"))
@@ -77,13 +90,15 @@ func TestShouldParseConfigFile(t *testing.T) {
 
 	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
 	assert.Len(t, config.AccessControl.Rules, 12)
-
-	err = os.RemoveAll(dir)
-	assert.NoError(t, err)
 }
 
 func TestShouldParseAltConfigFile(t *testing.T) {
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD", "postgres_secret_from_env"))
+	dir := setupEnv(t)
+
+	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE", dir+"postgres"))
+	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", dir+"authentication"))
+	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", dir+"jwt"))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET_FILE", dir+"session"))
 
 	config, errors := Read("./test_resources/config_alt.yml")
 	require.Len(t, errors, 0)
@@ -103,14 +118,15 @@ func TestShouldParseAltConfigFile(t *testing.T) {
 }
 
 func TestShouldNotParseConfigFileWithOldOrUnexpectedKeys(t *testing.T) {
-	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET", "secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY", "duo_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET", "session_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD", "ldap_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD", "smtp_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD", "redis_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD", "mysql_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD", "postgres_secret_from_env"))
+	dir := setupEnv(t)
+
+	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", dir+"jwt"))
+	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY_FILE", dir+"duo"))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET_FILE", dir+"session"))
+	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", dir+"authentication"))
+	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE", dir+"notifier"))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD_FILE", dir+"redis"))
+	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE", dir+"mysql"))
 
 	_, errors := Read("./test_resources/config_bad_keys.yml")
 	require.Len(t, errors, 2)
@@ -130,36 +146,8 @@ func TestShouldValidateConfigurationTemplate(t *testing.T) {
 	assert.Len(t, errors, 0)
 }
 
-func TestShouldOnlyAllowOneEnvType(t *testing.T) {
-	resetEnv()
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD", "postgres_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE", "/tmp/postgres_secret"))
-	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET", "secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY", "duo_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET", "session_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD", "ldap_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD", "smtp_secret_from_env"))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD", "redis_secret_from_env"))
-
-	_, errors := Read("./test_resources/config_alt.yml")
-
-	require.Len(t, errors, 2)
-	assert.EqualError(t, errors[0], "secret is defined in multiple areas: storage.postgres.password")
-	assert.True(t, strings.HasPrefix(errors[1].Error(), "error loading secret file (storage.postgres.password): open /tmp/postgres_secret: "))
-}
-
 func TestShouldOnlyAllowEnvOrConfig(t *testing.T) {
-	dir := "/tmp/authelia" + utils.RandomString(10, authentication.HashingPossibleSaltCharacters) + "/"
-	err := os.MkdirAll(dir, 0700)
-	require.NoError(t, err)
-
-	createTestingTempFile(t, dir, "jwt", "secret_from_env")
-	createTestingTempFile(t, dir, "duo", "duo_secret_from_env")
-	createTestingTempFile(t, dir, "session", "session_secret_from_env")
-	createTestingTempFile(t, dir, "authentication", "ldap_secret_from_env")
-	createTestingTempFile(t, dir, "notifier", "smtp_secret_from_env")
-	createTestingTempFile(t, dir, "redis", "redis_secret_from_env")
-	createTestingTempFile(t, dir, "mysql", "mysql_secret_from_env")
+	dir := setupEnv(t)
 
 	resetEnv()
 	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", dir+"jwt"))
@@ -174,7 +162,4 @@ func TestShouldOnlyAllowEnvOrConfig(t *testing.T) {
 
 	require.Len(t, errors, 1)
 	require.EqualError(t, errors[0], "error loading secret (jwt_secret): it's already defined in the config file")
-
-	err = os.RemoveAll(dir)
-	assert.NoError(t, err)
 }
