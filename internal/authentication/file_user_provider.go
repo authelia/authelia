@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -42,13 +41,13 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 	database, err := readDatabase(configuration.Path)
 	if err != nil {
 		// Panic since the file does not exist when Authelia is starting.
-		panic(err.Error())
+		panic(err)
 	}
 
 	// Early check whether hashed passwords are correct for all users
 	err = checkPasswordHashes(database)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	var cryptAlgo CryptAlgo = HashingAlgorithmArgon2id
@@ -74,10 +73,14 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 
 func checkPasswordHashes(database *DatabaseModel) error {
 	for u, v := range database.Users {
+		v.HashedPassword = strings.ReplaceAll(v.HashedPassword, "{CRYPT}", "")
 		_, err := ParseHash(v.HashedPassword)
+
 		if err != nil {
 			return fmt.Errorf("Unable to parse hash of user %s: %s", u, err)
 		}
+
+		database.Users[u] = v
 	}
 
 	return nil
@@ -111,9 +114,7 @@ func readDatabase(path string) (*DatabaseModel, error) {
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *FileUserProvider) CheckUserPassword(username string, password string) (bool, error) {
 	if details, ok := p.database.Users[username]; ok {
-		hashedPassword := strings.ReplaceAll(details.HashedPassword, "{CRYPT}", "")
-
-		ok, err := CheckPassword(password, hashedPassword)
+		ok, err := CheckPassword(password, details.HashedPassword)
 		if err != nil {
 			return false, err
 		}
@@ -122,10 +123,9 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 	}
 
 	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
-	hashedPassword := strings.ReplaceAll(p.fakeHash, "{CRYPT}", "")
-	_, err := CheckPassword(password, hashedPassword)
+	_, _ = CheckPassword(password, p.fakeHash)
 
-	return false, err
+	return false, ErrUserNotFound
 }
 
 // GetDetails retrieve the groups a user belongs to.
@@ -145,24 +145,19 @@ func (p *FileUserProvider) GetDetails(username string) (*UserDetails, error) {
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) error {
 	details, ok := p.database.Users[username]
 	if !ok {
-		return fmt.Errorf("User '%s' does not exist in database", username)
+		return ErrUserNotFound
 	}
 
-	var algorithm CryptAlgo
-
-	switch p.configuration.Password.Algorithm {
-	case argon2id:
-		algorithm = HashingAlgorithmArgon2id
-	case sha512:
-		algorithm = HashingAlgorithmSHA512
-	default:
-		return errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
+	algorithm, err := ConfigAlgoToCryptoAlgo(p.configuration.Password.Algorithm)
+	if err != nil {
+		return err
 	}
 
 	hash, err := HashPassword(
 		newPassword, "", algorithm, p.configuration.Password.Iterations,
 		p.configuration.Password.Memory*1024, p.configuration.Password.Parallelism,
 		p.configuration.Password.KeyLength, p.configuration.Password.SaltLength)
+
 	if err != nil {
 		return err
 	}
@@ -178,7 +173,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		return err
 	}
 
-	err = ioutil.WriteFile(p.configuration.Path, b, 0644) //nolint:gosec // Fixed in future PR.
+	err = ioutil.WriteFile(p.configuration.Path, b, fileAuthenticationMode)
 	p.lock.Unlock()
 
 	return err
