@@ -7,8 +7,8 @@ and read this documentation before upgrading. This is where you will get informa
 breaking changes and about what you should do to overcome those changes.
 
 ## Breaking in v4.18.0
-* Secrets purely stored in ENV are now removed from Authelia. They have been replaced with file
-secrets. If you still have not moved feel free to contact the team for assistance, othewise the
+* Secrets stored directly in ENV are now removed from Authelia. They have been replaced with file
+secrets. If you still have not moved feel free to contact the team for assistance, otherwise the
 [documentation](https://docs.authelia.com/configuration/secrets.html) has instructions on how to utilize these.
 
 ## Breaking in v4.15.0
