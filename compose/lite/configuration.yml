@@ -44,7 +44,7 @@ session:
     host: redis
     port: 6379
     # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD_FILE
-    password: authelia
+    # password: authelia
 
 regulation:
   max_retries: 3
