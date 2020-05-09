@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/fasthttp/session/v2"
 	fasthttpsession "github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/memory"
 	"github.com/fasthttp/session/v2/providers/redis"
@@ -42,7 +41,7 @@ func NewProvider(configuration schema.SessionConfiguration) *Provider {
 
 	provider.Inactivity = duration
 
-	var providerImpl session.Provider
+	var providerImpl fasthttpsession.Provider
 	if providerConfig.redisConfig != nil {
 		providerImpl, err = redis.New(*providerConfig.redisConfig)
 		if err != nil {
