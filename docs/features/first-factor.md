@@ -16,7 +16,7 @@ two pieces of evidence that she is who she claims to be.
   <img src="../images/1FA.png" width="400">
 </p>
 
-*IMPORTANT: This is the only method available as first factor.*
+*IMPORTANT: This is currently the only method available as first factor. Using other methods will likely be possible when [WebAuthN](https://github.com/authelia/authelia/issues/241) is implemented*
 
 Authelia supports several kind of users databases:
 
