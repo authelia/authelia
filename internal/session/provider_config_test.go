@@ -5,9 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fasthttp/session"
-	"github.com/fasthttp/session/memory"
-	"github.com/fasthttp/session/redis"
+	"github.com/fasthttp/session/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -26,11 +24,10 @@ func TestShouldCreateInMemorySessionProvider(t *testing.T) {
 	assert.Equal(t, "my_session", providerConfig.config.CookieName)
 	assert.Equal(t, testDomain, providerConfig.config.Domain)
 	assert.Equal(t, true, providerConfig.config.Secure)
-	assert.Equal(t, time.Duration(40)*time.Second, providerConfig.config.Expires)
+	assert.Equal(t, time.Duration(40)*time.Second, providerConfig.config.Expiration)
 	assert.True(t, providerConfig.config.IsSecureFunc(nil))
 
 	assert.Equal(t, "memory", providerConfig.providerName)
-	assert.IsType(t, &memory.Config{}, providerConfig.providerConfig)
 }
 
 func TestShouldCreateRedisSessionProvider(t *testing.T) {
@@ -49,18 +46,44 @@ func TestShouldCreateRedisSessionProvider(t *testing.T) {
 	assert.Equal(t, "my_session", providerConfig.config.CookieName)
 	assert.Equal(t, testDomain, providerConfig.config.Domain)
 	assert.Equal(t, true, providerConfig.config.Secure)
-	assert.Equal(t, time.Duration(40)*time.Second, providerConfig.config.Expires)
+	assert.Equal(t, time.Duration(40)*time.Second, providerConfig.config.Expiration)
 	assert.True(t, providerConfig.config.IsSecureFunc(nil))
 
 	assert.Equal(t, "redis", providerConfig.providerName)
-	assert.IsType(t, &redis.Config{}, providerConfig.providerConfig)
 
-	pConfig := providerConfig.providerConfig.(*redis.Config)
-	assert.Equal(t, "redis.example.com", pConfig.Host)
-	assert.Equal(t, int64(6379), pConfig.Port)
+	pConfig := providerConfig.redisConfig
+	assert.Equal(t, "redis.example.com:6379", pConfig.Addr)
 	assert.Equal(t, "pass", pConfig.Password)
 	// DbNumber is the fasthttp/session property for the Redis DB Index
-	assert.Equal(t, 0, pConfig.DbNumber)
+	assert.Equal(t, 0, pConfig.DB)
+}
+
+func TestShouldCreateRedisSessionProviderWithUnixSocket(t *testing.T) {
+	// The redis configuration is not provided so we create a in-memory provider.
+	configuration := schema.SessionConfiguration{}
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
+	configuration.Redis = &schema.RedisSessionConfiguration{
+		Host:     "/var/run/redis/redis.sock",
+		Port:     0,
+		Password: "pass",
+	}
+	providerConfig := NewProviderConfig(configuration)
+
+	assert.Equal(t, "my_session", providerConfig.config.CookieName)
+	assert.Equal(t, testDomain, providerConfig.config.Domain)
+	assert.Equal(t, true, providerConfig.config.Secure)
+	assert.Equal(t, time.Duration(40)*time.Second, providerConfig.config.Expiration)
+	assert.True(t, providerConfig.config.IsSecureFunc(nil))
+
+	assert.Equal(t, "redis", providerConfig.providerName)
+
+	pConfig := providerConfig.redisConfig
+	assert.Equal(t, "/var/run/redis/redis.sock", pConfig.Addr)
+	assert.Equal(t, "pass", pConfig.Password)
+	// DbNumber is the fasthttp/session property for the Redis DB Index
+	assert.Equal(t, 0, pConfig.DB)
 }
 
 func TestShouldSetDbNumber(t *testing.T) {
@@ -76,10 +99,9 @@ func TestShouldSetDbNumber(t *testing.T) {
 	}
 	providerConfig := NewProviderConfig(configuration)
 	assert.Equal(t, "redis", providerConfig.providerName)
-	assert.IsType(t, &redis.Config{}, providerConfig.providerConfig)
-	pConfig := providerConfig.providerConfig.(*redis.Config)
+	pConfig := providerConfig.redisConfig
 	// DbNumber is the fasthttp/session property for the Redis DB Index
-	assert.Equal(t, 5, pConfig.DbNumber)
+	assert.Equal(t, 5, pConfig.DB)
 }
 
 func TestShouldUseEncryptingSerializerWithRedis(t *testing.T) {
@@ -92,12 +114,11 @@ func TestShouldUseEncryptingSerializerWithRedis(t *testing.T) {
 		DatabaseIndex: 5,
 	}
 	providerConfig := NewProviderConfig(configuration)
-	pConfig := providerConfig.providerConfig.(*redis.Config)
 
 	payload := session.Dict{}
 	payload.Set("key", "value")
 
-	encoded, err := pConfig.SerializeFunc(payload)
+	encoded, err := providerConfig.config.EncodeFunc(payload)
 	require.NoError(t, err)
 
 	// Now we try to decrypt what has been serialized

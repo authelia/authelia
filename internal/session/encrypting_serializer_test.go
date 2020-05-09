@@ -3,7 +3,7 @@ package session
 import (
 	"testing"
 
-	"github.com/fasthttp/session"
+	"github.com/fasthttp/session/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

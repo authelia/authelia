@@ -3,7 +3,8 @@ package session
 import (
 	"time"
 
-	"github.com/fasthttp/session"
+	"github.com/fasthttp/session/v2"
+	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/internal/authentication"
@@ -11,9 +12,9 @@ import (
 
 // ProviderConfig is the configuration used to create the session provider.
 type ProviderConfig struct {
-	config         *session.Config
-	providerName   string
-	providerConfig session.ProviderConfig
+	config       session.Config
+	redisConfig  *redis.Config
+	providerName string
 }
 
 // U2FRegistration is a serializable version of a U2F registration.
