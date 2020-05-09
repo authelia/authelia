@@ -45,9 +45,9 @@ var HashPasswordCmd = &cobra.Command{
 			algorithm = authentication.HashingAlgorithmSHA512
 		} else {
 			algorithm = authentication.HashingAlgorithmArgon2id
-			if salt != "" {
-				salt = crypt.Base64Encoding.EncodeToString([]byte(salt))
-			}
+		}
+		if salt != "" {
+			salt = crypt.Base64Encoding.EncodeToString([]byte(salt))
 		}
 
 		hash, err = authentication.HashPassword(args[0], salt, algorithm, iterations, memory*1024, parallelism, keyLength, saltLength)
