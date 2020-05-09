@@ -74,7 +74,7 @@
   }
   ,"12": {
     "title": "First Factor",
-    "content": "First Factor . 2-Factor authentication is a method in which a user is granted access by presenting two pieces of evidence that she is who she claims to be. . Authelia requires usual username and password as a first factor. . . IMPORTANT: This is the only method available as first factor. . Authelia supports several kind of users databases: . An LDAP server like OpenLDAP or OpenAM. | An Active Directory. | A YAML file | .",
+    "content": "First Factor . 2-Factor authentication is a method in which a user is granted access by presenting two pieces of evidence that she is who she claims to be. . Authelia requires usual username and password as a first factor. . . IMPORTANT: This is currently the only method available as first factor. Using other methods will likely be possible when WebAuthN is implemented . Authelia supports several kind of users databases: . An LDAP server like OpenLDAP or OpenAM. | An Active Directory. | A YAML file | .",
     "url": "https://docs.authelia.com/features/first-factor.html",
     "relUrl": "/features/first-factor.html"
   }
