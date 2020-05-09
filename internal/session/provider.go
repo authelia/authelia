@@ -107,6 +107,7 @@ func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession
 	}
 
 	store.Set(userSessionStorerKey, userSessionJSON)
+
 	p.sessionHolder.Save(ctx, store)
 
 	return nil
@@ -137,9 +138,7 @@ func (p *Provider) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Du
 		return err
 	}
 
-	p.sessionHolder.Save(ctx, store)
-
-	return nil
+	return p.sessionHolder.Save(ctx, store)
 }
 
 // GetExpiration get the expiration of the current session.

@@ -42,13 +42,16 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 		providerName = "redis"
 		serializer := NewEncryptingSerializer(configuration.Secret)
 		network := "tcp"
+
 		var addr string
+
 		if configuration.Redis.Port == 0 {
 			network = "unix"
 			addr = configuration.Redis.Host
 		} else {
 			addr = fmt.Sprintf("%s:%d", configuration.Redis.Host, configuration.Redis.Port)
 		}
+
 		redisConfig = &redis.Config{
 			Network:  network,
 			Addr:     addr,

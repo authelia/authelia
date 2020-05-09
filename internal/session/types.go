@@ -5,6 +5,7 @@ import (
 
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/redis"
+
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/internal/authentication"
