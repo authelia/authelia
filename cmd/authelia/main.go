@@ -133,7 +133,7 @@ func main() {
 		Use:   "version",
 		Short: "Show the version of Authelia",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Authelia version %s, build %s", BuildTag, BuildCommit)
+			fmt.Printf("Authelia version %s, build %s\n", BuildTag, BuildCommit)
 		},
 	}
 

@@ -43,10 +43,8 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 		switch {
 		case configuration.Password.SaltLength == 0:
 			configuration.Password.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
-		case configuration.Password.SaltLength < 2:
+		case configuration.Password.SaltLength < 8:
 			validator.Push(fmt.Errorf("The salt length must be 2 or more, you configured %d", configuration.Password.SaltLength))
-		case configuration.Password.SaltLength > 16:
-			validator.Push(fmt.Errorf("The salt length must be 16 or less, you configured %d", configuration.Password.SaltLength))
 		}
 
 		if configuration.Password.Algorithm == argon2id {

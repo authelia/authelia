@@ -2,7 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"log"
 
+	"github.com/simia-tech/crypt"
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/internal/authentication"
@@ -43,13 +45,16 @@ var HashPasswordCmd = &cobra.Command{
 			algorithm = authentication.HashingAlgorithmSHA512
 		} else {
 			algorithm = authentication.HashingAlgorithmArgon2id
+			if salt != "" {
+				salt = crypt.Base64Encoding.EncodeToString([]byte(salt))
+			}
 		}
 
 		hash, err = authentication.HashPassword(args[0], salt, algorithm, iterations, memory*1024, parallelism, keyLength, saltLength)
 		if err != nil {
-			fmt.Printf("Error occurred during hashing: %s", err)
+			log.Fatalf("Error occurred during hashing: %s\n", err)
 		} else {
-			fmt.Printf("Password hash: %s", hash)
+			fmt.Printf("Password hash: %s\n", hash)
 		}
 	},
 	Args: cobra.MinimumNArgs(1),

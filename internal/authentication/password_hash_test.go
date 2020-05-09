@@ -138,32 +138,16 @@ func TestShouldNotHashPasswordDueToSaltLength(t *testing.T) {
 		schema.DefaultCIPasswordConfiguration.Parallelism, schema.DefaultCIPasswordConfiguration.KeyLength, 0)
 
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt length input of 0 is invalid, it must be 2 or higher")
-
-	hash, err = HashPassword("password", "", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordConfiguration.Iterations, schema.DefaultCIPasswordConfiguration.Memory*1024,
-		schema.DefaultCIPasswordConfiguration.Parallelism, schema.DefaultCIPasswordConfiguration.KeyLength, 20)
-
-	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt length input of 20 is invalid, it must be 16 or lower")
-}
-
-func TestShouldNotHashPasswordDueToSaltCharLengthTooLong(t *testing.T) {
-	hash, err := HashPassword("password", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordConfiguration.Iterations, schema.DefaultCIPasswordConfiguration.Memory*1024,
-		schema.DefaultCIPasswordConfiguration.Parallelism, schema.DefaultCIPasswordConfiguration.KeyLength,
-		schema.DefaultCIPasswordConfiguration.SaltLength)
-	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt input of abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 is invalid (62 characters), it must be 16 or fewer characters")
+	assert.EqualError(t, err, "Salt length input of 0 is invalid, it must be 8 or higher")
 }
 
 func TestShouldNotHashPasswordDueToSaltCharLengthTooShort(t *testing.T) {
-	hash, err := HashPassword("password", "a", HashingAlgorithmArgon2id,
+	hash, err := HashPassword("password", "YQ", HashingAlgorithmArgon2id,
 		schema.DefaultCIPasswordConfiguration.Iterations, schema.DefaultCIPasswordConfiguration.Memory*1024,
 		schema.DefaultCIPasswordConfiguration.Parallelism, schema.DefaultCIPasswordConfiguration.KeyLength,
 		schema.DefaultCIPasswordConfiguration.SaltLength)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt input of a is invalid (1 characters), it must be 2 or more characters")
+	assert.EqualError(t, err, "Salt input of a is invalid (1 characters), it must be 8 or more characters")
 }
 
 func TestShouldNotHashPasswordWithNonBase64CharsInSalt(t *testing.T) {
@@ -172,7 +156,7 @@ func TestShouldNotHashPasswordWithNonBase64CharsInSalt(t *testing.T) {
 		schema.DefaultCIPasswordConfiguration.Parallelism, schema.DefaultCIPasswordConfiguration.KeyLength,
 		schema.DefaultCIPasswordConfiguration.SaltLength)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt input of abc&123 is invalid, only characters [a-zA-Z0-9+/] are valid for input")
+	assert.EqualError(t, err, "Salt input of abc&123 is invalid, only base64 strings are valid for input")
 }
 
 func TestShouldNotParseHashWithNoneBase64CharsInKey(t *testing.T) {
