@@ -26,7 +26,7 @@ require (
 	github.com/simia-tech/crypt v0.4.2
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v0.0.7
-	github.com/spf13/viper v1.6.3
+	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.5.1
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
