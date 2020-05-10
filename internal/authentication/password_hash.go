@@ -136,17 +136,22 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 
 // CheckPassword check a password against a hash.
 func CheckPassword(password, hash string) (ok bool, err error) {
-	passwordHash, err := ParseHash(hash)
+	expectedHash, err := ParseHash(hash)
 	if err != nil {
 		return false, err
 	}
 
-	expectedHash, err := HashPassword(password, passwordHash.Salt, passwordHash.Algorithm, passwordHash.Iterations, passwordHash.Memory, passwordHash.Parallelism, passwordHash.KeyLength, len(passwordHash.Salt))
+	passwordHashString, err := HashPassword(password, expectedHash.Salt, expectedHash.Algorithm, expectedHash.Iterations, expectedHash.Memory, expectedHash.Parallelism, expectedHash.KeyLength, len(expectedHash.Salt))
 	if err != nil {
 		return false, err
 	}
 
-	return hash == expectedHash, nil
+	passwordHash, err := ParseHash(passwordHashString)
+	if err != nil {
+		return false, err
+	}
+
+	return passwordHash.Key == expectedHash.Key, nil
 }
 
 func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, parallelism, keyLength int) (settings string) {

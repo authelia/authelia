@@ -45,6 +45,13 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 	assert.Equal(t, schema.DefaultCIPasswordConfiguration.KeyLength, parameters.GetInt("k", HashingDefaultArgon2idKeyLength))
 }
 
+func TestShouldValidateArgon2idHashWithTEqualOne(t *testing.T) {
+	hash := "$argon2id$v=19$m=1024,t=1,p=1,k=16$c2FsdG9uY2U$Sk4UjzxXdCrBcyyMYiPEsQ"
+	valid, err := CheckPassword("apple", hash)
+	assert.True(t, valid)
+	assert.NoError(t, err)
+}
+
 // This checks the method of hashing (for argon2id) supports all the characters we allow in Authelia's hash function.
 func TestArgon2idHashSaltValidValues(t *testing.T) {
 	var err error
