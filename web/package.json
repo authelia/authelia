@@ -33,7 +33,7 @@
     "react-ga": "^2.7.0",
     "react-loading": "^2.0.3",
     "react-otp-input": "^1.0.1",
-    "react-router-dom": "^5.1.2",
+    "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
     "react-test-renderer": "^16.13.1",
     "typescript": "3.8.3",
