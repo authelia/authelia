@@ -75,6 +75,8 @@ github.com/fasthttp/router v1.0.4 h1:boxeE3vbutHTNAqQsUTm3IdRTjaQ5uFoRrGC+2Y1iwY
 github.com/fasthttp/router v1.0.4/go.mod h1:3ZGZormG7E+VbnYeToF+zmcF4oBGcAKOD8a8XL+fOZo=
 github.com/fasthttp/router v1.1.0 h1:n8ddTi63XdGz1WZ0sgwy/aycoZgax/4Rt4Rr2Wh6BNE=
 github.com/fasthttp/router v1.1.0/go.mod h1:3ZGZormG7E+VbnYeToF+zmcF4oBGcAKOD8a8XL+fOZo=
+github.com/fasthttp/router v1.1.1 h1:V3IONYo/5S/QSGR0Wdc9fYTA2zrBFaUN9GbPIYIZJ+o=
+github.com/fasthttp/router v1.1.1/go.mod h1:3ZGZormG7E+VbnYeToF+zmcF4oBGcAKOD8a8XL+fOZo=
 github.com/fasthttp/session v1.1.3 h1:2qjxNltI7iv0yh7frsIdhbsGmSoRnTajU8xtpC6Hd80=
 github.com/fasthttp/session v1.1.3/go.mod h1:DRxVb1PWFtAUTE4U+GgggsVkUaQyacoL8TN+3o4/yLw=
 github.com/fasthttp/session v1.1.7 h1:dTLeicJrpzb6pulR/c9X5RJWyYxI/WMwfJjcblt52Ic=
