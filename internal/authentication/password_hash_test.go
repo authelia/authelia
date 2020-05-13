@@ -64,7 +64,7 @@ func TestArgon2idHashSaltValidValues(t *testing.T) {
 	for _, salt := range datas {
 		hash, err = HashPassword("password", salt, HashingAlgorithmArgon2id, 1, 8, 1, 32, 16)
 		assert.NoError(t, err)
-		assert.Equal(t, fmt.Sprintf("$argon2id$v=19$m=8,p=1$%s$", salt), hash[0:40])
+		assert.Equal(t, fmt.Sprintf("$argon2id$v=19$m=8,t=1,p=1$%s$", salt), hash[0:44])
 	}
 }
 
