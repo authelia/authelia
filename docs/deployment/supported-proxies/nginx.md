@@ -143,7 +143,7 @@ server {
     location / {
         set $upstream_authelia http://authelia:9091; # This example assumes a Docker deployment 
         proxy_pass $upstream_authelia;
-        include /config/nginx/proxy.conf; # 
+        include /config/nginx/proxy.conf;
     }
 }
 ```

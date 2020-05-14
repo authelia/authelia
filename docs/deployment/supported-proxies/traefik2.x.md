@@ -33,7 +33,7 @@ networks:
 services:
 
   traefik:
-    image: traefik:v2.1.2
+    image: traefik:v2.2
     container_name: traefik
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -54,6 +54,8 @@ services:
       - '--providers.docker.exposedByDefault=false'
       - '--entrypoints.http=true'
       - '--entrypoints.http.address=:80'
+      - '--entrypoints.http.http.redirections.entrypoint.to=https'
+      - '--entrypoints.http.http.redirections.entrypoint.scheme=https'
       - '--entrypoints.https=true'
       - '--entrypoints.https.address=:443'
       - '--log=true'
