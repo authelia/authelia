@@ -25,14 +25,11 @@ func (s *ConfigurationSuite) TearDownTest() {
 }
 
 func (s *ConfigurationSuite) TestShouldReturnConfiguredGATrackingID() {
-	GATrackingID := testGATrackingID
-	s.mock.Ctx.Configuration.GoogleAnalyticsTrackingID = GATrackingID
 	s.mock.Ctx.Configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
 
 	expectedBody := ConfigurationBody{
-		GoogleAnalyticsTrackingID: GATrackingID,
-		RememberMe:                true,
-		ResetPassword:             true,
+		RememberMe:    true,
+		ResetPassword: true,
 	}
 
 	ConfigurationGet(s.mock.Ctx)
@@ -40,15 +37,12 @@ func (s *ConfigurationSuite) TestShouldReturnConfiguredGATrackingID() {
 }
 
 func (s *ConfigurationSuite) TestShouldDisableRememberMe() {
-	GATrackingID := testGATrackingID
-	s.mock.Ctx.Configuration.GoogleAnalyticsTrackingID = GATrackingID
 	s.mock.Ctx.Configuration.Session.RememberMeDuration = "0"
 	s.mock.Ctx.Providers.SessionProvider = session.NewProvider(
 		s.mock.Ctx.Configuration.Session)
 	expectedBody := ConfigurationBody{
-		GoogleAnalyticsTrackingID: GATrackingID,
-		RememberMe:                false,
-		ResetPassword:             true,
+		RememberMe:    false,
+		ResetPassword: true,
 	}
 
 	ConfigurationGet(s.mock.Ctx)
@@ -56,13 +50,10 @@ func (s *ConfigurationSuite) TestShouldDisableRememberMe() {
 }
 
 func (s *ConfigurationSuite) TestShouldDisableResetPassword() {
-	GATrackingID := testGATrackingID
-	s.mock.Ctx.Configuration.GoogleAnalyticsTrackingID = GATrackingID
 	s.mock.Ctx.Configuration.AuthenticationBackend.DisableResetPassword = true
 	expectedBody := ConfigurationBody{
-		GoogleAnalyticsTrackingID: GATrackingID,
-		RememberMe:                true,
-		ResetPassword:             false,
+		RememberMe:    true,
+		ResetPassword: false,
 	}
 
 	ConfigurationGet(s.mock.Ctx)

@@ -18,8 +18,6 @@ import { Notification } from './models/Notifications';
 import NotificationBar from './components/NotificationBar';
 import SignOut from './views/LoginPortal/SignOut/SignOut';
 import { useConfiguration } from './hooks/Configuration';
-import Tracker from "./components/Tracker";
-import { useTracking } from "./hooks/Tracking";
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import {config as faConfig} from '@fortawesome/fontawesome-svg-core';
 
@@ -28,7 +26,6 @@ faConfig.autoAddCss = false;
 const App: React.FC = () => {
     const [notification, setNotification] = useState(null as Notification | null);
     const [configuration, fetchConfig, , fetchConfigError] = useConfiguration();
-    const tracker = useTracking(configuration);
 
     useEffect(() => {
         if (fetchConfigError) {
@@ -41,34 +38,32 @@ const App: React.FC = () => {
     return (
         <NotificationsContext.Provider value={{ notification, setNotification }} >
             <Router>
-                <Tracker tracker={tracker}>
-                    <NotificationBar onClose={() => setNotification(null)} />
-                    <Switch>
-                        <Route path={ResetPasswordStep1Route} exact>
-                            <ResetPasswordStep1 />
-                        </Route>
-                        <Route path={ResetPasswordStep2Route} exact>
-                            <ResetPasswordStep2 />
-                        </Route>
-                        <Route path={RegisterSecurityKeyRoute} exact>
-                            <RegisterSecurityKey />
-                        </Route>
-                        <Route path={RegisterOneTimePasswordRoute} exact>
-                            <RegisterOneTimePassword />
-                        </Route>
-                        <Route path={LogoutRoute} exact>
-                            <SignOut />
-                        </Route>
-                        <Route path={FirstFactorRoute}>
-                            <LoginPortal
-                                rememberMe={configuration?.remember_me === true}
-                                resetPassword={configuration?.reset_password === true} />
-                        </Route>
-                        <Route path="/">
-                            <Redirect to={FirstFactorRoute}></Redirect>
-                        </Route>
-                    </Switch>
-                </Tracker>
+                <NotificationBar onClose={() => setNotification(null)} />
+                <Switch>
+                    <Route path={ResetPasswordStep1Route} exact>
+                        <ResetPasswordStep1 />
+                    </Route>
+                    <Route path={ResetPasswordStep2Route} exact>
+                        <ResetPasswordStep2 />
+                    </Route>
+                    <Route path={RegisterSecurityKeyRoute} exact>
+                        <RegisterSecurityKey />
+                    </Route>
+                    <Route path={RegisterOneTimePasswordRoute} exact>
+                        <RegisterOneTimePassword />
+                    </Route>
+                    <Route path={LogoutRoute} exact>
+                        <SignOut />
+                    </Route>
+                    <Route path={FirstFactorRoute}>
+                        <LoginPortal
+                            rememberMe={configuration?.remember_me === true}
+                            resetPassword={configuration?.reset_password === true} />
+                    </Route>
+                    <Route path="/">
+                        <Redirect to={FirstFactorRoute}></Redirect>
+                    </Route>
+                </Switch>
             </Router>
         </NotificationsContext.Provider>
     );

@@ -10,18 +10,17 @@ var validKeys = []string{
 	"jwt_secret",
 	"tls_key",
 	"tls_cert",
-	"google_analytics",
 
 	// Server Keys.
 	"server.read_buffer_size",
 	"server.write_buffer_size",
 
-	// TOTP Keys
+	// TOTP Keys.
 	"totp.issuer",
 	"totp.period",
 	"totp.skew",
 
-	// Access Control Keys
+	// Access Control Keys.
 	"access_control.rules",
 	"access_control.default_policy",
 
@@ -150,6 +149,7 @@ var specificErrorKeys = map[string]string{
 	"authentication_backend.file.hashing.salt_length":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 	"authentication_backend.file.hashing.memory":               "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 	"authentication_backend.file.hashing.parallelism":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
+	"google_analytics": "config key incorrect: google_analytics - this functionality has been removed",
 }
 
 const argon2id = "argon2id"
