@@ -178,7 +178,7 @@ parameters below, or for a more in depth understanding see the referenced docume
 
 #### salt_length
   - Value Type: Int
-  - Possible Value: between `2` and `16`
+  - Possible Value: `8` or higher.
   - Recommended: `16`
   - What it Does: Adjusts the length of the random salt we add to the password, there
    is no reason not to set this to 16
