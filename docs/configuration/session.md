@@ -48,6 +48,9 @@ session:
   redis:
     host: 127.0.0.1
     port: 6379
+    # # Use a unix socket instead
+    # host: /var/run/redis/redis.sock
+
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: authelia
 ```
