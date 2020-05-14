@@ -102,8 +102,8 @@
     <span class="kn">location</span> <span class="n">/</span> <span class="p">{</span>
         <span class="kn">set</span> <span class="nv">$upstream_authelia</span> <span class="s">http://authelia:9091</span><span class="p">;</span> <span class="c1"># This example assumes a Docker deployment 
 </span>        <span class="kn">proxy_pass</span> <span class="nv">$upstream_authelia</span><span class="p">;</span>
-        <span class="kn">include</span> <span class="n">/config/nginx/proxy.conf</span><span class="p">;</span> <span class="c1"># 
-</span>    <span class="p">}</span>
+        <span class="kn">include</span> <span class="n">/config/nginx/proxy.conf</span><span class="p">;</span>
+    <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div></div> <h4 id="protected-endpoint"> <a href="#protected-endpoint" class="anchor-heading"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#link"></use></svg></a> Protected Endpoint </h4> <div class="language-nginx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">server</span> <span class="p">{</span>
     <span class="kn">server_name</span> <span class="s">nextcloud.example.com</span><span class="p">;</span>

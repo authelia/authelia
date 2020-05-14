@@ -7,7 +7,7 @@
 <span class="na">services</span><span class="pi">:</span>
 
   <span class="na">traefik</span><span class="pi">:</span>
-    <span class="na">image</span><span class="pi">:</span> <span class="s">traefik:v2.1.2</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">traefik:v2.2</span>
     <span class="na">container_name</span><span class="pi">:</span> <span class="s">traefik</span>
     <span class="na">volumes</span><span class="pi">:</span>
       <span class="pi">-</span> <span class="s">/var/run/docker.sock:/var/run/docker.sock</span>
@@ -28,6 +28,8 @@
       <span class="pi">-</span> <span class="s1">'</span><span class="s">--providers.docker.exposedByDefault=false'</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">--entrypoints.http=true'</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">--entrypoints.http.address=:80'</span>
+      <span class="pi">-</span> <span class="s1">'</span><span class="s">--entrypoints.http.http.redirections.entrypoint.to=https'</span>
+      <span class="pi">-</span> <span class="s1">'</span><span class="s">--entrypoints.http.http.redirections.entrypoint.scheme=https'</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">--entrypoints.https=true'</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">--entrypoints.https.address=:443'</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">--log=true'</span>
