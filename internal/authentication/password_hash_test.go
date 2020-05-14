@@ -149,6 +149,7 @@ func TestShouldNotHashPasswordDueToSaltLength(t *testing.T) {
 }
 
 func TestShouldNotHashPasswordDueToSaltCharLengthTooShort(t *testing.T) {
+	// The salt 'YQ' is the base64 value for 'a' which is why the length is 1.
 	hash, err := HashPassword("password", "YQ", HashingAlgorithmArgon2id,
 		schema.DefaultCIPasswordConfiguration.Iterations, schema.DefaultCIPasswordConfiguration.Memory*1024,
 		schema.DefaultCIPasswordConfiguration.Parallelism, schema.DefaultCIPasswordConfiguration.KeyLength,
