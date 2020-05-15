@@ -129,8 +129,9 @@ var validKeys = []string{
 }
 
 var specificErrorKeys = map[string]string{
-	"logs_file_path": "config key replaced: logs_file is now log_file",
-	"logs_level":     "config key replaced: logs_level is now log_level",
+	"logs_file_path":   "config key replaced: logs_file is now log_file",
+	"logs_level":       "config key replaced: logs_level is now log_level",
+	"google_analytics": "config key incorrect: google_analytics - this functionality has been removed",
 	"authentication_backend.file.password_options.algorithm":   "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
 	"authentication_backend.file.password_options.iterations":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
 	"authentication_backend.file.password_options.key_length":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
@@ -149,7 +150,6 @@ var specificErrorKeys = map[string]string{
 	"authentication_backend.file.hashing.salt_length":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 	"authentication_backend.file.hashing.memory":               "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 	"authentication_backend.file.hashing.parallelism":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
-	"google_analytics": "config key incorrect: google_analytics - this functionality has been removed",
 }
 
 const argon2id = "argon2id"
