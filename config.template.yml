@@ -39,11 +39,6 @@ jwt_secret: a_very_important_secret
 # be redirected upon successful authentication.
 default_redirection_url: https://home.example.com:8080/
 
-# Google Analytics Tracking ID to track the usage of the portal
-# using a Google Analytics dashboard.
-#
-## google_analytics: UA-00000-01
-
 # TOTP Settings
 #
 # Parameters used for TOTP generation
