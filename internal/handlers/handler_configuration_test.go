@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/authelia/authelia/internal/session"
 )
@@ -22,18 +21,6 @@ func (s *ConfigurationSuite) SetupTest() {
 
 func (s *ConfigurationSuite) TearDownTest() {
 	s.mock.Close()
-}
-
-func (s *ConfigurationSuite) TestShouldReturnConfiguredGATrackingID() {
-	s.mock.Ctx.Configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
-
-	expectedBody := ConfigurationBody{
-		RememberMe:    true,
-		ResetPassword: true,
-	}
-
-	ConfigurationGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), expectedBody)
 }
 
 func (s *ConfigurationSuite) TestShouldDisableRememberMe() {
