@@ -13,7 +13,7 @@ type ConfigurationBody struct {
 func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	path := "/"
 	if ctx.Configuration.Server.Path != "" {
-		path += ctx.Configuration.Server.Path
+		path = ctx.Configuration.Server.Path
 	}
 
 	body := ConfigurationBody{
