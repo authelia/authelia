@@ -1,7 +1,9 @@
 package main
 
 import (
+	"io/ioutil"
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -43,6 +45,20 @@ func buildFrontend() {
 	}
 
 	if err := os.Rename("web/build", "./public_html"); err != nil {
+		log.Fatal(err)
+	}
+
+	// Inject templating for subpath.
+	index, err := ioutil.ReadFile("./public_html/index.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	template := strings.Replace(string(index), "href=\"", "href=\"{{.Base}}", -1)
+	template = strings.Replace(template, "src=\"", "src=\"{{.Base}}", -1)
+
+	err = ioutil.WriteFile("./public_html/index.html", []byte(template), 0)
+	if err != nil {
 		log.Fatal(err)
 	}
 }

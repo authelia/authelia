@@ -2,8 +2,8 @@ package server
 
 import (
 	"fmt"
-	"html/template"
 	"io/ioutil"
+	"text/template"
 
 	"github.com/valyala/fasthttp"
 

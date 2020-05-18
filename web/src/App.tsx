@@ -22,6 +22,7 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 import {config as faConfig} from '@fortawesome/fontawesome-svg-core';
 
 faConfig.autoAddCss = false;
+console.log((window as any).Base);
 
 const App: React.FC = () => {
     const [notification, setNotification] = useState(null as Notification | null);
@@ -37,7 +38,7 @@ const App: React.FC = () => {
 
     return (
         <NotificationsContext.Provider value={{ notification, setNotification }} >
-            <Router>
+            <Router basename={(window as any).Base}>
                 <NotificationBar onClose={() => setNotification(null)} />
                 <Switch>
                     <Route path={ResetPasswordStep1Route} exact>

@@ -1,31 +1,31 @@
 import { AxiosResponse } from "axios";
 
-export const FirstFactorPath = "./api/firstfactor";
-export const InitiateTOTPRegistrationPath = "./api/secondfactor/totp/identity/start";
-export const CompleteTOTPRegistrationPath = "./api/secondfactor/totp/identity/finish";
+export const FirstFactorPath = "/auth/api/firstfactor";
+export const InitiateTOTPRegistrationPath = "/auth/api/secondfactor/totp/identity/start";
+export const CompleteTOTPRegistrationPath = "/auth/api/secondfactor/totp/identity/finish";
 
-export const InitiateU2FRegistrationPath = "./api/secondfactor/u2f/identity/start";
-export const CompleteU2FRegistrationStep1Path = "./api/secondfactor/u2f/identity/finish";
-export const CompleteU2FRegistrationStep2Path = "./api/secondfactor/u2f/register";
+export const InitiateU2FRegistrationPath = "/auth/api/secondfactor/u2f/identity/start";
+export const CompleteU2FRegistrationStep1Path = "/auth/api/secondfactor/u2f/identity/finish";
+export const CompleteU2FRegistrationStep2Path = "/auth/api/secondfactor/u2f/register";
 
-export const InitiateU2FSignInPath = "./api/secondfactor/u2f/sign_request";
-export const CompleteU2FSignInPath = "./api/secondfactor/u2f/sign";
+export const InitiateU2FSignInPath = "/auth/api/secondfactor/u2f/sign_request";
+export const CompleteU2FSignInPath = "/auth/api/secondfactor/u2f/sign";
 
-export const CompletePushNotificationSignInPath = "./api/secondfactor/duo"
-export const CompleteTOTPSignInPath = "./api/secondfactor/totp"
+export const CompletePushNotificationSignInPath = "/auth/api/secondfactor/duo"
+export const CompleteTOTPSignInPath = "/auth/api/secondfactor/totp"
 
-export const InitiateResetPasswordPath = "./api/reset-password/identity/start";
-export const CompleteResetPasswordPath = "./api/reset-password/identity/finish";
+export const InitiateResetPasswordPath = "/auth/api/reset-password/identity/start";
+export const CompleteResetPasswordPath = "/auth/api/reset-password/identity/finish";
 // Do the password reset during completion.
-export const ResetPasswordPath = "./api/reset-password"
+export const ResetPasswordPath = "/auth/api/reset-password"
 
-export const LogoutPath = "./api/logout";
-export const StatePath = "./api/state";
-export const UserInfoPath = "./api/user/info";
-export const UserInfo2FAMethodPath = "./api/user/info/2fa_method";
+export const LogoutPath = "/auth/api/logout";
+export const StatePath = "/auth/api/state";
+export const UserInfoPath = "/auth/api/user/info";
+export const UserInfo2FAMethodPath = "/auth/api/user/info/2fa_method";
 
-export const ConfigurationPath = "./api/configuration";
-export const ExtendedConfigurationPath = "./api/configuration/extended";
+export const ConfigurationPath = "/auth/api/configuration";
+export const ExtendedConfigurationPath = "/auth/api/configuration/extended";
 
 export interface ErrorResponse {
     status: "KO";
