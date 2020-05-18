@@ -12,6 +12,6 @@ export interface AutheliaState {
     authentication_level: AuthenticationLevel
 }
 
-export function getState() {
+export async function getState(): Promise<AutheliaState> {
     return Get<AutheliaState>(StatePath);
 }

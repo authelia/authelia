@@ -14,7 +14,6 @@ var defaultWriteBufferSize = 4096
 
 // ValidateServer checks a server configuration is correct.
 func ValidateServer(configuration *schema.ServerConfiguration, validator *schema.StructValidator) {
-	fmt.Println(configuration.Path)
 	switch {
 	case strings.Contains(configuration.Path, "/"):
 		validator.Push(fmt.Errorf("server path must not contain any forward slashes"))

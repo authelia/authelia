@@ -6,15 +6,18 @@ import (
 	"unicode"
 )
 
+// IsStringAlphaNumeric returns false if any rune in the string is not alpha-numeric.
 func IsStringAlphaNumeric(input string) bool {
 	if len(input) == 0 {
 		return true
 	}
+
 	for _, r := range input {
 		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
 			return false
 		}
 	}
+
 	return true
 }
 
