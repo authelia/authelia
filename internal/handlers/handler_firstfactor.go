@@ -31,14 +31,12 @@ func movingAverageIteration(value time.Duration, successful *bool, movingAverage
 }
 
 func delayToPreventTimingAttacks(ctx *middlewares.AutheliaCtx, requestTime time.Time, successful *bool, movingAverageCursor *int, execDurationMovingAverage *[]time.Duration, mutex sync.Locker) {
-	ctx.Logger.Debugf("Request received. Successful: %t", *successful)
-
 	execDuration := time.Since(requestTime)
 	avgExecDuration := movingAverageIteration(execDuration, successful, movingAverageCursor, execDurationMovingAverage, mutex)
 	randomDelayMs := float64(rand.Int63n(msMaximumRandomDelay))
 	totalDelayMs := math.Max(avgExecDuration, msMinimumDelay1FA) + randomDelayMs
 	actualDelayMs := math.Max(totalDelayMs-float64(execDuration.Milliseconds()), 1.0)
-	ctx.Logger.Debugf("attempt successful: %t, exec duration: %d, avg execution duration: %d, random delay ms: %d, total delay ms: %d, actual delay ms: %d", *successful, execDuration.Milliseconds(), int64(avgExecDuration), int64(randomDelayMs), int64(totalDelayMs), int64(actualDelayMs))
+	ctx.Logger.Tracef("attempt successful: %t, exec duration: %d, avg execution duration: %d, random delay ms: %d, total delay ms: %d, actual delay ms: %d", *successful, execDuration.Milliseconds(), int64(avgExecDuration), int64(randomDelayMs), int64(totalDelayMs), int64(actualDelayMs))
 	time.Sleep(time.Duration(actualDelayMs) * time.Millisecond)
 }
 
