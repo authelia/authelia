@@ -46,6 +46,27 @@ func TestShouldSetDefaultSessionExpiration(t *testing.T) {
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
 }
 
+func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	validator.Clear()
+
+	// Set redis config because password must be set only when redis is used.
+	config.Redis = &schema.RedisSessionConfiguration{
+		Host:     "redis.localhost",
+		Port:     6379,
+		Password: "password",
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+}
+
 func TestShouldRaiseErrorWhenRedisIsUsedAndPasswordNotSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
@@ -57,12 +78,36 @@ func TestShouldRaiseErrorWhenRedisIsUsedAndPasswordNotSet(t *testing.T) {
 	validator.Clear()
 
 	// Set redis config because password must be set only when redis is used.
-	config.Redis = &schema.RedisSessionConfiguration{}
+	config.Redis = &schema.RedisSessionConfiguration{
+		Host: "redis.localhost",
+		Port: 6379,
+	}
 
 	ValidateSession(&config, validator)
 
 	assert.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "Set secret of the session object")
+}
+
+func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	validator.Clear()
+
+	// Set redis config because password must be set only when redis is used.
+	config.Redis = &schema.RedisSessionConfiguration{
+		Host: "redis.localhost",
+		Port: 0,
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "A redis port different than 0 must be provided")
 }
 
 func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {

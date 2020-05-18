@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"time"
 
-	fasthttpsession "github.com/fasthttp/session"
+	fasthttpsession "github.com/fasthttp/session/v2"
+	"github.com/fasthttp/session/v2/providers/memory"
+	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -39,7 +41,20 @@ func NewProvider(configuration schema.SessionConfiguration) *Provider {
 
 	provider.Inactivity = duration
 
-	err = provider.sessionHolder.SetProvider(providerConfig.providerName, providerConfig.providerConfig)
+	var providerImpl fasthttpsession.Provider
+	if providerConfig.redisConfig != nil {
+		providerImpl, err = redis.New(*providerConfig.redisConfig)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		providerImpl, err = memory.New(memory.Config{})
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	err = provider.sessionHolder.SetProvider(providerImpl)
 	if err != nil {
 		panic(err)
 	}
@@ -91,6 +106,7 @@ func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession
 	}
 
 	store.Set(userSessionStorerKey, userSessionJSON)
+
 	p.sessionHolder.Save(ctx, store)
 
 	return nil
@@ -98,7 +114,7 @@ func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession
 
 // RegenerateSession regenerate a session ID.
 func (p *Provider) RegenerateSession(ctx *fasthttp.RequestCtx) error {
-	_, err := p.sessionHolder.Regenerate(ctx)
+	err := p.sessionHolder.Regenerate(ctx)
 	return err
 }
 
@@ -121,9 +137,7 @@ func (p *Provider) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Du
 		return err
 	}
 
-	p.sessionHolder.Save(ctx, store)
-
-	return nil
+	return p.sessionHolder.Save(ctx, store)
 }
 
 // GetExpiration get the expiration of the current session.

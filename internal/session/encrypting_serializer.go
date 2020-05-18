@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 
-	"github.com/fasthttp/session"
+	"github.com/fasthttp/session/v2"
 
 	"github.com/authelia/authelia/internal/utils"
 )
