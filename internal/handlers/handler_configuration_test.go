@@ -30,6 +30,7 @@ func (s *ConfigurationSuite) TestShouldDisableRememberMe() {
 	expectedBody := ConfigurationBody{
 		RememberMe:    false,
 		ResetPassword: true,
+		Path:          "/",
 	}
 
 	ConfigurationGet(s.mock.Ctx)
@@ -41,6 +42,7 @@ func (s *ConfigurationSuite) TestShouldDisableResetPassword() {
 	expectedBody := ConfigurationBody{
 		RememberMe:    true,
 		ResetPassword: false,
+		Path:          "/",
 	}
 
 	ConfigurationGet(s.mock.Ctx)

@@ -2,8 +2,9 @@ package schema
 
 // ServerConfiguration represents the configuration of the http server.
 type ServerConfiguration struct {
-	ReadBufferSize  int `mapstructure:"read_buffer_size"`
-	WriteBufferSize int `mapstructure:"write_buffer_size"`
+	Path            string `mapstructure:"path"`
+	ReadBufferSize  int    `mapstructure:"read_buffer_size"`
+	WriteBufferSize int    `mapstructure:"write_buffer_size"`
 }
 
 // DefaultServerConfiguration represents the default values of the ServerConfiguration.

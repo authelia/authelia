@@ -3,7 +3,20 @@ package utils
 import (
 	"math/rand"
 	"time"
+	"unicode"
 )
+
+func IsStringAlphaNumeric(input string) bool {
+	if len(input) == 0 {
+		return true
+	}
+	for _, r := range input {
+		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
+			return false
+		}
+	}
+	return true
+}
 
 // IsStringInSlice checks if a single string is in an array of strings.
 func IsStringInSlice(a string, list []string) (inSlice bool) {
