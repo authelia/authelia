@@ -2,7 +2,7 @@
 layout: default
 title: Session
 parent: Configuration
-nav_order: 10
+nav_order: 8
 ---
 
 # Session

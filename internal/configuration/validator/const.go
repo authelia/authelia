@@ -10,18 +10,17 @@ var validKeys = []string{
 	"jwt_secret",
 	"tls_key",
 	"tls_cert",
-	"google_analytics",
 
 	// Server Keys.
 	"server.read_buffer_size",
 	"server.write_buffer_size",
 
-	// TOTP Keys
+	// TOTP Keys.
 	"totp.issuer",
 	"totp.period",
 	"totp.skew",
 
-	// Access Control Keys
+	// Access Control Keys.
 	"access_control.rules",
 	"access_control.default_policy",
 
@@ -130,8 +129,9 @@ var validKeys = []string{
 }
 
 var specificErrorKeys = map[string]string{
-	"logs_file_path": "config key replaced: logs_file is now log_file",
-	"logs_level":     "config key replaced: logs_level is now log_level",
+	"logs_file_path":   "config key replaced: logs_file is now log_file",
+	"logs_level":       "config key replaced: logs_level is now log_level",
+	"google_analytics": "config key removed: google_analytics - this functionality has been deprecated",
 	"authentication_backend.file.password_options.algorithm":   "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
 	"authentication_backend.file.password_options.iterations":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
 	"authentication_backend.file.password_options.key_length":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
