@@ -37,7 +37,7 @@ const App: React.FC = () => {
 
     return (
         <NotificationsContext.Provider value={{ notification, setNotification }} >
-            <Router basename={configuration?.path}>
+            <Router basename='/auth'>
                 <NotificationBar onClose={() => setNotification(null)} />
                 <Switch>
                     <Route path={ResetPasswordStep1Route} exact>
