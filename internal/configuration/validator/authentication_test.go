@@ -109,13 +109,6 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSaltLengthT
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The salt length must be 2 or more, you configured -1")
 }
 
-func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSaltLengthTooHigh() {
-	suite.configuration.File.Password.SaltLength = 20
-	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
-	assert.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The salt length must be 16 or less, you configured 20")
-}
-
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenBadAlgorithmDefined() {
 	suite.configuration.File.Password.Algorithm = "bogus"
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)

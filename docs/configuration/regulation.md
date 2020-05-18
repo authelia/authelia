@@ -2,7 +2,7 @@
 layout: default
 title: Regulation
 parent: Configuration
-nav_order: 7
+nav_order: 5
 ---
 
 # Regulation

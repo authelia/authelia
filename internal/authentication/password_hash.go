@@ -123,7 +123,7 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 	}
 
 	if salt == "" {
-		salt = utils.RandomString(saltLength, HashingPossibleSaltCharacters)
+		salt = crypt.Base64Encoding.EncodeToString([]byte(utils.RandomString(saltLength, HashingPossibleSaltCharacters)))
 	}
 
 	settings = getCryptSettings(salt, algorithm, iterations, memory, parallelism, keyLength)
@@ -136,17 +136,22 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 
 // CheckPassword check a password against a hash.
 func CheckPassword(password, hash string) (ok bool, err error) {
-	passwordHash, err := ParseHash(hash)
+	expectedHash, err := ParseHash(hash)
 	if err != nil {
 		return false, err
 	}
 
-	expectedHash, err := HashPassword(password, passwordHash.Salt, passwordHash.Algorithm, passwordHash.Iterations, passwordHash.Memory, passwordHash.Parallelism, passwordHash.KeyLength, len(passwordHash.Salt))
+	passwordHashString, err := HashPassword(password, expectedHash.Salt, expectedHash.Algorithm, expectedHash.Iterations, expectedHash.Memory, expectedHash.Parallelism, expectedHash.KeyLength, len(expectedHash.Salt))
 	if err != nil {
 		return false, err
 	}
 
-	return hash == expectedHash, nil
+	passwordHash, err := ParseHash(passwordHashString)
+	if err != nil {
+		return false, err
+	}
+
+	return passwordHash.Key == expectedHash.Key, nil
 }
 
 func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, parallelism, keyLength int) (settings string) {
@@ -165,17 +170,20 @@ func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, para
 // validateSalt checks the salt input and settings are valid and returns it and a nil error if they are, otherwise returns an error.
 func validateSalt(salt string, saltLength int) error {
 	if salt == "" {
-		if saltLength < 2 {
-			return fmt.Errorf("Salt length input of %d is invalid, it must be 2 or higher", saltLength)
-		} else if saltLength > 16 {
-			return fmt.Errorf("Salt length input of %d is invalid, it must be 16 or lower", saltLength)
+		if saltLength < 8 {
+			return fmt.Errorf("Salt length input of %d is invalid, it must be 8 or higher", saltLength)
 		}
-	} else if len(salt) > 16 {
-		return fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 16 or fewer characters", salt, len(salt))
-	} else if len(salt) < 2 {
-		return fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 2 or more characters", salt, len(salt))
-	} else if _, err := crypt.Base64Encoding.DecodeString(salt); err != nil {
-		return fmt.Errorf("Salt input of %s is invalid, only characters [a-zA-Z0-9+/] are valid for input", salt)
+
+		return nil
+	}
+
+	decodedSalt, err := crypt.Base64Encoding.DecodeString(salt)
+	if err != nil {
+		return fmt.Errorf("Salt input of %s is invalid, only base64 strings are valid for input", salt)
+	}
+
+	if len(decodedSalt) < 8 {
+		return fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 8 or more characters", decodedSalt, len(decodedSalt))
 	}
 
 	return nil

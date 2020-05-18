@@ -2,7 +2,7 @@
 layout: default
 title: Access Control
 parent: Configuration
-nav_order: 2
+nav_order: 1
 ---
 
 # Access Control

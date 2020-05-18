@@ -45,6 +45,13 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 	assert.Equal(t, schema.DefaultCIPasswordConfiguration.KeyLength, parameters.GetInt("k", HashingDefaultArgon2idKeyLength))
 }
 
+func TestShouldValidateArgon2idHashWithTEqualOne(t *testing.T) {
+	hash := "$argon2id$v=19$m=1024,t=1,p=1,k=16$c2FsdG9uY2U$Sk4UjzxXdCrBcyyMYiPEsQ"
+	valid, err := CheckPassword("apple", hash)
+	assert.True(t, valid)
+	assert.NoError(t, err)
+}
+
 // This checks the method of hashing (for argon2id) supports all the characters we allow in Authelia's hash function.
 func TestArgon2idHashSaltValidValues(t *testing.T) {
 	var err error
@@ -57,7 +64,7 @@ func TestArgon2idHashSaltValidValues(t *testing.T) {
 	for _, salt := range datas {
 		hash, err = HashPassword("password", salt, HashingAlgorithmArgon2id, 1, 8, 1, 32, 16)
 		assert.NoError(t, err)
-		assert.Equal(t, fmt.Sprintf("$argon2id$v=19$m=8,p=1$%s$", salt), hash[0:40])
+		assert.Equal(t, fmt.Sprintf("$argon2id$v=19$m=8,t=1,p=1$%s$", salt), hash[0:44])
 	}
 }
 
@@ -138,32 +145,17 @@ func TestShouldNotHashPasswordDueToSaltLength(t *testing.T) {
 		schema.DefaultCIPasswordConfiguration.Parallelism, schema.DefaultCIPasswordConfiguration.KeyLength, 0)
 
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt length input of 0 is invalid, it must be 2 or higher")
-
-	hash, err = HashPassword("password", "", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordConfiguration.Iterations, schema.DefaultCIPasswordConfiguration.Memory*1024,
-		schema.DefaultCIPasswordConfiguration.Parallelism, schema.DefaultCIPasswordConfiguration.KeyLength, 20)
-
-	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt length input of 20 is invalid, it must be 16 or lower")
-}
-
-func TestShouldNotHashPasswordDueToSaltCharLengthTooLong(t *testing.T) {
-	hash, err := HashPassword("password", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", HashingAlgorithmArgon2id,
-		schema.DefaultCIPasswordConfiguration.Iterations, schema.DefaultCIPasswordConfiguration.Memory*1024,
-		schema.DefaultCIPasswordConfiguration.Parallelism, schema.DefaultCIPasswordConfiguration.KeyLength,
-		schema.DefaultCIPasswordConfiguration.SaltLength)
-	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt input of abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 is invalid (62 characters), it must be 16 or fewer characters")
+	assert.EqualError(t, err, "Salt length input of 0 is invalid, it must be 8 or higher")
 }
 
 func TestShouldNotHashPasswordDueToSaltCharLengthTooShort(t *testing.T) {
-	hash, err := HashPassword("password", "a", HashingAlgorithmArgon2id,
+	// The salt 'YQ' is the base64 value for 'a' which is why the length is 1.
+	hash, err := HashPassword("password", "YQ", HashingAlgorithmArgon2id,
 		schema.DefaultCIPasswordConfiguration.Iterations, schema.DefaultCIPasswordConfiguration.Memory*1024,
 		schema.DefaultCIPasswordConfiguration.Parallelism, schema.DefaultCIPasswordConfiguration.KeyLength,
 		schema.DefaultCIPasswordConfiguration.SaltLength)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt input of a is invalid (1 characters), it must be 2 or more characters")
+	assert.EqualError(t, err, "Salt input of a is invalid (1 characters), it must be 8 or more characters")
 }
 
 func TestShouldNotHashPasswordWithNonBase64CharsInSalt(t *testing.T) {
@@ -172,7 +164,7 @@ func TestShouldNotHashPasswordWithNonBase64CharsInSalt(t *testing.T) {
 		schema.DefaultCIPasswordConfiguration.Parallelism, schema.DefaultCIPasswordConfiguration.KeyLength,
 		schema.DefaultCIPasswordConfiguration.SaltLength)
 	assert.Equal(t, "", hash)
-	assert.EqualError(t, err, "Salt input of abc&123 is invalid, only characters [a-zA-Z0-9+/] are valid for input")
+	assert.EqualError(t, err, "Salt input of abc&123 is invalid, only base64 strings are valid for input")
 }
 
 func TestShouldNotParseHashWithNoneBase64CharsInKey(t *testing.T) {
