@@ -107,7 +107,11 @@ func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession
 
 	store.Set(userSessionStorerKey, userSessionJSON)
 
-	p.sessionHolder.Save(ctx, store)
+	err = p.sessionHolder.Save(ctx, store)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
