@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/authelia/authelia/internal/authentication"
@@ -12,7 +13,8 @@ import (
 	"github.com/authelia/authelia/internal/session"
 )
 
-func movingAverageIteration(value time.Duration, successful *bool, movingAverageCursor *int, execDurationMovingAverage *[]time.Duration) float64 {
+func movingAverageIteration(value time.Duration, successful *bool, movingAverageCursor *int, execDurationMovingAverage *[]time.Duration, mutex sync.Locker) float64 {
+	mutex.Lock()
 	if *successful {
 		(*execDurationMovingAverage)[*movingAverageCursor] = value
 		*movingAverageCursor = (*movingAverageCursor + 1) % movingAverageWindow
@@ -23,15 +25,16 @@ func movingAverageIteration(value time.Duration, successful *bool, movingAverage
 	for _, v := range *execDurationMovingAverage {
 		sum += v.Milliseconds()
 	}
+	mutex.Unlock()
 
 	return float64(sum / movingAverageWindow)
 }
 
-func delayToPreventTimingAttacks(ctx *middlewares.AutheliaCtx, requestTime time.Time, successful *bool, movingAverageCursor *int, execDurationMovingAverage *[]time.Duration) {
+func delayToPreventTimingAttacks(ctx *middlewares.AutheliaCtx, requestTime time.Time, successful *bool, movingAverageCursor *int, execDurationMovingAverage *[]time.Duration, mutex sync.Locker) {
 	ctx.Logger.Debugf("Request received. Successful: %t", *successful)
 
 	execDuration := time.Since(requestTime)
-	avgExecDuration := movingAverageIteration(execDuration, successful, movingAverageCursor, execDurationMovingAverage)
+	avgExecDuration := movingAverageIteration(execDuration, successful, movingAverageCursor, execDurationMovingAverage, mutex)
 	randomDelayMs := float64(rand.Int63n(msMaximumRandomDelay))
 	totalDelayMs := math.Max(avgExecDuration, msMinimumDelay1FA) + randomDelayMs
 	actualDelayMs := math.Max(totalDelayMs-float64(execDuration.Milliseconds()), 1.0)
@@ -46,6 +49,8 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 	var movingAverageCursor = 0
 
+	var mutex = &sync.Mutex{}
+
 	for i := range execDurationMovingAverage {
 		execDurationMovingAverage[i] = msInitialDelay * time.Millisecond
 	}
@@ -58,7 +63,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		requestTime := time.Now()
 
 		if delayEnabled {
-			defer delayToPreventTimingAttacks(ctx, requestTime, &successful, &movingAverageCursor, &execDurationMovingAverage)
+			defer delayToPreventTimingAttacks(ctx, requestTime, &successful, &movingAverageCursor, &execDurationMovingAverage, mutex)
 		}
 
 		bodyJSON := firstFactorRequestBody{}
