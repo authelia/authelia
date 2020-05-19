@@ -6,8 +6,8 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// PathMiddleware is a middleware to strip the first level of a path.
-func PathMiddleware(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+// StripPathMiddleware strips the first level of a path.
+func StripPathMiddleware(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		uri := ctx.Request.RequestURI()
 		n := bytes.IndexByte(uri[1:], '/')

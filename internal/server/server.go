@@ -122,7 +122,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {
-		handler = middlewares.PathMiddleware(handler)
+		handler = middlewares.StripPathMiddleware(handler)
 	}
 
 	server := &fasthttp.Server{
