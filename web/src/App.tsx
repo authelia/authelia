@@ -22,7 +22,6 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 import {config as faConfig} from '@fortawesome/fontawesome-svg-core';
 
 faConfig.autoAddCss = false;
-console.log((window as any).Base);
 
 const App: React.FC = () => {
     const [notification, setNotification] = useState(null as Notification | null);

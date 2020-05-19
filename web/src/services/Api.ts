@@ -1,31 +1,31 @@
 import { AxiosResponse } from "axios";
 
-export const FirstFactorPath = "/auth/api/firstfactor";
-export const InitiateTOTPRegistrationPath = "/auth/api/secondfactor/totp/identity/start";
-export const CompleteTOTPRegistrationPath = "/auth/api/secondfactor/totp/identity/finish";
+export const FirstFactorPath = (window as any).Base + "/api/firstfactor";
+export const InitiateTOTPRegistrationPath = (window as any).Base + "/api/secondfactor/totp/identity/start";
+export const CompleteTOTPRegistrationPath = (window as any).Base + "/api/secondfactor/totp/identity/finish";
 
-export const InitiateU2FRegistrationPath = "/auth/api/secondfactor/u2f/identity/start";
-export const CompleteU2FRegistrationStep1Path = "/auth/api/secondfactor/u2f/identity/finish";
-export const CompleteU2FRegistrationStep2Path = "/auth/api/secondfactor/u2f/register";
+export const InitiateU2FRegistrationPath = (window as any).Base + "/api/secondfactor/u2f/identity/start";
+export const CompleteU2FRegistrationStep1Path = (window as any).Base + "/api/secondfactor/u2f/identity/finish";
+export const CompleteU2FRegistrationStep2Path = (window as any).Base + "/api/secondfactor/u2f/register";
 
-export const InitiateU2FSignInPath = "/auth/api/secondfactor/u2f/sign_request";
-export const CompleteU2FSignInPath = "/auth/api/secondfactor/u2f/sign";
+export const InitiateU2FSignInPath = (window as any).Base + "/api/secondfactor/u2f/sign_request";
+export const CompleteU2FSignInPath = (window as any).Base + "/api/secondfactor/u2f/sign";
 
-export const CompletePushNotificationSignInPath = "/auth/api/secondfactor/duo"
-export const CompleteTOTPSignInPath = "/auth/api/secondfactor/totp"
+export const CompletePushNotificationSignInPath = (window as any).Base + "/api/secondfactor/duo"
+export const CompleteTOTPSignInPath = (window as any).Base + "/api/secondfactor/totp"
 
-export const InitiateResetPasswordPath = "/auth/api/reset-password/identity/start";
-export const CompleteResetPasswordPath = "/auth/api/reset-password/identity/finish";
+export const InitiateResetPasswordPath = (window as any).Base + "/api/reset-password/identity/start";
+export const CompleteResetPasswordPath = (window as any).Base + "/api/reset-password/identity/finish";
 // Do the password reset during completion.
-export const ResetPasswordPath = "/auth/api/reset-password"
+export const ResetPasswordPath = (window as any).Base + "/api/reset-password"
 
-export const LogoutPath = "/auth/api/logout";
-export const StatePath = "/auth/api/state";
-export const UserInfoPath = "/auth/api/user/info";
-export const UserInfo2FAMethodPath = "/auth/api/user/info/2fa_method";
+export const LogoutPath = (window as any).Base + "/api/logout";
+export const StatePath = (window as any).Base + "/api/state";
+export const UserInfoPath = (window as any).Base + "/api/user/info";
+export const UserInfo2FAMethodPath = (window as any).Base + "/api/user/info/2fa_method";
 
-export const ConfigurationPath = "/auth/api/configuration";
-export const ExtendedConfigurationPath = "/auth/api/configuration/extended";
+export const ConfigurationPath = (window as any).Base + "/api/configuration";
+export const ExtendedConfigurationPath = (window as any).Base + "/api/configuration/extended";
 
 export interface ErrorResponse {
     status: "KO";
