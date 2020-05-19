@@ -13,9 +13,9 @@ import (
 	"github.com/authelia/authelia/internal/session"
 )
 
-func movingAverageIteration(value time.Duration, successful *bool, movingAverageCursor *int, execDurationMovingAverage *[]time.Duration, mutex sync.Locker) float64 {
+func movingAverageIteration(value time.Duration, successful bool, movingAverageCursor *int, execDurationMovingAverage *[]time.Duration, mutex sync.Locker) float64 {
 	mutex.Lock()
-	if *successful {
+	if successful {
 		(*execDurationMovingAverage)[*movingAverageCursor] = value
 		*movingAverageCursor = (*movingAverageCursor + 1) % movingAverageWindow
 	}
@@ -30,13 +30,19 @@ func movingAverageIteration(value time.Duration, successful *bool, movingAverage
 	return float64(sum / movingAverageWindow)
 }
 
+func calculateActualDelay(ctx *middlewares.AutheliaCtx, execDuration time.Duration, avgExecDurationMs float64, successful *bool) float64 {
+	randomDelayMs := float64(rand.Int63n(msMaximumRandomDelay))
+	totalDelayMs := math.Max(avgExecDurationMs, msMinimumDelay1FA) + randomDelayMs
+	actualDelayMs := math.Max(totalDelayMs-float64(execDuration.Milliseconds()), 1.0)
+	ctx.Logger.Tracef("attempt successful: %t, exec duration: %d, avg execution duration: %d, random delay ms: %d, total delay ms: %d, actual delay ms: %d", *successful, execDuration.Milliseconds(), int64(avgExecDurationMs), int64(randomDelayMs), int64(totalDelayMs), int64(actualDelayMs))
+
+	return actualDelayMs
+}
+
 func delayToPreventTimingAttacks(ctx *middlewares.AutheliaCtx, requestTime time.Time, successful *bool, movingAverageCursor *int, execDurationMovingAverage *[]time.Duration, mutex sync.Locker) {
 	execDuration := time.Since(requestTime)
-	avgExecDuration := movingAverageIteration(execDuration, successful, movingAverageCursor, execDurationMovingAverage, mutex)
-	randomDelayMs := float64(rand.Int63n(msMaximumRandomDelay))
-	totalDelayMs := math.Max(avgExecDuration, msMinimumDelay1FA) + randomDelayMs
-	actualDelayMs := math.Max(totalDelayMs-float64(execDuration.Milliseconds()), 1.0)
-	ctx.Logger.Tracef("attempt successful: %t, exec duration: %d, avg execution duration: %d, random delay ms: %d, total delay ms: %d, actual delay ms: %d", *successful, execDuration.Milliseconds(), int64(avgExecDuration), int64(randomDelayMs), int64(totalDelayMs), int64(actualDelayMs))
+	avgExecDurationMs := movingAverageIteration(execDuration, *successful, movingAverageCursor, execDurationMovingAverage, mutex)
+	actualDelayMs := calculateActualDelay(ctx, execDuration, avgExecDurationMs, successful)
 	time.Sleep(time.Duration(actualDelayMs) * time.Millisecond)
 }
 
