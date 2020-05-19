@@ -19,7 +19,8 @@ import NotificationBar from './components/NotificationBar';
 import SignOut from './views/LoginPortal/SignOut/SignOut';
 import { useConfiguration } from './hooks/Configuration';
 import '@fortawesome/fontawesome-svg-core/styles.css'
-import {config as faConfig} from '@fortawesome/fontawesome-svg-core';
+import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
+import { useBasePath } from './hooks/BasePath';
 
 faConfig.autoAddCss = false;
 
@@ -37,7 +38,7 @@ const App: React.FC = () => {
 
     return (
         <NotificationsContext.Provider value={{ notification, setNotification }} >
-            <Router basename={(window as any).Base}>
+            <Router basename={useBasePath()}>
                 <NotificationBar onClose={() => setNotification(null)} />
                 <Switch>
                     <Route path={ResetPasswordStep1Route} exact>
