@@ -16,7 +16,7 @@ server:
   read_buffer_size: 4096
   # Write buffer size configures the http server's maximum outgoing response size in bytes.
   write_buffer_size: 4096
-  # Set the path Authelia listens on, must be alphanumeric chars.
+  # Set the single level path Authelia listens on, must be alphanumeric chars and should not contain any slashes.
   path: ""
 
 # Level of verbosity for logs: info, debug, trace
