@@ -36,7 +36,7 @@ func buildFrontend() {
 	cmd = utils.CommandWithStdout("yarn", "build")
 	cmd.Dir = webDirectory
 
-	cmd.Env = append(os.Environ(), "PUBLIC_URL={{.Base}}", "INLINE_RUNTIME_CHUNK=false")
+	cmd.Env = append(os.Environ(), "INLINE_RUNTIME_CHUNK=false")
 
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)

@@ -7,7 +7,7 @@ WORKDIR /node/src/app
 COPY web .
 
 # Install the dependencies and build
-RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false PUBLIC_URL={{.Base}} yarn build
+RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn build
 
 # =======================================
 # ===== Build image for the backend =====
