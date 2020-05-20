@@ -7,7 +7,7 @@ WORKDIR /node/src/app
 COPY web .
 
 # Install the dependencies and build
-RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn build
+RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false PUBLIC_URL={{.Base}} yarn build
 
 # =======================================
 # ===== Build image for the backend =====
@@ -31,9 +31,7 @@ COPY cmd cmd
 COPY internal internal
 
 # Prepare static files to be embedded in Go binary
-RUN sed -i 's/href="/href="{{.Base}}/g' public_html/index.html && \
-sed -i 's/src="/src="{{.Base}}/g' public_html/index.html && \
-go get -u aletheia.icu/broccoli && \
+RUN go get -u aletheia.icu/broccoli && \
 cd internal/server && \
 go generate .
 
