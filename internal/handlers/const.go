@@ -39,3 +39,7 @@ const testInactivity = "10"
 const testRedirectionURL = "http://redirection.local"
 const testResultAllow = "allow"
 const testUsername = "john"
+
+const movingAverageWindow = 10
+const msMinimumDelay1FA = float64(250)
+const msMaximumRandomDelay = int64(85)

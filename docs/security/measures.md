@@ -28,6 +28,19 @@ that the attacker must also require the certificate to retrieve the cookies.
 Note that using [HSTS] has consequences. That's why you should read the blog
 post nginx has written on [HSTS].
 
+## Protection against username enumeration
+
+Authelia adaptively delays authentication attempts based on the mean (average) of the 
+previous 10 successful attempts, and a small random interval to make it even harder to 
+determine if the attempt was successful. On start it is assumed that the last 10 attempts 
+took 1000ms, this quickly grows or shrinks to the correct value over time regardless of the
+authentication backend. 
+
+The cost of this is low since in the instance of a user not existing it just sleeps to delay 
+the login. Lastly the absolute minimum time authentication can take is 250ms. Both of these measures
+also have the added effect of creating an additional delay for all authentication attempts reducing
+the likelihood a password can be brute-forced even if regulation settings are too permissive.
+ 
 ## Protections against password cracking (File authentication provider)
 
 Authelia implements a variety of measures to prevent an attacker cracking passwords if they
