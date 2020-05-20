@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"fmt"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -30,7 +32,7 @@ func (s *FirstFactorSuite) TearDownTest() {
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	// No body
 	assert.Equal(s.T(), "Unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
@@ -42,7 +44,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test"
 	}`)
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Unable to validate body: password: non zero value required", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
@@ -67,7 +69,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Error while checking password for user test: Failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
@@ -93,7 +95,7 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 		"keepMeLoggedIn": true
 	}`)
 
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
@@ -117,7 +119,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Error while retrieving details from user test: Failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
@@ -139,7 +141,7 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	assert.Equal(s.T(), "Unable to mark authentication: failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
@@ -170,7 +172,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	// Respond with 200.
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
@@ -210,7 +212,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 		"password": "hello",
 		"keepMeLoggedIn": false
 	}`)
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	// Respond with 200.
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
@@ -253,7 +255,7 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	// Respond with 200.
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
@@ -323,7 +325,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTarget
 		"password": "hello",
 		"keepMeLoggedIn": false
 	}`)
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	// Respond with 200.
 	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://default.local"})
@@ -343,7 +345,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 		"targetURL": "http://notsafe.local"
 	}`)
 
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	// Respond with 200.
 	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://default.local"})
@@ -363,7 +365,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 		"keepMeLoggedIn": false
 	}`)
 
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
@@ -393,7 +395,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 		"keepMeLoggedIn": false
 	}`)
 
-	FirstFactorPost(s.mock.Ctx)
+	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
@@ -402,4 +404,58 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 func TestFirstFactorSuite(t *testing.T) {
 	suite.Run(t, new(FirstFactorSuite))
 	suite.Run(t, new(FirstFactorRedirectionSuite))
+}
+
+func TestFirstFactorDelayAverages(t *testing.T) {
+	execDuration := time.Millisecond * 500
+	oneSecond := time.Millisecond * 1000
+	durations := []time.Duration{oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond}
+	cursor := 0
+	mutex := &sync.Mutex{}
+	avgExecDuration := movingAverageIteration(execDuration, false, &cursor, &durations, mutex)
+	assert.Equal(t, avgExecDuration, float64(1000))
+
+	execDurations := []time.Duration{
+		time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500,
+		time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500,
+		time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500,
+	}
+
+	current := float64(1000)
+
+	// Execute at 500ms for 12 requests.
+	for _, execDuration = range execDurations {
+		// Should not dip below 500, and should decrease in value by 50 each iteration.
+		if current > 500 {
+			current -= 50
+		}
+
+		avgExecDuration := movingAverageIteration(execDuration, true, &cursor, &durations, mutex)
+		assert.Equal(t, avgExecDuration, current)
+	}
+}
+
+func TestFirstFactorDelayCalculations(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	successful := false
+
+	execDuration := 500 * time.Millisecond
+	avgExecDurationMs := 1000.0
+	expectedMinimumDelayMs := avgExecDurationMs - float64(execDuration.Milliseconds())
+
+	for i := 0; i < 100; i++ {
+		delay := calculateActualDelay(mock.Ctx, execDuration, avgExecDurationMs, &successful)
+		assert.True(t, delay >= expectedMinimumDelayMs)
+		assert.True(t, delay <= expectedMinimumDelayMs+float64(msMaximumRandomDelay))
+	}
+
+	execDuration = 5 * time.Millisecond
+	avgExecDurationMs = 5.0
+	expectedMinimumDelayMs = msMinimumDelay1FA - float64(execDuration.Milliseconds())
+
+	for i := 0; i < 100; i++ {
+		delay := calculateActualDelay(mock.Ctx, execDuration, avgExecDurationMs, &successful)
+		assert.True(t, delay >= expectedMinimumDelayMs)
+		assert.True(t, delay <= expectedMinimumDelayMs+float64(msMaximumRandomDelay))
+	}
 }

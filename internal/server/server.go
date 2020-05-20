@@ -47,7 +47,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	r.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
 	r.HEAD("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
 
-	r.POST("/api/firstfactor", autheliaMiddleware(handlers.FirstFactorPost))
+	r.POST("/api/firstfactor", autheliaMiddleware(handlers.FirstFactorPost(1000, true)))
 	r.POST("/api/logout", autheliaMiddleware(handlers.LogoutPost))
 
 	// Only register endpoints if forgot password is not disabled.
