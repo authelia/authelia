@@ -20,6 +20,8 @@ server:
   read_buffer_size: 4096
   # Write buffer size configures the http server's maximum outgoing response size in bytes.
   write_buffer_size: 4096
+  # Set the single level path Authelia listens on, must be alphanumeric chars and should not contain any slashes.
+  path: ""
 ```
 
 ### Buffer Sizes
@@ -27,3 +29,23 @@ server:
 The read and write buffer sizes generally should be the same. This is because when Authelia verifies 
 if the user is authorized to visit a URL, it also sends back nearly the same size response 
 (write_buffer_size) as the request (read_buffer_size).
+
+### Path
+
+Authelia by default is served from the root `/` location, either via its own domain or subdomain.
+
+Example: https://auth.example.com/, https://example.com/
+```yaml
+server:
+  path: ""
+```
+
+Modifying this setting will allow you to serve Authelia out from a specified base path. Please note
+that currently only a single level path is supported meaning slashes are not allowed, and only 
+alphanumeric characters are supported.
+
+Example: https://auth.example.com/authelia/, https://example.com/authelia/
+```yaml
+server:
+  path: authelia
+```
