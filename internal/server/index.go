@@ -36,7 +36,7 @@ func ServeIndex(publicDir, base string) fasthttp.RequestHandler {
 		nonce := utils.RandomString(32, alphaNumericRunes)
 
 		ctx.SetContentType("text/html; charset=utf-8")
-		ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self'; object-src 'none'; require-trusted-types-for 'script'; style-src 'self' 'nonce-%s'", nonce))
+		ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
 
 		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ CSPNonce, Base string }{CSPNonce: nonce, Base: base})
 		if err != nil {
