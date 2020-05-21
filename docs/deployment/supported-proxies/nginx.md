@@ -81,8 +81,8 @@ auth_request_set $target_url $scheme://$http_host$request_uri;
 # proxy. In the future, it's gonna be safe to just use OAuth.
 auth_request_set $user $upstream_http_remote_user;
 auth_request_set $groups $upstream_http_remote_groups;
-proxy_set_header X-Forwarded-User $user;
-proxy_set_header X-Forwarded-Groups $groups;
+proxy_set_header Remote-User $user;
+proxy_set_header Remote-Groups $groups;
 # If Authelia returns 401, then nginx redirects the user to the login portal.
 # If it returns 200, then the request pass through to the backend.
 # For other type of errors, nginx will handle them as usual.
@@ -143,7 +143,7 @@ server {
     location / {
         set $upstream_authelia http://authelia:9091; # This example assumes a Docker deployment 
         proxy_pass $upstream_authelia;
-        include /config/nginx/proxy.conf; # 
+        include /config/nginx/proxy.conf;
     }
 }
 ```

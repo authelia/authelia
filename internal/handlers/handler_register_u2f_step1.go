@@ -36,6 +36,7 @@ func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string
 
 	appID := fmt.Sprintf("%s://%s", ctx.XForwardedProto(), ctx.XForwardedHost())
 	ctx.Logger.Tracef("U2F appID is %s", appID)
+
 	var trustedFacets = []string{appID}
 
 	challenge, err := u2f.NewChallenge(appID, trustedFacets)
@@ -58,7 +59,7 @@ func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string
 	ctx.SetJSONBody(u2f.NewWebRegisterRequest(challenge, []u2f.Registration{})) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
-// SecondFactorU2FIdentityFinish the handler for finishing the identity validation
+// SecondFactorU2FIdentityFinish the handler for finishing the identity validation.
 var SecondFactorU2FIdentityFinish = middlewares.IdentityVerificationFinish(
 	middlewares.IdentityVerificationFinishArgs{
 		ActionClaim:          U2FRegistrationAction,

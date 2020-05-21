@@ -60,12 +60,17 @@ func (s *CustomHeadersScenario) TestShouldNotForwardCustomHeaderForUnauthenticat
 
 	body, err := s.WebDriver().FindElement(selenium.ByTagName, "body")
 	s.Assert().NoError(err)
-	s.WaitElementTextContains(ctx, s.T(), body, "httpbin:8000")
+	s.WaitElementTextContains(ctx, s.T(), body, "\"Host\"")
+
+	b, err := body.Text()
+	s.Assert().NoError(err)
+	s.Assert().NotContains(b, "john")
+	s.Assert().NotContains(b, "admins")
 }
 
 type Headers struct {
-	ForwardedGroups string `json:"Custom-Forwarded-Groups"`
-	ForwardedUser   string `json:"Custom-Forwarded-User"`
+	ForwardedGroups string `json:"Remote-Groups"`
+	ForwardedUser   string `json:"Remote-User"`
 }
 
 type HeadersPayload struct {

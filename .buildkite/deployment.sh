@@ -24,34 +24,23 @@ env:
 steps:
   - label: ":docker: Image Deployments"
     command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
-    concurrency: 1
-    concurrency_group: "deployments"
-    if: build.branch == "master" && build.env("CI_BYPASS") != "true"
-
-  - label: ":docker: Image Deployments"
-    command: ".buildkite/steps/deployimages.sh | buildkite-agent pipeline upload"
-    if: build.branch != "master" && build.env("CI_BYPASS") != "true"
+    if: build.env("CI_BYPASS") != "true"
 
   - wait:
     if: build.env("CI_BYPASS") != "true"
 
   - label: ":docker: Deploy Manifests"
     command: "authelia-scripts docker push-manifest"
-    concurrency: 1
-    concurrency_group: "deployments"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
-    if: build.branch == "master" && build.env("CI_BYPASS") != "true"
-
-  - label: ":docker: Deploy Manifests"
-    command: "authelia-scripts docker push-manifest"
-    env:
-      DOCKER_CLI_EXPERIMENTAL: "enabled"
-    if: build.branch != "master" && build.env("CI_BYPASS") != "true"
+    if: build.env("CI_BYPASS") != "true"
 
   - label: ":github: Deploy Artifacts"
     command: "ghartifacts.sh"
-    depends_on: ~
+    depends_on:
+      - "build-docker-linux-amd64"
+      - "build-docker-linux-arm32v7"
+      - "build-docker-linux-arm64v8"
     retry:
       automatic: true
     agents:

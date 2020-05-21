@@ -22,13 +22,6 @@
     </dd>
   </div>
   <div class="m1">
-      <dt>darwin</dt>
-      <dd>
-        <a href="artifact://authelia-darwin-amd64.tar.gz">authelia-darwin-amd64.tar.gz</a><br>
-        <a href="artifact://authelia-darwin-amd64.tar.gz.sha256">authelia-darwin-amd64.tar.gz.sha256</a>
-      </dd>
-    </div>
-  <div class="m1">
       <dt>public_html</dt>
       <dd>
         <a href="artifact://authelia-public_html.tar.gz">authelia-public_html.tar.gz</a><br>

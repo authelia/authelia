@@ -24,7 +24,7 @@ func (s *HandlerRegisterU2FStep1Suite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 
 	userSession := s.mock.Ctx.GetSession()
-	userSession.Username = "john"
+	userSession.Username = testUsername
 	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }
 
@@ -43,6 +43,7 @@ func createToken(secret string, username string, action string, expiresAt time.T
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, _ := token.SignedString([]byte(secret))
+
 	return ss
 }
 

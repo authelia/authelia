@@ -14,7 +14,7 @@ func newDefaultConfig() schema.Configuration {
 	config.Host = "127.0.0.1"
 	config.Port = 9090
 	config.LogLevel = "info"
-	config.JWTSecret = "a_secret"
+	config.JWTSecret = testJWTSecret
 	config.AuthenticationBackend.File = new(schema.FileAuthenticationBackendConfiguration)
 	config.AuthenticationBackend.File.Path = "/a/path"
 	config.Session = schema.SessionConfiguration{
@@ -30,6 +30,7 @@ func newDefaultConfig() schema.Configuration {
 			Filename: "/tmp/file",
 		},
 	}
+
 	return config
 }
 
@@ -104,7 +105,7 @@ func TestShouldAddDefaultAccessControl(t *testing.T) {
 func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.TLSCert = "/tmp/cert.pem"
+	config.TLSCert = testTLSCert
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
@@ -114,7 +115,7 @@ func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
 func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.TLSKey = "/tmp/key.pem"
+	config.TLSKey = testTLSKey
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
@@ -124,8 +125,8 @@ func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
 func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.TLSCert = "/tmp/cert.pem"
-	config.TLSKey = "/tmp/key.pem"
+	config.TLSCert = testTLSCert
+	config.TLSKey = testTLSKey
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 0)

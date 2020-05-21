@@ -14,11 +14,13 @@ import (
 func NewRegulator(configuration *schema.RegulationConfiguration, provider storage.Provider, clock utils.Clock) *Regulator {
 	regulator := &Regulator{storageProvider: provider}
 	regulator.clock = clock
+
 	if configuration != nil {
 		findTime, err := utils.ParseDurationString(configuration.FindTime)
 		if err != nil {
 			panic(err)
 		}
+
 		banTime, err := utils.ParseDurationString(configuration.BanTime)
 		if err != nil {
 			panic(err)
@@ -34,11 +36,12 @@ func NewRegulator(configuration *schema.RegulationConfiguration, provider storag
 		regulator.findTime = findTime
 		regulator.banTime = banTime
 	}
+
 	return regulator
 }
 
 // Mark mark an authentication attempt.
-// We split Mark and Regulate in order to avoid timing attacks since if
+// We split Mark and Regulate in order to avoid timing attacks.
 func (r *Regulator) Mark(username string, successful bool) error {
 	return r.storageProvider.AppendAuthenticationLog(models.AuthenticationAttempt{
 		Username:   username,
@@ -55,6 +58,7 @@ func (r *Regulator) Regulate(username string) (time.Time, error) {
 	if !r.enabled {
 		return time.Time{}, nil
 	}
+
 	now := r.clock.Now()
 
 	// TODO(c.michaud): make sure FindTime < BanTime.
@@ -65,6 +69,7 @@ func (r *Regulator) Regulate(username string) (time.Time, error) {
 	}
 
 	latestFailedAttempts := make([]models.AuthenticationAttempt, 0, r.maxRetries)
+
 	for _, attempt := range attempts {
 		if attempt.Successful || len(latestFailedAttempts) >= r.maxRetries {
 			// We stop appending failed attempts once we find the first successful attempts or we reach
@@ -90,5 +95,6 @@ func (r *Regulator) Regulate(username string) (time.Time, error) {
 		bannedUntil := latestFailedAttempts[0].Time.Add(r.banTime)
 		return bannedUntil, ErrUserIsBanned
 	}
+
 	return time.Time{}, nil
 }

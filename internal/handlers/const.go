@@ -34,3 +34,12 @@ const unableToRegisterOneTimePasswordMessage = "Unable to set up one-time passwo
 const unableToRegisterSecurityKeyMessage = "Unable to register your security key."
 const unableToResetPasswordMessage = "Unable to reset your password."
 const mfaValidationFailedMessage = "Authentication failed, please retry later."
+
+const testInactivity = "10"
+const testRedirectionURL = "http://redirection.local"
+const testResultAllow = "allow"
+const testUsername = "john"
+
+const movingAverageWindow = 10
+const msMinimumDelay1FA = float64(250)
+const msMaximumRandomDelay = int64(85)

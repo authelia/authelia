@@ -8,6 +8,17 @@ port: 9091
 # tls_key: /var/lib/authelia/ssl/key.pem
 # tls_cert: /var/lib/authelia/ssl/cert.pem
 
+# Configuration options specific to the internal http server
+server:
+  # Buffers usually should be configured to be the same value.
+  # Explanation at https://docs.authelia.com/configuration/server.html
+  # Read buffer size configures the http server's maximum incoming request size in bytes.
+  read_buffer_size: 4096
+  # Write buffer size configures the http server's maximum outgoing response size in bytes.
+  write_buffer_size: 4096
+  # Set the single level path Authelia listens on, must be alphanumeric chars and should not contain any slashes.
+  path: ""
+
 # Level of verbosity for logs: info, debug, trace
 log_level: debug
 ## File path where the logs will be written. If not set logs are written to stdout.
@@ -29,11 +40,6 @@ jwt_secret: a_very_important_secret
 # Note: this parameter is optional. If not provided, user won't
 # be redirected upon successful authentication.
 default_redirection_url: https://home.example.com:8080/
-
-# Google Analytics Tracking ID to track the usage of the portal
-# using a Google Analytics dashboard.
-#
-## google_analytics: UA-00000-01
 
 # TOTP Settings
 #
@@ -69,6 +75,15 @@ duo_api:
 authentication_backend:
   # Disable both the HTML element and the API for reset password functionality
   disable_reset_password: false
+
+  # The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
+  # To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users
+  # will always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
+  # To force update on every request you can set this to '0' or 'always', this will increase processor demand.
+  # See the below documentation for more information.
+  # Duration Notation docs:  https://docs.authelia.com/configuration/index.html#duration-notation-format
+  # Refresh Interval docs: https://docs.authelia.com/configuration/authentication/ldap.html#refresh-interval
+  refresh_interval: 5m
 
   # LDAP backend configuration.
   #
@@ -128,14 +143,14 @@ authentication_backend:
     # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
     # - DON'T USE - {1} is an alias for {username} supported for backward compatibility but it will be deprecated in later version, so please don't use it.
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
-    
+
     # The attribute holding the name of the group
     group_name_attribute: cn
-    
+
     # The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the first
     # one returned by the LDAP server is used.
     mail_attribute: mail
-    
+
     # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
@@ -296,6 +311,10 @@ session:
   redis:
     host: 127.0.0.1
     port: 6379
+    # # Use a unix socket instead
+    # host: /var/run/redis/redis.sock
+
+
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: authelia
     # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).

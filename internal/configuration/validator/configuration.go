@@ -11,6 +11,7 @@ var defaultPort = 8080
 var defaultLogLevel = "info"
 
 // ValidateConfiguration and adapt the configuration read from file.
+//nolint:gocyclo // This function is likely to always have lots of if/else statements, as long as we keep the flow clean it should be understandable
 func ValidateConfiguration(configuration *schema.Configuration, validator *schema.StructValidator) {
 	if configuration.Host == "" {
 		configuration.Host = "0.0.0.0"
@@ -42,8 +43,9 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	}
 
 	if configuration.TOTP == nil {
-		configuration.TOTP = &schema.TOTPConfiguration{}
+		configuration.TOTP = &schema.DefaultTOTPConfiguration
 	}
+
 	ValidateTOTP(configuration.TOTP, validator)
 
 	ValidateAuthenticationBackend(&configuration.AuthenticationBackend, validator)
@@ -55,9 +57,12 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	ValidateSession(&configuration.Session, validator)
 
 	if configuration.Regulation == nil {
-		configuration.Regulation = &schema.RegulationConfiguration{}
+		configuration.Regulation = &schema.DefaultRegulationConfiguration
 	}
+
 	ValidateRegulation(configuration.Regulation, validator)
+
+	ValidateServer(&configuration.Server, validator)
 
 	ValidateStorage(configuration.Storage, validator)
 

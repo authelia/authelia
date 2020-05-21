@@ -2,7 +2,7 @@
 layout: default
 title: One-Time Password
 parent: Configuration
-nav_order: 6
+nav_order: 4
 ---
 
 # One-Time Password

@@ -6,7 +6,7 @@ import (
 	"github.com/go-ldap/ldap/v3"
 )
 
-// ********************* CONNECTION *********************
+// ********************* CONNECTION *********************.
 
 // LDAPConnection interface representing a connection to the ldap.
 type LDAPConnection interface {
@@ -47,7 +47,7 @@ func (lc *LDAPConnectionImpl) Modify(modifyRequest *ldap.ModifyRequest) error {
 	return lc.conn.Modify(modifyRequest)
 }
 
-// ********************* FACTORY ***********************
+// ********************* FACTORY ***********************.
 
 // LDAPConnectionFactory an interface of factory of ldap connections.
 type LDAPConnectionFactory interface {
@@ -69,6 +69,7 @@ func (lcf *LDAPConnectionFactoryImpl) DialTLS(network, addr string, config *tls.
 	if err != nil {
 		return nil, err
 	}
+
 	return NewLDAPConnectionImpl(conn), nil
 }
 
@@ -78,5 +79,6 @@ func (lcf *LDAPConnectionFactoryImpl) Dial(network, addr string) (LDAPConnection
 	if err != nil {
 		return nil, err
 	}
+
 	return NewLDAPConnectionImpl(conn), nil
 }

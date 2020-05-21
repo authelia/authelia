@@ -1,6 +1,8 @@
 package session
 
-import "github.com/authelia/authelia/internal/authentication"
+import (
+	"github.com/authelia/authelia/internal/authentication"
+)
 
 // NewDefaultUserSession create a default user session.
 func NewDefaultUserSession() UserSession {

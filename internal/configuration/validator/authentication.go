@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
@@ -22,14 +23,14 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 			configuration.Password.Algorithm = schema.DefaultPasswordConfiguration.Algorithm
 		} else {
 			configuration.Password.Algorithm = strings.ToLower(configuration.Password.Algorithm)
-			if configuration.Password.Algorithm != "argon2id" && configuration.Password.Algorithm != "sha512" {
+			if configuration.Password.Algorithm != argon2id && configuration.Password.Algorithm != sha512 {
 				validator.Push(fmt.Errorf("Unknown hashing algorithm supplied, valid values are argon2id and sha512, you configured '%s'", configuration.Password.Algorithm))
 			}
 		}
 
 		// Iterations (time)
 		if configuration.Password.Iterations == 0 {
-			if configuration.Password.Algorithm == "argon2id" {
+			if configuration.Password.Algorithm == argon2id {
 				configuration.Password.Iterations = schema.DefaultPasswordConfiguration.Iterations
 			} else {
 				configuration.Password.Iterations = schema.DefaultPasswordSHA512Configuration.Iterations
@@ -39,15 +40,14 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 		}
 
 		//Salt Length
-		if configuration.Password.SaltLength == 0 {
+		switch {
+		case configuration.Password.SaltLength == 0:
 			configuration.Password.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
-		} else if configuration.Password.SaltLength < 2 {
+		case configuration.Password.SaltLength < 8:
 			validator.Push(fmt.Errorf("The salt length must be 2 or more, you configured %d", configuration.Password.SaltLength))
-		} else if configuration.Password.SaltLength > 16 {
-			validator.Push(fmt.Errorf("The salt length must be 16 or less, you configured %d", configuration.Password.SaltLength))
 		}
 
-		if configuration.Password.Algorithm == "argon2id" {
+		if configuration.Password.Algorithm == argon2id {
 			// Parallelism
 			if configuration.Password.Parallelism == 0 {
 				configuration.Password.Parallelism = schema.DefaultPasswordConfiguration.Parallelism
@@ -80,14 +80,14 @@ func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
 		return ""
 	}
 
-	if !(u.Scheme == "ldap" || u.Scheme == "ldaps") {
+	if !(u.Scheme == schemeLDAP || u.Scheme == schemeLDAPS) {
 		validator.Push(errors.New("Unknown scheme for ldap url, should be ldap:// or ldaps://"))
 		return ""
 	}
 
-	if u.Scheme == "ldap" && u.Port() == "" {
+	if u.Scheme == schemeLDAP && u.Port() == "" {
 		u.Host += ":389"
-	} else if u.Scheme == "ldaps" && u.Port() == "" {
+	} else if u.Scheme == schemeLDAPS && u.Port() == "" {
 		u.Host += ":636"
 	}
 
@@ -136,10 +136,8 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 
 	if configuration.GroupsFilter == "" {
 		validator.Push(errors.New("Please provide a groups filter with `groups_filter` attribute"))
-	} else {
-		if !strings.HasPrefix(configuration.GroupsFilter, "(") || !strings.HasSuffix(configuration.GroupsFilter, ")") {
-			validator.Push(errors.New("The groups filter should contain enclosing parenthesis. For instance cn={input} should be (cn={input})"))
-		}
+	} else if !strings.HasPrefix(configuration.GroupsFilter, "(") || !strings.HasSuffix(configuration.GroupsFilter, ")") {
+		validator.Push(errors.New("The groups filter should contain enclosing parenthesis. For instance cn={input} should be (cn={input})"))
 	}
 
 	if configuration.UsernameAttribute == "" {
@@ -147,11 +145,11 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	}
 
 	if configuration.GroupNameAttribute == "" {
-		configuration.GroupNameAttribute = "cn"
+		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.GroupNameAttribute
 	}
 
 	if configuration.MailAttribute == "" {
-		configuration.MailAttribute = "mail"
+		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.MailAttribute
 	}
 }
 
@@ -169,5 +167,14 @@ func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendCo
 		validateFileAuthenticationBackend(configuration.File, validator)
 	} else if configuration.Ldap != nil {
 		validateLdapAuthenticationBackend(configuration.Ldap, validator)
+	}
+
+	if configuration.RefreshInterval == "" {
+		configuration.RefreshInterval = schema.RefreshIntervalDefault
+	} else {
+		_, err := utils.ParseDurationString(configuration.RefreshInterval)
+		if err != nil && configuration.RefreshInterval != schema.ProfileRefreshDisabled && configuration.RefreshInterval != schema.ProfileRefreshAlways {
+			validator.Push(fmt.Errorf("Auth Backend `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
+		}
 	}
 }

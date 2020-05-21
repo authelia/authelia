@@ -5,10 +5,10 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-// ExtendedConfigurationBody the content returned by extended configuration endpoint
+// ExtendedConfigurationBody the content returned by extended configuration endpoint.
 type ExtendedConfigurationBody struct {
 	AvailableMethods    MethodList `json:"available_methods"`
-	SecondFactorEnabled bool       `json:"second_factor_enabled"` // whether second factor is enabled or not
+	SecondFactorEnabled bool       `json:"second_factor_enabled"` // whether second factor is enabled or not.
 	TOTPPeriod          int        `json:"totp_period"`
 }
 

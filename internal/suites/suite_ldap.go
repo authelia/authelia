@@ -35,13 +35,16 @@ func init() {
 		if err != nil {
 			return err
 		}
+
 		fmt.Println(backendLogs)
 
 		frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
 		if err != nil {
 			return err
 		}
+
 		fmt.Println(frontendLogs)
+
 		return nil
 	}
 
@@ -54,7 +57,7 @@ func init() {
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
-		TestTimeout:     1 * time.Minute,
+		TestTimeout:     80 * time.Second,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 		OnError:         displayAutheliaLogs,

@@ -23,6 +23,7 @@ func TestShouldSetDefaultTOTPValues(t *testing.T) {
 
 func TestShouldRaiseErrorWhenInvalidTOTPMinimumValues(t *testing.T) {
 	var badSkew = -1
+
 	validator := schema.NewStructValidator()
 	config := schema.TOTPConfiguration{
 		Period: -5,

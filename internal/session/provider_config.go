@@ -1,16 +1,18 @@
 package session
 
 import (
-	"github.com/fasthttp/session"
-	"github.com/fasthttp/session/memory"
-	"github.com/fasthttp/session/redis"
+	"fmt"
+
+	"github.com/fasthttp/session/v2"
+	"github.com/fasthttp/session/v2/providers/redis"
+
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// NewProviderConfig creates a configuration for creating the session provider
+// NewProviderConfig creates a configuration for creating the session provider.
 func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig {
 	config := session.NewDefaultConfig()
 
@@ -23,40 +25,52 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 	// Only serve the header over HTTPS.
 	config.Secure = true
 
-	// Ignore the error as it will be handled by validator
-	config.Expires, _ = utils.ParseDurationString(configuration.Expiration)
+	// Ignore the error as it will be handled by validator.
+	config.Expiration, _ = utils.ParseDurationString(configuration.Expiration)
 
 	// TODO(c.michaud): Make this configurable by giving the list of IPs that are trustable.
 	config.IsSecureFunc = func(*fasthttp.RequestCtx) bool {
 		return true
 	}
 
-	var providerConfig session.ProviderConfig
+	var redisConfig *redis.Config
+
 	var providerName string
 
 	// If redis configuration is provided, then use the redis provider.
 	if configuration.Redis != nil {
 		providerName = "redis"
 		serializer := NewEncryptingSerializer(configuration.Secret)
-		providerConfig = &redis.Config{
-			Host:     configuration.Redis.Host,
-			Port:     configuration.Redis.Port,
-			Password: configuration.Redis.Password,
-			// DbNumber is the fasthttp/session property for the Redis DB Index
-			DbNumber:        configuration.Redis.DatabaseIndex,
-			PoolSize:        8,
-			IdleTimeout:     300,
-			KeyPrefix:       "authelia-session",
-			SerializeFunc:   serializer.Encode,
-			UnSerializeFunc: serializer.Decode,
+		network := "tcp"
+
+		var addr string
+
+		if configuration.Redis.Port == 0 {
+			network = "unix"
+			addr = configuration.Redis.Host
+		} else {
+			addr = fmt.Sprintf("%s:%d", configuration.Redis.Host, configuration.Redis.Port)
 		}
+
+		redisConfig = &redis.Config{
+			Network:  network,
+			Addr:     addr,
+			Password: configuration.Redis.Password,
+			// DB is the fasthttp/session property for the Redis DB Index.
+			DB:          configuration.Redis.DatabaseIndex,
+			PoolSize:    8,
+			IdleTimeout: 300,
+			KeyPrefix:   "authelia-session",
+		}
+		config.EncodeFunc = serializer.Encode
+		config.DecodeFunc = serializer.Decode
 	} else { // if no option is provided, use the memory provider.
 		providerName = "memory"
-		providerConfig = &memory.Config{}
 	}
+
 	return ProviderConfig{
-		config:         config,
-		providerName:   providerName,
-		providerConfig: providerConfig,
+		config:       config,
+		redisConfig:  redisConfig,
+		providerName: providerName,
 	}
 }

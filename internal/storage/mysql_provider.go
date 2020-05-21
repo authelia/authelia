@@ -10,12 +10,12 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 )
 
-// MySQLProvider is a MySQL provider
+// MySQLProvider is a MySQL provider.
 type MySQLProvider struct {
 	SQLProvider
 }
 
-// NewMySQLProvider a MySQL provider
+// NewMySQLProvider a MySQL provider.
 func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProvider {
 	connectionString := configuration.Username
 
@@ -31,8 +31,8 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 	if configuration.Port > 0 {
 		address += fmt.Sprintf(":%d", configuration.Port)
 	}
-	connectionString += fmt.Sprintf("tcp(%s)", address)
 
+	connectionString += fmt.Sprintf("tcp(%s)", address)
 	if configuration.Database != "" {
 		connectionString += fmt.Sprintf("/%s", configuration.Database)
 	}
@@ -71,5 +71,6 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 	if err := provider.initialize(db); err != nil {
 		logging.Logger().Fatalf("Unable to initialize SQL database: %v", err)
 	}
+
 	return &provider
 }

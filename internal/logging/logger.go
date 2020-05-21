@@ -17,7 +17,7 @@ func SetLevel(level logrus.Level) {
 	logrus.SetLevel(level)
 }
 
-// InitializeLogger initialize logger
+// InitializeLogger initialize logger.
 func InitializeLogger(filename string) error {
 	callerLevels := []logrus.Level{}
 	stackLevels := []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
@@ -28,7 +28,9 @@ func InitializeLogger(filename string) error {
 		if err != nil {
 			return err
 		}
+
 		logrus.SetOutput(f)
 	}
+
 	return nil
 }

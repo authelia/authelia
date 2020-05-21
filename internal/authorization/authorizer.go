@@ -36,7 +36,7 @@ func (s Subject) String() string {
 	return fmt.Sprintf("username=%s groups=%s ip=%s", s.Username, strings.Join(s.Groups, ","), s.IP.String())
 }
 
-// Object object to check access control for
+// Object object to check access control for.
 type Object struct {
 	Domain string
 	Path   string
@@ -47,13 +47,14 @@ func selectMatchingSubjectRules(rules []schema.ACLRule, subject Subject) []schem
 	selectedRules := []schema.ACLRule{}
 
 	for _, rule := range rules {
-		if len(rule.Subjects) > 0 {
+		switch {
+		case len(rule.Subjects) > 0:
 			for _, subjectRule := range rule.Subjects {
 				if isSubjectMatching(subject, subjectRule) && isIPMatching(subject.IP, rule.Networks) {
 					selectedRules = append(selectedRules, rule)
 				}
 			}
-		} else {
+		default:
 			if isIPMatching(subject.IP, rule.Networks) {
 				selectedRules = append(selectedRules, rule)
 			}
@@ -67,13 +68,11 @@ func selectMatchingObjectRules(rules []schema.ACLRule, object Object) []schema.A
 	selectedRules := []schema.ACLRule{}
 
 	for _, rule := range rules {
-		for _, domain := range rule.Domains {
-			if isDomainMatching(object.Domain, domain) &&
-				isPathMatching(object.Path, rule.Resources) {
-				selectedRules = append(selectedRules, rule)
-			}
+		if isDomainMatching(object.Domain, rule.Domains) && isPathMatching(object.Path, rule.Resources) {
+			selectedRules = append(selectedRules, rule)
 		}
 	}
+
 	return selectedRules
 }
 
@@ -126,8 +125,25 @@ func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL) Level
 	if len(matchingRules) > 0 {
 		return PolicyToLevel(matchingRules[0].Policy)
 	}
+
 	logging.Logger().Tracef("No matching rule for subject %s and url %s... Applying default policy.",
 		subject.String(), requestURL.String())
 
 	return PolicyToLevel(p.configuration.DefaultPolicy)
+}
+
+// IsURLMatchingRuleWithGroupSubjects returns true if the request has at least one
+// matching ACL with a subject of type group attached to it, otherwise false.
+func (p *Authorizer) IsURLMatchingRuleWithGroupSubjects(requestURL url.URL) (hasGroupSubjects bool) {
+	for _, rule := range p.configuration.Rules {
+		if isDomainMatching(requestURL.Hostname(), rule.Domains) && isPathMatching(requestURL.Path, rule.Resources) {
+			for _, subjectRule := range rule.Subjects {
+				if strings.HasPrefix(subjectRule, groupPrefix) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
 }

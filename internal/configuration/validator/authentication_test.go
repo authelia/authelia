@@ -109,13 +109,6 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSaltLengthT
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The salt length must be 2 or more, you configured -1")
 }
 
-func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSaltLengthTooHigh() {
-	suite.configuration.File.Password.SaltLength = 20
-	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
-	assert.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The salt length must be 16 or less, you configured 20")
-}
-
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenBadAlgorithmDefined() {
 	suite.configuration.File.Password.Algorithm = "bogus"
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
@@ -229,6 +222,13 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsernameAttri
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Please provide a username attribute with `username_attribute`")
 }
 
+func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval() {
+	suite.configuration.RefreshInterval = "blah"
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	require.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Auth Backend `refresh_interval` is configured to 'blah' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: Could not convert the input string of blah into a duration")
+}
+
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultGroupNameAttribute() {
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
@@ -239,6 +239,12 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultMailAttribute()
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
 	assert.Equal(suite.T(), "mail", suite.configuration.Ldap.MailAttribute)
+}
+
+func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultRefreshInterval() {
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	assert.Len(suite.T(), suite.validator.Errors(), 0)
+	assert.Equal(suite.T(), "5m", suite.configuration.RefreshInterval)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesNotContainEnclosingParenthesis() {

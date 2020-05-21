@@ -11,12 +11,12 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 )
 
-// PostgreSQLProvider is a Postrgres provider
+// PostgreSQLProvider is a PostgreSQL provider.
 type PostgreSQLProvider struct {
 	SQLProvider
 }
 
-// NewPostgreSQLProvider a SQL provider
+// NewPostgreSQLProvider a PostgreSQL provider.
 func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) *PostgreSQLProvider {
 	args := make([]string, 0)
 	if configuration.Username != "" {
@@ -80,5 +80,6 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 	if err := provider.initialize(db); err != nil {
 		logging.Logger().Fatalf("Unable to initialize SQL database: %v", err)
 	}
+
 	return &provider
 }

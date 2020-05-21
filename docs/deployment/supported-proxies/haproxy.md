@@ -45,7 +45,7 @@ You can separate each subdomain with a `|` in the regex, for example:
 backend upon successful authentication, for example:
     ```
     acl host-jenkins hdr(host) -i jenkins.example.com
-    acl host-jenkins hdr(host) -i nextcloud.example.com
+    acl host-nextcloud hdr(host) -i nextcloud.example.com
     acl host-phpmyadmin hdr(host) -i phpmyadmin.example.com
     ```
 3. Add backend route for your service(s), for example:

@@ -47,12 +47,14 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 
 	if url.Scheme == "ldaps" {
 		logging.Logger().Trace("LDAP client starts a TLS session")
+
 		conn, err := p.connectionFactory.DialTLS("tcp", url.Host, &tls.Config{
-			InsecureSkipVerify: p.configuration.SkipVerify,
+			InsecureSkipVerify: p.configuration.SkipVerify, //nolint:gosec // This is a configurable option, is desirable in some situations and is off by default
 		})
 		if err != nil {
 			return nil, err
 		}
+
 		newConnection = conn
 	} else {
 		logging.Logger().Trace("LDAP client starts a session over raw TCP")
@@ -66,6 +68,7 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 	if err := newConnection.Bind(userDN, password); err != nil {
 		return nil, err
 	}
+
 	return newConnection, nil
 }
 
@@ -100,6 +103,7 @@ func (p *LDAPUserProvider) ldapEscape(inputUsername string) string {
 	for _, c := range specialLDAPRunes {
 		inputUsername = strings.ReplaceAll(inputUsername, string(c), fmt.Sprintf("\\%c", c))
 	}
+
 	return inputUsername
 }
 
@@ -122,6 +126,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, inputUsername s
 	// in configuration.
 	userFilter = strings.ReplaceAll(userFilter, "{username_attribute}", p.configuration.UsernameAttribute)
 	userFilter = strings.ReplaceAll(userFilter, "{mail_attribute}", p.configuration.MailAttribute)
+
 	return userFilter
 }
 
@@ -150,7 +155,7 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	}
 
 	if len(sr.Entries) == 0 {
-		return nil, fmt.Errorf("No user %s found", inputUsername)
+		return nil, ErrUserNotFound
 	}
 
 	if len(sr.Entries) > 1 {
@@ -160,15 +165,18 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	userProfile := ldapUserProfile{
 		DN: sr.Entries[0].DN,
 	}
+
 	for _, attr := range sr.Entries[0].Attributes {
 		if attr.Name == p.configuration.MailAttribute {
 			userProfile.Emails = attr.Values
 		}
+
 		if attr.Name == p.configuration.UsernameAttribute {
 			if len(attr.Values) != 1 {
 				return nil, fmt.Errorf("User %s cannot have multiple value for attribute %s",
 					inputUsername, p.configuration.UsernameAttribute)
 			}
+
 			userProfile.Username = attr.Values[0]
 		}
 	}
@@ -186,6 +194,7 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 	// We temporarily keep placeholder {0} for backward compatibility.
 	groupFilter := strings.ReplaceAll(p.configuration.GroupsFilter, "{0}", inputUsername)
 	groupFilter = strings.ReplaceAll(groupFilter, "{input}", inputUsername)
+
 	if profile != nil {
 		// We temporarily keep placeholder {1} for backward compatibility.
 		groupFilter = strings.ReplaceAll(groupFilter, "{1}", ldap.EscapeFilter(profile.Username))
@@ -213,6 +222,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create group filter for user %s. Cause: %s", inputUsername, err)
 	}
+
 	logging.Logger().Tracef("Computed groups filter is %s", groupsFilter)
 
 	groupBaseDN := p.configuration.BaseDN
@@ -233,6 +243,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 	}
 
 	groups := make([]string, 0)
+
 	for _, res := range sr.Entries {
 		if len(res.Attributes) == 0 {
 			logging.Logger().Warningf("No groups retrieved from LDAP for user %s", inputUsername)

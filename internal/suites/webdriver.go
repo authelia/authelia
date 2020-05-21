@@ -19,7 +19,7 @@ type WebDriverSession struct {
 	WebDriver selenium.WebDriver
 }
 
-// StartWebDriverWithProxy create a selenium session
+// StartWebDriverWithProxy create a selenium session.
 func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) {
 	service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", port)
 
@@ -62,12 +62,12 @@ func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) 
 	}, nil
 }
 
-// StartWebDriver create a selenium session
+// StartWebDriver create a selenium session.
 func StartWebDriver() (*WebDriverSession, error) {
 	return StartWebDriverWithProxy("", 4444)
 }
 
-// Stop stop the selenium session
+// Stop stop the selenium session.
 func (wds *WebDriverSession) Stop() error {
 	err := wds.WebDriver.Quit()
 
@@ -78,7 +78,7 @@ func (wds *WebDriverSession) Stop() error {
 	return wds.service.Stop()
 }
 
-// WithWebdriver run some actions against a webdriver
+// WithWebdriver run some actions against a webdriver.
 func WithWebdriver(fn func(webdriver selenium.WebDriver) error) error {
 	wds, err := StartWebDriver()
 
@@ -91,9 +91,10 @@ func WithWebdriver(fn func(webdriver selenium.WebDriver) error) error {
 	return fn(wds.WebDriver)
 }
 
-// Wait wait until condition holds true
+// Wait wait until condition holds true.
 func (wds *WebDriverSession) Wait(ctx context.Context, condition selenium.Condition) error {
 	done := make(chan error, 1)
+
 	go func() {
 		done <- wds.WebDriver.Wait(condition)
 	}()
@@ -108,6 +109,7 @@ func (wds *WebDriverSession) Wait(ctx context.Context, condition selenium.Condit
 
 func (wds *WebDriverSession) waitElementLocated(ctx context.Context, t *testing.T, by, value string) selenium.WebElement {
 	var el selenium.WebElement
+
 	err := wds.Wait(ctx, func(driver selenium.WebDriver) (bool, error) {
 		var err error
 		el, err = driver.FindElement(by, value)
@@ -124,11 +126,13 @@ func (wds *WebDriverSession) waitElementLocated(ctx context.Context, t *testing.
 
 	require.NoError(t, err)
 	require.NotNil(t, el)
+
 	return el
 }
 
 func (wds *WebDriverSession) waitElementsLocated(ctx context.Context, t *testing.T, by, value string) []selenium.WebElement {
 	var el []selenium.WebElement
+
 	err := wds.Wait(ctx, func(driver selenium.WebDriver) (bool, error) {
 		var err error
 		el, err = driver.FindElements(by, value)
@@ -145,40 +149,41 @@ func (wds *WebDriverSession) waitElementsLocated(ctx context.Context, t *testing
 
 	require.NoError(t, err)
 	require.NotNil(t, el)
+
 	return el
 }
 
-// WaitElementLocatedByID wait an element is located by id
+// WaitElementLocatedByID wait an element is located by id.
 func (wds *WebDriverSession) WaitElementLocatedByID(ctx context.Context, t *testing.T, id string) selenium.WebElement {
 	return wds.waitElementLocated(ctx, t, selenium.ByID, id)
 }
 
-// WaitElementLocatedByTagName wait an element is located by tag name
+// WaitElementLocatedByTagName wait an element is located by tag name.
 func (wds *WebDriverSession) WaitElementLocatedByTagName(ctx context.Context, t *testing.T, tagName string) selenium.WebElement {
 	return wds.waitElementLocated(ctx, t, selenium.ByTagName, tagName)
 }
 
-// WaitElementLocatedByClassName wait an element is located by class name
+// WaitElementLocatedByClassName wait an element is located by class name.
 func (wds *WebDriverSession) WaitElementLocatedByClassName(ctx context.Context, t *testing.T, className string) selenium.WebElement {
 	return wds.waitElementLocated(ctx, t, selenium.ByClassName, className)
 }
 
-// WaitElementLocatedByLinkText wait an element is located by link text
+// WaitElementLocatedByLinkText wait an element is located by link text.
 func (wds *WebDriverSession) WaitElementLocatedByLinkText(ctx context.Context, t *testing.T, linkText string) selenium.WebElement {
 	return wds.waitElementLocated(ctx, t, selenium.ByLinkText, linkText)
 }
 
-// WaitElementLocatedByCSSSelector wait an element is located by class name
+// WaitElementLocatedByCSSSelector wait an element is located by class name.
 func (wds *WebDriverSession) WaitElementLocatedByCSSSelector(ctx context.Context, t *testing.T, cssSelector string) selenium.WebElement {
 	return wds.waitElementLocated(ctx, t, selenium.ByCSSSelector, cssSelector)
 }
 
-// WaitElementsLocatedByCSSSelector wait an element is located by CSS selector
+// WaitElementsLocatedByCSSSelector wait an element is located by CSS selector.
 func (wds *WebDriverSession) WaitElementsLocatedByCSSSelector(ctx context.Context, t *testing.T, cssSelector string) []selenium.WebElement {
 	return wds.waitElementsLocated(ctx, t, selenium.ByCSSSelector, cssSelector)
 }
 
-// WaitElementTextContains wait the text of an element contains a pattern
+// WaitElementTextContains wait the text of an element contains a pattern.
 func (wds *WebDriverSession) WaitElementTextContains(ctx context.Context, t *testing.T, element selenium.WebElement, pattern string) {
 	err := wds.Wait(ctx, func(driver selenium.WebDriver) (bool, error) {
 		text, err := element.Text()

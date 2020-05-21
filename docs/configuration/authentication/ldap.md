@@ -16,7 +16,18 @@ Configuration of the LDAP backend is done as follows
 
 ```yaml
 authentication_backend:
+  # Disable both the HTML element and the API for reset password functionality
   disable_reset_password: false
+
+  # The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
+  # To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users
+  # will always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
+  # To force update on every request you can set this to '0' or 'always', this will increase processor demand.
+  # See the below documentation for more information.
+  # Duration Notation docs:  https://docs.authelia.com/configuration/index.html#duration-notation-format
+  # Refresh Interval docs: https://docs.authelia.com/configuration/authentication/ldap.html#refresh-interval
+  refresh_interval: 5m
+
   ldap:
     # The url to the ldap server. Scheme can be ldap:// or ldaps://
     url: ldap://127.0.0.1
@@ -89,6 +100,25 @@ The user must have an email address in order for Authelia to perform
 identity verification when a user attempts to reset their password or
 register a second factor device.
 
+
+## Refresh Interval
+
+This setting takes a [duration notation](../index.md#duration-notation-format) that sets the max frequency
+for how often Authelia contacts the backend to verify the user still exists and that the groups stored 
+in the session are up to date. This allows us to destroy sessions when the user no longer matches the
+user_filter, or deny access to resources as they are removed from groups.
+
+In addition to the duration notation, you may provide the value `always` or `disable`. Setting to `always`
+is the same as setting it to 0 which will refresh on every request, `disable` turns the feature off, which is 
+not recommended. This completely prevents Authelia from refreshing this information, and it would only be
+refreshed when the user session gets destroyed by other means like inactivity, session expiration or logging 
+out and in.
+
+This value can be any value including 0, setting it to 0 would automatically refresh the session on
+every single request. This means Authelia will have to contact the LDAP backend every time an element
+on a page loads which could be substantially costly. It's a trade-off between load and security that 
+you should adapt according to your own security policy.
+
 ## Important notes
 
 Users must be uniquely identified by an attribute, this attribute must obviously contain a single value and
@@ -102,4 +132,3 @@ unique identifier for your users.
 ## Loading a password from a secret instead of inside the configuration
 
 Password can also be defined using a [secret](../secrets.md).
-

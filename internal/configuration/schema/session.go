@@ -19,7 +19,7 @@ type SessionConfiguration struct {
 	Redis              *RedisSessionConfiguration `mapstructure:"redis"`
 }
 
-// DefaultSessionConfiguration is the default session configuration
+// DefaultSessionConfiguration is the default session configuration.
 var DefaultSessionConfiguration = SessionConfiguration{
 	Name:               "authelia_session",
 	Expiration:         "1h",

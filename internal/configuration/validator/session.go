@@ -3,6 +3,7 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
@@ -14,8 +15,14 @@ func ValidateSession(configuration *schema.SessionConfiguration, validator *sche
 		configuration.Name = schema.DefaultSessionConfiguration.Name
 	}
 
-	if configuration.Redis != nil && configuration.Secret == "" {
-		validator.Push(errors.New("Set secret of the session object"))
+	if configuration.Redis != nil {
+		if configuration.Secret == "" {
+			validator.Push(errors.New("Set secret of the session object"))
+		}
+
+		if !strings.HasPrefix(configuration.Redis.Host, "/") && configuration.Redis.Port == 0 {
+			validator.Push(errors.New("A redis port different than 0 must be provided"))
+		}
 	}
 
 	if configuration.Expiration == "" {

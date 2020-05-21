@@ -10,14 +10,18 @@ var validKeys = []string{
 	"jwt_secret",
 	"tls_key",
 	"tls_cert",
-	"google_analytics",
 
-	// TOTP Keys
+	// Server Keys.
+	"server.read_buffer_size",
+	"server.write_buffer_size",
+	"server.path",
+
+	// TOTP Keys.
 	"totp.issuer",
 	"totp.period",
 	"totp.skew",
 
-	// Access Control Keys
+	// Access Control Keys.
 	"access_control.rules",
 	"access_control.default_policy",
 
@@ -81,6 +85,7 @@ var validKeys = []string{
 
 	// Authentication Backend Keys.
 	"authentication_backend.disable_reset_password",
+	"authentication_backend.refresh_interval",
 
 	// LDAP Authentication Backend Keys.
 	"authentication_backend.ldap.url",
@@ -125,8 +130,9 @@ var validKeys = []string{
 }
 
 var specificErrorKeys = map[string]string{
-	"logs_file_path": "config key replaced: logs_file is now log_file",
-	"logs_level":     "config key replaced: logs_level is now log_level",
+	"logs_file_path":   "config key replaced: logs_file is now log_file",
+	"logs_level":       "config key replaced: logs_level is now log_level",
+	"google_analytics": "config key removed: google_analytics - this functionality has been deprecated",
 	"authentication_backend.file.password_options.algorithm":   "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
 	"authentication_backend.file.password_options.iterations":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
 	"authentication_backend.file.password_options.key_length":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
@@ -146,3 +152,15 @@ var specificErrorKeys = map[string]string{
 	"authentication_backend.file.hashing.memory":               "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 	"authentication_backend.file.hashing.parallelism":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 }
+
+const argon2id = "argon2id"
+const sha512 = "sha512"
+
+const schemeLDAP = "ldap"
+const schemeLDAPS = "ldaps"
+
+const testBadTimer = "-1"
+const testModeDisabled = "disable"
+const testJWTSecret = "a_secret"
+const testTLSCert = "/tmp/cert.pem"
+const testTLSKey = "/tmp/key.pem"

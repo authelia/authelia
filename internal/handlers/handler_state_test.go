@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/authelia/authelia/internal/mocks"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/mocks"
 )
 
 type StateGetSuite struct {
