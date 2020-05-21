@@ -109,7 +109,7 @@ services:
 
 ## FAQ
 
-### Traefik - Middleware authelia@docker not found
+### Middleware authelia@docker not found
 
 If Traefik and Authelia are defined in different docker compose stacks you may experience
 an issue where Traefik complains that: `middleware authelia@docker not found`.
