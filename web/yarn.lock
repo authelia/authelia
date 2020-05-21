@@ -2248,10 +2248,10 @@
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"
   integrity sha512-tHq6qdbT9U1IRSGf14CL0pUlULksvY9OZ+5eEgl1N7t+OA3tGvNpxJCzuKQlsNgCVwbAs670L1vcVQi8j9HjnA==
 
-"@types/node@*", "@types/node@14.0.1":
-  version "14.0.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.0.1.tgz#5d93e0a099cd0acd5ef3d5bde3c086e1f49ff68c"
-  integrity sha512-FAYBGwC+W6F9+huFIDtn43cpy7+SzG+atzRiTfdp3inUKL2hXnd4rG8hylJLIh4+hqrQy1P17kvJByE/z825hA==
+"@types/node@*", "@types/node@14.0.4":
+  version "14.0.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.0.4.tgz#43a63fc5edce226bed106b31b875165256271107"
+  integrity sha512-k3NqigXWRzQZVBDS5D1U70A5E8Qk4Kh+Ha/x4M8Bt9pF0X05eggfnC9+63Usc9Q928hRUIpIhTQaXsZwZBl4Ew==
 
 "@types/parse-json@^4.0.0":
   version "4.0.0"
@@ -11630,10 +11630,10 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@3.9.2:
-  version "3.9.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.2.tgz#64e9c8e9be6ea583c54607677dd4680a1cf35db9"
-  integrity sha512-q2ktq4n/uLuNNShyayit+DTobV2ApPEo/6so68JaD5ojvc/6GClBipedB9zNWYxRSAlZXAe405Rlijzl6qDiSw==
+typescript@3.9.3:
+  version "3.9.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.3.tgz#d3ac8883a97c26139e42df5e93eeece33d610b8a"
+  integrity sha512-D/wqnB2xzNFIcoBG9FG8cXRDjiqSTbG2wd8DMZeQyJlP1vfTkIxH4GKveWaEBYySKIg+USu+E+EDIR47SqnaMQ==
 
 u2f-api@^1.1.1:
   version "1.1.1"

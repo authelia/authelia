@@ -3,7 +3,19 @@ package utils
 import (
 	"math/rand"
 	"time"
+	"unicode"
 )
+
+// IsStringAlphaNumeric returns false if any rune in the string is not alpha-numeric.
+func IsStringAlphaNumeric(input string) bool {
+	for _, r := range input {
+		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
+			return false
+		}
+	}
+
+	return true
+}
 
 // IsStringInSlice checks if a single string is in an array of strings.
 func IsStringInSlice(a string, list []string) (inSlice bool) {

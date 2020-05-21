@@ -14,6 +14,7 @@ var validKeys = []string{
 	// Server Keys.
 	"server.read_buffer_size",
 	"server.write_buffer_size",
+	"server.path",
 
 	// TOTP Keys.
 	"totp.issuer",
