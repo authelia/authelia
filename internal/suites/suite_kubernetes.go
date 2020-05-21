@@ -22,11 +22,6 @@ func init() {
 			return err
 		}
 
-		cmd = utils.Shell("docker build -t nginx-backend internal/suites/example/compose/nginx/backend")
-		if err := cmd.Run(); err != nil {
-			return err
-		}
-
 		exists, err := kind.ClusterExists()
 
 		if err != nil {
@@ -115,7 +110,7 @@ func init() {
 
 func loadDockerImages() error {
 	kind := Kind{}
-	images := []string{"authelia:dist", "nginx-backend"}
+	images := []string{"authelia:dist"}
 
 	for _, image := range images {
 		err := kind.LoadImage(image)

@@ -3,6 +3,7 @@
 start_apps() {                                                                                  
   # Create TLS certificate and key for HTTPS termination                          
   kubectl create secret generic test-app-tls --namespace=authelia --from-file=apps/ssl/server.key --from-file=apps/ssl/server.cert
+  kubectl create configmap nginx-config --namespace=authelia --from-file=apps/configs/entrypoint.sh --from-file=apps/configs/nginx.conf --from-file=apps/configs/html.tar.gz
   
   # Spawn the applications
   kubectl apply -f apps
