@@ -24,11 +24,6 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	embeddedAssets := "/public_html"
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
-	// TODO: Remove in v4.18.0.
-	if os.Getenv("PUBLIC_DIR") != "" {
-		logging.Logger().Warn("PUBLIC_DIR environment variable has been deprecated, assets are now embedded.")
-	}
-
 	r := router.New()
 	r.GET("/", ServeIndex(embeddedAssets, configuration.Server.Path))
 
