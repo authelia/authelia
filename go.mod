@@ -11,7 +11,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/duosecurity/duo_api_golang v0.0.0-20190308151101-6c680f768e74
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
-	github.com/fasthttp/router v1.1.2
+	github.com/fasthttp/router v1.1.3
 	github.com/fasthttp/session/v2 v2.0.2
 	github.com/go-ldap/ldap/v3 v3.1.10
 	github.com/go-sql-driver/mysql v1.5.0
@@ -20,7 +20,7 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
-	github.com/otiai10/copy v1.1.1
+	github.com/otiai10/copy v1.2.0
 	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/pquerna/otp v1.2.0
 	github.com/simia-tech/crypt v0.4.3
