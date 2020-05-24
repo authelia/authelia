@@ -48,7 +48,7 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
 			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
 			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
-			sqlCreateAuthenticationLogsTable:         SQLCreateAuthenticationLogsTable,
+			sqlCreateAuthenticationLogsTable: fmt.Sprintf("CREATE TABLE %s (username VARCHAR(100),	successful BOOL, time INTEGER, INDEX usr_time_idx (username, time)", authenticationLogsTableName),
 
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", preferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", preferencesTableName),
@@ -66,6 +66,12 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 
 			sqlInsertAuthenticationLog:     fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
 			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC", authenticationLogsTableName),
+
+			sqlGetExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema=database()",
+			sqlCheckTableExists:  "SELECT COUNT(*) FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema=database() AND table_name=?",
+
+			sqlConfigSetValue: fmt.Sprintf("REPLACE INTO %s (category, key, value) VALUES(?, ?, ?)", configTableName),
+			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key=?", configTableName),
 		},
 	}
 	if err := provider.initialize(db); err != nil {

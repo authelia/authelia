@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	_ "github.com/lib/pq" // Load the PostgreSQL Driver used in the connection string.
+	_ "github.com/jackc/pgx/v4/stdlib" // Load the PostgreSQL Driver used in the connection string.
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
@@ -45,7 +45,7 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 
 	connectionString := strings.Join(args, " ")
 
-	db, err := sql.Open("postgres", connectionString)
+	db, err := sql.Open("pgx", connectionString)
 	if err != nil {
 		logging.Logger().Fatalf("Unable to connect to SQL database: %v", err)
 	}
@@ -56,7 +56,7 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
 			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
 			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
-			sqlCreateAuthenticationLogsTable:         fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100), successful BOOL, time INTEGER)", authenticationLogsTableName),
+			sqlCreateAuthenticationLogsTable:         SQLCreateAuthenticationLogsTable,
 			sqlCreateAuthenticationLogsUserTimeIndex: fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
 
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=$1", preferencesTableName),
@@ -75,6 +75,12 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 
 			sqlInsertAuthenticationLog:     fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES ($1, $2, $3)", authenticationLogsTableName),
 			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>$1 AND username=$2 ORDER BY time DESC", authenticationLogsTableName),
+
+			sqlGetExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public'",
+			sqlCheckTableExists:  "SELECT COUNT(*) FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public' table_name=$1",
+
+			sqlConfigSetValue: fmt.Sprintf("INSERT INTO %s (category, key, value) VALUES($1, $2, $3) ON CONFLICT (category, key) DO UPDATE SET value=$3", configTableName),
+			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=$1 AND key=$2", configTableName),
 		},
 	}
 	if err := provider.initialize(db); err != nil {
