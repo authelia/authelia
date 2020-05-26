@@ -63,7 +63,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	s.verifyIsHome(ctx, s.T())
 
 	// Then go back to portal.
-	s.doVisit(s.T(), LoginBaseURL)
+	s.doVisit(s.T(), GetLoginBaseURL())
 	s.verifyIsSecondFactorPage(ctx, s.T())
 	// And check the latest method is still used.
 	s.WaitElementLocatedByID(ctx, s.T(), "push-notification-method")

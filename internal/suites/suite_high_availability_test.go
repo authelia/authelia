@@ -79,7 +79,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 	s.verifyIsHome(ctx, s.T())
 
 	// Verify the user is still authenticated
-	s.doVisit(s.T(), LoginBaseURL)
+	s.doVisit(s.T(), GetLoginBaseURL())
 	s.verifyIsSecondFactorPage(ctx, s.T())
 
 	// Then logout and login again to check the secret is still there

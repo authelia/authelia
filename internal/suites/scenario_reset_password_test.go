@@ -48,7 +48,7 @@ func (s *ResetPasswordScenario) TestShouldResetPassword() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	s.doVisit(s.T(), LoginBaseURL)
+	s.doVisit(s.T(), GetLoginBaseURL())
 	s.verifyIsFirstFactorPage(ctx, s.T())
 
 	// Reset the password to abc
@@ -72,7 +72,7 @@ func (s *ResetPasswordScenario) TestShouldMakeAttackerThinkPasswordResetIsInitia
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	s.doVisit(s.T(), LoginBaseURL)
+	s.doVisit(s.T(), GetLoginBaseURL())
 	s.verifyIsFirstFactorPage(ctx, s.T())
 
 	// Try to initiate a password reset of an nonexistent user.
@@ -86,7 +86,7 @@ func (s *ResetPasswordScenario) TestShouldLetUserNoticeThereIsAPasswordMismatch(
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	s.doVisit(s.T(), LoginBaseURL)
+	s.doVisit(s.T(), GetLoginBaseURL())
 	s.verifyIsFirstFactorPage(ctx, s.T())
 
 	s.doInitiatePasswordReset(ctx, s.T(), "john")

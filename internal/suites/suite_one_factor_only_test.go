@@ -71,7 +71,7 @@ func (s *OneFactorOnlyWebSuite) TestShouldDisplayAuthenticatedView() {
 
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "http://unsafe.local")
 	s.verifyURLIs(ctx, s.T(), HomeBaseURL+"/")
-	s.doVisit(s.T(), LoginBaseURL)
+	s.doVisit(s.T(), GetLoginBaseURL())
 	s.verifyIsAuthenticatedPage(ctx, s.T())
 }
 

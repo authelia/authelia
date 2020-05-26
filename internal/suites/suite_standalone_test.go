@@ -62,7 +62,7 @@ func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated
 	s.verifyIsHome(ctx, s.T())
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
-	s.doVisit(s.T(), LoginBaseURL)
+	s.doVisit(s.T(), GetLoginBaseURL())
 	s.verifyIsAuthenticatedPage(ctx, s.T())
 }
 
@@ -121,7 +121,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorize() {
 
 // Standard case using Kubernetes.
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, LoginBaseURL), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
 	s.Assert().NoError(err)
 	req.Header.Set("X-Forwarded-Proto", "https")
 	req.Header.Set("X-Original-URL", AdminBaseURL)
@@ -134,11 +134,11 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(AdminBaseURL)
-	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s", LoginBaseURL, urlEncodedAdminURL), string(body))
+	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
 }
 
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI() {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, LoginBaseURL), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
 	s.Assert().NoError(err)
 	req.Header.Set("X-Forwarded-Proto", "https")
 	req.Header.Set("X-Forwarded-Host", "secure.example.com:8080")
@@ -152,7 +152,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
-	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s", LoginBaseURL, urlEncodedAdminURL), string(body))
+	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
 }
 
 func (s *StandaloneSuite) TestStandaloneWebDriverScenario() {
