@@ -143,6 +143,10 @@ func runSuiteSetupTeardown(command string, suite string) error {
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
 
+	if selectedSuite == suitePathPrefix {
+		cmd.Env = append(cmd.Env, "PathPrefix=/auth")
+	}
+
 	return utils.RunCommandWithTimeout(cmd, s.SetUpTimeout)
 }
 
@@ -277,6 +281,10 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 
 	if headless {
 		cmd.Env = append(cmd.Env, "HEADLESS=y")
+	}
+
+	if suiteName == suitePathPrefix {
+		cmd.Env = append(cmd.Env, "PathPrefix=/auth")
 	}
 
 	testErr := cmd.Run()
