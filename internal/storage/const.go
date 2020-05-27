@@ -2,7 +2,7 @@ package storage
 
 import "fmt"
 
-const storageSchemaCurrentVersion = 1
+const storageSchemaCurrentVersion = 2
 const storageSchemaUpgradeMessage = "Storage schema upgraded to version"
 const storageSchemaUpgradeErrorText = "Storage schema upgrade failed at version"
 

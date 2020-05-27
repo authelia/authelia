@@ -93,7 +93,7 @@ func (p *SQLProvider) initialize(db *sql.DB) error {
 		}
 	}
 
-	p.log.Debugf("Storage schema version is %d, latest version is %d", version, storageSchemaCurrentVersion)
+	p.log.Debugf("Storage schema is v%d, latest is v%d", version, storageSchemaCurrentVersion)
 
 	if version < storageSchemaCurrentVersion {
 		tx, err := p.db.Begin()
@@ -124,7 +124,7 @@ func (p *SQLProvider) initialize(db *sql.DB) error {
 				return err
 			}
 
-			p.log.Info("Storage schema upgrade completed")
+			p.log.Infof("Storage schema upgrade to v%d completed", storageSchemaCurrentVersion)
 		}
 	} else {
 		p.log.Debug("Storage schema is up to date")
@@ -338,7 +338,7 @@ func (p *SQLProvider) upgradeSchemaVersionTo001(tx *sql.Tx, tables []string) err
 }
 
 func (p *SQLProvider) upgradeSchemaVersionTo002(tx *sql.Tx) error {
-	_, err := tx.Exec(p.sqlConfigSetValue, "schema", "version", 1)
+	_, err := tx.Exec(p.sqlConfigSetValue, "schema", "version", "2")
 	if err != nil {
 		return err
 	}
