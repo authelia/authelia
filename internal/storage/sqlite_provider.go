@@ -51,8 +51,8 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 			sqlGetExistingTables: "SELECT name FROM sqlite_master WHERE type='table'",
 			sqlCheckTableExists:  "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?",
 
-			sqlConfigSetValue: fmt.Sprintf("REPLACE INTO %s (category, key, value) VALUES(?, ?, ?)", configTableName),
-			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key=?", configTableName),
+			sqlConfigSetValue: fmt.Sprintf("REPLACE INTO %s (category, key_name, value) VALUES(?, ?, ?)", configTableName),
+			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key_name=?", configTableName),
 		},
 	}
 	if err := provider.initialize(db); err != nil {

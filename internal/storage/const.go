@@ -23,13 +23,16 @@ CREATE TABLE %s (
 
 // SQLCreateIdentityVerificationTokensTable common SQL query to create identity_verification_tokens table.
 var SQLCreateIdentityVerificationTokensTable = fmt.Sprintf(`
-CREATE TABLE %s (token VARCHAR(512))
-`, identityVerificationTokensTableName)
+CREATE TABLE %s (
+	token VARCHAR(512)
+)`, identityVerificationTokensTableName)
 
 // SQLCreateTOTPSecretsTable common SQL query to create totp_secrets table.
 var SQLCreateTOTPSecretsTable = fmt.Sprintf(`
-CREATE TABLE %s (username VARCHAR(100) PRIMARY KEY, secret VARCHAR(64))
-`, totpSecretsTableName)
+CREATE TABLE %s (
+	username VARCHAR(100) PRIMARY KEY,
+	secret VARCHAR(64)
+)`, totpSecretsTableName)
 
 // SQLCreateU2FDeviceHandlesTable common SQL query to create u2f_device_handles table.
 var SQLCreateU2FDeviceHandlesTable = fmt.Sprintf(`
@@ -51,7 +54,7 @@ CREATE TABLE %s (
 var SQLCreateConfigTable = fmt.Sprintf(`
 CREATE TABLE %s (
 	category VARCHAR(32) NOT NULL,
-	key VARCHAR(32) NOT NULL,
+	key_name VARCHAR(32) NOT NULL,
     value TEXT,
-	PRIMARY KEY (category, key)
+	PRIMARY KEY (category, key_name)
 )`, configTableName)

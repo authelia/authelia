@@ -70,8 +70,8 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 			sqlGetExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema=database()",
 			sqlCheckTableExists:  "SELECT COUNT(*) FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema=database() AND table_name=?",
 
-			sqlConfigSetValue: fmt.Sprintf("REPLACE INTO %s (category, key, value) VALUES(?, ?, ?)", configTableName),
-			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key=?", configTableName),
+			sqlConfigSetValue: fmt.Sprintf("REPLACE INTO %s (category, key_name, value) VALUES(?, ?, ?)", configTableName),
+			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key_name=?", configTableName),
 		},
 	}
 	if err := provider.initialize(db); err != nil {
