@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -143,8 +144,16 @@ func runSuiteSetupTeardown(command string, suite string) error {
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
 
-	if selectedSuite == suitePathPrefix {
-		cmd.Env = append(cmd.Env, "PathPrefix=/auth")
+	suiteEnv := "internal/suites/" + selectedSuite + "/.env"
+
+	_, err = os.Stat(suiteEnv)
+	if err == nil {
+		file, _ := os.Open(suiteEnv)
+		env := bufio.NewScanner(file)
+
+		for env.Scan() {
+			cmd.Env = append(cmd.Env, env.Text())
+		}
 	}
 
 	return utils.RunCommandWithTimeout(cmd, s.SetUpTimeout)
@@ -283,8 +292,16 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 		cmd.Env = append(cmd.Env, "HEADLESS=y")
 	}
 
-	if suiteName == suitePathPrefix {
-		cmd.Env = append(cmd.Env, "PathPrefix=/auth")
+	suiteEnv := "internal/suites/" + suiteName + "/.env"
+
+	_, err := os.Stat(suiteEnv)
+	if err == nil {
+		file, _ := os.Open(suiteEnv)
+		env := bufio.NewScanner(file)
+
+		for env.Scan() {
+			cmd.Env = append(cmd.Env, env.Text())
+		}
 	}
 
 	testErr := cmd.Run()
