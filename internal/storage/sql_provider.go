@@ -298,7 +298,7 @@ func (p *SQLProvider) upgradeSchemaVersionTo001(tx *sql.Tx, tables []string) err
 	}
 
 	if !utils.IsStringInSlice(identityVerificationTokensTableName, tables) {
-		_, err := p.db.Exec(p.sqlCreateUserPreferencesTable)
+		_, err := p.db.Exec(p.sqlCreateIdentityVerificationTokensTable)
 		if err != nil {
 			return fmt.Errorf("Unable to create table %s: %v", identityVerificationTokensTableName, err)
 		}
