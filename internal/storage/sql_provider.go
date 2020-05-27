@@ -291,42 +291,42 @@ func (p *SQLProvider) upgradeSchemaVersionTo001(tx *sql.Tx, tables []string) err
 	}
 
 	if !utils.IsStringInSlice(preferencesTableName, tables) {
-		_, err := p.db.Exec(p.sqlCreateUserPreferencesTable)
+		_, err := tx.Exec(p.sqlCreateUserPreferencesTable)
 		if err != nil {
 			return fmt.Errorf("Unable to create table %s: %v", preferencesTableName, err)
 		}
 	}
 
 	if !utils.IsStringInSlice(identityVerificationTokensTableName, tables) {
-		_, err := p.db.Exec(p.sqlCreateIdentityVerificationTokensTable)
+		_, err := tx.Exec(p.sqlCreateIdentityVerificationTokensTable)
 		if err != nil {
 			return fmt.Errorf("Unable to create table %s: %v", identityVerificationTokensTableName, err)
 		}
 	}
 
 	if !utils.IsStringInSlice(totpSecretsTableName, tables) {
-		_, err := p.db.Exec(p.sqlCreateTOTPSecretsTable)
+		_, err := tx.Exec(p.sqlCreateTOTPSecretsTable)
 		if err != nil {
 			return fmt.Errorf("Unable to create table %s: %v", totpSecretsTableName, err)
 		}
 	}
 
 	if !utils.IsStringInSlice(u2fDeviceHandlesTableName, tables) {
-		_, err := p.db.Exec(p.sqlCreateU2FDeviceHandlesTable)
+		_, err := tx.Exec(p.sqlCreateU2FDeviceHandlesTable)
 		if err != nil {
 			return fmt.Errorf("Unable to create table %s: %v", u2fDeviceHandlesTableName, err)
 		}
 	}
 
 	if !utils.IsStringInSlice(authenticationLogsTableName, tables) {
-		_, err := p.db.Exec(p.sqlCreateAuthenticationLogsTable)
+		_, err := tx.Exec(p.sqlCreateAuthenticationLogsTable)
 		if err != nil {
 			return fmt.Errorf("Unable to create table %s: %v", authenticationLogsTableName, err)
 		}
 	}
 
 	if p.sqlCreateAuthenticationLogsUserTimeIndex != "" {
-		_, err = p.db.Exec(p.sqlCreateAuthenticationLogsUserTimeIndex)
+		_, err = tx.Exec(p.sqlCreateAuthenticationLogsUserTimeIndex)
 		if err != nil {
 			return fmt.Errorf("Unable to create index on %s: %v", authenticationLogsTableName, err)
 		}
