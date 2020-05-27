@@ -1,9 +1,15 @@
 package suites
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 // BaseDomain the base domain.
 var BaseDomain = "example.com:8080"
+
+// PathPrefix the prefix/url_base of the login portal.
+var PathPrefix = os.Getenv("PathPrefix")
 
 // LoginBaseURL the base URL of the login portal.
 var LoginBaseURL = fmt.Sprintf("https://login.%s", BaseDomain)

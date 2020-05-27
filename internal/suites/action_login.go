@@ -49,7 +49,7 @@ func (wds *WebDriverSession) doLoginTwoFactor(ctx context.Context, t *testing.T,
 func (wds *WebDriverSession) doLoginAndRegisterTOTP(ctx context.Context, t *testing.T, username, password string, keepMeLoggedIn bool) string {
 	wds.doLoginOneFactor(ctx, t, username, password, keepMeLoggedIn, "")
 	secret := wds.doRegisterTOTP(ctx, t)
-	wds.doVisit(t, LoginBaseURL)
+	wds.doVisit(t, GetLoginBaseURL())
 	wds.verifyIsSecondFactorPage(ctx, t)
 
 	return secret

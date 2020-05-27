@@ -8,7 +8,7 @@ services:
       # Traefik 1.x
       - 'traefik.frontend.rule=Host:login.example.com'
       # Traefik 2.x
-      - 'traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`)'
+      - 'traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}`)'
       - 'traefik.http.routers.authelia_frontend.entrypoints=https'
       - 'traefik.http.routers.authelia_frontend.tls=true'
       - 'traefik.http.services.authelia_frontend.loadbalancer.server.port=3000'
