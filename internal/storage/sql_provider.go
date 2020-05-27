@@ -50,6 +50,7 @@ type SQLProvider struct {
 	sqlConfigGetValue string
 }
 
+//nolint:gocyclo // TODO: See if this can be simplified.
 func (p *SQLProvider) initialize(db *sql.DB) error {
 	p.db = db
 
@@ -284,7 +285,7 @@ func (p *SQLProvider) upgradeSchemaVersionTo001(tx *sql.Tx, tables []string) err
 		return err
 	}
 
-	_, err = tx.Exec(p.sqlConfigSetValue, "schema", "version", 1)
+	_, err = tx.Exec(p.sqlConfigSetValue, "schema", "version", "1")
 	if err != nil {
 		return err
 	}
