@@ -148,7 +148,11 @@ func runSuiteSetupTeardown(command string, suite string) error {
 
 	_, err = os.Stat(suiteEnv)
 	if err == nil {
-		file, _ := os.Open(suiteEnv)
+		file, err := os.Open(suiteEnv)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		env := bufio.NewScanner(file)
 
 		for env.Scan() {
@@ -296,7 +300,11 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 
 	_, err := os.Stat(suiteEnv)
 	if err == nil {
-		file, _ := os.Open(suiteEnv)
+		file, err := os.Open(suiteEnv)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		env := bufio.NewScanner(file)
 
 		for env.Scan() {
