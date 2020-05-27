@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/otiai10/copy"
 	log "github.com/sirupsen/logrus"
@@ -85,6 +87,27 @@ func setupSuite(cmd *cobra.Command, args []string) {
 
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	suiteEnv := suiteResourcePath + "/.env"
+
+	_, err = os.Stat(suiteEnv)
+	if err == nil {
+		file, err := os.Open(suiteEnv)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		env := bufio.NewScanner(file)
+
+		for env.Scan() {
+			v := strings.Split(env.Text(), "=")
+
+			err := os.Setenv(v[0], v[1])
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 	}
 
 	suiteTmpDirectory := tmpDirectory + suiteName

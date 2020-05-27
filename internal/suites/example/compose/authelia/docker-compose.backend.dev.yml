@@ -18,7 +18,7 @@ services:
       - 'traefik.frontend.rule=Host:login.example.com;PathPrefix:/api'
       - 'traefik.protocol=https'
       # Traefik 2.x
-      - 'traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) && PathPrefix(`/api`)'
+      - 'traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) && PathPrefix(`/api`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/api`)'
       - 'traefik.http.routers.authelia_backend.entrypoints=https'
       - 'traefik.http.routers.authelia_backend.tls=true'
       - 'traefik.http.services.authelia_backend.loadbalancer.server.scheme=https'

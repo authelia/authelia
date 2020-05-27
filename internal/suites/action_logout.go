@@ -7,6 +7,6 @@ import (
 )
 
 func (wds *WebDriverSession) doLogout(ctx context.Context, t *testing.T) {
-	wds.doVisit(t, fmt.Sprintf("%s%s", LoginBaseURL, "/logout"))
+	wds.doVisit(t, fmt.Sprintf("%s%s", GetLoginBaseURL(), "/logout"))
 	wds.verifyIsFirstFactorPage(ctx, t)
 }
