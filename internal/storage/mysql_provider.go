@@ -7,7 +7,6 @@ import (
 	_ "github.com/go-sql-driver/mysql" // Load the MySQL Driver used in the connection string.
 
 	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/logging"
 )
 
 // MySQLProvider is a MySQL provider.
@@ -17,31 +16,6 @@ type MySQLProvider struct {
 
 // NewMySQLProvider a MySQL provider.
 func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProvider {
-	connectionString := configuration.Username
-
-	if configuration.Password != "" {
-		connectionString += fmt.Sprintf(":%s", configuration.Password)
-	}
-
-	if connectionString != "" {
-		connectionString += "@"
-	}
-
-	address := configuration.Host
-	if configuration.Port > 0 {
-		address += fmt.Sprintf(":%d", configuration.Port)
-	}
-
-	connectionString += fmt.Sprintf("tcp(%s)", address)
-	if configuration.Database != "" {
-		connectionString += fmt.Sprintf("/%s", configuration.Database)
-	}
-
-	db, err := sql.Open("mysql", connectionString)
-	if err != nil {
-		logging.Logger().Fatalf("Unable to connect to SQL database: %v", err)
-	}
-
 	provider := MySQLProvider{
 		SQLProvider{
 			name: "mysql",
@@ -77,8 +51,34 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key_name=?", configTableName),
 		},
 	}
+
+	connectionString := configuration.Username
+
+	if configuration.Password != "" {
+		connectionString += fmt.Sprintf(":%s", configuration.Password)
+	}
+
+	if connectionString != "" {
+		connectionString += "@"
+	}
+
+	address := configuration.Host
+	if configuration.Port > 0 {
+		address += fmt.Sprintf(":%d", configuration.Port)
+	}
+
+	connectionString += fmt.Sprintf("tcp(%s)", address)
+	if configuration.Database != "" {
+		connectionString += fmt.Sprintf("/%s", configuration.Database)
+	}
+
+	db, err := sql.Open("mysql", connectionString)
+	if err != nil {
+		provider.log.Fatalf("Unable to connect to SQL database: %v", err)
+	}
+
 	if err := provider.initialize(db); err != nil {
-		logging.Logger().Fatalf("Unable to initialize SQL database: %v", err)
+		provider.log.Fatalf("Unable to initialize SQL database: %v", err)
 	}
 
 	return &provider

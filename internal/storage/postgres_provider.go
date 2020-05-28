@@ -8,7 +8,6 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib" // Load the PostgreSQL Driver used in the connection string.
 
 	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/logging"
 )
 
 // PostgreSQLProvider is a PostgreSQL provider.
@@ -18,38 +17,6 @@ type PostgreSQLProvider struct {
 
 // NewPostgreSQLProvider a PostgreSQL provider.
 func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) *PostgreSQLProvider {
-	args := make([]string, 0)
-	if configuration.Username != "" {
-		args = append(args, fmt.Sprintf("user='%s'", configuration.Username))
-	}
-
-	if configuration.Password != "" {
-		args = append(args, fmt.Sprintf("password='%s'", configuration.Password))
-	}
-
-	if configuration.Host != "" {
-		args = append(args, fmt.Sprintf("host=%s", configuration.Host))
-	}
-
-	if configuration.Port > 0 {
-		args = append(args, fmt.Sprintf("port=%d", configuration.Port))
-	}
-
-	if configuration.Database != "" {
-		args = append(args, fmt.Sprintf("dbname=%s", configuration.Database))
-	}
-
-	if configuration.SSLMode != "" {
-		args = append(args, fmt.Sprintf("sslmode=%s", configuration.SSLMode))
-	}
-
-	connectionString := strings.Join(args, " ")
-
-	db, err := sql.Open("pgx", connectionString)
-	if err != nil {
-		logging.Logger().Fatalf("Unable to connect to SQL database: %v", err)
-	}
-
 	provider := PostgreSQLProvider{
 		SQLProvider{
 			name: "postgres",
@@ -86,8 +53,41 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=$1 AND key_name=$2", configTableName),
 		},
 	}
+
+	args := make([]string, 0)
+	if configuration.Username != "" {
+		args = append(args, fmt.Sprintf("user='%s'", configuration.Username))
+	}
+
+	if configuration.Password != "" {
+		args = append(args, fmt.Sprintf("password='%s'", configuration.Password))
+	}
+
+	if configuration.Host != "" {
+		args = append(args, fmt.Sprintf("host=%s", configuration.Host))
+	}
+
+	if configuration.Port > 0 {
+		args = append(args, fmt.Sprintf("port=%d", configuration.Port))
+	}
+
+	if configuration.Database != "" {
+		args = append(args, fmt.Sprintf("dbname=%s", configuration.Database))
+	}
+
+	if configuration.SSLMode != "" {
+		args = append(args, fmt.Sprintf("sslmode=%s", configuration.SSLMode))
+	}
+
+	connectionString := strings.Join(args, " ")
+
+	db, err := sql.Open("pgx", connectionString)
+	if err != nil {
+		provider.log.Fatalf("Unable to connect to SQL database: %v", err)
+	}
+
 	if err := provider.initialize(db); err != nil {
-		logging.Logger().Fatalf("Unable to initialize SQL database: %v", err)
+		provider.log.Fatalf("Unable to initialize SQL database: %v", err)
 	}
 
 	return &provider
