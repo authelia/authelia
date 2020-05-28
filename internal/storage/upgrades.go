@@ -8,7 +8,7 @@ import (
 )
 
 func (p *SQLProvider) upgradeSchemaVersionTo001(tx *sql.Tx, tables []string) error {
-	_, err := tx.Exec(SQLCreateConfigTable)
+	_, err := tx.Exec(p.sqlCreateConfigTable)
 	if err != nil {
 		return err
 	}

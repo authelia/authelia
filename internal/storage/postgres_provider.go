@@ -60,6 +60,7 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
 			sqlCreateAuthenticationLogsTable:         SQLCreateAuthenticationLogsTable,
 			sqlCreateAuthenticationLogsUserTimeIndex: fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
+			sqlCreateConfigTable:                     SQLCreateConfigTable,
 
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=$1", preferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("INSERT INTO %s (username, second_factor_method) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET second_factor_method=$2", preferencesTableName),

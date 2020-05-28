@@ -51,6 +51,7 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
 			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
 			sqlCreateAuthenticationLogsTable:         fmt.Sprintf("CREATE TABLE %s (username VARCHAR(100), successful BOOL, time INTEGER, INDEX usr_time_idx (username, time))", authenticationLogsTableName),
+			sqlCreateConfigTable:                     SQLCreateConfigTable,
 
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", preferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", preferencesTableName),
