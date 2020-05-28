@@ -23,6 +23,8 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 
 	provider := SQLiteProvider{
 		SQLProvider{
+			name: "sqlite",
+
 			sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
 			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
 			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,

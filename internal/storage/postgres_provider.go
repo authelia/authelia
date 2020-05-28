@@ -52,6 +52,8 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 
 	provider := PostgreSQLProvider{
 		SQLProvider{
+			name: "postgres",
+
 			sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
 			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
 			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,

@@ -15,8 +15,9 @@ import (
 
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
-	db  *sql.DB
-	log *logrus.Logger
+	db   *sql.DB
+	log  *logrus.Logger
+	name string
 
 	sqlCreateUserPreferencesTable            string
 	sqlCreateIdentityVerificationTokensTable string

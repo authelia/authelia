@@ -44,6 +44,8 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 
 	provider := MySQLProvider{
 		SQLProvider{
+			name: "mysql",
+
 			sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
 			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
 			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
