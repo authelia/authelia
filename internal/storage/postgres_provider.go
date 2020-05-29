@@ -21,16 +21,21 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 		SQLProvider{
 			name: "postgres",
 
-			sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
-			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
-			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
-			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
-			sqlCreateAuthenticationLogsTable:         SQLCreateAuthenticationLogsTable,
-			sqlCreateAuthenticationLogsUserTimeIndex: fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
-			sqlCreateConfigTable:                     SQLCreateConfigTable,
+			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
+			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
 
-			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=$1", preferencesTableName),
-			sqlUpsertSecondFactorPreference: fmt.Sprintf("INSERT INTO %s (username, second_factor_method) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET second_factor_method=$2", preferencesTableName),
+			/*
+				sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
+				sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
+				sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
+				sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
+				sqlCreateAuthenticationLogsTable:         SQLCreateAuthenticationLogsTable,
+				sqlCreateAuthenticationLogsUserTimeIndex: fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
+				sqlCreateConfigTable:                     SQLCreateConfigTable,
+			*/
+
+			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=$1", userPreferencesTableName),
+			sqlUpsertSecondFactorPreference: fmt.Sprintf("INSERT INTO %s (username, second_factor_method) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET second_factor_method=$2", userPreferencesTableName),
 
 			sqlTestIdentityVerificationTokenExistence: fmt.Sprintf("SELECT EXISTS (SELECT * FROM %s WHERE token=$1)", identityVerificationTokensTableName),
 			sqlInsertIdentityVerificationToken:        fmt.Sprintf("INSERT INTO %s (token) VALUES ($1)", identityVerificationTokensTableName),
@@ -47,7 +52,6 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>$1 AND username=$2 ORDER BY time DESC", authenticationLogsTableName),
 
 			sqlGetExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public'",
-			sqlCheckTableExists:  "SELECT COUNT(*) FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public' table_name=$1",
 
 			sqlConfigSetValue: fmt.Sprintf("INSERT INTO %s (category, key_name, value) VALUES($1, $2, $3) ON CONFLICT (category, key_name) DO UPDATE SET value=$3", configTableName),
 			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=$1 AND key_name=$2", configTableName),

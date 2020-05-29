@@ -18,16 +18,21 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 		SQLProvider{
 			name: "sqlite",
 
-			sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
-			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
-			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
-			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
-			sqlCreateAuthenticationLogsTable:         SQLCreateAuthenticationLogsTable,
-			sqlCreateAuthenticationLogsUserTimeIndex: fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
-			sqlCreateConfigTable:                     SQLCreateConfigTable,
+			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
+			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
 
-			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", preferencesTableName),
-			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", preferencesTableName),
+			/*
+				sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
+				sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
+				sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
+				sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
+				sqlCreateAuthenticationLogsTable:         SQLCreateAuthenticationLogsTable,
+				sqlCreateAuthenticationLogsUserTimeIndex: fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
+				sqlCreateConfigTable:                     SQLCreateConfigTable,
+			*/
+
+			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", userPreferencesTableName),
+			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", userPreferencesTableName),
 
 			sqlTestIdentityVerificationTokenExistence: fmt.Sprintf("SELECT EXISTS (SELECT * FROM %s WHERE token=?)", identityVerificationTokensTableName),
 			sqlInsertIdentityVerificationToken:        fmt.Sprintf("INSERT INTO %s (token) VALUES (?)", identityVerificationTokensTableName),
@@ -44,7 +49,6 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC", authenticationLogsTableName),
 
 			sqlGetExistingTables: "SELECT name FROM sqlite_master WHERE type='table'",
-			sqlCheckTableExists:  "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?",
 
 			sqlConfigSetValue: fmt.Sprintf("REPLACE INTO %s (category, key_name, value) VALUES(?, ?, ?)", configTableName),
 			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key_name=?", configTableName),

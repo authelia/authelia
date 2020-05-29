@@ -19,13 +19,18 @@ type SQLProvider struct {
 	log  *logrus.Logger
 	name string
 
-	sqlCreateUserPreferencesTable            string
-	sqlCreateIdentityVerificationTokensTable string
-	sqlCreateTOTPSecretsTable                string
-	sqlCreateU2FDeviceHandlesTable           string
-	sqlCreateAuthenticationLogsTable         string
-	sqlCreateAuthenticationLogsUserTimeIndex string
-	sqlCreateConfigTable                     string
+	sqlUpgradesCreateTableStatements        map[int]map[string]string
+	sqlUpgradesCreateTableIndexesStatements map[int][]string
+
+	/*
+		sqlCreateUserPreferencesTable            string
+		sqlCreateIdentityVerificationTokensTable string
+		sqlCreateTOTPSecretsTable                string
+		sqlCreateU2FDeviceHandlesTable           string
+		sqlCreateAuthenticationLogsTable         string
+
+		sqlCreateConfigTable                     string
+	*/
 
 	sqlGetPreferencesByUsername     string
 	sqlUpsertSecondFactorPreference string
@@ -45,58 +50,65 @@ type SQLProvider struct {
 	sqlGetLatestAuthenticationLogs string
 
 	sqlGetExistingTables string
-	sqlCheckTableExists  string
 
 	sqlConfigSetValue string
 	sqlConfigGetValue string
 }
 
-//nolint:gocyclo // TODO: See if this can be simplified.
 func (p *SQLProvider) initialize(db *sql.DB) error {
 	p.db = db
-
 	p.log = logging.Logger()
 
-	rows, err := db.Query(p.sqlGetExistingTables)
-	if err != nil {
-		return fmt.Errorf("Unable to initialize database: %v", err)
-	}
-	defer rows.Close()
+	return p.upgrade()
+}
 
-	var tables []string
+func (p *SQLProvider) getSchemaBasicDetails() (version int, tables []string, err error) {
+	rows, err := p.db.Query(p.sqlGetExistingTables)
+	if err != nil {
+		return version, tables, err
+	}
+
+	defer rows.Close()
 
 	var table string
 
 	for rows.Next() {
 		err := rows.Scan(&table)
 		if err != nil {
-			return fmt.Errorf("Unable to initialize database: %v", err)
+			return version, tables, err
 		}
 
 		tables = append(tables, table)
 	}
 
-	p.log.Debug("Storage schema is being checked to verify it is up to date")
-
-	version := 0
-
 	if utils.IsStringInSlice(configTableName, tables) {
 		rows, err := p.db.Query(p.sqlConfigGetValue, "schema", "version")
 		if err != nil {
-			return err
+			return version, tables, err
 		}
 
 		for rows.Next() {
 			err := rows.Scan(&version)
 			if err != nil {
-				return err
+				return version, tables, err
 			}
 		}
 	}
 
-	p.log.Debugf("Storage schema is v%d, latest is v%d", version, storageSchemaCurrentVersion)
+	return version, tables, nil
+}
+
+func (p *SQLProvider) upgrade() error {
+	p.log.Debug("Storage schema is being checked to verify it is up to date")
+
+	version, tables, err := p.getSchemaBasicDetails()
+	if err != nil {
+		return err
+	}
 
 	if version < storageSchemaCurrentVersion {
+		p.log.Debugf("Storage schema is v%d, latest is v%d", version, storageSchemaCurrentVersion)
+
 		tx, err := p.db.Begin()
 		if err != nil {
 			return err
@@ -104,18 +116,16 @@ func (p *SQLProvider) initialize(db *sql.DB) error {
 
 		switch version {
 		case 0:
-			err := p.upgradeSchemaVersionTo001(tx, tables)
+			err := p.upgradeSchemaToVersion001(tx, tables)
 			if err != nil {
-				_ = tx.Rollback()
-				return fmt.Errorf("%s %d: %v", storageSchemaUpgradeErrorText, 1, err)
+				return p.handleUpgradeFailure(tx, 1, err)
 			}
 
 			fallthrough
 		case 1:
-			err := p.upgradeSchemaVersionTo002(tx)
+			err := p.upgradeSchemaToVersion002(tx, tables)
 			if err != nil {
-				_ = tx.Rollback()
-				return fmt.Errorf("%s %d: %v", storageSchemaUpgradeErrorText, 2, err)
+				return p.handleUpgradeFailure(tx, 2, err)
 			}
 
 			fallthrough
@@ -132,6 +142,17 @@ func (p *SQLProvider) initialize(db *sql.DB) error {
 	}
 
 	return nil
+}
+
+func (p *SQLProvider) handleUpgradeFailure(tx *sql.Tx, version int, err error) error {
+	rollbackErr := tx.Rollback()
+	formattedErr := fmt.Errorf("%s%d: %v", storageSchemaUpgradeErrorText, version, err)
+
+	if rollbackErr != nil {
+		return fmt.Errorf("rollback error occurred: %v (inner error %v)", rollbackErr, formattedErr)
+	}
+
+	return formattedErr
 }
 
 // LoadPreferred2FAMethod load the preferred method for 2FA from the database.

@@ -3,75 +3,75 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 
 	"github.com/authelia/authelia/internal/utils"
 )
 
-func (p *SQLProvider) upgradeSchemaVersionTo001(tx *sql.Tx, tables []string) error {
-	_, err := tx.Exec(p.sqlCreateConfigTable)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(p.sqlConfigSetValue, "schema", "version", "1")
-	if err != nil {
-		return err
-	}
-
-	if !utils.IsStringInSlice(preferencesTableName, tables) {
-		_, err := tx.Exec(p.sqlCreateUserPreferencesTable)
-		if err != nil {
-			return fmt.Errorf("Unable to create table %s: %v", preferencesTableName, err)
+func (p *SQLProvider) upgradeCreateTableStatements(tx *sql.Tx, statements map[string]string, existingTables []string) error {
+	for table, statement := range statements {
+		if !utils.IsStringInSlice(table, existingTables) {
+			_, err := tx.Exec(fmt.Sprintf(statement, table))
+			if err != nil {
+				return fmt.Errorf("Unable to create table %s: %v", table, err)
+			}
 		}
 	}
-
-	if !utils.IsStringInSlice(identityVerificationTokensTableName, tables) {
-		_, err := tx.Exec(p.sqlCreateIdentityVerificationTokensTable)
-		if err != nil {
-			return fmt.Errorf("Unable to create table %s: %v", identityVerificationTokensTableName, err)
-		}
-	}
-
-	if !utils.IsStringInSlice(totpSecretsTableName, tables) {
-		_, err := tx.Exec(p.sqlCreateTOTPSecretsTable)
-		if err != nil {
-			return fmt.Errorf("Unable to create table %s: %v", totpSecretsTableName, err)
-		}
-	}
-
-	if !utils.IsStringInSlice(u2fDeviceHandlesTableName, tables) {
-		_, err := tx.Exec(p.sqlCreateU2FDeviceHandlesTable)
-		if err != nil {
-			return fmt.Errorf("Unable to create table %s: %v", u2fDeviceHandlesTableName, err)
-		}
-	}
-
-	if !utils.IsStringInSlice(authenticationLogsTableName, tables) {
-		_, err := tx.Exec(p.sqlCreateAuthenticationLogsTable)
-		if err != nil {
-			return fmt.Errorf("Unable to create table %s: %v", authenticationLogsTableName, err)
-		}
-	}
-
-	if p.sqlCreateAuthenticationLogsUserTimeIndex != "" {
-		_, err = tx.Exec(p.sqlCreateAuthenticationLogsUserTimeIndex)
-		if err != nil {
-			return fmt.Errorf("Unable to create index on %s: %v", authenticationLogsTableName, err)
-		}
-	}
-
-	p.log.Debugf("%s %d", storageSchemaUpgradeMessage, 1)
 
 	return nil
 }
 
-func (p *SQLProvider) upgradeSchemaVersionTo002(tx *sql.Tx) error {
-	_, err := tx.Exec(p.sqlConfigSetValue, "schema", "version", "2")
+func (p *SQLProvider) upgradeRunMultipleStatements(tx *sql.Tx, statements []string) error {
+	for _, statement := range statements {
+		_, err := tx.Exec(statement)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// upgradeFinalize sets the schema version and logs a message, as well as any other future finalization tasks.
+func (p *SQLProvider) upgradeFinalize(tx *sql.Tx, version int) error {
+	_, err := tx.Exec(p.sqlConfigSetValue, "schema", "version", strconv.Itoa(version))
 	if err != nil {
 		return err
 	}
 
-	p.log.Debugf("%s %d", storageSchemaUpgradeMessage, 2)
+	p.log.Debugf("%s %d", storageSchemaUpgradeMessage, version)
+
+	return nil
+}
+
+// upgradeSchemaToVersion001 upgrades the schema to version 1.
+func (p *SQLProvider) upgradeSchemaToVersion001(tx *sql.Tx, tables []string) error {
+	err := p.upgradeCreateTableStatements(tx, p.sqlUpgradesCreateTableStatements[1], tables)
+	if err != nil {
+		return err
+	}
+
+	err = p.upgradeRunMultipleStatements(tx, p.sqlUpgradesCreateTableIndexesStatements[1])
+	if err != nil {
+		return fmt.Errorf("Unable to create index: %v", err)
+	}
+
+	err = p.upgradeFinalize(tx, 1)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// upgradeSchemaToVersion002 upgrades the schema to faux version 2.
+func (p *SQLProvider) upgradeSchemaToVersion002(tx *sql.Tx, tables []string) error {
+	err := p.upgradeFinalize(tx, 2)
+	if err != nil {
+		return err
+	}
+
+	p.log.Tracef("tables are %v", tables)
 
 	return nil
 }

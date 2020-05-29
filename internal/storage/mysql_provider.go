@@ -20,15 +20,20 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 		SQLProvider{
 			name: "mysql",
 
-			sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
-			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
-			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
-			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
-			sqlCreateAuthenticationLogsTable:         fmt.Sprintf("CREATE TABLE %s (username VARCHAR(100), successful BOOL, time INTEGER, INDEX usr_time_idx (username, time))", authenticationLogsTableName),
-			sqlCreateConfigTable:                     SQLCreateConfigTable,
+			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
+			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
 
-			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", preferencesTableName),
-			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", preferencesTableName),
+			/*
+				sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
+				sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
+				sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
+				sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
+				sqlCreateAuthenticationLogsTable:         fmt.Sprintf("CREATE TABLE %s (username VARCHAR(100), successful BOOL, time INTEGER, INDEX usr_time_idx (username, time))", authenticationLogsTableName),
+				sqlCreateConfigTable:                     SQLCreateConfigTable,
+			*/
+
+			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", userPreferencesTableName),
+			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", userPreferencesTableName),
 
 			sqlTestIdentityVerificationTokenExistence: fmt.Sprintf("SELECT EXISTS (SELECT * FROM %s WHERE token=?)", identityVerificationTokensTableName),
 			sqlInsertIdentityVerificationToken:        fmt.Sprintf("INSERT INTO %s (token) VALUES (?)", identityVerificationTokensTableName),
@@ -45,7 +50,6 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC", authenticationLogsTableName),
 
 			sqlGetExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema=database()",
-			sqlCheckTableExists:  "SELECT COUNT(*) FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema=database() AND table_name=?",
 
 			sqlConfigSetValue: fmt.Sprintf("REPLACE INTO %s (category, key_name, value) VALUES(?, ?, ?)", configTableName),
 			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key_name=?", configTableName),
