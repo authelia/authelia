@@ -24,16 +24,6 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
 			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
 
-			/*
-				sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
-				sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
-				sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
-				sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
-				sqlCreateAuthenticationLogsTable:         SQLCreateAuthenticationLogsTable,
-				sqlCreateAuthenticationLogsUserTimeIndex: fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
-				sqlCreateConfigTable:                     SQLCreateConfigTable,
-			*/
-
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=$1", userPreferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("INSERT INTO %s (username, second_factor_method) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET second_factor_method=$2", userPreferencesTableName),
 

@@ -20,17 +20,7 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 		SQLProvider{
 			name: "mysql",
 
-			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
-			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
-
-			/*
-				sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
-				sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
-				sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
-				sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
-				sqlCreateAuthenticationLogsTable:         fmt.Sprintf("CREATE TABLE %s (username VARCHAR(100), successful BOOL, time INTEGER, INDEX usr_time_idx (username, time))", authenticationLogsTableName),
-				sqlCreateConfigTable:                     SQLCreateConfigTable,
-			*/
+			sqlUpgradesCreateTableStatements: sqlUpgradeCreateTableStatements,
 
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", userPreferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", userPreferencesTableName),

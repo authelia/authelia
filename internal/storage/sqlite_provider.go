@@ -21,16 +21,6 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
 			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
 
-			/*
-				sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
-				sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
-				sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
-				sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
-				sqlCreateAuthenticationLogsTable:         SQLCreateAuthenticationLogsTable,
-				sqlCreateAuthenticationLogsUserTimeIndex: fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
-				sqlCreateConfigTable:                     SQLCreateConfigTable,
-			*/
-
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", userPreferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", userPreferencesTableName),
 
