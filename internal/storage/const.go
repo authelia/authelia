@@ -1,9 +1,11 @@
 package storage
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const storageSchemaCurrentVersion = 2
-const storageSchemaUpgradeMessage = "Storage schema upgraded to version"
+const storageSchemaUpgradeMessage = "Storage schema upgraded to v"
 const storageSchemaUpgradeErrorText = "storage schema upgrade failed at v"
 
 // Keep table names in lower case because some DB does not support upper case.

@@ -39,7 +39,7 @@ func (p *SQLProvider) upgradeFinalize(tx *sql.Tx, version int) error {
 		return err
 	}
 
-	p.log.Debugf("%s %d", storageSchemaUpgradeMessage, version)
+	p.log.Debugf("%s%d", storageSchemaUpgradeMessage, version)
 
 	return nil
 }
@@ -51,9 +51,11 @@ func (p *SQLProvider) upgradeSchemaToVersion001(tx *sql.Tx, tables []string) err
 		return err
 	}
 
-	err = p.upgradeRunMultipleStatements(tx, p.sqlUpgradesCreateTableIndexesStatements[1])
-	if err != nil {
-		return fmt.Errorf("Unable to create index: %v", err)
+	if p.name != "mysql" {
+		err = p.upgradeRunMultipleStatements(tx, p.sqlUpgradesCreateTableIndexesStatements[1])
+		if err != nil {
+			return fmt.Errorf("Unable to create index: %v", err)
+		}
 	}
 
 	err = p.upgradeFinalize(tx, 1)
