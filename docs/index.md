@@ -40,7 +40,7 @@ so that you can test it in minutes. Let's begin with the
 
 ## However, Authelia...
 
-* is not an OAuth or OpenID Connect provider yet.
+* is not an OAuth or OpenID Connect provider yet (planned in the [roadmap](./roadmap.md))
 * is not a SAML provider yet.
 * does not support authentication against an OAuth or OpenID Connect provider yet.
 * does not support authentication against a SAML provider yet.
