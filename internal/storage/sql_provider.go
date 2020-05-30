@@ -19,18 +19,8 @@ type SQLProvider struct {
 	log  *logrus.Logger
 	name string
 
-	sqlUpgradesCreateTableStatements        map[int]map[string]string
-	sqlUpgradesCreateTableIndexesStatements map[int][]string
-
-	/*
-		sqlCreateUserPreferencesTable            string
-		sqlCreateIdentityVerificationTokensTable string
-		sqlCreateTOTPSecretsTable                string
-		sqlCreateU2FDeviceHandlesTable           string
-		sqlCreateAuthenticationLogsTable         string
-
-		sqlCreateConfigTable                     string
-	*/
+	sqlUpgradesCreateTableStatements        map[SchemaVersion]map[string]string
+	sqlUpgradesCreateTableIndexesStatements map[SchemaVersion][]string
 
 	sqlGetPreferencesByUsername     string
 	sqlUpsertSecondFactorPreference string
@@ -62,7 +52,7 @@ func (p *SQLProvider) initialize(db *sql.DB) error {
 	return p.upgrade()
 }
 
-func (p *SQLProvider) getSchemaBasicDetails() (version int, tables []string, err error) {
+func (p *SQLProvider) getSchemaBasicDetails() (version SchemaVersion, tables []string, err error) {
 	rows, err := p.db.Query(p.sqlGetExistingTables)
 	if err != nil {
 		return version, tables, err
@@ -144,7 +134,7 @@ func (p *SQLProvider) upgrade() error {
 	return nil
 }
 
-func (p *SQLProvider) handleUpgradeFailure(tx *sql.Tx, version int, err error) error {
+func (p *SQLProvider) handleUpgradeFailure(tx *sql.Tx, version SchemaVersion, err error) error {
 	rollbackErr := tx.Rollback()
 	formattedErr := fmt.Errorf("%s%d: %v", storageSchemaUpgradeErrorText, version, err)
 

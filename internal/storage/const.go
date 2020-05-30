@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-const storageSchemaCurrentVersion = 2
+const storageSchemaCurrentVersion = SchemaVersion(2)
 const storageSchemaUpgradeMessage = "Storage schema upgraded to v"
 const storageSchemaUpgradeErrorText = "storage schema upgrade failed at v"
 
@@ -18,8 +18,8 @@ const configTableName = "config"
 
 // sqlUpgradeCreateTableStatements is a map of the schema version number, plus a map of the table name and the statement used to create it.
 // The statement is fmt.Sprintf'd with the table name as the first argument.
-var sqlUpgradeCreateTableStatements = map[int]map[string]string{
-	1: {
+var sqlUpgradeCreateTableStatements = map[SchemaVersion]map[string]string{
+	SchemaVersion(1): {
 		userPreferencesTableName:            "CREATE TABLE %s (username VARCHAR(100) PRIMARY KEY, second_factor_method VARCHAR(11))",
 		identityVerificationTokensTableName: "CREATE TABLE %s (token VARCHAR(512))",
 		totpSecretsTableName:                "CREATE TABLE %s (username VARCHAR(100) PRIMARY KEY, secret VARCHAR(64))",
@@ -30,8 +30,8 @@ var sqlUpgradeCreateTableStatements = map[int]map[string]string{
 }
 
 // sqlUpgradesCreateTableIndexesStatements is a map of t he schema version number, plus a slice of statements to create all of the indexes.
-var sqlUpgradesCreateTableIndexesStatements = map[int][]string{
-	1: {
+var sqlUpgradesCreateTableIndexesStatements = map[SchemaVersion][]string{
+	SchemaVersion(1): {
 		fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
 	},
 }

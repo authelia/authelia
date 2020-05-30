@@ -3,7 +3,6 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"strconv"
 
 	"github.com/authelia/authelia/internal/utils"
 )
@@ -33,8 +32,8 @@ func (p *SQLProvider) upgradeRunMultipleStatements(tx *sql.Tx, statements []stri
 }
 
 // upgradeFinalize sets the schema version and logs a message, as well as any other future finalization tasks.
-func (p *SQLProvider) upgradeFinalize(tx *sql.Tx, version int) error {
-	_, err := tx.Exec(p.sqlConfigSetValue, "schema", "version", strconv.Itoa(version))
+func (p *SQLProvider) upgradeFinalize(tx *sql.Tx, version SchemaVersion) error {
+	_, err := tx.Exec(p.sqlConfigSetValue, "schema", "version", version.ToString())
 	if err != nil {
 		return err
 	}
@@ -46,11 +45,14 @@ func (p *SQLProvider) upgradeFinalize(tx *sql.Tx, version int) error {
 
 // upgradeSchemaToVersion001 upgrades the schema to version 1.
 func (p *SQLProvider) upgradeSchemaToVersion001(tx *sql.Tx, tables []string) error {
-	err := p.upgradeCreateTableStatements(tx, p.sqlUpgradesCreateTableStatements[1], tables)
+	version := SchemaVersion(1)
+
+	err := p.upgradeCreateTableStatements(tx, p.sqlUpgradesCreateTableStatements[version], tables)
 	if err != nil {
 		return err
 	}
 
+	// Skip mysql create index statements. It doesn't support CREATE INDEX IF NOT EXIST. May be able to work around this with an Index struct.
 	if p.name != "mysql" {
 		err = p.upgradeRunMultipleStatements(tx, p.sqlUpgradesCreateTableIndexesStatements[1])
 		if err != nil {
@@ -58,7 +60,7 @@ func (p *SQLProvider) upgradeSchemaToVersion001(tx *sql.Tx, tables []string) err
 		}
 	}
 
-	err = p.upgradeFinalize(tx, 1)
+	err = p.upgradeFinalize(tx, version)
 	if err != nil {
 		return err
 	}
@@ -68,7 +70,7 @@ func (p *SQLProvider) upgradeSchemaToVersion001(tx *sql.Tx, tables []string) err
 
 // upgradeSchemaToVersion002 upgrades the schema to faux version 2.
 func (p *SQLProvider) upgradeSchemaToVersion002(tx *sql.Tx, tables []string) error {
-	err := p.upgradeFinalize(tx, 2)
+	err := p.upgradeFinalize(tx, SchemaVersion(2))
 	if err != nil {
 		return err
 	}
