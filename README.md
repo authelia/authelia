@@ -43,9 +43,6 @@ Here is what Authelia's portal looks like
   <img src="./docs/images/2FA-METHODS.png" width="400" />
 </p>
 
-
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia?ref=badge_large)
-
 ## Features summary
 
 Here is the list of the main available features:
@@ -161,12 +158,13 @@ Support Authelia by becoming a sponsor. Your logo will show up here with a link 
 <a href="https://opencollective.com/authelia-sponsors/sponsor/7/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/7/avatar.svg"></a>
 <a href="https://opencollective.com/authelia-sponsors/sponsor/8/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/authelia-sponsors/sponsor/9/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/9/avatar.svg"></a>
-<a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia.svg?type=shield"/></a>
 
 ## License
 
 **Authelia** is **licensed** under the **[Apache 2.0]** license. The terms of the license are detailed
 in [LICENSE](./LICENSE).
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia?ref=badge_large)
 
 
 [Apache 2.0]: https://www.apache.org/licenses/LICENSE-2.0
