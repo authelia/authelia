@@ -9,7 +9,7 @@ services:
         GROUP_ID: ${GROUP_ID}
     security_opt:
       - seccomp:unconfined
-      - apparmor=unconfined
+      - apparmor:unconfined
     command: /resources/entrypoint-backend.sh
     working_dir: /app
     cap_add:
