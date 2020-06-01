@@ -61,6 +61,8 @@ Here is the list of the main available features:
 
 For more details about the features, follow [Features](https://docs.authelia.com/features/).
 
+If you want to know more about the roadmap, follow [Roadmap](https://docs.authelia.com/roadmap).
+
 ## Proxy support
 
 Authelia works in combination with [nginx], [Traefik] or [HAProxy]. It can be deployed on bare metal with
