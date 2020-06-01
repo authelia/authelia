@@ -50,7 +50,7 @@ GOOS=linux GOARCH=arm64 CGO_ENABLED=1 CC=aarch64-linux-musl-gcc go build -tags n
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM arm64v8/alpine:3.11.6
+FROM arm64v8/alpine:3.12.0
 
 COPY ./qemu-aarch64-static /usr/bin/qemu-aarch64-static
 
