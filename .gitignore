@@ -44,3 +44,5 @@ Configuration.schema.json
 qemu-*-static
 
 public_html.gen.go
+
+__debug_bin
