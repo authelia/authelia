@@ -2,10 +2,8 @@
 
 set -e
 
-# Build the binary
-go build -o /tmp/authelia/authelia-tmp cmd/authelia/*.go
 while true;
 do
-    /tmp/authelia/authelia-tmp --config /etc/authelia/configuration.yml
+    dlv --listen 0.0.0.0:2345 --headless=true --continue --accept-multiclient debug cmd/authelia/*.go -- --config /etc/authelia/configuration.yml
     sleep 10
 done
