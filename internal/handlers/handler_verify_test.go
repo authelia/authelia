@@ -58,7 +58,7 @@ func TestShouldGetOriginalURLFromForwardedHeadersWithURI(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Original-URL", "htt-ps//home?-.example.com")
 	_, err := getOriginalURL(mock.Ctx)
 	assert.Error(t, err)
-	assert.Equal(t, "Unable to parse URL extracted from X-Original-URL header: parse htt-ps//home?-.example.com: invalid URI for request", err.Error())
+	assert.Equal(t, "Unable to parse URL extracted from X-Original-URL header: parse \"htt-ps//home?-.example.com\": invalid URI for request", err.Error())
 }
 
 func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
@@ -102,7 +102,7 @@ func TestShouldRaiseWhenXForwardedProtoIsNotParsable(t *testing.T) {
 
 	_, err := getOriginalURL(mock.Ctx)
 	assert.Error(t, err)
-	assert.Equal(t, "Unable to parse URL !:;;:,://myhost.local: parse !:;;:,://myhost.local: invalid URI for request", err.Error())
+	assert.Equal(t, "Unable to parse URL !:;;:,://myhost.local: parse \"!:;;:,://myhost.local\": invalid URI for request", err.Error())
 }
 
 func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
@@ -115,7 +115,7 @@ func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
 
 	_, err := getOriginalURL(mock.Ctx)
 	require.Error(t, err)
-	assert.Equal(t, "Unable to parse URL https://myhost.local!:;;:,: parse https://myhost.local!:;;:,: invalid port \":,\" after host", err.Error())
+	assert.Equal(t, "Unable to parse URL https://myhost.local!:;;:,: parse \"https://myhost.local!:;;:,\": invalid port \":,\" after host", err.Error())
 }
 
 // Test parseBasicAuth.
