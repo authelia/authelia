@@ -13,7 +13,6 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/storage"
 	"github.com/ory/fosite/token/jwt"
-	"github.com/valyala/fasthttp"
 )
 
 var privateKey *rsa.PrivateKey = mustRSAKey()
@@ -25,9 +24,6 @@ func RegisterHandlers(router *router.Router, autheliaMiddleware middlewares.Requ
 	router.GET("/api/oidc/jwks", autheliaMiddleware(JWKsGet))
 	router.GET("/api/oidc/auth", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthEndpointGet)))
 	router.POST("/api/oidc/token", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(tokenEndpoint)))
-	router.GET("/api/oidc/callback", func(req *fasthttp.RequestCtx) {
-		fmt.Println("CALLBACK")
-	})
 
 	// revoke tokens
 	// http.HandleFunc("/oauth2/revoke", revokeEndpoint)
