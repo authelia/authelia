@@ -7,8 +7,13 @@ services:
       args:
         USER_ID: ${USER_ID}
         GROUP_ID: ${GROUP_ID}
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
     command: /resources/entrypoint-backend.sh
     working_dir: /app
+    cap_add:
+      - SYS_PTRACE
     volumes:
       - './example/compose/authelia/resources/:/resources'
       - '../..:/app'

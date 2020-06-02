@@ -2,8 +2,14 @@
 
 set -x
 
+# We move out of the workspace to not include the modules as dependencies of the project.
+cd /
+
 echo "Use hot reloaded version of Authelia backend"
 go get github.com/cespare/reflex
+go get github.com/go-delve/delve/cmd/dlv
+
+cd /app
 
 # Sleep 10 seconds to wait the end of npm install updating web directory
 # and making reflex reload multiple times.
