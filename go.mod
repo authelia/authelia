@@ -1,6 +1,6 @@
 module github.com/authelia/authelia
 
-go 1.13
+go 1.14
 
 require (
 	aletheia.icu/broccoli/fs v0.0.0-20200420200651-c5ac961a357a
