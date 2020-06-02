@@ -166,6 +166,8 @@ Support Authelia by becoming a sponsor. Your logo will show up here with a link 
 **Authelia** is **licensed** under the **[Apache 2.0]** license. The terms of the license are detailed
 in [LICENSE](./LICENSE).
 
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia?ref=badge_large)
+
 
 [Apache 2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [TOTP]: https://en.wikipedia.org/wiki/Time-based_One-time_Password_Algorithm
