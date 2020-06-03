@@ -9,16 +9,20 @@ if [[ $BUILDKITE_PULL_REQUEST != "false" ]]; then
   fi
 fi
 
-if [[ $BUILDKITE_LABEL == ":hammer_and_wrench: Unit Test" ]] && [[ $BUILDKITE_COMMAND_EXIT_STATUS == 0 ]]; then
-  echo "--- :codecov: Upload coverage reports"
-  bash <(curl -s https://codecov.io/bash) -c -f "coverage.txt" -F backend
-  bash <(curl -s https://codecov.io/bash) -c -F frontend
-fi
+if [[ ! $BUILDKITE_BRANCH =~ ^(master|v.*) ]]; then
+  if [[ $BUILDKITE_COMMAND_EXIT_STATUS == 0 ]]; then
+    if [[ $BUILDKITE_LABEL == ":hammer_and_wrench: Unit Test" ]]; then
+      echo "--- :codecov: Upload coverage reports"
+      bash <(curl -s https://codecov.io/bash) -c -f "coverage.txt" -F backend
+      bash <(curl -s https://codecov.io/bash) -c -F frontend
+    fi
 
-if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] && [[ $BUILDKITE_COMMAND_EXIT_STATUS == 0 ]]; then
-  echo "--- :codecov: Upload coverage reports"
-  bash <(curl -s https://codecov.io/bash) -c -f "backend.txt" -F backend
-  bash <(curl -s https://codecov.io/bash) -c -f "coverage.txt" -F integration
+    if [[ $BUILDKITE_LABEL =~ ":selenium:" ]]; then
+      echo "--- :codecov: Upload coverage reports"
+      bash <(curl -s https://codecov.io/bash) -c -f "backend.txt" -F backend
+      bash <(curl -s https://codecov.io/bash) -c -f "coverage.txt" -F integration
+    fi
+  fi
 fi
 
 if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]]; then

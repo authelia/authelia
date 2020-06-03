@@ -25,5 +25,10 @@ cat << EOF
       OS: "${BUILD_OS}"
     key: "build-docker-${BUILD_OS}-${BUILD_ARCH}"
 EOF
+if [[ "${BUILD_ARCH}" == "coverage" ]]; then
+cat << EOF
+    if: build.branch !~ /^(master)|(v[0-9]+\.[0-9]+\.[0-9]+)$\$/
+EOF
+fi
   done
 done
