@@ -53,6 +53,6 @@ steps:
   - label: ":chrome: Integration Tests"
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
     depends_on:
-      - "build-docker-linux-amd64"
+      - "build-docker-linux-coverage"
     if: build.branch !~ /^(master)|(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
 EOF

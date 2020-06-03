@@ -17,7 +17,8 @@ fi
 
 if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] && [[ $BUILDKITE_COMMAND_EXIT_STATUS == 0 ]]; then
   echo "--- :codecov: Upload coverage reports"
-  bash <(curl -s https://codecov.io/bash) -c -F integration
+  bash <(curl -s https://codecov.io/bash) -c -f "backend.txt" -F backend
+  bash <(curl -s https://codecov.io/bash) -c -f "coverage.txt" -F integration
 fi
 
 if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]]; then

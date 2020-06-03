@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-declare -A BUILDS=(["linux"]="amd64 arm32v7 arm64v8")
+declare -A BUILDS=(["linux"]="amd64 arm32v7 arm64v8 coverage")
 
 for BUILD_OS in "${!BUILDS[@]}"; do
   for BUILD_ARCH in ${BUILDS[$BUILD_OS]}; do
