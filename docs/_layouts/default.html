@@ -1,0 +1,125 @@
+---
+layout: table_wrappers
+---
+
+<!DOCTYPE html>
+
+<html lang="{{ site.lang | default: "en-US" }}">
+{% include head.html %}
+
+<body>
+    <a class="github-fork-ribbon" href="https://github.com/authelia/authelia" data-ribbon="Fork me on GitHub"
+        title="Fork me on GitHub">Fork me on GitHub</a>
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <symbol id="link" viewBox="0 0 16 16">
+            <title>Link</title>
+            <path fill-rule="evenodd"
+                d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z">
+            </path>
+        </symbol>
+    </svg>
+
+    <div class="page-wrap">
+        <div class="side-bar">
+            <div class="site-header">
+                <a href="{{ site.url }}{{ site.baseurl }}" class="site-title lh-tight">{% include title.html %}</a>
+                <button class="menu-button fs-3 js-main-nav-trigger" data-text-toggle="Hide" type="button">Menu</button>
+            </div>
+
+            <div class="navigation main-nav js-main-nav">
+                {% include nav.html %}
+            </div>
+            <footer class="site-footer">
+                <p class="text-small text-grey-dk-000 mb-4">This site uses <a
+                        href="https://github.com/pmarsceill/just-the-docs">Just the Docs</a>, a documentation theme for
+                    Jekyll.</p>
+            </footer>
+        </div>
+        <div class="main-content-wrap js-main-content" tabindex="0">
+            <div class="main-content">
+                <div class="page-header js-page-header">
+                    {% if site.search_enabled != false %}
+                    <div class="search">
+                        <div class="search-input-wrap">
+                            <input type="text" class="js-search-input search-input" tabindex="0"
+                                placeholder="Search {{ site.title }}" aria-label="Search {{ site.title }}"
+                                autocomplete="off">
+                            <svg width="14" height="14" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg"
+                                class="search-icon">
+                                <title>Search</title>
+                                <g fill-rule="nonzero">
+                                    <path
+                                        d="M17.332 20.735c-5.537 0-10-4.6-10-10.247 0-5.646 4.463-10.247 10-10.247 5.536 0 10 4.601 10 10.247s-4.464 10.247-10 10.247zm0-4c3.3 0 6-2.783 6-6.247 0-3.463-2.7-6.247-6-6.247s-6 2.784-6 6.247c0 3.464 2.7 6.247 6 6.247z" />
+                                    <path d="M11.672 13.791L.192 25.271 3.02 28.1 14.5 16.62z" />
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="js-search-results search-results-wrap"></div>
+                    </div>
+                    {% endif %}
+                    {% if site.aux_links != nil %}
+                    <ul class="list-style-none text-small aux-nav">
+                        {% for link in site.aux_links %}
+                        <li class="d-inline-block my-0{% unless forloop.last %} mr-2{% endunless %}"><a
+                                href="{{ link.last }}">{{ link.first }}</a></li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                <div class="page">
+                    {% unless page.url == "/" %}
+                    {% if page.parent %}
+                    <nav class="breadcrumb-nav">
+                        <ol class="breadcrumb-nav-list">
+                            {% if page.grand_parent %}
+                            <li class="breadcrumb-nav-list-item"><a
+                                    href="{{ first_level_url }}">{{ page.grand_parent }}</a></li>
+                            <li class="breadcrumb-nav-list-item"><a href="{{ second_level_url }}">{{ page.parent }}</a>
+                            </li>
+                            {% else %}
+                            <li class="breadcrumb-nav-list-item"><a href="{{ first_level_url }}">{{ page.parent }}</a>
+                            </li>
+                            {% endif %}
+                            <li class="breadcrumb-nav-list-item"><span>{{ page.title }}</span></li>
+                        </ol>
+                    </nav>
+                    {% endif %}
+                    {% endunless %}
+                    <div id="main-content" class="page-content" role="main">
+                        {% if site.heading_anchors != false %}
+                        {% include vendor/anchor_headings.html html=content beforeHeading="true" anchorBody="<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><use xlink:href=\"#link\"></use></svg>" anchorClass="anchor-heading" %}
+                        {% else %}
+                        {{ content }}
+                        {% endif %}
+
+                        {% if page.has_children == true and page.has_toc != false %}
+                        <hr>
+                        <h2 class="text-delta">Table of contents</h2>
+                        {% assign children_list = site.pages | sort:"nav_order" %}
+                        <ul>
+                            {% for child in children_list %}
+                            {% if child.parent == page.title and child.title != page.title %}
+                            <li>
+                                <a href="{{ child.url | absolute_url }}">{{ child.title }}</a>{% if child.summary %} -
+                                {{ child.summary }}{% endif %}
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+
+                        {% if site.footer_content != nil %}
+                        <hr>
+                        <footer role="contentinfo">
+                            <p class="text-small text-grey-dk-000 mb-0">{{ site.footer_content }}</p>
+                        </footer>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+</body>
+
+</html>
