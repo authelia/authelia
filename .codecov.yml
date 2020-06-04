@@ -26,6 +26,7 @@ coverage:
 flags:
   backend:
     paths:
+      - "cmd/authelia/"
       - "internal/"
       - "!internal/suites/"
   frontend:
