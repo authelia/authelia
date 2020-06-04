@@ -19,9 +19,6 @@ coverage:
       frontend:
         flags:
           - frontend
-      integration:
-        flags:
-          - integration
 
 flags:
   backend:
@@ -32,9 +29,6 @@ flags:
   frontend:
     paths:
       - "web/"
-  integration:
-    paths:
-      - "internal/suites/"
 
 parsers:
   gcov:

@@ -12,7 +12,7 @@ RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn build
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.14.3-alpine AS builder-backend
+FROM golang:1.14.4-alpine AS builder-backend
 
 ARG BUILD_TAG
 ARG BUILD_COMMIT
@@ -62,4 +62,4 @@ VOLUME /var/lib/authelia
 
 ENV PATH="/usr/app:${PATH}"
 
-CMD ["./authelia", "-test.coverprofile=/app/backend.txt", "COVERAGE", "--config", "/etc/authelia/configuration.yml"]
+CMD ["./authelia", "-test.coverprofile=/app/coverage.txt", "COVERAGE", "--config", "/etc/authelia/configuration.yml"]

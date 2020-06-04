@@ -18,8 +18,7 @@ if [[ ! $BUILDKITE_BRANCH =~ ^(master|v.*) ]] && [[ $BUILDKITE_COMMAND_EXIT_STAT
 
   if [[ $BUILDKITE_LABEL =~ ":selenium:" ]]; then
     echo "--- :codecov: Upload coverage reports"
-    bash <(curl -s https://codecov.io/bash) -c -f "backend.txt" -F backend
-    bash <(curl -s https://codecov.io/bash) -c -f "coverage.txt" -F integration
+    bash <(curl -s https://codecov.io/bash) -c -f "coverage.txt" -F backend
   fi
 fi
 
