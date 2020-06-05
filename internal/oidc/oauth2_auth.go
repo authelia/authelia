@@ -1,16 +1,16 @@
 package oidc
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/authelia/authelia/internal/logging"
+	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/ory/fosite"
 )
 
-func AuthEndpointGet(oauth2 fosite.OAuth2Provider) http.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request) {
+func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc {
+	return func(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 		// Let's create an AuthorizeRequest object!
 		// It will analyze the request and extract important information like scopes, response type and others.
 		ar, err := oauth2.NewAuthorizeRequest(r.Context(), r)
@@ -20,11 +20,6 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) http.HandlerFunc {
 			return
 		}
 		// You have now access to authorizeRequest, Code ResponseTypes, Scopes ...
-
-		var requestedScopes string
-		for _, this := range ar.GetRequestedScopes() {
-			requestedScopes += fmt.Sprintf(`<li><input type="checkbox" name="scopes" value="%s">%s</li>`, this, this)
-		}
 
 		// Normally, this would be the place where you would check if the user is logged in and gives his consent.
 		// We're simplifying things and just checking if the request includes a valid username and password

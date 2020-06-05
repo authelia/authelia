@@ -4,14 +4,13 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/ory/fosite"
 )
 
-func tokenEndpoint(oauth2 fosite.OAuth2Provider) http.HandlerFunc {
-	return func(rw http.ResponseWriter, req *http.Request) {
+func tokenEndpoint(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc {
+	return func(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 		// This context will be passed to all methods.
-		ctx := req.Context()
-
 		session := newSession("")
 
 		// This will create an access request object and iterate through the registered TokenEndpointHandlers to validate the request.

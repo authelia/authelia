@@ -50,6 +50,7 @@ oidc:
   oidc_issuer_private_key_path: /var/lib/authelia/issuer.pem
   clients:
     client_id: oidc-tester-app
-    client_secret: app_secret
+    # This secret must be a bcrypt hash
+    client_secret: $2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO
     redirect_uris:
       - https://oidc.example.com:8080/oauth2/callback

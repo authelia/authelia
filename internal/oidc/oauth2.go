@@ -16,27 +16,25 @@ import (
 	"github.com/ory/fosite/token/jwt"
 )
 
-func NewStore() *storage.MemoryStore {
+func NewStore(config *schema.OpenIDConnectConfiguration) *storage.MemoryStore {
+	clients := make(map[string]fosite.Client)
+
+	for _, v := range config.Clients {
+		fmt.Println(v.ClientID, v.ClientSecret)
+		clients[v.ClientID] = &fosite.DefaultClient{
+			ID:            v.ClientID,
+			Secret:        []byte(v.ClientSecret),
+			RedirectURIs:  v.RedirectURIs,
+			ResponseTypes: []string{"code"},
+			GrantTypes:    []string{"implicit", "refresh_token", "authorization_code"},
+			Scopes:        []string{"openid"},
+		}
+	}
+
 	return &storage.MemoryStore{
-		IDSessions: make(map[string]fosite.Requester),
-		Clients: map[string]fosite.Client{
-			"oidc-tester-app": &fosite.DefaultClient{
-				ID:            "oidc-tester-app",
-				Secret:        []byte(`$2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO`), // = "foobar"
-				RedirectURIs:  []string{"https://oidc.example.com:8080/oauth2/callback"},
-				ResponseTypes: []string{"code"},
-				GrantTypes:    []string{"implicit", "refresh_token", "authorization_code"},
-				Scopes:        []string{"openid"},
-			},
-		},
-		Users: map[string]storage.MemoryUserRelation{
-			"john": {
-				// This store simply checks for equality, a real storage implementation would obviously use
-				// a hashing algorithm for encrypting the user password.
-				Username: "john",
-				Password: "secret",
-			},
-		},
+		IDSessions:             make(map[string]fosite.Requester),
+		Clients:                clients,
+		Users:                  map[string]storage.MemoryUserRelation{},
 		AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
 		AccessTokens:           map[string]fosite.Requester{},
 		RefreshTokens:          map[string]fosite.Requester{},
@@ -48,7 +46,7 @@ func NewStore() *storage.MemoryStore {
 
 func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *router.Router, autheliaMiddleware middlewares.RequestHandlerBridge) {
 	// This is an exemplary storage instance. We will add a client and a user to it so we can use these later on.
-	var store = NewStore()
+	var store = NewStore(configuration)
 
 	var oidcConfig = new(compose.Config)
 

@@ -8,6 +8,8 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+type AutheliaHandlerFunc func(ctx *AutheliaCtx, rw http.ResponseWriter, r *http.Request)
+
 type netHTTPBody struct {
 	b []byte
 }
@@ -55,7 +57,7 @@ func (w *netHTTPResponseWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func NewHTTPToAutheliaHandlerAdaptor(h http.HandlerFunc) RequestHandler {
+func NewHTTPToAutheliaHandlerAdaptor(h AutheliaHandlerFunc) RequestHandler {
 	return func(ctx *AutheliaCtx) {
 		var r http.Request
 
@@ -91,7 +93,7 @@ func NewHTTPToAutheliaHandlerAdaptor(h http.HandlerFunc) RequestHandler {
 		r.URL = rURL
 
 		var w netHTTPResponseWriter
-		h.ServeHTTP(&w, r.WithContext(ctx))
+		h(ctx, &w, r.WithContext(ctx))
 
 		ctx.SetStatusCode(w.StatusCode())
 		for k, vv := range w.Header() {
