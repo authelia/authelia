@@ -12,7 +12,7 @@ RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn build
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.14.3-alpine AS builder-backend
+FROM golang:1.14.4-alpine AS builder-backend
 
 ARG BUILD_TAG
 ARG BUILD_COMMIT
@@ -47,7 +47,7 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w -linkmod
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.11.6
+FROM alpine:3.12.0
 
 RUN apk --no-cache add ca-certificates tzdata
 

@@ -16,12 +16,9 @@ FROM golang:1.14.4-alpine AS builder-backend
 
 ARG BUILD_TAG
 ARG BUILD_COMMIT
-ARG CC_VERSION="v15"
 
-# gcc cross-compiler is required for building go-sqlite3
-RUN apk --no-cache add curl && \
-    curl -Lfs -o /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz "https://github.com/just-containers/musl-cross-make/releases/download/${CC_VERSION}/gcc-9.2.0-arm-linux-musleabihf.tar.xz" && \
-    tar xf /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz -C /
+# gcc and musl-dev are required for building go-sqlite3
+RUN apk --no-cache add gcc musl-dev
 
 WORKDIR /go/src/app
 
@@ -43,19 +40,16 @@ RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
     sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
     sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go
 
-# CGO_ENABLED=1 is mandatory for building go-sqlite3
+# Build binary for collecting integration test coverage
 RUN cd cmd/authelia && \
-GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -trimpath -o authelia
+go test -c --tags coverage -covermode=atomic -o authelia -coverpkg github.com/authelia/authelia/...
 
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM arm32v7/alpine:3.12.0
+FROM alpine:3.12.0
 
-COPY ./qemu-arm-static /usr/bin/qemu-arm-static
-
-RUN apk --no-cache add ca-certificates tzdata && \
-    rm /usr/bin/qemu-arm-static
+RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /usr/app
 
@@ -68,4 +62,4 @@ VOLUME /var/lib/authelia
 
 ENV PATH="/usr/app:${PATH}"
 
-CMD ["./authelia", "--config", "/etc/authelia/configuration.yml"]
+CMD ["./authelia", "-test.coverprofile=/app/coverage.txt", "COVERAGE", "--config", "/etc/authelia/configuration.yml"]

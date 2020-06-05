@@ -61,6 +61,8 @@ Here is the list of the main available features:
 
 For more details about the features, follow [Features](https://docs.authelia.com/features/).
 
+If you want to know more about the roadmap, follow [Roadmap](https://docs.authelia.com/roadmap).
+
 ## Proxy support
 
 Authelia works in combination with [nginx], [Traefik] or [HAProxy]. It can be deployed on bare metal with
@@ -163,6 +165,8 @@ Support Authelia by becoming a sponsor. Your logo will show up here with a link 
 
 **Authelia** is **licensed** under the **[Apache 2.0]** license. The terms of the license are detailed
 in [LICENSE](./LICENSE).
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia?ref=badge_large)
 
 
 [Apache 2.0]: https://www.apache.org/licenses/LICENSE-2.0

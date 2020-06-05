@@ -13,7 +13,7 @@ import (
 func RunUnitTest(cobraCmd *cobra.Command, args []string) {
 	log.SetLevel(log.TraceLevel)
 
-	if err := utils.Shell("go test $(go list ./... | grep -v suites)").Run(); err != nil {
+	if err := utils.Shell("go test -coverprofile=coverage.txt -covermode=atomic $(go list ./... | grep -v suites)").Run(); err != nil {
 		log.Fatal(err)
 	}
 
