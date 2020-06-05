@@ -110,6 +110,13 @@ var validKeys = []string{
 	"authentication_backend.file.password.memory",
 	"authentication_backend.file.password.parallelism",
 
+	// OIDC Keys
+	"oidc.clients.redirect_uris",
+	"oidc.clients.client_id",
+	"oidc.clients.client_secret",
+	"oidc.oauth2_hmac_secret",
+	"oidc.oidc_issuer_private_key_path",
+
 	// Secret Keys.
 	"authelia.jwt_secret",
 	"authelia.duo_api.secret_key",
@@ -127,6 +134,7 @@ var validKeys = []string{
 	"authelia.session.redis.password.file",
 	"authelia.storage.mysql.password.file",
 	"authelia.storage.postgres.password.file",
+	"authelia.oidc.oauth2_hmac_secret.file",
 }
 
 var specificErrorKeys = map[string]string{

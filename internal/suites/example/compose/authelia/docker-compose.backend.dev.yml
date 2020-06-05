@@ -29,6 +29,8 @@ services:
       - 'traefik.http.services.authelia_backend.loadbalancer.server.scheme=https'
     environment:
       - ENVIRONMENT=dev
+    healthcheck:
+      test: curl --insecure -f https://localhost:9091/${PathPrefix}/api/health || exit 1
     networks:
       authelianet:
         ipv4_address: 192.168.240.50

@@ -43,3 +43,13 @@ notifier:
     port: 1025
     sender: admin@example.com
     disable_require_tls: true
+
+oidc:
+  # This secret must be 32 bytes long
+  oauth2_hmac_secret: IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm
+  oidc_issuer_private_key_path: /var/lib/authelia/issuer.pem
+  clients:
+    client_id: oidc-tester-app
+    client_secret: app_secret
+    redirect_uris:
+      - https://oidc.example.com:8080/oauth2/callback

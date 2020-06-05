@@ -1,0 +1,11 @@
+version: '3'
+services:
+  oidc-client:
+    image: authelia/oidc-tester-app
+    command: /entrypoint.sh
+    depends_on:
+      - authelia-backend
+    volumes:
+      - ./example/compose/oidc-client/entrypoint.sh:/entrypoint.sh
+    networks:
+      - authelianet

@@ -71,4 +71,6 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	} else {
 		ValidateNotifier(configuration.Notifier, validator)
 	}
+
+	ValidateOIDC(&configuration.OpenIDConnect, validator)
 }

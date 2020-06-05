@@ -22,6 +22,7 @@ func Read(configPath string) (*schema.Configuration, []error) {
 	viper.BindEnv("authelia.session.redis.password.file")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	viper.BindEnv("authelia.storage.mysql.password.file")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	viper.BindEnv("authelia.storage.postgres.password.file")            //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("authelia.oidc.oauth2_hmac_secret.file")              //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	viper.SetConfigFile(configPath)
 

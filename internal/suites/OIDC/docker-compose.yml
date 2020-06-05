@@ -4,4 +4,5 @@ services:
     volumes:
       - './OIDC/configuration.yml:/etc/authelia/configuration.yml:ro'
       - './OIDC/users.yml:/var/lib/authelia/users.yml'
+      - './OIDC/keypair/key.pem:/var/lib/authelia/issuer.pem:ro'
       - './common/ssl:/var/lib/authelia/ssl:ro'
