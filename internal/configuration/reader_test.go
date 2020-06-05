@@ -57,6 +57,39 @@ func setupEnv(t *testing.T) string {
 	return dir
 }
 
+func TestShouldErrorNoConfigPath(t *testing.T) {
+	_, errors := Read("")
+
+	require.Len(t, errors, 1)
+
+	require.EqualError(t, errors[0], "No config file path provided")
+}
+
+func TestShouldErrorNoConfigFile(t *testing.T) {
+	_, errors := Read("./nonexistent.yml")
+
+	require.Len(t, errors, 1)
+
+	require.EqualError(t, errors[0], "Unable to find config file: ./nonexistent.yml")
+}
+
+func TestShouldErrorPermissionsConfigFile(t *testing.T) {
+	_ = ioutil.WriteFile("/tmp/authelia/permissions.yml", []byte{}, 0000) // nolint:gosec
+	_, errors := Read("/tmp/authelia/permissions.yml")
+
+	require.Len(t, errors, 1)
+
+	require.EqualError(t, errors[0], "Failed to open /tmp/authelia/permissions.yml: permission denied")
+}
+
+func TestShouldErrorParseBadConfigFile(t *testing.T) {
+	_, errors := Read("./test_resources/config_bad_quoting.yml")
+
+	require.Len(t, errors, 1)
+
+	require.EqualError(t, errors[0], "Error malformed yaml: line 23: did not find expected alphabetic or numeric character")
+}
+
 func TestShouldParseConfigFile(t *testing.T) {
 	dir := setupEnv(t)
 
