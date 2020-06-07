@@ -121,6 +121,17 @@ func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "Set domain of the session object")
 }
 
+func TestShouldRaiseErrorWhenDomainIsWildcard(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Domain = "*.example.com"
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "The domain of the session must be the root domain you're protecting instead of a wildcard domain")
+}
+
 func TestShouldRaiseErrorWhenBadInactivityAndExpirationSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
