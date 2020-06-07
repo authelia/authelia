@@ -38,7 +38,7 @@ appear in the configuration examples.
 The only way Authelia can share information about the authenticated user currently is through the use of two HTTP headers:
 `Remote-User` and `Remote-Groups`.
 Those headers are returned by Authelia on requests to `/api/verify` and must be forwarded by the reverse proxy to the backends
-needing them.
+needing them. Those headers will be provided with each calls to the backend once the user is authenticated.
 Please note that the backend must support the use of those headers to leverage that information, many
 backends still don't (and probably won't) support it. However, we are working on solving this issue with OpenID Connect/OAuth2
 which is a widely adopted open standard for access delegation.
