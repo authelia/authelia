@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestAuthelia(t *testing.T) {
+func TestCoverage(t *testing.T) {
 	var (
 		args []string
 	)
