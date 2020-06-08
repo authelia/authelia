@@ -10,3 +10,4 @@ theme: just-the-docs
 keep_files:
   - .git
   - CNAME
+ga_tracking: UA-124926127-1
