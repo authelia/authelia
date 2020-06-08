@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -27,10 +26,6 @@ var configPathFlag string
 
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
 func startServer() {
-	if configPathFlag == "" {
-		log.Fatal(errors.New("No config file path provided"))
-	}
-
 	config, errs := configuration.Read(configPathFlag)
 
 	if len(errs) > 0 {
@@ -38,7 +33,7 @@ func startServer() {
 			logging.Logger().Error(err)
 		}
 
-		panic(errors.New("Some errors have been reported"))
+		os.Exit(1)
 	}
 
 	if err := logging.InitializeLogger(config.LogFilePath); err != nil {
