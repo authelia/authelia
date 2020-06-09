@@ -84,6 +84,8 @@ github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojt
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
 github.com/fasthttp/router v1.1.6 h1:lBcXxp1ZNoNbSeh4+RvAaXKSEiHU6sGd+gEMpd5Xjog=
 github.com/fasthttp/router v1.1.6/go.mod h1:E1mpv7mrQzAhiSQdqhRb+GBTC7MEV+bLFVmgzSA5oFM=
+github.com/fasthttp/router v1.1.7 h1:1Wt3iK7yILMNUlgWg3kfqNW8cQhvMIgkqKUhh370wR4=
+github.com/fasthttp/router v1.1.7/go.mod h1:GllqmaKtAsIvYwz5Nbu0qcbQQXBSVaeXw2KY3SmlbYM=
 github.com/fasthttp/session/v2 v2.1.0 h1:X84Wx3S5hO2AM5B030yhus6+J3ROWY/wA76rye3K00s=
 github.com/fasthttp/session/v2 v2.1.0/go.mod h1:VEaGPgnkB9J+/fy0nKqSU6VGS7hjVy1H7/zI+LCOgbo=
 github.com/fasthttp/session/v2 v2.1.1 h1:Cw+BZkfgfQ/IXYTYNtYXxj5Qg5WbArCrRQnfIok9OuM=
