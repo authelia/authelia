@@ -30,7 +30,7 @@
     "query-string": "^6.13.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-ga": "^2.7.0",
+    "react-ga": "^3.0.0",
     "react-loading": "^2.0.3",
     "react-otp-input": "^1.0.1",
     "react-router-dom": "^5.2.0",
