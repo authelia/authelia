@@ -1,8 +1,8 @@
 title: Authelia
 email: clement.michaud34@gmail.com
 description: Authelia is an open source multi-factor single sign-on portal for web applications
-# We need this base URL to serve the docs under https://www.authelia.com/docs
-baseurl: "/docs"
+# We need this base URL to serve the docs under https://www.authelia.com/docs/
+baseurl: "/docs/"
 url: "https://www.authelia.com"
 repository: https://github.com/authelia/authelia
 logo: ./images/authelia-title.png
