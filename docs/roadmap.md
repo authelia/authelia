@@ -31,7 +31,7 @@ devices, reset their password, review their authentication activity.
 In the future we envisage users will be able to customize their profile with an avatar, set their preferences
 regarding 2FA and according to the global policy defined by administrators, etc...
 
-4. [Facilitate setup on Kubernetes](https://github.com/authelia/authelia/issues/974). There are mainly two objectives
+4. [Facilitate setup on Kubernetes](https://github.com/authelia/authelia/issues/575). There are mainly two objectives
 here. First, we need to provide the documentation required to setup Authelia on Kubernetes. Even though, some users
 already have it working and the feature is even tested in the project, there is a clear lack of documentation. The
 second item is to provide a Helm chart to streamline the setup on Kubernetes.
