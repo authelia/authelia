@@ -1,6 +1,7 @@
 package middlewares_test
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -32,4 +33,40 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	})(ctx)
 
 	assert.True(t, nextCalled)
+}
+
+// Test getOriginalURL.
+func TestShouldGetOriginalURLFromOriginalURLHeader(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://home.example.com")
+	originalURL, err := mock.Ctx.GetOriginalURL()
+	assert.NoError(t, err)
+
+	expectedURL, err := url.ParseRequestURI("https://home.example.com")
+	assert.NoError(t, err)
+	assert.Equal(t, expectedURL, originalURL)
+}
+
+func TestShouldGetOriginalURLFromForwardedHeadersWithoutURI(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
+	originalURL, err := mock.Ctx.GetOriginalURL()
+	assert.NoError(t, err)
+
+	expectedURL, err := url.ParseRequestURI("https://home.example.com")
+	assert.NoError(t, err)
+	assert.Equal(t, expectedURL, originalURL)
+}
+
+func TestShouldGetOriginalURLFromForwardedHeadersWithURI(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+	mock.Ctx.Request.Header.Set("X-Original-URL", "htt-ps//home?-.example.com")
+	_, err := mock.Ctx.GetOriginalURL()
+	assert.Error(t, err)
+	assert.Equal(t, "Unable to parse URL extracted from X-Original-URL header: parse \"htt-ps//home?-.example.com\": invalid URI for request", err.Error())
 }

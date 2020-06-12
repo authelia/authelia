@@ -26,7 +26,7 @@ storage:
     path: /var/lib/authelia/db.sqlite
 
 access_control:
-  default_policy: bypass
+  default_policy: deny
   rules:
     - domain: "public.example.com"
       policy: bypass
@@ -36,6 +36,8 @@ access_control:
       policy: two_factor
     - domain: "singlefactor.example.com"
       policy: one_factor
+    - domain: "oidc.example.com"
+      policy: two_factor
 
 notifier:
   smtp:
@@ -44,7 +46,7 @@ notifier:
     sender: admin@example.com
     disable_require_tls: true
 
-oidc:
+openid_connect:
   # This secret must be 32 bytes long
   oauth2_hmac_secret: IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm
   oidc_issuer_private_key_path: /var/lib/authelia/issuer.pem

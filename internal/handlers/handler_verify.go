@@ -30,49 +30,6 @@ func isSchemeWSS(url *url.URL) bool {
 	return url.Scheme == "wss"
 }
 
-// getOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers).
-func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
-	originalURL := ctx.XOriginalURL()
-	if originalURL != nil {
-		url, err := url.ParseRequestURI(string(originalURL))
-		if err != nil {
-			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
-		}
-
-		ctx.Logger.Trace("Using X-Original-URL header content as targeted site URL")
-
-		return url, nil
-	}
-
-	forwardedProto := ctx.XForwardedProto()
-	forwardedHost := ctx.XForwardedHost()
-	forwardedURI := ctx.XForwardedURI()
-
-	if forwardedProto == nil {
-		return nil, errMissingXForwardedProto
-	}
-
-	if forwardedHost == nil {
-		return nil, errMissingXForwardedHost
-	}
-
-	var requestURI string
-
-	scheme := append(forwardedProto, protoHostSeparator...)
-	requestURI = string(append(scheme,
-		append(forwardedHost, forwardedURI...)...))
-
-	url, err := url.ParseRequestURI(requestURI)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
-	}
-
-	ctx.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
-		"to construct targeted site URL")
-
-	return url, nil
-}
-
 // parseBasicAuth parses an HTTP Basic Authentication string.
 // "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true).
 func parseBasicAuth(auth string) (username, password string, err error) {
@@ -376,7 +333,7 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 
 	return func(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Tracef("Headers=%s", ctx.Request.Header.String())
-		targetURL, err := getOriginalURL(ctx)
+		targetURL, err := ctx.GetOriginalURL()
 
 		if err != nil {
 			ctx.Error(fmt.Errorf("Unable to parse target URL: %s", err), operationFailedMessage)

@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 )
@@ -146,4 +147,15 @@ func (p *Authorizer) IsURLMatchingRuleWithGroupSubjects(requestURL url.URL) (has
 	}
 
 	return false
+}
+
+func IsAuthLevelSufficient(authenticationLevel authentication.Level, authorizationLevel Level) bool {
+	if authorizationLevel == Denied {
+		return false
+	} else if authorizationLevel == OneFactor {
+		return authenticationLevel >= authentication.OneFactor
+	} else if authorizationLevel == TwoFactor {
+		return authenticationLevel >= authentication.TwoFactor
+	}
+	return true
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/url"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -85,6 +86,11 @@ func (c *AutheliaCtx) ReplyUnauthorized() {
 // ReplyForbidden response sent when access is forbidden to user.
 func (c *AutheliaCtx) ReplyForbidden() {
 	c.RequestCtx.Error(fasthttp.StatusMessage(fasthttp.StatusForbidden), fasthttp.StatusForbidden)
+}
+
+// ReplyBadRequest response sent when bad request has been sent.
+func (c *AutheliaCtx) ReplyBadRequest() {
+	c.RequestCtx.Error(fasthttp.StatusMessage(fasthttp.StatusBadRequest), fasthttp.StatusBadRequest)
 }
 
 // XForwardedProto return the content of the header X-Forwarded-Proto.
@@ -175,4 +181,45 @@ func (c *AutheliaCtx) RemoteIP() net.IP {
 	}
 
 	return c.RequestCtx.RemoteIP()
+}
+
+// getOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers).
+func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
+	originalURL := c.XOriginalURL()
+	if originalURL != nil {
+		url, err := url.ParseRequestURI(string(originalURL))
+		if err != nil {
+			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
+		}
+
+		c.Logger.Trace("Using X-Original-URL header content as targeted site URL")
+		return url, nil
+	}
+
+	forwardedProto := c.XForwardedProto()
+	forwardedHost := c.XForwardedHost()
+	forwardedURI := c.XForwardedURI()
+
+	if forwardedProto == nil {
+		return nil, errMissingXForwardedProto
+	}
+
+	if forwardedHost == nil {
+		return nil, errMissingXForwardedHost
+	}
+
+	var requestURI string
+
+	scheme := append(forwardedProto, protoHostSeparator...)
+	requestURI = string(append(scheme,
+		append(forwardedHost, forwardedURI...)...))
+
+	url, err := url.ParseRequestURI(requestURI)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
+	}
+
+	c.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
+		"to construct targeted site URL")
+	return url, nil
 }

@@ -20,13 +20,12 @@ func NewStore(config *schema.OpenIDConnectConfiguration) *storage.MemoryStore {
 	clients := make(map[string]fosite.Client)
 
 	for _, v := range config.Clients {
-		fmt.Println(v.ClientID, v.ClientSecret)
 		clients[v.ClientID] = &fosite.DefaultClient{
 			ID:            v.ClientID,
 			Secret:        []byte(v.ClientSecret),
 			RedirectURIs:  v.RedirectURIs,
 			ResponseTypes: []string{"code"},
-			GrantTypes:    []string{"implicit", "refresh_token", "authorization_code"},
+			GrantTypes:    []string{"refresh_token", "authorization_code"},
 			Scopes:        []string{"openid"},
 		}
 	}
@@ -92,6 +91,8 @@ func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *ro
 
 	// OpenID Connect discovery: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
 	router.GET("/.well-known/openid-configuration", autheliaMiddleware(WellKnownConfigurationGet))
+	router.GET("/api/oidc/consent", autheliaMiddleware(ConsentGet))
+	router.POST("/api/oidc/consent", autheliaMiddleware(ConsentPost))
 
 	router.GET("/api/oidc/jwks", autheliaMiddleware(JWKsGet(&privateKey.PublicKey)))
 	router.GET("/api/oidc/auth", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthEndpointGet(oauth2))))

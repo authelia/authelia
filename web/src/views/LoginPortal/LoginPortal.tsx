@@ -14,7 +14,6 @@ import { useRedirectionURL } from "../../hooks/RedirectionURL";
 import { useUserPreferences as userUserInfo } from "../../hooks/UserInfo";
 import { SecondFactorMethod } from "../../models/Methods";
 import { useExtendedConfiguration } from "../../hooks/Configuration";
-import AuthenticatedView from "./AuthenticatedView/AuthenticatedView";
 
 export interface Props {
     rememberMe: boolean;
@@ -134,9 +133,6 @@ export default function (props: Props) {
                     configuration={configuration}
                     onMethodChanged={() => fetchUserInfo()}
                     onAuthenticationSuccess={handleAuthSuccess} /> : null}
-            </Route>
-            <Route path={AuthenticatedRoute} exact>
-                {state ? <AuthenticatedView username={state.username} /> : null}
             </Route>
             <Route path="/">
                 <Redirect to={FirstFactorRoute} />

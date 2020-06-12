@@ -3,6 +3,8 @@ import { useBasePath } from "../hooks/BasePath";
 
 const basePath = useBasePath();
 
+export const ConsentPath = basePath + "/api/oidc/consent";
+
 export const FirstFactorPath = basePath + "/api/firstfactor";
 export const InitiateTOTPRegistrationPath = basePath + "/api/secondfactor/totp/identity/start";
 export const CompleteTOTPRegistrationPath = basePath + "/api/secondfactor/totp/identity/finish";

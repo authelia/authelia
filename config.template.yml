@@ -415,3 +415,13 @@ notifier:
   ##   sender: admin@example.com
   ##   host: smtp.gmail.com
   ##   port: 587
+
+openid_connect:
+  oauth2_hmac_secret: this_is_a_secret
+  oidc_issuer_private_key_path: /path/to/private/key.pem
+  clients:
+    - client_id: myapp
+      client_secret: this_is_a_secret
+      redirect_uris:
+        - https://oidc.example.com:8080/oauth2/callback
+  

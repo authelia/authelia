@@ -11,6 +11,7 @@ import {
     ResetPasswordStep1Route, RegisterSecurityKeyRoute,
     RegisterOneTimePasswordRoute,
     LogoutRoute,
+    ConsentRoute,
 } from "./Routes";
 import LoginPortal from './views/LoginPortal/LoginPortal';
 import NotificationsContext from './hooks/NotificationsContext';
@@ -21,6 +22,7 @@ import { useConfiguration } from './hooks/Configuration';
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
 import { useBasePath } from './hooks/BasePath';
+import ConsentView from './views/LoginPortal/ConsentView/ConsentView';
 
 faConfig.autoAddCss = false;
 
@@ -55,6 +57,9 @@ const App: React.FC = () => {
                     </Route>
                     <Route path={LogoutRoute} exact>
                         <SignOut />
+                    </Route>
+                    <Route path={ConsentRoute} exact>
+                        <ConsentView />
                     </Route>
                     <Route path={FirstFactorRoute}>
                         <LoginPortal

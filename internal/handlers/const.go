@@ -16,8 +16,6 @@ const AuthorizationHeader = "Proxy-Authorization"
 const remoteUserHeader = "Remote-User"
 const remoteGroupsHeader = "Remote-Groups"
 
-var protoHostSeparator = []byte("://")
-
 const (
 	// Forbidden means the user is forbidden the access to a resource.
 	Forbidden authorizationMatching = iota

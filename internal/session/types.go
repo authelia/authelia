@@ -9,6 +9,7 @@ import (
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/authorization"
 )
 
 // ProviderConfig is the configuration used to create the session provider.
@@ -42,6 +43,9 @@ type UserSession struct {
 	// This is used in second phase of a U2F authentication.
 	U2FRegistration *U2FRegistration
 
+	// Represent an OIDC workflow session initiated by the client if not null.
+	OIDCWorkflowSession *OIDCWorkflowSession
+
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.
 	PasswordResetUsername *string
@@ -53,4 +57,13 @@ type UserSession struct {
 type Identity struct {
 	Username string
 	Email    string
+}
+
+// OIDCWorkflowSession represent an OIDC workflow session.
+type OIDCWorkflowSession struct {
+	ClientID                   string
+	RequestedScopes            []string
+	GrantedScopes              []string
+	OriginalURI                string
+	RequiredAuthorizationLevel authorization.Level
 }

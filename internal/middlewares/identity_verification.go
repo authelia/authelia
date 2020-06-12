@@ -51,18 +51,12 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		if ctx.XForwardedProto() == nil {
-			ctx.Error(errMissingXForwardedProto, operationFailedMessage)
+		uri, err := GetForwardedURI(ctx)
+		if err != nil {
+			ctx.Error(err, operationFailedMessage)
 			return
 		}
-
-		if ctx.XForwardedHost() == nil {
-			ctx.Error(errMissingXForwardedHost, operationFailedMessage)
-			return
-		}
-
-		link := fmt.Sprintf("%s://%s%s%s?token=%s", ctx.XForwardedProto(),
-			ctx.XForwardedHost(), ctx.Configuration.Server.Path, args.TargetEndpoint, ss)
+		link := fmt.Sprintf("%s%s?token=%s", uri, args.TargetEndpoint, ss)
 
 		params := map[string]interface{}{
 			"title":  args.MailTitle,

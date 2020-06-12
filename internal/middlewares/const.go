@@ -15,3 +15,5 @@ var okMessageBytes = []byte("{\"status\":\"OK\"}")
 const operationFailedMessage = "Operation failed"
 const identityVerificationTokenAlreadyUsedMessage = "The identity verification token has already been used"
 const identityVerificationTokenHasExpiredMessage = "The identity verification token has expired"
+
+var protoHostSeparator = []byte("://")
