@@ -5,8 +5,8 @@
 # The host and port to listen on
 host: 0.0.0.0
 port: 9091
-# tls_key: /var/lib/authelia/ssl/key.pem
-# tls_cert: /var/lib/authelia/ssl/cert.pem
+# tls_key: /config/ssl/key.pem
+# tls_cert: /config/ssl/cert.pem
 
 # Configuration options specific to the internal http server
 server:
@@ -22,7 +22,7 @@ server:
 # Level of verbosity for logs: info, debug, trace
 log_level: debug
 ## File path where the logs will be written. If not set logs are written to stdout.
-# log_file_path: /var/log/authelia
+# log_file_path: /config.log
 
 # The secret used to generate JWT tokens when validating user identity by
 # email confirmation.
@@ -169,7 +169,7 @@ authentication_backend:
   # https://docs.authelia.com/configuration/authentication/file.html#password-hash-algorithm-tuning
   #
   ## file:
-  ##   path: ./users_database.yml
+  ##   path: /config/users_database.yml
   ##   password:
   ##     algorithm: argon2id
   ##     iterations: 1
@@ -345,7 +345,7 @@ regulation:
 storage:
   # The directory where the DB files will be saved
   ## local:
-  ##   path: /var/lib/authelia/db.sqlite3
+  ##   path: /config/db.sqlite3
 
   # Settings to connect to MySQL server
   mysql:
@@ -377,7 +377,7 @@ notifier:
 
   # For testing purpose, notifications can be sent in a file
   ## filesystem:
-  ##   filename: /tmp/authelia/notification.txt
+  ##   filename: /config/notification.txt
 
   # Use a SMTP server for sending notifications. Authelia uses PLAIN or LOGIN method to authenticate.
   # [Security] By default Authelia will:

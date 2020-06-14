@@ -33,7 +33,7 @@ authentication_backend:
   # https://docs.authelia.com/configuration/authentication/file.html#password-hash-algorithm-tuning
 
   file:
-    path: /var/lib/authelia/users.yml
+    path: /config/users.yml
     password:
       algorithm: argon2id
       iterations: 1

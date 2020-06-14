@@ -44,7 +44,7 @@ pay attention to the permissions of the configuration file. See
 
 ### Deploy With Docker
 
-    $ docker run -v /path/to/your/configuration.yml:/etc/authelia/configuration.yml -e TZ=Europe/Paris authelia/authelia
+    $ docker run -v /path/to/your/configuration.yml:/config/configuration.yml -e TZ=Europe/Paris authelia/authelia
 
 ## FAQ
 

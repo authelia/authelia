@@ -3,6 +3,7 @@ package authentication
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 	"sync"
 
@@ -11,6 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -38,6 +40,15 @@ type DatabaseModel struct {
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
 func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfiguration) *FileUserProvider {
+	errs := checkDatabase(configuration.Path)
+	if errs != nil {
+		for _, err := range errs {
+			logging.Logger().Error(err)
+		}
+
+		os.Exit(1)
+	}
+
 	database, err := readDatabase(configuration.Path)
 	if err != nil {
 		// Panic since the file does not exist when Authelia is starting.
@@ -81,6 +92,46 @@ func checkPasswordHashes(database *DatabaseModel) error {
 		}
 
 		database.Users[u] = v
+	}
+
+	return nil
+}
+
+func checkDatabase(path string) []error {
+	_, err := os.Stat(path)
+	if err != nil {
+		errs := []error{
+			fmt.Errorf("Unable to find database file: %v", path),
+			fmt.Errorf("Generating database file: %v", path),
+		}
+
+		err := generateDatabaseFromTemplate(path)
+		if err != nil {
+			errs = append(errs, err)
+		} else {
+			errs = append(errs, fmt.Errorf("Generated database at: %v", path))
+		}
+
+		return errs
+	}
+
+	return nil
+}
+
+func generateDatabaseFromTemplate(path string) error {
+	f, err := cfg.Open("users_database.template.yml")
+	if err != nil {
+		return fmt.Errorf("Unable to open users_database.template.yml: %v", err)
+	}
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return fmt.Errorf("Unable to read users_database.template.yml: %v", err)
+	}
+
+	err = ioutil.WriteFile(path, b, 0644) //nolint:gosec // User database does not need to be 0600.
+	if err != nil {
+		return fmt.Errorf("Unable to generate %v: %v", path, err)
 	}
 
 	return nil

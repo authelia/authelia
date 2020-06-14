@@ -23,7 +23,7 @@ notifier:
 
   # For testing purpose, notifications can be sent in a file.
   ## filesystem:
-  ##   filename: /tmp/authelia/notification.txt
+  ##   filename: /config/notification.txt
 
   # Use a SMTP server for sending notifications. Authelia uses PLAIN or LOGIN method to authenticate.
   # [Security] By default Authelia will:

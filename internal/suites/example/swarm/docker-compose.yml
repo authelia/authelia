@@ -5,7 +5,7 @@ services:
     # Used for Docker configs
     configs:
       - source: authelia
-        target: /etc/authelia/configuration.yml
+        target: /config/configuration.yml
         uid: '0'
         gid: '0'
         mode: 0444
@@ -14,7 +14,7 @@ services:
     # Where the authelia volume is to be mounted. To only use a single volume, the minimal config needs to be changed to read the users_database.yml also from this subdirectory.
     # Otherwise a second volume will need to be configured here to mount the users_database.yml.
     volumes:
-      - authelia:/etc/authelia/storage
+      - authelia:/config/storage
     networks:
       - overlay
     deploy:
