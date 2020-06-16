@@ -55,7 +55,7 @@ Logs can be stored in a file when file path is provided. Otherwise logs
 are written to standard output.
 
 ```yaml
-log_file_path: /config.log
+log_file_path: /config/authelia.log
 ```
 
 
