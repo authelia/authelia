@@ -92,7 +92,7 @@ func generateConfigFromTemplate(configPath string) error {
 		return fmt.Errorf("Unable to read config.template.yml: %v", err)
 	}
 
-	err = ioutil.WriteFile(configPath, b, 0644) //nolint:gosec // Configuration file does not need to be 0600.
+	err = ioutil.WriteFile(configPath, b, 0600)
 	if err != nil {
 		return fmt.Errorf("Unable to generate %v: %v", configPath, err)
 	}

@@ -129,7 +129,7 @@ func generateDatabaseFromTemplate(path string) error {
 		return fmt.Errorf("Unable to read users_database.template.yml: %v", err)
 	}
 
-	err = ioutil.WriteFile(path, b, 0644) //nolint:gosec // User database does not need to be 0600.
+	err = ioutil.WriteFile(path, b, 0600)
 	if err != nil {
 		return fmt.Errorf("Unable to generate %v: %v", path, err)
 	}
