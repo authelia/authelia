@@ -13,7 +13,7 @@ totp:
 
 authentication_backend:
   file:
-    path: /etc/authelia/users_database.yml
+    path: /config/users_database.yml
 
 access_control:
   default_policy: deny
