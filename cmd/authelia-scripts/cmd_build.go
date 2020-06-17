@@ -57,6 +57,15 @@ func generateEmbeddedAssets() {
 	}
 
 	cmd = utils.CommandWithStdout("go", "generate", ".")
+	cmd.Dir = "internal/configuration"
+
+	err = cmd.Run()
+
+	if err != nil {
+		panic(err)
+	}
+
+	cmd = utils.CommandWithStdout("go", "generate", ".")
 	cmd.Dir = "internal/server"
 
 	err = cmd.Run()
