@@ -40,8 +40,7 @@
     <span class="na">image</span><span class="pi">:</span> <span class="s">authelia/authelia</span>
     <span class="na">container_name</span><span class="pi">:</span> <span class="s">authelia</span>
     <span class="na">volumes</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="s">/path/to/authelia:/var/lib/authelia</span>
-      <span class="pi">-</span> <span class="s">/path/to/authelia/config.yml:/etc/authelia/configuration.yml:ro</span>
+      <span class="pi">-</span> <span class="s">/path/to/authelia:/config</span>
     <span class="na">networks</span><span class="pi">:</span>
       <span class="pi">-</span> <span class="s">net</span>
     <span class="na">labels</span><span class="pi">:</span>
