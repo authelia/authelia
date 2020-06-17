@@ -14,7 +14,7 @@ if [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]]; then
   # Save binary for buildkite and github artifacts
   if [[ "${ARCH}" != "coverage" ]]; then
     docker create --name authelia-binary ${DOCKER_IMAGE}:latest
-    docker cp authelia-binary:/usr/app/authelia ./authelia-"${OS}"-"${ARCH}"
+    docker cp authelia-binary:/app/authelia ./authelia-"${OS}"-"${ARCH}"
     docker rm -f authelia-binary
     tar -czf authelia-"${OS}"-"${ARCH}".tar.gz authelia-"${OS}"-"${ARCH}" authelia.service config.template.yml
     sha256sum authelia-"${OS}"-"${ARCH}".tar.gz > authelia-"${OS}"-"${ARCH}".tar.gz.sha256

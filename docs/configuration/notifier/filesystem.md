@@ -23,5 +23,5 @@ notifier:
 
   # For testing purpose, notifications can be sent in a file.
   filesystem:
-    filename: /tmp/authelia/notification.txt
+    filename: /config/notification.txt
 ```

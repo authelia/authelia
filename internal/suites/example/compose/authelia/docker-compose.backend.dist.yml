@@ -12,7 +12,7 @@ services:
       - 'traefik.http.routers.authelia_backend.tls=true'
       - 'traefik.http.services.authelia_backend.loadbalancer.server.scheme=https'
     volumes:
-      - '../..:/app'
+      - '../..:/authelia'
     environment:
       - ENVIRONMENT=dev
     restart: always

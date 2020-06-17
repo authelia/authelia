@@ -19,5 +19,5 @@ Just give the path to the sqlite database. It will be created if the file does n
 ```yaml
 storage:
   local:
-    path: /var/lib/authelia/db.sqlite3
+    path: /config/db.sqlite3
 ```

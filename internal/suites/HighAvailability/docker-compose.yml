@@ -2,5 +2,5 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './HighAvailability/configuration.yml:/etc/authelia/configuration.yml:ro'
-      - './common/ssl:/var/lib/authelia/ssl:ro'
+      - './HighAvailability/configuration.yml:/config/configuration.yml:ro'
+      - './common/ssl:/config/ssl:ro'
