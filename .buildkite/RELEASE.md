@@ -1,1 +1,1 @@
-<!-- Current release: 4.19.2 -->
+<!-- Current release: 4.20.0 -->
