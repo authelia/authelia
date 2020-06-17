@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export PATH=$PATH:./cmd/authelia-scripts/:./.buildkite/steps/:$GOPATH/bin:./web/node_modules/.bin:/tmp
 

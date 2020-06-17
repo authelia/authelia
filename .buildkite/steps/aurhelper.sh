@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 GITTAG=$(git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g')
 
