@@ -12,6 +12,7 @@ type LDAPAuthenticationBackendConfiguration struct {
 	GroupNameAttribute string `mapstructure:"group_name_attribute"`
 	UsernameAttribute  string `mapstructure:"username_attribute"`
 	MailAttribute      string `mapstructure:"mail_attribute"`
+	NameAttribute      string `mapstructure:"name_attribute"`
 	User               string `mapstructure:"user"`
 	Password           string `mapstructure:"password"`
 }
@@ -70,5 +71,6 @@ var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 // DefaultLDAPAuthenticationBackendConfiguration represents the default LDAP config.
 var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendConfiguration{
 	MailAttribute:      "mail",
+	NameAttribute:      "displayname",
 	GroupNameAttribute: "cn",
 }

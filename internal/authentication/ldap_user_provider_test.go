@@ -99,6 +99,7 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 	profile := ldapUserProfile{
 		DN:       "cn=john (external),dc=example,dc=com",
 		Username: "john",
+		Name:     "John Doe",
 		Emails:   []string{"john.doe@authelia.com"},
 	}
 
@@ -139,6 +140,7 @@ func TestShouldEscapeUserInput(t *testing.T) {
 		UsersFilter:       "(|({username_attribute}={input})({mail_attribute}={input}))",
 		UsernameAttribute: "uid",
 		MailAttribute:     "mail",
+		NameAttribute:     "displayname",
 		Password:          "password",
 		AdditionalUsersDN: "ou=users",
 		BaseDN:            "dc=example,dc=com",
@@ -168,6 +170,7 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 		AdditionalUsersDN: "ou=users",
 		BaseDN:            "dc=example,dc=com",
 		MailAttribute:     "mail",
+		NameAttribute:     "displayname",
 	}, mockFactory)
 
 	mockConn.EXPECT().
@@ -204,6 +207,7 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 		Password:          "password",
 		UsernameAttribute: "uid",
 		MailAttribute:     "mail",
+		NameAttribute:     "displayname",
 		UsersFilter:       "uid={input}",
 		AdditionalUsersDN: "ou=users",
 		BaseDN:            "dc=example,dc=com",
@@ -231,6 +235,10 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 					DN: "uid=test,dc=example,dc=com",
 					Attributes: []*ldap.EntryAttribute{
 						{
+							Name:   "displayname",
+							Values: []string{"John Doe"},
+						},
+						{
 							Name:   "mail",
 							Values: []string{"test@example.com"},
 						},
@@ -250,6 +258,7 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 
 	assert.ElementsMatch(t, details.Groups, []string{})
 	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
+	assert.Equal(t, details.Name, "John Doe")
 	assert.Equal(t, details.Username, "john")
 }
 
@@ -323,6 +332,7 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 		Password:          "password",
 		UsernameAttribute: "uid",
 		MailAttribute:     "mail",
+		NameAttribute:     "displayname",
 		UsersFilter:       "uid={input}",
 		AdditionalUsersDN: "ou=users",
 		BaseDN:            "dc=example,dc=com",
@@ -350,6 +360,10 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 					DN: "uid=test,dc=example,dc=com",
 					Attributes: []*ldap.EntryAttribute{
 						{
+							Name:   "displayname",
+							Values: []string{"John Doe"},
+						},
+						{
 							Name:   "mail",
 							Values: []string{"test@example.com"},
 						},
@@ -369,5 +383,6 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 
 	assert.ElementsMatch(t, details.Groups, []string{"group1", "group2"})
 	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
+	assert.Equal(t, details.Name, "John Doe")
 	assert.Equal(t, details.Username, "John")
 }

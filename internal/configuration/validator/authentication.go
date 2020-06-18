@@ -151,6 +151,10 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	if configuration.MailAttribute == "" {
 		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.MailAttribute
 	}
+
+	if configuration.NameAttribute == "" {
+		configuration.NameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.NameAttribute
+	}
 }
 
 // ValidateAuthenticationBackend validates and update authentication backend configuration.

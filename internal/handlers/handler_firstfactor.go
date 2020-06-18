@@ -163,6 +163,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		// And set those information in the new session.
 		userSession := ctx.GetSession()
 		userSession.Username = userDetails.Username
+		userSession.Name = userDetails.Name
 		userSession.Groups = userDetails.Groups
 		userSession.Emails = userDetails.Emails
 		userSession.AuthenticationLevel = authentication.OneFactor

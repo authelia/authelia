@@ -5,7 +5,6 @@ import (
 
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/redis"
-
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/internal/authentication"
@@ -27,6 +26,7 @@ type U2FRegistration struct {
 // UserSession is the structure representing the session of a user.
 type UserSession struct {
 	Username string
+	Name     string
 	// TODO(c.michaud): move groups out of the session.
 	Groups []string
 	Emails []string

@@ -23,6 +23,7 @@ objectclass: top
 
 dn: cn=John Doe (external),ou=users,dc=example,dc=com
 cn: John Doe (external)
+displayname: John Doe
 givenName: John
 objectclass: inetOrgPerson
 objectclass: top
@@ -33,6 +34,7 @@ userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQ
 
 dn: cn=Harry Potter,ou=users,dc=example,dc=com
 cn: Harry Potter
+displayname: Harry Potter
 givenName: Harry
 objectclass: inetOrgPerson
 objectclass: top
@@ -43,6 +45,7 @@ userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQ
 
 dn: cn=Bob Dylan,ou=users,dc=example,dc=com
 cn: Bob Dylan
+displayname: Bob Dylan
 givenName: Bob
 objectclass: inetOrgPerson
 objectclass: top
@@ -53,6 +56,7 @@ userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQ
 
 dn: cn=James Dean,ou=users,dc=example,dc=com
 cn: James Dean
+displayname: James Dean
 givenName: James
 objectclass: inetOrgPerson
 objectclass: top
@@ -63,6 +67,7 @@ userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQ
 
 dn: cn=Billy Blackhat,ou=users,dc=example,dc=com
 cn: Billy Blackhat
+displayname: Billy Blackhat
 givenName: Billy
 objectclass: inetOrgPerson
 objectclass: top
