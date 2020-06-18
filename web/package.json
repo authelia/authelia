@@ -16,7 +16,7 @@
     "@types/node": "^14.0.13",
     "@types/qrcode.react": "^1.0.1",
     "@types/query-string": "^6.3.0",
-    "@types/react": "^16.9.36",
+    "@types/react": "^16.9.38",
     "@types/react-dom": "^16.9.8",
     "@types/react-ga": "^2.3.0",
     "@types/react-router-dom": "^5.1.5",
