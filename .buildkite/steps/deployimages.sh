@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -eu
 
 for BUILD_ARCH in amd64 arm32v7 arm64v8; do

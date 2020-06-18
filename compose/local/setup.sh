@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 username(){
   read -ep "Enter your username for Authelia: " USERNAME
