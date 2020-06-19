@@ -7,11 +7,13 @@ and read this documentation before upgrading. This is where you will get informa
 breaking changes and about what you should do to overcome those changes.
 
 ## Breaking in v4.21.0
-* New LDAP attribute `name_attribute` has been introduced, defaults to value: `displayname`.
-* New key `name` has been introduced into the file based user database.
+* New LDAP attribute `display_name_attribute` has been introduced, defaults to value: `displayname`.
+* New key `displayname` has been introduced into the file based user database.
+
 These are utilised to greet the logged in user.
 
-If utilising a file based user backend, you will need to update your users and include the `name` key.
+If utilising a file based user backend:
+* Administrators will need to update users and include the `displayname` key.
 
 **Before:**
 ```yaml
@@ -27,15 +29,14 @@ users:
 ```yaml
 users:
   john:
-    name: "John Doe"
+    displayname: "John Doe"
     password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: john.doe@authelia.com
     groups:
       - admins
       - dev
-```
-
-Users with long-lived sessions will need to re-create the session (logout and login) to propagate the changes.   
+```   
+* Users with long-lived sessions will need to recreate the session (logout and login) to propagate the changes.   
 
 ## Breaking in v4.20.0
 * Authelia's Docker volumes have been refactored. All data should reside within a single volume of `/config`.

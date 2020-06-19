@@ -108,10 +108,10 @@ func (p *LDAPUserProvider) ldapEscape(inputUsername string) string {
 }
 
 type ldapUserProfile struct {
-	DN       string
-	Emails   []string
-	Name     string
-	Username string
+	DN          string
+	Emails      []string
+	DisplayName string
+	Username    string
 }
 
 func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, inputUsername string) string {
@@ -127,7 +127,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, inputUsername s
 	// in configuration.
 	userFilter = strings.ReplaceAll(userFilter, "{username_attribute}", p.configuration.UsernameAttribute)
 	userFilter = strings.ReplaceAll(userFilter, "{mail_attribute}", p.configuration.MailAttribute)
-	userFilter = strings.ReplaceAll(userFilter, "{name_attribute}", p.configuration.NameAttribute)
+	userFilter = strings.ReplaceAll(userFilter, "{display_name_attribute}", p.configuration.DisplayNameAttribute)
 
 	return userFilter
 }
@@ -142,8 +142,8 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	}
 
 	attributes := []string{"dn",
+		p.configuration.DisplayNameAttribute,
 		p.configuration.MailAttribute,
-		p.configuration.NameAttribute,
 		p.configuration.UsernameAttribute}
 
 	// Search for the given username.
@@ -170,12 +170,12 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	}
 
 	for _, attr := range sr.Entries[0].Attributes {
-		if attr.Name == p.configuration.MailAttribute {
-			userProfile.Emails = attr.Values
+		if attr.Name == p.configuration.DisplayNameAttribute {
+			userProfile.DisplayName = attr.Values[0]
 		}
 
-		if attr.Name == p.configuration.NameAttribute {
-			userProfile.Name = attr.Values[0]
+		if attr.Name == p.configuration.MailAttribute {
+			userProfile.Emails = attr.Values
 		}
 
 		if attr.Name == p.configuration.UsernameAttribute {
@@ -261,10 +261,10 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 	}
 
 	return &UserDetails{
-		Username: profile.Username,
-		Name:     profile.Name,
-		Emails:   profile.Emails,
-		Groups:   groups,
+		Username:    profile.Username,
+		DisplayName: profile.DisplayName,
+		Emails:      profile.Emails,
+		Groups:      groups,
 	}, nil
 }
 

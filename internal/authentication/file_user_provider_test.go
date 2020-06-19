@@ -287,7 +287,7 @@ var (
 var UserDatabaseContent = []byte(`
 users:
   john:
-    name: "John Doe"
+    displayname: "John Doe"
     password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:
@@ -295,26 +295,26 @@ users:
       - dev
 
   harry:
-    name: "Harry Potter"
+    displayname: "Harry Potter"
     password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: harry.potter@authelia.com
     groups: []
 
   bob:
-    name: "Bob Dylan"
+    displayname: "Bob Dylan"
     password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: bob.dylan@authelia.com
     groups:
       - dev
 
   james:
-    name: "James Dean"
+    displayname: "James Dean"
     password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: james.dean@authelia.com
 
 
   enumeration:
-    name: "Enumeration"
+    displayname: "Enumeration"
     password: "$argon2id$v=19$m=131072,p=8$BpLnfgDsc2WD8F2q$O126GHPeZ5fwj7OLSs7PndXsTbje76R+QW9/EGfhkJg"
     email: james.dean@authelia.com
 `)
@@ -332,7 +332,7 @@ groups:
 var BadSchemaUserDatabaseContent = []byte(`
 user:
   john:
-    name: "John Doe"
+    displayname: "John Doe"
     password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: john.doe@authelia.com
     groups:
@@ -343,14 +343,14 @@ user:
 var UserDatabaseWithoutCryptContent = []byte(`
 users:
   john:
-    name: "John Doe"
+    displayname: "John Doe"
     password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: john.doe@authelia.com
     groups:
       - admins
       - dev
   james:
-    name: "James Dean"
+    displayname: "James Dean"
     password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: james.dean@authelia.com
 `)
@@ -358,14 +358,14 @@ users:
 var BadSHA512HashContent = []byte(`
 users:
   john:
-    name: "John Doe"
+    displayname: "John Doe"
     password: "$6$rounds00000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: john.doe@authelia.com
     groups:
       - admins
       - dev
   james:
-    name: "James Dean"
+    displayname: "James Dean"
     password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: james.dean@authelia.com
 `)
@@ -373,14 +373,14 @@ users:
 var BadArgon2idHashSettingsContent = []byte(`
 users:
   john:
-    name: "John Doe"
+    displayname: "John Doe"
     password: "$argon2id$v=19$m65536,t3,p2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:
       - admins
       - dev
   james:
-    name: "James Dean"
+    displayname: "James Dean"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: james.dean@authelia.com
 `)
@@ -388,7 +388,7 @@ users:
 var BadArgon2idHashKeyContent = []byte(`
 users:
   john:
-    name: "John Doe"
+    displayname: "John Doe"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$^^vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:
@@ -398,7 +398,7 @@ users:
 var BadArgon2idHashSaltContent = []byte(`
 users:
   john:
-    name: "John Doe"
+    displayname: "John Doe"
     password: "$argon2id$v=19$m=65536,t=3,p=2$^^LnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:

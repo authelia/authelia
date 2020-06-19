@@ -89,7 +89,7 @@ authentication_backend:
     mail_attribute: mail
     
     # The attribute holding the display name of the user. This will be used to greet an authenticated user.
-    name_attribute: displayname
+    display_name_attribute: displayname
 
     # The username and password of the admin user. If multiple email addresses are defined for a user, only the first
     # one returned by the LDAP server is used.

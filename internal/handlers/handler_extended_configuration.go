@@ -17,7 +17,7 @@ type ExtendedConfigurationBody struct {
 func ExtendedConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	body := ExtendedConfigurationBody{}
 	body.AvailableMethods = MethodList{authentication.TOTP, authentication.U2F}
-	body.DisplayName = ctx.GetSession().Name
+	body.DisplayName = ctx.GetSession().DisplayName
 	body.TOTPPeriod = ctx.Configuration.TOTP.Period
 
 	if ctx.Configuration.DuoAPI != nil {

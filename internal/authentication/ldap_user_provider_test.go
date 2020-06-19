@@ -97,10 +97,10 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 	}, mockFactory)
 
 	profile := ldapUserProfile{
-		DN:       "cn=john (external),dc=example,dc=com",
-		Username: "john",
-		Name:     "John Doe",
-		Emails:   []string{"john.doe@authelia.com"},
+		DN:          "cn=john (external),dc=example,dc=com",
+		Username:    "john",
+		DisplayName: "John Doe",
+		Emails:      []string{"john.doe@authelia.com"},
 	}
 
 	filter, _ := ldap.resolveGroupsFilter("john", &profile)
@@ -135,15 +135,15 @@ func TestShouldEscapeUserInput(t *testing.T) {
 	mockConn := NewMockLDAPConnection(ctrl)
 
 	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:               "ldap://127.0.0.1:389",
-		User:              "cn=admin,dc=example,dc=com",
-		UsersFilter:       "(|({username_attribute}={input})({mail_attribute}={input}))",
-		UsernameAttribute: "uid",
-		MailAttribute:     "mail",
-		NameAttribute:     "displayname",
-		Password:          "password",
-		AdditionalUsersDN: "ou=users",
-		BaseDN:            "dc=example,dc=com",
+		URL:                  "ldap://127.0.0.1:389",
+		User:                 "cn=admin,dc=example,dc=com",
+		UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
+		UsernameAttribute:    "uid",
+		MailAttribute:        "mail",
+		DisplayNameAttribute: "displayname",
+		Password:             "password",
+		AdditionalUsersDN:    "ou=users",
+		BaseDN:               "dc=example,dc=com",
 	}, mockFactory)
 
 	mockConn.EXPECT().
@@ -162,15 +162,15 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 	mockConn := NewMockLDAPConnection(ctrl)
 
 	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:               "ldap://127.0.0.1:389",
-		User:              "cn=admin,dc=example,dc=com",
-		UsernameAttribute: "uid",
-		UsersFilter:       "(&({username_attribute}={input})(&(objectCategory=person)(objectClass=user)))",
-		Password:          "password",
-		AdditionalUsersDN: "ou=users",
-		BaseDN:            "dc=example,dc=com",
-		MailAttribute:     "mail",
-		NameAttribute:     "displayname",
+		URL:                  "ldap://127.0.0.1:389",
+		User:                 "cn=admin,dc=example,dc=com",
+		UsernameAttribute:    "uid",
+		UsersFilter:          "(&({username_attribute}={input})(&(objectCategory=person)(objectClass=user)))",
+		Password:             "password",
+		AdditionalUsersDN:    "ou=users",
+		BaseDN:               "dc=example,dc=com",
+		MailAttribute:        "mail",
+		DisplayNameAttribute: "displayname",
 	}, mockFactory)
 
 	mockConn.EXPECT().
@@ -202,15 +202,15 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 	mockConn := NewMockLDAPConnection(ctrl)
 
 	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:               "ldap://127.0.0.1:389",
-		User:              "cn=admin,dc=example,dc=com",
-		Password:          "password",
-		UsernameAttribute: "uid",
-		MailAttribute:     "mail",
-		NameAttribute:     "displayname",
-		UsersFilter:       "uid={input}",
-		AdditionalUsersDN: "ou=users",
-		BaseDN:            "dc=example,dc=com",
+		URL:                  "ldap://127.0.0.1:389",
+		User:                 "cn=admin,dc=example,dc=com",
+		Password:             "password",
+		UsernameAttribute:    "uid",
+		MailAttribute:        "mail",
+		DisplayNameAttribute: "displayname",
+		UsersFilter:          "uid={input}",
+		AdditionalUsersDN:    "ou=users",
+		BaseDN:               "dc=example,dc=com",
 	}, mockFactory)
 
 	mockFactory.EXPECT().
@@ -258,7 +258,7 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 
 	assert.ElementsMatch(t, details.Groups, []string{})
 	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
-	assert.Equal(t, details.Name, "John Doe")
+	assert.Equal(t, details.DisplayName, "John Doe")
 	assert.Equal(t, details.Username, "john")
 }
 
@@ -327,15 +327,15 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 	mockConn := NewMockLDAPConnection(ctrl)
 
 	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:               "ldap://127.0.0.1:389",
-		User:              "cn=admin,dc=example,dc=com",
-		Password:          "password",
-		UsernameAttribute: "uid",
-		MailAttribute:     "mail",
-		NameAttribute:     "displayname",
-		UsersFilter:       "uid={input}",
-		AdditionalUsersDN: "ou=users",
-		BaseDN:            "dc=example,dc=com",
+		URL:                  "ldap://127.0.0.1:389",
+		User:                 "cn=admin,dc=example,dc=com",
+		Password:             "password",
+		UsernameAttribute:    "uid",
+		MailAttribute:        "mail",
+		DisplayNameAttribute: "displayname",
+		UsersFilter:          "uid={input}",
+		AdditionalUsersDN:    "ou=users",
+		BaseDN:               "dc=example,dc=com",
 	}, mockFactory)
 
 	mockFactory.EXPECT().
@@ -383,6 +383,6 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 
 	assert.ElementsMatch(t, details.Groups, []string{"group1", "group2"})
 	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
-	assert.Equal(t, details.Name, "John Doe")
+	assert.Equal(t, details.DisplayName, "John Doe")
 	assert.Equal(t, details.Username, "John")
 }

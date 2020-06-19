@@ -152,7 +152,7 @@ authentication_backend:
     mail_attribute: mail
 
     # The attribute holding the display name of the user. This will be used to greet an authenticated user.
-    name_attribute: displayname
+    display_name_attribute: displayname
 
     # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
