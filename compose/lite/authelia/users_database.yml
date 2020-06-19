@@ -7,6 +7,7 @@
 # List of users
 users:
   authelia:
+    displayname: "Authelia User"
     password: "$6$rounds=50000$BpLnfgDsc2WD8F2q$Zis.ixdg9s/UOJYrs56b5QEZFiZECu0qZVNsIYxBaNJ7ucIL.nlxVCT5tqh8KHG8X4tlwCFm5r6NTOZZ5qRFN/" # Password is 'authelia'
     email: authelia@authelia.com
     groups:
