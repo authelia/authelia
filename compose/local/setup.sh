@@ -8,6 +8,10 @@ password(){
   read -esp "Enter a password for $USERNAME: " PASSWORD
 }
 
+displayname(){
+  read -ep "Enter your display name for Authelia (eg. John Doe): " DISPLAYNAME
+}
+
 echo "Checking for pre-requisites"
 
 if [[ ! -x "$(command -v docker)" ]]; then
@@ -61,6 +65,19 @@ if [[ $USERNAME != "" ]]; then
 else
   echo "Username cannot be empty"
   username
+fi
+
+displayname
+
+if [[ $DISPLAYNAME != "" ]]; then
+  if [[ $(uname) == "Darwin" ]]; then
+    sed -i '' "s/<DISPLAYNAME>/$DISPLAYNAME/g" authelia/users_database.yml
+  else
+    sed -i "s/<DISPLAYNAME>/$DISPLAYNAME/g" authelia/users_database.yml
+  fi
+else
+  echo "Display name cannot be empty"
+  displayname
 fi
 
 password

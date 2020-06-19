@@ -268,6 +268,7 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 	details *authentication.UserDetails) {
 	groupsAdded, groupsRemoved := utils.StringSlicesDelta(userSession.Groups, details.Groups)
 	emailsAdded, emailsRemoved := utils.StringSlicesDelta(userSession.Emails, details.Emails)
+	nameDelta := userSession.DisplayName != details.DisplayName
 
 	// Check Groups.
 	var groupsDelta []string
@@ -300,6 +301,13 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 	} else {
 		ctx.Logger.Tracef("No updated emails detected for %s", userSession.Username)
 	}
+
+	// Check Name.
+	if nameDelta {
+		ctx.Logger.Tracef("Updated display name detected for %s. Added: %s. Removed: %s.", userSession.Username, details.DisplayName, userSession.DisplayName)
+	} else {
+		ctx.Logger.Tracef("No updated display name detected for %s", userSession.Username)
+	}
 }
 
 func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession,
@@ -318,10 +326,11 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 			return err
 		}
 
-		groupsDiff := utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
 		emailsDiff := utils.IsStringSlicesDifferent(userSession.Emails, details.Emails)
+		groupsDiff := utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
+		nameDiff := userSession.DisplayName != details.DisplayName
 
-		if !groupsDiff && !emailsDiff {
+		if !groupsDiff && !emailsDiff && !nameDiff {
 			ctx.Logger.Tracef("Updated profile not detected for %s.", userSession.Username)
 			// Only update TTL if the user has a interval set.
 			// We get to this check when there were no changes.
@@ -334,11 +343,12 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 			}
 		} else {
 			ctx.Logger.Debugf("Updated profile detected for %s.", userSession.Username)
-			if ctx.Logger.Level.String() == "trace" {
+			if ctx.Configuration.LogLevel == "trace" {
 				generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
 			}
-			userSession.Groups = details.Groups
 			userSession.Emails = details.Emails
+			userSession.Groups = details.Groups
+			userSession.DisplayName = details.DisplayName
 
 			// Only update TTL if the user has a interval set.
 			if refreshProfileInterval != schema.RefreshIntervalAlways {

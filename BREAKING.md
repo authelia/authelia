@@ -6,6 +6,38 @@ recommended not to use the 'latest' Docker image tag blindly but pick a version 
 and read this documentation before upgrading. This is where you will get information about
 breaking changes and about what you should do to overcome those changes.
 
+## Breaking in v4.21.0
+* New LDAP attribute `display_name_attribute` has been introduced, defaults to value: `displayname`.
+* New key `displayname` has been introduced into the file based user database.
+
+These are utilised to greet the logged in user.
+
+If utilising a file based user backend:
+* Administrators will need to update users and include the `displayname` key.
+
+**Before:**
+```yaml
+users:
+  john:
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+```
+**After:**
+```yaml
+users:
+  john:
+    displayname: "John Doe"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+```   
+* Users with long-lived sessions will need to recreate the session (logout and login) to propagate the changes.   
+
 ## Breaking in v4.20.0
 * Authelia's Docker volumes have been refactored. All data should reside within a single volume of `/config`.
 All examples have been updated to reflect this change. The entrypoint for the container changed from
