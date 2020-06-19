@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -eu
 
 for SUITE_NAME in $(authelia-scripts suites list); do

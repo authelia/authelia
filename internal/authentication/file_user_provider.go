@@ -29,6 +29,7 @@ type FileUserProvider struct {
 // UserDetailsModel is the model of user details in the file database.
 type UserDetailsModel struct {
 	HashedPassword string   `yaml:"password" valid:"required"`
+	DisplayName    string   `yaml:"displayname" valid:"required"`
 	Email          string   `yaml:"email"`
 	Groups         []string `yaml:"groups"`
 }
@@ -183,9 +184,10 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 func (p *FileUserProvider) GetDetails(username string) (*UserDetails, error) {
 	if details, ok := p.database.Users[username]; ok {
 		return &UserDetails{
-			Username: username,
-			Groups:   details.Groups,
-			Emails:   []string{details.Email},
+			Username:    username,
+			DisplayName: details.DisplayName,
+			Groups:      details.Groups,
+			Emails:      []string{details.Email},
 		}, nil
 	}
 

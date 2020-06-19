@@ -151,6 +151,9 @@ authentication_backend:
     # one returned by the LDAP server is used.
     mail_attribute: mail
 
+    # The attribute holding the display name of the user. This will be used to greet an authenticated user.
+    display_name_attribute: displayname
+
     # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html

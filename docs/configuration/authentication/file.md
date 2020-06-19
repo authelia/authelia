@@ -51,21 +51,25 @@ The format of the users file is as follows.
 ```yaml
 users:
   john:
+    displayname: "John Doe"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:
       - admins
       - dev
   harry:
+    displayname: "Harry Potter"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: harry.potter@authelia.com
     groups: []
   bob:
+    displayname: "Bob Dylan"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: bob.dylan@authelia.com
     groups:
       - dev
   james:
+    displayname: "James Dean"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: james.dean@authelia.com
 ```
