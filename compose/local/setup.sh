@@ -44,9 +44,9 @@ docker run -a stdout -v $PWD/traefik/certs:/tmp/certs authelia/authelia authelia
 
 if [[ $DOMAIN != "example.com" ]]; then
   if [[ $(uname) == "Darwin" ]]; then
-    sed -i '' "s/example.com/$DOMAIN/g" {docker-compose.yml,configuration.yml}
+    sed -i '' "s/example.com/$DOMAIN/g" {docker-compose.yml,authelia/configuration.yml}
   else
-    sed -i "s/example.com/$DOMAIN/g" {docker-compose.yml,configuration.yml}
+    sed -i "s/example.com/$DOMAIN/g" {docker-compose.yml,authelia/configuration.yml}
   fi
 fi
 
@@ -54,9 +54,9 @@ username
 
 if [[ $USERNAME != "" ]]; then
   if [[ $(uname) == "Darwin" ]]; then
-    sed -i '' "s/<USERNAME>/$USERNAME/g" users_database.yml
+    sed -i '' "s/<USERNAME>/$USERNAME/g" authelia/users_database.yml
   else
-    sed -i "s/<USERNAME>/$USERNAME/g" users_database.yml
+    sed -i "s/<USERNAME>/$USERNAME/g" authelia/users_database.yml
   fi
 else
   echo "Username cannot be empty"
@@ -68,9 +68,9 @@ password
 if [[ $PASSWORD != "" ]]; then
   PASSWORD=$(docker run authelia/authelia authelia hash-password $PASSWORD | sed 's/Password hash: //g')
   if [[ $(uname) == "Darwin" ]]; then
-    sed -i '' "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" users_database.yml
+    sed -i '' "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" authelia/users_database.yml
   else
-    sed -i "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" users_database.yml
+    sed -i "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" authelia/users_database.yml
   fi
 else
   echo "Password cannot be empty"
