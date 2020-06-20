@@ -139,6 +139,7 @@ with near zero effort.
 
 Additionally, keeping the code open source is a way to leave it auditable by anyone who is willing to contribute. This way, you can be confident
 that the product remains secure and does not act maliciously.
+
 It's important to keep in mind Authelia is not directly exposed on the
 Internet (your reverse proxies are) however, it's still the control plane for your internal security so take care of it!
 
