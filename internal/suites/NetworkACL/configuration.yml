@@ -3,8 +3,8 @@
 ###############################################################
 
 port: 9091
-tls_cert: /var/lib/authelia/ssl/cert.pem
-tls_key: /var/lib/authelia/ssl/key.pem
+tls_cert: /config/ssl/cert.pem
+tls_key: /config/ssl/key.pem
 
 log_level: debug
 
@@ -12,7 +12,7 @@ jwt_secret: unsecure_password
 
 authentication_backend:
   file:
-    path: /var/lib/authelia/users.yml
+    path: /config/users.yml
 
 session:
   secret: unsecure_session_secret
@@ -24,7 +24,7 @@ session:
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
   local:
-    path: /var/lib/authelia/db.sqlite
+    path: /config/db.sqlite
 
 # Access Control
 #

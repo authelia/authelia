@@ -20,7 +20,7 @@ on('pull_request.opened')
         context =>
             context.payload.pull_request.head.label.slice(0, 9) !== 'authelia:'
     )
-    .comment(`Thanks for choosing to contribute. We lint all PR's with golangci-lint, autheliabot may add a review to your PR with some suggestions.
+    .comment(`Thanks for choosing to contribute. We lint all PR's with golangci-lint, I may add a review to your PR with some suggestions.
     
 You are free to apply the changes if you're comfortable, alternatively you are welcome to ask a team member for advice.
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -u
 
 DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)

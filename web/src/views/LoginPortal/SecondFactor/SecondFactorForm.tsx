@@ -25,7 +25,6 @@ import { AuthenticationLevel } from "../../../services/State";
 const EMAIL_SENT_NOTIFICATION = "An email has been sent to your address to complete the process.";
 
 export interface Props {
-    username: string;
     authenticationLevel: AuthenticationLevel;
 
     userInfo: UserInfo;
@@ -89,7 +88,7 @@ export default function (props: Props) {
     return (
         <LoginLayout
             id="second-factor-stage"
-            title={`Hi ${props.username}`}
+            title={`Hi ${props.configuration.display_name}`}
             showBrand>
             <MethodSelectionDialog
                 open={methodSelectionOpen}

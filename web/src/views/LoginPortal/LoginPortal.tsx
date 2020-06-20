@@ -128,7 +128,6 @@ export default function (props: Props) {
             </Route>
             <Route path={SecondFactorRoute}>
                 {state && userInfo && configuration ? <SecondFactorForm
-                    username={state.username}
                     authenticationLevel={state.authentication_level}
                     userInfo={userInfo}
                     configuration={configuration}
@@ -136,7 +135,7 @@ export default function (props: Props) {
                     onAuthenticationSuccess={handleAuthSuccess} /> : null}
             </Route>
             <Route path={AuthenticatedRoute} exact>
-                {state ? <AuthenticatedView username={state.username} /> : null}
+                {configuration ? <AuthenticatedView name={configuration.display_name} /> : null}
             </Route>
             <Route path="/">
                 <Redirect to={FirstFactorRoute} />
