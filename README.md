@@ -136,14 +136,22 @@ See [BREAKING](./BREAKING.md).
 If you want to contribute to Authelia, check the documentation available
 [here](https://docs.authelia.com/contributing/).
 
-## Contributors
-
-Authelia exists thanks to all the people who contribute. [[Contribute](./CONTRIBUTING.md)].
+Remember that Authelia exists thanks to all the people who contribute so don't be shy,
+come chat with us on [Matrix](#matrix) and start contributing too. [[Contribute](./CONTRIBUTING.md)].
 <a href="https://github.com/authelia/authelia/graphs/contributors"><img src="https://opencollective.com/authelia-sponsors/contributors.svg?width=890" /></a>
+
+## Why Open Source?
+
+You might wonder why Authelia is open source while it adds a great deal of security and user experience to your infrastructure at zero cost. It is open source because we deeply think that security should be brought to the crowd in order for everyone to be prepared to face the battlefield of the Internet
+with near zero effort.
+Moreover, keeping the code open source is a way to leave it auditable by anyone who is willing to contribute. That way, it makes everyone confident
+that the product remains secure and not doing crazy stuff under the hood. It's important to keep in mind Authelia is not directly exposed on the
+Internet (your reverse proxies are) but it's still the control plane for your internal security so it's worth taking care of it.
 
 ## Backers
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/authelia-sponsors/contribute)] and help us sustain our community.
+The money we currently receive is dedicated to bootstrap a bug bounty program to give us as many eyes as we can to detect potential vulnerabilities.
 <a href="https://opencollective.com/authelia-sponsors#backers"><img src="https://opencollective.com/authelia-sponsors/backers.svg?width=890"></a>
 
 ## Sponsors
