@@ -13,7 +13,7 @@ import { useNotifications } from "../../hooks/NotificationsContext";
 import { useRedirectionURL } from "../../hooks/RedirectionURL";
 import { useUserPreferences as userUserInfo } from "../../hooks/UserInfo";
 import { SecondFactorMethod } from "../../models/Methods";
-import { useExtendedConfiguration } from "../../hooks/Configuration";
+import { useConfiguration } from "../../hooks/Configuration";
 import AuthenticatedView from "./AuthenticatedView/AuthenticatedView";
 
 export interface Props {
@@ -30,7 +30,7 @@ export default function (props: Props) {
 
     const [state, fetchState, , fetchStateError] = useAutheliaState();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = userUserInfo();
-    const [configuration, fetchConfiguration, , fetchConfigurationError] = useExtendedConfiguration();
+    const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
 
     const redirect = useCallback((url: string) => history.push(url), [history]);
 
@@ -135,7 +135,7 @@ export default function (props: Props) {
                     onAuthenticationSuccess={handleAuthSuccess} /> : null}
             </Route>
             <Route path={AuthenticatedRoute} exact>
-                {configuration ? <AuthenticatedView name={configuration.display_name} /> : null}
+                {userInfo ? <AuthenticatedView name={userInfo.display_name} /> : null}
             </Route>
             <Route path="/">
                 <Redirect to={FirstFactorRoute} />

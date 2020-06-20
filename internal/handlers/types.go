@@ -11,8 +11,11 @@ type MethodList = []string
 
 type authorizationMatching int
 
-// UserPreferences is the model of user second factor preferences.
-type UserPreferences struct {
+// UserInfo is the model of user info and second factor preferences.
+type UserInfo struct {
+	// The users display name.
+	DisplayName string `json:"display_name"`
+
 	// The preferred 2FA method.
 	Method string `json:"method" valid:"required"`
 

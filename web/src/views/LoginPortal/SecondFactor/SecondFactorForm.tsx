@@ -18,7 +18,7 @@ import {
 } from "../../../Routes";
 import { setPreferred2FAMethod } from "../../../services/UserPreferences";
 import { UserInfo } from "../../../models/UserInfo";
-import { ExtendedConfiguration } from "../../../models/Configuration";
+import { Configuration } from "../../../models/Configuration";
 import u2fApi from "u2f-api";
 import { AuthenticationLevel } from "../../../services/State";
 
@@ -28,7 +28,7 @@ export interface Props {
     authenticationLevel: AuthenticationLevel;
 
     userInfo: UserInfo;
-    configuration: ExtendedConfiguration;
+    configuration: Configuration;
 
     onMethodChanged: (method: SecondFactorMethod) => void;
     onAuthenticationSuccess: (redirectURL: string | undefined) => void;
@@ -88,7 +88,7 @@ export default function (props: Props) {
     return (
         <LoginLayout
             id="second-factor-stage"
-            title={`Hi ${props.configuration.display_name}`}
+            title={`Hi ${props.userInfo.display_name}`}
             showBrand>
             <MethodSelectionDialog
                 open={methodSelectionOpen}
