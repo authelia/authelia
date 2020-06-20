@@ -133,10 +133,13 @@ See [BREAKING](./BREAKING.md).
 
 ## Why Open Source?
 
-You might wonder why Authelia is open source while it adds a great deal of security and user experience to your infrastructure at zero cost. It is open source because we firmly believe that security should be available for all to benefit in the face the battlefield which is the Internet
+You might wonder why Authelia is open source while it adds a great deal of security and user experience to your infrastructure at zero cost.
+It is open source because we firmly believe that security should be available for all to benefit in the face the battlefield which is the Internet
 with near zero effort.
+
 Additionally, keeping the code open source is a way to leave it auditable by anyone who is willing to contribute. This way, you can be confident
-that the product remains secure and does not act maliciously. It's important to keep in mind Authelia is not directly exposed on the
+that the product remains secure and does not act maliciously.
+It's important to keep in mind Authelia is not directly exposed on the
 Internet (your reverse proxies are) however, it's still the control plane for your internal security so take care of it!
 
 ## Contribute
