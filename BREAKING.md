@@ -6,6 +6,52 @@ recommended not to use the 'latest' Docker image tag blindly but pick a version 
 and read this documentation before upgrading. This is where you will get information about
 breaking changes and about what you should do to overcome those changes.
 
+## Breaking in v4.21.0
+* New LDAP attribute `display_name_attribute` has been introduced, defaults to value: `displayname`.
+* New key `displayname` has been introduced into the file based user database.
+
+These are utilised to greet the logged in user.
+
+If utilising a file based user backend:
+* Administrators will need to update users and include the `displayname` key.
+
+**Before:**
+```yaml
+users:
+  john:
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+```
+**After:**
+```yaml
+users:
+  john:
+    displayname: "John Doe"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+```   
+* Users with long-lived sessions will need to recreate the session (logout and login) to propagate the changes.   
+
+## Breaking in v4.20.0
+* Authelia's Docker volumes have been refactored. All data should reside within a single volume of `/config`.
+All examples have been updated to reflect this change. The entrypoint for the container changed from
+`authelia --config /etc/authelia/configuration.yml` to `authelia --config /config/configuration.yml`.
+
+Users migrating to v4.20.0 have two options:
+1. Change your container mappings to point to `/config` also change any associated paths in your `configuration.yml` to
+represent the new `/config` mappings.
+2. Change your container entry point back to `authelia --config /etc/authelia/configuration.yml`
+    * **Docker Compose:** `command: authelia --config /etc/authelia/configuration.yml`
+    * **Docker Run:** `docker run -d -v /path/on/host:/etc/authelia authelia/authelia:latest authelia --config /etc/authelia/configuration.yml`
+    
+The team recommends option 1 to unify/simplify troubleshooting for support related issues.
+
 ## Breaking in v4.18.0
 * Secrets stored directly in ENV are now removed from Authelia. They have been replaced with file
 secrets. If you still have not moved feel free to contact the team for assistance, otherwise the

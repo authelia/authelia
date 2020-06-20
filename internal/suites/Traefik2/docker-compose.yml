@@ -2,6 +2,6 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './Traefik2/configuration.yml:/etc/authelia/configuration.yml:ro'
-      - './Traefik2/users.yml:/var/lib/authelia/users.yml'
-      - './common/ssl:/var/lib/authelia/ssl:ro'
+      - './Traefik2/configuration.yml:/config/configuration.yml:ro'
+      - './Traefik2/users.yml:/config/users.yml'
+      - './common/ssl:/config/ssl:ro'

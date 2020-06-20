@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Retries a command on failure.
 # $1 - the max number of attempts

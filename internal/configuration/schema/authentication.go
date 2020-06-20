@@ -2,18 +2,19 @@ package schema
 
 // LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server.
 type LDAPAuthenticationBackendConfiguration struct {
-	URL                string `mapstructure:"url"`
-	SkipVerify         bool   `mapstructure:"skip_verify"`
-	BaseDN             string `mapstructure:"base_dn"`
-	AdditionalUsersDN  string `mapstructure:"additional_users_dn"`
-	UsersFilter        string `mapstructure:"users_filter"`
-	AdditionalGroupsDN string `mapstructure:"additional_groups_dn"`
-	GroupsFilter       string `mapstructure:"groups_filter"`
-	GroupNameAttribute string `mapstructure:"group_name_attribute"`
-	UsernameAttribute  string `mapstructure:"username_attribute"`
-	MailAttribute      string `mapstructure:"mail_attribute"`
-	User               string `mapstructure:"user"`
-	Password           string `mapstructure:"password"`
+	URL                  string `mapstructure:"url"`
+	SkipVerify           bool   `mapstructure:"skip_verify"`
+	BaseDN               string `mapstructure:"base_dn"`
+	AdditionalUsersDN    string `mapstructure:"additional_users_dn"`
+	UsersFilter          string `mapstructure:"users_filter"`
+	AdditionalGroupsDN   string `mapstructure:"additional_groups_dn"`
+	GroupsFilter         string `mapstructure:"groups_filter"`
+	GroupNameAttribute   string `mapstructure:"group_name_attribute"`
+	UsernameAttribute    string `mapstructure:"username_attribute"`
+	MailAttribute        string `mapstructure:"mail_attribute"`
+	DisplayNameAttribute string `mapstructure:"display_name_attribute"`
+	User                 string `mapstructure:"user"`
+	Password             string `mapstructure:"password"`
 }
 
 // FileAuthenticationBackendConfiguration represents the configuration related to file-based backend.
@@ -69,6 +70,7 @@ var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 
 // DefaultLDAPAuthenticationBackendConfiguration represents the default LDAP config.
 var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendConfiguration{
-	MailAttribute:      "mail",
-	GroupNameAttribute: "cn",
+	MailAttribute:        "mail",
+	DisplayNameAttribute: "displayname",
+	GroupNameAttribute:   "cn",
 }

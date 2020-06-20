@@ -7,6 +7,7 @@ export interface Configuration {
 
 export interface ExtendedConfiguration {
     available_methods: Set<SecondFactorMethod>;
+    display_name: string;
     second_factor_enabled: boolean;
     totp_period: number;
 }

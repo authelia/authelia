@@ -8,6 +8,7 @@ import (
 // ExtendedConfigurationBody the content returned by extended configuration endpoint.
 type ExtendedConfigurationBody struct {
 	AvailableMethods    MethodList `json:"available_methods"`
+	DisplayName         string     `json:"display_name"`
 	SecondFactorEnabled bool       `json:"second_factor_enabled"` // whether second factor is enabled or not.
 	TOTPPeriod          int        `json:"totp_period"`
 }
@@ -16,6 +17,7 @@ type ExtendedConfigurationBody struct {
 func ExtendedConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	body := ExtendedConfigurationBody{}
 	body.AvailableMethods = MethodList{authentication.TOTP, authentication.U2F}
+	body.DisplayName = ctx.GetSession().DisplayName
 	body.TOTPPeriod = ctx.Configuration.TOTP.Period
 
 	if ctx.Configuration.DuoAPI != nil {

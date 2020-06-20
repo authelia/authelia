@@ -2,6 +2,6 @@ version: '3'
 services:
   authelia-backend:
     volumes:
-      - './PathPrefix/configuration.yml:/etc/authelia/configuration.yml:ro'
-      - './PathPrefix/users.yml:/var/lib/authelia/users.yml'
-      - './common/ssl:/var/lib/authelia/ssl:ro'
+      - './PathPrefix/configuration.yml:/config/configuration.yml:ro'
+      - './PathPrefix/users.yml:/config/users.yml'
+      - './common/ssl:/config/ssl:ro'
