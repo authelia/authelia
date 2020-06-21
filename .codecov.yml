@@ -14,9 +14,11 @@ coverage:
     project:
       default: off
       backend:
+        base: auto
         flags:
           - backend
       frontend:
+        base: auto
         flags:
           - frontend
 
