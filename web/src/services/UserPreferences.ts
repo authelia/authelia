@@ -6,6 +6,7 @@ import { UserInfo } from "../models/UserInfo";
 export type Method2FA = "u2f" | "totp" | "mobile_push";
 
 export interface UserInfoPayload {
+    display_name: string;
     method: Method2FA;
     has_u2f: boolean;
     has_totp: boolean;

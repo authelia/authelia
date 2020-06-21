@@ -28,7 +28,6 @@ export const UserInfoPath = basePath + "/api/user/info";
 export const UserInfo2FAMethodPath = basePath + "/api/user/info/2fa_method";
 
 export const ConfigurationPath = basePath + "/api/configuration";
-export const ExtendedConfigurationPath = basePath + "/api/configuration/extended";
 
 export interface ErrorResponse {
     status: "KO";
