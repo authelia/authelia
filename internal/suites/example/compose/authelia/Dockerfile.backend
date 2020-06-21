@@ -8,12 +8,10 @@ RUN addgroup --gid ${GROUP_ID} dev && \
     adduser --uid ${USER_ID} -G dev -D dev && \
     apk --no-cache add gcc musl-dev git
 
-RUN mkdir -p /etc/authelia && chown dev:dev /etc/authelia
-RUN mkdir -p /var/lib/authelia && chown dev:dev /var/lib/authelia
+RUN mkdir -p /config && chown dev:dev /config
 
 USER dev
 
-VOLUME /etc/authelia
-VOLUME /var/lib/authelia
+VOLUME /config
 
 EXPOSE 9091

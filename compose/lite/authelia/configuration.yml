@@ -19,7 +19,7 @@ totp:
 
 authentication_backend:
   file:
-    path: /etc/authelia/users_database.yml
+    path: /config/users_database.yml
 
 access_control:
   default_policy: deny
@@ -53,7 +53,7 @@ regulation:
 
 storage:
   local:
-    path: /var/lib/authelia/db.sqlite3
+    path: /config/db.sqlite3
 
 notifier:
   smtp:
