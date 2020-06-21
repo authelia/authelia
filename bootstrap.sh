@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [[ $(uname) == "Darwin" ]]; then
+  echo "Authelia's development workflow currently isn't supported on macOS"
+  exit
+fi
+
 export PATH=$PATH:./cmd/authelia-scripts/:./.buildkite/steps/:$GOPATH/bin:./web/node_modules/.bin:/tmp
 
 if [[ -z "$OLD_PS1" ]]; then
@@ -10,9 +15,6 @@ fi
 if [[ $(id -u) = 0 ]]; then
   echo "Cannot run as root, defaulting to UID 1000"
   export USER_ID=1000
-elif [[ $(uname) == "Darwin" ]]; then
-  echo "Normalise for OSX, defaulting to UID 1000"
-  export USER_ID=1000
 else
   export USER_ID=$(id -u)
 fi
@@ -20,16 +22,11 @@ fi
 if [[ $(id -g) = 0 ]]; then
   echo "Cannot run as root, defaulting to GID 1000"
   export GROUP_ID=1000
-elif [[ $(uname) == "Darwin" ]]; then
-  echo "Normalise for OSX, defaulting to GID 1000"
-  export GROUP_ID=1000
 else
   export GROUP_ID=$(id -g)
 fi
 
-if [[ "$CI" == "true" ]]; then
-  true
-else
+if [[ "$CI" != "true" ]]; then
   export CI=false
 fi
 
