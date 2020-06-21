@@ -1,8 +1,5 @@
-export function useBasePath() {
-    const basePath = document.body.getAttribute("data-basepath");
-    if (basePath === null) {
-        throw new Error("No base path detected");
-    }
+import { useEmbeddedVariable } from "./Configuration";
 
-    return basePath;
+export function useBasePath() {
+    return useEmbeddedVariable("basepath");
 }

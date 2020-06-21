@@ -28,8 +28,10 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
+	serveIndexHandler := ServeIndex(embeddedAssets, configuration.Server.Path, rememberMe, resetPassword)
+
 	r := router.New()
-	r.GET("/", ServeIndex(embeddedAssets, configuration.Server.Path, rememberMe, resetPassword))
+	r.GET("/", serveIndexHandler)
 
 	for _, f := range rootFiles {
 		r.GET("/"+f, fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
@@ -116,7 +118,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	r.NotFound = ServeIndex(embeddedAssets, configuration.Server.Path, rememberMe, resetPassword)
+	r.NotFound = serveIndexHandler
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {

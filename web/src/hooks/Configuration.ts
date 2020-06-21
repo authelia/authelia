@@ -1,22 +1,21 @@
 import { useRemoteCall } from "./RemoteCall";
 import { getConfiguration } from "../services/Configuration";
 
-export function useRememberMe() {
-    const rememberMe = (document.body.getAttribute("data-rememberme") === 'true');
-    if (rememberMe === null) {
-        throw new Error("No remember me setting detected");
+export function useEmbeddedVariable(variableName: string) {
+    const value = document.body.getAttribute(`data-${variableName}`);
+    if (value === null) {
+        throw new Error(`No ${variableName} embedded variable detected`);
     }
 
-    return rememberMe;
+    return value;
+}
+
+export function useRememberMe() {
+    return useEmbeddedVariable("rememberme") === "true";
 }
 
 export function useResetPassword() {
-    const resetPassword = (document.body.getAttribute("data-disable-resetpassword") === 'true');
-    if (resetPassword === null) {
-        throw new Error("No reset password setting detected");
-    }
-
-    return resetPassword;
+    return useEmbeddedVariable("disable-resetpassword") === "true";
 }
 
 export function useConfiguration() {
