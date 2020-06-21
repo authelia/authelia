@@ -10,6 +10,7 @@ type Configuration struct {
 	LogFilePath           string `mapstructure:"log_file_path"`
 	JWTSecret             string `mapstructure:"jwt_secret"`
 	DefaultRedirectionURL string `mapstructure:"default_redirection_url"`
+        Theme                 string `mapstructure:"theme"`
 
 	AuthenticationBackend AuthenticationBackendConfiguration `mapstructure:"authentication_backend"`
 	Session               SessionConfiguration               `mapstructure:"session"`

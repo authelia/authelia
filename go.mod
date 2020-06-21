@@ -3,7 +3,8 @@ module github.com/authelia/authelia
 go 1.14
 
 require (
-	aletheia.icu/broccoli/fs v0.0.0-20200420200651-c5ac961a357a
+	aletheia.icu/broccoli v1.0.3 // indirect
+	aletheia.icu/broccoli/fs v0.0.0-20200506212414-5bc1e2f86a59
 	github.com/Azure/go-ntlmssp v0.0.0-20200615164410-66371956d46c // indirect
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/Workiva/go-datastructures v1.0.52
