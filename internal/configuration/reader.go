@@ -12,6 +12,7 @@ import (
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/configuration/validator"
+	"github.com/authelia/authelia/internal/logging"
 )
 
 // Read a YAML configuration and create a Configuration object out of it.
@@ -19,6 +20,11 @@ import (
 func Read(configPath string) (*schema.Configuration, []error) {
 	if configPath == "" {
 		return nil, []error{errors.New("No config file path provided")}
+	}
+
+	if configPath != "/config/configuration.yml" {
+		logging.Logger().Warn("Breaking change detected, please read " +
+			"https://github.com/authelia/authelia/blob/master/BREAKING.md#breaking-in-v4200.")
 	}
 
 	_, err := os.Stat(configPath)
