@@ -275,9 +275,23 @@ function initSearch() {
   }
 }
 
+// Focus
+
 function pageFocus() {
   var mainContent = document.querySelector('.js-main-content');
   mainContent.focus();
+}
+
+// Switch theme
+
+jtd.getTheme = function() {
+  var cssFileHref = document.querySelector('[rel="stylesheet"]').getAttribute('href');
+  return cssFileHref.substring(cssFileHref.lastIndexOf('-') + 1, cssFileHref.length - 4);
+}
+
+jtd.setTheme = function(theme) {
+  var cssFile = document.querySelector('[rel="stylesheet"]');
+  cssFile.setAttribute('href', '/docs/assets/css/just-the-docs-' + theme + '.css');
 }
 
 // Document ready
