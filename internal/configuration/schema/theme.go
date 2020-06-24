@@ -7,5 +7,5 @@ type ThemeConfiguration struct {
 
 // DefaultTOTPConfiguration represents default configuration parameters for TOTP generation.
 var DefaultThemeConfiguration = ThemeConfiguration{
-        Theme: "default",
+        Theme: "light",
 }

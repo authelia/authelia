@@ -6,13 +6,12 @@ import * as serviceWorker from './serviceWorker';
 
 import { ThemeProvider, CssBaseline } from '@material-ui/core';
 import { useTheme } from './hooks/Theme';
-import dark from './themes/dark';
-import light from './themes/light';
+import * as themes from './themes';
 
 const theme = useTheme();
 
 ReactDOM.render(
-  <ThemeProvider theme={theme === "dark" ? dark : light}>
+  <ThemeProvider theme={theme === "dark" ? themes.dark : themes.light}>
     <CssBaseline />
     <App />
   </ThemeProvider>

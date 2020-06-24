@@ -135,19 +135,11 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	addrPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
 
-        choosenTheme := configuration.Theme
-        if choosenTheme != "dark" && choosenTheme != "light" {
-                choosenTheme = "Theme value is NULL or not valid, defaulting to light. Available themes (so far) are: light, dark"
-        } else {
-                choosenTheme = "Theme: " + configuration.Theme
-        }
-
 	if configuration.TLSCert != "" && configuration.TLSKey != "" {
 		logging.Logger().Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
 		logging.Logger().Fatal(server.ListenAndServeTLS(addrPattern, configuration.TLSCert, configuration.TLSKey))
 	} else {
 		logging.Logger().Infof("Authelia is listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
-                logging.Logger().Debugf("%s", choosenTheme)
 		logging.Logger().Fatal(server.ListenAndServe(addrPattern))
 	}
 }

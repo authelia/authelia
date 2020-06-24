@@ -1,8 +1,5 @@
-export function useTheme() {
-    const theme = document.body.getAttribute("data-theme-name");
-    if (theme === null) {
-        throw new Error("No theme detected");
-    }
+import { useEmbeddedVariable } from "./Configuration";
 
-    return theme;
+export function useTheme() {
+    return useEmbeddedVariable("theme-name");
 }
