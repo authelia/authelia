@@ -166,7 +166,7 @@ func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
 		WithRule(schema.ACLRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   "bypass",
-			Subjects: []string{"user:john"},
+			Subjects: [][]string{{"user:john"}},
 		}).
 		WithRule(schema.ACLRule{
 			Domains: []string{"protected.example.com"},
@@ -189,7 +189,7 @@ func (s *AuthorizerSuite) TestShouldCheckUserMatching() {
 		WithRule(schema.ACLRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   "bypass",
-			Subjects: []string{"user:john"},
+			Subjects: [][]string{{"user:john"}},
 		}).
 		Build()
 
@@ -203,7 +203,7 @@ func (s *AuthorizerSuite) TestShouldCheckGroupMatching() {
 		WithRule(schema.ACLRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   "bypass",
-			Subjects: []string{"group:admins"},
+			Subjects: [][]string{{"group:admins"}},
 		}).
 		Build()
 
@@ -217,12 +217,27 @@ func (s *AuthorizerSuite) TestShouldCheckSubjectsMatching() {
 		WithRule(schema.ACLRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   "bypass",
-			Subjects: []string{"group:admins", "user:bob"},
+			Subjects: [][]string{{"group:admins"}, {"user:bob"}},
 		}).
 		Build()
 
 	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", Bypass)
 	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", Denied)
+}
+
+func (s *AuthorizerSuite) TestShouldCheckMultipleSubjectsMatching() {
+	tester := NewAuthorizerBuilder().
+		WithDefaultPolicy("deny").
+		WithRule(schema.ACLRule{
+			Domains:  []string{"protected.example.com"},
+			Policy:   "bypass",
+			Subjects: [][]string{{"group:admins", "user:bob"}, {"group:admins", "group:dev"}},
+		}).
+		Build()
+
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", Denied)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", Denied)
 }
 
