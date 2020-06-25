@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-
 import { ThemeProvider, CssBaseline } from '@material-ui/core';
 import { useTheme } from './hooks/Theme';
 import * as themes from './themes';
