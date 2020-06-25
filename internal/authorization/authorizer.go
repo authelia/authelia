@@ -138,8 +138,10 @@ func (p *Authorizer) IsURLMatchingRuleWithGroupSubjects(requestURL url.URL) (has
 	for _, rule := range p.configuration.Rules {
 		if isDomainMatching(requestURL.Hostname(), rule.Domains) && isPathMatching(requestURL.Path, rule.Resources) {
 			for _, subjectRule := range rule.Subjects {
-				if strings.HasPrefix(subjectRule, groupPrefix) {
-					return true
+				for _, subject := range subjectRule {
+					if strings.HasPrefix(subject, groupPrefix) {
+						return true
+					}
 				}
 			}
 		}

@@ -3,9 +3,13 @@ module github.com/authelia/authelia
 go 1.14
 
 require (
+<<<<<<< HEAD
 	aletheia.icu/broccoli v1.0.3 // indirect
 	aletheia.icu/broccoli/fs v0.0.0-20200506212414-5bc1e2f86a59
 	github.com/Azure/go-ntlmssp v0.0.0-20200615164410-66371956d46c // indirect
+=======
+	aletheia.icu/broccoli/fs v0.0.0-20200420200651-c5ac961a357a
+>>>>>>> upstream/master
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/Workiva/go-datastructures v1.0.52
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a
@@ -15,7 +19,7 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fasthttp/router v1.2.2
 	github.com/fasthttp/session/v2 v2.1.1
-	github.com/go-ldap/ldap/v3 v3.2.0
+	github.com/go-ldap/ldap/v3 v3.2.1
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.4.3
 	github.com/lib/pq v1.7.0

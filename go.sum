@@ -108,6 +108,8 @@ github.com/go-ldap/ldap/v3 v3.1.11 h1:EojIR9zHvfQS8LEz+EjvnPSvsfPYS3UioBezeOOskI
 github.com/go-ldap/ldap/v3 v3.1.11/go.mod h1:dtLsnBXnSLIsMRbCBuRpHflCGaYzZ5jn+x1q7XqMTKU=
 github.com/go-ldap/ldap/v3 v3.2.0 h1:fkS0nXg43MZvU0UNTOGyQv60WdwHRXa1eX0CSzuKLvY=
 github.com/go-ldap/ldap/v3 v3.2.0/go.mod h1:dtLsnBXnSLIsMRbCBuRpHflCGaYzZ5jn+x1q7XqMTKU=
+github.com/go-ldap/ldap/v3 v3.2.1 h1:mbP3BPfsULz5DuI3ejHuAypAbcg38Xv5T7eEHp3+XAE=
+github.com/go-ldap/ldap/v3 v3.2.1/go.mod h1:phWI+JSJ/eGvABjJxU7bT7CBv03KfS0e16+bQxLtjMw=
 github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9GBnD5lWE=
 github.com/go-logfmt/logfmt v0.4.0/go.mod h1:3RMwSq7FuexP4Kalkev3ejPJsZTpXXBr9+V4qmtdjCk=
 github.com/go-redis/redis/v8 v8.0.0-beta.4 h1:oIZMgBk2CHvLd1/rfn8sybGNwzTTmKEvRoXGz6ZiWnI=
@@ -381,6 +383,8 @@ golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5/go.mod h1:yigFU9vqHzYiE8U
 golang.org/x/crypto v0.0.0-20200117160349-530e935923ad/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4 h1:QmwruyY+bKbDDL0BaglrbZABEali68eoMFhTZpCjYVA=
 golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
+golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9 h1:vEg9joUBmeBcK9iSJftGNf3coIG4HqZElCPehJsfAYM=
+golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190306152737-a1d7652674e8/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=
