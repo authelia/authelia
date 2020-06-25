@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-// ACLRule represent one ACL rule "weak" coerces a single value into string slice.
+// ACLRule represents one ACL rule entry; "weak" coerces a single value into slice.
 type ACLRule struct {
-	Domains   []string `mapstructure:"domain,weak"`
-	Policy    string   `mapstructure:"policy"`
-	Subjects  []string `mapstructure:"subject,weak"`
-	Networks  []string `mapstructure:"networks"`
-	Resources []string `mapstructure:"resources"`
+	Domains   []string   `mapstructure:"domain,weak"`
+	Policy    string     `mapstructure:"policy"`
+	Subjects  [][]string `mapstructure:"subject,weak"`
+	Networks  []string   `mapstructure:"networks"`
+	Resources []string   `mapstructure:"resources"`
 }
 
 // IsPolicyValid check if policy is valid.
@@ -41,9 +41,11 @@ func (r *ACLRule) Validate(validator *StructValidator) {
 		validator.Push(fmt.Errorf("A policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'"))
 	}
 
-	for i, subject := range r.Subjects {
-		if !IsSubjectValid(subject) {
-			validator.Push(fmt.Errorf("Subject %d must start with 'user:' or 'group:'", i))
+	for i, subjectRule := range r.Subjects {
+		for j, subject := range subjectRule {
+			if !IsSubjectValid(subject) {
+				validator.Push(fmt.Errorf("Subject %d-%d must start with 'user:' or 'group:'", i, j))
+			}
 		}
 	}
 
