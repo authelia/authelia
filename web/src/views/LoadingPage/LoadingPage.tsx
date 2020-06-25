@@ -5,7 +5,7 @@ import { useTheme } from '../../hooks/Theme';
 
 var color = "#000";
 const theme = useTheme();
-if (theme == "dark") {
+if (theme === "dark") {
   color = "#929aa5"
 } else {
   color = "#000"

@@ -3,6 +3,15 @@ import { Grid, makeStyles, Container, Typography, Link } from "@material-ui/core
 import { ReactComponent as UserSvg } from "../assets/images/user.svg";
 import { grey } from "@material-ui/core/colors";
 
+import { useTheme } from '../hooks/Theme';
+
+var color = "#000";
+const theme = useTheme();
+if (theme === "dark") {
+  color = "#929aa5"
+} else {
+  color = "#000"
+}
 
 export interface Props {
     id?: string;
@@ -64,6 +73,7 @@ const useStyles = makeStyles(theme => ({
     icon: {
         margin: theme.spacing(),
         width: "64px",
+        fill: color,
     },
     body: {},
     poweredBy: {

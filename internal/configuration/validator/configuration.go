@@ -3,15 +3,13 @@ package validator
 import (
 	"fmt"
 	"net/url"
-	"errors"
 
-	//"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
 var defaultPort = 8080
 var defaultLogLevel = "info"
-var choosenTheme = "default"
+var defaultTheme = "default"
 
 // ValidateConfiguration and adapt the configuration read from file.
 //nolint:gocyclo // This function is likely to always have lots of if/else statements, as long as we keep the flow clean it should be understandable
@@ -55,9 +53,10 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		ValidateNotifier(configuration.Notifier, validator)
 	}
 
-	if configuration.Theme != "dark" && configuration.Theme != "light" {
-          choosenTheme = "Theme value is NULL or not valid. Available themes (so far) are: light, dark"
-          validator.Push(errors.New(choosenTheme))
+	if configuration.Theme == "" {
+		configuration.Theme = defaultTheme
+  } else if configuration.Theme != "dark" && configuration.Theme != "light" {
+		validator.Push(fmt.Errorf("Theme value: %s is not valid, valid themes are: \"light\" or \"dark\"", configuration.Theme))
   }
 
 	ValidateTOTP(configuration.TOTP, validator)
