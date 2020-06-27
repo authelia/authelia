@@ -8,10 +8,22 @@ import { ThemeProvider, CssBaseline } from '@material-ui/core';
 import { useTheme } from './hooks/Theme';
 import * as themes from './themes';
 
-const theme = useTheme();
+function Theme() {
+  switch (useTheme()) {
+    case 'dark':
+      return themes.dark;
+    case 'light':
+      return themes.light;
+    case 'custom':
+      return themes.custom;
+    default:
+      return themes.light;
+  }
+}
 
 ReactDOM.render(
-  <ThemeProvider theme={theme === "dark" ? themes.dark : themes.light}>
+  //<ThemeProvider theme={useTheme() === "custom" ? themes.custom : themes.light}>
+  <ThemeProvider theme={Theme()}>
     <CssBaseline />
     <App />
   </ThemeProvider>

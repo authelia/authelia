@@ -12,6 +12,11 @@ var validKeys = []string{
 	"tls_cert",
 	"theme",
 
+	// Theme Keys
+	"theme.name",
+	"theme.maincolor",
+	"theme.secondarycolor",
+
 	// Server Keys.
 	"server.read_buffer_size",
 	"server.write_buffer_size",

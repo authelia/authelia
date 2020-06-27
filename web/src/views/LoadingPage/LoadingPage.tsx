@@ -1,11 +1,13 @@
 import React from "react";
 import ReactLoading from "react-loading";
 import { Typography, Grid } from "@material-ui/core";
-import { useTheme } from '../../hooks/Theme';
+import { useTheme, useMainColor } from '../../hooks/Theme';
 
 var color = "#000";
 if (useTheme() === "dark") {
   color = "#929aa5"
+} else if (useTheme() === "custom") {
+  color = useMainColor()
 }
 
 export default function () {

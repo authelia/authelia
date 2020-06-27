@@ -43,11 +43,23 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		}
 	}
 
-	if configuration.Theme == "" {
-		configuration.Theme = defaultTheme
-	} else if configuration.Theme != "dark" && configuration.Theme != "light" {
-		validator.Push(fmt.Errorf("Theme value: %s is not valid, valid themes are: \"light\" or \"dark\"", configuration.Theme))
+	if configuration.Theme == nil {
+		configuration.Theme = &schema.DefaultThemeConfiguration
+	} else if configuration.Theme.Name != "dark" && configuration.Theme.Name != "light" && configuration.Theme.Name != "custom" {
+		validator.Push(fmt.Errorf("Theme value: %s is not valid, valid themes are: \"light\", \"dark\" or \"custom\"", configuration.Theme.Name))
+	} else if configuration.Theme.Name == "custom" {
+		if configuration.Theme.MainColor == "" {
+			validator.Push(fmt.Errorf("MainColor value: %s is not valid, valid color values are hex from: \"#000000\" to \"#FFFFFF\"", configuration.Theme.Name))
+		} else if configuration.Theme.SecondaryColor == "" {
+			validator.Push(fmt.Errorf("SecondaryColor value: %s is not valid, valid color values are hex from: \"#000000\" to \"#FFFFFF\"", configuration.Theme.Name))
+		}
 	}
+
+	//if configuration.ThemeTest.Name != "dark" && configuration.ThemeTest.Name != "light" {
+	//	validator.Push(fmt.Errorf("Theme value: %s is not valid, valid themes are: \"light\" or \"dark\"", configuration.ThemeTest.Name))
+	//}
+
+	ValidateTheme(configuration.Theme, validator)
 
 	if configuration.TOTP == nil {
 		configuration.TOTP = &schema.DefaultTOTPConfiguration
