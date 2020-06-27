@@ -10,7 +10,6 @@ var validKeys = []string{
 	"jwt_secret",
 	"tls_key",
 	"tls_cert",
-	"theme",
 
 	// Theme Keys
 	"theme.name",
