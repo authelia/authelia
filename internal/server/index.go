@@ -16,7 +16,7 @@ var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV
 // ServeIndex serve the index.html file with nonce generated for supporting
 // restrictive CSP while using material-ui from the embedded virtual filesystem.
 //go:generate broccoli -src ../../public_html -o public_html
-func ServeIndex(publicDir, base, rememberMe, resetPassword, theme string) fasthttp.RequestHandler {
+func ServeIndex(publicDir, base, theme, rememberMe, resetPassword string) fasthttp.RequestHandler {
 	f, err := br.Open(publicDir + "/index.html")
 	if err != nil {
 		logging.Logger().Fatalf("Unable to open index.html: %v", err)
@@ -38,7 +38,7 @@ func ServeIndex(publicDir, base, rememberMe, resetPassword, theme string) fastht
 		ctx.SetContentType("text/html; charset=utf-8")
 		ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
 
-		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, CSPNonce, RememberMe, ResetPassword, ThemeName string }{Base: base, CSPNonce: nonce, RememberMe: rememberMe, ResetPassword: resetPassword, ThemeName: theme})
+		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, CSPNonce, ThemeName, RememberMe, ResetPassword string }{Base: base, CSPNonce: nonce, ThemeName: theme, RememberMe: rememberMe, ResetPassword: resetPassword})
 		if err != nil {
 			ctx.Error("An error occurred", 503)
 			logging.Logger().Errorf("Unable to execute template: %v", err)
