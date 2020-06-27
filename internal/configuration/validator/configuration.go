@@ -9,7 +9,7 @@ import (
 
 var defaultPort = 8080
 var defaultLogLevel = "info"
-var defaultTheme = "default"
+var defaultTheme = "light"
 
 // ValidateConfiguration and adapt the configuration read from file.
 //nolint:gocyclo // This function is likely to always have lots of if/else statements, as long as we keep the flow clean it should be understandable
@@ -43,21 +43,15 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		}
 	}
 
+	if configuration.Theme == "" {
+		configuration.Theme = defaultTheme
+	} else if configuration.Theme != "dark" && configuration.Theme != "light" {
+		validator.Push(fmt.Errorf("Theme value: %s is not valid, valid themes are: \"light\" or \"dark\"", configuration.Theme))
+	}
+
 	if configuration.TOTP == nil {
 		configuration.TOTP = &schema.DefaultTOTPConfiguration
 	}
-
-	if configuration.Notifier == nil {
-		validator.Push(fmt.Errorf("A notifier configuration must be provided"))
-	} else {
-		ValidateNotifier(configuration.Notifier, validator)
-	}
-
-	if configuration.Theme == "" {
-		configuration.Theme = defaultTheme
-  } else if configuration.Theme != "dark" && configuration.Theme != "light" {
-		validator.Push(fmt.Errorf("Theme value: %s is not valid, valid themes are: \"light\" or \"dark\"", configuration.Theme))
-  }
 
 	ValidateTOTP(configuration.TOTP, validator)
 
@@ -78,4 +72,10 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	ValidateServer(&configuration.Server, validator)
 
 	ValidateStorage(configuration.Storage, validator)
+
+	if configuration.Notifier == nil {
+		validator.Push(fmt.Errorf("A notifier configuration must be provided"))
+	} else {
+		ValidateNotifier(configuration.Notifier, validator)
+	}
 }

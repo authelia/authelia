@@ -4,11 +4,8 @@ import { Typography, Grid } from "@material-ui/core";
 import { useTheme } from '../../hooks/Theme';
 
 var color = "#000";
-const theme = useTheme();
-if (theme === "dark") {
+if (useTheme() === "dark") {
   color = "#929aa5"
-} else {
-  color = "#000"
 }
 
 export default function () {
