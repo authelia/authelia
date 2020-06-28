@@ -22,24 +22,33 @@ jtd.onReady = function(ready) {
 // Show/hide mobile menu
 
 function initNav() {
-  const mainNav = document.querySelector('.js-main-nav');
-  const pageHeader = document.querySelector('.js-page-header');
-  const navTrigger = document.querySelector('.js-main-nav-trigger');
+  jtd.addEvent(document, 'click', function(e){
+    var target = e.target;
+    while (target && !(target.classList && target.classList.contains('nav-list-expander'))) {
+      target = target.parentNode;
+    }
+    if (target) {
+      e.preventDefault();
+      target.parentNode.classList.toggle('active');
+    }
+  });
 
-  jtd.addEvent(navTrigger, 'click', function(e){
+  const siteNav = document.getElementById('site-nav');
+  const mainHeader = document.getElementById('main-header');
+  const menuButton = document.getElementById('menu-button');
+
+  jtd.addEvent(menuButton, 'click', function(e){
     e.preventDefault();
-    var text = navTrigger.innerText;
-    var textToggle = navTrigger.getAttribute('data-text-toggle');
 
-    mainNav.classList.toggle('nav-open');
-    pageHeader.classList.toggle('nav-open');
-    navTrigger.classList.toggle('nav-open');
-    navTrigger.innerText = textToggle;
-    navTrigger.setAttribute('data-text-toggle', text);
-    textToggle = text;
-  })
+    if (menuButton.classList.toggle('nav-open')) {
+      siteNav.classList.add('nav-open');
+      mainHeader.classList.add('nav-open');
+    } else {
+      siteNav.classList.remove('nav-open');
+      mainHeader.classList.remove('nav-open');
+    }
+  });
 }
-
 // Site search
 
 function initSearch() {
@@ -48,238 +57,368 @@ function initSearch() {
 
   request.onload = function(){
     if (request.status >= 200 && request.status < 400) {
-      // Success!
-      var data = JSON.parse(request.responseText);
-      
+      var docs = JSON.parse(request.responseText);
       
       lunr.tokenizer.separator = /[\s\-/]+/
-      
-      
-      var index = lunr(function () {
+
+      var index = lunr(function(){
         this.ref('id');
         this.field('title', { boost: 200 });
         this.field('content', { boost: 2 });
-        this.field('url');
+        this.field('relUrl');
         this.metadataWhitelist = ['position']
 
-        for (var i in data) {
+        for (var i in docs) {
           this.add({
             id: i,
-            title: data[i].title,
-            content: data[i].content,
-            url: data[i].url
+            title: docs[i].title,
+            content: docs[i].content,
+            relUrl: docs[i].relUrl
           });
         }
       });
 
-      searchResults(index, data);
+      searchLoaded(index, docs);
     } else {
-      // We reached our target server, but it returned an error
       console.log('Error loading ajax request. Request status:' + request.status);
     }
   };
 
   request.onerror = function(){
-    // There was a connection error of some sort
     console.log('There was a connection error');
   };
 
   request.send();
+}
 
-  function searchResults(index, data) {
-    var index = index;
-    var docs = data;
-    var searchInput = document.querySelector('.js-search-input');
-    var searchResults = document.querySelector('.js-search-results');
+function searchLoaded(index, docs) {
+  var index = index;
+  var docs = docs;
+  var searchInput = document.getElementById('search-input');
+  var searchResults = document.getElementById('search-results');
+  var mainHeader = document.getElementById('main-header');
+  var currentInput;
+  var currentSearchIndex = 0;
 
-    function hideResults() {
-      searchResults.innerHTML = '';
-      searchResults.classList.remove('active');
+  function showSearch() {
+    document.documentElement.classList.add('search-active');
+  }
+
+  function hideSearch() {
+    document.documentElement.classList.remove('search-active');
+  }
+
+  function update() {
+    currentSearchIndex++;
+
+    var input = searchInput.value;
+    if (input === '') {
+      hideSearch();
+    } else {
+      showSearch();
+      // scroll search input into view, workaround for iOS Safari
+      window.scroll(0, -1);
+      setTimeout(function(){ window.scroll(0, 0); }, 0);
+    }
+    if (input === currentInput) {
+      return;
+    }
+    currentInput = input;
+    searchResults.innerHTML = '';
+    if (input === '') {
+      return;
     }
 
-    jtd.addEvent(searchInput, 'keydown', function(e){
-      switch (e.keyCode) {
-        case 38: // arrow up
-          e.preventDefault();
-          var active = document.querySelector('.search-result.active');
-          if (active) {
-            active.classList.remove('active');
-            if (active.parentElement.previousSibling) {
-              var previous = active.parentElement.previousSibling.querySelector('.search-result');
-              previous.classList.add('active');
-            }
-          }
-          return;
-        case 40: // arrow down
-          e.preventDefault();
-          var active = document.querySelector('.search-result.active');
-          if (active) {
-            if (active.parentElement.nextSibling) {
-              var next = active.parentElement.nextSibling.querySelector('.search-result');
-              active.classList.remove('active');
-              next.classList.add('active');
-            }
-          } else {
-            var next = document.querySelector('.search-result');
-            if (next) {
-              next.classList.add('active');
-            }
-          }
-          return;
-        case 13: // enter
-          e.preventDefault();
-          var active = document.querySelector('.search-result.active');
-          if (active) {
-            active.click();
-          } else {
-            var first = document.querySelector('.search-result');
-            if (first) {
-              first.click();
-            }
-          }
-          return;
-      }
+    var results = index.query(function (query) {
+      var tokens = lunr.tokenizer(input)
+      query.term(tokens, {
+        boost: 10
+      });
+      query.term(tokens, {
+        wildcard: lunr.Query.wildcard.TRAILING
+      });
     });
 
-    jtd.addEvent(searchInput, 'keyup', function(e){
-      switch (e.keyCode) {
-        case 27: // When esc key is pressed, hide the results and clear the field
-          hideResults();
-          searchInput.value = '';
-          return;
-        case 38: // arrow up
-        case 40: // arrow down
-        case 13: // enter
-          e.preventDefault();
-          return;
+    if ((results.length == 0) && (input.length > 2)) {
+      var tokens = lunr.tokenizer(input).filter(function(token, i) {
+        return token.str.length < 20;
+      })
+      if (tokens.length > 0) {
+        results = index.query(function (query) {
+          query.term(tokens, {
+            editDistance: Math.round(Math.sqrt(input.length / 2 - 1))
+          });
+        });
       }
+    }
 
-      hideResults();
+    if (results.length == 0) {
+      var noResultsDiv = document.createElement('div');
+      noResultsDiv.classList.add('search-no-result');
+      noResultsDiv.innerText = 'No results found';
+      searchResults.appendChild(noResultsDiv);
 
-      var input = this.value;
-      if (input === '') {
+    } else {
+      var resultsList = document.createElement('ul');
+      resultsList.classList.add('search-results-list');
+      searchResults.appendChild(resultsList);
+
+      addResults(resultsList, results, 0, 10, 100, currentSearchIndex);
+    }
+
+    function addResults(resultsList, results, start, batchSize, batchMillis, searchIndex) {
+      if (searchIndex != currentSearchIndex) {
         return;
       }
+      for (var i = start; i < (start + batchSize); i++) {
+        if (i == results.length) {
+          return;
+        }
+        addResult(resultsList, results[i]);
+      }
+      setTimeout(function() {
+        addResults(resultsList, results, start + batchSize, batchSize, batchMillis, searchIndex);
+      }, batchMillis);
+    }
 
-      var results = index.query(function (query) {
-        var tokens = lunr.tokenizer(input)
-        query.term(tokens, {
-          boost: 10
-        });
-        query.term(tokens, {
-          wildcard: lunr.Query.wildcard.TRAILING
-        });
-      });
+    function addResult(resultsList, result) {
+      var doc = docs[result.ref];
 
-      if (results.length > 0) {
-        searchResults.classList.add('active');
-        var resultsList = document.createElement('ul');
-        resultsList.classList.add('search-results-list');
-        searchResults.appendChild(resultsList);
+      var resultsListItem = document.createElement('li');
+      resultsListItem.classList.add('search-results-list-item');
+      resultsList.appendChild(resultsListItem);
 
-        for (var i in results) {
-          var result = results[i];
-          var doc = docs[result.ref];
+      var resultLink = document.createElement('a');
+      resultLink.classList.add('search-result');
+      resultLink.setAttribute('href', doc.url);
+      resultsListItem.appendChild(resultLink);
 
-          var resultsListItem = document.createElement('li');
-          resultsListItem.classList.add('search-results-list-item');
-          resultsList.appendChild(resultsListItem);
+      var resultTitle = document.createElement('div');
+      resultTitle.classList.add('search-result-title');
+      resultLink.appendChild(resultTitle);
 
-          var resultLink = document.createElement('a');
-          resultLink.classList.add('search-result');
-          resultLink.setAttribute('href', doc.url);
-          resultsListItem.appendChild(resultLink);
+      var resultDoc = document.createElement('div');
+      resultDoc.classList.add('search-result-doc');
+      resultDoc.innerHTML = '<svg viewBox="0 0 24 24" class="search-result-icon"><use xlink:href="#svg-doc"></use></svg>';
+      resultTitle.appendChild(resultDoc);
 
-          var resultTitle = document.createElement('div');
-          resultTitle.classList.add('search-result-title');
-          resultTitle.innerText = doc.title;
-          resultLink.appendChild(resultTitle);
+      var resultDocTitle = document.createElement('div');
+      resultDocTitle.classList.add('search-result-doc-title');
+      resultDocTitle.innerHTML = doc.doc;
+      resultDoc.appendChild(resultDocTitle);
+      var resultDocOrSection = resultDocTitle;
 
-          var resultRelUrl = document.createElement('span');
-          resultRelUrl.classList.add('search-result-rel-url');
-          resultRelUrl.innerText = doc.relUrl;
-          resultTitle.appendChild(resultRelUrl);
+      if (doc.doc != doc.title) {
+        resultDoc.classList.add('search-result-doc-parent');
+        var resultSection = document.createElement('div');
+        resultSection.classList.add('search-result-section');
+        resultSection.innerHTML = doc.title;
+        resultTitle.appendChild(resultSection);
+        resultDocOrSection = resultSection;
+      }
 
-          var metadata = result.matchData.metadata;
-          var contentFound = false;
-          for (var j in metadata) {
-            if (metadata[j].title) {
-              var position = metadata[j].title.position[0];
-              var start = position[0];
-              var end = position[0] + position[1];
-              resultTitle.innerHTML = doc.title.substring(0, start) + '<span class="search-result-highlight">' + doc.title.substring(start, end) + '</span>' + doc.title.substring(end, doc.title.length)+'<span class="search-result-rel-url">'+doc.relUrl+'</span>';
-
-            } else if (metadata[j].content && !contentFound) {
-              contentFound = true;
-
-              var position = metadata[j].content.position[0];
-              var start = position[0];
-              var end = position[0] + position[1];
-              var previewStart = start;
-              var previewEnd = end;
-              var ellipsesBefore = true;
-              var ellipsesAfter = true;
-              for (var k = 0; k < 3; k++) {
-                var nextSpace = doc.content.lastIndexOf(' ', previewStart - 2);
-                var nextDot = doc.content.lastIndexOf('.', previewStart - 2);
-                if ((nextDot > 0) && (nextDot > nextSpace)) {
-                  previewStart = nextDot + 1;
-                  ellipsesBefore = false;
-                  break;
-                }
-                if (nextSpace < 0) {
-                  previewStart = 0;
-                  ellipsesBefore = false;
-                  break;
-                }
-                previewStart = nextSpace + 1;
+      var metadata = result.matchData.metadata;
+      var titlePositions = [];
+      var contentPositions = [];
+      for (var j in metadata) {
+        var meta = metadata[j];
+        if (meta.title) {
+          var positions = meta.title.position;
+          for (var k in positions) {
+            titlePositions.push(positions[k]);
+          }
+        }
+        if (meta.content) {
+          var positions = meta.content.position;
+          for (var k in positions) {
+            var position = positions[k];
+            var previewStart = position[0];
+            var previewEnd = position[0] + position[1];
+            var ellipsesBefore = true;
+            var ellipsesAfter = true;
+            for (var k = 0; k < 5; k++) {
+              var nextSpace = doc.content.lastIndexOf(' ', previewStart - 2);
+              var nextDot = doc.content.lastIndexOf('. ', previewStart - 2);
+              if ((nextDot >= 0) && (nextDot > nextSpace)) {
+                previewStart = nextDot + 1;
+                ellipsesBefore = false;
+                break;
               }
-              for (var k = 0; k < 10; k++) {
-                var nextSpace = doc.content.indexOf(' ', previewEnd + 1);
-                var nextDot = doc.content.indexOf('.', previewEnd + 1);
-                if ((nextDot > 0) && (nextDot < nextSpace)) {
-                  previewEnd = nextDot;
-                  ellipsesAfter = false;
-                  break;
-                }
-                if (nextSpace < 0) {
-                  previewEnd = doc.content.length;
-                  ellipsesAfter = false;
-                  break;
-                }
-                previewEnd = nextSpace;
+              if (nextSpace < 0) {
+                previewStart = 0;
+                ellipsesBefore = false;
+                break;
               }
-              var preview = doc.content.substring(previewStart, start);
-              if (ellipsesBefore) {
-                preview = '... ' + preview;
-              }
-              preview += '<span class="search-result-highlight">' + doc.content.substring(start, end) + '</span>';
-              preview += doc.content.substring(end, previewEnd);
-              if (ellipsesAfter) {
-                preview += ' ...';
-              }
-
-              var resultPreview = document.createElement('div');
-              resultPreview.classList.add('search-result-preview');
-              resultPreview.innerHTML = preview;
-              resultLink.appendChild(resultPreview);
+              previewStart = nextSpace + 1;
             }
+            for (var k = 0; k < 10; k++) {
+              var nextSpace = doc.content.indexOf(' ', previewEnd + 1);
+              var nextDot = doc.content.indexOf('. ', previewEnd + 1);
+              if ((nextDot >= 0) && (nextDot < nextSpace)) {
+                previewEnd = nextDot;
+                ellipsesAfter = false;
+                break;
+              }
+              if (nextSpace < 0) {
+                previewEnd = doc.content.length;
+                ellipsesAfter = false;
+                break;
+              }
+              previewEnd = nextSpace;
+            }
+            contentPositions.push({
+              highlight: position,
+              previewStart: previewStart, previewEnd: previewEnd,
+              ellipsesBefore: ellipsesBefore, ellipsesAfter: ellipsesAfter
+            });
           }
         }
       }
-    });
 
-    jtd.addEvent(searchInput, 'blur', function(){
-      setTimeout(function(){ hideResults() }, 300);
-    });
+      if (titlePositions.length > 0) {
+        titlePositions.sort(function(p1, p2){ return p1[0] - p2[0] });
+        resultDocOrSection.innerHTML = '';
+        addHighlightedText(resultDocOrSection, doc.title, 0, doc.title.length, titlePositions);
+      }
+
+      if (contentPositions.length > 0) {
+        contentPositions.sort(function(p1, p2){ return p1.highlight[0] - p2.highlight[0] });
+        var contentPosition = contentPositions[0];
+        var previewPosition = {
+          highlight: [contentPosition.highlight],
+          previewStart: contentPosition.previewStart, previewEnd: contentPosition.previewEnd,
+          ellipsesBefore: contentPosition.ellipsesBefore, ellipsesAfter: contentPosition.ellipsesAfter
+        };
+        var previewPositions = [previewPosition];
+        for (var j = 1; j < contentPositions.length; j++) {
+          contentPosition = contentPositions[j];
+          if (previewPosition.previewEnd < contentPosition.previewStart) {
+            previewPosition = {
+              highlight: [contentPosition.highlight],
+              previewStart: contentPosition.previewStart, previewEnd: contentPosition.previewEnd,
+              ellipsesBefore: contentPosition.ellipsesBefore, ellipsesAfter: contentPosition.ellipsesAfter
+            }
+            previewPositions.push(previewPosition);
+          } else {
+            previewPosition.highlight.push(contentPosition.highlight);
+            previewPosition.previewEnd = contentPosition.previewEnd;
+            previewPosition.ellipsesAfter = contentPosition.ellipsesAfter;
+          }
+        }
+
+        var resultPreviews = document.createElement('div');
+        resultPreviews.classList.add('search-result-previews');
+        resultLink.appendChild(resultPreviews);
+
+        var content = doc.content;
+        for (var j = 0; j < Math.min(previewPositions.length, 3); j++) {
+          var position = previewPositions[j];
+
+          var resultPreview = document.createElement('div');
+          resultPreview.classList.add('search-result-preview');
+          resultPreviews.appendChild(resultPreview);
+
+          if (position.ellipsesBefore) {
+            resultPreview.appendChild(document.createTextNode('... '));
+          }
+          addHighlightedText(resultPreview, content, position.previewStart, position.previewEnd, position.highlight);
+          if (position.ellipsesAfter) {
+            resultPreview.appendChild(document.createTextNode(' ...'));
+          }
+        }
+      }
+      var resultRelUrl = document.createElement('span');
+      resultRelUrl.classList.add('search-result-rel-url');
+      resultRelUrl.innerText = doc.relUrl;
+      resultTitle.appendChild(resultRelUrl);
+    }
+
+    function addHighlightedText(parent, text, start, end, positions) {
+      var index = start;
+      for (var i in positions) {
+        var position = positions[i];
+        var span = document.createElement('span');
+        span.innerHTML = text.substring(index, position[0]);
+        parent.appendChild(span);
+        index = position[0] + position[1];
+        var highlight = document.createElement('span');
+        highlight.classList.add('search-result-highlight');
+        highlight.innerHTML = text.substring(position[0], index);
+        parent.appendChild(highlight);
+      }
+      var span = document.createElement('span');
+      span.innerHTML = text.substring(index, end);
+      parent.appendChild(span);
+    }
   }
-}
 
-// Focus
+  jtd.addEvent(searchInput, 'focus', function(){
+    setTimeout(update, 0);
+  });
 
-function pageFocus() {
-  var mainContent = document.querySelector('.js-main-content');
-  mainContent.focus();
+  jtd.addEvent(searchInput, 'keyup', function(e){
+    switch (e.keyCode) {
+      case 27: // When esc key is pressed, hide the results and clear the field
+        searchInput.value = '';
+        break;
+      case 38: // arrow up
+      case 40: // arrow down
+      case 13: // enter
+        e.preventDefault();
+        return;
+    }
+    update();
+  });
+
+  jtd.addEvent(searchInput, 'keydown', function(e){
+    switch (e.keyCode) {
+      case 38: // arrow up
+        e.preventDefault();
+        var active = document.querySelector('.search-result.active');
+        if (active) {
+          active.classList.remove('active');
+          if (active.parentElement.previousSibling) {
+            var previous = active.parentElement.previousSibling.querySelector('.search-result');
+            previous.classList.add('active');
+          }
+        }
+        return;
+      case 40: // arrow down
+        e.preventDefault();
+        var active = document.querySelector('.search-result.active');
+        if (active) {
+          if (active.parentElement.nextSibling) {
+            var next = active.parentElement.nextSibling.querySelector('.search-result');
+            active.classList.remove('active');
+            next.classList.add('active');
+          }
+        } else {
+          var next = document.querySelector('.search-result');
+          if (next) {
+            next.classList.add('active');
+          }
+        }
+        return;
+      case 13: // enter
+        e.preventDefault();
+        var active = document.querySelector('.search-result.active');
+        if (active) {
+          active.click();
+        } else {
+          var first = document.querySelector('.search-result');
+          if (first) {
+            first.click();
+          }
+        }
+        return;
+    }
+  });
+
+  jtd.addEvent(document, 'click', function(e){
+    if (e.target != searchInput) {
+      hideSearch();
+    }
+  });
 }
 
 // Switch theme
@@ -298,10 +437,7 @@ jtd.setTheme = function(theme) {
 
 jtd.onReady(function(){
   initNav();
-  pageFocus();
-  if (typeof lunr !== 'undefined') {
-    initSearch();
-  }
+  initSearch();
 });
 
 })(window.jtd = window.jtd || {});
