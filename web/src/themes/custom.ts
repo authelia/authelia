@@ -49,6 +49,11 @@ const custom = createMuiTheme({
       root: {
         color: useMainColor()
       }
+    },
+    MuiButton: {
+      label: {
+        color: useSecondaryColor()
+      }
     }
   }
 });

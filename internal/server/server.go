@@ -28,7 +28,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
-	serveIndexHandler := ServeIndex(embeddedAssets, configuration.Server.Path, configuration.Theme.Name, configuration.Theme.MainColor, configuration.Theme.SecondaryColor, rememberMe, resetPassword)
+	serveIndexHandler := ServeIndex(embeddedAssets, configuration.Server.Path, rememberMe, resetPassword, configuration.Theme.MainColor, configuration.Theme.Name, configuration.Theme.SecondaryColor)
 
 	r := router.New()
 	r.GET("/", serveIndexHandler)
