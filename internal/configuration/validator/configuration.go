@@ -9,7 +9,6 @@ import (
 
 var defaultPort = 8080
 var defaultLogLevel = "info"
-var defaultTheme = "light"
 
 // ValidateConfiguration and adapt the configuration read from file.
 //nolint:gocyclo // This function is likely to always have lots of if/else statements, as long as we keep the flow clean it should be understandable
@@ -48,16 +47,12 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	} else if configuration.Theme.Name != "dark" && configuration.Theme.Name != "light" && configuration.Theme.Name != "custom" {
 		validator.Push(fmt.Errorf("Theme value: %s is not valid, valid themes are: \"light\", \"dark\" or \"custom\"", configuration.Theme.Name))
 	} else if configuration.Theme.Name == "custom" {
-		if configuration.Theme.MainColor == "" {
-			validator.Push(fmt.Errorf("MainColor value: %s is not valid, valid color values are hex from: \"#000000\" to \"#FFFFFF\"", configuration.Theme.Name))
+		if configuration.Theme.PrimaryColor == "" {
+			validator.Push(fmt.Errorf("MainColor value: %s is not valid, valid color values are hex from: \"#000000\" to \"#FFFFFF\"", configuration.Theme.PrimaryColor))
 		} else if configuration.Theme.SecondaryColor == "" {
-			validator.Push(fmt.Errorf("SecondaryColor value: %s is not valid, valid color values are hex from: \"#000000\" to \"#FFFFFF\"", configuration.Theme.Name))
+			validator.Push(fmt.Errorf("SecondaryColor value: %s is not valid, valid color values are hex from: \"#000000\" to \"#FFFFFF\"", configuration.Theme.SecondaryColor))
 		}
 	}
-
-	//if configuration.ThemeTest.Name != "dark" && configuration.ThemeTest.Name != "light" {
-	//	validator.Push(fmt.Errorf("Theme value: %s is not valid, valid themes are: \"light\" or \"dark\"", configuration.ThemeTest.Name))
-	//}
 
 	ValidateTheme(configuration.Theme, validator)
 

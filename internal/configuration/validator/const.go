@@ -13,8 +13,8 @@ var validKeys = []string{
 
 	// Theme Keys
 	"theme.name",
-	"theme.maincolor",
-	"theme.secondarycolor",
+	"theme.primary_color",
+	"theme.secondary_color",
 
 	// Server Keys.
 	"server.read_buffer_size",

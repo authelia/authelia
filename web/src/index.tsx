@@ -22,7 +22,6 @@ function Theme() {
 }
 
 ReactDOM.render(
-  //<ThemeProvider theme={useTheme() === "custom" ? themes.custom : themes.light}>
   <ThemeProvider theme={Theme()}>
     <CssBaseline />
     <App />

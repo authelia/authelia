@@ -4,8 +4,8 @@ export function useTheme() {
     return useEmbeddedVariable("theme-name");
 }
 
-export function useMainColor() {
-    return useEmbeddedVariable("theme-maincolor");
+export function usePrimaryColor() {
+    return useEmbeddedVariable("theme-primarycolor");
 }
 
 export function useSecondaryColor() {

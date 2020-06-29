@@ -2,13 +2,13 @@ import React, { ReactNode } from "react";
 import { Grid, makeStyles, Container, Typography, Link } from "@material-ui/core";
 import { ReactComponent as UserSvg } from "../assets/images/user.svg";
 import { grey } from "@material-ui/core/colors";
-import { useTheme, useMainColor } from '../hooks/Theme';
+import { useTheme, usePrimaryColor } from '../hooks/Theme';
 
 var color = "#000";
 if (useTheme() === "dark") {
   color = "#929aa5"
 } else if (useTheme() === "custom") {
-  color = useMainColor()
+  color = usePrimaryColor()
 }
 
 export interface Props {

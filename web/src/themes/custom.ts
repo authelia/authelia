@@ -1,10 +1,10 @@
 import { createMuiTheme } from '@material-ui/core/styles';
-import { useMainColor, useSecondaryColor } from '../hooks/Theme';
+import { usePrimaryColor, useSecondaryColor } from '../hooks/Theme';
 
 const custom = createMuiTheme({
   palette: {
     primary: {
-      main: useMainColor(), //dark grey
+      main: usePrimaryColor(), //dark grey
     },
     background: {
       default: useSecondaryColor(),
@@ -16,38 +16,38 @@ const custom = createMuiTheme({
       "@global": {
         body: {
           backgroundColor: useSecondaryColor(),
-          color: useMainColor(),
+          color: usePrimaryColor(),
         },
       }
     },
     MuiOutlinedInput: {
       root: {
         "& $notchedOutline": {
-          borderColor: useMainColor()
+          borderColor: usePrimaryColor()
         },
         "&:hover:not($disabled):not($focused):not($error) $notchedOutline": {
-          borderColor: useMainColor(),
+          borderColor: usePrimaryColor(),
           borderWidth: 2
         },
         "&$focused $notchedOutline": {
-          borderColor: useMainColor()
+          borderColor: usePrimaryColor()
         },
       },
       notchedOutline: {}
     },
     MuiCheckbox: {
       root: {
-        color: useMainColor()
+        color: usePrimaryColor()
       },
     },
     MuiInputBase: {
       input: {
-        color: useMainColor()
+        color: usePrimaryColor()
       }
     },
     MuiInputLabel: {
       root: {
-        color: useMainColor()
+        color: usePrimaryColor()
       }
     },
     MuiButton: {

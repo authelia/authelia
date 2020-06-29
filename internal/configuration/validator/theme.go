@@ -10,8 +10,8 @@ func ValidateTheme(configuration *schema.ThemeConfiguration, validator *schema.S
 		configuration.Name = schema.DefaultThemeConfiguration.Name
 	}
 
-	if configuration.MainColor == "" {
-		configuration.MainColor = schema.DefaultThemeConfiguration.MainColor
+	if configuration.PrimaryColor == "" {
+		configuration.PrimaryColor = schema.DefaultThemeConfiguration.PrimaryColor
 	}
 
 	if configuration.SecondaryColor == "" {
