@@ -135,9 +135,22 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	addrPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
 
-	if configuration.TLSCert != "" && configuration.TLSKey != "" {
+	// Check theme keys and inform accordingly.
+	// TLS Checks
+	if configuration.TLSCert != "" && configuration.TLSKey != "" && configuration.Theme.Name != "custom" {
+		if configuration.Theme.PrimaryColor != "" || configuration.Theme.SecondaryColor != "" {
+			logging.Logger().Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
+			logging.Logger().Infof("PrimaryColor and SecondaryColor values will be ignored as: %s theme is set", configuration.Theme.Name)
+			logging.Logger().Fatal(server.ListenAndServeTLS(addrPattern, configuration.TLSCert, configuration.TLSKey))
+		} else {
+			logging.Logger().Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
+			logging.Logger().Fatal(server.ListenAndServeTLS(addrPattern, configuration.TLSCert, configuration.TLSKey))
+		}
+	} else if configuration.TLSCert != "" && configuration.TLSKey != "" && configuration.Theme.Name == "custom" {
 		logging.Logger().Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		logging.Logger().Infof("PrimaryColor %s and SecondaryColor %s values will be used as: %s theme is set", configuration.Theme.PrimaryColor, configuration.Theme.SecondaryColor, configuration.Theme.Name)
 		logging.Logger().Fatal(server.ListenAndServeTLS(addrPattern, configuration.TLSCert, configuration.TLSKey))
+	// Non TLS Checks
 	} else if configuration.Theme.Name != "custom" {
 		if configuration.Theme.PrimaryColor != "" || configuration.Theme.SecondaryColor != "" {
 			logging.Logger().Infof("Authelia is listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
