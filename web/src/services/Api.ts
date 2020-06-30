@@ -1,7 +1,7 @@
 import { AxiosResponse } from "axios";
-import { useBasePath } from "../hooks/BasePath";
+import { getBasePath } from "../utils/BasePath";
 
-const basePath = useBasePath();
+const basePath = getBasePath();
 
 export const FirstFactorPath = basePath + "/api/firstfactor";
 export const InitiateTOTPRegistrationPath = basePath + "/api/secondfactor/totp/identity/start";
