@@ -2,11 +2,11 @@
 on('pull_request.opened')
     .filter(
         context =>
-            context.payload.pull_request.head.label.slice(0, 9) === 'authelia:'
+            context.payload.pull_request.head.label.startsWith('authelia:')
     )
     .filter(
         context =>
-            context.payload.pull_request.head.ref.slice(0, 11) !== 'dependabot/'
+            !context.payload.pull_request.head.ref.startsWith('dependabot/')
     )
     .comment(`## Artifacts
 These changes are published for testing on Buildkite and DockerHub.
@@ -18,7 +18,11 @@ These changes are published for testing on Buildkite and DockerHub.
 on('pull_request.opened')
     .filter(
         context =>
-            context.payload.pull_request.head.label.slice(0, 9) !== 'authelia:'
+            context.payload.pull_request.head.label.startsWith('authelia:')
+    )
+    .filter(
+        context =>
+            !context.payload.pull_request.head.label.endsWith(':master')
     )
     .comment(`Thanks for choosing to contribute. We lint all PR's with golangci-lint, I may add a review to your PR with some suggestions.
     
@@ -29,3 +33,17 @@ These changes once approved by a team member will be published for testing on Bu
 
 ### Docker Container
 * \`docker pull authelia/authelia:PR{{ pull_request.number }}\``)
+
+// PR commentary for forked master branches
+on('pull_request.opened')
+    .filter(
+        context =>
+            context.payload.pull_request.head.label.startsWith('authelia:')
+    )
+    .filter(
+        context =>
+            context.payload.pull_request.head.label.endsWith(':master')
+    )
+    .comment(`Thanks for choosing to contribute. It appears that you're submitting a PR from a forked master branch.
+    
+This causes issues with codecov, please close this PR and re-submit your PR from a branch other than master.`)
