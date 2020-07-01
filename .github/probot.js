@@ -24,7 +24,7 @@ on('pull_request.opened')
         context =>
             !context.payload.pull_request.head.label.includes(':master')
     )
-    .comment(`Thanks for choosing to contribute. We lint all PR's with golangci-lint, I may add a review to your PR with some suggestions.
+    .comment(`Thanks for choosing to contribute @{{ user.login }}. We lint all PR's with golangci-lint, I may add a review to your PR with some suggestions.
     
 You are free to apply the changes if you're comfortable, alternatively you are welcome to ask a team member for advice.
 
@@ -44,6 +44,7 @@ on('pull_request.opened')
         context =>
             context.payload.pull_request.head.label.includes(':master')
     )
-    .comment(`Thanks for choosing to contribute. It appears that you're submitting a PR from a forked master branch.
+    .comment(`Thanks for choosing to contribute @{{ user.login }}.
     
-This causes issues with codecov, please close this PR and re-submit your PR from a branch other than master.`)
+Unfortunately it appears that you're submitting a PR from a forked master branch and this is known to causes issues with codecov. Please re-submit your PR from a branch other than master.`)
+    .close()
