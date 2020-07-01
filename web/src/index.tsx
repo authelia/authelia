@@ -1,4 +1,4 @@
-import './hooks/AssetPath';
+import './utils/AssetPath';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';

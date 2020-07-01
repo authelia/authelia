@@ -17,10 +17,10 @@ import NotificationsContext from './hooks/NotificationsContext';
 import { Notification } from './models/Notifications';
 import NotificationBar from './components/NotificationBar';
 import SignOut from './views/LoginPortal/SignOut/SignOut';
-import { useRememberMe, useResetPassword } from './hooks/Configuration';
+import { getRememberMe, getResetPassword } from './utils/Configuration';
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
-import { useBasePath } from './hooks/BasePath';
+import { getBasePath } from './utils/BasePath';
 
 faConfig.autoAddCss = false;
 
@@ -29,7 +29,7 @@ const App: React.FC = () => {
 
     return (
         <NotificationsContext.Provider value={{ notification, setNotification }} >
-            <Router basename={useBasePath()}>
+            <Router basename={getBasePath()}>
                 <NotificationBar onClose={() => setNotification(null)} />
                 <Switch>
                     <Route path={ResetPasswordStep1Route} exact>
@@ -49,8 +49,8 @@ const App: React.FC = () => {
                     </Route>
                     <Route path={FirstFactorRoute}>
                         <LoginPortal
-                            rememberMe={useRememberMe()}
-                            resetPassword={useResetPassword()} />
+                            rememberMe={getRememberMe()}
+                            resetPassword={getResetPassword()} />
                     </Route>
                     <Route path="/">
                         <Redirect to={FirstFactorRoute} />
