@@ -9,7 +9,7 @@ if [[ $BUILDKITE_PULL_REQUEST != "false" ]]; then
   fi
 fi
 
-if [[ ! $BUILDKITE_BRANCH =~ ^(master|v.*) ]] && [[ $BUILDKITE_COMMAND_EXIT_STATUS == 0 ]]; then
+if [[ ! $BUILDKITE_BRANCH =~ ^(v.*) ]] && [[ $BUILDKITE_COMMAND_EXIT_STATUS == 0 ]]; then
   if [[ $BUILDKITE_LABEL == ":hammer_and_wrench: Unit Test" ]]; then
     echo "--- :codecov: Upload coverage reports"
     bash <(curl -s --connect-timeout 10 --retry 10 --retry-max-time 0 https://codecov.io/bash) -Z -c -f "coverage.txt" -F backend
