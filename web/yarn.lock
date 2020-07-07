@@ -9235,10 +9235,10 @@ react-loading@^2.0.3:
   resolved "https://registry.yarnpkg.com/react-loading/-/react-loading-2.0.3.tgz#e8138fb0c3e4674e481b320802ac7048ae14ffb9"
   integrity sha512-Vdqy79zq+bpeWJqC+xjltUjuGApyoItPgL0vgVfcJHhqwU7bAMKzysfGW/ADu6i0z0JiOCRJjo+IkFNkRNbA3A==
 
-react-otp-input@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/react-otp-input/-/react-otp-input-1.0.1.tgz#b07ded9ecf83bf7e3bced8653084e61eeff6b6ff"
-  integrity sha512-N57qZ+kQVgU7W1x/urL5zu6N0+nVqJxWn74ueaKaXl5rF6Pqe05q3WybPFxDg9CRQRisfEUjXyT8Q+1Uzwb8ng==
+react-otp-input@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/react-otp-input/-/react-otp-input-2.0.0.tgz#e5bfa41e2d18032976809577852ba612638146b7"
+  integrity sha512-C2kyKrKYZWfrB4uq0thGvNQ8DyrTqcdj0ZAD0AQwUblUGGAOYY7XEuTRA5Wef65idoPsHfx6TA0lr/rsAizTIw==
 
 react-router-dom@^5.2.0:
   version "5.2.0"
