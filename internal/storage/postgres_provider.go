@@ -43,7 +43,7 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 
 			sqlGetExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public'",
 
-			sqlConfigSetValue: fmt.Sprintf("INSERT INTO %s (category, key_name, value) VALUES($1, $2, $3) ON CONFLICT (category, key_name) DO UPDATE SET value=$3", configTableName),
+			sqlConfigSetValue: fmt.Sprintf("INSERT INTO %s (category, key_name, value) VALUES ($1, $2, $3) ON CONFLICT (category, key_name) DO UPDATE SET value=$3", configTableName),
 			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=$1 AND key_name=$2", configTableName),
 		},
 	}

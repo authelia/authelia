@@ -1,16 +1,23 @@
 package storage
 
 import (
-	"database/sql"
 	"fmt"
+	"sort"
 
 	"github.com/authelia/authelia/internal/utils"
 )
 
-func (p *SQLProvider) upgradeCreateTableStatements(tx *sql.Tx, statements map[string]string, existingTables []string) error {
-	for table, statement := range statements {
+func (p *SQLProvider) upgradeCreateTableStatements(tx transaction, statements map[string]string, existingTables []string) error {
+	keys := make([]string, 0, len(statements))
+	for k := range statements {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	for _, table := range keys {
 		if !utils.IsStringInSlice(table, existingTables) {
-			_, err := tx.Exec(fmt.Sprintf(statement, table))
+			_, err := tx.Exec(fmt.Sprintf(statements[table], table))
 			if err != nil {
 				return fmt.Errorf("Unable to create table %s: %v", table, err)
 			}
@@ -20,7 +27,7 @@ func (p *SQLProvider) upgradeCreateTableStatements(tx *sql.Tx, statements map[st
 	return nil
 }
 
-func (p *SQLProvider) upgradeRunMultipleStatements(tx *sql.Tx, statements []string) error {
+func (p *SQLProvider) upgradeRunMultipleStatements(tx transaction, statements []string) error {
 	for _, statement := range statements {
 		_, err := tx.Exec(statement)
 		if err != nil {
@@ -32,7 +39,7 @@ func (p *SQLProvider) upgradeRunMultipleStatements(tx *sql.Tx, statements []stri
 }
 
 // upgradeFinalize sets the schema version and logs a message, as well as any other future finalization tasks.
-func (p *SQLProvider) upgradeFinalize(tx *sql.Tx, version SchemaVersion) error {
+func (p *SQLProvider) upgradeFinalize(tx transaction, version SchemaVersion) error {
 	_, err := tx.Exec(p.sqlConfigSetValue, "schema", "version", version.ToString())
 	if err != nil {
 		return err
@@ -44,7 +51,7 @@ func (p *SQLProvider) upgradeFinalize(tx *sql.Tx, version SchemaVersion) error {
 }
 
 // upgradeSchemaToVersion001 upgrades the schema to version 1.
-func (p *SQLProvider) upgradeSchemaToVersion001(tx *sql.Tx, tables []string) error {
+func (p *SQLProvider) upgradeSchemaToVersion001(tx transaction, tables []string) error {
 	version := SchemaVersion(1)
 
 	err := p.upgradeCreateTableStatements(tx, p.sqlUpgradesCreateTableStatements[version], tables)
@@ -64,18 +71,6 @@ func (p *SQLProvider) upgradeSchemaToVersion001(tx *sql.Tx, tables []string) err
 	if err != nil {
 		return err
 	}
-
-	return nil
-}
-
-// upgradeSchemaToVersion002 upgrades the schema to faux version 2.
-func (p *SQLProvider) upgradeSchemaToVersion002(tx *sql.Tx, tables []string) error {
-	err := p.upgradeFinalize(tx, SchemaVersion(2))
-	if err != nil {
-		return err
-	}
-
-	p.log.Tracef("tables are %v", tables)
 
 	return nil
 }

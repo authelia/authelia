@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-const storageSchemaCurrentVersion = SchemaVersion(2)
+const storageSchemaCurrentVersion = SchemaVersion(1)
 const storageSchemaUpgradeMessage = "Storage schema upgraded to v"
 const storageSchemaUpgradeErrorText = "storage schema upgrade failed at v"
 
@@ -35,3 +35,5 @@ var sqlUpgradesCreateTableIndexesStatements = map[SchemaVersion][]string{
 		fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
 	},
 }
+
+const unitTestUser = "john"

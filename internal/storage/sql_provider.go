@@ -112,13 +112,6 @@ func (p *SQLProvider) upgrade() error {
 			}
 
 			fallthrough
-		case 1:
-			err := p.upgradeSchemaToVersion002(tx, tables)
-			if err != nil {
-				return p.handleUpgradeFailure(tx, 2, err)
-			}
-
-			fallthrough
 		default:
 			err := tx.Commit()
 			if err != nil {
