@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     BrowserRouter as Router, Route, Switch, Redirect
 } from "react-router-dom";
@@ -17,28 +17,19 @@ import NotificationsContext from './hooks/NotificationsContext';
 import { Notification } from './models/Notifications';
 import NotificationBar from './components/NotificationBar';
 import SignOut from './views/LoginPortal/SignOut/SignOut';
-import { useConfiguration } from './hooks/Configuration';
+import { getRememberMe, getResetPassword } from './utils/Configuration';
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
-import { useBasePath } from './hooks/BasePath';
+import { getBasePath } from './utils/BasePath';
 
 faConfig.autoAddCss = false;
 
 const App: React.FC = () => {
     const [notification, setNotification] = useState(null as Notification | null);
-    const [configuration, fetchConfig, , fetchConfigError] = useConfiguration();
-
-    useEffect(() => {
-        if (fetchConfigError) {
-            console.error(fetchConfigError);
-        }
-    }, [fetchConfigError]);
-
-    useEffect(() => { fetchConfig() }, [fetchConfig]);
 
     return (
         <NotificationsContext.Provider value={{ notification, setNotification }} >
-            <Router basename={useBasePath()}>
+            <Router basename={getBasePath()}>
                 <NotificationBar onClose={() => setNotification(null)} />
                 <Switch>
                     <Route path={ResetPasswordStep1Route} exact>
@@ -58,8 +49,8 @@ const App: React.FC = () => {
                     </Route>
                     <Route path={FirstFactorRoute}>
                         <LoginPortal
-                            rememberMe={configuration?.remember_me === true}
-                            resetPassword={configuration?.reset_password === true} />
+                            rememberMe={getRememberMe()}
+                            resetPassword={getResetPassword()} />
                     </Route>
                     <Route path="/">
                         <Redirect to={FirstFactorRoute} />

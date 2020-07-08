@@ -21,7 +21,12 @@ type WebDriverSession struct {
 
 // StartWebDriverWithProxy create a selenium session.
 func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) {
-	service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", port)
+	driverPath := os.Getenv("CHROMEDRIVER_PATH")
+	if driverPath == "" {
+		driverPath = "/usr/bin/chromedriver"
+	}
+
+	service, err := selenium.NewChromeDriverService(driverPath, port)
 
 	if err != nil {
 		return nil, err

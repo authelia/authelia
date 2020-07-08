@@ -22,7 +22,7 @@ RUN apk --no-cache add gcc musl-dev
 
 WORKDIR /go/src/app
 
-COPY go.mod go.sum ./
+COPY go.mod go.sum config.template.yml ./
 COPY --from=builder-frontend /node/src/app/build public_html
 
 RUN go mod download
@@ -32,7 +32,9 @@ COPY internal internal
 
 # Prepare static files to be embedded in Go binary
 RUN go get -u aletheia.icu/broccoli && \
-cd internal/server && \
+cd internal/configuration && \
+go generate . && \
+cd ../server && \
 go generate .
 
 # Set the build version and time
@@ -42,7 +44,7 @@ RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
 
 # CGO_ENABLED=1 is mandatory for building go-sqlite3
 RUN cd cmd/authelia && \
-GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-w -linkmode external -extldflags -static' -trimpath -o authelia
+GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-s -w -linkmode external -extldflags -static' -trimpath -o authelia
 
 # ===================================
 # ===== Authelia official image =====
@@ -51,15 +53,14 @@ FROM alpine:3.12.0
 
 RUN apk --no-cache add ca-certificates tzdata
 
-WORKDIR /usr/app
+WORKDIR /app
 
 COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
 
 EXPOSE 9091
 
-VOLUME /etc/authelia
-VOLUME /var/lib/authelia
+VOLUME /config
 
-ENV PATH="/usr/app:${PATH}"
+ENV PATH="/app:${PATH}"
 
-CMD ["./authelia", "--config", "/etc/authelia/configuration.yml"]
+CMD ["authelia", "--config", "/config/configuration.yml"]

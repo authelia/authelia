@@ -70,6 +70,11 @@ For a user with unique identifier `john`, the subject should be `user:john` and 
 uniquely identified by `developers`, the subject should be `group:developers`. Similar to resources
 and domains you can define multiple subjects in a single rule.
 
+If you want a combination of subjects to be matched at once, you can specify a list of subjects like
+`- ["group:developers", "group:admins"]`. Make sure to preceed it by a list key `-`.
+In summary, the first level of subjects are evaluated using a logical `OR`, whereas the second level 
+by a logical `AND`.
+
 ## Networks
 
 A list of network ranges can be specified in a rule in order to apply different policies when
@@ -128,6 +133,7 @@ access_control:
     - domain: dev.example.com
       resources:
       - "^/users/john/.*$"
-      subject: "user:john"
+      subject: 
+      - ["group:dev", "user:john"]
       policy: two_factor
 ```

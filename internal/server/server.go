@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
@@ -22,10 +23,15 @@ import (
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
 	embeddedAssets := "/public_html"
+	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
+	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
+
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
+	serveIndexHandler := ServeIndex(embeddedAssets, configuration.Server.Path, rememberMe, resetPassword)
+
 	r := router.New()
-	r.GET("/", ServeIndex(embeddedAssets, configuration.Server.Path))
+	r.GET("/", serveIndexHandler)
 
 	for _, f := range rootFiles {
 		r.GET("/"+f, fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
@@ -35,9 +41,8 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
 
-	r.GET("/api/configuration", autheliaMiddleware(handlers.ConfigurationGet))
-	r.GET("/api/configuration/extended", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.ExtendedConfigurationGet)))
+	r.GET("/api/configuration", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.ConfigurationGet)))
 
 	r.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
 	r.HEAD("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
@@ -113,7 +118,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	r.NotFound = ServeIndex(embeddedAssets, configuration.Server.Path)
+	r.NotFound = serveIndexHandler
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {

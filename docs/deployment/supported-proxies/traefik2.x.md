@@ -66,8 +66,7 @@ services:
     image: authelia/authelia
     container_name: authelia
     volumes:
-      - /path/to/authelia:/var/lib/authelia
-      - /path/to/authelia/config.yml:/etc/authelia/configuration.yml:ro
+      - /path/to/authelia:/config
     networks:
       - net
     labels:

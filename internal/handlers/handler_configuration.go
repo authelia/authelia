@@ -1,18 +1,30 @@
 package handlers
 
-import "github.com/authelia/authelia/internal/middlewares"
+import (
+	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/internal/middlewares"
+)
 
-// ConfigurationBody configuration parameters exposed to the frontend.
+// ConfigurationBody the content returned by the configuration endpoint.
 type ConfigurationBody struct {
-	RememberMe    bool `json:"remember_me"` // whether remember me is enabled or not
-	ResetPassword bool `json:"reset_password"`
+	AvailableMethods    MethodList `json:"available_methods"`
+	SecondFactorEnabled bool       `json:"second_factor_enabled"` // whether second factor is enabled or not.
+	TOTPPeriod          int        `json:"totp_period"`
 }
 
-// ConfigurationGet fetches configuration parameters for frontend mutation.
+// ConfigurationGet get the configuration accessible to authenticated users.
 func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
-	body := ConfigurationBody{
-		RememberMe:    ctx.Providers.SessionProvider.RememberMe != 0,
-		ResetPassword: !ctx.Configuration.AuthenticationBackend.DisableResetPassword,
+	body := ConfigurationBody{}
+	body.AvailableMethods = MethodList{authentication.TOTP, authentication.U2F}
+	body.TOTPPeriod = ctx.Configuration.TOTP.Period
+
+	if ctx.Configuration.DuoAPI != nil {
+		body.AvailableMethods = append(body.AvailableMethods, authentication.Push)
 	}
+
+	body.SecondFactorEnabled = ctx.Providers.Authorizer.IsSecondFactorEnabled()
+	ctx.Logger.Tracef("Second factor enabled: %v", body.SecondFactorEnabled)
+
+	ctx.Logger.Tracef("Available methods are %s", body.AvailableMethods)
 	ctx.SetJSONBody(body) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 }

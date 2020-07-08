@@ -31,7 +31,7 @@ func (s *FetchSuite) TearDownTest() {
 	s.mock.Close()
 }
 
-func setPreferencesExpectations(preferences UserPreferences, provider *storage.MockProvider) {
+func setPreferencesExpectations(preferences UserInfo, provider *storage.MockProvider) {
 	provider.
 		EXPECT().
 		LoadPreferred2FAMethod(gomock.Eq("john")).
@@ -65,7 +65,7 @@ func setPreferencesExpectations(preferences UserPreferences, provider *storage.M
 }
 
 func TestMethodSetToU2F(t *testing.T) {
-	table := []UserPreferences{
+	table := []UserInfo{
 		{
 			Method: "totp",
 		},
@@ -97,7 +97,7 @@ func TestMethodSetToU2F(t *testing.T) {
 		setPreferencesExpectations(expectedPreferences, mock.StorageProviderMock)
 		UserInfoGet(mock.Ctx)
 
-		actualPreferences := UserPreferences{}
+		actualPreferences := UserInfo{}
 		mock.GetResponseData(t, &actualPreferences)
 
 		t.Run("expected method", func(t *testing.T) {
@@ -132,7 +132,7 @@ func (s *FetchSuite) TestShouldGetDefaultPreferenceIfNotInDB() {
 		Return("", storage.ErrNoTOTPSecret)
 
 	UserInfoGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), UserPreferences{Method: "totp"})
+	s.mock.Assert200OK(s.T(), UserInfo{Method: "totp"})
 }
 
 func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {

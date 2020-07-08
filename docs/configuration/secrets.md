@@ -107,8 +107,7 @@ services:
       - smtp
       - ldap
     volumes:
-      - /path/to/authelia:/var/lib/authelia
-      - /path/to/authelia/configuration.yml:/etc/authelia/configuration.yml:ro
+      - /path/to/authelia:/config
     networks:
       - net
     expose:
@@ -129,7 +128,7 @@ services:
 
 This example assumes secrets are stored in `/path/to/authelia/secrets/{secretname}`
 on the host and are exposed with bind mounted secret files in a `docker-compose.yml` file
-at `/etc/authelia/secrets/`:
+at `/config/secrets/`:
 
 ```yaml
 version: '3.8'
@@ -143,22 +142,20 @@ services:
     image: authelia/authelia
     container_name: authelia
     volumes:
-      - /path/to/authelia:/var/lib/authelia
-      - /path/to/authelia/configuration.yml:/etc/authelia/configuration.yml:ro
-      - /path/to/authelia/secrets:/etc/authelia/secrets
+      - /path/to/authelia:/config
     networks:
       - net
     expose:
       - 9091
     restart: unless-stopped
     environment:
-      - AUTHELIA_JWT_SECRET_FILE=/etc/authelia/secrets/jwt
-      - AUTHELIA_DUO_API_SECRET_KEY_FILE=/etc/authelia/secrets/duo
-      - AUTHELIA_SESSION_SECRET_FILE=/etc/authelia/secrets/session
-      - AUTHELIA_SESSION_REDIS_PASSWORD_FILE=/etc/authelia/secrets/redis
-      - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/etc/authelia/secrets/mysql
-      - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/etc/authelia/secrets/smtp
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE=/etc/authelia/secrets/ldap
+      - AUTHELIA_JWT_SECRET_FILE=/config/secrets/jwt
+      - AUTHELIA_DUO_API_SECRET_KEY_FILE=/config/secrets/duo
+      - AUTHELIA_SESSION_SECRET_FILE=/config/secrets/session
+      - AUTHELIA_SESSION_REDIS_PASSWORD_FILE=/config/secrets/redis
+      - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/config/secrets/mysql
+      - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/config/secrets/smtp
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE=/config/secrets/ldap
       - TZ=Australia/Melbourne
 ```
 
@@ -233,17 +230,17 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: AUTHELIA_JWT_SECRET_FILE
-              value: /usr/app/secrets/jwt
+              value: /app/secrets/jwt
             - name: AUTHELIA_DUO_API_SECRET_KEY_FILE
-              value: /usr/app/secrets/duo
+              value: /app/secrets/duo
             - name: AUTHELIA_SESSION_SECRET_FILE
-              value: /usr/app/secrets/session
+              value: /app/secrets/session
             - name: AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE
-              value: /usr/app/secrets/ldap_password
+              value: /app/secrets/ldap_password
             - name: AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-              value: /usr/app/secrets/smtp_password
+              value: /app/secrets/smtp_password
             - name: AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE
-              value: /usr/app/secrets/sql_password
+              value: /app/secrets/sql_password
           ports:
             - name: http
               containerPort: 80
@@ -272,9 +269,9 @@ spec:
             periodSeconds: 5
             failureThreshold: 5
           volumeMounts:
-            - mountPath: /etc/authelia
+            - mountPath: /config
               name: config-volume
-            - mountPath: /usr/app/secrets
+            - mountPath: /app/secrets
               name: secrets
               readOnly: true
             - mountPath: /etc/localtime

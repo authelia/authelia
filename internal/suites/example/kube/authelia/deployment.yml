@@ -23,23 +23,23 @@ spec:
             - containerPort: 443
           volumeMounts:
             - name: config-volume
-              mountPath: /etc/authelia
+              mountPath: /config
             - name: ssl-volume
-              mountPath: /var/lib/authelia/ssl
+              mountPath: /config/ssl
             - name: secrets
-              mountPath: /usr/app/secrets
+              mountPath: /app/secrets
               readOnly: true
           env:
             # We set secrets directly here for ease of deployment but all secrets
             # should be stored in the Kube Vault in production.
             - name: AUTHELIA_JWT_SECRET_FILE
-              value: /usr/app/secrets/jwt_secret
+              value: /app/secrets/jwt_secret
             - name: AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE
-              value: /usr/app/secrets/ldap_password
+              value: /app/secrets/ldap_password
             - name: AUTHELIA_SESSION_SECRET_FILE
-              value: /usr/app/secrets/session
+              value: /app/secrets/session
             - name: AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE
-              value: /usr/app/secrets/sql_password
+              value: /app/secrets/sql_password
       volumes:
         - name: config-volume
           configMap:

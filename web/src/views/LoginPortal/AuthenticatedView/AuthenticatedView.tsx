@@ -6,7 +6,7 @@ import { LogoutRoute as SignOutRoute } from "../../../Routes";
 import Authenticated from "../Authenticated";
 
 export interface Props {
-    username: string;
+    name: string;
 }
 
 export default function (props: Props) {
@@ -20,7 +20,7 @@ export default function (props: Props) {
     return (
         <LoginLayout
             id="authenticated-stage"
-            title={`Hi ${props.username}`}
+            title={`Hi ${props.name}`}
             showBrand>
             <Grid container>
                 <Grid item xs={12}>
