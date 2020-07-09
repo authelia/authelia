@@ -151,6 +151,16 @@ func TestSQLProviderMethodsAuthenticationLogs(t *testing.T) {
 	assert.Equal(t, unitTestUser, results[2].Username)
 	assert.Equal(t, false, results[2].Successful)
 	assert.Equal(t, time.Unix(1577880003, 0), results[2].Time)
+
+	// Test Blank Rows.
+	mock.ExpectQuery(
+		fmt.Sprintf("SELECT successful, time FROM %s WHERE time>\\? AND username=\\? ORDER BY time DESC", authenticationLogsTableName)).
+		WithArgs(args...).
+		WillReturnRows(sqlmock.NewRows([]string{"successful", "time"}))
+
+	results, err = provider.LoadLatestAuthenticationLogs(unitTestUser, after)
+	assert.NoError(t, err)
+	assert.Len(t, results, 0)
 }
 
 func TestSQLProviderMethodsPreferred(t *testing.T) {
@@ -192,6 +202,16 @@ func TestSQLProviderMethodsPreferred(t *testing.T) {
 	method, err := provider.LoadPreferred2FAMethod(unitTestUser)
 	assert.NoError(t, err)
 	assert.Equal(t, authentication.TOTP, method)
+
+	// Test Blank Rows.
+	mock.ExpectQuery(
+		fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=\\?", userPreferencesTableName)).
+		WithArgs(unitTestUser).
+		WillReturnRows(sqlmock.NewRows([]string{"second_factor_method"}))
+
+	method, err = provider.LoadPreferred2FAMethod(unitTestUser)
+	assert.NoError(t, err)
+	assert.Equal(t, "", method)
 }
 
 func TestSQLProviderMethodsTOTP(t *testing.T) {
@@ -244,6 +264,16 @@ func TestSQLProviderMethodsTOTP(t *testing.T) {
 
 	err = provider.DeleteTOTPSecret(unitTestUser)
 	assert.NoError(t, err)
+
+	mock.ExpectQuery(
+		fmt.Sprintf("SELECT secret FROM %s WHERE username=\\?", totpSecretsTableName)).
+		WithArgs(args...).
+		WillReturnRows(sqlmock.NewRows([]string{"secret"}))
+
+	//Test Blank Rows
+	secret, err = provider.LoadTOTPSecret(unitTestUser)
+	assert.EqualError(t, err, "No TOTP secret registered")
+	assert.Equal(t, "", secret)
 }
 
 func TestSQLProviderMethodsU2F(t *testing.T) {
@@ -294,6 +324,17 @@ func TestSQLProviderMethodsU2F(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, pretendKeyHandle, keyHandle)
 	assert.Equal(t, pretendPublicKey, publicKey)
+
+	// Test Blank Rows.
+	mock.ExpectQuery(
+		fmt.Sprintf("SELECT keyHandle, publicKey FROM %s WHERE username=\\?", u2fDeviceHandlesTableName)).
+		WithArgs(args...).
+		WillReturnRows(sqlmock.NewRows([]string{"keyHandle", "publicKey"}))
+
+	keyHandle, publicKey, err = provider.LoadU2FDeviceHandle(unitTestUser)
+	assert.EqualError(t, err, "No U2F device handle found")
+	assert.Equal(t, []byte(nil), keyHandle)
+	assert.Equal(t, []byte(nil), publicKey)
 }
 
 func TestSQLProviderMethodsIdentityVerificationTokens(t *testing.T) {
