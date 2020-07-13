@@ -1,7 +1,7 @@
 package server
 
 import (
-	"fmt"
+	"net"
 	"os"
 	"strconv"
 
@@ -133,13 +133,18 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		WriteBufferSize:       configuration.Server.WriteBufferSize,
 	}
 
-	addrPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
+	addrPattern := net.JoinHostPort(configuration.Host, strconv.Itoa(configuration.Port))
+
+	listener, err := net.Listen("tcp", addrPattern)
+	if err != nil {
+		logging.Logger().Fatalf("Error initializing listener: %s", err)
+	}
 
 	if configuration.TLSCert != "" && configuration.TLSKey != "" {
 		logging.Logger().Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
-		logging.Logger().Fatal(server.ListenAndServeTLS(addrPattern, configuration.TLSCert, configuration.TLSKey))
+		logging.Logger().Fatal(server.ServeTLS(listener, configuration.TLSCert, configuration.TLSKey))
 	} else {
 		logging.Logger().Infof("Authelia is listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
-		logging.Logger().Fatal(server.ListenAndServe(addrPattern))
+		logging.Logger().Fatal(server.Serve(listener))
 	}
 }
