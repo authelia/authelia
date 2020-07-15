@@ -30,6 +30,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
-	github.com/valyala/fasthttp v1.14.0
+	github.com/valyala/fasthttp v1.15.1
 	gopkg.in/yaml.v2 v2.3.0
 )
