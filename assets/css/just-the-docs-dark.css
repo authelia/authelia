@@ -234,6 +234,7 @@ body { position: relative; padding-bottom: 4rem; overflow-y: scroll; }
 @media (min-width: 50rem) { .main-content .anchor-heading { right: auto; left: -1.5rem; } }
 .main-content .anchor-heading svg { display: inline-block; width: 100%; height: 100%; color: #2c84fa; visibility: hidden; }
 .main-content .anchor-heading:hover svg, .main-content h1:hover > .anchor-heading svg, .main-content h2:hover > .anchor-heading svg, .main-content h3:hover > .anchor-heading svg, .main-content h4:hover > .anchor-heading svg, .main-content h5:hover > .anchor-heading svg, .main-content h6:hover > .anchor-heading svg { visibility: visible; }
+.main-content summary { cursor: pointer; }
 .main-content h1, .main-content h2, .main-content h3, .main-content h4, .main-content h5, .main-content h6 { position: relative; margin-top: 1.5em; margin-bottom: 0.25em; }
 .main-content h1:first-child, .main-content h2:first-child, .main-content h3:first-child, .main-content h4:first-child, .main-content h5:first-child, .main-content h6:first-child { margin-top: 0.5rem; }
 .main-content h1 + table, .main-content h1 + .table-wrapper, .main-content h1 + .code-example, .main-content h1 + .highlighter-rouge, .main-content h2 + table, .main-content h2 + .table-wrapper, .main-content h2 + .code-example, .main-content h2 + .highlighter-rouge, .main-content h3 + table, .main-content h3 + .table-wrapper, .main-content h3 + .code-example, .main-content h3 + .highlighter-rouge, .main-content h4 + table, .main-content h4 + .table-wrapper, .main-content h4 + .code-example, .main-content h4 + .highlighter-rouge, .main-content h5 + table, .main-content h5 + .table-wrapper, .main-content h5 + .code-example, .main-content h5 + .highlighter-rouge, .main-content h6 + table, .main-content h6 + .table-wrapper, .main-content h6 + .code-example, .main-content h6 + .highlighter-rouge { margin-top: 1em; }
@@ -418,7 +419,7 @@ h6, .text-zeta { font-size: 11px !important; color: #44434d; }
 @media (min-width: 50rem) { .search-active .search-label { padding-left: 1.25rem; } }
 .search-active .search-results { display: block; }
 .search-active .search-overlay { width: 100%; height: 100%; opacity: 1; transition: opacity ease 400ms, width 0s, height 0s; }
-@media (min-width: 50rem) { .search-active .main { position: fixed; } }
+@media (min-width: 50rem) { .search-active .main { position: fixed; right: 0; left: 0; } }
 .search-active .main-header { padding-top: 4rem; }
 @media (min-width: 50rem) { .search-active .main-header { padding-top: 0; } }
 
