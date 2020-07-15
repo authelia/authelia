@@ -14,7 +14,7 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fasthttp/router v1.2.2
 	github.com/fasthttp/session/v2 v2.1.1
-	github.com/go-ldap/ldap/v3 v3.2.1
+	github.com/go-ldap/ldap/v3 v3.2.2
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.4.3
 	github.com/jackc/pgx/v4 v4.7.1
@@ -32,6 +32,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
-	github.com/valyala/fasthttp v1.14.0
+	github.com/valyala/fasthttp v1.15.1
 	gopkg.in/yaml.v2 v2.3.0
 )
