@@ -631,7 +631,7 @@
   },"105": {
     "doc": "PostgreSQL",
     "title": "SSL Mode",
-    "content": "SSL mode configures how to handle SSL connections with Postgres. Valid options are ‘disable’, ‘require’, ‘verify-ca’, or ‘verify-full’. See the PostgreSQL Documentation or Pure Go Postgres driver Documentation for more information. ",
+    "content": "SSL mode configures how to handle SSL connections with Postgres. Valid options are ‘disable’, ‘require’, ‘verify-ca’, or ‘verify-full’. See the PostgreSQL Documentation or pgx - PostgreSQL Driver and Toolkit Documentation for more information. ",
     "url": "/docs/configuration/storage/postgres.html#ssl-mode",
     "relUrl": "/configuration/storage/postgres.html#ssl-mode"
   },"106": {
