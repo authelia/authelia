@@ -25,7 +25,7 @@ storage:
 SSL mode configures how to handle SSL connections with Postgres. 
 Valid options are 'disable', 'require', 'verify-ca', or 'verify-full'.
 See the [PostgreSQL Documentation](https://www.postgresql.org/docs/12/libpq-ssl.html)
-or [Pure Go Postgres driver Documentation](https://godoc.org/github.com/lib/pq) 
+or [pgx - PostgreSQL Driver and Toolkit Documentation](https://pkg.go.dev/github.com/jackc/pgx?tab=doc) 
 for more information.
 
 ## Loading a password from a secret instead of inside the configuration

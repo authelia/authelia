@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	aletheia.icu/broccoli/fs v0.0.0-20200420200651-c5ac961a357a
+	github.com/DATA-DOG/go-sqlmock v1.4.1
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/Workiva/go-datastructures v1.0.52
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a
@@ -16,7 +17,8 @@ require (
 	github.com/go-ldap/ldap/v3 v3.2.2
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.4.3
-	github.com/lib/pq v1.7.0
+	github.com/jackc/pgx/v4 v4.7.1
+	github.com/lib/pq v1.7.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect

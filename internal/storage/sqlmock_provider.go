@@ -1,22 +1,21 @@
 package storage
 
 import (
-	"database/sql"
 	"fmt"
 
-	_ "github.com/mattn/go-sqlite3" // Load the SQLite Driver used in the connection string.
+	"github.com/DATA-DOG/go-sqlmock"
 )
 
-// SQLiteProvider is a SQLite3 provider.
-type SQLiteProvider struct {
+// SQLMockProvider is a SQLMock provider.
+type SQLMockProvider struct {
 	SQLProvider
 }
 
-// NewSQLiteProvider constructs a SQLite provider.
-func NewSQLiteProvider(path string) *SQLiteProvider {
-	provider := SQLiteProvider{
+// NewSQLMockProvider constructs a SQLMock provider.
+func NewSQLMockProvider() (*SQLMockProvider, sqlmock.Sqlmock) {
+	provider := SQLMockProvider{
 		SQLProvider{
-			name: "sqlite",
+			name: "sqlmock",
 
 			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
 			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
@@ -45,14 +44,17 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 		},
 	}
 
-	db, err := sql.Open("sqlite3", path)
+	db, mock, err := sqlmock.New()
+
 	if err != nil {
-		provider.log.Fatalf("Unable to create SQL database %s: %s", path, err)
+		provider.log.Fatalf("Unable to create SQL database: %s", err)
 	}
 
-	if err := provider.initialize(db); err != nil {
-		provider.log.Fatalf("Unable to initialize SQL database %s: %s", path, err)
-	}
+	provider.db = db
 
-	return &provider
+	/*
+		We do initialize in the tests rather than in the new up.
+	*/
+
+	return &provider, mock
 }
