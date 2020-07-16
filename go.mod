@@ -17,7 +17,7 @@ require (
 	github.com/go-ldap/ldap/v3 v3.2.2
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.4.3
-	github.com/jackc/pgx/v4 v4.7.1
+	github.com/jackc/pgx/v4 v4.7.2
 	github.com/lib/pq v1.7.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/onsi/ginkgo v1.10.3 // indirect
