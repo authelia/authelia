@@ -12,7 +12,7 @@ RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn build
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.14.4-alpine AS builder-backend
+FROM golang:1.14.5-alpine AS builder-backend
 
 ARG BUILD_TAG
 ARG BUILD_COMMIT
