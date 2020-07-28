@@ -64,13 +64,21 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 		link := fmt.Sprintf("%s://%s%s%s?token=%s", ctx.XForwardedProto(),
 			ctx.XForwardedHost(), ctx.Configuration.Server.Path, args.TargetEndpoint, ss)
 
-		params := map[string]interface{}{
-			"title":  args.MailTitle,
-			"url":    link,
-			"button": args.MailButtonContent,
+		bufHTML := new(bytes.Buffer)
+		bufText := new(bytes.Buffer)
+
+		if ctx.Configuration.Notifier.SMTP != nil && !ctx.Configuration.Notifier.SMTP.DisableHTMLEmails {
+			params := map[string]interface{}{
+				"title":  args.MailTitle,
+				"url":    link,
+				"button": args.MailButtonContent,
+			}
+			err = templates.HTMLEmailTemplate.Execute(bufHTML, params)
 		}
-		buf := new(bytes.Buffer)
-		err = templates.EmailTemplate.Execute(buf, params)
+		params := map[string]interface{}{
+			"url": link,
+		}
+		err = templates.PlainTextEmailTemplate.Execute(bufText, params)
 
 		if err != nil {
 			ctx.Error(err, operationFailedMessage)
@@ -80,7 +88,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		err = ctx.Providers.Notifier.Send(identity.Email, args.MailTitle, buf.String())
+		err = ctx.Providers.Notifier.Send(identity.Email, args.MailTitle, bufText.String(), bufHTML.String())
 
 		if err != nil {
 			ctx.Error(err, operationFailedMessage)

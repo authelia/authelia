@@ -17,6 +17,7 @@ type SMTPNotifierConfiguration struct {
 	StartupCheckAddress string `mapstructure:"startup_check_address"`
 	DisableVerifyCert   bool   `mapstructure:"disable_verify_cert"`
 	DisableRequireTLS   bool   `mapstructure:"disable_require_tls"`
+	DisableHTMLEmails   bool   `mapstructure:"disable_html_emails"`
 }
 
 // NotifierConfiguration represents the configuration of the notifier to use when sending notifications to users.

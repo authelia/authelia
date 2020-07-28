@@ -173,7 +173,7 @@ func (n *SMTPNotifier) auth() error {
 	return nil
 }
 
-func (n *SMTPNotifier) compose(recipient, subject, body string) error {
+func (n *SMTPNotifier) compose(recipient, subject, body, htmlBody string) error {
 	log.Debugf("Notifier SMTP client attempting to send email body to %s", recipient)
 
 	if !n.disableRequireTLS {
@@ -192,8 +192,13 @@ func (n *SMTPNotifier) compose(recipient, subject, body string) error {
 	msg := "From: " + n.sender + "\n" +
 		"To: " + recipient + "\n" +
 		"Subject: " + subject + "\n" +
-		"MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n" +
-		body
+		"MIME-version: 1.0;\nContent-Type: multipart/mixed; boundary=\"authelia-boundary\";\n\n"
+
+	msg += "--authelia-boundary\nContent-Type: text/plain; charset=\"UTF-8\";\n\n" + body + "\n"
+	if htmlBody != "" {
+		msg += "--authelia-boundary\nContent-Type: text/html; charset=\"UTF-8\";\n\n" + htmlBody + "\n"
+	}
+	msg += "--authelia-boundary--"
 
 	_, err = fmt.Fprint(wc, msg)
 	if err != nil {
@@ -282,7 +287,7 @@ func (n *SMTPNotifier) StartupCheck() (bool, error) {
 }
 
 // Send is used to send an email to a recipient.
-func (n *SMTPNotifier) Send(recipient, title, body string) error {
+func (n *SMTPNotifier) Send(recipient, title, body, htmlBody string) error {
 	subject := strings.ReplaceAll(n.subject, "{title}", title)
 
 	if err := n.dial(); err != nil {
@@ -313,7 +318,7 @@ func (n *SMTPNotifier) Send(recipient, title, body string) error {
 	}
 
 	// Compose and send the email body to the server.
-	if err := n.compose(recipient, subject, body); err != nil {
+	if err := n.compose(recipient, subject, body, htmlBody); err != nil {
 		return err
 	}
 

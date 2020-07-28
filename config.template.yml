@@ -408,6 +408,7 @@ notifier:
     trusted_cert: ""
     disable_require_tls: false
     disable_verify_cert: false
+    disable_html_emails: false
 
   # Sending an email using a Gmail account is as simple as the next section.
   # You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
