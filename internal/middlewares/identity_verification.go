@@ -68,12 +68,16 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 		bufText := new(bytes.Buffer)
 
 		if ctx.Configuration.Notifier.SMTP != nil && !ctx.Configuration.Notifier.SMTP.DisableHTMLEmails {
-			params := map[string]interface{}{
+			htmlParams := map[string]interface{}{
 				"title":  args.MailTitle,
 				"url":    link,
 				"button": args.MailButtonContent,
 			}
-			err = templates.HTMLEmailTemplate.Execute(bufHTML, params)
+			err = templates.HTMLEmailTemplate.Execute(bufHTML, htmlParams)
+			if err != nil {
+				ctx.Error(err, operationFailedMessage)
+				return
+			}
 		}
 		params := map[string]interface{}{
 			"url": link,

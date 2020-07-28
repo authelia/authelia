@@ -8,7 +8,7 @@ import (
 var HTMLEmailTemplate *template.Template
 
 func init() {
-	t, err := template.New("email_template").Parse(emailHTMLContent)
+	t, err := template.New("html_email_template").Parse(emailHTMLContent)
 	if err != nil {
 		panic(err)
 	}

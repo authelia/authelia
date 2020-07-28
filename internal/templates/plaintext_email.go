@@ -8,7 +8,7 @@ import (
 var PlainTextEmailTemplate *template.Template
 
 func init() {
-	t, err := template.New("email_template").Parse(emailPlainTextContent)
+	t, err := template.New("text_email_template").Parse(emailPlainTextContent)
 	if err != nil {
 		panic(err)
 	}

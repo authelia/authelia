@@ -83,7 +83,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
-
+	assert.NoError(t, mock.Ctx.Err())
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "no notif", mock.Hook.LastEntry().Message)
 }
@@ -143,6 +143,7 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
+	assert.NoError(t, mock.Ctx.Err())
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 }
 
