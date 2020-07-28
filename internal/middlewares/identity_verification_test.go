@@ -83,7 +83,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
-	assert.NoError(t, mock.Ctx.Err())
+
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "no notif", mock.Hook.LastEntry().Message)
 }
@@ -126,7 +126,6 @@ func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
 
 func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
-	defer mock.Close()
 
 	mock.Ctx.Configuration.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
@@ -143,8 +142,9 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
-	assert.NoError(t, mock.Ctx.Err())
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	defer mock.Close()
 }
 
 // Test Finish process.

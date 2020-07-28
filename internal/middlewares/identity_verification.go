@@ -65,24 +65,33 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			ctx.XForwardedHost(), ctx.Configuration.Server.Path, args.TargetEndpoint, ss)
 
 		bufHTML := new(bytes.Buffer)
-		bufText := new(bytes.Buffer)
 
-		if ctx.Configuration.Notifier.SMTP != nil && !ctx.Configuration.Notifier.SMTP.DisableHTMLEmails {
+		disableHTML := false
+		if ctx.Configuration.Notifier != nil && ctx.Configuration.Notifier.SMTP != nil {
+			disableHTML = ctx.Configuration.Notifier.SMTP.DisableHTMLEmails
+		}
+
+		if !disableHTML {
 			htmlParams := map[string]interface{}{
 				"title":  args.MailTitle,
 				"url":    link,
 				"button": args.MailButtonContent,
 			}
+
 			err = templates.HTMLEmailTemplate.Execute(bufHTML, htmlParams)
+
 			if err != nil {
 				ctx.Error(err, operationFailedMessage)
 				return
 			}
 		}
-		params := map[string]interface{}{
+
+		bufText := new(bytes.Buffer)
+		textParams := map[string]interface{}{
 			"url": link,
 		}
-		err = templates.PlainTextEmailTemplate.Execute(bufText, params)
+
+		err = templates.PlainTextEmailTemplate.Execute(bufText, textParams)
 
 		if err != nil {
 			ctx.Error(err, operationFailedMessage)
