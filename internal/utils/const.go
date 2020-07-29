@@ -29,3 +29,5 @@ const Month = Year / 12
 const RFC3339Zero = int64(-62135596800)
 
 const testStringInput = "abcdefghijkl"
+
+var AlphaNumericCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")

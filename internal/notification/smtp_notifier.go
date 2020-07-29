@@ -189,16 +189,25 @@ func (n *SMTPNotifier) compose(recipient, subject, body, htmlBody string) error 
 		return err
 	}
 
+	boundary := utils.RandomString(30, utils.AlphaNumericCharacters)
+
 	msg := "From: " + n.sender + "\n" +
 		"To: " + recipient + "\n" +
 		"Subject: " + subject + "\n" +
-		"MIME-version: 1.0;\nContent-Type: multipart/mixed; boundary=\"authelia-boundary\";\n\n"
+		"MIME-version: 1.0\n" +
+		"Content-Type: multipart/alternative; boundary=" + boundary + "\n\n" +
+		"--" + boundary + "\n" +
+		"Content-Type: text/plain; charset=\"UTF-8\"\n" +
+		"Content-Transfer-Encoding: quoted-printable\n" +
+		"Content-Disposition: inline\n\n" +
+		body + "\n"
 
-	msg += "--authelia-boundary\nContent-Type: text/plain; charset=\"UTF-8\";\n\n" + body + "\n"
 	if htmlBody != "" {
-		msg += "--authelia-boundary\nContent-Type: text/html; charset=\"UTF-8\";\n\n" + htmlBody + "\n"
+		msg += "--" + boundary + "\n" +
+			"Content-Type: text/html; charset=\"UTF-8\"\n\n" +
+			htmlBody + "\n"
 	}
-	msg += "--authelia-boundary--"
+	msg += "--" + boundary + "--"
 
 	_, err = fmt.Fprint(wc, msg)
 	if err != nil {
