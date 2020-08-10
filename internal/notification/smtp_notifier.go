@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/smtp"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -191,7 +192,10 @@ func (n *SMTPNotifier) compose(recipient, subject, body, htmlBody string) error 
 
 	boundary := utils.RandomString(30, utils.AlphaNumericCharacters)
 
-	msg := "From: " + n.sender + "\n" +
+	now := time.Now()
+
+	msg := "Date:" + now.Format(rfc5322DateTimeLayout) + "\n" +
+		"From: " + n.sender + "\n" +
 		"To: " + recipient + "\n" +
 		"Subject: " + subject + "\n" +
 		"MIME-version: 1.0\n" +
