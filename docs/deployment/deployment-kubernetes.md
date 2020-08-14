@@ -13,7 +13,7 @@ nav_order: 3
 
 UNDER CONSTRUCTION
 
-## Notes
+## FAQ
 
 ### RAM usage
 
