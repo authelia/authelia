@@ -16,8 +16,8 @@ require (
 	github.com/fasthttp/session/v2 v2.2.1
 	github.com/go-ldap/ldap/v3 v3.2.3
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/golang/mock v1.4.3
-	github.com/jackc/pgx/v4 v4.8.0
+	github.com/golang/mock v1.4.4
+	github.com/jackc/pgx/v4 v4.8.1
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
@@ -27,7 +27,7 @@ require (
 	github.com/simia-tech/crypt v0.4.3
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v0.0.7
-	github.com/spf13/viper v1.7.0
+	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
