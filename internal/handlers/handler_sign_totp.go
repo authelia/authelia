@@ -26,7 +26,6 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 			return
 		}
 
-		ctx.Logger.Debug("TOTP algorithm is %s", algorithm)
 		isValid, err := totpVerifier.Verify(bodyJSON.Token, secret, algorithm)
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error occurred during OTP validation for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)

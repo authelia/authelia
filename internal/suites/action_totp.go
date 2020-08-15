@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
 )
@@ -31,7 +32,14 @@ func (wds *WebDriverSession) doEnterOTP(ctx context.Context, t *testing.T, code 
 }
 
 func (wds *WebDriverSession) doValidateTOTP(ctx context.Context, t *testing.T, secret string) {
-	code, err := totp.GenerateCode(secret, time.Now())
+	opts := totp.ValidateOpts{
+		Period:    30,
+		Skew:      1,
+		Digits:    otp.DigitsSix,
+		Algorithm: otp.AlgorithmSHA512,
+	}
+
+	code, err := totp.GenerateCodeCustom(secret, time.Now(), opts)
 	assert.NoError(t, err)
 	wds.doEnterOTP(ctx, t, code)
 }
