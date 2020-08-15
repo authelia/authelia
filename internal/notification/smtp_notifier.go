@@ -211,6 +211,7 @@ func (n *SMTPNotifier) compose(recipient, subject, body, htmlBody string) error 
 			"Content-Type: text/html; charset=\"UTF-8\"\n\n" +
 			htmlBody + "\n"
 	}
+
 	msg += "--" + boundary + "--"
 
 	_, err = fmt.Fprint(wc, msg)
