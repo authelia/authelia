@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-const storageSchemaCurrentVersion = SchemaVersion(1)
+const storageSchemaCurrentVersion = SchemaVersion(2)
 const storageSchemaUpgradeMessage = "Storage schema upgraded to v"
 const storageSchemaUpgradeErrorText = "storage schema upgrade failed at v"
 

@@ -59,7 +59,7 @@ func loadInfo(username string, storageProvider storage.Provider, userInfo *UserI
 	go func() {
 		defer wg.Done()
 
-		_, err := storageProvider.LoadTOTPSecret(username)
+		_, _, err := storageProvider.LoadTOTPSecret(username)
 		if err != nil {
 			if err == storage.ErrNoTOTPSecret {
 				return

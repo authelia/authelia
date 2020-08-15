@@ -20,13 +20,13 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 
 		userSession := ctx.GetSession()
 
-		secret, err := ctx.Providers.StorageProvider.LoadTOTPSecret(userSession.Username)
+		secret, algorithm, err := ctx.Providers.StorageProvider.LoadTOTPSecret(userSession.Username)
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to load TOTP secret: %s", err), mfaValidationFailedMessage)
 			return
 		}
 
-		isValid, err := totpVerifier.Verify(bodyJSON.Token, secret)
+		isValid, err := totpVerifier.Verify(bodyJSON.Token, secret, algorithm)
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error occurred during OTP validation for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
 			return

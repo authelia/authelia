@@ -16,8 +16,8 @@ type Provider interface {
 	SaveIdentityVerificationToken(token string) error
 	RemoveIdentityVerificationToken(token string) error
 
-	SaveTOTPSecret(username string, secret string) error
-	LoadTOTPSecret(username string) (string, error)
+	SaveTOTPSecret(username string, secret string, algorithm string) error
+	LoadTOTPSecret(username string) (string, string, error)
 	DeleteTOTPSecret(username string) error
 
 	SaveU2FDeviceHandle(username string, keyHandle []byte, publicKey []byte) error

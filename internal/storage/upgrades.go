@@ -74,3 +74,24 @@ func (p *SQLProvider) upgradeSchemaToVersion001(tx transaction, tables []string)
 
 	return nil
 }
+
+func (p *SQLProvider) upgradeSchemaToVersion002(tx transaction) error {
+	version := SchemaVersion(2)
+
+	_, err := tx.Exec(p.sqlUpgradesV002TOTPAlgorithm)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(p.sqlUpgradesV002TOTPUpdateAlgorithm)
+	if err != nil {
+		return err
+	}
+
+	err = p.upgradeFinalize(tx, version)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

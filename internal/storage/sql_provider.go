@@ -22,6 +22,9 @@ type SQLProvider struct {
 	sqlUpgradesCreateTableStatements        map[SchemaVersion]map[string]string
 	sqlUpgradesCreateTableIndexesStatements map[SchemaVersion][]string
 
+	sqlUpgradesV002TOTPAlgorithm       string
+	sqlUpgradesV002TOTPUpdateAlgorithm string
+
 	sqlGetPreferencesByUsername     string
 	sqlUpsertSecondFactorPreference string
 
@@ -112,6 +115,13 @@ func (p *SQLProvider) upgrade() error {
 			}
 
 			fallthrough
+		case 1:
+			err := p.upgradeSchemaToVersion002(tx)
+			if err != nil {
+				return p.handleUpgradeFailure(tx, 2, err)
+			}
+
+			fallthrough
 		default:
 			err := tx.Commit()
 			if err != nil {
@@ -188,23 +198,23 @@ func (p *SQLProvider) RemoveIdentityVerificationToken(token string) error {
 }
 
 // SaveTOTPSecret save a TOTP secret of a given user in the database.
-func (p *SQLProvider) SaveTOTPSecret(username string, secret string) error {
-	_, err := p.db.Exec(p.sqlUpsertTOTPSecret, username, secret)
+func (p *SQLProvider) SaveTOTPSecret(username string, secret string, algorithm string) error {
+	_, err := p.db.Exec(p.sqlUpsertTOTPSecret, username, secret, algorithm)
 	return err
 }
 
 // LoadTOTPSecret load a TOTP secret given a username from the database.
-func (p *SQLProvider) LoadTOTPSecret(username string) (string, error) {
-	var secret string
-	if err := p.db.QueryRow(p.sqlGetTOTPSecretByUsername, username).Scan(&secret); err != nil {
+func (p *SQLProvider) LoadTOTPSecret(username string) (string, string, error) {
+	var secret, algorithm string
+	if err := p.db.QueryRow(p.sqlGetTOTPSecretByUsername, username).Scan(&secret, &algorithm); err != nil {
 		if err == sql.ErrNoRows {
-			return "", ErrNoTOTPSecret
+			return "", "", ErrNoTOTPSecret
 		}
 
-		return "", err
+		return "", "", err
 	}
 
-	return secret, nil
+	return secret, algorithm, nil
 }
 
 // DeleteTOTPSecret delete a TOTP secret from the database given a username.

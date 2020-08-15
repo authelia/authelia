@@ -21,6 +21,9 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
 			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
 
+			sqlUpgradesV002TOTPAlgorithm:       fmt.Sprintf("ALTER TABLE %s ADD algorithm VARCHAR(10) DEFAULT 'sha512' NOT NULL", totpSecretsTableName),
+			sqlUpgradesV002TOTPUpdateAlgorithm: fmt.Sprintf("UPDATE %s SET algorithm = 'sha1'", totpSecretsTableName),
+
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", userPreferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", userPreferencesTableName),
 
@@ -28,8 +31,8 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 			sqlInsertIdentityVerificationToken:        fmt.Sprintf("INSERT INTO %s (token) VALUES (?)", identityVerificationTokensTableName),
 			sqlDeleteIdentityVerificationToken:        fmt.Sprintf("DELETE FROM %s WHERE token=?", identityVerificationTokensTableName),
 
-			sqlGetTOTPSecretByUsername: fmt.Sprintf("SELECT secret FROM %s WHERE username=?", totpSecretsTableName),
-			sqlUpsertTOTPSecret:        fmt.Sprintf("REPLACE INTO %s (username, secret) VALUES (?, ?)", totpSecretsTableName),
+			sqlGetTOTPSecretByUsername: fmt.Sprintf("SELECT secret, algorithm FROM %s WHERE username=?", totpSecretsTableName),
+			sqlUpsertTOTPSecret:        fmt.Sprintf("REPLACE INTO %s (username, secret, algorithm) VALUES (?, ?, ?)", totpSecretsTableName),
 			sqlDeleteTOTPSecret:        fmt.Sprintf("DELETE FROM %s WHERE username=?", totpSecretsTableName),
 
 			sqlGetU2FDeviceHandleByUsername: fmt.Sprintf("SELECT keyHandle, publicKey FROM %s WHERE username=?", u2fDeviceHandlesTableName),

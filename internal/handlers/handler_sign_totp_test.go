@@ -37,10 +37,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPSecret(gomock.Any()).
-		Return("secret", nil)
+		Return("secret", "sha512", nil)
 
 	verifier.EXPECT().
-		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
+		Verify(gomock.Eq("abc"), gomock.Eq("secret"), gomock.Eq("sha512")).
 		Return(true, nil)
 
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
@@ -62,10 +62,10 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPSecret(gomock.Any()).
-		Return("secret", nil)
+		Return("secret", "sha512", nil)
 
 	verifier.EXPECT().
-		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
+		Verify(gomock.Eq("abc"), gomock.Eq("secret"), gomock.Eq("sha512")).
 		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
@@ -83,10 +83,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPSecret(gomock.Any()).
-		Return("secret", nil)
+		Return("secret", "sha512", nil)
 
 	verifier.EXPECT().
-		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
+		Verify(gomock.Eq("abc"), gomock.Eq("secret"), gomock.Eq("sha512")).
 		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
@@ -107,10 +107,10 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPSecret(gomock.Any()).
-		Return("secret", nil)
+		Return("secret", "sha512", nil)
 
 	verifier.EXPECT().
-		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
+		Verify(gomock.Eq("abc"), gomock.Eq("secret"), gomock.Eq("sha512")).
 		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
@@ -129,10 +129,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPSecret(gomock.Any()).
-		Return("secret", nil)
+		Return("secret", "sha512", nil)
 
 	verifier.EXPECT().
-		Verify(gomock.Eq("abc"), gomock.Eq("secret")).
+		Verify(gomock.Eq("abc"), gomock.Eq("secret"), gomock.Eq("sha512")).
 		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{

@@ -34,16 +34,16 @@ func (m *MockTOTPVerifier) EXPECT() *MockTOTPVerifierMockRecorder {
 }
 
 // Verify mocks base method
-func (m *MockTOTPVerifier) Verify(token, secret string) (bool, error) {
+func (m *MockTOTPVerifier) Verify(token, secret, algorithm string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Verify", token, secret)
+	ret := m.ctrl.Call(m, "Verify", token, secret, algorithm)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Verify indicates an expected call of Verify
-func (mr *MockTOTPVerifierMockRecorder) Verify(token, secret interface{}) *gomock.Call {
+func (mr *MockTOTPVerifierMockRecorder) Verify(token, secret, algorithm interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockTOTPVerifier)(nil).Verify), token, secret)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockTOTPVerifier)(nil).Verify), token, secret, algorithm)
 }

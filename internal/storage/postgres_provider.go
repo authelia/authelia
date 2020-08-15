@@ -24,6 +24,9 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
 			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
 
+			sqlUpgradesV002TOTPAlgorithm:       fmt.Sprintf("ALTER TABLE %s ADD algorithm VARCHAR(10) DEFAULT 'sha512' NOT NULL", totpSecretsTableName),
+			sqlUpgradesV002TOTPUpdateAlgorithm: fmt.Sprintf("UPDATE %s SET algorithm = 'sha1'", totpSecretsTableName),
+
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=$1", userPreferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("INSERT INTO %s (username, second_factor_method) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET second_factor_method=$2", userPreferencesTableName),
 
@@ -31,8 +34,8 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 			sqlInsertIdentityVerificationToken:        fmt.Sprintf("INSERT INTO %s (token) VALUES ($1)", identityVerificationTokensTableName),
 			sqlDeleteIdentityVerificationToken:        fmt.Sprintf("DELETE FROM %s WHERE token=$1", identityVerificationTokensTableName),
 
-			sqlGetTOTPSecretByUsername: fmt.Sprintf("SELECT secret FROM %s WHERE username=$1", totpSecretsTableName),
-			sqlUpsertTOTPSecret:        fmt.Sprintf("INSERT INTO %s (username, secret) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET secret=$2", totpSecretsTableName),
+			sqlGetTOTPSecretByUsername: fmt.Sprintf("SELECT secret, algorithm FROM %s WHERE username=$1", totpSecretsTableName),
+			sqlUpsertTOTPSecret:        fmt.Sprintf("INSERT INTO %s (username, secret, algorithm) VALUES ($1, $2, $3) ON CONFLICT (username) DO UPDATE SET secret=$2, algorithm=$3", totpSecretsTableName),
 			sqlDeleteTOTPSecret:        fmt.Sprintf("DELETE FROM %s WHERE username=$1", totpSecretsTableName),
 
 			sqlGetU2FDeviceHandleByUsername: fmt.Sprintf("SELECT keyHandle, publicKey FROM %s WHERE username=$1", u2fDeviceHandlesTableName),

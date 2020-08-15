@@ -52,15 +52,16 @@ func setPreferencesExpectations(preferences UserInfo, provider *storage.MockProv
 
 	if preferences.HasTOTP {
 		totpSecret := "secret"
+		algorithm := "sha512"
 		provider.
 			EXPECT().
 			LoadTOTPSecret(gomock.Eq("john")).
-			Return(totpSecret, nil)
+			Return(totpSecret, algorithm, nil)
 	} else {
 		provider.
 			EXPECT().
 			LoadTOTPSecret(gomock.Eq("john")).
-			Return("", storage.ErrNoTOTPSecret)
+			Return("", "", storage.ErrNoTOTPSecret)
 	}
 }
 
@@ -129,7 +130,7 @@ func (s *FetchSuite) TestShouldGetDefaultPreferenceIfNotInDB() {
 	s.mock.StorageProviderMock.
 		EXPECT().
 		LoadTOTPSecret(gomock.Eq("john")).
-		Return("", storage.ErrNoTOTPSecret)
+		Return("", "", storage.ErrNoTOTPSecret)
 
 	UserInfoGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), UserInfo{Method: "totp"})

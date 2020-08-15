@@ -16,7 +16,7 @@ import (
 	"github.com/authelia/authelia/internal/models"
 )
 
-const currentSchemaMockSchemaVersion = "1"
+const currentSchemaMockSchemaVersion = "2"
 
 func TestSQLInitializeDatabase(t *testing.T) {
 	provider, mock := NewSQLMockProvider()
@@ -48,6 +48,19 @@ func TestSQLInitializeDatabase(t *testing.T) {
 	mock.ExpectExec(
 		fmt.Sprintf("REPLACE INTO %s \\(category, key_name, value\\) VALUES \\(\\?, \\?, \\?\\)", configTableName)).
 		WithArgs("schema", "version", "1").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectExec(
+		fmt.Sprintf("ALTER TABLE %s ADD COLUMN algorithm VARCHAR\\(10\\) DEFAULT 'sha512' NOT NULL", totpSecretsTableName)).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+
+	mock.ExpectExec(
+		fmt.Sprintf("UPDATE %s SET algorithm = 'sha1'", totpSecretsTableName)).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+
+	mock.ExpectExec(
+		fmt.Sprintf("REPLACE INTO %s \\(category, key_name, value\\) VALUES \\(\\?, \\?, \\?\\)", configTableName)).
+		WithArgs("schema", "version", "2").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -83,6 +96,19 @@ func TestSQLUpgradeDatabase(t *testing.T) {
 		WithArgs("schema", "version", "1").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
+	mock.ExpectExec(
+		fmt.Sprintf("ALTER TABLE %s ADD COLUMN algorithm VARCHAR\\(10\\) DEFAULT 'sha512' NOT NULL", totpSecretsTableName)).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+
+	mock.ExpectExec(
+		fmt.Sprintf("UPDATE %s SET algorithm = 'sha1'", totpSecretsTableName)).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+
+	mock.ExpectExec(
+		fmt.Sprintf("REPLACE INTO %s \\(category, key_name, value\\) VALUES \\(\\?, \\?, \\?\\)", configTableName)).
+		WithArgs("schema", "version", "2").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
 	mock.ExpectCommit()
 
 	err := provider.initialize(provider.db)
@@ -107,7 +133,7 @@ func TestSQLProviderMethodsAuthenticationLogs(t *testing.T) {
 		fmt.Sprintf("SELECT value FROM %s WHERE category=\\? AND key_name=\\?", configTableName)).
 		WithArgs(args...).
 		WillReturnRows(sqlmock.NewRows([]string{"value"}).
-			AddRow("1"))
+			AddRow(currentSchemaMockSchemaVersion))
 
 	err := provider.initialize(provider.db)
 	assert.NoError(t, err)
@@ -238,24 +264,26 @@ func TestSQLProviderMethodsTOTP(t *testing.T) {
 	assert.NoError(t, err)
 
 	pretendSecret := "abc123"
-	args = []driver.Value{unitTestUser, pretendSecret}
+	sha512 := "sha512"
+	args = []driver.Value{unitTestUser, pretendSecret, sha512}
 	mock.ExpectExec(
-		fmt.Sprintf("REPLACE INTO %s \\(username, secret\\) VALUES \\(\\?, \\?\\)", totpSecretsTableName)).
+		fmt.Sprintf("REPLACE INTO %s \\(username, secret, algorithm\\) VALUES \\(\\?, \\?, \\?\\)", totpSecretsTableName)).
 		WithArgs(args...).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err = provider.SaveTOTPSecret(unitTestUser, pretendSecret)
+	err = provider.SaveTOTPSecret(unitTestUser, pretendSecret, sha512)
 	assert.NoError(t, err)
 
 	args = []driver.Value{unitTestUser}
 	mock.ExpectQuery(
-		fmt.Sprintf("SELECT secret FROM %s WHERE username=\\?", totpSecretsTableName)).
+		fmt.Sprintf("SELECT secret, algorithm FROM %s WHERE username=\\?", totpSecretsTableName)).
 		WithArgs(args...).
-		WillReturnRows(sqlmock.NewRows([]string{"secret"}).AddRow(pretendSecret))
+		WillReturnRows(sqlmock.NewRows([]string{"secret", "algorithm"}).AddRow(pretendSecret, sha512))
 
-	secret, err := provider.LoadTOTPSecret(unitTestUser)
+	secret, algorithm, err := provider.LoadTOTPSecret(unitTestUser)
 	assert.NoError(t, err)
 	assert.Equal(t, pretendSecret, secret)
+	assert.Equal(t, sha512, algorithm)
 
 	mock.ExpectExec(
 		fmt.Sprintf("DELETE FROM %s WHERE username=\\?", totpSecretsTableName)).
@@ -266,14 +294,15 @@ func TestSQLProviderMethodsTOTP(t *testing.T) {
 	assert.NoError(t, err)
 
 	mock.ExpectQuery(
-		fmt.Sprintf("SELECT secret FROM %s WHERE username=\\?", totpSecretsTableName)).
+		fmt.Sprintf("SELECT secret, algorithm FROM %s WHERE username=\\?", totpSecretsTableName)).
 		WithArgs(args...).
-		WillReturnRows(sqlmock.NewRows([]string{"secret"}))
+		WillReturnRows(sqlmock.NewRows([]string{"secret", "algorithm"}))
 
 	//Test Blank Rows
-	secret, err = provider.LoadTOTPSecret(unitTestUser)
+	secret, algorithm, err = provider.LoadTOTPSecret(unitTestUser)
 	assert.EqualError(t, err, "No TOTP secret registered")
 	assert.Equal(t, "", secret)
+	assert.Equal(t, "", algorithm)
 }
 
 func TestSQLProviderMethodsU2F(t *testing.T) {

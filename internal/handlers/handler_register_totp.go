@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 
+	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 
 	"github.com/authelia/authelia/internal/middlewares"
@@ -42,6 +43,7 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 		AccountName: username,
 		SecretSize:  32,
 		Period:      uint(ctx.Configuration.TOTP.Period),
+		Algorithm:   otp.AlgorithmSHA512,
 	})
 
 	if err != nil {
@@ -49,7 +51,7 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 		return
 	}
 
-	err = ctx.Providers.StorageProvider.SaveTOTPSecret(username, key.Secret())
+	err = ctx.Providers.StorageProvider.SaveTOTPSecret(username, key.Secret(), "sha512")
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to save TOTP secret in DB: %s", err), unableToRegisterOneTimePasswordMessage)
 		return
