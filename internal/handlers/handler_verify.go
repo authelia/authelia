@@ -67,7 +67,7 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
 	}
 
-	ctx.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
+	ctx.Logger.Tracef("Using X-Forwarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
 		"to construct targeted site URL")
 
 	return url, nil
@@ -228,7 +228,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, username string) {
 	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
 	// endpoint to provide the URL of the login portal. The target URL of the user
-	// is computed from X-Fowarded-* headers or X-Original-URL.
+	// is computed from X-Forwarded-* headers or X-Original-URL.
 	rd := string(ctx.QueryArgs().Peek("rd"))
 	if rd != "" {
 		redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
