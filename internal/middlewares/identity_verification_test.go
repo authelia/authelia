@@ -78,7 +78,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any()).
+		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(fmt.Errorf("no notif"))
 
 	args := newArgs(defaultRetriever)
@@ -126,7 +126,6 @@ func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
 
 func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
-	defer mock.Close()
 
 	mock.Ctx.Configuration.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
@@ -137,13 +136,15 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any()).
+		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(nil)
 
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	defer mock.Close()
 }
 
 // Test Finish process.

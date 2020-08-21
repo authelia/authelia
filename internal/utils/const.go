@@ -29,3 +29,6 @@ const Month = Year / 12
 const RFC3339Zero = int64(-62135596800)
 
 const testStringInput = "abcdefghijkl"
+
+// AlphaNumericCharacters are literally just valid alphanumeric chars.
+var AlphaNumericCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
