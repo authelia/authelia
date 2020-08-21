@@ -103,7 +103,7 @@ func TestShouldFailWhenXForwardedProtoHeaderIsMissing(t *testing.T) {
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
-	assert.Equal(t, "Missing header X-Fowarded-Proto", mock.Hook.LastEntry().Message)
+	assert.Equal(t, "Missing header X-Forwarded-Proto", mock.Hook.LastEntry().Message)
 }
 
 func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
@@ -121,7 +121,7 @@ func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
-	assert.Equal(t, "Missing header X-Fowarded-Host", mock.Hook.LastEntry().Message)
+	assert.Equal(t, "Missing header X-Forwarded-Host", mock.Hook.LastEntry().Message)
 }
 
 func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
