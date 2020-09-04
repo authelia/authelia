@@ -33,7 +33,7 @@ func TestShouldNotValidateBadKeys(t *testing.T) {
 }
 
 func TestAllSpecificErrorKeys(t *testing.T) {
-	var configKeys []string //nolint:prealloc // This is because the test is dynamic based on the keys that exist in the map
+	var configKeys []string //nolint:prealloc // This is because the test is dynamic based on the keys that exist in the map.
 
 	var uniqueValues []string
 
