@@ -31,7 +31,7 @@ func movingAverageIteration(value time.Duration, successful bool, movingAverageC
 }
 
 func calculateActualDelay(ctx *middlewares.AutheliaCtx, execDuration time.Duration, avgExecDurationMs float64, successful *bool) float64 {
-	randomDelayMs := float64(rand.Int63n(msMaximumRandomDelay))
+	randomDelayMs := float64(rand.Int63n(msMaximumRandomDelay)) //nolint:gosec // TODO: Consider use of crypto/rand, this should be benchmarked and measured first.
 	totalDelayMs := math.Max(avgExecDurationMs, msMinimumDelay1FA) + randomDelayMs
 	actualDelayMs := math.Max(totalDelayMs-float64(execDuration.Milliseconds()), 1.0)
 	ctx.Logger.Tracef("attempt successful: %t, exec duration: %d, avg execution duration: %d, random delay ms: %d, total delay ms: %d, actual delay ms: %d", *successful, execDuration.Milliseconds(), int64(avgExecDurationMs), int64(randomDelayMs), int64(totalDelayMs), int64(actualDelayMs))
