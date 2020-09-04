@@ -27,7 +27,7 @@ env:
 
 steps:
   - label: ":service_dog: Linting"
-    command: "reviewdog -reporter=github-check"
+    command: "reviewdog -reporter=github-check -fail-on-error"
     retry:
       automatic: true
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/
