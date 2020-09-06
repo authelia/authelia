@@ -20,15 +20,38 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-local http = require("socket.http")
+local http = require("haproxy-lua-http")
+
+function set_var_pre_2_2(txn, var, value)
+	return txn:set_var(var, value)
+end
+function set_var_post_2_2(txn, var, value)
+	return txn:set_var(var, value, true)
+end
+
+set_var = function(txn, var, value)
+	local success = pcall(set_var_post_2_2, txn, var, value)
+	if success then
+		set_var = set_var_post_2_2
+	else
+		set_var = set_var_pre_2_2
+	end
+
+	return set_var(txn, var, value)
+end
+
+function sanitize_header_for_variable(header)
+	return header:gsub("[^a-zA-Z0-9]", "_")
+end
+
 
 core.register_action("auth-request", { "http-req" }, function(txn, be, path)
-	txn:set_var("txn.auth_response_successful", false)
+	set_var(txn, "txn.auth_response_successful", false)
 
 	-- Check whether the given backend exists.
 	if core.backends[be] == nil then
 		txn:Alert("Unknown auth-request backend '" .. be .. "'")
-		txn:set_var("txn.auth_response_code", 500)
+		set_var(txn, "txn.auth_response_code", 500)
 		return
 	end
 
@@ -44,7 +67,7 @@ core.register_action("auth-request", { "http-req" }, function(txn, be, path)
 	end
 	if addr == nil then
 		txn:Warning("No servers available for auth-request backend: '" .. be .. "'")
-		txn:set_var("txn.auth_response_code", 500)
+		set_var(txn, "txn.auth_response_code", 500)
 		return
 	end
 
@@ -64,40 +87,33 @@ core.register_action("auth-request", { "http-req" }, function(txn, be, path)
 	end
 
 	-- Make request to backend.
-	local b, c, h = http.request {
+	local response, err = http.head {
 		url = "http://" .. addr .. path,
 		headers = headers,
-		create = core.tcp,
-		-- Disable redirects, because DNS does not work here.
-		redirect = false,
-		-- We do not check body, so HEAD
-		method = "HEAD",
 	}
 
 	-- Check whether we received a valid HTTP response.
-	if b == nil then
-		txn:Warning("Failure in auth-request backend '" .. be .. "': " .. c)
-		txn:set_var("txn.auth_response_code", 500)
+	if response == nil then
+		txn:Warning("Failure in auth-request backend '" .. be .. "': " .. err)
+		set_var(txn, "txn.auth_response_code", 500)
 		return
 	end
 
-	txn:set_var("txn.auth_response_code", c)
+	set_var(txn, "txn.auth_response_code", response.status_code)
+
+	for header, value in response:get_headers(true) do
+		set_var(txn, "req.auth_response_header." .. sanitize_header_for_variable(header), value)
+	end
 
 	-- 2xx: Allow request.
-    if 200 <= c and c < 300 then
-        if h["remote-user"] then
-            txn:set_var("txn.auth_user", h["remote-user"])
-        end
-        if h["remote-groups"] then
-            txn:set_var("txn.auth_groups", h["remote-groups"])
-        end
-		txn:set_var("txn.auth_response_successful", true)
+	if 200 <= response.status_code and response.status_code < 300 then
+		set_var(txn, "txn.auth_response_successful", true)
 	-- Don't allow other codes.
 	-- Codes with Location: Passthrough location at redirect.
-	elseif c == 301 or c == 302 or c == 303 or c == 307 or c == 308 then
-		txn:set_var("txn.auth_response_location", h["location"])
+	elseif response.status_code == 301 or response.status_code == 302 or response.status_code == 303 or response.status_code == 307 or response.status_code == 308 then
+		set_var(txn, "txn.auth_response_location", response:get_header("location", "last"))
 	-- 401 / 403: Do nothing, everything else: log.
-	elseif c ~= 401 and c ~= 403 then
-		txn:Warning("Invalid status code in auth-request backend '" .. be .. "': " .. c)
+	elseif response.status_code ~= 401 and response.status_code ~= 403 then
+		txn:Warning("Invalid status code in auth-request backend '" .. be .. "': " .. response.status_code)
 	end
 end, 2)
