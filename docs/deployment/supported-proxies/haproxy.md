@@ -19,7 +19,7 @@ You need the following to run Authelia with HAProxy:
   * [haproxy-lua-http](https://github.com/haproxytech/haproxy-lua-http) must be available within the Lua path
     * A `json` library within the Lua path (dependency of haproxy-lua-http, usually found as OS package `lua-json`)
     * With HAProxy 2.1.3+ you can use the [`lua-prepend-path`] configuration option to specify the search path.
-* [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
+  * [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
 
 
 ## Configuration
