@@ -127,6 +127,8 @@ backend be_nextcloud
 ##### haproxy.cfg (TLS enabled Authelia)
 ```
 global
+    # Path to haproxy-lua-http, below example assumes /usr/local/etc/haproxy/haproxy-lua-http/http.lua
+    lua-prepend-path /usr/local/etc/haproxy/?/http.lua
     # Path to haproxy-auth-request
     lua-load /usr/local/etc/haproxy/auth-request.lua
     log stdout format raw local0 debug
