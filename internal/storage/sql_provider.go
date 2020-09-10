@@ -22,8 +22,7 @@ type SQLProvider struct {
 	sqlUpgradesCreateTableStatements        map[SchemaVersion]map[string]string
 	sqlUpgradesCreateTableIndexesStatements map[SchemaVersion][]string
 
-	sqlUpgradesV002TOTPAlgorithm       string
-	sqlUpgradesV002TOTPUpdateAlgorithm string
+	sqlUpgradesV002TOTPAlgorithm string
 
 	sqlGetPreferencesByUsername     string
 	sqlUpsertSecondFactorPreference string

@@ -21,8 +21,7 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
 			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
 
-			sqlUpgradesV002TOTPAlgorithm:       fmt.Sprintf("ALTER TABLE %s ADD algorithm VARCHAR(10) DEFAULT 'sha512' NOT NULL", totpSecretsTableName),
-			sqlUpgradesV002TOTPUpdateAlgorithm: fmt.Sprintf("UPDATE %s SET algorithm = 'sha1'", totpSecretsTableName),
+			sqlUpgradesV002TOTPAlgorithm: fmt.Sprintf("ALTER TABLE %s ADD algorithm VARCHAR(10) DEFAULT 'sha1' NOT NULL", totpSecretsTableName),
 
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", userPreferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", userPreferencesTableName),

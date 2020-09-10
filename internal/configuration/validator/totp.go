@@ -1,7 +1,9 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
@@ -22,5 +24,14 @@ func ValidateTOTP(configuration *schema.TOTPConfiguration, validator *schema.Str
 		configuration.Skew = schema.DefaultTOTPConfiguration.Skew
 	} else if *configuration.Skew < 0 {
 		validator.Push(fmt.Errorf("TOTP Skew must be 0 or more"))
+	}
+
+	if configuration.Algorithm == "" {
+		configuration.Algorithm = "sha1"
+	} else {
+		configuration.Algorithm = strings.ToLower(configuration.Algorithm)
+		if configuration.Algorithm != "sha1" && configuration.Algorithm != "sha256" && configuration.Algorithm != "sha512" {
+			validator.Push(errors.New("TOTP Algorithm must be one of sha1, sha256, or sha512"))
+		}
 	}
 }

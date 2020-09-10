@@ -83,11 +83,6 @@ func (p *SQLProvider) upgradeSchemaToVersion002(tx transaction) error {
 		return err
 	}
 
-	_, err = tx.Exec(p.sqlUpgradesV002TOTPUpdateAlgorithm)
-	if err != nil {
-		return err
-	}
-
 	err = p.upgradeFinalize(tx, version)
 	if err != nil {
 		return err

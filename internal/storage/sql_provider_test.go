@@ -51,11 +51,7 @@ func TestSQLInitializeDatabase(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectExec(
-		fmt.Sprintf("ALTER TABLE %s ADD COLUMN algorithm VARCHAR\\(10\\) DEFAULT 'sha512' NOT NULL", totpSecretsTableName)).
-		WillReturnResult(sqlmock.NewResult(0, 0))
-
-	mock.ExpectExec(
-		fmt.Sprintf("UPDATE %s SET algorithm = 'sha1'", totpSecretsTableName)).
+		fmt.Sprintf("ALTER TABLE %s ADD COLUMN algorithm VARCHAR\\(10\\) DEFAULT 'sha1' NOT NULL", totpSecretsTableName)).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 
 	mock.ExpectExec(
@@ -97,11 +93,7 @@ func TestSQLUpgradeDatabase(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectExec(
-		fmt.Sprintf("ALTER TABLE %s ADD COLUMN algorithm VARCHAR\\(10\\) DEFAULT 'sha512' NOT NULL", totpSecretsTableName)).
-		WillReturnResult(sqlmock.NewResult(0, 0))
-
-	mock.ExpectExec(
-		fmt.Sprintf("UPDATE %s SET algorithm = 'sha1'", totpSecretsTableName)).
+		fmt.Sprintf("ALTER TABLE %s ADD COLUMN algorithm VARCHAR\\(10\\) DEFAULT 'sha1' NOT NULL", totpSecretsTableName)).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 
 	mock.ExpectExec(

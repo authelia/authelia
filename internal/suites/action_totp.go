@@ -36,7 +36,7 @@ func (wds *WebDriverSession) doValidateTOTP(ctx context.Context, t *testing.T, s
 		Period:    30,
 		Skew:      1,
 		Digits:    otp.DigitsSix,
-		Algorithm: otp.AlgorithmSHA512,
+		Algorithm: otp.AlgorithmSHA1,
 	}
 
 	code, err := totp.GenerateCodeCustom(secret, time.Now(), opts)

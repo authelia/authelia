@@ -14,6 +14,7 @@ full example of TOTP configuration below, as well as sections describing them.
 ```yaml
 totp:
   issuer: authelia.com
+  algorithm: sha1
   period: 30
   skew: 1
 ```
@@ -26,6 +27,15 @@ differentiate applications registered by the user.
 
 Authelia allows customisation of the issuer to differentiate the entry created
 by Authelia from others.
+
+## Algorithm
+
+The OTP algorithm can be chosen from one of 'md5', 'sha1', 'sha256', or 'sha512'. It's recommended
+to stick with the default of sha1 unless you absolutely know all of your users are using the same 
+authenticator application and that it supports the algorithm you've chosen.
+
+The Google Authenticator application does not appear to support anything other than sha1 at the time
+of this writing.
 
 ## Period and Skew
 

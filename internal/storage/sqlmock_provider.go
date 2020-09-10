@@ -23,8 +23,7 @@ func NewSQLMockProvider() (*SQLMockProvider, sqlmock.Sqlmock) {
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", userPreferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", userPreferencesTableName),
 
-			sqlUpgradesV002TOTPAlgorithm:       fmt.Sprintf("ALTER TABLE %s ADD COLUMN algorithm VARCHAR(10) DEFAULT 'sha512' NOT NULL", totpSecretsTableName),
-			sqlUpgradesV002TOTPUpdateAlgorithm: fmt.Sprintf("UPDATE %s SET algorithm = 'sha1'", totpSecretsTableName),
+			sqlUpgradesV002TOTPAlgorithm: fmt.Sprintf("ALTER TABLE %s ADD COLUMN algorithm VARCHAR(10) DEFAULT 'sha1' NOT NULL", totpSecretsTableName),
 
 			sqlTestIdentityVerificationTokenExistence: fmt.Sprintf("SELECT EXISTS (SELECT * FROM %s WHERE token=?)", identityVerificationTokensTableName),
 			sqlInsertIdentityVerificationToken:        fmt.Sprintf("INSERT INTO %s (token) VALUES (?)", identityVerificationTokensTableName),

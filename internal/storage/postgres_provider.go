@@ -24,8 +24,7 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
 			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
 
-			sqlUpgradesV002TOTPAlgorithm:       fmt.Sprintf("ALTER TABLE %s ADD algorithm VARCHAR(10) DEFAULT 'sha512' NOT NULL", totpSecretsTableName),
-			sqlUpgradesV002TOTPUpdateAlgorithm: fmt.Sprintf("UPDATE %s SET algorithm = 'sha1'", totpSecretsTableName),
+			sqlUpgradesV002TOTPAlgorithm: fmt.Sprintf("ALTER TABLE %s ADD algorithm VARCHAR(10) DEFAULT 'sha1' NOT NULL", totpSecretsTableName),
 
 			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=$1", userPreferencesTableName),
 			sqlUpsertSecondFactorPreference: fmt.Sprintf("INSERT INTO %s (username, second_factor_method) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET second_factor_method=$2", userPreferencesTableName),

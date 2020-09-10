@@ -25,6 +25,13 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	embeddedAssets := "/public_html"
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
+	logger := logging.Logger()
+
+	// Generic warnings about deprecated or not-recommended configuration options.
+	if configuration.TOTP.Algorithm != "sha1" {
+		logger.Warn("TOTP algorithm sha1 is highly recommended over anything else, it's the only algorithm" +
+			"supported by a majority of authenticator apps")
+	}
 
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
@@ -137,14 +144,14 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	listener, err := net.Listen("tcp", addrPattern)
 	if err != nil {
-		logging.Logger().Fatalf("Error initializing listener: %s", err)
+		logger.Fatalf("Error initializing listener: %s", err)
 	}
 
 	if configuration.TLSCert != "" && configuration.TLSKey != "" {
-		logging.Logger().Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
-		logging.Logger().Fatal(server.ServeTLS(listener, configuration.TLSCert, configuration.TLSKey))
+		logger.Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		logger.Fatal(server.ServeTLS(listener, configuration.TLSCert, configuration.TLSKey))
 	} else {
-		logging.Logger().Infof("Authelia is listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
-		logging.Logger().Fatal(server.Serve(listener))
+		logger.Infof("Authelia is listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		logger.Fatal(server.Serve(listener))
 	}
 }

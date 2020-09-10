@@ -20,6 +20,7 @@ var validKeys = []string{
 	"totp.issuer",
 	"totp.period",
 	"totp.skew",
+	"totp.algorithm",
 
 	// Access Control Keys.
 	"access_control.rules",
