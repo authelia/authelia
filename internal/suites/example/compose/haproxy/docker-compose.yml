@@ -4,6 +4,7 @@ services:
     build: ./example/compose/haproxy/
     volumes:
       - ./example/compose/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./example/compose/haproxy/http.lua:/usr/local/etc/haproxy/haproxy-lua-http/http.lua
       - ./example/compose/haproxy/auth-request.lua:/usr/local/etc/haproxy/auth-request.lua
     networks:
       authelianet:
