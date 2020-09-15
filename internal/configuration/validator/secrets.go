@@ -55,7 +55,7 @@ func getSecretValue(name string, validator *schema.StructValidator, viper *viper
 		if err != nil {
 			validator.Push(fmt.Errorf("error loading secret file (%s): %s", name, err))
 		} else {
-			return strings.Replace(string(content), "\n", "", -1)
+			return strings.ReplaceAll(string(content), "\n", "")
 		}
 	}
 
