@@ -20,17 +20,17 @@ func WithDatabase(content []byte, f func(path string)) {
 		log.Fatal(err)
 	}
 
-	defer os.Remove(tmpfile.Name()) // clean up
+	defer os.Remove(tmpfile.Name()) // Clean up
 
 	if _, err := tmpfile.Write(content); err != nil {
 		tmpfile.Close()
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
 	f(tmpfile.Name())
 
 	if err := tmpfile.Close(); err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 }
 

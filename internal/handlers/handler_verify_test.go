@@ -913,7 +913,6 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 
 func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
-	//defer mock.Close()
 
 	// Setup pointer to john so we can adjust it during the test.
 	user := &authentication.UserDetails{

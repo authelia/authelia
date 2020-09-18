@@ -270,7 +270,7 @@ func TestSQLProviderMethodsTOTP(t *testing.T) {
 		WithArgs(args...).
 		WillReturnRows(sqlmock.NewRows([]string{"secret"}))
 
-	//Test Blank Rows
+	// Test Blank Rows
 	secret, err = provider.LoadTOTPSecret(unitTestUser)
 	assert.EqualError(t, err, "No TOTP secret registered")
 	assert.Equal(t, "", secret)
