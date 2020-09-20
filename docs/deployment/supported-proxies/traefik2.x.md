@@ -105,7 +105,6 @@ services:
       - 'traefik.http.routers.nextcloud.middlewares=nextcloud-redirect@docker,authelia@docker'
       - 'traefik.http.middlewares.nextcloud-redirect.headers.customrequestheaders.X-ORIGINAL-URL=https://nextcloud.example.com"
 
-
     expose:
       - 443
     restart: unless-stopped
