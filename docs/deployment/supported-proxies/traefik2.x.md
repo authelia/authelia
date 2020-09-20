@@ -96,7 +96,16 @@ services:
       - 'traefik.http.routers.nextcloud.rule=Host(`nextcloud.example.com`)'
       - 'traefik.http.routers.nextcloud.entrypoints=https'
       - 'traefik.http.routers.nextcloud.tls=true'
+
+      # Option 1: Middleware with auth but no redirect
       - 'traefik.http.routers.nextcloud.middlewares=authelia@docker'
+
+      # Option 2: Middleware with auth with custom redirect after successful login
+      # note: redirect only used on logins, does not affect already-active sessions
+      - 'traefik.http.routers.nextcloud.middlewares=nextcloud-redirect@docker,authelia@docker'
+      - 'traefik.http.middlewares.nextcloud-redirect.headers.customrequestheaders.X-ORIGINAL-URL=https://nextcloud.example.com"
+
+
     expose:
       - 443
     restart: unless-stopped
