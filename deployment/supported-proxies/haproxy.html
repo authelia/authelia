@@ -36,7 +36,7 @@ frontend fe_http
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
     http-request set-var(req.questionmark) str(?) if { query -m found }
    
-    # Headers to construct redirection URL
+    # Required headers
     http-request set-header X-Real-IP %[src]
     http-request set-header X-Forwarded-Proto %[var(req.scheme)]
     http-request set-header X-Forwarded-Host %[req.hdr(Host)]
@@ -49,7 +49,7 @@ frontend fe_http
     # Authelia backend route
     use_backend be_authelia if host-authelia
     # Redirect protected-frontends to Authelia if not authenticated
-    use_backend be_authelia if protected-frontends !{ var(txn.auth_response_successful) -m bool }
+    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
     # Service backend route(s)
     use_backend be_nextcloud if host-nextcloud
 
@@ -89,7 +89,7 @@ frontend fe_http
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
     http-request set-var(req.questionmark) str(?) if { query -m found }
    
-    # Headers to construct redirection URL
+    # Required headers
     http-request set-header X-Real-IP %[src]
     http-request set-header X-Forwarded-Proto %[var(req.scheme)]
     http-request set-header X-Forwarded-Host %[req.hdr(Host)]
@@ -102,7 +102,7 @@ frontend fe_http
     # Authelia backend route
     use_backend be_authelia if host-authelia
     # Redirect protected-frontends to Authelia if not authenticated
-    use_backend be_authelia if protected-frontends !{ var(txn.auth_response_successful) -m bool }
+    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
     # Service backend route(s)
     use_backend be_nextcloud if host-nextcloud
 
