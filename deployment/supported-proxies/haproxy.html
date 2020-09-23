@@ -11,7 +11,7 @@
      server nextcloud nextcloud:443 ssl verify none
  backend be_phpmyadmin
      server phpmyadmin phpmyadmin:80
-</code></pre></div> </div> </li> </ol> <h3 id="secure-authelia-with-tls"> <a href="#secure-authelia-with-tls" class="anchor-heading" aria-labelledby="secure-authelia-with-tls"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Secure Authelia with TLS </h3> <p>There is a <a href="https://github.com/TimWolla/haproxy-auth-request/issues/12">known limitation</a> with haproxy-auth-request with regard to TLS-enabled backends. If you want to run Authelia TLS enabled the recommended workaround utilises HAProxy itself to proxy the requests. This comes at a cost of two additional TCP connections, but allows the full HAProxy configuration flexbility with regard to TLS verification as well as header rewriting. An example of this configuration is also be provided below.</p> <h4 id="configuration-1"> <a href="#configuration-1" class="anchor-heading" aria-labelledby="configuration-1"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Configuration </h4> <h5 id="haproxycfg"> <a href="#haproxycfg" class="anchor-heading" aria-labelledby="haproxycfg"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> haproxy.cfg </h5> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>global
+</code></pre></div> </div> </li> </ol> <h3 id="secure-authelia-with-tls"> <a href="#secure-authelia-with-tls" class="anchor-heading" aria-labelledby="secure-authelia-with-tls"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Secure Authelia with TLS </h3> <p>There is a <a href="https://github.com/TimWolla/haproxy-auth-request/issues/12">known limitation</a> with haproxy-auth-request with regard to TLS-enabled backends. If you want to run Authelia TLS enabled the recommended workaround utilises HAProxy itself to proxy the requests. This comes at a cost of two additional TCP connections, but allows the full HAProxy configuration flexibility with regard to TLS verification as well as header rewriting. An example of this configuration is also be provided below.</p> <h4 id="configuration-1"> <a href="#configuration-1" class="anchor-heading" aria-labelledby="configuration-1"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Configuration </h4> <h5 id="haproxycfg"> <a href="#haproxycfg" class="anchor-heading" aria-labelledby="haproxycfg"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> haproxy.cfg </h5> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>global
     # Path to haproxy-lua-http, below example assumes /usr/local/etc/haproxy/haproxy-lua-http/http.lua
     lua-prepend-path /usr/local/etc/haproxy/?/http.lua
     # Path to haproxy-auth-request
@@ -40,7 +40,6 @@ frontend fe_http
     http-request set-header X-Real-IP %[src]
     http-request set-header X-Forwarded-Proto %[var(req.scheme)]
     http-request set-header X-Forwarded-Host %[req.hdr(Host)]
-    http-request add-header X-Forwarded-Port %[dst_port]
     http-request set-header X-Forwarded-Uri %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
@@ -93,7 +92,6 @@ frontend fe_http
     http-request set-header X-Real-IP %[src]
     http-request set-header X-Forwarded-Proto %[var(req.scheme)]
     http-request set-header X-Forwarded-Host %[req.hdr(Host)]
-    http-request add-header X-Forwarded-Port %[dst_port]
     http-request set-header X-Forwarded-Uri %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
