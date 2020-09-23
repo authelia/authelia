@@ -62,7 +62,7 @@ backend upon successful authentication, for example:
 ### Secure Authelia with TLS
 There is a [known limitation](https://github.com/TimWolla/haproxy-auth-request/issues/12) with haproxy-auth-request with regard to TLS-enabled backends.
 If you want to run Authelia TLS enabled the recommended workaround utilises HAProxy itself to proxy the requests.
-This comes at a cost of two additional TCP connections, but allows the full HAProxy configuration flexbility with regard
+This comes at a cost of two additional TCP connections, but allows the full HAProxy configuration flexibility with regard
 to TLS verification as well as header rewriting. An example of this configuration is also be provided below.
 
 #### Configuration
@@ -98,7 +98,6 @@ frontend fe_http
     http-request set-header X-Real-IP %[src]
     http-request set-header X-Forwarded-Proto %[var(req.scheme)]
     http-request set-header X-Forwarded-Host %[req.hdr(Host)]
-    http-request add-header X-Forwarded-Port %[dst_port]
     http-request set-header X-Forwarded-Uri %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
@@ -155,7 +154,6 @@ frontend fe_http
     http-request set-header X-Real-IP %[src]
     http-request set-header X-Forwarded-Proto %[var(req.scheme)]
     http-request set-header X-Forwarded-Host %[req.hdr(Host)]
-    http-request add-header X-Forwarded-Port %[dst_port]
     http-request set-header X-Forwarded-Uri %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
