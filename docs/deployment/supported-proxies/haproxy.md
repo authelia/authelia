@@ -14,17 +14,12 @@ nav_order: 1
 
 You need the following to run Authelia with HAProxy:
 
-* HAProxy 1.8.4+
+* HAProxy 1.8.4+ (2.2.0+ recommended)
   * `USE_LUA=1` set at compile time
-* [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
-* LuaSocket with commit [0b03eec16b](https://github.com/diegonehab/luasocket/commit/0b03eec16be0b3a5efe71bcb8887719d1ea87d60) (that is: newer than 2014-11-10) in your Lua library path (`LUA_PATH`)
-  * `lua-socket` from Debian Stretch works
-  * `lua-socket` from Ubuntu Xenial works
-  * `lua-socket` from Ubuntu Bionic works
-  * `lua5.3-socket` from Alpine 3.8 works
-  * `luasocket` from luarocks *does not* work
-  * `lua-socket` v3.0.0.17.rc1 from EPEL *does not* work
-  * `lua-socket` from Fedora 28 *does not* work
+  * [haproxy-lua-http](https://github.com/haproxytech/haproxy-lua-http) must be available within the Lua path
+    * A `json` library within the Lua path (dependency of haproxy-lua-http, usually found as OS package `lua-json`)
+    * With HAProxy 2.1.3+ you can use the [`lua-prepend-path`] configuration option to specify the search path.
+  * [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
 
 
 ## Configuration
@@ -67,7 +62,7 @@ backend upon successful authentication, for example:
 ### Secure Authelia with TLS
 There is a [known limitation](https://github.com/TimWolla/haproxy-auth-request/issues/12) with haproxy-auth-request with regard to TLS-enabled backends.
 If you want to run Authelia TLS enabled the recommended workaround utilises HAProxy itself to proxy the requests.
-This comes at a cost of two additional TCP connections, but allows the full HAProxy configuration flexbility with regard
+This comes at a cost of two additional TCP connections, but allows the full HAProxy configuration flexibility with regard
 to TLS verification as well as header rewriting. An example of this configuration is also be provided below.
 
 #### Configuration
@@ -75,6 +70,8 @@ to TLS verification as well as header rewriting. An example of this configuratio
 ##### haproxy.cfg
 ```
 global
+    # Path to haproxy-lua-http, below example assumes /usr/local/etc/haproxy/haproxy-lua-http/http.lua
+    lua-prepend-path /usr/local/etc/haproxy/?/http.lua
     # Path to haproxy-auth-request
     lua-load /usr/local/etc/haproxy/auth-request.lua
     log stdout format raw local0 debug
@@ -97,11 +94,10 @@ frontend fe_http
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
     http-request set-var(req.questionmark) str(?) if { query -m found }
    
-    # Headers to construct redirection URL
+    # Required headers
     http-request set-header X-Real-IP %[src]
     http-request set-header X-Forwarded-Proto %[var(req.scheme)]
     http-request set-header X-Forwarded-Host %[req.hdr(Host)]
-    http-request add-header X-Forwarded-Port %[dst_port]
     http-request set-header X-Forwarded-Uri %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
@@ -110,7 +106,7 @@ frontend fe_http
     # Authelia backend route
     use_backend be_authelia if host-authelia
     # Redirect protected-frontends to Authelia if not authenticated
-    use_backend be_authelia if protected-frontends !{ var(txn.auth_response_successful) -m bool }
+    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
     # Service backend route(s)
     use_backend be_nextcloud if host-nextcloud
 
@@ -118,12 +114,20 @@ backend be_authelia
     server authelia authelia:9091
 
 backend be_nextcloud
+    # Pass Remote-User and Remote-Groups headers   
+    acl remote_user_exist var(req.auth_response_header.remote_user) -m found
+    acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
+    http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
+    http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
+
     server nextcloud nextcloud:443 ssl verify none
 ```
 
 ##### haproxy.cfg (TLS enabled Authelia)
 ```
 global
+    # Path to haproxy-lua-http, below example assumes /usr/local/etc/haproxy/haproxy-lua-http/http.lua
+    lua-prepend-path /usr/local/etc/haproxy/?/http.lua
     # Path to haproxy-auth-request
     lua-load /usr/local/etc/haproxy/auth-request.lua
     log stdout format raw local0 debug
@@ -146,11 +150,10 @@ frontend fe_http
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
     http-request set-var(req.questionmark) str(?) if { query -m found }
    
-    # Headers to construct redirection URL
+    # Required headers
     http-request set-header X-Real-IP %[src]
     http-request set-header X-Forwarded-Proto %[var(req.scheme)]
     http-request set-header X-Forwarded-Host %[req.hdr(Host)]
-    http-request add-header X-Forwarded-Port %[dst_port]
     http-request set-header X-Forwarded-Uri %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
@@ -159,7 +162,7 @@ frontend fe_http
     # Authelia backend route
     use_backend be_authelia if host-authelia
     # Redirect protected-frontends to Authelia if not authenticated
-    use_backend be_authelia if protected-frontends !{ var(txn.auth_response_successful) -m bool }
+    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
     # Service backend route(s)
     use_backend be_nextcloud if host-nextcloud
 
@@ -176,6 +179,12 @@ listen authelia_proxy
     server authelia authelia:9091 ssl verify none
 
 backend be_nextcloud
+    # Pass Remote-User and Remote-Groups headers   
+    acl remote_user_exist var(req.auth_response_header.remote_user) -m found
+    acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
+    http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
+    http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
+
     server nextcloud nextcloud:443 ssl verify none
 ```
 

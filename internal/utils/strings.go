@@ -86,7 +86,7 @@ func RandomString(n int, characters []rune) (randomString string) {
 
 	b := make([]rune, n)
 	for i := range b {
-		b[i] = characters[rand.Intn(len(characters))]
+		b[i] = characters[rand.Intn(len(characters))] //nolint:gosec // Likely isn't necessary to use the more expensive crypto/rand for this utility func.
 	}
 
 	return string(b)

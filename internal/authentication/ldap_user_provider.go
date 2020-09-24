@@ -49,7 +49,7 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 		logging.Logger().Trace("LDAP client starts a TLS session")
 
 		conn, err := p.connectionFactory.DialTLS("tcp", url.Host, &tls.Config{
-			InsecureSkipVerify: p.configuration.SkipVerify, //nolint:gosec // This is a configurable option, is desirable in some situations and is off by default
+			InsecureSkipVerify: p.configuration.SkipVerify, //nolint:gosec // This is a configurable option, is desirable in some situations and is off by default.
 		})
 		if err != nil {
 			return nil, err

@@ -58,7 +58,7 @@ func (n *SMTPNotifier) initializeTLSConfig() {
 	// The second part of this check happens in the Configure Cert Pool code block
 	log.Debug("Notifier SMTP client initializing TLS configuration")
 
-	//Configure Cert Pool
+	// Configure Cert Pool
 	certPool, err := x509.SystemCertPool()
 	if err != nil || certPool == nil {
 		certPool = x509.NewCertPool()

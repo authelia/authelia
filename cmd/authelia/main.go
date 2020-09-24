@@ -24,7 +24,7 @@ import (
 
 var configPathFlag string
 
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func startServer() {
 	config, errs := configuration.Read(configPathFlag)
 

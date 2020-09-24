@@ -10,7 +10,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.Path == "" {
 		validator.Push(errors.New("Please provide a `path` for the users database in `authentication_backend`"))
@@ -39,7 +39,7 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 			validator.Push(fmt.Errorf("The number of iterations specified is invalid, must be 1 or more, you configured %d", configuration.Password.Iterations))
 		}
 
-		//Salt Length
+		// Salt Length
 		switch {
 		case configuration.Password.SaltLength == 0:
 			configuration.Password.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
@@ -98,7 +98,7 @@ func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
 	return u.String()
 }
 
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))
