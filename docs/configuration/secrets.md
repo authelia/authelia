@@ -250,23 +250,26 @@ spec:
             - name: authelia-port
               containerPort: 9091
           startupProbe:
-            tcpSocket:
+            httpGet:
+              path: /api/state
               port: authelia-port
             initialDelaySeconds: 15
             timeoutSeconds: 5
             periodSeconds: 5
             failureThreshold: 4
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /api/state
               port: authelia-port
             initialDelaySeconds: 60
             timeoutSeconds: 5
             periodSeconds: 30
             failureThreshold: 2
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /api/state
               port: authelia-port
-            initialDelaySeconds: 30
+            initialDelaySeconds: 15
             timeoutSeconds: 5
             periodSeconds: 5
             failureThreshold: 5
