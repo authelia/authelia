@@ -168,7 +168,8 @@ If you are running fail2ban to protect your system, you can also add a filter an
 
 If you are using docker, the Authelia log file location has to be mounted from the host system to the container for fail2ban to work. Otherwise fail2ban is unable to access it.
 
-Create a configuration file in the `filter.d` folder with the following content. In Debian-based systems the folder is typically located at `/etc/fail2ban/filter.d`
+Create a configuration file in the `filter.d` folder with the following content. In Debian-based systems the folder is typically located at `/etc/fail2ban/filter.d`.
+
 ```
 # Fail2Ban filter for Authelia
 
