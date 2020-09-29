@@ -194,7 +194,7 @@ ignoreregex = ^.*level=debug.*
 
 
 2. Modify the `jail.local` file. In Debian-based systems the folder is typically located at `/etc/fail2ban/`. If the file does not exist, create it by copying the jail.conf `cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local`.
-Add an authelia entry to the "Jails" section of the file:
+Add an Authelia entry to the "Jails" section of the file:
 ```
 [authelia]
 enabled = true
