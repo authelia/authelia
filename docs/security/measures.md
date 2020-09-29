@@ -200,7 +200,7 @@ Add an Authelia entry to the "Jails" section of the file:
 enabled = true
 port = http,https,9091
 filter = authelia
-logpath = /path-to-yout-authelia-log
+logpath = /path-to-your-authelia-log
 maxretry = 3
 bantime = 1d
 findtime = 1d
