@@ -162,7 +162,7 @@ add_header X-XSS-Protection "1; mode=block";
 
 [HSTS]: https://www.nginx.com/blog/http-strict-transport-security-hsts-and-nginx/
 
-### Add Fail2Ban filter to increase protection further
+### More protections measures with fail2ban
 
 If you are running fail2ban to protect your system, you can also add a filter and jail for authelia to reduce load on the application / web server from repeated hacking attempts.
 
