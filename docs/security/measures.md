@@ -164,7 +164,7 @@ add_header X-XSS-Protection "1; mode=block";
 
 ### More protections measures with fail2ban
 
-If you are running fail2ban adding a filter and jail for Authelia can reduce load on the application / web server. Fail2bn will ban IPs exceeding a threshold of repeated failed logins on the firewall level of your system.
+If you are running fail2ban, adding a filter and jail for Authelia can reduce load on the application / web server. Fail2bn will ban IPs exceeding a threshold of repeated failed logins on the firewall level of your system.
 
 If you are using docker, the Authelia log file location has to be mounted from the host system to the container for fail2ban to access it.
 
