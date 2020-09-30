@@ -161,3 +161,49 @@ add_header X-XSS-Protection "1; mode=block";
 ```
 
 [HSTS]: https://www.nginx.com/blog/http-strict-transport-security-hsts-and-nginx/
+
+### More protections measures with fail2ban
+
+If you are running fail2ban to protect your system, you can also add a filter and jail for authelia to reduce load on the application / web server from repeated hacking attempts.
+
+If you are using docker, the Authelia log file location has to be mounted from the host system to the container for fail2ban to work. Otherwise fail2ban is unable to access it.
+
+Create a configuration file in the `filter.d` folder with the following content. In Debian-based systems the folder is typically located at `/etc/fail2ban/filter.d`.
+
+```
+# Fail2Ban filter for Authelia
+
+# Make sure that the HTTP header "X-Forwarded-For" received by Authelia's backend
+# only contains a single IP address (the one from the end-user), and not the proxy chain
+# (it is misleading: usually, this is the purpose of this header).
+
+# failregex rule counts every failed login (wrong username or password) and failed TOTP entry as a failure
+# ignoreregex rule ignores debug, info and warning messages as all authentication failures are flagged as level=error by Authelia
+# adding the commented line below to the failregex filter would also count ever ban (as a result of too many failed logins as a failure)
+# ^.* is banned until .*remote_ip=<HOST> stack.*
+
+[Definition]
+failregex = ^.*Error while checking password for.*remote_ip=<HOST> stack.*
+            ^.*Credentials are wrong for user .*remote_ip=<HOST> stack.*
+            ^.*Wrong passcode during TOTP validation.*remote_ip=<HOST> stack.*
+
+ignoreregex = ^.*level=debug.*
+              ^.*level=info.*
+              ^.*level=warning.*
+```
+
+
+2. Modify the `jail.local` file. In Debian-based systems the folder is typically located at `/etc/fail2ban/`. If the file does not exist, create it by copying the jail.conf `cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local`.
+Add an Authelia entry to the "Jails" section of the file:
+```
+[authelia]
+enabled = true
+port = http,https,9091
+filter = authelia
+logpath = /path-to-your-authelia-log
+maxretry = 3
+bantime = 1d
+findtime = 1d
+chain = DOCKER-USER
+```
+If you are not using Docker remove the the line "chain = DOCKER-USER"
