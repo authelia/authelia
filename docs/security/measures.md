@@ -166,7 +166,7 @@ add_header X-XSS-Protection "1; mode=block";
 
 If you are running fail2ban, adding a filter and jail for Authelia can reduce load on the application / web server. Fail2ban will ban IPs exceeding a threshold of repeated failed logins at the firewall level of your host.
 
-If you are using docker, the Authelia log file location has to be mounted from the host system to the container for fail2ban to access it.
+If you are using Docker, the Authelia log file location has to be mounted from the host system to the container for fail2ban to access it.
 
 Create a configuration file in the `filter.d` folder with the content below. In Debian-based systems the folder is typically located at `/etc/fail2ban/filter.d`.
 
