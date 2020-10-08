@@ -55,7 +55,7 @@ COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
 COPY ./scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN apk --no-cache add ca-certificates tzdata su-exec && \
-    chmod u+x,go-rwx /usr/local/bin/entrypoint.sh
+    chmod u+x-w,go-rwx,u-w /usr/local/bin/entrypoint.sh
 
 WORKDIR /app
 
