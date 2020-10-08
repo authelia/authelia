@@ -56,12 +56,13 @@ FROM arm32v7/alpine:3.12.0
 
 COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 
-RUN apk --no-cache add ca-certificates tzdata && \
+RUN apk --no-cache add ca-certificates tzdata su-exec && \
     rm /usr/bin/qemu-arm-static
 
 WORKDIR /app
 
 COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
+COPY ./scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 EXPOSE 9091
 

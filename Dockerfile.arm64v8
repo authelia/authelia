@@ -55,18 +55,23 @@ GOOS=linux GOARCH=arm64 CGO_ENABLED=1 CC=aarch64-linux-musl-gcc go build -tags n
 FROM arm64v8/alpine:3.12.0
 
 COPY ./qemu-aarch64-static /usr/bin/qemu-aarch64-static
+COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
+COPY ./scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN apk --no-cache add ca-certificates tzdata && \
-    rm /usr/bin/qemu-aarch64-static
+RUN apk --no-cache add ca-certificates tzdata su-exec && \
+    rm /usr/bin/qemu-aarch64-static && \
+    chmod u+x,go-rwx /usr/local/bin/entrypoint.sh
 
 WORKDIR /app
-
-COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
 
 EXPOSE 9091
 
 VOLUME /config
+VOLUME /log
 
 ENV PATH="/app:${PATH}"
+ENV PUID=0
+ENV PGID=0
 
-CMD ["authelia", "--config", "/config/configuration.yml"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["--config", "/config/configuration.yml"]
