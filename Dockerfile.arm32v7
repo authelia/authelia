@@ -60,7 +60,7 @@ COPY ./scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN apk --no-cache add ca-certificates tzdata su-exec && \
     rm /usr/bin/qemu-arm-static && \
-    chmod u+x,go-rwx /usr/local/bin/entrypoint.sh
+    chmod u+x-w,go-rwx /usr/local/bin/entrypoint.sh
 
 WORKDIR /app
 
