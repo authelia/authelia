@@ -54,7 +54,7 @@ FROM alpine:3.12.0
 COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN apk --no-cache add ca-certificates tzdata su-exec && \
+RUN apk --no-cache add ca-certificates su-exec tzdata
     chmod 0555 /usr/local/bin/entrypoint.sh
 
 WORKDIR /app
