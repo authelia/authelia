@@ -62,7 +62,6 @@ WORKDIR /app
 EXPOSE 9091
 
 VOLUME /config
-VOLUME /logs
 
 ENV PATH="/app:${PATH}"
 ENV PUID=0
