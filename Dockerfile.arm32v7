@@ -56,7 +56,7 @@ FROM arm32v7/alpine:3.12.0
 
 COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
-COPY ./scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN apk --no-cache add ca-certificates tzdata su-exec && \
     rm /usr/bin/qemu-arm-static && \
