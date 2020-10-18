@@ -210,19 +210,19 @@ Finally, restart the fail2ban service.
 ## Container privilege de-escalation
 
 Authelia will run as root by default, there are two options to run as a non-root user. The first option is to use the
-docker `--user` option on the command line or in docker-compose. The second option is to use the `PUID` and `PGID`
-environment variables. An added benefit of using the environment variables is the mounted volumes owner will automatically
+Docker `--user` option on the command line or in docker-compose. The second option is to use the `PUID` and `PGID`
+environment variables. An added benefit of using the environment variables is the mounted volumes ownership will automatically
 be changed for you.
 
 ### Docker user option
 
-With the docker `--user` option, docker will ensure Authelia is running as the user id and group id you specify.
+With the Docker `--user` option, Docker will ensure Authelia is running as the user id and group id you specify.
 In order to use this option, you will need to mount the `/config` volume to a directory on the host and set
-the owner and group of that directory to the same user you supplied to docker. NOTE: running Authelia with `--user`
-without mounting a volume to `/config` or incorrectly setting the host system's directory owner will cause Authelia
+the owner and group of that directory to the same user you supplied to docker. Running Authelia with `--user`
+without mounting a volume to `/config` or incorrectly setting the host systems directory owner will cause Authelia
 to exit immediately. The docker `--user` option will take precedence over the environment variables.
 
-On the command line, you would create your Authelia data directory, change the owner to your non-root user
+On the command line, you would create your Authelia data directory, change ownership to your non-root user
 and run Authelia with `--user` set:
 ```
 mkdir /authelia
@@ -244,7 +244,7 @@ services:
 
 ### PUID/PGID environment variables
 
-If you choose to use the environment variables, the correct owner will be applied automatically on startup of
+If you choose to use the environment variables, the correct ownership will be applied automatically on startup of
 the container, so there's no need to `chown` before running, to use this on the command line use the following:
 
 ```
