@@ -30,17 +30,17 @@ post nginx has written on [HSTS].
 
 ## Protection against username enumeration
 
-Authelia adaptively delays authentication attempts based on the mean (average) of the 
-previous 10 successful attempts, and a small random interval to make it even harder to 
-determine if the attempt was successful. On start it is assumed that the last 10 attempts 
+Authelia adaptively delays authentication attempts based on the mean (average) of the
+previous 10 successful attempts, and a small random interval to make it even harder to
+determine if the attempt was successful. On start it is assumed that the last 10 attempts
 took 1000ms, this quickly grows or shrinks to the correct value over time regardless of the
-authentication backend. 
+authentication backend.
 
-The cost of this is low since in the instance of a user not existing it just sleeps to delay 
+The cost of this is low since in the instance of a user not existing it just sleeps to delay
 the login. Lastly the absolute minimum time authentication can take is 250ms. Both of these measures
 also have the added effect of creating an additional delay for all authentication attempts reducing
 the likelihood a password can be brute-forced even if regulation settings are too permissive.
- 
+
 ## Protections against password cracking (File authentication provider)
 
 Authelia implements a variety of measures to prevent an attacker cracking passwords if they
@@ -50,8 +50,8 @@ First and foremost Authelia only uses very secure hashing algorithms with sane a
 The first and default hashing algorithm we use is Argon2id which is currently considered
 the most secure hashing algorithm. We also support SHA512, which previously was the default.
 
-Secondly Authelia uses salting with all hashing algorithms. These salts are generated with a random 
-string generator, which is seeded every time it's used by a cryptographically secure 1024bit prime number. 
+Secondly Authelia uses salting with all hashing algorithms. These salts are generated with a random
+string generator, which is seeded every time it's used by a cryptographically secure 1024bit prime number.
 This ensures that even if an attacker obtains the file, each password has to be brute forced individually.
 
 Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the key length, salt
@@ -60,12 +60,12 @@ used, iterations (time), parallelism, and memory usage. To read more about this 
 
 ## User profile and group membership always kept up-to-date (LDAP authentication provider)
 
-Authelia by default refreshes the user's profile and membership every 5 minutes. Additionally, it 
-will invalidate any session where the user could not be retrieved from LDAP based on the user filter, for 
+Authelia by default refreshes the user's profile and membership every 5 minutes. Additionally, it
+will invalidate any session where the user could not be retrieved from LDAP based on the user filter, for
 example if they were deleted or disabled provided the user filter is set correctly. These updates occur when
 a user accesses a resource protected by Authelia.
 
-These protections can be [tuned](../configuration/authentication/ldap.md) according to your security policy 
+These protections can be [tuned](../configuration/authentication/ldap.md) according to your security policy
 by changing refresh_interval, however we believe that 5 minutes is a fairly safe interval.
 
 ## Notifier security measures (SMTP)
@@ -73,12 +73,12 @@ by changing refresh_interval, however we believe that 5 minutes is a fairly safe
 By default the SMTP Notifier implementation does not allow connections that are not secure.
 As such all connections require the following:
 
-1. TLS Connection (STARTTLS or SMTPS) has been negotiated before authentication or sending emails (unauthenticated 
+1. TLS Connection (STARTTLS or SMTPS) has been negotiated before authentication or sending emails (unauthenticated
 connections require it as well)
 2. Valid X509 Certificate presented to the client during the TLS handshake
 
 There is an option to disable both of these security measures however they are
-not recommended. You should only do this in a situation where you control all 
+not recommended. You should only do this in a situation where you control all
 networks between Authelia and the SMTP server. The following configuration options
 exist to configure the security level:
 
@@ -91,12 +91,12 @@ automatically when a SMTP notifier is configured with the SMTPS port of 465.
 ### Configuration Option: disable_verify_cert
 
 This is a YAML boolean type (true/false, y/n, 1/0, etc). This disables the X509 PKI
-verification mechanism. We recommend using the trusted_cert option over this, as 
+verification mechanism. We recommend using the trusted_cert option over this, as
 disabling this security feature makes you vulnerable to MITM attacks.
 
 ### Configuration Option: disable_require_tls
 
-This is a YAML boolean type (true/false, y/n, 1/0, etc). This disables the 
+This is a YAML boolean type (true/false, y/n, 1/0, etc). This disables the
 requirement that all connections must be over TLS. This is only usable currently
 with authentication disabled (comment the password) and as such is only an
 option for SMTP servers that allow unauthenticated relay (bad practice).
@@ -107,8 +107,8 @@ This is a YAML string type. This specifies the file location of a pub certificat
 that can be used to validate the authenticity of a server with a self signed
 certificate. This can either be the public cert of the certificate authority
 used to sign the certificate or the public key itself. They must be in the PEM
-format. The certificate is added in addition to the certificates trusted by the 
-host machine. If the certificate is invalid, inaccessible, or is otherwise not 
+format. The certificate is added in addition to the certificates trusted by the
+host machine. If the certificate is invalid, inaccessible, or is otherwise not
 configured; Authelia just uses the hosts certificates.
 
 ### Explanation
@@ -129,14 +129,14 @@ for information.
 ### Session security
 
 We have a few options to configure the security of a session. The main and most important
-one is the session secret. This is used to encrypt the session data when when stored in the 
+one is the session secret. This is used to encrypt the session data when when stored in the
 Redis key value database. This should be as random as possible.
 
-Additionally you can configure the validity period of sessions. For example in a highly 
-security conscious domain you would probably want to set the session remember_me_duration 
+Additionally you can configure the validity period of sessions. For example in a highly
+security conscious domain you would probably want to set the session remember_me_duration
 to 0 to disable this feature, and set an expiration of something like 2 hours and inactivity
 of 10 minutes. This means the hard limit or the time the session will be destroyed no matter
-what is 2 hours, and the soft limit or the time a user can be inactive for is 10 minutes. 
+what is 2 hours, and the soft limit or the time a user can be inactive for is 10 minutes.
 
 ### More protections measures with Nginx
 
@@ -152,7 +152,7 @@ add_header Pragma "no-cache";
 
 # Clickjacking / XSS protection
 
-# We don't want Authelia's login page to be rendered within a <frame>, 
+# We don't want Authelia's login page to be rendered within a <frame>,
 # <iframe> or <object> from an external website.
 add_header X-Frame-Options "SAMEORIGIN";
 
@@ -206,3 +206,59 @@ chain = DOCKER-USER
 If you are not using Docker remove the the line "chain = DOCKER-USER"
 
 Finally, restart the fail2ban service.
+
+## Container privilege de-escalation
+
+Authelia will run as root by default, there are two options to run as a non-root user. The first option is to use the
+docker `--user` option on the command line or in docker-compose. The second option is to use the `PUID` and `PGID`
+environment variables. An added benefit of using the environment variables is the mounted volumes owner will automatically
+be changes for you.
+
+### Docker user option
+
+With the docker `--user` option, docker will ensure Authelia is running as the user id and group id you specify.
+In order to use this option, you will need to mount the `/config` volume to a directory on the host and set
+the owner and group of that directory to the same user you supplied to docker. NOTE: running Authelia with `--user`
+without mounting a volume to `/config` or incorrectly setting the host system's directory owner will cause Authelia
+to exit immediately. The docker `--user` option will take precedence over the environment variables.
+
+On the command line, you would create your Authelia data directory, change the owner to your non-root user
+and run Authelia with `--user` set:
+```
+mkdir /authelia
+chown user:group /authelia
+docker run --user user:group -v /authelia:/config authelia/authelia:latest
+```
+
+As a docker-compose.yml file:
+```
+version: '3.8'
+services:
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    user: 1000:1000
+    volumes:
+      - ./authelia:/config
+```
+
+If you choose to use the environment variables, the correct owner will be applied automatically on startup of
+the container, so there's no need to `chown` before running, to use this on the command line use the following:
+
+```
+docker run -e PUID=1000 -e PGID=1000 -v /authelia:/config authelia:authelia:latest
+```
+
+As a docker-compose.yml file:
+```
+version: '3.8'
+services:
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    environment:
+      PUID: 1000
+      PGID: 1000
+    volumes:
+      - ./authelia:/config
+```
