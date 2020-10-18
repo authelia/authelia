@@ -242,6 +242,8 @@ services:
       - ./authelia:/config
 ```
 
+### PUID/PGID environment variables
+
 If you choose to use the environment variables, the correct owner will be applied automatically on startup of
 the container, so there's no need to `chown` before running, to use this on the command line use the following:
 
