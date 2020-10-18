@@ -212,7 +212,7 @@ Finally, restart the fail2ban service.
 Authelia will run as root by default, there are two options to run as a non-root user. The first option is to use the
 docker `--user` option on the command line or in docker-compose. The second option is to use the `PUID` and `PGID`
 environment variables. An added benefit of using the environment variables is the mounted volumes owner will automatically
-be changes for you.
+be changed for you.
 
 ### Docker user option
 
