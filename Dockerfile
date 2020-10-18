@@ -51,16 +51,20 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-s -w -link
 # ===================================
 FROM alpine:3.12.0
 
-RUN apk --no-cache add ca-certificates tzdata
+COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+
+RUN apk --no-cache add ca-certificates su-exec tzdata
 
 WORKDIR /app
-
-COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
 
 EXPOSE 9091
 
 VOLUME /config
 
 ENV PATH="/app:${PATH}"
+ENV PUID=0
+ENV PGID=0
 
-CMD ["authelia", "--config", "/config/configuration.yml"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["--config", "/config/configuration.yml"]
