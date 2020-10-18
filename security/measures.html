@@ -5,7 +5,7 @@ add_header Pragma "no-cache";
 
 # Clickjacking / XSS protection
 
-# We don't want Authelia's login page to be rendered within a &lt;frame&gt;, 
+# We don't want Authelia's login page to be rendered within a &lt;frame&gt;,
 # &lt;iframe&gt; or &lt;object&gt; from an external website.
 add_header X-Frame-Options "SAMEORIGIN";
 
@@ -37,4 +37,26 @@ maxretry = 3
 bantime = 1d
 findtime = 1d
 chain = DOCKER-USER
-</code></pre></div></div> <p>If you are not using Docker remove the the line “chain = DOCKER-USER”</p> <p>Finally, restart the fail2ban service.</p> <hr> <footer> <p class="text-small text-grey-dk-000 mb-0">Copyright &copy; 2020 Authelia. Distributed by an <a href="https://github.com/authelia/authelia/blob/master/LICENSE">Apache 2.0 license.</a></p> </footer> </div> </div> <div class="search-overlay"></div> </div> </body> </html>
+</code></pre></div></div> <p>If you are not using Docker remove the the line “chain = DOCKER-USER”</p> <p>Finally, restart the fail2ban service.</p> <h2 id="container-privilege-de-escalation"> <a href="#container-privilege-de-escalation" class="anchor-heading" aria-labelledby="container-privilege-de-escalation"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Container privilege de-escalation </h2> <p>Authelia will run as root by default, there are two options to run as a non-root user. The first option is to use the Docker <code class="language-plaintext highlighter-rouge">--user</code> option on the command line or in docker-compose. The second option is to use the <code class="language-plaintext highlighter-rouge">PUID</code> and <code class="language-plaintext highlighter-rouge">PGID</code> environment variables. An added benefit of using the environment variables is the mounted volumes ownership will automatically be changed for you.</p> <h3 id="docker-user-option"> <a href="#docker-user-option" class="anchor-heading" aria-labelledby="docker-user-option"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Docker user option </h3> <p>With the Docker <code class="language-plaintext highlighter-rouge">--user</code> option, Docker will ensure Authelia is running as the user id and group id you specify. In order to use this option, you will need to mount the <code class="language-plaintext highlighter-rouge">/config</code> volume to a directory on the host and set the owner and group of that directory to the same user you supplied to docker. Running Authelia with <code class="language-plaintext highlighter-rouge">--user</code> without mounting a volume to <code class="language-plaintext highlighter-rouge">/config</code> or incorrectly setting the host systems directory owner will cause Authelia to exit immediately. The docker <code class="language-plaintext highlighter-rouge">--user</code> option will take precedence over the environment variables.</p> <p>On the command line, you would create your Authelia data directory, change ownership to your non-root user and run Authelia with <code class="language-plaintext highlighter-rouge">--user</code> set:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mkdir /authelia
+chown user:group /authelia
+docker run --user user:group -v /authelia:/config authelia/authelia:latest
+</code></pre></div></div> <p>As a docker-compose.yml file:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>version: '3.8'
+services:
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    user: 1000:1000
+    volumes:
+      - ./authelia:/config
+</code></pre></div></div> <h3 id="puidpgid-environment-variables"> <a href="#puidpgid-environment-variables" class="anchor-heading" aria-labelledby="puidpgid-environment-variables"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> PUID/PGID environment variables </h3> <p>If you choose to use the environment variables, the correct ownership will be applied automatically on startup of the container, so there’s no need to <code class="language-plaintext highlighter-rouge">chown</code> before running, to use this on the command line use the following:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run -e PUID=1000 -e PGID=1000 -v /authelia:/config authelia:authelia:latest
+</code></pre></div></div> <p>As a docker-compose.yml file:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>version: '3.8'
+services:
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    environment:
+      PUID: 1000
+      PGID: 1000
+    volumes:
+      - ./authelia:/config
+</code></pre></div></div> <hr> <footer> <p class="text-small text-grey-dk-000 mb-0">Copyright &copy; 2020 Authelia. Distributed by an <a href="https://github.com/authelia/authelia/blob/master/LICENSE">Apache 2.0 license.</a></p> </footer> </div> </div> <div class="search-overlay"></div> </div> </body> </html>
