@@ -54,14 +54,15 @@ GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc go build -tags n
 # ===================================
 FROM arm32v7/alpine:3.12.0
 
+WORKDIR /app
+
 COPY ./qemu-arm-static /usr/bin/qemu-arm-static
-COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
-COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN apk --no-cache add ca-certificates su-exec tzdata && \
     rm /usr/bin/qemu-arm-static
 
-WORKDIR /app
+COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 
 EXPOSE 9091
 
