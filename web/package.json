@@ -32,7 +32,7 @@
     "react-dom": "^16.14.0",
     "react-ga": "^3.2.0",
     "react-loading": "^2.0.3",
-    "react-otp-input": "^2.1.0",
+    "react-otp-input": "^2.2.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "^3.4.4",
     "react-test-renderer": "^16.14.0",
