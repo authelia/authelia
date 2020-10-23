@@ -14,6 +14,8 @@ const authPrefix = "Basic "
 // AuthorizationHeader is the basic-auth HTTP header Authelia utilises.
 const AuthorizationHeader = "Proxy-Authorization"
 const remoteUserHeader = "Remote-User"
+const remoteNameHeader = "Remote-Name"
+const remoteEmailHeader = "Remote-Email"
 const remoteGroupsHeader = "Remote-Groups"
 
 var protoHostSeparator = []byte("://")
