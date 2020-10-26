@@ -66,10 +66,14 @@ func (s *CustomHeadersScenario) TestShouldNotForwardCustomHeaderForUnauthenticat
 	s.Assert().NoError(err)
 	s.Assert().NotContains(b, "john")
 	s.Assert().NotContains(b, "admins")
+	s.Assert().NotContains(b, "John Doe")
+	s.Assert().NotContains(b, "john.doe@authelia.com")
 }
 
 type Headers struct {
+	ForwardedEmail  string `json:"Remote-Email"`
 	ForwardedGroups string `json:"Remote-Groups"`
+	ForwardedName   string `json:"Remote-Name"`
 	ForwardedUser   string `json:"Remote-User"`
 }
 
@@ -113,7 +117,8 @@ func (s *CustomHeadersScenario) TestShouldForwardCustomHeaderForAuthenticatedUse
 			actualGroups.Add(group)
 		}
 
-		return strings.Contains(payload.Headers.ForwardedUser, "john") && expectedGroups.Equal(actualGroups), nil
+		return strings.Contains(payload.Headers.ForwardedUser, "john") && expectedGroups.Equal(actualGroups) &&
+			strings.Contains(payload.Headers.ForwardedName, "John Doe") && strings.Contains(payload.Headers.ForwardedEmail, "john.doe@authelia.com"), nil
 	})
 
 	require.NoError(s.T(), err)

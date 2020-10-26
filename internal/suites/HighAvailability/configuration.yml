@@ -24,6 +24,7 @@ authentication_backend:
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
     group_name_attribute: cn
     mail_attribute: mail
+    display_name_attribute: displayName
     user: cn=admin,dc=example,dc=com
     password: password
 

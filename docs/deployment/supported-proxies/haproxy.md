@@ -114,11 +114,15 @@ backend be_authelia
     server authelia authelia:9091
 
 backend be_nextcloud
-    # Pass Remote-User and Remote-Groups headers   
+    # Pass Remote-User, Remote-Name, Remote-Email and Remote-Groups headers
     acl remote_user_exist var(req.auth_response_header.remote_user) -m found
     acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
+    acl remote_name_exist var(req.auth_response_header.remote_name) -m found
+    acl remote_email_exist var(req.auth_response_header.remote_email) -m found
     http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
     http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
+    http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
+    http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
 
     server nextcloud nextcloud:443 ssl verify none
 ```
@@ -179,11 +183,15 @@ listen authelia_proxy
     server authelia authelia:9091 ssl verify none
 
 backend be_nextcloud
-    # Pass Remote-User and Remote-Groups headers   
+    # Pass Remote-User, Remote-Name, Remote-Email and Remote-Groups headers
     acl remote_user_exist var(req.auth_response_header.remote_user) -m found
     acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
+    acl remote_name_exist var(req.auth_response_header.remote_name) -m found
+    acl remote_email_exist var(req.auth_response_header.remote_email) -m found
     http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
     http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
+    http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
+    http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
 
     server nextcloud nextcloud:443 ssl verify none
 ```

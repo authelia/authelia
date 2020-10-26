@@ -76,7 +76,7 @@ services:
       - 'traefik.http.routers.authelia.tls=true'
       - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.example.com/'
       - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
-      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups'
+      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'
     expose:
       - 9091
     restart: unless-stopped
@@ -120,7 +120,7 @@ This can be avoided a couple different ways:
 ```yaml
 - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.example.com/'
 - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
-- 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups'
+- 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'
 ```
     
 [Traefik 2.x]: https://docs.traefik.io/

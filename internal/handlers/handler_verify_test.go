@@ -204,7 +204,7 @@ func TestShouldVerifyWrongCredentials(t *testing.T) {
 		Return(false, nil)
 
 	url, _ := url.ParseRequestURI("https://test.example.com")
-	_, _, _, err := verifyBasicAuth([]byte("Basic am9objpwYXNzd29yZA=="), *url, mock.Ctx)
+	_, _, _, _, _, err := verifyBasicAuth([]byte("Basic am9objpwYXNzd29yZA=="), *url, mock.Ctx)
 
 	assert.Error(t, err)
 }
@@ -416,6 +416,7 @@ func TestShouldVerifyFailingDetailsFetchingInBasicAuth(t *testing.T) {
 type Pair struct {
 	URL                 string
 	Username            string
+	Emails              []string
 	AuthenticationLevel authentication.Level
 	ExpectedStatusCode  int
 }
@@ -427,23 +428,23 @@ func (p Pair) String() string {
 
 func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 	testCases := []Pair{
-		{"https://test.example.com", "", authentication.NotAuthenticated, 401},
-		{"https://bypass.example.com", "", authentication.NotAuthenticated, 200},
-		{"https://one-factor.example.com", "", authentication.NotAuthenticated, 401},
-		{"https://two-factor.example.com", "", authentication.NotAuthenticated, 401},
-		{"https://deny.example.com", "", authentication.NotAuthenticated, 401},
+		{"https://test.example.com", "", nil, authentication.NotAuthenticated, 401},
+		{"https://bypass.example.com", "", nil, authentication.NotAuthenticated, 200},
+		{"https://one-factor.example.com", "", nil, authentication.NotAuthenticated, 401},
+		{"https://two-factor.example.com", "", nil, authentication.NotAuthenticated, 401},
+		{"https://deny.example.com", "", nil, authentication.NotAuthenticated, 401},
 
-		{"https://test.example.com", "john", authentication.OneFactor, 403},
-		{"https://bypass.example.com", "john", authentication.OneFactor, 200},
-		{"https://one-factor.example.com", "john", authentication.OneFactor, 200},
-		{"https://two-factor.example.com", "john", authentication.OneFactor, 401},
-		{"https://deny.example.com", "john", authentication.OneFactor, 403},
+		{"https://test.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 403},
+		{"https://bypass.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 200},
+		{"https://one-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 200},
+		{"https://two-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 401},
+		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 403},
 
-		{"https://test.example.com", "john", authentication.TwoFactor, 403},
-		{"https://bypass.example.com", "john", authentication.TwoFactor, 200},
-		{"https://one-factor.example.com", "john", authentication.TwoFactor, 200},
-		{"https://two-factor.example.com", "john", authentication.TwoFactor, 200},
-		{"https://deny.example.com", "john", authentication.TwoFactor, 403},
+		{"https://test.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 403},
+		{"https://bypass.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 200},
+		{"https://one-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 200},
+		{"https://two-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 200},
+		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 403},
 	}
 
 	for _, testCase := range testCases {
@@ -454,6 +455,7 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 
 			userSession := mock.Ctx.GetSession()
 			userSession.Username = testCase.Username
+			userSession.Emails = testCase.Emails
 			userSession.AuthenticationLevel = testCase.AuthenticationLevel
 			mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
@@ -466,8 +468,10 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 
 			if testCase.ExpectedStatusCode == 200 && testCase.Username != "" {
 				assert.Equal(t, []byte(testCase.Username), mock.Ctx.Response.Header.Peek("Remote-User"))
+				assert.Equal(t, []byte("john.doe@example.com"), mock.Ctx.Response.Header.Peek("Remote-Email"))
 			} else {
 				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-User"))
+				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-Email"))
 			}
 		})
 	}
@@ -544,6 +548,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
+	userSession.Emails = []string{"john.doe@example.com"}
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = 0
 	userSession.KeepMeLoggedIn = true
@@ -575,6 +580,7 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
+	userSession.Emails = []string{"john.doe@example.com"}
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
 	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
