@@ -49,8 +49,12 @@
 <span class="c1"># proxy. In the future, it's gonna be safe to just use OAuth.</span>
 <span class="k">auth_request_set</span> <span class="nv">$user</span> <span class="nv">$upstream_http_remote_user</span><span class="p">;</span>
 <span class="k">auth_request_set</span> <span class="nv">$groups</span> <span class="nv">$upstream_http_remote_groups</span><span class="p">;</span>
+<span class="k">auth_request_set</span> <span class="nv">$name</span> <span class="nv">$upstream_http_remote_name</span><span class="p">;</span>
+<span class="k">auth_request_set</span> <span class="nv">$email</span> <span class="nv">$upstream_http_remote_email</span><span class="p">;</span>
 <span class="k">proxy_set_header</span> <span class="s">Remote-User</span> <span class="nv">$user</span><span class="p">;</span>
 <span class="k">proxy_set_header</span> <span class="s">Remote-Groups</span> <span class="nv">$groups</span><span class="p">;</span>
+<span class="k">proxy_set_header</span> <span class="s">Remote-Name</span> <span class="nv">$name</span><span class="p">;</span>
+<span class="k">proxy_set_header</span> <span class="s">Remote-Email</span> <span class="nv">$email</span><span class="p">;</span>
 <span class="c1"># If Authelia returns 401, then nginx redirects the user to the login portal.</span>
 <span class="c1"># If it returns 200, then the request pass through to the backend.</span>
 <span class="c1"># For other type of errors, nginx will handle them as usual.</span>
