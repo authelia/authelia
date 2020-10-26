@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:14-alpine AS builder-frontend
+FROM node:15-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 COPY web .
