@@ -21,7 +21,7 @@
     "@types/react-ga": "^2.3.0",
     "@types/react-router-dom": "^5.1.6",
     "axios": "^0.21.0",
-    "babel-preset-react-app": "^9.1.1",
+    "babel-preset-react-app": "^10.0.0",
     "chai": "^4.2.0",
     "classnames": "^2.2.6",
     "enzyme": "^3.11.0",
