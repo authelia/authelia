@@ -400,6 +400,8 @@ notifier:
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com
+    # HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
+    identifier: localhost
     # Subject configuration of the emails sent.
     # {title} is replaced by the text from the notifier
     subject: "[Authelia] {title}"

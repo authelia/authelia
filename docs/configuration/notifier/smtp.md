@@ -43,6 +43,8 @@ notifier:
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com
+    # HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
+    identifier: localhost
     # Subject configuration of the emails sent.
     # {title} is replaced by the text from the notifier
     subject: "[Authelia] {title}"
@@ -58,6 +60,10 @@ notifier:
 
 Most configuration options are self-explanatory, however here is an explanation of the ones that may not
 be as obvious.
+
+### identifier
+The name to send to the SMTP server as the identifier with the HELO/EHLO command. Some SMTP providers like Google Mail
+reject the message if it's localhost.
 
 ### subject
 This is the subject Authelia will use in the email, it has a single placeholder at present `{title}` which should
