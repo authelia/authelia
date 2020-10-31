@@ -14,7 +14,7 @@ export interface Props {
     onClick: (method: SecondFactorMethod) => void;
 }
 
-export default function (props: Props) {
+const MethodSelectionDialog = function (props: Props) {
     const style = useStyles();
     const theme = useTheme();
 
@@ -59,6 +59,8 @@ export default function (props: Props) {
         </Dialog>
     )
 }
+
+export default MethodSelectionDialog
 
 const useStyles = makeStyles(theme => ({
     root: {

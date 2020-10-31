@@ -7,7 +7,7 @@ import { initiateResetPasswordProcess } from "../../services/ResetPassword";
 import { FirstFactorRoute } from "../../Routes";
 import FixedTextField from "../../components/FixedTextField";
 
-export default function () {
+const ResetPasswordStep1 = function () {
     const style = useStyles();
     const [username, setUsername] = useState("");
     const [error, setError] = useState(false);
@@ -75,6 +75,8 @@ export default function () {
         </LoginLayout>
     )
 }
+
+export default ResetPasswordStep1
 
 const useStyles = makeStyles(theme => ({
     root: {

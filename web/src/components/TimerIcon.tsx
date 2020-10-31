@@ -10,7 +10,7 @@ export interface Props {
     backgroundColor?: string;
 }
 
-export default function (props: Props) {
+const TimerIcon = function (props: Props) {
     const radius = 31.6;
     const [timeProgress, setTimeProgress] = useState(0);
 
@@ -33,3 +33,4 @@ export default function (props: Props) {
     )
 }
 
+export default TimerIcon

@@ -9,11 +9,11 @@ export interface Props {
     animated?: boolean;
 }
 
-export default function (props: Props) {
+const PushNotificationIcon = function (props: Props) {
     const idleMilliseconds = 2500;
     const wiggleMilliseconds = 500;
     const startMilliseconds = 500;
-    const wiggleClass = (props.animated) ? useIntermittentClass(style.wiggle, wiggleMilliseconds, idleMilliseconds, startMilliseconds) : "";
+    const wiggleClass = useIntermittentClass((props.animated) ? style.wiggle : "", wiggleMilliseconds, idleMilliseconds, startMilliseconds);
 
     return (
         <svg x="0px" y="0px" viewBox="0 0 60 60" width={props.width} height={props.height} className={wiggleClass}>
@@ -42,3 +42,5 @@ export default function (props: Props) {
         </svg>
     )
 }
+
+export default PushNotificationIcon

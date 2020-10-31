@@ -23,15 +23,15 @@ export interface Props {
     onSignInSuccess: (redirectURL: string | undefined) => void;
 }
 
-export default function (props: Props) {
+const PushNotificationMethod = function (props: Props) {
     const style = useStyles();
     const [state, setState] = useState(State.SignInInProgress);
     const redirectionURL = useRedirectionURL();
     const mounted = useIsMountedRef();
 
     const { onSignInSuccess, onSignInError } = props;
-    const onSignInErrorCallback = useCallback(onSignInError, []);
-    const onSignInSuccessCallback = useCallback(onSignInSuccess, []);
+    const onSignInErrorCallback = useCallback(onSignInError, [onSignInError]);
+    const onSignInSuccessCallback = useCallback(onSignInSuccess, [onSignInSuccess]);
 
     const signInFunc = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -102,6 +102,8 @@ export default function (props: Props) {
         </MethodContainer>
     )
 }
+
+export default PushNotificationMethod
 
 const useStyles = makeStyles(theme => ({
     icon: {

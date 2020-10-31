@@ -14,7 +14,7 @@ import { red } from "@material-ui/core/colors";
 import { extractIdentityToken } from "../../utils/IdentityToken";
 import { FirstFactorRoute } from "../../Routes";
 
-export default function () {
+const RegisterOneTimePassword = function () {
     const style = useStyles();
     const history = useHistory();
     const location = useLocation();
@@ -93,6 +93,8 @@ export default function () {
         </LoginLayout>
     )
 }
+
+export default RegisterOneTimePassword
 
 const useStyles = makeStyles(theme => ({
     root: {

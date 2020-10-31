@@ -20,7 +20,7 @@ export interface Props {
     onRegisterClick?: () => void;
 }
 
-export default function (props: Props) {
+const DefaultMethodContainer = function (props: Props) {
     const style = useStyles();
 
     let container: ReactNode;
@@ -61,6 +61,8 @@ export default function (props: Props) {
         </div>
     )
 }
+
+export default DefaultMethodContainer
 
 const useStyles = makeStyles(theme => ({
     container: {
