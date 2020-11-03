@@ -62,9 +62,11 @@ EXPOSE 9091
 
 VOLUME /config
 
-ENV PATH="/app:${PATH}"
-ENV PUID=0
-ENV PGID=0
+# Set environment variables
+ENV PATH="/app:${PATH}" \
+PUID=0 \
+PGID=0
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["--config", "/config/configuration.yml"]
+HEALTHCHECK --interval=30s --timeout=3s CMD wget --quiet --tries=1 --spider http://localhost:9091/api/state || exit 1
