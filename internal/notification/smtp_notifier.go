@@ -21,6 +21,7 @@ type SMTPNotifier struct {
 	username            string
 	password            string
 	sender              string
+	identifier          string
 	host                string
 	port                int
 	trustedCert         string
@@ -39,6 +40,7 @@ func NewSMTPNotifier(configuration schema.SMTPNotifierConfiguration) *SMTPNotifi
 		username:            configuration.Username,
 		password:            configuration.Password,
 		sender:              configuration.Sender,
+		identifier:          configuration.Identifier,
 		host:                configuration.Host,
 		port:                configuration.Port,
 		trustedCert:         configuration.TrustedCert,
@@ -277,6 +279,10 @@ func (n *SMTPNotifier) StartupCheck() (bool, error) {
 
 	defer n.cleanup()
 
+	if err := n.client.Hello(n.identifier); err != nil {
+		return false, err
+	}
+
 	if err := n.startTLS(); err != nil {
 		return false, err
 	}
@@ -310,6 +316,10 @@ func (n *SMTPNotifier) Send(recipient, title, body, htmlBody string) error {
 
 	// Always execute QUIT at the end once we're connected.
 	defer n.cleanup()
+
+	if err := n.client.Hello(n.identifier); err != nil {
+		return err
+	}
 
 	// Start TLS and then Authenticate.
 	if err := n.startTLS(); err != nil {

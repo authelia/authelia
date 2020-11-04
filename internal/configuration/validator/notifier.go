@@ -47,6 +47,10 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 			configuration.SMTP.Subject = schema.DefaultSMTPNotifierConfiguration.Subject
 		}
 
+		if configuration.SMTP.Identifier == "" {
+			configuration.SMTP.Identifier = schema.DefaultSMTPNotifierConfiguration.Identifier
+		}
+
 		return
 	}
 }

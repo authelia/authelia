@@ -66,6 +66,7 @@ var validKeys = []string{
 	"notifier.smtp.password",
 	"notifier.smtp.host",
 	"notifier.smtp.port",
+	"notifier.smtp.identifier",
 	"notifier.smtp.sender",
 	"notifier.smtp.subject",
 	"notifier.smtp.startup_check_address",
