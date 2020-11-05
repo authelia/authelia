@@ -27,7 +27,7 @@
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.5",
     "qrcode.react": "^1.0.0",
-    "query-string": "^6.13.6",
+    "query-string": "^6.13.7",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-ga": "^3.2.0",
