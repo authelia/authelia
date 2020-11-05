@@ -426,6 +426,12 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		} else {
 			username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession,
 				refreshProfile, refreshProfileInterval)
+
+			sessionUsername := ctx.Request.Header.Peek(SessionUsernameHeader)
+			if sessionUsername != nil && strings.ToLower(string(sessionUsername)) != strings.ToLower(username) {
+				handleUnauthorized(ctx, targetURL, username)
+				return
+			}
 		}
 
 		if err != nil {
