@@ -34,7 +34,7 @@ export interface Props {
     onAuthenticationSuccess: (redirectURL: string | undefined) => void;
 }
 
-export default function (props: Props) {
+const SecondFactorForm = function (props: Props) {
     const style = useStyles();
     const history = useHistory();
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
@@ -145,6 +145,8 @@ export default function (props: Props) {
         </LoginLayout>
     )
 }
+
+export default SecondFactorForm
 
 const useStyles = makeStyles(theme => ({
     methodContainer: {

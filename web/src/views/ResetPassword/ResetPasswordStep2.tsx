@@ -9,7 +9,7 @@ import { FirstFactorRoute } from "../../Routes";
 import { extractIdentityToken } from "../../utils/IdentityToken";
 import FixedTextField from "../../components/FixedTextField";
 
-export default function () {
+const ResetPasswordStep2 = function () {
     const style = useStyles();
     const location = useLocation();
     const [formDisabled, setFormDisabled] = useState(true);
@@ -136,6 +136,8 @@ export default function () {
         </LoginLayout>
     )
 }
+
+export default ResetPasswordStep2
 
 const useStyles = makeStyles(theme => ({
     root: {

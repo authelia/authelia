@@ -11,7 +11,7 @@ export interface Props {
     showBrand?: boolean;
 }
 
-export default function (props: Props) {
+const LoginLayout = function (props: Props) {
     const style = useStyles();
     return (
         <Grid
@@ -49,6 +49,8 @@ export default function (props: Props) {
         </Grid>
     );
 }
+
+export default LoginLayout
 
 const useStyles = makeStyles(theme => ({
     root: {

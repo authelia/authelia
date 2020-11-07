@@ -9,7 +9,7 @@ export interface Props {
 	strong?: boolean;
 }
 
-export default function (props: Props) {
+const FingerTouchIcon = function (props: Props) {
 	const shakingClass = (props.animated) ? style.shaking : undefined;
 	const strong = (props.strong) ? style.strong : undefined;
 
@@ -40,3 +40,5 @@ export default function (props: Props) {
         </svg>
     )
 }
+
+export default FingerTouchIcon

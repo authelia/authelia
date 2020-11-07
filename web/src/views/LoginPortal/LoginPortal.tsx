@@ -21,7 +21,7 @@ export interface Props {
     resetPassword: boolean;
 }
 
-export default function (props: Props) {
+const LoginPortal = function (props: Props) {
     const history = useHistory();
     const location = useLocation();
     const redirectionURL = useRedirectionURL();
@@ -143,6 +143,8 @@ export default function (props: Props) {
         </Switch>
     )
 }
+
+export default LoginPortal
 
 interface ComponentOrLoadingProps {
     ready: boolean;

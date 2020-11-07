@@ -11,7 +11,7 @@ export interface Props {
     backgroundColor?: string;
 }
 
-export default function (props: Props) {
+const PieChartIcon = function (props: Props) {
     const maxProgress = props.maxProgress ? props.maxProgress : 100;
     const width = props.width ? props.width : 20;
     const height = props.height ? props.height : 20;
@@ -31,3 +31,5 @@ export default function (props: Props) {
         </svg>
     )
 }
+
+export default PieChartIcon
