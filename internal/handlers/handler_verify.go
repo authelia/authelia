@@ -428,7 +428,7 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 				refreshProfile, refreshProfileInterval)
 
 			sessionUsername := ctx.Request.Header.Peek(SessionUsernameHeader)
-			if sessionUsername != nil && strings.ToLower(string(sessionUsername)) != strings.ToLower(username) {
+			if sessionUsername != nil && strings.EqualFold(string(sessionUsername), username) {
 				handleUnauthorized(ctx, targetURL, username)
 				return
 			}
