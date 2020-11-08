@@ -9,7 +9,7 @@ interface IconWithContextProps {
     className?: string;
 }
 
-export default function (props: IconWithContextProps) {
+const IconWithContext = function (props: IconWithContextProps) {
     const iconSize = 64;
     const style = makeStyles(theme => ({
         root: {},
@@ -40,3 +40,5 @@ export default function (props: IconWithContextProps) {
         </div>
     )
 }
+
+export default IconWithContext

@@ -12,7 +12,7 @@ export interface Props {
     className?: string;
 }
 
-export default function (props: Props) {
+const AppStoreBadges = function (props: Props) {
     const target = props.targetBlank ? "_blank" : undefined;
 
     const width = props.iconSize;
@@ -28,3 +28,5 @@ export default function (props: Props) {
         </div >
     )
 }
+
+export default AppStoreBadges

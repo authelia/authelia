@@ -8,7 +8,7 @@ export interface Props {
     onClose: () => void;
 }
 
-export default function (props: Props) {
+const NotificationBar = function (props: Props) {
     const [tmpNotification, setTmpNotification] = useState(null as Notification | null);
     const { notification } = useNotifications();
 
@@ -34,3 +34,5 @@ export default function (props: Props) {
         </Snackbar>
     )
 }
+
+export default NotificationBar

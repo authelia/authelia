@@ -8,7 +8,7 @@ export function useRemoteCall<Ret>(fn: PromisifiedFunction<Ret>, deps: Dependenc
     const [inProgress, setInProgress] = useState(false);
     const [error, setError] = useState(undefined as Error | undefined);
 
-    const fnCallback = useCallback(fn, deps);
+    const fnCallback = useCallback(fn, [fn, deps]);
 
     const triggerCallback = useCallback(async () => {
         try {

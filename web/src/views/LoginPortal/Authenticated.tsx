@@ -2,7 +2,7 @@ import React from "react";
 import SuccessIcon from "../../components/SuccessIcon";
 import { Typography, makeStyles } from "@material-ui/core";
 
-export default function () {
+const Authenticated = function () {
     const classes = useStyles();
     return (
         <div id="authenticated-stage">
@@ -13,6 +13,8 @@ export default function () {
         </div>
     )
 }
+
+export default Authenticated
 
 const useStyles = makeStyles(theme => ({
     iconContainer: {

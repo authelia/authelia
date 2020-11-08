@@ -9,7 +9,7 @@ import { completeU2FRegistrationProcessStep1, completeU2FRegistrationProcessStep
 import { useNotifications } from "../../hooks/NotificationsContext";
 import u2fApi from "u2f-api";
 
-export default function () {
+const RegisterSecurityKey = function () {
     const style = useStyles();
     const history = useHistory();
     const location = useLocation();
@@ -65,6 +65,8 @@ export default function () {
         </LoginLayout>
     )
 }
+
+export default RegisterSecurityKey
 
 const useStyles = makeStyles(theme => ({
     icon: {
