@@ -20,7 +20,7 @@ const LinearProgressBar = function (props: Props) {
     }))();
     return (
         <LinearProgress
-            style={props.style}
+            style={props.style as React.CSSProperties}
             variant="determinate"
             classes={{
                 root: style.progressRoot,
