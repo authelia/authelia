@@ -94,6 +94,7 @@ const FirstFactorForm = function (props: Props) {
                         fullWidth
                         onChange={v => setUsername(v.target.value)}
                         onFocus={() => setUsernameError(false)}
+                        autoCapitalize="none"
                         onKeyPress={(ev) => {
                             if (ev.key === 'Enter') {
                                 if (!username.length) {

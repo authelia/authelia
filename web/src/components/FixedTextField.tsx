@@ -16,7 +16,8 @@ const FixedTextField = function (props: TextFieldProps) {
                 classes: {
                     root: style.label
                 }
-            }}>
+            }}
+            inputProps={{autoCapitalize: props.autoCapitalize}}>
             {props.children}
         </TextField>
     );
