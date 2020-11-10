@@ -56,7 +56,7 @@ WORKDIR /app
 RUN apk --no-cache add ca-certificates su-exec tzdata
 
 COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
-COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh healthcheck.sh /usr/local/bin/
 
 EXPOSE 9091
 
@@ -69,4 +69,4 @@ PGID=0
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["--config", "/config/configuration.yml"]
-HEALTHCHECK --interval=30s --timeout=3s CMD wget --quiet --tries=1 --spider http://localhost:9091/api/state || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=1m CMD /usr/local/bin/healthcheck.sh
