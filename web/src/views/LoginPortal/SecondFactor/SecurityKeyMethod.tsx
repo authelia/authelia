@@ -38,8 +38,10 @@ const SecurityKeyMethod = function (props: Props) {
     const [timerPercent, triggerTimer,] = useTimer(signInTimeout * 1000 - 500);
 
     const { onSignInSuccess, onSignInError } = props;
-    const onSignInErrorCallback = useCallback(onSignInError, [onSignInError]);
-    const onSignInSuccessCallback = useCallback(onSignInSuccess, [onSignInSuccess]);
+    /* eslint-disable react-hooks/exhaustive-deps */
+    const onSignInErrorCallback = useCallback(onSignInError, []);
+    const onSignInSuccessCallback = useCallback(onSignInSuccess, []);
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     const doInitiateSignIn = useCallback(async () => {
         // If user is already authenticated, we don't initiate sign in process.
