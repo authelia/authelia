@@ -55,11 +55,14 @@ protected by Authelia or the protected domain itself. In order to match multiple
 subdomains, the wildcard matcher character `*.` can be used as prefix of the domain.
 For instance, to define a rule for all subdomains of *example.com*, one would use
 `*.example.com` in the rule. A single rule can define multiple domains for matching.
+These domains can be either listed in YAML-short form `["example1.com", "example2.com"]`
+or in YAML long-form as dashed list.
 
 ## Resources
 
-A rule can define multiple regular expressions for matching the path of the resource. If
-any one of them matches, the resource criteria of the rule matches.
+A rule can define multiple regular expressions for matching the path of the resource
+similar to the list of domains. If any one of them matches, the resource criteria of
+the rule matches.
 
 
 ## Subjects
@@ -70,10 +73,11 @@ For a user with unique identifier `john`, the subject should be `user:john` and 
 uniquely identified by `developers`, the subject should be `group:developers`. Similar to resources
 and domains you can define multiple subjects in a single rule.
 
-If you want a combination of subjects to be matched at once, you can specify a list of subjects like
-`- ["group:developers", "group:admins"]`. Make sure to preceed it by a list key `-`.
-In summary, the first level of subjects are evaluated using a logical `OR`, whereas the second level 
-by a logical `AND`.
+If you want a combination of subjects to be matched at once using a logical `AND`, you can
+specify a nested list of subjects like `- ["group:developers", "group:admins"]`.
+In summary, the first list level of subjects are evaluated using a logical `OR`, whereas the
+second level by a logical `AND`. The last example below reads as: the group is `dev` AND the
+user's name is `john` OR the group is `admins`.
 
 ## Networks
 
@@ -135,5 +139,6 @@ access_control:
       - "^/users/john/.*$"
       subject: 
       - ["group:dev", "user:john"]
+      - "group:admins"
       policy: two_factor
 ```
