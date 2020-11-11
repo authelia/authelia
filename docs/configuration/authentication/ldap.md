@@ -29,6 +29,13 @@ authentication_backend:
   refresh_interval: 5m
 
   ldap:
+    # The LDAP implementation, this affects elements like the attribute utilised for resetting a password.
+    # Acceptable options are as follows:
+    # - 'activedirectory' - For Microsoft Active Directory.
+    # - 'rfc' - For most open source LDAP implementations, for example rfc2307.
+    # This currently defaults to 'rfc' to maintain existing behaviour.
+    # implementation: rfc
+
     # The url to the ldap server. Scheme can be ldap:// or ldaps://
     url: ldap://127.0.0.1
 

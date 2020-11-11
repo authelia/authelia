@@ -2,6 +2,7 @@ package schema
 
 // LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server.
 type LDAPAuthenticationBackendConfiguration struct {
+	Implementation       string `mapstructure:"implementation"`
 	URL                  string `mapstructure:"url"`
 	SkipVerify           bool   `mapstructure:"skip_verify"`
 	BaseDN               string `mapstructure:"base_dn"`
@@ -70,6 +71,7 @@ var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 
 // DefaultLDAPAuthenticationBackendConfiguration represents the default LDAP config.
 var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendConfiguration{
+	Implementation:       "rfc",
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayname",
 	GroupNameAttribute:   "cn",

@@ -5,21 +5,28 @@ import (
 	"time"
 )
 
-var dockerSuiteName = "Docker"
+var activedirectorySuiteName = "ActiveDirectory"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/docker-compose.yml",
-		"internal/suites/Docker/docker-compose.yml",
-		"internal/suites/example/compose/authelia/docker-compose.backend.dist.yml",
-		"internal/suites/example/compose/authelia/docker-compose.frontend.dist.yml",
+		"internal/suites/ActiveDirectory/docker-compose.yml",
+		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
 		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
 		"internal/suites/example/compose/nginx/portal/docker-compose.yml",
 		"internal/suites/example/compose/smtp/docker-compose.yml",
+		"internal/suites/example/compose/samba/docker-compose.yml",
 	})
 
 	setup := func(suitePath string) error {
-		if err := dockerEnvironment.Up(); err != nil {
+		err := dockerEnvironment.Up()
+
+		if err != nil {
+			return err
+		}
+
+		if err := waitUntilSambaIsReady(dockerEnvironment); err != nil {
 			return err
 		}
 
@@ -45,19 +52,17 @@ func init() {
 	}
 
 	teardown := func(suitePath string) error {
-		return dockerEnvironment.Down()
+		err := dockerEnvironment.Down()
+		return err
 	}
 
-	GlobalRegistry.Register(dockerSuiteName, Suite{
+	GlobalRegistry.Register(activedirectorySuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
-		OnError:         displayAutheliaLogs,
-		TestTimeout:     1 * time.Minute,
+		TestTimeout:     120 * time.Second,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
-
-		Description: `This suite has been created to test the distributable version of Authelia
-It's often useful to test this one before the Kube one.`,
+		OnError:         displayAutheliaLogs,
 	})
 }

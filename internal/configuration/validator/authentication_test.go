@@ -159,6 +159,7 @@ func (suite *LdapAuthenticationBackendSuite) SetupTest() {
 	suite.validator = schema.NewStructValidator()
 	suite.configuration = schema.AuthenticationBackendConfiguration{}
 	suite.configuration.Ldap = &schema.LDAPAuthenticationBackendConfiguration{}
+	suite.configuration.Ldap.Implementation = "rfc"
 	suite.configuration.Ldap.URL = "ldap://ldap"
 	suite.configuration.Ldap.User = "user"
 	suite.configuration.Ldap.Password = "password"
@@ -229,6 +230,12 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Auth Backend `refresh_interval` is configured to 'blah' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: Could not convert the input string of blah into a duration")
 }
 
+func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultImplementation() {
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	assert.Len(suite.T(), suite.validator.Errors(), 0)
+	assert.Equal(suite.T(), "rfc", suite.configuration.Ldap.Implementation)
+}
+
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultGroupNameAttribute() {
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
@@ -239,6 +246,12 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultMailAttribute()
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
 	assert.Equal(suite.T(), "mail", suite.configuration.Ldap.MailAttribute)
+}
+
+func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultDisplayNameAttribute() {
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	assert.Len(suite.T(), suite.validator.Errors(), 0)
+	assert.Equal(suite.T(), "displayname", suite.configuration.Ldap.DisplayNameAttribute)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultRefreshInterval() {

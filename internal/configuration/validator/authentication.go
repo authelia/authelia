@@ -100,6 +100,10 @@ func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
 
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if configuration.Implementation == "" {
+		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
+	}
+
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))
 	} else {
