@@ -165,7 +165,7 @@ func (suite *LdapAuthenticationBackendSuite) SetupTest() {
 	suite.configuration.Ldap.Password = "password"
 	suite.configuration.Ldap.BaseDN = "base_dn"
 	suite.configuration.Ldap.UsernameAttribute = "uid"
-	suite.configuration.Ldap.UsersFilter = "(uid={input})"
+	suite.configuration.Ldap.UsersFilter = "({username_attribute}={input})"
 	suite.configuration.Ldap.GroupsFilter = "(cn={input})"
 }
 
@@ -267,10 +267,10 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultRefreshInterval
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesNotContainEnclosingParenthesis() {
-	suite.configuration.Ldap.UsersFilter = "uid={input}"
+	suite.configuration.Ldap.UsersFilter = "{username_attribute}={input}"
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	require.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The users filter should contain enclosing parenthesis. For instance uid={input} should be (uid={input})")
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The users filter should contain enclosing parenthesis. For instance {username_attribute}={input} should be ({username_attribute}={input})")
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenGroupsFilterDoesNotContainEnclosingParenthesis() {
@@ -280,8 +280,15 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenGroupsFilterDoes
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "The groups filter should contain enclosing parenthesis. For instance cn={input} should be (cn={input})")
 }
 
+func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesNotContainUsernameAttribute() {
+	suite.configuration.Ldap.UsersFilter = "(&({mail_attribute}={input})(objectClass=person))"
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	require.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Unable to detect {username_attribute} placeholder in users_filter, your configuration is broken. Please review configuration options listed at https://docs.authelia.com/configuration/authentication/ldap.html")
+}
+
 func (suite *LdapAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlaceholder() {
-	suite.configuration.Ldap.UsersFilter = "(objectClass=person)"
+	suite.configuration.Ldap.UsersFilter = "(&({username_attribute}={mail_attribute})(objectClass=person))"
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	require.Len(suite.T(), suite.validator.Errors(), 1)
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Unable to detect {input} placeholder in users_filter, your configuration might be broken. Please review configuration options listed at https://docs.authelia.com/configuration/authentication/ldap.html")
@@ -307,80 +314,4 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {
 
 func TestLdapAuthenticationBackend(t *testing.T) {
 	suite.Run(t, new(LdapAuthenticationBackendSuite))
-}
-
-type ActiveDirectoryAuthenticationBackendSuite struct {
-	suite.Suite
-	configuration schema.AuthenticationBackendConfiguration
-	validator     *schema.StructValidator
-}
-
-func (suite *ActiveDirectoryAuthenticationBackendSuite) SetupTest() {
-	suite.validator = schema.NewStructValidator()
-	suite.configuration = schema.AuthenticationBackendConfiguration{}
-	suite.configuration.Ldap = &schema.LDAPAuthenticationBackendConfiguration{}
-	suite.configuration.Ldap.Implementation = schema.LDAPImplementationActiveDirectory
-	suite.configuration.Ldap.URL = "ldap://ldap"
-	suite.configuration.Ldap.User = "user"
-	suite.configuration.Ldap.Password = "password"
-	suite.configuration.Ldap.BaseDN = "base_dn"
-}
-
-func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirectoryDefaults() {
-	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
-
-	assert.Len(suite.T(), suite.validator.Errors(), 0)
-
-	assert.Equal(suite.T(),
-		suite.configuration.Ldap.UsersFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter)
-	assert.Equal(suite.T(),
-		suite.configuration.Ldap.UsernameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute)
-	assert.Equal(suite.T(),
-		suite.configuration.Ldap.DisplayNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute)
-	assert.Equal(suite.T(),
-		suite.configuration.Ldap.MailAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute)
-	assert.Equal(suite.T(),
-		suite.configuration.Ldap.GroupsFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter)
-	assert.Equal(suite.T(),
-		suite.configuration.Ldap.GroupNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute)
-}
-
-func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
-	suite.configuration.Ldap.UsersFilter = "(&({username_attribute}={input})(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2))"
-	suite.configuration.Ldap.UsernameAttribute = "cn"
-	suite.configuration.Ldap.MailAttribute = "userPrincipalName"
-	suite.configuration.Ldap.DisplayNameAttribute = "name"
-	suite.configuration.Ldap.GroupsFilter = "(&(member={dn})(objectClass=group)(objectCategory=group))"
-	suite.configuration.Ldap.GroupNameAttribute = "distinguishedName"
-
-	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
-
-	assert.NotEqual(suite.T(),
-		suite.configuration.Ldap.UsersFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter)
-	assert.NotEqual(suite.T(),
-		suite.configuration.Ldap.UsernameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute)
-	assert.NotEqual(suite.T(),
-		suite.configuration.Ldap.DisplayNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute)
-	assert.NotEqual(suite.T(),
-		suite.configuration.Ldap.MailAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute)
-	assert.NotEqual(suite.T(),
-		suite.configuration.Ldap.GroupsFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter)
-	assert.NotEqual(suite.T(),
-		suite.configuration.Ldap.GroupNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute)
-}
-
-func TestActiveDirectoryAuthenticationBackend(t *testing.T) {
-	suite.Run(t, new(ActiveDirectoryAuthenticationBackendSuite))
 }
