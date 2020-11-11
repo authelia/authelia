@@ -31,8 +31,10 @@ const OneTimePasswordMethod = function (props: Props) {
     const redirectionURL = useRedirectionURL();
 
     const { onSignInSuccess, onSignInError } = props;
-    const onSignInErrorCallback = useCallback(onSignInError, [onSignInError]);
-    const onSignInSuccessCallback = useCallback(onSignInSuccess, [onSignInSuccess]);
+    /* eslint-disable react-hooks/exhaustive-deps */
+    const onSignInErrorCallback = useCallback(onSignInError, []);
+    const onSignInSuccessCallback = useCallback(onSignInSuccess, []);
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     const signInFunc = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
