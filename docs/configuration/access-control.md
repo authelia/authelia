@@ -77,7 +77,7 @@ If you want a combination of subjects to be matched at once using a logical `AND
 specify a nested list of subjects like `- ["group:developers", "group:admins"]`.
 In summary, the first list level of subjects are evaluated using a logical `OR`, whereas the
 second level by a logical `AND`. The last example below reads as: the group is `dev` AND the
-user's name is `john` OR the group is `admins`.
+username is `john` OR the group is `admins`.
 
 ## Networks
 
