@@ -146,7 +146,7 @@ applying them blindly.
 
 ```
 # We don't want any credentials / TOTP secret key / QR code to be cached by
-# the client
+# the client
 add_header Cache-Control "no-store";
 add_header Pragma "no-cache";
 
