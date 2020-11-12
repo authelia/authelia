@@ -37,19 +37,19 @@
   },"6": {
     "doc": "Access Control",
     "title": "Domains",
-    "content": "The domains defined in rules must obviously be either a subdomain of the domain protected by Authelia or the protected domain itself. In order to match multiple subdomains, the wildcard matcher character *. can be used as prefix of the domain. For instance, to define a rule for all subdomains of example.com, one would use *.example.com in the rule. A single rule can define multiple domains for matching. ",
+    "content": "The domains defined in rules must obviously be either a subdomain of the domain protected by Authelia or the protected domain itself. In order to match multiple subdomains, the wildcard matcher character *. can be used as prefix of the domain. For instance, to define a rule for all subdomains of example.com, one would use *.example.com in the rule. A single rule can define multiple domains for matching. These domains can be either listed in YAML-short form [\"example1.com\", \"example2.com\"] or in YAML long-form as dashed list. ",
     "url": "/docs/configuration/access-control.html#domains",
     "relUrl": "/configuration/access-control.html#domains"
   },"7": {
     "doc": "Access Control",
     "title": "Resources",
-    "content": "A rule can define multiple regular expressions for matching the path of the resource. If any one of them matches, the resource criteria of the rule matches. ",
+    "content": "A rule can define multiple regular expressions for matching the path of the resource similar to the list of domains. If any one of them matches, the resource criteria of the rule matches. ",
     "url": "/docs/configuration/access-control.html#resources",
     "relUrl": "/configuration/access-control.html#resources"
   },"8": {
     "doc": "Access Control",
     "title": "Subjects",
-    "content": "A subject is a representation of a user or a group of user for who the rule should apply. For a user with unique identifier john, the subject should be user:john and for a group uniquely identified by developers, the subject should be group:developers. Similar to resources and domains you can define multiple subjects in a single rule. If you want a combination of subjects to be matched at once, you can specify a list of subjects like - [\"group:developers\", \"group:admins\"]. Make sure to preceed it by a list key -. In summary, the first level of subjects are evaluated using a logical OR, whereas the second level by a logical AND. ",
+    "content": "A subject is a representation of a user or a group of user for who the rule should apply. For a user with unique identifier john, the subject should be user:john and for a group uniquely identified by developers, the subject should be group:developers. Similar to resources and domains you can define multiple subjects in a single rule. If you want a combination of subjects to be matched at once using a logical AND, you can specify a nested list of subjects like - [\"group:developers\", \"group:admins\"]. In summary, the first list level of subjects are evaluated using a logical OR, whereas the second level by a logical AND. The last example below reads as: the group is dev AND the username is john OR the group is admins. ",
     "url": "/docs/configuration/access-control.html#subjects",
     "relUrl": "/configuration/access-control.html#subjects"
   },"9": {
@@ -61,7 +61,7 @@
   },"10": {
     "doc": "Access Control",
     "title": "Complete example",
-    "content": "Here is a complete example of complex access control list that can be defined in Authelia. access_control: default_policy: deny rules: - domain: public.example.com policy: bypass - domain: secure.example.com policy: one_factor networks: - 192.168.1.0/24 - domain: - secure.example.com - private.example.com policy: two_factor - domain: singlefactor.example.com policy: one_factor - domain: \"mx2.mail.example.com\" subject: \"group:admins\" policy: deny - domain: \"*.example.com\" subject: - \"group:admins\" - \"group:moderators\" policy: two_factor - domain: dev.example.com resources: - \"^/groups/dev/.*$\" subject: \"group:dev\" policy: two_factor - domain: dev.example.com resources: - \"^/users/john/.*$\" subject: - [\"group:dev\", \"user:john\"] policy: two_factor . ",
+    "content": "Here is a complete example of complex access control list that can be defined in Authelia. access_control: default_policy: deny rules: - domain: public.example.com policy: bypass - domain: secure.example.com policy: one_factor networks: - 192.168.1.0/24 - domain: - secure.example.com - private.example.com policy: two_factor - domain: singlefactor.example.com policy: one_factor - domain: \"mx2.mail.example.com\" subject: \"group:admins\" policy: deny - domain: \"*.example.com\" subject: - \"group:admins\" - \"group:moderators\" policy: two_factor - domain: dev.example.com resources: - \"^/groups/dev/.*$\" subject: \"group:dev\" policy: two_factor - domain: dev.example.com resources: - \"^/users/john/.*$\" subject: - [\"group:dev\", \"user:john\"] - \"group:admins\" policy: two_factor . ",
     "url": "/docs/configuration/access-control.html#complete-example",
     "relUrl": "/configuration/access-control.html#complete-example"
   },"11": {
