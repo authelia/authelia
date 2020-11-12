@@ -5,7 +5,7 @@
 # The host and port to listen on
 host: 0.0.0.0
 port: 9091
-# tls_key: /config/ssl/key.pem
+# tls_key: /config/ssl/key.pem
 # tls_cert: /config/ssl/cert.pem
 
 # Configuration options specific to the internal http server
@@ -22,7 +22,7 @@ server:
 # Level of verbosity for logs: info, debug, trace
 log_level: debug
 ## File path where the logs will be written. If not set logs are written to stdout.
-# log_file_path: /config/authelia.log
+# log_file_path: /config/authelia.log
 
 # The secret used to generate JWT tokens when validating user identity by
 # email confirmation.
