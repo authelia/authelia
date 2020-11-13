@@ -67,7 +67,7 @@ func waitUntilSambaIsReady(dockerEnvironment *DockerEnvironment) error {
 		[]string{"samba entered RUNNING state"})
 }
 
-func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
+func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment, suite string) error {
 	log.Info("Waiting for Authelia to be ready...")
 
 	if err := waitUntilAutheliaBackendIsReady(dockerEnvironment); err != nil {
@@ -76,6 +76,12 @@ func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
 
 	if os.Getenv("CI") != stringTrue {
 		if err := waitUntilAutheliaFrontendIsReady(dockerEnvironment); err != nil {
+			return err
+		}
+	}
+
+	if suite == "ActiveDirectory" {
+		if err := waitUntilSambaIsReady(dockerEnvironment); err != nil {
 			return err
 		}
 	}

@@ -25,7 +25,7 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment)
+		return waitUntilAutheliaIsReady(dockerEnvironment, mariadbSuiteName)
 	}
 
 	displayAutheliaLogs := func() error {

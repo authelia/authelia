@@ -20,13 +20,11 @@ func init() {
 	})
 
 	setup := func(suitePath string) error {
-		err := dockerEnvironment.Up()
-
-		if err != nil {
+		if err := dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment)
+		return waitUntilAutheliaIsReady(dockerEnvironment, traefikSuiteName)
 	}
 
 	displayAutheliaLogs := func() error {
