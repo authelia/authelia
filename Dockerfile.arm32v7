@@ -12,7 +12,7 @@ RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn build
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.15.3-alpine AS builder-backend
+FROM golang:1.15.4-alpine AS builder-backend
 
 ARG BUILD_TAG
 ARG BUILD_COMMIT
@@ -52,7 +52,7 @@ GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc go build -tags n
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM arm32v7/alpine:3.12.0
+FROM arm32v7/alpine:3.12.1
 
 WORKDIR /app
 
@@ -62,7 +62,7 @@ RUN apk --no-cache add ca-certificates su-exec tzdata && \
     rm /usr/bin/qemu-arm-static
 
 COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
-COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh healthcheck.sh /usr/local/bin/
 
 EXPOSE 9091
 
@@ -75,4 +75,4 @@ PGID=0
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["--config", "/config/configuration.yml"]
-HEALTHCHECK --interval=30s --timeout=3s CMD wget --quiet --tries=1 --spider http://localhost:9091/api/state || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=1m CMD /usr/local/bin/healthcheck.sh

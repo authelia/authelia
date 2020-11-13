@@ -24,7 +24,8 @@ func InitializeLogger(filename string) error {
 	logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
 
 	if filename != "" {
-		f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
+		f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+
 		if err != nil {
 			return err
 		}
