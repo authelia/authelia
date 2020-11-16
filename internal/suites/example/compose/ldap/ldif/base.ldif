@@ -65,13 +65,3 @@ sn: Dean
 uid: james
 userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
 
-dn: cn=Billy Blackhat,ou=users,dc=example,dc=com
-cn: Billy Blackhat
-displayname: Billy Blackhat
-givenName: Billy
-objectclass: inetOrgPerson
-objectclass: top
-mail: billy.blackhat@authelia.com
-sn: BlackHat
-uid: blackhat
-userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/

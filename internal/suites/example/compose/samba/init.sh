@@ -77,7 +77,6 @@ appProvision () {
   samba-tool user create harry password --userou=OU=Users --use-username-as-cn --given-name Harry --surname Potter --mail-address harry.potter@authelia.com
   samba-tool user create bob password --userou=OU=Users --use-username-as-cn --given-name Bob --surname Dylan --mail-address bob.dylan@authelia.com
   samba-tool user create james password --userou=OU=Users --use-username-as-cn --given-name James --surname Dean --mail-address james.dean@authelia.com
-  samba-tool user create blackhat password --userou=OU=Users --use-username-as-cn --given-name Billy --surname Blackhat --mail-address billy.blackhat@authelia.com
   samba-tool group addmembers "dev" john,bob
   samba-tool group addmembers "admins" john
 }
