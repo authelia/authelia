@@ -413,6 +413,26 @@ func TestShouldVerifyFailingDetailsFetchingInBasicAuth(t *testing.T) {
 		"https://test.example.com", actualStatus, expStatus)
 }
 
+func TestShouldNotCrashOnEmptyEmail(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = testUsername
+	userSession.Emails = nil
+	userSession.AuthenticationLevel = authentication.OneFactor
+	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	expStatus, actualStatus := 200, mock.Ctx.Response.StatusCode()
+	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
+		"https://bypass.example.com", actualStatus, expStatus)
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-Email"))
+}
+
 type Pair struct {
 	URL                 string
 	Username            string
