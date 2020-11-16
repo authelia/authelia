@@ -46,7 +46,7 @@ func dockerBuildOfficialImage(arch string) error {
 	// Set default Architecture Dockerfile to amd64.
 	dockerfile := "Dockerfile"
 	// Set version of QEMU.
-	qemuversion := "v5.1.0-5"
+	qemuversion := "v5.1.0-7"
 
 	// If not the default value.
 	if arch != defaultArch {
