@@ -48,6 +48,7 @@ var DuoBaseURL = "https://duo.example.com"
 var AutheliaBaseURL = "https://authelia.example.com:9091"
 
 const stringTrue = "true"
+const defaultChromeDriverPort = "4444"
 
 const testUsername = "john"
 const testPassword = "password"
