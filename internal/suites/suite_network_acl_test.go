@@ -3,6 +3,8 @@ package suites
 import (
 	"context"
 	"fmt"
+	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -39,7 +41,13 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	wds, err := StartWebDriverWithProxy("http://proxy-client1.example.com:3128", 4444)
+	driverPort := os.Getenv("CHROMEDRIVER_PORT")
+	if driverPort == "" {
+		driverPort = defaultChromeDriverPort
+	}
+
+	p, _ := strconv.Atoi(driverPort)
+	wds, err := StartWebDriverWithProxy("http://proxy-client1.example.com:3128", p)
 	s.Require().NoError(err)
 
 	defer wds.Stop() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
@@ -58,7 +66,13 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon0FA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	wds, err := StartWebDriverWithProxy("http://proxy-client2.example.com:3128", 4444)
+	driverPort := os.Getenv("CHROMEDRIVER_PORT")
+	if driverPort == "" {
+		driverPort = defaultChromeDriverPort
+	}
+
+	p, _ := strconv.Atoi(driverPort)
+	wds, err := StartWebDriverWithProxy("http://proxy-client2.example.com:3128", p)
 	s.Require().NoError(err)
 
 	defer wds.Stop() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.

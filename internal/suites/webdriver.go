@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -69,7 +70,14 @@ func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) 
 
 // StartWebDriver create a selenium session.
 func StartWebDriver() (*WebDriverSession, error) {
-	return StartWebDriverWithProxy("", 4444)
+	driverPort := os.Getenv("CHROMEDRIVER_PORT")
+	if driverPort == "" {
+		driverPort = defaultChromeDriverPort
+	}
+
+	p, _ := strconv.Atoi(driverPort)
+
+	return StartWebDriverWithProxy("", p)
 }
 
 // Stop stop the selenium session.
