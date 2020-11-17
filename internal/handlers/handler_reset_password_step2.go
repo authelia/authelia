@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/authelia/authelia/internal/middlewares"
 )
@@ -29,7 +30,13 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	err = ctx.Providers.UserProvider.UpdatePassword(*userSession.PasswordResetUsername, requestBody.Password)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to update password: %s", err), unableToResetPasswordMessage)
+		switch {
+		case strings.Contains(err.Error(), ldapPasswordComplexityCode):
+			ctx.Error(fmt.Errorf("%s", err), ldapPasswordComplexityCode)
+		default:
+			ctx.Error(fmt.Errorf("%s", err), unableToResetPasswordMessage)
+		}
+
 		return
 	}
 
