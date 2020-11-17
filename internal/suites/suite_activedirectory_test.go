@@ -26,6 +26,10 @@ func (s *ActiveDirectorySuite) TestResetPassword() {
 	suite.Run(s.T(), NewResetPasswordScenario())
 }
 
+func (s *ActiveDirectorySuite) TestPasswordComplexity() {
+	suite.Run(s.T(), NewPasswordComplexityScenario())
+}
+
 func (s *ActiveDirectorySuite) TestSigninEmailScenario() {
 	suite.Run(s.T(), NewSigninEmailScenario())
 }
