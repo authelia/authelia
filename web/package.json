@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@craco/craco": "^5.8.0",
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
     "@fortawesome/free-regular-svg-icons": "^5.15.1",
     "@fortawesome/free-solid-svg-icons": "^5.15.1",
@@ -40,9 +41,11 @@
     "u2f-api": "^1.1.1"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "craco start",
     "build": "react-scripts build",
+    "coverage": "craco build",
     "test": "react-scripts test --coverage --no-cache",
+    "report": "nyc report -r clover -r json -r lcov -r text",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

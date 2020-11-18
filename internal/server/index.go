@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"text/template"
 
 	"github.com/valyala/fasthttp"
@@ -36,7 +37,12 @@ func ServeIndex(publicDir, base, rememberMe, resetPassword string) fasthttp.Requ
 		nonce := utils.RandomString(32, alphaNumericRunes)
 
 		ctx.SetContentType("text/html; charset=utf-8")
-		ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
+
+		if os.Getenv("ENVIRONMENT") == dev {
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' 'unsafe-eval'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
+		} else {
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
+		}
 
 		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, CSPNonce, RememberMe, ResetPassword string }{Base: base, CSPNonce: nonce, RememberMe: rememberMe, ResetPassword: resetPassword})
 		if err != nil {
