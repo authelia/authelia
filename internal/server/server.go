@@ -99,7 +99,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	// Configure DUO api endpoint only if configuration exists.
 	if configuration.DuoAPI != nil {
 		var duoAPI duo.API
-		if os.Getenv("ENVIRONMENT") == "dev" {
+		if os.Getenv("ENVIRONMENT") == dev {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
 				configuration.DuoAPI.IntegrationKey,
 				configuration.DuoAPI.SecretKey,
