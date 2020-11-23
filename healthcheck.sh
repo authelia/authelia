@@ -2,8 +2,8 @@
 
 AUTHELIA_CONFIG=$(pgrep -af authelia | awk '{print $4}')
 AUTHELIA_SCHEME=$(grep ^tls "${AUTHELIA_CONFIG}")
-AUTHELIA_HOST=$(grep ^host "${AUTHELIA_CONFIG}" | sed -e 's/host: //')
-AUTHELIA_PORT=$(grep ^port "${AUTHELIA_CONFIG}" | sed -e 's/port: //')
+AUTHELIA_HOST=$(grep ^host "${AUTHELIA_CONFIG}" | sed -e 's/host: //' -e 's/\r//')
+AUTHELIA_PORT=$(grep ^port "${AUTHELIA_CONFIG}" | sed -e 's/port: //' -e 's/\r//')
 
 if [ -z "${AUTHELIA_SCHEME}" ]; then
   AUTHELIA_SCHEME=http
