@@ -42,6 +42,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	r.GET("/static/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
 
+	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
 
 	r.GET("/api/configuration", autheliaMiddleware(
