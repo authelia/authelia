@@ -21,7 +21,7 @@ Then, start the *Standalone* [suite].
     $ authelia-scripts suites setup Standalone
 
 A [suite] is kind of a virtual environment for running Authelia in a complete ecosystem.
-If you want more details please read the related [documentation](./contributing/suites.md).
+If you want more details please read the related [documentation](./suites.md).
 
 ## FAQ
 
@@ -52,4 +52,4 @@ Copy the following lines in your /etc/hosts.
 you can access the listed sub-domains from your browser and they will target
 the reverse proxy.
 
-[suite]: ./contributing/suites.md
+[suite]: ./suites.md
