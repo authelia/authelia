@@ -5,6 +5,7 @@ var validKeys = []string{
 	"host",
 	"port",
 	"log_level",
+	"log_format",
 	"log_file_path",
 	"default_redirection_url",
 	"jwt_secret",
