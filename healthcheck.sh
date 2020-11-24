@@ -4,6 +4,7 @@ AUTHELIA_CONFIG=$(pgrep -af authelia | awk '{print $4}')
 AUTHELIA_SCHEME=$(grep ^tls "${AUTHELIA_CONFIG}")
 AUTHELIA_HOST=$(grep ^host "${AUTHELIA_CONFIG}" | sed -e 's/host: //' -e 's/\r//')
 AUTHELIA_PORT=$(grep ^port "${AUTHELIA_CONFIG}" | sed -e 's/port: //' -e 's/\r//')
+AUTHELIA_PATH=$(grep ^\ \ path "${AUTHELIA_CONFIG}" | sed -e 's/  path: //' -e 's/\r//' -e 's/^/\//')
 
 if [ -z "${AUTHELIA_SCHEME}" ]; then
   AUTHELIA_SCHEME=http
@@ -19,4 +20,4 @@ if [ -z "${AUTHELIA_PORT}" ]; then
   AUTHELIA_PORT=9091
 fi
 
-wget --quiet --tries=1 --spider "${AUTHELIA_SCHEME}://${AUTHELIA_HOST}:${AUTHELIA_PORT}/api/state" || exit 1
+wget --quiet --tries=1 --spider "${AUTHELIA_SCHEME}://${AUTHELIA_HOST}:${AUTHELIA_PORT}${AUTHELIA_PATH}/api/health" || exit 1
