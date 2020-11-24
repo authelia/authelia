@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -37,7 +36,7 @@ func startServer() {
 	}
 
 	if err := logging.InitializeLogger(config.LogFilePath); err != nil {
-		log.Fatalf("Cannot initialize logger: %v", err)
+		logging.Logger().Fatalf("Cannot initialize logger: %v", err)
 	}
 
 	switch config.LogLevel {
@@ -64,7 +63,7 @@ func startServer() {
 	case config.AuthenticationBackend.Ldap != nil:
 		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.Ldap)
 	default:
-		log.Fatalf("Unrecognized authentication backend")
+		logging.Logger().Fatalf("Unrecognized authentication backend")
 	}
 
 	var storageProvider storage.Provider
@@ -77,7 +76,7 @@ func startServer() {
 	case config.Storage.Local != nil:
 		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
 	default:
-		log.Fatalf("Unrecognized storage backend")
+		logging.Logger().Fatalf("Unrecognized storage backend")
 	}
 
 	var notifier notification.Notifier
@@ -88,13 +87,13 @@ func startServer() {
 	case config.Notifier.FileSystem != nil:
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	default:
-		log.Fatalf("Unrecognized notifier")
+		logging.Logger().Fatalf("Unrecognized notifier")
 	}
 
 	if !config.Notifier.DisableStartupCheck {
 		_, err := notifier.StartupCheck()
 		if err != nil {
-			log.Fatalf("Error during notifier startup check: %s", err)
+			logging.Logger().Fatalf("Error during notifier startup check: %s", err)
 		}
 	}
 
@@ -136,6 +135,6 @@ func main() {
 		commands.ValidateConfigCmd, commands.CertificatesCmd)
 
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+		logging.Logger().Fatal(err)
 	}
 }
