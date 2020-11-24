@@ -47,6 +47,28 @@ generate a large amount of log entries and expose the `/debug/vars` and
 log_level: debug
 ```
 
+### Log format
+
+`optional: true`
+
+Defines the format of the logs written by Authelia.
+This format can be set to `json` or `text`.
+
+```yaml
+log_format: json
+```
+
+#### JSON format
+```
+{"level":"info","msg":"Logging severity set to info","time":"2020-01-01T00:00:00+11:00"}
+{"level":"info","msg":"Authelia is listening for non-TLS connections on 0.0.0.0:9091","time":"2020-01-01T00:00:00+11:00"}
+```
+#### Text format
+```
+time="2020-01-01T00:00:00+11:00" level=info msg="Logging severity set to info"
+time="2020-01-01T00:00:00+11:00" level=info msg="Authelia is listening for non-TLS connections on 0.0.0.0:9091"
+```
+
 ### Log file path
 
 `optional: true`
@@ -60,7 +82,6 @@ logs over time to prevent significant long-term disk usage.
 ```yaml
 log_file_path: /config/authelia.log
 ```
-
 
 ## JWT Secret
 

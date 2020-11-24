@@ -21,7 +21,9 @@ server:
 
 # Level of verbosity for logs: info, debug, trace
 log_level: debug
-## File path where the logs will be written. If not set logs are written to stdout.
+# Format the logs are written as: json, text
+# log_format: json
+# File path where the logs will be written. If not set logs are written to stdout.
 # log_file_path: /config/authelia.log
 
 # The secret used to generate JWT tokens when validating user identity by
