@@ -159,7 +159,7 @@ func (suite *LdapAuthenticationBackendSuite) SetupTest() {
 	suite.validator = schema.NewStructValidator()
 	suite.configuration = schema.AuthenticationBackendConfiguration{}
 	suite.configuration.Ldap = &schema.LDAPAuthenticationBackendConfiguration{}
-	suite.configuration.Ldap.Implementation = "rfc"
+	suite.configuration.Ldap.Implementation = "custom"
 	suite.configuration.Ldap.URL = "ldap://ldap"
 	suite.configuration.Ldap.User = "user"
 	suite.configuration.Ldap.Password = "password"
@@ -233,7 +233,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultImplementation() {
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
-	assert.Equal(suite.T(), "rfc", suite.configuration.Ldap.Implementation)
+	assert.Equal(suite.T(), "custom", suite.configuration.Ldap.Implementation)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultGroupNameAttribute() {
