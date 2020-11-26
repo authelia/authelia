@@ -71,7 +71,7 @@ var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 
 // DefaultLDAPAuthenticationBackendConfiguration represents the default LDAP config.
 var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendConfiguration{
-	Implementation:       "custom",
+	Implementation:       LDAPImplementationCustom,
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayname",
 	GroupNameAttribute:   "cn",

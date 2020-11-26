@@ -286,13 +286,13 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
 
 	switch p.configuration.Implementation {
-	case "activedirectory":
+	case schema.LDAPImplementationActiveDirectory:
 		utf16 := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
 		// The password needs to be enclosed in quotes
 		// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/6e803168-f140-4d23-b2d3-c3a8ab5917d2
 		pwdEncoded, _ := utf16.NewEncoder().String(fmt.Sprintf("\"%s\"", newPassword))
 		modifyRequest.Replace("unicodePwd", []string{pwdEncoded})
-	case "custom":
+	default:
 		modifyRequest.Replace("userPassword", []string{newPassword})
 	}
 
