@@ -76,3 +76,13 @@ var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendCon
 	DisplayNameAttribute: "displayname",
 	GroupNameAttribute:   "cn",
 }
+
+// DefaultLDAPAuthenticationBackendImplementationMSADConfiguration represents the default LDAP config for the MSAD Implementation.
+var DefaultLDAPAuthenticationBackendImplementationMSADConfiguration = LDAPAuthenticationBackendConfiguration{
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))",
+	UsernameAttribute:    "sAMAccountName",
+	MailAttribute:        "mail",
+	DisplayNameAttribute: "displayName",
+	GroupsFilter:         "(&(member={dn})(objectClass=group))",
+	GroupNameAttribute:   "cn",
+}

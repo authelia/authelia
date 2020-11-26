@@ -104,6 +104,15 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
 	}
 
+	switch configuration.Implementation {
+	case schema.LDAPImplementationCustom:
+		setDefaultImplementationCustomLdapAuthenticationBackend(configuration)
+	case schema.LDAPImplementationActiveDirectory:
+		setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration)
+	default:
+		validator.Push(fmt.Errorf("authentication backend ldap implementation must be blank or one of the following values `%s`, `%s`", schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory))
+	}
+
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))
 	} else {
@@ -147,7 +156,35 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	if configuration.UsernameAttribute == "" {
 		validator.Push(errors.New("Please provide a username attribute with `username_attribute`"))
 	}
+}
 
+func setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+	if configuration.UsersFilter == "" {
+		configuration.UsersFilter = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.UsersFilter
+	}
+
+	if configuration.UsernameAttribute == "" {
+		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.UsernameAttribute
+	}
+
+	if configuration.DisplayNameAttribute == "" {
+		configuration.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.DisplayNameAttribute
+	}
+
+	if configuration.MailAttribute == "" {
+		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.MailAttribute
+	}
+
+	if configuration.GroupsFilter == "" {
+		configuration.GroupsFilter = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.GroupsFilter
+	}
+
+	if configuration.GroupNameAttribute == "" {
+		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.GroupNameAttribute
+	}
+}
+
+func setDefaultImplementationCustomLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
 	if configuration.GroupNameAttribute == "" {
 		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.GroupNameAttribute
 	}

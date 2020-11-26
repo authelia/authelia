@@ -110,6 +110,39 @@ The user must have an email address in order for Authelia to perform
 identity verification when a user attempts to reset their password or
 register a second factor device.
 
+## Implementation
+
+There are currently two implementations, `custom` and `activedirectory`. The `activedirectory` implementation
+must be used if you wish to allow users to change or reset their password as Microsoft Active Directory
+uses a custom attribute for this, and an input format other implementations do not use. The long term 
+intention of this is to have logical defaults for various RFC implementations of LDAP. 
+
+### Defaults
+
+The below tables describes the current attribute defaults for each implementation.
+
+#### Attributes
+This table describes the attribute defaults for each implementation. i.e. the username_attribute is
+described by the Username column.
+
+|Implementation |Username      |Display Name|Mail|Group Name|
+|:-------------:|:------------:|:----------:|:--:|:--------:|
+|custom         |n/a           |displayname |mail|cn        |
+|activedirectory|sAMAccountName|displayname |mail|cn        |
+
+#### Filters
+
+The filters are probably the most important part to get correct when setting up LDAP. 
+You want to exclude disabled accounts. The active directory example has two attribute 
+filters that accomplish this as an example (more examples would be appreciated). The 
+userAccountControl filter checks that the account is not disabled and the pwdLastSet 
+makes sure that value is not 0 which means the password requires changing at the next login.
+
+|Implementation |Users Filter  |Groups Filter|
+|:-------------:|:------------:|:-----------:|
+|custom         |n/a           |n/a       |
+|activedirectory|(&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))|(&(member={dn})(objectClass=group)(objectCategory=group))|
+
 
 ## Refresh Interval
 
