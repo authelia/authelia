@@ -223,11 +223,10 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsersFilter()
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Please provide a users filter with `users_filter` attribute")
 }
 
-func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsernameAttribute() {
+func (suite *LdapAuthenticationBackendSuite) TestShouldNotRaiseOnEmptyUsernameAttribute() {
 	suite.configuration.Ldap.UsernameAttribute = ""
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
-	require.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "Please provide a username attribute with `username_attribute`")
+	assert.Len(suite.T(), suite.validator.Errors(), 0)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval() {
