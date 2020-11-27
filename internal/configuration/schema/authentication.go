@@ -2,6 +2,7 @@ package schema
 
 // LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server.
 type LDAPAuthenticationBackendConfiguration struct {
+	Implementation       string `mapstructure:"implementation"`
 	URL                  string `mapstructure:"url"`
 	SkipVerify           bool   `mapstructure:"skip_verify"`
 	BaseDN               string `mapstructure:"base_dn"`
@@ -70,7 +71,19 @@ var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 
 // DefaultLDAPAuthenticationBackendConfiguration represents the default LDAP config.
 var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendConfiguration{
+	Implementation:       LDAPImplementationCustom,
+	UsernameAttribute:    "uid",
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayname",
+	GroupNameAttribute:   "cn",
+}
+
+// DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration represents the default LDAP config for the MSAD Implementation.
+var DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration = LDAPAuthenticationBackendConfiguration{
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))",
+	UsernameAttribute:    "sAMAccountName",
+	MailAttribute:        "mail",
+	DisplayNameAttribute: "displayName",
+	GroupsFilter:         "(&(member={dn})(objectClass=group))",
 	GroupNameAttribute:   "cn",
 }

@@ -100,6 +100,19 @@ func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
 
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if configuration.Implementation == "" {
+		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
+	}
+
+	switch configuration.Implementation {
+	case schema.LDAPImplementationCustom:
+		setDefaultImplementationCustomLdapAuthenticationBackend(configuration)
+	case schema.LDAPImplementationActiveDirectory:
+		setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration)
+	default:
+		validator.Push(fmt.Errorf("authentication backend ldap implementation must be blank or one of the following values `%s`, `%s`", schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory))
+	}
+
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))
 	} else {
@@ -142,6 +155,38 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 
 	if configuration.UsernameAttribute == "" {
 		validator.Push(errors.New("Please provide a username attribute with `username_attribute`"))
+	}
+}
+
+func setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+	if configuration.UsersFilter == "" {
+		configuration.UsersFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter
+	}
+
+	if configuration.UsernameAttribute == "" {
+		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute
+	}
+
+	if configuration.DisplayNameAttribute == "" {
+		configuration.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute
+	}
+
+	if configuration.MailAttribute == "" {
+		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute
+	}
+
+	if configuration.GroupsFilter == "" {
+		configuration.GroupsFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter
+	}
+
+	if configuration.GroupNameAttribute == "" {
+		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute
+	}
+}
+
+func setDefaultImplementationCustomLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+	if configuration.UsernameAttribute == "" {
+		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute
 	}
 
 	if configuration.GroupNameAttribute == "" {

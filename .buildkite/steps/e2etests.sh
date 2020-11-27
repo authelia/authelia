@@ -8,15 +8,20 @@ cat << EOF
     retry:
       automatic: true
 EOF
-if [[ "${SUITE_NAME}" != "Kubernetes" ]]; then
+if [[ "${SUITE_NAME}" = "ActiveDirectory" ]]; then
 cat << EOF
     agents:
-      suite: "all"
+      suite: "activedirectory"
+EOF
+elif [[ "${SUITE_NAME}" = "Kubernetes" ]]; then
+cat << EOF
+    agents:
+      suite: "kubernetes"
 EOF
 else
 cat << EOF
     agents:
-      suite: "kubernetes"
+      suite: "all"
 EOF
 fi
 done

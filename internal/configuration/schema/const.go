@@ -19,3 +19,9 @@ const RefreshIntervalDefault = "5m"
 
 // RefreshIntervalAlways represents the duration value refresh interval should have if set to always.
 const RefreshIntervalAlways = 0 * time.Millisecond
+
+// LDAPImplementationCustom is the string for the custom LDAP implementation.
+const LDAPImplementationCustom = "custom"
+
+// LDAPImplementationActiveDirectory is the string for the Active Directory LDAP implementation.
+const LDAPImplementationActiveDirectory = "activedirectory"

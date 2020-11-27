@@ -28,7 +28,7 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(haDockerEnvironment)
+		return waitUntilAutheliaIsReady(haDockerEnvironment, highAvailabilitySuiteName)
 	}
 
 	displayAutheliaLogs := func() error {
