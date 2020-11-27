@@ -98,7 +98,12 @@ authentication_backend:
     # - 'activedirectory' - For Microsoft Active Directory.
     # - 'custom' - For custom specifications of attributes and filters.
     # This currently defaults to 'custom' to maintain existing behaviour.
-    # implementation: custom
+    #
+    # Depending on the option here certain other values in this section have a default value, notably all
+    # of the attribute mappings have a default value that this config overrides, you can read more
+    # about these default values at https://docs.authelia.com/configuration/authentication/ldap.html#defaults
+
+    implementation: custom
 
     # The url to the ldap server. Scheme can be ldap:// or ldaps://
     url: ldap://127.0.0.1
@@ -120,7 +125,7 @@ authentication_backend:
     # for that user. Technically, non-unique attributes like 'mail' can also be used but we don't recommend using
     # them, we instead advise to use the attributes mentioned above (sAMAccountName and uid) to follow
     # https://www.ietf.org/rfc/rfc2307.txt.
-    username_attribute: uid
+    # username_attribute: uid
     
     # An additional dn to define the scope to all users
     additional_users_dn: ou=users
@@ -154,14 +159,14 @@ authentication_backend:
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
 
     # The attribute holding the name of the group
-    group_name_attribute: cn
+    # group_name_attribute: cn
 
     # The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the first
     # one returned by the LDAP server is used.
-    mail_attribute: mail
+    # mail_attribute: mail
 
     # The attribute holding the display name of the user. This will be used to greet an authenticated user.
-    display_name_attribute: displayname
+    # display_name_attribute: displayname
 
     # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
