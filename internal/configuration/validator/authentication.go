@@ -160,31 +160,35 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 
 func setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
 	if configuration.UsersFilter == "" {
-		configuration.UsersFilter = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.UsersFilter
+		configuration.UsersFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter
 	}
 
 	if configuration.UsernameAttribute == "" {
-		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.UsernameAttribute
+		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute
 	}
 
 	if configuration.DisplayNameAttribute == "" {
-		configuration.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.DisplayNameAttribute
+		configuration.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute
 	}
 
 	if configuration.MailAttribute == "" {
-		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.MailAttribute
+		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute
 	}
 
 	if configuration.GroupsFilter == "" {
-		configuration.GroupsFilter = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.GroupsFilter
+		configuration.GroupsFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter
 	}
 
 	if configuration.GroupNameAttribute == "" {
-		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.GroupNameAttribute
+		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute
 	}
 }
 
 func setDefaultImplementationCustomLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+	if configuration.UsernameAttribute == "" {
+		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute
+	}
+
 	if configuration.GroupNameAttribute == "" {
 		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.GroupNameAttribute
 	}

@@ -334,22 +334,22 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirec
 
 	assert.Equal(suite.T(),
 		suite.configuration.Ldap.UsersFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.UsersFilter)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter)
 	assert.Equal(suite.T(),
 		suite.configuration.Ldap.UsernameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.UsernameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute)
 	assert.Equal(suite.T(),
 		suite.configuration.Ldap.DisplayNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.DisplayNameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute)
 	assert.Equal(suite.T(),
 		suite.configuration.Ldap.MailAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.MailAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute)
 	assert.Equal(suite.T(),
 		suite.configuration.Ldap.GroupsFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.GroupsFilter)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter)
 	assert.Equal(suite.T(),
 		suite.configuration.Ldap.GroupNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.GroupNameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute)
 }
 
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
@@ -364,22 +364,22 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefault
 
 	assert.NotEqual(suite.T(),
 		suite.configuration.Ldap.UsersFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.UsersFilter)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter)
 	assert.NotEqual(suite.T(),
 		suite.configuration.Ldap.UsernameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.UsernameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute)
 	assert.NotEqual(suite.T(),
 		suite.configuration.Ldap.DisplayNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.DisplayNameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute)
 	assert.NotEqual(suite.T(),
 		suite.configuration.Ldap.MailAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.MailAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute)
 	assert.NotEqual(suite.T(),
 		suite.configuration.Ldap.GroupsFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.GroupsFilter)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter)
 	assert.NotEqual(suite.T(),
 		suite.configuration.Ldap.GroupNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationMSADConfiguration.GroupNameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute)
 }
 
 func TestActiveDirectoryAuthenticationBackend(t *testing.T) {

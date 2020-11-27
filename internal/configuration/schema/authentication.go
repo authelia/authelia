@@ -72,13 +72,14 @@ var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 // DefaultLDAPAuthenticationBackendConfiguration represents the default LDAP config.
 var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendConfiguration{
 	Implementation:       LDAPImplementationCustom,
+	UsernameAttribute:    "uid",
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayname",
 	GroupNameAttribute:   "cn",
 }
 
-// DefaultLDAPAuthenticationBackendImplementationMSADConfiguration represents the default LDAP config for the MSAD Implementation.
-var DefaultLDAPAuthenticationBackendImplementationMSADConfiguration = LDAPAuthenticationBackendConfiguration{
+// DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration represents the default LDAP config for the MSAD Implementation.
+var DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration = LDAPAuthenticationBackendConfiguration{
 	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))",
 	UsernameAttribute:    "sAMAccountName",
 	MailAttribute:        "mail",
