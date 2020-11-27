@@ -52,7 +52,7 @@ func (s *ResetPasswordScenario) TestShouldResetPassword() {
 	s.verifyIsFirstFactorPage(ctx, s.T())
 
 	// Reset the password to abc
-	s.doResetPassword(ctx, s.T(), "john", "abc", "abc")
+	s.doResetPassword(ctx, s.T(), "john", "abc", "abc", false)
 
 	// Try to login with the old password
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
@@ -65,7 +65,7 @@ func (s *ResetPasswordScenario) TestShouldResetPassword() {
 	s.doLogout(ctx, s.T())
 
 	// Reset the original password
-	s.doResetPassword(ctx, s.T(), "john", "password", "password")
+	s.doResetPassword(ctx, s.T(), "john", "password", "password", false)
 }
 
 func (s *ResetPasswordScenario) TestShouldMakeAttackerThinkPasswordResetIsInitiated() {

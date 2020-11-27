@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var dockerSuiteName = "Docker"
+
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/docker-compose.yml",
@@ -21,7 +23,7 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment)
+		return waitUntilAutheliaIsReady(dockerEnvironment, dockerSuiteName)
 	}
 
 	displayAutheliaLogs := func() error {
@@ -46,7 +48,7 @@ func init() {
 		return dockerEnvironment.Down()
 	}
 
-	GlobalRegistry.Register("Docker", Suite{
+	GlobalRegistry.Register(dockerSuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
