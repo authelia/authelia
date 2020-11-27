@@ -78,7 +78,7 @@ authentication_backend:
     # The users filter used in search queries to find the user profile based on input filled in login form.
     # Various placeholders are available to represent the user input and back reference other options of the configuration:
     # - {input} is a placeholder replaced by what the user inputs in the login form. 
-    # - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
+    # - {username_attribute} is a mandatory placeholder replaced by what is configured in `username_attribute`.
     # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
     # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
     #
@@ -184,6 +184,11 @@ fail authenticating the user and display an error message in the logs.
 In order to avoid such problems, we highly recommended you follow https://www.ietf.org/rfc/rfc2307.txt by using
 `sAMAccountName` for Active Directory and `uid` for other implementations as the attribute holding the
 unique identifier for your users.
+
+As of versions > `4.24.0` the `users_filter` must include the `username_attribute` placeholder, not including this will
+result in Authelia throwing an error.
+In versions <= `4.24.0` not including the `username_attribute` placeholder will cause issues with the session refresh
+and will result in session resets when the refresh interval has expired, default of 5 minutes. 
 
 ## Loading a password from a secret instead of inside the configuration
 
