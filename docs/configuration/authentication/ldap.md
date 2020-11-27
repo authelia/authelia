@@ -185,9 +185,9 @@ In order to avoid such problems, we highly recommended you follow https://www.ie
 `sAMAccountName` for Active Directory and `uid` for other implementations as the attribute holding the
 unique identifier for your users.
 
-As of versions > `4.23.1` the `users_filter` must include the `username_attribute` placeholder, not including this will
+As of versions > `4.24.0` the `users_filter` must include the `username_attribute` placeholder, not including this will
 result in Authelia throwing an error.
-In versions <= `4.23.1` not including the `username_attribute` placeholder will cause issues with the session refresh
+In versions <= `4.24.0` not including the `username_attribute` placeholder will cause issues with the session refresh
 and will result in session resets when the refresh interval has expired, default of 5 minutes. 
 
 ## Loading a password from a secret instead of inside the configuration
