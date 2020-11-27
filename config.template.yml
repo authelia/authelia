@@ -133,7 +133,7 @@ authentication_backend:
     # The users filter used in search queries to find the user profile based on input filled in login form.
     # Various placeholders are available to represent the user input and back reference other options of the configuration:
     # - {input} is a placeholder replaced by what the user inputs in the login form. 
-    # - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
+    # - {username_attribute} is a mandatory placeholder replaced by what is configured in `username_attribute`.
     # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
     # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
     #

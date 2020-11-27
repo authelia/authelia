@@ -137,7 +137,12 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		validator.Push(errors.New("Please provide a users filter with `users_filter` attribute"))
 	} else {
 		if !strings.HasPrefix(configuration.UsersFilter, "(") || !strings.HasSuffix(configuration.UsersFilter, ")") {
-			validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance uid={input} should be (uid={input})"))
+			validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance {username_attribute}={input} should be ({username_attribute}={input})"))
+		}
+
+		if !strings.Contains(configuration.UsersFilter, "{username_attribute}") {
+			validator.Push(errors.New("Unable to detect {username_attribute} placeholder in users_filter, your configuration is broken. " +
+				"Please review configuration options listed at https://docs.authelia.com/configuration/authentication/ldap.html"))
 		}
 
 		// This test helps the user know that users_filter is broken after the breaking change induced by this commit.
