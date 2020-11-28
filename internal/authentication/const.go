@@ -55,7 +55,6 @@ var HashingPossibleSaltCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJ
 var ErrUserNotFound = errors.New("user not found")
 
 const argon2id = "argon2id"
-const sha512 = "sha512"
 
 const testPassword = "my;secure*password"
 

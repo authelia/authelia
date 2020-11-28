@@ -181,7 +181,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		config.Password.Algorithm = "sha512"
+		config.Password.Algorithm = schema.SHA512
 		config.Password.Iterations = 50000
 
 		provider := NewFileUserProvider(&config)

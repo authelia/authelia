@@ -39,44 +39,44 @@ func TestShouldNotRaiseErrorOnValidAlgorithmsMD5(t *testing.T) {
 	validator := schema.NewStructValidator()
 
 	config := schema.TOTPConfiguration{
-		Algorithm: "md5",
+		Algorithm: schema.MD5,
 	}
 	ValidateTOTP(&config, validator)
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, config.Algorithm, "md5")
+	assert.Equal(t, config.Algorithm, schema.MD5)
 }
 
 func TestShouldNotRaiseErrorOnValidAlgorithmsSHA1(t *testing.T) {
 	validator := schema.NewStructValidator()
 
 	config := schema.TOTPConfiguration{
-		Algorithm: "sha1",
+		Algorithm: schema.SHA1,
 	}
 	ValidateTOTP(&config, validator)
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, config.Algorithm, "sha1")
+	assert.Equal(t, config.Algorithm, schema.SHA1)
 }
 
 func TestShouldNotRaiseErrorOnValidAlgorithmsSHA256(t *testing.T) {
 	validator := schema.NewStructValidator()
 
 	config := schema.TOTPConfiguration{
-		Algorithm: "sha256",
+		Algorithm: schema.SHA256,
 	}
 	ValidateTOTP(&config, validator)
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, config.Algorithm, "sha256")
+	assert.Equal(t, config.Algorithm, schema.SHA256)
 }
 
 func TestShouldNotRaiseErrorOnValidAlgorithmsSHA512(t *testing.T) {
 	validator := schema.NewStructValidator()
 
 	config := schema.TOTPConfiguration{
-		Algorithm: "sha512",
+		Algorithm: schema.SHA512,
 	}
 	ValidateTOTP(&config, validator)
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, config.Algorithm, "sha512")
+	assert.Equal(t, config.Algorithm, schema.SHA512)
 }
 
 func TestShouldRaiseErrorOnInvalidAlgorithms(t *testing.T) {
@@ -99,5 +99,5 @@ func TestShouldCorrectTOTPAlgorithmCapitalization(t *testing.T) {
 	assert.Equal(t, config.Algorithm, "SHA1")
 	ValidateTOTP(&config, validator)
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, config.Algorithm, "sha1")
+	assert.Equal(t, config.Algorithm, schema.SHA1)
 }

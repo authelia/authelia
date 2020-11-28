@@ -65,7 +65,7 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 	var cryptAlgo CryptAlgo = HashingAlgorithmArgon2id
 	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
 	// This generates a hash that should be usable to do a fake CheckUserPassword
-	if configuration.Password.Algorithm == sha512 {
+	if configuration.Password.Algorithm == schema.SHA512 {
 		cryptAlgo = HashingAlgorithmSHA512
 	}
 

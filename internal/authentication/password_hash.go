@@ -8,6 +8,7 @@ import (
 
 	"github.com/simia-tech/crypt"
 
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -28,7 +29,7 @@ func ConfigAlgoToCryptoAlgo(fromConfig string) (CryptAlgo, error) {
 	switch fromConfig {
 	case argon2id:
 		return HashingAlgorithmArgon2id, nil
-	case sha512:
+	case schema.SHA512:
 		return HashingAlgorithmSHA512, nil
 	default:
 		return HashingAlgorithmArgon2id, errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")

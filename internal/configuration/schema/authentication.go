@@ -66,7 +66,7 @@ var DefaultCIPasswordConfiguration = PasswordConfiguration{
 var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 	Iterations: 50000,
 	SaltLength: 16,
-	Algorithm:  "sha512",
+	Algorithm:  SHA512,
 }
 
 // DefaultLDAPAuthenticationBackendConfiguration represents the default LDAP config.

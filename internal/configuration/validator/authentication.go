@@ -23,7 +23,7 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 			configuration.Password.Algorithm = schema.DefaultPasswordConfiguration.Algorithm
 		} else {
 			configuration.Password.Algorithm = strings.ToLower(configuration.Password.Algorithm)
-			if configuration.Password.Algorithm != argon2id && configuration.Password.Algorithm != sha512 {
+			if configuration.Password.Algorithm != argon2id && configuration.Password.Algorithm != schema.SHA512 {
 				validator.Push(fmt.Errorf("Unknown hashing algorithm supplied, valid values are argon2id and sha512, you configured '%s'", configuration.Password.Algorithm))
 			}
 		}

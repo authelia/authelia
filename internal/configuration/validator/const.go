@@ -160,7 +160,6 @@ var specificErrorKeys = map[string]string{
 }
 
 const argon2id = "argon2id"
-const sha512 = "sha512"
 
 const schemeLDAP = "ldap"
 const schemeLDAPS = "ldaps"

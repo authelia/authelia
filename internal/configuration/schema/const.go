@@ -25,3 +25,15 @@ const LDAPImplementationCustom = "custom"
 
 // LDAPImplementationActiveDirectory is the string for the Active Directory LDAP implementation.
 const LDAPImplementationActiveDirectory = "activedirectory"
+
+// MD5 a standard lowercase representation of the MD5 hashing algorithm.
+const MD5 = "md5"
+
+// SHA1 a standard lowercase representation of the SHA1 hashing algorithm.
+const SHA1 = "sha1"
+
+// SHA256 a standard lowercase representation of the SHA256 hashing algorithm.
+const SHA256 = "sha256"
+
+// SHA512 a standard lowercase representation of the SHA512 hashing algorithm.
+const SHA512 = "sha512"
