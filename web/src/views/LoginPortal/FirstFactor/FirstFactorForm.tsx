@@ -19,7 +19,7 @@ export interface Props {
     onAuthenticationSuccess: (redirectURL: string | undefined) => void;
 }
 
-export default function (props: Props) {
+const FirstFactorForm = function (props: Props) {
     const style = useStyles();
     const history = useHistory();
     const redirectionURL = useRedirectionURL();
@@ -94,6 +94,7 @@ export default function (props: Props) {
                         fullWidth
                         onChange={v => setUsername(v.target.value)}
                         onFocus={() => setUsernameError(false)}
+                        autoCapitalize="none"
                         onKeyPress={(ev) => {
                             if (ev.key === 'Enter') {
                                 if (!username.length) {
@@ -186,6 +187,8 @@ export default function (props: Props) {
         </LoginLayout>
     )
 }
+
+export default FirstFactorForm
 
 const useStyles = makeStyles(theme => ({
     root: {

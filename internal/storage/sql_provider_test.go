@@ -125,7 +125,7 @@ func TestSQLProviderMethodsAuthenticationLogs(t *testing.T) {
 		fmt.Sprintf("SELECT value FROM %s WHERE category=\\? AND key_name=\\?", configTableName)).
 		WithArgs(args...).
 		WillReturnRows(sqlmock.NewRows([]string{"value"}).
-			AddRow(currentSchemaMockSchemaVersion))
+			AddRow("1"))
 
 	err := provider.initialize(provider.db)
 	assert.NoError(t, err)
@@ -290,7 +290,7 @@ func TestSQLProviderMethodsTOTP(t *testing.T) {
 		WithArgs(args...).
 		WillReturnRows(sqlmock.NewRows([]string{"secret", "algorithm"}))
 
-	//Test Blank Rows
+	// Test Blank Rows
 	secret, algorithm, err = provider.LoadTOTPSecret(unitTestUser)
 	assert.EqualError(t, err, "No TOTP secret registered")
 	assert.Equal(t, "", secret)

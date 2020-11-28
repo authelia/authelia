@@ -16,6 +16,7 @@ it('should contain the message', () => {
     expect(el.text()).to.contain("this is a success");
 });
 
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 it('should have correct color', () => {
     let el = shallow(<ColoredSnackbarContent level="success" message="this is a success" />);
     expect(el.find(SnackbarContent).props().className!.indexOf("success") > -1).to.be.true;
@@ -29,3 +30,4 @@ it('should have correct color', () => {
     el = shallow(<ColoredSnackbarContent level="warning" message="this is an warning" />);
     expect(el.find(SnackbarContent).props().className!.indexOf("warning") > -1).to.be.true;
 });
+/* eslint-enable @typescript-eslint/no-unused-expressions */

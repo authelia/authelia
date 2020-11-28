@@ -1,18 +1,18 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:14-alpine AS builder-frontend
+FROM node:15-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 COPY web .
 
 # Install the dependencies and build
-RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn build
+RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn coverage
 
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.15.1-alpine AS builder-backend
+FROM golang:1.15.5-alpine AS builder-backend
 
 ARG BUILD_TAG
 ARG BUILD_COMMIT
@@ -49,7 +49,7 @@ go test -c --tags coverage -covermode=atomic -o authelia -coverpkg github.com/au
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.12.0
+FROM alpine:3.12.1
 
 RUN apk --no-cache add ca-certificates tzdata
 

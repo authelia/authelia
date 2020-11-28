@@ -15,7 +15,7 @@ export interface Props {
     onChange: (passcode: string) => void;
 }
 
-export default function (props: Props) {
+const OTPDial = function (props: Props) {
     const style = useStyles();
     const dial = (
         <span className={style.otpInput} id="otp-input">
@@ -36,6 +36,8 @@ export default function (props: Props) {
             context={dial} />
     )
 }
+
+export default OTPDial
 
 const useStyles = makeStyles(theme => ({
     timeProgress: {

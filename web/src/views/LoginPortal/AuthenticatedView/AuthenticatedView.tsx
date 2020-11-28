@@ -9,7 +9,7 @@ export interface Props {
     name: string;
 }
 
-export default function (props: Props) {
+const AuthenticatedView = function (props: Props) {
     const style = useStyles();
     const history = useHistory();
 
@@ -35,6 +35,8 @@ export default function (props: Props) {
         </LoginLayout>
     )
 }
+
+export default AuthenticatedView
 
 const useStyles = makeStyles(theme => ({
     mainContainer: {

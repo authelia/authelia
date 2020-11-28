@@ -5,6 +5,7 @@ var validKeys = []string{
 	"host",
 	"port",
 	"log_level",
+	"log_format",
 	"log_file_path",
 	"default_redirection_url",
 	"jwt_secret",
@@ -67,6 +68,7 @@ var validKeys = []string{
 	"notifier.smtp.password",
 	"notifier.smtp.host",
 	"notifier.smtp.port",
+	"notifier.smtp.identifier",
 	"notifier.smtp.sender",
 	"notifier.smtp.subject",
 	"notifier.smtp.startup_check_address",
@@ -90,6 +92,7 @@ var validKeys = []string{
 	"authentication_backend.refresh_interval",
 
 	// LDAP Authentication Backend Keys.
+	"authentication_backend.ldap.implementation",
 	"authentication_backend.ldap.url",
 	"authentication_backend.ldap.skip_verify",
 	"authentication_backend.ldap.base_dn",

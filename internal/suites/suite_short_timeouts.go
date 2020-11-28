@@ -23,7 +23,7 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment)
+		return waitUntilAutheliaIsReady(dockerEnvironment, shortTimeoutsSuiteName)
 	}
 
 	displayAutheliaLogs := func() error {

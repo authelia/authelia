@@ -2,11 +2,14 @@ package suites
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/tebeka/selenium"
@@ -69,13 +72,36 @@ func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) 
 
 // StartWebDriver create a selenium session.
 func StartWebDriver() (*WebDriverSession, error) {
-	return StartWebDriverWithProxy("", 4444)
+	return StartWebDriverWithProxy("", GetWebDriverPort())
 }
 
 // Stop stop the selenium session.
 func (wds *WebDriverSession) Stop() error {
-	err := wds.WebDriver.Quit()
+	var coverage map[string]interface{}
 
+	coverageDir := "../../web/.nyc_output"
+	time := time.Now()
+
+	resp, err := wds.WebDriver.ExecuteScriptRaw("return JSON.stringify(window.__coverage__)", nil)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(resp, &coverage)
+	if err != nil {
+		return err
+	}
+
+	coverageData := fmt.Sprintf("%s", coverage["value"])
+
+	_ = os.MkdirAll(coverageDir, 0775)
+
+	err = ioutil.WriteFile(fmt.Sprintf("%s/coverage-%d.json", coverageDir, time.Unix()), []byte(coverageData), 0664) //nolint:gosec
+	if err != nil {
+		return err
+	}
+
+	err = wds.WebDriver.Quit()
 	if err != nil {
 		return err
 	}

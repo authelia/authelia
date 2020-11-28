@@ -10,7 +10,7 @@ import { useIsMountedRef } from "../../../hooks/Mounted";
 
 export interface Props { }
 
-export default function (props: Props) {
+const SignOut = function (props: Props) {
     const mounted = useIsMountedRef();
     const style = useStyles();
     const { createErrorNotification } = useNotifications();
@@ -51,6 +51,8 @@ export default function (props: Props) {
         </LoginLayout>
     )
 }
+
+export default SignOut
 
 const useStyles = makeStyles(theme => ({
     typo: {

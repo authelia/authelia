@@ -39,7 +39,7 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 			validator.Push(fmt.Errorf("The number of iterations specified is invalid, must be 1 or more, you configured %d", configuration.Password.Iterations))
 		}
 
-		//Salt Length
+		// Salt Length
 		switch {
 		case configuration.Password.SaltLength == 0:
 			configuration.Password.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
@@ -100,6 +100,19 @@ func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
 
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if configuration.Implementation == "" {
+		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
+	}
+
+	switch configuration.Implementation {
+	case schema.LDAPImplementationCustom:
+		setDefaultImplementationCustomLdapAuthenticationBackend(configuration)
+	case schema.LDAPImplementationActiveDirectory:
+		setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration)
+	default:
+		validator.Push(fmt.Errorf("authentication backend ldap implementation must be blank or one of the following values `%s`, `%s`", schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory))
+	}
+
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))
 	} else {
@@ -124,7 +137,12 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		validator.Push(errors.New("Please provide a users filter with `users_filter` attribute"))
 	} else {
 		if !strings.HasPrefix(configuration.UsersFilter, "(") || !strings.HasSuffix(configuration.UsersFilter, ")") {
-			validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance uid={input} should be (uid={input})"))
+			validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance {username_attribute}={input} should be ({username_attribute}={input})"))
+		}
+
+		if !strings.Contains(configuration.UsersFilter, "{username_attribute}") {
+			validator.Push(errors.New("Unable to detect {username_attribute} placeholder in users_filter, your configuration is broken. " +
+				"Please review configuration options listed at https://docs.authelia.com/configuration/authentication/ldap.html"))
 		}
 
 		// This test helps the user know that users_filter is broken after the breaking change induced by this commit.
@@ -142,6 +160,38 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 
 	if configuration.UsernameAttribute == "" {
 		validator.Push(errors.New("Please provide a username attribute with `username_attribute`"))
+	}
+}
+
+func setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+	if configuration.UsersFilter == "" {
+		configuration.UsersFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter
+	}
+
+	if configuration.UsernameAttribute == "" {
+		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute
+	}
+
+	if configuration.DisplayNameAttribute == "" {
+		configuration.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute
+	}
+
+	if configuration.MailAttribute == "" {
+		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute
+	}
+
+	if configuration.GroupsFilter == "" {
+		configuration.GroupsFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter
+	}
+
+	if configuration.GroupNameAttribute == "" {
+		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute
+	}
+}
+
+func setDefaultImplementationCustomLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+	if configuration.UsernameAttribute == "" {
+		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute
 	}
 
 	if configuration.GroupNameAttribute == "" {

@@ -12,7 +12,7 @@ services:
       - 'traefik.http.middlewares.authelia.forwardauth.address=https://authelia-backend:9091${PathPrefix}/api/verify?rd=https://login.example.com:8080${PathPrefix}' # Traefik 2.x
       - 'traefik.http.middlewares.authelia.forwardauth.tls.insecureSkipVerify=true' # Traefik 2.x
       - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true' # Traefik 2.x
-      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups' # Traefik 2.x
+      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email' # Traefik 2.x
     command:
       - '--api'
       - '--providers.docker=true'

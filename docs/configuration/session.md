@@ -22,7 +22,7 @@ session:
   # The name of the session cookie. (default: authelia_session).
   name: authelia_session
 
-  # The secret to encrypt the session cookie.
+  # The secret to encrypt the session data. This is only used with Redis.
   # Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   secret: unsecure_session_secret
 

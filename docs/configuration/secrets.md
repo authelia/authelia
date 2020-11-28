@@ -23,7 +23,7 @@ containing the secret data. This file must be readable by the
 user the Authelia daemon is running as.
 
 For instance the LDAP password can be defined in the configuration
-at the path **authentication_backend.ldap.password**, so this password 
+at the path **authentication_backend.ldap.password**, so this password
 could alternatively be set using the environment variable called
 **AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE**.
 
@@ -51,19 +51,19 @@ server. The UNIX permissions should probably be something like 600.
 
 ## Secrets exposed in an environment variable
 
-**DEPRECATION NOTICE:** This backwards compatibility feature **has been removed** in 4.18.0+. 
+**DEPRECATION NOTICE:** This backwards compatibility feature **has been removed** in 4.18.0+.
 
 Prior to implementing file secrets you were able to define the
 values of secrets in the environment variables themselves
 in plain text instead of referencing a file. **This is no longer available
-as an option**, please see the table above for the file based replacements. See 
+as an option**, please see the table above for the file based replacements. See
 [this article](https://diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/)
 for reasons why this was removed.
 
 ## Docker
 
 Secrets can be provided in a `docker-compose.yml` either with Docker secrets or
-bind mounted secret files, examples of these are provided below. 
+bind mounted secret files, examples of these are provided below.
 
 
 ### Compose with Docker secrets
@@ -174,7 +174,7 @@ the same directory. You will need to edit the kustomization.yaml with your
 desired secrets after the equal signs. If you change the value before the
 equal sign you'll have to adjust the volumes section of the daemonset
 template (or deployment template if you're using it).
- 
+
 ```yaml
 #filename: ./kustomization.yaml
 generatorOptions:
@@ -211,6 +211,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: authelia
+  namespace: authelia
   labels:
     app: authelia
 spec:
@@ -239,32 +240,36 @@ spec:
               value: /app/secrets/ldap_password
             - name: AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
               value: /app/secrets/smtp_password
-            - name: AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE
+            - name: AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE
               value: /app/secrets/sql_password
+            - name: AUTHELIA_SESSION_REDIS_PASSWORD_FILE
+              value: /app/secrets/redis_password
+            - name: TZ
+              value: America/Toronto
           ports:
-            - name: http
-              containerPort: 80
+            - name: authelia-port
+              containerPort: 9091
           startupProbe:
             httpGet:
-              path: /api/configuration
-              port: http
-            initialDelaySeconds: 10
+              path: /api/state
+              port: authelia-port
+            initialDelaySeconds: 15
             timeoutSeconds: 5
             periodSeconds: 5
             failureThreshold: 4
           livenessProbe:
             httpGet:
-              path: /api/configuration
-              port: http
+              path: /api/state
+              port: authelia-port
             initialDelaySeconds: 60
             timeoutSeconds: 5
             periodSeconds: 30
             failureThreshold: 2
           readinessProbe:
             httpGet:
-              path: /api/configuration
-              port: http
-            initialDelaySeconds: 10
+              path: /api/state
+              port: authelia-port
+            initialDelaySeconds: 15
             timeoutSeconds: 5
             periodSeconds: 5
             failureThreshold: 5
@@ -273,9 +278,6 @@ spec:
               name: config-volume
             - mountPath: /app/secrets
               name: secrets
-              readOnly: true
-            - mountPath: /etc/localtime
-              name: localtime
               readOnly: true
       volumes:
         - name: config-volume
@@ -302,7 +304,4 @@ spec:
                 path: ldap_password
               - key: smtp_password
                 path: smtp_password
-        - name: localtime
-          hostPath:
-            path: /etc/localtime
 ```

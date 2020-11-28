@@ -7,7 +7,7 @@ services:
       - 'traefik.frontend.auth.forward.address=https://authelia-backend:9091/api/verify?rd=https://login.example.com:8080' # Traefik 1.x
       - 'traefik.frontend.auth.forward.tls.insecureSkipVerify=true' # Traefik 1.x
       - 'traefik.frontend.auth.forward.trustForwardHeader=true' # Traefik 1.x
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups' # Traefik 1.x
+      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email' # Traefik 1.x
       - 'traefik.http.routers.protectedapps.rule=Host(`home.example.com`, `public.example.com`, `secure.example.com`, `admin.example.com`, `singlefactor.example.com`)' # Traefik 2.x
       - 'traefik.http.routers.protectedapps.entrypoints=https' # Traefik 2.x
       - 'traefik.http.routers.protectedapps.tls=true' # Traefik 2.x

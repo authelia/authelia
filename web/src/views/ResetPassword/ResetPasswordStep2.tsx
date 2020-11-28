@@ -9,7 +9,7 @@ import { FirstFactorRoute } from "../../Routes";
 import { extractIdentityToken } from "../../utils/IdentityToken";
 import FixedTextField from "../../components/FixedTextField";
 
-export default function () {
+const ResetPasswordStep2 = function () {
     const style = useStyles();
     const location = useLocation();
     const [formDisabled, setFormDisabled] = useState(true);
@@ -70,7 +70,11 @@ export default function () {
             setFormDisabled(true);
         } catch (err) {
             console.error(err);
-            createErrorNotification("There was an issue resetting the password.");
+            if (err.message.indexOf("0000052D")) {
+                createErrorNotification("Your supplied password does not meet the password policy requirements.");
+            } else {
+                createErrorNotification("There was an issue resetting the password.");
+            }
         }
     }
 
@@ -136,6 +140,8 @@ export default function () {
         </LoginLayout>
     )
 }
+
+export default ResetPasswordStep2
 
 const useStyles = makeStyles(theme => ({
     root: {

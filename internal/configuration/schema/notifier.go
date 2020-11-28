@@ -11,6 +11,7 @@ type SMTPNotifierConfiguration struct {
 	Port                int    `mapstructure:"port"`
 	Username            string `mapstructure:"username"`
 	Password            string `mapstructure:"password"`
+	Identifier          string `mapstructure:"identifier"`
 	Sender              string `mapstructure:"sender"`
 	Subject             string `mapstructure:"subject"`
 	TrustedCert         string `mapstructure:"trusted_cert"`
@@ -29,5 +30,6 @@ type NotifierConfiguration struct {
 
 // DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.
 var DefaultSMTPNotifierConfiguration = SMTPNotifierConfiguration{
-	Subject: "[Authelia] {title}",
+	Subject:    "[Authelia] {title}",
+	Identifier: "localhost",
 }

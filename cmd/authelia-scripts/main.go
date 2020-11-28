@@ -1,5 +1,5 @@
 //usr/bin/env go run "$0" "$@"; exit
-//nolint:godot
+//nolint:gocritic,godot
 
 package main
 

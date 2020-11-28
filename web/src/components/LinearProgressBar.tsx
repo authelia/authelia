@@ -9,7 +9,7 @@ export interface Props {
     style?: CSSProperties;
 }
 
-export default function (props: Props) {
+const LinearProgressBar = function (props: Props) {
     const style = makeStyles(theme => ({
         progressRoot: {
             height: props.height ? props.height : theme.spacing(),
@@ -20,7 +20,7 @@ export default function (props: Props) {
     }))();
     return (
         <LinearProgress
-            style={props.style}
+            style={props.style as React.CSSProperties}
             variant="determinate"
             classes={{
                 root: style.progressRoot,
@@ -30,3 +30,5 @@ export default function (props: Props) {
             className={props.className} />
     )
 }
+
+export default LinearProgressBar

@@ -35,8 +35,8 @@ appear in the configuration examples.
 
 ## How can the backend be aware of the authenticated users?
 
-The only way Authelia can share information about the authenticated user currently is through the use of two HTTP headers:
-`Remote-User` and `Remote-Groups`.
+The only way Authelia can share information about the authenticated user currently is through the use of four HTTP headers:
+`Remote-User`, `Remote-Name`, `Remote-Email` and `Remote-Groups`.
 Those headers are returned by Authelia on requests to `/api/verify` and must be forwarded by the reverse proxy to the backends
 needing them. The headers will be provided with each call to the backend once the user is authenticated.
 Please note that the backend must support the use of those headers to leverage that information, many

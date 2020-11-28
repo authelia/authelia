@@ -14,6 +14,7 @@ func newDefaultConfig() schema.Configuration {
 	config.Host = "127.0.0.1"
 	config.Port = 9090
 	config.LogLevel = "info"
+	config.LogFormat = "text"
 	config.JWTSecret = testJWTSecret
 	config.AuthenticationBackend.File = new(schema.FileAuthenticationBackendConfiguration)
 	config.AuthenticationBackend.File.Path = "/a/path"

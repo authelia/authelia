@@ -7,6 +7,7 @@ type Configuration struct {
 	TLSCert               string `mapstructure:"tls_cert"`
 	TLSKey                string `mapstructure:"tls_key"`
 	LogLevel              string `mapstructure:"log_level"`
+	LogFormat             string `mapstructure:"log_format"`
 	LogFilePath           string `mapstructure:"log_file_path"`
 	JWTSecret             string `mapstructure:"jwt_secret"`
 	DefaultRedirectionURL string `mapstructure:"default_redirection_url"`

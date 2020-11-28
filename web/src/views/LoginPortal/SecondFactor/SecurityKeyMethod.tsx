@@ -29,7 +29,7 @@ export interface Props {
     onSignInSuccess: (redirectURL: string | undefined) => void;
 }
 
-export default function (props: Props) {
+const SecurityKeyMethod = function (props: Props) {
     const signInTimeout = 30;
     const [state, setState] = useState(State.WaitTouch);
     const style = useStyles();
@@ -38,8 +38,10 @@ export default function (props: Props) {
     const [timerPercent, triggerTimer,] = useTimer(signInTimeout * 1000 - 500);
 
     const { onSignInSuccess, onSignInError } = props;
+    /* eslint-disable react-hooks/exhaustive-deps */
     const onSignInErrorCallback = useCallback(onSignInError, []);
     const onSignInSuccessCallback = useCallback(onSignInSuccess, []);
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     const doInitiateSignIn = useCallback(async () => {
         // If user is already authenticated, we don't initiate sign in process.
@@ -101,6 +103,8 @@ export default function (props: Props) {
         </MethodContainer>
     )
 }
+
+export default SecurityKeyMethod
 
 const useStyles = makeStyles(theme => ({
     icon: {

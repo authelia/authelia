@@ -8,7 +8,7 @@ import { makeStyles } from "@material-ui/core";
  * 
  * @param props the TextField props
  */
-export default function (props: TextFieldProps) {
+const FixedTextField = function (props: TextFieldProps) {
     const style = useStyles();
     return (
         <TextField {...props}
@@ -16,11 +16,14 @@ export default function (props: TextFieldProps) {
                 classes: {
                     root: style.label
                 }
-            }}>
+            }}
+            inputProps={{autoCapitalize: props.autoCapitalize}}>
             {props.children}
         </TextField>
     );
 }
+
+export default FixedTextField
 
 const useStyles = makeStyles(theme => ({
     label: {

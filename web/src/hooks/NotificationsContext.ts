@@ -30,10 +30,12 @@ export function useNotifications() {
     }
 
     const resetNotification = () => useNotificationsProps.setNotification(null);
+    /* eslint-disable react-hooks/exhaustive-deps */
     const createInfoNotification = useCallback(notificationBuilder("info"), []);
     const createSuccessNotification = useCallback(notificationBuilder("success"), []);
     const createWarnNotification = useCallback(notificationBuilder("warning"), []);
     const createErrorNotification = useCallback(notificationBuilder("error"), []);
+    /* eslint-enable react-hooks/exhaustive-deps */
     const isActive = useNotificationsProps.notification !== null;
 
 
