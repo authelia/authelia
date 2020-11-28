@@ -70,7 +70,11 @@ const ResetPasswordStep2 = function () {
             setFormDisabled(true);
         } catch (err) {
             console.error(err);
-            createErrorNotification("There was an issue resetting the password.");
+            if (err.message.indexOf("0000052D")) {
+                createErrorNotification("Your supplied password does not meet the password policy requirements.");
+            } else {
+                createErrorNotification("There was an issue resetting the password.");
+            }
         }
     }
 

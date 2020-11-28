@@ -21,7 +21,9 @@ server:
 
 # Level of verbosity for logs: info, debug, trace
 log_level: debug
-## File path where the logs will be written. If not set logs are written to stdout.
+# Format the logs are written as: json, text
+# log_format: json
+# File path where the logs will be written. If not set logs are written to stdout.
 # log_file_path: /config/authelia.log
 
 # The secret used to generate JWT tokens when validating user identity by
@@ -91,6 +93,18 @@ authentication_backend:
   # than one instance and therefore is recommended for
   # production.
   ldap:
+    # The LDAP implementation, this affects elements like the attribute utilised for resetting a password.
+    # Acceptable options are as follows:
+    # - 'activedirectory' - For Microsoft Active Directory.
+    # - 'custom' - For custom specifications of attributes and filters.
+    # This currently defaults to 'custom' to maintain existing behaviour.
+    #
+    # Depending on the option here certain other values in this section have a default value, notably all
+    # of the attribute mappings have a default value that this config overrides, you can read more
+    # about these default values at https://docs.authelia.com/configuration/authentication/ldap.html#defaults
+
+    implementation: custom
+
     # The url to the ldap server. Scheme can be ldap:// or ldaps://
     url: ldap://127.0.0.1
     
@@ -111,7 +125,7 @@ authentication_backend:
     # for that user. Technically, non-unique attributes like 'mail' can also be used but we don't recommend using
     # them, we instead advise to use the attributes mentioned above (sAMAccountName and uid) to follow
     # https://www.ietf.org/rfc/rfc2307.txt.
-    username_attribute: uid
+    # username_attribute: uid
     
     # An additional dn to define the scope to all users
     additional_users_dn: ou=users
@@ -119,7 +133,7 @@ authentication_backend:
     # The users filter used in search queries to find the user profile based on input filled in login form.
     # Various placeholders are available to represent the user input and back reference other options of the configuration:
     # - {input} is a placeholder replaced by what the user inputs in the login form. 
-    # - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
+    # - {username_attribute} is a mandatory placeholder replaced by what is configured in `username_attribute`.
     # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
     # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
     #
@@ -145,14 +159,14 @@ authentication_backend:
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
 
     # The attribute holding the name of the group
-    group_name_attribute: cn
+    # group_name_attribute: cn
 
     # The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the first
     # one returned by the LDAP server is used.
-    mail_attribute: mail
+    # mail_attribute: mail
 
     # The attribute holding the display name of the user. This will be used to greet an authenticated user.
-    display_name_attribute: displayname
+    # display_name_attribute: displayname
 
     # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com

@@ -159,7 +159,12 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username, name string
 		headers.Set(remoteUserHeader, username)
 		headers.Set(remoteGroupsHeader, strings.Join(groups, ","))
 		headers.Set(remoteNameHeader, name)
-		headers.Set(remoteEmailHeader, emails[0])
+
+		if emails != nil {
+			headers.Set(remoteEmailHeader, emails[0])
+		} else {
+			headers.Set(remoteEmailHeader, "")
+		}
 	}
 }
 

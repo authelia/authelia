@@ -40,6 +40,8 @@ spec:
               value: /app/secrets/session
             - name: AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE
               value: /app/secrets/sql_password
+            - name: ENVIRONMENT
+              value: dev
       volumes:
         - name: config-volume
           configMap:

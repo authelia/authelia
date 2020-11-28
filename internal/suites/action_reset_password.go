@@ -27,9 +27,18 @@ func (wds *WebDriverSession) doSuccessfullyCompletePasswordReset(ctx context.Con
 	wds.verifyIsFirstFactorPage(ctx, t)
 }
 
-func (wds *WebDriverSession) doResetPassword(ctx context.Context, t *testing.T, username, newPassword1, newPassword2 string) {
+func (wds *WebDriverSession) doUnsuccessfulPasswordReset(ctx context.Context, t *testing.T, newPassword1, newPassword2 string) {
+	wds.doCompletePasswordReset(ctx, t, newPassword1, newPassword2)
+}
+
+func (wds *WebDriverSession) doResetPassword(ctx context.Context, t *testing.T, username, newPassword1, newPassword2 string, unsuccessful bool) {
 	wds.doInitiatePasswordReset(ctx, t, username)
 	// then wait for the "email sent notification"
 	wds.verifyMailNotificationDisplayed(ctx, t)
-	wds.doSuccessfullyCompletePasswordReset(ctx, t, newPassword1, newPassword2)
+
+	if unsuccessful {
+		wds.doUnsuccessfulPasswordReset(ctx, t, newPassword1, newPassword2)
+	} else {
+		wds.doSuccessfullyCompletePasswordReset(ctx, t, newPassword1, newPassword2)
+	}
 }

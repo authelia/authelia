@@ -12,5 +12,5 @@ export function getRememberMe() {
 }
 
 export function getResetPassword() {
-  return getEmbeddedVariable("disable-resetpassword") === "true";
+  return getEmbeddedVariable("resetpassword") === "true";
 }

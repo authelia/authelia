@@ -42,6 +42,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	r.GET("/static/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
 
+	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
 
 	r.GET("/api/configuration", autheliaMiddleware(
@@ -99,7 +100,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	// Configure DUO api endpoint only if configuration exists.
 	if configuration.DuoAPI != nil {
 		var duoAPI duo.API
-		if os.Getenv("ENVIRONMENT") == "dev" {
+		if os.Getenv("ENVIRONMENT") == dev {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
 				configuration.DuoAPI.IntegrationKey,
 				configuration.DuoAPI.SecretKey,

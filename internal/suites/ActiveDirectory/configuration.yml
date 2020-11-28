@@ -14,18 +14,19 @@ jwt_secret: very_important_secret
 
 authentication_backend:
   ldap:
-    url: ldaps://openldap
+    implementation: activedirectory
+    url: ldaps://sambaldap
     skip_verify: true
-    base_dn: dc=example,dc=com
-    username_attribute: uid
-    additional_users_dn: ou=users
-    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(objectClass=inetOrgPerson))
-    additional_groups_dn: ou=groups
-    groups_filter: (&(member={dn})(objectclass=groupOfNames))
+    base_dn: DC=example,DC=com
+    username_attribute: sAMAccountName
+    additional_users_dn: OU=Users
+    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(objectClass=user))
+    additional_groups_dn: OU=Groups
+    groups_filter: (&(member={dn})(objectClass=group))
     group_name_attribute: cn
     mail_attribute: mail
     display_name_attribute: displayName
-    user: cn=admin,dc=example,dc=com
+    user: CN=Administrator,CN=Users,DC=example,DC=com
     password: password
 
 session:
