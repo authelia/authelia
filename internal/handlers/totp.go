@@ -20,8 +20,8 @@ type TOTPVerifierImpl struct {
 }
 
 // Verify verifies TOTPs.
-func (tv *TOTPVerifierImpl) Verify(token, secret, algo string) (bool, error) {
-	algorithm, _ := AlgorithmStringToOTPAlgorithm(algo)
+func (tv *TOTPVerifierImpl) Verify(token, secret, algorithmStr string) (bool, error) {
+	algorithm, _ := AlgorithmStringToOTPAlgorithm(algorithmStr)
 
 	opts := totp.ValidateOpts{
 		Period:    tv.Period,
@@ -34,8 +34,8 @@ func (tv *TOTPVerifierImpl) Verify(token, secret, algo string) (bool, error) {
 }
 
 // AlgorithmStringToOTPAlgorithm converts a string into a valid OTP algorithm.
-func AlgorithmStringToOTPAlgorithm(algo string) (algorithm otp.Algorithm, err error) {
-	switch algo {
+func AlgorithmStringToOTPAlgorithm(algorithmStr string) (algorithm otp.Algorithm, err error) {
+	switch algorithmStr {
 	case "md5":
 		return otp.AlgorithmMD5, nil
 	case "sha1":

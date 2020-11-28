@@ -30,8 +30,8 @@ func ValidateTOTP(configuration *schema.TOTPConfiguration, validator *schema.Str
 		configuration.Algorithm = "sha1"
 	} else {
 		configuration.Algorithm = strings.ToLower(configuration.Algorithm)
-		if configuration.Algorithm != "sha1" && configuration.Algorithm != "sha256" && configuration.Algorithm != "sha512" {
-			validator.Push(errors.New("TOTP Algorithm must be one of sha1, sha256, or sha512"))
+		if configuration.Algorithm != "md5" && configuration.Algorithm != "sha1" && configuration.Algorithm != "sha256" && configuration.Algorithm != "sha512" {
+			validator.Push(errors.New("TOTP Algorithm must be one of md5, sha1, sha256, or sha512"))
 		}
 	}
 }
