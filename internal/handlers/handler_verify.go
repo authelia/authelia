@@ -433,8 +433,20 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 				refreshProfile, refreshProfileInterval)
 
 			sessionUsername := ctx.Request.Header.Peek(SessionUsernameHeader)
-			if sessionUsername != nil && strings.EqualFold(string(sessionUsername), username) {
-				handleUnauthorized(ctx, targetURL, username)
+			if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
+				ctx.Logger.Warnf(
+					"Could not match user %s to their %s header with a value of %s when visiting %s, possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response",
+					username, SessionUsernameHeader, sessionUsername, targetURL.String())
+
+				err := ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
+				if err != nil {
+					ctx.Logger.Error(
+						fmt.Errorf(
+							"Unable to destroy user session after handler could not match them to their %s header: %s",
+							SessionUsernameHeader, err))
+				}
+
+				ctx.ReplyUnauthorized()
 				return
 			}
 		}
