@@ -41,7 +41,7 @@ const unableToRegisterSecurityKeyMessage = "Unable to register your security key
 const unableToResetPasswordMessage = "Unable to reset your password."
 const mfaValidationFailedMessage = "Authentication failed, please retry later."
 
-const ldapPasswordComplexityCode = "0000052D"
+var ldapPasswordComplexityErrors = []string{"0000052D", "LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy"}
 
 const testInactivity = "10"
 const testRedirectionURL = "http://redirection.local"
