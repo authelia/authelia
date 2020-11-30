@@ -32,6 +32,9 @@ flags:
     paths:
       - "web/"
 
+ignore:
+  - "web/src/serviceWorker.ts"
+
 parsers:
   gcov:
     branch_detection:
