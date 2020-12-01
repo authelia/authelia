@@ -66,6 +66,13 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 		newConnection = conn
 	}
 
+	if p.configuration.StartTLS {
+		tlsConfig := &tls.Config{InsecureSkipVerify: p.configuration.SkipVerify}
+		if err := newConnection.StartTLS(tlsConfig); err != nil {
+			return nil, err
+		}
+	}
+
 	if err := newConnection.Bind(userDN, password); err != nil {
 		return nil, err
 	}

@@ -110,6 +110,9 @@ authentication_backend:
     
     # Skip verifying the server certificate (to allow self-signed certificate).
     skip_verify: false
+
+    # Use StartTLS with the LDAP Connection
+    start_tls: false
     
     # The base dn for every entries
     base_dn: dc=example,dc=com

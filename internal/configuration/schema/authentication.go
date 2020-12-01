@@ -5,6 +5,7 @@ type LDAPAuthenticationBackendConfiguration struct {
 	Implementation       string `mapstructure:"implementation"`
 	URL                  string `mapstructure:"url"`
 	SkipVerify           bool   `mapstructure:"skip_verify"`
+	StartTLS             bool   `mapstructure:"start_tls"`
 	BaseDN               string `mapstructure:"base_dn"`
 	AdditionalUsersDN    string `mapstructure:"additional_users_dn"`
 	UsersFilter          string `mapstructure:"users_filter"`
