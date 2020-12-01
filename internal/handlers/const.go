@@ -13,6 +13,10 @@ const authPrefix = "Basic "
 
 // AuthorizationHeader is the basic-auth HTTP header Authelia utilises.
 const AuthorizationHeader = "Proxy-Authorization"
+
+// SessionUsernameHeader is used as additional protection to validate a user for things like pam_exec.
+const SessionUsernameHeader = "Session-Username"
+
 const remoteUserHeader = "Remote-User"
 const remoteNameHeader = "Remote-Name"
 const remoteEmailHeader = "Remote-Email"

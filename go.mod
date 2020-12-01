@@ -1,6 +1,6 @@
 module github.com/authelia/authelia
 
-go 1.14
+go 1.15
 
 require (
 	aletheia.icu/broccoli/fs v0.0.0-20200420200651-c5ac961a357a
@@ -32,5 +32,6 @@ require (
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.15.1
+	golang.org/x/text v0.3.3
 	gopkg.in/yaml.v2 v2.3.0
 )
