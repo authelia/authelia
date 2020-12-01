@@ -38,10 +38,13 @@ func ServeIndex(publicDir, base, rememberMe, resetPassword string) fasthttp.Requ
 
 		ctx.SetContentType("text/html; charset=utf-8")
 
-		if os.Getenv("ENVIRONMENT") == dev {
+		switch {
+		case os.Getenv("ENVIRONMENT") == dev:
 			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' 'unsafe-eval'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
-		} else {
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
+		case publicDir == "/public_html/api":
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("base-uri 'self' ; default-src 'self' ; img-src 'self' https://validator.swagger.io data: ; object-src 'none' ; script-src 'self' 'unsafe-inline' 'nonce-%s' ; style-src 'self' 'nonce-%s'", nonce, nonce))
+		default:
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' ; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
 		}
 
 		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, CSPNonce, RememberMe, ResetPassword string }{Base: base, CSPNonce: nonce, RememberMe: rememberMe, ResetPassword: resetPassword})

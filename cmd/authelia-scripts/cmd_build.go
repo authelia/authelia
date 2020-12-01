@@ -17,32 +17,75 @@ func buildAutheliaBinary() {
 		"GOOS=linux", "GOARCH=amd64", "CGO_ENABLED=1")
 
 	err := cmd.Run()
-
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
 
 func buildFrontend() {
-	// Install npm dependencies.
 	cmd := utils.CommandWithStdout("yarn", "install")
 	cmd.Dir = webDirectory
 
-	if err := cmd.Run(); err != nil {
+	err := cmd.Run()
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Then build the frontend.
 	cmd = utils.CommandWithStdout("yarn", "build")
 	cmd.Dir = webDirectory
 
 	cmd.Env = append(os.Environ(), "INLINE_RUNTIME_CHUNK=false")
 
-	if err := cmd.Run(); err != nil {
+	err = cmd.Run()
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := os.Rename("web/build", "./public_html"); err != nil {
+	err = os.Rename("web/build", "./public_html")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func buildSwagger() {
+	swaggerVer := "3.38.0"
+	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+swaggerVer+".tar.gz -O ./v"+swaggerVer+".tar.gz")
+
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = os.MkdirAll(swaggerDirectory, 0775)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cmd = utils.CommandWithStdout("tar", "-C", swaggerDirectory, "--exclude=index.html", "--strip-components=2", "-xf", "v"+swaggerVer+".tar.gz", "swagger-ui-"+swaggerVer+"/dist")
+
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cmd = utils.CommandWithStdout("rm", "./v"+swaggerVer+".tar.gz")
+
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cmd = utils.CommandWithStdout("cp", "swagger/index.html", swaggerDirectory)
+
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cmd = utils.CommandWithStdout("cp", "swagger/authelia-api.yml", swaggerDirectory)
+
+	err = cmd.Run()
+	if err != nil {
 		log.Fatal(err)
 	}
 }
@@ -51,30 +94,28 @@ func generateEmbeddedAssets() {
 	cmd := utils.CommandWithStdout("go", "get", "-u", "aletheia.icu/broccoli")
 
 	err := cmd.Run()
-
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	cmd = utils.CommandWithStdout("go", "generate", ".")
 	cmd.Dir = "internal/configuration"
 
 	err = cmd.Run()
-
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	cmd = utils.CommandWithStdout("go", "generate", ".")
 	cmd.Dir = "internal/server"
 
 	err = cmd.Run()
-
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	if err := os.Rename("./public_html", OutputDir+"/public_html"); err != nil {
+	err = os.Rename("./public_html", OutputDir+"/public_html")
+	if err != nil {
 		log.Fatal(err)
 	}
 }
@@ -89,11 +130,14 @@ func Build(cobraCmd *cobra.Command, args []string) {
 	err := os.MkdirAll(OutputDir, os.ModePerm)
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	log.Debug("Building Authelia frontend...")
 	buildFrontend()
+
+	log.Debug("Building swagger-ui frontend...")
+	buildSwagger()
 
 	log.Debug("Building Authelia Go binary...")
 	generateEmbeddedAssets()

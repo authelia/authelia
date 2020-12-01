@@ -26,21 +26,25 @@ import (
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
 	embeddedAssets := "/public_html"
+	swaggerAssets := embeddedAssets + "/api"
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
 	serveIndexHandler := ServeIndex(embeddedAssets, configuration.Server.Path, rememberMe, resetPassword)
+	serveSwaggerHandler := ServeIndex(swaggerAssets, configuration.Server.Path, rememberMe, resetPassword)
 
 	r := router.New()
 	r.GET("/", serveIndexHandler)
+	r.GET("/api/", serveSwaggerHandler)
 
 	for _, f := range rootFiles {
 		r.GET("/"+f, fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
 	}
 
 	r.GET("/static/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
+	r.GET("/api/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
 
 	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))

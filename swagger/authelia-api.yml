@@ -1,0 +1,663 @@
+---
+openapi: 3.0.0
+info:
+  title: Authelia API
+  description: Authelia is an open-source authentication and authorization server providing 2-factor authentication and single sign-on (SSO) for your applications via a web portal.
+  contact:
+    name: Authelia Support
+    url: https://github.com/authelia/authelia#contact-options
+    email: team@authelia.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+tags:
+  - name: State
+    description: Configuration, health and state endpoints
+  - name: Authentication
+    description: Authentication and verification endpoints
+  - name: Password
+    description: Password reset endpoints
+  - name: User
+    description: User configuration endpoints
+  - name: Second Factor
+    description: TOTP, U2F and Duo endpoints
+paths:
+  /api/configuration:
+    get:
+      tags:
+        - State
+      summary: Application Configuration
+      description: The configuration endpoint provides detailed information including available second factor methods, if any second factor policies exist and the TOTP period configuration.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.configuration.ConfigurationBody'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: [ ]
+  /api/health:
+    get:
+      tags:
+        - State
+      summary: Application Configuration
+      description: The health check endpoint provides information about the health of Authelia.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+  /api/state:
+    get:
+      tags:
+        - State
+      summary: User Application State
+      description: The state endpoint provides detailed information including the user, current authenticate level and Authelia's configured default redirection URL.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.StateResponse'
+  /api/verify:
+    get:
+      tags:
+        - Authentication
+      summary: Verification
+      description: The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified domain.
+      parameters:
+        - name: X-Original-URL
+          in: header
+          description: Redirection URL
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            remote-user:
+              description: Username
+              schema:
+                type: string
+                example: john
+            remote-name:
+              description: Name
+              schema:
+                type: string
+                example: John Doe
+            remote-email:
+              description: Email
+              schema:
+                type: string
+                example: john.doe@authelia.com
+            remote-groups:
+              description: Comma separated list of Groups
+              schema:
+                type: string
+                example: admin,devs
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+    head:
+      tags:
+        - Authentication
+      summary: Verification
+      description: The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified domain.
+      parameters:
+        - name: X-Original-URL
+          in: header
+          description: Redirection URL
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            remote-user:
+              description: Username
+              schema:
+                type: string
+                example: john
+            remote-name:
+              description: Name
+              schema:
+                type: string
+                example: John Doe
+            remote-email:
+              description: Email
+              schema:
+                type: string
+                example: john.doe@authelia.com
+            remote-groups:
+              description: Comma separated list of Groups
+              schema:
+                type: string
+                example: admin,devs
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+  /api/firstfactor:
+    post:
+      tags:
+        - Authentication
+      summary: Login
+      description: The firstfactor endpoint allows a user to login and generates an authentication cookie for authorization.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.firstFactorRequestBody'
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            Set-Cookie:
+              style: simple
+              explode: false
+              schema:
+                type: string
+                example: authelia_session=kTTCSLupEUirZVfLeZTijezewFQnNOgs; Path=/
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.redirectResponse'
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+  /api/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout
+      description: The logout endpoint allows a user to logout and destroy a sesssion.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: [ ]
+  /api/reset-password/identity/start:
+    post:
+      tags:
+        - Password
+      summary: Identity Verification Token Creation
+      description: "This endpoint performs identity verification to begin the password reset process.\n\nThe session generated from this endpoint must be utilised for the subsequent steps in the `/api/reset-password/identity/finish` and `/api/reset-password` endpoints."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.resetPasswordStep1RequestBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+  /api/reset-password/identity/finish:
+    post:
+      tags:
+        - Password
+      summary: Identity Verification Token Validation
+      description: "This endpoint performs identity verification to begin the password reset process.\n\nThe session generated from this endpoint must be utilised for the subsequent step in the `/api/reset-password endpoint."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/middlewares.IdentityVerificationFinishBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+  /api/reset-password:
+    post:
+      tags:
+        - Password
+      summary: Password Reset
+      description: The reset-password endpoint performs a password reset.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.resetPasswordStep2RequestBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+  /api/user/info:
+    get:
+      tags:
+        - User
+      summary: User Configuration
+      description: The user info endpoint provides detailed information including a users display name, preferred and registered second factor method(s).
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.UserInfo'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: [ ]
+  /api/user/info/2fa_method:
+    post:
+      tags:
+        - User
+      summary: User Configuration
+      description: The user info 2fa_method endpoint sets the users preferred second factor method.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.UserInfo.MethodBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.UserInfo'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: [ ]
+  /api/secondfactor/totp/identity/start:
+    post:
+      tags:
+        - Second Factor
+      summary: Identity Verification TOTP Token Creation
+      description: "This endpoint performs identity verification to begin the TOTP device registration process.\n\nThe session generated from this endpoint must be utilised for the subsequent steps in the `/api/secondfactor/totp/identity/finish` endpoint."
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/totp/identity/finish:
+    post:
+      tags:
+        - Second Factor
+      summary: Identity Verification TOTP Device Creation
+      description: "This endpoint performs identity verification, generates TOTP device secret and registers said device."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/middlewares.IdentityVerificationFinishBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.TOTPKeyResponse'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/totp:
+    post:
+      tags:
+        - Second Factor
+      summary: Second Factor Authentication - TOTP
+      description: "This endpoint performs second factor authentication with a TOTP key."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.signTOTPRequestBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.redirectResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.ErrorResponse'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/u2f/identity/start:
+    post:
+      tags:
+        - Second Factor
+      summary: Identity Verification U2F Token Creation
+      description: "This endpoint performs identity verification to begin the U2F device registration process.\n\nThe session generated from this endpoint must be utilised for the subsequent steps in the `/api/secondfactor/u2f/identity/finish` and `/api/secondfactor/u2f/register` endpoints."
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/u2f/identity/finish:
+    post:
+      tags:
+        - Second Factor
+      summary: Identity Verification U2F Token Validation
+      description: "This endpoint performs identity verification and generates a U2F device registration challenge.\n\nThe session generated from this endpoint must be utilised for the subsequent step in the `/api/secondfactor/u2f/register` endpoint."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/middlewares.IdentityVerificationFinishBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/u2f.WebRegisterRequest'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/u2f/register:
+    post:
+      tags:
+        - Second Factor
+      summary: U2F Device Registration
+      description: "This endpoint performs U2F device registration."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/u2f.RegisterResponse'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/duo:
+    post:
+      tags:
+        - Second Factor
+      summary: Second Factor Authentication - TOTP
+      description: "This endpoint performs second factor authentication with a Duo Mobile Push."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.signDuoRequestBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.redirectResponse'
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+components:
+  schemas:
+    handlers.configuration.ConfigurationBody:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            available_methods:
+              type: array
+              items:
+                type: string
+              example: [totp, u2f, mobile_push]
+            second_factor_enabled:
+              type: boolean
+              description: If second factor is enabled.
+            totp_period:
+              type: integer
+              example: 30
+    handlers.firstFactorRequestBody:
+      required:
+        - username
+        - password
+      type: object
+      properties:
+        username:
+          type: string
+          example: john
+        password:
+          type: string
+          example: password
+        targetURL:
+          type: string
+          example: https://home.example.com
+        keepMeLoggedIn:
+          type: boolean
+          example: true
+    handlers.redirectResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            redirect:
+              type: string
+              example: https://home.example.com
+    handlers.resetPasswordStep1RequestBody:
+      required:
+        - username
+      type: object
+      properties:
+        username:
+          type: string
+          example: john
+    handlers.resetPasswordStep2RequestBody:
+      required:
+        - password
+      type: object
+      properties:
+        password:
+          type: string
+          example: password
+    handlers.signDuoRequestBody:
+      type: object
+      properties:
+        targetURL:
+          type: string
+          example: https://secure.example.com
+    handlers.signTOTPRequestBody:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "123456"
+        targetURL:
+          type: string
+          example: https://secure.example.com
+    handlers.StateResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            username:
+              type: string
+              example: john
+            authentication_level:
+              type: integer
+              example: 1
+            default_redirection_url:
+              type: string
+              example: https://home.example.com
+    handlers.TOTPKeyResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            base32_secret:
+              type: string
+              example: 5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
+            otpauth_url:
+              type: string
+              example: otpauth://totp/auth.example.com:john?algorithm=SHA1&digits=6&issuer=auth.example.com&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
+    handlers.UserInfo:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            display_name:
+              type: string
+              example: John Doe
+            method:
+              type: string
+              enum: [totp, u2f, mobile_push]
+              example: totp
+            has_u2f:
+              type: boolean
+              example: false
+            has_totp:
+              type: boolean
+              example: true
+    handlers.UserInfo.MethodBody:
+      required:
+        - method
+      type: object
+      properties:
+        method:
+          type: string
+          enum: [totp, u2f, mobile_push]
+          example: totp
+    middlewares.ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: KO
+        message:
+          type: string
+          example: Authentication failed, please retry later.
+    middlewares.IdentityVerificationFinishBody:
+      required:
+        - token
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5MjU1OTYsImlzcyI6IkF1dGhlbGlhIiwiYWN0aW9uIjoiUmVzZXRQYXNzd29yZCIsInVzZXJuYW1lIjoiQW1pciJ9.636yqRrUCGCe4jsMCsonleX5CYWHncYqZum-YYb6VaY
+    middlewares.OkResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+    u2f.RegisterResponse:
+      type: object
+      properties:
+        version:
+          type: string
+        registrationData:
+          type: string
+        clientData:
+          type: string
+    u2f.WebRegisterRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            appId:
+              type: string
+              example: https://auth.example.com
+            registerRequests:
+              type: array
+              items:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: U2F_V2
+                  challenge:
+                    type: string
+                    example: XGYKUzSmTpM1KxxpekArviW0w0OU2pwwRAocgn8TkVQ
+            registeredKeys:
+              type: array
+              items:
+                type: object
+                properties:
+                  version:
+                    type: string
+                  keyHandle:
+                    type: string
+                  appId:
+                    type: string
+              example: null
+  securitySchemes:
+    authelia_auth:
+      type: apiKey
+      name: authelia_session
+      in: cookie

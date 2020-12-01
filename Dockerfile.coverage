@@ -8,6 +8,7 @@ COPY web .
 
 # Install the dependencies and build
 RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn coverage
+RUN mkdir -p /node/src/app/build/api && touch /node/src/app/build/api/index.html
 
 # =======================================
 # ===== Build image for the backend =====
