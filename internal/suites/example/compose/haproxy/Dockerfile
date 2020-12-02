@@ -1,4 +1,4 @@
-FROM haproxy:2.3.1-alpine
+FROM haproxy:2.3.2-alpine
 
 RUN \
 apk add --no-cache \
