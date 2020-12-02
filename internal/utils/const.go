@@ -35,3 +35,15 @@ var AlphaNumericCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
 
 // ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
 var ErrTLSVersionNotSupported = errors.New("supplied TLS version isn't supported")
+
+// TLS13 is the textual representation of TLS 1.3.
+const TLS13 = "1.3"
+
+// TLS12 is the textual representation of TLS 1.2.
+const TLS12 = "1.2"
+
+// TLS11 is the textual representation of TLS 1.1.
+const TLS11 = "1.1"
+
+// TLS10 is the textual representation of TLS 1.0.
+const TLS10 = "1.0"

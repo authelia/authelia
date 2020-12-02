@@ -97,13 +97,13 @@ func RandomString(n int, characters []rune) (randomString string) {
 // TLSStringToTLSConfigVersion returns a go crypto/tls version for a tls.Config based on string input.
 func TLSStringToTLSConfigVersion(input string) (version uint16, err error) {
 	switch strings.ToUpper(input) {
-	case "TLS1.3", "1.3":
+	case "TLS1.3", TLS13:
 		return tls.VersionTLS13, nil
-	case "TLS1.2", "1.2":
+	case "TLS1.2", TLS12:
 		return tls.VersionTLS12, nil
-	case "TLS1.1", "1.1":
+	case "TLS1.1", TLS11:
 		return tls.VersionTLS11, nil
-	case "TLS1.0", "1.0":
+	case "TLS1.0", TLS10:
 		return tls.VersionTLS10, nil
 	}
 

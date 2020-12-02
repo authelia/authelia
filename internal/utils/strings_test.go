@@ -71,45 +71,41 @@ func TestShouldNotFindSliceDifferences(t *testing.T) {
 }
 
 func TestShouldReturnCorrectTLSVersions(t *testing.T) {
-	tls13 := "1.3"
-	tls13Uint := uint16(tls.VersionTLS13)
-	tls12 := "1.2"
-	tls12Uint := uint16(tls.VersionTLS12)
-	tls11 := "1.1"
-	tls11Uint := uint16(tls.VersionTLS11)
-	tls10 := "1.0"
-	tls10Uint := uint16(tls.VersionTLS10)
+	tls13 := uint16(tls.VersionTLS13)
+	tls12 := uint16(tls.VersionTLS12)
+	tls11 := uint16(tls.VersionTLS11)
+	tls10 := uint16(tls.VersionTLS10)
 
-	version, err := TLSStringToTLSConfigVersion(tls13)
-	assert.Equal(t, tls13Uint, version)
+	version, err := TLSStringToTLSConfigVersion(TLS13)
+	assert.Equal(t, tls13, version)
 	assert.NoError(t, err)
 
-	version, err = TLSStringToTLSConfigVersion("TLS" + tls13)
-	assert.Equal(t, tls13Uint, version)
+	version, err = TLSStringToTLSConfigVersion("TLS" + TLS13)
+	assert.Equal(t, tls13, version)
 	assert.NoError(t, err)
 
-	version, err = TLSStringToTLSConfigVersion(tls12)
-	assert.Equal(t, tls12Uint, version)
+	version, err = TLSStringToTLSConfigVersion(TLS12)
+	assert.Equal(t, tls12, version)
 	assert.NoError(t, err)
 
-	version, err = TLSStringToTLSConfigVersion("TLS" + tls12)
-	assert.Equal(t, tls12Uint, version)
+	version, err = TLSStringToTLSConfigVersion("TLS" + TLS12)
+	assert.Equal(t, tls12, version)
 	assert.NoError(t, err)
 
-	version, err = TLSStringToTLSConfigVersion(tls11)
-	assert.Equal(t, tls11Uint, version)
+	version, err = TLSStringToTLSConfigVersion(TLS11)
+	assert.Equal(t, tls11, version)
 	assert.NoError(t, err)
 
-	version, err = TLSStringToTLSConfigVersion("TLS" + tls11)
-	assert.Equal(t, tls11Uint, version)
+	version, err = TLSStringToTLSConfigVersion("TLS" + TLS11)
+	assert.Equal(t, tls11, version)
 	assert.NoError(t, err)
 
-	version, err = TLSStringToTLSConfigVersion(tls10)
-	assert.Equal(t, tls10Uint, version)
+	version, err = TLSStringToTLSConfigVersion(TLS10)
+	assert.Equal(t, tls10, version)
 	assert.NoError(t, err)
 
-	version, err = TLSStringToTLSConfigVersion("TLS" + tls10)
-	assert.Equal(t, tls10Uint, version)
+	version, err = TLSStringToTLSConfigVersion("TLS" + TLS10)
+	assert.Equal(t, tls10, version)
 	assert.NoError(t, err)
 }
 
