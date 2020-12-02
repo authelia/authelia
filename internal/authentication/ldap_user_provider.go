@@ -24,11 +24,11 @@ type LDAPUserProvider struct {
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
 func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration) *LDAPUserProvider {
-	minimumTLSVersion, _ := utils.TLSStringToTLSInt(configuration.MinimumTLSVersion)
+	minimumTLSVersion, _ := utils.TLSStringToTLSConfigVersion(configuration.MinimumTLSVersion)
 
 	return &LDAPUserProvider{
 		configuration: configuration,
-		tlsConfig:     &tls.Config{InsecureSkipVerify: configuration.SkipVerify, MinVersion: minimumTLSVersion},
+		tlsConfig:     &tls.Config{InsecureSkipVerify: configuration.SkipVerify, MinVersion: minimumTLSVersion}, //nolint:gosec // Disabling InsecureSkipVerify is an informed choice by users.
 
 		connectionFactory: NewLDAPConnectionFactoryImpl(),
 	}

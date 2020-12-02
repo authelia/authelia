@@ -94,22 +94,18 @@ func RandomString(n int, characters []rune) (randomString string) {
 	return string(b)
 }
 
-func TLSStringToTLSInt(input string) (version uint16, err error) {
+// TLSStringToTLSConfigVersion returns a go crypto/tls version for a tls.Config based on string input.
+func TLSStringToTLSConfigVersion(input string) (version uint16, err error) {
 	switch strings.ToUpper(input) {
-	case "1.3":
-	case "TLS1.3":
+	case "TLS1.3", "1.3":
 		return tls.VersionTLS13, nil
-	case "1.2":
-	case "TLS1.2":
+	case "TLS1.2", "1.2":
 		return tls.VersionTLS12, nil
-	case "1.1":
-	case "TLS1.1":
+	case "TLS1.1", "1.1":
 		return tls.VersionTLS11, nil
-	case "1.0":
-	case "TLS1.0":
+	case "TLS1.0", "1.0":
 		return tls.VersionTLS10, nil
-	case "SSL3.0":
-		return tls.VersionSSL30, nil
 	}
+
 	return 0, ErrTLSVersionNotSupported
 }

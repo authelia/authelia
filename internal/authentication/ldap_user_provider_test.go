@@ -152,7 +152,8 @@ func TestShouldEscapeUserInput(t *testing.T) {
 		Return(&ldap.SearchResult{}, nil)
 
 	_, err := ldapClient.getUserProfile(mockConn, "john=abc")
-	assert.NoError(t, err)
+	require.Error(t, err)
+	assert.EqualError(t, err, "user not found")
 }
 
 func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
@@ -179,7 +180,8 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 		Return(&ldap.SearchResult{}, nil)
 
 	_, err := ldapClient.getUserProfile(mockConn, "john")
-	assert.NoError(t, err)
+	require.Error(t, err)
+	assert.EqualError(t, err, "user not found")
 }
 
 func createSearchResultWithAttributes(attributes ...*ldap.EntryAttribute) *ldap.SearchResult {

@@ -33,5 +33,5 @@ const testStringInput = "abcdefghijkl"
 // AlphaNumericCharacters are literally just valid alphanumeric chars.
 var AlphaNumericCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
-// ErrTLSVersionNotSupported returned when an unknown TLS version supplied
+// ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
 var ErrTLSVersionNotSupported = errors.New("supplied TLS version isn't supported")

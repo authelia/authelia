@@ -146,7 +146,7 @@ LDAP server. LDAPS is URL's are slightly more secure.
 ### Minimum TLS Version
 
 The key `minimum_tls_version` controls the minimum TLS version Authelia will use when opening LDAP connections.
-The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`, `SSL3.0`. Anything other than `TLS1.3` or `TLS1.2`
+The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`. Anything other than `TLS1.3` or `TLS1.2`
 are very old and highly deprecated. You should avoid using these and upgrade your LDAP solution instead of decreasing
 this value. 
 

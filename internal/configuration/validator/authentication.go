@@ -106,7 +106,7 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 
 	if configuration.MinimumTLSVersion == "" {
 		configuration.MinimumTLSVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.MinimumTLSVersion
-	} else if _, err := utils.TLSStringToTLSInt(configuration.MinimumTLSVersion); err != nil {
+	} else if _, err := utils.TLSStringToTLSConfigVersion(configuration.MinimumTLSVersion); err != nil {
 		validator.Push(fmt.Errorf("error occurred validating the LDAP minimum_tls_version key with value %s: %v", configuration.MinimumTLSVersion, err))
 	}
 
