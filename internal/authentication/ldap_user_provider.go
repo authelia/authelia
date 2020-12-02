@@ -67,7 +67,7 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 	}
 
 	if p.configuration.StartTLS {
-		tlsConfig := &tls.Config{InsecureSkipVerify: p.configuration.SkipVerify}
+		tlsConfig := &tls.Config{InsecureSkipVerify: p.configuration.SkipVerify} //nolint:gosec // This is a configurable option, is desirable in some situations and is off by default.
 		if err := newConnection.StartTLS(tlsConfig); err != nil {
 			return nil, err
 		}

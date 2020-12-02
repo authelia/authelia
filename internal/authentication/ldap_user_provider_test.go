@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"crypto/tls"
 	"testing"
 
 	"github.com/go-ldap/ldap/v3"
@@ -385,4 +386,149 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
 	assert.Equal(t, details.DisplayName, "John Doe")
 	assert.Equal(t, details.Username, "John")
+}
+
+func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
+		URL:                  "ldap://127.0.0.1:389",
+		User:                 "cn=admin,dc=example,dc=com",
+		Password:             "password",
+		UsernameAttribute:    "uid",
+		MailAttribute:        "mail",
+		DisplayNameAttribute: "displayname",
+		UsersFilter:          "uid={input}",
+		AdditionalUsersDN:    "ou=users",
+		BaseDN:               "dc=example,dc=com",
+		StartTLS:             true,
+	}, mockFactory)
+
+	mockFactory.EXPECT().
+		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
+		Return(mockConn, nil)
+
+	mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	mockConn.EXPECT().
+		StartTLS(&tls.Config{InsecureSkipVerify: false})
+
+	mockConn.EXPECT().
+		Close()
+
+	searchGroups := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(createSearchResultWithAttributes(), nil)
+	searchProfile := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayname",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(searchProfile, searchGroups)
+
+	details, err := ldapClient.GetDetails("john")
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, details.Groups, []string{})
+	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
+	assert.Equal(t, details.DisplayName, "John Doe")
+	assert.Equal(t, details.Username, "john")
+}
+
+func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
+		URL:                  "ldap://127.0.0.1:389",
+		User:                 "cn=admin,dc=example,dc=com",
+		Password:             "password",
+		UsernameAttribute:    "uid",
+		MailAttribute:        "mail",
+		DisplayNameAttribute: "displayname",
+		UsersFilter:          "uid={input}",
+		AdditionalUsersDN:    "ou=users",
+		BaseDN:               "dc=example,dc=com",
+		StartTLS:             true,
+		SkipVerify:           true,
+	}, mockFactory)
+
+	mockFactory.EXPECT().
+		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
+		Return(mockConn, nil)
+
+	mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	mockConn.EXPECT().
+		StartTLS(&tls.Config{InsecureSkipVerify: true})
+
+	mockConn.EXPECT().
+		Close()
+
+	searchGroups := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(createSearchResultWithAttributes(), nil)
+	searchProfile := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayname",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(searchProfile, searchGroups)
+
+	details, err := ldapClient.GetDetails("john")
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, details.Groups, []string{})
+	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
+	assert.Equal(t, details.DisplayName, "John Doe")
+	assert.Equal(t, details.Username, "john")
 }
