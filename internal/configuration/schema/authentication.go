@@ -6,6 +6,7 @@ type LDAPAuthenticationBackendConfiguration struct {
 	URL                  string `mapstructure:"url"`
 	SkipVerify           bool   `mapstructure:"skip_verify"`
 	StartTLS             bool   `mapstructure:"start_tls"`
+	MinimumTLSVersion    string `mapstructure:"minimum_tls_version"`
 	BaseDN               string `mapstructure:"base_dn"`
 	AdditionalUsersDN    string `mapstructure:"additional_users_dn"`
 	UsersFilter          string `mapstructure:"users_filter"`
@@ -77,6 +78,7 @@ var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendCon
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayname",
 	GroupNameAttribute:   "cn",
+	MinimumTLSVersion:    "TLS1.2",
 }
 
 // DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration represents the default LDAP config for the MSAD Implementation.

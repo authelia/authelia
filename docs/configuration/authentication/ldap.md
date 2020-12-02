@@ -59,6 +59,9 @@ authentication_backend:
     # Use StartTLS with the LDAP Connection
     start_tls: false
 
+    # Minimum TLS version for either Secure LDAP or LDAP StartTLS
+    minimum_tls_version: TLS1.2
+
     # The base dn for every entries
     base_dn: dc=example,dc=com
     
@@ -125,6 +128,27 @@ authentication_backend:
 The user must have an email address in order for Authelia to perform
 identity verification when a user attempts to reset their password or
 register a second factor device.
+
+## TLS Settings
+
+### Skip Verify
+
+The key `skip_verify` disables checking the authenticity of the TLS certificate. You should not disable this, instead
+you should add the certificate that signed the certificate of your LDAP server to the machines certificate PKI trust.
+For docker you can just add this to the hosts trusted store.
+
+### Start TLS
+
+The key `start_tls` enables use of the LDAP StartTLS process which is not commonly used. You should only configure this
+if you know you need it. The initial connection will be over plain text, and Authelia will try to upgrade it with the
+LDAP server. LDAPS is URL's are slightly more secure.
+
+### Minimum TLS Version
+
+The key `minimum_tls_version` controls the minimum TLS version Authelia will use when opening LDAP connections.
+The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`, `SSL3.0`. Anything other than `TLS1.3` or `TLS1.2`
+are very old and highly deprecated. You should avoid using these and upgrade your LDAP solution instead of decreasing
+this value. 
 
 ## Implementation
 

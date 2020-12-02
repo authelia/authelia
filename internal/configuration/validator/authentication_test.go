@@ -312,6 +312,95 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {
 	assert.Equal(suite.T(), "ldaps://127.0.0.1:636", validateLdapURL("ldaps://127.0.0.1", suite.validator))
 }
 
+func (suite *LdapAuthenticationBackendSuite) TestShouldDefaultTLS12() {
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	assert.Len(suite.T(), suite.validator.Errors(), 0)
+	assert.Equal(suite.T(), schema.DefaultLDAPAuthenticationBackendConfiguration.MinimumTLSVersion, suite.configuration.Ldap.MinimumTLSVersion)
+}
+
+func (suite *LdapAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue() {
+	suite.configuration.Ldap.MinimumTLSVersion = "SSL2.0"
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	require.Len(suite.T(), suite.validator.Errors(), 1)
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "error occurred validating the LDAP minimum_tls_version key with value SSL2.0: supplied TLS version isn't supported")
+}
+
 func TestLdapAuthenticationBackend(t *testing.T) {
 	suite.Run(t, new(LdapAuthenticationBackendSuite))
+}
+
+type ActiveDirectoryAuthenticationBackendSuite struct {
+	suite.Suite
+	configuration schema.AuthenticationBackendConfiguration
+	validator     *schema.StructValidator
+}
+
+func (suite *ActiveDirectoryAuthenticationBackendSuite) SetupTest() {
+	suite.validator = schema.NewStructValidator()
+	suite.configuration = schema.AuthenticationBackendConfiguration{}
+	suite.configuration.Ldap = &schema.LDAPAuthenticationBackendConfiguration{}
+	suite.configuration.Ldap.Implementation = schema.LDAPImplementationActiveDirectory
+	suite.configuration.Ldap.URL = "ldap://ldap"
+	suite.configuration.Ldap.User = "user"
+	suite.configuration.Ldap.Password = "password"
+	suite.configuration.Ldap.BaseDN = "base_dn"
+}
+
+func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirectoryDefaults() {
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+
+	assert.Len(suite.T(), suite.validator.Errors(), 0)
+
+	assert.Equal(suite.T(),
+		suite.configuration.Ldap.UsersFilter,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter)
+	assert.Equal(suite.T(),
+		suite.configuration.Ldap.UsernameAttribute,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute)
+	assert.Equal(suite.T(),
+		suite.configuration.Ldap.DisplayNameAttribute,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute)
+	assert.Equal(suite.T(),
+		suite.configuration.Ldap.MailAttribute,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute)
+	assert.Equal(suite.T(),
+		suite.configuration.Ldap.GroupsFilter,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter)
+	assert.Equal(suite.T(),
+		suite.configuration.Ldap.GroupNameAttribute,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute)
+}
+
+func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
+	suite.configuration.Ldap.UsersFilter = "(&({username_attribute}={input})(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2))"
+	suite.configuration.Ldap.UsernameAttribute = "cn"
+	suite.configuration.Ldap.MailAttribute = "userPrincipalName"
+	suite.configuration.Ldap.DisplayNameAttribute = "name"
+	suite.configuration.Ldap.GroupsFilter = "(&(member={dn})(objectClass=group)(objectCategory=group))"
+	suite.configuration.Ldap.GroupNameAttribute = "distinguishedName"
+
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+
+	assert.NotEqual(suite.T(),
+		suite.configuration.Ldap.UsersFilter,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter)
+	assert.NotEqual(suite.T(),
+		suite.configuration.Ldap.UsernameAttribute,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute)
+	assert.NotEqual(suite.T(),
+		suite.configuration.Ldap.DisplayNameAttribute,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute)
+	assert.NotEqual(suite.T(),
+		suite.configuration.Ldap.MailAttribute,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute)
+	assert.NotEqual(suite.T(),
+		suite.configuration.Ldap.GroupsFilter,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter)
+	assert.NotEqual(suite.T(),
+		suite.configuration.Ldap.GroupNameAttribute,
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute)
+}
+
+func TestActiveDirectoryAuthenticationBackend(t *testing.T) {
+	suite.Run(t, new(ActiveDirectoryAuthenticationBackendSuite))
 }

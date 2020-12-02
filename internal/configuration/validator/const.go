@@ -95,6 +95,7 @@ var validKeys = []string{
 	"authentication_backend.ldap.url",
 	"authentication_backend.ldap.skip_verify",
 	"authentication_backend.ldap.start_tls",
+	"authentication_backend.ldap.minimum_tls_version",
 	"authentication_backend.ldap.base_dn",
 	"authentication_backend.ldap.username_attribute",
 	"authentication_backend.ldap.additional_users_dn",

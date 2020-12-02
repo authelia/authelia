@@ -113,7 +113,10 @@ authentication_backend:
 
     # Use StartTLS with the LDAP Connection
     start_tls: false
-    
+
+    # Minimum TLS version for either Secure LDAP or LDAP StartTLS
+    minimum_tls_version: TLS1.2
+
     # The base dn for every entries
     base_dn: dc=example,dc=com
     

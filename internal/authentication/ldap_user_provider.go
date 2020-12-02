@@ -11,19 +11,25 @@ import (
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // LDAPUserProvider is a provider using a LDAP or AD as a user database.
 type LDAPUserProvider struct {
 	configuration schema.LDAPAuthenticationBackendConfiguration
+	tlsConfig     *tls.Config
 
 	connectionFactory LDAPConnectionFactory
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
 func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration) *LDAPUserProvider {
+	minimumTLSVersion, _ := utils.TLSStringToTLSInt(configuration.MinimumTLSVersion)
+
 	return &LDAPUserProvider{
-		configuration:     configuration,
+		configuration: configuration,
+		tlsConfig:     &tls.Config{InsecureSkipVerify: configuration.SkipVerify, MinVersion: minimumTLSVersion},
+
 		connectionFactory: NewLDAPConnectionFactoryImpl(),
 	}
 }
@@ -49,9 +55,7 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 	if url.Scheme == "ldaps" {
 		logging.Logger().Trace("LDAP client starts a TLS session")
 
-		conn, err := p.connectionFactory.DialTLS("tcp", url.Host, &tls.Config{
-			InsecureSkipVerify: p.configuration.SkipVerify, //nolint:gosec // This is a configurable option, is desirable in some situations and is off by default.
-		})
+		conn, err := p.connectionFactory.DialTLS("tcp", url.Host, p.tlsConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -67,8 +71,7 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 	}
 
 	if p.configuration.StartTLS {
-		tlsConfig := &tls.Config{InsecureSkipVerify: p.configuration.SkipVerify} //nolint:gosec // This is a configurable option, is desirable in some situations and is off by default.
-		if err := newConnection.StartTLS(tlsConfig); err != nil {
+		if err := newConnection.StartTLS(p.tlsConfig); err != nil {
 			return nil, err
 		}
 	}
@@ -101,10 +104,6 @@ func (p *LDAPUserProvider) CheckUserPassword(inputUsername string, password stri
 
 	return true, nil
 }
-
-// OWASP recommends to escape some special characters.
-// https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.md
-const specialLDAPRunes = ",#+<>;\"="
 
 func (p *LDAPUserProvider) ldapEscape(inputUsername string) string {
 	inputUsername = ldap.EscapeFilter(inputUsername)

@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"crypto/tls"
 	"testing"
 
 	"github.com/go-ldap/ldap/v3"
@@ -152,7 +151,8 @@ func TestShouldEscapeUserInput(t *testing.T) {
 		Search(NewSearchRequestMatcher("(|(uid=john\\=abc)(mail=john\\=abc))")).
 		Return(&ldap.SearchResult{}, nil)
 
-	ldapClient.getUserProfile(mockConn, "john=abc") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	_, err := ldapClient.getUserProfile(mockConn, "john=abc")
+	assert.NoError(t, err)
 }
 
 func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
@@ -178,7 +178,8 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 		Search(NewSearchRequestMatcher("(&(uid=john)(&(objectCategory=person)(objectClass=user)))")).
 		Return(&ldap.SearchResult{}, nil)
 
-	ldapClient.getUserProfile(mockConn, "john") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	_, err := ldapClient.getUserProfile(mockConn, "john")
+	assert.NoError(t, err)
 }
 
 func createSearchResultWithAttributes(attributes ...*ldap.EntryAttribute) *ldap.SearchResult {
@@ -417,7 +418,7 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 		Return(nil)
 
 	mockConn.EXPECT().
-		StartTLS(&tls.Config{InsecureSkipVerify: false})
+		StartTLS(ldapClient.tlsConfig)
 
 	mockConn.EXPECT().
 		Close()
@@ -490,7 +491,7 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 		Return(nil)
 
 	mockConn.EXPECT().
-		StartTLS(&tls.Config{InsecureSkipVerify: true})
+		StartTLS(ldapClient.tlsConfig)
 
 	mockConn.EXPECT().
 		Close()
