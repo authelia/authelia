@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/go-ldap/ldap/v3"
@@ -534,4 +535,37 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
 	assert.Equal(t, details.DisplayName, "John Doe")
 	assert.Equal(t, details.Username, "john")
+}
+
+func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
+		URL:                  "ldaps://127.0.0.1:389",
+		User:                 "cn=admin,dc=example,dc=com",
+		Password:             "password",
+		UsernameAttribute:    "uid",
+		MailAttribute:        "mail",
+		DisplayNameAttribute: "displayname",
+		UsersFilter:          "uid={input}",
+		AdditionalUsersDN:    "ou=users",
+		BaseDN:               "dc=example,dc=com",
+		StartTLS:             true,
+		SkipVerify:           true,
+	}, mockFactory)
+
+	mockFactory.EXPECT().
+		DialTLS(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	mockConn.EXPECT().
+		StartTLS(ldapClient.tlsConfig).
+		Return(errors.New("LDAP Result Code 200 \"Network Error\": ldap: already encrypted"))
+
+	_, err := ldapClient.GetDetails("john")
+	assert.EqualError(t, err, "LDAP Result Code 200 \"Network Error\": ldap: already encrypted")
 }
