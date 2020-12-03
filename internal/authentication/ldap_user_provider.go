@@ -26,6 +26,26 @@ type LDAPUserProvider struct {
 func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration) *LDAPUserProvider {
 	minimumTLSVersion, _ := utils.TLSStringToTLSConfigVersion(configuration.MinimumTLSVersion)
 
+	// TODO: RELEASE-4.27.0 Deprecated Completely in this release.
+	logger := logging.Logger()
+	if strings.Contains(configuration.UsersFilter, "{0}") {
+		logger.Warnf("DEPRECATION NOTICE: LDAP Users Filter will no longer support replacing `{0}` in 4.27.0. Please use `{input}` instead.")
+		configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{0}", "{input}")
+	}
+	if strings.Contains(configuration.GroupsFilter, "{0}") {
+		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{0}` in 4.27.0. Please use `{input}` instead.")
+		configuration.GroupsFilter = strings.ReplaceAll(configuration.GroupsFilter, "{0}", "{input}")
+	}
+	if strings.Contains(configuration.GroupsFilter, "{1}") {
+		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{1}` in 4.27.0. Please use `{username}` instead.")
+		configuration.GroupsFilter = strings.ReplaceAll(configuration.GroupsFilter, "{1}", "{username}")
+	}
+	// TODO: RELEASE-4.27.0 Deprecated Completely in this release.
+
+	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{username_attribute}", configuration.UsernameAttribute)
+	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{mail_attribute}", configuration.MailAttribute)
+	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{display_name_attribute}", configuration.DisplayNameAttribute)
+
 	return &LDAPUserProvider{
 		configuration: configuration,
 		tlsConfig:     &tls.Config{InsecureSkipVerify: configuration.SkipVerify, MinVersion: minimumTLSVersion}, //nolint:gosec // Disabling InsecureSkipVerify is an informed choice by users.
@@ -35,27 +55,26 @@ func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 }
 
 // NewLDAPUserProviderWithFactory creates a new instance of LDAPUserProvider with existing factory.
-func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBackendConfiguration,
-	connectionFactory LDAPConnectionFactory) *LDAPUserProvider {
-	return &LDAPUserProvider{
-		configuration:     configuration,
-		connectionFactory: connectionFactory,
-	}
+func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBackendConfiguration, connectionFactory LDAPConnectionFactory) *LDAPUserProvider {
+	provider := NewLDAPUserProvider(configuration)
+	provider.connectionFactory = connectionFactory
+
+	return provider
 }
 
 func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
 	var newConnection LDAPConnection
 
-	url, err := url.Parse(p.configuration.URL)
+	ldapURL, err := url.Parse(p.configuration.URL)
 
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse URL to LDAP: %s", url)
+		return nil, fmt.Errorf("Unable to parse URL to LDAP: %s", ldapURL)
 	}
 
-	if url.Scheme == "ldaps" {
+	if ldapURL.Scheme == "ldaps" {
 		logging.Logger().Trace("LDAP client starts a TLS session")
 
-		conn, err := p.connectionFactory.DialTLS("tcp", url.Host, p.tlsConfig)
+		conn, err := p.connectionFactory.DialTLS("tcp", ldapURL.Host, p.tlsConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -63,7 +82,7 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 		newConnection = conn
 	} else {
 		logging.Logger().Trace("LDAP client starts a session over raw TCP")
-		conn, err := p.connectionFactory.Dial("tcp", url.Host)
+		conn, err := p.connectionFactory.Dial("tcp", ldapURL.Host)
 		if err != nil {
 			return nil, err
 		}
@@ -124,24 +143,15 @@ type ldapUserProfile struct {
 func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, inputUsername string) string {
 	inputUsername = p.ldapEscape(inputUsername)
 
-	// We temporarily keep placeholder {0} for backward compatibility.
-	userFilter = strings.ReplaceAll(userFilter, "{0}", inputUsername)
-
-	// The {username} placeholder is equivalent to {0}, it's the new way, a named placeholder.
+	// The {input} placeholder is replaced by the users username input.
 	userFilter = strings.ReplaceAll(userFilter, "{input}", inputUsername)
-
-	// {username_attribute} and {mail_attribute} are replaced by the content of the attribute defined
-	// in configuration.
-	userFilter = strings.ReplaceAll(userFilter, "{username_attribute}", p.configuration.UsernameAttribute)
-	userFilter = strings.ReplaceAll(userFilter, "{mail_attribute}", p.configuration.MailAttribute)
-	userFilter = strings.ReplaceAll(userFilter, "{display_name_attribute}", p.configuration.DisplayNameAttribute)
 
 	return userFilter
 }
 
 func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername string) (*ldapUserProfile, error) {
 	userFilter := p.resolveUsersFilter(p.configuration.UsersFilter, inputUsername)
-	logging.Logger().Tracef("Computed user filter is %s", userFilter)
+	logging.Logger().Infof("Computed user filter is %s", userFilter)
 
 	baseDN := p.configuration.BaseDN
 	if p.configuration.AdditionalUsersDN != "" {
@@ -205,13 +215,10 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (string, error) { //nolint:unparam
 	inputUsername = p.ldapEscape(inputUsername)
 
-	// We temporarily keep placeholder {0} for backward compatibility.
-	groupFilter := strings.ReplaceAll(p.configuration.GroupsFilter, "{0}", inputUsername)
-	groupFilter = strings.ReplaceAll(groupFilter, "{input}", inputUsername)
+	// The {input} placeholder is replaced by the users username input.
+	groupFilter := strings.ReplaceAll(p.configuration.GroupsFilter, "{input}", inputUsername)
 
 	if profile != nil {
-		// We temporarily keep placeholder {1} for backward compatibility.
-		groupFilter = strings.ReplaceAll(groupFilter, "{1}", ldap.EscapeFilter(profile.Username))
 		groupFilter = strings.ReplaceAll(groupFilter, "{username}", ldap.EscapeFilter(profile.Username))
 		groupFilter = strings.ReplaceAll(groupFilter, "{dn}", ldap.EscapeFilter(profile.DN))
 	}

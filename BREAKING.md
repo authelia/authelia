@@ -6,6 +6,12 @@ recommended not to use the 'latest' Docker image tag blindly but pick a version 
 and read this documentation before upgrading. This is where you will get information about
 breaking changes and about what you should do to overcome those changes.
 
+## Breaking in v4.24.0
+* Deprecation LDAP User Provider Filters (final removal in 4.27.0):
+  * User Filters containing `{0}` are being deprecated and will generate warnings. Replaced with `{input}`.
+  * Group Filters containing `{0}` or `{1}` are being deprecated and will generate warnings. 
+  Replaced with `{input}` and `{username}` respectively.
+
 ## Breaking in v4.21.0
 * New LDAP attribute `display_name_attribute` has been introduced, defaults to value: `displayname`.
 * New key `displayname` has been introduced into the file based user database.
