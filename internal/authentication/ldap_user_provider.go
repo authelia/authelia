@@ -157,7 +157,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, inputUsername s
 
 func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername string) (*ldapUserProfile, error) {
 	userFilter := p.resolveUsersFilter(p.configuration.UsersFilter, inputUsername)
-	logging.Logger().Infof("Computed user filter is %s", userFilter)
+	logging.Logger().Tracef("Computed user filter is %s", userFilter)
 
 	baseDN := p.configuration.BaseDN
 	if p.configuration.AdditionalUsersDN != "" {

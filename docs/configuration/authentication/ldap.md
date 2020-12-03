@@ -50,19 +50,19 @@ authentication_backend:
     # about these default values at https://docs.authelia.com/configuration/authentication/ldap.html#defaults
     implementation: custom
 
-    # The url to the ldap server. Scheme can be ldap:// or ldaps://
+    # The url to the ldap server. Scheme can be ldap or ldaps in the format (port optional) <scheme>://<address>[:<port>].
     url: ldap://127.0.0.1
     
-    # Skip verifying the server certificate (to allow self-signed certificate).
+    # Skip verifying the server certificate (to allow a self-signed certificate).
     skip_verify: false
 
-    # Use StartTLS with the LDAP Connection
+    # Use StartTLS with the LDAP connection.
     start_tls: false
 
-    # Minimum TLS version for either Secure LDAP or LDAP StartTLS
+    # Minimum TLS version for either Secure LDAP or LDAP StartTLS.
     minimum_tls_version: TLS1.2
 
-    # The base dn for every entries
+    # The base dn for every entries.
     base_dn: dc=example,dc=com
     
     # The attribute holding the username of the user. This attribute is used to populate
@@ -78,7 +78,7 @@ authentication_backend:
     # https://www.ietf.org/rfc/rfc2307.txt.
     # username_attribute: uid
     
-    # An additional dn to define the scope to all users
+    # An additional dn to define the scope to all users.
     additional_users_dn: ou=users
 
     # The users filter used in search queries to find the user profile based on input filled in login form.
@@ -96,7 +96,7 @@ authentication_backend:
     # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     users_filter: (&({username_attribute}={input})(objectClass=person))
 
-    # An additional dn to define the scope of groups
+    # An additional dn to define the scope of groups.
     additional_groups_dn: ou=groups
     
     # The groups filter used in search queries to find the groups of the user.
@@ -141,13 +141,13 @@ For docker you can just add this to the hosts trusted store.
 
 The key `start_tls` enables use of the LDAP StartTLS process which is not commonly used. You should only configure this
 if you know you need it. The initial connection will be over plain text, and Authelia will try to upgrade it with the
-LDAP server. LDAPS is URL's are slightly more secure.
+LDAP server. LDAPS URL's are slightly more secure.
 
 ### Minimum TLS Version
 
 The key `minimum_tls_version` controls the minimum TLS version Authelia will use when opening LDAP connections.
 The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`. Anything other than `TLS1.3` or `TLS1.2`
-are very old and highly deprecated. You should avoid using these and upgrade your LDAP solution instead of decreasing
+are very old and deprecated. You should avoid using these and upgrade your LDAP solution instead of decreasing
 this value. 
 
 ## Implementation
