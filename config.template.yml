@@ -102,16 +102,21 @@ authentication_backend:
     # Depending on the option here certain other values in this section have a default value, notably all
     # of the attribute mappings have a default value that this config overrides, you can read more
     # about these default values at https://docs.authelia.com/configuration/authentication/ldap.html#defaults
-
     implementation: custom
 
-    # The url to the ldap server. Scheme can be ldap:// or ldaps://
+    # The url to the ldap server. Scheme can be ldap or ldaps in the format (port optional) <scheme>://<address>[:<port>].
     url: ldap://127.0.0.1
     
-    # Skip verifying the server certificate (to allow self-signed certificate).
+    # Skip verifying the server certificate (to allow a self-signed certificate).
     skip_verify: false
-    
-    # The base dn for every entries
+
+    # Use StartTLS with the LDAP connection.
+    start_tls: false
+
+    # Minimum TLS version for either Secure LDAP or LDAP StartTLS.
+    minimum_tls_version: TLS1.2
+
+    # The base dn for every entries.
     base_dn: dc=example,dc=com
     
     # The attribute holding the username of the user. This attribute is used to populate
@@ -127,7 +132,7 @@ authentication_backend:
     # https://www.ietf.org/rfc/rfc2307.txt.
     # username_attribute: uid
     
-    # An additional dn to define the scope to all users
+    # An additional dn to define the scope to all users.
     additional_users_dn: ou=users
 
     # The users filter used in search queries to find the user profile based on input filled in login form.
@@ -145,7 +150,7 @@ authentication_backend:
     # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     users_filter: (&({username_attribute}={input})(objectClass=person))
 
-    # An additional dn to define the scope of groups
+    # An additional dn to define the scope of groups.
     additional_groups_dn: ou=groups
     
     # The groups filter used in search queries to find the groups of the user.

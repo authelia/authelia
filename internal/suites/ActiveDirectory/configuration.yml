@@ -15,8 +15,9 @@ jwt_secret: very_important_secret
 authentication_backend:
   ldap:
     implementation: activedirectory
-    url: ldaps://sambaldap
+    url: ldap://sambaldap
     skip_verify: true
+    start_tls: true
     base_dn: DC=example,DC=com
     username_attribute: sAMAccountName
     additional_users_dn: OU=Users

@@ -60,3 +60,7 @@ const sha512 = "sha512"
 const testPassword = "my;secure*password"
 
 const fileAuthenticationMode = 0600
+
+// OWASP recommends to escape some special characters.
+// https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.md
+const specialLDAPRunes = ",#+<>;\"="
