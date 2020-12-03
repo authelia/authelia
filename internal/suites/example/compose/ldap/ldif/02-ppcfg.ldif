@@ -14,7 +14,7 @@ pwdMinAge: 0
 pwdMaxAge: 0
 pwdMinLength: 3
 pwdInHistory: 0
-pwdMaxFailure: 3
+pwdMaxFailure: 5
 pwdFailureCountInterval: 0
 pwdLockout: TRUE
 pwdLockoutDuration: 0
