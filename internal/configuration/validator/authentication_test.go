@@ -160,10 +160,10 @@ func (suite *LdapAuthenticationBackendSuite) SetupTest() {
 	suite.configuration = schema.AuthenticationBackendConfiguration{}
 	suite.configuration.Ldap = &schema.LDAPAuthenticationBackendConfiguration{}
 	suite.configuration.Ldap.Implementation = schema.LDAPImplementationCustom
-	suite.configuration.Ldap.URL = "ldap://ldap"
-	suite.configuration.Ldap.User = "user"
-	suite.configuration.Ldap.Password = "password"
-	suite.configuration.Ldap.BaseDN = "base_dn"
+	suite.configuration.Ldap.URL = testLDAPURL
+	suite.configuration.Ldap.User = testLDAPUser
+	suite.configuration.Ldap.Password = testLDAPPassword
+	suite.configuration.Ldap.BaseDN = testLDAPBaseDN
 	suite.configuration.Ldap.UsernameAttribute = "uid"
 	suite.configuration.Ldap.UsersFilter = "({username_attribute}={input})"
 	suite.configuration.Ldap.GroupsFilter = "(cn={input})"
@@ -340,10 +340,10 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) SetupTest() {
 	suite.configuration = schema.AuthenticationBackendConfiguration{}
 	suite.configuration.Ldap = &schema.LDAPAuthenticationBackendConfiguration{}
 	suite.configuration.Ldap.Implementation = schema.LDAPImplementationActiveDirectory
-	suite.configuration.Ldap.URL = "ldap://ldap"
-	suite.configuration.Ldap.User = "user"
-	suite.configuration.Ldap.Password = "password"
-	suite.configuration.Ldap.BaseDN = "base_dn"
+	suite.configuration.Ldap.URL = testLDAPURL
+	suite.configuration.Ldap.User = testLDAPUser
+	suite.configuration.Ldap.Password = testLDAPPassword
+	suite.configuration.Ldap.BaseDN = testLDAPBaseDN
 }
 
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirectoryDefaults() {
