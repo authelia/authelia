@@ -28,16 +28,22 @@ func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 
 	// TODO: RELEASE-4.27.0 Deprecated Completely in this release.
 	logger := logging.Logger()
+
 	if strings.Contains(configuration.UsersFilter, "{0}") {
 		logger.Warnf("DEPRECATION NOTICE: LDAP Users Filter will no longer support replacing `{0}` in 4.27.0. Please use `{input}` instead.")
+
 		configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{0}", "{input}")
 	}
+
 	if strings.Contains(configuration.GroupsFilter, "{0}") {
 		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{0}` in 4.27.0. Please use `{input}` instead.")
+
 		configuration.GroupsFilter = strings.ReplaceAll(configuration.GroupsFilter, "{0}", "{input}")
 	}
+
 	if strings.Contains(configuration.GroupsFilter, "{1}") {
 		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{1}` in 4.27.0. Please use `{username}` instead.")
+
 		configuration.GroupsFilter = strings.ReplaceAll(configuration.GroupsFilter, "{1}", "{username}")
 	}
 	// TODO: RELEASE-4.27.0 Deprecated Completely in this release.
