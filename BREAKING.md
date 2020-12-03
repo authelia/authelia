@@ -7,7 +7,9 @@ and read this documentation before upgrading. This is where you will get informa
 breaking changes and about what you should do to overcome those changes.
 
 ## Breaking in v4.24.0
-* Deprecation LDAP User Provider Filters (final removal in 4.27.0):
+
+### Deprecation Notice(s)
+* LDAP User Provider Filters (final removal in 4.27.0):
   * User Filters containing `{0}` are being deprecated and will generate warnings. Replaced with `{input}`.
   * Group Filters containing `{0}` or `{1}` are being deprecated and will generate warnings. 
   Replaced with `{input}` and `{username}` respectively.
