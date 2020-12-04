@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/chrome"
@@ -60,8 +61,9 @@ func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) 
 
 	wd, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", port))
 	if err != nil {
-		service.Stop() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-		panic(err)
+		_ = service.Stop()
+
+		log.Fatal(err)
 	}
 
 	return &WebDriverSession{

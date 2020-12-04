@@ -95,7 +95,8 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		if err != nil {
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
-			ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+			_ = ctx.Providers.Regulator.Mark(bodyJSON.Username, false)
 
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 
@@ -104,7 +105,8 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		if !userPasswordOk {
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
-			ctx.Providers.Regulator.Mark(bodyJSON.Username, false) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+			_ = ctx.Providers.Regulator.Mark(bodyJSON.Username, false)
 
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
 

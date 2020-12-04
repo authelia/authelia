@@ -93,7 +93,10 @@ func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 
 	userInfo.DisplayName = userSession.DisplayName
 
-	ctx.SetJSONBody(userInfo) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	err := ctx.SetJSONBody(userInfo)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to set user info response in body: %s", err)
+	}
 }
 
 // MethodBody the selected 2FA method.
