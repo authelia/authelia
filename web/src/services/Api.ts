@@ -58,7 +58,7 @@ export function toData<T>(resp: AxiosResponse<ServiceResponse<T>>): T | undefine
 export function hasServiceError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
     const errResp = toErrorResponse(resp);
     if (errResp && errResp.status === "KO") {
-        return true;
+        return [true, errResp.message];
     }
-    return false;
+    return [false, null];
 }

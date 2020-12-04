@@ -31,8 +31,8 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		switch {
-		case utils.IsStringInSlice(err.Error(), ldapPasswordComplexityErrors):
-			ctx.Error(fmt.Errorf("%s", err), ldapPasswordComplexityErrors[0])
+		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
+			ctx.Error(fmt.Errorf("%s", err), ldapPasswordComplexityCode)
 		default:
 			ctx.Error(fmt.Errorf("%s", err), unableToResetPasswordMessage)
 		}

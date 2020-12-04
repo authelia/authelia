@@ -4,8 +4,8 @@ import { ServiceResponse, hasServiceError, toData } from "./Api";
 export async function PostWithOptionalResponse<T = undefined>(path: string, body?: any) {
     const res = await axios.post<ServiceResponse<T>>(path, body);
 
-    if (res.status !== 200 || hasServiceError(res)) {
-        throw new Error(`Failed POST to ${path}. Code: ${res.status}.`);
+    if (res.status !== 200 || hasServiceError(res)[0]) {
+        throw new Error(`Failed POST to ${path}. Code: ${res.status}. Message: ${hasServiceError(res)[1]}`);
     }
     return toData(res);
 }
@@ -21,7 +21,7 @@ export async function Post<T>(path: string, body?: any) {
 export async function Get<T = undefined>(path: string): Promise<T> {
     const res = await axios.get<ServiceResponse<T>>(path);
 
-    if (res.status !== 200 || hasServiceError(res)) {
+    if (res.status !== 200 || hasServiceError(res)[0]) {
         throw new Error(`Failed GET from ${path}. Code: ${res.status}.`);
     }
 
