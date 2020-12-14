@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/valyala/fasthttp"
@@ -34,6 +35,12 @@ func ServeIndex(publicDir, base, rememberMe, resetPassword string) fasthttp.Requ
 	}
 
 	return func(ctx *fasthttp.RequestCtx) {
+		// Everything not matched in the API should return 404.
+		if strings.HasPrefix(string(ctx.Path()), "/api/") {
+			ctx.SetStatusCode(404)
+			return
+		}
+
 		nonce := utils.RandomString(32, alphaNumericRunes)
 
 		ctx.SetContentType("text/html; charset=utf-8")
