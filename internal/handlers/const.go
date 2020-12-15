@@ -43,7 +43,8 @@ const mfaValidationFailedMessage = "Authentication failed, please retry later."
 
 const ldapPasswordComplexityCode = "0000052D."
 
-var ldapPasswordComplexityErrors = []string{"LDAP Result Code 19 \"Constraint Violation\": 0000052D: Constraint violation - check_password_restrictions: the password is too short. It should be equal or longer than 3 characters!", "LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy"}
+var ldapPasswordComplexityCodes = []string{"0000052D"}
+var ldapPasswordComplexityErrors = []string{"LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy"}
 
 const testInactivity = "10"
 const testRedirectionURL = "http://redirection.local"
