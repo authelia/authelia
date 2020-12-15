@@ -90,7 +90,7 @@ you could generate a 16 byte salt and provide it with the `--salt` flag.
 Example: `authelia hash-password --salt abcdefghijklhijl`. For argon2id the salt must 
 always be valid for base64 decoding (characters a through z, A through Z, 0 through 9, and +/).
 
-Passwords passed to `hash-password` must always be single quoted to prevent parameter subtitution.
+Passwords passed to `hash-password` should be single quoted if using special characters to prevent parameter substitution.
 For instance to generate a hash with the docker image just run:
 
     $ docker run authelia/authelia:latest authelia hash-password 'yourpassword'
