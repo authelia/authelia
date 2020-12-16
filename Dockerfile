@@ -1,19 +1,3 @@
-# ========================================
-# ===== Build image for the frontend =====
-# ========================================
-FROM node:15-alpine AS builder-frontend
-
-# set application versions
-ARG SWAGGERUI_VERSION="3.38.0"
-
-WORKDIR /node/src/app
-COPY web .
-
-# Install the dependencies and build
-RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn build
-RUN wget -q "https://github.com/swagger-api/swagger-ui/archive/v${SWAGGERUI_VERSION}.tar.gz" -O ./v${SWAGGERUI_VERSION}.tar.gz && \
-    mkdir -p /node/src/app/build/api && tar -C /node/src/app/build/api --exclude=index.html --strip-components=2 -xf "v${SWAGGERUI_VERSION}.tar.gz" "swagger-ui-${SWAGGERUI_VERSION}/dist"
-
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
@@ -28,13 +12,12 @@ RUN apk --no-cache add gcc musl-dev
 WORKDIR /go/src/app
 
 COPY go.mod go.sum config.template.yml ./
-COPY --from=builder-frontend /node/src/app/build public_html
-COPY swagger/index.html swagger/authelia-api.yml public_html/api/
 
 RUN go mod download
 
 COPY cmd cmd
 COPY internal internal
+COPY public_html public_html
 
 # Prepare static files to be embedded in Go binary
 RUN go get -u aletheia.icu/broccoli && \

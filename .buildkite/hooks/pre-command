@@ -14,6 +14,12 @@ if [[ $BUILDKITE_LABEL =~ ":selenium:" ]]; then
   docker tag authelia/authelia authelia:dist
 fi
 
+if [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]] && [[ "${ARCH}" != "coverage" ]]; then
+  echo "--- :react: :swagger: Extract frontend assets"
+  buildkite-agent artifact download "authelia-public_html.tar.gz" .
+  tar xzf authelia-public_html.tar.gz
+fi
+
 if [[ $BUILDKITE_LABEL =~ ":docker: Deploy Image" ]]; then
   buildkite-agent artifact download "authelia-image-${ARCH}*" .
   zstdcat authelia-image-"${ARCH}".tar.zst | docker load
