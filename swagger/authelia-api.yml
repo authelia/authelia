@@ -16,9 +16,9 @@ tags:
     description: Configuration, health and state endpoints
   - name: Authentication
     description: Authentication and verification endpoints
-  - name: Password
+  - name: Password Reset
     description: Password reset endpoints
-  - name: User
+  - name: User Information
     description: User configuration endpoints
   - name: Second Factor
     description: TOTP, U2F and Duo endpoints
@@ -44,7 +44,7 @@ paths:
     get:
       tags:
         - State
-      summary: Application Configuration
+      summary: Application Health
       description: The health check endpoint provides information about the health of Authelia.
       responses:
         "200":
@@ -198,9 +198,9 @@ paths:
   /api/reset-password/identity/start:
     post:
       tags:
-        - Password
+        - Password Reset
       summary: Identity Verification Token Creation
-      description: "This endpoint performs identity verification to begin the password reset process.\n\nThe session generated from this endpoint must be utilised for the subsequent steps in the `/api/reset-password/identity/finish` and `/api/reset-password` endpoints."
+      description: "This endpoint performs identity verification to begin the password reset process.\n\nThe session cookie generated from this endpoint must be utilised for the subsequent steps in the `/api/reset-password/identity/finish` and `/api/reset-password` endpoints."
       requestBody:
         required: true
         content:
@@ -219,9 +219,9 @@ paths:
   /api/reset-password/identity/finish:
     post:
       tags:
-        - Password
+        - Password Reset
       summary: Identity Verification Token Validation
-      description: "This endpoint performs identity verification to begin the password reset process.\n\nThe session generated from this endpoint must be utilised for the subsequent step in the `/api/reset-password endpoint."
+      description: "This endpoint performs identity and token verification to begin the password reset process.\n\nThe session cookie generated from the `/api/reset-password/identity/start` endpoint must be utilised for the subsequent steps here and in the `/api/reset-password` endpoint."
       requestBody:
         required: true
         content:
@@ -240,7 +240,7 @@ paths:
   /api/reset-password:
     post:
       tags:
-        - Password
+        - Password Reset
       summary: Password Reset
       description: The reset-password endpoint performs a password reset.
       requestBody:
@@ -302,7 +302,7 @@ paths:
       tags:
         - Second Factor
       summary: Identity Verification TOTP Token Creation
-      description: "This endpoint performs identity verification to begin the TOTP device registration process.\n\nThe session generated from this endpoint must be utilised for the subsequent steps in the `/api/secondfactor/totp/identity/finish` endpoint."
+      description: "This endpoint performs identity verification to begin the TOTP device registration process.\n\nThe session generated from this endpoint must be utilised for the subsequent step in the `/api/secondfactor/totp/identity/finish` endpoint."
       responses:
         "200":
           description: Successful Operation
@@ -316,8 +316,8 @@ paths:
     post:
       tags:
         - Second Factor
-      summary: Identity Verification TOTP Device Creation
-      description: "This endpoint performs identity verification, generates TOTP device secret and registers said device."
+      summary: Identity Verification TOTP Token Validation and Device Creation
+      description: "This endpoint performs identity and token verification, upon success also generates TOTP device secret and registers said device.\n\nThe session cookie generated from the `/api/secondfactor/totp/identity/start` endpoint must be utilised for the step here"
       requestBody:
         required: true
         content:
@@ -380,7 +380,7 @@ paths:
       tags:
         - Second Factor
       summary: Identity Verification U2F Token Validation
-      description: "This endpoint performs identity verification and generates a U2F device registration challenge.\n\nThe session generated from this endpoint must be utilised for the subsequent step in the `/api/secondfactor/u2f/register` endpoint."
+      description: "This endpoint performs identity and token verification, upon success generates a U2F device registration challenge.\n\nThe session cookie generated from the `/api/secondfactor/u2f/identity/start` endpoint must be utilised for the subsequent steps here and in the `/api/secondfactor/u2f/register` endpoint."
       requestBody:
         required: true
         content:
@@ -421,7 +421,7 @@ paths:
     post:
       tags:
         - Second Factor
-      summary: Second Factor Authentication - TOTP
+      summary: Second Factor Authentication - Duo Mobile Push
       description: "This endpoint performs second factor authentication with a Duo Mobile Push."
       requestBody:
         required: true
