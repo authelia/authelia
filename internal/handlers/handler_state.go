@@ -12,5 +12,9 @@ func StateGet(ctx *middlewares.AutheliaCtx) {
 		AuthenticationLevel:   userSession.AuthenticationLevel,
 		DefaultRedirectionURL: ctx.Configuration.DefaultRedirectionURL,
 	}
-	ctx.SetJSONBody(stateResponse) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	err := ctx.SetJSONBody(stateResponse)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to set state response in body: %s", err)
+	}
 }

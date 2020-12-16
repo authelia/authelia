@@ -60,7 +60,10 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 		Base32Secret: key.Secret(),
 	}
 
-	ctx.SetJSONBody(response) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	err = ctx.SetJSONBody(response)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to set TOTP key response in body: %s", err)
+	}
 }
 
 // SecondFactorTOTPIdentityFinish the handler for finishing the identity validation.

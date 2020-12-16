@@ -12,6 +12,7 @@ import (
 
 var kubernetesSuiteName = "Kubernetes"
 
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func init() {
 	kind := Kind{}
 	kubectl := Kubectl{}
@@ -92,8 +93,15 @@ func init() {
 	}
 
 	teardown := func(suitePath string) error {
-		kubectl.StopDashboard() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-		kubectl.StopProxy()     //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+		err := kubectl.StopDashboard()
+		if err != nil {
+			log.Errorf("Unable to stop Kubernetes dashboard: %s", err)
+		}
+
+		err = kubectl.StopProxy()
+		if err != nil {
+			log.Errorf("Unable to stop Kind proxy: %s", err)
+		}
 
 		return kind.DeleteCluster()
 	}

@@ -195,10 +195,16 @@ func setupSuite(suiteName string) error {
 
 	if errSetup := runSuiteSetupTeardown("setup", suiteName); errSetup != nil || interrupted {
 		if errSetup == utils.ErrTimeoutReached {
-			runOnSetupTimeout(suiteName) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+			err := runOnSetupTimeout(suiteName)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
-		teardownSuite(suiteName) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+		err := teardownSuite(suiteName)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		return errSetup
 	}

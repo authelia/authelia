@@ -7,10 +7,12 @@ import (
 
 	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func (wds *WebDriverSession) doRegisterTOTP(ctx context.Context, t *testing.T) string {
-	wds.WaitElementLocatedByID(ctx, t, "register-link").Click() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	err := wds.WaitElementLocatedByID(ctx, t, "register-link").Click()
+	require.NoError(t, err)
 	wds.verifyMailNotificationDisplayed(ctx, t)
 	link := doGetLinkFromLastMail(t)
 	wds.doVisit(t, link)
@@ -26,7 +28,8 @@ func (wds *WebDriverSession) doEnterOTP(ctx context.Context, t *testing.T, code 
 	inputs := wds.WaitElementsLocatedByCSSSelector(ctx, t, "#otp-input input")
 
 	for i := 0; i < 6; i++ {
-		inputs[i].SendKeys(string(code[i])) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+		err := inputs[i].SendKeys(string(code[i]))
+		require.NoError(t, err)
 	}
 }
 

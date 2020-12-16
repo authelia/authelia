@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/internal/mocks"
@@ -24,7 +25,8 @@ func (s *FetchSuite) SetupTest() {
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = 1
-	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	err := s.mock.Ctx.SaveSession(userSession)
+	require.NoError(s.T(), err)
 }
 
 func (s *FetchSuite) TearDownTest() {
@@ -92,7 +94,8 @@ func TestMethodSetToU2F(t *testing.T) {
 		userSession := mock.Ctx.GetSession()
 		userSession.Username = testUsername
 		userSession.AuthenticationLevel = 1
-		mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+		err := mock.Ctx.SaveSession(userSession)
+		require.NoError(t, err)
 
 		setPreferencesExpectations(expectedPreferences, mock.StorageProviderMock)
 		UserInfoGet(mock.Ctx)
@@ -170,7 +173,8 @@ func (s *SaveSuite) SetupTest() {
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = 1
-	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	err := s.mock.Ctx.SaveSession(userSession)
+	require.NoError(s.T(), err)
 }
 
 func (s *SaveSuite) TearDownTest() {
