@@ -129,6 +129,13 @@ The user must have an email address in order for Authelia to perform
 identity verification when a user attempts to reset their password or
 register a second factor device.
 
+## IPv6 Addresses
+
+If utilising an IPv6 literal address it must enclosed by square brackets:
+```yaml
+url: ldap://[fd00:1111:2222:3333::1]
+```
+
 ## TLS Settings
 
 ### Skip Verify

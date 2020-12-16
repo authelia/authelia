@@ -61,6 +61,12 @@ notifier:
 Most configuration options are self-explanatory, however here is an explanation of the ones that may not
 be as obvious.
 
+### host
+If utilising an IPv6 literal address it must enclosed by square brackets and quoted:
+```yaml
+host: "[fd00:1111:2222:3333::1]"
+```
+
 ### identifier
 The name to send to the SMTP server as the identifier with the HELO/EHLO command. Some SMTP providers like Google Mail
 reject the message if it's localhost.
