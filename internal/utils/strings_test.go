@@ -70,6 +70,20 @@ func TestShouldNotFindSliceDifferences(t *testing.T) {
 	assert.False(t, diff)
 }
 
+func TestShouldFindStringInSliceContains(t *testing.T) {
+	a := "abc"
+	b := []string{"abc", "onetwothree"}
+	s := IsStringInSliceContains(a, b)
+	assert.True(t, s)
+}
+
+func TestShouldNotFindStringInSliceContains(t *testing.T) {
+	a := "xyz"
+	b := []string{"abc", "onetwothree"}
+	s := IsStringInSliceContains(a, b)
+	assert.False(t, s)
+}
+
 func TestShouldReturnCorrectTLSVersions(t *testing.T) {
 	tls13 := uint16(tls.VersionTLS13)
 	tls12 := uint16(tls.VersionTLS12)

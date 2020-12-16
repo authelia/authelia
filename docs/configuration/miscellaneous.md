@@ -20,6 +20,12 @@ host: 0.0.0.0
 port: 9091
 ```
 
+Note: If utilising an IPv6 literal address it must enclosed by square brackets and quoted:
+
+```yaml
+host: "[fd00:1111:2222:3333::1]"
+```
+
 ## TLS
 
 `optional: true`
