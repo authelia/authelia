@@ -48,7 +48,7 @@ session:
   redis:
     host: 127.0.0.1
     port: 6379
-    # # Use a unix socket instead
+    # Use a unix socket instead
     # host: /var/run/redis/redis.sock
 
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
@@ -64,3 +64,14 @@ Configuration of this section has an impact on security. You should read notes i
 
 The configuration parameters expiration, inactivity, and remember_me_duration use duration notation. See the documentation
 for [duration notation format](index.md#duration-notation-format) for more information.
+
+## IPv6 Addresses
+
+If utilising an IPv6 literal address it must enclosed by square brackets and quoted:
+```yaml
+host: "[fd00:1111:2222:3333::1]"
+```
+
+## Loading a password from a secret instead of inside the configuration
+
+Password can also be defined using a [secret](../secrets.md).

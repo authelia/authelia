@@ -333,7 +333,7 @@ session:
   redis:
     host: 127.0.0.1
     port: 6379
-    # # Use a unix socket instead
+    # Use a unix socket instead
     # host: /var/run/redis/redis.sock
 
 

@@ -12,12 +12,13 @@
   [![AUR development version](https://img.shields.io/aur/version/authelia-git?logo=arch-linux&label=authelia-git&style=flat-square&color=blue)](https://aur.archlinux.org/packages/authelia-git/)
   [![License](https://img.shields.io/github/license/authelia/authelia?logo=apache&style=flat-square&color=blue)][Apache 2.0]
   [![Sponsor](https://img.shields.io/opencollective/all/authelia-sponsors?logo=Open%20Collective&label=financial%20contributors&style=flat-square&color=blue)](https://opencollective.com/authelia-sponsors)
+  [![Discord](https://img.shields.io/discord/707844280412012608?logo=discord&style=flat-square&color=blue)](https://discord.authelia.com)
   [![Matrix](https://img.shields.io/matrix/authelia:matrix.org?logo=matrix&style=flat-square&color=blue)](https://riot.im/app/#/room/#authelia:matrix.org)
 
 **Authelia** is an open-source authentication and authorization server
 providing 2-factor authentication and single sign-on (SSO) for your
 applications via a web portal.
-It acts as a companion of reverse proxies like [nginx], [Traefik] or [HAProxy] to let them know whether queries should pass through. Unauthenticated user are
+It acts as a companion of reverse proxies like [nginx], [Traefik] or [HAProxy] to let them know whether queries should pass through. Unauthenticated users are
 redirected to Authelia Sign-in portal instead.
 
 Documentation is available at https://docs.authelia.com.
@@ -119,6 +120,12 @@ the threat model follow this [link](https://docs.authelia.com/security/threat-mo
 Join the [Matrix Room](https://riot.im/app/#/room/#authelia:matrix.org) and locate one of the maintainers.
 You can identify them as they are the room administrators. Alternatively you can just ask for one of the
 maintainers. Once you've made contact we ask you privately message the maintainer to communicate the vulnerability.
+
+#### Discord
+
+Join the [Discord Server](https://discord.authelia.com) and message the
+[#support](https://discord.com/channels/707844280412012608/707844280412012612) chat which links to [Matrix](#matrix) 
+and contact a maintainer. 
 
 #### Email
 
