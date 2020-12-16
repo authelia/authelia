@@ -1,27 +1,38 @@
-dn: ou=groups,dc=example,dc=com
+dn: cn=pwmanager,{{ LDAP_BASE_DN }}
+cn: Password Manager
+displayname: Password Manager
+givenName: Password
+objectclass: inetOrgPerson
+objectclass: top
+mail: password.manager@authelia.com
+sn: Manager
+uid: pwmanager
+userPassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+
+dn: ou=groups,{{ LDAP_BASE_DN }}
 objectclass: organizationalUnit
 objectclass: top
 ou: groups
 
-dn: ou=users,dc=example,dc=com
+dn: ou=users,{{ LDAP_BASE_DN }}
 objectclass: organizationalUnit
 objectclass: top
 ou: users
 
-dn: cn=dev,ou=groups,dc=example,dc=com
+dn: cn=dev,ou=groups,{{ LDAP_BASE_DN }}
 cn: dev
-member: cn=John Doe (external),ou=users,dc=example,dc=com
-member: cn=Bob Dylan,ou=users,dc=example,dc=com
+member: cn=John Doe (external),ou=users,{{ LDAP_BASE_DN }}
+member: cn=Bob Dylan,ou=users,{{ LDAP_BASE_DN }}
 objectclass: groupOfNames
 objectclass: top
 
-dn: cn=admins,ou=groups,dc=example,dc=com
+dn: cn=admins,ou=groups,{{ LDAP_BASE_DN }}
 cn: admins
-member: cn=John Doe (external),ou=users,dc=example,dc=com
+member: cn=John Doe (external),ou=users,{{ LDAP_BASE_DN }}
 objectclass: groupOfNames
 objectclass: top
 
-dn: cn=John Doe (external),ou=users,dc=example,dc=com
+dn: cn=John Doe (external),ou=users,{{ LDAP_BASE_DN }}
 cn: John Doe (external)
 displayname: John Doe
 givenName: John
@@ -32,7 +43,7 @@ sn: Doe
 uid: john
 userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
 
-dn: cn=Harry Potter,ou=users,dc=example,dc=com
+dn: cn=Harry Potter,ou=users,{{ LDAP_BASE_DN }}
 cn: Harry Potter
 displayname: Harry Potter
 givenName: Harry
@@ -43,7 +54,7 @@ sn: Potter
 uid: harry
 userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
 
-dn: cn=Bob Dylan,ou=users,dc=example,dc=com
+dn: cn=Bob Dylan,ou=users,{{ LDAP_BASE_DN }}
 cn: Bob Dylan
 displayname: Bob Dylan
 givenName: Bob
@@ -54,7 +65,7 @@ sn: Dylan
 uid: bob
 userpassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
 
-dn: cn=James Dean,ou=users,dc=example,dc=com
+dn: cn=James Dean,ou=users,{{ LDAP_BASE_DN }}
 cn: James Dean
 displayname: James Dean
 givenName: James

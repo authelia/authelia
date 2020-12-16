@@ -1,7 +1,0 @@
-olcAccess: {0}to attrs=userPassword,shadowLastChange by self write by anonymou
- s auth by * none 
-# olcAccess: {1}to dn.base="" by * read 
-# olcAccess: {2}to * by * read 
-
-olcPasswordHash: {CRYPT}
-olcPasswordCryptSaltFormat: $6$rounds=50000$%.16s

@@ -25,7 +25,7 @@ authentication_backend:
     group_name_attribute: cn
     mail_attribute: mail
     display_name_attribute: displayName
-    user: cn=admin,dc=example,dc=com
+    user: cn=pwmanager,dc=example,dc=com
     password: password
 
 session:

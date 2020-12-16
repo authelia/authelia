@@ -30,6 +30,17 @@ func IsStringInSlice(a string, list []string) (inSlice bool) {
 	return false
 }
 
+// IsStringInSliceContains checks if a single string is in an array of strings.
+func IsStringInSliceContains(a string, list []string) (inSlice bool) {
+	for _, b := range list {
+		if strings.Contains(a, b) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // SliceString splits a string s into an array with each item being a max of int d
 // d = denominator, n = numerator, q = quotient, r = remainder.
 func SliceString(s string, d int) (array []string) {
