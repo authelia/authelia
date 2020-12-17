@@ -52,9 +52,18 @@ func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{mail_attribute}", configuration.MailAttribute)
 	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{display_name_attribute}", configuration.DisplayNameAttribute)
 
+	serverName := ""
+
+	if ldapURL, err := url.Parse(configuration.URL); err == nil && !configuration.SkipVerify {
+		serverName = ldapURL.Hostname()
+		logger.Infof("LDAP TLS Config Host Set to %s", serverName)
+	} else {
+		logger.Warnf("Error parsing URL: %v", err)
+	}
+
 	return &LDAPUserProvider{
 		configuration: configuration,
-		tlsConfig:     &tls.Config{InsecureSkipVerify: configuration.SkipVerify, MinVersion: minimumTLSVersion}, //nolint:gosec // Disabling InsecureSkipVerify is an informed choice by users.
+		tlsConfig:     &tls.Config{ServerName: serverName, InsecureSkipVerify: configuration.SkipVerify, MinVersion: minimumTLSVersion}, //nolint:gosec // Disabling InsecureSkipVerify is an informed choice by users.
 
 		connectionFactory: NewLDAPConnectionFactoryImpl(),
 	}
