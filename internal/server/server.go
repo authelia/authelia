@@ -25,19 +25,21 @@ import (
 // StartServer start Authelia server with the given configuration and providers.
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-	embeddedAssets := "/public_html"
-	swaggerAssets := embeddedAssets + "/api"
+	embeddedAssets := "/public_html/"
+	swaggerAssets := embeddedAssets + "api/"
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
-	serveIndexHandler := ServeIndex(embeddedAssets, configuration.Server.Path, rememberMe, resetPassword)
-	serveSwaggerHandler := ServeIndex(swaggerAssets, configuration.Server.Path, rememberMe, resetPassword)
+	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.Path, configuration.Session.Name, rememberMe, resetPassword)
+	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.Path, configuration.Session.Name, rememberMe, resetPassword)
+	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.Path, configuration.Session.Name, rememberMe, resetPassword)
 
 	r := router.New()
 	r.GET("/", serveIndexHandler)
 	r.GET("/api/", serveSwaggerHandler)
+	r.GET("/api/"+apiFile, serveSwaggerAPIHandler)
 
 	for _, f := range rootFiles {
 		r.GET("/"+f, fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))

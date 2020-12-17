@@ -659,5 +659,5 @@ components:
   securitySchemes:
     authelia_auth:
       type: apiKey
-      name: authelia_session
+      name: "{{.Session}}"
       in: cookie
