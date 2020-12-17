@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"net/url"
 	"strings"
@@ -16,17 +17,15 @@ import (
 
 // LDAPUserProvider is a provider using a LDAP or AD as a user database.
 type LDAPUserProvider struct {
-	configuration schema.LDAPAuthenticationBackendConfiguration
-	tlsConfig     *tls.Config
-
+	configuration     schema.LDAPAuthenticationBackendConfiguration
+	tlsConfig         *tls.Config
+	dialOpts          ldap.DialOpt
 	connectionFactory LDAPConnectionFactory
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
-func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration) *LDAPUserProvider {
-	minimumTLSVersion, _ := utils.TLSStringToTLSConfigVersion(configuration.MinimumTLSVersion)
-
-	// TODO: RELEASE-4.27.0 Deprecated Completely in this release.
+func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool) *LDAPUserProvider {
+	// Deprecated: RELEASE-4.27.0 Deprecated Completely in this release.
 	logger := logging.Logger()
 
 	if strings.Contains(configuration.UsersFilter, "{0}") {
@@ -46,66 +45,63 @@ func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 
 		configuration.GroupsFilter = strings.ReplaceAll(configuration.GroupsFilter, "{1}", "{username}")
 	}
-	// TODO: RELEASE-4.27.0 Deprecated Completely in this release.
+	// Deprecated: RELEASE-4.27.0 Deprecated Completely in this release.
 
 	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{username_attribute}", configuration.UsernameAttribute)
 	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{mail_attribute}", configuration.MailAttribute)
 	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{display_name_attribute}", configuration.DisplayNameAttribute)
 
-	return &LDAPUserProvider{
-		configuration: configuration,
-		tlsConfig:     &tls.Config{InsecureSkipVerify: configuration.SkipVerify, MinVersion: minimumTLSVersion}, //nolint:gosec // Disabling InsecureSkipVerify is an informed choice by users.
+	ldapURL, _ := url.Parse(configuration.URL) // ignore error as it's already checked by validator.
 
+	if configuration.TLS == nil {
+		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
+	}
+
+	if configuration.TLS.ServerName == "" {
+		configuration.TLS.ServerName = ldapURL.Hostname()
+	}
+
+	tlsConfig := utils.NewTLSConfig(configuration.TLS, tls.VersionTLS12, certPool)
+
+	var dialOpts ldap.DialOpt
+
+	if tlsConfig != nil {
+		dialOpts = ldap.DialWithTLSConfig(tlsConfig)
+	}
+
+	return &LDAPUserProvider{
+		configuration:     configuration,
+		tlsConfig:         tlsConfig,
+		dialOpts:          dialOpts,
 		connectionFactory: NewLDAPConnectionFactoryImpl(),
 	}
 }
 
 // NewLDAPUserProviderWithFactory creates a new instance of LDAPUserProvider with existing factory.
-func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBackendConfiguration, connectionFactory LDAPConnectionFactory) *LDAPUserProvider {
-	provider := NewLDAPUserProvider(configuration)
+func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool, connectionFactory LDAPConnectionFactory) *LDAPUserProvider {
+	provider := NewLDAPUserProvider(configuration, certPool)
 	provider.connectionFactory = connectionFactory
 
 	return provider
 }
 
 func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
-	var newConnection LDAPConnection
-
-	ldapURL, err := url.Parse(p.configuration.URL)
-
+	conn, err := p.connectionFactory.DialURL(p.configuration.URL, p.dialOpts)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse URL to LDAP: %s", ldapURL)
-	}
-
-	if ldapURL.Scheme == "ldaps" {
-		logging.Logger().Trace("LDAP client starts a TLS session")
-
-		conn, err := p.connectionFactory.DialTLS("tcp", ldapURL.Host, p.tlsConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		newConnection = conn
-	} else {
-		logging.Logger().Trace("LDAP client starts a session over raw TCP")
-		conn, err := p.connectionFactory.Dial("tcp", ldapURL.Host)
-		if err != nil {
-			return nil, err
-		}
-		newConnection = conn
-	}
-
-	if p.configuration.StartTLS {
-		if err := newConnection.StartTLS(p.tlsConfig); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := newConnection.Bind(userDN, password); err != nil {
 		return nil, err
 	}
 
-	return newConnection, nil
+	if p.configuration.StartTLS {
+		if err := conn.StartTLS(p.tlsConfig); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := conn.Bind(userDN, password); err != nil {
+		return nil, err
+	}
+
+	return conn, nil
 }
 
 // CheckUserPassword checks if provided password matches for the given user.

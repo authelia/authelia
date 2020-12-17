@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -73,29 +74,23 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 }
 
 func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
-	u, err := url.Parse(ldapURL)
+	parsedURL, err := url.Parse(ldapURL)
 
 	if err != nil {
 		validator.Push(errors.New("Unable to parse URL to ldap server. The scheme is probably missing: ldap:// or ldaps://"))
 		return ""
 	}
 
-	if !(u.Scheme == schemeLDAP || u.Scheme == schemeLDAPS) {
+	if !(parsedURL.Scheme == schemeLDAP || parsedURL.Scheme == schemeLDAPS) {
 		validator.Push(errors.New("Unknown scheme for ldap url, should be ldap:// or ldaps://"))
 		return ""
 	}
 
-	if u.Scheme == schemeLDAP && u.Port() == "" {
-		u.Host += ":389"
-	} else if u.Scheme == schemeLDAPS && u.Port() == "" {
-		u.Host += ":636"
+	if !parsedURL.IsAbs() {
+		validator.Push(fmt.Errorf("URL to LDAP %s is still not absolute, it should be something like ldap://127.0.0.1:389", parsedURL.String()))
 	}
 
-	if !u.IsAbs() {
-		validator.Push(fmt.Errorf("URL to LDAP %s is still not absolute, it should be something like ldap://127.0.0.1:389", u.String()))
-	}
-
-	return u.String()
+	return parsedURL.String()
 }
 
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
@@ -104,10 +99,36 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
 	}
 
-	if configuration.MinimumTLSVersion == "" {
-		configuration.MinimumTLSVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.MinimumTLSVersion
-	} else if _, err := utils.TLSStringToTLSConfigVersion(configuration.MinimumTLSVersion); err != nil {
-		validator.Push(fmt.Errorf("error occurred validating the LDAP minimum_tls_version key with value %s: %v", configuration.MinimumTLSVersion, err))
+	log := logging.Logger() // Deprecated: final removal in 4.28.
+
+	if configuration.TLS == nil {
+		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
+
+		// Deprecated: Remove in 4.28 (block).
+		if configuration.SkipVerify != nil {
+			configuration.TLS.SkipVerify = *configuration.SkipVerify
+
+			log.Warnf("DEPRECATED: LDAP Auth Backend `skip_verify` option has been replaced by `authentication_backend.ldap.tls.skip_verify` (will be removed in 4.28.0)")
+		}
+	}
+
+	if configuration.TLS.MinimumVersion == "" {
+		// Deprecated. Remove in 4.28 (if-else, should just be the code in the else block).
+		if configuration.MinimumTLSVersion != "" {
+			log.Warnf("DEPRECATED: LDAP Auth Backend `minimum_tls_version` option has been replaced by `authentication_backend.ldap.tls.minimum_version` (will be removed in 4.28.0)")
+
+			if _, err := utils.TLSStringToTLSConfigVersion(configuration.MinimumTLSVersion); err != nil {
+				validator.Push(fmt.Errorf("error occurred validating the LDAP minimum_tls_version key with value %s: %v", configuration.MinimumTLSVersion, err))
+			} else {
+				configuration.TLS.MinimumVersion = configuration.MinimumTLSVersion
+			}
+		} else {
+			configuration.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
+		}
+	}
+
+	if _, err := utils.TLSStringToTLSConfigVersion(configuration.TLS.MinimumVersion); err != nil {
+		validator.Push(fmt.Errorf("error occurred validating the LDAP minimum_tls_version key with value %s: %v", configuration.TLS.MinimumVersion, err))
 	}
 
 	switch configuration.Implementation {

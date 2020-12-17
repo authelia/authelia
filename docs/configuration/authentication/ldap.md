@@ -151,9 +151,19 @@ The key `start_tls` enables use of the LDAP StartTLS process which is not common
 if you know you need it. The initial connection will be over plain text, and Authelia will try to upgrade it with the
 LDAP server. LDAPS URL's are slightly more secure.
 
-### Minimum TLS Version
+### TLS (section)
+The key `tls` is a map of options for tuning TLS options.
 
-The key `minimum_tls_version` controls the minimum TLS version Authelia will use when opening LDAP connections.
+#### Server Name
+The key `server_name` overrides the name checked against the certificate in the verification process. Useful if you
+require to use a direct IP address in the LDAP URL but still want to verify the certificate.
+
+#### Skip Verify
+The key `skip_verify` completely negates validating the certificate of the LDAP server. This is not recommended,
+instead you should tweak the `server_name` option, and the global option [certificates_directory](../miscellaneous.md#certificates-directory).
+
+#### Minimum Version
+The key `minimum_version` controls the minimum TLS version Authelia will use when opening LDAP connections.
 The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`. Anything other than `TLS1.3` or `TLS1.2`
 are very old and deprecated. You should avoid using these and upgrade your LDAP solution instead of decreasing
 this value. 

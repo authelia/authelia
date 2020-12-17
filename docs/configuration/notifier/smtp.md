@@ -79,18 +79,9 @@ be included in all emails as it is the internal descriptor for the contents of t
 For security reasons the default settings for Authelia require the SMTP connection is encrypted by TLS. See [security] for
 more information. This option disables this measure (not recommended).
 
-###  disable_verify_cert
-For security reasons Authelia only trusts certificates valid according to the OS's PKI chain. See [security] for more information.
-This option disables this measure (not recommended).
-
 ### disable_html_emails
 This option forces Authelia to only send plain text email via the notifier. This is the default for the file based 
 notifier, but some users may wish to use plain text for security reasons.
-
-### trusted_cert
-This option allows you to specify the file path to a public key portion of a X509 certificate in order to trust it, or 
-certificates signed with the private key portion of the X509 certificate. This is an alternative to `disable_verify_cert`
-that is much more secure. This is not required if your certificate is trusted by the operating system PKI. 
 
 ## Using Gmail
 

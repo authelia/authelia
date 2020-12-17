@@ -2,22 +2,24 @@ package schema
 
 // LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server.
 type LDAPAuthenticationBackendConfiguration struct {
-	Implementation       string `mapstructure:"implementation"`
-	URL                  string `mapstructure:"url"`
-	SkipVerify           bool   `mapstructure:"skip_verify"`
-	StartTLS             bool   `mapstructure:"start_tls"`
-	MinimumTLSVersion    string `mapstructure:"minimum_tls_version"`
-	BaseDN               string `mapstructure:"base_dn"`
-	AdditionalUsersDN    string `mapstructure:"additional_users_dn"`
-	UsersFilter          string `mapstructure:"users_filter"`
-	AdditionalGroupsDN   string `mapstructure:"additional_groups_dn"`
-	GroupsFilter         string `mapstructure:"groups_filter"`
-	GroupNameAttribute   string `mapstructure:"group_name_attribute"`
-	UsernameAttribute    string `mapstructure:"username_attribute"`
-	MailAttribute        string `mapstructure:"mail_attribute"`
-	DisplayNameAttribute string `mapstructure:"display_name_attribute"`
-	User                 string `mapstructure:"user"`
-	Password             string `mapstructure:"password"`
+	Implementation       string     `mapstructure:"implementation"`
+	URL                  string     `mapstructure:"url"`
+	BaseDN               string     `mapstructure:"base_dn"`
+	AdditionalUsersDN    string     `mapstructure:"additional_users_dn"`
+	UsersFilter          string     `mapstructure:"users_filter"`
+	AdditionalGroupsDN   string     `mapstructure:"additional_groups_dn"`
+	GroupsFilter         string     `mapstructure:"groups_filter"`
+	GroupNameAttribute   string     `mapstructure:"group_name_attribute"`
+	UsernameAttribute    string     `mapstructure:"username_attribute"`
+	MailAttribute        string     `mapstructure:"mail_attribute"`
+	DisplayNameAttribute string     `mapstructure:"display_name_attribute"`
+	User                 string     `mapstructure:"user"`
+	Password             string     `mapstructure:"password"`
+	StartTLS             bool       `mapstructure:"start_tls"`
+	TLS                  *TLSConfig `mapstructure:"tls"`
+	SkipVerify           *bool      `mapstructure:"skip_verify"`         // Deprecated: Replaced with LDAPAuthenticationBackendConfiguration.TLS.SkipVerify. Removal in 4.28.
+	MinimumTLSVersion    string     `mapstructure:"minimum_tls_version"` // Deprecated: Replaced with LDAPAuthenticationBackendConfiguration.TLS.MinimumVersion. Removal in 4.28.
+
 }
 
 // FileAuthenticationBackendConfiguration represents the configuration related to file-based backend.
@@ -78,7 +80,9 @@ var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendCon
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayname",
 	GroupNameAttribute:   "cn",
-	MinimumTLSVersion:    "TLS1.2",
+	TLS: &TLSConfig{
+		MinimumVersion: "TLS1.2",
+	},
 }
 
 // DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration represents the default LDAP config for the MSAD Implementation.

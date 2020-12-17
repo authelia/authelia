@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/logging"
 )
 
 // ValidateNotifier validates and update notifier configuration.
@@ -49,6 +50,28 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 
 		if configuration.SMTP.Identifier == "" {
 			configuration.SMTP.Identifier = schema.DefaultSMTPNotifierConfiguration.Identifier
+		}
+
+		log := logging.Logger() // Deprecated: final removal in 4.28.
+
+		if configuration.SMTP.TLS == nil {
+			configuration.SMTP.TLS = schema.DefaultSMTPNotifierConfiguration.TLS
+
+			// Deprecated: final removal in 4.28.
+			if configuration.SMTP.DisableVerifyCert != nil {
+				log.Warnf("DEPRECATED: SMTP Notifier `disable_verify_cert` option has been replaced by `notifier.smtp.tls.skip_verify` (will be removed in 4.28.0)")
+
+				configuration.SMTP.TLS.SkipVerify = *configuration.SMTP.DisableVerifyCert
+			}
+		}
+
+		// Deprecated: final removal in 4.28.
+		if configuration.SMTP.TrustedCert != "" {
+			log.Warnf("DEPRECATED: SMTP Notifier `trusted_cert` option has been replaced by the global option `certificates_directory` (will be removed in 4.28.0)")
+		}
+
+		if configuration.SMTP.TLS.ServerName == "" {
+			configuration.SMTP.TLS.ServerName = configuration.SMTP.Host
 		}
 
 		return

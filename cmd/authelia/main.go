@@ -35,6 +35,21 @@ func startServer() {
 		os.Exit(1)
 	}
 
+	autheliaCertPool, errs, nonFatalErrs := utils.NewX509CertPool(config.CertificatesDirectory, config)
+	if len(errs) > 0 {
+		for _, err := range errs {
+			logging.Logger().Error(err)
+		}
+
+		os.Exit(2)
+	}
+
+	if len(nonFatalErrs) < 0 {
+		for _, err := range nonFatalErrs {
+			logging.Logger().Warn(err)
+		}
+	}
+
 	if err := logging.InitializeLogger(config.LogFormat, config.LogFilePath); err != nil {
 		logging.Logger().Fatalf("Cannot initialize logger: %v", err)
 	}
@@ -55,17 +70,6 @@ func startServer() {
 		logging.Logger().Info("===> Authelia is running in development mode. <===")
 	}
 
-	var userProvider authentication.UserProvider
-
-	switch {
-	case config.AuthenticationBackend.File != nil:
-		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
-	case config.AuthenticationBackend.Ldap != nil:
-		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.Ldap)
-	default:
-		logging.Logger().Fatalf("Unrecognized authentication backend")
-	}
-
 	var storageProvider storage.Provider
 
 	switch {
@@ -79,11 +83,22 @@ func startServer() {
 		logging.Logger().Fatalf("Unrecognized storage backend")
 	}
 
+	var userProvider authentication.UserProvider
+
+	switch {
+	case config.AuthenticationBackend.File != nil:
+		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
+	case config.AuthenticationBackend.Ldap != nil:
+		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.Ldap, autheliaCertPool)
+	default:
+		logging.Logger().Fatalf("Unrecognized authentication backend")
+	}
+
 	var notifier notification.Notifier
 
 	switch {
 	case config.Notifier.SMTP != nil:
-		notifier = notification.NewSMTPNotifier(*config.Notifier.SMTP)
+		notifier = notification.NewSMTPNotifier(*config.Notifier.SMTP, autheliaCertPool)
 	case config.Notifier.FileSystem != nil:
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	default:

@@ -124,32 +124,17 @@ func (m *MockLDAPConnectionFactory) EXPECT() *MockLDAPConnectionFactoryMockRecor
 	return m.recorder
 }
 
-// DialTLS mocks base method
-func (m *MockLDAPConnectionFactory) DialTLS(network, addr string, config *tls.Config) (LDAPConnection, error) {
+// DialURL mocks base method
+func (m *MockLDAPConnectionFactory) DialURL(addr string, opts ldap.DialOpt) (LDAPConnection, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DialTLS", network, addr, config)
+	ret := m.ctrl.Call(m, "DialURL", addr, opts)
 	ret0, _ := ret[0].(LDAPConnection)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// DialTLS indicates an expected call of DialTLS
-func (mr *MockLDAPConnectionFactoryMockRecorder) DialTLS(network, addr, config interface{}) *gomock.Call {
+// DialURL indicates an expected call of DialURL
+func (mr *MockLDAPConnectionFactoryMockRecorder) DialURL(addr, opts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DialTLS", reflect.TypeOf((*MockLDAPConnectionFactory)(nil).DialTLS), network, addr, config)
-}
-
-// Dial mocks base method
-func (m *MockLDAPConnectionFactory) Dial(network, addr string) (LDAPConnection, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Dial", network, addr)
-	ret0, _ := ret[0].(LDAPConnection)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Dial indicates an expected call of Dial
-func (mr *MockLDAPConnectionFactoryMockRecorder) Dial(network, addr interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Dial", reflect.TypeOf((*MockLDAPConnectionFactory)(nil).Dial), network, addr)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DialURL", reflect.TypeOf((*MockLDAPConnectionFactory)(nil).DialURL), addr, opts)
 }

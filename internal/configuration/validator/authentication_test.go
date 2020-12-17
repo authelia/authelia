@@ -303,13 +303,13 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {
 	require.Len(suite.T(), suite.validator.Errors(), 2)
 	assert.EqualError(suite.T(), suite.validator.Errors()[1], "Unable to parse URL to ldap server. The scheme is probably missing: ldap:// or ldaps://")
 
-	assert.Equal(suite.T(), "ldap://127.0.0.1:389", validateLdapURL("ldap://127.0.0.1", suite.validator))
+	assert.Equal(suite.T(), "ldap://127.0.0.1", validateLdapURL("ldap://127.0.0.1", suite.validator))
 	assert.Equal(suite.T(), "ldap://127.0.0.1:390", validateLdapURL("ldap://127.0.0.1:390", suite.validator))
-	assert.Equal(suite.T(), "ldap://127.0.0.1:389/abc", validateLdapURL("ldap://127.0.0.1/abc", suite.validator))
-	assert.Equal(suite.T(), "ldap://127.0.0.1:389/abc?test=abc&x=y", validateLdapURL("ldap://127.0.0.1/abc?test=abc&x=y", suite.validator))
+	assert.Equal(suite.T(), "ldap://127.0.0.1/abc", validateLdapURL("ldap://127.0.0.1/abc", suite.validator))
+	assert.Equal(suite.T(), "ldap://127.0.0.1/abc?test=abc&x=y", validateLdapURL("ldap://127.0.0.1/abc?test=abc&x=y", suite.validator))
 
 	assert.Equal(suite.T(), "ldaps://127.0.0.1:390", validateLdapURL("ldaps://127.0.0.1:390", suite.validator))
-	assert.Equal(suite.T(), "ldaps://127.0.0.1:636", validateLdapURL("ldaps://127.0.0.1", suite.validator))
+	assert.Equal(suite.T(), "ldaps://127.0.0.1", validateLdapURL("ldaps://127.0.0.1", suite.validator))
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldDefaultTLS12() {
@@ -319,7 +319,9 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldDefaultTLS12() {
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue() {
-	suite.configuration.Ldap.MinimumTLSVersion = "SSL2.0"
+	suite.configuration.Ldap.TLS = &schema.TLSConfig{
+		MinimumVersion: "SSL2.0",
+	}
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	require.Len(suite.T(), suite.validator.Errors(), 1)
 	assert.EqualError(suite.T(), suite.validator.Errors()[0], "error occurred validating the LDAP minimum_tls_version key with value SSL2.0: supplied TLS version isn't supported")
@@ -344,6 +346,7 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) SetupTest() {
 	suite.configuration.Ldap.User = testLDAPUser
 	suite.configuration.Ldap.Password = testLDAPPassword
 	suite.configuration.Ldap.BaseDN = testLDAPBaseDN
+	suite.configuration.Ldap.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 }
 
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirectoryDefaults() {

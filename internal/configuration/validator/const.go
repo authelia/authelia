@@ -11,6 +11,7 @@ var validKeys = []string{
 	"jwt_secret",
 	"tls_key",
 	"tls_cert",
+	"certificates_directory",
 
 	// Server Keys.
 	"server.read_buffer_size",
@@ -72,9 +73,12 @@ var validKeys = []string{
 	"notifier.smtp.subject",
 	"notifier.smtp.startup_check_address",
 	"notifier.smtp.disable_require_tls",
-	"notifier.smtp.disable_verify_cert",
 	"notifier.smtp.trusted_cert",
 	"notifier.smtp.disable_html_emails",
+	"notifier.smtp.tls.minimum_version",
+	"notifier.smtp.tls.skip_verify",
+	"notifier.smtp.tls.hostname",
+	"notifier.smtp.disable_verify_cert", // Deprecated: Remove in 4.28.
 
 	// Regulation Keys.
 	"regulation.max_retries",
@@ -93,9 +97,6 @@ var validKeys = []string{
 	// LDAP Authentication Backend Keys.
 	"authentication_backend.ldap.implementation",
 	"authentication_backend.ldap.url",
-	"authentication_backend.ldap.skip_verify",
-	"authentication_backend.ldap.start_tls",
-	"authentication_backend.ldap.minimum_tls_version",
 	"authentication_backend.ldap.base_dn",
 	"authentication_backend.ldap.username_attribute",
 	"authentication_backend.ldap.additional_users_dn",
@@ -107,6 +108,12 @@ var validKeys = []string{
 	"authentication_backend.ldap.display_name_attribute",
 	"authentication_backend.ldap.user",
 	"authentication_backend.ldap.password",
+	"authentication_backend.ldap.start_tls",
+	"authentication_backend.ldap.tls.minimum_version",
+	"authentication_backend.ldap.tls.skip_verify",
+	"authentication_backend.ldap.tls.hostname",
+	"authentication_backend.ldap.skip_verify",         // Deprecated: Remove in 4.28.
+	"authentication_backend.ldap.minimum_tls_version", // Deprecated: Remove in 4.28.
 
 	// File Authentication Backend Keys.
 	"authentication_backend.file.path",

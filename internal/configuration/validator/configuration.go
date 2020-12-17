@@ -3,6 +3,7 @@ package validator
 import (
 	"fmt"
 	"net/url"
+	"os"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
@@ -25,6 +26,15 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		validator.Push(fmt.Errorf("No TLS certificate provided, please check the \"tls_cert\" which has been configured"))
 	} else if configuration.TLSKey == "" && configuration.TLSCert != "" {
 		validator.Push(fmt.Errorf("No TLS key provided, please check the \"tls_key\" which has been configured"))
+	}
+
+	if configuration.CertificatesDirectory != "" {
+		info, err := os.Stat(configuration.CertificatesDirectory)
+		if err != nil {
+			validator.Push(fmt.Errorf("Error checking certificate directory: %v", err))
+		} else if !info.IsDir() {
+			validator.Push(fmt.Errorf("The path %s specified for certificate_directory is not a directory", configuration.CertificatesDirectory))
+		}
 	}
 
 	if configuration.LogLevel == "" {
