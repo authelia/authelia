@@ -8,7 +8,7 @@ COPY web .
 
 # Install the dependencies and build
 RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn coverage && \
-mkdir -p /node/src/app/build/api && touch /node/src/app/build/api/index.html
+mkdir -p /node/src/app/build/api && cd /node/src/app/build/api/ && touch index.html authelia-api.yml
 
 # =======================================
 # ===== Build image for the backend =====
