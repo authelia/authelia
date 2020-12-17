@@ -261,7 +261,7 @@ paths:
   /api/user/info:
     get:
       tags:
-        - User
+        - User Information
       summary: User Configuration
       description: The user info endpoint provides detailed information including a users display name, preferred and registered second factor method(s).
       responses:
@@ -278,7 +278,7 @@ paths:
   /api/user/info/2fa_method:
     post:
       tags:
-        - User
+        - User Information
       summary: User Configuration
       description: The user info 2fa_method endpoint sets the users preferred second factor method.
       requestBody:
