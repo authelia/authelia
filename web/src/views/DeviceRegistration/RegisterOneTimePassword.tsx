@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from "react";
 import LoginLayout from "../../layouts/LoginLayout";
 import classnames from "classnames";
-import { makeStyles, Typography, Button, Link, CircularProgress } from "@material-ui/core";
+import { makeStyles, Typography, Button, IconButton, Link, CircularProgress, TextField } from "@material-ui/core";
 import QRCode from 'qrcode.react';
 import AppStoreBadges from "../../components/AppStoreBadges";
 import { GoogleAuthenticator } from "../../constants";
@@ -9,7 +9,7 @@ import { useHistory, useLocation } from "react-router";
 import { completeTOTPRegistrationProcess } from "../../services/RegisterDevice";
 import { useNotifications } from "../../hooks/NotificationsContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { faCopy, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { red } from "@material-ui/core/colors";
 import { extractIdentityToken } from "../../utils/IdentityToken";
 import { FirstFactorRoute } from "../../Routes";
@@ -53,6 +53,14 @@ const RegisterOneTimePassword = function () {
     }, [processToken, createErrorNotification]);
 
     useEffect(() => { completeRegistrationProcess() }, [completeRegistrationProcess]);
+    const CopyButton = () => (
+      <IconButton
+        color="primary"
+        onClick={() =>  navigator.clipboard.writeText(`${secretBase32}`)}
+      >
+          <FontAwesomeIcon icon={faCopy} />
+      </IconButton>
+    )
     const qrcodeFuzzyStyle = (isLoading || hasErrored) ? style.fuzzy : undefined
 
     return (
@@ -77,16 +85,25 @@ const RegisterOneTimePassword = function () {
                         {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
                     </Link>
                 </div>
-                {secretBase32
-                    ? <input id="base32-secret"
-                        style={{ display: "none" }}
-                        value={secretBase32} /> : null}
+                <div>
+                    <TextField
+                      id="base32-secret"
+                      label="Secret"
+                      className={style.secret}
+                      value={secretBase32}
+                      InputProps={{
+                          autoFocus: true,
+                          endAdornment: <CopyButton />,
+                          readOnly: true
+                      }}
+                    />
+                </div>
                 <Button
-                    variant="contained"
-                    color="primary"
-                    className={style.doneButton}
-                    onClick={handleDoneClick}
-                    disabled={isLoading}>
+                  variant="contained"
+                  color="primary"
+                  className={style.doneButton}
+                  onClick={handleDoneClick}
+                  disabled={isLoading}>
                     Done
                 </Button>
             </div>
@@ -109,8 +126,8 @@ const useStyles = makeStyles(theme => ({
         filter: "blur(10px)"
     },
     secret: {
-        display: "inline-block",
-        fontSize: theme.typography.fontSize * 0.9,
+        marginTop: theme.spacing(1),
+        marginBottom: theme.spacing(1),
     },
     googleAuthenticator: {},
     googleAuthenticatorText: {
