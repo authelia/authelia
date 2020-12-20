@@ -55,8 +55,8 @@ const RegisterOneTimePassword = function () {
     useEffect(() => { completeRegistrationProcess() }, [completeRegistrationProcess]);
     const CopyButton = () => (
       <IconButton
-        color="primary"
-        onClick={() =>  navigator.clipboard.writeText(`${secretBase32}`)}
+          color="primary"
+          onClick={() =>  navigator.clipboard.writeText(`${secretBase32}`)}
       >
           <FontAwesomeIcon icon={faCopy} />
       </IconButton>
@@ -85,25 +85,23 @@ const RegisterOneTimePassword = function () {
                         {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
                     </Link>
                 </div>
-                <div>
-                    <TextField
-                      id="base32-secret"
-                      label="Secret"
-                      className={style.secret}
-                      value={secretBase32}
-                      InputProps={{
-                          autoFocus: true,
-                          endAdornment: <CopyButton />,
-                          readOnly: true
-                      }}
-                    />
-                </div>
+                {secretBase32
+                    ? <TextField
+                        id="base32-secret"
+                        label="Secret"
+                        className={style.secret}
+                        value={secretBase32}
+                        InputProps={{
+                            autoFocus: true,
+                            endAdornment: <CopyButton />,
+                            readOnly: true
+                        }} /> : null}
                 <Button
-                  variant="contained"
-                  color="primary"
-                  className={style.doneButton}
-                  onClick={handleDoneClick}
-                  disabled={isLoading}>
+                    variant="contained"
+                    color="primary"
+                    className={style.doneButton}
+                    onClick={handleDoneClick}
+                    disabled={isLoading}>
                     Done
                 </Button>
             </div>
