@@ -107,6 +107,7 @@ authentication_backend:
     # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
     # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
     # - DON'T USE - {1} is an alias for {username} supported for backward compatibility but it will be deprecated in later version, so please don't use it.
+    # If your groups use the `groupOfUniqueNames` structure use this instead: (&(uniquemember={dn})(objectclass=groupOfUniqueNames))
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
 
     # The attribute holding the name of the group
