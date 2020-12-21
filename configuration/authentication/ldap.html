@@ -90,6 +90,7 @@
     <span class="c1"># - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.</span>
     <span class="c1"># - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.</span>
     <span class="c1"># - DON'T USE - {1} is an alias for {username} supported for backward compatibility but it will be deprecated in later version, so please don't use it.</span>
+    <span class="c1"># If your groups use the `groupOfUniqueNames` structure use this instead: (&amp;(uniquemember={dn})(objectclass=groupOfUniqueNames))</span>
     <span class="na">groups_filter</span><span class="pi">:</span> <span class="s">(&amp;(member={dn})(objectclass=groupOfNames))</span>
 
     <span class="c1"># The attribute holding the name of the group</span>
