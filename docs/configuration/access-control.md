@@ -29,7 +29,7 @@ The criteria are:
 * domain: domain targeted by the request.
 * resources: list of patterns that the path should match (one is sufficient).
 * subject: the user or group of users to define the policy for.
-* networks: the network range from where should comes the request.
+* networks: the network addresses, ranges (CIDR notation) or groups from where the request originates.
 
 A rule is matched when all criteria of the rule match.
 
@@ -88,8 +88,8 @@ username is `john` OR the group is `admins`.
 
 ## Networks
 
-A list of network ranges can be specified in a rule in order to apply different policies when
-requests come from different networks.
+A list of network addresses, ranges (CIDR notation) or groups can be specified in a rule in order to apply different
+policies when requests originate from different networks.
 
 The main use case is when, lets say a resource should be exposed both on the Internet and from an
 authenticated VPN for instance. Passing a second factor a first time to get access to the VPN and
@@ -108,6 +108,13 @@ Here is a complete example of complex access control list that can be defined in
 ```yaml
 access_control:
   default_policy: deny
+  networks:
+    - name: internal
+      networks:
+        - 10.10.0.0/16
+        - 192.168.2.0/24
+    - name: VPN
+      networks: 10.9.0.0/16
   rules:
     - domain: public.example.com
       policy: bypass
@@ -115,7 +122,10 @@ access_control:
     - domain: secure.example.com
       policy: one_factor
       networks:
-      - 192.168.1.0/24
+        - internal
+        - VPN
+        - 192.168.1.0/24
+        - 10.0.0.1
 
     - domain:
       - secure.example.com

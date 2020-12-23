@@ -75,7 +75,7 @@ access_control:
       resources:
         - "^/deny-all.*$"
       subject: ["group:dev", "user:john"]
-      policy: denied
+      policy: deny
 
     # Rules applied to user 'harry'
     - domain: dev.example.com

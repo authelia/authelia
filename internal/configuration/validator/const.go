@@ -25,6 +25,7 @@ var validKeys = []string{
 	// Access Control Keys.
 	"access_control.rules",
 	"access_control.default_policy",
+	"access_control.networks",
 
 	// Session Keys.
 	"session.name",
@@ -159,6 +160,8 @@ var specificErrorKeys = map[string]string{
 	"authentication_backend.file.hashing.memory":               "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 	"authentication_backend.file.hashing.parallelism":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 }
+
+const denyPolicy = "deny"
 
 const argon2id = "argon2id"
 const sha512 = "sha512"

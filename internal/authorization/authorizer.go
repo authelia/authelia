@@ -43,19 +43,19 @@ type Object struct {
 }
 
 // selectMatchingSubjectRules take a set of rules and select only the rules matching the subject constraints.
-func selectMatchingSubjectRules(rules []schema.ACLRule, subject Subject) []schema.ACLRule {
+func selectMatchingSubjectRules(rules []schema.ACLRule, networks []schema.ACLNetwork, subject Subject) []schema.ACLRule {
 	selectedRules := []schema.ACLRule{}
 
 	for _, rule := range rules {
 		switch {
 		case len(rule.Subjects) > 0:
 			for _, subjectRule := range rule.Subjects {
-				if isSubjectMatching(subject, subjectRule) && isIPMatching(subject.IP, rule.Networks) {
+				if isSubjectMatching(subject, subjectRule) && isIPMatching(subject.IP, rule.Networks, networks) {
 					selectedRules = append(selectedRules, rule)
 				}
 			}
 		default:
-			if isIPMatching(subject.IP, rule.Networks) {
+			if isIPMatching(subject.IP, rule.Networks, networks) {
 				selectedRules = append(selectedRules, rule)
 			}
 		}
@@ -76,8 +76,8 @@ func selectMatchingObjectRules(rules []schema.ACLRule, object Object) []schema.A
 	return selectedRules
 }
 
-func selectMatchingRules(rules []schema.ACLRule, subject Subject, object Object) []schema.ACLRule {
-	matchingRules := selectMatchingSubjectRules(rules, subject)
+func selectMatchingRules(rules []schema.ACLRule, networks []schema.ACLNetwork, subject Subject, object Object) []schema.ACLRule {
+	matchingRules := selectMatchingSubjectRules(rules, networks, subject)
 	return selectMatchingObjectRules(matchingRules, object)
 }
 
@@ -117,7 +117,7 @@ func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL) Level
 	logging.Logger().Tracef("Check authorization of subject %s and url %s.",
 		subject.String(), requestURL.String())
 
-	matchingRules := selectMatchingRules(p.configuration.Rules, subject, Object{
+	matchingRules := selectMatchingRules(p.configuration.Rules, p.configuration.Networks, subject, Object{
 		Domain: requestURL.Hostname(),
 		Path:   requestURL.Path,
 	})
