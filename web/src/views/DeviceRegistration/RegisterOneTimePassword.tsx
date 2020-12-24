@@ -9,7 +9,7 @@ import { useHistory, useLocation } from "react-router";
 import { completeTOTPRegistrationProcess } from "../../services/RegisterDevice";
 import { useNotifications } from "../../hooks/NotificationsContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCopy, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { red } from "@material-ui/core/colors";
 import { extractIdentityToken } from "../../utils/IdentityToken";
 import { FirstFactorRoute } from "../../Routes";
@@ -53,14 +53,17 @@ const RegisterOneTimePassword = function () {
     }, [processToken, createErrorNotification]);
 
     useEffect(() => { completeRegistrationProcess() }, [completeRegistrationProcess]);
-    const CopyButton = () => (
-      <IconButton
-          color="primary"
-          onClick={() =>  navigator.clipboard.writeText(`${secretBase32}`)}
-      >
-          <FontAwesomeIcon icon={faCopy} />
-      </IconButton>
-    )
+    function SecretButton(text: string | undefined, icon: IconDefinition) {
+        return (
+          <IconButton
+            className={style.secretButtons}
+            color="primary"
+            onClick={() =>  navigator.clipboard.writeText(`${text}`)}
+          >
+              <FontAwesomeIcon icon={icon} />
+          </IconButton>
+        )
+    }
     const qrcodeFuzzyStyle = (isLoading || hasErrored) ? style.fuzzy : undefined
 
     return (
@@ -85,17 +88,20 @@ const RegisterOneTimePassword = function () {
                         {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
                     </Link>
                 </div>
-                {secretBase32
-                    ? <TextField
-                        id="base32-secret"
-                        label="Secret"
-                        className={style.secret}
-                        value={secretBase32}
-                        InputProps={{
-                            autoFocus: true,
-                            endAdornment: <CopyButton />,
-                            readOnly: true
-                        }} /> : null}
+                <div>
+                    {secretURL !== "empty"
+                        ? <TextField
+                            id="secret-url"
+                            label="Secret"
+                            className={style.secret}
+                            value={secretURL}
+                            InputProps={{
+                                autoFocus: true,
+                                readOnly: true
+                            }} /> : null}
+                    {secretBase32 ? SecretButton(secretBase32, faKey) : null}
+                    {secretURL !== "empty" ? SecretButton(secretURL, faCopy) : null}
+                </div>
                 <Button
                     variant="contained"
                     color="primary"
@@ -126,12 +132,16 @@ const useStyles = makeStyles(theme => ({
     secret: {
         marginTop: theme.spacing(1),
         marginBottom: theme.spacing(1),
+        width: "256px",
     },
     googleAuthenticator: {},
     googleAuthenticatorText: {
         fontSize: theme.typography.fontSize * 0.8,
     },
     googleAuthenticatorBadges: {},
+    secretButtons: {
+        width: "128px",
+    },
     doneButton: {
         width: "256px",
     },
