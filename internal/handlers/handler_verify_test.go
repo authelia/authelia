@@ -120,27 +120,27 @@ func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
 
 // Test parseBasicAuth.
 func TestShouldRaiseWhenHeaderDoesNotContainBasicPrefix(t *testing.T) {
-	_, _, err := parseBasicAuth("alzefzlfzemjfej==")
+	_, _, err := parseBasicAuth(ProxyAuthorizationHeader, "alzefzlfzemjfej==")
 	assert.Error(t, err)
 	assert.Equal(t, "Basic prefix not found in Proxy-Authorization header", err.Error())
 }
 
 func TestShouldRaiseWhenCredentialsAreNotInBase64(t *testing.T) {
-	_, _, err := parseBasicAuth("Basic alzefzlfzemjfej==")
+	_, _, err := parseBasicAuth(ProxyAuthorizationHeader, "Basic alzefzlfzemjfej==")
 	assert.Error(t, err)
 	assert.Equal(t, "illegal base64 data at input byte 16", err.Error())
 }
 
 func TestShouldRaiseWhenCredentialsAreNotInCorrectForm(t *testing.T) {
 	// The decoded format should be user:password.
-	_, _, err := parseBasicAuth("Basic am9obiBwYXNzd29yZA==")
+	_, _, err := parseBasicAuth(ProxyAuthorizationHeader, "Basic am9obiBwYXNzd29yZA==")
 	assert.Error(t, err)
 	assert.Equal(t, "Format of Proxy-Authorization header must be user:password", err.Error())
 }
 
 func TestShouldReturnUsernameAndPassword(t *testing.T) {
 	// the decoded format should be user:password.
-	user, password, err := parseBasicAuth("Basic am9objpwYXNzd29yZA==")
+	user, password, err := parseBasicAuth(ProxyAuthorizationHeader, "Basic am9objpwYXNzd29yZA==")
 	assert.NoError(t, err)
 	assert.Equal(t, "john", user)
 	assert.Equal(t, "password", password)
@@ -204,7 +204,7 @@ func TestShouldVerifyWrongCredentials(t *testing.T) {
 		Return(false, nil)
 
 	url, _ := url.ParseRequestURI("https://test.example.com")
-	_, _, _, _, _, err := verifyBasicAuth([]byte("Basic am9objpwYXNzd29yZA=="), *url, mock.Ctx)
+	_, _, _, _, _, err := verifyBasicAuth(ProxyAuthorizationHeader, []byte("Basic am9objpwYXNzd29yZA=="), *url, mock.Ctx)
 
 	assert.Error(t, err)
 }
