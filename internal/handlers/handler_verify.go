@@ -399,26 +399,30 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	authHeader := ProxyAuthorizationHeader
 	if bytes.Equal(ctx.QueryArgs().Peek("auth"), []byte("basic")) {
 		authHeader = AuthorizationHeader
+		isBasicAuth = true
 	}
 
 	authValue := ctx.Request.Header.Peek(authHeader)
-	isBasicAuth = authValue != nil
-	userSession := ctx.GetSession()
+	if authValue != nil {
+		isBasicAuth = true
+	} else if isBasicAuth {
+		err = fmt.Errorf("Basic auth requested via query arg, but no value provided via %s header", authHeader)
+		return
+	}
 
 	if isBasicAuth {
 		username, name, groups, emails, authLevel, err = verifyBasicAuth(authHeader, authValue, *targetURL, ctx)
 		return
 	}
 
+	userSession := ctx.GetSession()
 	username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval)
 
 	sessionUsername := ctx.Request.Header.Peek(SessionUsernameHeader)
 	if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
-		ctx.Logger.Warnf(
-			"Could not match user %s to their %s header with a value of %s when visiting %s, possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response",
-			username, SessionUsernameHeader, sessionUsername, targetURL.String())
+		ctx.Logger.Warnf("Possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
 
-		err := ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
+		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 		if err != nil {
 			ctx.Logger.Error(
 				fmt.Errorf(
@@ -426,7 +430,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 					SessionUsernameHeader, err))
 		}
 
-		ctx.ReplyUnauthorized()
+		err = fmt.Errorf("Could not match user %s to their %s header with a value of %s when visiting %s", username, SessionUsernameHeader, sessionUsername, targetURL.String())
 	}
 
 	return
