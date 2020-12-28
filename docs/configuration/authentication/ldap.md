@@ -52,15 +52,19 @@ authentication_backend:
 
     # The url to the ldap server. Scheme can be ldap or ldaps in the format (port optional) <scheme>://<address>[:<port>].
     url: ldap://127.0.0.1
-    
-    # Skip verifying the server certificate (to allow a self-signed certificate).
-    skip_verify: false
 
     # Use StartTLS with the LDAP connection.
     start_tls: false
 
-    # Minimum TLS version for either Secure LDAP or LDAP StartTLS.
-    minimum_tls_version: TLS1.2
+    tls:
+      # Server Name for certificate validation (in case it's not set correctly in the URL).
+      # server_name: ldap.example.com
+
+      # Skip verifying the server certificate (to allow a self-signed certificate).
+      skip_verify: false
+
+      # Minimum TLS version for either Secure LDAP or LDAP StartTLS.
+      minimum_version: TLS1.2
 
     # The base dn for every entries.
     base_dn: dc=example,dc=com
@@ -139,12 +143,6 @@ url: ldap://[fd00:1111:2222:3333::1]
 
 ## TLS Settings
 
-### Skip Verify
-
-The key `skip_verify` disables checking the authenticity of the TLS certificate. You should not disable this, instead
-you should add the certificate that signed the certificate of your LDAP server to the machines certificate PKI trust.
-For docker you can just add this to the hosts trusted store.
-
 ### Start TLS
 
 The key `start_tls` enables use of the LDAP StartTLS process which is not commonly used. You should only configure this
@@ -152,21 +150,8 @@ if you know you need it. The initial connection will be over plain text, and Aut
 LDAP server. LDAPS URL's are slightly more secure.
 
 ### TLS (section)
-The key `tls` is a map of options for tuning TLS options.
 
-#### Server Name
-The key `server_name` overrides the name checked against the certificate in the verification process. Useful if you
-require to use a direct IP address in the LDAP URL but still want to verify the certificate.
-
-#### Skip Verify
-The key `skip_verify` completely negates validating the certificate of the LDAP server. This is not recommended,
-instead you should tweak the `server_name` option, and the global option [certificates_directory](../miscellaneous.md#certificates-directory).
-
-#### Minimum Version
-The key `minimum_version` controls the minimum TLS version Authelia will use when opening LDAP connections.
-The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`. Anything other than `TLS1.3` or `TLS1.2`
-are very old and deprecated. You should avoid using these and upgrade your LDAP solution instead of decreasing
-this value. 
+The key `tls` is a map of options for tuning TLS options. You can see how to configure the tls section [here](../index.md#tls-configuration).
 
 ## Implementation
 

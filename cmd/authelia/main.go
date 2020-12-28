@@ -44,7 +44,7 @@ func startServer() {
 		os.Exit(2)
 	}
 
-	if len(nonFatalErrs) < 0 {
+	if len(nonFatalErrs) > 0 {
 		for _, err := range nonFatalErrs {
 			logging.Logger().Warn(err)
 		}
