@@ -2,6 +2,7 @@ package suites
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,8 +17,10 @@ func (wds *WebDriverSession) doRegisterTOTP(ctx context.Context, t *testing.T) s
 	wds.verifyMailNotificationDisplayed(ctx, t)
 	link := doGetLinkFromLastMail(t)
 	wds.doVisit(t, link)
-	secret, err := wds.WaitElementLocatedByID(ctx, t, "base32-secret").GetAttribute("value")
+	secretURL, err := wds.WaitElementLocatedByID(ctx, t, "secret-url").GetAttribute("value")
 	assert.NoError(t, err)
+
+	secret := secretURL[strings.LastIndex(secretURL, "=")+1:]
 	assert.NotEqual(t, "", secret)
 	assert.NotNil(t, secret)
 
