@@ -457,7 +457,7 @@
   },"76": {
     "doc": "LDAP",
     "title": "IPv6 Addresses",
-    "content": "If utilising an IPv6 literal address it must enclosed by square brackets: . url: ldap://[fd00:1111:2222:3333::1] . ",
+    "content": "If utilising an IPv6 literal address it must be enclosed by square brackets: . url: ldap://[fd00:1111:2222:3333::1] . ",
     "url": "/docs/configuration/authentication/ldap.html#ipv6-addresses",
     "relUrl": "/configuration/authentication/ldap.html#ipv6-addresses"
   },"77": {
@@ -499,7 +499,7 @@
   },"83": {
     "doc": "MariaDB",
     "title": "IPv6 Addresses",
-    "content": "If utilising an IPv6 literal address it must enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . ",
+    "content": "If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . ",
     "url": "/docs/configuration/storage/mariadb.html#ipv6-addresses",
     "relUrl": "/configuration/storage/mariadb.html#ipv6-addresses"
   },"84": {
@@ -571,7 +571,7 @@
   },"95": {
     "doc": "Miscellaneous",
     "title": "Host &amp; Port",
-    "content": "optional: true . Defines the address and port to listen on. host: 0.0.0.0 port: 9091 . Note: If utilising an IPv6 literal address it must enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . ",
+    "content": "optional: true . Defines the address and port to listen on. host: 0.0.0.0 port: 9091 . Note: If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . ",
     "url": "/docs/configuration/miscellaneous.html#host--port",
     "relUrl": "/configuration/miscellaneous.html#host--port"
   },"96": {
@@ -607,7 +607,7 @@
   },"101": {
     "doc": "MySQL",
     "title": "IPv6 Addresses",
-    "content": "If utilising an IPv6 literal address it must enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . ",
+    "content": "If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . ",
     "url": "/docs/configuration/storage/mysql.html#ipv6-addresses",
     "relUrl": "/configuration/storage/mysql.html#ipv6-addresses"
   },"102": {
@@ -673,7 +673,7 @@
   },"112": {
     "doc": "PostgreSQL",
     "title": "IPv6 Addresses",
-    "content": "If utilising an IPv6 literal address it must enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . ",
+    "content": "If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . ",
     "url": "/docs/configuration/storage/postgres.html#ipv6-addresses",
     "relUrl": "/configuration/storage/postgres.html#ipv6-addresses"
   },"113": {
@@ -817,7 +817,7 @@
   },"136": {
     "doc": "Session",
     "title": "IPv6 Addresses",
-    "content": "If utilising an IPv6 literal address it must enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . ",
+    "content": "If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . ",
     "url": "/docs/configuration/session.html#ipv6-addresses",
     "relUrl": "/configuration/session.html#ipv6-addresses"
   },"137": {
@@ -853,7 +853,7 @@
   },"142": {
     "doc": "SMTP",
     "title": "Configuration options",
-    "content": "Most configuration options are self-explanatory, however here is an explanation of the ones that may not be as obvious. host . If utilising an IPv6 literal address it must enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . identifier . The name to send to the SMTP server as the identifier with the HELO/EHLO command. Some SMTP providers like Google Mail reject the message if it’s localhost. subject . This is the subject Authelia will use in the email, it has a single placeholder at present {title} which should be included in all emails as it is the internal descriptor for the contents of the email. disable_require_tls . For security reasons the default settings for Authelia require the SMTP connection is encrypted by TLS. See security for more information. This option disables this measure (not recommended). disable_verify_cert . For security reasons Authelia only trusts certificates valid according to the OS’s PKI chain. See security for more information. This option disables this measure (not recommended). disable_html_emails . This option forces Authelia to only send plain text email via the notifier. This is the default for the file based notifier, but some users may wish to use plain text for security reasons. trusted_cert . This option allows you to specify the file path to a public key portion of a X509 certificate in order to trust it, or certificates signed with the private key portion of the X509 certificate. This is an alternative to disable_verify_cert that is much more secure. This is not required if your certificate is trusted by the operating system PKI. ",
+    "content": "Most configuration options are self-explanatory, however here is an explanation of the ones that may not be as obvious. host . If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . identifier . The name to send to the SMTP server as the identifier with the HELO/EHLO command. Some SMTP providers like Google Mail reject the message if it’s localhost. subject . This is the subject Authelia will use in the email, it has a single placeholder at present {title} which should be included in all emails as it is the internal descriptor for the contents of the email. disable_require_tls . For security reasons the default settings for Authelia require the SMTP connection is encrypted by TLS. See security for more information. This option disables this measure (not recommended). disable_verify_cert . For security reasons Authelia only trusts certificates valid according to the OS’s PKI chain. See security for more information. This option disables this measure (not recommended). disable_html_emails . This option forces Authelia to only send plain text email via the notifier. This is the default for the file based notifier, but some users may wish to use plain text for security reasons. trusted_cert . This option allows you to specify the file path to a public key portion of a X509 certificate in order to trust it, or certificates signed with the private key portion of the X509 certificate. This is an alternative to disable_verify_cert that is much more secure. This is not required if your certificate is trusted by the operating system PKI. ",
     "url": "/docs/configuration/notifier/smtp.html#configuration-options",
     "relUrl": "/configuration/notifier/smtp.html#configuration-options"
   },"143": {
