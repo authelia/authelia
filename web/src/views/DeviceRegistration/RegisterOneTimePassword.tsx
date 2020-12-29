@@ -22,7 +22,7 @@ const RegisterOneTimePassword = function () {
     // The secret retrieved from the API is all is ok.
     const [secretURL, setSecretURL] = useState("empty");
     const [secretBase32, setSecretBase32] = useState(undefined as string | undefined);
-    const { createErrorNotification } = useNotifications();
+    const { createSuccessNotification, createErrorNotification } = useNotifications();
     const [hasErrored, setHasErrored] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -53,12 +53,15 @@ const RegisterOneTimePassword = function () {
     }, [processToken, createErrorNotification]);
 
     useEffect(() => { completeRegistrationProcess() }, [completeRegistrationProcess]);
-    function SecretButton(text: string | undefined, icon: IconDefinition) {
+    function SecretButton(text: string | undefined, action: string, icon: IconDefinition) {
         return (
           <IconButton
             className={style.secretButtons}
             color="primary"
-            onClick={() =>  navigator.clipboard.writeText(`${text}`)}
+            onClick={() => {
+                navigator.clipboard.writeText(`${text}`);
+                createSuccessNotification(`${action}`);
+            }}
           >
               <FontAwesomeIcon icon={icon} />
           </IconButton>
@@ -67,51 +70,50 @@ const RegisterOneTimePassword = function () {
     const qrcodeFuzzyStyle = (isLoading || hasErrored) ? style.fuzzy : undefined
 
     return (
-        <LoginLayout title="Scan QRCode">
-            <div className={style.root}>
-                <div className={style.googleAuthenticator}>
-                    <Typography className={style.googleAuthenticatorText}>Need Google Authenticator?</Typography>
-                    <AppStoreBadges
-                        iconSize={128}
-                        targetBlank
-                        className={style.googleAuthenticatorBadges}
-                        googlePlayLink={GoogleAuthenticator.googlePlay}
-                        appleStoreLink={GoogleAuthenticator.appleStore} />
-                </div>
-                <div className={style.qrcodeContainer}>
-                    <Link href={secretURL}>
-                        <QRCode
-                            value={secretURL}
-                            className={classnames(qrcodeFuzzyStyle, style.qrcode)}
-                            size={256} />
-                        {!hasErrored && isLoading ? <CircularProgress className={style.loader} size={128} /> : null}
-                        {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
-                    </Link>
-                </div>
-                <div>
-                    {secretURL !== "empty"
-                        ? <TextField
-                            id="secret-url"
-                            label="Secret"
-                            className={style.secret}
-                            value={secretURL}
-                            InputProps={{
-                                autoFocus: true,
-                                readOnly: true
-                            }} /> : null}
-                    {secretBase32 ? SecretButton(secretBase32, faKey) : null}
-                    {secretURL !== "empty" ? SecretButton(secretURL, faCopy) : null}
-                </div>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    className={style.doneButton}
-                    onClick={handleDoneClick}
-                    disabled={isLoading}>
-                    Done
-                </Button>
-            </div>
-        </LoginLayout>
+      <LoginLayout title="Scan QRCode">
+          <div className={style.root}>
+              <div className={style.googleAuthenticator}>
+                  <Typography className={style.googleAuthenticatorText}>Need Google Authenticator?</Typography>
+                  <AppStoreBadges
+                    iconSize={128}
+                    targetBlank
+                    className={style.googleAuthenticatorBadges}
+                    googlePlayLink={GoogleAuthenticator.googlePlay}
+                    appleStoreLink={GoogleAuthenticator.appleStore} />
+              </div>
+              <div className={style.qrcodeContainer}>
+                  <Link href={secretURL}>
+                      <QRCode
+                        value={secretURL}
+                        className={classnames(qrcodeFuzzyStyle, style.qrcode)}
+                        size={256} />
+                      {!hasErrored && isLoading ? <CircularProgress className={style.loader} size={128} /> : null}
+                      {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
+                  </Link>
+              </div>
+              <div>
+                  {secretURL !== "empty"
+                    ? <TextField
+                      id="secret-url"
+                      label="Secret"
+                      className={style.secret}
+                      value={secretURL}
+                      InputProps={{
+                          readOnly: true
+                      }} /> : null}
+                  {secretBase32 ? SecretButton(secretBase32, "OTP Secret copied to clipboard.", faKey) : null}
+                  {secretURL !== "empty" ? SecretButton(secretURL, "OTP URL copied to clipboard.", faCopy) : null}
+              </div>
+              <Button
+                variant="contained"
+                color="primary"
+                className={style.doneButton}
+                onClick={handleDoneClick}
+                disabled={isLoading}>
+                  Done
+              </Button>
+          </div>
+      </LoginLayout>
     )
 }
 
