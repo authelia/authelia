@@ -67,7 +67,7 @@ for [duration notation format](index.md#duration-notation-format) for more infor
 
 ## IPv6 Addresses
 
-If utilising an IPv6 literal address it must enclosed by square brackets and quoted:
+If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
 ```yaml
 host: "[fd00:1111:2222:3333::1]"
 ```
