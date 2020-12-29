@@ -1,6 +1,7 @@
 import React from "react";
-import ReactLoading from "react-loading";
+
 import { Typography, Grid } from "@material-ui/core";
+import ReactLoading from "react-loading";
 
 const LoadingPage = function () {
     return (
@@ -11,6 +12,6 @@ const LoadingPage = function () {
             </Grid>
         </Grid>
     );
-}
+};
 
-export default LoadingPage
+export default LoadingPage;

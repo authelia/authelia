@@ -1,20 +1,26 @@
 import React, { useEffect, Fragment, ReactNode, useState, useCallback } from "react";
+
 import { Switch, Route, Redirect, useHistory, useLocation } from "react-router";
-import FirstFactorForm from "./FirstFactor/FirstFactorForm";
-import SecondFactorForm from "./SecondFactor/SecondFactorForm";
-import {
-    FirstFactorRoute, SecondFactorRoute, SecondFactorTOTPRoute,
-    SecondFactorPushRoute, SecondFactorU2FRoute, AuthenticatedRoute
-} from "../../Routes";
-import { useAutheliaState } from "../../hooks/State";
-import LoadingPage from "../LoadingPage/LoadingPage";
-import { AuthenticationLevel } from "../../services/State";
+
+import { useConfiguration } from "../../hooks/Configuration";
 import { useNotifications } from "../../hooks/NotificationsContext";
 import { useRedirectionURL } from "../../hooks/RedirectionURL";
+import { useAutheliaState } from "../../hooks/State";
 import { useUserPreferences as userUserInfo } from "../../hooks/UserInfo";
 import { SecondFactorMethod } from "../../models/Methods";
-import { useConfiguration } from "../../hooks/Configuration";
+import {
+    FirstFactorRoute,
+    SecondFactorRoute,
+    SecondFactorTOTPRoute,
+    SecondFactorPushRoute,
+    SecondFactorU2FRoute,
+    AuthenticatedRoute,
+} from "../../Routes";
+import { AuthenticationLevel } from "../../services/State";
+import LoadingPage from "../LoadingPage/LoadingPage";
 import AuthenticatedView from "./AuthenticatedView/AuthenticatedView";
+import FirstFactorForm from "./FirstFactor/FirstFactorForm";
+import SecondFactorForm from "./SecondFactor/SecondFactorForm";
 
 export interface Props {
     rememberMe: boolean;
@@ -35,7 +41,9 @@ const LoginPortal = function (props: Props) {
     const redirect = useCallback((url: string) => history.push(url), [history]);
 
     // Fetch the state when portal is mounted.
-    useEffect(() => { fetchState() }, [fetchState]);
+    useEffect(() => {
+        fetchState();
+    }, [fetchState]);
 
     // Fetch preferences and configuration when user is authenticated.
     useEffect(() => {
@@ -76,9 +84,7 @@ const LoginPortal = function (props: Props) {
     // Redirect to the correct stage if not enough authenticated
     useEffect(() => {
         if (state) {
-            const redirectionSuffix = redirectionURL
-                ? `?rd=${encodeURIComponent(redirectionURL)}`
-                : '';
+            const redirectionSuffix = redirectionURL ? `?rd=${encodeURIComponent(redirectionURL)}` : "";
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
@@ -107,9 +113,10 @@ const LoginPortal = function (props: Props) {
             // Refresh state
             fetchState();
         }
-    }
+    };
 
-    const firstFactorReady = state !== undefined &&
+    const firstFactorReady =
+        state !== undefined &&
         state.authentication_level === AuthenticationLevel.Unauthenticated &&
         location.pathname === FirstFactorRoute;
 
@@ -123,16 +130,20 @@ const LoginPortal = function (props: Props) {
                         resetPassword={props.resetPassword}
                         onAuthenticationStart={() => setFirstFactorDisabled(true)}
                         onAuthenticationFailure={() => setFirstFactorDisabled(false)}
-                        onAuthenticationSuccess={handleAuthSuccess} />
+                        onAuthenticationSuccess={handleAuthSuccess}
+                    />
                 </ComponentOrLoading>
             </Route>
             <Route path={SecondFactorRoute}>
-                {state && userInfo && configuration ? <SecondFactorForm
-                    authenticationLevel={state.authentication_level}
-                    userInfo={userInfo}
-                    configuration={configuration}
-                    onMethodChanged={() => fetchUserInfo()}
-                    onAuthenticationSuccess={handleAuthSuccess} /> : null}
+                {state && userInfo && configuration ? (
+                    <SecondFactorForm
+                        authenticationLevel={state.authentication_level}
+                        userInfo={userInfo}
+                        configuration={configuration}
+                        onMethodChanged={() => fetchUserInfo()}
+                        onAuthenticationSuccess={handleAuthSuccess}
+                    />
+                ) : null}
             </Route>
             <Route path={AuthenticatedRoute} exact>
                 {userInfo ? <AuthenticatedView name={userInfo.display_name} /> : null}
@@ -141,10 +152,10 @@ const LoginPortal = function (props: Props) {
                 <Redirect to={FirstFactorRoute} />
             </Route>
         </Switch>
-    )
-}
+    );
+};
 
-export default LoginPortal
+export default LoginPortal;
 
 interface ComponentOrLoadingProps {
     ready: boolean;
@@ -160,5 +171,5 @@ function ComponentOrLoading(props: ComponentOrLoadingProps) {
             </div>
             {props.ready ? props.children : null}
         </Fragment>
-    )
+    );
 }

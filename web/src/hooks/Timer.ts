@@ -21,8 +21,8 @@ export function useTimer(timeoutMs: number): [number, () => void, () => void] {
         }
 
         const intervalNode = setInterval(() => {
-            const elapsedMs = (startDate) ? new Date().getTime() - startDate.getTime() : 0;
-            let p = elapsedMs / timeoutMs * 100.0;
+            const elapsedMs = startDate ? new Date().getTime() - startDate.getTime() : 0;
+            let p = (elapsedMs / timeoutMs) * 100.0;
             if (p >= 100) {
                 p = 100;
                 setStartDate(undefined);
@@ -33,9 +33,5 @@ export function useTimer(timeoutMs: number): [number, () => void, () => void] {
         return () => clearInterval(intervalNode);
     }, [startDate, setPercent, setStartDate, timeoutMs]);
 
-    return [
-        percent,
-        trigger,
-        clear,
-    ]
+    return [percent, trigger, clear];
 }

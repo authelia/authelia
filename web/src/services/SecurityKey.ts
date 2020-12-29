@@ -1,16 +1,17 @@
-import { Post, PostWithOptionalResponse } from "./Client";
-import { InitiateU2FSignInPath, CompleteU2FSignInPath } from "./Api";
 import u2fApi from "u2f-api";
+
+import { InitiateU2FSignInPath, CompleteU2FSignInPath } from "./Api";
+import { Post, PostWithOptionalResponse } from "./Client";
 import { SignInResponse } from "./SignIn";
 
 interface InitiateU2FSigninResponse {
-    appId: string,
-    challenge: string,
+    appId: string;
+    challenge: string;
     registeredKeys: {
-        appId: string,
-        keyHandle: string,
-        version: string,
-    }[]
+        appId: string;
+        keyHandle: string;
+        version: string;
+    }[];
 }
 
 export async function initiateU2FSignin() {

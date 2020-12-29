@@ -1,21 +1,32 @@
 import React from "react";
-import style from "./FingerTouchIcon.module.css";
+
 import classnames from "classnames";
 
-export interface Props {
-	size: number;
+import style from "./FingerTouchIcon.module.css";
 
-	animated?: boolean;
-	strong?: boolean;
+export interface Props {
+    size: number;
+
+    animated?: boolean;
+    strong?: boolean;
 }
 
 const FingerTouchIcon = function (props: Props) {
-	const shakingClass = (props.animated) ? style.shaking : undefined;
-	const strong = (props.strong) ? style.strong : undefined;
+    const shakingClass = props.animated ? style.shaking : undefined;
+    const strong = props.strong ? style.strong : undefined;
 
     return (
-        <svg x="0px" y="0px" viewBox="0 0 500 500" width={props.size} height={props.size} className={classnames(style.hand, strong)}>
-			<path className={shakingClass} d="M438.827,186.347l-80.213-88.149c-15.872-15.872-41.728-15.893-57.749,0.128c-5.077,5.077-8.533,11.157-10.325,17.643
+        <svg
+            x="0px"
+            y="0px"
+            viewBox="0 0 500 500"
+            width={props.size}
+            height={props.size}
+            className={classnames(style.hand, strong)}
+        >
+            <path
+                className={shakingClass}
+                d="M438.827,186.347l-80.213-88.149c-15.872-15.872-41.728-15.893-57.749,0.128c-5.077,5.077-8.533,11.157-10.325,17.643
 				c-15.957-12.224-38.976-11.008-53.675,3.691c-5.056,5.077-8.512,11.157-10.347,17.621c-15.957-12.181-38.976-10.987-53.653,3.712
 				c-4.971,4.971-8.384,10.901-10.24,17.216l-37.803-37.803c-15.872-15.872-41.728-15.893-57.749,0.128
 				c-15.893,15.872-15.893,41.728,0,57.621l145.237,145.237l-86.144,13.525c-23.275,3.328-40.832,23.552-40.832,47.083
@@ -31,14 +42,17 @@ const FingerTouchIcon = function (props: Props) {
 				c0.021,0.021,0.021,0.021,0.021,0.021h0.021c0.021,0,0.021,0.021,0.021,0.021c4.181,3.968,10.795,3.883,14.869-0.213
 				c4.16-4.16,4.16-10.923,0-15.083l-0.917-0.917c-3.669-3.669-5.696-8.555-5.696-13.739s2.005-10.048,5.803-13.845
 				c7.595-7.552,19.883-7.531,27.115-0.363l79.872,87.787C439.125,218.389,448,241.301,448,265.216
-				C448,290.816,438.037,314.88,419.925,332.992z"/>
-			<path className={style.wave} d="M183.381,109.931C167.851,75.563,133.547,53.333,96,53.333c-52.928,0-96,43.072-96,96
+				C448,290.816,438.037,314.88,419.925,332.992z"
+            />
+            <path
+                className={style.wave}
+                d="M183.381,109.931C167.851,75.563,133.547,53.333,96,53.333c-52.928,0-96,43.072-96,96
 				c0,37.547,22.229,71.851,56.597,87.403c1.429,0.64,2.923,0.939,4.395,0.939c4.053,0,7.936-2.347,9.728-6.272
 				c2.411-5.376,0.021-11.691-5.333-14.123c-26.752-12.096-44.053-38.763-44.053-67.947c0-41.173,33.493-74.667,74.667-74.667
 				c29.184,0,55.851,17.301,67.947,44.053c2.411,5.376,8.747,7.787,14.101,5.333C183.424,121.621,185.813,115.307,183.381,109.931z"
-				/>
+            />
         </svg>
-    )
-}
+    );
+};
 
-export default FingerTouchIcon
+export default FingerTouchIcon;

@@ -1,7 +1,9 @@
 import React from "react";
-import GooglePlay from "../assets/images/googleplay-badge.svg";
-import AppleStore from "../assets/images/applestore-badge.svg";
+
 import { Link } from "@material-ui/core";
+
+import AppleStore from "../assets/images/applestore-badge.svg";
+import GooglePlay from "../assets/images/googleplay-badge.svg";
 
 export interface Props {
     iconSize: number;
@@ -25,8 +27,8 @@ const AppStoreBadges = function (props: Props) {
             <Link href={props.appleStoreLink} target={target}>
                 <img src={AppleStore} alt="apple store" style={{ width }} />
             </Link>
-        </div >
-    )
-}
+        </div>
+    );
+};
 
-export default AppStoreBadges
+export default AppStoreBadges;

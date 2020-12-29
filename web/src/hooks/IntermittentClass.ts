@@ -4,7 +4,8 @@ export function useIntermittentClass(
     classname: string,
     activeMilliseconds: number,
     inactiveMillisecond: number,
-    startMillisecond?: number) {
+    startMillisecond?: number,
+) {
     const [currentClass, setCurrentClass] = useState("");
     const [firstTime, setFirstTime] = useState(true);
 
