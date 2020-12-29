@@ -3,8 +3,8 @@ package session
 import (
 	"time"
 
-	"github.com/fasthttp/session/v2"
-	"github.com/fasthttp/session/v2/providers/redis"
+	"github.com/authelia/session/v2"
+	"github.com/authelia/session/v2/providers/redis"
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/internal/authentication"
