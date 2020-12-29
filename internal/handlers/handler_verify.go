@@ -233,7 +233,15 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, userSession.AuthenticationLevel, nil
 }
 
-func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, username string) {
+func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string) {
+	if isBasicAuth {
+		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response with basic auth header", targetURL.String(), username)
+		ctx.ReplyUnauthorized()
+		ctx.Response.Header.Add("WWW-Authenticate", "Basic realm=\"Authentication required\"")
+
+		return
+	}
+
 	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
 	// endpoint to provide the URL of the login portal. The target URL of the user
 	// is computed from X-Forwarded-* headers or X-Original-URL.
@@ -475,7 +483,7 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 				return
 			}
 
-			handleUnauthorized(ctx, targetURL, username)
+			handleUnauthorized(ctx, targetURL, isBasicAuth, username)
 
 			return
 		}
@@ -488,7 +496,7 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 			ctx.ReplyForbidden()
 		case NotAuthorized:
-			handleUnauthorized(ctx, targetURL, username)
+			handleUnauthorized(ctx, targetURL, isBasicAuth, username)
 		case Authorized:
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
 		}
