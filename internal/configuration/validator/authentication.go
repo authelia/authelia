@@ -99,12 +99,12 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
 	}
 
-	log := logging.Logger() // Deprecated: final removal in 4.28.
+	log := logging.Logger() // Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
 
 	if configuration.TLS == nil {
 		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 
-		// Deprecated: Remove in 4.28 (block).
+		// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28.
 		if configuration.SkipVerify != nil {
 			configuration.TLS.SkipVerify = *configuration.SkipVerify
 
@@ -113,7 +113,7 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	}
 
 	if configuration.TLS.MinimumVersion == "" {
-		// Deprecated. Remove in 4.28 (if-else, should just be the code in the else block).
+		// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28 (if-else, should just be the code in the else block).
 		if configuration.MinimumTLSVersion != "" {
 			log.Warnf("DEPRECATED: LDAP Auth Backend `minimum_tls_version` option has been replaced by `authentication_backend.ldap.tls.minimum_version` (will be removed in 4.28.0)")
 

@@ -53,12 +53,12 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 			configuration.SMTP.Identifier = schema.DefaultSMTPNotifierConfiguration.Identifier
 		}
 
-		log := logging.Logger() // Deprecated: final removal in 4.28.
+		log := logging.Logger() // Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
 
 		if configuration.SMTP.TLS == nil {
 			configuration.SMTP.TLS = schema.DefaultSMTPNotifierConfiguration.TLS
 
-			// Deprecated: final removal in 4.28.
+			// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28.
 			if configuration.SMTP.DisableVerifyCert != nil {
 				log.Warnf("DEPRECATED: SMTP Notifier `disable_verify_cert` option has been replaced by `notifier.smtp.tls.skip_verify` (will be removed in 4.28.0)")
 
@@ -66,7 +66,7 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 			}
 		}
 
-		// Deprecated: final removal in 4.28.
+		// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28.
 		if configuration.SMTP.TrustedCert != "" {
 			log.Warnf("DEPRECATED: SMTP Notifier `trusted_cert` option has been replaced by the global option `certificates_directory` (will be removed in 4.28.0)")
 		}

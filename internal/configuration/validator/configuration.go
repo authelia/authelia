@@ -11,6 +11,7 @@ import (
 var defaultPort = 8080
 var defaultLogLevel = "info"
 
+//nolint:gocyclo
 // ValidateConfiguration and adapt the configuration read from file.
 func ValidateConfiguration(configuration *schema.Configuration, validator *schema.StructValidator) {
 	if configuration.Host == "" {
