@@ -324,7 +324,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue()
 	}
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	require.Len(suite.T(), suite.validator.Errors(), 1)
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "error occurred validating the LDAP minimum_tls_version key with value SSL2.0: supplied TLS version isn't supported")
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "error occurred validating the LDAP TLS minimum_version key with value SSL2.0: supplied TLS version isn't supported")
 }
 
 func TestLdapAuthenticationBackend(t *testing.T) {
