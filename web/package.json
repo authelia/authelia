@@ -27,7 +27,7 @@
     "classnames": "^2.2.6",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.5",
-    "qrcode.react": "^1.0.0",
+    "qrcode.react": "^1.0.1",
     "query-string": "^6.13.8",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
