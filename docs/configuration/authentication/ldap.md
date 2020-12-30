@@ -136,7 +136,7 @@ register a second factor device.
 
 ## IPv6 Addresses
 
-If utilising an IPv6 literal address it must enclosed by square brackets:
+If utilising an IPv6 literal address it must be enclosed by square brackets:
 ```yaml
 url: ldap://[fd00:1111:2222:3333::1]
 ```

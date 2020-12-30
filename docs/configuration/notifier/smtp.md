@@ -7,7 +7,6 @@ nav_order: 2
 ---
 
 # SMTP
-
 **Authelia** can send emails to users through an SMTP server.
 It can be configured as described below.
 
@@ -69,43 +68,36 @@ notifier:
 ```
 
 ## Configuration options
-
 Most configuration options are self-explanatory, however here is an explanation of the ones that may not
 be as obvious.
 
 ### host
+If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
 
-If utilising an IPv6 literal address it must enclosed by square brackets and quoted:
 ```yaml
 host: "[fd00:1111:2222:3333::1]"
 ```
 
 ### identifier
-
 The name to send to the SMTP server as the identifier with the HELO/EHLO command. Some SMTP providers like Google Mail
 reject the message if it's localhost.
 
 ### subject
-
 This is the subject Authelia will use in the email, it has a single placeholder at present `{title}` which should
 be included in all emails as it is the internal descriptor for the contents of the email.
 
 ### disable_require_tls
-
 For security reasons the default settings for Authelia require the SMTP connection is encrypted by TLS. See [security] for
 more information. This option disables this measure (not recommended).
 
 ### disable_html_emails
-
 This option forces Authelia to only send plain text email via the notifier. This is the default for the file based 
 notifier, but some users may wish to use plain text for security reasons.
 
 ### TLS (section)
-
 The key `tls` is a map of options for tuning TLS options. You can see how to configure the tls section [here](../index.md#tls-configuration).
 
 ## Using Gmail
-
 You need to generate an app password in order to use Gmail SMTP servers. The process is
 described [here](https://support.google.com/accounts/answer/185833?hl=en)
 
@@ -121,7 +113,6 @@ notifier:
 ```
 
 ## Loading a password from a secret instead of inside the configuration
-
 Password can also be defined using a [secret](../secrets.md).
 
 [security]: ../../security/measures.md#notifier-security-measures-smtp

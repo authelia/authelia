@@ -138,11 +138,13 @@ to 0 to disable this feature, and set an expiration of something like 2 hours an
 of 10 minutes. This means the hard limit or the time the session will be destroyed no matter
 what is 2 hours, and the soft limit or the time a user can be inactive for is 10 minutes.
 
-### More protections measures with Nginx
+### Additional proxy protection measures
 
-You can also apply the following headers to your nginx configuration for
+You can also apply the following headers to your proxy configuration for
 improving security. Please read the documentation of those headers before
 applying them blindly.
+
+#### nginx
 
 ```
 # We don't want any credentials / TOTP secret key / QR code to be cached by
@@ -160,7 +162,54 @@ add_header X-Frame-Options "SAMEORIGIN";
 add_header X-XSS-Protection "1; mode=block";
 ```
 
-[HSTS]: https://www.nginx.com/blog/http-strict-transport-security-hsts-and-nginx/
+
+#### Traefik 2.x - Kubernetes CRD
+
+```yaml
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: headers-authelia
+spec:
+  headers:
+    browserXssFilter: true
+    customFrameOptionsValue: "SAMEORIGIN"
+    customResponseHeaders:
+      Cache-Control: "no-store"
+      Pragma: "no-cache"
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: authelia
+spec:
+  entryPoints:
+    - http
+  routes:
+    - match: Host(`auth.example.com`) && PathPrefix(`/`)
+      kind: Rule
+      priority: 1
+      middlewares:
+        - name: headers-authelia
+          namespace: authelia
+      services:
+        - name: authelia
+          port: 80
+```
+
+#### Traefik 2.x - docker-compose
+
+```yaml
+services:
+  authelia:
+    labels:
+      - "traefik.http.routers.authelia.middlewares=authelia-headers"
+      - "traefik.http.middlewares.authelia-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.authelia-headers.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.authelia-headers.headers.customResponseHeaders.Cache-Control=no-store"
+      - "traefik.http.middlewares.authelia-headers.headers.customResponseHeaders.Pragma=no-cache"
+```
 
 ### More protections measures with fail2ban
 
@@ -264,3 +313,6 @@ services:
     volumes:
       - ./authelia:/config
 ```
+
+
+[HSTS]: https://www.nginx.com/blog/http-strict-transport-security-hsts-and-nginx/
