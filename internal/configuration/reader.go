@@ -3,6 +3,7 @@ package configuration
 import (
 	"errors"
 	"fmt"
+	"github.com/authelia/authelia/internal/logging"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -76,6 +77,12 @@ func Read(configPath string) (*schema.Configuration, []error) {
 
 	if val.HasErrors() {
 		return nil, val.Errors()
+	}
+
+	if val.HasWarnings() {
+		for _, warn := range val.Warnings() {
+			logging.Logger().Warnf(warn.Error())
+		}
 	}
 
 	return &configuration, nil

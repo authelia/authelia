@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
@@ -52,16 +51,8 @@ func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{mail_attribute}", configuration.MailAttribute)
 	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{display_name_attribute}", configuration.DisplayNameAttribute)
 
-	// We can safely ignore this error here as it should be checked by the validator.
-	// Should make sure tests that need to check this are done in the validator.
-	ldapURL, _ := url.Parse(configuration.URL)
-
 	if configuration.TLS == nil {
 		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
-	}
-
-	if configuration.TLS.ServerName == "" {
-		configuration.TLS.ServerName = ldapURL.Hostname()
 	}
 
 	tlsConfig := utils.NewTLSConfig(configuration.TLS, tls.VersionTLS12, certPool)
