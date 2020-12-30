@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -99,32 +98,12 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
 	}
 
-	log := logging.Logger() // Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
-
 	if configuration.TLS == nil {
 		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
-
-		// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28.
-		if configuration.SkipVerify != nil {
-			configuration.TLS.SkipVerify = *configuration.SkipVerify
-
-			log.Warnf("DEPRECATED: LDAP Auth Backend `skip_verify` option has been replaced by `authentication_backend.ldap.tls.skip_verify` (will be removed in 4.28.0)")
-		}
 	}
 
 	if configuration.TLS.MinimumVersion == "" {
-		// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28 (if-else, should just be the code in the else block).
-		if configuration.MinimumTLSVersion != "" {
-			log.Warnf("DEPRECATED: LDAP Auth Backend `minimum_tls_version` option has been replaced by `authentication_backend.ldap.tls.minimum_version` (will be removed in 4.28.0)")
-
-			if _, err := utils.TLSStringToTLSConfigVersion(configuration.MinimumTLSVersion); err != nil {
-				validator.Push(fmt.Errorf("error occurred validating the LDAP minimum_tls_version key with value %s: %v", configuration.MinimumTLSVersion, err))
-			} else {
-				configuration.TLS.MinimumVersion = configuration.MinimumTLSVersion
-			}
-		} else {
-			configuration.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
-		}
+		configuration.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
 	}
 
 	if _, err := utils.TLSStringToTLSConfigVersion(configuration.TLS.MinimumVersion); err != nil {

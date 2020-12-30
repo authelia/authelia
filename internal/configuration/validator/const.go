@@ -73,12 +73,10 @@ var validKeys = []string{
 	"notifier.smtp.subject",
 	"notifier.smtp.startup_check_address",
 	"notifier.smtp.disable_require_tls",
-	"notifier.smtp.trusted_cert", // TODO: Deprecated: Remove in 4.28.
 	"notifier.smtp.disable_html_emails",
 	"notifier.smtp.tls.minimum_version",
 	"notifier.smtp.tls.skip_verify",
 	"notifier.smtp.tls.hostname",
-	"notifier.smtp.disable_verify_cert", // TODO: Deprecated: Remove in 4.28.
 
 	// Regulation Keys.
 	"regulation.max_retries",
@@ -112,8 +110,6 @@ var validKeys = []string{
 	"authentication_backend.ldap.tls.minimum_version",
 	"authentication_backend.ldap.tls.skip_verify",
 	"authentication_backend.ldap.tls.hostname",
-	"authentication_backend.ldap.skip_verify",         // TODO: Deprecated: Remove in 4.28.
-	"authentication_backend.ldap.minimum_tls_version", // TODO: Deprecated: Remove in 4.28.
 
 	// File Authentication Backend Keys.
 	"authentication_backend.file.path",
@@ -165,6 +161,10 @@ var specificErrorKeys = map[string]string{
 	"authentication_backend.file.hashing.salt_length":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 	"authentication_backend.file.hashing.memory":               "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 	"authentication_backend.file.hashing.parallelism":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
+	"authentication_backend.ldap.skip_verify":                  "config key incorrect: authentication_backend.ldap.skip_verify should be authentication_backend.ldap.tls.skip_verify",
+	"authentication_backend.ldap.minimum_tls_version":          "config key incorrect: authentication_backend.ldap.minimum_tls_version should be authentication_backend.ldap.tls.minimum_version",
+	"notifier.smtp.trusted_cert":                               "config key incorrect: notifier.smtp.trusted_cert should be certificates_directory (global option, path with trusted certs)",
+	"notifier.smtp.disable_verify_cert":                        "config key incorrect: notifier.smtp.disable_verify_cert should be notifier.smtp.tls.skip_verify",
 }
 
 const argon2id = "argon2id"

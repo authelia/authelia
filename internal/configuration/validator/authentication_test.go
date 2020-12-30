@@ -315,7 +315,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {
 func (suite *LdapAuthenticationBackendSuite) TestShouldDefaultTLS12() {
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 	assert.Len(suite.T(), suite.validator.Errors(), 0)
-	assert.Equal(suite.T(), schema.DefaultLDAPAuthenticationBackendConfiguration.MinimumTLSVersion, suite.configuration.Ldap.MinimumTLSVersion)
+	assert.Equal(suite.T(), schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion, suite.configuration.Ldap.TLS.MinimumVersion)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue() {
