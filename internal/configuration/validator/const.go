@@ -77,7 +77,7 @@ var validKeys = []string{
 	"notifier.smtp.disable_html_emails",
 	"notifier.smtp.tls.minimum_version",
 	"notifier.smtp.tls.skip_verify",
-	"notifier.smtp.tls.hostname",
+	"notifier.smtp.tls.server_name",
 	"notifier.smtp.disable_verify_cert", // TODO: Deprecated: Remove in 4.28.
 
 	// Regulation Keys.
@@ -111,7 +111,7 @@ var validKeys = []string{
 	"authentication_backend.ldap.start_tls",
 	"authentication_backend.ldap.tls.minimum_version",
 	"authentication_backend.ldap.tls.skip_verify",
-	"authentication_backend.ldap.tls.hostname",
+	"authentication_backend.ldap.tls.server_name",
 	"authentication_backend.ldap.skip_verify",         // TODO: Deprecated: Remove in 4.28.
 	"authentication_backend.ldap.minimum_tls_version", // TODO: Deprecated: Remove in 4.28.
 
