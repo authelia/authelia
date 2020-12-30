@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
+	"path"
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -43,7 +44,7 @@ func NewX509CertPool(directory string, config *schema.Configuration) (certPool *
 				nameLower := strings.ToLower(certFileInfo.Name())
 
 				if !certFileInfo.IsDir() && (strings.HasSuffix(nameLower, ".cer") || strings.HasSuffix(nameLower, ".pem")) {
-					certBytes, err := ioutil.ReadFile(certFileInfo.Name())
+					certBytes, err := ioutil.ReadFile(path.Join(directory, certFileInfo.Name()))
 					if err != nil {
 						errors = append(errors, fmt.Errorf("could not read certificate %v", err))
 					} else if ok := certPool.AppendCertsFromPEM(certBytes); !ok {

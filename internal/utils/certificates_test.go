@@ -110,3 +110,11 @@ func TestShouldRaiseErrAndNonFatalErrWhenNotifierTrustedCertConfiguredAndNotExis
 	assert.EqualError(t, errs[0], "could not import legacy SMTP trusted_cert (see the new certificates_directory option) certificate /tmp/asdfzyxabc123/not/a/real/cert.pem (file does not exist)")
 	assert.EqualError(t, nonFatalErrs[0], "defining the trusted cert in the SMTP notifier is deprecated and will be removed in 4.28.0, please use the global certificates_directory instead")
 }
+
+func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
+	pool, errs, nonFatalErrs := NewX509CertPool("../suites/common/ssl/", nil)
+	assert.NotNil(t, pool)
+	require.Len(t, errs, 1)
+	assert.Len(t, nonFatalErrs, 0)
+	assert.EqualError(t, errs[0], "could not import certificate key.pem")
+}
