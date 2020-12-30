@@ -74,5 +74,6 @@ func (lcf *LDAPConnectionFactoryImpl) DialURL(addr string, opts ldap.DialOpt) (L
 	if err != nil {
 		return nil, err
 	}
+
 	return NewLDAPConnectionImpl(conn), nil
 }

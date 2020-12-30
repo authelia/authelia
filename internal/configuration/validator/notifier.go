@@ -7,6 +7,7 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 )
 
+//nolint:gocyclo // TODO: Remove in 4.28. Should be able to remove this during the removal of deprecated config.
 // ValidateNotifier validates and update notifier configuration.
 func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *schema.StructValidator) {
 	if configuration.SMTP == nil && configuration.FileSystem == nil {

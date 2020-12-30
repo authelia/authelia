@@ -19,12 +19,13 @@ func NewTLSConfig(config *schema.TLSConfig, defaultMinVersion uint16, certPool *
 
 	return &tls.Config{
 		ServerName:         config.ServerName,
-		InsecureSkipVerify: config.SkipVerify, //nolint:gosec informed choice by user. Off by default.
+		InsecureSkipVerify: config.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
 		MinVersion:         minVersion,
 		RootCAs:            certPool,
 	}
 }
 
+//nolint:gocyclo // TODO: Remove in 4.28. Should be able to remove this during the removal of deprecated config.
 // NewX509CertPool generates a x509.CertPool from the system PKI and the directory specified.
 func NewX509CertPool(directory string, config *schema.Configuration) (certPool *x509.CertPool, errors []error, nonFatalErrors []error) {
 	certPool, err := x509.SystemCertPool()

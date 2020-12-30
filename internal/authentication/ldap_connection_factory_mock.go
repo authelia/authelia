@@ -4,9 +4,10 @@ package authentication
 
 import (
 	tls "crypto/tls"
+	reflect "reflect"
+
 	ldap "github.com/go-ldap/ldap/v3"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockLDAPConnection is a mock of LDAPConnection interface
