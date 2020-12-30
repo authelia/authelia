@@ -28,9 +28,9 @@ func NewTLSConfig(config *schema.TLSConfig, defaultMinVersion uint16, certPool *
 //nolint:gocyclo // TODO: Remove in 4.28. Should be able to remove the nolint during the removal of deprecated config.
 // NewX509CertPool generates a x509.CertPool from the system PKI and the directory specified.
 func NewX509CertPool(directory string, config *schema.Configuration) (certPool *x509.CertPool, errors []error, nonFatalErrors []error) {
-	// TODO: Remove in 4.28. See above, this does not refer to the section below. This doesn't need the config param in 4.28, just the directory param.
 	certPool, err := x509.SystemCertPool()
 	if err != nil {
+		nonFatalErrors = append(nonFatalErrors, fmt.Errorf("could not load system certificate pool which may result in untruested certificate issues: %v", err))
 		certPool = x509.NewCertPool()
 	}
 
