@@ -16,7 +16,8 @@ authentication_backend:
   ldap:
     implementation: activedirectory
     url: ldap://sambaldap
-    skip_verify: true
+    tls:
+      skip_verify: true
     start_tls: true
     base_dn: DC=example,DC=com
     username_attribute: sAMAccountName

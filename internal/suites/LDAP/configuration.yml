@@ -15,7 +15,8 @@ jwt_secret: very_important_secret
 authentication_backend:
   ldap:
     url: ldaps://openldap
-    skip_verify: true
+    tls:
+      skip_verify: true
     base_dn: dc=example,dc=com
     username_attribute: uid
     additional_users_dn: ou=users
