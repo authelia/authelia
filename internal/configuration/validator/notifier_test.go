@@ -127,6 +127,7 @@ func (suite *NotifierSuite) TestShouldEnsureSenderOfSMTPNotifierAreProvided() {
 	suite.Assert().EqualError(suite.validator.Errors()[0], "Sender of SMTP notifier must be provided")
 }
 
+// Deprecated: Temporary Test. TODO: Remove in 4.28 (Whole Test).
 func (suite *NotifierSuite) TestShouldReturnDeprecationWarningsFor428() {
 	var disableVerifyCert = true
 
@@ -144,6 +145,9 @@ func (suite *NotifierSuite) TestShouldReturnDeprecationWarningsFor428() {
 
 	suite.Assert().EqualError(warnings[0], "DEPRECATED: SMTP Notifier `disable_verify_cert` option has been replaced by `notifier.smtp.tls.skip_verify` (will be removed in 4.28.0)")
 	suite.Assert().EqualError(warnings[1], "DEPRECATED: SMTP Notifier `trusted_cert` option has been replaced by the global option `certificates_directory` (will be removed in 4.28.0)")
+
+	// Should override since TLS schema is not defined
+	suite.Assert().Equal(true, suite.configuration.SMTP.TLS.SkipVerify)
 }
 
 func TestNotifierSuite(t *testing.T) {

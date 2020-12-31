@@ -443,16 +443,47 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue()
 	suite.Assert().EqualError(suite.validator.Errors()[0], "error occurred validating the LDAP minimum_tls_version key with value SSL2.0: supplied TLS version isn't supported")
 }
 
-func (suite *LdapAuthenticationBackendSuite) TestShouldReturnDeprecationWarningsAndMappingFor428() {
+// Deprecated: Temporary Test. TODO: Remove in 4.28 (Whole Test).
+func (suite *LdapAuthenticationBackendSuite) TestShouldReturnDeprecationWarningsAndNoMappingFor428() {
 	var skipVerify = true
 
-	suite.configuration.Ldap.MinimumTLSVersion = "TLS1.1"
+	suite.configuration.Ldap.MinimumTLSVersion = "TLS1.0"
 	suite.configuration.Ldap.SkipVerify = &skipVerify
+	suite.configuration.Ldap.TLS = nil
 	suite.configuration.Ldap.TLS = &schema.TLSConfig{
-		ServerName: "golang.org",
+		ServerName:     "golang.org",
+		MinimumVersion: "",
 	}
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+
+	// Should not override since TLS schema is defined
+	suite.Assert().Equal(false, suite.configuration.Ldap.TLS.SkipVerify)
+	suite.Assert().Equal(schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion, suite.configuration.Ldap.TLS.MinimumVersion)
+
+	suite.Assert().False(suite.validator.HasErrors())
+	suite.Require().Len(suite.validator.Warnings(), 2)
+
+	warnings := suite.validator.Warnings()
+
+	suite.Assert().EqualError(warnings[0], "DEPRECATED: LDAP Auth Backend `skip_verify` option has been replaced by `authentication_backend.ldap.tls.skip_verify` (will be removed in 4.28.0)")
+	suite.Assert().EqualError(warnings[1], "DEPRECATED: LDAP Auth Backend `minimum_tls_version` option has been replaced by `authentication_backend.ldap.tls.minimum_version` (will be removed in 4.28.0)")
+}
+
+// Deprecated: Temporary Test. TODO: Remove in 4.28 (Whole Test).
+func (suite *LdapAuthenticationBackendSuite) TestShouldReturnDeprecationWarningsAndMappingFor428() {
+	var skipVerify = true
+
+	tlsVersion := "TLS1.1"
+
+	suite.configuration.Ldap.MinimumTLSVersion = tlsVersion
+	suite.configuration.Ldap.SkipVerify = &skipVerify
+
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+
+	// Should override since TLS schema is not defined
+	suite.Assert().Equal(true, suite.configuration.Ldap.TLS.SkipVerify)
+	suite.Assert().Equal(tlsVersion, suite.configuration.Ldap.TLS.MinimumVersion)
 
 	suite.Assert().False(suite.validator.HasErrors())
 	suite.Require().Len(suite.validator.Warnings(), 2)
