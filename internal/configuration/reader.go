@@ -3,7 +3,6 @@ package configuration
 import (
 	"errors"
 	"fmt"
-	"github.com/authelia/authelia/internal/logging"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/configuration/validator"
+	"github.com/authelia/authelia/internal/logging"
 )
 
 // Read a YAML configuration and create a Configuration object out of it.
