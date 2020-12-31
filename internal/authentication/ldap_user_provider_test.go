@@ -496,6 +496,33 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 	assert.Equal(t, details.Username, "john")
 }
 
+func TestShouldParseFilters(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			UsersFilter:          "(&(|({username_attribute}={0})({mail_attribute}={0})({display_name_attribute}={0}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))",
+			GroupsFilter:         "(&(|(member={dn})(member={0})(member={1}))(objectClass=group))",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+			StartTLS:             true,
+		},
+		nil,
+		mockFactory)
+
+	assert.Equal(t, "(&(|(uid={input})(mail={input})(displayname={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))", ldapClient.configuration.UsersFilter)
+	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", ldapClient.configuration.GroupsFilter)
+}
+
 func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
