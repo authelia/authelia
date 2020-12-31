@@ -10,8 +10,11 @@ import (
 // ErrorContainer represents a container where we can add errors and retrieve them.
 type ErrorContainer interface {
 	Push(err error)
+	PushWarning(err error)
 	HasErrors() bool
+	HasWarnings() bool
 	Errors() []error
+	Warnings() []error
 }
 
 // Validator represents the validator interface.
