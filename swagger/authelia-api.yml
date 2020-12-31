@@ -360,6 +360,42 @@ paths:
                 $ref: '#/components/schemas/middlewares.ErrorResponse'
       security:
         - authelia_auth: []
+  /api/secondfactor/u2f/sign_request:
+    post:
+      tags:
+        - Second Factor
+      summary: Second Factor Authentication - U2F (Request)
+      description: "This endpoint starts the second factor authentication process with the U2F key."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.signU2FBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.redirectResponse'
+        "401":
+          description: Unauthorized
+  /api/secondfactor/u2f/sign:
+    post:
+      tags:
+        - Second Factor
+      summary: Second Factor Authentication - U2F
+      description: "This endpoint performs second factor authentication with a U2F key."
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.signU2FRequestResponse'
+        "401":
+          description: Unauthorized
   /api/secondfactor/u2f/identity/start:
     post:
       tags:
@@ -523,6 +559,44 @@ components:
         targetURL:
           type: string
           example: https://secure.example.com
+    handlers.signU2FBody:
+      type: object
+      properties:
+        signResponse:
+          type: object
+          properties:
+            clientData:
+              type: string
+              example: 6prxyWqSsR6MXFchtQRzwZVTedWq7Zdc6XreLt6xRDXKeqJN7vzKAfYcKwRD3AT57bP4YFL4hbxat4LUysBNss
+            keyHandle:
+              type: string
+              example: pWgBrwr9meS5vArdffPtD4Px6AqZS7MfGEf776Rz438ujwHjeXwQEZuK53sRQ4wjeAgRCW4wX9VRj8dyKjc273
+            signatureData:
+              type: string
+              example: p3Pe26B6T2E7EEEc59P4p869qwxy8cQAU2ttyGtGrQHb4XL2ZxCpWrawsSHNSTRZQd7jEW59Y3Ku9vSNRzj7Ly
+    handlers.signU2FRequestResponse:
+      type: object
+      properties:
+        appId:
+          type: string
+          example: https://auth.example.com
+        challenge:
+          type: string
+          example: XGYKUzSmTpM1KxxpekArviW0w0OU2pwwRAocgn8TkVQ
+        registeredKeys:
+          type: array
+          items:
+            type: object
+            properties:
+              appId:
+                type: string
+                example: https://auth.example.com
+              version:
+                type: string
+                example: U2F_V2
+              keyHandle:
+                type: string
+                example: pWgBrwr9meS5vArdffPtD4Px6AqZS7MfGEf776Rz438ujwHjeXwQEZuK53sRQ4wjeAgRCW4wX9VRj8dyKjc273
     handlers.StateResponse:
       type: object
       properties:
