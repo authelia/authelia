@@ -20,6 +20,8 @@ type LDAPUserProvider struct {
 	tlsConfig         *tls.Config
 	dialOpts          ldap.DialOpt
 	connectionFactory LDAPConnectionFactory
+	usersDN           string
+	groupsDN          string
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
@@ -43,7 +45,7 @@ func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 		connectionFactory: NewLDAPConnectionFactoryImpl(),
 	}
 
-	provider.parseFilters()
+	provider.parseDynamicConfiguration()
 
 	return provider
 }
@@ -56,7 +58,7 @@ func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBacke
 	return provider
 }
 
-func (p *LDAPUserProvider) parseFilters() {
+func (p *LDAPUserProvider) parseDynamicConfiguration() {
 	logger := logging.Logger() // Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
 
 	// Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
@@ -83,6 +85,18 @@ func (p *LDAPUserProvider) parseFilters() {
 	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{username_attribute}", p.configuration.UsernameAttribute)
 	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{mail_attribute}", p.configuration.MailAttribute)
 	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{display_name_attribute}", p.configuration.DisplayNameAttribute)
+
+	if p.configuration.AdditionalUsersDN != "" {
+		p.usersDN = p.configuration.AdditionalUsersDN + "," + p.configuration.BaseDN
+	} else {
+		p.usersDN = p.configuration.BaseDN
+	}
+
+	if p.configuration.AdditionalGroupsDN != "" {
+		p.groupsDN = p.configuration.AdditionalGroupsDN + "," + p.configuration.BaseDN
+	} else {
+		p.groupsDN = p.configuration.BaseDN
+	}
 }
 
 func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
@@ -106,22 +120,22 @@ func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnecti
 
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *LDAPUserProvider) CheckUserPassword(inputUsername string, password string) (bool, error) {
-	adminClient, err := p.connect(p.configuration.User, p.configuration.Password)
+	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
 		return false, err
 	}
-	defer adminClient.Close()
+	defer conn.Close()
 
-	profile, err := p.getUserProfile(adminClient, inputUsername)
+	profile, err := p.getUserProfile(conn, inputUsername)
 	if err != nil {
 		return false, err
 	}
 
-	conn, err := p.connect(profile.DN, password)
+	userConn, err := p.connect(profile.DN, password)
 	if err != nil {
 		return false, fmt.Errorf("Authentication of user %s failed. Cause: %s", inputUsername, err)
 	}
-	defer conn.Close()
+	defer userConn.Close()
 
 	return true, nil
 }
@@ -155,11 +169,6 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	userFilter := p.resolveUsersFilter(p.configuration.UsersFilter, inputUsername)
 	logging.Logger().Tracef("Computed user filter is %s", userFilter)
 
-	baseDN := p.configuration.BaseDN
-	if p.configuration.AdditionalUsersDN != "" {
-		baseDN = p.configuration.AdditionalUsersDN + "," + baseDN
-	}
-
 	attributes := []string{"dn",
 		p.configuration.DisplayNameAttribute,
 		p.configuration.MailAttribute,
@@ -167,7 +176,7 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 
 	// Search for the given username.
 	searchRequest := ldap.NewSearchRequest(
-		baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		p.usersDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
 		1, 0, false, userFilter, attributes, nil,
 	)
 
@@ -248,14 +257,9 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 
 	logging.Logger().Tracef("Computed groups filter is %s", groupsFilter)
 
-	groupBaseDN := p.configuration.BaseDN
-	if p.configuration.AdditionalGroupsDN != "" {
-		groupBaseDN = p.configuration.AdditionalGroupsDN + "," + groupBaseDN
-	}
-
 	// Search for the given username.
 	searchGroupRequest := ldap.NewSearchRequest(
-		groupBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		p.groupsDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
 		0, 0, false, groupsFilter, []string{p.configuration.GroupNameAttribute}, nil,
 	)
 
@@ -286,13 +290,13 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 
 // UpdatePassword update the password of the given user.
 func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword string) error {
-	client, err := p.connect(p.configuration.User, p.configuration.Password)
-
+	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
 		return fmt.Errorf("Unable to update password. Cause: %s", err)
 	}
+	defer conn.Close()
 
-	profile, err := p.getUserProfile(client, inputUsername)
+	profile, err := p.getUserProfile(conn, inputUsername)
 
 	if err != nil {
 		return fmt.Errorf("Unable to update password. Cause: %s", err)
@@ -311,7 +315,7 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 		modifyRequest.Replace("userPassword", []string{newPassword})
 	}
 
-	err = client.Modify(modifyRequest)
+	err = conn.Modify(modifyRequest)
 
 	if err != nil {
 		return fmt.Errorf("Unable to update password. Cause: %s", err)
