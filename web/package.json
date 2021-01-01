@@ -14,7 +14,7 @@
     "@types/classnames": "^2.2.11",
     "@types/enzyme": "^3.10.8",
     "@types/jest": "^26.0.19",
-    "@types/node": "^14.14.17",
+    "@types/node": "^14.14.18",
     "@types/qrcode.react": "^1.0.1",
     "@types/query-string": "^6.3.0",
     "@types/react": "^17.0.0",
