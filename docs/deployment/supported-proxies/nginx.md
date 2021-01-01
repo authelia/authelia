@@ -123,7 +123,7 @@ proxy_buffers 64 256k;
 
 # If behind reverse proxy, forwards the correct IP
 set_real_ip_from 10.0.0.0/8;
-set_real_ip_from 172.0.0.0/8;
+set_real_ip_from 172.16.0.0/12;
 set_real_ip_from 192.168.0.0/16;
 set_real_ip_from fc00::/7;
 real_ip_header X-Forwarded-For;
