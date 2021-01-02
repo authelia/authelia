@@ -1,7 +1,6 @@
 import { InitiateResetPasswordPath, CompleteResetPasswordPath, ResetPasswordPath } from "./Api";
 import { PostWithOptionalResponse } from "./Client";
 
-
 export async function initiateResetPasswordProcess(username: string) {
     return PostWithOptionalResponse(InitiateResetPasswordPath, { username });
 }

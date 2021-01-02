@@ -9,17 +9,16 @@ interface PostFirstFactorBody {
     targetURL?: string;
 }
 
-export async function postFirstFactor(
-    username: string, password: string,
-    rememberMe: boolean, targetURL?: string) {
+export async function postFirstFactor(username: string, password: string, rememberMe: boolean, targetURL?: string) {
     const data: PostFirstFactorBody = {
-        username, password,
-        keepMeLoggedIn: rememberMe
+        username,
+        password,
+        keepMeLoggedIn: rememberMe,
     };
 
     if (targetURL) {
         data.targetURL = targetURL;
     }
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorPath, data);
-    return res ? res : {} as SignInResponse;
+    return res ? res : ({} as SignInResponse);
 }

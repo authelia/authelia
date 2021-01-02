@@ -1,13 +1,15 @@
 import React, { MutableRefObject, useEffect, useRef, useState } from "react";
-import classnames from "classnames";
+
 import { makeStyles, Grid, Button, FormControlLabel, Checkbox, Link } from "@material-ui/core";
+import classnames from "classnames";
 import { useHistory } from "react-router";
-import LoginLayout from "../../../layouts/LoginLayout";
-import { useNotifications } from "../../../hooks/NotificationsContext";
-import { postFirstFactor } from "../../../services/FirstFactor";
-import { ResetPasswordStep1Route } from "../../../Routes";
-import { useRedirectionURL } from "../../../hooks/RedirectionURL";
+
 import FixedTextField from "../../../components/FixedTextField";
+import { useNotifications } from "../../../hooks/NotificationsContext";
+import { useRedirectionURL } from "../../../hooks/RedirectionURL";
+import LoginLayout from "../../../layouts/LoginLayout";
+import { ResetPasswordStep1Route } from "../../../Routes";
+import { postFirstFactor } from "../../../services/FirstFactor";
 
 export interface Props {
     disabled: boolean;
@@ -47,7 +49,7 @@ const FirstFactorForm = function (props: Props) {
     const handleSignIn = async () => {
         if (username === "" || password === "") {
             if (username === "") {
-                setUsernameError(true)
+                setUsernameError(true);
             }
 
             if (password === "") {
@@ -62,8 +64,7 @@ const FirstFactorForm = function (props: Props) {
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
-            createErrorNotification(
-                "Incorrect username or password.");
+            createErrorNotification("Incorrect username or password.");
             props.onAuthenticationFailure();
             setPassword("");
             passwordRef.current.focus();
@@ -75,10 +76,7 @@ const FirstFactorForm = function (props: Props) {
     };
 
     return (
-        <LoginLayout
-            id="first-factor-stage"
-            title="Sign in"
-            showBrand>
+        <LoginLayout id="first-factor-stage" title="Sign in" showBrand>
             <Grid container spacing={2} className={style.root}>
                 <Grid item xs={12}>
                     <FixedTextField
@@ -92,21 +90,22 @@ const FirstFactorForm = function (props: Props) {
                         error={usernameError}
                         disabled={disabled}
                         fullWidth
-                        onChange={v => setUsername(v.target.value)}
+                        onChange={(v) => setUsername(v.target.value)}
                         onFocus={() => setUsernameError(false)}
                         autoCapitalize="none"
                         onKeyPress={(ev) => {
-                            if (ev.key === 'Enter') {
+                            if (ev.key === "Enter") {
                                 if (!username.length) {
-                                    setUsernameError(true)
+                                    setUsernameError(true);
                                 } else if (username.length && password.length) {
                                     handleSignIn();
                                 } else {
-                                    setUsernameError(false)
+                                    setUsernameError(false);
                                     passwordRef.current.focus();
                                 }
                             }
-                        }} />
+                        }}
+                    />
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField
@@ -120,11 +119,11 @@ const FirstFactorForm = function (props: Props) {
                         disabled={disabled}
                         value={password}
                         error={passwordError}
-                        onChange={v => setPassword(v.target.value)}
+                        onChange={(v) => setPassword(v.target.value)}
                         onFocus={() => setPasswordError(false)}
                         type="password"
                         onKeyPress={(ev) => {
-                            if (ev.key === 'Enter') {
+                            if (ev.key === "Enter") {
                                 if (!username.length) {
                                     usernameRef.current.focus();
                                 } else if (!password.length) {
@@ -133,13 +132,20 @@ const FirstFactorForm = function (props: Props) {
                                 handleSignIn();
                                 ev.preventDefault();
                             }
-                        }} />
+                        }}
+                    />
                 </Grid>
-                {props.rememberMe || props.resetPassword ?
-                    <Grid item xs={12} className={props.rememberMe
-                        ? classnames(style.leftAlign, style.actionRow)
-                        : classnames(style.leftAlign, style.flexEnd, style.actionRow)}>
-                        {props.rememberMe ?
+                {props.rememberMe || props.resetPassword ? (
+                    <Grid
+                        item
+                        xs={12}
+                        className={
+                            props.rememberMe
+                                ? classnames(style.leftAlign, style.actionRow)
+                                : classnames(style.leftAlign, style.flexEnd, style.actionRow)
+                        }
+                    >
+                        {props.rememberMe ? (
                             <FormControlLabel
                                 control={
                                     <Checkbox
@@ -148,7 +154,7 @@ const FirstFactorForm = function (props: Props) {
                                         checked={rememberMe}
                                         onChange={handleRememberMeChange}
                                         onKeyPress={(ev) => {
-                                            if (ev.key === 'Enter') {
+                                            if (ev.key === "Enter") {
                                                 if (!username.length) {
                                                     usernameRef.current.focus();
                                                 } else if (!password.length) {
@@ -158,20 +164,25 @@ const FirstFactorForm = function (props: Props) {
                                             }
                                         }}
                                         value="rememberMe"
-                                        color="primary"/>
+                                        color="primary"
+                                    />
                                 }
                                 className={style.rememberMe}
                                 label="Remember me"
-                            /> : null}
-                        {props.resetPassword ?
+                            />
+                        ) : null}
+                        {props.resetPassword ? (
                             <Link
                                 id="reset-password-button"
                                 component="button"
                                 onClick={handleResetPasswordClick}
-                                className={style.resetLink}>
+                                className={style.resetLink}
+                            >
                                 Reset password?
-                            </Link> : null}
-                    </Grid> : null}
+                            </Link>
+                        ) : null}
+                    </Grid>
+                ) : null}
                 <Grid item xs={12}>
                     <Button
                         id="sign-in-button"
@@ -179,18 +190,19 @@ const FirstFactorForm = function (props: Props) {
                         color="primary"
                         fullWidth
                         disabled={disabled}
-                        onClick={handleSignIn}>
+                        onClick={handleSignIn}
+                    >
                         Sign in
                     </Button>
                 </Grid>
             </Grid>
         </LoginLayout>
-    )
-}
+    );
+};
 
-export default FirstFactorForm
+export default FirstFactorForm;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
     root: {
         marginTop: theme.spacing(),
         marginBottom: theme.spacing(),

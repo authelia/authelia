@@ -1,5 +1,5 @@
-import { Get } from "./Client";
 import { StatePath } from "./Api";
+import { Get } from "./Client";
 
 export enum AuthenticationLevel {
     Unauthenticated = 0,
@@ -9,7 +9,7 @@ export enum AuthenticationLevel {
 
 export interface AutheliaState {
     username: string;
-    authentication_level: AuthenticationLevel
+    authentication_level: AuthenticationLevel;
 }
 
 export async function getState(): Promise<AutheliaState> {

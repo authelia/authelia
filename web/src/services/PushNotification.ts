@@ -1,5 +1,5 @@
-import { PostWithOptionalResponse } from "./Client";
 import { CompletePushNotificationSignInPath } from "./Api";
+import { PostWithOptionalResponse } from "./Client";
 import { SignInResponse } from "./SignIn";
 
 interface CompleteU2FSigninBody {

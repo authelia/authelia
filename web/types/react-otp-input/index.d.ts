@@ -1,2 +1,1 @@
-
-declare module 'react-otp-input';
+declare module "react-otp-input";

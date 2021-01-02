@@ -1,7 +1,7 @@
-import { Get, PostWithOptionalResponse } from "./Client";
-import { UserInfoPath, UserInfo2FAMethodPath } from "./Api";
 import { SecondFactorMethod } from "../models/Methods";
 import { UserInfo } from "../models/UserInfo";
+import { UserInfoPath, UserInfo2FAMethodPath } from "./Api";
+import { Get, PostWithOptionalResponse } from "./Client";
 
 export type Method2FA = "u2f" | "totp" | "mobile_push";
 
@@ -44,6 +44,5 @@ export async function getUserPreferences(): Promise<UserInfo> {
 }
 
 export function setPreferred2FAMethod(method: SecondFactorMethod) {
-    return PostWithOptionalResponse(UserInfo2FAMethodPath,
-        { method: toString(method) } as MethodPreferencePayload);
+    return PostWithOptionalResponse(UserInfo2FAMethodPath, { method: toString(method) } as MethodPreferencePayload);
 }

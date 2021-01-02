@@ -1,9 +1,20 @@
 import React, { ReactNode } from "react";
-import { Dialog, Grid, makeStyles, DialogContent, Button, DialogActions, Typography, useTheme } from "@material-ui/core";
-import PushNotificationIcon from "../../../components/PushNotificationIcon";
-import PieChartIcon from "../../../components/PieChartIcon";
-import { SecondFactorMethod } from "../../../models/Methods";
+
+import {
+    Dialog,
+    Grid,
+    makeStyles,
+    DialogContent,
+    Button,
+    DialogActions,
+    Typography,
+    useTheme,
+} from "@material-ui/core";
+
 import FingerTouchIcon from "../../../components/FingerTouchIcon";
+import PieChartIcon from "../../../components/PieChartIcon";
+import PushNotificationIcon from "../../../components/PushNotificationIcon";
+import { SecondFactorMethod } from "../../../models/Methods";
 
 export interface Props {
     open: boolean;
@@ -18,37 +29,45 @@ const MethodSelectionDialog = function (props: Props) {
     const style = useStyles();
     const theme = useTheme();
 
-    const pieChartIcon = <PieChartIcon width={24} height={24} maxProgress={1000} progress={150}
-        color={theme.palette.primary.main} backgroundColor={"white"} />
+    const pieChartIcon = (
+        <PieChartIcon
+            width={24}
+            height={24}
+            maxProgress={1000}
+            progress={150}
+            color={theme.palette.primary.main}
+            backgroundColor={"white"}
+        />
+    );
 
     return (
-        <Dialog
-            open={props.open}
-            className={style.root}
-            onClose={props.onClose}>
+        <Dialog open={props.open} className={style.root} onClose={props.onClose}>
             <DialogContent>
                 <Grid container justify="center" spacing={1} id="methods-dialog">
-                    {props.methods.has(SecondFactorMethod.TOTP)
-                        ? <MethodItem
+                    {props.methods.has(SecondFactorMethod.TOTP) ? (
+                        <MethodItem
                             id="one-time-password-option"
                             method="One-Time Password"
                             icon={pieChartIcon}
-                            onClick={() => props.onClick(SecondFactorMethod.TOTP)} />
-                        : null}
-                    {props.methods.has(SecondFactorMethod.U2F) && props.u2fSupported
-                        ? <MethodItem
+                            onClick={() => props.onClick(SecondFactorMethod.TOTP)}
+                        />
+                    ) : null}
+                    {props.methods.has(SecondFactorMethod.U2F) && props.u2fSupported ? (
+                        <MethodItem
                             id="security-key-option"
                             method="Security Key"
                             icon={<FingerTouchIcon size={32} />}
-                            onClick={() => props.onClick(SecondFactorMethod.U2F)} />
-                        : null}
-                    {props.methods.has(SecondFactorMethod.MobilePush)
-                        ? <MethodItem
+                            onClick={() => props.onClick(SecondFactorMethod.U2F)}
+                        />
+                    ) : null}
+                    {props.methods.has(SecondFactorMethod.MobilePush) ? (
+                        <MethodItem
                             id="push-notification-option"
                             method="Push Notification"
                             icon={<PushNotificationIcon width={32} height={32} />}
-                            onClick={() => props.onClick(SecondFactorMethod.MobilePush)} />
-                        : null}
+                            onClick={() => props.onClick(SecondFactorMethod.MobilePush)}
+                        />
+                    ) : null}
                 </Grid>
             </DialogContent>
             <DialogActions>
@@ -57,16 +76,16 @@ const MethodSelectionDialog = function (props: Props) {
                 </Button>
             </DialogActions>
         </Dialog>
-    )
-}
+    );
+};
 
-export default MethodSelectionDialog
+export default MethodSelectionDialog;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
     root: {
         textAlign: "center",
-    }
-}))
+    },
+}));
 
 interface MethodItemProps {
     id: string;
@@ -77,7 +96,7 @@ interface MethodItemProps {
 }
 
 function MethodItem(props: MethodItemProps) {
-    const style = makeStyles(theme => ({
+    const style = makeStyles((theme) => ({
         item: {
             paddingTop: theme.spacing(4),
             paddingBottom: theme.spacing(4),
@@ -89,18 +108,23 @@ function MethodItem(props: MethodItemProps) {
         },
         buttonRoot: {
             display: "block",
-        }
+        },
     }))();
 
     return (
         <Grid item xs={12} className="method-option" id={props.id}>
-            <Button className={style.item} color="primary"
+            <Button
+                className={style.item}
+                color="primary"
                 classes={{ root: style.buttonRoot }}
                 variant="contained"
-                onClick={props.onClick}>
+                onClick={props.onClick}
+            >
                 <div className={style.icon}>{props.icon}</div>
-                <div><Typography>{props.method}</Typography></div>
+                <div>
+                    <Typography>{props.method}</Typography>
+                </div>
             </Button>
         </Grid>
-    )
+    );
 }

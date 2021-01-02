@@ -1,7 +1,7 @@
-import { Get } from "./Client";
-import { ConfigurationPath } from "./Api";
-import { toEnum, Method2FA } from "./UserPreferences";
 import { Configuration } from "../models/Configuration";
+import { ConfigurationPath } from "./Api";
+import { Get } from "./Client";
+import { toEnum, Method2FA } from "./UserPreferences";
 
 interface ConfigurationPayload {
     available_methods: Method2FA[];

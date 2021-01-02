@@ -1,18 +1,20 @@
 import React, { useEffect, useCallback, useState } from "react";
-import LoginLayout from "../../layouts/LoginLayout";
-import classnames from "classnames";
+
+import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { makeStyles, Typography, Button, IconButton, Link, CircularProgress, TextField } from "@material-ui/core";
-import QRCode from 'qrcode.react';
+import { red } from "@material-ui/core/colors";
+import classnames from "classnames";
+import QRCode from "qrcode.react";
+import { useHistory, useLocation } from "react-router";
+
 import AppStoreBadges from "../../components/AppStoreBadges";
 import { GoogleAuthenticator } from "../../constants";
-import { useHistory, useLocation } from "react-router";
-import { completeTOTPRegistrationProcess } from "../../services/RegisterDevice";
 import { useNotifications } from "../../hooks/NotificationsContext";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
-import { red } from "@material-ui/core/colors";
-import { extractIdentityToken } from "../../utils/IdentityToken";
+import LoginLayout from "../../layouts/LoginLayout";
 import { FirstFactorRoute } from "../../Routes";
+import { completeTOTPRegistrationProcess } from "../../services/RegisterDevice";
+import { extractIdentityToken } from "../../utils/IdentityToken";
 
 const RegisterOneTimePassword = function () {
     const style = useStyles();
@@ -32,7 +34,7 @@ const RegisterOneTimePassword = function () {
 
     const handleDoneClick = () => {
         history.push(FirstFactorRoute);
-    }
+    };
 
     const completeRegistrationProcess = useCallback(async () => {
         if (!processToken) {
@@ -52,74 +54,77 @@ const RegisterOneTimePassword = function () {
         setIsLoading(false);
     }, [processToken, createErrorNotification]);
 
-    useEffect(() => { completeRegistrationProcess() }, [completeRegistrationProcess]);
+    useEffect(() => {
+        completeRegistrationProcess();
+    }, [completeRegistrationProcess]);
     function SecretButton(text: string | undefined, action: string, icon: IconDefinition) {
         return (
-          <IconButton
-            className={style.secretButtons}
-            color="primary"
-            onClick={() => {
-                navigator.clipboard.writeText(`${text}`);
-                createSuccessNotification(`${action}`);
-            }}
-          >
-              <FontAwesomeIcon icon={icon} />
-          </IconButton>
-        )
+            <IconButton
+                className={style.secretButtons}
+                color="primary"
+                onClick={() => {
+                    navigator.clipboard.writeText(`${text}`);
+                    createSuccessNotification(`${action}`);
+                }}
+            >
+                <FontAwesomeIcon icon={icon} />
+            </IconButton>
+        );
     }
-    const qrcodeFuzzyStyle = (isLoading || hasErrored) ? style.fuzzy : undefined
+    const qrcodeFuzzyStyle = isLoading || hasErrored ? style.fuzzy : undefined;
 
     return (
-      <LoginLayout title="Scan QRCode">
-          <div className={style.root}>
-              <div className={style.googleAuthenticator}>
-                  <Typography className={style.googleAuthenticatorText}>Need Google Authenticator?</Typography>
-                  <AppStoreBadges
-                    iconSize={128}
-                    targetBlank
-                    className={style.googleAuthenticatorBadges}
-                    googlePlayLink={GoogleAuthenticator.googlePlay}
-                    appleStoreLink={GoogleAuthenticator.appleStore} />
-              </div>
-              <div className={style.qrcodeContainer}>
-                  <Link href={secretURL}>
-                      <QRCode
-                        value={secretURL}
-                        className={classnames(qrcodeFuzzyStyle, style.qrcode)}
-                        size={256} />
-                      {!hasErrored && isLoading ? <CircularProgress className={style.loader} size={128} /> : null}
-                      {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
-                  </Link>
-              </div>
-              <div>
-                  {secretURL !== "empty"
-                    ? <TextField
-                      id="secret-url"
-                      label="Secret"
-                      className={style.secret}
-                      value={secretURL}
-                      InputProps={{
-                          readOnly: true
-                      }} /> : null}
-                  {secretBase32 ? SecretButton(secretBase32, "OTP Secret copied to clipboard.", faKey) : null}
-                  {secretURL !== "empty" ? SecretButton(secretURL, "OTP URL copied to clipboard.", faCopy) : null}
-              </div>
-              <Button
-                variant="contained"
-                color="primary"
-                className={style.doneButton}
-                onClick={handleDoneClick}
-                disabled={isLoading}>
-                  Done
-              </Button>
-          </div>
-      </LoginLayout>
-    )
-}
+        <LoginLayout title="Scan QRCode">
+            <div className={style.root}>
+                <div className={style.googleAuthenticator}>
+                    <Typography className={style.googleAuthenticatorText}>Need Google Authenticator?</Typography>
+                    <AppStoreBadges
+                        iconSize={128}
+                        targetBlank
+                        className={style.googleAuthenticatorBadges}
+                        googlePlayLink={GoogleAuthenticator.googlePlay}
+                        appleStoreLink={GoogleAuthenticator.appleStore}
+                    />
+                </div>
+                <div className={style.qrcodeContainer}>
+                    <Link href={secretURL}>
+                        <QRCode value={secretURL} className={classnames(qrcodeFuzzyStyle, style.qrcode)} size={256} />
+                        {!hasErrored && isLoading ? <CircularProgress className={style.loader} size={128} /> : null}
+                        {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
+                    </Link>
+                </div>
+                <div>
+                    {secretURL !== "empty" ? (
+                        <TextField
+                            id="secret-url"
+                            label="Secret"
+                            className={style.secret}
+                            value={secretURL}
+                            InputProps={{
+                                readOnly: true,
+                            }}
+                        />
+                    ) : null}
+                    {secretBase32 ? SecretButton(secretBase32, "OTP Secret copied to clipboard.", faKey) : null}
+                    {secretURL !== "empty" ? SecretButton(secretURL, "OTP URL copied to clipboard.", faCopy) : null}
+                </div>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    className={style.doneButton}
+                    onClick={handleDoneClick}
+                    disabled={isLoading}
+                >
+                    Done
+                </Button>
+            </div>
+        </LoginLayout>
+    );
+};
 
-export default RegisterOneTimePassword
+export default RegisterOneTimePassword;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
     root: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),
@@ -129,7 +134,7 @@ const useStyles = makeStyles(theme => ({
         marginBottom: theme.spacing(2),
     },
     fuzzy: {
-        filter: "blur(10px)"
+        filter: "blur(10px)",
     },
     secret: {
         marginTop: theme.spacing(1),
@@ -163,5 +168,5 @@ const useStyles = makeStyles(theme => ({
         left: "calc(128px - 64px)",
         color: red[400],
         fontSize: "128px",
-    }
-}))
+    },
+}));
