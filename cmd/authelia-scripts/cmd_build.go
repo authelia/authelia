@@ -56,7 +56,9 @@ func buildSwagger() {
 		log.Fatal(err)
 	}
 
-	err = os.MkdirAll(swaggerDirectory, 0775)
+	cmd = utils.CommandWithStdout("cp", "-r", "api", "public_html")
+
+	err = cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -69,20 +71,6 @@ func buildSwagger() {
 	}
 
 	cmd = utils.CommandWithStdout("rm", "./v"+swaggerVer+".tar.gz")
-
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	cmd = utils.CommandWithStdout("cp", "swagger/index.html", swaggerDirectory)
-
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	cmd = utils.CommandWithStdout("cp", "swagger/authelia-api.yml", swaggerDirectory)
 
 	err = cmd.Run()
 	if err != nil {

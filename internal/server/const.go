@@ -1,6 +1,6 @@
 package server
 
-const apiFile = "authelia-api.yml"
+const apiFile = "openapi.yml"
 const indexFile = "index.html"
 
 const dev = "dev"
