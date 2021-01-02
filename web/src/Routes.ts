@@ -1,4 +1,3 @@
-
 export const FirstFactorRoute = "/";
 export const AuthenticatedRoute = "/authenticated";
 

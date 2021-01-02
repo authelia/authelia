@@ -14,7 +14,7 @@
     "@types/classnames": "^2.2.11",
     "@types/enzyme": "^3.10.8",
     "@types/jest": "^26.0.19",
-    "@types/node": "^14.14.17",
+    "@types/node": "^14.14.19",
     "@types/qrcode.react": "^1.0.1",
     "@types/query-string": "^6.3.0",
     "@types/react": "^17.0.0",
@@ -27,6 +27,10 @@
     "classnames": "^2.2.6",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.5",
+    "eslint-config-prettier": "^7.1.0",
+    "eslint-import-resolver-typescript": "^2.3.0",
+    "eslint-plugin-prettier": "^3.3.0",
+    "prettier": "^2.2.1",
     "qrcode.react": "^1.0.1",
     "query-string": "^6.13.8",
     "react": "^16.14.0",
@@ -43,6 +47,7 @@
   "scripts": {
     "start": "craco start",
     "build": "react-scripts build",
+    "lint": "eslint '*/**/*.{js,ts,tsx}' --fix",
     "coverage": "craco build",
     "test": "react-scripts test --coverage --no-cache",
     "report": "nyc report -r clover -r json -r lcov -r text",
@@ -62,5 +67,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "eslint-formatter-rdjson": "^1.0.3"
   }
 }

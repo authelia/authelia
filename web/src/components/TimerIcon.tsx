@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import PieChartIcon from "./PieChartIcon";
 
 export interface Props {
@@ -16,21 +17,26 @@ const TimerIcon = function (props: Props) {
 
     useEffect(() => {
         // Get the current number of seconds to initialize timer.
-        const initialValue = (new Date().getTime() / 1000) % props.period / props.period * radius;
+        const initialValue = (((new Date().getTime() / 1000) % props.period) / props.period) * radius;
         setTimeProgress(initialValue);
 
         const interval = setInterval(() => {
-            const value = (new Date().getTime() / 1000) % props.period / props.period * radius;
+            const value = (((new Date().getTime() / 1000) % props.period) / props.period) * radius;
             setTimeProgress(value);
         }, 100);
         return () => clearInterval(interval);
     }, [props]);
 
     return (
-        <PieChartIcon width={props.width} height={props.height}
-            progress={timeProgress} maxProgress={radius}
-            backgroundColor={props.backgroundColor} color={props.color} />
-    )
-}
+        <PieChartIcon
+            width={props.width}
+            height={props.height}
+            progress={timeProgress}
+            maxProgress={radius}
+            backgroundColor={props.backgroundColor}
+            color={props.color}
+        />
+    );
+};
 
-export default TimerIcon
+export default TimerIcon;

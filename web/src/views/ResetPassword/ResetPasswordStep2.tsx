@@ -1,13 +1,15 @@
 import React, { useState, useCallback, useEffect } from "react";
-import LoginLayout from "../../layouts/LoginLayout";
-import classnames from "classnames";
+
 import { Grid, Button, makeStyles } from "@material-ui/core";
-import { useNotifications } from "../../hooks/NotificationsContext";
+import classnames from "classnames";
 import { useHistory, useLocation } from "react-router";
-import { completeResetPasswordProcess, resetPassword } from "../../services/ResetPassword";
-import { FirstFactorRoute } from "../../Routes";
-import { extractIdentityToken } from "../../utils/IdentityToken";
+
 import FixedTextField from "../../components/FixedTextField";
+import { useNotifications } from "../../hooks/NotificationsContext";
+import LoginLayout from "../../layouts/LoginLayout";
+import { FirstFactorRoute } from "../../Routes";
+import { completeResetPasswordProcess, resetPassword } from "../../services/ResetPassword";
+import { extractIdentityToken } from "../../utils/IdentityToken";
 
 const ResetPasswordStep2 = function () {
     const style = useStyles();
@@ -36,8 +38,9 @@ const ResetPasswordStep2 = function () {
             setFormDisabled(false);
         } catch (err) {
             console.error(err);
-            createErrorNotification("There was an issue completing the process. " +
-                "The verification token might have expired.");
+            createErrorNotification(
+                "There was an issue completing the process. The verification token might have expired.",
+            );
             setFormDisabled(true);
         }
     }, [processToken, createErrorNotification]);
@@ -54,11 +57,11 @@ const ResetPasswordStep2 = function () {
             if (password2 === "") {
                 setErrorPassword2(true);
             }
-            return
+            return;
         }
         if (password1 !== password2) {
             setErrorPassword1(true);
-            setErrorPassword2(true)
+            setErrorPassword2(true);
             createErrorNotification("Passwords do not match.");
             return;
         }
@@ -76,13 +79,11 @@ const ResetPasswordStep2 = function () {
                 createErrorNotification("There was an issue resetting the password.");
             }
         }
-    }
+    };
 
-    const handleResetClick = () =>
-        doResetPassword();
+    const handleResetClick = () => doResetPassword();
 
-    const handleCancelClick = () =>
-        history.push(FirstFactorRoute);
+    const handleCancelClick = () => history.push(FirstFactorRoute);
 
     return (
         <LoginLayout title="Enter new password" id="reset-password-step2-stage">
@@ -95,9 +96,10 @@ const ResetPasswordStep2 = function () {
                         type="password"
                         value={password1}
                         disabled={formDisabled}
-                        onChange={e => setPassword1(e.target.value)}
+                        onChange={(e) => setPassword1(e.target.value)}
                         error={errorPassword1}
-                        className={classnames(style.fullWidth)} />
+                        className={classnames(style.fullWidth)}
+                    />
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField
@@ -107,15 +109,16 @@ const ResetPasswordStep2 = function () {
                         type="password"
                         disabled={formDisabled}
                         value={password2}
-                        onChange={e => setPassword2(e.target.value)}
+                        onChange={(e) => setPassword2(e.target.value)}
                         error={errorPassword2}
                         onKeyPress={(ev) => {
-                            if (ev.key === 'Enter') {
+                            if (ev.key === "Enter") {
                                 doResetPassword();
                                 ev.preventDefault();
                             }
                         }}
-                        className={classnames(style.fullWidth)} />
+                        className={classnames(style.fullWidth)}
+                    />
                 </Grid>
                 <Grid item xs={6}>
                     <Button
@@ -125,7 +128,10 @@ const ResetPasswordStep2 = function () {
                         name="password1"
                         disabled={formDisabled}
                         onClick={handleResetClick}
-                        className={style.fullWidth}>Reset</Button>
+                        className={style.fullWidth}
+                    >
+                        Reset
+                    </Button>
                 </Grid>
                 <Grid item xs={6}>
                     <Button
@@ -134,21 +140,24 @@ const ResetPasswordStep2 = function () {
                         color="primary"
                         name="password2"
                         onClick={handleCancelClick}
-                        className={style.fullWidth}>Cancel</Button>
+                        className={style.fullWidth}
+                    >
+                        Cancel
+                    </Button>
                 </Grid>
             </Grid>
         </LoginLayout>
-    )
-}
+    );
+};
 
-export default ResetPasswordStep2
+export default ResetPasswordStep2;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
     root: {
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
     },
     fullWidth: {
         width: "100%",
-    }
-}))
+    },
+}));

@@ -1,8 +1,9 @@
 import React, { ReactNode } from "react";
+
 import { Grid, makeStyles, Container, Typography, Link } from "@material-ui/core";
-import { ReactComponent as UserSvg } from "../assets/images/user.svg";
 import { grey } from "@material-ui/core/colors";
 
+import { ReactComponent as UserSvg } from "../assets/images/user.svg";
 
 export interface Props {
     id?: string;
@@ -14,13 +15,7 @@ export interface Props {
 const LoginLayout = function (props: Props) {
     const style = useStyles();
     return (
-        <Grid
-            id={props.id}
-            className={style.root}
-            container
-            spacing={0}
-            alignItems="center"
-            justify="center">
+        <Grid id={props.id} className={style.root} container spacing={0} alignItems="center" justify="center">
             <Container maxWidth="xs" className={style.rootContainer}>
                 <Grid container>
                     <Grid item xs={12}>
@@ -34,27 +29,28 @@ const LoginLayout = function (props: Props) {
                     <Grid item xs={12} className={style.body}>
                         {props.children}
                     </Grid>
-                    {props.showBrand ? <Grid item xs={12}>
-                        <Link
-                            href="https://github.com/authelia/authelia"
-                            target="_blank"
-                            className={style.poweredBy}>
-                            Powered by Authelia
-                        </Link>
-                    </Grid>
-                        : null
-                    }
+                    {props.showBrand ? (
+                        <Grid item xs={12}>
+                            <Link
+                                href="https://github.com/authelia/authelia"
+                                target="_blank"
+                                className={style.poweredBy}
+                            >
+                                Powered by Authelia
+                            </Link>
+                        </Grid>
+                    ) : null}
                 </Grid>
             </Container>
         </Grid>
     );
-}
+};
 
-export default LoginLayout
+export default LoginLayout;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
     root: {
-        minHeight: '90vh',
+        minHeight: "90vh",
         textAlign: "center",
         // marginTop: theme.spacing(10),
     },
@@ -71,5 +67,5 @@ const useStyles = makeStyles(theme => ({
     poweredBy: {
         fontSize: "0.7em",
         color: grey[500],
-    }
-}))
+    },
+}));

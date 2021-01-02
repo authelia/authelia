@@ -1,6 +1,8 @@
 import React from "react";
-import SuccessIcon from "../../components/SuccessIcon";
+
 import { Typography, makeStyles } from "@material-ui/core";
+
+import SuccessIcon from "../../components/SuccessIcon";
 
 const Authenticated = function () {
     const classes = useStyles();
@@ -11,14 +13,14 @@ const Authenticated = function () {
             </div>
             <Typography>Authenticated</Typography>
         </div>
-    )
-}
+    );
+};
 
-export default Authenticated
+export default Authenticated;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
     iconContainer: {
         marginBottom: theme.spacing(2),
-        flex: "0 0 100%"
-    }
-}))
+        flex: "0 0 100%",
+    },
+}));
