@@ -11,8 +11,8 @@ import (
 var defaultPort = 8080
 var defaultLogLevel = "info"
 
-//nolint:gocyclo
 // ValidateConfiguration and adapt the configuration read from file.
+//nolint:gocyclo // This function is likely to always have lots of if/else statements, as long as we keep the flow clean it should be understandable.
 func ValidateConfiguration(configuration *schema.Configuration, validator *schema.StructValidator) {
 	if configuration.Host == "" {
 		configuration.Host = "0.0.0.0"

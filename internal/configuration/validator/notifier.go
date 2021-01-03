@@ -7,8 +7,8 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
-//nolint:gocyclo // TODO: Remove in 4.28. Should be able to remove this during the removal of deprecated config.
 // ValidateNotifier validates and update notifier configuration.
+//nolint:gocyclo // TODO: Remove in 4.28. Should be able to remove this during the removal of deprecated config.
 func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *schema.StructValidator) {
 	if configuration.SMTP == nil && configuration.FileSystem == nil {
 		validator.Push(fmt.Errorf("Notifier should be either `smtp` or `filesystem`"))

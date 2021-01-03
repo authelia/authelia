@@ -10,10 +10,10 @@ breaking changes and about what you should do to overcome those changes.
 
 ### Deprecation Notice(s)
 * All of these deprecations will be fully removed in release 4.28.0
-* The SMTP notifier's `trusted_cert` option has been deprecated (replaced by global certificates_directory)
-* The SMTP Notifiers `disable_verify_cert` option has been deprecated (replaced by `notifier.smtp.tls.skip_verify`)
-* The LDAP authentication backend's `skip_verify` option has been deprecated (replaced by `authentication_backend.ldap.tls.skip_verify`)
-* The LDAP authentication backend's `minimum_tls_version` option has been deprecated (replaced by `authentication_backend.ldap.tls.minimum_version`)
+* The SMTP notifiers `trusted_cert` option has been deprecated (replaced by global certificates_directory)
+* The SMTP notifiers `disable_verify_cert` option has been deprecated (replaced by `notifier.smtp.tls.skip_verify`)
+* The LDAP authentication backends `skip_verify` option has been deprecated (replaced by `authentication_backend.ldap.tls.skip_verify`)
+* The LDAP authentication backends `minimum_tls_version` option has been deprecated (replaced by `authentication_backend.ldap.tls.minimum_version`)
 
 ## Breaking in v4.24.0
 
