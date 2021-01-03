@@ -200,7 +200,7 @@ paths:
       tags:
         - Password Reset
       summary: Identity Verification Token Creation
-      description: "This endpoint performs identity verification to begin the password reset process.\n\nThe session cookie generated from this endpoint must be utilised for the subsequent steps in the `/api/reset-password/identity/finish` and `/api/reset-password` endpoints."
+      description: "This endpoint is step 1 of 3 in the password reset process.\n\nIt validates the user session and sends the user an email with a token and a link to reset their password. This step also generates a session cookie for the rest of the process.\n\nThe same session cookie must be used for all steps in this process."
       requestBody:
         required: true
         content:
@@ -221,7 +221,7 @@ paths:
       tags:
         - Password Reset
       summary: Identity Verification Token Validation
-      description: "This endpoint performs identity and token verification to begin the password reset process.\n\nThe session cookie generated from the `/api/reset-password/identity/start` endpoint must be utilised for the subsequent steps here and in the `/api/reset-password` endpoint."
+      description: "This endpoint is step 2 of 3 in the password reset process.\n\nIt validates the user session and reset token.\n\nThe same session cookie must be used for all steps in this process."
       requestBody:
         required: true
         content:
@@ -242,7 +242,7 @@ paths:
       tags:
         - Password Reset
       summary: Password Reset
-      description: The reset-password endpoint performs a password reset.
+      description: "This endpoint is step 3 of 3 in the password reset process.\n\nIt validates the user session and changes the password.\n\nThe same session cookie must be used for all steps in this process."
       requestBody:
         required: true
         content:
