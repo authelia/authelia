@@ -366,19 +366,13 @@ paths:
         - Second Factor
       summary: Second Factor Authentication - U2F (Request)
       description: "This endpoint starts the second factor authentication process with the U2F key."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/handlers.signU2FBody'
       responses:
         "200":
           description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/handlers.redirectResponse'
+                $ref: '#/components/schemas/u2f.WebSignRequest'
         "401":
           description: Unauthorized
       security:
@@ -388,14 +382,20 @@ paths:
       tags:
         - Second Factor
       summary: Second Factor Authentication - U2F
-      description: "This endpoint performs second factor authentication with a U2F key."
+      description: "This endpoint completes second factor authentication with a U2F key."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "handlers.signU2FRequestBody"
       responses:
         "200":
           description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/handlers.signU2FRequestResponse'
+                $ref: '#/components/schemas/handlers.redirectResponse'
         "401":
           description: Unauthorized
       security:
@@ -563,9 +563,12 @@ components:
         targetURL:
           type: string
           example: https://secure.example.com
-    handlers.signU2FBody:
+    handlers.signU2FRequestBody:
       type: object
       properties:
+        targetURL:
+          type: string
+          example: https://secure.example.com
         signResponse:
           type: object
           properties:
@@ -578,29 +581,6 @@ components:
             signatureData:
               type: string
               example: p3Pe26B6T2E7EEEc59P4p869qwxy8cQAU2ttyGtGrQHb4XL2ZxCpWrawsSHNSTRZQd7jEW59Y3Ku9vSNRzj7Ly
-    handlers.signU2FRequestResponse:
-      type: object
-      properties:
-        appId:
-          type: string
-          example: https://auth.example.com
-        challenge:
-          type: string
-          example: XGYKUzSmTpM1KxxpekArviW0w0OU2pwwRAocgn8TkVQ
-        registeredKeys:
-          type: array
-          items:
-            type: object
-            properties:
-              appId:
-                type: string
-                example: https://auth.example.com
-              version:
-                type: string
-                example: U2F_V2
-              keyHandle:
-                type: string
-                example: pWgBrwr9meS5vArdffPtD4Px6AqZS7MfGEf776Rz438ujwHjeXwQEZuK53sRQ4wjeAgRCW4wX9VRj8dyKjc273
     handlers.StateResponse:
       type: object
       properties:
@@ -727,13 +707,44 @@ components:
               items:
                 type: object
                 properties:
-                  version:
-                    type: string
-                  keyHandle:
-                    type: string
                   appId:
                     type: string
-              example: null
+                    example: https://auth.example.com
+                  version:
+                    type: string
+                    example: U2F_V2
+                  keyHandle:
+                    type: string
+                    example: pWgBrwr9meS5vArdffPtD4Px6AqZS7MfGEf776Rz438ujwHjeXwQEZuK53sRQ4wjeAgRCW4wX9VRj8dyKjc273
+    u2f.WebSignRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            appId:
+              type: string
+              example: https://auth.example.com
+            challenge:
+              type: string
+              example: XGYKUzSmTpM1KxxpekArviW0w0OU2pwwRAocgn8TkVQ
+            registeredKeys:
+              type: array
+              items:
+                type: object
+                properties:
+                  appId:
+                    type: string
+                    example: https://auth.example.com
+                  version:
+                    type: string
+                    example: U2F_V2
+                  keyHandle:
+                    type: string
+                    example: pWgBrwr9meS5vArdffPtD4Px6AqZS7MfGEf776Rz438ujwHjeXwQEZuK53sRQ4wjeAgRCW4wX9VRj8dyKjc273
   securitySchemes:
     authelia_auth:
       type: apiKey
