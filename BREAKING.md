@@ -15,6 +15,10 @@ breaking changes and about what you should do to overcome those changes.
 * The LDAP authentication backends `skip_verify` option has been deprecated (replaced by `authentication_backend.ldap.tls.skip_verify`)
 * The LDAP authentication backends `minimum_tls_version` option has been deprecated (replaced by `authentication_backend.ldap.tls.minimum_version`)
 
+Examples can be found in the documentation for the new [shared TLS config](https://www.authelia.com/docs/configuration/#tls-configuration), 
+for the [LDAP authentication backend](https://www.authelia.com/docs/configuration/authentication/ldap.html), and for the 
+[SMTP notifier backend](https://www.authelia.com/docs/configuration/notifier/smtp.html).
+
 ## Breaking in v4.24.0
 
 ### Deprecation Notice(s)
