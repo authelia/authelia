@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/smtp"
 	"strings"
 	"time"
@@ -23,8 +22,6 @@ type SMTPNotifier struct {
 	identifier          string
 	host                string
 	port                int
-	trustedCert         string
-	disableVerifyCert   bool
 	disableRequireTLS   bool
 	address             string
 	subject             string
@@ -34,7 +31,7 @@ type SMTPNotifier struct {
 }
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
-func NewSMTPNotifier(configuration schema.SMTPNotifierConfiguration) *SMTPNotifier {
+func NewSMTPNotifier(configuration schema.SMTPNotifierConfiguration, certPool *x509.CertPool) *SMTPNotifier {
 	notifier := &SMTPNotifier{
 		username:            configuration.Username,
 		password:            configuration.Password,
@@ -42,57 +39,14 @@ func NewSMTPNotifier(configuration schema.SMTPNotifierConfiguration) *SMTPNotifi
 		identifier:          configuration.Identifier,
 		host:                configuration.Host,
 		port:                configuration.Port,
-		trustedCert:         configuration.TrustedCert,
-		disableVerifyCert:   configuration.DisableVerifyCert,
 		disableRequireTLS:   configuration.DisableRequireTLS,
 		address:             fmt.Sprintf("%s:%d", configuration.Host, configuration.Port),
 		subject:             configuration.Subject,
 		startupCheckAddress: configuration.StartupCheckAddress,
+		tlsConfig:           utils.NewTLSConfig(configuration.TLS, tls.VersionTLS12, certPool),
 	}
-	notifier.initializeTLSConfig()
 
 	return notifier
-}
-
-func (n *SMTPNotifier) initializeTLSConfig() {
-	// Do not allow users to disable verification of certs if they have also set a trusted cert that was loaded
-	// The second part of this check happens in the Configure Cert Pool code block
-	logging.Logger().Debug("Notifier SMTP client initializing TLS configuration")
-
-	// Configure Cert Pool
-	certPool, err := x509.SystemCertPool()
-	if err != nil || certPool == nil {
-		certPool = x509.NewCertPool()
-	}
-
-	if n.trustedCert != "" {
-		logging.Logger().Debugf("Notifier SMTP client attempting to load certificate from %s", n.trustedCert)
-
-		if exists, err := utils.FileExists(n.trustedCert); exists {
-			pem, err := ioutil.ReadFile(n.trustedCert)
-			if err != nil {
-				logging.Logger().Warnf("Notifier SMTP failed to load cert from file with error: %s", err)
-			} else {
-				if ok := certPool.AppendCertsFromPEM(pem); !ok {
-					logging.Logger().Warn("Notifier SMTP failed to import cert loaded from file")
-				} else {
-					logging.Logger().Debug("Notifier SMTP successfully loaded certificate")
-					if n.disableVerifyCert {
-						logging.Logger().Warn("Notifier SMTP when trusted_cert is specified we force disable_verify_cert to false, if you want to disable certificate validation please comment/delete trusted_cert from your config")
-						n.disableVerifyCert = false
-					}
-				}
-			}
-		} else {
-			logging.Logger().Warnf("Notifier SMTP failed to load cert from file (file does not exist) with error: %s", err)
-		}
-	}
-
-	n.tlsConfig = &tls.Config{
-		InsecureSkipVerify: n.disableVerifyCert, //nolint:gosec // This is an intended config, we never default true, provide alternate options, and we constantly warn the user.
-		ServerName:         n.host,
-		RootCAs:            certPool,
-	}
 }
 
 // Do startTLS if available (some servers only provide the auth extension after, and encryption is preferred).

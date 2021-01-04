@@ -38,6 +38,16 @@ tls_key: /config/ssl/key.pem
 tls_cert: /config/ssl/cert.pem
 ```
 
+## Certificates Directory
+
+`optional: true`
+
+This option defines the location of additional certificates to load into the trust chain specifically for Authelia.
+This currently affects both the SMTP notifier and the LDAP authentication backend. The certificates should all be in the
+PEM format and end with the extension `.pem` or `.crt`. You can either add the individual certificates public key 
+or the CA public key which signed them (don't add the private key).
+
+
 ## Log
 
 ### Log level

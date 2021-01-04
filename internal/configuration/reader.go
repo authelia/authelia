@@ -12,6 +12,7 @@ import (
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/configuration/validator"
+	"github.com/authelia/authelia/internal/logging"
 )
 
 // Read a YAML configuration and create a Configuration object out of it.
@@ -76,6 +77,12 @@ func Read(configPath string) (*schema.Configuration, []error) {
 
 	if val.HasErrors() {
 		return nil, val.Errors()
+	}
+
+	if val.HasWarnings() {
+		for _, warn := range val.Warnings() {
+			logging.Logger().Warnf(warn.Error())
+		}
 	}
 
 	return &configuration, nil

@@ -19,19 +19,22 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldap := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL: "ldap://127.0.0.1:389",
-	}, mockFactory)
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL: "ldap://127.0.0.1:389",
+		},
+		nil,
+		mockFactory)
 
 	mockFactory.EXPECT().
-		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
 	mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	_, err := ldap.connect("cn=admin,dc=example,dc=com", "password")
+	_, err := ldapClient.connect("cn=admin,dc=example,dc=com", "password")
 
 	require.NoError(t, err)
 }
@@ -43,19 +46,22 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldap := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL: "ldaps://127.0.0.1:389",
-	}, mockFactory)
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL: "ldaps://127.0.0.1:389",
+		},
+		nil,
+		mockFactory)
 
 	mockFactory.EXPECT().
-		DialTLS(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389"), gomock.Any()).
+		DialURL(gomock.Eq("ldaps://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
 	mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	_, err := ldap.connect("cn=admin,dc=example,dc=com", "password")
+	_, err := ldapClient.connect("cn=admin,dc=example,dc=com", "password")
 
 	require.NoError(t, err)
 }
@@ -65,26 +71,30 @@ func TestEscapeSpecialCharsFromUserInput(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
-	ldap := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL: "ldaps://127.0.0.1:389",
-	}, mockFactory)
+
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL: "ldaps://127.0.0.1:389",
+		},
+		nil,
+		mockFactory)
 
 	// No escape
-	assert.Equal(t, "xyz", ldap.ldapEscape("xyz"))
+	assert.Equal(t, "xyz", ldapClient.ldapEscape("xyz"))
 
 	// Escape
-	assert.Equal(t, "test\\,abc", ldap.ldapEscape("test,abc"))
-	assert.Equal(t, "test\\5cabc", ldap.ldapEscape("test\\abc"))
-	assert.Equal(t, "test\\2aabc", ldap.ldapEscape("test*abc"))
-	assert.Equal(t, "test \\28abc\\29", ldap.ldapEscape("test (abc)"))
-	assert.Equal(t, "test\\#abc", ldap.ldapEscape("test#abc"))
-	assert.Equal(t, "test\\+abc", ldap.ldapEscape("test+abc"))
-	assert.Equal(t, "test\\<abc", ldap.ldapEscape("test<abc"))
-	assert.Equal(t, "test\\>abc", ldap.ldapEscape("test>abc"))
-	assert.Equal(t, "test\\;abc", ldap.ldapEscape("test;abc"))
-	assert.Equal(t, "test\\\"abc", ldap.ldapEscape("test\"abc"))
-	assert.Equal(t, "test\\=abc", ldap.ldapEscape("test=abc"))
-	assert.Equal(t, "test\\,\\5c\\28abc\\29", ldap.ldapEscape("test,\\(abc)"))
+	assert.Equal(t, "test\\,abc", ldapClient.ldapEscape("test,abc"))
+	assert.Equal(t, "test\\5cabc", ldapClient.ldapEscape("test\\abc"))
+	assert.Equal(t, "test\\2aabc", ldapClient.ldapEscape("test*abc"))
+	assert.Equal(t, "test \\28abc\\29", ldapClient.ldapEscape("test (abc)"))
+	assert.Equal(t, "test\\#abc", ldapClient.ldapEscape("test#abc"))
+	assert.Equal(t, "test\\+abc", ldapClient.ldapEscape("test+abc"))
+	assert.Equal(t, "test\\<abc", ldapClient.ldapEscape("test<abc"))
+	assert.Equal(t, "test\\>abc", ldapClient.ldapEscape("test>abc"))
+	assert.Equal(t, "test\\;abc", ldapClient.ldapEscape("test;abc"))
+	assert.Equal(t, "test\\\"abc", ldapClient.ldapEscape("test\"abc"))
+	assert.Equal(t, "test\\=abc", ldapClient.ldapEscape("test=abc"))
+	assert.Equal(t, "test\\,\\5c\\28abc\\29", ldapClient.ldapEscape("test,\\(abc)"))
 }
 
 func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
@@ -92,10 +102,14 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
-	ldap := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:          "ldaps://127.0.0.1:389",
-		GroupsFilter: "(|(member={dn})(uid={username})(uid={input}))",
-	}, mockFactory)
+
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:          "ldaps://127.0.0.1:389",
+			GroupsFilter: "(|(member={dn})(uid={username})(uid={input}))",
+		},
+		nil,
+		mockFactory)
 
 	profile := ldapUserProfile{
 		DN:          "cn=john (external),dc=example,dc=com",
@@ -104,10 +118,10 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 		Emails:      []string{"john.doe@authelia.com"},
 	}
 
-	filter, _ := ldap.resolveGroupsFilter("john", &profile)
+	filter, _ := ldapClient.resolveGroupsFilter("john", &profile)
 	assert.Equal(t, "(|(member=cn=john \\28external\\29,dc=example,dc=com)(uid=john)(uid=john))", filter)
 
-	filter, _ = ldap.resolveGroupsFilter("john#=(abc,def)", &profile)
+	filter, _ = ldapClient.resolveGroupsFilter("john#=(abc,def)", &profile)
 	assert.Equal(t, "(|(member=cn=john \\28external\\29,dc=example,dc=com)(uid=john)(uid=john\\#\\=\\28abc\\,def\\29))", filter)
 }
 
@@ -135,17 +149,20 @@ func TestShouldEscapeUserInput(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:                  "ldap://127.0.0.1:389",
-		User:                 "cn=admin,dc=example,dc=com",
-		UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
-		UsernameAttribute:    "uid",
-		MailAttribute:        "mail",
-		DisplayNameAttribute: "displayname",
-		Password:             "password",
-		AdditionalUsersDN:    "ou=users",
-		BaseDN:               "dc=example,dc=com",
-	}, mockFactory)
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			Password:             "password",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
 
 	mockConn.EXPECT().
 		// Here we ensure that the input has been correctly escaped.
@@ -164,17 +181,20 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:                  "ldap://127.0.0.1:389",
-		User:                 "cn=admin,dc=example,dc=com",
-		UsernameAttribute:    "uid",
-		UsersFilter:          "(&({username_attribute}={input})(&(objectCategory=person)(objectClass=user)))",
-		Password:             "password",
-		AdditionalUsersDN:    "ou=users",
-		BaseDN:               "dc=example,dc=com",
-		MailAttribute:        "mail",
-		DisplayNameAttribute: "displayname",
-	}, mockFactory)
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			UsernameAttribute:    "uid",
+			UsersFilter:          "(&({username_attribute}={input})(&(objectCategory=person)(objectClass=user)))",
+			Password:             "password",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+		},
+		nil,
+		mockFactory)
 
 	mockConn.EXPECT().
 		Search(NewSearchRequestMatcher("(&(uid=john)(&(objectCategory=person)(objectClass=user)))")).
@@ -206,20 +226,23 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:                  "ldap://127.0.0.1:389",
-		User:                 "cn=admin,dc=example,dc=com",
-		Password:             "password",
-		UsernameAttribute:    "uid",
-		MailAttribute:        "mail",
-		DisplayNameAttribute: "displayname",
-		UsersFilter:          "uid={input}",
-		AdditionalUsersDN:    "ou=users",
-		BaseDN:               "dc=example,dc=com",
-	}, mockFactory)
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
 
 	mockFactory.EXPECT().
-		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
 	mockConn.EXPECT().
@@ -274,18 +297,21 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:               "ldap://127.0.0.1:389",
-		User:              "cn=admin,dc=example,dc=com",
-		Password:          "password",
-		UsernameAttribute: "uid",
-		UsersFilter:       "uid={input}",
-		AdditionalUsersDN: "ou=users",
-		BaseDN:            "dc=example,dc=com",
-	}, mockFactory)
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:               "ldap://127.0.0.1:389",
+			User:              "cn=admin,dc=example,dc=com",
+			Password:          "password",
+			UsernameAttribute: "uid",
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
 
 	mockFactory.EXPECT().
-		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
 	mockConn.EXPECT().
@@ -331,20 +357,23 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:                  "ldap://127.0.0.1:389",
-		User:                 "cn=admin,dc=example,dc=com",
-		Password:             "password",
-		UsernameAttribute:    "uid",
-		MailAttribute:        "mail",
-		DisplayNameAttribute: "displayname",
-		UsersFilter:          "uid={input}",
-		AdditionalUsersDN:    "ou=users",
-		BaseDN:               "dc=example,dc=com",
-	}, mockFactory)
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
 
 	mockFactory.EXPECT().
-		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
 	mockConn.EXPECT().
@@ -392,6 +421,209 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 	assert.Equal(t, details.Username, "John")
 }
 
+func TestShouldUpdateUserPassword(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
+
+	modifyRequest := ldap.NewModifyRequest("uid=test,dc=example,dc=com", nil)
+	modifyRequest.Replace("userPassword", []string{"password"})
+
+	gomock.InOrder(
+		mockFactory.EXPECT().
+			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+			Return(mockConn, nil),
+		mockConn.EXPECT().
+			Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+			Return(nil),
+		mockConn.EXPECT().
+			Search(gomock.Any()).
+			Return(&ldap.SearchResult{
+				Entries: []*ldap.Entry{
+					{
+						DN: "uid=test,dc=example,dc=com",
+						Attributes: []*ldap.EntryAttribute{
+							{
+								Name:   "displayname",
+								Values: []string{"John Doe"},
+							},
+							{
+								Name:   "mail",
+								Values: []string{"test@example.com"},
+							},
+							{
+								Name:   "uid",
+								Values: []string{"John"},
+							},
+						},
+					},
+				},
+			}, nil),
+		mockConn.EXPECT().
+			Modify(modifyRequest).
+			Return(nil),
+		mockConn.EXPECT().
+			Close(),
+	)
+
+	err := ldapClient.UpdatePassword("john", "password")
+
+	require.NoError(t, err)
+}
+
+func TestShouldCheckValidUserPassword(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
+
+	gomock.InOrder(
+		mockFactory.EXPECT().
+			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+			Return(mockConn, nil),
+		mockConn.EXPECT().
+			Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+			Return(nil),
+		mockConn.EXPECT().
+			Search(gomock.Any()).
+			Return(&ldap.SearchResult{
+				Entries: []*ldap.Entry{
+					{
+						DN: "uid=test,dc=example,dc=com",
+						Attributes: []*ldap.EntryAttribute{
+							{
+								Name:   "displayname",
+								Values: []string{"John Doe"},
+							},
+							{
+								Name:   "mail",
+								Values: []string{"test@example.com"},
+							},
+							{
+								Name:   "uid",
+								Values: []string{"John"},
+							},
+						},
+					},
+				},
+			}, nil),
+		mockFactory.EXPECT().
+			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+			Return(mockConn, nil),
+		mockConn.EXPECT().
+			Bind(gomock.Eq("uid=test,dc=example,dc=com"), gomock.Eq("password")).
+			Return(nil),
+		mockConn.EXPECT().
+			Close().Times(2),
+	)
+
+	valid, err := ldapClient.CheckUserPassword("john", "password")
+
+	assert.True(t, valid)
+	require.NoError(t, err)
+}
+
+func TestShouldCheckInvalidUserPassword(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
+
+	gomock.InOrder(
+		mockFactory.EXPECT().
+			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+			Return(mockConn, nil),
+		mockConn.EXPECT().
+			Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+			Return(nil),
+		mockConn.EXPECT().
+			Search(gomock.Any()).
+			Return(&ldap.SearchResult{
+				Entries: []*ldap.Entry{
+					{
+						DN: "uid=test,dc=example,dc=com",
+						Attributes: []*ldap.EntryAttribute{
+							{
+								Name:   "displayname",
+								Values: []string{"John Doe"},
+							},
+							{
+								Name:   "mail",
+								Values: []string{"test@example.com"},
+							},
+							{
+								Name:   "uid",
+								Values: []string{"John"},
+							},
+						},
+					},
+				},
+			}, nil),
+		mockFactory.EXPECT().
+			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+			Return(mockConn, nil),
+		mockConn.EXPECT().
+			Bind(gomock.Eq("uid=test,dc=example,dc=com"), gomock.Eq("password")).
+			Return(errors.New("Invalid username or password")),
+		mockConn.EXPECT().
+			Close(),
+	)
+
+	valid, err := ldapClient.CheckUserPassword("john", "password")
+
+	assert.False(t, valid)
+	require.EqualError(t, err, "Authentication of user john failed. Cause: Invalid username or password")
+}
+
 func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -399,21 +631,24 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:                  "ldap://127.0.0.1:389",
-		User:                 "cn=admin,dc=example,dc=com",
-		Password:             "password",
-		UsernameAttribute:    "uid",
-		MailAttribute:        "mail",
-		DisplayNameAttribute: "displayname",
-		UsersFilter:          "uid={input}",
-		AdditionalUsersDN:    "ou=users",
-		BaseDN:               "dc=example,dc=com",
-		StartTLS:             true,
-	}, mockFactory)
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+			StartTLS:             true,
+		},
+		nil,
+		mockFactory)
 
 	mockFactory.EXPECT().
-		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
 	mockConn.EXPECT().
@@ -464,6 +699,36 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 	assert.Equal(t, details.Username, "john")
 }
 
+func TestShouldParseDynamicConfiguration(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			UsersFilter:          "(&(|({username_attribute}={0})({mail_attribute}={0})({display_name_attribute}={0}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))",
+			GroupsFilter:         "(&(|(member={dn})(member={0})(member={1}))(objectClass=group))",
+			AdditionalUsersDN:    "ou=users",
+			AdditionalGroupsDN:   "ou=groups",
+			BaseDN:               "dc=example,dc=com",
+			StartTLS:             true,
+		},
+		nil,
+		mockFactory)
+
+	assert.Equal(t, "(&(|(uid={input})(mail={input})(displayname={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))", ldapClient.configuration.UsersFilter)
+	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", ldapClient.configuration.GroupsFilter)
+	assert.Equal(t, "ou=users,dc=example,dc=com", ldapClient.usersDN)
+	assert.Equal(t, "ou=groups,dc=example,dc=com", ldapClient.groupsDN)
+}
+
 func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -471,22 +736,27 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:                  "ldap://127.0.0.1:389",
-		User:                 "cn=admin,dc=example,dc=com",
-		Password:             "password",
-		UsernameAttribute:    "uid",
-		MailAttribute:        "mail",
-		DisplayNameAttribute: "displayname",
-		UsersFilter:          "uid={input}",
-		AdditionalUsersDN:    "ou=users",
-		BaseDN:               "dc=example,dc=com",
-		StartTLS:             true,
-		SkipVerify:           true,
-	}, mockFactory)
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+			StartTLS:             true,
+			TLS: &schema.TLSConfig{
+				SkipVerify: true,
+			},
+		},
+		nil,
+		mockFactory)
 
 	mockFactory.EXPECT().
-		Dial(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389")).
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
 	mockConn.EXPECT().
@@ -544,22 +814,27 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(schema.LDAPAuthenticationBackendConfiguration{
-		URL:                  "ldaps://127.0.0.1:389",
-		User:                 "cn=admin,dc=example,dc=com",
-		Password:             "password",
-		UsernameAttribute:    "uid",
-		MailAttribute:        "mail",
-		DisplayNameAttribute: "displayname",
-		UsersFilter:          "uid={input}",
-		AdditionalUsersDN:    "ou=users",
-		BaseDN:               "dc=example,dc=com",
-		StartTLS:             true,
-		SkipVerify:           true,
-	}, mockFactory)
+	ldapClient := NewLDAPUserProviderWithFactory(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldaps://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+			StartTLS:             true,
+			TLS: &schema.TLSConfig{
+				SkipVerify: true,
+			},
+		},
+		nil,
+		mockFactory)
 
 	mockFactory.EXPECT().
-		DialTLS(gomock.Eq("tcp"), gomock.Eq("127.0.0.1:389"), gomock.Any()).
+		DialURL(gomock.Eq("ldaps://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
 	mockConn.EXPECT().

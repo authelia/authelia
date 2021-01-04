@@ -6,10 +6,19 @@ recommended not to use the 'latest' Docker image tag blindly but pick a version 
 and read this documentation before upgrading. This is where you will get information about
 breaking changes and about what you should do to overcome those changes.
 
+## Breaking in v4.25.0
+
+### Deprecation Notice(s)
+* All of these deprecations will be fully removed in release 4.28.0
+* The SMTP notifiers `trusted_cert` option has been deprecated (replaced by global certificates_directory)
+* The SMTP notifiers `disable_verify_cert` option has been deprecated (replaced by `notifier.smtp.tls.skip_verify`)
+* The LDAP authentication backends `skip_verify` option has been deprecated (replaced by `authentication_backend.ldap.tls.skip_verify`)
+* The LDAP authentication backends `minimum_tls_version` option has been deprecated (replaced by `authentication_backend.ldap.tls.minimum_version`)
+
 ## Breaking in v4.24.0
 
 ### Deprecation Notice(s)
-* LDAP User Provider Filters (final removal in 4.27.0):
+* LDAP User Provider Filters (final removal in 4.28.0):
   * User Filters containing `{0}` are being deprecated and will generate warnings. Replaced with `{input}`.
   * Group Filters containing `{0}` or `{1}` are being deprecated and will generate warnings. 
   Replaced with `{input}` and `{username}` respectively.

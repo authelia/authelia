@@ -72,30 +72,31 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 	}
 }
 
-func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
-	u, err := url.Parse(ldapURL)
+// Wrapper for test purposes to exclude the hostname from the return.
+func validateLdapURLSimple(ldapURL string, validator *schema.StructValidator) (finalURL string) {
+	finalURL, _ = validateLdapURL(ldapURL, validator)
+
+	return finalURL
+}
+
+func validateLdapURL(ldapURL string, validator *schema.StructValidator) (finalURL string, hostname string) {
+	parsedURL, err := url.Parse(ldapURL)
 
 	if err != nil {
 		validator.Push(errors.New("Unable to parse URL to ldap server. The scheme is probably missing: ldap:// or ldaps://"))
-		return ""
+		return "", ""
 	}
 
-	if !(u.Scheme == schemeLDAP || u.Scheme == schemeLDAPS) {
+	if !(parsedURL.Scheme == schemeLDAP || parsedURL.Scheme == schemeLDAPS) {
 		validator.Push(errors.New("Unknown scheme for ldap url, should be ldap:// or ldaps://"))
-		return ""
+		return "", ""
 	}
 
-	if u.Scheme == schemeLDAP && u.Port() == "" {
-		u.Host += ":389"
-	} else if u.Scheme == schemeLDAPS && u.Port() == "" {
-		u.Host += ":636"
+	if !parsedURL.IsAbs() {
+		validator.Push(fmt.Errorf("URL to LDAP %s is still not absolute, it should be something like ldap://127.0.0.1:389", parsedURL.String()))
 	}
 
-	if !u.IsAbs() {
-		validator.Push(fmt.Errorf("URL to LDAP %s is still not absolute, it should be something like ldap://127.0.0.1:389", u.String()))
-	}
-
-	return u.String()
+	return parsedURL.String(), parsedURL.Hostname()
 }
 
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
@@ -104,10 +105,35 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
 	}
 
-	if configuration.MinimumTLSVersion == "" {
-		configuration.MinimumTLSVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.MinimumTLSVersion
-	} else if _, err := utils.TLSStringToTLSConfigVersion(configuration.MinimumTLSVersion); err != nil {
-		validator.Push(fmt.Errorf("error occurred validating the LDAP minimum_tls_version key with value %s: %v", configuration.MinimumTLSVersion, err))
+	nilTLS := configuration.TLS == nil
+	if nilTLS {
+		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
+	}
+
+	// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28 (if block).
+	if configuration.SkipVerify != nil {
+		validator.PushWarning(errors.New("DEPRECATED: LDAP Auth Backend `skip_verify` option has been replaced by `authentication_backend.ldap.tls.skip_verify` (will be removed in 4.28.0)"))
+
+		if nilTLS {
+			configuration.TLS.SkipVerify = *configuration.SkipVerify
+		}
+	}
+
+	// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28 (if block).
+	if configuration.MinimumTLSVersion != "" {
+		validator.PushWarning(errors.New("DEPRECATED: LDAP Auth Backend `minimum_tls_version` option has been replaced by `authentication_backend.ldap.tls.minimum_version` (will be removed in 4.28.0)"))
+
+		if nilTLS {
+			configuration.TLS.MinimumVersion = configuration.MinimumTLSVersion
+		}
+	}
+
+	if configuration.TLS.MinimumVersion == "" {
+		configuration.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
+	}
+
+	if _, err := utils.TLSStringToTLSConfigVersion(configuration.TLS.MinimumVersion); err != nil {
+		validator.Push(fmt.Errorf("error occurred validating the LDAP minimum_tls_version key with value %s: %v", configuration.TLS.MinimumVersion, err))
 	}
 
 	switch configuration.Implementation {
@@ -122,7 +148,13 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))
 	} else {
-		configuration.URL = validateLdapURL(configuration.URL, validator)
+		ldapURL, serverName := validateLdapURL(configuration.URL, validator)
+
+		configuration.URL = ldapURL
+
+		if configuration.TLS.ServerName == "" {
+			configuration.TLS.ServerName = serverName
+		}
 	}
 
 	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387)

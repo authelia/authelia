@@ -2,8 +2,8 @@ package authentication
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
@@ -16,116 +16,126 @@ import (
 
 // LDAPUserProvider is a provider using a LDAP or AD as a user database.
 type LDAPUserProvider struct {
-	configuration schema.LDAPAuthenticationBackendConfiguration
-	tlsConfig     *tls.Config
-
+	configuration     schema.LDAPAuthenticationBackendConfiguration
+	tlsConfig         *tls.Config
+	dialOpts          ldap.DialOpt
 	connectionFactory LDAPConnectionFactory
+	usersDN           string
+	groupsDN          string
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
-func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration) *LDAPUserProvider {
-	minimumTLSVersion, _ := utils.TLSStringToTLSConfigVersion(configuration.MinimumTLSVersion)
-
-	// TODO: RELEASE-4.27.0 Deprecated Completely in this release.
-	logger := logging.Logger()
-
-	if strings.Contains(configuration.UsersFilter, "{0}") {
-		logger.Warnf("DEPRECATION NOTICE: LDAP Users Filter will no longer support replacing `{0}` in 4.27.0. Please use `{input}` instead.")
-
-		configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{0}", "{input}")
+func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool) *LDAPUserProvider {
+	if configuration.TLS == nil {
+		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 	}
 
-	if strings.Contains(configuration.GroupsFilter, "{0}") {
-		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{0}` in 4.27.0. Please use `{input}` instead.")
+	tlsConfig := utils.NewTLSConfig(configuration.TLS, tls.VersionTLS12, certPool)
 
-		configuration.GroupsFilter = strings.ReplaceAll(configuration.GroupsFilter, "{0}", "{input}")
+	var dialOpts ldap.DialOpt
+
+	if tlsConfig != nil {
+		dialOpts = ldap.DialWithTLSConfig(tlsConfig)
 	}
 
-	if strings.Contains(configuration.GroupsFilter, "{1}") {
-		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{1}` in 4.27.0. Please use `{username}` instead.")
-
-		configuration.GroupsFilter = strings.ReplaceAll(configuration.GroupsFilter, "{1}", "{username}")
-	}
-	// TODO: RELEASE-4.27.0 Deprecated Completely in this release.
-
-	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{username_attribute}", configuration.UsernameAttribute)
-	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{mail_attribute}", configuration.MailAttribute)
-	configuration.UsersFilter = strings.ReplaceAll(configuration.UsersFilter, "{display_name_attribute}", configuration.DisplayNameAttribute)
-
-	return &LDAPUserProvider{
-		configuration: configuration,
-		tlsConfig:     &tls.Config{InsecureSkipVerify: configuration.SkipVerify, MinVersion: minimumTLSVersion}, //nolint:gosec // Disabling InsecureSkipVerify is an informed choice by users.
-
+	provider := &LDAPUserProvider{
+		configuration:     configuration,
+		tlsConfig:         tlsConfig,
+		dialOpts:          dialOpts,
 		connectionFactory: NewLDAPConnectionFactoryImpl(),
 	}
+
+	provider.parseDynamicConfiguration()
+
+	return provider
 }
 
 // NewLDAPUserProviderWithFactory creates a new instance of LDAPUserProvider with existing factory.
-func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBackendConfiguration, connectionFactory LDAPConnectionFactory) *LDAPUserProvider {
-	provider := NewLDAPUserProvider(configuration)
+func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool, connectionFactory LDAPConnectionFactory) *LDAPUserProvider {
+	provider := NewLDAPUserProvider(configuration, certPool)
 	provider.connectionFactory = connectionFactory
 
 	return provider
 }
 
-func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
-	var newConnection LDAPConnection
+func (p *LDAPUserProvider) parseDynamicConfiguration() {
+	logger := logging.Logger() // Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
 
-	ldapURL, err := url.Parse(p.configuration.URL)
+	// Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
+	if strings.Contains(p.configuration.UsersFilter, "{0}") {
+		logger.Warnf("DEPRECATION NOTICE: LDAP Users Filter will no longer support replacing `{0}` in 4.28.0. Please use `{input}` instead.")
 
-	if err != nil {
-		return nil, fmt.Errorf("Unable to parse URL to LDAP: %s", ldapURL)
+		p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{0}", "{input}")
 	}
 
-	if ldapURL.Scheme == "ldaps" {
-		logging.Logger().Trace("LDAP client starts a TLS session")
+	// Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
+	if strings.Contains(p.configuration.GroupsFilter, "{0}") {
+		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{0}` in 4.28.0. Please use `{input}` instead.")
 
-		conn, err := p.connectionFactory.DialTLS("tcp", ldapURL.Host, p.tlsConfig)
-		if err != nil {
-			return nil, err
-		}
+		p.configuration.GroupsFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{0}", "{input}")
+	}
 
-		newConnection = conn
+	// Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
+	if strings.Contains(p.configuration.GroupsFilter, "{1}") {
+		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{1}` in 4.28.0. Please use `{username}` instead.")
+
+		p.configuration.GroupsFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{1}", "{username}")
+	}
+
+	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{username_attribute}", p.configuration.UsernameAttribute)
+	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{mail_attribute}", p.configuration.MailAttribute)
+	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{display_name_attribute}", p.configuration.DisplayNameAttribute)
+
+	if p.configuration.AdditionalUsersDN != "" {
+		p.usersDN = p.configuration.AdditionalUsersDN + "," + p.configuration.BaseDN
 	} else {
-		logging.Logger().Trace("LDAP client starts a session over raw TCP")
-		conn, err := p.connectionFactory.Dial("tcp", ldapURL.Host)
-		if err != nil {
-			return nil, err
-		}
-		newConnection = conn
+		p.usersDN = p.configuration.BaseDN
 	}
 
-	if p.configuration.StartTLS {
-		if err := newConnection.StartTLS(p.tlsConfig); err != nil {
-			return nil, err
-		}
+	if p.configuration.AdditionalGroupsDN != "" {
+		p.groupsDN = p.configuration.AdditionalGroupsDN + "," + p.configuration.BaseDN
+	} else {
+		p.groupsDN = p.configuration.BaseDN
 	}
+}
 
-	if err := newConnection.Bind(userDN, password); err != nil {
+func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
+	conn, err := p.connectionFactory.DialURL(p.configuration.URL, p.dialOpts)
+	if err != nil {
 		return nil, err
 	}
 
-	return newConnection, nil
+	if p.configuration.StartTLS {
+		if err := conn.StartTLS(p.tlsConfig); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := conn.Bind(userDN, password); err != nil {
+		return nil, err
+	}
+
+	return conn, nil
 }
 
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *LDAPUserProvider) CheckUserPassword(inputUsername string, password string) (bool, error) {
-	adminClient, err := p.connect(p.configuration.User, p.configuration.Password)
+	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
 		return false, err
 	}
-	defer adminClient.Close()
+	defer conn.Close()
 
-	profile, err := p.getUserProfile(adminClient, inputUsername)
+	profile, err := p.getUserProfile(conn, inputUsername)
 	if err != nil {
 		return false, err
 	}
 
-	conn, err := p.connect(profile.DN, password)
+	userConn, err := p.connect(profile.DN, password)
 	if err != nil {
 		return false, fmt.Errorf("Authentication of user %s failed. Cause: %s", inputUsername, err)
 	}
-	defer conn.Close()
+	defer userConn.Close()
 
 	return true, nil
 }
@@ -159,11 +169,6 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	userFilter := p.resolveUsersFilter(p.configuration.UsersFilter, inputUsername)
 	logging.Logger().Tracef("Computed user filter is %s", userFilter)
 
-	baseDN := p.configuration.BaseDN
-	if p.configuration.AdditionalUsersDN != "" {
-		baseDN = p.configuration.AdditionalUsersDN + "," + baseDN
-	}
-
 	attributes := []string{"dn",
 		p.configuration.DisplayNameAttribute,
 		p.configuration.MailAttribute,
@@ -171,7 +176,7 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 
 	// Search for the given username.
 	searchRequest := ldap.NewSearchRequest(
-		baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		p.usersDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
 		1, 0, false, userFilter, attributes, nil,
 	)
 
@@ -252,14 +257,9 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 
 	logging.Logger().Tracef("Computed groups filter is %s", groupsFilter)
 
-	groupBaseDN := p.configuration.BaseDN
-	if p.configuration.AdditionalGroupsDN != "" {
-		groupBaseDN = p.configuration.AdditionalGroupsDN + "," + groupBaseDN
-	}
-
 	// Search for the given username.
 	searchGroupRequest := ldap.NewSearchRequest(
-		groupBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		p.groupsDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
 		0, 0, false, groupsFilter, []string{p.configuration.GroupNameAttribute}, nil,
 	)
 
@@ -290,13 +290,13 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 
 // UpdatePassword update the password of the given user.
 func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword string) error {
-	client, err := p.connect(p.configuration.User, p.configuration.Password)
-
+	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
 		return fmt.Errorf("Unable to update password. Cause: %s", err)
 	}
+	defer conn.Close()
 
-	profile, err := p.getUserProfile(client, inputUsername)
+	profile, err := p.getUserProfile(conn, inputUsername)
 
 	if err != nil {
 		return fmt.Errorf("Unable to update password. Cause: %s", err)
@@ -315,7 +315,7 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 		modifyRequest.Replace("userPassword", []string{newPassword})
 	}
 
-	err = client.Modify(modifyRequest)
+	err = conn.Modify(modifyRequest)
 
 	if err != nil {
 		return fmt.Errorf("Unable to update password. Cause: %s", err)
