@@ -25,7 +25,7 @@
   },"4": {
     "doc": "Access Control",
     "title": "Access Control Rule",
-    "content": "A rule defines two things: . | the matching criteria of the request presented to the reverse proxy | the policy applied when all criteria match. | . The criteria are: . | domain: domain targeted by the request. | resources: list of patterns that the path should match (one is sufficient). | subject: the user or group of users to define the policy for. | networks: the network range from where should comes the request. | . A rule is matched when all criteria of the rule match. ",
+    "content": "A rule defines two things: . | the matching criteria of the request presented to the reverse proxy | the policy applied when all criteria match. | . The criteria are: . | domain: domain targeted by the request. | resources: list of patterns that the path should match (one is sufficient). | subject: the user or group of users to define the policy for. | networks: the network addresses, ranges (CIDR notation) or groups from where the request originates. | . A rule is matched when all criteria of the rule match. ",
     "url": "/docs/configuration/access-control.html#access-control-rule",
     "relUrl": "/configuration/access-control.html#access-control-rule"
   },"5": {
@@ -55,13 +55,13 @@
   },"9": {
     "doc": "Access Control",
     "title": "Networks",
-    "content": "A list of network ranges can be specified in a rule in order to apply different policies when requests come from different networks. The main use case is when, lets say a resource should be exposed both on the Internet and from an authenticated VPN for instance. Passing a second factor a first time to get access to the VPN and a second time to get access to the application can sometimes be cumbersome if the endpoint is not considered overly sensitive. Even if Authelia provides this flexibility, you might prefer a higher level of security and avoid this option entirely. You and only you can define your security policy and it’s up to you to configure Authelia accordingly. ",
+    "content": "A list of network addresses, ranges (CIDR notation) or groups can be specified in a rule in order to apply different policies when requests originate from different networks. The main use case is when, lets say a resource should be exposed both on the Internet and from an authenticated VPN for instance. Passing a second factor a first time to get access to the VPN and a second time to get access to the application can sometimes be cumbersome if the endpoint is not considered overly sensitive. Even if Authelia provides this flexibility, you might prefer a higher level of security and avoid this option entirely. You and only you can define your security policy and it’s up to you to configure Authelia accordingly. ",
     "url": "/docs/configuration/access-control.html#networks",
     "relUrl": "/configuration/access-control.html#networks"
   },"10": {
     "doc": "Access Control",
     "title": "Complete example",
-    "content": "Here is a complete example of complex access control list that can be defined in Authelia. access_control: default_policy: deny rules: - domain: public.example.com policy: bypass - domain: secure.example.com policy: one_factor networks: - 192.168.1.0/24 - domain: - secure.example.com - private.example.com policy: two_factor - domain: singlefactor.example.com policy: one_factor - domain: \"mx2.mail.example.com\" subject: \"group:admins\" policy: deny - domain: \"*.example.com\" subject: - \"group:admins\" - \"group:moderators\" policy: two_factor - domain: dev.example.com resources: - \"^/groups/dev/.*$\" subject: \"group:dev\" policy: two_factor - domain: dev.example.com resources: - \"^/users/john/.*$\" subject: - [\"group:dev\", \"user:john\"] - \"group:admins\" policy: two_factor . ",
+    "content": "Here is a complete example of complex access control list that can be defined in Authelia. access_control: default_policy: deny networks: - name: internal networks: - 10.10.0.0/16 - 192.168.2.0/24 - name: VPN networks: 10.9.0.0/16 rules: - domain: public.example.com policy: bypass - domain: secure.example.com policy: one_factor networks: - internal - VPN - 192.168.1.0/24 - 10.0.0.1 - domain: - secure.example.com - private.example.com policy: two_factor - domain: singlefactor.example.com policy: one_factor - domain: \"mx2.mail.example.com\" subject: \"group:admins\" policy: deny - domain: \"*.example.com\" subject: - \"group:admins\" - \"group:moderators\" policy: two_factor - domain: dev.example.com resources: - \"^/groups/dev/.*$\" subject: \"group:dev\" policy: two_factor - domain: dev.example.com resources: - \"^/users/john/.*$\" subject: - [\"group:dev\", \"user:john\"] - \"group:admins\" policy: two_factor . ",
     "url": "/docs/configuration/access-control.html#complete-example",
     "relUrl": "/configuration/access-control.html#complete-example"
   },"11": {
