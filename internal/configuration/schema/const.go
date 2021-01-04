@@ -4,8 +4,6 @@ import (
 	"time"
 )
 
-const denyPolicy = "deny"
-
 const argon2id = "argon2id"
 
 // ProfileRefreshDisabled represents a value for refresh_interval that disables the check entirely.

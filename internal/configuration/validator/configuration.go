@@ -64,6 +64,12 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		configuration.AccessControl.DefaultPolicy = "deny"
 	}
 
+	ValidateAccessControl(configuration.AccessControl, validator)
+
+	if configuration.AccessControl.Rules != nil {
+		ValidateRules(configuration.AccessControl, validator)
+	}
+
 	ValidateSession(&configuration.Session, validator)
 
 	if configuration.Regulation == nil {

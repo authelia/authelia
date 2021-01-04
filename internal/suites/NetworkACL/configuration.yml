@@ -32,6 +32,11 @@ storage:
 # resources.
 access_control:
   default_policy: deny
+  networks:
+    - name: Clients
+      networks:
+        - 192.168.240.202/32
+        - 192.168.240.203/32
   rules:
     - domain: secure.example.com
       policy: one_factor
@@ -41,8 +46,7 @@ access_control:
     - domain: secure.example.com
       policy: bypass
       networks:
-        - 192.168.240.202/32
-        - 192.168.240.203/32
+        - Clients
 
     - domain: secure.example.com
       policy: two_factor

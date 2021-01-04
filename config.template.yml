@@ -244,6 +244,14 @@ access_control:
   # to the user.
   default_policy: deny
 
+  networks:
+    - name: internal
+      networks:
+        - 10.10.0.0/16
+        - 192.168.2.0/24
+    - name: VPN
+      networks: 10.9.0.0/16
+
   rules:
     # Rules applied to everyone
     - domain: public.example.com
@@ -253,7 +261,10 @@ access_control:
       policy: one_factor
       # Network based rule, if not provided any network matches.
       networks:
+        - internal
+        - VPN
         - 192.168.1.0/24
+        - 10.0.0.1
 
     - domain:
       - secure.example.com
