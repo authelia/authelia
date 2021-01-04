@@ -6,6 +6,7 @@ type Configuration struct {
 	Port                  int    `mapstructure:"port"`
 	TLSCert               string `mapstructure:"tls_cert"`
 	TLSKey                string `mapstructure:"tls_key"`
+	CertificatesDirectory string `mapstructure:"certificates_directory"`
 	LogLevel              string `mapstructure:"log_level"`
 	LogFormat             string `mapstructure:"log_format"`
 	LogFilePath           string `mapstructure:"log_file_path"`

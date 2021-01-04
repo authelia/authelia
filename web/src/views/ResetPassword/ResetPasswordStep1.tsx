@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import LoginLayout from "../../layouts/LoginLayout";
+
 import { Grid, Button, makeStyles } from "@material-ui/core";
-import { useNotifications } from "../../hooks/NotificationsContext";
 import { useHistory } from "react-router";
-import { initiateResetPasswordProcess } from "../../services/ResetPassword";
-import { FirstFactorRoute } from "../../Routes";
+
 import FixedTextField from "../../components/FixedTextField";
+import { useNotifications } from "../../hooks/NotificationsContext";
+import LoginLayout from "../../layouts/LoginLayout";
+import { FirstFactorRoute } from "../../Routes";
+import { initiateResetPasswordProcess } from "../../services/ResetPassword";
 
 const ResetPasswordStep1 = function () {
     const style = useStyles();
@@ -26,15 +28,15 @@ const ResetPasswordStep1 = function () {
         } catch (err) {
             createErrorNotification("There was an issue initiating the password reset process.");
         }
-    }
+    };
 
     const handleResetClick = () => {
         doInitiateResetPasswordProcess();
-    }
+    };
 
     const handleCancelClick = () => {
         history.push(FirstFactorRoute);
-    }
+    };
 
     return (
         <LoginLayout title="Reset password" id="reset-password-step1-stage">
@@ -49,19 +51,17 @@ const ResetPasswordStep1 = function () {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         onKeyPress={(ev) => {
-                            if (ev.key === 'Enter') {
+                            if (ev.key === "Enter") {
                                 doInitiateResetPasswordProcess();
                                 ev.preventDefault();
                             }
-                        }} />
+                        }}
+                    />
                 </Grid>
                 <Grid item xs={6}>
-                    <Button
-                        id="reset-button"
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        onClick={handleResetClick}>Reset</Button>
+                    <Button id="reset-button" variant="contained" color="primary" fullWidth onClick={handleResetClick}>
+                        Reset
+                    </Button>
                 </Grid>
                 <Grid item xs={6}>
                     <Button
@@ -69,18 +69,21 @@ const ResetPasswordStep1 = function () {
                         variant="contained"
                         color="primary"
                         fullWidth
-                        onClick={handleCancelClick}>Cancel</Button>
+                        onClick={handleCancelClick}
+                    >
+                        Cancel
+                    </Button>
                 </Grid>
             </Grid>
         </LoginLayout>
-    )
-}
+    );
+};
 
-export default ResetPasswordStep1
+export default ResetPasswordStep1;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
     root: {
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
     },
-}))
+}));

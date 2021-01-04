@@ -6,3 +6,7 @@ runner:
       - '%E%f:%l: %m'
       - '%C%.%#'
     level: error
+  eslint:
+    cmd: cd web && eslint -f rdjson '*/**/*.{js,ts,tsx}'
+    format: rdjson
+    level: error

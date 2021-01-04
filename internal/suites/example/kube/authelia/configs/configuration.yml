@@ -13,7 +13,8 @@ default_redirection_url: https://home.example.com:8080
 authentication_backend:
   ldap:
     url: ldaps://ldap-service
-    skip_verify: true
+    tls:
+      skip_verify: true
     base_dn: dc=example,dc=com
     username_attribute: uid
     additional_users_dn: ou=users

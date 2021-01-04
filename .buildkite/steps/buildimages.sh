@@ -17,6 +17,8 @@ if [[ "${BUILD_ARCH}" != "coverage" ]]; then
 cat << EOF
       - "authelia-${BUILD_OS}-${BUILD_ARCH}.tar.gz"
       - "authelia-${BUILD_OS}-${BUILD_ARCH}.tar.gz.sha256"
+    depends_on:
+      - "unit-test"
 EOF
 fi
 cat << EOF

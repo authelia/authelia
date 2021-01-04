@@ -1,4 +1,5 @@
 import { AxiosResponse } from "axios";
+
 import { getBasePath } from "../utils/BasePath";
 
 const basePath = getBasePath();
@@ -14,13 +15,13 @@ export const CompleteU2FRegistrationStep2Path = basePath + "/api/secondfactor/u2
 export const InitiateU2FSignInPath = basePath + "/api/secondfactor/u2f/sign_request";
 export const CompleteU2FSignInPath = basePath + "/api/secondfactor/u2f/sign";
 
-export const CompletePushNotificationSignInPath = basePath + "/api/secondfactor/duo"
-export const CompleteTOTPSignInPath = basePath + "/api/secondfactor/totp"
+export const CompletePushNotificationSignInPath = basePath + "/api/secondfactor/duo";
+export const CompleteTOTPSignInPath = basePath + "/api/secondfactor/totp";
 
 export const InitiateResetPasswordPath = basePath + "/api/reset-password/identity/start";
 export const CompleteResetPasswordPath = basePath + "/api/reset-password/identity/finish";
 // Do the password reset during completion.
-export const ResetPasswordPath = basePath + "/api/reset-password"
+export const ResetPasswordPath = basePath + "/api/reset-password";
 
 export const LogoutPath = basePath + "/api/logout";
 export const StatePath = basePath + "/api/state";
@@ -52,7 +53,7 @@ export function toData<T>(resp: AxiosResponse<ServiceResponse<T>>): T | undefine
     if (resp.data && "status" in resp.data && resp.data["status"] === "OK") {
         return resp.data.data as T;
     }
-    return undefined
+    return undefined;
 }
 
 export function hasServiceError<T>(resp: AxiosResponse<ServiceResponse<T>>) {

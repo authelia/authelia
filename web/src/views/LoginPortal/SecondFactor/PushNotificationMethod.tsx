@@ -1,13 +1,15 @@
 import React, { useEffect, useCallback, useState, ReactNode } from "react";
-import MethodContainer, { State as MethodContainerState } from "./MethodContainer";
-import PushNotificationIcon from "../../../components/PushNotificationIcon";
-import { completePushNotificationSignIn } from "../../../services/PushNotification";
+
 import { Button, makeStyles } from "@material-ui/core";
-import { useRedirectionURL } from "../../../hooks/RedirectionURL";
-import { useIsMountedRef } from "../../../hooks/Mounted";
-import SuccessIcon from "../../../components/SuccessIcon";
+
 import FailureIcon from "../../../components/FailureIcon";
+import PushNotificationIcon from "../../../components/PushNotificationIcon";
+import SuccessIcon from "../../../components/SuccessIcon";
+import { useIsMountedRef } from "../../../hooks/Mounted";
+import { useRedirectionURL } from "../../../hooks/RedirectionURL";
+import { completePushNotificationSignIn } from "../../../services/PushNotification";
 import { AuthenticationLevel } from "../../../services/State";
+import MethodContainer, { State as MethodContainerState } from "./MethodContainer";
 
 export enum State {
     SignInInProgress = 1,
@@ -50,7 +52,7 @@ const PushNotificationMethod = function (props: Props) {
             setState(State.Success);
             setTimeout(() => {
                 if (!mounted.current) return;
-                onSignInSuccessCallback(res ? res.redirect : undefined)
+                onSignInSuccessCallback(res ? res.redirect : undefined);
             }, 1500);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
@@ -63,7 +65,9 @@ const PushNotificationMethod = function (props: Props) {
         }
     }, [onSignInErrorCallback, onSignInSuccessCallback, setState, redirectionURL, mounted, props.authenticationLevel]);
 
-    useEffect(() => { signInFunc() }, [signInFunc]);
+    useEffect(() => {
+        signInFunc();
+    }, [signInFunc]);
 
     // Set successful state if user is already authenticated.
     useEffect(() => {
@@ -94,23 +98,24 @@ const PushNotificationMethod = function (props: Props) {
             id={props.id}
             title="Push Notification"
             explanation="A notification has been sent to your smartphone"
-            state={methodState}>
-            <div className={style.icon}>
-                {icon}
-            </div>
-            <div className={(state !== State.Failure) ? "hidden" : ""}>
-                <Button color="secondary" onClick={signInFunc}>Retry</Button>
+            state={methodState}
+        >
+            <div className={style.icon}>{icon}</div>
+            <div className={state !== State.Failure ? "hidden" : ""}>
+                <Button color="secondary" onClick={signInFunc}>
+                    Retry
+                </Button>
             </div>
         </MethodContainer>
-    )
-}
+    );
+};
 
-export default PushNotificationMethod
+export default PushNotificationMethod;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
     icon: {
         width: "64px",
         height: "64px",
         display: "inline-block",
-    }
-}))
+    },
+}));
