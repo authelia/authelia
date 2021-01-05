@@ -7,8 +7,7 @@ WORKDIR /node/src/app
 COPY web .
 
 # Install the dependencies and build
-RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn coverage && \
-mkdir -p /node/src/app/build/api && cd /node/src/app/build/api/ && touch index.html openapi.yml
+RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn coverage
 
 # =======================================
 # ===== Build image for the backend =====
@@ -25,6 +24,7 @@ WORKDIR /go/src/app
 
 COPY go.mod go.sum config.template.yml ./
 COPY --from=builder-frontend /node/src/app/build public_html
+COPY api public_html/api
 
 RUN go mod download
 
