@@ -22,4 +22,5 @@ type Configuration struct {
 	Storage               StorageConfiguration               `mapstructure:"storage"`
 	Notifier              *NotifierConfiguration             `mapstructure:"notifier"`
 	Server                ServerConfiguration                `mapstructure:"server"`
+	Theme                 *ThemeConfiguration                `mapstructure:"theme"`
 }

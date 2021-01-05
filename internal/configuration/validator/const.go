@@ -18,6 +18,11 @@ var validKeys = []string{
 	"server.write_buffer_size",
 	"server.path",
 
+	// Theme Keys.
+	"theme.name",
+	"theme.primary_color",
+	"theme.secondary_color",
+
 	// TOTP Keys.
 	"totp.issuer",
 	"totp.period",
@@ -175,6 +180,8 @@ const sha512 = "sha512"
 
 const schemeLDAP = "ldap"
 const schemeLDAPS = "ldaps"
+
+const themeCustom = "custom"
 
 const testBadTimer = "-1"
 const testJWTSecret = "a_secret"

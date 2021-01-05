@@ -52,6 +52,12 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		}
 	}
 
+	if configuration.Theme == nil {
+		configuration.Theme = &schema.DefaultThemeConfiguration
+	}
+
+	ValidateTheme(configuration.Theme, validator)
+
 	if configuration.TOTP == nil {
 		configuration.TOTP = &schema.DefaultTOTPConfiguration
 	}

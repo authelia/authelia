@@ -14,3 +14,15 @@ export function getRememberMe() {
 export function getResetPassword() {
     return getEmbeddedVariable("resetpassword") === "true";
 }
+
+export function getTheme() {
+    return getEmbeddedVariable("theme-name");
+}
+
+export function getPrimaryColor() {
+    return getEmbeddedVariable("theme-primarycolor");
+}
+
+export function getSecondaryColor() {
+    return getEmbeddedVariable("theme-secondarycolor");
+}
