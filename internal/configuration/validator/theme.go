@@ -16,17 +16,21 @@ func ValidateTheme(configuration *schema.ThemeConfiguration, validator *schema.S
 		validator.Push(fmt.Errorf("Theme: %s is not valid, valid themes are: \"light\", \"dark\", \"grey\" or \"custom\"", configuration.Name))
 	}
 
-	if configuration.Name == themeCustom {
-		if configuration.PrimaryColor == "" {
+	if configuration.PrimaryColor == "" {
+		configuration.PrimaryColor = schema.DefaultThemeConfiguration.PrimaryColor
+		if configuration.Name == themeCustom {
 			validator.PushWarning(fmt.Errorf("Theme primary color has not been specified, defaulting to: %s", schema.DefaultThemeConfiguration.PrimaryColor))
-			configuration.PrimaryColor = schema.DefaultThemeConfiguration.PrimaryColor
 		}
+	}
 
-		if configuration.SecondaryColor == "" {
+	if configuration.SecondaryColor == "" {
+		configuration.SecondaryColor = schema.DefaultThemeConfiguration.SecondaryColor
+		if configuration.Name == themeCustom {
 			validator.PushWarning(fmt.Errorf("Theme secondary color has not been specified, defaulting to: %s", schema.DefaultThemeConfiguration.SecondaryColor))
-			configuration.SecondaryColor = schema.DefaultThemeConfiguration.SecondaryColor
 		}
+	}
 
+	if configuration.Name == themeCustom {
 		if !validHexColor.MatchString(configuration.PrimaryColor) {
 			validator.Push(fmt.Errorf("Theme primary color: %s is not valid, valid color values are hex from: \"#000000\" to \"#FFFFFF\"", configuration.PrimaryColor))
 		}
