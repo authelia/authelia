@@ -35,8 +35,6 @@ function Theme() {
             return themes.Dark;
         case "grey":
             return themes.Grey;
-        case "custom":
-            return themes.Custom;
         default:
             return themes.Light;
     }

@@ -5,31 +5,18 @@ parent: Configuration
 nav_order: 11
 ---
 
-# Server
+# Theme
 
 The theme section configures the theme and style Authelia uses.
+
+There are currently 3 available themes for Authelia:
+* light (default)
+* dark
+* grey
 
 ## Configuration
 
 ```yaml
-theme:
-  # The theme/style to display: light, dark, grey, custom
-  name: light
-  # The primary and secondary colors are only activated when the theme name is set to "custom".
-  # The colour values need to be defined as their hex codes: #000000 to #FFFFFF are valid.
-  # primary_color: "#1976d2"
-  # secondary_color: "#ffffff"
-```
-
-### Custom Theme
-
-Setting the theme name to `custom` allows a user to specify hex color codes to customise the portals look.
-[Hex color codes](https://www.color-hex.com/) `#000000` to `#FFFFFF` are valid, 3-digit hex color codes are not accepted.
-
-Example:
-```yaml
-theme:
-  name: custom
-  primary_color: "#1976d2"
-  secondary_color: "#ffffff"
+# The theme to display: light, dark, grey
+theme: light
 ```

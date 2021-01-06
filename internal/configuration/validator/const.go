@@ -9,6 +9,7 @@ var validKeys = []string{
 	"log_file_path",
 	"default_redirection_url",
 	"jwt_secret",
+	"theme",
 	"tls_key",
 	"tls_cert",
 	"certificates_directory",
@@ -17,11 +18,6 @@ var validKeys = []string{
 	"server.read_buffer_size",
 	"server.write_buffer_size",
 	"server.path",
-
-	// Theme Keys.
-	"theme.name",
-	"theme.primary_color",
-	"theme.secondary_color",
 
 	// TOTP Keys.
 	"totp.issuer",
@@ -180,8 +176,6 @@ const sha512 = "sha512"
 
 const schemeLDAP = "ldap"
 const schemeLDAPS = "ldaps"
-
-const themeCustom = "custom"
 
 const testBadTimer = "-1"
 const testJWTSecret = "a_secret"

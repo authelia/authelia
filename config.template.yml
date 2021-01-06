@@ -8,14 +8,8 @@ port: 9091
 # tls_key: /config/ssl/key.pem
 # tls_cert: /config/ssl/cert.pem
 
-
-theme:
-  # The theme/style to display: light, dark, grey, custom
-  name: light
-  # The primary and secondary colors are only activated when the theme name is set to "custom".
-  # The colour values need to be defined as their hex codes: #000000 to #FFFFFF are valid.
-  # primary_color: "#1976d2"
-  # secondary_color: "#ffffff"
+# The theme to display: light, dark, grey
+theme: light
 
 # Configuration options specific to the internal http server
 server:

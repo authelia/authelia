@@ -4,6 +4,7 @@ package schema
 type Configuration struct {
 	Host                  string `mapstructure:"host"`
 	Port                  int    `mapstructure:"port"`
+	Theme                 string `mapstructure:"theme"`
 	TLSCert               string `mapstructure:"tls_cert"`
 	TLSKey                string `mapstructure:"tls_key"`
 	CertificatesDirectory string `mapstructure:"certificates_directory"`
@@ -22,5 +23,4 @@ type Configuration struct {
 	Storage               StorageConfiguration               `mapstructure:"storage"`
 	Notifier              *NotifierConfiguration             `mapstructure:"notifier"`
 	Server                ServerConfiguration                `mapstructure:"server"`
-	Theme                 *ThemeConfiguration                `mapstructure:"theme"`
 }

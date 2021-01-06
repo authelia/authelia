@@ -16,13 +16,5 @@ export function getResetPassword() {
 }
 
 export function getTheme() {
-    return getEmbeddedVariable("theme-name");
-}
-
-export function getPrimaryColor() {
-    return getEmbeddedVariable("theme-primarycolor");
-}
-
-export function getSecondaryColor() {
-    return getEmbeddedVariable("theme-secondarycolor");
+    return getEmbeddedVariable("theme");
 }
