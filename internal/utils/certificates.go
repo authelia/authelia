@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/logging"
 )
 
 // NewTLSConfig generates a tls.Config from a schema.TLSConfig and a x509.CertPool.
@@ -35,6 +36,10 @@ func NewX509CertPool(directory string, config *schema.Configuration) (certPool *
 		certPool = x509.NewCertPool()
 	}
 
+	logger := logging.Logger()
+
+	logger.Tracef("Starting scan of directory %s for certificates", directory)
+
 	if directory != "" {
 		certsFileInfo, err := ioutil.ReadDir(directory)
 		if err != nil {
@@ -43,8 +48,12 @@ func NewX509CertPool(directory string, config *schema.Configuration) (certPool *
 			for _, certFileInfo := range certsFileInfo {
 				nameLower := strings.ToLower(certFileInfo.Name())
 
-				if !certFileInfo.IsDir() && (strings.HasSuffix(nameLower, ".cer") || strings.HasSuffix(nameLower, ".pem")) {
-					certBytes, err := ioutil.ReadFile(path.Join(directory, certFileInfo.Name()))
+				if !certFileInfo.IsDir() && (strings.HasSuffix(nameLower, ".cer") || strings.HasSuffix(nameLower, ".crt") || strings.HasSuffix(nameLower, ".pem")) {
+					certPath := path.Join(directory, certFileInfo.Name())
+
+					logger.Tracef("Found possible cert %s, attempting to add it to the pool", certPath)
+
+					certBytes, err := ioutil.ReadFile(certPath)
 					if err != nil {
 						errors = append(errors, fmt.Errorf("could not read certificate %v", err))
 					} else if ok := certPool.AppendCertsFromPEM(certBytes); !ok {
@@ -54,6 +63,8 @@ func NewX509CertPool(directory string, config *schema.Configuration) (certPool *
 			}
 		}
 	}
+
+	logger.Tracef("Finished scan of directory %s for certificates", directory)
 
 	// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28.
 	if config != nil && config.Notifier != nil && config.Notifier.SMTP != nil && config.Notifier.SMTP.TrustedCert != "" {
