@@ -589,7 +589,7 @@
   },"98": {
     "doc": "Miscellaneous",
     "title": "Certificates Directory",
-    "content": "optional: true . This option defines the location of additional certificates to load into the trust chain specifically for Authelia. This currently affects both the SMTP notifier and the LDAP authentication backend. The certificates should all be in the PEM format and end with the extension .pem or .crt. You can either add the individual certificates public key or the CA public key which signed them (don’t add the private key). ",
+    "content": "optional: true . This option defines the location of additional certificates to load into the trust chain specifically for Authelia. This currently affects both the SMTP notifier and the LDAP authentication backend. The certificates should all be in the PEM format and end with the extension .pem, .crt, or .cer. You can either add the individual certificates public key or the CA public key which signed them (don’t add the private key). ",
     "url": "/docs/configuration/miscellaneous.html#certificates-directory",
     "relUrl": "/configuration/miscellaneous.html#certificates-directory"
   },"99": {
