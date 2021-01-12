@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/logging"
 )
 
 func selectMatchingNetworkGroups(networks []string, aclNetworks []schema.ACLNetwork) []schema.ACLNetwork {
@@ -36,16 +35,8 @@ func isIPAddressOrCIDR(ip net.IP, network string) bool {
 }
 
 func parseCIDR(ip net.IP, network string) bool {
-	_, ipNet, err := net.ParseCIDR(network)
-	if err != nil {
-		logging.Logger().Errorf("Failed to parse network %s: %s", network, err)
-	}
-
-	if ipNet.Contains(ip) {
-		return true
-	}
-
-	return false
+	_, ipNet, _ := net.ParseCIDR(network)
+	return ipNet.Contains(ip)
 }
 
 // isIPMatching check whether user's IP is in one of the network ranges.

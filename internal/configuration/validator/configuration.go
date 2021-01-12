@@ -61,7 +61,7 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	ValidateAuthenticationBackend(&configuration.AuthenticationBackend, validator)
 
 	if configuration.AccessControl.DefaultPolicy == "" {
-		configuration.AccessControl.DefaultPolicy = "deny"
+		configuration.AccessControl.DefaultPolicy = denyPolicy
 	}
 
 	ValidateAccessControl(configuration.AccessControl, validator)

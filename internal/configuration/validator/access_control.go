@@ -3,6 +3,7 @@ package validator
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -12,6 +13,12 @@ import (
 // IsPolicyValid check if policy is valid.
 func IsPolicyValid(policy string) bool {
 	return policy == denyPolicy || policy == "one_factor" || policy == "two_factor" || policy == "bypass"
+}
+
+// IsResourceValid check if a resource is valid.
+func IsResourceValid(resource string) error {
+	_, err := regexp.Compile(resource)
+	return err
 }
 
 // IsSubjectValid check if a subject is valid.
@@ -67,21 +74,29 @@ func ValidateRules(configuration schema.AccessControlConfiguration, validator *s
 		}
 
 		if !IsPolicyValid(r.Policy) {
-			validator.Push(fmt.Errorf("Policy for domain: %s is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'", r.Domains))
+			validator.Push(fmt.Errorf("Policy %s for domain: %s is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'", r.Policy, r.Domains))
 		}
 
-		for i, subjectRule := range r.Subjects {
-			for j, subject := range subjectRule {
-				if !IsSubjectValid(subject) {
-					validator.Push(fmt.Errorf("Subject %d-%d must start with 'user:' or 'group:'", i, j))
+		for _, domain := range r.Domains {
+			for _, network := range r.Networks {
+				if !IsNetworkValid(network) {
+					if !IsNetworkGroupValid(configuration, network) {
+						validator.Push(fmt.Errorf("Network %s for domain: %s is not a valid network or network group", network, domain))
+					}
 				}
 			}
-		}
 
-		for _, network := range r.Networks {
-			if !IsNetworkValid(network) {
-				if !IsNetworkGroupValid(configuration, network) {
-					validator.Push(fmt.Errorf("Network %s is not a valid network or network group", network))
+			for _, resource := range r.Resources {
+				if err := IsResourceValid(resource); err != nil {
+					validator.Push(fmt.Errorf("Resource for domain: %s is invalid, %s", domain, err))
+				}
+			}
+
+			for _, subjectRule := range r.Subjects {
+				for _, subject := range subjectRule {
+					if !IsSubjectValid(subject) {
+						validator.Push(fmt.Errorf("Subject %s for domain: %s must start with 'user:' or 'group:'", subject, domain))
+					}
 				}
 			}
 		}

@@ -8,11 +8,6 @@ import (
 
 func isSubjectMatching(subject Subject, subjectRule []string) bool {
 	for _, ruleSubject := range subjectRule {
-		// If no subject is provided in the rule, we match any user.
-		if ruleSubject == "" {
-			continue
-		}
-
 		if strings.HasPrefix(ruleSubject, userPrefix) {
 			user := strings.Trim(ruleSubject[len(userPrefix):], " ")
 			if user == subject.Username {

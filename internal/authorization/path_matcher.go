@@ -9,13 +9,7 @@ func isPathMatching(path string, pathRegexps []string) bool {
 	}
 
 	for _, pathRegexp := range pathRegexps {
-		match, err := regexp.MatchString(pathRegexp, path)
-		if err != nil {
-			// TODO(c.michaud): make sure this is safe in advance to
-			// avoid checking this case here.
-			continue
-		}
-
+		match, _ := regexp.MatchString(pathRegexp, path)
 		if match {
 			return true
 		}
