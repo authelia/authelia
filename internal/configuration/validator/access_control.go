@@ -59,7 +59,7 @@ func ValidateAccessControl(configuration schema.AccessControlConfiguration, vali
 		for _, n := range configuration.Networks {
 			for _, networks := range n.Networks {
 				if !IsNetworkValid(networks) {
-					validator.Push(fmt.Errorf("Network %s from group %s must be a valid IP or CIDR", networks, n.Name))
+					validator.Push(fmt.Errorf("Network %s from network group: %s must be a valid IP or CIDR", n.Networks, n.Name))
 				}
 			}
 		}
@@ -74,29 +74,27 @@ func ValidateRules(configuration schema.AccessControlConfiguration, validator *s
 		}
 
 		if !IsPolicyValid(r.Policy) {
-			validator.Push(fmt.Errorf("Policy %s for domain: %s is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'", r.Policy, r.Domains))
+			validator.Push(fmt.Errorf("Policy [%s] for domain: %s is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'", r.Policy, r.Domains))
 		}
 
-		for _, domain := range r.Domains {
-			for _, network := range r.Networks {
-				if !IsNetworkValid(network) {
-					if !IsNetworkGroupValid(configuration, network) {
-						validator.Push(fmt.Errorf("Network %s for domain: %s is not a valid network or network group", network, domain))
-					}
+		for _, network := range r.Networks {
+			if !IsNetworkValid(network) {
+				if !IsNetworkGroupValid(configuration, network) {
+					validator.Push(fmt.Errorf("Network %s for domain: %s is not a valid network or network group", r.Networks, r.Domains))
 				}
 			}
+		}
 
-			for _, resource := range r.Resources {
-				if err := IsResourceValid(resource); err != nil {
-					validator.Push(fmt.Errorf("Resource for domain: %s is invalid, %s", domain, err))
-				}
+		for _, resource := range r.Resources {
+			if err := IsResourceValid(resource); err != nil {
+				validator.Push(fmt.Errorf("Resource %s for domain: %s is invalid, %s", r.Resources, r.Domains, err))
 			}
+		}
 
-			for _, subjectRule := range r.Subjects {
-				for _, subject := range subjectRule {
-					if !IsSubjectValid(subject) {
-						validator.Push(fmt.Errorf("Subject %s for domain: %s must start with 'user:' or 'group:'", subject, domain))
-					}
+		for _, subjectRule := range r.Subjects {
+			for _, subject := range subjectRule {
+				if !IsSubjectValid(subject) {
+					validator.Push(fmt.Errorf("Subject %s for domain: %s must start with 'user:' or 'group:'", subjectRule, r.Domains))
 				}
 			}
 		}

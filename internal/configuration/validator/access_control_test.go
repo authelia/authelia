@@ -52,7 +52,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Network abc.def.ghi.jkl from group [internal] must be a valid IP or CIDR")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Network [abc.def.ghi.jkl] from network group: [internal] must be a valid IP or CIDR")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorNoRulesDefined() {
@@ -64,7 +64,7 @@ func (suite *AccessControl) TestShouldRaiseErrorNoRulesDefined() {
 	suite.Require().Len(suite.validator.Errors(), 2)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "No access control rules have been defined")
-	suite.Assert().EqualError(suite.validator.Errors()[1], "Policy  for domain: [] is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "Policy [] for domain: [] is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidPolicy() {
@@ -80,7 +80,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidPolicy() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Policy invalid for domain: [public.example.com] is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Policy [invalid] for domain: [public.example.com] is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidNetwork() {
@@ -97,7 +97,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidNetwork() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Network abc.def.ghi.jkl/32 for domain: public.example.com is not a valid network or network group")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Network [abc.def.ghi.jkl/32] for domain: [public.example.com] is not a valid network or network group")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidResource() {
@@ -114,7 +114,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidResource() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Resource for domain: public.example.com is invalid, error parsing regexp: missing closing ): `^/(api.*`")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Resource [^/(api.*] for domain: [public.example.com] is invalid, error parsing regexp: missing closing ): `^/(api.*`")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
@@ -131,7 +131,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Subject invalid for domain: public.example.com must start with 'user:' or 'group:'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Subject [invalid] for domain: [public.example.com] must start with 'user:' or 'group:'")
 }
 
 func TestAccessControl(t *testing.T) {
