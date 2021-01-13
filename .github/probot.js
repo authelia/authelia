@@ -20,10 +20,6 @@ on('pull_request.opened')
         context =>
             context.payload.pull_request.head.label.slice(0, 9) !== 'authelia:'
     )
-    .filter(
-        context =>
-            !context.payload.pull_request.head.label.includes(':master')
-    )
     .comment(`Thanks for choosing to contribute @{{ pull_request.user.login }}. We lint all PR's with golangci-lint and eslint, I may add a review to your PR with some suggestions.
     
 You are free to apply the changes if you're comfortable, alternatively you are welcome to ask a team member for advice.
