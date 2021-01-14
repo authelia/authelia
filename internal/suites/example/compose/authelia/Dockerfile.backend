@@ -12,6 +12,8 @@ RUN mkdir -p /config && chown dev:dev /config
 
 USER dev
 
+ENV PATH="/app:${PATH}"
+
 VOLUME /config
 
 EXPOSE 9091

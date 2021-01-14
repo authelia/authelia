@@ -55,9 +55,17 @@ func (de *DockerEnvironment) Restart(service string) error {
 	return de.createCommandWithStdout(fmt.Sprintf("restart %s", service)).Run()
 }
 
-// Down spawn a docker environment.
+// Down destroy a docker environment.
 func (de *DockerEnvironment) Down() error {
 	return de.createCommandWithStdout("down -v").Run()
+}
+
+// Exec execute a command within a given service of the environment.
+func (de *DockerEnvironment) Exec(service string, command []string) (string, error) {
+	cmd := de.createCommand(fmt.Sprintf("exec -T %s %s", service, strings.Join(command, " ")))
+	content, err := cmd.CombinedOutput()
+
+	return string(content), err
 }
 
 // Logs get logs of a given service of the environment.
