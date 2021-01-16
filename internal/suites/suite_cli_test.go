@@ -37,6 +37,12 @@ func (s *CLISuite) SetupTest() {
 	s.coverageArg = coverageArg
 }
 
+func (s *CLISuite) TestShouldPrintVersion() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "version"})
+	s.Assert().Nil(err)
+	s.Assert().Contains(output, "Authelia version")
+}
+
 func (s *CLISuite) TestShouldValidateConfig() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "/config/configuration.yml"})
 	s.Assert().Nil(err)
