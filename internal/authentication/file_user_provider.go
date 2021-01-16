@@ -36,10 +36,12 @@ type DatabaseModel struct {
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
 func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfiguration) *FileUserProvider {
+	logger := logging.Logger()
+
 	errs := checkDatabase(configuration.Path)
 	if errs != nil {
 		for _, err := range errs {
-			logging.Logger().Error(err)
+			logger.Error(err)
 		}
 
 		os.Exit(1)

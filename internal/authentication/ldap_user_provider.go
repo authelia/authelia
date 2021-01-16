@@ -166,8 +166,9 @@ func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, inputUsername s
 }
 
 func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername string) (*ldapUserProfile, error) {
+	logger := logging.Logger()
 	userFilter := p.resolveUsersFilter(p.configuration.UsersFilter, inputUsername)
-	logging.Logger().Tracef("Computed user filter is %s", userFilter)
+	logger.Tracef("Computed user filter is %s", userFilter)
 
 	attributes := []string{"dn",
 		p.configuration.DisplayNameAttribute,
@@ -239,6 +240,8 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 
 // GetDetails retrieve the groups a user belongs to.
 func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error) {
+	logger := logging.Logger()
+
 	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
 		return nil, err
@@ -255,7 +258,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 		return nil, fmt.Errorf("Unable to create group filter for user %s. Cause: %s", inputUsername, err)
 	}
 
-	logging.Logger().Tracef("Computed groups filter is %s", groupsFilter)
+	logger.Tracef("Computed groups filter is %s", groupsFilter)
 
 	// Search for the given username.
 	searchGroupRequest := ldap.NewSearchRequest(
@@ -273,7 +276,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 
 	for _, res := range sr.Entries {
 		if len(res.Attributes) == 0 {
-			logging.Logger().Warningf("No groups retrieved from LDAP for user %s", inputUsername)
+			logger.Warningf("No groups retrieved from LDAP for user %s", inputUsername)
 			break
 		}
 		// Append all values of the document. Normally there should be only one per document.
