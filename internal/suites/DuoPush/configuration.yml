@@ -47,7 +47,7 @@ duo_api:
 # resources.
 access_control:
   # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
-  default_policy: deny
+  default_policy: two_factor
 
   rules:
     - domain: singlefactor.example.com

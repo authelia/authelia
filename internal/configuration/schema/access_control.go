@@ -21,3 +21,31 @@ type ACLRule struct {
 	Networks  []string   `mapstructure:"networks"`
 	Resources []string   `mapstructure:"resources"`
 }
+
+// DefaultACLNetwork represents the default configuration related to access control network group configuration.
+var DefaultACLNetwork = []ACLNetwork{
+	{
+		Name:     []string{"localhost"},
+		Networks: []string{"127.0.0.1"},
+	},
+	{
+		Name:     []string{"internal"},
+		Networks: []string{"10.0.0.0/8"},
+	},
+}
+
+// DefaultACLRule represents the default configuration related to access control rule configuration.
+var DefaultACLRule = []ACLRule{
+	{
+		Domains: []string{"public.example.com"},
+		Policy:  "bypass",
+	},
+	{
+		Domains: []string{"singlefactor.example.com"},
+		Policy:  "one_factor",
+	},
+	{
+		Domains: []string{"secure.example.com"},
+		Policy:  "two_factor",
+	},
+}
