@@ -1,0 +1,42 @@
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+port: 9091
+tls_cert: /config/ssl/cert.pem
+tls_key: /config/ssl/key.pem
+
+log_level: debug
+
+jwt_secret: unsecure_secret
+
+authentication_backend:
+  file:
+    path: /config/users.yml
+
+session:
+  secret: unsecure_session_secret
+  domain: example.com
+  expiration: 3600 # 1 hour
+  inactivity: 300 # 5 minutes
+  remember_me_duration: 1y
+
+storage:
+  local:
+    path: /config/db.sqlite
+
+access_control:
+  default_policy: bypass
+  rules:
+    - domain: "public.example.com"
+      policy: bypass
+    - domain: "admin.example.com"
+      policy: two_factor
+    - domain: "secure.example.com"
+      policy: two_factor
+    - domain: "singlefactor.example.com"
+      policy: one_factor
+
+notifier:
+  filesystem:
+    filename: /config/notification.txt

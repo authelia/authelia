@@ -1,0 +1,7 @@
+version: '3'
+services:
+  authelia-backend:
+    volumes:
+      - './CLI/configuration.yml:/config/configuration.yml:ro'
+      - './CLI/users.yml:/config/users.yml'
+      - './common/ssl:/config/ssl:ro'
