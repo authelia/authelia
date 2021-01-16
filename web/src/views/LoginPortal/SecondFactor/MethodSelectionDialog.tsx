@@ -12,8 +12,8 @@ import {
 } from "@material-ui/core";
 
 import FingerTouchIcon from "../../../components/FingerTouchIcon";
-import PieChartIcon from "../../../components/PieChartIcon";
 import PushNotificationIcon from "../../../components/PushNotificationIcon";
+import TimerIcon from "../../../components/TimerIcon";
 import { SecondFactorMethod } from "../../../models/Methods";
 
 export interface Props {
@@ -30,14 +30,7 @@ const MethodSelectionDialog = function (props: Props) {
     const theme = useTheme();
 
     const pieChartIcon = (
-        <PieChartIcon
-            width={24}
-            height={24}
-            maxProgress={1000}
-            progress={150}
-            color={theme.palette.primary.main}
-            backgroundColor={"white"}
-        />
+        <TimerIcon width={24} height={24} period={15} color={theme.palette.primary.main} backgroundColor={"white"} />
     );
 
     return (
