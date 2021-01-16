@@ -24,6 +24,7 @@ import (
 
 // StartServer start Authelia server with the given configuration and providers.
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
+	logger := logging.Logger()
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
 	embeddedAssets := "/public_html/"
 	swaggerAssets := embeddedAssets + "api/"
@@ -147,30 +148,30 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	listener, err := net.Listen("tcp", addrPattern)
 	if err != nil {
-		logging.Logger().Fatalf("Error initializing listener: %s", err)
+		logger.Fatalf("Error initializing listener: %s", err)
 	}
 
 	if configuration.AuthenticationBackend.File != nil && configuration.AuthenticationBackend.File.Password.Algorithm == "argon2id" && runtime.GOOS == "linux" {
 		f, err := ioutil.ReadFile("/sys/fs/cgroup/memory/memory.limit_in_bytes")
 		if err != nil {
-			logging.Logger().Warnf("Error reading hosts memory limit: %s", err)
+			logger.Warnf("Error reading hosts memory limit: %s", err)
 		} else {
 			m, _ := strconv.Atoi(strings.TrimSuffix(string(f), "\n"))
 			hostMem := float64(m) / 1024 / 1024 / 1024
 			argonMem := float64(configuration.AuthenticationBackend.File.Password.Memory) / 1024
 
 			if hostMem/argonMem <= 2 {
-				logging.Logger().Warnf("Authelia's password hashing memory parameter is set to: %gGB this is %g%% of the available memory: %gGB", argonMem, argonMem/hostMem*100, hostMem)
-				logging.Logger().Warn("Please read https://www.authelia.com/docs/configuration/authentication/file.html#memory and tune your deployment")
+				logger.Warnf("Authelia's password hashing memory parameter is set to: %gGB this is %g%% of the available memory: %gGB", argonMem, argonMem/hostMem*100, hostMem)
+				logger.Warn("Please read https://www.authelia.com/docs/configuration/authentication/file.html#memory and tune your deployment")
 			}
 		}
 	}
 
 	if configuration.TLSCert != "" && configuration.TLSKey != "" {
-		logging.Logger().Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
-		logging.Logger().Fatal(server.ServeTLS(listener, configuration.TLSCert, configuration.TLSKey))
+		logger.Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		logger.Fatal(server.ServeTLS(listener, configuration.TLSCert, configuration.TLSKey))
 	} else {
-		logging.Logger().Infof("Authelia is listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
-		logging.Logger().Fatal(server.Serve(listener))
+		logger.Infof("Authelia is listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		logger.Fatal(server.Serve(listener))
 	}
 }
