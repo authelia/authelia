@@ -178,6 +178,7 @@ const schemeLDAP = "ldap"
 const schemeLDAPS = "ldaps"
 
 const testBadTimer = "-1"
+const testInvalidPolicy = "invalid"
 const testJWTSecret = "a_secret"
 const testLDAPBaseDN = "base_dn"
 const testLDAPPassword = "password"
