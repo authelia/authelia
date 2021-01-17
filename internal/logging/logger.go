@@ -23,7 +23,7 @@ func InitializeLogger(format, filename string) error {
 	stackLevels := []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
 	logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
 
-	if format == "json" {
+	if format == logFormatJSON {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	} else {
 		logrus.SetFormatter(&logrus.TextFormatter{})
@@ -34,6 +34,13 @@ func InitializeLogger(format, filename string) error {
 
 		if err != nil {
 			return err
+		}
+
+		if format != logFormatJSON {
+			logrus.SetFormatter(&logrus.TextFormatter{
+				DisableColors: true,
+				FullTimestamp: true,
+			})
 		}
 
 		logrus.SetOutput(f)

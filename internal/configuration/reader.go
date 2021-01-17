@@ -18,6 +18,8 @@ import (
 // Read a YAML configuration and create a Configuration object out of it.
 //go:generate broccoli -src ../../config.template.yml -var=cfg -o configuration
 func Read(configPath string) (*schema.Configuration, []error) {
+	logger := logging.Logger()
+
 	if configPath == "" {
 		return nil, []error{errors.New("No config file path provided")}
 	}
@@ -81,7 +83,7 @@ func Read(configPath string) (*schema.Configuration, []error) {
 
 	if val.HasWarnings() {
 		for _, warn := range val.Warnings() {
-			logging.Logger().Warnf(warn.Error())
+			logger.Warnf(warn.Error())
 		}
 	}
 

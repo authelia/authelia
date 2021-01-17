@@ -114,8 +114,8 @@ func (p *Authorizer) IsSecondFactorEnabled() bool {
 
 // GetRequiredLevel retrieve the required level of authorization to access the object.
 func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL) Level {
-	logging.Logger().Tracef("Check authorization of subject %s and url %s.",
-		subject.String(), requestURL.String())
+	logger := logging.Logger()
+	logger.Tracef("Check authorization of subject %s and url %s.", subject.String(), requestURL.String())
 
 	matchingRules := selectMatchingRules(p.configuration.Rules, p.configuration.Networks, subject, Object{
 		Domain: requestURL.Hostname(),
@@ -126,8 +126,7 @@ func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL) Level
 		return PolicyToLevel(matchingRules[0].Policy)
 	}
 
-	logging.Logger().Tracef("No matching rule for subject %s and url %s... Applying default policy.",
-		subject.String(), requestURL.String())
+	logger.Tracef("No matching rule for subject %s and url %s... Applying default policy.", subject.String(), requestURL.String())
 
 	return PolicyToLevel(p.configuration.DefaultPolicy)
 }

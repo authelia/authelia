@@ -46,4 +46,5 @@ qemu-*-static
 
 public_html.gen.go
 
+authelia
 __debug_bin
