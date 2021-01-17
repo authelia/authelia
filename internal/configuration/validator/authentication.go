@@ -110,24 +110,6 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 	}
 
-	// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28 (if block).
-	if configuration.SkipVerify != nil {
-		validator.PushWarning(errors.New("DEPRECATED: LDAP Auth Backend `skip_verify` option has been replaced by `authentication_backend.ldap.tls.skip_verify` (will be removed in 4.28.0)"))
-
-		if nilTLS {
-			configuration.TLS.SkipVerify = *configuration.SkipVerify
-		}
-	}
-
-	// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28 (if block).
-	if configuration.MinimumTLSVersion != "" {
-		validator.PushWarning(errors.New("DEPRECATED: LDAP Auth Backend `minimum_tls_version` option has been replaced by `authentication_backend.ldap.tls.minimum_version` (will be removed in 4.28.0)"))
-
-		if nilTLS {
-			configuration.TLS.MinimumVersion = configuration.MinimumTLSVersion
-		}
-	}
-
 	if configuration.TLS.MinimumVersion == "" {
 		configuration.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
 	}

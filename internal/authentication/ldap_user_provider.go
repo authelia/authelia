@@ -59,29 +59,6 @@ func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBacke
 }
 
 func (p *LDAPUserProvider) parseDynamicConfiguration() {
-	logger := logging.Logger() // Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
-
-	// Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
-	if strings.Contains(p.configuration.UsersFilter, "{0}") {
-		logger.Warnf("DEPRECATION NOTICE: LDAP Users Filter will no longer support replacing `{0}` in 4.28.0. Please use `{input}` instead.")
-
-		p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{0}", "{input}")
-	}
-
-	// Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
-	if strings.Contains(p.configuration.GroupsFilter, "{0}") {
-		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{0}` in 4.28.0. Please use `{input}` instead.")
-
-		p.configuration.GroupsFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{0}", "{input}")
-	}
-
-	// Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
-	if strings.Contains(p.configuration.GroupsFilter, "{1}") {
-		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{1}` in 4.28.0. Please use `{username}` instead.")
-
-		p.configuration.GroupsFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{1}", "{username}")
-	}
-
 	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{username_attribute}", p.configuration.UsernameAttribute)
 	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{mail_attribute}", p.configuration.MailAttribute)
 	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{display_name_attribute}", p.configuration.DisplayNameAttribute)

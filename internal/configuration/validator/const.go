@@ -74,12 +74,10 @@ var validKeys = []string{
 	"notifier.smtp.subject",
 	"notifier.smtp.startup_check_address",
 	"notifier.smtp.disable_require_tls",
-	"notifier.smtp.trusted_cert", // TODO: Deprecated: Remove in 4.28.
 	"notifier.smtp.disable_html_emails",
 	"notifier.smtp.tls.minimum_version",
 	"notifier.smtp.tls.skip_verify",
 	"notifier.smtp.tls.server_name",
-	"notifier.smtp.disable_verify_cert", // TODO: Deprecated: Remove in 4.28.
 
 	// Regulation Keys.
 	"regulation.max_retries",
@@ -113,8 +111,6 @@ var validKeys = []string{
 	"authentication_backend.ldap.tls.minimum_version",
 	"authentication_backend.ldap.tls.skip_verify",
 	"authentication_backend.ldap.tls.server_name",
-	"authentication_backend.ldap.skip_verify",         // TODO: Deprecated: Remove in 4.28.
-	"authentication_backend.ldap.minimum_tls_version", // TODO: Deprecated: Remove in 4.28.
 
 	// File Authentication Backend Keys.
 	"authentication_backend.file.path",
