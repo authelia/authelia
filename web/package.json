@@ -26,7 +26,7 @@
     "chai": "^4.2.0",
     "classnames": "^2.2.6",
     "enzyme": "^3.11.0",
-    "enzyme-adapter-react-16": "^1.15.5",
+    "enzyme-adapter-react-16": "^1.15.6",
     "eslint-config-prettier": "^7.2.0",
     "eslint-import-resolver-typescript": "^2.3.0",
     "eslint-plugin-prettier": "^3.3.1",
