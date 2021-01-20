@@ -5,10 +5,9 @@ go 1.15
 require (
 	aletheia.icu/broccoli/fs v0.0.0-20200420200651-c5ac961a357a
 	github.com/DATA-DOG/go-sqlmock v1.4.1
-	cloud.google.com/go/logging v1.0.0
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/Workiva/go-datastructures v1.0.52
-	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a
+	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535
 	github.com/authelia/session/v2 v2.3.0
 	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -25,7 +24,7 @@ require (
 	github.com/pquerna/otp v1.2.0
 	github.com/simia-tech/crypt v0.4.3
 	github.com/sirupsen/logrus v1.6.0
-	github.com/spf13/cobra v0.0.7
+	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/selenium v0.9.9
