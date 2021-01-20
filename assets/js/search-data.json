@@ -727,27 +727,27 @@
   },"121": {
     "doc": "Regulation",
     "title": "Regulation",
-    "content": "Authelia can temporarily ban accounts when there are too many authentication attempts. This helps prevent brute-force attacks. ",
-    "url": "/docs/configuration/regulation.html",
-    "relUrl": "/configuration/regulation.html"
-  },"122": {
-    "doc": "Regulation",
-    "title": "Configuration",
-    "content": "regulation: # The number of failed login attempts before user is banned. # Set it to 0 to disable regulation. max_retries: 3 # The time range during which the user can attempt login before being banned. # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window. # Find Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format find_time: 2m # The length of time before a banned user can sign in again. # Find Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format ban_time: 5m . Duration Notation . The configuration parameters find_time, and ban_time use duration notation. See the documentation for duration notation format for more information. ",
-    "url": "/docs/configuration/regulation.html#configuration",
-    "relUrl": "/configuration/regulation.html#configuration"
-  },"123": {
-    "doc": "Regulation",
-    "title": "Regulation",
     "content": "Authelia takes the security of users very seriously and comes with a way to avoid brute-forcing the first factor credentials by regulating the authentication attempts and temporarily banning an account when too many attempts have been made. ",
     "url": "/docs/features/regulation.html",
     "relUrl": "/features/regulation.html"
-  },"124": {
+  },"122": {
     "doc": "Regulation",
     "title": "Configuration",
     "content": "Please check the dedicated documentation. ",
     "url": "/docs/features/regulation.html#configuration",
     "relUrl": "/features/regulation.html#configuration"
+  },"123": {
+    "doc": "Regulation",
+    "title": "Regulation",
+    "content": "Authelia can temporarily ban accounts when there are too many authentication attempts. This helps prevent brute-force attacks. ",
+    "url": "/docs/configuration/regulation.html",
+    "relUrl": "/configuration/regulation.html"
+  },"124": {
+    "doc": "Regulation",
+    "title": "Configuration",
+    "content": "regulation: # The number of failed login attempts before user is banned. # Set it to 0 to disable regulation. max_retries: 3 # The time range during which the user can attempt login before being banned. # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window. # Find Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format find_time: 2m # The length of time before a banned user can sign in again. # Find Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format ban_time: 5m . Duration Notation . The configuration parameters find_time, and ban_time use duration notation. See the documentation for duration notation format for more information. ",
+    "url": "/docs/configuration/regulation.html#configuration",
+    "relUrl": "/configuration/regulation.html#configuration"
   },"125": {
     "doc": "Roadmap",
     "title": "Roadmap",
@@ -917,96 +917,108 @@
     "url": "/docs/contributing/suites.html#create-a-suite",
     "relUrl": "/contributing/suites.html#create-a-suite"
   },"153": {
+    "doc": "Theme",
+    "title": "Theme",
+    "content": "The theme section configures the theme and style Authelia uses. There are currently 3 available themes for Authelia: . | light (default) | dark | grey | . ",
+    "url": "/docs/configuration/theme.html",
+    "relUrl": "/configuration/theme.html"
+  },"154": {
+    "doc": "Theme",
+    "title": "Configuration",
+    "content": "# The theme to display: light, dark, grey theme: light . ",
+    "url": "/docs/configuration/theme.html#configuration",
+    "relUrl": "/configuration/theme.html#configuration"
+  },"155": {
     "doc": "Threat Model",
     "title": "Threat Model",
     "content": "The design goals for Authelia is to protect access to applications by collaborating with reverse proxies to prevent attacks coming from the edge of the network. This document gives an overview of what Authelia is protecting against but some of those points are also detailed in Security Measures. ",
     "url": "/docs/security/threat-model.html",
     "relUrl": "/security/threat-model.html"
-  },"154": {
+  },"156": {
     "doc": "Threat Model",
     "title": "General assumptions",
     "content": "Authelia is considered to be running within a trusted network and it heavily relies on the first level of security provided by reverse proxies. It’s very important that you take time configuring your reverse proxy properly to get all the authentication benefits brought by Authelia. Some general security tweaks are listed in Security Measures to give you some ideas. ",
     "url": "/docs/security/threat-model.html#general-assumptions",
     "relUrl": "/security/threat-model.html#general-assumptions"
-  },"155": {
+  },"157": {
     "doc": "Threat Model",
     "title": "Guarantees",
     "content": "If properly configured, Authelia guarantees the following for security of your users and your apps: . | Applications cannot be accessed without proper authorization. The access control list is highly configurable allowing administrators to guarantee least privilege principle. | Applications can be protected with two factors in order to fight against credentials theft and protect highly sensitive data or operations. | Sessions are bound in time, limiting the impact of a cookie theft. Sessions can have both soft and hard limits. With soft limit, the user is logged out when inactive for a certain period. With hard limit, the user has to authenticate again after a certain period, whether they were active or not. | Brute force attacks against credentials are protected thanks to a regulation mechanism temporarily blocking the user account after too many attempts. | Identity validation is required for performing administrative actions such as registering 2FA devices, preventing attackers to pass second factor by auto-registering their own 2FA device. An email with a link is sent to the user and a click is required to confirm the action. | Prevention against session fixation by regenerating a new session after each privilege elevation. | Prevention against LDAP injection by following OWASP recommendations regarding valid input characters (https://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html). | Connections between Authelia and thirdparty components like mail server, database, cache and LDAP server can be made over TLS to protect against man-in-the-middle attacks from within the infrastructure. | Validation of user session group memberships gets refreshed regularly from the authentication backend (LDAP only). | . ",
     "url": "/docs/security/threat-model.html#guarantees",
     "relUrl": "/security/threat-model.html#guarantees"
-  },"156": {
+  },"158": {
     "doc": "Threat Model",
     "title": "Potential future guarantees",
     "content": ". | Define and enforce a password policy (to be designed since such a policy can clash with a policy set by the LDAP server). | Detect credential theft and prevent malicious actions. | Detect session cookie theft and prevent malicious actions. | Authenticate communications between Authelia and reverse proxy. | Securely transmit authentication data to backends (OAuth2 with bearer tokens). | Protect secrets stored in DB with encryption to prevent secrets leak by DB exfiltration. | Least privilege on LDAP binding operations (currently administrative user is used to bind while it could be anonymous). | Extend the check of user group memberships to authentication backends other than LDAP (File currently). | Invalidate user session after profile or membership has changed in order to drop remaining privileges on the fly. | . ",
     "url": "/docs/security/threat-model.html#potential-future-guarantees",
     "relUrl": "/security/threat-model.html#potential-future-guarantees"
-  },"157": {
+  },"159": {
     "doc": "Threat Model",
     "title": "Trusted environment",
     "content": "It’s important to note that Authelia is considered running in a trusted environment for two reasons . | Requests coming to Authelia should be initiated by reverse proxies but CAN be initiated by any other server currently. There is no trusted relationship between Authelia and the reverse proxy so an attacker within the network could abuse Authelia and attack it. | Your environment should be considered trusted especially if you’re using the Remote-User, Remote-Name, Remote-Email and Remote-Groups headers to forward authentication data to your backends. These headers are transmitted plain and unsigned to the backends, meaning a malicious user within the network could pretend to be Authelia and send those headers to bypass authentication and gain access to the service. A mitigation could be to transmit those headers with a digital signature which could be verified by the backend however, many backends just don’t support it. It has therefore been decided to invest on OpenID Connect instead to solve that authentication delegation problem. Indeed, many backends do support OAuth2 though since it has become a standard lately. | . ",
     "url": "/docs/security/threat-model.html#trusted-environment",
     "relUrl": "/security/threat-model.html#trusted-environment"
-  },"158": {
+  },"160": {
     "doc": "Traefik 1.x",
     "title": "Traefik",
     "content": "Traefik 1.x is a reverse proxy supported by Authelia. ",
     "url": "/docs/deployment/supported-proxies/traefik1.x.html#traefik",
     "relUrl": "/deployment/supported-proxies/traefik1.x.html#traefik"
-  },"159": {
+  },"161": {
     "doc": "Traefik 1.x",
     "title": "Configuration",
     "content": "Below you will find commented examples of the following configuration: . | Traefik 1.x | Authelia portal | Protected endpoint (Nextcloud) | . The below configuration looks to provide examples of running Traefik 1.x with labels to protect your endpoint (Nextcloud in this case). Please ensure that you also setup the respective ACME configuration for your Traefik setup as this is not covered in the example below. docker-compose.yml . version: '3' networks: net: driver: bridge services: traefik: image: traefik:v1.7.20-alpine container_name: traefik volumes: - /var/run/docker.sock:/var/run/docker.sock networks: - net labels: - 'traefik.frontend.rule=Host:traefik.example.com' - 'traefik.port=8081' ports: - 80:80 - 443:443 - 8081:8081 restart: unless-stopped command: - '--api' - '--api.entrypoint=api' - '--docker' - '--defaultentrypoints=https' - '--logLevel=DEBUG' - '--traefiklog=true' - '--traefiklog.filepath=/var/log/traefik.log' - '--entryPoints=Name:http Address::80' - '--entryPoints=Name:https Address::443 TLS' - '--entryPoints=Name:api Address::8081' authelia: image: authelia/authelia container_name: authelia volumes: - /path/to/authelia:/config networks: - net labels: - 'traefik.frontend.rule=Host:login.example.com' expose: - 9091 restart: unless-stopped environment: - TZ=Australia/Melbourne nextcloud: image: linuxserver/nextcloud container_name: nextcloud volumes: - /path/to/nextcloud/config:/config - /path/to/nextcloud/data:/data networks: - net labels: - 'traefik.frontend.rule=Host:nextcloud.example.com' - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?rd=https://login.example.com/' - 'traefik.frontend.auth.forward.trustForwardHeader=true' - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email' expose: - 443 restart: unless-stopped environment: - PUID=1000 - PGID=1000 - TZ=Australia/Melbourne . ",
     "url": "/docs/deployment/supported-proxies/traefik1.x.html#configuration",
     "relUrl": "/deployment/supported-proxies/traefik1.x.html#configuration"
-  },"160": {
+  },"162": {
     "doc": "Traefik 1.x",
     "title": "Traefik 1.x",
     "content": " ",
     "url": "/docs/deployment/supported-proxies/traefik1.x.html",
     "relUrl": "/deployment/supported-proxies/traefik1.x.html"
-  },"161": {
+  },"163": {
     "doc": "Traefik 2.x",
     "title": "Traefik2",
     "content": "Traefik 2.x is a reverse proxy supported by Authelia. ",
     "url": "/docs/deployment/supported-proxies/traefik2.x.html#traefik2",
     "relUrl": "/deployment/supported-proxies/traefik2.x.html#traefik2"
-  },"162": {
+  },"164": {
     "doc": "Traefik 2.x",
     "title": "Configuration",
     "content": "Below you will find commented examples of the following configuration: . | Traefik 2.x | Authelia portal | Protected endpoint (Nextcloud) | . The below configuration looks to provide examples of running Traefik 2.x with labels to protect your endpoint (Nextcloud in this case). Please ensure that you also setup the respective ACME configuration for your Traefik setup as this is not covered in the example below. docker-compose.yml . version: '3' networks: net: driver: bridge services: traefik: image: traefik:v2.2 container_name: traefik volumes: - /var/run/docker.sock:/var/run/docker.sock networks: - net labels: - 'traefik.enable=true' - 'traefik.http.routers.api.rule=Host(`traefik.example.com`)' - 'traefik.http.routers.api.entrypoints=https' - 'traefik.http.routers.api.service=api@internal' - 'traefik.http.routers.api.tls=true' ports: - 80:80 - 443:443 command: - '--api' - '--providers.docker=true' - '--providers.docker.exposedByDefault=false' - '--entrypoints.http=true' - '--entrypoints.http.address=:80' - '--entrypoints.http.http.redirections.entrypoint.to=https' - '--entrypoints.http.http.redirections.entrypoint.scheme=https' - '--entrypoints.https=true' - '--entrypoints.https.address=:443' - '--log=true' - '--log.level=DEBUG' - '--log.filepath=/var/log/traefik.log' authelia: image: authelia/authelia container_name: authelia volumes: - /path/to/authelia:/config networks: - net labels: - 'traefik.enable=true' - 'traefik.http.routers.authelia.rule=Host(`login.example.com`)' - 'traefik.http.routers.authelia.entrypoints=https' - 'traefik.http.routers.authelia.tls=true' - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.example.com/' - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true' - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email' expose: - 9091 restart: unless-stopped environment: - TZ=Australia/Melbourne nextcloud: image: linuxserver/nextcloud container_name: nextcloud volumes: - /path/to/nextcloud/config:/config - /path/to/nextcloud/data:/data networks: - net labels: - 'traefik.enable=true' - 'traefik.http.routers.nextcloud.rule=Host(`nextcloud.example.com`)' - 'traefik.http.routers.nextcloud.entrypoints=https' - 'traefik.http.routers.nextcloud.tls=true' - 'traefik.http.routers.nextcloud.middlewares=authelia@docker' expose: - 443 restart: unless-stopped environment: - PUID=1000 - PGID=1000 - TZ=Australia/Melbourne . ",
     "url": "/docs/deployment/supported-proxies/traefik2.x.html#configuration",
     "relUrl": "/deployment/supported-proxies/traefik2.x.html#configuration"
-  },"163": {
+  },"165": {
     "doc": "Traefik 2.x",
     "title": "FAQ",
     "content": "Middleware authelia@docker not found . If Traefik and Authelia are defined in different docker compose stacks you may experience an issue where Traefik complains that: middleware authelia@docker not found. This can be avoided a couple different ways: . | Ensure Authelia container is up before Traefik is started: . | Utilise the depends_on option | . | Define the Authelia middleware on your Traefik container - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.example.com/' - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true' - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email' . | . ",
     "url": "/docs/deployment/supported-proxies/traefik2.x.html#faq",
     "relUrl": "/deployment/supported-proxies/traefik2.x.html#faq"
-  },"164": {
+  },"166": {
     "doc": "Traefik 2.x",
     "title": "Traefik 2.x",
     "content": " ",
     "url": "/docs/deployment/supported-proxies/traefik2.x.html",
     "relUrl": "/deployment/supported-proxies/traefik2.x.html"
-  },"165": {
+  },"167": {
     "doc": "2FA through basic auth",
     "title": "authelia-basic-2fa",
     "content": " ",
     "url": "/docs/community/two-factor-basic-auth.html#authelia-basic-2fa",
     "relUrl": "/community/two-factor-basic-auth.html#authelia-basic-2fa"
-  },"166": {
+  },"168": {
     "doc": "2FA through basic auth",
     "title": "2FA through basic auth",
     "content": "The following project allows you to use Authelia’s one-time password (OTP) 2-factor authentication (2FA) through only basic auth and a custom credentials format described below. This allows you to use 2FA on clients and scenarios that demand basic auth, e.g. webdav network streaming. More information: . ",
     "url": "/docs/community/two-factor-basic-auth.html",
     "relUrl": "/community/two-factor-basic-auth.html"
-  },"167": {
+  },"169": {
     "doc": "Using Remote-User header for SSO with Jira",
     "title": "Using Remote-User header for SSO with Jira",
     "content": "You can make Jira auto-login to the user that is currently logged in to authelia. I say “auto-login” as I couldn’t find any plugin to actually be authentication provider through HTTP headers only - LDAP though seems to have support. So this guide is targeted to authelia users that don’t use any other authentication backend. I’m using traefik with docker as an example, but any proxy that can forward authelia Remote-User header is fine. First of all, users should exist on both authelia and Jira AND have the same username for this to work. Also you will have to pay for a plugin. After both steps are done: . | Add traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User in the labels of authelia | Add traefik.http.routers.jira.middlewares=authelia@docker in the labels of Jira (to actually enable authelia for the jira instance) | Install EasySSO in Jira | Go to EasySSO preferences and add the “Remote-User” header under HTTP and tick the “Username” checkbox. | Save | . ",
     "url": "/docs/community/using-remote-user-header-for-sso-with-jira.html",
     "relUrl": "/community/using-remote-user-header-for-sso-with-jira.html"
-  },"168": {
+  },"170": {
     "doc": "Using Remote-User header for SSO with Jira",
     "title": "Other Systems",
     "content": "While this guide is tailored for Jira, you can use a similar method with many other services like Jenkins and Grafana. ",
