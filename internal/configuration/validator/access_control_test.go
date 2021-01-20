@@ -29,7 +29,7 @@ func (suite *AccessControl) TestShouldValidateCompleteConfiguration() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
-	suite.configuration.DefaultPolicy = "invalid"
+	suite.configuration.DefaultPolicy = testInvalidPolicy
 
 	ValidateAccessControl(suite.configuration, suite.validator)
 
@@ -71,7 +71,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidPolicy() {
 	suite.configuration.Rules = []schema.ACLRule{
 		{
 			Domains: []string{"public.example.com"},
-			Policy:  "invalid",
+			Policy:  testInvalidPolicy,
 		},
 	}
 

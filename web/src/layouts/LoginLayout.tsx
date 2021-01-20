@@ -52,7 +52,6 @@ const useStyles = makeStyles((theme) => ({
     root: {
         minHeight: "90vh",
         textAlign: "center",
-        // marginTop: theme.spacing(10),
     },
     rootContainer: {
         paddingLeft: 32,
@@ -62,6 +61,7 @@ const useStyles = makeStyles((theme) => ({
     icon: {
         margin: theme.spacing(),
         width: "64px",
+        fill: theme.custom.icon,
     },
     body: {},
     poweredBy: {

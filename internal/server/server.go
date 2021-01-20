@@ -33,9 +33,9 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
-	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.Path, configuration.Session.Name, rememberMe, resetPassword)
-	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.Path, configuration.Session.Name, rememberMe, resetPassword)
-	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.Path, configuration.Session.Name, rememberMe, resetPassword)
+	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
+	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
+	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
 
 	r := router.New()
 	r.GET("/", serveIndexHandler)

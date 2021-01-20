@@ -9,6 +9,7 @@ var validKeys = []string{
 	"log_file_path",
 	"default_redirection_url",
 	"jwt_secret",
+	"theme",
 	"tls_key",
 	"tls_cert",
 	"certificates_directory",
@@ -177,6 +178,7 @@ const schemeLDAP = "ldap"
 const schemeLDAPS = "ldaps"
 
 const testBadTimer = "-1"
+const testInvalidPolicy = "invalid"
 const testJWTSecret = "a_secret"
 const testLDAPBaseDN = "base_dn"
 const testLDAPPassword = "password"

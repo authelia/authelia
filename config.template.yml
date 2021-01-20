@@ -8,6 +8,9 @@ port: 9091
 # tls_key: /config/ssl/key.pem
 # tls_cert: /config/ssl/cert.pem
 
+# The theme to display: light, dark, grey
+theme: light
+
 # Configuration options specific to the internal http server
 server:
   # Buffers usually should be configured to be the same value.
