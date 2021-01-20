@@ -11,6 +11,8 @@ services:
       - 'traefik.http.routers.authelia_backend.entrypoints=https'
       - 'traefik.http.routers.authelia_backend.tls=true'
       - 'traefik.http.services.authelia_backend.loadbalancer.server.scheme=https'
+    volumes:
+      - '../..:/authelia'
     environment:
       - ENVIRONMENT=dev
     restart: always

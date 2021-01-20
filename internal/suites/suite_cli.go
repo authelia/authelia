@@ -1,0 +1,49 @@
+package suites
+
+import (
+	"fmt"
+	"time"
+)
+
+var cliSuiteName = "CLI"
+
+func init() {
+	dockerEnvironment := NewDockerEnvironment([]string{
+		"internal/suites/docker-compose.yml",
+		"internal/suites/CLI/docker-compose.yml",
+		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+	})
+
+	setup := func(suitePath string) error {
+		if err := dockerEnvironment.Up(); err != nil {
+			return err
+		}
+
+		return waitUntilAutheliaIsReady(dockerEnvironment, cliSuiteName)
+	}
+
+	displayAutheliaLogs := func() error {
+		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(backendLogs)
+
+		return nil
+	}
+
+	teardown := func(suitePath string) error {
+		err := dockerEnvironment.Down()
+		return err
+	}
+
+	GlobalRegistry.Register(cliSuiteName, Suite{
+		SetUp:           setup,
+		SetUpTimeout:    5 * time.Minute,
+		OnSetupTimeout:  displayAutheliaLogs,
+		TestTimeout:     2 * time.Minute,
+		TearDown:        teardown,
+		TearDownTimeout: 2 * time.Minute,
+	})
+}

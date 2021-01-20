@@ -25,13 +25,11 @@ func init() {
 	})
 
 	setup := func(suitePath string) error {
-		err := dockerEnvironment.Up()
-
-		if err != nil {
+		if err := dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment)
+		return waitUntilAutheliaIsReady(dockerEnvironment, standaloneSuiteName)
 	}
 
 	displayAutheliaLogs := func() error {
@@ -54,6 +52,8 @@ func init() {
 
 	teardown := func(suitePath string) error {
 		err := dockerEnvironment.Down()
+		_ = os.Remove("/tmp/db.sqlite3")
+
 		return err
 	}
 

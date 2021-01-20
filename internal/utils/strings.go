@@ -2,6 +2,7 @@ package utils
 
 import (
 	"math/rand"
+	"strings"
 	"time"
 	"unicode"
 )
@@ -21,6 +22,17 @@ func IsStringAlphaNumeric(input string) bool {
 func IsStringInSlice(a string, list []string) (inSlice bool) {
 	for _, b := range list {
 		if b == a {
+			return true
+		}
+	}
+
+	return false
+}
+
+// IsStringInSliceContains checks if a single string is in an array of strings.
+func IsStringInSliceContains(a string, list []string) (inSlice bool) {
+	for _, b := range list {
+		if strings.Contains(a, b) {
 			return true
 		}
 	}
@@ -86,7 +98,7 @@ func RandomString(n int, characters []rune) (randomString string) {
 
 	b := make([]rune, n)
 	for i := range b {
-		b[i] = characters[rand.Intn(len(characters))]
+		b[i] = characters[rand.Intn(len(characters))] //nolint:gosec // Likely isn't necessary to use the more expensive crypto/rand for this utility func.
 	}
 
 	return string(b)

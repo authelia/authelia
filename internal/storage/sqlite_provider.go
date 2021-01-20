@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3" // Load the SQLite Driver used in the connection string.
-
-	"github.com/authelia/authelia/internal/logging"
 )
 
 // SQLiteProvider is a SQLite3 provider.
@@ -16,22 +14,15 @@ type SQLiteProvider struct {
 
 // NewSQLiteProvider constructs a SQLite provider.
 func NewSQLiteProvider(path string) *SQLiteProvider {
-	db, err := sql.Open("sqlite3", path)
-	if err != nil {
-		logging.Logger().Fatalf("Unable to create SQLite database %s: %s", path, err)
-	}
-
 	provider := SQLiteProvider{
 		SQLProvider{
-			sqlCreateUserPreferencesTable:            SQLCreateUserPreferencesTable,
-			sqlCreateIdentityVerificationTokensTable: SQLCreateIdentityVerificationTokensTable,
-			sqlCreateTOTPSecretsTable:                SQLCreateTOTPSecretsTable,
-			sqlCreateU2FDeviceHandlesTable:           SQLCreateU2FDeviceHandlesTable,
-			sqlCreateAuthenticationLogsTable:         fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (username VARCHAR(100), successful BOOL, time INTEGER)", authenticationLogsTableName),
-			sqlCreateAuthenticationLogsUserTimeIndex: fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
+			name: "sqlite",
 
-			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", preferencesTableName),
-			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", preferencesTableName),
+			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
+			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
+
+			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", userPreferencesTableName),
+			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", userPreferencesTableName),
 
 			sqlTestIdentityVerificationTokenExistence: fmt.Sprintf("SELECT EXISTS (SELECT * FROM %s WHERE token=?)", identityVerificationTokensTableName),
 			sqlInsertIdentityVerificationToken:        fmt.Sprintf("INSERT INTO %s (token) VALUES (?)", identityVerificationTokensTableName),
@@ -46,10 +37,21 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 
 			sqlInsertAuthenticationLog:     fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
 			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC", authenticationLogsTableName),
+
+			sqlGetExistingTables: "SELECT name FROM sqlite_master WHERE type='table'",
+
+			sqlConfigSetValue: fmt.Sprintf("REPLACE INTO %s (category, key_name, value) VALUES (?, ?, ?)", configTableName),
+			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key_name=?", configTableName),
 		},
 	}
+
+	db, err := sql.Open("sqlite3", path)
+	if err != nil {
+		provider.log.Fatalf("Unable to create SQL database %s: %s", path, err)
+	}
+
 	if err := provider.initialize(db); err != nil {
-		logging.Logger().Fatalf("Unable to initialize SQLite database %s: %s", path, err)
+		provider.log.Fatalf("Unable to initialize SQL database %s: %s", path, err)
 	}
 
 	return &provider

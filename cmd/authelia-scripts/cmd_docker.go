@@ -15,7 +15,7 @@ import (
 
 var arch string
 
-var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "darwin"}
+var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "coverage"}
 var defaultArch = "amd64"
 var buildkiteQEMU = os.Getenv("BUILDKITE_AGENT_META_DATA_QEMU")
 var ciBranch = os.Getenv("BUILDKITE_BRANCH")
@@ -46,7 +46,7 @@ func dockerBuildOfficialImage(arch string) error {
 	// Set default Architecture Dockerfile to amd64.
 	dockerfile := "Dockerfile"
 	// Set version of QEMU.
-	qemuversion := "v4.2.0-7"
+	qemuversion := "v5.2.0-2"
 
 	// If not the default value.
 	if arch != defaultArch {

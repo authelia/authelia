@@ -18,15 +18,29 @@ func SetLevel(level logrus.Level) {
 }
 
 // InitializeLogger initialize logger.
-func InitializeLogger(filename string) error {
+func InitializeLogger(format, filename string) error {
 	callerLevels := []logrus.Level{}
 	stackLevels := []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
 	logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
 
+	if format == logFormatJSON {
+		logrus.SetFormatter(&logrus.JSONFormatter{})
+	} else {
+		logrus.SetFormatter(&logrus.TextFormatter{})
+	}
+
 	if filename != "" {
-		f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
+		f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+
 		if err != nil {
 			return err
+		}
+
+		if format != logFormatJSON {
+			logrus.SetFormatter(&logrus.TextFormatter{
+				DisableColors: true,
+				FullTimestamp: true,
+			})
 		}
 
 		logrus.SetOutput(f)

@@ -138,6 +138,21 @@ func runSuiteSetupTeardown(command string, suite string) error {
 
 	s := suites.GlobalRegistry.Get(selectedSuite)
 
+	if command == "teardown" {
+		if _, err := os.Stat("../../web/.nyc_output"); err == nil {
+			log.Infof("Generating frontend coverage reports for suite %s...", suite)
+
+			cmd := utils.Command("yarn", "report")
+			cmd.Dir = "web"
+			cmd.Env = os.Environ()
+
+			err := cmd.Run()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+
 	cmd := utils.CommandWithStdout("go", "run", "cmd/authelia-suites/main.go", command, selectedSuite)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -180,10 +195,16 @@ func setupSuite(suiteName string) error {
 
 	if errSetup := runSuiteSetupTeardown("setup", suiteName); errSetup != nil || interrupted {
 		if errSetup == utils.ErrTimeoutReached {
-			runOnSetupTimeout(suiteName) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+			err := runOnSetupTimeout(suiteName)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
-		teardownSuite(suiteName) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+		err := teardownSuite(suiteName)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		return errSetup
 	}

@@ -58,15 +58,30 @@ func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) erro
 		[]string{"You can now view web in the browser.", "Compiled with warnings", "Compiled successfully!"})
 }
 
-func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment) error {
+func waitUntilSambaIsReady(dockerEnvironment *DockerEnvironment) error {
+	return waitUntilServiceLogDetected(
+		5*time.Second,
+		90*time.Second,
+		dockerEnvironment,
+		"sambaldap",
+		[]string{"samba entered RUNNING state"})
+}
+
+func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment, suite string) error {
 	log.Info("Waiting for Authelia to be ready...")
 
 	if err := waitUntilAutheliaBackendIsReady(dockerEnvironment); err != nil {
 		return err
 	}
 
-	if os.Getenv("CI") != stringTrue {
+	if os.Getenv("CI") != stringTrue && suite != "CLI" {
 		if err := waitUntilAutheliaFrontendIsReady(dockerEnvironment); err != nil {
+			return err
+		}
+	}
+
+	if suite == "ActiveDirectory" {
+		if err := waitUntilSambaIsReady(dockerEnvironment); err != nil {
 			return err
 		}
 	}

@@ -63,8 +63,7 @@ services:
     image: authelia/authelia
     container_name: authelia
     volumes:
-      - /path/to/authelia:/var/lib/authelia
-      - /path/to/authelia/config.yml:/etc/authelia/configuration.yml:ro
+      - /path/to/authelia:/config
     networks:
       - net
     labels:
@@ -87,7 +86,7 @@ services:
       - 'traefik.frontend.rule=Host:nextcloud.example.com'
       - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?rd=https://login.example.com/'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups'
+      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
     expose:
       - 443
     restart: unless-stopped

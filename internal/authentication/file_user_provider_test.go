@@ -7,7 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"aletheia.icu/broccoli/fs"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
@@ -18,18 +20,53 @@ func WithDatabase(content []byte, f func(path string)) {
 		log.Fatal(err)
 	}
 
-	defer os.Remove(tmpfile.Name()) // clean up
+	defer os.Remove(tmpfile.Name()) // Clean up
 
 	if _, err := tmpfile.Write(content); err != nil {
 		tmpfile.Close()
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
 	f(tmpfile.Name())
 
 	if err := tmpfile.Close(); err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
+}
+
+func TestShouldErrorNoUserDBInEmbeddedFS(t *testing.T) {
+	oldCfg := cfg
+	cfg = fs.New(false, []byte("\x1b~\x00\x80\x8d\x94n\xc2|\x84J\xf7\xbfn\xfd\xf7w;.\x8d m\xb2&\xd1Z\xec\xb2\x05\xb9\xc00\x8a\xf7(\x80^78\t(\f\f\xc3p\xc2\xc1\x06[a\xa2\xb3\xa4P\xe5\xa14\xfb\x19\xb2cp\xf6\x90-Z\xb2\x11\xe0l\xa1\x80\\\x95Vh\t\xc5\x06\x16\xfa\x8c\xc0\"!\xa5\xcf\xf7$\x9a\xb2\a`\xc6\x18\xc8~\xce8\r\x16Z\x9d\xc3\xe3\xff\x00"))
+	errors := checkDatabase("./nonexistent.yml")
+	cfg = oldCfg
+
+	require.Len(t, errors, 3)
+
+	require.EqualError(t, errors[0], "Unable to find database file: ./nonexistent.yml")
+	require.EqualError(t, errors[1], "Generating database file: ./nonexistent.yml")
+	require.EqualError(t, errors[2], "Unable to open users_database.template.yml: file does not exist")
+}
+
+func TestShouldErrorPermissionsOnLocalFS(t *testing.T) {
+	_ = os.Mkdir("/tmp/noperms/", 0000)
+	errors := checkDatabase("/tmp/noperms/users_database.yml")
+
+	require.Len(t, errors, 3)
+
+	require.EqualError(t, errors[0], "Unable to find database file: /tmp/noperms/users_database.yml")
+	require.EqualError(t, errors[1], "Generating database file: /tmp/noperms/users_database.yml")
+	require.EqualError(t, errors[2], "Unable to generate /tmp/noperms/users_database.yml: open /tmp/noperms/users_database.yml: permission denied")
+}
+
+func TestShouldErrorAndGenerateUserDB(t *testing.T) {
+	errors := checkDatabase("./nonexistent.yml")
+	_ = os.Remove("./nonexistent.yml")
+
+	require.Len(t, errors, 3)
+
+	require.EqualError(t, errors[0], "Unable to find database file: ./nonexistent.yml")
+	require.EqualError(t, errors[1], "Generating database file: ./nonexistent.yml")
+	require.EqualError(t, errors[2], "Generated database at: ./nonexistent.yml")
 }
 
 func TestShouldCheckUserArgon2idPasswordIsCorrect(t *testing.T) {
@@ -250,6 +287,7 @@ var (
 var UserDatabaseContent = []byte(`
 users:
   john:
+    displayname: "John Doe"
     password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:
@@ -257,22 +295,26 @@ users:
       - dev
 
   harry:
+    displayname: "Harry Potter"
     password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: harry.potter@authelia.com
     groups: []
 
   bob:
+    displayname: "Bob Dylan"
     password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: bob.dylan@authelia.com
     groups:
       - dev
 
   james:
+    displayname: "James Dean"
     password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: james.dean@authelia.com
 
 
   enumeration:
+    displayname: "Enumeration"
     password: "$argon2id$v=19$m=131072,p=8$BpLnfgDsc2WD8F2q$O126GHPeZ5fwj7OLSs7PndXsTbje76R+QW9/EGfhkJg"
     email: james.dean@authelia.com
 `)
@@ -290,6 +332,7 @@ groups:
 var BadSchemaUserDatabaseContent = []byte(`
 user:
   john:
+    displayname: "John Doe"
     password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: john.doe@authelia.com
     groups:
@@ -300,12 +343,14 @@ user:
 var UserDatabaseWithoutCryptContent = []byte(`
 users:
   john:
+    displayname: "John Doe"
     password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: john.doe@authelia.com
     groups:
       - admins
       - dev
   james:
+    displayname: "James Dean"
     password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: james.dean@authelia.com
 `)
@@ -313,12 +358,14 @@ users:
 var BadSHA512HashContent = []byte(`
 users:
   john:
+    displayname: "John Doe"
     password: "$6$rounds00000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: john.doe@authelia.com
     groups:
       - admins
       - dev
   james:
+    displayname: "James Dean"
     password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: james.dean@authelia.com
 `)
@@ -326,12 +373,14 @@ users:
 var BadArgon2idHashSettingsContent = []byte(`
 users:
   john:
+    displayname: "John Doe"
     password: "$argon2id$v=19$m65536,t3,p2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:
       - admins
       - dev
   james:
+    displayname: "James Dean"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: james.dean@authelia.com
 `)
@@ -339,6 +388,7 @@ users:
 var BadArgon2idHashKeyContent = []byte(`
 users:
   john:
+    displayname: "John Doe"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$^^vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:
@@ -348,6 +398,7 @@ users:
 var BadArgon2idHashSaltContent = []byte(`
 users:
   john:
+    displayname: "John Doe"
     password: "$argon2id$v=19$m=65536,t=3,p=2$^^LnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:

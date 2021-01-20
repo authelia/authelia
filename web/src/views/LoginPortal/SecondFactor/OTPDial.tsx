@@ -1,21 +1,23 @@
 import React, { Fragment } from "react";
-import OtpInput from "react-otp-input";
-import TimerIcon from "../../../components/TimerIcon";
+
 import { makeStyles } from "@material-ui/core";
 import classnames from "classnames";
+import OtpInput from "react-otp-input";
+
+import SuccessIcon from "../../../components/SuccessIcon";
+import TimerIcon from "../../../components/TimerIcon";
 import IconWithContext from "./IconWithContext";
 import { State } from "./OneTimePasswordMethod";
-import SuccessIcon from "../../../components/SuccessIcon";
 
 export interface Props {
     passcode: string;
     state: State;
-    period: number
+    period: number;
 
     onChange: (passcode: string) => void;
 }
 
-export default function (props: Props) {
+const OTPDial = function (props: Props) {
     const style = useStyles();
     const dial = (
         <span className={style.otpInput} id="otp-input">
@@ -26,20 +28,18 @@ export default function (props: Props) {
                 numInputs={6}
                 isDisabled={props.state === State.InProgress || props.state === State.Success}
                 hasErrored={props.state === State.Failure}
-                inputStyle={classnames(style.otpDigitInput, props.state === State.Failure ? style.inputError : "")} />
+                inputStyle={classnames(style.otpDigitInput, props.state === State.Failure ? style.inputError : "")}
+            />
         </span>
-    )
+    );
 
-    return (
-        <IconWithContext
-            icon={<Icon state={props.state} period={props.period} />}
-            context={dial} />
-    )
-}
+    return <IconWithContext icon={<Icon state={props.state} period={props.period} />} context={dial} />;
+};
 
-const useStyles = makeStyles(theme => ({
-    timeProgress: {
-    },
+export default OTPDial;
+
+const useStyles = makeStyles((theme) => ({
+    timeProgress: {},
     register: {
         marginTop: theme.spacing(),
     },
@@ -57,7 +57,7 @@ const useStyles = makeStyles(theme => ({
     },
     inputError: {
         border: "1px solid rgba(255, 2, 2, 0.95)",
-    }
+    },
 }));
 
 interface IconProps {
@@ -68,8 +68,10 @@ interface IconProps {
 function Icon(props: IconProps) {
     return (
         <Fragment>
-            {props.state !== State.Success ? <TimerIcon backgroundColor="#000" color="#FFFFFF" width={64} height={64} period={props.period} /> : null}
+            {props.state !== State.Success ? (
+                <TimerIcon backgroundColor="#000" color="#FFFFFF" width={64} height={64} period={props.period} />
+            ) : null}
             {props.state === State.Success ? <SuccessIcon /> : null}
         </Fragment>
-    )
+    );
 }

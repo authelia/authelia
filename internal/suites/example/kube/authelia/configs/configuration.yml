@@ -3,8 +3,8 @@
 ###############################################################
 
 port: 443
-tls_cert: /var/lib/authelia/ssl/cert.pem
-tls_key: /var/lib/authelia/ssl/key.pem
+tls_cert: /config/ssl/cert.pem
+tls_key: /config/ssl/key.pem
 
 log_level: debug
 
@@ -13,7 +13,8 @@ default_redirection_url: https://home.example.com:8080
 authentication_backend:
   ldap:
     url: ldaps://ldap-service
-    skip_verify: true
+    tls:
+      skip_verify: true
     base_dn: dc=example,dc=com
     username_attribute: uid
     additional_users_dn: ou=users
@@ -22,6 +23,7 @@ authentication_backend:
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
     group_name_attribute: cn
     mail_attribute: mail
+    display_name_attribute: displayName
     user: cn=admin,dc=example,dc=com
 
 access_control:

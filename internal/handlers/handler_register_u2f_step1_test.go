@@ -8,6 +8,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/internal/middlewares"
@@ -25,7 +26,8 @@ func (s *HandlerRegisterU2FStep1Suite) SetupTest() {
 
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = testUsername
-	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	err := s.mock.Ctx.SaveSession(userSession)
+	require.NoError(s.T(), err)
 }
 
 func (s *HandlerRegisterU2FStep1Suite) TearDownTest() {
@@ -63,7 +65,7 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissi
 	SecondFactorU2FIdentityFinish(s.mock.Ctx)
 
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
-	assert.Equal(s.T(), "Missing header X-Fowarded-Proto", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Missing header X-Forwarded-Proto", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissing() {
@@ -83,7 +85,7 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissin
 	SecondFactorU2FIdentityFinish(s.mock.Ctx)
 
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
-	assert.Equal(s.T(), "Missing header X-Fowarded-Host", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Missing header X-Forwarded-Host", s.mock.Hook.LastEntry().Message)
 }
 
 func TestShouldRunHandlerRegisterU2FStep1Suite(t *testing.T) {

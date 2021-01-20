@@ -1,8 +1,12 @@
 package server
 
 import (
-	"fmt"
+	"io/ioutil"
+	"net"
 	"os"
+	"runtime"
+	"strconv"
+	"strings"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
@@ -21,25 +25,36 @@ import (
 
 // StartServer start Authelia server with the given configuration and providers.
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
+	logger := logging.Logger()
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-	embeddedAssets := "/public_html"
+	embeddedAssets := "/public_html/"
+	swaggerAssets := embeddedAssets + "api/"
+	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
+	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
+
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
+	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
+	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
+	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
+
 	r := router.New()
-	r.GET("/", ServeIndex(embeddedAssets, configuration.Server.Path))
+	r.GET("/", serveIndexHandler)
+	r.GET("/api/", serveSwaggerHandler)
+	r.GET("/api/"+apiFile, serveSwaggerAPIHandler)
 
 	for _, f := range rootFiles {
 		r.GET("/"+f, fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
 	}
 
 	r.GET("/static/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
+	r.GET("/api/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
 
 	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
 
-	r.GET("/api/configuration", autheliaMiddleware(handlers.ConfigurationGet))
-	r.GET("/api/configuration/extended", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.ExtendedConfigurationGet)))
+	r.GET("/api/configuration", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.ConfigurationGet)))
 
 	r.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
 	r.HEAD("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
@@ -93,7 +108,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	// Configure DUO api endpoint only if configuration exists.
 	if configuration.DuoAPI != nil {
 		var duoAPI duo.API
-		if os.Getenv("ENVIRONMENT") == "dev" {
+		if os.Getenv("ENVIRONMENT") == dev {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
 				configuration.DuoAPI.IntegrationKey,
 				configuration.DuoAPI.SecretKey,
@@ -115,7 +130,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	r.NotFound = ServeIndex(embeddedAssets, configuration.Server.Path)
+	r.NotFound = serveIndexHandler
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {
@@ -132,13 +147,34 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		WriteBufferSize:       configuration.Server.WriteBufferSize,
 	}
 
-	addrPattern := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
+	addrPattern := net.JoinHostPort(configuration.Host, strconv.Itoa(configuration.Port))
+
+	listener, err := net.Listen("tcp", addrPattern)
+	if err != nil {
+		logger.Fatalf("Error initializing listener: %s", err)
+	}
+
+	if configuration.AuthenticationBackend.File != nil && configuration.AuthenticationBackend.File.Password.Algorithm == "argon2id" && runtime.GOOS == "linux" {
+		f, err := ioutil.ReadFile("/sys/fs/cgroup/memory/memory.limit_in_bytes")
+		if err != nil {
+			logger.Warnf("Error reading hosts memory limit: %s", err)
+		} else {
+			m, _ := strconv.Atoi(strings.TrimSuffix(string(f), "\n"))
+			hostMem := float64(m) / 1024 / 1024 / 1024
+			argonMem := float64(configuration.AuthenticationBackend.File.Password.Memory) / 1024
+
+			if hostMem/argonMem <= 2 {
+				logger.Warnf("Authelia's password hashing memory parameter is set to: %gGB this is %g%% of the available memory: %gGB", argonMem, argonMem/hostMem*100, hostMem)
+				logger.Warn("Please read https://www.authelia.com/docs/configuration/authentication/file.html#memory and tune your deployment")
+			}
+		}
+	}
 
 	if configuration.TLSCert != "" && configuration.TLSKey != "" {
-		logging.Logger().Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
-		logging.Logger().Fatal(server.ListenAndServeTLS(addrPattern, configuration.TLSCert, configuration.TLSKey))
+		logger.Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		logger.Fatal(server.ServeTLS(listener, configuration.TLSCert, configuration.TLSKey))
 	} else {
-		logging.Logger().Infof("Authelia is listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
-		logging.Logger().Fatal(server.ListenAndServe(addrPattern))
+		logger.Infof("Authelia is listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		logger.Fatal(server.Serve(listener))
 	}
 }

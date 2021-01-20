@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/tstranex/u2f"
 
@@ -25,7 +26,8 @@ func (s *HandlerSignTOTPSuite) SetupTest() {
 	userSession.Username = testUsername
 	userSession.U2FChallenge = &u2f.Challenge{}
 	userSession.U2FRegistration = &session.U2FRegistration{}
-	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	err := s.mock.Ctx.SaveSession(userSession)
+	require.NoError(s.T(), err)
 }
 
 func (s *HandlerSignTOTPSuite) TearDownTest() {

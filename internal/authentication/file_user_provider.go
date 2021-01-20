@@ -3,15 +3,15 @@ package authentication
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 	"sync"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/simia-tech/crypt"
 	"gopkg.in/yaml.v2"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/internal/logging"
 )
 
 // FileUserProvider is a provider reading details from a file.
@@ -19,14 +19,12 @@ type FileUserProvider struct {
 	configuration *schema.FileAuthenticationBackendConfiguration
 	database      *DatabaseModel
 	lock          *sync.Mutex
-
-	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
-	fakeHash string
 }
 
 // UserDetailsModel is the model of user details in the file database.
 type UserDetailsModel struct {
 	HashedPassword string   `yaml:"password" valid:"required"`
+	DisplayName    string   `yaml:"displayname" valid:"required"`
 	Email          string   `yaml:"email"`
 	Groups         []string `yaml:"groups"`
 }
@@ -38,6 +36,17 @@ type DatabaseModel struct {
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
 func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfiguration) *FileUserProvider {
+	logger := logging.Logger()
+
+	errs := checkDatabase(configuration.Path)
+	if errs != nil {
+		for _, err := range errs {
+			logger.Error(err)
+		}
+
+		os.Exit(1)
+	}
+
 	database, err := readDatabase(configuration.Path)
 	if err != nil {
 		// Panic since the file does not exist when Authelia is starting.
@@ -50,24 +59,10 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 		panic(err)
 	}
 
-	var cryptAlgo CryptAlgo = HashingAlgorithmArgon2id
-	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
-	// This generates a hash that should be usable to do a fake CheckUserPassword
-	if configuration.Password.Algorithm == sha512 {
-		cryptAlgo = HashingAlgorithmSHA512
-	}
-
-	settings := getCryptSettings(utils.RandomString(configuration.Password.SaltLength, HashingPossibleSaltCharacters),
-		cryptAlgo, configuration.Password.Iterations, configuration.Password.Memory*1024, configuration.Password.Parallelism,
-		configuration.Password.KeyLength)
-	data := crypt.Base64Encoding.EncodeToString([]byte(utils.RandomString(configuration.Password.KeyLength, HashingPossibleSaltCharacters)))
-	fakeHash := fmt.Sprintf("%s$%s", settings, data)
-
 	return &FileUserProvider{
 		configuration: configuration,
 		database:      database,
 		lock:          &sync.Mutex{},
-		fakeHash:      fakeHash,
 	}
 }
 
@@ -81,6 +76,46 @@ func checkPasswordHashes(database *DatabaseModel) error {
 		}
 
 		database.Users[u] = v
+	}
+
+	return nil
+}
+
+func checkDatabase(path string) []error {
+	_, err := os.Stat(path)
+	if err != nil {
+		errs := []error{
+			fmt.Errorf("Unable to find database file: %v", path),
+			fmt.Errorf("Generating database file: %v", path),
+		}
+
+		err := generateDatabaseFromTemplate(path)
+		if err != nil {
+			errs = append(errs, err)
+		} else {
+			errs = append(errs, fmt.Errorf("Generated database at: %v", path))
+		}
+
+		return errs
+	}
+
+	return nil
+}
+
+func generateDatabaseFromTemplate(path string) error {
+	f, err := cfg.Open("users_database.template.yml")
+	if err != nil {
+		return fmt.Errorf("Unable to open users_database.template.yml: %v", err)
+	}
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return fmt.Errorf("Unable to read users_database.template.yml: %v", err)
+	}
+
+	err = ioutil.WriteFile(path, b, 0600)
+	if err != nil {
+		return fmt.Errorf("Unable to generate %v: %v", path, err)
 	}
 
 	return nil
@@ -122,9 +157,6 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 		return ok, nil
 	}
 
-	// TODO: Remove this. This is only here to temporarily fix the username enumeration security flaw in #949.
-	_, _ = CheckPassword(password, p.fakeHash)
-
 	return false, ErrUserNotFound
 }
 
@@ -132,9 +164,10 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 func (p *FileUserProvider) GetDetails(username string) (*UserDetails, error) {
 	if details, ok := p.database.Users[username]; ok {
 		return &UserDetails{
-			Username: username,
-			Groups:   details.Groups,
-			Emails:   []string{details.Email},
+			Username:    username,
+			DisplayName: details.DisplayName,
+			Groups:      details.Groups,
+			Emails:      []string{details.Email},
 		}, nil
 	}
 

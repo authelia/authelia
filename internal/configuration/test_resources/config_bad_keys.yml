@@ -4,7 +4,7 @@
 
 host: 127.0.0.1
 port: 9091
-loggy_file: /etc/authelia/svc.log
+loggy_file: /config/svc.log
 
 logs_level: debug
 default_redirection_url: https://home.example.com:8080/
@@ -75,7 +75,7 @@ access_control:
       resources:
         - "^/deny-all.*$"
       subject: ["group:dev", "user:john"]
-      policy: denied
+      policy: deny
 
     # Rules applied to user 'harry'
     - domain: dev.example.com

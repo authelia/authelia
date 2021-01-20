@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
+
+import { useRedirectionURL } from "../../../hooks/RedirectionURL";
+import { completeTOTPSignIn } from "../../../services/OneTimePassword";
+import { AuthenticationLevel } from "../../../services/State";
 import MethodContainer, { State as MethodContainerState } from "./MethodContainer";
 import OTPDial from "./OTPDial";
-import { completeTOTPSignIn } from "../../../services/OneTimePassword";
-import { useRedirectionURL } from "../../../hooks/RedirectionURL";
-import { AuthenticationLevel } from "../../../services/State";
 
 export enum State {
     Idle = 1,
@@ -16,23 +17,25 @@ export interface Props {
     id: string;
     authenticationLevel: AuthenticationLevel;
     registered: boolean;
-    totp_period: number
+    totp_period: number;
 
     onRegisterClick: () => void;
     onSignInError: (err: Error) => void;
     onSignInSuccess: (redirectURL: string | undefined) => void;
 }
 
-export default function (props: Props) {
+const OneTimePasswordMethod = function (props: Props) {
     const [passcode, setPasscode] = useState("");
-    const [state, setState] = useState(props.authenticationLevel === AuthenticationLevel.TwoFactor
-        ? State.Success
-        : State.Idle);
+    const [state, setState] = useState(
+        props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
+    );
     const redirectionURL = useRedirectionURL();
 
     const { onSignInSuccess, onSignInError } = props;
+    /* eslint-disable react-hooks/exhaustive-deps */
     const onSignInErrorCallback = useCallback(onSignInError, []);
     const onSignInSuccessCallback = useCallback(onSignInSuccess, []);
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     const signInFunc = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -65,7 +68,9 @@ export default function (props: Props) {
         }
     }, [props.authenticationLevel, setState]);
 
-    useEffect(() => { signInFunc() }, [signInFunc]);
+    useEffect(() => {
+        signInFunc();
+    }, [signInFunc]);
 
     let methodState = MethodContainerState.METHOD;
     if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -80,12 +85,11 @@ export default function (props: Props) {
             title="One-Time Password"
             explanation="Enter one-time password"
             state={methodState}
-            onRegisterClick={props.onRegisterClick}>
-            <OTPDial
-                passcode={passcode}
-                onChange={setPasscode}
-                state={state}
-                period={props.totp_period} />
+            onRegisterClick={props.onRegisterClick}
+        >
+            <OTPDial passcode={passcode} onChange={setPasscode} state={state} period={props.totp_period} />
         </MethodContainer>
-    )
-}
+    );
+};
+
+export default OneTimePasswordMethod;

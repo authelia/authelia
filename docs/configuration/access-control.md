@@ -29,7 +29,7 @@ The criteria are:
 * domain: domain targeted by the request.
 * resources: list of patterns that the path should match (one is sufficient).
 * subject: the user or group of users to define the policy for.
-* networks: the network range from where should comes the request.
+* networks: the network addresses, ranges (CIDR notation) or groups from where the request originates.
 
 A rule is matched when all criteria of the rule match.
 
@@ -55,11 +55,21 @@ protected by Authelia or the protected domain itself. In order to match multiple
 subdomains, the wildcard matcher character `*.` can be used as prefix of the domain.
 For instance, to define a rule for all subdomains of *example.com*, one would use
 `*.example.com` in the rule. A single rule can define multiple domains for matching.
+These domains can be either listed in YAML-short form `["example1.com", "example2.com"]`
+or in YAML long-form as dashed list.
 
 ## Resources
 
-A rule can define multiple regular expressions for matching the path of the resource. If
-any one of them matches, the resource criteria of the rule matches.
+A rule can define multiple regular expressions for matching the path of the resource
+similar to the list of domains. If any one of them matches, the resource criteria of
+the rule matches.
+
+Note that regular expressions can be used to match a given path. However, they do not match
+the query parameters in the URL, only the path.
+
+You might also face some escaping issues preventing Authelia to start. Please make sure that
+when you are using regular expressions, you enclose them between quotes. It's optional but
+it will likely save you a lot of debugging time.
 
 
 ## Subjects
@@ -70,10 +80,16 @@ For a user with unique identifier `john`, the subject should be `user:john` and 
 uniquely identified by `developers`, the subject should be `group:developers`. Similar to resources
 and domains you can define multiple subjects in a single rule.
 
+If you want a combination of subjects to be matched at once using a logical `AND`, you can
+specify a nested list of subjects like `- ["group:developers", "group:admins"]`.
+In summary, the first list level of subjects are evaluated using a logical `OR`, whereas the
+second level by a logical `AND`. The last example below reads as: the group is `dev` AND the
+username is `john` OR the group is `admins`.
+
 ## Networks
 
-A list of network ranges can be specified in a rule in order to apply different policies when
-requests come from different networks.
+A list of network addresses, ranges (CIDR notation) or groups can be specified in a rule in order to apply different
+policies when requests originate from different networks.
 
 The main use case is when, lets say a resource should be exposed both on the Internet and from an
 authenticated VPN for instance. Passing a second factor a first time to get access to the VPN and
@@ -92,6 +108,13 @@ Here is a complete example of complex access control list that can be defined in
 ```yaml
 access_control:
   default_policy: deny
+  networks:
+    - name: internal
+      networks:
+        - 10.10.0.0/16
+        - 192.168.2.0/24
+    - name: VPN
+      networks: 10.9.0.0/16
   rules:
     - domain: public.example.com
       policy: bypass
@@ -99,7 +122,10 @@ access_control:
     - domain: secure.example.com
       policy: one_factor
       networks:
-      - 192.168.1.0/24
+        - internal
+        - VPN
+        - 192.168.1.0/24
+        - 10.0.0.1
 
     - domain:
       - secure.example.com
@@ -128,6 +154,8 @@ access_control:
     - domain: dev.example.com
       resources:
       - "^/users/john/.*$"
-      subject: "user:john"
+      subject: 
+      - ["group:dev", "user:john"]
+      - "group:admins"
       policy: two_factor
 ```

@@ -1,4 +1,5 @@
 import React, { ReactNode } from "react";
+
 import { makeStyles } from "@material-ui/core";
 import classnames from "classnames";
 
@@ -9,9 +10,9 @@ interface IconWithContextProps {
     className?: string;
 }
 
-export default function (props: IconWithContextProps) {
+const IconWithContext = function (props: IconWithContextProps) {
     const iconSize = 64;
-    const style = makeStyles(theme => ({
+    const style = makeStyles((theme) => ({
         root: {},
         iconContainer: {
             display: "flex",
@@ -24,19 +25,17 @@ export default function (props: IconWithContextProps) {
         },
         context: {
             display: "block",
-        }
+        },
     }))();
 
     return (
         <div className={classnames(props.className, style.root)}>
             <div className={style.iconContainer}>
-                <div className={style.icon}>
-                    {props.icon}
-                </div>
+                <div className={style.icon}>{props.icon}</div>
             </div>
-            <div className={style.context}>
-                {props.context}
-            </div>
+            <div className={style.context}>{props.context}</div>
         </div>
-    )
-}
+    );
+};
+
+export default IconWithContext;

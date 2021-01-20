@@ -15,6 +15,7 @@ type LDAPConnection interface {
 
 	Search(searchRequest *ldap.SearchRequest) (*ldap.SearchResult, error)
 	Modify(modifyRequest *ldap.ModifyRequest) error
+	StartTLS(config *tls.Config) error
 }
 
 // LDAPConnectionImpl the production implementation of an ldap connection.
@@ -47,12 +48,16 @@ func (lc *LDAPConnectionImpl) Modify(modifyRequest *ldap.ModifyRequest) error {
 	return lc.conn.Modify(modifyRequest)
 }
 
+// StartTLS requests the LDAP server upgrades to TLS encryption.
+func (lc *LDAPConnectionImpl) StartTLS(config *tls.Config) error {
+	return lc.conn.StartTLS(config)
+}
+
 // ********************* FACTORY ***********************.
 
 // LDAPConnectionFactory an interface of factory of ldap connections.
 type LDAPConnectionFactory interface {
-	DialTLS(network, addr string, config *tls.Config) (LDAPConnection, error)
-	Dial(network, addr string) (LDAPConnection, error)
+	DialURL(addr string, opts ldap.DialOpt) (LDAPConnection, error)
 }
 
 // LDAPConnectionFactoryImpl the production implementation of an ldap connection factory.
@@ -63,19 +68,9 @@ func NewLDAPConnectionFactoryImpl() *LDAPConnectionFactoryImpl {
 	return &LDAPConnectionFactoryImpl{}
 }
 
-// DialTLS contact ldap server over TLS.
-func (lcf *LDAPConnectionFactoryImpl) DialTLS(network, addr string, config *tls.Config) (LDAPConnection, error) {
-	conn, err := ldap.DialTLS(network, addr, config)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewLDAPConnectionImpl(conn), nil
-}
-
-// Dial contact ldap server over raw tcp.
-func (lcf *LDAPConnectionFactoryImpl) Dial(network, addr string) (LDAPConnection, error) {
-	conn, err := ldap.Dial(network, addr)
+// DialURL creates a connection from an LDAP URL when successful.
+func (lcf *LDAPConnectionFactoryImpl) DialURL(addr string, opts ldap.DialOpt) (LDAPConnection, error) {
+	conn, err := ldap.DialURL(addr, opts)
 	if err != nil {
 		return nil, err
 	}

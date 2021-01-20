@@ -46,7 +46,11 @@ func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) 
 	userSession := ctx.GetSession()
 	// TODO(c.michaud): use JWT tokens to expire the request in only few seconds for better security.
 	userSession.PasswordResetUsername = &username
-	ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	err := ctx.SaveSession(userSession)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to clear password reset flag in session for user %s: %s", userSession.Username, err)
+	}
 
 	ctx.ReplyOK()
 }

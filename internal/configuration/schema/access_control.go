@@ -1,72 +1,51 @@
 package schema
 
-import (
-	"fmt"
-	"net"
-	"strings"
-)
-
-// ACLRule represent one ACL rule "weak" coerces a single value into string slice.
-type ACLRule struct {
-	Domains   []string `mapstructure:"domain,weak"`
-	Policy    string   `mapstructure:"policy"`
-	Subjects  []string `mapstructure:"subject,weak"`
-	Networks  []string `mapstructure:"networks"`
-	Resources []string `mapstructure:"resources"`
-}
-
-// IsPolicyValid check if policy is valid.
-func IsPolicyValid(policy string) bool {
-	return policy == denyPolicy || policy == "one_factor" || policy == "two_factor" || policy == "bypass"
-}
-
-// IsSubjectValid check if a subject is valid.
-func IsSubjectValid(subject string) bool {
-	return subject == "" || strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:")
-}
-
-// IsNetworkValid check if a network is valid.
-func IsNetworkValid(network string) bool {
-	_, _, err := net.ParseCIDR(network)
-	return err == nil
-}
-
-// Validate validate an ACL Rule.
-func (r *ACLRule) Validate(validator *StructValidator) {
-	if len(r.Domains) == 0 {
-		validator.Push(fmt.Errorf("Domain must be provided"))
-	}
-
-	if !IsPolicyValid(r.Policy) {
-		validator.Push(fmt.Errorf("A policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'"))
-	}
-
-	for i, subject := range r.Subjects {
-		if !IsSubjectValid(subject) {
-			validator.Push(fmt.Errorf("Subject %d must start with 'user:' or 'group:'", i))
-		}
-	}
-
-	for i, network := range r.Networks {
-		if !IsNetworkValid(network) {
-			validator.Push(fmt.Errorf("Network %d must be a valid CIDR", i))
-		}
-	}
-}
-
 // AccessControlConfiguration represents the configuration related to ACLs.
 type AccessControlConfiguration struct {
-	DefaultPolicy string    `mapstructure:"default_policy"`
-	Rules         []ACLRule `mapstructure:"rules"`
+	DefaultPolicy string       `mapstructure:"default_policy"`
+	Networks      []ACLNetwork `mapstructure:"networks"`
+	Rules         []ACLRule    `mapstructure:"rules"`
 }
 
-// Validate validate the access control configuration.
-func (acc *AccessControlConfiguration) Validate(validator *StructValidator) {
-	if acc.DefaultPolicy == "" {
-		acc.DefaultPolicy = denyPolicy
-	}
+// ACLNetwork represents one ACL network group entry; "weak" coerces a single value into slice.
+type ACLNetwork struct {
+	Name     []string `mapstructure:"name,weak"`
+	Networks []string `mapstructure:"networks"`
+}
 
-	if !IsPolicyValid(acc.DefaultPolicy) {
-		validator.Push(fmt.Errorf("'default_policy' must either be 'deny', 'two_factor', 'one_factor' or 'bypass'"))
-	}
+// ACLRule represents one ACL rule entry; "weak" coerces a single value into slice.
+type ACLRule struct {
+	Domains   []string   `mapstructure:"domain,weak"`
+	Policy    string     `mapstructure:"policy"`
+	Subjects  [][]string `mapstructure:"subject,weak"`
+	Networks  []string   `mapstructure:"networks"`
+	Resources []string   `mapstructure:"resources"`
+}
+
+// DefaultACLNetwork represents the default configuration related to access control network group configuration.
+var DefaultACLNetwork = []ACLNetwork{
+	{
+		Name:     []string{"localhost"},
+		Networks: []string{"127.0.0.1"},
+	},
+	{
+		Name:     []string{"internal"},
+		Networks: []string{"10.0.0.0/8"},
+	},
+}
+
+// DefaultACLRule represents the default configuration related to access control rule configuration.
+var DefaultACLRule = []ACLRule{
+	{
+		Domains: []string{"public.example.com"},
+		Policy:  "bypass",
+	},
+	{
+		Domains: []string{"singlefactor.example.com"},
+		Policy:  "one_factor",
+	},
+	{
+		Domains: []string{"secure.example.com"},
+		Policy:  "two_factor",
+	},
 }

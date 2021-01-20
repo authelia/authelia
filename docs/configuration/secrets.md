@@ -23,7 +23,7 @@ containing the secret data. This file must be readable by the
 user the Authelia daemon is running as.
 
 For instance the LDAP password can be defined in the configuration
-at the path **authentication_backend.ldap.password**, so this password 
+at the path **authentication_backend.ldap.password**, so this password
 could alternatively be set using the environment variable called
 **AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE**.
 
@@ -51,19 +51,19 @@ server. The UNIX permissions should probably be something like 600.
 
 ## Secrets exposed in an environment variable
 
-**DEPRECATION NOTICE:** This backwards compatibility feature **has been removed** in 4.18.0+. 
+**DEPRECATION NOTICE:** This backwards compatibility feature **has been removed** in 4.18.0+.
 
 Prior to implementing file secrets you were able to define the
 values of secrets in the environment variables themselves
 in plain text instead of referencing a file. **This is no longer available
-as an option**, please see the table above for the file based replacements. See 
+as an option**, please see the table above for the file based replacements. See
 [this article](https://diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/)
 for reasons why this was removed.
 
 ## Docker
 
 Secrets can be provided in a `docker-compose.yml` either with Docker secrets or
-bind mounted secret files, examples of these are provided below. 
+bind mounted secret files, examples of these are provided below.
 
 
 ### Compose with Docker secrets
@@ -107,8 +107,7 @@ services:
       - smtp
       - ldap
     volumes:
-      - /path/to/authelia:/var/lib/authelia
-      - /path/to/authelia/configuration.yml:/etc/authelia/configuration.yml:ro
+      - /path/to/authelia:/config
     networks:
       - net
     expose:
@@ -129,7 +128,7 @@ services:
 
 This example assumes secrets are stored in `/path/to/authelia/secrets/{secretname}`
 on the host and are exposed with bind mounted secret files in a `docker-compose.yml` file
-at `/etc/authelia/secrets/`:
+at `/config/secrets/`:
 
 ```yaml
 version: '3.8'
@@ -143,22 +142,20 @@ services:
     image: authelia/authelia
     container_name: authelia
     volumes:
-      - /path/to/authelia:/var/lib/authelia
-      - /path/to/authelia/configuration.yml:/etc/authelia/configuration.yml:ro
-      - /path/to/authelia/secrets:/etc/authelia/secrets
+      - /path/to/authelia:/config
     networks:
       - net
     expose:
       - 9091
     restart: unless-stopped
     environment:
-      - AUTHELIA_JWT_SECRET_FILE=/etc/authelia/secrets/jwt
-      - AUTHELIA_DUO_API_SECRET_KEY_FILE=/etc/authelia/secrets/duo
-      - AUTHELIA_SESSION_SECRET_FILE=/etc/authelia/secrets/session
-      - AUTHELIA_SESSION_REDIS_PASSWORD_FILE=/etc/authelia/secrets/redis
-      - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/etc/authelia/secrets/mysql
-      - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/etc/authelia/secrets/smtp
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE=/etc/authelia/secrets/ldap
+      - AUTHELIA_JWT_SECRET_FILE=/config/secrets/jwt
+      - AUTHELIA_DUO_API_SECRET_KEY_FILE=/config/secrets/duo
+      - AUTHELIA_SESSION_SECRET_FILE=/config/secrets/session
+      - AUTHELIA_SESSION_REDIS_PASSWORD_FILE=/config/secrets/redis
+      - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/config/secrets/mysql
+      - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/config/secrets/smtp
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE=/config/secrets/ldap
       - TZ=Australia/Melbourne
 ```
 
@@ -177,7 +174,7 @@ the same directory. You will need to edit the kustomization.yaml with your
 desired secrets after the equal signs. If you change the value before the
 equal sign you'll have to adjust the volumes section of the daemonset
 template (or deployment template if you're using it).
- 
+
 ```yaml
 #filename: ./kustomization.yaml
 generatorOptions:
@@ -214,6 +211,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: authelia
+  namespace: authelia
   labels:
     app: authelia
 spec:
@@ -233,52 +231,53 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: AUTHELIA_JWT_SECRET_FILE
-              value: /usr/app/secrets/jwt
+              value: /app/secrets/jwt
             - name: AUTHELIA_DUO_API_SECRET_KEY_FILE
-              value: /usr/app/secrets/duo
+              value: /app/secrets/duo
             - name: AUTHELIA_SESSION_SECRET_FILE
-              value: /usr/app/secrets/session
+              value: /app/secrets/session
             - name: AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE
-              value: /usr/app/secrets/ldap_password
+              value: /app/secrets/ldap_password
             - name: AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-              value: /usr/app/secrets/smtp_password
-            - name: AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE
-              value: /usr/app/secrets/sql_password
+              value: /app/secrets/smtp_password
+            - name: AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE
+              value: /app/secrets/sql_password
+            - name: AUTHELIA_SESSION_REDIS_PASSWORD_FILE
+              value: /app/secrets/redis_password
+            - name: TZ
+              value: America/Toronto
           ports:
-            - name: http
-              containerPort: 80
+            - name: authelia-port
+              containerPort: 9091
           startupProbe:
             httpGet:
-              path: /api/configuration
-              port: http
-            initialDelaySeconds: 10
+              path: /api/state
+              port: authelia-port
+            initialDelaySeconds: 15
             timeoutSeconds: 5
             periodSeconds: 5
             failureThreshold: 4
           livenessProbe:
             httpGet:
-              path: /api/configuration
-              port: http
+              path: /api/state
+              port: authelia-port
             initialDelaySeconds: 60
             timeoutSeconds: 5
             periodSeconds: 30
             failureThreshold: 2
           readinessProbe:
             httpGet:
-              path: /api/configuration
-              port: http
-            initialDelaySeconds: 10
+              path: /api/state
+              port: authelia-port
+            initialDelaySeconds: 15
             timeoutSeconds: 5
             periodSeconds: 5
             failureThreshold: 5
           volumeMounts:
-            - mountPath: /etc/authelia
+            - mountPath: /config
               name: config-volume
-            - mountPath: /usr/app/secrets
+            - mountPath: /app/secrets
               name: secrets
-              readOnly: true
-            - mountPath: /etc/localtime
-              name: localtime
               readOnly: true
       volumes:
         - name: config-volume
@@ -305,7 +304,4 @@ spec:
                 path: ldap_password
               - key: smtp_password
                 path: smtp_password
-        - name: localtime
-          hostPath:
-            path: /etc/localtime
 ```

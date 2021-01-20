@@ -1,8 +1,10 @@
 import React from "react";
-import SuccessIcon from "../../components/SuccessIcon";
+
 import { Typography, makeStyles } from "@material-ui/core";
 
-export default function () {
+import SuccessIcon from "../../components/SuccessIcon";
+
+const Authenticated = function () {
     const classes = useStyles();
     return (
         <div id="authenticated-stage">
@@ -11,12 +13,14 @@ export default function () {
             </div>
             <Typography>Authenticated</Typography>
         </div>
-    )
-}
+    );
+};
 
-const useStyles = makeStyles(theme => ({
+export default Authenticated;
+
+const useStyles = makeStyles((theme) => ({
     iconContainer: {
         marginBottom: theme.spacing(2),
-        flex: "0 0 100%"
-    }
-}))
+        flex: "0 0 100%",
+    },
+}));

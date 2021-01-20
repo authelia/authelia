@@ -2,22 +2,23 @@
   <img src="./docs/images/authelia-title.png" width="350" title="Authelia">
 </p>
 
-  [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
+  [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?logo=buildkite&style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
   [![Go Report Card](https://goreportcard.com/badge/github.com/authelia/authelia?logo=go&style=flat-square)](https://goreportcard.com/report/github.com/authelia/authelia)
-  [![Docker Tag](https://img.shields.io/docker/v/authelia/authelia?logo=docker&style=flat-square&color=blue&sort=semver)](https://microbadger.com/images/authelia/authelia)
-  [![Docker Size](https://img.shields.io/docker/image-size/authelia/authelia?logo=docker&style=flat-square&color=blue&sort=semver)](https://hub.docker.com/r/authelia/authelia/tags)
+  [![Docker Tag](https://img.shields.io/docker/v/authelia/authelia/latest?logo=docker&style=flat-square&color=blue&sort=semver)](https://microbadger.com/images/authelia/authelia)
+  [![Docker Size](https://img.shields.io/docker/image-size/authelia/authelia/latest?logo=docker&style=flat-square&color=blue&sort=semver)](https://hub.docker.com/r/authelia/authelia/tags)
   [![GitHub Release](https://img.shields.io/github/release/authelia/authelia.svg?logo=github&style=flat-square&color=blue)](https://github.com/authelia/authelia/releases)
   [![AUR source version](https://img.shields.io/aur/version/authelia?logo=arch-linux&label=authelia&style=flat-square&color=blue)](https://aur.archlinux.org/packages/authelia/)
   [![AUR binary version](https://img.shields.io/aur/version/authelia-bin?logo=arch-linux&label=authelia-bin&style=flat-square&color=blue)](https://aur.archlinux.org/packages/authelia-bin/)
   [![AUR development version](https://img.shields.io/aur/version/authelia-git?logo=arch-linux&label=authelia-git&style=flat-square&color=blue)](https://aur.archlinux.org/packages/authelia-git/)
   [![License](https://img.shields.io/github/license/authelia/authelia?logo=apache&style=flat-square&color=blue)][Apache 2.0]
   [![Sponsor](https://img.shields.io/opencollective/all/authelia-sponsors?logo=Open%20Collective&label=financial%20contributors&style=flat-square&color=blue)](https://opencollective.com/authelia-sponsors)
+  [![Discord](https://img.shields.io/discord/707844280412012608?logo=discord&style=flat-square&color=blue)](https://discord.authelia.com)
   [![Matrix](https://img.shields.io/matrix/authelia:matrix.org?logo=matrix&style=flat-square&color=blue)](https://riot.im/app/#/room/#authelia:matrix.org)
 
 **Authelia** is an open-source authentication and authorization server
 providing 2-factor authentication and single sign-on (SSO) for your
 applications via a web portal.
-It acts as a companion of reverse proxies like [nginx], [Traefik] or [HAProxy] to let them know whether queries should pass through. Unauthenticated user are
+It acts as a companion of reverse proxies like [nginx], [Traefik] or [HAProxy] to let them know whether queries should pass through. Unauthenticated users are
 redirected to Authelia Sign-in portal instead.
 
 Documentation is available at https://docs.authelia.com.
@@ -28,8 +29,8 @@ The architecture is shown in the diagram below.
   <img src="./docs/images/archi.png"/>
 </p>
 
-**Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/), using a [Static binary](https://github.com/authelia/authelia/releases/latest), [Docker]
-or can also be deployed easily on [Kubernetes] leveraging ingress controllers and ingress configuration.
+**Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/), [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a [Static binary](https://github.com/authelia/authelia/releases/latest),
+[Docker] or [Kubernetes] leveraging ingress controllers and ingress configurations. Assistance to publish a [debian package](https://github.com/authelia/authelia/issues/573) would be greatly appreciated.
 
 <p align="center">
   <img src="./docs/images/logos/kubernetes.logo.png" height="100"/>
@@ -120,6 +121,12 @@ Join the [Matrix Room](https://riot.im/app/#/room/#authelia:matrix.org) and loca
 You can identify them as they are the room administrators. Alternatively you can just ask for one of the
 maintainers. Once you've made contact we ask you privately message the maintainer to communicate the vulnerability.
 
+#### Discord
+
+Join the [Discord Server](https://discord.authelia.com) and message the
+[#support](https://discord.com/channels/707844280412012608/707844280412012612) chat which links to [Matrix](#matrix) 
+and contact a maintainer. 
+
 #### Email
 
 You can contact any of the maintainers for security vulnerability related issues by emailing 
@@ -131,19 +138,31 @@ disclosure related matters. If you need to contact us for another reason please 
 
 See [BREAKING](./BREAKING.md).
 
+## Why Open Source?
+
+You might wonder why Authelia is open source while it adds a great deal of security and user experience to your infrastructure at zero cost.
+It is open source because we firmly believe that security should be available for all to benefit in the face the battlefield which is the Internet
+with near zero effort.
+
+Additionally, keeping the code open source is a way to leave it auditable by anyone who is willing to contribute. This way, you can be confident
+that the product remains secure and does not act maliciously.
+
+It's important to keep in mind Authelia is not directly exposed on the
+Internet (your reverse proxies are) however, it's still the control plane for your internal security so take care of it!
+
 ## Contribute
 
 If you want to contribute to Authelia, check the documentation available
 [here](https://docs.authelia.com/contributing/).
 
-## Contributors
-
-Authelia exists thanks to all the people who contribute. [[Contribute](./CONTRIBUTING.md)].
+Authelia exists thanks to all the people who contribute so don't be shy,
+come chat with us on [Matrix](#matrix) and start contributing too. [[Contribute](./CONTRIBUTING.md)].
 <a href="https://github.com/authelia/authelia/graphs/contributors"><img src="https://opencollective.com/authelia-sponsors/contributors.svg?width=890" /></a>
 
 ## Backers
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/authelia-sponsors/contribute)] and help us sustain our community.
+The money we currently receive is dedicated to bootstrap a bug bounty program to give us as many eyes as we can to detect potential vulnerabilities.
 <a href="https://opencollective.com/authelia-sponsors#backers"><img src="https://opencollective.com/authelia-sponsors/backers.svg?width=890"></a>
 
 ## Sponsors

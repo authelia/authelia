@@ -1,13 +1,13 @@
 import React from "react";
 
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import ErrorIcon from '@material-ui/icons/Error';
-import InfoIcon from '@material-ui/icons/Info';
-import WarningIcon from '@material-ui/icons/Warning';
 import { makeStyles, SnackbarContent } from "@material-ui/core";
-import { amber, green } from '@material-ui/core/colors';
-import classnames from "classnames";
+import { amber, green } from "@material-ui/core/colors";
 import { SnackbarContentProps } from "@material-ui/core/SnackbarContent";
+import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import ErrorIcon from "@material-ui/icons/Error";
+import InfoIcon from "@material-ui/icons/Info";
+import WarningIcon from "@material-ui/icons/Warning";
+import classnames from "classnames";
 
 const variantIcon = {
     success: CheckCircleIcon,
@@ -24,7 +24,7 @@ export interface Props extends SnackbarContentProps {
     message: string;
 }
 
-export default function (props: Props) {
+const ColoredSnackbarContent = function (props: Props) {
     const classes = useStyles();
     const Icon = variantIcon[props.level];
 
@@ -39,11 +39,14 @@ export default function (props: Props) {
                     {message}
                 </span>
             }
-            {...others} />
-    )
-}
+            {...others}
+        />
+    );
+};
 
-const useStyles = makeStyles(theme => ({
+export default ColoredSnackbarContent;
+
+const useStyles = makeStyles((theme) => ({
     success: {
         backgroundColor: green[600],
     },
@@ -64,7 +67,7 @@ const useStyles = makeStyles(theme => ({
         marginRight: theme.spacing(1),
     },
     message: {
-        display: 'flex',
-        alignItems: 'center',
+        display: "flex",
+        alignItems: "center",
     },
-}))
+}));

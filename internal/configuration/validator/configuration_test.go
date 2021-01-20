@@ -14,6 +14,7 @@ func newDefaultConfig() schema.Configuration {
 	config.Host = "127.0.0.1"
 	config.Port = 9090
 	config.LogLevel = "info"
+	config.LogFormat = "text"
 	config.JWTSecret = testJWTSecret
 	config.AuthenticationBackend.File = new(schema.FileAuthenticationBackendConfiguration)
 	config.AuthenticationBackend.File.Path = "/a/path"
@@ -150,4 +151,41 @@ func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "Unable to parse default redirection url")
+}
+
+func TestShouldNotOverrideCertificatesDirectoryAndShouldPassWhenBlank(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	ValidateConfiguration(&config, validator)
+	require.Len(t, validator.Errors(), 0)
+
+	require.Equal(t, "", config.CertificatesDirectory)
+}
+
+func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.CertificatesDirectory = "not-a-real-file.go"
+
+	ValidateConfiguration(&config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "Error checking certificate directory: stat not-a-real-file.go: no such file or directory")
+
+	validator = schema.NewStructValidator()
+	config.CertificatesDirectory = "const.go"
+	ValidateConfiguration(&config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "The path const.go specified for certificate_directory is not a directory")
+}
+
+func TestShouldNotRaiseErrorOnValidCertificatesDirectory(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+	config.CertificatesDirectory = "../../suites/common/ssl"
+
+	ValidateConfiguration(&config, validator)
+
+	require.Len(t, validator.Errors(), 0)
 }

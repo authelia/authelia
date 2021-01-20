@@ -13,7 +13,13 @@ const authPrefix = "Basic "
 
 // AuthorizationHeader is the basic-auth HTTP header Authelia utilises.
 const AuthorizationHeader = "Proxy-Authorization"
+
+// SessionUsernameHeader is used as additional protection to validate a user for things like pam_exec.
+const SessionUsernameHeader = "Session-Username"
+
 const remoteUserHeader = "Remote-User"
+const remoteNameHeader = "Remote-Name"
+const remoteEmailHeader = "Remote-Email"
 const remoteGroupsHeader = "Remote-Groups"
 
 const (
@@ -32,6 +38,11 @@ const unableToRegisterOneTimePasswordMessage = "Unable to set up one-time passwo
 const unableToRegisterSecurityKeyMessage = "Unable to register your security key."
 const unableToResetPasswordMessage = "Unable to reset your password."
 const mfaValidationFailedMessage = "Authentication failed, please retry later."
+
+const ldapPasswordComplexityCode = "0000052D."
+
+var ldapPasswordComplexityCodes = []string{"0000052D"}
+var ldapPasswordComplexityErrors = []string{"LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy"}
 
 const testInactivity = "10"
 const testRedirectionURL = "http://redirection.local"

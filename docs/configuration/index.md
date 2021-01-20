@@ -55,3 +55,25 @@ Examples:
 * 1 hour and 30 minutes: 90m
 * 1 day: 1d
 * 10 hours: 10h
+
+## TLS Configuration
+
+Various sections of the configuration use a uniform configuration section called TLS. Notably LDAP and SMTP.
+This section documents the usage.
+
+### Server Name
+
+The key `server_name` overrides the name checked against the certificate in the verification process. Useful if you
+require to use a direct IP address for the address of the backend service but want to verify a specific SNI.
+
+### Skip Verify
+
+The key `skip_verify` completely negates validating the certificate of the backend service. This is not recommended,
+instead you should tweak the `server_name` option, and the global option [certificates_directory](./miscellaneous.md#certificates-directory).
+
+### Minimum Version
+
+The key `minimum_version` controls the minimum TLS version Authelia will use when opening TLS connections.
+The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`. Anything other than `TLS1.3` or `TLS1.2`
+are very old and deprecated. You should avoid using these and upgrade your backend service instead of decreasing
+this value.

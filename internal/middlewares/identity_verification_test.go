@@ -78,7 +78,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any()).
+		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(fmt.Errorf("no notif"))
 
 	args := newArgs(defaultRetriever)
@@ -103,7 +103,7 @@ func TestShouldFailWhenXForwardedProtoHeaderIsMissing(t *testing.T) {
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
-	assert.Equal(t, "Missing header X-Fowarded-Proto", mock.Hook.LastEntry().Message)
+	assert.Equal(t, "Missing header X-Forwarded-Proto", mock.Hook.LastEntry().Message)
 }
 
 func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
@@ -121,12 +121,11 @@ func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
-	assert.Equal(t, "Missing header X-Fowarded-Host", mock.Hook.LastEntry().Message)
+	assert.Equal(t, "Missing header X-Forwarded-Host", mock.Hook.LastEntry().Message)
 }
 
 func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
-	defer mock.Close()
 
 	mock.Ctx.Configuration.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
@@ -137,13 +136,15 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any()).
+		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(nil)
 
 	args := newArgs(defaultRetriever)
 	middlewares.IdentityVerificationStart(args)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	defer mock.Close()
 }
 
 // Test Finish process.

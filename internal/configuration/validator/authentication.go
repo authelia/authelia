@@ -10,7 +10,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.Path == "" {
 		validator.Push(errors.New("Please provide a `path` for the users database in `authentication_backend`"))
@@ -39,7 +39,7 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 			validator.Push(fmt.Errorf("The number of iterations specified is invalid, must be 1 or more, you configured %d", configuration.Password.Iterations))
 		}
 
-		//Salt Length
+		// Salt Length
 		switch {
 		case configuration.Password.SaltLength == 0:
 			configuration.Password.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
@@ -72,38 +72,89 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 	}
 }
 
-func validateLdapURL(ldapURL string, validator *schema.StructValidator) string {
-	u, err := url.Parse(ldapURL)
+// Wrapper for test purposes to exclude the hostname from the return.
+func validateLdapURLSimple(ldapURL string, validator *schema.StructValidator) (finalURL string) {
+	finalURL, _ = validateLdapURL(ldapURL, validator)
+
+	return finalURL
+}
+
+func validateLdapURL(ldapURL string, validator *schema.StructValidator) (finalURL string, hostname string) {
+	parsedURL, err := url.Parse(ldapURL)
 
 	if err != nil {
 		validator.Push(errors.New("Unable to parse URL to ldap server. The scheme is probably missing: ldap:// or ldaps://"))
-		return ""
+		return "", ""
 	}
 
-	if !(u.Scheme == schemeLDAP || u.Scheme == schemeLDAPS) {
+	if !(parsedURL.Scheme == schemeLDAP || parsedURL.Scheme == schemeLDAPS) {
 		validator.Push(errors.New("Unknown scheme for ldap url, should be ldap:// or ldaps://"))
-		return ""
+		return "", ""
 	}
 
-	if u.Scheme == schemeLDAP && u.Port() == "" {
-		u.Host += ":389"
-	} else if u.Scheme == schemeLDAPS && u.Port() == "" {
-		u.Host += ":636"
+	if !parsedURL.IsAbs() {
+		validator.Push(fmt.Errorf("URL to LDAP %s is still not absolute, it should be something like ldap://127.0.0.1:389", parsedURL.String()))
 	}
 
-	if !u.IsAbs() {
-		validator.Push(fmt.Errorf("URL to LDAP %s is still not absolute, it should be something like ldap://127.0.0.1:389", u.String()))
-	}
-
-	return u.String()
+	return parsedURL.String(), parsedURL.Hostname()
 }
 
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if configuration.Implementation == "" {
+		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
+	}
+
+	nilTLS := configuration.TLS == nil
+	if nilTLS {
+		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
+	}
+
+	// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28 (if block).
+	if configuration.SkipVerify != nil {
+		validator.PushWarning(errors.New("DEPRECATED: LDAP Auth Backend `skip_verify` option has been replaced by `authentication_backend.ldap.tls.skip_verify` (will be removed in 4.28.0)"))
+
+		if nilTLS {
+			configuration.TLS.SkipVerify = *configuration.SkipVerify
+		}
+	}
+
+	// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28 (if block).
+	if configuration.MinimumTLSVersion != "" {
+		validator.PushWarning(errors.New("DEPRECATED: LDAP Auth Backend `minimum_tls_version` option has been replaced by `authentication_backend.ldap.tls.minimum_version` (will be removed in 4.28.0)"))
+
+		if nilTLS {
+			configuration.TLS.MinimumVersion = configuration.MinimumTLSVersion
+		}
+	}
+
+	if configuration.TLS.MinimumVersion == "" {
+		configuration.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
+	}
+
+	if _, err := utils.TLSStringToTLSConfigVersion(configuration.TLS.MinimumVersion); err != nil {
+		validator.Push(fmt.Errorf("error occurred validating the LDAP minimum_tls_version key with value %s: %v", configuration.TLS.MinimumVersion, err))
+	}
+
+	switch configuration.Implementation {
+	case schema.LDAPImplementationCustom:
+		setDefaultImplementationCustomLdapAuthenticationBackend(configuration)
+	case schema.LDAPImplementationActiveDirectory:
+		setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration)
+	default:
+		validator.Push(fmt.Errorf("authentication backend ldap implementation must be blank or one of the following values `%s`, `%s`", schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory))
+	}
+
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))
 	} else {
-		configuration.URL = validateLdapURL(configuration.URL, validator)
+		ldapURL, serverName := validateLdapURL(configuration.URL, validator)
+
+		configuration.URL = ldapURL
+
+		if configuration.TLS.ServerName == "" {
+			configuration.TLS.ServerName = serverName
+		}
 	}
 
 	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387)
@@ -124,7 +175,12 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		validator.Push(errors.New("Please provide a users filter with `users_filter` attribute"))
 	} else {
 		if !strings.HasPrefix(configuration.UsersFilter, "(") || !strings.HasSuffix(configuration.UsersFilter, ")") {
-			validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance uid={input} should be (uid={input})"))
+			validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance {username_attribute}={input} should be ({username_attribute}={input})"))
+		}
+
+		if !strings.Contains(configuration.UsersFilter, "{username_attribute}") {
+			validator.Push(errors.New("Unable to detect {username_attribute} placeholder in users_filter, your configuration is broken. " +
+				"Please review configuration options listed at https://docs.authelia.com/configuration/authentication/ldap.html"))
 		}
 
 		// This test helps the user know that users_filter is broken after the breaking change induced by this commit.
@@ -143,6 +199,38 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	if configuration.UsernameAttribute == "" {
 		validator.Push(errors.New("Please provide a username attribute with `username_attribute`"))
 	}
+}
+
+func setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+	if configuration.UsersFilter == "" {
+		configuration.UsersFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter
+	}
+
+	if configuration.UsernameAttribute == "" {
+		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute
+	}
+
+	if configuration.DisplayNameAttribute == "" {
+		configuration.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute
+	}
+
+	if configuration.MailAttribute == "" {
+		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute
+	}
+
+	if configuration.GroupsFilter == "" {
+		configuration.GroupsFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter
+	}
+
+	if configuration.GroupNameAttribute == "" {
+		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute
+	}
+}
+
+func setDefaultImplementationCustomLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+	if configuration.UsernameAttribute == "" {
+		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute
+	}
 
 	if configuration.GroupNameAttribute == "" {
 		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.GroupNameAttribute
@@ -150,6 +238,10 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 
 	if configuration.MailAttribute == "" {
 		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.MailAttribute
+	}
+
+	if configuration.DisplayNameAttribute == "" {
+		configuration.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.DisplayNameAttribute
 	}
 }
 

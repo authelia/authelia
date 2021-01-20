@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -eu
 
 for AUR_PACKAGE in authelia authelia-bin authelia-git; do

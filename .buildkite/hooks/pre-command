@@ -1,13 +1,23 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set +u
 
+if [[ $BUILDKITE_LABEL == ":service_dog: Linting" ]]; then
+  cd web && yarn install && cd ../
+fi
+
 if [[ $BUILDKITE_LABEL =~ ":selenium:" ]]; then
-  DEFAULT_ARCH=amd64
+  DEFAULT_ARCH=coverage
   echo "--- :docker: Extract, load and tag build container"
   buildkite-agent artifact download "authelia-image-${DEFAULT_ARCH}*" .
   zstdcat authelia-image-${DEFAULT_ARCH}.tar.zst | docker load
   docker tag authelia/authelia authelia:dist
+fi
+
+if [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]] && [[ "${ARCH}" != "coverage" ]]; then
+  echo "--- :react: :swagger: Extract frontend assets"
+  buildkite-agent artifact download "authelia-public_html.tar.gz" .
+  tar xzf authelia-public_html.tar.gz
 fi
 
 if [[ $BUILDKITE_LABEL =~ ":docker: Deploy Image" ]]; then

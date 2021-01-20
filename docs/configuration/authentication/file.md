@@ -33,7 +33,7 @@ authentication_backend:
   # https://docs.authelia.com/configuration/authentication/file.html#password-hash-algorithm-tuning
 
   file:
-    path: /var/lib/authelia/users.yml
+    path: /config/users.yml
     password:
       algorithm: argon2id
       iterations: 1
@@ -51,21 +51,25 @@ The format of the users file is as follows.
 ```yaml
 users:
   john:
+    displayname: "John Doe"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:
       - admins
       - dev
   harry:
+    displayname: "Harry Potter"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: harry.potter@authelia.com
     groups: []
   bob:
+    displayname: "Bob Dylan"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: bob.dylan@authelia.com
     groups:
       - dev
   james:
+    displayname: "James Dean"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: james.dean@authelia.com
 ```
@@ -86,9 +90,10 @@ you could generate a 16 byte salt and provide it with the `--salt` flag.
 Example: `authelia hash-password --salt abcdefghijklhijl`. For argon2id the salt must 
 always be valid for base64 decoding (characters a through z, A through Z, 0 through 9, and +/).
 
+Passwords passed to `hash-password` should be single quoted if using special characters to prevent parameter substitution.
 For instance to generate a hash with the docker image just run:
 
-    $ docker run authelia/authelia:latest authelia hash-password yourpassword
+    $ docker run authelia/authelia:latest authelia hash-password 'yourpassword'
     Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
 
 Full CLI Help Documentation:

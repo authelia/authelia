@@ -5,11 +5,14 @@ var validKeys = []string{
 	"host",
 	"port",
 	"log_level",
+	"log_format",
 	"log_file_path",
 	"default_redirection_url",
 	"jwt_secret",
+	"theme",
 	"tls_key",
 	"tls_cert",
+	"certificates_directory",
 
 	// Server Keys.
 	"server.read_buffer_size",
@@ -24,6 +27,7 @@ var validKeys = []string{
 	// Access Control Keys.
 	"access_control.rules",
 	"access_control.default_policy",
+	"access_control.networks",
 
 	// Session Keys.
 	"session.name",
@@ -66,12 +70,17 @@ var validKeys = []string{
 	"notifier.smtp.password",
 	"notifier.smtp.host",
 	"notifier.smtp.port",
+	"notifier.smtp.identifier",
 	"notifier.smtp.sender",
 	"notifier.smtp.subject",
 	"notifier.smtp.startup_check_address",
 	"notifier.smtp.disable_require_tls",
-	"notifier.smtp.disable_verify_cert",
-	"notifier.smtp.trusted_cert",
+	"notifier.smtp.trusted_cert", // TODO: Deprecated: Remove in 4.28.
+	"notifier.smtp.disable_html_emails",
+	"notifier.smtp.tls.minimum_version",
+	"notifier.smtp.tls.skip_verify",
+	"notifier.smtp.tls.server_name",
+	"notifier.smtp.disable_verify_cert", // TODO: Deprecated: Remove in 4.28.
 
 	// Regulation Keys.
 	"regulation.max_retries",
@@ -88,8 +97,8 @@ var validKeys = []string{
 	"authentication_backend.refresh_interval",
 
 	// LDAP Authentication Backend Keys.
+	"authentication_backend.ldap.implementation",
 	"authentication_backend.ldap.url",
-	"authentication_backend.ldap.skip_verify",
 	"authentication_backend.ldap.base_dn",
 	"authentication_backend.ldap.username_attribute",
 	"authentication_backend.ldap.additional_users_dn",
@@ -98,8 +107,15 @@ var validKeys = []string{
 	"authentication_backend.ldap.groups_filter",
 	"authentication_backend.ldap.group_name_attribute",
 	"authentication_backend.ldap.mail_attribute",
+	"authentication_backend.ldap.display_name_attribute",
 	"authentication_backend.ldap.user",
 	"authentication_backend.ldap.password",
+	"authentication_backend.ldap.start_tls",
+	"authentication_backend.ldap.tls.minimum_version",
+	"authentication_backend.ldap.tls.skip_verify",
+	"authentication_backend.ldap.tls.server_name",
+	"authentication_backend.ldap.skip_verify",         // TODO: Deprecated: Remove in 4.28.
+	"authentication_backend.ldap.minimum_tls_version", // TODO: Deprecated: Remove in 4.28.
 
 	// File Authentication Backend Keys.
 	"authentication_backend.file.path",
@@ -162,6 +178,8 @@ var specificErrorKeys = map[string]string{
 	"authentication_backend.file.hashing.parallelism":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 }
 
+const denyPolicy = "deny"
+
 const argon2id = "argon2id"
 const sha512 = "sha512"
 
@@ -169,7 +187,12 @@ const schemeLDAP = "ldap"
 const schemeLDAPS = "ldaps"
 
 const testBadTimer = "-1"
-const testModeDisabled = "disable"
+const testInvalidPolicy = "invalid"
 const testJWTSecret = "a_secret"
+const testLDAPBaseDN = "base_dn"
+const testLDAPPassword = "password"
+const testLDAPURL = "ldap://ldap"
+const testLDAPUser = "user"
+const testModeDisabled = "disable"
 const testTLSCert = "/tmp/cert.pem"
 const testTLSKey = "/tmp/key.pem"

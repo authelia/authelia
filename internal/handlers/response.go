@@ -15,7 +15,10 @@ import (
 func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username string, groups []string) {
 	if targetURI == "" {
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
-			ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL}) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
+			if err != nil {
+				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+			}
 		} else {
 			ctx.ReplyOK()
 		}
@@ -48,7 +51,10 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username 
 
 	if !safeRedirection {
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
-			ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL}) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
+			if err != nil {
+				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+			}
 		} else {
 			ctx.ReplyOK()
 		}
@@ -59,14 +65,21 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username 
 	ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
 
 	response := redirectResponse{Redirect: targetURI}
-	ctx.SetJSONBody(response) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	err = ctx.SetJSONBody(response)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
+	}
 }
 
 // Handle2FAResponse handle the redirection upon 2FA authentication.
 func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	if targetURI == "" {
 		if ctx.Configuration.DefaultRedirectionURL != "" {
-			ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL}) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
+			if err != nil {
+				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+			}
 		} else {
 			ctx.ReplyOK()
 		}
@@ -82,7 +95,10 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	}
 
 	if targetURL != nil && utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain) {
-		ctx.SetJSONBody(redirectResponse{Redirect: targetURI}) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+		err := ctx.SetJSONBody(redirectResponse{Redirect: targetURI})
+		if err != nil {
+			ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
+		}
 	} else {
 		ctx.ReplyOK()
 	}

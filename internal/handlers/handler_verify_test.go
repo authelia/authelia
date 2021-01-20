@@ -44,7 +44,7 @@ func TestShouldRaiseWhenNoHeaderProvidedToDetectTargetURL(t *testing.T) {
 	defer mock.Close()
 	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
-	assert.Equal(t, "Missing header X-Fowarded-Proto", err.Error())
+	assert.Equal(t, "Missing header X-Forwarded-Proto", err.Error())
 }
 
 func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testing.T) {
@@ -54,7 +54,7 @@ func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testi
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
 	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
-	assert.Equal(t, "Missing header X-Fowarded-Host", err.Error())
+	assert.Equal(t, "Missing header X-Forwarded-Host", err.Error())
 }
 
 func TestShouldRaiseWhenXForwardedProtoIsNotParsable(t *testing.T) {
@@ -168,7 +168,7 @@ func TestShouldVerifyWrongCredentials(t *testing.T) {
 		Return(false, nil)
 
 	url, _ := url.ParseRequestURI("https://test.example.com")
-	_, _, _, err := verifyBasicAuth([]byte("Basic am9objpwYXNzd29yZA=="), *url, mock.Ctx)
+	_, _, _, _, _, err := verifyBasicAuth([]byte("Basic am9objpwYXNzd29yZA=="), *url, mock.Ctx)
 
 	assert.Error(t, err)
 }
@@ -377,9 +377,32 @@ func TestShouldVerifyFailingDetailsFetchingInBasicAuth(t *testing.T) {
 		"https://test.example.com", actualStatus, expStatus)
 }
 
+func TestShouldNotCrashOnEmptyEmail(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = testUsername
+	userSession.Emails = nil
+	userSession.AuthenticationLevel = authentication.OneFactor
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	expStatus, actualStatus := 200, mock.Ctx.Response.StatusCode()
+	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
+		"https://bypass.example.com", actualStatus, expStatus)
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-Email"))
+}
+
 type Pair struct {
 	URL                 string
 	Username            string
+	Emails              []string
 	AuthenticationLevel authentication.Level
 	ExpectedStatusCode  int
 }
@@ -391,23 +414,23 @@ func (p Pair) String() string {
 
 func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 	testCases := []Pair{
-		{"https://test.example.com", "", authentication.NotAuthenticated, 401},
-		{"https://bypass.example.com", "", authentication.NotAuthenticated, 200},
-		{"https://one-factor.example.com", "", authentication.NotAuthenticated, 401},
-		{"https://two-factor.example.com", "", authentication.NotAuthenticated, 401},
-		{"https://deny.example.com", "", authentication.NotAuthenticated, 401},
+		{"https://test.example.com", "", nil, authentication.NotAuthenticated, 401},
+		{"https://bypass.example.com", "", nil, authentication.NotAuthenticated, 200},
+		{"https://one-factor.example.com", "", nil, authentication.NotAuthenticated, 401},
+		{"https://two-factor.example.com", "", nil, authentication.NotAuthenticated, 401},
+		{"https://deny.example.com", "", nil, authentication.NotAuthenticated, 401},
 
-		{"https://test.example.com", "john", authentication.OneFactor, 403},
-		{"https://bypass.example.com", "john", authentication.OneFactor, 200},
-		{"https://one-factor.example.com", "john", authentication.OneFactor, 200},
-		{"https://two-factor.example.com", "john", authentication.OneFactor, 401},
-		{"https://deny.example.com", "john", authentication.OneFactor, 403},
+		{"https://test.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 403},
+		{"https://bypass.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 200},
+		{"https://one-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 200},
+		{"https://two-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 401},
+		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 403},
 
-		{"https://test.example.com", "john", authentication.TwoFactor, 403},
-		{"https://bypass.example.com", "john", authentication.TwoFactor, 200},
-		{"https://one-factor.example.com", "john", authentication.TwoFactor, 200},
-		{"https://two-factor.example.com", "john", authentication.TwoFactor, 200},
-		{"https://deny.example.com", "john", authentication.TwoFactor, 403},
+		{"https://test.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 403},
+		{"https://bypass.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 200},
+		{"https://one-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 200},
+		{"https://two-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 200},
+		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 403},
 	}
 
 	for _, testCase := range testCases {
@@ -418,8 +441,11 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 
 			userSession := mock.Ctx.GetSession()
 			userSession.Username = testCase.Username
+			userSession.Emails = testCase.Emails
 			userSession.AuthenticationLevel = testCase.AuthenticationLevel
-			mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+			err := mock.Ctx.SaveSession(userSession)
+			require.NoError(t, err)
 
 			mock.Ctx.Request.Header.Set("X-Original-URL", testCase.URL)
 
@@ -430,8 +456,10 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 
 			if testCase.ExpectedStatusCode == 200 && testCase.Username != "" {
 				assert.Equal(t, []byte(testCase.Username), mock.Ctx.Response.Header.Peek("Remote-User"))
+				assert.Equal(t, []byte("john.doe@example.com"), mock.Ctx.Response.Header.Peek("Remote-Email"))
 			} else {
 				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-User"))
+				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-Email"))
 			}
 		})
 	}
@@ -454,7 +482,9 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
-	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
@@ -485,7 +515,9 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
-	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
@@ -508,10 +540,13 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
+	userSession.Emails = []string{"john.doe@example.com"}
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = 0
 	userSession.KeepMeLoggedIn = true
-	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
@@ -539,9 +574,12 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
+	userSession.Emails = []string{"john.doe@example.com"}
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
-	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
@@ -576,7 +614,9 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
-	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
 
 	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
@@ -607,7 +647,9 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
-	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://deny.example.com")
 
@@ -628,7 +670,9 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.NotAuthenticated
-	mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.SetHost("mydomain.com")
@@ -877,7 +921,6 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 
 func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
-	//defer mock.Close()
 
 	// Setup pointer to john so we can adjust it during the test.
 	user := &authentication.UserDetails{
@@ -960,4 +1003,46 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	assert.Equal(t, "admin", userSession.Groups[0])
 	assert.Equal(t, "users", userSession.Groups[1])
 	assert.Equal(t, "grafana", userSession.Groups[2])
+}
+
+func TestShouldCheckValidSessionUsernameHeaderAndReturn200(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	expectedStatusCode := 200
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = testUsername
+	userSession.AuthenticationLevel = authentication.OneFactor
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
+	mock.Ctx.Request.Header.Set(SessionUsernameHeader, testUsername)
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, "", string(mock.Ctx.Response.Body()))
+}
+
+func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	expectedStatusCode := 401
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = testUsername
+	userSession.AuthenticationLevel = authentication.OneFactor
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
+	mock.Ctx.Request.Header.Set(SessionUsernameHeader, "root")
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, "Unauthorized", string(mock.Ctx.Response.Body()))
 }

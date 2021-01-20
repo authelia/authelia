@@ -68,3 +68,17 @@ func TestShouldNotFindSliceDifferences(t *testing.T) {
 	diff := IsStringSlicesDifferent(a, b)
 	assert.False(t, diff)
 }
+
+func TestShouldFindStringInSliceContains(t *testing.T) {
+	a := "abc"
+	b := []string{"abc", "onetwothree"}
+	s := IsStringInSliceContains(a, b)
+	assert.True(t, s)
+}
+
+func TestShouldNotFindStringInSliceContains(t *testing.T) {
+	a := "xyz"
+	b := []string{"abc", "onetwothree"}
+	s := IsStringInSliceContains(a, b)
+	assert.False(t, s)
+}

@@ -9,7 +9,8 @@ nav_order: 1
 # Filesystem
 
 With this configuration, the message will be sent to a file. This option
-should only be used for testing purposes.
+should only be used for testing purposes. This method will use the plain
+text email template for readability purposes.
 
 ```yaml
 # Configuration of the notification system.
@@ -23,5 +24,5 @@ notifier:
 
   # For testing purpose, notifications can be sent in a file.
   filesystem:
-    filename: /tmp/authelia/notification.txt
+    filename: /config/notification.txt
 ```

@@ -2,6 +2,7 @@
 layout: default
 title: Deployment - Lite
 parent: Deployment
+nav_order: 1
 ---
 
 # Lite Deployment

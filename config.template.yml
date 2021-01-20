@@ -5,8 +5,11 @@
 # The host and port to listen on
 host: 0.0.0.0
 port: 9091
-# tls_key: /var/lib/authelia/ssl/key.pem
-# tls_cert: /var/lib/authelia/ssl/cert.pem
+# tls_key: /config/ssl/key.pem
+# tls_cert: /config/ssl/cert.pem
+
+# The theme to display: light, dark, grey
+theme: light
 
 # Configuration options specific to the internal http server
 server:
@@ -21,8 +24,10 @@ server:
 
 # Level of verbosity for logs: info, debug, trace
 log_level: debug
-## File path where the logs will be written. If not set logs are written to stdout.
-# log_file_path: /var/log/authelia
+# Format the logs are written as: json, text
+# log_format: json
+# File path where the logs will be written. If not set logs are written to stdout.
+# log_file_path: /config/authelia.log
 
 # The secret used to generate JWT tokens when validating user identity by
 # email confirmation.
@@ -91,13 +96,34 @@ authentication_backend:
   # than one instance and therefore is recommended for
   # production.
   ldap:
-    # The url to the ldap server. Scheme can be ldap:// or ldaps://
+    # The LDAP implementation, this affects elements like the attribute utilised for resetting a password.
+    # Acceptable options are as follows:
+    # - 'activedirectory' - For Microsoft Active Directory.
+    # - 'custom' - For custom specifications of attributes and filters.
+    # This currently defaults to 'custom' to maintain existing behaviour.
+    #
+    # Depending on the option here certain other values in this section have a default value, notably all
+    # of the attribute mappings have a default value that this config overrides, you can read more
+    # about these default values at https://docs.authelia.com/configuration/authentication/ldap.html#defaults
+    implementation: custom
+
+    # The url to the ldap server. Scheme can be ldap or ldaps in the format (port optional) <scheme>://<address>[:<port>].
     url: ldap://127.0.0.1
     
-    # Skip verifying the server certificate (to allow self-signed certificate).
-    skip_verify: false
-    
-    # The base dn for every entries
+    # Use StartTLS with the LDAP connection.
+    start_tls: false
+
+    tls:
+      # Server Name for certificate validation (in case it's not set correctly in the URL).
+      # server_name: ldap.example.com
+
+      # Skip verifying the server certificate (to allow a self-signed certificate).
+      skip_verify: false
+
+      # Minimum TLS version for either Secure LDAP or LDAP StartTLS.
+      minimum_version: TLS1.2
+
+    # The base dn for every entries.
     base_dn: dc=example,dc=com
     
     # The attribute holding the username of the user. This attribute is used to populate
@@ -111,15 +137,15 @@ authentication_backend:
     # for that user. Technically, non-unique attributes like 'mail' can also be used but we don't recommend using
     # them, we instead advise to use the attributes mentioned above (sAMAccountName and uid) to follow
     # https://www.ietf.org/rfc/rfc2307.txt.
-    username_attribute: uid
+    # username_attribute: uid
     
-    # An additional dn to define the scope to all users
+    # An additional dn to define the scope to all users.
     additional_users_dn: ou=users
 
     # The users filter used in search queries to find the user profile based on input filled in login form.
     # Various placeholders are available to represent the user input and back reference other options of the configuration:
     # - {input} is a placeholder replaced by what the user inputs in the login form. 
-    # - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
+    # - {username_attribute} is a mandatory placeholder replaced by what is configured in `username_attribute`.
     # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
     # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
     #
@@ -131,7 +157,7 @@ authentication_backend:
     # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     users_filter: (&({username_attribute}={input})(objectClass=person))
 
-    # An additional dn to define the scope of groups
+    # An additional dn to define the scope of groups.
     additional_groups_dn: ou=groups
     
     # The groups filter used in search queries to find the groups of the user.
@@ -142,14 +168,18 @@ authentication_backend:
     # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
     # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
     # - DON'T USE - {1} is an alias for {username} supported for backward compatibility but it will be deprecated in later version, so please don't use it.
+    # If your groups use the `groupOfUniqueNames` structure use this instead: (&(uniquemember={dn})(objectclass=groupOfUniqueNames))
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
 
     # The attribute holding the name of the group
-    group_name_attribute: cn
+    # group_name_attribute: cn
 
     # The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the first
     # one returned by the LDAP server is used.
-    mail_attribute: mail
+    # mail_attribute: mail
+
+    # The attribute holding the display name of the user. This will be used to greet an authenticated user.
+    # display_name_attribute: displayname
 
     # The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
@@ -169,7 +199,7 @@ authentication_backend:
   # https://docs.authelia.com/configuration/authentication/file.html#password-hash-algorithm-tuning
   #
   ## file:
-  ##   path: ./users_database.yml
+  ##   path: /config/users_database.yml
   ##   password:
   ##     algorithm: argon2id
   ##     iterations: 1
@@ -217,6 +247,14 @@ access_control:
   # to the user.
   default_policy: deny
 
+  networks:
+    - name: internal
+      networks:
+        - 10.10.0.0/16
+        - 192.168.2.0/24
+    - name: VPN
+      networks: 10.9.0.0/16
+
   rules:
     # Rules applied to everyone
     - domain: public.example.com
@@ -226,7 +264,10 @@ access_control:
       policy: one_factor
       # Network based rule, if not provided any network matches.
       networks:
+        - internal
+        - VPN
         - 192.168.1.0/24
+        - 10.0.0.1
 
     - domain:
       - secure.example.com
@@ -311,7 +352,7 @@ session:
   redis:
     host: 127.0.0.1
     port: 6379
-    # # Use a unix socket instead
+    # Use a unix socket instead
     # host: /var/run/redis/redis.sock
 
 
@@ -345,7 +386,7 @@ regulation:
 storage:
   # The directory where the DB files will be saved
   ## local:
-  ##   path: /var/lib/authelia/db.sqlite3
+  ##   path: /config/db.sqlite3
 
   # Settings to connect to MySQL server
   mysql:
@@ -377,19 +418,13 @@ notifier:
 
   # For testing purpose, notifications can be sent in a file
   ## filesystem:
-  ##   filename: /tmp/authelia/notification.txt
+  ##   filename: /config/notification.txt
 
   # Use a SMTP server for sending notifications. Authelia uses PLAIN or LOGIN method to authenticate.
   # [Security] By default Authelia will:
   #   - force all SMTP connections over TLS including unauthenticated connections
   #      - use the disable_require_tls boolean value to disable this requirement (only works for unauthenticated connections)
-  #   - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates
-  #     - trusted_cert option:
-  #       - this is a string value, that may specify the path of a PEM format cert, it is completely optional
-  #       - if it is not set, a blank string, or an invalid path; will still trust the host machine/containers cert store
-  #     - defaults to the host machine (or docker container's) trusted certificate chain for validation
-  #     - use the trusted_cert string value to specify the path of a PEM format public cert to trust in addition to the hosts trusted certificates
-  #     - use the disable_verify_cert boolean value to disable the validation (prefer the trusted_cert option as it's more secure)
+  #   - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates (configure in tls section)
   smtp:
     username: test
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
@@ -397,14 +432,25 @@ notifier:
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com
+    # HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
+    identifier: localhost
     # Subject configuration of the emails sent.
     # {title} is replaced by the text from the notifier
     subject: "[Authelia] {title}"
     # This address is used during the startup check to verify the email configuration is correct. It's not important what it is except if your email server only allows local delivery.
     startup_check_address: test@authelia.com
-    trusted_cert: ""
     disable_require_tls: false
-    disable_verify_cert: false
+    disable_html_emails: false
+
+    tls:
+      # Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
+      # server_name: smtp.example.com
+
+      # Skip verifying the server certificate (to allow a self-signed certificate).
+      skip_verify: false
+
+      # Minimum TLS version for either StartTLS or SMTPS.
+      minimum_version: TLS1.2
 
   # Sending an email using a Gmail account is as simple as the next section.
   # You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en

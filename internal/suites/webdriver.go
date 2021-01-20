@@ -2,12 +2,16 @@ package suites
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/chrome"
@@ -21,7 +25,12 @@ type WebDriverSession struct {
 
 // StartWebDriverWithProxy create a selenium session.
 func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) {
-	service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", port)
+	driverPath := os.Getenv("CHROMEDRIVER_PATH")
+	if driverPath == "" {
+		driverPath = "/usr/bin/chromedriver"
+	}
+
+	service, err := selenium.NewChromeDriverService(driverPath, port)
 
 	if err != nil {
 		return nil, err
@@ -52,8 +61,9 @@ func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) 
 
 	wd, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", port))
 	if err != nil {
-		service.Stop() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-		panic(err)
+		_ = service.Stop()
+
+		log.Fatal(err)
 	}
 
 	return &WebDriverSession{
@@ -64,13 +74,36 @@ func StartWebDriverWithProxy(proxy string, port int) (*WebDriverSession, error) 
 
 // StartWebDriver create a selenium session.
 func StartWebDriver() (*WebDriverSession, error) {
-	return StartWebDriverWithProxy("", 4444)
+	return StartWebDriverWithProxy("", GetWebDriverPort())
 }
 
 // Stop stop the selenium session.
 func (wds *WebDriverSession) Stop() error {
-	err := wds.WebDriver.Quit()
+	var coverage map[string]interface{}
 
+	coverageDir := "../../web/.nyc_output"
+	time := time.Now()
+
+	resp, err := wds.WebDriver.ExecuteScriptRaw("return JSON.stringify(window.__coverage__)", nil)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(resp, &coverage)
+	if err != nil {
+		return err
+	}
+
+	coverageData := fmt.Sprintf("%s", coverage["value"])
+
+	_ = os.MkdirAll(coverageDir, 0775)
+
+	err = ioutil.WriteFile(fmt.Sprintf("%s/coverage-%d.json", coverageDir, time.Unix()), []byte(coverageData), 0664) //nolint:gosec
+	if err != nil {
+		return err
+	}
+
+	err = wds.WebDriver.Quit()
 	if err != nil {
 		return err
 	}

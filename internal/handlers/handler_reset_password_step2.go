@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // ResetPasswordPost handler for resetting passwords.
@@ -29,7 +30,15 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	err = ctx.Providers.UserProvider.UpdatePassword(*userSession.PasswordResetUsername, requestBody.Password)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to update password: %s", err), unableToResetPasswordMessage)
+		switch {
+		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityCodes):
+			ctx.Error(fmt.Errorf("%s", err), ldapPasswordComplexityCode)
+		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
+			ctx.Error(fmt.Errorf("%s", err), ldapPasswordComplexityCode)
+		default:
+			ctx.Error(fmt.Errorf("%s", err), unableToResetPasswordMessage)
+		}
+
 		return
 	}
 

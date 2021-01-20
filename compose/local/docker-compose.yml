@@ -9,9 +9,7 @@ services:
     image: authelia/authelia
     container_name: authelia
     volumes:
-      - ./authelia:/var/lib/authelia
-      - ./configuration.yml:/etc/authelia/configuration.yml:ro
-      - ./users_database.yml:/etc/authelia/users_database.yml
+      - ./authelia:/config
     networks:
       - net
     labels:
@@ -22,7 +20,7 @@ services:
       - 'traefik.http.routers.authelia.tls.options=default'
       - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://authelia.example.com'
       - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
-      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups'
+      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'
     expose:
       - 9091
     restart: unless-stopped

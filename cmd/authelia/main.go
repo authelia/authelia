@@ -1,9 +1,7 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -25,51 +23,52 @@ import (
 
 var configPathFlag string
 
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting
+//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func startServer() {
-	if configPathFlag == "" {
-		log.Fatal(errors.New("No config file path provided"))
-	}
-
+	logger := logging.Logger()
 	config, errs := configuration.Read(configPathFlag)
 
 	if len(errs) > 0 {
 		for _, err := range errs {
-			logging.Logger().Error(err)
+			logger.Error(err)
 		}
 
-		panic(errors.New("Some errors have been reported"))
+		os.Exit(1)
 	}
 
-	if err := logging.InitializeLogger(config.LogFilePath); err != nil {
-		log.Fatalf("Cannot initialize logger: %v", err)
+	autheliaCertPool, errs, nonFatalErrs := utils.NewX509CertPool(config.CertificatesDirectory, config)
+	if len(errs) > 0 {
+		for _, err := range errs {
+			logger.Error(err)
+		}
+
+		os.Exit(2)
+	}
+
+	if len(nonFatalErrs) > 0 {
+		for _, err := range nonFatalErrs {
+			logger.Warn(err)
+		}
+	}
+
+	if err := logging.InitializeLogger(config.LogFormat, config.LogFilePath); err != nil {
+		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
 
 	switch config.LogLevel {
 	case "info":
-		logging.Logger().Info("Logging severity set to info")
+		logger.Info("Logging severity set to info")
 		logging.SetLevel(logrus.InfoLevel)
 	case "debug":
-		logging.Logger().Info("Logging severity set to debug")
+		logger.Info("Logging severity set to debug")
 		logging.SetLevel(logrus.DebugLevel)
 	case "trace":
-		logging.Logger().Info("Logging severity set to trace")
+		logger.Info("Logging severity set to trace")
 		logging.SetLevel(logrus.TraceLevel)
 	}
 
 	if os.Getenv("ENVIRONMENT") == "dev" {
-		logging.Logger().Info("===> Authelia is running in development mode. <===")
-	}
-
-	var userProvider authentication.UserProvider
-
-	switch {
-	case config.AuthenticationBackend.File != nil:
-		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
-	case config.AuthenticationBackend.Ldap != nil:
-		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.Ldap)
-	default:
-		log.Fatalf("Unrecognized authentication backend")
+		logger.Info("===> Authelia is running in development mode. <===")
 	}
 
 	var storageProvider storage.Provider
@@ -82,24 +81,35 @@ func startServer() {
 	case config.Storage.Local != nil:
 		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
 	default:
-		log.Fatalf("Unrecognized storage backend")
+		logger.Fatalf("Unrecognized storage backend")
+	}
+
+	var userProvider authentication.UserProvider
+
+	switch {
+	case config.AuthenticationBackend.File != nil:
+		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
+	case config.AuthenticationBackend.Ldap != nil:
+		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.Ldap, autheliaCertPool)
+	default:
+		logger.Fatalf("Unrecognized authentication backend")
 	}
 
 	var notifier notification.Notifier
 
 	switch {
 	case config.Notifier.SMTP != nil:
-		notifier = notification.NewSMTPNotifier(*config.Notifier.SMTP)
+		notifier = notification.NewSMTPNotifier(*config.Notifier.SMTP, autheliaCertPool)
 	case config.Notifier.FileSystem != nil:
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	default:
-		log.Fatalf("Unrecognized notifier")
+		logger.Fatalf("Unrecognized notifier")
 	}
 
 	if !config.Notifier.DisableStartupCheck {
 		_, err := notifier.StartupCheck()
 		if err != nil {
-			log.Fatalf("Error during notifier startup check: %s", err)
+			logger.Fatalf("Error during notifier startup check: %s", err)
 		}
 	}
 
@@ -120,6 +130,7 @@ func startServer() {
 }
 
 func main() {
+	logger := logging.Logger()
 	rootCmd := &cobra.Command{
 		Use: "authelia",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -142,6 +153,6 @@ func main() {
 		commands.RSACmd)
 
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 }

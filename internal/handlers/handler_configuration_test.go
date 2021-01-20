@@ -5,49 +5,155 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
-	"github.com/authelia/authelia/internal/session"
 )
 
-type ConfigurationSuite struct {
+type SecondFactorAvailableMethodsFixture struct {
 	suite.Suite
-
 	mock *mocks.MockAutheliaCtx
 }
 
-func (s *ConfigurationSuite) SetupTest() {
+func (s *SecondFactorAvailableMethodsFixture) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
+		DefaultPolicy: "deny",
+		Rules:         []schema.ACLRule{},
+	})
 }
 
-func (s *ConfigurationSuite) TearDownTest() {
+func (s *SecondFactorAvailableMethodsFixture) TearDownTest() {
 	s.mock.Close()
 }
 
-func (s *ConfigurationSuite) TestShouldDisableRememberMe() {
-	s.mock.Ctx.Configuration.Session.RememberMeDuration = "0"
-	s.mock.Ctx.Providers.SessionProvider = session.NewProvider(
-		s.mock.Ctx.Configuration.Session)
+func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Period: schema.DefaultTOTPConfiguration.Period,
+		},
+	}
 	expectedBody := ConfigurationBody{
-		RememberMe:    false,
-		ResetPassword: true,
+		AvailableMethods:    []string{"totp", "u2f"},
+		SecondFactorEnabled: false,
+		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	}
 
 	ConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
 }
 
-func (s *ConfigurationSuite) TestShouldDisableResetPassword() {
-	s.mock.Ctx.Configuration.AuthenticationBackend.DisableResetPassword = true
+func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMobilePush() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		DuoAPI: &schema.DuoAPIConfiguration{},
+		TOTP: &schema.TOTPConfiguration{
+			Period: schema.DefaultTOTPConfiguration.Period,
+		},
+	}
 	expectedBody := ConfigurationBody{
-		RememberMe:    true,
-		ResetPassword: false,
+		AvailableMethods:    []string{"totp", "u2f", "mobile_push"},
+		SecondFactorEnabled: false,
+		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	}
 
 	ConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), expectedBody)
 }
 
-func TestRunHandlerConfigurationSuite(t *testing.T) {
-	s := new(ConfigurationSuite)
+func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisabledWhenNoRuleIsSetToTwoFactor() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Period: schema.DefaultTOTPConfiguration.Period,
+		},
+	}
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
+		DefaultPolicy: "bypass",
+		Rules: []schema.ACLRule{
+			{
+				Domains: []string{"example.com"},
+				Policy:  "deny",
+			},
+			{
+				Domains: []string{"abc.example.com"},
+				Policy:  "single_factor",
+			},
+			{
+				Domains: []string{"def.example.com"},
+				Policy:  "bypass",
+			},
+		},
+	})
+	ConfigurationGet(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), ConfigurationBody{
+		AvailableMethods:    []string{"totp", "u2f"},
+		SecondFactorEnabled: false,
+		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
+	})
+}
+
+func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabledWhenDefaultPolicySetToTwoFactor() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Period: schema.DefaultTOTPConfiguration.Period,
+		},
+	}
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
+		DefaultPolicy: "two_factor",
+		Rules: []schema.ACLRule{
+			{
+				Domains: []string{"example.com"},
+				Policy:  "deny",
+			},
+			{
+				Domains: []string{"abc.example.com"},
+				Policy:  "single_factor",
+			},
+			{
+				Domains: []string{"def.example.com"},
+				Policy:  "bypass",
+			},
+		},
+	})
+	ConfigurationGet(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), ConfigurationBody{
+		AvailableMethods:    []string{"totp", "u2f"},
+		SecondFactorEnabled: true,
+		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
+	})
+}
+
+func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabledWhenSomePolicySetToTwoFactor() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Period: schema.DefaultTOTPConfiguration.Period,
+		},
+	}
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
+		DefaultPolicy: "bypass",
+		Rules: []schema.ACLRule{
+			{
+				Domains: []string{"example.com"},
+				Policy:  "deny",
+			},
+			{
+				Domains: []string{"abc.example.com"},
+				Policy:  "two_factor",
+			},
+			{
+				Domains: []string{"def.example.com"},
+				Policy:  "bypass",
+			},
+		},
+	})
+	ConfigurationGet(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), ConfigurationBody{
+		AvailableMethods:    []string{"totp", "u2f"},
+		SecondFactorEnabled: true,
+		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
+	})
+}
+
+func TestRunSuite(t *testing.T) {
+	s := new(SecondFactorAvailableMethodsFixture)
 	suite.Run(t, s)
 }

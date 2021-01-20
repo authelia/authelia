@@ -6,9 +6,10 @@
 
 # List of users
 users:
-  cmichaud:
-    password: $argon2id$v=19$m=1048576,t=1,p=8$NmxmeTZhQUJmL1dqQ054OA$AL0ejLatFFmFmgYg1rN1VaUFaK6ggJaE+pPln5yfJnQ
-    email: cmichaud@example.com
+  authelia:
+    displayname: "Authelia User"
+    password: "$6$rounds=50000$BpLnfgDsc2WD8F2q$Zis.ixdg9s/UOJYrs56b5QEZFiZECu0qZVNsIYxBaNJ7ucIL.nlxVCT5tqh8KHG8X4tlwCFm5r6NTOZZ5qRFN/" # Password is 'authelia'
+    email: authelia@authelia.com
     groups:
       - admins
       - dev

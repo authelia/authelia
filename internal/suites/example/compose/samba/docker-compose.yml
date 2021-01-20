@@ -1,0 +1,14 @@
+version: '3'
+services:
+  sambaldap:
+    build:
+      context: ./example/compose/samba
+    cap_add:
+      - SYS_ADMIN
+    hostname: ldap.example.com
+    environment:
+      - DOMAIN=example.com
+      - DOMAINPASS=Password1
+      - NOCOMPLEXITY=true
+    networks:
+      - authelianet

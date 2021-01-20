@@ -51,7 +51,7 @@ func (n *FileNotifier) StartupCheck() (bool, error) {
 }
 
 // Send send a identity verification link to a user.
-func (n *FileNotifier) Send(recipient, subject, body string) error {
+func (n *FileNotifier) Send(recipient, subject, body, _ string) error {
 	content := fmt.Sprintf("Date: %s\nRecipient: %s\nSubject: %s\nBody: %s", time.Now(), recipient, subject, body)
 
 	err := ioutil.WriteFile(n.path, []byte(content), fileNotifierMode)

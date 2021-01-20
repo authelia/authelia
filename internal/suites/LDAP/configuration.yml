@@ -3,8 +3,10 @@
 ###############################################################
 
 port: 9091
-tls_cert: /var/lib/authelia/ssl/cert.pem
-tls_key: /var/lib/authelia/ssl/key.pem
+tls_cert: /config/ssl/cert.pem
+tls_key: /config/ssl/key.pem
+
+theme: dark
 
 log_level: debug
 
@@ -15,7 +17,8 @@ jwt_secret: very_important_secret
 authentication_backend:
   ldap:
     url: ldaps://openldap
-    skip_verify: true
+    tls:
+      skip_verify: true
     base_dn: dc=example,dc=com
     username_attribute: uid
     additional_users_dn: ou=users
@@ -24,7 +27,8 @@ authentication_backend:
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
     group_name_attribute: cn
     mail_attribute: mail
-    user: cn=admin,dc=example,dc=com
+    display_name_attribute: displayName
+    user: cn=pwmanager,dc=example,dc=com
     password: password
 
 session:
@@ -36,7 +40,7 @@ session:
 
 storage:
   local:
-    path: /var/lib/authelia/db.sqlite3
+    path: /config/db.sqlite3
 
 totp:
   issuer: example.com
