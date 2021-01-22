@@ -25,13 +25,15 @@ With the below configuration you can add `authelia.conf` to virtual hosts to sup
 #### Supplementary config
 
 ##### authelia.conf
+
 ```nginx
+set $upstream_authelia http://authelia:9091/api/verify;
+
 # Virtual endpoint created by nginx to forward auth requests.
-location /authelia {
+location = /authelia {
     internal;
-    set $upstream_authelia http://authelia:9091/api/verify;
     proxy_pass_request_body off;
-    proxy_pass $upstream_authelia;    
+    proxy_pass $upstream_authelia;
     proxy_set_header Content-Length "";
 
     # Timeout if the real server is dead
@@ -46,7 +48,7 @@ location /authelia {
     proxy_set_header Host $host;
     proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
     proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $remote_addr; 
+    proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host $http_host;
     proxy_set_header X-Forwarded-Uri $request_uri;
@@ -67,6 +69,7 @@ location /authelia {
 ```
 
 ##### auth.conf
+
 ```nginx
 # Basic Authelia Config
 # Send a subsequent request to Authelia to verify if the user is authenticated
@@ -94,6 +97,7 @@ error_page 401 =302 https://auth.example.com/?rd=$target_url;
 ```
 
 ##### proxy.conf
+
 ```nginx
 client_body_buffer_size 128k;
 
@@ -145,7 +149,7 @@ server {
     include /config/nginx/ssl.conf;
 
     location / {
-        set $upstream_authelia http://authelia:9091; # This example assumes a Docker deployment 
+        set $upstream_authelia http://authelia:9091; # This example assumes a Docker deployment
         proxy_pass $upstream_authelia;
         include /config/nginx/proxy.conf;
     }
@@ -175,5 +179,97 @@ server {
     }
 }
 ```
+
+### Basic Auth Example
+
+Here's an example for using HTTP basic auth on a specific endpoint. It is based on the full example above.
+
+##### authelia-basic.conf
+
+```nginx
+# Notice we added the auth=basic query arg here
+set $upstream_authelia http://authelia:9091/api/verify?auth=basic;
+
+location = /authelia {
+    # Exactly the same as above
+}
+```
+
+##### auth-basic.conf
+
+Same as `auth.conf` but without the `error_page` directive. We want nginx to proxy the 401 back to the client, not to return a 301.
+
+#### Protected Endpoint
+
+```nginx
+server {
+    server_name nextcloud.example.com;
+    listen 80;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    server_name nextcloud.example.com;
+    listen 443 ssl http2;
+    include /config/nginx/ssl.conf;
+    include /config/nginx/authelia-basic.conf; # Use the "basic" endpoint
+
+    location / {
+        set $upstream_nextcloud https://nextcloud;
+        proxy_pass $upstream_nextcloud;
+        include /config/nginx/auth-basic.conf; # Activate authelia with basic auth
+        include /config/nginx/proxy.conf; # this file is the exact same as above
+    }
+}
+```
+
+
+### Basic auth for specific client
+
+If you'd like to force basic auth for some requests, you can use the following template:
+
+##### authelia-detect.conf
+
+```nginx
+set $is_basic_auth ""; # false value
+set $upstream_authelia http://authelia:9091/api/verify;
+
+# Detect the client you want to force basic auth for here
+# For the example we just match a path on the original request
+if ($request_uri = "/force-basic") {
+    set $is_basic_auth "true";
+    set $upstream_authelia "$upstream_authelia?auth=basic";
+}
+
+location = /authelia {
+    # Same as above
+}
+
+# A new virtual endpoint to used if the auth_request failed
+location = /authelia-redirect {
+    internal;
+
+    if ($is_basic_auth) {
+        # This is a request where we decided to use basic auth, return a 401.
+        # Nginx will also proxy back the WWW-Authenticate header from Authelia's
+        # response. This is what informs the client we're expecting basic auth.
+        return 401;
+    }
+
+    # The original request didn't target /force-basic, redirect to the pretty login page
+    # This is what `error_page 401 =302 https://auth.example.com/?rd=$target_url;` did.
+    return 302 https://auth.example.com/$is_args$args;
+}
+```
+
+##### auth.conf
+
+Same as above, but replace error_page with the following:
+
+```nginx
+error_page 401 /authelia-redirect?rd=$target_url;
+```
+
+This tells nginx to use the virtual endpoint we defined above in case the auth_request failed.
 
 [nginx]: https://www.nginx.com/
