@@ -20,6 +20,7 @@ type ACLRule struct {
 	Subjects  [][]string `mapstructure:"subject,weak"`
 	Networks  []string   `mapstructure:"networks"`
 	Resources []string   `mapstructure:"resources"`
+	Methods   []string   `mapstructure:"methods"`
 }
 
 // DefaultACLNetwork represents the default configuration related to access control network group configuration.

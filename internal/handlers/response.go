@@ -36,7 +36,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username 
 		Username: username,
 		Groups:   groups,
 		IP:       ctx.RemoteIP(),
-	}, *targetURL)
+	}, *targetURL, ctx.XForwardedMethod())
 
 	ctx.Logger.Debugf("Required level for the URL %s is %d", targetURI, requiredLevel)
 

@@ -31,7 +31,7 @@ func (s *AuthorizerTester) CheckAuthorizations(t *testing.T, subject Subject, re
 		Groups:   subject.Groups,
 		Username: subject.Username,
 		IP:       subject.IP,
-	}, *url)
+	}, *url, []byte("GET"))
 
 	assert.Equal(t, expectedLevel, level)
 }

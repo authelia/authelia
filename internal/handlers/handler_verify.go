@@ -97,12 +97,12 @@ func parseBasicAuth(auth string) (username, password string, err error) {
 
 // isTargetURLAuthorized check whether the given user is authorized to access the resource.
 func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.URL,
-	username string, userGroups []string, clientIP net.IP, authLevel authentication.Level) authorizationMatching {
+	username string, userGroups []string, clientIP net.IP, method []byte, authLevel authentication.Level) authorizationMatching {
 	level := authorizer.GetRequiredLevel(authorization.Subject{
 		Username: username,
 		Groups:   userGroups,
 		IP:       clientIP,
-	}, targetURL)
+	}, targetURL, method)
 
 	switch {
 	case level == authorization.Bypass:
@@ -465,7 +465,7 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		}
 
 		authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
-			groups, ctx.RemoteIP(), authLevel)
+			groups, ctx.RemoteIP(), ctx.XForwardedMethod(), authLevel)
 
 		switch authorization {
 		case Forbidden:

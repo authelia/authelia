@@ -11,18 +11,18 @@ import (
 )
 
 // IsPolicyValid check if policy is valid.
-func IsPolicyValid(policy string) bool {
+func IsPolicyValid(policy string) (isValid bool) {
 	return policy == denyPolicy || policy == "one_factor" || policy == "two_factor" || policy == "bypass"
 }
 
 // IsResourceValid check if a resource is valid.
-func IsResourceValid(resource string) error {
-	_, err := regexp.Compile(resource)
+func IsResourceValid(resource string) (err error) {
+	_, err = regexp.Compile(resource)
 	return err
 }
 
 // IsSubjectValid check if a subject is valid.
-func IsSubjectValid(subject string) bool {
+func IsSubjectValid(subject string) (isValid bool) {
 	return subject == "" || strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:")
 }
 
@@ -40,12 +40,20 @@ func IsNetworkGroupValid(configuration schema.AccessControlConfiguration, networ
 }
 
 // IsNetworkValid check if a network is valid.
-func IsNetworkValid(network string) bool {
+func IsNetworkValid(network string) (isValid bool) {
 	if net.ParseIP(network) == nil {
 		_, _, err := net.ParseCIDR(network)
 		return err == nil
 	}
 
+	return true
+}
+func IsMethodValid(methods []string) (isValid bool) {
+	for _, method := range methods {
+		if !utils.IsStringInSlice(method, validRequestMethods) {
+			return false
+		}
+	}
 	return true
 }
 
@@ -94,9 +102,13 @@ func ValidateRules(configuration schema.AccessControlConfiguration, validator *s
 		for _, subjectRule := range r.Subjects {
 			for _, subject := range subjectRule {
 				if !IsSubjectValid(subject) {
-					validator.Push(fmt.Errorf("Subject %s for domain: %s must start with 'user:' or 'group:'", subjectRule, r.Domains))
+					validator.Push(fmt.Errorf("Subject %s for domain: %s is invalid, must start with 'user:' or 'group:'", subjectRule, r.Domains))
 				}
 			}
+		}
+
+		if !IsMethodValid(r.Methods) {
+			validator.Push(fmt.Errorf("Methods for domain %s is invalid, methods must be one or more of %s", r.Domains, validRequestMethods))
 		}
 	}
 }

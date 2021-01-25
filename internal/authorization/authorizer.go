@@ -8,10 +8,8 @@ import (
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
+	"github.com/authelia/authelia/internal/utils"
 )
-
-const userPrefix = "user:"
-const groupPrefix = "group:"
 
 // Authorizer the component in charge of checking whether a user can access a given resource.
 type Authorizer struct {
@@ -42,45 +40,6 @@ type Object struct {
 	Path   string
 }
 
-// selectMatchingSubjectRules take a set of rules and select only the rules matching the subject constraints.
-func selectMatchingSubjectRules(rules []schema.ACLRule, networks []schema.ACLNetwork, subject Subject) []schema.ACLRule {
-	selectedRules := []schema.ACLRule{}
-
-	for _, rule := range rules {
-		switch {
-		case len(rule.Subjects) > 0:
-			for _, subjectRule := range rule.Subjects {
-				if isSubjectMatching(subject, subjectRule) && isIPMatching(subject.IP, rule.Networks, networks) {
-					selectedRules = append(selectedRules, rule)
-				}
-			}
-		default:
-			if isIPMatching(subject.IP, rule.Networks, networks) {
-				selectedRules = append(selectedRules, rule)
-			}
-		}
-	}
-
-	return selectedRules
-}
-
-func selectMatchingObjectRules(rules []schema.ACLRule, object Object) []schema.ACLRule {
-	selectedRules := []schema.ACLRule{}
-
-	for _, rule := range rules {
-		if isDomainMatching(object.Domain, rule.Domains) && isPathMatching(object.Path, rule.Resources) {
-			selectedRules = append(selectedRules, rule)
-		}
-	}
-
-	return selectedRules
-}
-
-func selectMatchingRules(rules []schema.ACLRule, networks []schema.ACLNetwork, subject Subject, object Object) []schema.ACLRule {
-	matchingRules := selectMatchingSubjectRules(rules, networks, subject)
-	return selectMatchingObjectRules(matchingRules, object)
-}
-
 // PolicyToLevel converts a string policy to int authorization level.
 func PolicyToLevel(policy string) Level {
 	switch policy {
@@ -95,6 +54,41 @@ func PolicyToLevel(policy string) Level {
 	}
 	// By default the deny policy applies.
 	return Denied
+}
+
+// getFirstMatchingRule returns the first rule that fully matches a given subject, url, and method.
+func getFirstMatchingRule(rules []schema.ACLRule, subject Subject, requestURL url.URL, method []byte) (rule schema.ACLRule, err error) {
+	for _, rule := range rules {
+		if !isDomainMatching(requestURL.Hostname(), rule.Domains) {
+			continue
+		}
+
+		if !isPathMatching(requestURL.Path, rule.Resources) {
+			continue
+		}
+
+		if len(r.Methods) > 0 {
+			if method == nil || !utils.IsStringInSlice(string(method), rule.Methods) {
+				continue
+			}
+		}
+
+		if len(rule.Networks) > 0 && !isIPMatching(subject.IP, rule.Networks, p.configuration.Networks) {
+			continue
+		}
+
+		if len(rule.Subjects) > 0 {
+			for _, subjectRule := range rule.Subjects {
+				if !isSubjectMatching(subject, subjectRule) {
+					continue
+				}
+			}
+		}
+
+		return rule, nil
+	}
+
+	return rule, errNoMatchingRule
 }
 
 // IsSecondFactorEnabled return true if at least one policy is set to second factor.
@@ -113,22 +107,23 @@ func (p *Authorizer) IsSecondFactorEnabled() bool {
 }
 
 // GetRequiredLevel retrieve the required level of authorization to access the object.
-func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL) Level {
+func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL, method []byte) Level {
 	logger := logging.Logger()
 	logger.Tracef("Check authorization of subject %s and url %s.", subject.String(), requestURL.String())
 
-	matchingRules := selectMatchingRules(p.configuration.Rules, p.configuration.Networks, subject, Object{
-		Domain: requestURL.Hostname(),
-		Path:   requestURL.Path,
-	})
+	rule, err := getFirstMatchingRule(p.configuration.Rules, subject, requestURL, method)
 
-	if len(matchingRules) > 0 {
-		return PolicyToLevel(matchingRules[0].Policy)
+	if err != nil {
+		if err == errNoMatchingRule {
+			logger.Tracef("No matching rule for subject %s and url %s... Applying default policy.", subject.String(), requestURL.String())
+		} else {
+			logger.Warnf("Error occurred matching ACL Rules: %v", err)
+		}
+
+		return PolicyToLevel(p.configuration.DefaultPolicy)
 	}
 
-	logger.Tracef("No matching rule for subject %s and url %s... Applying default policy.", subject.String(), requestURL.String())
-
-	return PolicyToLevel(p.configuration.DefaultPolicy)
+	return PolicyToLevel(rule.Policy)
 }
 
 // IsURLMatchingRuleWithGroupSubjects returns true if the request has at least one

@@ -1,7 +1,14 @@
 package authorization
 
+import (
+	"errors"
+)
+
 // Level is the type representing an authorization level.
 type Level int
+
+const userPrefix = "user:"
+const groupPrefix = "group:"
 
 const (
 	// Bypass bypass level.
@@ -13,3 +20,5 @@ const (
 	// Denied denied level.
 	Denied Level = iota
 )
+
+var errNoMatchingRule = errors.New("no rule matching the request was found")
