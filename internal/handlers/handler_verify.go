@@ -104,7 +104,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 			Groups:   userGroups,
 			IP:       clientIP,
 		},
-		authorization.NewObject(&targetURL, method))
+		authorization.NewObjectRaw(&targetURL, method))
 
 	switch {
 	case level == authorization.Bypass:
@@ -234,15 +234,19 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, userSession.AuthenticationLevel, nil
 }
 
-func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, username string) {
+func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, username string, method []byte) {
 	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
 	// endpoint to provide the URL of the login portal. The target URL of the user
 	// is computed from X-Forwarded-* headers or X-Original-URL.
 	rd := string(ctx.QueryArgs().Peek("rd"))
 	if rd != "" {
-		redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
-		if strings.Contains(redirectionURL, "/%23/") {
-			ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
+		redirectionURL := ""
+
+		rm := string(method)
+		if rm != "" {
+			redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), rm)
+		} else {
+			redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
 		}
 
 		ctx.Logger.Infof("Access to %s is not authorized to user %s, redirecting to %s", targetURL.String(), username, redirectionURL)
@@ -453,6 +457,8 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			}
 		}
 
+		method := ctx.XForwardedMethod()
+
 		if err != nil {
 			ctx.Logger.Error(fmt.Sprintf("Error caught when verifying user authorization: %s", err))
 
@@ -461,20 +467,20 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 				return
 			}
 
-			handleUnauthorized(ctx, targetURL, username)
+			handleUnauthorized(ctx, targetURL, username, method)
 
 			return
 		}
 
 		authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
-			groups, ctx.RemoteIP(), ctx.XForwardedMethod(), authLevel)
+			groups, ctx.RemoteIP(), method, authLevel)
 
 		switch authorization {
 		case Forbidden:
 			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 			ctx.ReplyForbidden()
 		case NotAuthorized:
-			handleUnauthorized(ctx, targetURL, username)
+			handleUnauthorized(ctx, targetURL, username, method)
 		case Authorized:
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
 		}

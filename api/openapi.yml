@@ -517,6 +517,9 @@ components:
         targetURL:
           type: string
           example: https://home.example.com
+        requestMethod:
+          type: string
+          example: GET
         keepMeLoggedIn:
           type: boolean
           example: true

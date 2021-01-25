@@ -30,12 +30,17 @@ func (o Object) String() string {
 	return fmt.Sprintf("%s://%s%s", o.Scheme, o.Domain, o.Path)
 }
 
+// NewObjectRaw creates a new Object type from a URL and a method header.
+func NewObjectRaw(targetURL *url.URL, method []byte) (object Object) {
+	return NewObject(targetURL, string(method))
+}
+
 // NewObject creates a new Object type from a URL and a method header.
-func NewObject(targetURL *url.URL, method []byte) (object Object) {
+func NewObject(targetURL *url.URL, method string) (object Object) {
 	object = Object{
 		Scheme: targetURL.Scheme,
 		Domain: targetURL.Hostname(),
-		Method: string(method),
+		Method: method,
 	}
 
 	if targetURL.RawQuery == "" {

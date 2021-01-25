@@ -12,7 +12,7 @@ import (
 )
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
-func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username string, groups []string) {
+func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod string, username string, groups []string) {
 	if targetURI == "" {
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
 			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
@@ -38,7 +38,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username 
 			Groups:   groups,
 			IP:       ctx.RemoteIP(),
 		},
-		authorization.NewObject(targetURL, ctx.XForwardedMethod()))
+		authorization.NewObject(targetURL, requestMethod))
 
 	ctx.Logger.Debugf("Required level for the URL %s is %d", targetURI, requiredLevel)
 
