@@ -104,14 +104,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 			Groups:   userGroups,
 			IP:       clientIP,
 		},
-		authorization.Object{
-			Scheme: targetURL.Scheme,
-			Domain: targetURL.Hostname(),
-			Path: targetURL.Path,
-			Query: targetURL.RawQuery,
-			Method: string(method),
-		},
-	)
+		authorization.NewObject(&targetURL, method))
 
 	switch {
 	case level == authorization.Bypass:

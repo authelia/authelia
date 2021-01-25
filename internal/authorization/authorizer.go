@@ -39,12 +39,27 @@ type Object struct {
 	Scheme string
 	Domain string
 	Path   string
-	Query  string
 	Method string
 }
 
 func (o Object) String() string {
 	return fmt.Sprintf("%s://%s%s", o.Scheme, o.Domain, o.Path)
+}
+
+func NewObject(targetUrl *url.URL, method []byte) (object Object) {
+	object = Object{
+		Scheme: targetUrl.Scheme,
+		Domain: targetUrl.Hostname(),
+		Method: string(method),
+	}
+
+	if targetUrl.RawQuery == "" {
+		object.Path = targetUrl.Path
+	} else {
+		object.Path = targetUrl.Path + "?" + targetUrl.RawQuery
+	}
+
+	return object
 }
 
 // PolicyToLevel converts a string policy to int authorization level.
@@ -70,7 +85,7 @@ func getFirstMatchingRule(rules []schema.ACLRule, networks []schema.ACLNetwork, 
 			continue
 		}
 
-		if !isPathMatching(object.Path + object.Query, rule.Resources) {
+		if !isPathMatching(object.Path, rule.Resources) {
 			continue
 		}
 

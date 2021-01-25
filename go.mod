@@ -8,7 +8,7 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/Workiva/go-datastructures v1.0.52
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a
-	`github.com/fasthttp/session/v2` v2.2.6
+	github.com/fasthttp/session/v2 v2.2.6
 	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/duosecurity/duo_api_golang v0.0.0-20190308151101-6c680f768e74
