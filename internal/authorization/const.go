@@ -7,9 +7,6 @@ import (
 // Level is the type representing an authorization level.
 type Level int
 
-const userPrefix = "user:"
-const groupPrefix = "group:"
-
 const (
 	// Bypass bypass level.
 	Bypass Level = iota
@@ -20,5 +17,8 @@ const (
 	// Denied denied level.
 	Denied Level = iota
 )
+
+const userPrefix = "user:"
+const groupPrefix = "group:"
 
 var errNoMatchingRule = errors.New("no rule matching the request was found")

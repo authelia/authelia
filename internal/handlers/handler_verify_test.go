@@ -188,7 +188,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 			username = testUsername
 		}
 
-		matching := isTargetURLAuthorized(authorizer, *url, username, []string{}, net.ParseIP("127.0.0.1"), rule.AuthLevel)
+		matching := isTargetURLAuthorized(authorizer, *url, username, []string{}, net.ParseIP("127.0.0.1"), []byte("GET"), rule.AuthLevel)
 		assert.Equal(t, rule.ExpectedMatching, matching, "policy=%s, authLevel=%v, expected=%v, actual=%v",
 			rule.Policy, rule.AuthLevel, rule.ExpectedMatching, matching)
 	}

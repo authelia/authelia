@@ -100,6 +100,11 @@ Even if Authelia provides this flexibility, you might prefer a higher level of s
 this option entirely. You and only you can define your security policy and it's up to you to
 configure Authelia accordingly.
 
+## Methods
+
+A list of HTTP request methods to apply the rule to. Valid values are GET, HEAD, POST, PUT, DELETE, 
+CONNECT, OPTIONS, and TRACE. Additional information about HTTP request methods can be found on the 
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods). 
 
 ## Complete example
 
@@ -118,6 +123,11 @@ access_control:
   rules:
     - domain: public.example.com
       policy: bypass
+
+    - domain: "*.example.com"
+      policy: bypass
+      methods:
+        - OPTIONS
 
     - domain: secure.example.com
       policy: one_factor

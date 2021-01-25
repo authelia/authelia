@@ -1,6 +1,6 @@
 package validator
 
-var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
+var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 
 var validKeys = []string{
 	// Root Keys.

@@ -1,14 +1,11 @@
 package authorization
 
 import (
-	"fmt"
-	"net"
 	"net/url"
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
-	"github.com/authelia/authelia/internal/utils"
 )
 
 // Authorizer the component in charge of checking whether a user can access a given resource.

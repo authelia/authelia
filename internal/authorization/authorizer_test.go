@@ -25,19 +25,17 @@ func NewAuthorizerTester(config schema.AccessControlConfiguration) *AuthorizerTe
 	}
 }
 
-func (s *AuthorizerTester) CheckAuthorizations(t *testing.T, subject Subject, requestURI string, expectedLevel Level) {
+func (s *AuthorizerTester) CheckAuthorizations(t *testing.T, subject Subject, requestURI, method string, expectedLevel Level) {
 	url, _ := url.ParseRequestURI(requestURI)
-	level := s.GetRequiredLevel(Subject{
-		Groups:   subject.Groups,
-		Username: subject.Username,
-		IP:       subject.IP,
-	}, Object{
+
+	object := Object{
 		Scheme: url.Scheme,
 		Domain: url.Hostname(),
-		Path: url.Path,
-		Query: "",
-		Method: "GET",
-	})
+		Path:   url.Path,
+		Method: method,
+	}
+
+	level := s.GetRequiredLevel(subject, object)
 
 	assert.Equal(t, expectedLevel, level)
 }
@@ -90,20 +88,20 @@ func (s *AuthorizerSuite) TestShouldCheckDefaultBypassConfig() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy("bypass").Build()
 
-	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://public.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://public.example.com/elsewhere", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://public.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://public.example.com/elsewhere", "GET", Bypass)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckDefaultDeniedConfig() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy("deny").Build()
 
-	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com/", Denied)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/", Denied)
-	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://public.example.com/", Denied)
-	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://public.example.com/elsewhere", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://public.example.com/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://public.example.com/elsewhere", "GET", Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckMultiDomainRule() {
@@ -115,12 +113,12 @@ func (s *AuthorizerSuite) TestShouldCheckMultiDomainRule() {
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://private.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/elsewhere", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://example.com/", Denied)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com.c/", Denied)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.co/", Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://private.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/elsewhere", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://example.com/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com.c/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.co/", "GET", Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckMultipleDomainRule() {
@@ -132,15 +130,15 @@ func (s *AuthorizerSuite) TestShouldCheckMultipleDomainRule() {
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://private.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/elsewhere", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://example.com/", Denied)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com.c/", Denied)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.co/", Denied)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://other.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://other.com/elsewhere", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://private.other.com/", Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://private.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/elsewhere", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://example.com/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com.c/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.co/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://other.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://other.com/elsewhere", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://private.other.com/", "GET", Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckFactorsPolicy() {
@@ -160,10 +158,10 @@ func (s *AuthorizerSuite) TestShouldCheckFactorsPolicy() {
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://protected.example.com/", TwoFactor)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://single.example.com/", OneFactor)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://example.com/", Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://protected.example.com/", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://single.example.com/", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://example.com/", "GET", Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
@@ -184,9 +182,9 @@ func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", OneFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://public.example.com/", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://public.example.com/", "GET", TwoFactor)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckUserMatching() {
@@ -199,8 +197,8 @@ func (s *AuthorizerSuite) TestShouldCheckUserMatching() {
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "GET", Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckGroupMatching() {
@@ -213,8 +211,8 @@ func (s *AuthorizerSuite) TestShouldCheckGroupMatching() {
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "GET", Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckSubjectsMatching() {
@@ -227,9 +225,9 @@ func (s *AuthorizerSuite) TestShouldCheckSubjectsMatching() {
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", "GET", Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckMultipleSubjectsMatching() {
@@ -242,9 +240,9 @@ func (s *AuthorizerSuite) TestShouldCheckMultipleSubjectsMatching() {
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", Denied)
-	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", "GET", Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckIPMatching() {
@@ -267,13 +265,46 @@ func (s *AuthorizerSuite) TestShouldCheckIPMatching() {
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", OneFactor)
-	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", "GET", Denied)
 
-	tester.CheckAuthorizations(s.T(), John, "https://net.example.com/", TwoFactor)
-	tester.CheckAuthorizations(s.T(), Bob, "https://net.example.com/", TwoFactor)
-	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://net.example.com/", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://net.example.com/", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://net.example.com/", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://net.example.com/", "GET", Denied)
+}
+
+func (s *AuthorizerSuite) TestShouldCheckMethodMatching() {
+	tester := NewAuthorizerBuilder().
+		WithDefaultPolicy("deny").
+		WithRule(schema.ACLRule{
+			Domains: []string{"protected.example.com"},
+			Policy:  "bypass",
+			Methods: []string{"OPTIONS", "HEAD", "GET", "CONNECT", "TRACE"},
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"protected.example.com"},
+			Policy:  "one_factor",
+			Methods: []string{"PUT", "PATCH", "POST"},
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"protected.example.com"},
+			Policy:  "two_factor",
+			Methods: []string{"DELETE"},
+		}).
+		Build()
+
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "OPTIONS", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", "HEAD", Bypass)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "CONNECT", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "TRACE", Bypass)
+
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "PUT", OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "PATCH", OneFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", "POST", OneFactor)
+
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", "DELETE", TwoFactor)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
@@ -291,12 +322,12 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/", Bypass)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/abc", Bypass)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/", Denied)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/ABC", Denied)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/one_factor/abc", OneFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/xyz/embedded/abc", Bypass)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/abc", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/ABC", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/one_factor/abc", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/xyz/embedded/abc", "GET", Bypass)
 }
 
 func (s *AuthorizerSuite) TestPolicyToLevel() {

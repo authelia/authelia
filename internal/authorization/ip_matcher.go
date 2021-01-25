@@ -39,7 +39,7 @@ func parseCIDR(ip net.IP, network string) bool {
 	return ipNet.Contains(ip)
 }
 
-// isIPMatching check whether user's IP is in one of the network ranges.
+// isIPMatching checks whether user's IP is in one of the network ranges.
 func isIPMatching(ip net.IP, networks []string, aclNetworks []schema.ACLNetwork) bool {
 	// If no network is provided in the rule, we match any network
 	if len(networks) == 0 {

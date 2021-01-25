@@ -2,6 +2,7 @@ package authorization
 
 import "strings"
 
+// isDomainMatching returns true if a domain matches one of the domains specified in the domain rules.
 func isDomainMatching(domain string, domainRules []string) bool {
 	for _, domainRule := range domainRules {
 		if domain == domainRule {
