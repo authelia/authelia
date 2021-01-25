@@ -67,7 +67,7 @@ func getFirstMatchingRule(rules []schema.ACLRule, subject Subject, requestURL ur
 			continue
 		}
 
-		if len(r.Methods) > 0 {
+		if len(rule.Methods) > 0 {
 			if method == nil || !utils.IsStringInSlice(string(method), rule.Methods) {
 				continue
 			}
