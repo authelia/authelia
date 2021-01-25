@@ -32,11 +32,19 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI string, username 
 		return
 	}
 
-	requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(authorization.Subject{
-		Username: username,
-		Groups:   groups,
-		IP:       ctx.RemoteIP(),
-	}, *targetURL, ctx.XForwardedMethod())
+	requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(
+		authorization.Subject{
+			Username: username,
+			Groups:   groups,
+			IP:       ctx.RemoteIP(),
+		},
+		authorization.Object{
+			Scheme: targetURL.Scheme,
+			Domain: targetURL.Hostname(),
+			Path: targetURL.Path,
+			Query: targetURL.RawQuery,
+			Method: string(ctx.XForwardedMethod()),
+		})
 
 	ctx.Logger.Debugf("Required level for the URL %s is %d", targetURI, requiredLevel)
 

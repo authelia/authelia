@@ -36,8 +36,15 @@ func (s Subject) String() string {
 
 // Object object to check access control for.
 type Object struct {
+	Scheme string
 	Domain string
 	Path   string
+	Query  string
+	Method string
+}
+
+func (o Object) String() string {
+	return fmt.Sprintf("%s://%s%s", o.Scheme, o.Domain, o.Path)
 }
 
 // PolicyToLevel converts a string policy to int authorization level.
@@ -57,23 +64,23 @@ func PolicyToLevel(policy string) Level {
 }
 
 // getFirstMatchingRule returns the first rule that fully matches a given subject, url, and method.
-func getFirstMatchingRule(rules []schema.ACLRule, subject Subject, requestURL url.URL, method []byte) (rule schema.ACLRule, err error) {
+func getFirstMatchingRule(rules []schema.ACLRule, networks []schema.ACLNetwork, subject Subject, object Object) (rule schema.ACLRule, err error) {
 	for _, rule := range rules {
-		if !isDomainMatching(requestURL.Hostname(), rule.Domains) {
+		if !isDomainMatching(object.Domain, rule.Domains) {
 			continue
 		}
 
-		if !isPathMatching(requestURL.Path, rule.Resources) {
+		if !isPathMatching(object.Path + object.Query, rule.Resources) {
 			continue
 		}
 
 		if len(rule.Methods) > 0 {
-			if method == nil || !utils.IsStringInSlice(string(method), rule.Methods) {
+			if object.Method == "" || !utils.IsStringInSlice(object.Method, rule.Methods) {
 				continue
 			}
 		}
 
-		if len(rule.Networks) > 0 && !isIPMatching(subject.IP, rule.Networks, p.configuration.Networks) {
+		if len(rule.Networks) > 0 && !isIPMatching(subject.IP, rule.Networks, networks) {
 			continue
 		}
 
@@ -107,17 +114,17 @@ func (p *Authorizer) IsSecondFactorEnabled() bool {
 }
 
 // GetRequiredLevel retrieve the required level of authorization to access the object.
-func (p *Authorizer) GetRequiredLevel(subject Subject, requestURL url.URL, method []byte) Level {
+func (p *Authorizer) GetRequiredLevel(subject Subject, object Object) Level {
 	logger := logging.Logger()
-	logger.Tracef("Check authorization of subject %s and url %s.", subject.String(), requestURL.String())
+	logger.Tracef("Check authorization of subject %s and url %s.", subject.String(), object.String())
 
-	rule, err := getFirstMatchingRule(p.configuration.Rules, subject, requestURL, method)
+	rule, err := getFirstMatchingRule(p.configuration.Rules, p.configuration.Networks, subject, object)
 
 	if err != nil {
 		if err == errNoMatchingRule {
-			logger.Tracef("No matching rule for subject %s and url %s... Applying default policy.", subject.String(), requestURL.String())
+			logger.Tracef("No matching rule for subject %s and url %s... Applying default policy.", subject.String(), object.String())
 		} else {
-			logger.Warnf("Error occurred matching ACL Rules: %v", err)
+			logger.Warnf("Error occurred matching ACL Rules for subject %s and url %s: %v", subject.String(), object.String(), err)
 		}
 
 		return PolicyToLevel(p.configuration.DefaultPolicy)
