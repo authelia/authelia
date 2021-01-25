@@ -23,45 +23,6 @@ func NewAuthorizer(configuration schema.AccessControlConfiguration) *Authorizer 
 	}
 }
 
-// Subject subject who to check access control for.
-type Subject struct {
-	Username string
-	Groups   []string
-	IP       net.IP
-}
-
-func (s Subject) String() string {
-	return fmt.Sprintf("username=%s groups=%s ip=%s", s.Username, strings.Join(s.Groups, ","), s.IP.String())
-}
-
-// Object object to check access control for.
-type Object struct {
-	Scheme string
-	Domain string
-	Path   string
-	Method string
-}
-
-func (o Object) String() string {
-	return fmt.Sprintf("%s://%s%s", o.Scheme, o.Domain, o.Path)
-}
-
-func NewObject(targetUrl *url.URL, method []byte) (object Object) {
-	object = Object{
-		Scheme: targetUrl.Scheme,
-		Domain: targetUrl.Hostname(),
-		Method: string(method),
-	}
-
-	if targetUrl.RawQuery == "" {
-		object.Path = targetUrl.Path
-	} else {
-		object.Path = targetUrl.Path + "?" + targetUrl.RawQuery
-	}
-
-	return object
-}
-
 // PolicyToLevel converts a string policy to int authorization level.
 func PolicyToLevel(policy string) Level {
 	switch policy {
@@ -89,22 +50,16 @@ func getFirstMatchingRule(rules []schema.ACLRule, networks []schema.ACLNetwork, 
 			continue
 		}
 
-		if len(rule.Methods) > 0 {
-			if object.Method == "" || !utils.IsStringInSlice(object.Method, rule.Methods) {
-				continue
-			}
-		}
-
-		if len(rule.Networks) > 0 && !isIPMatching(subject.IP, rule.Networks, networks) {
+		if !isMethodMatching(object.Method, rule.Methods) {
 			continue
 		}
 
-		if len(rule.Subjects) > 0 {
-			for _, subjectRule := range rule.Subjects {
-				if !isSubjectMatching(subject, subjectRule) {
-					continue
-				}
-			}
+		if !isIPMatching(subject.IP, rule.Networks, networks) {
+			continue
+		}
+
+		if !isSubjectMatching(subject, rule.Subjects) {
+			continue
 		}
 
 		return rule, nil
