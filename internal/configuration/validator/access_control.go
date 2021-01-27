@@ -48,12 +48,15 @@ func IsNetworkValid(network string) (isValid bool) {
 
 	return true
 }
+
+// IsMethodValid checks if the methods are one of the known types.
 func IsMethodValid(methods []string) (isValid bool) {
 	for _, method := range methods {
 		if !utils.IsStringInSlice(method, validRequestMethods) {
 			return false
 		}
 	}
+
 	return true
 }
 

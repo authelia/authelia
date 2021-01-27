@@ -10,7 +10,13 @@ interface PostFirstFactorBody {
     requestMethod?: string;
 }
 
-export async function postFirstFactor(username: string, password: string, rememberMe: boolean, targetURL?: string, requestMethod?: string) {
+export async function postFirstFactor(
+    username: string,
+    password: string,
+    rememberMe: boolean,
+    targetURL?: string,
+    requestMethod?: string,
+) {
     const data: PostFirstFactorBody = {
         username,
         password,
