@@ -48,7 +48,7 @@ type firstFactorRequestBody struct {
 	Password       string `json:"password" valid:"required"`
 	TargetURL      string `json:"targetURL"`
 	RequestMethod  string `json:"requestMethod"`
-	KeepMeLoggedIn *bool  `json:"keepMeLoggedIn" valid:"required"`
+	KeepMeLoggedIn *bool  `json:"keepMeLoggedIn"`
 }
 
 // redirectResponse represent the response sent by the first factor endpoint
