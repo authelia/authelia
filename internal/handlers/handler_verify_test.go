@@ -853,6 +853,111 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 	assert.Equal(t, "users", userSession.Groups[1])
 }
 
+func TestShouldNotRefreshUserGroupsFromBackendWhenDisabled(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	// Setup user john.
+	user := &authentication.UserDetails{
+		Username: "john",
+		Groups: []string{
+			"admin",
+			"users",
+		},
+		Emails: []string{
+			"john@example.com",
+		},
+	}
+
+	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = user.Username
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Unix()
+	userSession.RefreshTTL = clock.Now().Add(-1 * time.Minute)
+	userSession.Groups = user.Groups
+	userSession.Emails = user.Emails
+	userSession.KeepMeLoggedIn = true
+	err := mock.Ctx.SaveSession(userSession)
+
+	require.NoError(t, err)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+
+	config := verifyGetCfg
+	config.RefreshInterval = schema.ProfileRefreshDisabled
+
+	VerifyGet(config)(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// Session time should NOT have been updated, it should still have a refresh TTL 1 minute in the past.
+	userSession = mock.Ctx.GetSession()
+	assert.Equal(t, clock.Now().Add(-1*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+}
+
+func TestShouldDestroySessionWhenUserNotExist(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	// Setup user john.
+	user := &authentication.UserDetails{
+		Username: "john",
+		Groups: []string{
+			"admin",
+			"users",
+		},
+		Emails: []string{
+			"john@example.com",
+		},
+	}
+
+	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1)
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = user.Username
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Unix()
+	userSession.RefreshTTL = clock.Now().Add(-1 * time.Minute)
+	userSession.Groups = user.Groups
+	userSession.Emails = user.Emails
+	userSession.KeepMeLoggedIn = true
+	err := mock.Ctx.SaveSession(userSession)
+
+	require.NoError(t, err)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// Session time should NOT have been updated, it should still have a refresh TTL 1 minute in the past.
+	userSession = mock.Ctx.GetSession()
+	assert.Equal(t, clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+
+	// Simulate a Deleted User
+	userSession.RefreshTTL = clock.Now().Add(-1 * time.Minute)
+	err = mock.Ctx.SaveSession(userSession)
+
+	require.NoError(t, err)
+
+	mock.UserProviderMock.EXPECT().GetDetails("john").Return(nil, authentication.ErrUserNotFound).Times(1)
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(t, 401, mock.Ctx.Response.StatusCode())
+
+	userSession = mock.Ctx.GetSession()
+	assert.Equal(t, "", userSession.Username)
+	assert.Equal(t, authentication.NotAuthenticated, userSession.AuthenticationLevel)
+}
+
 func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -1053,4 +1158,27 @@ func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "Unauthorized", string(mock.Ctx.Response.Body()))
+}
+
+func TestGetProfileRefreshSettings(t *testing.T) {
+	cfg := verifyGetCfg
+
+	refresh, interval := getProfileRefreshSettings(cfg)
+
+	assert.Equal(t, true, refresh)
+	assert.Equal(t, 5*time.Minute, interval)
+
+	cfg.RefreshInterval = schema.ProfileRefreshDisabled
+
+	refresh, interval = getProfileRefreshSettings(cfg)
+
+	assert.Equal(t, false, refresh)
+	assert.Equal(t, time.Duration(0), interval)
+
+	cfg.RefreshInterval = schema.ProfileRefreshAlways
+
+	refresh, interval = getProfileRefreshSettings(cfg)
+
+	assert.Equal(t, true, refresh)
+	assert.Equal(t, time.Duration(0), interval)
 }

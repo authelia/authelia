@@ -376,7 +376,10 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 
 func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (refresh bool, refreshInterval time.Duration) {
 	if cfg.Ldap != nil {
-		if cfg.RefreshInterval != schema.ProfileRefreshDisabled {
+		if cfg.RefreshInterval == schema.ProfileRefreshDisabled {
+			refresh = false
+			refreshInterval = 0
+		} else {
 			refresh = true
 
 			if cfg.RefreshInterval != schema.ProfileRefreshAlways {
