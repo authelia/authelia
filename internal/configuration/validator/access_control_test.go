@@ -42,7 +42,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
 func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
 	suite.configuration.Networks = []schema.ACLNetwork{
 		{
-			Name:     []string{"internal"},
+			Name:     "internal",
 			Networks: []string{"abc.def.ghi.jkl"},
 		},
 	}
@@ -52,7 +52,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Network [abc.def.ghi.jkl] from network group: [internal] must be a valid IP or CIDR")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Network [abc.def.ghi.jkl] from network group: internal must be a valid IP or CIDR")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorNoRulesDefined() {

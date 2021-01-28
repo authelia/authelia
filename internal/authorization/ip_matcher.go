@@ -8,14 +8,12 @@ import (
 )
 
 func selectMatchingNetworkGroups(networks []string, aclNetworks []schema.ACLNetwork) []schema.ACLNetwork {
-	selectedNetworkGroups := []schema.ACLNetwork{}
+	var selectedNetworkGroups []schema.ACLNetwork
 
 	for _, network := range networks {
 		for _, n := range aclNetworks {
-			for _, ng := range n.Name {
-				if network == ng {
-					selectedNetworkGroups = append(selectedNetworkGroups, n)
-				}
+			if n.Name == network {
+				selectedNetworkGroups = append(selectedNetworkGroups, n)
 			}
 		}
 	}

@@ -29,7 +29,7 @@ func IsSubjectValid(subject string) (isValid bool) {
 // IsNetworkGroupValid check if a network group is valid.
 func IsNetworkGroupValid(configuration schema.AccessControlConfiguration, network string) bool {
 	for _, networks := range configuration.Networks {
-		if !utils.IsStringInSlice(network, networks.Name) {
+		if network != networks.Name {
 			continue
 		} else {
 			return true
