@@ -115,7 +115,7 @@ func ValidateRules(configuration schema.AccessControlConfiguration, validator *s
 		}
 
 		if r.Policy == bypassPolicy && len(r.Subjects) != 0 {
-			validator.PushWarning(fmt.Errorf("Policy bypass for domain %s is ineffectual due to subjects being configured to %s", r.Domains, r.Subjects))
+			validator.PushWarning(fmt.Errorf("Policy [bypass] for domain %s is ineffectual due to subjects being configured to %s", r.Domains, r.Subjects))
 		}
 	}
 }
