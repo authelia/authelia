@@ -323,47 +323,51 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	// See https://docs.authelia.com/security/threat-model.html#potential-future-guarantees
 	ctx.Logger.Tracef("Checking if we need check the authentication backend for an updated profile for %s.", userSession.Username)
 
-	if refreshProfile && userSession.Username != "" && targetURL != nil &&
-		ctx.Providers.Authorizer.IsURLMatchingRuleWithGroupSubjects(*targetURL) &&
-		(refreshProfileInterval == schema.RefreshIntervalAlways || userSession.RefreshTTL.Before(ctx.Clock.Now())) {
-		ctx.Logger.Debugf("Checking the authentication backend for an updated profile for user %s", userSession.Username)
-		details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
-		// Only update the session if we could get the new details.
-		if err != nil {
-			return err
-		}
+	if !refreshProfile || userSession.Username == "" || targetURL == nil {
+		return nil
+	}
 
-		emailsDiff := utils.IsStringSlicesDifferent(userSession.Emails, details.Emails)
-		groupsDiff := utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
-		nameDiff := userSession.DisplayName != details.DisplayName
+	if refreshProfileInterval != schema.RefreshIntervalAlways && userSession.RefreshTTL.After(ctx.Clock.Now()) {
+		return nil
+	}
 
-		if !groupsDiff && !emailsDiff && !nameDiff {
-			ctx.Logger.Tracef("Updated profile not detected for %s.", userSession.Username)
-			// Only update TTL if the user has a interval set.
-			// We get to this check when there were no changes.
-			// Also make sure to update the session even if no difference was found.
-			// This is so that we don't check every subsequent request after this one.
-			if refreshProfileInterval != schema.RefreshIntervalAlways {
-				// Update RefreshTTL and save session if refresh is not set to always.
-				userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
-				return ctx.SaveSession(*userSession)
-			}
-		} else {
-			ctx.Logger.Debugf("Updated profile detected for %s.", userSession.Username)
-			if ctx.Configuration.LogLevel == "trace" {
-				generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
-			}
-			userSession.Emails = details.Emails
-			userSession.Groups = details.Groups
-			userSession.DisplayName = details.DisplayName
+	ctx.Logger.Debugf("Checking the authentication backend for an updated profile for user %s", userSession.Username)
+	details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
+	// Only update the session if we could get the new details.
+	if err != nil {
+		return err
+	}
 
-			// Only update TTL if the user has a interval set.
-			if refreshProfileInterval != schema.RefreshIntervalAlways {
-				userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
-			}
-			// Return the result of save session if there were changes.
+	emailsDiff := utils.IsStringSlicesDifferent(userSession.Emails, details.Emails)
+	groupsDiff := utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
+	nameDiff := userSession.DisplayName != details.DisplayName
+
+	if !groupsDiff && !emailsDiff && !nameDiff {
+		ctx.Logger.Tracef("Updated profile not detected for %s.", userSession.Username)
+		// Only update TTL if the user has a interval set.
+		// We get to this check when there were no changes.
+		// Also make sure to update the session even if no difference was found.
+		// This is so that we don't check every subsequent request after this one.
+		if refreshProfileInterval != schema.RefreshIntervalAlways {
+			// Update RefreshTTL and save session if refresh is not set to always.
+			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
 			return ctx.SaveSession(*userSession)
 		}
+	} else {
+		ctx.Logger.Debugf("Updated profile detected for %s.", userSession.Username)
+		if ctx.Configuration.LogLevel == "trace" {
+			generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
+		}
+		userSession.Emails = details.Emails
+		userSession.Groups = details.Groups
+		userSession.DisplayName = details.DisplayName
+
+		// Only update TTL if the user has a interval set.
+		if refreshProfileInterval != schema.RefreshIntervalAlways {
+			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
+		}
+		// Return the result of save session if there were changes.
+		return ctx.SaveSession(*userSession)
 	}
 
 	// Return nil if disabled or if no changes and refresh interval set to always.
