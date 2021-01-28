@@ -330,7 +330,6 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	ctx.Logger.Tracef("Checking if we need check the authentication backend for an updated profile for %s.", userSession.Username)
 
 	if refreshProfile && userSession.Username != "" && targetURL != nil &&
-		ctx.Providers.Authorizer.IsURLMatchingRuleWithGroupSubjects(*targetURL) &&
 		(refreshProfileInterval == schema.RefreshIntervalAlways || userSession.RefreshTTL.Before(ctx.Clock.Now())) {
 		ctx.Logger.Debugf("Checking the authentication backend for an updated profile for user %s", userSession.Username)
 		details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)

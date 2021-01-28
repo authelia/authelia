@@ -1,9 +1,5 @@
 package authorization
 
-import (
-	"errors"
-)
-
 // Level is the type representing an authorization level.
 type Level int
 
@@ -20,5 +16,3 @@ const (
 
 const userPrefix = "user:"
 const groupPrefix = "group:"
-
-var errNoMatchingRule = errors.New("no rule matching the request was found")

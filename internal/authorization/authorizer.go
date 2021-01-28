@@ -1,78 +1,32 @@
 package authorization
 
 import (
-	"net/url"
-	"strings"
-
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 )
 
 // Authorizer the component in charge of checking whether a user can access a given resource.
 type Authorizer struct {
-	configuration schema.AccessControlConfiguration
+	defaultPolicy Level
+	rules         []*AccessControlRule
 }
 
 // NewAuthorizer create an instance of authorizer with a given access control configuration.
 func NewAuthorizer(configuration schema.AccessControlConfiguration) *Authorizer {
 	return &Authorizer{
-		configuration: configuration,
+		defaultPolicy: PolicyToLevel(configuration.DefaultPolicy),
+		rules:         NewAccessControlRules(configuration),
 	}
-}
-
-// PolicyToLevel converts a string policy to int authorization level.
-func PolicyToLevel(policy string) Level {
-	switch policy {
-	case "bypass":
-		return Bypass
-	case "one_factor":
-		return OneFactor
-	case "two_factor":
-		return TwoFactor
-	case "deny":
-		return Denied
-	}
-	// By default the deny policy applies.
-	return Denied
-}
-
-// getFirstMatchingRule returns the first rule that fully matches a given subject, url, and method.
-func getFirstMatchingRule(rules []schema.ACLRule, networks []schema.ACLNetwork, subject Subject, object Object) (rule schema.ACLRule, err error) {
-	for _, rule := range rules {
-		if !isDomainMatching(object.Domain, rule.Domains) {
-			continue
-		}
-
-		if !isPathMatching(object.Path, rule.Resources) {
-			continue
-		}
-
-		if !isMethodMatching(object.Method, rule.Methods) {
-			continue
-		}
-
-		if !isIPMatching(subject.IP, rule.Networks, networks) {
-			continue
-		}
-
-		if !isSubjectMatching(subject, rule.Subjects) {
-			continue
-		}
-
-		return rule, nil
-	}
-
-	return rule, errNoMatchingRule
 }
 
 // IsSecondFactorEnabled return true if at least one policy is set to second factor.
 func (p *Authorizer) IsSecondFactorEnabled() bool {
-	if PolicyToLevel(p.configuration.DefaultPolicy) == TwoFactor {
+	if p.defaultPolicy == TwoFactor {
 		return true
 	}
 
-	for _, r := range p.configuration.Rules {
-		if PolicyToLevel(r.Policy) == TwoFactor {
+	for _, rule := range p.rules {
+		if rule.Policy == TwoFactor {
 			return true
 		}
 	}
@@ -85,35 +39,13 @@ func (p *Authorizer) GetRequiredLevel(subject Subject, object Object) Level {
 	logger := logging.Logger()
 	logger.Tracef("Check authorization of subject %s and url %s.", subject.String(), object.String())
 
-	rule, err := getFirstMatchingRule(p.configuration.Rules, p.configuration.Networks, subject, object)
-
-	if err != nil {
-		if err == errNoMatchingRule {
-			logger.Tracef("No matching rule for subject %s and url %s... Applying default policy.", subject.String(), object.String())
-		} else {
-			logger.Warnf("Error occurred matching ACL Rules for subject %s and url %s: %v", subject.String(), object.String(), err)
-		}
-
-		return PolicyToLevel(p.configuration.DefaultPolicy)
-	}
-
-	return PolicyToLevel(rule.Policy)
-}
-
-// IsURLMatchingRuleWithGroupSubjects returns true if the request has at least one
-// matching ACL with a subject of type group attached to it, otherwise false.
-func (p *Authorizer) IsURLMatchingRuleWithGroupSubjects(requestURL url.URL) (hasGroupSubjects bool) {
-	for _, rule := range p.configuration.Rules {
-		if isDomainMatching(requestURL.Hostname(), rule.Domains) && isPathMatching(requestURL.Path, rule.Resources) {
-			for _, subjectRule := range rule.Subjects {
-				for _, subject := range subjectRule {
-					if strings.HasPrefix(subject, groupPrefix) {
-						return true
-					}
-				}
-			}
+	for _, rule := range p.rules {
+		if rule.IsMatch(subject, object) {
+			return rule.Policy
 		}
 	}
 
-	return false
+	logger.Tracef("No matching rule for subject %s and url %s... Applying default policy.", subject.String(), object.String())
+
+	return p.defaultPolicy
 }
