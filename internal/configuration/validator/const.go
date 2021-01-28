@@ -172,6 +172,7 @@ var specificErrorKeys = map[string]string{
 }
 
 const denyPolicy = "deny"
+const bypassPolicy = "bypass"
 
 const argon2id = "argon2id"
 const sha512 = "sha512"

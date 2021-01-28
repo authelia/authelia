@@ -12,7 +12,7 @@ import (
 
 // IsPolicyValid check if policy is valid.
 func IsPolicyValid(policy string) (isValid bool) {
-	return policy == denyPolicy || policy == "one_factor" || policy == "two_factor" || policy == "bypass"
+	return policy == denyPolicy || policy == "one_factor" || policy == "two_factor" || policy == bypassPolicy
 }
 
 // IsResourceValid check if a resource is valid.
@@ -112,6 +112,10 @@ func ValidateRules(configuration schema.AccessControlConfiguration, validator *s
 
 		if !IsMethodValid(r.Methods) {
 			validator.Push(fmt.Errorf("Methods for domain %s is invalid, methods must be one or more of %s", r.Domains, validRequestMethods))
+		}
+
+		if r.Policy == bypassPolicy && len(r.Subjects) != 0 {
+			validator.PushWarning(fmt.Errorf("Policy bypass for domain %s is ineffectual due to subjects being configured to %s", r.Domains, r.Subjects))
 		}
 	}
 }

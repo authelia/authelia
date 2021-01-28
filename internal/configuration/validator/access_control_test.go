@@ -128,9 +128,10 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 
 	ValidateRules(suite.configuration, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Require().Len(suite.validator.Warnings(), 1)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
+	suite.Assert().EqualError(suite.validator.Warnings()[0], "Policy bypass for domain [public.example.com] is ineffectual due to subjects being configured to [[invalid]]")
 	suite.Assert().EqualError(suite.validator.Errors()[0], "Subject [invalid] for domain: [public.example.com] is invalid, must start with 'user:' or 'group:'")
 }
 
