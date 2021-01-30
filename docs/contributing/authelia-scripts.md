@@ -2,6 +2,7 @@
 layout: default
 title: Authelia Scripts
 parent: Contributing
+nav_order: 2
 ---
 
 # Authelia Scripts

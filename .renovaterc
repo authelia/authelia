@@ -1,7 +1,7 @@
 {
   "extends": [
     "config:base",
-    ":semanticCommitTypeAll(chore)",
+    ":semanticCommitTypeAll(build)",
     ":separatePatchReleases"
   ],
   "ignorePresets": [
@@ -53,6 +53,9 @@
         "ruby"
       ]
     }
+  ],
+  "postUpdateOptions": [
+      "gomodTidy"
   ],
   "rebaseWhen": "never"
 }
