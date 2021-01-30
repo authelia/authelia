@@ -43,7 +43,7 @@ Any line of the commit message cannot be longer than 100 characters.
   │                          handlers|logging|middlewares|mocks|models|notification|regulation|
   │                          server|session|storage|suites|templates|utils|web
   │
-  └─⫸ Commit Type: build|ci|docs|feat|fix|perf|refactor|test
+  └─⫸ Commit Type: build|ci|docs|feat|fix|perf|refactor|release|test
 ```
 
 The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is optional.
