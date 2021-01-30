@@ -41,7 +41,7 @@ services:
       - TZ=Australia/Melbourne
 
   traefik:
-    image: traefik:v2.2
+    image: traefik:2.4
     container_name: traefik
     volumes:
       - ./traefik/acme.json:/acme.json
