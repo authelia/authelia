@@ -1,7 +1,7 @@
 {
   "extends": [
     "config:base",
-    ":semanticCommitTypeAll(chore)",
+    ":semanticCommitTypeAll(build)",
     ":separatePatchReleases"
   ],
   "ignorePresets": [
