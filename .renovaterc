@@ -53,5 +53,8 @@
         "ruby"
       ]
     }
+  ],
+  "postUpdateOptions": [
+      "gomodTidy"
   ]
 }
