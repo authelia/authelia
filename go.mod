@@ -30,6 +30,6 @@ require (
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.19.0
-	golang.org/x/text v0.3.3
+	golang.org/x/text v0.3.5
 	gopkg.in/yaml.v2 v2.3.0
 )
