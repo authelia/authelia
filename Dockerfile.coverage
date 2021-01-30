@@ -18,7 +18,7 @@ ARG BUILD_TAG
 ARG BUILD_COMMIT
 
 # gcc and musl-dev are required for building go-sqlite3
-RUN apk --no-cache add gcc musl-dev
+RUN apk --no-cache add gcc git musl-dev
 
 WORKDIR /go/src/app
 
