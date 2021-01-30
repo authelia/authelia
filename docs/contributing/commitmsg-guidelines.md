@@ -81,7 +81,7 @@ The scope should be the name of the package affected (as perceived by the person
 * storage
 * suites
 * templates
-* utils.
+* utils
 
 There are currently a few exceptions to the "use package name" rule:
 
@@ -91,7 +91,7 @@ There are currently a few exceptions to the "use package name" rule:
 
 * `web`: used for changes to the React based frontend
 
-* none/empty string: useful for `test`, `refactor` and changes that are done across all packages (e.g. `test: add missing unit tests`) and for docs changes that are not related to a specific package (e.g. `docs: fix typo in tutorial`).
+* none/empty string: useful for `test`, `refactor` and changes that are done across multiple packages (e.g. `test: add missing unit tests`) and for docs changes that are not related to a specific package (e.g. `docs: fix typo in tutorial`).
 
 #### Summary
 
