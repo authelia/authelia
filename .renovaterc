@@ -56,5 +56,6 @@
   ],
   "postUpdateOptions": [
       "gomodTidy"
-  ]
+  ],
+  "rebaseWhen": "never"
 }
