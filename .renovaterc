@@ -1,0 +1,58 @@
+{
+  "extends": [
+    "config:base",
+    ":prHourlyLimit4",
+    ":semanticCommitTypeAll(chore)",
+    ":separatePatchReleases"
+  ],
+  "ignorePresets": [
+    ":combinePatchMinorReleases",
+    "helpers:disableTypesNodeMajor",
+    ":prHourlyLimit2",
+    ":semanticPrefixFixDepsChoreOthers"
+  ],
+  "enabledManagers": [
+    "bundler",
+    "docker-compose",
+    "dockerfile",
+    "gomod",
+    "npm"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "datasources": [
+        "docker"
+      ],
+      "labels": [
+        "docker"
+      ]
+    },
+    {
+      "datasources": [
+        "go"
+      ],
+      "labels": [
+        "go"
+      ]
+    },
+    {
+      "datasources": [
+        "npm"
+      ],
+      "labels": [
+        "javascript"
+      ]
+    },
+    {
+      "datasources": [
+        "rubygems"
+      ],
+      "labels": [
+        "ruby"
+      ]
+    }
+  ]
+}

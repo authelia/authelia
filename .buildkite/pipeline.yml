@@ -14,7 +14,7 @@ steps:
     if: build.branch != "master"
 
   - wait:
-    if: build.pull_request.repository.fork != true && build.branch !~ /^dependabot\/.*/
+    if: build.pull_request.repository.fork != true && build.branch !~ /^(dependabot|renovate)\/.*/
 
   # Manual intervention by team required to deploy for forked PRs (prevent secret leakage).
   - block: "Public fork needs approval"
@@ -32,7 +32,7 @@ steps:
   - label: ":rocket: Setup Deployment"
     command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
     depends_on: ~
-    if: build.branch != "master" && build.branch !~ /^dependabot\/.*/ && build.pull_request.repository.fork != true
+    if: build.branch != "master" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.pull_request.repository.fork != true
 
   # Removed dependency optimisation for forked PRs to enforce block step.
   - label: ":rocket: Setup Deployment"
