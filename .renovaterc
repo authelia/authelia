@@ -1,7 +1,6 @@
 {
   "extends": [
     "config:base",
-    ":prHourlyLimit4",
     ":semanticCommitTypeAll(chore)",
     ":separatePatchReleases"
   ],
