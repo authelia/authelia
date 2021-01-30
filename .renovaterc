@@ -26,7 +26,7 @@
       "datasources": [
         "docker"
       ],
-      "labels": [
+      "addLabels": [
         "docker"
       ]
     },
@@ -34,7 +34,7 @@
       "datasources": [
         "go"
       ],
-      "labels": [
+      "addLabels": [
         "go"
       ]
     },
@@ -42,7 +42,7 @@
       "datasources": [
         "npm"
       ],
-      "labels": [
+      "addLabels": [
         "javascript"
       ]
     },
@@ -50,7 +50,7 @@
       "datasources": [
         "rubygems"
       ],
-      "labels": [
+      "addLabels": [
         "ruby"
       ]
     }
