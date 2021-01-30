@@ -1,7 +1,7 @@
 version: '3'
 services:
   openldap-admin:
-    image: osixia/phpldapadmin:0.6.11
+    image: osixia/phpldapadmin:0.6.12
     ports:
       - 9090:80
     environment:
