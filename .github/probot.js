@@ -8,6 +8,10 @@ on('pull_request.opened')
         context =>
             context.payload.pull_request.head.ref.slice(0, 11) !== 'dependabot/'
     )
+    .filter(
+        context =>
+            context.payload.pull_request.head.ref.slice(0, 9) !== 'renovate/'
+    )
     .comment(`## Artifacts
 These changes are published for testing on Buildkite and DockerHub.
 
