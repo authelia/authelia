@@ -6,9 +6,9 @@ DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
 if [[ $DIVERGED == 0 ]]; then
   if [[ $BUILDKITE_TAG == "" ]]; then
     if [[ $BUILDKITE_BRANCH == "master" ]]; then
-      CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(BREAKING.md|CONTRIBUTING.md|README.md|docs\/.*)/!{q1}' && echo true || echo false)
+      CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(BREAKING.md|CONTRIBUTING.md|README.md|SECURITY.md|docs\/.*)/!{q1}' && echo true || echo false)
     else
-      CI_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^(BREAKING.md|CONTRIBUTING.md|README.md|docs\/.*)/!{q1}' && echo true || echo false)
+      CI_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^(BREAKING.md|CONTRIBUTING.md|README.md|SECURITY.md|docs\/.*)/!{q1}' && echo true || echo false)
     fi
   else
     CI_BYPASS="false"
@@ -33,6 +33,8 @@ steps:
     command: "authelia-scripts docker push-manifest"
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
+    agents:
+      upload: "fast"
     if: build.env("CI_BYPASS") != "true"
 
   - label: ":github: Deploy Artifacts"
