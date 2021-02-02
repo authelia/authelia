@@ -417,11 +417,15 @@ func TestShouldNotCrashOnEmptyEmail(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
+	mock.Clock.Set(time.Now())
+
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	userSession.Emails = nil
 	userSession.AuthenticationLevel = authentication.OneFactor
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
+	fmt.Printf("Time is %v\n", userSession.RefreshTTL)
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
@@ -475,10 +479,13 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
 			defer mock.Close()
 
+			mock.Clock.Set(time.Now())
+
 			userSession := mock.Ctx.GetSession()
 			userSession.Username = testCase.Username
 			userSession.Emails = testCase.Emails
 			userSession.AuthenticationLevel = testCase.AuthenticationLevel
+			userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
 			err := mock.Ctx.SaveSession(userSession)
 			require.NoError(t, err)
@@ -569,8 +576,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	clock := mocks.TestingClock{}
-	clock.Set(time.Now())
+	mock.Clock.Set(time.Now())
 
 	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 
@@ -580,6 +586,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = 0
 	userSession.KeepMeLoggedIn = true
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
@@ -601,18 +608,18 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	clock := mocks.TestingClock{}
-	clock.Set(time.Now())
+	mock.Clock.Set(time.Now())
 
 	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 
-	past := clock.Now().Add(-1 * time.Hour)
+	past := mock.Clock.Now().Add(-1 * time.Hour)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	userSession.Emails = []string{"john.doe@example.com"}
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
@@ -627,7 +634,7 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
 
 	// Check the inactivity timestamp has been updated to current time in the new session.
-	assert.Equal(t, clock.Now().Unix(), newUserSession.LastActivity)
+	assert.Equal(t, mock.Clock.Now().Unix(), newUserSession.LastActivity)
 }
 
 // In the case of Traefik and Nginx ingress controller in Kube, the response to an inactive
@@ -672,17 +679,17 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	clock := mocks.TestingClock{}
-	clock.Set(time.Now())
+	mock.Clock.Set(time.Now())
 
 	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 
-	past := clock.Now().Add(-1 * time.Hour)
+	past := mock.Clock.Now().Add(-1 * time.Hour)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
@@ -696,16 +703,19 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 
 	// Check the inactivity timestamp has been updated to current time in the new session.
 	newUserSession := mock.Ctx.GetSession()
-	assert.Equal(t, clock.Now().Unix(), newUserSession.LastActivity)
+	assert.Equal(t, mock.Clock.Now().Unix(), newUserSession.LastActivity)
 }
 
 func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
+	mock.Clock.Set(time.Now())
+
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.NotAuthenticated
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
@@ -843,7 +853,7 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 	assert.Equal(t, "users", userSession.Groups[1])
 }
 
-func TestShouldNotRefreshUserGroupsFromBackendWhenNoGroupSubject(t *testing.T) {
+func TestShouldNotRefreshUserGroupsFromBackendWhenDisabled(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
@@ -877,12 +887,75 @@ func TestShouldNotRefreshUserGroupsFromBackendWhenNoGroupSubject(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	config := verifyGetCfg
+	config.RefreshInterval = schema.ProfileRefreshDisabled
+
+	VerifyGet(config)(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Session time should NOT have been updated, it should still have a refresh TTL 1 minute in the past.
 	userSession = mock.Ctx.GetSession()
 	assert.Equal(t, clock.Now().Add(-1*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+}
+
+func TestShouldDestroySessionWhenUserNotExist(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	// Setup user john.
+	user := &authentication.UserDetails{
+		Username: "john",
+		Groups: []string{
+			"admin",
+			"users",
+		},
+		Emails: []string{
+			"john@example.com",
+		},
+	}
+
+	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1)
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = user.Username
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = clock.Now().Unix()
+	userSession.RefreshTTL = clock.Now().Add(-1 * time.Minute)
+	userSession.Groups = user.Groups
+	userSession.Emails = user.Emails
+	userSession.KeepMeLoggedIn = true
+	err := mock.Ctx.SaveSession(userSession)
+
+	require.NoError(t, err)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// Session time should NOT have been updated, it should still have a refresh TTL 1 minute in the past.
+	userSession = mock.Ctx.GetSession()
+	assert.Equal(t, clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+
+	// Simulate a Deleted User
+	userSession.RefreshTTL = clock.Now().Add(-1 * time.Minute)
+	err = mock.Ctx.SaveSession(userSession)
+
+	require.NoError(t, err)
+
+	mock.UserProviderMock.EXPECT().GetDetails("john").Return(nil, authentication.ErrUserNotFound).Times(1)
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(t, 401, mock.Ctx.Response.StatusCode())
+
+	userSession = mock.Ctx.GetSession()
+	assert.Equal(t, "", userSession.Username)
+	assert.Equal(t, authentication.NotAuthenticated, userSession.AuthenticationLevel)
 }
 
 func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
@@ -970,18 +1043,17 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 		},
 	}
 
-	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
+	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1)
 
 	verifyGet := VerifyGet(verifyGetCfg)
 
-	clock := mocks.TestingClock{}
-	clock.Set(time.Now())
+	mock.Clock.Set(time.Now())
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = user.Username
 	userSession.AuthenticationLevel = authentication.TwoFactor
-	userSession.LastActivity = clock.Now().Unix()
-	userSession.RefreshTTL = clock.Now().Add(-1 * time.Minute)
+	userSession.LastActivity = mock.Clock.Now().Unix()
+	userSession.RefreshTTL = mock.Clock.Now().Add(-1 * time.Minute)
 	userSession.Groups = user.Groups
 	userSession.Emails = user.Emails
 	userSession.KeepMeLoggedIn = true
@@ -992,9 +1064,6 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	verifyGet(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
-	// Request should get refresh user profile.
-	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1)
-
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://grafana.example.com")
 	verifyGet(mock.Ctx)
 	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
@@ -1004,13 +1073,13 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 
 	// Check user groups are correct.
 	require.Len(t, userSession.Groups, len(user.Groups))
-	assert.Equal(t, clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+	assert.Equal(t, mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 	assert.Equal(t, "admin", userSession.Groups[0])
 	assert.Equal(t, "users", userSession.Groups[1])
 
 	// Add the grafana group, and force the next request to refresh.
 	user.Groups = append(user.Groups, "grafana")
-	userSession.RefreshTTL = clock.Now().Add(-1 * time.Second)
+	userSession.RefreshTTL = mock.Clock.Now().Add(-1 * time.Second)
 	err = mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
@@ -1021,6 +1090,8 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	defer mock.Close()
 	err = mock.Ctx.SaveSession(userSession)
 	assert.NoError(t, err)
+
+	mock.Clock.Set(time.Now())
 
 	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
@@ -1034,7 +1105,7 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	userSession = mock.Ctx.GetSession()
 	assert.Equal(t, true, userSession.KeepMeLoggedIn)
 	assert.Equal(t, authentication.TwoFactor, userSession.AuthenticationLevel)
-	assert.Equal(t, clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
+	assert.Equal(t, mock.Clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 	require.Len(t, userSession.Groups, 3)
 	assert.Equal(t, "admin", userSession.Groups[0])
 	assert.Equal(t, "users", userSession.Groups[1])
@@ -1045,11 +1116,14 @@ func TestShouldCheckValidSessionUsernameHeaderAndReturn200(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
+	mock.Clock.Set(time.Now())
+
 	expectedStatusCode := 200
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.OneFactor
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
@@ -1066,11 +1140,14 @@ func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
+	mock.Clock.Set(time.Now())
+
 	expectedStatusCode := 401
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.OneFactor
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
@@ -1081,4 +1158,27 @@ func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "Unauthorized", string(mock.Ctx.Response.Body()))
+}
+
+func TestGetProfileRefreshSettings(t *testing.T) {
+	cfg := verifyGetCfg
+
+	refresh, interval := getProfileRefreshSettings(cfg)
+
+	assert.Equal(t, true, refresh)
+	assert.Equal(t, 5*time.Minute, interval)
+
+	cfg.RefreshInterval = schema.ProfileRefreshDisabled
+
+	refresh, interval = getProfileRefreshSettings(cfg)
+
+	assert.Equal(t, false, refresh)
+	assert.Equal(t, time.Duration(0), interval)
+
+	cfg.RefreshInterval = schema.ProfileRefreshAlways
+
+	refresh, interval = getProfileRefreshSettings(cfg)
+
+	assert.Equal(t, true, refresh)
+	assert.Equal(t, time.Duration(0), interval)
 }
