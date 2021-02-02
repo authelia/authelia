@@ -93,7 +93,7 @@ const emailHTMLContent = `
       }
 
       a {
-         color: #0a8cce;
+         color: #ffffff;
          text-decoration: none;
          text-decoration: none !important;
       }
@@ -105,7 +105,7 @@ const emailHTMLContent = `
       .button {
          padding: 15px 30px;
          border-radius: 10px;
-         background: rgb(204, 204, 255);
+         background: rgb(25, 118, 210);
          text-decoration: none;
       }
 
@@ -395,7 +395,7 @@ const emailHTMLContent = `
                                     <td align="center" valign="middle"
                                        style="font-family: Helvetica, arial, sans-serif; font-size: 14px;color: #666666"
                                        st-content="postfooter">
-                                       Please ignore this email if you did not initiate the process.
+                                       Please contact an administrator if you did not initiate the process.
                                     </td>
                                  </tr>
                                  <!-- Spacing -->

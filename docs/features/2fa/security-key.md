@@ -44,6 +44,13 @@ by simply touching the token again when requested:
 
 Easy, right?!
 
+
+## Limitation
+
+Users currently can only enroll a single U2F device in **Authelia**.
+Multiple single type device enrollment will be available when [this issue](https://github.com/authelia/authelia/issues/275) has been resolved.
+
+
 ## FAQ
 
 ### Why don't I have access to the *Security Key* option?
