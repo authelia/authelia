@@ -1,6 +1,6 @@
 #!/bin/sh
 
-AUTHELIA_CONFIG=$(pgrep -af authelia | awk '{print $4}')
+AUTHELIA_CONFIG=$(pgrep -af authelia | awk '{print $NF}')
 AUTHELIA_SCHEME=$(grep ^tls "${AUTHELIA_CONFIG}")
 AUTHELIA_HOST=$(grep ^host "${AUTHELIA_CONFIG}" | sed -e 's/host: //' -e 's/\r//')
 AUTHELIA_PORT=$(grep ^port "${AUTHELIA_CONFIG}" | sed -e 's/port: //' -e 's/\r//')
