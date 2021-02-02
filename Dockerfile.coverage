@@ -66,4 +66,4 @@ VOLUME /config
 ENV PATH="/app:${PATH}"
 
 CMD ["authelia", "-test.coverprofile=/authelia/coverage.txt", "COVERAGE", "--config", "/config/configuration.yml"]
-HEALTHCHECK --interval=30s --timeout=3s --start-period=1m CMD /usr/local/bin/healthcheck.sh
+HEALTHCHECK --interval=30s --timeout=3s CMD /usr/local/bin/healthcheck.sh

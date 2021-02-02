@@ -20,4 +20,4 @@ if [ -z "${AUTHELIA_PORT}" ]; then
   AUTHELIA_PORT=9091
 fi
 
-wget --quiet --tries=1 --spider "${AUTHELIA_SCHEME}://${AUTHELIA_HOST}:${AUTHELIA_PORT}${AUTHELIA_PATH}/api/health" || exit 1
+wget --quiet --no-check-certificate --tries=1 --spider "${AUTHELIA_SCHEME}://${AUTHELIA_HOST}:${AUTHELIA_PORT}${AUTHELIA_PATH}/api/health" || exit 1
