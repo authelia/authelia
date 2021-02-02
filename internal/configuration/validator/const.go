@@ -40,6 +40,7 @@ var validKeys = []string{
 	// Redis Session Keys.
 	"session.redis.host",
 	"session.redis.port",
+	"session.redis.username",
 	"session.redis.password",
 	"session.redis.database_index",
 
