@@ -5,7 +5,6 @@ import (
 
 	"github.com/authelia/session/v2"
 	"github.com/authelia/session/v2/providers/redis"
-
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -55,6 +54,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 		redisConfig = &redis.Config{
 			Network:  network,
 			Addr:     addr,
+			Username: configuration.Redis.Username,
 			Password: configuration.Redis.Password,
 			// DB is the fasthttp/session property for the Redis DB Index.
 			DB:          configuration.Redis.DatabaseIndex,

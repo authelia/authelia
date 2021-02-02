@@ -4,6 +4,7 @@ package schema
 type RedisSessionConfiguration struct {
 	Host          string `mapstructure:"host"`
 	Port          int64  `mapstructure:"port"`
+	Username      string `mapstructure:"username"`
 	Password      string `mapstructure:"password"`
 	DatabaseIndex int    `mapstructure:"database_index"`
 }

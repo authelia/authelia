@@ -43,16 +43,19 @@ session:
   # Note: the login portal must also be a subdomain of that domain.
   domain: example.com
 
-  # The redis connection details (optional)
-  # If not provided, sessions will be stored in memory
+  # The redis connection details
   redis:
     host: 127.0.0.1
     port: 6379
     # Use a unix socket instead
     # host: /var/run/redis/redis.sock
 
+    # Optional username to be used with authentication.
+    username: authelia
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: authelia
+    # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
+    database_index: 0
 ```
 
 ### Security
