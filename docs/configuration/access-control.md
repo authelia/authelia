@@ -91,6 +91,11 @@ For instance, to define a rule for all subdomains of *example.com*, one would us
 These domains can be either listed in YAML-short form `["example1.com", "example2.com"]`
 or in YAML long-form as dashed list.
 
+Domain prefixes can also be dynamically match users or groups. For example you can have a 
+specific policy adjustment if the user or group matches the subdomain. For
+example `{user}.example.com` or `{group}.example.com` check the users name or 
+groups against the subdomain.
+
 ### Resources
 
 A rule can define multiple regular expressions for matching the path of the resource
@@ -219,4 +224,7 @@ access_control:
       - ["group:dev", "user:john"]
       - "group:admins"
       policy: two_factor
+
+    - domain: "{user}.example.com"
+      policy: bypass
 ```

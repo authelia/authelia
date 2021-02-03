@@ -25,7 +25,7 @@ func (acd AccessControlDomain) IsMatch(subject Subject, object Object) (match bo
 	case acd.GroupWildcard:
 		prefix, suffix := domainToPrefixSuffix(object.Domain)
 
-		return suffix == acd.Name && utils.IsStringInSlice(prefix, subject.Groups)
+		return suffix == acd.Name && utils.IsStringInSliceFold(prefix, subject.Groups)
 	default:
 		return object.Domain == acd.Name
 	}

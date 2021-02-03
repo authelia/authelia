@@ -479,10 +479,10 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			return
 		}
 
-		authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
+		authorized := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
 			groups, ctx.RemoteIP(), method, authLevel)
 
-		switch authorization {
+		switch authorized {
 		case Forbidden:
 			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 			ctx.ReplyForbidden()
