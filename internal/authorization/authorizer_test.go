@@ -84,6 +84,22 @@ var UserWithoutGroups = Subject{
 
 var Bob = UserWithoutGroups
 
+var UserWithIPv6Address = Subject{
+	Username: "sam",
+	Groups:   []string{},
+	IP:       net.ParseIP("fec0::1"),
+}
+
+var Sam = UserWithIPv6Address
+
+var UserWithIPv6AddressAndGroups = Subject{
+	Username: "sam",
+	Groups:   []string{"dev", "admins"},
+	IP:       net.ParseIP("fec0::2"),
+}
+
+var Sally = UserWithIPv6AddressAndGroups
+
 func (s *AuthorizerSuite) TestShouldCheckDefaultBypassConfig() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy("bypass").Build()
@@ -282,6 +298,16 @@ func (s *AuthorizerSuite) TestShouldCheckIPMatching() {
 			Policy:   "two_factor",
 			Networks: []string{"10.0.0.0/8"},
 		}).
+		WithRule(schema.ACLRule{
+			Domains:  []string{"ipv6.example.com"},
+			Policy:   "two_factor",
+			Networks: []string{"fec0::1/64"},
+		}).
+		WithRule(schema.ACLRule{
+			Domains:  []string{"ipv6-alt.example.com"},
+			Policy:   "two_factor",
+			Networks: []string{"fec0::1"},
+		}).
 		Build()
 
 	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
@@ -291,6 +317,11 @@ func (s *AuthorizerSuite) TestShouldCheckIPMatching() {
 	tester.CheckAuthorizations(s.T(), John, "https://net.example.com/", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), Bob, "https://net.example.com/", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://net.example.com/", "GET", Denied)
+
+	tester.CheckAuthorizations(s.T(), Sally, "https://ipv6-alt.example.com/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), Sam, "https://ipv6-alt.example.com/", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), Sally, "https://ipv6.example.com/", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), Sam, "https://ipv6.example.com/", "GET", TwoFactor)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckMethodMatching() {

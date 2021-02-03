@@ -101,8 +101,8 @@ func TestShouldNotFindStringInSliceContains(t *testing.T) {
 }
 
 func TestShouldFindStringInSliceFold(t *testing.T) {
-	a := "xyz"
-	b := "ABC"
+	a := "xYz"
+	b := "AbC"
 	slice := []string{"XYz", "abc"}
 
 	assert.True(t, IsStringInSliceFold(a, slice))
@@ -110,8 +110,8 @@ func TestShouldFindStringInSliceFold(t *testing.T) {
 }
 
 func TestShouldNotFindStringInSliceFold(t *testing.T) {
-	a := "xyz"
-	b := "ABC"
+	a := "xyZ"
+	b := "ABc"
 	slice := []string{"cba", "zyx"}
 
 	assert.False(t, IsStringInSliceFold(a, slice))

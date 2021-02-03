@@ -113,10 +113,14 @@ func parseSchemaNetworks(schemaNetworks []schema.ACLNetwork) (networksMap map[st
 			if err == nil {
 				networks = append(networks, cidr)
 				networksCacheMap[cidr.String()] = cidr
+
+				if cidr.String() != networkRule {
+					networksCacheMap[networkRule] = cidr
+				}
 			}
 		}
 
-		if _, ok := networksMap[aclNetwork.Name]; !ok {
+		if _, ok := networksMap[aclNetwork.Name]; len(networks) != 0 && !ok {
 			networksMap[aclNetwork.Name] = networks
 		}
 	}
@@ -147,7 +151,9 @@ func schemaSubjectsToACL(subjectRules [][]string) (subjects []AccessControlSubje
 			subject.AddSubject(subjectRuleItem)
 		}
 
-		subjects = append(subjects, subject)
+		if len(subject.Subjects) != 0 {
+			subjects = append(subjects, subject)
+		}
 	}
 
 	return subjects
@@ -155,6 +161,10 @@ func schemaSubjectsToACL(subjectRules [][]string) (subjects []AccessControlSubje
 
 func domainToPrefixSuffix(domain string) (prefix, suffix string) {
 	parts := strings.Split(domain, ".")
+
+	if len(parts) == 1 {
+		return "", parts[0]
+	}
 
 	return parts[0], strings.Join(parts[1:], ".")
 }
