@@ -91,6 +91,11 @@ func schemaNetworksToACL(networkRules []string, networksMap map[string][]*net.IP
 				cidr, err := parseNetwork(network)
 				if err == nil {
 					networks = append(networks, cidr)
+					networksCacheMap[cidr.String()] = cidr
+
+					if cidr.String() != network {
+						networksCacheMap[network] = cidr
+					}
 				}
 			}
 		} else {
@@ -102,8 +107,10 @@ func schemaNetworksToACL(networkRules []string, networksMap map[string][]*net.IP
 }
 
 func parseSchemaNetworks(schemaNetworks []schema.ACLNetwork) (networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) {
-	networksMap = map[string][]*net.IPNet{}    // Used to store ptr's for the networks in the access_control.networks section.
-	networksCacheMap = map[string]*net.IPNet{} // Used to store ptr's for the networks in the access_control.rules section, to prevent unnecessary additional addressing.
+	// These maps store pointers to the net.IPNet values so we can reuse them efficiently.
+	// The networksMap contains the named networks as keys, the networksCacheMap contains the CIDR notations as keys.
+	networksMap = map[string][]*net.IPNet{}
+	networksCacheMap = map[string]*net.IPNet{}
 
 	for _, aclNetwork := range schemaNetworks {
 		var networks []*net.IPNet

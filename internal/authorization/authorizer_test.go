@@ -380,6 +380,40 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/xyz/embedded/abc", "GET", Bypass)
 }
 
+// This test assures that rules without domains (not allowed by schema validator at this time) will pass validation correctly.
+func (s *AuthorizerSuite) TestShouldMatchAnyDomainIfBlank() {
+	tester := NewAuthorizerBuilder().
+		WithRule(schema.ACLRule{
+			Policy:  "bypass",
+			Methods: []string{"OPTIONS", "HEAD", "GET", "CONNECT", "TRACE"},
+		}).
+		WithRule(schema.ACLRule{
+			Policy:  "one_factor",
+			Methods: []string{"PUT", "PATCH"},
+		}).
+		WithRule(schema.ACLRule{
+			Policy:  "two_factor",
+			Methods: []string{"DELETE"},
+		}).
+		Build()
+
+	tester.CheckAuthorizations(s.T(), John, "https://one.domain-four.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-three.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-two.com", "OPTIONS", Bypass)
+
+	tester.CheckAuthorizations(s.T(), John, "https://one.domain-four.com", "PUT", OneFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-three.com", "PATCH", OneFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-two.com", "PUT", OneFactor)
+
+	tester.CheckAuthorizations(s.T(), John, "https://one.domain-four.com", "DELETE", TwoFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-three.com", "DELETE", TwoFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-two.com", "DELETE", TwoFactor)
+
+	tester.CheckAuthorizations(s.T(), John, "https://one.domain-four.com", "POST", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-three.com", "POST", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-two.com", "POST", Denied)
+}
+
 func (s *AuthorizerSuite) TestPolicyToLevel() {
 	s.Assert().Equal(Bypass, PolicyToLevel("bypass"))
 	s.Assert().Equal(OneFactor, PolicyToLevel("one_factor"))

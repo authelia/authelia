@@ -31,9 +31,59 @@ func TestShouldSplitDomainCorrectly(t *testing.T) {
 
 	assert.Equal(t, "", prefix)
 	assert.Equal(t, "example", suffix)
+
+	prefix, suffix = domainToPrefixSuffix("example.com")
+
+	assert.Equal(t, "example", prefix)
+	assert.Equal(t, "com", suffix)
 }
 
-func TestShouldParseNetworks(t *testing.T) {
+func TestShouldParseRuleNetworks(t *testing.T) {
+	schemaNetworks := []schema.ACLNetwork{
+		{
+			Name: "desktop",
+			Networks: []string{
+				"10.0.0.1",
+			},
+		},
+		{
+			Name: "lan",
+			Networks: []string{
+				"10.0.0.0/8",
+				"172.16.0.0/12",
+				"192.168.0.0/16",
+			},
+		},
+	}
+
+	_, firstNetwork, err := net.ParseCIDR("192.168.1.20/32")
+	require.NoError(t, err)
+
+	networksMap, networksCacheMap := parseSchemaNetworks(schemaNetworks)
+
+	assert.Len(t, networksCacheMap, 5)
+
+	networks := []string{"192.168.1.20", "lan"}
+
+	acl := schemaNetworksToACL(networks, networksMap, networksCacheMap)
+
+	assert.Len(t, networksCacheMap, 7)
+
+	require.Len(t, acl, 4)
+	assert.Equal(t, firstNetwork, acl[0])
+	assert.Equal(t, networksMap["lan"][0], acl[1])
+	assert.Equal(t, networksMap["lan"][1], acl[2])
+	assert.Equal(t, networksMap["lan"][2], acl[3])
+
+	// Check they are the same memory address.
+	assert.True(t, networksMap["lan"][0] == acl[1])
+	assert.True(t, networksMap["lan"][1] == acl[2])
+	assert.True(t, networksMap["lan"][2] == acl[3])
+
+	assert.False(t, firstNetwork == acl[0])
+}
+
+func TestShouldParseACLNetworks(t *testing.T) {
 	schemaNetworks := []schema.ACLNetwork{
 		{
 			Name: "test",
