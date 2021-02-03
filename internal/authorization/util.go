@@ -44,10 +44,17 @@ func schemaDomainsToACL(domainRules []string) (domains []AccessControlDomain) {
 	for _, domainRule := range domainRules {
 		domain := AccessControlDomain{}
 
-		if strings.HasPrefix(domainRule, "*.") {
+		switch {
+		case strings.HasPrefix(domainRule, "*."):
 			domain.Wildcard = true
 			domain.Name = domainRule[1:]
-		} else {
+		case strings.HasPrefix(domainRule, "{user}"):
+			domain.UserWildcard = true
+			domain.Name = domainRule[5:]
+		case strings.HasPrefix(domainRule, "{group}"):
+			domain.GroupWildcard = true
+			domain.Name = domainRule[6:]
+		default:
 			domain.Name = domainRule
 		}
 
@@ -142,4 +149,10 @@ func schemaSubjectsToACL(subjectRules [][]string) (subjects []AccessControlSubje
 	}
 
 	return subjects
+}
+
+func domainToPrefixSuffix(domain string) (prefix, suffix string) {
+	parts := strings.Split(domain, ".")
+
+	return strings.ToLower(parts[0]), strings.ToLower(strings.Join(parts[1:], "."))
 }

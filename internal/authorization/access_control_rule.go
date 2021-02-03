@@ -42,7 +42,7 @@ type AccessControlRule struct {
 
 // IsMatch returns true if all elements of an AccessControlRule match the object and subject.
 func (acr *AccessControlRule) IsMatch(subject Subject, object Object) (match bool) {
-	if !isMatchForDomains(object, acr) {
+	if !isMatchForDomains(subject, object, acr) {
 		return false
 	}
 
@@ -65,13 +65,13 @@ func (acr *AccessControlRule) IsMatch(subject Subject, object Object) (match boo
 	return true
 }
 
-func isMatchForDomains(object Object, acl *AccessControlRule) (match bool) {
+func isMatchForDomains(subject Subject, object Object, acl *AccessControlRule) (match bool) {
 	if len(acl.Domains) == 0 {
 		return true
 	}
 
 	for _, domain := range acl.Domains {
-		if domain.IsMatch(object) {
+		if domain.IsMatch(subject, object) {
 			return true
 		}
 	}
