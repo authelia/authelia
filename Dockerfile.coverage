@@ -50,13 +50,14 @@ go test -c --tags coverage -covermode=atomic -o authelia -coverpkg github.com/au
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.13.0
+FROM alpine:3.13.1
 
 RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /app
 
 COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
+COPY healthcheck.sh /usr/local/bin/
 
 EXPOSE 9091
 
@@ -65,3 +66,4 @@ VOLUME /config
 ENV PATH="/app:${PATH}"
 
 CMD ["authelia", "-test.coverprofile=/authelia/coverage.txt", "COVERAGE", "--config", "/config/configuration.yml"]
+HEALTHCHECK --interval=30s --timeout=3s CMD /usr/local/bin/healthcheck.sh

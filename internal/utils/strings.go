@@ -60,14 +60,12 @@ func SliceString(s string, d int) (array []string) {
 // IsStringSlicesDifferent checks two slices of strings and on the first occurrence of a string item not existing in the
 // other slice returns true, otherwise returns false.
 func IsStringSlicesDifferent(a, b []string) (different bool) {
-	for _, s := range a {
-		if !IsStringInSlice(s, b) {
-			return true
-		}
+	if len(a) != len(b) {
+		return true
 	}
 
-	for _, s := range b {
-		if !IsStringInSlice(s, a) {
+	for _, s := range a {
+		if !IsStringInSlice(s, b) {
 			return true
 		}
 	}

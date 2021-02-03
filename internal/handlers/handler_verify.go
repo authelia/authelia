@@ -234,19 +234,15 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, userSession.AuthenticationLevel, nil
 }
 
-func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, username string, method []byte) {
+func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, username string) {
 	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
 	// endpoint to provide the URL of the login portal. The target URL of the user
 	// is computed from X-Forwarded-* headers or X-Original-URL.
 	rd := string(ctx.QueryArgs().Peek("rd"))
 	if rd != "" {
-		redirectionURL := ""
-
-		rm := string(method)
-		if rm != "" {
-			redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), rm)
-		} else {
-			redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
+		redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
+		if strings.Contains(redirectionURL, "/%23/") {
+			ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
 		}
 
 		ctx.Logger.Infof("Access to %s is not authorized to user %s, redirecting to %s", targetURL.String(), username, redirectionURL)
@@ -329,46 +325,51 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	// See https://docs.authelia.com/security/threat-model.html#potential-future-guarantees
 	ctx.Logger.Tracef("Checking if we need check the authentication backend for an updated profile for %s.", userSession.Username)
 
-	if refreshProfile && userSession.Username != "" && targetURL != nil &&
-		(refreshProfileInterval == schema.RefreshIntervalAlways || userSession.RefreshTTL.Before(ctx.Clock.Now())) {
-		ctx.Logger.Debugf("Checking the authentication backend for an updated profile for user %s", userSession.Username)
-		details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
-		// Only update the session if we could get the new details.
-		if err != nil {
-			return err
-		}
+	if !refreshProfile || userSession.Username == "" || targetURL == nil {
+		return nil
+	}
 
-		emailsDiff := utils.IsStringSlicesDifferent(userSession.Emails, details.Emails)
-		groupsDiff := utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
-		nameDiff := userSession.DisplayName != details.DisplayName
+	if refreshProfileInterval != schema.RefreshIntervalAlways && userSession.RefreshTTL.After(ctx.Clock.Now()) {
+		return nil
+	}
 
-		if !groupsDiff && !emailsDiff && !nameDiff {
-			ctx.Logger.Tracef("Updated profile not detected for %s.", userSession.Username)
-			// Only update TTL if the user has a interval set.
-			// We get to this check when there were no changes.
-			// Also make sure to update the session even if no difference was found.
-			// This is so that we don't check every subsequent request after this one.
-			if refreshProfileInterval != schema.RefreshIntervalAlways {
-				// Update RefreshTTL and save session if refresh is not set to always.
-				userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
-				return ctx.SaveSession(*userSession)
-			}
-		} else {
-			ctx.Logger.Debugf("Updated profile detected for %s.", userSession.Username)
-			if ctx.Configuration.LogLevel == "trace" {
-				generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
-			}
-			userSession.Emails = details.Emails
-			userSession.Groups = details.Groups
-			userSession.DisplayName = details.DisplayName
+	ctx.Logger.Debugf("Checking the authentication backend for an updated profile for user %s", userSession.Username)
+	details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
+	// Only update the session if we could get the new details.
+	if err != nil {
+		return err
+	}
 
-			// Only update TTL if the user has a interval set.
-			if refreshProfileInterval != schema.RefreshIntervalAlways {
-				userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
-			}
-			// Return the result of save session if there were changes.
+	emailsDiff := utils.IsStringSlicesDifferent(userSession.Emails, details.Emails)
+	groupsDiff := utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
+	nameDiff := userSession.DisplayName != details.DisplayName
+
+	if !groupsDiff && !emailsDiff && !nameDiff {
+		ctx.Logger.Tracef("Updated profile not detected for %s.", userSession.Username)
+		// Only update TTL if the user has a interval set.
+		// We get to this check when there were no changes.
+		// Also make sure to update the session even if no difference was found.
+		// This is so that we don't check every subsequent request after this one.
+		if refreshProfileInterval != schema.RefreshIntervalAlways {
+			// Update RefreshTTL and save session if refresh is not set to always.
+			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
 			return ctx.SaveSession(*userSession)
 		}
+	} else {
+		ctx.Logger.Debugf("Updated profile detected for %s.", userSession.Username)
+		if ctx.Configuration.LogLevel == "trace" {
+			generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
+		}
+		userSession.Emails = details.Emails
+		userSession.Groups = details.Groups
+		userSession.DisplayName = details.DisplayName
+
+		// Only update TTL if the user has a interval set.
+		if refreshProfileInterval != schema.RefreshIntervalAlways {
+			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
+		}
+		// Return the result of save session if there were changes.
+		return ctx.SaveSession(*userSession)
 	}
 
 	// Return nil if disabled or if no changes and refresh interval set to always.
@@ -377,7 +378,10 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 
 func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (refresh bool, refreshInterval time.Duration) {
 	if cfg.Ldap != nil {
-		if cfg.RefreshInterval != schema.ProfileRefreshDisabled {
+		if cfg.RefreshInterval == schema.ProfileRefreshDisabled {
+			refresh = false
+			refreshInterval = 0
+		} else {
 			refresh = true
 
 			if cfg.RefreshInterval != schema.ProfileRefreshAlways {
@@ -456,8 +460,6 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			}
 		}
 
-		method := ctx.XForwardedMethod()
-
 		if err != nil {
 			ctx.Logger.Error(fmt.Sprintf("Error caught when verifying user authorization: %s", err))
 
@@ -466,20 +468,20 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 				return
 			}
 
-			handleUnauthorized(ctx, targetURL, username, method)
+			handleUnauthorized(ctx, targetURL, username)
 
 			return
 		}
 
 		authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
-			groups, ctx.RemoteIP(), method, authLevel)
+			groups, ctx.RemoteIP(), authLevel)
 
 		switch authorization {
 		case Forbidden:
 			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 			ctx.ReplyForbidden()
 		case NotAuthorized:
-			handleUnauthorized(ctx, targetURL, username, method)
+			handleUnauthorized(ctx, targetURL, username)
 		case Authorized:
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
 		}

@@ -152,11 +152,9 @@ Internet (your reverse proxies are) however, it's still the control plane for yo
 
 ## Contribute
 
-If you want to contribute to Authelia, check the documentation available
-[here](https://docs.authelia.com/contributing/).
+If you want to contribute to Authelia, please read our [contribution guidelines](./CONTRIBUTING.md).
 
-Authelia exists thanks to all the people who contribute so don't be shy,
-come chat with us on [Matrix](#matrix) and start [contributing](./CONTRIBUTING.md) too.
+Authelia exists thanks to all the people who contribute so don't be shy, come chat with us on [Matrix](#matrix) and start contributing too.
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 

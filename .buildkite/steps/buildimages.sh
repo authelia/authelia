@@ -31,6 +31,10 @@ if [[ "${BUILD_ARCH}" == "coverage" ]]; then
 cat << EOF
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/
 EOF
+else
+cat << EOF
+    if: build.branch !~ /^(dependabot|renovate)\/.*/
+EOF
 fi
   done
 done

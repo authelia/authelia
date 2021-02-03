@@ -9,6 +9,8 @@ services:
       - './example/kube:/authelia'
       - './example/compose/kind/config.yml:/etc/kind/config.yml'
     command: 'kubectl port-forward --address 0.0.0.0 -n authelia service/nginx-ingress-controller-service 8080:443'
+    environment:
+      - KIND_EXPERIMENTAL_DOCKER_NETWORK=authelia_authelianet
     networks:
       authelianet:
         aliases:
@@ -28,6 +30,8 @@ services:
       - 'kind-volume:/kind/config'
       - './example/compose/kind/entrypoint-dashboard.sh:/entrypoint-dashboard.sh'
     command: '/entrypoint-dashboard.sh'
+    environment:
+      - KIND_EXPERIMENTAL_DOCKER_NETWORK=authelia_authelianet
     networks:
       authelianet:
         aliases:
