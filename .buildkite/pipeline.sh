@@ -6,9 +6,9 @@ DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
 if [[ $DIVERGED == 0 ]]; then
   if [[ $BUILDKITE_TAG == "" ]]; then
     if [[ $BUILDKITE_BRANCH == "master" ]]; then
-      CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(BREAKING.md|CONTRIBUTING.md|README.md|SECURITY.md|docs\/.*)/!{q1}' && echo true || echo false)
+      CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(BREAKING.md|CONTRIBUTING.md|README.md|SECURITY.md|\.all-contributorsrc|docs\/.*)/!{q1}' && echo true || echo false)
     else
-      CI_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^(BREAKING.md|CONTRIBUTING.md|README.md|SECURITY.md|docs\/.*)/!{q1}' && echo true || echo false)
+      CI_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^(BREAKING.md|CONTRIBUTING.md|README.md|SECURITY.md|\.all-contributorsrc|docs\/.*)/!{q1}' && echo true || echo false)
     fi
 
     if [[ $CI_BYPASS == "true" ]]; then
