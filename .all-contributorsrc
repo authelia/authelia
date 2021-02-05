@@ -3,7 +3,7 @@
   "projectOwner": "authelia",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": "false",
+  "skipCi": true,
   "files": [
     "README.md"
   ],
@@ -389,6 +389,15 @@
       "profile": "https://dzervas.gr/",
       "contributions": [
         "doc"
+      ]
+    },
+    {
+      "login": "TheCatLady",
+      "name": "TheCatLady",
+      "avatar_url": "https://avatars.githubusercontent.com/u/52870424?v=4",
+      "profile": "http://paypal.me/DHoung",
+      "contributions": [
+        "ideas"
       ]
     }
   ],
