@@ -26,22 +26,22 @@ access in desired situations. Examples include denying access to an API that has
 
 This policy skips all authentication and allows anyone to use the resource. This policy has little to no effect
 when used with a rule that also has a subject defined, just because the minimum authentication level required
-to obtain information about the subject is [one_factor](#one_factor)
+to obtain information about the subject is [one_factor](#one_factor).
 
 ### one_factor
 
-This policy requires the user at minimum complete 1FA successfully (username and password). This means if they have done 2FA then
+This policy requires the user at minimum complete 1FA successfully (username and password). This means if they have performed 2FA then
 they will be allowed to access the resource.
 
 ### two_factor
 
-This policy requires the user complete 2FA successfully. This is currently the highest level of authentication
+This policy requires the user to complete 2FA successfully. This is currently the highest level of authentication
 policy available.
 
 ## Default Policy
 
 The default policy is the policy applied when no other rule matches. It is recommended that this is configured to 
-[deny](#deny) for security reasons. Sites which you do not wish to secure with Authelia should not be configured to do 
+[deny](#deny) for security reasons. Sites which you do not wish to secure with Authelia should not be configured to perform 
 authentication with Authelia at all.
 
 See [Policies](#policies) for more information.
@@ -71,7 +71,7 @@ The criteria are:
 * methods: the http methods used in the request.
 
 A rule is matched when all criteria of the rule match. Rules are evaluated in sequential order, and this is
-particularly **important** for bypass rules. Bypass rules should generally 
+particularly **important** for bypass rules. Bypass rules should generally appear near the top of the rules list.
 
 
 ### Policy
@@ -132,8 +132,8 @@ a second time to get access to the application can sometimes be cumbersome if th
 considered overly sensitive.
 
 An additional situation where this may be useful is if there is a specific network you wish to deny access
-or require a higher level of authentication for (like a public machine network vs a company device network, or a 
-BYOD network). 
+or require a higher level of authentication for; like a public machine network vs a company device network, or a 
+BYOD network. 
 
 Even if Authelia provides this flexibility, you might prefer a higher level of security and avoid
 this option entirely. You and only you can define your security policy and it's up to you to
