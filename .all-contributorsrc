@@ -3,7 +3,7 @@
   "projectOwner": "authelia",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true,
+  "skipCi": false,
   "files": [
     "README.md"
   ],
