@@ -3,7 +3,7 @@
   "projectOwner": "authelia",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": "false",
+  "skipCi": true,
   "files": [
     "README.md"
   ],
@@ -389,6 +389,15 @@
       "profile": "https://dzervas.gr/",
       "contributions": [
         "doc"
+      ]
+    },
+    {
+      "login": "knnnrd",
+      "name": "Kennard Vermeiren",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5852381?v=4",
+      "profile": "https://github.com/knnnrd",
+      "contributions": [
+        "ideas"
       ]
     }
   ],
