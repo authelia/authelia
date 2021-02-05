@@ -212,6 +212,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/bbros-dev"><img src="https://avatars.githubusercontent.com/u/60454087?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Begley Brothers (Development)</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=bbros-dev" title="Documentation">📖</a></td>
     <td align="center"><a href="http://mikekusold.com/"><img src="https://avatars.githubusercontent.com/u/509966?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mike Kusold</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=kusold" title="Code">💻</a></td>
     <td align="center"><a href="https://dzervas.gr/"><img src="https://avatars.githubusercontent.com/u/1029195?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dimitris Zervas</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=dzervas" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://paypal.me/DHoung"><img src="https://avatars.githubusercontent.com/u/52870424?v=4?s=100" width="100px;" alt=""/><br /><sub><b>TheCatLady</b></sub></a><br /><a href="#ideas-TheCatLady" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://lauri.vosandi.com/"><img src="https://avatars.githubusercontent.com/u/194685?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lauri Võsandi</b></sub></a><br /><a href="#ideas-laurivosandi" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
