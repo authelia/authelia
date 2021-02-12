@@ -136,7 +136,9 @@ disclosure related matters. If you need to contact us for another reason please 
 
 ## Breaking changes
 
-See [BREAKING](./BREAKING.md).
+Since Authelia is still under active development, it is subject to breaking changes.
+It's recommended to pin a version tag instead of using the `latest` tag and reading the [release notes](https://github.com/authelia/authelia/releases) before upgrading.
+This is where you will find information about breaking changes and what you should do to overcome those changes.
 
 ## Why Open Source?
 
