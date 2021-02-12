@@ -1,14 +1,14 @@
 ---
 layout: default
-title: One-Time Password
+title: Time-based One-Time Password
 parent: Configuration
 nav_order: 4
 ---
 
-# One-Time Password
+# Time-based One-Time Password
 
 Authelia uses time based one-time passwords as the OTP method. You have 
-the option to tune the settings of the TOTP generation and you can see a
+the option to tune the settings of the TOTP generation, and you can see a
 full example of TOTP configuration below, as well as sections describing them.
 
 ```yaml

@@ -15,6 +15,7 @@ export enum State {
 export interface Props {
     id: string;
     title: string;
+    registered: boolean;
     explanation: string;
     state: State;
     children: ReactNode;
@@ -24,6 +25,7 @@ export interface Props {
 
 const DefaultMethodContainer = function (props: Props) {
     const style = useStyles();
+    const registerMessage = props.registered ? "Lost your device?" : "Not registered yet?";
 
     let container: ReactNode;
     let stateClass: string = "";
@@ -50,7 +52,7 @@ const DefaultMethodContainer = function (props: Props) {
             </div>
             {props.onRegisterClick ? (
                 <Link component="button" id="register-link" onClick={props.onRegisterClick}>
-                    Not registered yet?
+                    {registerMessage}
                 </Link>
             ) : null}
         </div>
