@@ -13,7 +13,7 @@ do
 done
 
 echo "--- :github: Deploy artifacts for release: ${BUILDKITE_TAG}"
-hub release create "${BUILDKITE_TAG}" "${artifacts[@]}" -F <(echo -e "${BUILDKITE_TAG}\n\n$(awk "/${BUILDKITE_TAG}/" RS="## Breaking" BREAKING.md)\n\n## Changelog\n$(git log --oneline --pretty='* %h %s' $(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))...$(git describe --abbrev=0 --tags))\n\n## Docker Container\n* \`docker pull authelia/authelia:${BUILDKITE_TAG//v}\`" | sed -e 's/^ /## Breaking /' | sed -e '/./b' -e :n -e 'N;s/\n$//;tn'); EXIT=$?
+hub release create "${BUILDKITE_TAG}" "${artifacts[@]}" -F <(echo -e "${BUILDKITE_TAG}\n$(conventional-changelog -p angular -o /dev/stdout -r 2 | sed -e '1,3d')\n\n### Docker Container\n* \`docker pull authelia/authelia:${BUILDKITE_TAG//v}\`"); EXIT=$?
 
 if [[ $EXIT == 0 ]];
   then
