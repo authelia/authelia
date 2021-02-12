@@ -33,7 +33,7 @@ From now on, you get tokens generated every 30 seconds that
 you can use to validate the second factor in **Authelia**.
 
 
-## Limitation
+## Limitations
 
 Users currently can only enroll a single TOTP device in **Authelia**.
 Multiple single type device enrollment will be available when [this issue](https://github.com/authelia/authelia/issues/275) has been resolved.
