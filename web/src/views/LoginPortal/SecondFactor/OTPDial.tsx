@@ -27,6 +27,7 @@ const OTPDial = function (props: Props) {
                 value={props.passcode}
                 numInputs={6}
                 isDisabled={props.state === State.InProgress || props.state === State.Success}
+                isInputNum
                 hasErrored={props.state === State.Failure}
                 inputStyle={classnames(style.otpDigitInput, props.state === State.Failure ? style.inputError : "")}
             />
@@ -48,6 +49,7 @@ const useStyles = makeStyles((theme) => ({
         marginTop: theme.spacing(2),
     },
     otpDigitInput: {
+        boxSizing: "content-box",
         padding: theme.spacing(),
         marginLeft: theme.spacing(0.5),
         marginRight: theme.spacing(0.5),
