@@ -384,7 +384,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesN
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Unable to detect {username_attribute} placeholder in users_filter, your configuration is broken. Please review configuration options listed at https://docs.authelia.com/configuration/authentication/ldap.html")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Unable to detect {username_attribute} placeholder in users_filter, your configuration is broken. Please review configuration options listed at https://www.authelia.com/docs/configuration/authentication/ldap.html")
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlaceholder() {
@@ -395,7 +395,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlacehol
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Unable to detect {input} placeholder in users_filter, your configuration might be broken. Please review configuration options listed at https://docs.authelia.com/configuration/authentication/ldap.html")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Unable to detect {input} placeholder in users_filter, your configuration might be broken. Please review configuration options listed at https://www.authelia.com/docs/configuration/authentication/ldap.html")
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {

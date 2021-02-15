@@ -17,21 +17,7 @@ file in the configuration file.
 
 ```yaml
 authentication_backend:
-  # Disable both the HTML element and the API for reset password functionality
   disable_reset_password: false
-
-  # File backend configuration.
-  #
-  # With this backend, the users database is stored in a file
-  # which is updated when users reset their passwords.
-  # Therefore, this backend is meant to be used in a dev environment
-  # and not in production since it prevents Authelia to be scaled to
-  # more than one instance. The options under 'password' have sane
-  # defaults, and as it has security implications it is highly recommended
-  # you leave the default values. Before considering changing these settings
-  # please read the docs page below:
-  # https://docs.authelia.com/configuration/authentication/file.html#password-hash-algorithm-tuning
-
   file:
     path: /config/users.yml
     password:

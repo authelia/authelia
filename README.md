@@ -15,13 +15,12 @@
   [![Discord](https://img.shields.io/discord/707844280412012608?logo=discord&style=flat-square&color=blue)](https://discord.authelia.com)
   [![Matrix](https://img.shields.io/matrix/authelia:matrix.org?logo=matrix&style=flat-square&color=blue)](https://riot.im/app/#/room/#authelia:matrix.org)
 
-**Authelia** is an open-source authentication and authorization server
-providing 2-factor authentication and single sign-on (SSO) for your
-applications via a web portal.
-It acts as a companion of reverse proxies like [nginx], [Traefik] or [HAProxy] to let them know whether queries should pass through. Unauthenticated users are
-redirected to Authelia Sign-in portal instead.
+**Authelia** is an open-source authentication and authorization server providing 2-factor authentication and single 
+sign-on (SSO) for your applications via a web portal. It acts as a companion of reverse proxies like [nginx], [Traefik] 
+or [HAProxy] to let them know whether queries should pass through. Unauthenticated users are redirected to Authelia 
+Sign-in portal instead.
 
-Documentation is available at https://docs.authelia.com.
+Documentation is available at https://www.authelia.com/docs.
 
 The architecture is shown in the diagram below.
 
@@ -29,8 +28,11 @@ The architecture is shown in the diagram below.
   <img src="./docs/images/archi.png"/>
 </p>
 
-**Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/), [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a [Static binary](https://github.com/authelia/authelia/releases/latest),
-[Docker] or [Kubernetes] leveraging ingress controllers and ingress configurations. Assistance to publish a [debian package](https://github.com/authelia/authelia/issues/573) would be greatly appreciated.
+**Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/), 
+[FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a 
+[Static binary](https://github.com/authelia/authelia/releases/latest), [Docker] or [Kubernetes] leveraging ingress 
+controllers and ingress configurations. Assistance to publish a 
+[debian package](https://github.com/authelia/authelia/issues/573) would be greatly appreciated.
 
 <p align="center">
   <img src="./docs/images/logos/kubernetes.logo.png" height="100"/>
@@ -49,9 +51,11 @@ Here is what Authelia's portal looks like
 Here is the list of the main available features:
 
 * Several kind of second factor:
-  * **[Security Key (U2F)](https://docs.authelia.com/features/2fa/security-key)** with [Yubikey].
-  * **[Time-based One-Time password](https://docs.authelia.com/features/2fa/one-time-password)** with [Google Authenticator].
-  * **[Mobile Push Notifications](https://docs.authelia.com/features/2fa/push-notifications)** with [Duo](https://duo.com/).
+  * **[Security Key (U2F)](https://www.authelia.com/docs/features/2fa/security-key)** with [Yubikey].
+  * **[Time-based One-Time password](https://www.authelia.com/docs/features/2fa/one-time-password)** 
+    with [Google Authenticator].
+  * **[Mobile Push Notifications](https://www.authelia.com/docs/features/2fa/push-notifications)** 
+    with [Duo](https://duo.com/).
 * Password reset with identity verification using email confirmation.
 * Single-factor only authentication method available.
 * Access restriction after too many authentication attempts.
@@ -60,9 +64,9 @@ Here is the list of the main available features:
 * Highly available using a remote database and Redis as a highly available KV store.
 * Compatible with Kubernetes [ingress-nginx](https://github.com/kubernetes/ingress-nginx) controller out of the box.
 
-For more details about the features, follow [Features](https://docs.authelia.com/features/).
+For more details about the features, follow [Features](https://www.authelia.com/docs/features/).
 
-If you want to know more about the roadmap, follow [Roadmap](https://docs.authelia.com/roadmap).
+If you want to know more about the roadmap, follow [Roadmap](https://www.authelia.com/docs/roadmap).
 
 ## Proxy support
 
@@ -80,23 +84,27 @@ Docker or on top of [Kubernetes].
 
 You can start utilising Authelia with the provided `docker-compose` bundles:
 
-#### [Local](https://docs.authelia.com/getting-started)
+#### [Local](https://www.authelia.com/docs/getting-started)
 The Local compose bundle is intended to test Authelia without worrying about configuration.
 It's meant to be used for scenarios where the server is not be exposed to the internet.
 Domains will be defined in the local hosts file and self-signed certificates will be utilised.
 
-#### [Lite](https://docs.authelia.com/deployment/deployment-lite)
-The Lite compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will need to be setup accordingly and certificates will be generated through LetsEncrypt.
-The Lite element refers to minimal external dependencies; File based user storage, SQLite based configuration storage. In this configuration, the service will not scale well.
+#### [Lite](https://www.authelia.com/docs/deployment/deployment-lite)
+The Lite compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will 
+need to be setup accordingly and certificates will be generated through LetsEncrypt. The Lite element refers to minimal 
+external dependencies; File based user storage, SQLite based configuration storage. In this configuration, the service 
+will not scale well.
 
-#### [Full](https://docs.authelia.com/deployment/deployment-ha)
-The Full compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will need to be setup accordingly and certificates will be generated through LetsEncrypt.
-The Full element refers to a scalable setup which includes external dependencies; LDAP based user storage, Database based configuration storage (MariaDB, MySQL or Postgres). 
+#### [Full](https://www.authelia.com/docs/deployment/deployment-ha)
+The Full compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will 
+need to be setup accordingly and certificates will be generated through LetsEncrypt. The Full element refers to a 
+scalable setup which includes external dependencies; LDAP based user storage, Database based configuration storage 
+(MariaDB, MySQL or Postgres). 
 
 ## Deployment
 
 Now that you have tested **Authelia** and you want to try it out in your own infrastructure,
-you can learn how to deploy and use it with [Deployment](https://docs.authelia.com/deployment/deployment-ha).
+you can learn how to deploy and use it with [Deployment](https://www.authelia.com/docs/deployment/deployment-ha).
 This guide will show you how to deploy it on bare metal as well as on
 [Kubernetes](https://kubernetes.io/).
 
@@ -110,8 +118,8 @@ If you discover a vulnerability in Authelia, please first contact one of the mai
 either via [Matrix](#matrix) or [email](#email) as described in the [contact options](#contact-options) below.
 
 For details about security measures implemented in Authelia, please follow
-this [link](https://docs.authelia.com/security/measures.html) and for reading about 
-the threat model follow this [link](https://docs.authelia.com/security/threat-model.html).
+this [link](https://www.authelia.com/docs/security/measures.html) and for reading about 
+the threat model follow this [link](https://www.authelia.com/docs/security/threat-model.html).
 
 ### Contact Options
 
@@ -136,18 +144,19 @@ disclosure related matters. If you need to contact us for another reason please 
 
 ## Breaking changes
 
-Since Authelia is still under active development, it is subject to breaking changes.
-It's recommended to pin a version tag instead of using the `latest` tag and reading the [release notes](https://github.com/authelia/authelia/releases) before upgrading.
-This is where you will find information about breaking changes and what you should do to overcome those changes.
+Since Authelia is still under active development, it is subject to breaking changes. It's recommended to pin a version 
+tag instead of using the `latest` tag and reading the [release notes](https://github.com/authelia/authelia/releases) 
+before upgrading. This is where you will find information about breaking changes and what you should do to overcome 
+those changes.
 
 ## Why Open Source?
 
-You might wonder why Authelia is open source while it adds a great deal of security and user experience to your infrastructure at zero cost.
-It is open source because we firmly believe that security should be available for all to benefit in the face the battlefield which is the Internet
-with near zero effort.
+You might wonder why Authelia is open source while it adds a great deal of security and user experience to your 
+infrastructure at zero cost. It is open source because we firmly believe that security should be available for all to 
+benefit in the face the battlefield which is the Internet with near zero effort.
 
-Additionally, keeping the code open source is a way to leave it auditable by anyone who is willing to contribute. This way, you can be confident
-that the product remains secure and does not act maliciously.
+Additionally, keeping the code open source is a way to leave it auditable by anyone who is willing to contribute. This 
+way, you can be confident that the product remains secure and does not act maliciously.
 
 It's important to keep in mind Authelia is not directly exposed on the
 Internet (your reverse proxies are) however, it's still the control plane for your internal security so take care of it!
@@ -156,7 +165,8 @@ Internet (your reverse proxies are) however, it's still the control plane for yo
 
 If you want to contribute to Authelia, please read our [contribution guidelines](./CONTRIBUTING.md).
 
-Authelia exists thanks to all the people who contribute so don't be shy, come chat with us on [Matrix](#matrix) and start contributing too.
+Authelia exists thanks to all the people who contribute so don't be shy, come chat with us on [Matrix](#matrix) and 
+start contributing too.
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
@@ -225,13 +235,14 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. 
+Contributions of any kind welcome!
 
 ### Backers
 
-Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/authelia-sponsors/contribute)] and help us sustain our community.
-The money we currently receive is dedicated to bootstrap a bug bounty program to give us as many eyes as we can to detect potential vulnerabilities.
-<a href="https://opencollective.com/authelia-sponsors#backers"><img src="https://opencollective.com/authelia-sponsors/backers.svg?width=890"></a>
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/authelia-sponsors/contribute)] and help us 
+sustain our community. The money we currently receive is dedicated to bootstrap a bug bounty program to give us as many
+eyes as we can to detect potential vulnerabilities. <a href="https://opencollective.com/authelia-sponsors#backers"><img src="https://opencollective.com/authelia-sponsors/backers.svg?width=890"></a>
 
 ### Sponsors
 
@@ -250,7 +261,8 @@ Support Authelia by becoming a sponsor. Your logo will show up here with a link 
 
 ### Jetbrains
 
-Thank you to [<img src="./docs/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia) for providing us with free licenses to their great tools
+Thank you to [<img src="./docs/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
+for providing us with free licenses to their great tools
 
 * [<img src="./docs/images/logos/intellij-idea.svg" alt="IDEA" width="32"> IDEA](http://www.jetbrains.com/idea/)
 * [<img src="./docs/images/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
@@ -258,7 +270,7 @@ Thank you to [<img src="./docs/images/logos/jetbrains.svg" alt="JetBrains" width
 
 ## License
 
-**Authelia** is **licensed** under the **[Apache 2.0]** license. The terms of the license are detailed
+**Authelia** is **licensed** under the **[Apache 2.0]** license. The terms of the license are detailed 
 in [LICENSE](./LICENSE).
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia?ref=badge_large)

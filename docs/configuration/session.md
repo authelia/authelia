@@ -19,58 +19,74 @@ and can then order the reverse proxy to let the request pass through to the appl
 
 ```yaml
 session:
-  # The name of the session cookie. (default: authelia_session).
   name: authelia_session
-
-  # The secret to encrypt the session data. This is only used with Redis.
-  # Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   secret: unsecure_session_secret
-
-  # The time in seconds before the cookie expires and session is reset.
   expiration: 1h
-
-  # The inactivity time in seconds before the session is reset.
   inactivity: 5m
-
-  # The remember me duration.
-  # Value of 0 disables remember me.
-  # Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
-  # Longer periods are considered less secure because a stolen cookie will last longer giving attackers more time to spy
-  # or attack. Currently the default is 1M or 1 month.
   remember_me_duration:  1M
-
-  # The domain to protect.
-  # Note: the login portal must also be a subdomain of that domain.
   domain: example.com
-
-  # The redis connection details (optional)
-  # If not provided, sessions will be stored in memory
   redis:
     host: 127.0.0.1
     port: 6379
-    # Use a unix socket instead
-    # host: /var/run/redis/redis.sock
-
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: authelia
 ```
 
-### Security
+## Options
 
-Configuration of this section has an impact on security. You should read notes in
-[security measures](../security/measures.md#session-security) for more information.
+### name
 
-### Duration Notation
+The name of the session cookie. By default this is set to authelia_session. It's mostly useful to change this if you are
+doing development or running multiple instances of Authelia.
 
-The configuration parameters expiration, inactivity, and remember_me_duration use duration notation. See the documentation
-for [duration notation format](index.md#duration-notation-format) for more information.
+### secret
 
-## IPv6 Addresses
+The secret key used to encrypt session data in Redis. It's recommended this is set using a [secret](./secrets.md).
 
-If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
+### expiration
+
+The time in [duration notation format](index.md#duration-notation-format) before the cookie expires and the session is 
+destroyed. This is overriden by remember_me_duration when the remember me box is checked.
+
+### inactivity
+
+The time in [duration notation format](index.md#duration-notation-format) the user can be inactive for until the session
+is destroyed. Useful if you want long session timers but don't want unused devices to be vulnerable.
+
+### remember_me_duration
+
+The time in [duration notation format](index.md#duration-notation-format) the cookie expires and the session is 
+destroyed when the remember me box is checked.
+
+### domain
+
+The domain the cookie is assigned to protect. This must be the same as the domain Authelia is served on or the root
+of the domain. For example if listening on auth.example.com the cookie should be auth.example.com or example.com.
+
+### redis
+
+This is a session provider. By default Authelia uses an in-memory provider. Not configuring redis leaves Authelia 
+[stateful](../features/statelessness.md). It's important in highly available scenarios to configure this option and
+we highly recommend it in production environments. It requires you setup redis as well.
+
+#### host
+
+The redis host or unix socket path. If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
 ```yaml
 host: "[fd00:1111:2222:3333::1]"
 ```
+
+#### port
+
+The port redis is listening on.
+
+#### password
+
+The password for redis authentication.
+
+## Security
+
+Configuration of this section has an impact on security. You should read notes in
+[security measures](../security/measures.md#session-security) for more information.
 
 ## Loading a password from a secret instead of inside the configuration
 

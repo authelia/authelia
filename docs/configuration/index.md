@@ -7,13 +7,14 @@ has_children: true
 
 # Configuration
 
-Authelia uses a YAML file as configuration file. A template with all possible
-options can be found [here](https://github.com/authelia/authelia/blob/master/config.template.yml), at the root of the repository.
+Authelia uses a YAML file as configuration file. A template with all possible options can be 
+found [here](https://github.com/authelia/authelia/blob/master/config.template.yml), at the root of the repository.
 
-When running **Authelia**, you can specify your configuration by passing
-the file path as shown below.
+When running **Authelia**, you can specify your configuration by passing the file path as shown below.
 
-    $ authelia --config config.custom.yml
+```console
+$ authelia --config config.custom.yml
+```
  
  
 ## Validation
@@ -29,8 +30,9 @@ the secret values). You can choose to ignore them if you know what you're doing.
 upgrading to prevent configuration changes from impacting downtime in an upgrade. This process does not validate
 integrations, it only checks that your configuration syntax is valid.
 
-    $ authelia validate-config configuration.yml
-    
+```console
+$ authelia validate-config configuration.yml
+```
    
 ## Duration Notation Format
 

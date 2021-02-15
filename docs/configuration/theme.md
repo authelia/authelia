@@ -17,6 +17,5 @@ There are currently 3 available themes for Authelia:
 ## Configuration
 
 ```yaml
-# The theme to display: light, dark, grey
 theme: light
 ```

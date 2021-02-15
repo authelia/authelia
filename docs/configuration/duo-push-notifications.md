@@ -22,8 +22,21 @@ duo_api:
   secret_key: 1234567890abcdefghifjkl
 ```
 
-
 The secret key is shown as an example, you also have the option to set it using an environment
 variable as described [here](./secrets.md).
+
+## Options
+
+### hostname
+
+The [Duo] API hostname supplied by [Duo].
+
+### integration_key
+
+The non-secret [Duo] integration key. Similar to a client identifier.
+
+### secret_key
+
+The secret [Duo] key used to verify your application is valid.
 
 [Duo]: https://duo.com/

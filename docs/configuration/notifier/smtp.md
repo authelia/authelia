@@ -10,28 +10,14 @@ nav_order: 2
 **Authelia** can send emails to users through an SMTP server.
 It can be configured as described below.
 
+## Configuration
+
 ```yaml
-# Configuration of the notification system.
-#
-# Notifications are sent to users when they require a password reset, a u2f
-# registration or a TOTP registration.
-# Use only an available configuration: filesystem, smtp.
 notifier:
-  # You can disable the notifier startup check by setting this to true.
   disable_startup_check: false
-
-  # For testing purpose, notifications can be sent in a file
-  ## filesystem:
-  ##   filename: /config/notification.txt
-
-  # Use a SMTP server for sending notifications. Authelia uses PLAIN or LOGIN method to authenticate.
-  # [Security] By default Authelia will:
-  #   - force all SMTP connections over TLS including unauthenticated connections
-  #      - use the disable_require_tls boolean value to disable this requirement (only works for unauthenticated connections)
-  #   - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates (configure in tls section)
   smtp:
     username: test
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    # Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: password
     host: 127.0.0.1
     port: 1025
@@ -60,42 +46,74 @@ notifier:
   # You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
   ## smtp:
   ##   username: myaccount@gmail.com
-  ##   # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+  ##   # Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   ##   password: yourapppassword
   ##   sender: admin@example.com
   ##   host: smtp.gmail.com
   ##   port: 587
 ```
 
-## Configuration options
-Most configuration options are self-explanatory, however here is an explanation of the ones that may not
-be as obvious.
+## Options
+
+### username
+
+The username sent for authentication with the SMTP server. Paired with the password.
+
+### password
+
+The password sent for authentication with the SMTP server. Paired with the username. Can also be defined using a
+[secret](../secrets.md) which is the recommended for containerized deployments.
 
 ### host
+
+The hostname of the SMTP server.
+
 If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
 
 ```yaml
 host: "[fd00:1111:2222:3333::1]"
 ```
 
-### identifier
+### port
+
+The port the SMTP service is listening on.
+
+### sender
+
+The address sent in the FROM header for the email. Basically who the email appears to come from. It should be noted
+that some SMTP servers require the username provided to have access to send from the specific address listed here.
+
+### identifer
+
 The name to send to the SMTP server as the identifier with the HELO/EHLO command. Some SMTP providers like Google Mail
 reject the message if it's localhost.
 
 ### subject
+
 This is the subject Authelia will use in the email, it has a single placeholder at present `{title}` which should
 be included in all emails as it is the internal descriptor for the contents of the email.
 
+### startup_check_address
+
+**Authelia** checks the SMTP server is valid at startup, one of the checks requires we ask the SMTP server if it can
+send an email from us to a specific address, this is that address. No email is actually sent in the process. It is fine
+to leave this as is, but you can customize it if you have issues or you desire to.
+
 ### disable_require_tls
-For security reasons the default settings for Authelia require the SMTP connection is encrypted by TLS. See [security] for
-more information. This option disables this measure (not recommended).
+
+For security reasons the default settings for Authelia require the SMTP connection is encrypted by TLS. See [security] 
+for more information. This option disables this measure (not recommended).
 
 ### disable_html_emails
-This option forces Authelia to only send plain text email via the notifier. This is the default for the file based 
-notifier, but some users may wish to use plain text for security reasons.
 
-### TLS (section)
-The key `tls` is a map of options for tuning TLS options. You can see how to configure the tls section [here](../index.md#tls-configuration).
+This setting completely disables HTML formatting of emails and only sends text emails. **Authelia** by default sends
+mixed emails which contain both HTML and text so this option is rarely necessary.
+
+### tls
+
+Controls the TLS connection validation process. You can see how to configure the tls section 
+[here](../index.md#tls-configuration).
+
 
 ## Using Gmail
 You need to generate an app password in order to use Gmail SMTP servers. The process is
@@ -105,14 +123,9 @@ described [here](https://support.google.com/accounts/answer/185833?hl=en)
 notifier:
   smtp:
     username: myaccount@gmail.com
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    # Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: yourapppassword
     sender: admin@example.com
     host: smtp.gmail.com
     port: 587
 ```
-
-## Loading a password from a secret instead of inside the configuration
-Password can also be defined using a [secret](../secrets.md).
-
-[security]: ../../security/measures.md#notifier-security-measures-smtp

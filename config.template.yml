@@ -1,250 +1,253 @@
-###############################################################
-#                   Authelia configuration                    #
-###############################################################
+---
+###############################################################################
+#                           Authelia Configuration                            #
+###############################################################################
 
-# The host and port to listen on
+## The host and port to listen on.
 host: 0.0.0.0
 port: 9091
+
+## The TLS key and cert to used with the port Authelia listens on.
 # tls_key: /config/ssl/key.pem
 # tls_cert: /config/ssl/cert.pem
 
-# The theme to display: light, dark, grey
+## The theme to display: light, dark, grey.
 theme: light
 
-# Configuration options specific to the internal http server
+##
+## Server Configuration
+##
 server:
-  # Buffers usually should be configured to be the same value.
-  # Explanation at https://docs.authelia.com/configuration/server.html
-  # Read buffer size configures the http server's maximum incoming request size in bytes.
+  ## Buffers usually should be configured to be the same value.
+  ## Explanation at https://www.authelia.com/docs/configuration/server.html
+  ## Read buffer size adjusts the server's max incoming request size in bytes.
+  ## Write buffer size does the same for outgoing responses.
   read_buffer_size: 4096
-  # Write buffer size configures the http server's maximum outgoing response size in bytes.
   write_buffer_size: 4096
-  # Set the single level path Authelia listens on, must be alphanumeric chars and should not contain any slashes.
+  ## Set the single level path Authelia listens on.
+  ## Must be alphanumeric chars and should not contain any slashes.
   path: ""
 
-# Level of verbosity for logs: info, debug, trace
+## Level of verbosity for logs: info, debug, trace.
 log_level: debug
-# Format the logs are written as: json, text
+## Format the logs are written as: json, text.
 # log_format: json
-# File path where the logs will be written. If not set logs are written to stdout.
+## File path where the logs will be written. If not set logs are written to stdout.
 # log_file_path: /config/authelia.log
 
-# The secret used to generate JWT tokens when validating user identity by
-# email confirmation.
-# JWT Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
+## set using a secret: https://www.authelia.com/docs/configuration/secrets.html
 jwt_secret: a_very_important_secret
 
-# Default redirection URL
-#
-# If user tries to authenticate without any referer, Authelia
-# does not know where to redirect the user to at the end of the
-# authentication process.
-# This parameter allows you to specify the default redirection
-# URL Authelia will use in such a case.
-#
-# Note: this parameter is optional. If not provided, user won't
-# be redirected upon successful authentication.
+## Default redirection URL
+##
+## If user tries to authenticate without any referer, Authelia does not know where to redirect the user to at the end
+## of the authentication process. This parameter allows you to specify the default redirection URL Authelia will use
+## in such a case.
+##
+## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
 default_redirection_url: https://home.example.com:8080/
 
-# TOTP Settings
-#
-# Parameters used for TOTP generation
+##
+## TOTP Configuration
+##
+## Parameters used for TOTP generation
 totp:
-  # The issuer name displayed in the Authenticator application of your choice
-  # See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
+  ## The issuer name displayed in the Authenticator application of your choice
+  ## See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
   issuer: authelia.com
-  # The period in seconds a one-time password is current for. Changing this will require all users to register
-  # their TOTP applications again.
-  # Warning: before changing period read the docs link below.
+  ## The period in seconds a one-time password is current for. Changing this will require all users to register
+  ## their TOTP applications again. Warning: before changing period read the docs link below.
   period: 30
-  # The skew controls number of one-time passwords either side of the current one that are valid.
-  # Warning: before changing skew read the docs link below.
+  ## The skew controls number of one-time passwords either side of the current one that are valid.
+  ## Warning: before changing skew read the docs link below.
   skew: 1
-  #  See: https://docs.authelia.com/configuration/one-time-password.html#period-and-skew to read the documentation.
+  ## See: https://www.authelia.com/docs/configuration/one-time-password.html#period-and-skew to read the documentation.
 
-# Duo Push API
-#
-# Parameters used to contact the Duo API. Those are generated when you protect an application
-# of type "Partner Auth API" in the management panel.
+##
+## Duo Push API Configuration
+##
+## Parameters used to contact the Duo API. Those are generated when you protect an application of type
+## "Partner Auth API" in the management panel.
 duo_api:
   hostname: api-123456789.example.com
   integration_key: ABCDEF
-  # Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+  ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   secret_key: 1234567890abcdefghifjkl
 
-# The authentication backend to use for verifying user passwords
-# and retrieve information such as email address and groups
-# users belong to.
-#
-# There are two supported backends: 'ldap' and 'file'.
+##
+## Authentication Backend Provider Configuration
+##
+## Used for verifying user passwords and retrieve information such as email address and groups users belong to.
+##
+## The available providers are: `file`, `ldap`. You must use one and only one of these providers.
 authentication_backend:
-  # Disable both the HTML element and the API for reset password functionality
+  ## Disable both the HTML element and the API for reset password functionality
   disable_reset_password: false
 
-  # The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
-  # To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users
-  # will always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
-  # To force update on every request you can set this to '0' or 'always', this will increase processor demand.
-  # See the below documentation for more information.
-  # Duration Notation docs:  https://docs.authelia.com/configuration/index.html#duration-notation-format
-  # Refresh Interval docs: https://docs.authelia.com/configuration/authentication/ldap.html#refresh-interval
+  ## The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
+  ## To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users will
+  ## always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
+  ## To force update on every request you can set this to '0' or 'always', this will increase processor demand.
+  ## See the below documentation for more information.
+  ## Duration Notation docs:  https://www.authelia.com/docs/configuration/index.html#duration-notation-format
+  ## Refresh Interval docs: https://www.authelia.com/docs/configuration/authentication/ldap.html#refresh-interval
   refresh_interval: 5m
 
-  # LDAP backend configuration.
-  #
-  # This backend allows Authelia to be scaled to more
-  # than one instance and therefore is recommended for
-  # production.
+  ##
+  ## LDAP (Authentication Provider)
+  ##
+  ## This is the recommended Authentication Provider in production
+  ## because it allows Authelia to offload the stateful operations
+  ## onto the LDAP service.
   ldap:
-    # The LDAP implementation, this affects elements like the attribute utilised for resetting a password.
-    # Acceptable options are as follows:
-    # - 'activedirectory' - For Microsoft Active Directory.
-    # - 'custom' - For custom specifications of attributes and filters.
-    # This currently defaults to 'custom' to maintain existing behaviour.
-    #
-    # Depending on the option here certain other values in this section have a default value, notably all
-    # of the attribute mappings have a default value that this config overrides, you can read more
-    # about these default values at https://docs.authelia.com/configuration/authentication/ldap.html#defaults
+    ## The LDAP implementation, this affects elements like the attribute utilised for resetting a password.
+    ## Acceptable options are as follows:
+    ## - 'activedirectory' - For Microsoft Active Directory.
+    ## - 'custom' - For custom specifications of attributes and filters.
+    ## This currently defaults to 'custom' to maintain existing behaviour.
+    ##
+    ## Depending on the option here certain other values in this section have a default value, notably all of the
+    ## attribute mappings have a default value that this config overrides, you can read more about these default values
+    ## at https://www.authelia.com/docs/configuration/authentication/ldap.html#defaults
     implementation: custom
 
-    # The url to the ldap server. Scheme can be ldap or ldaps in the format (port optional) <scheme>://<address>[:<port>].
+    ## The url to the ldap server. Format: <scheme>://<address>[:<port>].
+    ## Scheme can be ldap or ldaps in the format (port optional).
     url: ldap://127.0.0.1
-    
-    # Use StartTLS with the LDAP connection.
+
+    ## Use StartTLS with the LDAP connection.
     start_tls: false
 
     tls:
-      # Server Name for certificate validation (in case it's not set correctly in the URL).
+      ## Server Name for certificate validation (in case it's not set correctly in the URL).
       # server_name: ldap.example.com
 
-      # Skip verifying the server certificate (to allow a self-signed certificate).
+      ## Skip verifying the server certificate (to allow a self-signed certificate).
       skip_verify: false
 
-      # Minimum TLS version for either Secure LDAP or LDAP StartTLS.
+      ## Minimum TLS version for either Secure LDAP or LDAP StartTLS.
       minimum_version: TLS1.2
 
-    # The base dn for every entries.
+    ## The base dn for every entries.
     base_dn: dc=example,dc=com
-    
-    # The attribute holding the username of the user. This attribute is used to populate
-    # the username in the session information. It was introduced due to #561 to handle case
-    # insensitive search queries.
-    # For you information, Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP
-    # usually uses 'uid'
-    # Beware that this attribute holds the unique identifiers for the users binding the user and the configuration
-    # stored in database. Therefore only single value attributes are allowed and the value
-    # must never be changed once attributed to a user otherwise it would break the configuration
-    # for that user. Technically, non-unique attributes like 'mail' can also be used but we don't recommend using
-    # them, we instead advise to use the attributes mentioned above (sAMAccountName and uid) to follow
-    # https://www.ietf.org/rfc/rfc2307.txt.
+
+    ## The attribute holding the username of the user. This attribute is used to populate the username in the session
+    ## information. It was introduced due to #561 to handle case insensitive search queries. For you information,
+    ## Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP usually uses 'uid'. Beware that this
+    ## attribute holds the unique identifiers for the users binding the user and the configuration stored in database.
+    ## Therefore only single value attributes are allowed and the value must never be changed once attributed to a user
+    ## otherwise it would break the configuration for that user. Technically, non-unique attributes like 'mail' can also
+    ## be used but we don't recommend using them, we instead advise to use the attributes mentioned above
+    ## (sAMAccountName and uid) to follow https://www.ietf.org/rfc/rfc2307.txt.
     # username_attribute: uid
-    
-    # An additional dn to define the scope to all users.
+
+    ## An additional dn to define the scope to all users.
     additional_users_dn: ou=users
 
-    # The users filter used in search queries to find the user profile based on input filled in login form.
-    # Various placeholders are available to represent the user input and back reference other options of the configuration:
-    # - {input} is a placeholder replaced by what the user inputs in the login form. 
-    # - {username_attribute} is a mandatory placeholder replaced by what is configured in `username_attribute`.
-    # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
-    # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
-    #
-    # Recommended settings are as follows:
-    # - Microsoft Active Directory: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
-    # - OpenLDAP: (&({username_attribute}={input})(objectClass=person))' or '(&({username_attribute}={input})(objectClass=inetOrgPerson))
-    #
-    # To allow sign in both with username and email, one can use a filter like
-    # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
+    ## The users filter used in search queries to find the user profile based on input filled in login form.
+    ## Various placeholders are available in the user filter:
+    ## - {input} is a placeholder replaced by what the user inputs in the login form.
+    ## - {username_attribute} is a mandatory placeholder replaced by what is configured in `username_attribute`.
+    ## - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
+    ## - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later
+    ##   versions, so please don't use it.
+    ##
+    ## Recommended settings are as follows:
+    ## - Microsoft Active Directory: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
+    ## - OpenLDAP:
+    ##   - (&({username_attribute}={input})(objectClass=person))
+    ##   - (&({username_attribute}={input})(objectClass=inetOrgPerson))
+    ##
+    ## To allow sign in both with username and email, one can use a filter like
+    ## (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     users_filter: (&({username_attribute}={input})(objectClass=person))
 
-    # An additional dn to define the scope of groups.
+    ## An additional dn to define the scope of groups.
     additional_groups_dn: ou=groups
-    
-    # The groups filter used in search queries to find the groups of the user.
-    # - {input} is a placeholder replaced by what the user inputs in the login form.
-    # - {username} is a placeholder replace by the username stored in LDAP (based on `username_attribute`).
-    # - {dn} is a matcher replaced by the user distinguished name, aka, user DN.
-    # - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
-    # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
-    # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
-    # - DON'T USE - {1} is an alias for {username} supported for backward compatibility but it will be deprecated in later version, so please don't use it.
-    # If your groups use the `groupOfUniqueNames` structure use this instead: (&(uniquemember={dn})(objectclass=groupOfUniqueNames))
+
+    ## The groups filter used in search queries to find the groups of the user.
+    ## - {input} is a placeholder replaced by what the user inputs in the login form.
+    ## - {username} is a placeholder replace by the username stored in LDAP (based on `username_attribute`).
+    ## - {dn} is a matcher replaced by the user distinguished name, aka, user DN.
+    ## - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
+    ## - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
+    ## - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later
+    ##   versions, so please don't use it.
+    ## - DON'T USE - {1} is an alias for {username} supported for backward compatibility but it will be deprecated in
+    ##   later version, so please don't use it.
+    ##
+    ## If your groups use the `groupOfUniqueNames` structure use this instead:
+    ##    (&(uniquemember={dn})(objectclass=groupOfUniqueNames))
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
 
-    # The attribute holding the name of the group
+    ## The attribute holding the name of the group
     # group_name_attribute: cn
 
-    # The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the first
-    # one returned by the LDAP server is used.
+    ## The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the
+    ## first one returned by the LDAP server is used.
     # mail_attribute: mail
 
-    # The attribute holding the display name of the user. This will be used to greet an authenticated user.
+    ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
     # display_name_attribute: displayname
 
-    # The username and password of the admin user.
+    ## The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: password
 
-  # File backend configuration.
-  #
-  # With this backend, the users database is stored in a file
-  # which is updated when users reset their passwords.
-  # Therefore, this backend is meant to be used in a dev environment
-  # and not in production since it prevents Authelia to be scaled to
-  # more than one instance. The options under 'password' have sane
-  # defaults, and as it has security implications it is highly recommended
-  # you leave the default values. Before considering changing these settings
-  # please read the docs page below:
-  # https://docs.authelia.com/configuration/authentication/file.html#password-hash-algorithm-tuning
-  #
-  ## file:
-  ##   path: /config/users_database.yml
-  ##   password:
-  ##     algorithm: argon2id
-  ##     iterations: 1
-  ##     key_length: 32
-  ##     salt_length: 16
-  ##     memory: 1024
-  ##     parallelism: 8
-# Access Control
-#
-# Access control is a list of rules defining the authorizations applied for one
-# resource to users or group of users.
-#
-# If 'access_control' is not defined, ACL rules are disabled and the 'bypass'
-# rule is applied, i.e., access is allowed to anyone. Otherwise restrictions follow
-# the rules defined.
-#
-# Note: One can use the wildcard * to match any subdomain.
-# It must stand at the beginning of the pattern. (example: *.mydomain.com)
-#
-# Note: You must put patterns containing wildcards between simple quotes for the YAML
-# to be syntactically correct.
-#
-# Definition: A 'rule' is an object with the following keys: 'domain', 'subject',
-# 'policy' and 'resources'.
-#
-# - 'domain' defines which domain or set of domains the rule applies to.
-#
-# - 'subject' defines the subject to apply authorizations to. This parameter is
-#    optional and matching any user if not provided. If provided, the parameter
-#    represents either a user or a group. It should be of the form 'user:<username>'
-#    or 'group:<groupname>'.
-#
-# - 'policy' is the policy to apply to resources. It must be either 'bypass',
-#   'one_factor', 'two_factor' or 'deny'.
-#
-# - 'resources' is a list of regular expressions that matches a set of resources to
-#    apply the policy to. This parameter is optional and matches any resource if not
-#    provided.
-#
-# Note: the order of the rules is important. The first policy matching
-# (domain, resource, subject) applies.
+  ##
+  ## File (Authentication Provider)
+  ##
+  ## With this backend, the users database is stored in a file which is updated when users reset their passwords.
+  ## Therefore, this backend is meant to be used in a dev environment and not in production since it prevents Authelia
+  ## to be scaled to more than one instance. The options under 'password' have sane defaults, and as it has security
+  ## implications it is highly recommended you leave the default values. Before considering changing these settings
+  ## please read the docs page below:
+  ## https://www.authelia.com/docs/configuration/authentication/file.html#password-hash-algorithm-tuning
+  ##
+  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/docs/features/statelessness.html
+  ##
+  # file:
+  #   path: /config/users_database.yml
+  #   password:
+  #     algorithm: argon2id
+  #     iterations: 1
+  #     key_length: 32
+  #     salt_length: 16
+  #     memory: 1024
+  #     parallelism: 8
+
+##
+## Access Control Configuration
+##
+## Access control is a list of rules defining the authorizations applied for one resource to users or group of users.
+##
+## If 'access_control' is not defined, ACL rules are disabled and the 'bypass' rule is applied, i.e., access is allowed
+## to anyone. Otherwise restrictions follow the rules defined.
+##
+## Note: One can use the wildcard * to match any subdomain.
+## It must stand at the beginning of the pattern. (example: *.mydomain.com)
+##
+## Note: You must put patterns containing wildcards between simple quotes for the YAML to be syntactically correct.
+##
+## Definition: A 'rule' is an object with the following keys: 'domain', 'subject', 'policy' and 'resources'.
+##
+## - 'domain' defines which domain or set of domains the rule applies to.
+##
+## - 'subject' defines the subject to apply authorizations to. This parameter is optional and matching any user if not
+##    provided. If provided, the parameter represents either a user or a group. It should be of the form
+##    'user:<username>' or 'group:<groupname>'.
+##
+## - 'policy' is the policy to apply to resources. It must be either 'bypass', 'one_factor', 'two_factor' or 'deny'.
+##
+## - 'resources' is a list of regular expressions that matches a set of resources to apply the policy to. This parameter
+##   is optional and matches any resource if not provided.
+##
+## Note: the order of the rules is important. The first policy matching (domain, resource, subject) applies.
 access_control:
-  # Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'.
-  # It is the policy applied to any resource if there is no policy to be applied
-  # to the user.
+  ## Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'. It is the policy applied to any
+  ## resource if there is no policy to be applied to the user.
   default_policy: deny
 
   networks:
@@ -256,13 +259,13 @@ access_control:
       networks: 10.9.0.0/16
 
   rules:
-    # Rules applied to everyone
+    ## Rules applied to everyone
     - domain: public.example.com
       policy: bypass
 
     - domain: secure.example.com
       policy: one_factor
-      # Network based rule, if not provided any network matches.
+      ## Network based rule, if not provided any network matches.
       networks:
         - internal
         - VPN
@@ -270,14 +273,14 @@ access_control:
         - 10.0.0.1
 
     - domain:
-      - secure.example.com
-      - private.example.com
+        - secure.example.com
+        - private.example.com
       policy: two_factor
 
     - domain: singlefactor.example.com
       policy: one_factor
 
-    # Rules applied to 'admins' group
+    ## Rules applied to 'admins' group
     - domain: "mx2.mail.example.com"
       subject: "group:admins"
       policy: deny
@@ -288,28 +291,28 @@ access_control:
         - "group:moderators"
       policy: two_factor
 
-    # Rules applied to 'dev' group
+    ## Rules applied to 'dev' group
     - domain: dev.example.com
       resources:
         - "^/groups/dev/.*$"
       subject: "group:dev"
       policy: two_factor
 
-    # Rules applied to user 'john'
+    ## Rules applied to user 'john'
     - domain: dev.example.com
       resources:
         - "^/users/john/.*$"
       subject: "user:john"
       policy: two_factor
 
-    # Rules applied to user 'harry'
+    ## Rules applied to user 'harry'
     - domain: dev.example.com
       resources:
         - "^/users/harry/.*$"
       subject: "user:harry"
       policy: two_factor
 
-    # Rules applied to user 'bob'
+    ## Rules applied to user 'bob'
     - domain: "*.mail.example.com"
       subject: "user:bob"
       policy: two_factor
@@ -319,145 +322,174 @@ access_control:
       subject: "user:bob"
       policy: two_factor
 
-# Configuration of session cookies
-#
-# The session cookies identify the user once logged in.
+##
+## Session Provider Configuration
+##
+## The session cookies identify the user once logged in.
+## The available providers are: `memory`, `redis`. Memory is the provider unless redis is defined.
 session:
-  # The name of the session cookie. (default: authelia_session).
+  ## The name of the session cookie. (default: authelia_session).
   name: authelia_session
 
-  # The secret to encrypt the session data. This is only used with Redis.
-  # Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+  ## The secret to encrypt the session data. This is only used with Redis.
+  ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   secret: insecure_session_secret
 
-  # The time in seconds before the cookie expires and session is reset.
+  ## The time in seconds before the cookie expires and session is reset.
   expiration: 1h
 
-  # The inactivity time in seconds before the session is reset.
+  ## The inactivity time in seconds before the session is reset.
   inactivity: 5m
 
-  # The remember me duration.
-  # Value of 0 disables remember me.
-  # Value is in seconds, or duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
-  # Longer periods are considered less secure because a stolen cookie will last longer giving attackers more time to spy
-  # or attack. Currently the default is 1M or 1 month.
+  ## The remember me duration.
+  ## Value is in seconds, or duration notation. Value of 0 disables remember me.
+  ## See: https://www.authelia.com/docs/configuration/index.html#duration-notation-format
+  ## Longer periods are considered less secure because a stolen cookie will last longer giving attackers more time to
+  ## spy or attack. Currently the default is 1M or 1 month.
   remember_me_duration: 1M
 
-  # The domain to protect.
-  # Note: the authenticator must also be in that domain. If empty, the cookie
-  # is restricted to the subdomain of the issuer.
+  ## The domain to protect.
+  ## Note: the authenticator must also be in that domain.
+  ## If empty, the cookie is restricted to the subdomain of the issuer.
   domain: example.com
 
-  # The redis connection details
+  ##
+  ## Redis Provider
+  ##
+  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/docs/features/statelessness.html
+  ##
   redis:
     host: 127.0.0.1
     port: 6379
-    # Use a unix socket instead
+    ## Use a unix socket instead
     # host: /var/run/redis/redis.sock
-
-
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: authelia
-    # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
+    ## This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     database_index: 0
 
-# Configuration of the authentication regulation mechanism.
-#
-# This mechanism prevents attackers from brute forcing the first factor.
-# It bans the user if too many attempts are done in a short period of
-# time.
+##
+## Regulation Configuration
+##
+## This mechanism prevents attackers from brute forcing the first factor. It bans the user if too many attempts are done
+## in a short period of time.
 regulation:
-  # The number of failed login attempts before user is banned.
-  # Set it to 0 to disable regulation.
+  ## The number of failed login attempts before user is banned. Set it to 0 to disable regulation.
   max_retries: 3
 
-  # The time range during which the user can attempt login before being banned.
-  # The user is banned if the authentication failed 'max_retries' times in a 'find_time' seconds window.
-  # Find Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+  ## The time range during which the user can attempt login before being banned. The user is banned if the
+  ## authentication failed 'max_retries' times in a 'find_time' seconds window. Find Time accepts duration notation.
+  ## See: https://www.authelia.com/docs/configuration/index.html#duration-notation-format
   find_time: 2m
 
-  # The length of time before a banned user can login again.
-  # Ban Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+  ## The length of time before a banned user can login again. Ban Time accepts duration notation.
+  ## See: https://www.authelia.com/docs/configuration/index.html#duration-notation-format
   ban_time: 5m
 
-# Configuration of the storage backend used to store data and secrets.
-#
-# You must use only an available configuration: local, mysql, postgres
+##
+## Storage Provider Configuration
+##
+## The available providers are: `local`, `mysql`, `postgres`. You must use one and only one of these providers.
 storage:
-  # The directory where the DB files will be saved
-  ## local:
-  ##   path: /config/db.sqlite3
+  ##
+  ## Local (Storage Provider)
+  ##
+  ## This stores the data in a SQLite3 Database.
+  ## This is only recommended for lightweight non-stateful installations.
+  ##
+  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/docs/features/statelessness.html
+  ##
+  # local:
+  #   path: /config/db.sqlite3
 
-  # Settings to connect to MySQL server
+  ##
+  ## MySQL (Storage Provider)
+  ##
+  ## Also supports MariaDB
+  ##
   mysql:
     host: 127.0.0.1
     port: 3306
     database: authelia
     username: authelia
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: mypassword
 
-  # Settings to connect to PostgreSQL server
+  ##
+  ## PostgreSQL (Storage Provider)
+  ##
   # postgres:
   #   host: 127.0.0.1
   #   port: 5432
   #   database: authelia
   #   username: authelia
-  #   # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+  #   ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   #   password: mypassword
   #   sslmode: disable
 
-# Configuration of the notification system.
-#
-# Notifications are sent to users when they require a password reset, a u2f
-# registration or a TOTP registration.
-# Use only an available configuration: filesystem, smtp.
+##
+## Notification Provider
+##
+##
+## Notifications are sent to users when they require a password reset, a u2f registration or a TOTP registration.
+## The available providers are: filesystem, smtp. You must use one and only one of these providers.
 notifier:
-  # You can disable the notifier startup check by setting this to true.
+  ## You can disable the notifier startup check by setting this to true.
   disable_startup_check: false
 
-  # For testing purpose, notifications can be sent in a file
-  ## filesystem:
-  ##   filename: /config/notification.txt
+  ##
+  ## File System (Notification Provider)
+  ##
+  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/docs/features/statelessness.html
+  ##
+  # filesystem:
+  #   filename: /config/notification.txt
 
-  # Use a SMTP server for sending notifications. Authelia uses PLAIN or LOGIN method to authenticate.
-  # [Security] By default Authelia will:
-  #   - force all SMTP connections over TLS including unauthenticated connections
-  #      - use the disable_require_tls boolean value to disable this requirement (only works for unauthenticated connections)
-  #   - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates (configure in tls section)
+  ##
+  ## SMTP (Notification Provider)
+  ##
+  ## Use a SMTP server for sending notifications. Authelia uses the PLAIN or LOGIN methods to authenticate.
+  ## [Security] By default Authelia will:
+  ##   - force all SMTP connections over TLS including unauthenticated connections
+  ##      - use the disable_require_tls boolean value to disable this requirement
+  ##        (only works for unauthenticated connections)
+  ##   - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates
+  ##     (configure in tls section)
   smtp:
     username: test
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: password
     host: 127.0.0.1
     port: 1025
     sender: admin@example.com
-    # HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
+    ## HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
     identifier: localhost
-    # Subject configuration of the emails sent.
-    # {title} is replaced by the text from the notifier
+    ## Subject configuration of the emails sent.
+    ## {title} is replaced by the text from the notifier
     subject: "[Authelia] {title}"
-    # This address is used during the startup check to verify the email configuration is correct. It's not important what it is except if your email server only allows local delivery.
+    ## This address is used during the startup check to verify the email configuration is correct.
+    ## It's not important what it is except if your email server only allows local delivery.
     startup_check_address: test@authelia.com
     disable_require_tls: false
     disable_html_emails: false
 
     tls:
-      # Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
+      ## Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
       # server_name: smtp.example.com
 
-      # Skip verifying the server certificate (to allow a self-signed certificate).
+      ## Skip verifying the server certificate (to allow a self-signed certificate).
       skip_verify: false
 
-      # Minimum TLS version for either StartTLS or SMTPS.
+      ## Minimum TLS version for either StartTLS or SMTPS.
       minimum_version: TLS1.2
 
-  # Sending an email using a Gmail account is as simple as the next section.
-  # You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
-  ## smtp:
-  ##   username: myaccount@gmail.com
-  ##   # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
-  ##   password: yourapppassword
-  ##   sender: admin@example.com
-  ##   host: smtp.gmail.com
-  ##   port: 587
+  ## Sending an email using a Gmail account is as simple as the next section.
+  ## You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
+  # smtp:
+  #   username: myaccount@gmail.com
+  #   ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+  #   password: yourapppassword
+  #   sender: admin@example.com
+  #   host: smtp.gmail.com
+  #   port: 587
+...

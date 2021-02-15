@@ -18,12 +18,6 @@ There are two ways to store the users along with their password:
 You can disable the reset password functionality for additional security as per this configuration:
 
 ```yaml
-# The authentication backend to use for verifying user passwords
-# and retrieve information such as email address and groups
-# users belong to.
-#
-# There are two supported backends: 'ldap' and 'file'.
 authentication_backend:
-  # Disable both the HTML element and the API for reset password functionality
   disable_reset_password: true
 ```

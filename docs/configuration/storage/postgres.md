@@ -8,6 +8,10 @@ nav_order: 3
 
 # PostgreSQL
 
+The PostgreSQL storage provider.
+
+## Configuration
+
 ```yaml
 storage:
   postgres:
@@ -15,26 +19,43 @@ storage:
     port: 5432
     database: authelia
     username: authelia
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: mypassword
     sslmode: disable
 ```
 
-## IPv6 Addresses
+## Options
+
+### host
+
+The database server host.
 
 If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
 ```yaml
 host: "[fd00:1111:2222:3333::1]"
 ```
 
-## SSL Mode
+### port
 
-SSL mode configures how to handle SSL connections with Postgres. 
+The port the database server is listening on.
+
+### database
+
+The database name on the database server that the assigned [user](#username) has access to for the purpose of
+**Authelia**.
+
+### username
+
+The username paired with the password used to connect to the database.
+
+### password
+
+The password paired with the username used to connect to the database. Can also be defined using a
+[secret](../secrets.md) which is also the recommended way when running as a container.
+
+### sslmode
+
+SSL mode configures how to handle SSL connections with Postgres.
 Valid options are 'disable', 'require', 'verify-ca', or 'verify-full'.
 See the [PostgreSQL Documentation](https://www.postgresql.org/docs/12/libpq-ssl.html)
-or [pgx - PostgreSQL Driver and Toolkit Documentation](https://pkg.go.dev/github.com/jackc/pgx?tab=doc) 
+or [pgx - PostgreSQL Driver and Toolkit Documentation](https://pkg.go.dev/github.com/jackc/pgx?tab=doc)
 for more information.
-
-## Loading a password from a secret instead of inside the configuration
-
-Password can also be defined using a [secret](../secrets.md).

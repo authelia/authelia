@@ -12,148 +12,110 @@ nav_order: 2
 
 ## Configuration
 
-Configuration of the LDAP backend is done as follows
-
 ```yaml
-# The authentication backend to use for verifying user passwords
-# and retrieve information such as email address and groups
-# users belong to.
-#
-# There are two supported backends: 'ldap' and 'file'.
 authentication_backend:
-  # Disable both the HTML element and the API for reset password functionality
   disable_reset_password: false
-
-  # The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
-  # To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users
-  # will always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
-  # To force update on every request you can set this to '0' or 'always', this will increase processor demand.
-  # See the below documentation for more information.
-  # Duration Notation docs:  https://docs.authelia.com/configuration/index.html#duration-notation-format
-  # Refresh Interval docs: https://docs.authelia.com/configuration/authentication/ldap.html#refresh-interval
   refresh_interval: 5m
-
-  # LDAP backend configuration.
-  #
-  # This backend allows Authelia to be scaled to more
-  # than one instance and therefore is recommended for
-  # production.
   ldap:
-    # The LDAP implementation, this affects elements like the attribute utilised for resetting a password.
-    # Acceptable options are as follows:
-    # - 'activedirectory' - For Microsoft Active Directory.
-    # - 'custom' - For custom specifications of attributes and filters.
-    # This currently defaults to 'custom' to maintain existing behaviour.
-    #
-    # Depending on the option here certain other values in this section have a default value, notably all
-    # of the attribute mappings have a default value that this config overrides, you can read more
-    # about these default values at https://docs.authelia.com/configuration/authentication/ldap.html#defaults
     implementation: custom
-
-    # The url to the ldap server. Scheme can be ldap or ldaps in the format (port optional) <scheme>://<address>[:<port>].
     url: ldap://127.0.0.1
-
-    # Use StartTLS with the LDAP connection.
     start_tls: false
-
     tls:
-      # Server Name for certificate validation (in case it's not set correctly in the URL).
-      # server_name: ldap.example.com
-
-      # Skip verifying the server certificate (to allow a self-signed certificate).
+      server_name: ldap.example.com
       skip_verify: false
-
-      # Minimum TLS version for either Secure LDAP or LDAP StartTLS.
       minimum_version: TLS1.2
-
-    # The base dn for every entries.
     base_dn: dc=example,dc=com
-    
-    # The attribute holding the username of the user. This attribute is used to populate
-    # the username in the session information. It was introduced due to #561 to handle case
-    # insensitive search queries.
-    # For you information, Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP
-    # usually uses 'uid'
-    # Beware that this attribute holds the unique identifiers for the users binding the user and the configuration
-    # stored in database. Therefore only single value attributes are allowed and the value
-    # must never be changed once attributed to a user otherwise it would break the configuration
-    # for that user. Technically, non-unique attributes like 'mail' can also be used but we don't recommend using
-    # them, we instead advise to use the attributes mentioned above (sAMAccountName and uid) to follow
-    # https://www.ietf.org/rfc/rfc2307.txt.
-    # username_attribute: uid
-    
-    # An additional dn to define the scope to all users.
+    username_attribute: uid
     additional_users_dn: ou=users
-
-    # The users filter used in search queries to find the user profile based on input filled in login form.
-    # Various placeholders are available to represent the user input and back reference other options of the configuration:
-    # - {input} is a placeholder replaced by what the user inputs in the login form. 
-    # - {username_attribute} is a mandatory placeholder replaced by what is configured in `username_attribute`.
-    # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
-    # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
-    #
-    # Recommended settings are as follows:
-    # - Microsoft Active Directory: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
-    # - OpenLDAP: (&({username_attribute}={input})(objectClass=person))' or '(&({username_attribute}={input})(objectClass=inetOrgPerson))
-    #
-    # To allow sign in both with username and email, one can use a filter like
-    # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     users_filter: (&({username_attribute}={input})(objectClass=person))
-
-    # An additional dn to define the scope of groups.
     additional_groups_dn: ou=groups
-    
-    # The groups filter used in search queries to find the groups of the user.
-    # - {input} is a placeholder replaced by what the user inputs in the login form.
-    # - {username} is a placeholder replace by the username stored in LDAP (based on `username_attribute`).
-    # - {dn} is a matcher replaced by the user distinguished name, aka, user DN.
-    # - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
-    # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
-    # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
-    # - DON'T USE - {1} is an alias for {username} supported for backward compatibility but it will be deprecated in later version, so please don't use it.
-    # If your groups use the `groupOfUniqueNames` structure use this instead: (&(uniquemember={dn})(objectclass=groupOfUniqueNames))
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
-
-    # The attribute holding the name of the group
-    # group_name_attribute: cn
-
-    # The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the first
-    # one returned by the LDAP server is used.
-    # mail_attribute: mail
-
-    # The attribute holding the display name of the user. This will be used to greet an authenticated user.
-    # display_name_attribute: displayname
-
-    # The username and password of the admin user.
+    group_name_attribute: cn
+    mail_attribute: mail
+    display_name_attribute: displayname
     user: cn=admin,dc=example,dc=com
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: password
 ```
+
+## Options
+
+### implementation
+
+See the [Implementation Guide](#implementation-guide) for information.
 
 The user must have an email address in order for Authelia to perform
 identity verification when a user attempts to reset their password or
 register a second factor device.
 
-## IPv6 Addresses
+### url
+
+The LDAP url which consists of a scheme, address, and port. Format is `<scheme>://<address>:<port>` or 
+`<scheme>://<address>` where scheme is either `ldap` or `ldaps`.
 
 If utilising an IPv6 literal address it must be enclosed by square brackets:
 ```yaml
 url: ldap://[fd00:1111:2222:3333::1]
 ```
 
-## TLS Settings
-
-### Start TLS
+### start_tls
 
 The key `start_tls` enables use of the LDAP StartTLS process which is not commonly used. You should only configure this
 if you know you need it. The initial connection will be over plain text, and Authelia will try to upgrade it with the
 LDAP server. LDAPS URL's are slightly more secure.
 
-### TLS (section)
+### tls
 
-The key `tls` is a map of options for tuning TLS options. You can see how to configure the tls section [here](../index.md#tls-configuration).
+Controls the TLS connection validation process. You can see how to configure the tls 
+section [here](../index.md#tls-configuration).
 
-## Implementation
+### base_dn
+
+Sets the base LDAP path for all LDAP queries. If your LDAP domain is example.com this is usually 
+`dc=example,dc=com`, however you can fine tune this to be more specific for example to only include objects inside the
+authelia OU: `ou=authelia,dc=example,dc=com`.
+
+
+### username_attribute
+
+The LDAP attribute that maps to the username.
+
+### additional_users_dn
+
+Additional LDAP path to append to the `base_dn` when searching for users. Useful if you want to restrict exactly which 
+OU to get users from for either security or performance reasons. For example setting it to `ou=users,ou=people` with a 
+base_dn set to `dc=example,dc=com` will mean user searches will occur in `ou=users,ou=people,dc=example,dc=com`.
+
+### users_filter
+
+The LDAP filter to narrow down which users are valid. This is important to set correctly so you exclude disabled users.
+
+### additional_groups_dn
+
+Similar to [additional_users_dn](#additional_users_dn) but it applies to group searches.
+
+### groups_filter
+
+Similar to [users_filter](#users_filter) but it applies to group searches.
+
+### mail_attribute
+
+The attribute to retrieve which contains the users email addresses. This is important for the device registration and
+password reset processes.
+
+### display_name_attribute
+
+The attribute to retrieve which is shown on the Web UI to the user when they log in.
+
+### user
+
+The distinguished name of the user paired with the password to bind with for lookup and password change operations.
+
+### password
+
+The password of the user paired with the user to bind with for lookup and password change operations.
+Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments. 
+
+## Implementation Guide
 
 There are currently two implementations, `custom` and `activedirectory`. The `activedirectory` implementation
 must be used if you wish to allow users to change or reset their password as Active Directory
@@ -218,8 +180,4 @@ unique identifier for your users.
 As of versions > `4.24.0` the `users_filter` must include the `username_attribute` placeholder, not including this will
 result in Authelia throwing an error.
 In versions <= `4.24.0` not including the `username_attribute` placeholder will cause issues with the session refresh
-and will result in session resets when the refresh interval has expired, default of 5 minutes. 
-
-## Loading a password from a secret instead of inside the configuration
-
-Password can also be defined using a [secret](../secrets.md).
+and will result in session resets when the refresh interval has expired, default of 5 minutes.

@@ -11,6 +11,7 @@ Authelia uses time based one-time passwords as the OTP method. You have
 the option to tune the settings of the TOTP generation, and you can see a
 full example of TOTP configuration below, as well as sections describing them.
 
+## Configuration
 ```yaml
 totp:
   issuer: authelia.com
@@ -18,8 +19,9 @@ totp:
   skew: 1
 ```
 
-        
-## Issuer
+## Options        
+
+### issuer
 
 Applications generating one-time passwords usually display an issuer to
 differentiate applications registered by the user.
@@ -39,14 +41,14 @@ password is valid for. The formula to calculate the effective validity period is
 seconds of validity, and period 30 and skew 2 would result in 150 seconds of validity.
 
 
-### Period
+### period
 
 Configures the period of time in seconds a one-time password is current for. It is important
 to note that changing this value will require your users to register their application again.
 
 It is recommended to keep this value set to 30, the minimum is 1.
   
-### Skew
+### skew
 
 Configures the number of one-time passwords either side of the current one that are
 considered valid, each time you increase this it makes two more one-time passwords valid. 
