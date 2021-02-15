@@ -29,6 +29,7 @@ session:
     host: 127.0.0.1
     port: 6379
     password: authelia
+    database_index: 0
 ```
 
 ## Options
@@ -82,6 +83,10 @@ The port redis is listening on.
 #### password
 
 The password for redis authentication.
+
+#### database_index
+
+The index number of the redis database, the same value as specified with the redis SELECT command.
 
 ## Security
 
