@@ -328,24 +328,28 @@ access_control:
 ## The session cookies identify the user once logged in.
 ## The available providers are: `memory`, `redis`. Memory is the provider unless redis is defined.
 session:
-  ## The name of the session cookie. (default: authelia_session).
+  ## The name of the session cookie.
   name: authelia_session
 
   ## The secret to encrypt the session data. This is only used with Redis.
   ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   secret: insecure_session_secret
 
-  ## The time in seconds before the cookie expires and session is reset.
+  ## The value for expiration, inactivity, and remember_me_duration are in seconds or the duration notation format.
+  ## See: https://www.authelia.com/docs/configuration/index.html#duration-notation-format
+  ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
+  ## because a stolen cookie will last longer giving attackers more time to spy or attack.
+
+  ## The time before the cookie expires and the session is destroyed if remember me IS NOT selected.
   expiration: 1h
 
-  ## The inactivity time in seconds before the session is reset.
+  ## The inactivity time before the session is reset. If expiration is set to 1h, and this is set to 5m, if the user
+  ## does not select the remember me option their session will get destroyed after 1h, or after 5m since the last time
+  ## Authelia detected user activity.
   inactivity: 5m
 
-  ## The remember me duration.
-  ## Value is in seconds, or duration notation. Value of 0 disables remember me.
-  ## See: https://www.authelia.com/docs/configuration/index.html#duration-notation-format
-  ## Longer periods are considered less secure because a stolen cookie will last longer giving attackers more time to
-  ## spy or attack. Currently the default is 1M or 1 month.
+  ## The time before the cookie expires and the session is destroyed if remember me IS selected.
+  ## Value of 0 disables remember me.
   remember_me_duration: 1M
 
   ## The domain to protect.
