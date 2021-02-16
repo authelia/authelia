@@ -180,7 +180,7 @@ func (s *StandaloneSuite) TestResetPasswordScenario() {
 }
 
 func (s *StandaloneSuite) TestAvailableMethodsScenario() {
-	suite.Run(s.T(), NewAvailableMethodsScenario([]string{"ONE-TIME PASSWORD"}))
+	suite.Run(s.T(), NewAvailableMethodsScenario([]string{"TIME-BASED ONE-TIME PASSWORD"}))
 }
 
 func (s *StandaloneSuite) TestRedirectionURLScenario() {

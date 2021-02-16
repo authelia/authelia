@@ -40,7 +40,7 @@ const MethodSelectionDialog = function (props: Props) {
                     {props.methods.has(SecondFactorMethod.TOTP) ? (
                         <MethodItem
                             id="one-time-password-option"
-                            method="One-Time Password"
+                            method="Time-based One-Time Password"
                             icon={pieChartIcon}
                             onClick={() => props.onClick(SecondFactorMethod.TOTP)}
                         />
@@ -48,7 +48,7 @@ const MethodSelectionDialog = function (props: Props) {
                     {props.methods.has(SecondFactorMethod.U2F) && props.u2fSupported ? (
                         <MethodItem
                             id="security-key-option"
-                            method="Security Key"
+                            method="Security Key - U2F"
                             icon={<FingerTouchIcon size={32} />}
                             onClick={() => props.onClick(SecondFactorMethod.U2F)}
                         />
