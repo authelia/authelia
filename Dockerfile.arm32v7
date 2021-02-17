@@ -41,7 +41,7 @@ GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc go build -tags n
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM arm32v7/alpine:3.13.1
+FROM arm32v7/alpine:3.13.2
 
 WORKDIR /app
 
