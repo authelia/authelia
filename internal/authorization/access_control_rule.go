@@ -66,10 +66,12 @@ func (acr *AccessControlRule) IsMatch(subject Subject, object Object) (match boo
 }
 
 func isMatchForDomains(subject Subject, object Object, acl *AccessControlRule) (match bool) {
+	// If there are no domains in this rule then the domain condition is a match.
 	if len(acl.Domains) == 0 {
 		return true
 	}
 
+	// Iterate over the domains until we find a match (return true) or until we exit the loop (return false).
 	for _, domain := range acl.Domains {
 		if domain.IsMatch(subject, object) {
 			return true
@@ -80,10 +82,12 @@ func isMatchForDomains(subject Subject, object Object, acl *AccessControlRule) (
 }
 
 func isMatchForResources(object Object, acl *AccessControlRule) (match bool) {
+	// If there are no resources in this rule then the resource condition is a match.
 	if len(acl.Resources) == 0 {
 		return true
 	}
 
+	// Iterate over the resources until we find a match (return true) or until we exit the loop (return false).
 	for _, resource := range acl.Resources {
 		if resource.IsMatch(object) {
 			return true
@@ -94,6 +98,7 @@ func isMatchForResources(object Object, acl *AccessControlRule) (match bool) {
 }
 
 func isMatchForMethods(object Object, acl *AccessControlRule) (match bool) {
+	// If there are no methods in this rule then the method condition is a match.
 	if len(acl.Methods) == 0 {
 		return true
 	}
@@ -102,10 +107,12 @@ func isMatchForMethods(object Object, acl *AccessControlRule) (match bool) {
 }
 
 func isMatchForNetworks(subject Subject, acl *AccessControlRule) (match bool) {
+	// If there are no networks in this rule then the network condition is a match.
 	if len(acl.Networks) == 0 {
 		return true
 	}
 
+	// Iterate over the networks until we find a match (return true) or until we exit the loop (return false).
 	for _, network := range acl.Networks {
 		if network.Contains(subject.IP) {
 			return true
@@ -116,10 +123,12 @@ func isMatchForNetworks(subject Subject, acl *AccessControlRule) (match bool) {
 }
 
 func isMatchForSubjects(subject Subject, acl *AccessControlRule) (match bool) {
+	// If there are no subjects in this rule then the subject condition is a match.
 	if len(acl.Subjects) == 0 {
 		return true
 	}
 
+	// Iterate over the subjects until we find a match (return true) or until we exit the loop (return false).
 	for _, subjectRule := range acl.Subjects {
 		if subjectRule.IsMatch(subject) {
 			return true
