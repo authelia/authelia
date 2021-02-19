@@ -1,9 +1,8 @@
 module github.com/authelia/authelia
 
-go 1.15
+go 1.16
 
 require (
-	aletheia.icu/broccoli/fs v0.0.0-20200420200651-c5ac961a357a
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/Workiva/go-datastructures v1.0.52

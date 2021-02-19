@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	_ "embed" // Embed users_database.template.yml.
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -102,18 +103,11 @@ func checkDatabase(path string) []error {
 	return nil
 }
 
+//go:embed users_database.template.yml
+var cfg []byte
+
 func generateDatabaseFromTemplate(path string) error {
-	f, err := cfg.Open("users_database.template.yml")
-	if err != nil {
-		return fmt.Errorf("Unable to open users_database.template.yml: %v", err)
-	}
-
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return fmt.Errorf("Unable to read users_database.template.yml: %v", err)
-	}
-
-	err = ioutil.WriteFile(path, b, 0600)
+	err := ioutil.WriteFile(path, cfg, 0600)
 	if err != nil {
 		return fmt.Errorf("Unable to generate %v: %v", path, err)
 	}

@@ -7,7 +7,6 @@ import (
 	"sort"
 	"testing"
 
-	"aletheia.icu/broccoli/fs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -64,19 +63,6 @@ func TestShouldErrorNoConfigPath(t *testing.T) {
 	require.Len(t, errors, 1)
 
 	require.EqualError(t, errors[0], "No config file path provided")
-}
-
-func TestShouldErrorNoConfigFileInEmbeddedFS(t *testing.T) {
-	oldCfg := cfg
-	cfg = fs.New(false, []byte("\x1b~\x00\x80\x8d\x94n\xc2|\x84J\xf7\xbfn\xfd\xf7w;.\x8d m\xb2&\xd1Z\xec\xb2\x05\xb9\xc00\x8a\xf7(\x80^78\t(\f\f\xc3p\xc2\xc1\x06[a\xa2\xb3\xa4P\xe5\xa14\xfb\x19\xb2cp\xf6\x90-Z\xb2\x11\xe0l\xa1\x80\\\x95Vh\t\xc5\x06\x16\xfa\x8c\xc0\"!\xa5\xcf\xf7$\x9a\xb2\a`\xc6\x18\xc8~\xce8\r\x16Z\x9d\xc3\xe3\xff\x00"))
-	_, errors := Read("./nonexistent.yml")
-	cfg = oldCfg
-
-	require.Len(t, errors, 3)
-
-	require.EqualError(t, errors[0], "Unable to find config file: ./nonexistent.yml")
-	require.EqualError(t, errors[1], "Generating config file: ./nonexistent.yml")
-	require.EqualError(t, errors[2], "Unable to open config.template.yml: file does not exist")
 }
 
 func TestShouldErrorPermissionsOnLocalFS(t *testing.T) {

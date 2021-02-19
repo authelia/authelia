@@ -18,11 +18,10 @@ var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
-//go:generate broccoli -src ../../public_html -o public_html
 func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, session, theme string) fasthttp.RequestHandler {
 	logger := logging.Logger()
 
-	f, err := br.Open(publicDir + file)
+	f, err := assets.Open(publicDir + file)
 	if err != nil {
 		logger.Fatalf("Unable to open %s: %s", file, err)
 	}
