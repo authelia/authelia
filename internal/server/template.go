@@ -47,7 +47,7 @@ func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, sessio
 		}
 
 		switch {
-		case publicDir == "/public_html/api/":
+		case publicDir == swaggerAssets:
 			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("base-uri 'self' ; default-src 'self' ; img-src 'self' https://validator.swagger.io data: ; object-src 'none' ; script-src 'self' 'unsafe-inline' 'nonce-%s' ; style-src 'self' 'nonce-%s'", nonce, nonce))
 		case os.Getenv("ENVIRONMENT") == dev:
 			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' 'unsafe-eval'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
