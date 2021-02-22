@@ -34,6 +34,8 @@ steps:
 
   - label: ":hammer_and_wrench: Unit Test"
     command: "authelia-scripts --log-level debug ci"
+    agents:
+      build: "unit-test"
     artifact_paths:
       - "authelia-public_html.tar.gz"
       - "authelia-public_html.tar.gz.sha256"
