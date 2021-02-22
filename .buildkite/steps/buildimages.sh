@@ -3,16 +3,6 @@ set -eu
 
 declare -A BUILDS=(["linux"]="amd64 arm32v7 arm64v8 coverage")
 
-cat << EOF
-  - label: ":vertical_traffic_light: Build Concurrency Gate"
-    command: "echo Start of concurrency gate"
-    concurrency: 3
-    concurrency_group: "builds"
-
-  - wait
-
-EOF
-
 for BUILD_OS in "${!BUILDS[@]}"; do
   for BUILD_ARCH in ${BUILDS[$BUILD_OS]}; do
 cat << EOF
@@ -48,7 +38,6 @@ EOF
 fi
   done
 done
-
 cat << EOF
 
   - wait
