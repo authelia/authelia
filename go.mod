@@ -23,7 +23,7 @@ require (
 	github.com/pquerna/otp v1.3.0
 	github.com/simia-tech/crypt v0.4.3
 	github.com/sirupsen/logrus v1.7.0
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tebeka/selenium v0.9.9
