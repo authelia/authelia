@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -eu
 
+cat << EOF
+  - label: ":vertical_traffic_light: Test Concurrency Gate"
+    command: "echo Start of concurrency gate"
+    concurrency: 3
+    concurrency_group: "tests"
+
+  - wait
+
+EOF
+
 for SUITE_NAME in $(authelia-scripts suites list); do
 cat << EOF
   - label: ":selenium: ${SUITE_NAME} Suite"
@@ -25,3 +35,13 @@ cat << EOF
 EOF
 fi
 done
+
+cat << EOF
+
+  - wait
+
+  - label: ":vertical_traffic_light: Test Concurrency Gate"
+    command: "echo End of concurrency gate"
+    concurrency: 3
+    concurrency_group: "tests"
+EOF

@@ -45,8 +45,6 @@ steps:
 
   - label: ":docker: Image Builds"
     command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
-    concurrency: 3
-    concurrency_group: "builds"
     depends_on: ~
     if: build.env("CI_BYPASS") != "true"
 
@@ -55,8 +53,6 @@ steps:
 
   - label: ":chrome: Integration Tests"
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
-    concurrency: 3
-    concurrency_group: "tests"
     depends_on:
       - "build-docker-linux-coverage"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
