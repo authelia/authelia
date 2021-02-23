@@ -17,10 +17,16 @@ Below you will find commented examples of the following configuration:
 * Traefik 2.x
 * Authelia portal
 * Protected endpoint (Nextcloud)
+* Protected endpoint with `Authorization` header for basic authentication (Heimdall)
 
 The below configuration looks to provide examples of running Traefik 2.x with labels to protect your endpoint (Nextcloud in this case).
 
 Please ensure that you also setup the respective [ACME configuration](https://docs.traefik.io/https/acme/) for your Traefik setup as this is not covered in the example below.
+
+### Basic Authentication
+
+Authelia provides the means to be able to authenticate your first factor via the `Proxy-Authorization` header, this is compatible with Traefik >= 2.4.1.
+If you are running Traefik < 2.4.1, or you have a use-case which requires the use of the `Authorization` header/basic authentication login prompt you can call Authelia's `/api/verify` endpoint with the `auth=basic` query parameter to force a switch to the `Authentication` header.
 
 ##### docker-compose.yml
 ```yml
@@ -77,6 +83,9 @@ services:
       - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.example.com/'
       - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
       - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'
+      - 'traefik.http.middlewares.authelia-basic.forwardauth.address=http://authelia:9091/api/verify?auth=basic'
+      - 'traefik.http.middlewares.authelia-basic.forwardauth.trustForwardHeader=true'
+      - 'traefik.http.middlewares.authelia-basic.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'
     expose:
       - 9091
     restart: unless-stopped
@@ -97,6 +106,27 @@ services:
       - 'traefik.http.routers.nextcloud.entrypoints=https'
       - 'traefik.http.routers.nextcloud.tls=true'
       - 'traefik.http.routers.nextcloud.middlewares=authelia@docker'
+    expose:
+      - 443
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Melbourne
+      
+  heimdall:
+    image: linuxserver/heimdall
+    container_name: heimdall
+    volumes:
+      - /path/to/heimdall/config:/config
+    networks:
+      - net
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.heimdall.rule=Host(`heimdall.example.com`)'
+      - 'traefik.http.routers.heimdall.entrypoints=https'
+      - 'traefik.http.routers.heimdall.tls=true'
+      - 'traefik.http.routers.heimdall.middlewares=authelia-basic@docker'
     expose:
       - 443
     restart: unless-stopped

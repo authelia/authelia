@@ -28,13 +28,15 @@ Below you will find commented examples of the following configuration:
 
 * Authelia portal
 * Protected endpoint (Nextcloud)
+* Protected endpoint with `Authorization` header for basic authentication (Heimdall)
 * [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
 
 With this configuration you can protect your virtual hosts with Authelia, by following the steps below:
-1. Add host(s) to the `protected-frontends` ACL to support protection with Authelia.
+1. Add host(s) to the `protected-frontends` or `protected-frontends-basic` ACLs to support protection with Authelia.
 You can separate each subdomain with a `|` in the regex, for example:
     ```
     acl protected-frontends hdr(host) -m reg -i ^(?i)(jenkins|nextcloud|phpmyadmin)\.example\.com
+    acl protected-frontends-basic hdr(host) -m reg -i ^(?i)(heimdall)\.example\.com
     ```
 2. Add host ACL(s) in the form of `host-service`, this will be utilised to route to the correct
 backend upon successful authentication, for example:
@@ -42,12 +44,14 @@ backend upon successful authentication, for example:
     acl host-jenkins hdr(host) -i jenkins.example.com
     acl host-nextcloud hdr(host) -i nextcloud.example.com
     acl host-phpmyadmin hdr(host) -i phpmyadmin.example.com
+    acl host-heimdall hdr(host) -i heimdall.example.com
     ```
 3. Add backend route for your service(s), for example:
     ```
     use_backend be_jenkins if host-jenkins
     use_backend be_nextcloud if host-nextcloud
     use_backend be_phpmyadmin if host-phpmyadmin
+    use_backend be_heimdall if host-heimdall
     ```
 4. Add backend definitions for your service(s), for example:
     ```
@@ -57,6 +61,8 @@ backend upon successful authentication, for example:
         server nextcloud nextcloud:443 ssl verify none
     backend be_phpmyadmin
         server phpmyadmin phpmyadmin:80
+    backend be_heimdall
+            server heimdall heimdall:443 ssl verify none
     ```
 
 ### Secure Authelia with TLS
@@ -87,8 +93,10 @@ frontend fe_http
     
     # Host ACLs
     acl protected-frontends hdr(host) -m reg -i ^(?i)(nextcloud)\.example\.com
+    acl protected-frontends-basic hdr(host) -m reg -i ^(?i)(heimdall)\.example\.com
     acl host-authelia hdr(host) -i auth.example.com
     acl host-nextcloud hdr(host) -i nextcloud.example.com
+    acl host-heimdall hdr(host) -i heimdall.example.com
 
     http-request set-var(req.scheme) str(https) if { ssl_fc }
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
@@ -102,13 +110,16 @@ frontend fe_http
 
     # Protect endpoints with haproxy-auth-request and Authelia
     http-request lua.auth-request be_authelia /api/verify if protected-frontends
+    # Force `Authorization` header via query arg to /api/verify
+    http-request lua.auth-request be_authelia /api/verify?auth=basic if protected-frontends-basic
    
     # Authelia backend route
     use_backend be_authelia if host-authelia
     # Redirect protected-frontends to Authelia if not authenticated
-    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
+    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if (protected-frontends || protected-frontends-basic) !{ var(txn.auth_response_successful) -m bool }
     # Service backend route(s)
     use_backend be_nextcloud if host-nextcloud
+    use_backend be_heimdall if host-heimdall
 
 backend be_authelia
     server authelia authelia:9091
@@ -125,6 +136,19 @@ backend be_nextcloud
     http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
 
     server nextcloud nextcloud:443 ssl verify none
+
+backend be_heimdall
+    # Pass Remote-User, Remote-Name, Remote-Email and Remote-Groups headers
+    acl remote_user_exist var(req.auth_response_header.remote_user) -m found
+    acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
+    acl remote_name_exist var(req.auth_response_header.remote_name) -m found
+    acl remote_email_exist var(req.auth_response_header.remote_email) -m found
+    http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
+    http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
+    http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
+    http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
+
+    server heimdall heimdall:443 ssl verify none
 ```
 
 ##### haproxy.cfg (TLS enabled Authelia)
@@ -147,8 +171,10 @@ frontend fe_http
     
     # Host ACLs
     acl protected-frontends hdr(host) -m reg -i ^(?i)(nextcloud)\.example\.com
+    acl protected-frontends-basic hdr(host) -m reg -i ^(?i)(heimdall)\.example\.com
     acl host-authelia hdr(host) -i auth.example.com
     acl host-nextcloud hdr(host) -i nextcloud.example.com
+    acl host-heimdall hdr(host) -i heimdall.example.com
 
     http-request set-var(req.scheme) str(https) if { ssl_fc }
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
@@ -162,13 +188,16 @@ frontend fe_http
 
     # Protect endpoints with haproxy-auth-request and Authelia
     http-request lua.auth-request be_authelia_proxy /api/verify if protected-frontends
+    # Force `Authorization` header via query arg to /api/verify
+    http-request lua.auth-request be_authelia /api/verify?auth=basic if protected-frontends-basic
    
     # Authelia backend route
     use_backend be_authelia if host-authelia
     # Redirect protected-frontends to Authelia if not authenticated
-    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
+    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if (protected-frontends || protected-frontends-basic) !{ var(txn.auth_response_successful) -m bool }
     # Service backend route(s)
     use_backend be_nextcloud if host-nextcloud
+    use_backend be_heimdall if host-heimdall
 
 backend be_authelia
     server authelia authelia:9091
@@ -194,6 +223,19 @@ backend be_nextcloud
     http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
 
     server nextcloud nextcloud:443 ssl verify none
+
+backend be_heimdall
+    # Pass Remote-User, Remote-Name, Remote-Email and Remote-Groups headers
+    acl remote_user_exist var(req.auth_response_header.remote_user) -m found
+    acl remote_groups_exist var(req.auth_response_header.remote_groups) -m found
+    acl remote_name_exist var(req.auth_response_header.remote_name) -m found
+    acl remote_email_exist var(req.auth_response_header.remote_email) -m found
+    http-request set-header Remote-User %[var(req.auth_response_header.remote_user)] if remote_user_exist
+    http-request set-header Remote-Groups %[var(req.auth_response_header.remote_groups)] if remote_groups_exist
+    http-request set-header Remote-Name %[var(req.auth_response_header.remote_name)] if remote_name_exist
+    http-request set-header Remote-Email %[var(req.auth_response_header.remote_email)] if remote_email_exist
+
+    server heimdall heimdall:443 ssl verify none
 ```
 
 [HAproxy]: https://www.haproxy.org/
