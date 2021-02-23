@@ -417,6 +417,17 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "ThinkChaos",
+      "name": "ThinkChaos",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4761135?v=4",
+      "profile": "https://github.com/ThinkChaos",
+      "contributions": [
+        "code",
+        "doc",
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7

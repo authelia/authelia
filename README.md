@@ -218,6 +218,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://lauri.vosandi.com/"><img src="https://avatars.githubusercontent.com/u/194685?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lauri Võsandi</b></sub></a><br /><a href="#ideas-laurivosandi" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/knnnrd"><img src="https://avatars.githubusercontent.com/u/5852381?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kennard Vermeiren</b></sub></a><br /><a href="#ideas-knnnrd" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/ThinkChaos"><img src="https://avatars.githubusercontent.com/u/4761135?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ThinkChaos</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=ThinkChaos" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=ThinkChaos" title="Documentation">📖</a> <a href="https://github.com/authelia/authelia/commits?author=ThinkChaos" title="Tests">⚠️</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->
