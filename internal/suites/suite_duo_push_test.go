@@ -135,7 +135,7 @@ func (s *DuoPushSuite) TestDuoPushRedirectionURLSuite() {
 
 func (s *DuoPushSuite) TestAvailableMethodsScenario() {
 	suite.Run(s.T(), NewAvailableMethodsScenario([]string{
-		"ONE-TIME PASSWORD",
+		"TIME-BASED ONE-TIME PASSWORD",
 		"PUSH NOTIFICATION",
 	}))
 }

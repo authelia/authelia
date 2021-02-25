@@ -107,6 +107,7 @@ const SecurityKeyMethod = function (props: Props) {
             id={props.id}
             title="Security Key"
             explanation="Touch the token of your security key"
+            registered={props.registered}
             state={methodState}
             onRegisterClick={props.onRegisterClick}
         >

@@ -41,14 +41,21 @@ func buildFrontend() {
 		log.Fatal(err)
 	}
 
-	err = os.Rename("web/build", "./public_html")
+	cmd = utils.CommandWithStdout("rm", "-rf", "internal/server/public_html")
+
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = os.Rename("web/build", "internal/server/public_html")
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 func buildSwagger() {
-	swaggerVer := "3.41.1"
+	swaggerVer := "3.43.0"
 	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+swaggerVer+".tar.gz -O ./v"+swaggerVer+".tar.gz")
 
 	err := cmd.Run()
@@ -56,14 +63,14 @@ func buildSwagger() {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("cp", "-r", "api", "public_html")
+	cmd = utils.CommandWithStdout("cp", "-r", "api", "internal/server/public_html")
 
 	err = cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("tar", "-C", swaggerDirectory, "--exclude=index.html", "--strip-components=2", "-xf", "v"+swaggerVer+".tar.gz", "swagger-ui-"+swaggerVer+"/dist")
+	cmd = utils.CommandWithStdout("tar", "-C", "internal/server/public_html/api", "--exclude=index.html", "--strip-components=2", "-xf", "v"+swaggerVer+".tar.gz", "swagger-ui-"+swaggerVer+"/dist")
 
 	err = cmd.Run()
 	if err != nil {
@@ -78,32 +85,20 @@ func buildSwagger() {
 	}
 }
 
-func generateEmbeddedAssets() {
-	cmd := utils.CommandWithStdout("go", "get", "-u", "aletheia.icu/broccoli")
-
-	err := cmd.Run()
-	if err != nil {
+func cleanAssets() {
+	if err := os.Rename("internal/server/public_html", OutputDir+"/public_html"); err != nil {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("go", "generate", ".")
-	cmd.Dir = "internal/configuration"
+	cmd := utils.CommandWithStdout("mkdir", "-p", "internal/server/public_html/api")
 
-	err = cmd.Run()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("go", "generate", ".")
-	cmd.Dir = "internal/server"
+	cmd = utils.CommandWithStdout("bash", "-c", "touch internal/server/public_html/{index.html,api/index.html,api/openapi.yml}")
 
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = os.Rename("./public_html", OutputDir+"/public_html")
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -128,6 +123,6 @@ func Build(cobraCmd *cobra.Command, args []string) {
 	buildSwagger()
 
 	log.Debug("Building Authelia Go binary...")
-	generateEmbeddedAssets()
 	buildAutheliaBinary()
+	cleanAssets()
 }

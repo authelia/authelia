@@ -3,7 +3,10 @@ module.exports = {
     "parserOptions": {
         "project": "tsconfig.json"
     },
-    "ignorePatterns": "build/*",
+    "ignorePatterns": [
+        "build/*",
+        "coverage/*"
+        ],
     "settings": {
         "import/resolver": {
             "typescript": {}
@@ -13,8 +16,8 @@ module.exports = {
         "react-app",
         "plugin:import/errors",
         "plugin:import/warnings",
-        "prettier/@typescript-eslint",
-        "plugin:prettier/recommended"
+        "plugin:prettier/recommended",
+        "prettier"
     ],
     "rules": {
         "import/order": [

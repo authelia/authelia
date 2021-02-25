@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"regexp"
 	"testing"
 	"time"
 
@@ -120,27 +121,34 @@ func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
 
 // Test parseBasicAuth.
 func TestShouldRaiseWhenHeaderDoesNotContainBasicPrefix(t *testing.T) {
-	_, _, err := parseBasicAuth("alzefzlfzemjfej==")
+	_, _, err := parseBasicAuth(ProxyAuthorizationHeader, "alzefzlfzemjfej==")
 	assert.Error(t, err)
 	assert.Equal(t, "Basic prefix not found in Proxy-Authorization header", err.Error())
 }
 
 func TestShouldRaiseWhenCredentialsAreNotInBase64(t *testing.T) {
-	_, _, err := parseBasicAuth("Basic alzefzlfzemjfej==")
+	_, _, err := parseBasicAuth(ProxyAuthorizationHeader, "Basic alzefzlfzemjfej==")
 	assert.Error(t, err)
 	assert.Equal(t, "illegal base64 data at input byte 16", err.Error())
 }
 
 func TestShouldRaiseWhenCredentialsAreNotInCorrectForm(t *testing.T) {
 	// The decoded format should be user:password.
-	_, _, err := parseBasicAuth("Basic am9obiBwYXNzd29yZA==")
+	_, _, err := parseBasicAuth(ProxyAuthorizationHeader, "Basic am9obiBwYXNzd29yZA==")
 	assert.Error(t, err)
 	assert.Equal(t, "Format of Proxy-Authorization header must be user:password", err.Error())
 }
 
+func TestShouldUseProvidedHeaderName(t *testing.T) {
+	// The decoded format should be user:password.
+	_, _, err := parseBasicAuth("HeaderName", "")
+	assert.Error(t, err)
+	assert.Equal(t, "Basic prefix not found in HeaderName header", err.Error())
+}
+
 func TestShouldReturnUsernameAndPassword(t *testing.T) {
 	// the decoded format should be user:password.
-	user, password, err := parseBasicAuth("Basic am9objpwYXNzd29yZA==")
+	user, password, err := parseBasicAuth(ProxyAuthorizationHeader, "Basic am9objpwYXNzd29yZA==")
 	assert.NoError(t, err)
 	assert.Equal(t, "john", user)
 	assert.Equal(t, "password", password)
@@ -204,7 +212,7 @@ func TestShouldVerifyWrongCredentials(t *testing.T) {
 		Return(false, nil)
 
 	url, _ := url.ParseRequestURI("https://test.example.com")
-	_, _, _, _, _, err := verifyBasicAuth([]byte("Basic am9objpwYXNzd29yZA=="), *url, mock.Ctx)
+	_, _, _, _, _, err := verifyBasicAuth(ProxyAuthorizationHeader, []byte("Basic am9objpwYXNzd29yZA=="), *url, mock.Ctx)
 
 	assert.Error(t, err)
 }
@@ -352,6 +360,97 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfDenyDomain() {
 	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 403, mock.Ctx.Response.StatusCode())
+}
+
+func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgOk() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.QueryArgs().Add("auth", "basic")
+	mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(true, nil)
+
+	mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq("john")).
+		Return(&authentication.UserDetails{
+			Emails: []string{"john@example.com"},
+			Groups: []string{"dev", "admins"},
+		}, nil)
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
+}
+
+func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingNoHeader() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.QueryArgs().Add("auth", "basic")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
+	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
+	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
+}
+
+func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingEmptyHeader() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.QueryArgs().Add("auth", "basic")
+	mock.Ctx.Request.Header.Set("Authorization", "")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
+	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
+	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
+}
+
+func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongPassword() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.QueryArgs().Add("auth", "basic")
+	mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(false, nil)
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
+	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
+	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
+}
+
+func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongHeader() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.QueryArgs().Add("auth", "basic")
+	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
+	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
+	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
 }
 
 func TestShouldVerifyAuthorizationsUsingBasicAuth(t *testing.T) {
