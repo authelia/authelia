@@ -484,17 +484,17 @@ components:
     forwardedMethodParam:
       name: X-Forwarded-Method
       in: header
-      description: Original Request Method
+      description: Request Method.
       required: false
       style: simple
       explode: true
       schema:
         type: string
-        enum: ["GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT"]
+        enum: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"]
     authParam:
       name: auth
       in: query
-      description: Allows adjusting the authentication mechanism.
+      description: Switch authorization header and prompt for basic auth.
       required: false
       schema:
         type: string
