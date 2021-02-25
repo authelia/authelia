@@ -469,7 +469,9 @@ func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 
 	tester.CheckAuthorizations(s.T(), John, "https://public2.example.com/admin/index.html", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), Bob, "https://public2.example.com/admin/index.html", "GET", Denied)
-	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public2.example.com/admin/index.html", "GET", Denied)
+
+	// This test returns this result since we validate the schema instead of validating it in code.
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public2.example.com/admin/index.html", "GET", Bypass)
 
 	tester.CheckAuthorizations(s.T(), John, "https://private.example.com", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), Bob, "https://private.example.com", "GET", Denied)
