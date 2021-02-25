@@ -7,18 +7,24 @@ import (
 	"strings"
 )
 
-// Subject subject who to check access control for.
+// Subject represents the identity of a user for the purposes of ACL matching.
 type Subject struct {
 	Username string
 	Groups   []string
 	IP       net.IP
 }
 
+// String returns a string representation of the Subject.
 func (s Subject) String() string {
 	return fmt.Sprintf("username=%s groups=%s ip=%s", s.Username, strings.Join(s.Groups, ","), s.IP.String())
 }
 
-// Object object to check access control for.
+// IsAnonymous returns true if the Subject username and groups are empty.
+func (s Subject) IsAnonymous() bool {
+	return s.Username == "" && len(s.Groups) == 0
+}
+
+// Object represents a protected object for the purposes of ACL matching.
 type Object struct {
 	Scheme string
 	Domain string
@@ -26,6 +32,7 @@ type Object struct {
 	Method string
 }
 
+// String is a string representation of the Object.
 func (o Object) String() string {
 	return fmt.Sprintf("%s://%s%s", o.Scheme, o.Domain, o.Path)
 }

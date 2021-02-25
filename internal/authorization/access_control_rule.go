@@ -124,7 +124,7 @@ func isMatchForNetworks(subject Subject, acl *AccessControlRule) (match bool) {
 
 func isMatchForSubjects(subject Subject, acl *AccessControlRule) (match bool) {
 	// If there are no subjects in this rule then the subject condition is a match.
-	if len(acl.Subjects) == 0 {
+	if len(acl.Subjects) == 0 || subject.IsAnonymous() {
 		return true
 	}
 

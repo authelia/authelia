@@ -227,12 +227,12 @@ func (s *AuthorizerSuite) TestShouldCheckUserMatching() {
 		WithDefaultPolicy("deny").
 		WithRule(schema.ACLRule{
 			Domains:  []string{"protected.example.com"},
-			Policy:   "bypass",
+			Policy:   "one_factor",
 			Subjects: [][]string{{"user:john"}},
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", OneFactor)
 	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "GET", Denied)
 }
 
@@ -241,12 +241,12 @@ func (s *AuthorizerSuite) TestShouldCheckGroupMatching() {
 		WithDefaultPolicy("deny").
 		WithRule(schema.ACLRule{
 			Domains:  []string{"protected.example.com"},
-			Policy:   "bypass",
+			Policy:   "one_factor",
 			Subjects: [][]string{{"group:admins"}},
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", OneFactor)
 	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "GET", Denied)
 }
 
@@ -255,14 +255,15 @@ func (s *AuthorizerSuite) TestShouldCheckSubjectsMatching() {
 		WithDefaultPolicy("deny").
 		WithRule(schema.ACLRule{
 			Domains:  []string{"protected.example.com"},
-			Policy:   "bypass",
+			Policy:   "one_factor",
 			Subjects: [][]string{{"group:admins"}, {"user:bob"}},
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
-	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "GET", Bypass)
-	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), Sam, "https://protected.example.com/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", "GET", OneFactor)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckMultipleSubjectsMatching() {
@@ -270,14 +271,14 @@ func (s *AuthorizerSuite) TestShouldCheckMultipleSubjectsMatching() {
 		WithDefaultPolicy("deny").
 		WithRule(schema.ACLRule{
 			Domains:  []string{"protected.example.com"},
-			Policy:   "bypass",
+			Policy:   "one_factor",
 			Subjects: [][]string{{"group:admins", "user:bob"}, {"group:admins", "group:dev"}},
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), John, "https://protected.example.com/", "GET", OneFactor)
 	tester.CheckAuthorizations(s.T(), Bob, "https://protected.example.com/", "GET", Denied)
-	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://protected.example.com/", "GET", OneFactor)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckIPMatching() {
@@ -412,6 +413,67 @@ func (s *AuthorizerSuite) TestShouldMatchAnyDomainIfBlank() {
 	tester.CheckAuthorizations(s.T(), John, "https://one.domain-four.com", "POST", Denied)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-three.com", "POST", Denied)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-two.com", "POST", Denied)
+}
+
+func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
+	tester := NewAuthorizerBuilder().
+		WithDefaultPolicy("deny").
+		WithRule(schema.ACLRule{
+			Domains:   []string{"public.example.com"},
+			Resources: []string{"^/admin/.*$"},
+			Subjects:  [][]string{{"group:admins"}},
+			Policy:    "one_factor",
+		}).
+		WithRule(schema.ACLRule{
+			Domains:   []string{"public.example.com"},
+			Resources: []string{"^/admin/.*$"},
+			Policy:    "deny",
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"public.example.com"},
+			Policy:  "bypass",
+		}).
+		WithRule(schema.ACLRule{
+			Domains:   []string{"public2.example.com"},
+			Resources: []string{"^/admin/.*$"},
+			Subjects:  [][]string{{"group:admins"}},
+			Policy:    "bypass",
+		}).
+		WithRule(schema.ACLRule{
+			Domains:   []string{"public2.example.com"},
+			Resources: []string{"^/admin/.*$"},
+			Policy:    "deny",
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"public2.example.com"},
+			Policy:  "bypass",
+		}).
+		WithRule(schema.ACLRule{
+			Domains:  []string{"private.example.com"},
+			Subjects: [][]string{{"group:admins"}},
+			Policy:   "two_factor",
+		}).
+		Build()
+
+	tester.CheckAuthorizations(s.T(), John, "https://public.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com", "GET", Bypass)
+
+	tester.CheckAuthorizations(s.T(), John, "https://public.example.com/admin/index.html", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com/admin/index.html", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com/admin/index.html", "GET", OneFactor)
+
+	tester.CheckAuthorizations(s.T(), John, "https://public2.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://public2.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public2.example.com", "GET", Bypass)
+
+	tester.CheckAuthorizations(s.T(), John, "https://public2.example.com/admin/index.html", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://public2.example.com/admin/index.html", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public2.example.com/admin/index.html", "GET", Denied)
+
+	tester.CheckAuthorizations(s.T(), John, "https://private.example.com", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://private.example.com", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://private.example.com", "GET", TwoFactor)
 }
 
 func (s *AuthorizerSuite) TestPolicyToLevel() {

@@ -124,6 +124,15 @@ In summary, the first list level of subjects are evaluated using a logical `OR`,
 second level by a logical `AND`. The last example below reads as: the group is `dev` AND the
 username is `john` OR the group is `admins`.
 
+#### Combining subjects and the bypass policy
+
+A subject cannot be combined with the `bypass` policy since the minimum authentication level to identify a subject is
+`one_factor`. Combining the `one_factor` policy with a subject is effectively the same as setting the policy to `bypass`
+in the past. We have taken an opinionated stance on preventing this configuration as it could result in problematic
+security scenarios with badly thought out configurations and cannot see a likely configuration scenario that would 
+require users to do this. If you have a scenario in mind please open an 
+[issue](https://github.com/authelia/authelia/issues/new) on GitHub.
+
 ### Networks
 
 A list of network addresses, ranges (CIDR notation) or groups can be specified in a rule in order to apply different
@@ -138,7 +147,7 @@ considered overly sensitive.
 
 An additional situation where this may be useful is if there is a specific network you wish to deny access
 or require a higher level of authentication for; like a public machine network vs a company device network, or a 
-BYOD network. 
+BYOD network.
 
 Even if Authelia provides this flexibility, you might prefer a higher level of security and avoid
 this option entirely. You and only you can define your security policy and it's up to you to

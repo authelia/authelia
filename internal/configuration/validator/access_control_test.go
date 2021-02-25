@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -118,21 +119,23 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidResource() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
+	domains := []string{"public.example.com"}
+	subjects := [][]string{{"invalid"}}
 	suite.configuration.Rules = []schema.ACLRule{
 		{
-			Domains:  []string{"public.example.com"},
+			Domains:  domains,
 			Policy:   "bypass",
-			Subjects: [][]string{{"invalid"}},
+			Subjects: subjects,
 		},
 	}
 
 	ValidateRules(suite.configuration, suite.validator)
 
-	suite.Require().Len(suite.validator.Warnings(), 1)
-	suite.Require().Len(suite.validator.Errors(), 1)
+	suite.Require().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 2)
 
-	suite.Assert().EqualError(suite.validator.Warnings()[0], "Policy [bypass] for domain [public.example.com] is ineffectual due to subjects being configured to [[invalid]]")
 	suite.Assert().EqualError(suite.validator.Errors()[0], "Subject [invalid] for domain: [public.example.com] is invalid, must start with 'user:' or 'group:'")
+	suite.Assert().EqualError(suite.validator.Errors()[1], fmt.Sprintf(errFmtAccessControlInvalidPolicyWithSubjects, domains, subjects))
 }
 
 func TestAccessControl(t *testing.T) {
