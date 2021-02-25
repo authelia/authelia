@@ -490,7 +490,7 @@ components:
       explode: true
       schema:
         type: string
-        enum: ["GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"]
+        enum: ["GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT"]
     authParam:
       name: auth
       in: query

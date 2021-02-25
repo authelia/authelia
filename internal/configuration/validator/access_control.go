@@ -49,17 +49,6 @@ func IsNetworkValid(network string) (isValid bool) {
 	return true
 }
 
-// IsMethodValid checks if the methods are one of the known types.
-func IsMethodValid(methods []string) (isValid bool) {
-	for _, method := range methods {
-		if !utils.IsStringInSlice(method, validRequestMethods) {
-			return false
-		}
-	}
-
-	return true
-}
-
 // ValidateAccessControl validates access control configuration.
 func ValidateAccessControl(configuration schema.AccessControlConfiguration, validator *schema.StructValidator) {
 	if !IsPolicyValid(configuration.DefaultPolicy) {
@@ -110,8 +99,10 @@ func ValidateRules(configuration schema.AccessControlConfiguration, validator *s
 			}
 		}
 
-		if !IsMethodValid(r.Methods) {
-			validator.Push(fmt.Errorf("Methods for domain %s is invalid, methods must be one or more of %s", r.Domains, validRequestMethods))
+		for _, method := range r.Methods {
+			if !utils.IsStringInSliceFold(method, validRequestMethods) {
+				validator.Push(fmt.Errorf("Method %s for domain: %s is invalid, must be one of the following methods: %s", method, r.Domains, strings.Join(validRequestMethods, ", ")))
+			}
 		}
 
 		if r.Policy == bypassPolicy && len(r.Subjects) != 0 {

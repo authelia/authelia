@@ -101,6 +101,23 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidNetwork() {
 	suite.Assert().EqualError(suite.validator.Errors()[0], "Network [abc.def.ghi.jkl/32] for domain: [public.example.com] is not a valid network or network group")
 }
 
+func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
+	suite.configuration.Rules = []schema.ACLRule{
+		{
+			Domains: []string{"public.example.com"},
+			Policy:  "bypass",
+			Methods: []string{"GET", "HOP"},
+		},
+	}
+
+	ValidateRules(suite.configuration, suite.validator)
+
+	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Method HOP for domain: [public.example.com] is invalid, must be one of the following methods: GET, HEAD, POST, PUT, PATCH, DELETE, TRACE, CONNECT, OPTIONS")
+}
+
 func (suite *AccessControl) TestShouldRaiseErrorInvalidResource() {
 	suite.configuration.Rules = []schema.ACLRule{
 		{
