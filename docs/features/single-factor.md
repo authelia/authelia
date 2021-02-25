@@ -21,12 +21,25 @@ To know more about the configuration of the feature, please visit the
 documentation about the [configuration](../configuration/access-control.md).
 
 
-## Proxy-Authorization header
+## HTTP Basic Auth
+
+Authelia supports two different methods for basic auth.
+
+### Proxy-Authorization header
 
 Authelia reads credentials from the header `Proxy-Authorization` instead of
 the usual `Authorization` header. This is because in some circumstances both Authelia
 and the application could require authentication in order to provide specific
 authorizations at the level of the application.
+
+### API argument
+
+If instead of the `Proxy-Authorization` header you want, or need, to use the more
+conventional `Authorization` header, you should then configure your reverse-proxy
+to use `/api/verify?auth=basic`.  
+When authentication fails and `auth=basic` was set, Authelia's response will include
+the `WWW-Authenticate` header. This will cause browsers to prompt for authentication,
+and users will not land on the HTML login page.
 
 
 ## Session-Username header
@@ -34,7 +47,7 @@ authorizations at the level of the application.
 Authelia by default only verifies the cookie and the associated user with that cookie can
 access a protected resource. The client browser does not know the username and does not send
 this to Authelia, it's stored by Authelia for security reasons.
- 
+
 The Session-Username header has been implemented as a means
 to use Authelia with non-web services such as PAM. Basically how it works is if the
 Session-Username header is sent in the request to the /api/verify endpoint it will

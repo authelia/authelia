@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"net"
@@ -75,9 +76,9 @@ func getOriginalURL(ctx *middlewares.AutheliaCtx) (*url.URL, error) {
 
 // parseBasicAuth parses an HTTP Basic Authentication string.
 // "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true).
-func parseBasicAuth(auth string) (username, password string, err error) {
+func parseBasicAuth(header, auth string) (username, password string, err error) {
 	if !strings.HasPrefix(auth, authPrefix) {
-		return "", "", fmt.Errorf("%s prefix not found in %s header", strings.Trim(authPrefix, " "), AuthorizationHeader)
+		return "", "", fmt.Errorf("%s prefix not found in %s header", strings.Trim(authPrefix, " "), header)
 	}
 
 	c, err := base64.StdEncoding.DecodeString(auth[len(authPrefix):])
@@ -89,7 +90,7 @@ func parseBasicAuth(auth string) (username, password string, err error) {
 	s := strings.IndexByte(cs, ':')
 
 	if s < 0 {
-		return "", "", fmt.Errorf("Format of %s header must be user:password", AuthorizationHeader)
+		return "", "", fmt.Errorf("Format of %s header must be user:password", header)
 	}
 
 	return cs[:s], cs[s+1:], nil
@@ -127,17 +128,17 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 
 // verifyBasicAuth verify that the provided username and password are correct and
 // that the user is authorized to target the resource.
-func verifyBasicAuth(auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCtx) (username, name string, groups, emails []string, authLevel authentication.Level, err error) { //nolint:unparam
-	username, password, err := parseBasicAuth(string(auth))
+func verifyBasicAuth(header string, auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCtx) (username, name string, groups, emails []string, authLevel authentication.Level, err error) { //nolint:unparam
+	username, password, err := parseBasicAuth(header, string(auth))
 
 	if err != nil {
-		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("Unable to parse content of %s header: %s", AuthorizationHeader, err)
+		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("Unable to parse content of %s header: %s", header, err)
 	}
 
 	authenticated, err := ctx.Providers.UserProvider.CheckUserPassword(username, password)
 
 	if err != nil {
-		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check credentials extracted from %s header: %s", AuthorizationHeader, err)
+		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("Unable to check credentials extracted from %s header: %s", header, err)
 	}
 
 	// If the user is not correctly authenticated, send a 401.
@@ -234,7 +235,15 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, userSession.AuthenticationLevel, nil
 }
 
-func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, username string, method []byte) {
+func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string, method []byte) {
+	if isBasicAuth {
+		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response with basic auth header", targetURL.String(), username)
+		ctx.ReplyUnauthorized()
+		ctx.Response.Header.Add("WWW-Authenticate", "Basic realm=\"Authentication required\"")
+
+		return
+	}
+
 	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
 	// endpoint to provide the URL of the login portal. The target URL of the user
 	// is computed from X-Forwarded-* headers or X-Original-URL.
@@ -400,6 +409,47 @@ func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (r
 	return refresh, refreshInterval
 }
 
+func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile bool, refreshProfileInterval time.Duration) (isBasicAuth bool, username, name string, groups, emails []string, authLevel authentication.Level, err error) {
+	authHeader := ProxyAuthorizationHeader
+	if bytes.Equal(ctx.QueryArgs().Peek("auth"), []byte("basic")) {
+		authHeader = AuthorizationHeader
+		isBasicAuth = true
+	}
+
+	authValue := ctx.Request.Header.Peek(authHeader)
+	if authValue != nil {
+		isBasicAuth = true
+	} else if isBasicAuth {
+		err = fmt.Errorf("Basic auth requested via query arg, but no value provided via %s header", authHeader)
+		return
+	}
+
+	if isBasicAuth {
+		username, name, groups, emails, authLevel, err = verifyBasicAuth(authHeader, authValue, *targetURL, ctx)
+		return
+	}
+
+	userSession := ctx.GetSession()
+	username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval)
+
+	sessionUsername := ctx.Request.Header.Peek(SessionUsernameHeader)
+	if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
+		ctx.Logger.Warnf("Possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
+
+		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
+		if err != nil {
+			ctx.Logger.Error(
+				fmt.Errorf(
+					"Unable to destroy user session after handler could not match them to their %s header: %s",
+					SessionUsernameHeader, err))
+		}
+
+		err = fmt.Errorf("Could not match user %s to their %s header with a value of %s when visiting %s", username, SessionUsernameHeader, sessionUsername, targetURL.String())
+	}
+
+	return
+}
+
 // VerifyGet returns the handler verifying if a request is allowed to go through.
 func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.RequestHandler {
 	refreshProfile, refreshProfileInterval := getProfileRefreshSettings(cfg)
@@ -429,40 +479,7 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			return
 		}
 
-		var username, name string
-
-		var groups, emails []string
-
-		var authLevel authentication.Level
-
-		proxyAuthorization := ctx.Request.Header.Peek(AuthorizationHeader)
-		isBasicAuth := proxyAuthorization != nil
-		userSession := ctx.GetSession()
-
-		if isBasicAuth {
-			username, name, groups, emails, authLevel, err = verifyBasicAuth(proxyAuthorization, *targetURL, ctx)
-		} else {
-			username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession,
-				refreshProfile, refreshProfileInterval)
-
-			sessionUsername := ctx.Request.Header.Peek(SessionUsernameHeader)
-			if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
-				ctx.Logger.Warnf(
-					"Could not match user %s to their %s header with a value of %s when visiting %s, possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response",
-					username, SessionUsernameHeader, sessionUsername, targetURL.String())
-
-				err := ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
-				if err != nil {
-					ctx.Logger.Error(
-						fmt.Errorf(
-							"Unable to destroy user session after handler could not match them to their %s header: %s",
-							SessionUsernameHeader, err))
-				}
-
-				ctx.ReplyUnauthorized()
-				return
-			}
-		}
+		isBasicAuth, username, name, groups, emails, authLevel, err := verifyAuth(ctx, targetURL, refreshProfile, refreshProfileInterval)
 
 		method := ctx.XForwardedMethod()
 
@@ -474,7 +491,7 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 				return
 			}
 
-			handleUnauthorized(ctx, targetURL, username, method)
+			handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
 
 			return
 		}
@@ -487,7 +504,7 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 			ctx.ReplyForbidden()
 		case NotAuthorized:
-			handleUnauthorized(ctx, targetURL, username, method)
+			handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
 		case Authorized:
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
 		}
