@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/authelia/session/v2"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -20,7 +19,7 @@ func TestShouldCreateInMemorySessionProvider(t *testing.T) {
 	configuration.Domain = testDomain
 	configuration.Name = testName
 	configuration.Expiration = testExpiration
-	providerConfig := NewProviderConfig(configuration)
+	providerConfig := NewProviderConfig(configuration, nil)
 
 	assert.Equal(t, "my_session", providerConfig.config.CookieName)
 	assert.Equal(t, testDomain, providerConfig.config.Domain)
@@ -42,7 +41,7 @@ func TestShouldCreateRedisSessionProvider(t *testing.T) {
 		Port:     6379,
 		Password: "pass",
 	}
-	providerConfig := NewProviderConfig(configuration)
+	providerConfig := NewProviderConfig(configuration, nil)
 
 	assert.Equal(t, "my_session", providerConfig.config.CookieName)
 	assert.Equal(t, testDomain, providerConfig.config.Domain)
@@ -70,7 +69,7 @@ func TestShouldCreateRedisSessionProviderWithUnixSocket(t *testing.T) {
 		Port:     0,
 		Password: "pass",
 	}
-	providerConfig := NewProviderConfig(configuration)
+	providerConfig := NewProviderConfig(configuration, nil)
 
 	assert.Equal(t, "my_session", providerConfig.config.CookieName)
 	assert.Equal(t, testDomain, providerConfig.config.Domain)
@@ -98,7 +97,7 @@ func TestShouldSetDbNumber(t *testing.T) {
 		Password:      "pass",
 		DatabaseIndex: 5,
 	}
-	providerConfig := NewProviderConfig(configuration)
+	providerConfig := NewProviderConfig(configuration, nil)
 	assert.Equal(t, "redis", providerConfig.providerName)
 	pConfig := providerConfig.redisConfig
 	// DbNumber is the fasthttp/session property for the Redis DB Index
@@ -114,7 +113,7 @@ func TestShouldUseEncryptingSerializerWithRedis(t *testing.T) {
 		Password:      "pass",
 		DatabaseIndex: 5,
 	}
-	providerConfig := NewProviderConfig(configuration)
+	providerConfig := NewProviderConfig(configuration, nil)
 
 	payload := session.Dict{}
 	payload.Set("key", "value")
