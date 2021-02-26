@@ -361,11 +361,11 @@ session:
     # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     database_index: 0
 
-    # The redis sentinel connection details
-    # redis_sentinel:
+  # The redis sentinel connection details
+  # redis_sentinel:
     # The redis host/port combination for Redis Sentinel.
     # host: 127.0.0.1
-    # port: 6379
+    # port: 26379
 
     # The nodes to pre-seed the redis provider with.
     # If not provided is seeded from the redis-sentinel connection.
