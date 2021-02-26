@@ -76,11 +76,11 @@ func TestShouldNotAllowBothRedisAndRedisSentinel(t *testing.T) {
 		Port:     6379,
 		Password: "password",
 	}
-	config.RedisSentinel = &schema.RedisSentinelSessionConfiguration{
-		Host:     "authelia",
-		Port:     6379,
-		Password: "password",
-	}
+
+	config.RedisSentinel = &schema.RedisSentinelSessionConfiguration{}
+	config.RedisSentinel.Host = "authelia"
+	config.RedisSentinel.Port = 6379
+	config.RedisSentinel.Password = "zpass"
 
 	ValidateSession(&config, validator)
 
@@ -92,9 +92,9 @@ func TestShouldNotAllowBothRedisAndRedisSentinel(t *testing.T) {
 func TestShouldRequireSentinelMasterHostAndPort(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
-	config.RedisSentinel = &schema.RedisSentinelSessionConfiguration{
-		Password: "password",
-	}
+
+	config.RedisSentinel = &schema.RedisSentinelSessionConfiguration{}
+	config.RedisSentinel.Password = "pazzword"
 
 	ValidateSession(&config, validator)
 
@@ -106,9 +106,9 @@ func TestShouldRequireSentinelMasterHostAndPort(t *testing.T) {
 func TestShouldRequireSentinelNodeHost(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
-	config.RedisSentinel = &schema.RedisSentinelSessionConfiguration{
-		Password: "password",
-	}
+
+	config.RedisSentinel = &schema.RedisSentinelSessionConfiguration{}
+	config.RedisSentinel.Password = "password"
 
 	ValidateSession(&config, validator)
 

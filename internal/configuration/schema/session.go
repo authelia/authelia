@@ -3,13 +3,13 @@ package schema
 // RedisNode Represents a Node.
 type RedisNode struct {
 	Host string `mapstructure:"host"`
-	Port int64  `mapstructure:"port"`
+	Port int    `mapstructure:"port"`
 }
 
 // RedisSessionConfiguration represents the configuration related to redis session store.
 type RedisSessionConfiguration struct {
 	Host          string `mapstructure:"host"`
-	Port          int64  `mapstructure:"port"`
+	Port          int    `mapstructure:"port"`
 	Username      string `mapstructure:"username"`
 	Password      string `mapstructure:"password"`
 	DatabaseIndex int    `mapstructure:"database_index"`
