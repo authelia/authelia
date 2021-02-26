@@ -17,11 +17,7 @@ type RedisSessionConfiguration struct {
 
 // RedisSentinelSessionConfiguration represents the configuration related to redis sentinel session store.
 type RedisSentinelSessionConfiguration struct {
-	Host             string      `mapstructure:"host"`
-	Port             uint16      `mapstructure:"port"`
-	Username         string      `mapstructure:"username"`
-	Password         string      `mapstructure:"password"`
-	DatabaseIndex    int         `mapstructure:"database_index"`
+	RedisSessionConfiguration
 	Nodes            []RedisNode `mapstructure:"nodes"`
 	SentinelPassword string      `mapstructure:"sentinel_password"`
 	RouteByLatency   bool        `mapstructure:"route_by_latency"`

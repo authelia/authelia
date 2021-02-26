@@ -361,26 +361,29 @@ session:
     # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     database_index: 0
 
-  # The redis sentinel connection details
-  redis_sentinel:
+    # The redis sentinel connection details
+    # redis_sentinel:
     # The redis host/port combination for Redis Sentinel.
-    host: 127.0.0.1
-    port: 6379
-    nodes:
-      - host: sentinel-node1
-        port: 6379
-      - host: sentinel-node2
-        port: 6379
+    # host: 127.0.0.1
+    # port: 6379
+
+    # The nodes to pre-seed the redis provider with.
+    # If not provided is seeded from the redis-sentinel connection.
+    # nodes:
+    #   - host: sentinel-node1
+    #     port: 6379
+    #   - host: sentinel-node2
+    #     port: 6379
 
     # Specific password for Redis Sentinel. The node username and password is configured below.
-    sentinel_password: sentinel_specific_pass
+    # sentinel_password: sentinel_specific_pass
 
     # Username can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
-    username: authelia
+    # username: authelia
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
-    password: authelia
+    # password: authelia
     # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
-    database_index: 0
+    # database_index: 0
 
 # Configuration of the authentication regulation mechanism.
 #
