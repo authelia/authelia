@@ -268,7 +268,7 @@ func TestShouldRaiseErrorsWhenRedisSentinelOptionsIncorrectlyConfigured(t *testi
 	errors := validator.Errors()
 
 	assert.False(t, validator.HasWarnings())
-	require.Len(t, errors, 3)
+	require.Len(t, errors, 2)
 
 	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisPortRange, "redis sentinel"))
 	assert.EqualError(t, errors[1], fmt.Sprintf(errFmtSessionSecretRedisProvider, "redis sentinel"))
@@ -282,7 +282,7 @@ func TestShouldRaiseErrorsWhenRedisSentinelOptionsIncorrectlyConfigured(t *testi
 	errors = validator.Errors()
 
 	assert.False(t, validator.HasWarnings())
-	require.Len(t, errors, 3)
+	require.Len(t, errors, 2)
 
 	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisPortRange, "redis sentinel"))
 	assert.EqualError(t, errors[1], fmt.Sprintf(errFmtSessionSecretRedisProvider, "redis sentinel"))
