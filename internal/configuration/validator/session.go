@@ -56,19 +56,19 @@ func ValidateSession(configuration *schema.SessionConfiguration, validator *sche
 
 func validateRedis(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
 	if configuration.Secret == "" {
-		validator.Push(errors.New("Set secret of the session object"))
+		validator.Push(fmt.Errorf(errFmtSessionSecretRedisProvider, "redis"))
 	}
 
 	if !strings.HasPrefix(configuration.Redis.Host, "/") && configuration.Redis.Port == 0 {
 		validator.Push(errors.New("A redis port different than 0 must be provided"))
-	} else if configuration.Redis.Port <= 0 || configuration.Redis.Port > 65535 {
-		validator.Push(errors.New("Session redis provider port must be between 1 and 65535"))
+	} else if configuration.Redis.Port <= -1 || configuration.Redis.Port > 65535 {
+		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, "redis"))
 	}
 }
 
 func validateRedisSentinel(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
 	if configuration.Secret == "" {
-		validator.Push(errors.New("Set secret of the session object"))
+		validator.Push(fmt.Errorf(errFmtSessionSecretRedisProvider, "redis sentinel"))
 	}
 
 	if configuration.RedisSentinel.Host == "" {
@@ -78,7 +78,7 @@ func validateRedisSentinel(configuration *schema.SessionConfiguration, validator
 	if configuration.RedisSentinel.Port == 0 {
 		configuration.RedisSentinel.Port = 26379
 	} else if configuration.RedisSentinel.Port <= -1 || configuration.RedisSentinel.Port > 65535 {
-		validator.Push(errors.New("Session redis sentinel provider port must be between 1 and 65535"))
+		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, "redis sentinel"))
 	}
 
 	for _, node := range configuration.RedisSentinel.Nodes {

@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -86,7 +87,7 @@ func TestShouldRaiseErrorWithInvalidRedisPortLow(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "Session redis provider port must be between 1 and 65535")
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisPortRange, "redis"))
 }
 
 func TestShouldRaiseErrorWithInvalidRedisPortHigh(t *testing.T) {
@@ -103,7 +104,7 @@ func TestShouldRaiseErrorWithInvalidRedisPortHigh(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "Session redis provider port must be between 1 and 65535")
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisPortRange, "redis"))
 }
 
 func TestShouldNotAllowBothRedisAndRedisSentinel(t *testing.T) {
@@ -200,7 +201,7 @@ func TestShouldRaiseErrorWithInvalidRedisSentinelPortLow(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "Session redis sentinel provider port must be between 1 and 65535")
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisPortRange, "redis sentinel"))
 }
 
 func TestShouldRaiseErrorWithInvalidRedisSentinelPortHigh(t *testing.T) {
@@ -216,10 +217,10 @@ func TestShouldRaiseErrorWithInvalidRedisSentinelPortHigh(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "Session redis sentinel provider port must be between 1 and 65535")
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisPortRange, "redis sentinel"))
 }
 
-func TestShouldRaiseErrorWhenRedisIsUsedAndPasswordNotSet(t *testing.T) {
+func TestShouldRaiseErrorWhenRedisIsUsedAndSecretNotSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 	config.Secret = ""
@@ -239,7 +240,30 @@ func TestShouldRaiseErrorWhenRedisIsUsedAndPasswordNotSet(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "Set secret of the session object")
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionSecretRedisProvider, "redis"))
+}
+
+func TestShouldRaiseErrorWhenRedisSentinelIsUsedAndSecretNotSet(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Secret = ""
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	validator.Clear()
+
+	// Set redis config because password must be set only when redis is used.
+	config.RedisSentinel = &schema.RedisSentinelSessionConfiguration{}
+
+	config.RedisSentinel.Host = "redis.localhost"
+	config.RedisSentinel.Port = 26379
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	assert.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionSecretRedisProvider, "redis sentinel"))
 }
 
 func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
