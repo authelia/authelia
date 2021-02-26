@@ -5,7 +5,7 @@ import (
 
 	"github.com/authelia/session/v2"
 	"github.com/authelia/session/v2/providers/redis"
-
+	"github.com/authelia/session/v2/providers/redisfailover"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -35,10 +35,13 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 
 	var redisConfig *redis.Config
 
+	var redisSentinelConfig *redisfailover.Config
+
 	var providerName string
 
 	// If redis configuration is provided, then use the redis provider.
-	if configuration.Redis != nil {
+	switch {
+	case configuration.Redis != nil:
 		providerName = "redis"
 		serializer := NewEncryptingSerializer(configuration.Secret)
 		network := "tcp"
@@ -64,13 +67,40 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 		}
 		config.EncodeFunc = serializer.Encode
 		config.DecodeFunc = serializer.Decode
-	} else { // if no option is provided, use the memory provider.
+	case configuration.RedisSentinel != nil:
+		providerName = "redis-sentinel"
+		serializer := NewEncryptingSerializer(configuration.Secret)
+
+		masterName := fmt.Sprintf("%s:%d", configuration.RedisSentinel.Host, configuration.RedisSentinel.Port)
+
+		nodes := make([]string, 0)
+
+		for _, addr := range configuration.RedisSentinel.Nodes {
+			nodes = append(nodes, fmt.Sprintf("%s:%d", addr.Host, addr.Port))
+		}
+
+		redisSentinelConfig = &redisfailover.Config{
+			MasterName:       masterName,
+			SentinelAddrs:    nodes,
+			SentinelPassword: configuration.RedisSentinel.SentinelPassword,
+			Username:         configuration.RedisSentinel.Password,
+			Password:         configuration.RedisSentinel.Password,
+			// DB is the fasthttp/session property for the Redis DB Index.
+			DB:          configuration.RedisSentinel.DatabaseIndex,
+			PoolSize:    8,
+			IdleTimeout: 300,
+			KeyPrefix:   "authelia-session",
+		}
+		config.EncodeFunc = serializer.Encode
+		config.DecodeFunc = serializer.Decode
+	default:
 		providerName = "memory"
 	}
 
 	return ProviderConfig{
-		config:       config,
-		redisConfig:  redisConfig,
-		providerName: providerName,
+		config:              config,
+		redisConfig:         redisConfig,
+		redisSentinelConfig: redisSentinelConfig,
+		providerName:        providerName,
 	}
 }

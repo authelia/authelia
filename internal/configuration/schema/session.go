@@ -1,22 +1,44 @@
 package schema
 
+// RedisNode Represents a Node.
+type RedisNode struct {
+	Host string `mapstructure:"host"`
+	Port int64  `mapstructure:"port"`
+}
+
 // RedisSessionConfiguration represents the configuration related to redis session store.
 type RedisSessionConfiguration struct {
 	Host          string `mapstructure:"host"`
 	Port          int64  `mapstructure:"port"`
+	Username      string `mapstructure:"username"`
 	Password      string `mapstructure:"password"`
 	DatabaseIndex int    `mapstructure:"database_index"`
 }
 
+// RedisSentinelSessionConfiguration represents the configuration related to redis sentinel session store.
+type RedisSentinelSessionConfiguration struct {
+	Host             string      `mapstructure:"host"`
+	Port             uint16      `mapstructure:"port"`
+	Username         string      `mapstructure:"username"`
+	Password         string      `mapstructure:"password"`
+	DatabaseIndex    int         `mapstructure:"database_index"`
+	Nodes            []RedisNode `mapstructure:"nodes"`
+	SentinelPassword string      `mapstructure:"sentinel_password"`
+	RouteByLatency   bool        `mapstructure:"route_by_latency"`
+	RouteRandomly    bool        `mapstructure:"route_randomly"`
+	SlaveOnly        bool        `mapstructure:"slave_only"`
+}
+
 // SessionConfiguration represents the configuration related to user sessions.
 type SessionConfiguration struct {
-	Name               string                     `mapstructure:"name"`
-	Secret             string                     `mapstructure:"secret"`
-	Expiration         string                     `mapstructure:"expiration"`
-	Inactivity         string                     `mapstructure:"inactivity"`
-	RememberMeDuration string                     `mapstructure:"remember_me_duration"`
-	Domain             string                     `mapstructure:"domain"`
-	Redis              *RedisSessionConfiguration `mapstructure:"redis"`
+	Name               string                             `mapstructure:"name"`
+	Secret             string                             `mapstructure:"secret"`
+	Expiration         string                             `mapstructure:"expiration"`
+	Inactivity         string                             `mapstructure:"inactivity"`
+	RememberMeDuration string                             `mapstructure:"remember_me_duration"`
+	Domain             string                             `mapstructure:"domain"`
+	Redis              *RedisSessionConfiguration         `mapstructure:"redis"`
+	RedisSentinel      *RedisSentinelSessionConfiguration `mapstructure:"redis_sentinel"`
 }
 
 // DefaultSessionConfiguration is the default session configuration.

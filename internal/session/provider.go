@@ -7,6 +7,7 @@ import (
 	fasthttpsession "github.com/authelia/session/v2"
 	"github.com/authelia/session/v2/providers/memory"
 	"github.com/authelia/session/v2/providers/redis"
+	"github.com/authelia/session/v2/providers/redisfailover"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -42,12 +43,19 @@ func NewProvider(configuration schema.SessionConfiguration) *Provider {
 	provider.Inactivity = duration
 
 	var providerImpl fasthttpsession.Provider
-	if providerConfig.redisConfig != nil {
+
+	switch {
+	case providerConfig.redisConfig != nil:
 		providerImpl, err = redis.New(*providerConfig.redisConfig)
 		if err != nil {
 			panic(err)
 		}
-	} else {
+	case providerConfig.redisSentinelConfig != nil:
+		providerImpl, err = redisfailover.New(*providerConfig.redisSentinelConfig)
+		if err != nil {
+			panic(err)
+		}
+	default:
 		providerImpl, err = memory.New(memory.Config{})
 		if err != nil {
 			panic(err)

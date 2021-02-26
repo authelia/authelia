@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
@@ -67,6 +68,54 @@ func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 }
 
+func TestShouldNotAllowBothRedisAndRedisSentinel(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Redis = &schema.RedisSessionConfiguration{
+		Host:     "redis.localhost",
+		Port:     6379,
+		Password: "password",
+	}
+	config.RedisSentinel = &schema.RedisSentinelSessionConfiguration{
+		Host:     "authelia",
+		Port:     6379,
+		Password: "password",
+	}
+
+	ValidateSession(&config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "Must only specify only one session provider (redis or redis_sentinel)")
+}
+
+func TestShouldRequireSentinelMasterHostAndPort(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.RedisSentinel = &schema.RedisSentinelSessionConfiguration{
+		Password: "password",
+	}
+
+	ValidateSession(&config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "The host and port must be specified when using the redis sentinel session provider")
+}
+
+func TestShouldRequireSentinelNodeHost(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.RedisSentinel = &schema.RedisSentinelSessionConfiguration{
+		Password: "password",
+	}
+
+	ValidateSession(&config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "The host and port must be specified when using the redis sentinel session provider")
+}
 func TestShouldRaiseErrorWhenRedisIsUsedAndPasswordNotSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
