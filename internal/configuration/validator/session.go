@@ -16,22 +16,14 @@ func ValidateSession(configuration *schema.SessionConfiguration, validator *sche
 	}
 
 	if configuration.Redis != nil {
-		if configuration.Redis.Sentinel != "" {
-			validateRedisSentinel(configuration, validator)
+		if configuration.Redis.HighAvailability != nil {
+			if configuration.Redis.HighAvailability.IsSentinel() {
+				validateRedisSentinel(configuration, validator)
+			} else {
+				validateRedisCluster(configuration, validator)
+			}
 		} else {
 			validateRedis(configuration, validator)
-
-			if len(configuration.Redis.Nodes) > 0 {
-				validator.Push(errors.New("Session redis provider does not have the sentinel option specified but has nodes defined which is invalid"))
-			}
-
-			if configuration.Redis.SentinelPassword != "" {
-				validator.Push(errors.New("Session redis provider does not have the sentinel option specified but has a password defined which is invalid"))
-			}
-
-			if configuration.Redis.RouteRandomly || configuration.Redis.RouteByLatency {
-				validator.Push(errors.New("Session redis provider does not have the sentinel option specified but has routing options defined which is invalid"))
-			}
 		}
 	}
 
@@ -82,29 +74,47 @@ func validateRedis(configuration *schema.SessionConfiguration, validator *schema
 	}
 }
 
+func validateRedisCluster(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
+	if configuration.Redis.Port == 0 {
+		configuration.Redis.Port = 6379
+	} else if configuration.Redis.Port < 0 || configuration.Redis.Port > 65535 {
+		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, "redis cluster"))
+	}
+
+	validateHighAvailability(configuration, validator, "redis cluster")
+}
+
 func validateRedisSentinel(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
-	if configuration.Redis.Host == "" {
-		validator.Push(fmt.Errorf(errFmtSessionRedisHostRequired, "redis sentinel"))
-	}
-
-	if configuration.Secret == "" {
-		validator.Push(fmt.Errorf(errFmtSessionSecretRedisProvider, "redis sentinel"))
-	}
-
 	if configuration.Redis.Port == 0 {
 		configuration.Redis.Port = 26379
 	} else if configuration.Redis.Port < 0 || configuration.Redis.Port > 65535 {
 		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, "redis sentinel"))
 	}
 
-	for i, node := range configuration.Redis.Nodes {
+	validateHighAvailability(configuration, validator, "redis sentinel")
+}
+
+func validateHighAvailability(configuration *schema.SessionConfiguration, validator *schema.StructValidator, provider string) {
+	if configuration.Redis.Host == "" {
+		validator.Push(fmt.Errorf(errFmtSessionRedisHostRequired, provider))
+	}
+
+	if configuration.Secret == "" {
+		validator.Push(fmt.Errorf(errFmtSessionSecretRedisProvider, provider))
+	}
+
+	for i, node := range configuration.Redis.HighAvailability.Nodes {
 		if node.Host == "" {
-			validator.Push(fmt.Errorf("The redis sentinel nodes require a host set but you have not set the host for one or more nodes"))
+			validator.Push(fmt.Errorf("The %s nodes require a host set but you have not set the host for one or more nodes", provider))
 			break
 		}
 
 		if node.Port == 0 {
-			configuration.Redis.Nodes[i].Port = 26379
+			if provider == "redis sentinel" {
+				configuration.Redis.HighAvailability.Nodes[i].Port = 26379
+			} else {
+				configuration.Redis.HighAvailability.Nodes[i].Port = 6379
+			}
 		}
 	}
 }

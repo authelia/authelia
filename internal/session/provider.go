@@ -1,12 +1,14 @@
 package session
 
 import (
+	"crypto/x509"
 	"encoding/json"
 	"time"
 
 	fasthttpsession "github.com/authelia/session/v2"
 	"github.com/authelia/session/v2/providers/memory"
 	"github.com/authelia/session/v2/providers/redis"
+	"github.com/authelia/session/v2/providers/rediscluster"
 	"github.com/authelia/session/v2/providers/redisfailover"
 	"github.com/valyala/fasthttp"
 
@@ -22,8 +24,8 @@ type Provider struct {
 }
 
 // NewProvider instantiate a session provider given a configuration.
-func NewProvider(configuration schema.SessionConfiguration) *Provider {
-	providerConfig := NewProviderConfig(configuration)
+func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertPool) *Provider {
+	providerConfig := NewProviderConfig(configuration, certPool)
 
 	provider := new(Provider)
 	provider.sessionHolder = fasthttpsession.New(providerConfig.config)
@@ -52,6 +54,11 @@ func NewProvider(configuration schema.SessionConfiguration) *Provider {
 		}
 	case providerConfig.redisSentinelConfig != nil:
 		providerImpl, err = redisfailover.New(*providerConfig.redisSentinelConfig)
+		if err != nil {
+			panic(err)
+		}
+	case providerConfig.redisClusterConfig != nil:
+		providerImpl, err = rediscluster.New(*providerConfig.redisClusterConfig)
 		if err != nil {
 			panic(err)
 		}
