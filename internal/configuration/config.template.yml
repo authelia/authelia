@@ -355,35 +355,33 @@ session:
     # Use a unix socket instead
     # host: /var/run/redis/redis.sock
 
-
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: authelia
     # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     database_index: 0
 
-  # The redis sentinel connection details
-  # redis_sentinel:
-    # The redis host/port combination for Redis Sentinel.
-    # host: 127.0.0.1
-    # port: 26379
+    # Sentinel Options
+    # Options below here are for Redis Sentinel only.
 
-    # The nodes to pre-seed the redis provider with.
-    # If not provided is seeded from the redis-sentinel connection.
+    # Sentinel Name / Master Name
+    # sentinel: mysentinel
+
+    # Specific password for Redis Sentinel. The node username and password is configured above.
+    # sentinel_password: sentinel_specific_pass
+
+    # The additional nodes to pre-seed the redis provider with (for sentinel).
+    # If not provided is seeded from the host/port combination.
     # nodes:
     #   - host: sentinel-node1
     #     port: 6379
     #   - host: sentinel-node2
     #     port: 6379
 
-    # Specific password for Redis Sentinel. The node username and password is configured below.
-    # sentinel_password: sentinel_specific_pass
+    # Choose the host with the lowest latency.
+    route_by_latency: false
 
-    # Username can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
-    # username: authelia
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
-    # password: authelia
-    # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
-    # database_index: 0
+    # Choose the host randomly.
+    route_randomly: false
 
 # Configuration of the authentication regulation mechanism.
 #

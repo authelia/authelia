@@ -176,8 +176,9 @@ var specificErrorKeys = map[string]string{
 	"authentication_backend.file.hashing.parallelism":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 }
 
-const errFmtSessionSecretRedisProvider = "The session secret is not set but must be set when using the %s provider"
+const errFmtSessionSecretRedisProvider = "The session secret is not set but must be set when using the %s session provider"
 const errFmtSessionRedisPortRange = "The port must be between 1 and 65535 the %s session provider"
+const errFmtSessionRedisHostRequired = "The host must be provided when using the %s session provider"
 
 const denyPolicy = "deny"
 

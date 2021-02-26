@@ -47,7 +47,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 		if configuration.Redis.Sentinel != "" {
 			providerName = "redis-sentinel"
 
-			nodes := make([]string, 0)
+			nodes := []string{fmt.Sprintf("%s:%d", configuration.Redis.Host, configuration.Redis.Port)}
 
 			for _, addr := range configuration.Redis.Nodes {
 				nodes = append(nodes, fmt.Sprintf("%s:%d", addr.Host, addr.Port))
@@ -57,6 +57,8 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 				MasterName:       configuration.Redis.Sentinel,
 				SentinelAddrs:    nodes,
 				SentinelPassword: configuration.Redis.SentinelPassword,
+				RouteByLatency:   configuration.Redis.RouteByLatency,
+				RouteRandomly:    configuration.Redis.RouteRandomly,
 				Username:         configuration.Redis.Password,
 				Password:         configuration.Redis.Password,
 				// DB is the fasthttp/session property for the Redis DB Index.

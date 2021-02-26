@@ -18,7 +18,6 @@ type RedisSessionConfiguration struct {
 	Nodes            []RedisNode `mapstructure:"nodes"`
 	RouteByLatency   bool        `mapstructure:"route_by_latency"`
 	RouteRandomly    bool        `mapstructure:"route_randomly"`
-	SlaveOnly        bool        `mapstructure:"slave_only"`
 }
 
 // SessionConfiguration represents the configuration related to user sessions.

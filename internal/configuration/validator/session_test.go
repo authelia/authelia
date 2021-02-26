@@ -152,6 +152,190 @@ func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "A redis port different than 0 must be provided")
 }
 
+func TestShouldRaiseErrorsWhenRedisHasSentinelOptionsButNoSentinelName(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Redis = &schema.RedisSessionConfiguration{
+		Host:             "redis",
+		Port:             6379,
+		Sentinel:         "",
+		SentinelPassword: "abc123",
+		Nodes: []schema.RedisNode{
+			{
+				Host: "node1",
+				Port: 26379,
+			},
+		},
+		RouteByLatency: true,
+		RouteRandomly:  true,
+	}
+
+	ValidateSession(&config, validator)
+
+	errors := validator.Errors()
+
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, errors, 3)
+
+	assert.EqualError(t, errors[0], "Session redis provider does not have the sentinel option specified but has nodes defined which is invalid")
+	assert.EqualError(t, errors[1], "Session redis provider does not have the sentinel option specified but has a password defined which is invalid")
+	assert.EqualError(t, errors[2], "Session redis provider does not have the sentinel option specified but has routing options defined which is invalid")
+}
+
+func TestShouldRaiseOneErrorWhenRedisSentinelHasNodesWithNoHost(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Redis = &schema.RedisSessionConfiguration{
+		Host:             "redis",
+		Port:             6379,
+		Sentinel:         "authelia-sentinel",
+		SentinelPassword: "abc123",
+		Nodes: []schema.RedisNode{
+			{
+				Port: 26379,
+			},
+			{
+				Port: 26379,
+			},
+		},
+	}
+
+	ValidateSession(&config, validator)
+
+	errors := validator.Errors()
+
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, errors, 1)
+
+	assert.EqualError(t, errors[0], "The redis sentinel nodes require a host set but you have not set the host for one or more nodes")
+}
+
+func TestShouldUpdateDefaultPortWhenRedisSentinelHasNodes(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Redis = &schema.RedisSessionConfiguration{
+		Host:             "redis",
+		Port:             6379,
+		Sentinel:         "authelia-sentinel",
+		SentinelPassword: "abc123",
+		Nodes: []schema.RedisNode{
+			{
+				Host: "node-1",
+				Port: 333,
+			},
+			{
+				Host: "node-2",
+			},
+			{
+				Host: "node-3",
+			},
+		},
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	assert.False(t, validator.HasErrors())
+
+	assert.Equal(t, 333, config.Redis.Nodes[0].Port)
+	assert.Equal(t, 26379, config.Redis.Nodes[1].Port)
+	assert.Equal(t, 26379, config.Redis.Nodes[2].Port)
+}
+
+func TestShouldRaiseErrorsWhenRedisSentinelOptionsIncorrectlyConfigured(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Secret = ""
+	config.Redis = &schema.RedisSessionConfiguration{
+		Port:             65536,
+		Sentinel:         "sentinel",
+		SentinelPassword: "abc123",
+		Nodes: []schema.RedisNode{
+			{
+				Host: "node1",
+				Port: 26379,
+			},
+		},
+		RouteByLatency: true,
+		RouteRandomly:  true,
+	}
+
+	ValidateSession(&config, validator)
+
+	errors := validator.Errors()
+
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, errors, 3)
+
+	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisHostRequired, "redis sentinel"))
+	assert.EqualError(t, errors[1], fmt.Sprintf(errFmtSessionSecretRedisProvider, "redis sentinel"))
+	assert.EqualError(t, errors[2], fmt.Sprintf(errFmtSessionRedisPortRange, "redis sentinel"))
+
+	validator.Clear()
+
+	config.Redis.Port = -1
+
+	ValidateSession(&config, validator)
+
+	errors = validator.Errors()
+
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, errors, 3)
+
+	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisHostRequired, "redis sentinel"))
+	assert.EqualError(t, errors[1], fmt.Sprintf(errFmtSessionSecretRedisProvider, "redis sentinel"))
+	assert.EqualError(t, errors[2], fmt.Sprintf(errFmtSessionRedisPortRange, "redis sentinel"))
+}
+
+func TestShouldNotRaiseErrorsAndSetDefaultPortWhenRedisSentinelPortBlank(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Redis = &schema.RedisSessionConfiguration{
+		Host:             "mysentinelHost",
+		Port:             0,
+		Sentinel:         "sentinel",
+		SentinelPassword: "abc123",
+		Nodes: []schema.RedisNode{
+			{
+				Host: "node1",
+				Port: 26379,
+			},
+		},
+		RouteByLatency: true,
+		RouteRandomly:  true,
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	assert.False(t, validator.HasErrors())
+
+	assert.Equal(t, 26379, config.Redis.Port)
+}
+
+func TestShouldRaiseErrorsWhenRedisHostNotSet(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Redis = &schema.RedisSessionConfiguration{
+		Port: 6379,
+	}
+
+	ValidateSession(&config, validator)
+
+	errors := validator.Errors()
+
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, errors, 1)
+
+	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisHostRequired, "redis"))
+}
+
 func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
