@@ -368,7 +368,7 @@ session:
     # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     database_index: 0
 
-    # The Redis Pool Size.
+    # The maximum number of concurrent connections to Redis.
     pool_size: 8
 
     # The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
@@ -385,7 +385,7 @@ session:
       # minimum_version: TLS1.2
 
     # The Redis HA configuration options.
-    # If sentinel_name/sentinel_password are defined use the Redis Sentinel configuration, otherwise Redis Cluster.
+    # This provides specific options to Redis Sentinel, sentinel_name must be defined (Master Name).
     # high_availability:
       # Sentinel Name / Master Name
       # sentinel_name: mysentinel
@@ -404,8 +404,8 @@ session:
       # Choose the host with the lowest latency.
       # route_by_latency: false
 
-    # Choose the host randomly.
-    # route_randomly: false
+      # Choose the host randomly.
+      # route_randomly: false
 
 # Configuration of the authentication regulation mechanism.
 #

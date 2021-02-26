@@ -7,7 +7,6 @@ import (
 
 	"github.com/authelia/session/v2"
 	"github.com/authelia/session/v2/providers/redis"
-	"github.com/authelia/session/v2/providers/rediscluster"
 	"github.com/authelia/session/v2/providers/redisfailover"
 	"github.com/valyala/fasthttp"
 
@@ -40,8 +39,6 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 
 	var redisSentinelConfig *redisfailover.Config
 
-	var redisClusterConfig *rediscluster.Config
-
 	var providerName string
 
 	// If redis configuration is provided, then use the redis provider.
@@ -56,41 +53,30 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 		}
 
 		if configuration.Redis.HighAvailability != nil {
-			nodes := []string{fmt.Sprintf("%s:%d", configuration.Redis.Host, configuration.Redis.Port)}
+			nodes := make([]string, 0)
+
+			if configuration.Redis.Host != "" {
+				nodes = []string{fmt.Sprintf("%s:%d", configuration.Redis.Host, configuration.Redis.Port)}
+			}
 
 			for _, addr := range configuration.Redis.HighAvailability.Nodes {
 				nodes = append(nodes, fmt.Sprintf("%s:%d", addr.Host, addr.Port))
 			}
 
-			if configuration.Redis.HighAvailability.IsSentinel() {
-				providerName = "redis-sentinel"
-				redisSentinelConfig = &redisfailover.Config{
-					MasterName:       configuration.Redis.HighAvailability.SentinelName,
-					SentinelAddrs:    nodes,
-					SentinelPassword: configuration.Redis.HighAvailability.SentinelPassword,
-					RouteByLatency:   configuration.Redis.HighAvailability.RouteByLatency,
-					RouteRandomly:    configuration.Redis.HighAvailability.RouteRandomly,
-					Username:         configuration.Redis.Username,
-					Password:         configuration.Redis.Password,
-					DB:               configuration.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
-					PoolSize:         configuration.Redis.PoolSize,
-					TLSConfig:        tlsConfig,
-					IdleTimeout:      300,
-					KeyPrefix:        "authelia-session",
-				}
-			} else {
-				providerName = "redis-cluster"
-				redisClusterConfig = &rediscluster.Config{
-					Addrs:          nodes,
-					RouteByLatency: configuration.Redis.HighAvailability.RouteByLatency,
-					RouteRandomly:  configuration.Redis.HighAvailability.RouteRandomly,
-					Username:       configuration.Redis.Username,
-					Password:       configuration.Redis.Password,
-					PoolSize:       configuration.Redis.PoolSize,
-					TLSConfig:      tlsConfig,
-					IdleTimeout:    300,
-					KeyPrefix:      "authelia-session",
-				}
+			providerName = "redis-sentinel"
+			redisSentinelConfig = &redisfailover.Config{
+				MasterName:       configuration.Redis.HighAvailability.SentinelName,
+				SentinelAddrs:    nodes,
+				SentinelPassword: configuration.Redis.HighAvailability.SentinelPassword,
+				RouteByLatency:   configuration.Redis.HighAvailability.RouteByLatency,
+				RouteRandomly:    configuration.Redis.HighAvailability.RouteRandomly,
+				Username:         configuration.Redis.Username,
+				Password:         configuration.Redis.Password,
+				DB:               configuration.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
+				PoolSize:         configuration.Redis.PoolSize,
+				TLSConfig:        tlsConfig,
+				IdleTimeout:      300,
+				KeyPrefix:        "authelia-session",
 			}
 		} else {
 			providerName = "redis"
@@ -128,7 +114,6 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 		config,
 		redisConfig,
 		redisSentinelConfig,
-		redisClusterConfig,
 		providerName,
 	}
 }

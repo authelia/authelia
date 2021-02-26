@@ -17,10 +17,10 @@ func ValidateSession(configuration *schema.SessionConfiguration, validator *sche
 
 	if configuration.Redis != nil {
 		if configuration.Redis.HighAvailability != nil {
-			if configuration.Redis.HighAvailability.IsSentinel() {
+			if configuration.Redis.HighAvailability.SentinelName != "" {
 				validateRedisSentinel(configuration, validator)
 			} else {
-				validateRedisCluster(configuration, validator)
+				validator.Push(fmt.Errorf("Session provider redis is configured for high availability but doesn't have a sentinel_name which is required"))
 			}
 		} else {
 			validateRedis(configuration, validator)
@@ -72,16 +72,10 @@ func validateRedis(configuration *schema.SessionConfiguration, validator *schema
 	} else if configuration.Redis.Port < 0 || configuration.Redis.Port > 65535 {
 		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, "redis"))
 	}
-}
 
-func validateRedisCluster(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
-	if configuration.Redis.Port == 0 {
-		configuration.Redis.Port = 6379
-	} else if configuration.Redis.Port < 0 || configuration.Redis.Port > 65535 {
-		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, "redis cluster"))
+	if configuration.Redis.PoolSize <= 0 {
+		configuration.Redis.PoolSize = 8
 	}
-
-	validateHighAvailability(configuration, validator, "redis cluster")
 }
 
 func validateRedisSentinel(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
@@ -95,8 +89,8 @@ func validateRedisSentinel(configuration *schema.SessionConfiguration, validator
 }
 
 func validateHighAvailability(configuration *schema.SessionConfiguration, validator *schema.StructValidator, provider string) {
-	if configuration.Redis.Host == "" {
-		validator.Push(fmt.Errorf(errFmtSessionRedisHostRequired, provider))
+	if configuration.Redis.Host == "" && len(configuration.Redis.HighAvailability.Nodes) == 0 {
+		validator.Push(fmt.Errorf(errFmtSessionRedisHostOrNodesRequired, provider))
 	}
 
 	if configuration.Secret == "" {
@@ -112,8 +106,6 @@ func validateHighAvailability(configuration *schema.SessionConfiguration, valida
 		if node.Port == 0 {
 			if provider == "redis sentinel" {
 				configuration.Redis.HighAvailability.Nodes[i].Port = 26379
-			} else {
-				configuration.Redis.HighAvailability.Nodes[i].Port = 6379
 			}
 		}
 	}
