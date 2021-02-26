@@ -8,6 +8,11 @@ port: 9091
 # tls_key: /config/ssl/key.pem
 # tls_cert: /config/ssl/cert.pem
 
+## Certificates directory specifies where Authelia will load trusted certificates (public portion) from in addition to
+## the system certificates store.
+## They should be in base64 format, and have one of the following extensions: *.cer, *.crt, *.pem.
+# certificates_directory: /config/certificates
+
 # The theme to display: light, dark, grey
 theme: light
 
@@ -118,6 +123,8 @@ authentication_backend:
       # server_name: ldap.example.com
 
       # Skip verifying the server certificate (to allow a self-signed certificate).
+      ## In preference to setting this we strongly recommend you add the public portion of the certificate to the
+      ## certificates directory which is defined by the `certificates_directory` option at the top of the config.
       skip_verify: false
 
       # Minimum TLS version for either Secure LDAP or LDAP StartTLS.
@@ -357,31 +364,48 @@ session:
 
     # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: authelia
+
     # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     database_index: 0
 
-    # Sentinel Options
-    # Options below here are for Redis Sentinel only.
+    # The Redis Pool Size.
+    pool_size: 8
 
-    # Sentinel Name / Master Name
-    # sentinel: mysentinel
+    # The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
+    # tls:
+      ## Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
+      # server_name: myredis.example.com
 
-    # Specific password for Redis Sentinel. The node username and password is configured above.
-    # sentinel_password: sentinel_specific_pass
+      ## Skip verifying the server certificate (to allow a self-signed certificate).
+      ## In preference to setting this we strongly recommend you add the public portion of the certificate to the
+      ## certificates directory which is defined by the `certificates_directory` option at the top of the config.
+      # skip_verify: false
 
-    # The additional nodes to pre-seed the redis provider with (for sentinel).
-    # If not provided is seeded from the host/port combination.
-    # nodes:
-    #   - host: sentinel-node1
-    #     port: 6379
-    #   - host: sentinel-node2
-    #     port: 6379
+      ## Minimum TLS version for the connection.
+      # minimum_version: TLS1.2
 
-    # Choose the host with the lowest latency.
-    route_by_latency: false
+    # The Redis HA configuration options.
+    # If sentinel_name/sentinel_password are defined use the Redis Sentinel configuration, otherwise Redis Cluster.
+    # high_availability:
+      # Sentinel Name / Master Name
+      # sentinel_name: mysentinel
+
+      # Specific password for Redis Sentinel. The node username and password is configured above.
+      # sentinel_password: sentinel_specific_pass
+
+      # The additional nodes to pre-seed the redis provider with (for sentinel).
+      # If not provided is seeded from the host/port combination.
+      # nodes:
+      #   - host: sentinel-node1
+      #     port: 6379
+      #   - host: sentinel-node2
+      #     port: 6379
+
+      # Choose the host with the lowest latency.
+      # route_by_latency: false
 
     # Choose the host randomly.
-    route_randomly: false
+    # route_randomly: false
 
 # Configuration of the authentication regulation mechanism.
 #
@@ -468,7 +492,9 @@ notifier:
       # Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
       # server_name: smtp.example.com
 
-      # Skip verifying the server certificate (to allow a self-signed certificate).
+      ## Skip verifying the server certificate (to allow a self-signed certificate).
+      ## In preference to setting this we strongly recommend you add the public portion of the certificate to the
+      ## certificates directory which is defined by the `certificates_directory` option at the top of the config.
       skip_verify: false
 
       # Minimum TLS version for either StartTLS or SMTPS.
