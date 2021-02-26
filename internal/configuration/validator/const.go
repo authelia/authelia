@@ -43,18 +43,12 @@ var validKeys = []string{
 	"session.redis.username",
 	"session.redis.password",
 	"session.redis.database_index",
-
-	// Redis Sentinel Session Keys.
-	"session.redis_sentinel.host",
-	"session.redis_sentinel.port",
-	"session.redis_sentinel.username",
-	"session.redis_sentinel.password",
-	"session.redis_sentinel.database_index",
-	"session.redis_sentinel.nodes",
-	"session.redis_sentinel.sentinel_password",
-	"session.redis_sentinel.route_by_latency",
-	"session.redis_sentinel.route_randomly",
-	"session.redis_sentinel.slave_only",
+	"session.redis.sentinel",
+	"session.redis.sentinel_password",
+	"session.redis.nodes",
+	"session.redis.route_by_latency",
+	"session.redis.route_randomly",
+	"session.redis.slave_only",
 
 	// Local Storage Keys.
 	"storage.local.path",

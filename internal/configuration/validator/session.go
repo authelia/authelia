@@ -15,16 +15,12 @@ func ValidateSession(configuration *schema.SessionConfiguration, validator *sche
 		configuration.Name = schema.DefaultSessionConfiguration.Name
 	}
 
-	if configuration.Redis != nil && configuration.RedisSentinel != nil {
-		validator.Push(errors.New("Must only specify only one session provider (redis or redis_sentinel)"))
-	}
-
 	if configuration.Redis != nil {
-		validateRedis(configuration, validator)
-	}
-
-	if configuration.RedisSentinel != nil {
-		validateRedisSentinel(configuration, validator)
+		if configuration.Redis.Sentinel != "" {
+			validateRedisSentinel(configuration, validator)
+		} else {
+			validateRedis(configuration, validator)
+		}
 	}
 
 	if configuration.Expiration == "" {
@@ -69,21 +65,5 @@ func validateRedis(configuration *schema.SessionConfiguration, validator *schema
 func validateRedisSentinel(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
 	if configuration.Secret == "" {
 		validator.Push(fmt.Errorf(errFmtSessionSecretRedisProvider, "redis sentinel"))
-	}
-
-	if configuration.RedisSentinel.Host == "" {
-		validator.Push(errors.New("The host and port must be specified when using the redis sentinel session provider"))
-	}
-
-	if configuration.RedisSentinel.Port == 0 {
-		configuration.RedisSentinel.Port = 26379
-	} else if configuration.RedisSentinel.Port <= -1 || configuration.RedisSentinel.Port > 65535 {
-		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, "redis sentinel"))
-	}
-
-	for _, node := range configuration.RedisSentinel.Nodes {
-		if node.Host == "" {
-			validator.Push(fmt.Errorf("The host must be specified for each node when using the redis sentinel session provider, the offending entry is %s:%d", node.Host, node.Port))
-		}
 	}
 }

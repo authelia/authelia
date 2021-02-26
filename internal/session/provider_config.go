@@ -42,55 +42,54 @@ func NewProviderConfig(configuration schema.SessionConfiguration) ProviderConfig
 	// If redis configuration is provided, then use the redis provider.
 	switch {
 	case configuration.Redis != nil:
-		providerName = "redis"
 		serializer := NewEncryptingSerializer(configuration.Secret)
-		network := "tcp"
 
-		var addr string
+		if configuration.Redis.Sentinel != "" {
+			providerName = "redis-sentinel"
 
-		if configuration.Redis.Port == 0 {
-			network = "unix"
-			addr = configuration.Redis.Host
+			nodes := make([]string, 0)
+
+			for _, addr := range configuration.Redis.Nodes {
+				nodes = append(nodes, fmt.Sprintf("%s:%d", addr.Host, addr.Port))
+			}
+
+			redisSentinelConfig = &redisfailover.Config{
+				MasterName:       configuration.Redis.Sentinel,
+				SentinelAddrs:    nodes,
+				SentinelPassword: configuration.Redis.SentinelPassword,
+				Username:         configuration.Redis.Password,
+				Password:         configuration.Redis.Password,
+				// DB is the fasthttp/session property for the Redis DB Index.
+				DB:          configuration.Redis.DatabaseIndex,
+				PoolSize:    8,
+				IdleTimeout: 300,
+				KeyPrefix:   "authelia-session",
+			}
 		} else {
-			addr = fmt.Sprintf("%s:%d", configuration.Redis.Host, configuration.Redis.Port)
+			providerName = "redis"
+			network := "tcp"
+
+			var addr string
+
+			if configuration.Redis.Port == 0 {
+				network = "unix"
+				addr = configuration.Redis.Host
+			} else {
+				addr = fmt.Sprintf("%s:%d", configuration.Redis.Host, configuration.Redis.Port)
+			}
+
+			redisConfig = &redis.Config{
+				Network:  network,
+				Addr:     addr,
+				Password: configuration.Redis.Password,
+				// DB is the fasthttp/session property for the Redis DB Index.
+				DB:          configuration.Redis.DatabaseIndex,
+				PoolSize:    8,
+				IdleTimeout: 300,
+				KeyPrefix:   "authelia-session",
+			}
 		}
 
-		redisConfig = &redis.Config{
-			Network:  network,
-			Addr:     addr,
-			Password: configuration.Redis.Password,
-			// DB is the fasthttp/session property for the Redis DB Index.
-			DB:          configuration.Redis.DatabaseIndex,
-			PoolSize:    8,
-			IdleTimeout: 300,
-			KeyPrefix:   "authelia-session",
-		}
-		config.EncodeFunc = serializer.Encode
-		config.DecodeFunc = serializer.Decode
-	case configuration.RedisSentinel != nil:
-		providerName = "redis-sentinel"
-		serializer := NewEncryptingSerializer(configuration.Secret)
-
-		masterName := fmt.Sprintf("%s:%d", configuration.RedisSentinel.Host, configuration.RedisSentinel.Port)
-
-		nodes := make([]string, 0)
-
-		for _, addr := range configuration.RedisSentinel.Nodes {
-			nodes = append(nodes, fmt.Sprintf("%s:%d", addr.Host, addr.Port))
-		}
-
-		redisSentinelConfig = &redisfailover.Config{
-			MasterName:       masterName,
-			SentinelAddrs:    nodes,
-			SentinelPassword: configuration.RedisSentinel.SentinelPassword,
-			Username:         configuration.RedisSentinel.Password,
-			Password:         configuration.RedisSentinel.Password,
-			// DB is the fasthttp/session property for the Redis DB Index.
-			DB:          configuration.RedisSentinel.DatabaseIndex,
-			PoolSize:    8,
-			IdleTimeout: 300,
-			KeyPrefix:   "authelia-session",
-		}
 		config.EncodeFunc = serializer.Encode
 		config.DecodeFunc = serializer.Decode
 	default:
