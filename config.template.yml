@@ -355,21 +355,27 @@ session:
   # is restricted to the subdomain of the issuer.
   domain: example.com
 
-  # The redis connection details
+  ## The redis connection details
   redis:
     host: 127.0.0.1
     port: 6379
-    # Use a unix socket instead
+    ## Use a unix socket instead
     # host: /var/run/redis/redis.sock
 
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    ## Optional username to be used with authentication.
+    username: authelia
+
+    ## Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: authelia
 
-    # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
+    ## This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     database_index: 0
 
-    # The maximum number of concurrent connections to Redis.
-    pool_size: 8
+    ## The maximum number of concurrent active connections to Redis.
+    maximum_active_connections: 8
+
+    ## The target number of idle connections to have open ready for work. Useful when opening connections is slow.
+    minimum_idle_connections: 0
 
     # The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
     # tls:
@@ -405,7 +411,7 @@ session:
       # route_by_latency: false
 
       # Choose the host randomly.
-    # route_randomly: false
+      # route_randomly: false
 
 # Configuration of the authentication regulation mechanism.
 #

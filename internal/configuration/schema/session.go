@@ -20,26 +20,17 @@ func (c RedisHighAvailabilityConfiguration) IsSentinel() bool {
 	return c.SentinelName != "" || c.SentinelPassword != ""
 }
 
-// RedisTimeoutsConfiguration sets the timeouts for the redis connection in seconds.
-type RedisTimeoutsConfiguration struct {
-	Dial  int `mapstructure:"dial"`
-	Idle  int `mapstructure:"idle"`
-	Pool  int `mapstructure:"pool"`
-	Read  int `mapstructure:"read"`
-	Write int `mapstructure:"write"`
-}
-
 // RedisSessionConfiguration represents the configuration related to redis session store.
 type RedisSessionConfiguration struct {
-	Host             string                              `mapstructure:"host"`
-	Port             int                                 `mapstructure:"port"`
-	Username         string                              `mapstructure:"username"`
-	Password         string                              `mapstructure:"password"`
-	DatabaseIndex    int                                 `mapstructure:"database_index"`
-	PoolSize         int                                 `mapstructure:"pool_size"`
-	TLS              *TLSConfig                          `mapstructure:"tls"`
-	Timeouts         RedisTimeoutsConfiguration          `mapstructure:"timeouts"`
-	HighAvailability *RedisHighAvailabilityConfiguration `mapstructure:"high_availability"`
+	Host                     string                              `mapstructure:"host"`
+	Port                     int                                 `mapstructure:"port"`
+	Username                 string                              `mapstructure:"username"`
+	Password                 string                              `mapstructure:"password"`
+	DatabaseIndex            int                                 `mapstructure:"database_index"`
+	MaximumActiveConnections int                                 `mapstructure:"maximum_active_connections"`
+	MinimumIdleConnections   int                                 `mapstructure:"minimum_idle_connections"`
+	TLS                      *TLSConfig                          `mapstructure:"tls"`
+	HighAvailability         *RedisHighAvailabilityConfiguration `mapstructure:"high_availability"`
 }
 
 // SessionConfiguration represents the configuration related to user sessions.

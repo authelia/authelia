@@ -72,7 +72,7 @@ func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	assert.False(t, validator.HasErrors())
 
-	assert.Equal(t, 8, config.Redis.PoolSize)
+	assert.Equal(t, 8, config.Redis.MaximumActiveConnections)
 }
 
 func TestShouldRaiseErrorWithInvalidRedisPortLow(t *testing.T) {

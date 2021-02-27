@@ -73,8 +73,8 @@ func validateRedis(configuration *schema.SessionConfiguration, validator *schema
 		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, "redis"))
 	}
 
-	if configuration.Redis.PoolSize <= 0 {
-		configuration.Redis.PoolSize = 8
+	if configuration.Redis.MaximumActiveConnections <= 0 {
+		configuration.Redis.MaximumActiveConnections = 8
 	}
 }
 

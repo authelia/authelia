@@ -73,9 +73,10 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 				Username:         configuration.Redis.Username,
 				Password:         configuration.Redis.Password,
 				DB:               configuration.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
-				PoolSize:         configuration.Redis.PoolSize,
-				TLSConfig:        tlsConfig,
+				PoolSize:         configuration.Redis.MaximumActiveConnections,
+				MinIdleConns:     configuration.Redis.MinimumIdleConnections,
 				IdleTimeout:      300,
+				TLSConfig:        tlsConfig,
 				KeyPrefix:        "authelia-session",
 			}
 		} else {
@@ -92,15 +93,16 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 			}
 
 			redisConfig = &redis.Config{
-				Network:     network,
-				Addr:        addr,
-				Username:    configuration.Redis.Username,
-				Password:    configuration.Redis.Password,
-				DB:          configuration.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
-				PoolSize:    configuration.Redis.PoolSize,
-				TLSConfig:   tlsConfig,
-				IdleTimeout: 300,
-				KeyPrefix:   "authelia-session",
+				Network:      network,
+				Addr:         addr,
+				Username:     configuration.Redis.Username,
+				Password:     configuration.Redis.Password,
+				DB:           configuration.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
+				PoolSize:     configuration.Redis.MaximumActiveConnections,
+				MinIdleConns: configuration.Redis.MinimumIdleConnections,
+				IdleTimeout:  300,
+				TLSConfig:    tlsConfig,
+				KeyPrefix:    "authelia-session",
 			}
 		}
 
