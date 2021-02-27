@@ -67,40 +67,40 @@ session:
     minimum_idle_connections: 0
 
     # The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
-    # tls:
+    tls:
       ## Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
-      # server_name: myredis.example.com
+      server_name: myredis.example.com
 
       ## Skip verifying the server certificate (to allow a self-signed certificate).
       ## In preference to setting this we strongly recommend you add the public portion of the certificate to the
       ## certificates directory which is defined by the `certificates_directory` option at the top of the config.
-      # skip_verify: false
+      skip_verify: false
 
       ## Minimum TLS version for the connection.
-      # minimum_version: TLS1.2
+      minimum_version: TLS1.2
 
     # The Redis HA configuration options.
     # This provides specific options to Redis Sentinel, sentinel_name must be defined (Master Name).
-    # high_availability:
+    high_availability:
       # Sentinel Name / Master Name
-      # sentinel_name: mysentinel
+      sentinel_name: mysentinel
 
       # Specific password for Redis Sentinel. The node username and password is configured above.
-      # sentinel_password: sentinel_specific_pass
+      sentinel_password: sentinel_specific_pass
 
       # The additional nodes to pre-seed the redis provider with (for sentinel).
       # If not provided is seeded from the host/port combination.
-      # nodes:
-      #   - host: sentinel-node1
-      #     port: 6379
-      #   - host: sentinel-node2
-      #     port: 6379
+      nodes:
+        - host: sentinel-node1
+          port: 6379
+        - host: sentinel-node2
+          port: 6379
 
       # Choose the host with the lowest latency.
-      # route_by_latency: false
+      route_by_latency: false
 
       # Choose the host randomly.
-      # route_randomly: false
+      route_randomly: false
 ```
 
 ### Security

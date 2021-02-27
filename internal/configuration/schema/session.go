@@ -15,11 +15,6 @@ type RedisHighAvailabilityConfiguration struct {
 	RouteRandomly    bool        `mapstructure:"route_randomly"`
 }
 
-// IsSentinel returns true if either SentinelName or SentinelPassword are configured in the Redis HA Config.
-func (c RedisHighAvailabilityConfiguration) IsSentinel() bool {
-	return c.SentinelName != "" || c.SentinelPassword != ""
-}
-
 // RedisSessionConfiguration represents the configuration related to redis session store.
 type RedisSessionConfiguration struct {
 	Host                     string                              `mapstructure:"host"`

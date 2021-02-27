@@ -2,6 +2,7 @@ package session
 
 import (
 	"crypto/sha256"
+	"crypto/tls"
 	"testing"
 	"time"
 
@@ -30,8 +31,7 @@ func TestShouldCreateInMemorySessionProvider(t *testing.T) {
 	assert.Equal(t, "memory", providerConfig.providerName)
 }
 
-func TestShouldCreateRedisSessionProvider(t *testing.T) {
-	// The redis configuration is not provided so we create a in-memory provider.
+func TestShouldCreateRedisSessionProviderTLS(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = testDomain
 	configuration.Name = testName
@@ -40,9 +40,14 @@ func TestShouldCreateRedisSessionProvider(t *testing.T) {
 		Host:     "redis.example.com",
 		Port:     6379,
 		Password: "pass",
+		TLS: &schema.TLSConfig{
+			ServerName:     "redis.fqdn.example.com",
+			MinimumVersion: "TLS1.3",
+		},
 	}
 	providerConfig := NewProviderConfig(configuration, nil)
 
+	assert.Nil(t, providerConfig.redisSentinelConfig)
 	assert.Equal(t, "my_session", providerConfig.config.CookieName)
 	assert.Equal(t, testDomain, providerConfig.config.Domain)
 	assert.Equal(t, true, providerConfig.config.Secure)
@@ -56,10 +61,97 @@ func TestShouldCreateRedisSessionProvider(t *testing.T) {
 	assert.Equal(t, "pass", pConfig.Password)
 	// DbNumber is the fasthttp/session property for the Redis DB Index
 	assert.Equal(t, 0, pConfig.DB)
+	assert.Equal(t, 0, pConfig.PoolSize)
+	assert.Equal(t, 0, pConfig.MinIdleConns)
+
+	require.NotNil(t, pConfig.TLSConfig)
+	require.Equal(t, uint16(tls.VersionTLS13), pConfig.TLSConfig.MinVersion)
+	require.Equal(t, "redis.fqdn.example.com", pConfig.TLSConfig.ServerName)
+	require.False(t, pConfig.TLSConfig.InsecureSkipVerify)
+}
+
+func TestShouldCreateRedisSessionProvider(t *testing.T) {
+	configuration := schema.SessionConfiguration{}
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
+	configuration.Redis = &schema.RedisSessionConfiguration{
+		Host:     "redis.example.com",
+		Port:     6379,
+		Password: "pass",
+	}
+	providerConfig := NewProviderConfig(configuration, nil)
+
+	assert.Nil(t, providerConfig.redisSentinelConfig)
+	assert.Equal(t, "my_session", providerConfig.config.CookieName)
+	assert.Equal(t, testDomain, providerConfig.config.Domain)
+	assert.Equal(t, true, providerConfig.config.Secure)
+	assert.Equal(t, time.Duration(40)*time.Second, providerConfig.config.Expiration)
+	assert.True(t, providerConfig.config.IsSecureFunc(nil))
+
+	assert.Equal(t, "redis", providerConfig.providerName)
+
+	pConfig := providerConfig.redisConfig
+	assert.Equal(t, "redis.example.com:6379", pConfig.Addr)
+	assert.Equal(t, "pass", pConfig.Password)
+	// DbNumber is the fasthttp/session property for the Redis DB Index
+	assert.Equal(t, 0, pConfig.DB)
+	assert.Equal(t, 0, pConfig.PoolSize)
+	assert.Equal(t, 0, pConfig.MinIdleConns)
+
+	assert.Nil(t, pConfig.TLSConfig)
+}
+
+func TestShouldCreateRedisSentinelSessionProvider(t *testing.T) {
+	configuration := schema.SessionConfiguration{}
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
+	configuration.Redis = &schema.RedisSessionConfiguration{
+		Host:                     "redis.example.com",
+		Port:                     26379,
+		Password:                 "pass",
+		MaximumActiveConnections: 8,
+		MinimumIdleConnections:   2,
+		HighAvailability: &schema.RedisHighAvailabilityConfiguration{
+			SentinelName:     "mysent",
+			SentinelPassword: "mypass",
+			Nodes: []schema.RedisNode{
+				{
+					Host: "redis2.example.com",
+					Port: 26379,
+				},
+			},
+		},
+	}
+	providerConfig := NewProviderConfig(configuration, nil)
+
+	assert.Nil(t, providerConfig.redisConfig)
+	assert.Equal(t, "my_session", providerConfig.config.CookieName)
+	assert.Equal(t, testDomain, providerConfig.config.Domain)
+	assert.Equal(t, true, providerConfig.config.Secure)
+	assert.Equal(t, time.Duration(40)*time.Second, providerConfig.config.Expiration)
+	assert.True(t, providerConfig.config.IsSecureFunc(nil))
+
+	assert.Equal(t, "redis-sentinel", providerConfig.providerName)
+
+	pConfig := providerConfig.redisSentinelConfig
+	assert.Equal(t, "redis.example.com:26379", pConfig.SentinelAddrs[0])
+	assert.Equal(t, "redis2.example.com:26379", pConfig.SentinelAddrs[1])
+	assert.Equal(t, "pass", pConfig.Password)
+	assert.Equal(t, "mysent", pConfig.MasterName)
+	assert.Equal(t, "mypass", pConfig.SentinelPassword)
+	assert.False(t, pConfig.RouteRandomly)
+	assert.False(t, pConfig.RouteByLatency)
+	assert.Equal(t, 8, pConfig.PoolSize)
+	assert.Equal(t, 2, pConfig.MinIdleConns)
+
+	// DbNumber is the fasthttp/session property for the Redis DB Index
+	assert.Equal(t, 0, pConfig.DB)
+	assert.Nil(t, pConfig.TLSConfig)
 }
 
 func TestShouldCreateRedisSessionProviderWithUnixSocket(t *testing.T) {
-	// The redis configuration is not provided so we create a in-memory provider.
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = testDomain
 	configuration.Name = testName
@@ -69,7 +161,10 @@ func TestShouldCreateRedisSessionProviderWithUnixSocket(t *testing.T) {
 		Port:     0,
 		Password: "pass",
 	}
+
 	providerConfig := NewProviderConfig(configuration, nil)
+
+	assert.Nil(t, providerConfig.redisSentinelConfig)
 
 	assert.Equal(t, "my_session", providerConfig.config.CookieName)
 	assert.Equal(t, testDomain, providerConfig.config.Domain)
@@ -84,6 +179,7 @@ func TestShouldCreateRedisSessionProviderWithUnixSocket(t *testing.T) {
 	assert.Equal(t, "pass", pConfig.Password)
 	// DbNumber is the fasthttp/session property for the Redis DB Index
 	assert.Equal(t, 0, pConfig.DB)
+	assert.Nil(t, pConfig.TLSConfig)
 }
 
 func TestShouldSetDbNumber(t *testing.T) {
@@ -97,7 +193,11 @@ func TestShouldSetDbNumber(t *testing.T) {
 		Password:      "pass",
 		DatabaseIndex: 5,
 	}
+
 	providerConfig := NewProviderConfig(configuration, nil)
+
+	assert.Nil(t, providerConfig.redisSentinelConfig)
+
 	assert.Equal(t, "redis", providerConfig.providerName)
 	pConfig := providerConfig.redisConfig
 	// DbNumber is the fasthttp/session property for the Redis DB Index

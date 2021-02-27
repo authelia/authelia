@@ -52,7 +52,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 			tlsConfig = utils.NewTLSConfig(configuration.Redis.TLS, tls.VersionTLS12, certPool)
 		}
 
-		if configuration.Redis.HighAvailability != nil {
+		if configuration.Redis.HighAvailability != nil && configuration.Redis.HighAvailability.SentinelName != "" {
 			nodes := make([]string, 0)
 
 			if configuration.Redis.Host != "" {
