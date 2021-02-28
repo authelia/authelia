@@ -77,36 +77,52 @@ func ValidateRules(configuration schema.AccessControlConfiguration, validator *s
 			validator.Push(fmt.Errorf("Policy [%s] for domain: %s is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'", r.Policy, r.Domains))
 		}
 
-		for _, network := range r.Networks {
-			if !IsNetworkValid(network) {
-				if !IsNetworkGroupValid(configuration, network) {
-					validator.Push(fmt.Errorf("Network %s for domain: %s is not a valid network or network group", r.Networks, r.Domains))
-				}
-			}
-		}
+		validateNetworks(r, configuration, validator)
 
-		for _, resource := range r.Resources {
-			if err := IsResourceValid(resource); err != nil {
-				validator.Push(fmt.Errorf("Resource %s for domain: %s is invalid, %s", r.Resources, r.Domains, err))
-			}
-		}
+		validateResources(r, validator)
 
-		for _, subjectRule := range r.Subjects {
-			for _, subject := range subjectRule {
-				if !IsSubjectValid(subject) {
-					validator.Push(fmt.Errorf("Subject %s for domain: %s is invalid, must start with 'user:' or 'group:'", subjectRule, r.Domains))
-				}
-			}
-		}
+		validateSubjects(r, validator)
 
-		for _, method := range r.Methods {
-			if !utils.IsStringInSliceFold(method, validRequestMethods) {
-				validator.Push(fmt.Errorf("Method %s for domain: %s is invalid, must be one of the following methods: %s", method, r.Domains, strings.Join(validRequestMethods, ", ")))
-			}
-		}
+		validateMethods(r, validator)
 
 		if r.Policy == bypassPolicy && len(r.Subjects) != 0 {
 			validator.Push(fmt.Errorf(errFmtAccessControlInvalidPolicyWithSubjects, r.Domains, r.Subjects))
+		}
+	}
+}
+
+func validateNetworks(r schema.ACLRule, configuration schema.AccessControlConfiguration, validator *schema.StructValidator) {
+	for _, network := range r.Networks {
+		if !IsNetworkValid(network) {
+			if !IsNetworkGroupValid(configuration, network) {
+				validator.Push(fmt.Errorf("Network %s for domain: %s is not a valid network or network group", r.Networks, r.Domains))
+			}
+		}
+	}
+}
+
+func validateResources(r schema.ACLRule, validator *schema.StructValidator) {
+	for _, resource := range r.Resources {
+		if err := IsResourceValid(resource); err != nil {
+			validator.Push(fmt.Errorf("Resource %s for domain: %s is invalid, %s", r.Resources, r.Domains, err))
+		}
+	}
+}
+
+func validateSubjects(r schema.ACLRule, validator *schema.StructValidator) {
+	for _, subjectRule := range r.Subjects {
+		for _, subject := range subjectRule {
+			if !IsSubjectValid(subject) {
+				validator.Push(fmt.Errorf("Subject %s for domain: %s is invalid, must start with 'user:' or 'group:'", subjectRule, r.Domains))
+			}
+		}
+	}
+}
+
+func validateMethods(r schema.ACLRule, validator *schema.StructValidator) {
+	for _, method := range r.Methods {
+		if !utils.IsStringInSliceFold(method, validRequestMethods) {
+			validator.Push(fmt.Errorf("Method %s for domain: %s is invalid, must be one of the following methods: %s", method, r.Domains, strings.Join(validRequestMethods, ", ")))
 		}
 	}
 }
