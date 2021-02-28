@@ -56,7 +56,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 			nodes := make([]string, 0)
 
 			if configuration.Redis.Host != "" {
-				nodes = []string{fmt.Sprintf("%s:%d", configuration.Redis.Host, configuration.Redis.Port)}
+				nodes = append(nodes, fmt.Sprintf("%s:%d", configuration.Redis.Host, configuration.Redis.Port))
 			}
 
 			for _, addr := range configuration.Redis.HighAvailability.Nodes {

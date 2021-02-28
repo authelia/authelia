@@ -89,7 +89,7 @@ session:
       sentinel_password: sentinel_specific_pass
 
       # The additional nodes to pre-seed the redis provider with (for sentinel).
-      # If not provided is seeded from the host/port combination.
+      # The first node in this list will always be the one in session.redis.host/port if specified. 
       nodes:
         - host: sentinel-node1
           port: 6379
@@ -123,3 +123,8 @@ host: "[fd00:1111:2222:3333::1]"
 ## Loading a password from a secret instead of inside the configuration
 
 Password can also be defined using a [secret](../secrets.md).
+
+## Redis Sentinel
+
+When using Redis Sentinel, the host specified in the main redis section is added (it will be the first node) to the 
+nodes in the high availability section. This however is optional.

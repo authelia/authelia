@@ -400,7 +400,7 @@ session:
       # sentinel_password: sentinel_specific_pass
 
       # The additional nodes to pre-seed the redis provider with (for sentinel).
-      # If not provided is seeded from the host/port combination.
+      # The first node in this list will always be the one in session.redis.host/port if specified.
       # nodes:
       #   - host: sentinel-node1
       #     port: 6379
