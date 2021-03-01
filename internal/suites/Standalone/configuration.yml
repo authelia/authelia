@@ -43,6 +43,11 @@ access_control:
       policy: two_factor
 
     - domain: dev.example.com
+      policy: bypass
+      methods:
+        - OPTIONS
+
+    - domain: dev.example.com
       resources:
         - "^/users/john/.*$"
       subject: "user:john"

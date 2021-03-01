@@ -103,6 +103,32 @@ func NewStandaloneSuite() *StandaloneSuite {
 	return &StandaloneSuite{}
 }
 
+func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify", AutheliaBaseURL), nil)
+	s.Assert().NoError(err)
+	req.Header.Set("X-Forwarded-Method", "OPTIONS")
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Host", fmt.Sprintf("dev.%s", BaseDomain))
+	req.Header.Set("X-Forwarded-URI", "/")
+
+	client := NewHTTPClient()
+	res, err := client.Do(req)
+	s.Assert().NoError(err)
+	s.Assert().Equal(res.StatusCode, 200)
+
+	req.Header.Set("X-Forwarded-Method", "GET")
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Host", fmt.Sprintf("dev.%s", BaseDomain))
+	req.Header.Set("X-Forwarded-URI", "/")
+
+	res, err = client.Do(req)
+	s.Assert().NoError(err)
+	s.Assert().Equal(res.StatusCode, 401)
+	body, err := ioutil.ReadAll(res.Body)
+	s.Assert().NoError(err)
+	s.Assert().Equal(string(body), "Unauthorized")
+}
+
 // Standard case using nginx.
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorize() {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify", AutheliaBaseURL), nil)
