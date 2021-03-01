@@ -44,6 +44,26 @@ var validKeys = []string{
 	"session.redis.password",
 	"session.redis.database_index",
 
+	// Memcache Session Keys.
+	"session.memcache",
+
+	// MySQL Session Keys.
+	"session.mysql.host",
+	"session.mysql.port",
+	"session.mysql.database",
+	"session.mysql.username",
+	"session.mysql.password",
+
+	// PostgreSQL Session Keys.
+	"session.postgres.host",
+	"session.postgres.port",
+	"session.postgres.database",
+	"session.postgres.username",
+	"session.postgres.password",
+
+	// Local Session Keys.
+	"session.local.path",
+
 	// Local Storage Keys.
 	"storage.local.path",
 

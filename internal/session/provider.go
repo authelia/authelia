@@ -5,8 +5,12 @@ import (
 	"time"
 
 	fasthttpsession "github.com/fasthttp/session/v2"
+	"github.com/fasthttp/session/v2/providers/memcache"
 	"github.com/fasthttp/session/v2/providers/memory"
+	"github.com/fasthttp/session/v2/providers/mysql"
+	"github.com/fasthttp/session/v2/providers/postgre"
 	"github.com/fasthttp/session/v2/providers/redis"
+	"github.com/fasthttp/session/v2/providers/sqlite3"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -42,12 +46,34 @@ func NewProvider(configuration schema.SessionConfiguration) *Provider {
 	provider.Inactivity = duration
 
 	var providerImpl fasthttpsession.Provider
-	if providerConfig.redisConfig != nil {
+
+	switch {
+	case providerConfig.redisConfig != nil:
 		providerImpl, err = redis.New(*providerConfig.redisConfig)
 		if err != nil {
 			panic(err)
 		}
-	} else {
+	case providerConfig.memcacheConfig != nil:
+		providerImpl, err = memcache.New(*providerConfig.memcacheConfig)
+		if err != nil {
+			panic(err)
+		}
+	case providerConfig.mysqlConfig != nil:
+		providerImpl, err = mysql.New(*providerConfig.mysqlConfig)
+		if err != nil {
+			panic(err)
+		}
+	case providerConfig.postgreConfig != nil:
+		providerImpl, err = postgre.New(*providerConfig.postgreConfig)
+		if err != nil {
+			panic(err)
+		}
+	case providerConfig.sqlite3Config != nil:
+		providerImpl, err = sqlite3.New(*providerConfig.sqlite3Config)
+		if err != nil {
+			panic(err)
+		}
+	default:
 		providerImpl, err = memory.New(memory.Config{})
 		if err != nil {
 			panic(err)

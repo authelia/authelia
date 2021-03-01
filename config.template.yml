@@ -362,6 +362,34 @@ session:
     # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     database_index: 0
 
+  # Settings to connect to Memcache servers
+  # memcache:
+  #  - host: 127.0.0.1
+  #    port: 6379
+
+  # Settings to connect to MySQL server
+  # mysql:
+  #   host: 127.0.0.1
+  #   port: 3306
+  #   database: authelia
+  #   username: authelia
+  #   # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+  #   password: mypassword
+
+  # Settings to connect to PostgreSQL server
+  # postgres:
+  #   host: 127.0.0.1
+  #   port: 5432
+  #   database: authelia
+  #   username: authelia
+  #   # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+  #   password: mypassword
+  #   sslmode: disable
+
+  # The directory where the DB files will be saved
+  ## local:
+  ##   path: /config/db.sqlite3
+
 # Configuration of the authentication regulation mechanism.
 #
 # This mechanism prevents attackers from brute forcing the first factor.

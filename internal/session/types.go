@@ -4,7 +4,11 @@ import (
 	"time"
 
 	"github.com/fasthttp/session/v2"
+	"github.com/fasthttp/session/v2/providers/memcache"
+	"github.com/fasthttp/session/v2/providers/mysql"
+	"github.com/fasthttp/session/v2/providers/postgre"
 	"github.com/fasthttp/session/v2/providers/redis"
+	"github.com/fasthttp/session/v2/providers/sqlite3"
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/internal/authentication"
@@ -12,9 +16,13 @@ import (
 
 // ProviderConfig is the configuration used to create the session provider.
 type ProviderConfig struct {
-	config       session.Config
-	redisConfig  *redis.Config
-	providerName string
+	config         session.Config
+	redisConfig    *redis.Config
+	memcacheConfig *memcache.Config
+	mysqlConfig    *mysql.Config
+	postgreConfig  *postgre.Config
+	sqlite3Config  *sqlite3.Config
+	providerName   string
 }
 
 // U2FRegistration is a serializable version of a U2F registration.
