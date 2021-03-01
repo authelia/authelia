@@ -118,8 +118,8 @@ func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
 	body, err := ioutil.ReadAll(res.Body)
 	s.Assert().NoError(err)
 
-	urlEncodedAdminURL := url.QueryEscape(AdminBaseURL)
-	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s&rm=GET", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
+	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
+	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
 
 	req.Header.Set("X-Forwarded-Method", "OPTIONS")
 
