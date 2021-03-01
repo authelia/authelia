@@ -36,16 +36,16 @@ access_control:
       policy: bypass
 
     - domain: secure.example.com
+      policy: bypass
+      methods:
+        - OPTIONS
+
+    - domain: secure.example.com
       policy: two_factor
 
     - domain: "*.example.com"
       subject: "group:admins"
       policy: two_factor
-
-    - domain: dev.example.com
-      policy: bypass
-      methods:
-        - OPTIONS
 
     - domain: dev.example.com
       resources:

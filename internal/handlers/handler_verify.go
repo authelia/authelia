@@ -248,21 +248,28 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	// endpoint to provide the URL of the login portal. The target URL of the user
 	// is computed from X-Forwarded-* headers or X-Original-URL.
 	rd := string(ctx.QueryArgs().Peek("rd"))
+	rm := string(method)
+
+	friendlyMethod := "unknown"
+
+	if rm != "" {
+		friendlyMethod = rm
+	}
+
 	if rd != "" {
 		redirectionURL := ""
 
-		rm := string(method)
 		if rm != "" {
 			redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), rm)
 		} else {
 			redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
 		}
 
-		ctx.Logger.Infof("Access to %s is not authorized to user %s, redirecting to %s", targetURL.String(), username, redirectionURL)
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, redirecting to %s", targetURL.String(), friendlyMethod, username, redirectionURL)
 		ctx.Redirect(redirectionURL, 302)
 		ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
 	} else {
-		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response", targetURL.String(), username)
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, sending 401 response", targetURL.String(), friendlyMethod, username)
 		ctx.ReplyUnauthorized()
 	}
 }
