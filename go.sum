@@ -79,8 +79,8 @@ github.com/duosecurity/duo_api_golang v0.0.0-20201112143038-0e07e9f869e3 h1:7/i/
 github.com/duosecurity/duo_api_golang v0.0.0-20201112143038-0e07e9f869e3/go.mod h1:jdoEJUIrTIxN7nNTwwqA3TBNcSM+W1lrWM6OXVhjbG8=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojtoVVWjGfOF9635RETekkoH6Cc9SX0A=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
-github.com/fasthttp/router v1.3.8 h1:2ByFINIskXMu8aim/JmZ8WPU7FD4FjaXdUE/tBoAgDI=
-github.com/fasthttp/router v1.3.8/go.mod h1:DQBvuHvYbn3SUN6pGjwjPbpCNpWfCFc5Ipn/Fj6XxFc=
+github.com/fasthttp/router v1.3.9 h1:/V71/6mBpH8oohAaR/DtBB4el6EETbNsBPBoCJZc4gc=
+github.com/fasthttp/router v1.3.9/go.mod h1:hKaPPZT9HWA/bEs1pSIbofAxZCLz3oPNTHtn/xqw6j0=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
@@ -326,8 +326,8 @@ github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdh
 github.com/savsgio/dictpool v0.0.0-20210105101557-9da1bc2fbfce h1:PRDREQ3VGiocUySEdKYQpwdyxDx+e4uKdjVaQvwIR5I=
 github.com/savsgio/dictpool v0.0.0-20210105101557-9da1bc2fbfce/go.mod h1:TNr2IIMnYd9/KYEpTVHVrnfmjizlKPTSgkWUbjyof+A=
 github.com/savsgio/gotils v0.0.0-20210105085219-0567298fdcac/go.mod h1:TWNAOTaVzGOXq8RbEvHnhzA/A2sLZzgn0m6URjnukY8=
-github.com/savsgio/gotils v0.0.0-20210217112953-d4a072536008 h1:GfiZ0x43l1tOeyam9RAlJaUkxPwGRz3bIbmtyfTZIWY=
-github.com/savsgio/gotils v0.0.0-20210217112953-d4a072536008/go.mod h1:TWNAOTaVzGOXq8RbEvHnhzA/A2sLZzgn0m6URjnukY8=
+github.com/savsgio/gotils v0.0.0-20210225112730-595c7e5a8a7a h1:9AQ3IfP72fCdbYAJNNwovzXrarhaWtxosEuN1fpent0=
+github.com/savsgio/gotils v0.0.0-20210225112730-595c7e5a8a7a/go.mod h1:TWNAOTaVzGOXq8RbEvHnhzA/A2sLZzgn0m6URjnukY8=
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
 github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24/go.mod h1:M+9NzErvs504Cn4c5DxATwIqPbtswREoFCre64PpcG4=
 github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc h1:jUIKcSPO9MoMJBbEoyE/RJoE8vz7Mb8AjvifMMwSyvY=
@@ -384,7 +384,6 @@ github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31/go.mod h1:onvgF043R+l
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.19.0/go.mod h1:jjraHZVbKOXftJfsOYoAjaeygpj5hr8ermTRJNroD7A=
-github.com/valyala/fasthttp v1.21.0/go.mod h1:jjraHZVbKOXftJfsOYoAjaeygpj5hr8ermTRJNroD7A=
 github.com/valyala/fasthttp v1.22.0 h1:OpwH5KDOJ9cS2bq8fD+KfT4IrksK0llvkHf4MZx42jQ=
 github.com/valyala/fasthttp v1.22.0/go.mod h1:0mw2RjXGOzxf4NL2jni3gUQ7LfjjUSiG5sskOUUSEpU=
 github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a/go.mod h1:v3UYOV9WzVtRmSR+PDvWpU/qWl4Wa5LApYYX4ZtKbio=
