@@ -1,8 +1,9 @@
 version: '3'
 services:
   redis:
-    image: redis:4.0-alpine
-    command: redis-server --requirepass authelia
+    image: bitnami/redis:6.0-debian-10
+    environment:
+      - REDIS_PASSWORD=authelia
     ports:
       - "6379:6379"
     networks:

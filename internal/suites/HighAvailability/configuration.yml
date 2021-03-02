@@ -85,9 +85,30 @@ session:
   inactivity: 300 # 5 minutes
   domain: example.com
   redis:
-    host: redis
-    port: 6379
+    host: redis-sentinel-0
+    port: 26379
     password: authelia
+    high_availability:
+      # Sentinel Name / Master Name
+      sentinel_name: authelia
+
+      # Specific password for Redis Sentinel. The node username and password is configured above.
+      sentinel_password: authelia-sentinel
+
+      # The additional nodes to pre-seed the redis provider with (for sentinel).
+      # The first node in this list will always be the one in session.redis.host/port if specified.
+      nodes:
+        - host: redis-node-0
+          port: 6379
+        - host: redis-node-1
+          port: 6379
+        - host: redis-node-2
+          port: 6379
+      # Choose the host with the lowest latency.
+      # route_by_latency: false
+
+      # Choose the host randomly.
+    # route_randomly: false
   remember_me_duration: 1y
 
 regulation:
