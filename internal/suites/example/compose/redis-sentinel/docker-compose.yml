@@ -1,6 +1,7 @@
 version: '3'
 services:
   redis-node-0:
+    container_name: redis-node-0
     image: bitnami/redis:6.0-debian-10
     environment:
       - REDIS_REPLICATION_MODE=master
@@ -10,6 +11,7 @@ services:
     networks:
       - authelianet
   redis-node-1:
+    container_name: redis-node-1
     image: bitnami/redis:6.0-debian-10
     environment:
       - REDIS_REPLICATION_MODE=slave
@@ -21,6 +23,7 @@ services:
     networks:
       - authelianet
   redis-node-2:
+    container_name: redis-node-2
     image: bitnami/redis:6.0-debian-10
     environment:
       - REDIS_REPLICATION_MODE=slave
@@ -32,12 +35,48 @@ services:
     networks:
       - authelianet
   redis-sentinel-0:
+    container_name: redis-sentinel-0
     image: bitnami/redis-sentinel:6.0-debian-10
     environment:
       - REDIS_MASTER_SET=authelia
       - REDIS_MASTER_HOST=redis-node-0
       - REDIS_MASTER_PASSWORD=authelia
       - REDIS_SENTINEL_PASSWORD=authelia-sentinel
+      - REDIS_SENTINEL_QUORUM=2
+    depends_on:
+      - redis-node-0
+      - redis-node-1
+      - redis-node-2
+    expose:
+      - "26379"
+    networks:
+      - authelianet
+  redis-sentinel-1:
+    container_name: redis-sentinel-1
+    image: bitnami/redis-sentinel:6.0-debian-10
+    environment:
+      - REDIS_MASTER_SET=authelia
+      - REDIS_MASTER_HOST=redis-node-0
+      - REDIS_MASTER_PASSWORD=authelia
+      - REDIS_SENTINEL_PASSWORD=authelia-sentinel
+      - REDIS_SENTINEL_QUORUM=2
+    depends_on:
+      - redis-node-0
+      - redis-node-1
+      - redis-node-2
+    expose:
+      - "26379"
+    networks:
+      - authelianet
+  redis-sentinel-2:
+    container_name: redis-sentinel-2
+    image: bitnami/redis-sentinel:6.0-debian-10
+    environment:
+      - REDIS_MASTER_SET=authelia
+      - REDIS_MASTER_HOST=redis-node-0
+      - REDIS_MASTER_PASSWORD=authelia
+      - REDIS_SENTINEL_PASSWORD=authelia-sentinel
+      - REDIS_SENTINEL_QUORUM=2
     depends_on:
       - redis-node-0
       - redis-node-1
