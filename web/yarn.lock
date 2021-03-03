@@ -4125,16 +4125,16 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-chai@4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/chai/-/chai-4.3.0.tgz#5523a5faf7f819c8a92480d70a8cccbadacfc25f"
-  integrity sha512-/BFd2J30EcOwmdOgXvVsmM48l0Br0nmZPlO0uOW4XKh6kpsUumRXBgPV+IlaqFaqr9cYbeoZAM1Npx0i4A+aiA==
+chai@4.3.1:
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/chai/-/chai-4.3.1.tgz#6fc6af447610709818e5c45116207d60b8a49cfd"
+  integrity sha512-JClPZFGRcSl7X8dYzlCJY7v+X1fBA+9Y339Y8EqhBVfp0QC1hTnaf7nMfR+XZ74clkBC64b0iEw2cWKHt3EVqA==
   dependencies:
     assertion-error "^1.1.0"
     check-error "^1.0.2"
     deep-eql "^3.0.1"
     get-func-name "^2.0.0"
-    pathval "^1.1.0"
+    pathval "^1.1.1"
     type-detect "^4.0.5"
 
 chalk@2.4.2, chalk@^2.0.0, chalk@^2.4.1, chalk@^2.4.2:
@@ -9409,10 +9409,10 @@ path-type@^4.0.0:
   resolved "https://registry.yarnpkg.com/path-type/-/path-type-4.0.0.tgz#84ed01c0a7ba380afe09d90a8c180dcd9d03043b"
   integrity sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==
 
-pathval@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/pathval/-/pathval-1.1.0.tgz#b942e6d4bde653005ef6b71361def8727d0645e0"
-  integrity sha1-uULm1L3mUwBe9rcTYd74cn0GReA=
+pathval@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/pathval/-/pathval-1.1.1.tgz#8534e77a77ce7ac5a2512ea21e0fdb8fcf6c3d8d"
+  integrity sha512-Dp6zGqpTdETdR63lehJYPeIOqpiNBNtc7BpWSLrOje7UaIsE5aY92r/AunQA7rsXvet3lrJ3JnZX29UPTKXyKQ==
 
 pbkdf2@^3.0.3:
   version "3.1.0"
@@ -10421,10 +10421,10 @@ query-string@*:
     split-on-first "^1.0.0"
     strict-uri-encode "^2.0.0"
 
-query-string@6.14.0:
-  version "6.14.0"
-  resolved "https://registry.yarnpkg.com/query-string/-/query-string-6.14.0.tgz#0b7b7ca326f5facf10dd2d45d26645cd287f8c92"
-  integrity sha512-In3o+lUxlgejoVJgwEdYtdxrmlL0cQWJXj0+kkI7RWVo7hg5AhFtybeKlC9Dpgbr8eOC4ydpEh8017WwyfzqVQ==
+query-string@6.14.1:
+  version "6.14.1"
+  resolved "https://registry.yarnpkg.com/query-string/-/query-string-6.14.1.tgz#7ac2dca46da7f309449ba0f86b1fd28255b0c86a"
+  integrity sha512-XDxAeVmpfu1/6IjyT/gXHOl+S0vQ9owggJ30hhWKdHAsNPOcasn5o9BW0eejZqL2e4vMjhAxoW3jVHcD6mbcYw==
   dependencies:
     decode-uri-component "^0.2.0"
     filter-obj "^1.1.0"
