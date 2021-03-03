@@ -56,7 +56,6 @@ services:
       - "26379"
     volumes:
       - ./example/compose/redis/templates:/templates
-      - ./example/compose/redis/sentinel-users.acl:/data/sentinel-users.acl
       - ./example/compose/redis/entrypoint.sh:/entrypoint.sh
     networks:
       authelianet:
@@ -73,7 +72,6 @@ services:
       - "26379"
     volumes:
       - ./example/compose/redis/templates:/templates
-      - ./example/compose/redis/sentinel-users.acl:/data/sentinel-users.acl
       - ./example/compose/redis/entrypoint.sh:/entrypoint.sh
     networks:
       authelianet:
@@ -90,7 +88,6 @@ services:
       - "26379"
     volumes:
       - ./example/compose/redis/templates:/templates
-      - ./example/compose/redis/sentinel-users.acl:/data/sentinel-users.acl
       - ./example/compose/redis/entrypoint.sh:/entrypoint.sh
     networks:
       authelianet:

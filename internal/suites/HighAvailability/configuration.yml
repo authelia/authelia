@@ -89,7 +89,7 @@ session:
     password: redis-user-password
     high_availability:
       sentinel_name: authelia
-      sentinel_password: sentinel sentinel-user-password
+      sentinel_password: sentinel-server-password
       nodes:
         - host: 192.168.240.120
           port: 26379
