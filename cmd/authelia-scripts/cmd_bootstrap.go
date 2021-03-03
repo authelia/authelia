@@ -22,6 +22,7 @@ type HostEntry struct {
 var hostEntries = []HostEntry{
 	// For authelia backend.
 	{Domain: "authelia.example.com", IP: "192.168.240.50"},
+
 	// For common tests.
 	{Domain: "login.example.com", IP: "192.168.240.100"},
 	{Domain: "admin.example.com", IP: "192.168.240.100"},
@@ -34,14 +35,28 @@ var hostEntries = []HostEntry{
 	{Domain: "secure.example.com", IP: "192.168.240.100"},
 	{Domain: "mail.example.com", IP: "192.168.240.100"},
 	{Domain: "duo.example.com", IP: "192.168.240.100"},
+
 	// For Traefik suite.
 	{Domain: "traefik.example.com", IP: "192.168.240.100"},
+
 	// For HAProxy suite.
 	{Domain: "haproxy.example.com", IP: "192.168.240.100"},
+
 	// For testing network ACLs.
 	{Domain: "proxy-client1.example.com", IP: "192.168.240.201"},
 	{Domain: "proxy-client2.example.com", IP: "192.168.240.202"},
 	{Domain: "proxy-client3.example.com", IP: "192.168.240.203"},
+
+	// Redis Replicas
+	{Domain: "redis-node-0.example.com", IP: "192.168.240.210"},
+	{Domain: "redis-node-1.example.com", IP: "192.168.240.211"},
+	{Domain: "redis-node-2.example.com", IP: "192.168.240.212"},
+
+	// Redis Sentinel Replicas
+	{Domain: "redis-sentinel-0.example.com", IP: "192.168.240.220"},
+	{Domain: "redis-sentinel-1.example.com", IP: "192.168.240.221"},
+	{Domain: "redis-sentinel-2.example.com", IP: "192.168.240.222"},
+
 	// Kubernetes dashboard.
 	{Domain: "kubernetes.example.com", IP: "192.168.240.110"},
 }

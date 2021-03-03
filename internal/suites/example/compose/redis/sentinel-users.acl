@@ -1,0 +1,2 @@
+user authelia +@admin +@all ~* &* on >sentinel-user-password
+user sentinel +@admin +@all ~* &* on >sentinel-quorum-password

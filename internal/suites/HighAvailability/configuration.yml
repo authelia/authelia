@@ -85,10 +85,11 @@ session:
   inactivity: 300 # 5 minutes
   domain: example.com
   redis:
-    password: authelia
+    username: authelia
+    password: redis-user-password
     high_availability:
       sentinel_name: authelia
-      sentinel_password: authelia-sentinel
+      sentinel_password: sentinel-user-password
       nodes:
         - host: redis-sentinel-0
           port: 26379
