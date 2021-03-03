@@ -5,9 +5,9 @@ MODE=$1
 cp /templates/${MODE}.conf /data/redis.conf
 chown -R redis:redis /data
 
-if [ ${MODE} == "master" ] || [ ${MODE} == "slave" ]; then
+if [ "${MODE}" == "master" ] || [ "${MODE}" == "slave" ]; then
   redis-server /data/redis.conf
-elif [ ${MODE} == "sentinel" ]; then
+elif [ "${MODE}" == "sentinel" ]; then
   redis-server /data/redis.conf --sentinel
 else
   echo "invalid argument: entrypoint.sh [master|slave|sentinel]"
