@@ -3,8 +3,8 @@ services:
   redis-node-0:
     image: redis:6.2-alpine
     command: /entrypoint.sh master
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/users.acl:/data/users.acl
@@ -19,8 +19,8 @@ services:
     command: /entrypoint.sh slave
     depends_on:
       - redis-node-0
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/users.acl:/data/users.acl
@@ -35,8 +35,8 @@ services:
     command: /entrypoint.sh slave
     depends_on:
       - redis-node-0
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/users.acl:/data/users.acl
@@ -52,8 +52,8 @@ services:
     depends_on:
       - redis-node-1
       - redis-node-2
-    ports:
-      - "26379:26379"
+    expose:
+      - "26379"
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/sentinel-users.acl:/data/sentinel-users.acl
@@ -69,8 +69,8 @@ services:
     depends_on:
       - redis-node-1
       - redis-node-2
-    ports:
-      - "26379:26379"
+    expose:
+      - "26379"
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/sentinel-users.acl:/data/sentinel-users.acl
@@ -86,8 +86,8 @@ services:
     depends_on:
       - redis-node-1
       - redis-node-2
-    ports:
-      - "26379:26379"
+    expose:
+      - "26379"
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/sentinel-users.acl:/data/sentinel-users.acl
