@@ -86,7 +86,7 @@ func ValidateRules(configuration schema.AccessControlConfiguration, validator *s
 		validateMethods(r, validator)
 
 		if r.Policy == bypassPolicy && len(r.Subjects) != 0 {
-			validator.Push(fmt.Errorf(errFmtAccessControlInvalidPolicyWithSubjects, r.Domains, r.Subjects))
+			validator.Push(fmt.Errorf(errAccessControlInvalidPolicyWithSubjects, r.Domains, r.Subjects))
 		}
 	}
 }

@@ -191,4 +191,4 @@ const testModeDisabled = "disable"
 const testTLSCert = "/tmp/cert.pem"
 const testTLSKey = "/tmp/key.pem"
 
-const errFmtAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for domain %s with subjects %s is invalid. It is not supported to configure both policy bypass and subjects. For more information see: https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
+const errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for domain %s with subjects %s is invalid. It is not supported to configure both policy bypass and subjects. For more information see: https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"

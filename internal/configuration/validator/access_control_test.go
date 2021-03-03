@@ -152,7 +152,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 	suite.Require().Len(suite.validator.Errors(), 2)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "Subject [invalid] for domain: [public.example.com] is invalid, must start with 'user:' or 'group:'")
-	suite.Assert().EqualError(suite.validator.Errors()[1], fmt.Sprintf(errFmtAccessControlInvalidPolicyWithSubjects, domains, subjects))
+	suite.Assert().EqualError(suite.validator.Errors()[1], fmt.Sprintf(errAccessControlInvalidPolicyWithSubjects, domains, subjects))
 }
 
 func TestAccessControl(t *testing.T) {

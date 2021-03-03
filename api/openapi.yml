@@ -484,7 +484,7 @@ components:
     forwardedMethodParam:
       name: X-Forwarded-Method
       in: header
-      description: Request Method.
+      description: Request Method
       required: false
       style: simple
       explode: true
@@ -494,7 +494,7 @@ components:
     authParam:
       name: auth
       in: query
-      description: Switch authorization header and prompt for basic auth.
+      description: Switch authorization header and prompt for basic auth
       required: false
       schema:
         type: string
