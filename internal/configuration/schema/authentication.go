@@ -51,7 +51,7 @@ var DefaultPasswordConfiguration = PasswordConfiguration{
 	KeyLength:   32,
 	SaltLength:  16,
 	Algorithm:   argon2id,
-	Memory:      1024,
+	Memory:      64,
 	Parallelism: 8,
 }
 
@@ -61,7 +61,7 @@ var DefaultCIPasswordConfiguration = PasswordConfiguration{
 	KeyLength:   32,
 	SaltLength:  16,
 	Algorithm:   argon2id,
-	Memory:      128,
+	Memory:      64,
 	Parallelism: 8,
 }
 
