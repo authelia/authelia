@@ -91,11 +91,11 @@ session:
       sentinel_name: authelia
       sentinel_password: sentinel-user-password
       nodes:
-        - host: redis-sentinel-0
+        - host: redis-sentinel-0.example.com
           port: 26379
-        - host: redis-sentinel-1
+        - host: redis-sentinel-1.example.com
           port: 26379
-        - host: redis-sentinel-2
+        - host: redis-sentinel-2.example.com
           port: 26379
 
   remember_me_duration: 1y
