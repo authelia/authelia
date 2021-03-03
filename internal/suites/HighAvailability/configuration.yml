@@ -91,11 +91,11 @@ session:
       sentinel_name: authelia
       sentinel_password: sentinel-user-password
       nodes:
-        - host: 192.168.240.220
+        - host: 192.168.240.120
           port: 26379
-        - host: 192.168.240.221
+        - host: 192.168.240.121
           port: 26379
-        - host: 192.168.240.222
+        - host: 192.168.240.122
           port: 26379
 
   remember_me_duration: 1y

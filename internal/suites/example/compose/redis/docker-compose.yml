@@ -13,7 +13,7 @@ services:
       authelianet:
         aliases:
           - redis-node-0.example.com
-        ipv4_address: 192.168.240.210
+        ipv4_address: 192.168.240.110
   redis-node-1:
     image: redis:6.2-alpine
     command: /entrypoint.sh slave
@@ -29,7 +29,7 @@ services:
       authelianet:
         aliases:
           - redis-node-1.example.com
-        ipv4_address: 192.168.240.211
+        ipv4_address: 192.168.240.111
   redis-node-2:
     image: redis:6.2-alpine
     command: /entrypoint.sh slave
@@ -45,7 +45,7 @@ services:
       authelianet:
         aliases:
           - redis-node-2.example.com
-        ipv4_address: 192.168.240.212
+        ipv4_address: 192.168.240.112
   redis-sentinel-0:
     image: redis:6.2-alpine
     command: /entrypoint.sh sentinel
@@ -62,7 +62,7 @@ services:
       authelianet:
         aliases:
           - redis-sentinel-0.example.com
-        ipv4_address: 192.168.240.220
+        ipv4_address: 192.168.240.120
   redis-sentinel-1:
     image: redis:6.2-alpine
     command: /entrypoint.sh sentinel
@@ -79,7 +79,7 @@ services:
       authelianet:
         aliases:
           - redis-sentinel-1.example.com
-        ipv4_address: 192.168.240.221
+        ipv4_address: 192.168.240.121
   redis-sentinel-2:
     image: redis:6.2-alpine
     command: /entrypoint.sh sentinel
@@ -96,4 +96,4 @@ services:
       authelianet:
         aliases:
           - redis-sentinel-2.example.com
-        ipv4_address: 192.168.240.222
+        ipv4_address: 192.168.240.122
