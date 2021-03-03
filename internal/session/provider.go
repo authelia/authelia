@@ -8,7 +8,6 @@ import (
 	fasthttpsession "github.com/authelia/session/v2"
 	"github.com/authelia/session/v2/providers/memory"
 	"github.com/authelia/session/v2/providers/redis"
-	"github.com/authelia/session/v2/providers/redisfailover"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -52,7 +51,7 @@ func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertP
 			panic(err)
 		}
 	case providerConfig.redisSentinelConfig != nil:
-		providerImpl, err = redisfailover.New(*providerConfig.redisSentinelConfig)
+		providerImpl, err = redis.NewFailover(*providerConfig.redisSentinelConfig)
 		if err != nil {
 			panic(err)
 		}

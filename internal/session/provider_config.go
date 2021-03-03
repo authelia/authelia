@@ -7,7 +7,6 @@ import (
 
 	"github.com/authelia/session/v2"
 	"github.com/authelia/session/v2/providers/redis"
-	"github.com/authelia/session/v2/providers/redisfailover"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -37,7 +36,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 
 	var redisConfig *redis.Config
 
-	var redisSentinelConfig *redisfailover.Config
+	var redisSentinelConfig *redis.FailoverConfig
 
 	var providerName string
 
@@ -64,9 +63,9 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 			}
 
 			providerName = "redis-sentinel"
-			redisSentinelConfig = &redisfailover.Config{
+			redisSentinelConfig = &redis.FailoverConfig{
 				MasterName:       configuration.Redis.HighAvailability.SentinelName,
-				SentinelAddrs:    nodes,
+				Addrs:            nodes,
 				SentinelPassword: configuration.Redis.HighAvailability.SentinelPassword,
 				RouteByLatency:   configuration.Redis.HighAvailability.RouteByLatency,
 				RouteRandomly:    configuration.Redis.HighAvailability.RouteRandomly,

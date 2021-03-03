@@ -5,7 +5,6 @@ import (
 
 	"github.com/authelia/session/v2"
 	"github.com/authelia/session/v2/providers/redis"
-	"github.com/authelia/session/v2/providers/redisfailover"
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/internal/authentication"
@@ -15,7 +14,7 @@ import (
 type ProviderConfig struct {
 	config              session.Config
 	redisConfig         *redis.Config
-	redisSentinelConfig *redisfailover.Config
+	redisSentinelConfig *redis.FailoverConfig
 	providerName        string
 }
 
