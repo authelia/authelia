@@ -62,7 +62,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
 	s.verifyIsSecondFactorPage(ctx, s.T())
 }
 
-func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveAndFailoverWithPrimaryRedisFailure() {
+func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisFailure() {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
@@ -79,6 +79,8 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveAndFailo
 	}()
 
 	time.Sleep(6 * time.Second)
+
+	s.doLogout(ctx, s.T())
 
 	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
 	s.verifyIsSecondFactorPage(ctx, s.T())
