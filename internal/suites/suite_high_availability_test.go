@@ -118,6 +118,8 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.Require().NoError(err)
 	}()
 
+	time.Sleep(5 * time.Second)
+
 	s.doVisitLoginPage(ctx, s.T(), "")
 
 	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
