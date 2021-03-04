@@ -51,7 +51,7 @@ func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertP
 			panic(err)
 		}
 	case providerConfig.redisSentinelConfig != nil:
-		providerImpl, err = redis.NewFailover(*providerConfig.redisSentinelConfig)
+		providerImpl, err = redis.NewFailoverCluster(*providerConfig.redisSentinelConfig)
 		if err != nil {
 			panic(err)
 		}

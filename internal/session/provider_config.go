@@ -65,7 +65,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 			providerName = "redis-sentinel"
 			redisSentinelConfig = &redis.FailoverConfig{
 				MasterName:       configuration.Redis.HighAvailability.SentinelName,
-				Addrs:            nodes,
+				SentinelAddrs:    nodes,
 				SentinelPassword: configuration.Redis.HighAvailability.SentinelPassword,
 				RouteByLatency:   configuration.Redis.HighAvailability.RouteByLatency,
 				RouteRandomly:    configuration.Redis.HighAvailability.RouteRandomly,
