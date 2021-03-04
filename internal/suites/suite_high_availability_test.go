@@ -62,24 +62,19 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
 	s.verifyIsSecondFactorPage(ctx, s.T())
 }
 
-func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisFailure() {
+func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisSentinelFailure() {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
 	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
 
-	time.Sleep(2 * time.Second)
-
-	err := haDockerEnvironment.Stop("redis-node-0")
+	err := haDockerEnvironment.Stop("redis-sentinel-0")
 	s.Require().NoError(err)
 
 	defer func() {
-		err = haDockerEnvironment.Start("redis-node-0")
+		err = haDockerEnvironment.Start("redis-sentinel-0")
 		s.Require().NoError(err)
 	}()
-
-	time.Sleep(6 * time.Second)
-	s.verifyURLIs(ctx, s.T(), "")
 
 	s.doVisitLoginPage(ctx, s.T(), "")
 
