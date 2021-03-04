@@ -57,7 +57,7 @@ func init() {
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
-		TestTimeout:     5 * time.Minute,
+		TestTimeout:     6 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 		OnError:         displayAutheliaLogs,
