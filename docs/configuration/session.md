@@ -79,27 +79,28 @@ session:
       ## Minimum TLS version for the connection.
       minimum_version: TLS1.2
 
-    # The Redis HA configuration options.
-    # This provides specific options to Redis Sentinel, sentinel_name must be defined (Master Name).
+    ## The Redis HA configuration options.
+    ## This provides specific options to Redis Sentinel, sentinel_name must be defined (Master Name).
     high_availability:
-      # Sentinel Name / Master Name
+      ## Sentinel Name / Master Name
       sentinel_name: mysentinel
 
-      # Specific password for Redis Sentinel. The node username and password is configured above.
+      ## Specific password for Redis Sentinel. The node username and password is configured above.
       sentinel_password: sentinel_specific_pass
 
-      # The additional nodes to pre-seed the redis provider with (for sentinel).
-      # The first node in this list will always be the one in session.redis.host/port if specified. 
+      ## The additional nodes to pre-seed the redis provider with (for sentinel).
+      ## If the host in the above section is defined, it will be combined with this list to connect to sentinel.
+      ## Either the host above or one item in this list are required in order for high availability to be configured.
       nodes:
         - host: sentinel-node1
           port: 6379
         - host: sentinel-node2
           port: 6379
 
-      # Choose the host with the lowest latency.
+      ## Choose the host with the lowest latency.
       route_by_latency: false
 
-      # Choose the host randomly.
+      ## Choose the host randomly.
       route_randomly: false
 ```
 
