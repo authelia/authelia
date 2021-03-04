@@ -136,8 +136,8 @@ func TestShouldCreateRedisSentinelSessionProvider(t *testing.T) {
 	assert.Equal(t, "redis-sentinel", providerConfig.providerName)
 
 	pConfig := providerConfig.redisSentinelConfig
-	assert.Equal(t, "redis.example.com:26379", pConfig.Addrs[0])
-	assert.Equal(t, "redis2.example.com:26379", pConfig.Addrs[1])
+	assert.Equal(t, "redis.example.com:26379", pConfig.SentinelAddrs[0])
+	assert.Equal(t, "redis2.example.com:26379", pConfig.SentinelAddrs[1])
 	assert.Equal(t, "pass", pConfig.Password)
 	assert.Equal(t, "mysent", pConfig.MasterName)
 	assert.Equal(t, "mypass", pConfig.SentinelPassword)
