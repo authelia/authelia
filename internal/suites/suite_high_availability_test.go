@@ -71,6 +71,11 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveAndFailo
 	err := haDockerEnvironment.Stop("redis-node-0")
 	s.Require().NoError(err)
 
+	defer func() {
+		err = haDockerEnvironment.Start("redis-node-0")
+		s.Require().NoError(err)
+	}()
+
 	time.Sleep(5 * time.Second)
 
 	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
@@ -89,9 +94,6 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveAndFailo
 
 	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, fmt.Sprintf("%s/secret.html", SecureBaseURL))
 	s.verifySecretAuthorized(ctx, s.T())
-
-	err = haDockerEnvironment.Restart("redis-node-0")
-	s.Require().NoError(err)
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
