@@ -62,7 +62,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
 	s.verifyIsSecondFactorPage(ctx, s.T())
 }
 
-func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisSentinelFailure() {
+func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisSentinelFailureAndSecondaryRedisNodeFailure() {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
@@ -73,6 +73,14 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 
 	defer func() {
 		err = haDockerEnvironment.Start("redis-sentinel-0")
+		s.Require().NoError(err)
+	}()
+
+	err = haDockerEnvironment.Stop("redis-node-2")
+	s.Require().NoError(err)
+
+	defer func() {
+		err = haDockerEnvironment.Start("redis-node-2")
 		s.Require().NoError(err)
 	}()
 
