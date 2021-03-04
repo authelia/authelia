@@ -79,8 +79,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	}()
 
 	time.Sleep(6 * time.Second)
-
-	s.doLogout(ctx, s.T())
+	s.doVisitLoginPage(ctx, s.T(), "")
 
 	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
 	s.verifyIsSecondFactorPage(ctx, s.T())
