@@ -103,6 +103,9 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 
 	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
 
+	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
+	s.verifyIsSecondFactorPage(ctx, s.T())
+
 	err := haDockerEnvironment.Stop("redis-sentinel-0")
 	s.Require().NoError(err)
 
@@ -119,12 +122,8 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.Require().NoError(err)
 	}()
 
-	time.Sleep(5 * time.Second)
-
-	s.doVisitLoginPage(ctx, s.T(), "")
-
-	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
-	s.verifyIsSecondFactorPage(ctx, s.T())
+	// Allow fail over to occur.
+	time.Sleep(3 * time.Second)
 
 	s.doVisit(s.T(), HomeBaseURL)
 	s.verifyIsHome(ctx, s.T())
