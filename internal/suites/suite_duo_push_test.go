@@ -2,6 +2,7 @@ package suites
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"testing"
 	"time"
@@ -51,6 +52,23 @@ func (s *DuoPushWebDriverSuite) TearDownTest() {
 	s.verifyIsSecondFactorPage(ctx, s.T())
 	s.doChangeMethod(ctx, s.T(), "one-time-password")
 	s.WaitElementLocatedByID(ctx, s.T(), "one-time-password-method")
+}
+
+func (s *DuoPushWebDriverSuite) TestShouldKeepSessionAfterRedisRestart() {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	ConfigureDuo(s.T(), Allow)
+
+	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
+	s.doChangeMethod(ctx, s.T(), "push-notification")
+	s.verifyIsHome(ctx, s.T())
+
+	err := duoDockerEnvironment.Restart("redis")
+	s.Require().NoError(err)
+
+	s.doVisit(s.T(), fmt.Sprintf("%s/secret.html", SecureBaseURL))
+	s.verifySecretAuthorized(ctx, s.T())
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldSucceedAuthentication() {
