@@ -24,9 +24,9 @@ access in desired situations. Examples include denying access to an API that has
 
 ### bypass
 
-This policy skips all authentication and allows anyone to use the resource. This policy has little to no effect
-when used with a rule that also has a subject defined, just because the minimum authentication level required
-to obtain information about the subject is [one_factor](#one_factor)
+This policy skips all authentication and allows anyone to use the resource. This policy is not available with a rule
+that includes a [subject](#Subjects) restriction because the minimum authentication level required to obtain information 
+about the subject is [one_factor](#one_factor).
 
 ### one_factor
 
