@@ -19,10 +19,11 @@
     <span class="kn">proxy_set_header</span> <span class="s">Host</span> <span class="nv">$host</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Original-URL</span> <span class="nv">$scheme</span><span class="p">:</span><span class="n">//</span><span class="nv">$http_host$request_uri</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Real-IP</span> <span class="nv">$remote_addr</span><span class="p">;</span>
-    <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-For</span> <span class="nv">$remote_addr</span><span class="p">;</span>
+    <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-Method</span> <span class="nv">$request_method</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-Proto</span> <span class="nv">$scheme</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-Host</span> <span class="nv">$http_host</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-Uri</span> <span class="nv">$request_uri</span><span class="p">;</span>
+    <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-For</span> <span class="nv">$remote_addr</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-Ssl</span> <span class="no">on</span><span class="p">;</span>
     <span class="kn">proxy_redirect</span>  <span class="s">http://</span>  <span class="nv">$scheme</span><span class="p">:</span><span class="n">//</span><span class="p">;</span>
     <span class="kn">proxy_http_version</span> <span class="mi">1</span><span class="s">.1</span><span class="p">;</span>
@@ -150,10 +151,11 @@
     <span class="kn">proxy_set_header</span> <span class="s">Host</span> <span class="nv">$host</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Original-URL</span> <span class="nv">$scheme</span><span class="p">:</span><span class="n">//</span><span class="nv">$http_host$request_uri</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Real-IP</span> <span class="nv">$remote_addr</span><span class="p">;</span>
-    <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-For</span> <span class="nv">$remote_addr</span><span class="p">;</span>
+    <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-Method</span> <span class="nv">$request_method</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-Proto</span> <span class="nv">$scheme</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-Host</span> <span class="nv">$http_host</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-Uri</span> <span class="nv">$request_uri</span><span class="p">;</span>
+    <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-For</span> <span class="nv">$remote_addr</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-Ssl</span> <span class="no">on</span><span class="p">;</span>
     <span class="kn">proxy_redirect</span>  <span class="s">http://</span>  <span class="nv">$scheme</span><span class="p">:</span><span class="n">//</span><span class="p">;</span>
     <span class="kn">proxy_http_version</span> <span class="mi">1</span><span class="s">.1</span><span class="p">;</span>
