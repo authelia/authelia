@@ -98,12 +98,14 @@ func parseBasicAuth(header, auth string) (username, password string, err error) 
 
 // isTargetURLAuthorized check whether the given user is authorized to access the resource.
 func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.URL,
-	username string, userGroups []string, clientIP net.IP, authLevel authentication.Level) authorizationMatching {
-	level := authorizer.GetRequiredLevel(authorization.Subject{
-		Username: username,
-		Groups:   userGroups,
-		IP:       clientIP,
-	}, targetURL)
+	username string, userGroups []string, clientIP net.IP, method []byte, authLevel authentication.Level) authorizationMatching {
+	level := authorizer.GetRequiredLevel(
+		authorization.Subject{
+			Username: username,
+			Groups:   userGroups,
+			IP:       clientIP,
+		},
+		authorization.NewObjectRaw(&targetURL, method))
 
 	switch {
 	case level == authorization.Bypass:
@@ -233,7 +235,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, userSession.AuthenticationLevel, nil
 }
 
-func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string) {
+func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string, method []byte) {
 	if isBasicAuth {
 		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response with basic auth header", targetURL.String(), username)
 		ctx.ReplyUnauthorized()
@@ -246,17 +248,28 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	// endpoint to provide the URL of the login portal. The target URL of the user
 	// is computed from X-Forwarded-* headers or X-Original-URL.
 	rd := string(ctx.QueryArgs().Peek("rd"))
+	rm := string(method)
+
+	friendlyMethod := "unknown"
+
+	if rm != "" {
+		friendlyMethod = rm
+	}
+
 	if rd != "" {
-		redirectionURL := fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
-		if strings.Contains(redirectionURL, "/%23/") {
-			ctx.Logger.Warn("Characters /%23/ have been detected in redirection URL. This is not needed anymore, please strip it")
+		redirectionURL := ""
+
+		if rm != "" {
+			redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), rm)
+		} else {
+			redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
 		}
 
-		ctx.Logger.Infof("Access to %s is not authorized to user %s, redirecting to %s", targetURL.String(), username, redirectionURL)
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, redirecting to %s", targetURL.String(), friendlyMethod, username, redirectionURL)
 		ctx.Redirect(redirectionURL, 302)
 		ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
 	} else {
-		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response", targetURL.String(), username)
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, sending 401 response", targetURL.String(), friendlyMethod, username)
 		ctx.ReplyUnauthorized()
 	}
 }
@@ -475,6 +488,8 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 
 		isBasicAuth, username, name, groups, emails, authLevel, err := verifyAuth(ctx, targetURL, refreshProfile, refreshProfileInterval)
 
+		method := ctx.XForwardedMethod()
+
 		if err != nil {
 			ctx.Logger.Error(fmt.Sprintf("Error caught when verifying user authorization: %s", err))
 
@@ -483,20 +498,20 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 				return
 			}
 
-			handleUnauthorized(ctx, targetURL, isBasicAuth, username)
+			handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
 
 			return
 		}
 
-		authorization := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
-			groups, ctx.RemoteIP(), authLevel)
+		authorized := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
+			groups, ctx.RemoteIP(), method, authLevel)
 
-		switch authorization {
+		switch authorized {
 		case Forbidden:
 			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 			ctx.ReplyForbidden()
 		case NotAuthorized:
-			handleUnauthorized(ctx, targetURL, isBasicAuth, username)
+			handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
 		case Authorized:
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
 		}

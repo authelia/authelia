@@ -1,5 +1,7 @@
 package validator
 
+var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+
 var validKeys = []string{
 	// Root Keys.
 	"host",
@@ -170,6 +172,7 @@ var specificErrorKeys = map[string]string{
 }
 
 const denyPolicy = "deny"
+const bypassPolicy = "bypass"
 
 const argon2id = "argon2id"
 const sha512 = "sha512"
@@ -187,3 +190,5 @@ const testLDAPUser = "user"
 const testModeDisabled = "disable"
 const testTLSCert = "/tmp/cert.pem"
 const testTLSKey = "/tmp/key.pem"
+
+const errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for domain %s with subjects %s is invalid. It is not supported to configure both policy bypass and subjects. For more information see: https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"

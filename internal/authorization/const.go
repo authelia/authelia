@@ -13,3 +13,6 @@ const (
 	// Denied denied level.
 	Denied Level = iota
 )
+
+const userPrefix = "user:"
+const groupPrefix = "group:"
