@@ -22,11 +22,6 @@ session:
   expiration: 3600 # 1 hour
   inactivity: 300 # 5 minutes
   remember_me_duration: 1y
-  redis:
-    host: redis
-    port: 6379
-    username: authelia
-    password: redis-user-password
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:

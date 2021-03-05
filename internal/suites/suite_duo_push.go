@@ -7,35 +7,34 @@ import (
 
 var duoPushSuiteName = "DuoPush"
 
-var duoDockerEnvironment = NewDockerEnvironment([]string{
-	"internal/suites/docker-compose.yml",
-	"internal/suites/DuoPush/docker-compose.yml",
-	"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
-	"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
-	"internal/suites/example/compose/redis/docker-compose.yml",
-	"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-	"internal/suites/example/compose/nginx/portal/docker-compose.yml",
-	"internal/suites/example/compose/duo-api/docker-compose.yml",
-})
-
 func init() {
+	dockerEnvironment := NewDockerEnvironment([]string{
+		"internal/suites/docker-compose.yml",
+		"internal/suites/DuoPush/docker-compose.yml",
+		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
+		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
+		"internal/suites/example/compose/nginx/portal/docker-compose.yml",
+		"internal/suites/example/compose/duo-api/docker-compose.yml",
+	})
+
 	setup := func(suitePath string) error {
-		if err := duoDockerEnvironment.Up(); err != nil {
+		if err := dockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(duoDockerEnvironment, duoPushSuiteName)
+		return waitUntilAutheliaIsReady(dockerEnvironment, duoPushSuiteName)
 	}
 
 	displayAutheliaLogs := func() error {
-		backendLogs, err := duoDockerEnvironment.Logs("authelia-backend", nil)
+		backendLogs, err := dockerEnvironment.Logs("authelia-backend", nil)
 		if err != nil {
 			return err
 		}
 
 		fmt.Println(backendLogs)
 
-		frontendLogs, err := duoDockerEnvironment.Logs("authelia-frontend", nil)
+		frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
 		if err != nil {
 			return err
 		}
@@ -46,7 +45,7 @@ func init() {
 	}
 
 	teardown := func(suitePath string) error {
-		return duoDockerEnvironment.Down()
+		return dockerEnvironment.Down()
 	}
 
 	GlobalRegistry.Register(duoPushSuiteName, Suite{
