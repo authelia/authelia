@@ -89,7 +89,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.doVisit(s.T(), GetLoginBaseURL())
 	s.verifyIsSecondFactorPage(ctx, s.T())
 
-	// Then logout and login again to check the secret is still there
+	// Then logout and login again to check we can see the secret.
 	s.doLogout(ctx, s.T())
 	s.verifyIsFirstFactorPage(ctx, s.T())
 
@@ -131,13 +131,6 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	// Verify the user is still authenticated
 	s.doVisit(s.T(), GetLoginBaseURL())
 	s.verifyIsSecondFactorPage(ctx, s.T())
-
-	// Then logout and login again to check the secret is still there
-	s.doLogout(ctx, s.T())
-	s.verifyIsFirstFactorPage(ctx, s.T())
-
-	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, fmt.Sprintf("%s/secret.html", SecureBaseURL))
-	s.verifySecretAuthorized(ctx, s.T())
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
