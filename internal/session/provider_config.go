@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"strings"
 
 	"github.com/authelia/session/v2"
 	"github.com/authelia/session/v2/providers/redis"
@@ -52,20 +53,23 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 		}
 
 		if configuration.Redis.HighAvailability != nil && configuration.Redis.HighAvailability.SentinelName != "" {
-			nodes := make([]string, 0)
+			addrs := make([]string, 0)
 
 			if configuration.Redis.Host != "" {
-				nodes = append(nodes, fmt.Sprintf("%s:%d", configuration.Redis.Host, configuration.Redis.Port))
+				addrs = append(addrs, fmt.Sprintf("%s:%d", strings.ToLower(configuration.Redis.Host), configuration.Redis.Port))
 			}
 
-			for _, addr := range configuration.Redis.HighAvailability.Nodes {
-				nodes = append(nodes, fmt.Sprintf("%s:%d", addr.Host, addr.Port))
+			for _, node := range configuration.Redis.HighAvailability.Nodes {
+				addr := fmt.Sprintf("%s:%d", strings.ToLower(node.Host), node.Port)
+				if !utils.IsStringInSlice(addr, addrs) {
+					addrs = append(addrs, addr)
+				}
 			}
 
 			providerName = "redis-sentinel"
 			redisSentinelConfig = &redis.FailoverConfig{
 				MasterName:       configuration.Redis.HighAvailability.SentinelName,
-				SentinelAddrs:    nodes,
+				SentinelAddrs:    addrs,
 				SentinelPassword: configuration.Redis.HighAvailability.SentinelPassword,
 				RouteByLatency:   configuration.Redis.HighAvailability.RouteByLatency,
 				RouteRandomly:    configuration.Redis.HighAvailability.RouteRandomly,

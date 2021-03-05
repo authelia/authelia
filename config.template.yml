@@ -377,7 +377,7 @@ session:
     ## The target number of idle connections to have open ready for work. Useful when opening connections is slow.
     minimum_idle_connections: 0
 
-    # The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
+    ## The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
     # tls:
       ## Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
       # server_name: myredis.example.com
@@ -401,7 +401,7 @@ session:
 
       ## The additional nodes to pre-seed the redis provider with (for sentinel).
       ## If the host in the above section is defined, it will be combined with this list to connect to sentinel.
-      ## Either the host above or one item in this list are required in order for high availability to be configured.
+      ## For high availability to be used you must have either defined; the host above or at least one node below.
       # nodes:
       #   - host: sentinel-node1
       #     port: 6379

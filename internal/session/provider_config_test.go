@@ -102,6 +102,40 @@ func TestShouldCreateRedisSessionProvider(t *testing.T) {
 	assert.Nil(t, pConfig.TLSConfig)
 }
 
+func TestShouldCreateRedisSentinelSessionProviderWithoutDuplicateHosts(t *testing.T) {
+	configuration := schema.SessionConfiguration{}
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
+	configuration.Redis = &schema.RedisSessionConfiguration{
+		Host:                     "REDIS.example.com",
+		Port:                     26379,
+		Password:                 "pass",
+		MaximumActiveConnections: 8,
+		MinimumIdleConnections:   2,
+		HighAvailability: &schema.RedisHighAvailabilityConfiguration{
+			SentinelName:     "mysent",
+			SentinelPassword: "mypass",
+			Nodes: []schema.RedisNode{
+				{
+					Host: "redis2.example.com",
+					Port: 26379,
+				},
+				{
+					Host: "redis.example.com",
+					Port: 26379,
+				},
+			},
+		},
+	}
+
+	providerConfig := NewProviderConfig(configuration, nil)
+
+	assert.Len(t, providerConfig.redisSentinelConfig.SentinelAddrs, 2)
+	assert.Equal(t, providerConfig.redisSentinelConfig.SentinelAddrs[0], "redis.example.com:26379")
+	assert.Equal(t, providerConfig.redisSentinelConfig.SentinelAddrs[1], "redis2.example.com:26379")
+}
+
 func TestShouldCreateRedisSentinelSessionProvider(t *testing.T) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = testDomain

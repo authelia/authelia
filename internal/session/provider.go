@@ -11,6 +11,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -28,16 +29,18 @@ func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertP
 	provider := new(Provider)
 	provider.sessionHolder = fasthttpsession.New(providerConfig.config)
 
+	logger := logging.Logger()
+
 	duration, err := utils.ParseDurationString(configuration.RememberMeDuration)
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 
 	provider.RememberMe = duration
 
 	duration, err = utils.ParseDurationString(configuration.Inactivity)
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 
 	provider.Inactivity = duration
@@ -48,23 +51,23 @@ func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertP
 	case providerConfig.redisConfig != nil:
 		providerImpl, err = redis.New(*providerConfig.redisConfig)
 		if err != nil {
-			panic(err)
+			logger.Fatal(err)
 		}
 	case providerConfig.redisSentinelConfig != nil:
 		providerImpl, err = redis.NewFailoverCluster(*providerConfig.redisSentinelConfig)
 		if err != nil {
-			panic(err)
+			logger.Fatal(err)
 		}
 	default:
 		providerImpl, err = memory.New(memory.Config{})
 		if err != nil {
-			panic(err)
+			logger.Fatal(err)
 		}
 	}
 
 	err = provider.sessionHolder.SetProvider(providerImpl)
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 
 	return provider
