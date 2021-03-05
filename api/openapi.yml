@@ -73,14 +73,9 @@ paths:
       summary: Verification
       description: The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified domain.
       parameters:
-        - name: X-Original-URL
-          in: header
-          description: Redirection URL
-          required: true
-          style: simple
-          explode: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/originalURLParam'
+        - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/authParam'
       responses:
         "200":
           description: Successful Operation
@@ -115,14 +110,9 @@ paths:
       summary: Verification
       description: The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified domain.
       parameters:
-        - name: X-Original-URL
-          in: header
-          description: Redirection URL
-          required: true
-          style: simple
-          explode: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/originalURLParam'
+        - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/authParam'
       responses:
         "200":
           description: Successful Operation
@@ -481,6 +471,34 @@ paths:
       security:
         - authelia_auth: []
 components:
+  parameters:
+    originalURLParam:
+      name: X-Original-URL
+      in: header
+      description: Redirection URL
+      required: true
+      style: simple
+      explode: true
+      schema:
+        type: string
+    forwardedMethodParam:
+      name: X-Forwarded-Method
+      in: header
+      description: Request Method
+      required: false
+      style: simple
+      explode: true
+      schema:
+        type: string
+        enum: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"]
+    authParam:
+      name: auth
+      in: query
+      description: Switch authorization header and prompt for basic auth
+      required: false
+      schema:
+        type: string
+        enum: ["basic"]
   schemas:
     handlers.configuration.ConfigurationBody:
       type: object
@@ -517,6 +535,9 @@ components:
         targetURL:
           type: string
           example: https://home.example.com
+        requestMethod:
+          type: string
+          example: GET
         keepMeLoggedIn:
           type: boolean
           example: true
