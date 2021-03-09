@@ -42,8 +42,24 @@ var validKeys = []string{
 	// Redis Session Keys.
 	"session.redis.host",
 	"session.redis.port",
+	"session.redis.username",
 	"session.redis.password",
 	"session.redis.database_index",
+	"session.redis.maximum_active_connections",
+	"session.redis.minimum_idle_connections",
+	"session.redis.tls.minimum_version",
+	"session.redis.tls.skip_verify",
+	"session.redis.tls.server_name",
+	"session.redis.high_availability.sentinel_name",
+	"session.redis.high_availability.sentinel_password",
+	"session.redis.high_availability.nodes",
+	"session.redis.high_availability.route_by_latency",
+	"session.redis.high_availability.route_randomly",
+	"session.redis.timeouts.dial",
+	"session.redis.timeouts.idle",
+	"session.redis.timeouts.pool",
+	"session.redis.timeouts.read",
+	"session.redis.timeouts.write",
 
 	// Local Storage Keys.
 	"storage.local.path",
@@ -170,6 +186,11 @@ var specificErrorKeys = map[string]string{
 	"authentication_backend.file.hashing.memory":               "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 	"authentication_backend.file.hashing.parallelism":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
 }
+
+const errFmtSessionSecretRedisProvider = "The session secret must be set when using the %s session provider"
+const errFmtSessionRedisPortRange = "The port must be between 1 and 65535 for the %s session provider"
+const errFmtSessionRedisHostRequired = "The host must be provided when using the %s session provider"
+const errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
 
 const denyPolicy = "deny"
 const bypassPolicy = "bypass"

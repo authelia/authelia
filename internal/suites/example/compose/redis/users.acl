@@ -1,0 +1,3 @@
+user authelia +@admin +@all ~* &* on >redis-user-password
+user repl +@admin +@all ~* &* on >repl-password
+user sentinel +@admin +@all ~* &* on >sentinel-client-password
