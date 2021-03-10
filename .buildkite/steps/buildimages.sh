@@ -33,7 +33,7 @@ cat << EOF
 EOF
 else
 cat << EOF
-    if: build.branch !~ /^renovate\/.*/
+    if: build.branch !~ /^(dependabot|renovate)\/.*/
 EOF
 fi
   done
