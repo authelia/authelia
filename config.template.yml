@@ -8,6 +8,11 @@ port: 9091
 # tls_key: /config/ssl/key.pem
 # tls_cert: /config/ssl/cert.pem
 
+## Certificates directory specifies where Authelia will load trusted certificates (public portion) from in addition to
+## the system certificates store.
+## They should be in base64 format, and have one of the following extensions: *.cer, *.crt, *.pem.
+# certificates_directory: /config/certificates
+
 # The theme to display: light, dark, grey
 theme: light
 
@@ -109,7 +114,7 @@ authentication_backend:
 
     # The url to the ldap server. Scheme can be ldap or ldaps in the format (port optional) <scheme>://<address>[:<port>].
     url: ldap://127.0.0.1
-    
+
     # Use StartTLS with the LDAP connection.
     start_tls: false
 
@@ -118,6 +123,8 @@ authentication_backend:
       # server_name: ldap.example.com
 
       # Skip verifying the server certificate (to allow a self-signed certificate).
+      ## In preference to setting this we strongly recommend you add the public portion of the certificate to the
+      ## certificates directory which is defined by the `certificates_directory` option at the top of the config.
       skip_verify: false
 
       # Minimum TLS version for either Secure LDAP or LDAP StartTLS.
@@ -125,7 +132,7 @@ authentication_backend:
 
     # The base dn for every entries.
     base_dn: dc=example,dc=com
-    
+
     # The attribute holding the username of the user. This attribute is used to populate
     # the username in the session information. It was introduced due to #561 to handle case
     # insensitive search queries.
@@ -138,13 +145,13 @@ authentication_backend:
     # them, we instead advise to use the attributes mentioned above (sAMAccountName and uid) to follow
     # https://www.ietf.org/rfc/rfc2307.txt.
     # username_attribute: uid
-    
+
     # An additional dn to define the scope to all users.
     additional_users_dn: ou=users
 
     # The users filter used in search queries to find the user profile based on input filled in login form.
     # Various placeholders are available to represent the user input and back reference other options of the configuration:
-    # - {input} is a placeholder replaced by what the user inputs in the login form. 
+    # - {input} is a placeholder replaced by what the user inputs in the login form.
     # - {username_attribute} is a mandatory placeholder replaced by what is configured in `username_attribute`.
     # - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
     # - DON'T USE - {0} is an alias for {input} supported for backward compatibility but it will be deprecated in later versions, so please don't use it.
@@ -159,7 +166,7 @@ authentication_backend:
 
     # An additional dn to define the scope of groups.
     additional_groups_dn: ou=groups
-    
+
     # The groups filter used in search queries to find the groups of the user.
     # - {input} is a placeholder replaced by what the user inputs in the login form.
     # - {username} is a placeholder replace by the username stored in LDAP (based on `username_attribute`).
@@ -270,8 +277,8 @@ access_control:
         - 10.0.0.1
 
     - domain:
-      - secure.example.com
-      - private.example.com
+        - secure.example.com
+        - private.example.com
       policy: two_factor
 
     - domain: singlefactor.example.com
@@ -326,7 +333,7 @@ session:
   # The name of the session cookie. (default: authelia_session).
   name: authelia_session
 
-  # The secret to encrypt the session data. This is only used with Redis.
+  # The secret to encrypt the session data. This is only used with Redis / Redis Sentinel.
   # Secret can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
   secret: insecure_session_secret
 
@@ -348,18 +355,64 @@ session:
   # is restricted to the subdomain of the issuer.
   domain: example.com
 
-  # The redis connection details
+  ## The redis connection details
   redis:
     host: 127.0.0.1
     port: 6379
-    # Use a unix socket instead
+    ## Use a unix socket instead
     # host: /var/run/redis/redis.sock
 
+    ## Optional username to be used with authentication.
+    username: authelia
 
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    ## Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: authelia
-    # This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
+
+    ## This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
     database_index: 0
+
+    ## The maximum number of concurrent active connections to Redis.
+    maximum_active_connections: 8
+
+    ## The target number of idle connections to have open ready for work. Useful when opening connections is slow.
+    minimum_idle_connections: 0
+
+    ## The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
+    # tls:
+      ## Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
+      # server_name: myredis.example.com
+
+      ## Skip verifying the server certificate (to allow a self-signed certificate).
+      ## In preference to setting this we strongly recommend you add the public portion of the certificate to the
+      ## certificates directory which is defined by the `certificates_directory` option at the top of the config.
+      # skip_verify: false
+
+      ## Minimum TLS version for the connection.
+      # minimum_version: TLS1.2
+
+    ## The Redis HA configuration options.
+    ## This provides specific options to Redis Sentinel, sentinel_name must be defined (Master Name).
+    # high_availability:
+      ## Sentinel Name / Master Name
+      # sentinel_name: mysentinel
+
+      ## Specific password for Redis Sentinel. The node username and password is configured above.
+      # sentinel_password: sentinel_specific_pass
+
+      ## The additional nodes to pre-seed the redis provider with (for sentinel).
+      ## If the host in the above section is defined, it will be combined with this list to connect to sentinel.
+      ## For high availability to be used you must have either defined; the host above or at least one node below.
+      # nodes:
+      #   - host: sentinel-node1
+      #     port: 6379
+      #   - host: sentinel-node2
+      #     port: 6379
+
+      ## Choose the host with the lowest latency.
+      # route_by_latency: false
+
+      ## Choose the host randomly.
+      # route_randomly: false
 
 # Configuration of the authentication regulation mechanism.
 #
@@ -446,7 +499,9 @@ notifier:
       # Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
       # server_name: smtp.example.com
 
-      # Skip verifying the server certificate (to allow a self-signed certificate).
+      ## Skip verifying the server certificate (to allow a self-signed certificate).
+      ## In preference to setting this we strongly recommend you add the public portion of the certificate to the
+      ## certificates directory which is defined by the `certificates_directory` option at the top of the config.
       skip_verify: false
 
       # Minimum TLS version for either StartTLS or SMTPS.
