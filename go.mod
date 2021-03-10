@@ -7,7 +7,7 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/Workiva/go-datastructures v1.0.52
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
-	github.com/authelia/session/v2 v2.4.1
+	github.com/authelia/session/v2 v2.5.7
 	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/duosecurity/duo_api_golang v0.0.0-20201112143038-0e07e9f869e3
@@ -22,7 +22,7 @@ require (
 	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/pquerna/otp v1.3.0
 	github.com/simia-tech/crypt v0.4.3
-	github.com/sirupsen/logrus v1.8.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
