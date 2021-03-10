@@ -139,8 +139,7 @@ A list of network addresses, ranges (CIDR notation) or groups can be specified i
 policies when requests originate from different networks. This list can contain both literal definitions of networks
 and [network aliases](#network-aliases).
 
-Network addresses specified will be matched against the IP address of the request, as well as addresses
-contained within the X-Forwarded-For HTTP header. If using Authelia with a reverse proxy, additional configuration
+Network addresses specified will be matched against the first IP in the X-Forwarded-For, and if there is none it will fall back to the IP address of the request. If using Authelia with a reverse proxy, additional configuration
 may be required on the reverse proxy to ensure these headers are present and correct.
 
 Main use cases for this rule option is to adjust the security requirements of a resource based on the location of
