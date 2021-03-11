@@ -53,7 +53,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	}
 
 	r.GET("/static/{filepath:*}", embeddedFS)
-	r.GET("/api/{filepath:*}", embeddedFS)
+	r.ANY("/api/{filepath:*}", embeddedFS)
 
 	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
