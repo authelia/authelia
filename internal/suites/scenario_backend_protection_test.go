@@ -35,7 +35,7 @@ func (s *BackendProtectionScenario) AssertRequestStatusCode(method, url string, 
 		}
 		res, err := client.Do(req)
 		s.Assert().NoError(err)
-		s.Assert().Equal(res.StatusCode, expectedStatusCode)
+		s.Assert().Equal(expectedStatusCode, res.StatusCode)
 	})
 }
 
@@ -57,12 +57,12 @@ func (s *BackendProtectionScenario) TestProtectionOfBackendEndpoints() {
 
 func (s *BackendProtectionScenario) TestInvalidEndpointsReturn404() {
 	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/not_existing", AutheliaBaseURL), 404)
-	s.AssertRequestStatusCode("HEAD", fmt.Sprintf("%s/api/not_existing", AutheliaBaseURL), 404)
-	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/not_existing", AutheliaBaseURL), 404)
+	s.AssertRequestStatusCode("HEAD", fmt.Sprintf("%s/api/not_existing", AutheliaBaseURL), 405)
+	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/not_existing", AutheliaBaseURL), 405)
 
 	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), 404)
-	s.AssertRequestStatusCode("HEAD", fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), 404)
-	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), 404)
+	s.AssertRequestStatusCode("HEAD", fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), 405)
+	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), 405)
 }
 
 func TestRunBackendProtection(t *testing.T) {
