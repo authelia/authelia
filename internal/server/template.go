@@ -18,11 +18,10 @@ var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
-//go:generate broccoli -src ../../public_html -o public_html
-func ServeTemplatedFile(publicDir, file, base, session, rememberMe, resetPassword string) fasthttp.RequestHandler {
+func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, session, theme string) fasthttp.RequestHandler {
 	logger := logging.Logger()
 
-	f, err := br.Open(publicDir + file)
+	f, err := assets.Open(publicDir + file)
 	if err != nil {
 		logger.Fatalf("Unable to open %s: %s", file, err)
 	}
@@ -48,7 +47,7 @@ func ServeTemplatedFile(publicDir, file, base, session, rememberMe, resetPasswor
 		}
 
 		switch {
-		case publicDir == "/public_html/api/":
+		case publicDir == swaggerAssets:
 			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("base-uri 'self' ; default-src 'self' ; img-src 'self' https://validator.swagger.io data: ; object-src 'none' ; script-src 'self' 'unsafe-inline' 'nonce-%s' ; style-src 'self' 'nonce-%s'", nonce, nonce))
 		case os.Getenv("ENVIRONMENT") == dev:
 			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' 'unsafe-eval'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
@@ -56,7 +55,7 @@ func ServeTemplatedFile(publicDir, file, base, session, rememberMe, resetPasswor
 			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' ; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
 		}
 
-		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, CSPNonce, Session, RememberMe, ResetPassword string }{Base: base, CSPNonce: nonce, Session: session, RememberMe: rememberMe, ResetPassword: resetPassword})
+		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, CSPNonce, RememberMe, ResetPassword, Session, Theme string }{Base: base, CSPNonce: nonce, RememberMe: rememberMe, ResetPassword: resetPassword, Session: session, Theme: theme})
 		if err != nil {
 			ctx.Error("An error occurred", 503)
 			logger.Errorf("Unable to execute template: %v", err)

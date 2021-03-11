@@ -56,6 +56,4 @@ Users must be enrolled via the Duo Admin panel, they cannot enroll a device from
 It's likely that you have not configured **Authelia** correctly. Please read this
 documentation again and be sure you had a look at [config.template.yml](https://github.com/authelia/authelia/blob/master/config.template.yml).
 
-
-
 [Duo]: https://duo.com/

@@ -18,10 +18,21 @@ func IsStringAlphaNumeric(input string) bool {
 	return true
 }
 
-// IsStringInSlice checks if a single string is in an array of strings.
-func IsStringInSlice(a string, list []string) (inSlice bool) {
-	for _, b := range list {
+// IsStringInSlice checks if a single string is in a slice of strings.
+func IsStringInSlice(a string, slice []string) (inSlice bool) {
+	for _, b := range slice {
 		if b == a {
+			return true
+		}
+	}
+
+	return false
+}
+
+// IsStringInSliceFold checks if a single string is in a slice of strings but uses strings.EqualFold to compare them.
+func IsStringInSliceFold(a string, slice []string) (inSlice bool) {
+	for _, b := range slice {
+		if strings.EqualFold(b, a) {
 			return true
 		}
 	}
@@ -60,14 +71,12 @@ func SliceString(s string, d int) (array []string) {
 // IsStringSlicesDifferent checks two slices of strings and on the first occurrence of a string item not existing in the
 // other slice returns true, otherwise returns false.
 func IsStringSlicesDifferent(a, b []string) (different bool) {
-	for _, s := range a {
-		if !IsStringInSlice(s, b) {
-			return true
-		}
+	if len(a) != len(b) {
+		return true
 	}
 
-	for _, s := range b {
-		if !IsStringInSlice(s, a) {
+	for _, s := range a {
+		if !IsStringInSlice(s, b) {
 			return true
 		}
 	}

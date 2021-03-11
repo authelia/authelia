@@ -9,7 +9,7 @@ type AccessControlConfiguration struct {
 
 // ACLNetwork represents one ACL network group entry; "weak" coerces a single value into slice.
 type ACLNetwork struct {
-	Name     []string `mapstructure:"name,weak"`
+	Name     string   `mapstructure:"name"`
 	Networks []string `mapstructure:"networks"`
 }
 
@@ -20,16 +20,17 @@ type ACLRule struct {
 	Subjects  [][]string `mapstructure:"subject,weak"`
 	Networks  []string   `mapstructure:"networks"`
 	Resources []string   `mapstructure:"resources"`
+	Methods   []string   `mapstructure:"methods"`
 }
 
 // DefaultACLNetwork represents the default configuration related to access control network group configuration.
 var DefaultACLNetwork = []ACLNetwork{
 	{
-		Name:     []string{"localhost"},
+		Name:     "localhost",
 		Networks: []string{"127.0.0.1"},
 	},
 	{
-		Name:     []string{"internal"},
+		Name:     "internal",
 		Networks: []string{"10.0.0.0/8"},
 	},
 }

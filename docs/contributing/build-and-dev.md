@@ -13,7 +13,7 @@ running `source bootstrap.sh`. This CLI provides many useful tools
 to help you during development.
 
 In order to build and contribute to **Authelia**, you need to make
-sure Go v1.13, Docker, docker-compose and Node v12 are installed on
+sure Go >= v1.13, Docker, docker-compose and Node >= v12 are installed on
 your machine.
 
 ## Get started
@@ -84,7 +84,7 @@ test the *Standalone* suite.
     $ authelia-scripts suites test Standalone
 
 The suite will be spawned, tests will be run and then the suite
-will be teared down automatically.
+will be torn down automatically.
 
 
 [suites]: ./suites.md

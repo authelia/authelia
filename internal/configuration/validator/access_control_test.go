@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -29,7 +30,7 @@ func (suite *AccessControl) TestShouldValidateCompleteConfiguration() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
-	suite.configuration.DefaultPolicy = "invalid"
+	suite.configuration.DefaultPolicy = testInvalidPolicy
 
 	ValidateAccessControl(suite.configuration, suite.validator)
 
@@ -42,7 +43,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
 func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
 	suite.configuration.Networks = []schema.ACLNetwork{
 		{
-			Name:     []string{"internal"},
+			Name:     "internal",
 			Networks: []string{"abc.def.ghi.jkl"},
 		},
 	}
@@ -52,7 +53,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Network [abc.def.ghi.jkl] from network group: [internal] must be a valid IP or CIDR")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Network [abc.def.ghi.jkl] from network group: internal must be a valid IP or CIDR")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorNoRulesDefined() {
@@ -71,7 +72,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidPolicy() {
 	suite.configuration.Rules = []schema.ACLRule{
 		{
 			Domains: []string{"public.example.com"},
-			Policy:  "invalid",
+			Policy:  testInvalidPolicy,
 		},
 	}
 
@@ -100,6 +101,23 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidNetwork() {
 	suite.Assert().EqualError(suite.validator.Errors()[0], "Network [abc.def.ghi.jkl/32] for domain: [public.example.com] is not a valid network or network group")
 }
 
+func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
+	suite.configuration.Rules = []schema.ACLRule{
+		{
+			Domains: []string{"public.example.com"},
+			Policy:  "bypass",
+			Methods: []string{"GET", "HOP"},
+		},
+	}
+
+	ValidateRules(suite.configuration, suite.validator)
+
+	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Method HOP for domain: [public.example.com] is invalid, must be one of the following methods: GET, HEAD, POST, PUT, PATCH, DELETE, TRACE, CONNECT, OPTIONS")
+}
+
 func (suite *AccessControl) TestShouldRaiseErrorInvalidResource() {
 	suite.configuration.Rules = []schema.ACLRule{
 		{
@@ -118,20 +136,23 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidResource() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
+	domains := []string{"public.example.com"}
+	subjects := [][]string{{"invalid"}}
 	suite.configuration.Rules = []schema.ACLRule{
 		{
-			Domains:  []string{"public.example.com"},
+			Domains:  domains,
 			Policy:   "bypass",
-			Subjects: [][]string{{"invalid"}},
+			Subjects: subjects,
 		},
 	}
 
 	ValidateRules(suite.configuration, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Require().Len(suite.validator.Errors(), 1)
+	suite.Require().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 2)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Subject [invalid] for domain: [public.example.com] must start with 'user:' or 'group:'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Subject [invalid] for domain: [public.example.com] is invalid, must start with 'user:' or 'group:'")
+	suite.Assert().EqualError(suite.validator.Errors()[1], fmt.Sprintf(errAccessControlInvalidPolicyWithSubjects, domains, subjects))
 }
 
 func TestAccessControl(t *testing.T) {

@@ -12,8 +12,8 @@
   [![AUR development version](https://img.shields.io/aur/version/authelia-git?logo=arch-linux&label=authelia-git&style=flat-square&color=blue)](https://aur.archlinux.org/packages/authelia-git/)
   [![License](https://img.shields.io/github/license/authelia/authelia?logo=apache&style=flat-square&color=blue)][Apache 2.0]
   [![Sponsor](https://img.shields.io/opencollective/all/authelia-sponsors?logo=Open%20Collective&label=financial%20contributors&style=flat-square&color=blue)](https://opencollective.com/authelia-sponsors)
-  [![Discord](https://img.shields.io/discord/707844280412012608?logo=discord&style=flat-square&color=blue)](https://discord.authelia.com)
-  [![Matrix](https://img.shields.io/matrix/authelia:matrix.org?logo=matrix&style=flat-square&color=blue)](https://riot.im/app/#/room/#authelia:matrix.org)
+  [![Discord](https://img.shields.io/discord/707844280412012608?label=discord&logo=discord&style=flat-square&color=blue)](https://discord.authelia.com)
+  [![Matrix](https://img.shields.io/matrix/authelia:matrix.org?label=matrix&logo=matrix&style=flat-square&color=blue)](https://riot.im/app/#/room/#authelia:matrix.org)
 
 **Authelia** is an open-source authentication and authorization server
 providing 2-factor authentication and single sign-on (SSO) for your
@@ -136,7 +136,9 @@ disclosure related matters. If you need to contact us for another reason please 
 
 ## Breaking changes
 
-See [BREAKING](./BREAKING.md).
+Since Authelia is still under active development, it is subject to breaking changes.
+It's recommended to pin a version tag instead of using the `latest` tag and reading the [release notes](https://github.com/authelia/authelia/releases) before upgrading.
+This is where you will find information about breaking changes and what you should do to overcome those changes.
 
 ## Why Open Source?
 
@@ -152,20 +154,92 @@ Internet (your reverse proxies are) however, it's still the control plane for yo
 
 ## Contribute
 
-If you want to contribute to Authelia, check the documentation available
-[here](https://docs.authelia.com/contributing/).
+If you want to contribute to Authelia, please read our [contribution guidelines](./CONTRIBUTING.md).
 
-Authelia exists thanks to all the people who contribute so don't be shy,
-come chat with us on [Matrix](#matrix) and start contributing too. [[Contribute](./CONTRIBUTING.md)].
-<a href="https://github.com/authelia/authelia/graphs/contributors"><img src="https://opencollective.com/authelia-sponsors/contributors.svg?width=890" /></a>
+Authelia exists thanks to all the people who contribute so don't be shy, come chat with us on [Matrix](#matrix) and start contributing too.
 
-## Backers
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/clems4ever"><img src="https://avatars.githubusercontent.com/u/3193257?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Clément Michaud</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=clems4ever" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=clems4ever" title="Documentation">📖</a> <a href="#ideas-clems4ever" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-clems4ever" title="Maintenance">🚧</a> <a href="#question-clems4ever" title="Answering Questions">💬</a> <a href="https://github.com/authelia/authelia/pulls?q=is%3Apr+reviewed-by%3Aclems4ever" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/authelia/authelia/commits?author=clems4ever" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/nightah"><img src="https://avatars.githubusercontent.com/u/3339418?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Amir Zarrinkafsh</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=nightah" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=nightah" title="Documentation">📖</a> <a href="#ideas-nightah" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-nightah" title="Maintenance">🚧</a> <a href="#question-nightah" title="Answering Questions">💬</a> <a href="https://github.com/authelia/authelia/pulls?q=is%3Apr+reviewed-by%3Anightah" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/authelia/authelia/commits?author=nightah" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/james-d-elliott"><img src="https://avatars.githubusercontent.com/u/3903683?v=4?s=100" width="100px;" alt=""/><br /><sub><b>James Elliott</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=james-d-elliott" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=james-d-elliott" title="Documentation">📖</a> <a href="#ideas-james-d-elliott" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-james-d-elliott" title="Maintenance">🚧</a> <a href="#question-james-d-elliott" title="Answering Questions">💬</a> <a href="https://github.com/authelia/authelia/pulls?q=is%3Apr+reviewed-by%3Ajames-d-elliott" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/authelia/authelia/commits?author=james-d-elliott" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/n4kre"><img src="https://avatars.githubusercontent.com/u/14371127?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Antoine Favre</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3An4kre" title="Bug reports">🐛</a> <a href="#ideas-n4kre" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/BankaiNoJutsu"><img src="https://avatars.githubusercontent.com/u/2241519?v=4?s=100" width="100px;" alt=""/><br /><sub><b>BankaiNoJutsu</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=BankaiNoJutsu" title="Code">💻</a> <a href="#design-BankaiNoJutsu" title="Design">🎨</a></td>
+    <td align="center"><a href="https://github.com/p-rintz"><img src="https://avatars.githubusercontent.com/u/13933258?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Philipp Rintz</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=p-rintz" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://callanbryant.co.uk/"><img src="https://avatars.githubusercontent.com/u/208440?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Callan Bryant</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=naggie" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=naggie" title="Documentation">📖</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/ViViDboarder"><img src="https://avatars.githubusercontent.com/u/137025?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ian</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=ViViDboarder" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/FrozenDragoon"><img src="https://avatars.githubusercontent.com/u/5301673?v=4?s=100" width="100px;" alt=""/><br /><sub><b>FrozenDragoon</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=FrozenDragoon" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/vdot0x23"><img src="https://avatars.githubusercontent.com/u/40716069?v=4?s=100" width="100px;" alt=""/><br /><sub><b>vdot0x23</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=vdot0x23" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/alexw1982"><img src="https://avatars.githubusercontent.com/u/11628284?v=4?s=100" width="100px;" alt=""/><br /><sub><b>alexw1982</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=alexw1982" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/Sohalt"><img src="https://avatars.githubusercontent.com/u/2157287?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sohalt</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Sohalt" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=Sohalt" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/Tedyst"><img src="https://avatars.githubusercontent.com/u/13637623?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Stoica Tedy</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Tedyst" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Chemsmith"><img src="https://avatars.githubusercontent.com/u/9061024?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dylan Smith</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Chemsmith" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/LukasK13"><img src="https://avatars.githubusercontent.com/u/24586740?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lukas Klass</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=LukasK13" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://staiger.it/"><img src="https://avatars.githubusercontent.com/u/9325003?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Philipp Staiger</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=lippl" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=lippl" title="Documentation">📖</a> <a href="https://github.com/authelia/authelia/commits?author=lippl" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://yaleman.org/"><img src="https://avatars.githubusercontent.com/u/168188?v=4?s=100" width="100px;" alt=""/><br /><sub><b>James Hodgkinson</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=yaleman" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://chris.smith.xyz/"><img src="https://avatars.githubusercontent.com/u/1979423?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Chris Smith</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=chris13524" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/mqmq0"><img src="https://avatars.githubusercontent.com/u/13240971?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mihály</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=mqmq0" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://iret.xyz/"><img src="https://avatars.githubusercontent.com/u/6560655?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Silver Bullet</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=SilverBut" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/skenmy"><img src="https://avatars.githubusercontent.com/u/1454505?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Paul Williams</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=skenmy" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=skenmy" title="Tests">⚠️</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/ntimo"><img src="https://avatars.githubusercontent.com/u/6145026?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Timo</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=ntimo" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/andrewkliskey"><img src="https://avatars.githubusercontent.com/u/44645768?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Andrew Kliskey</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=andrewkliskey" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://kristofmattei.be/"><img src="https://avatars.githubusercontent.com/u/864376?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kristof Mattei</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Kristof-Mattei" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://www.zmiguel.me/"><img src="https://avatars.githubusercontent.com/u/4400540?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ZMiguel Valdiviesso</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=zmiguel" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/akusei"><img src="https://avatars.githubusercontent.com/u/12972900?v=4?s=100" width="100px;" alt=""/><br /><sub><b>akusei</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=akusei" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=akusei" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/Peaches491"><img src="https://avatars.githubusercontent.com/u/494334?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Daniel Miller</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Peaches491" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/dustins"><img src="https://avatars.githubusercontent.com/u/14645?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dustin Sweigart</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=dustins" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=dustins" title="Documentation">📖</a> <a href="https://github.com/authelia/authelia/commits?author=dustins" title="Tests">⚠️</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/rogue780"><img src="https://avatars.githubusercontent.com/u/247716?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Shawn Haggard</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=rogue780" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=rogue780" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/kevynb"><img src="https://avatars.githubusercontent.com/u/4941215?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kevyn Bruyere</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=kevynb" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/ducksecops"><img src="https://avatars.githubusercontent.com/u/25612094?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Daniel Sutton</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=ducksecops" title="Code">💻</a></td>
+    <td align="center"><a href="http://www.xenuser.org/"><img src="https://avatars.githubusercontent.com/u/2216868?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Valentin Höbel</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=xenuser" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/thehedgefrog"><img src="https://avatars.githubusercontent.com/u/38590447?v=4?s=100" width="100px;" alt=""/><br /><sub><b>thehedgefrog</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=thehedgefrog" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/ViRb3"><img src="https://avatars.githubusercontent.com/u/2650170?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Victor</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=ViRb3" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/whiskerch"><img src="https://avatars.githubusercontent.com/u/35109315?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Chris Whisker</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=whiskerch" title="Documentation">📖</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/nasatome"><img src="https://avatars.githubusercontent.com/u/18271791?v=4?s=100" width="100px;" alt=""/><br /><sub><b>nasatome</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=nasatome" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/bbros-dev"><img src="https://avatars.githubusercontent.com/u/60454087?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Begley Brothers (Development)</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=bbros-dev" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://mikekusold.com/"><img src="https://avatars.githubusercontent.com/u/509966?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mike Kusold</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=kusold" title="Code">💻</a></td>
+    <td align="center"><a href="https://dzervas.gr/"><img src="https://avatars.githubusercontent.com/u/1029195?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dimitris Zervas</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=dzervas" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://paypal.me/DHoung"><img src="https://avatars.githubusercontent.com/u/52870424?v=4?s=100" width="100px;" alt=""/><br /><sub><b>TheCatLady</b></sub></a><br /><a href="#ideas-TheCatLady" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://lauri.vosandi.com/"><img src="https://avatars.githubusercontent.com/u/194685?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lauri Võsandi</b></sub></a><br /><a href="#ideas-laurivosandi" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/knnnrd"><img src="https://avatars.githubusercontent.com/u/5852381?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kennard Vermeiren</b></sub></a><br /><a href="#ideas-knnnrd" title="Ideas, Planning, & Feedback">🤔</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/ThinkChaos"><img src="https://avatars.githubusercontent.com/u/4761135?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ThinkChaos</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=ThinkChaos" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=ThinkChaos" title="Documentation">📖</a> <a href="https://github.com/authelia/authelia/commits?author=ThinkChaos" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/except"><img src="https://avatars.githubusercontent.com/u/26675576?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Hasan</b></sub></a><br /><a href="#security-except" title="Security">🛡️</a></td>
+    <td align="center"><a href="http://blog.dchidell.com"><img src="https://avatars.githubusercontent.com/u/26146619?v=4?s=100" width="100px;" alt=""/><br /><sub><b>David Chidell</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=dchidell" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/mardom1"><img src="https://avatars.githubusercontent.com/u/32371724?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Marcel Marquardt</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Amardom1" title="Bug reports">🐛</a></td>
+  </tr>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+
+### Backers
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/authelia-sponsors/contribute)] and help us sustain our community.
 The money we currently receive is dedicated to bootstrap a bug bounty program to give us as many eyes as we can to detect potential vulnerabilities.
 <a href="https://opencollective.com/authelia-sponsors#backers"><img src="https://opencollective.com/authelia-sponsors/backers.svg?width=890"></a>
 
-## Sponsors
+### Sponsors
 
 Support Authelia by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/authelia-sponsors#sponsor)]
 
@@ -179,6 +253,14 @@ Support Authelia by becoming a sponsor. Your logo will show up here with a link 
 <a href="https://opencollective.com/authelia-sponsors/sponsor/7/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/7/avatar.svg"></a>
 <a href="https://opencollective.com/authelia-sponsors/sponsor/8/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/authelia-sponsors/sponsor/9/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/9/avatar.svg"></a>
+
+### Jetbrains
+
+Thank you to [<img src="./docs/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia) for providing us with free licenses to their great tools
+
+* [<img src="./docs/images/logos/intellij-idea.svg" alt="IDEA" width="32"> IDEA](http://www.jetbrains.com/idea/)
+* [<img src="./docs/images/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
+* [<img src="./docs/images/logos/webstorm.svg" alt="WebStorm" width="32"> WebStorm](http://www.jetbrains.com/webstorm/)
 
 ## License
 

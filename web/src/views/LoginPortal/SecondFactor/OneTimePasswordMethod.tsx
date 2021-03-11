@@ -84,6 +84,7 @@ const OneTimePasswordMethod = function (props: Props) {
             id={props.id}
             title="One-Time Password"
             explanation="Enter one-time password"
+            registered={props.registered}
             state={methodState}
             onRegisterClick={props.onRegisterClick}
         >

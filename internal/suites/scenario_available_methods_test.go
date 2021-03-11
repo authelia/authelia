@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/tebeka/selenium"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 type AvailableMethodsScenario struct {
@@ -48,16 +50,6 @@ func (s *AvailableMethodsScenario) SetupTest() {
 	s.verifyIsHome(ctx, s.T())
 }
 
-func IsStringInList(str string, list []string) bool {
-	for _, v := range list {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (s *AvailableMethodsScenario) TestShouldCheckAvailableMethods() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -85,6 +77,6 @@ func (s *AvailableMethodsScenario) TestShouldCheckAvailableMethods() {
 	s.Assert().Len(optionsList, len(s.methods))
 
 	for _, m := range s.methods {
-		s.Assert().True(IsStringInList(m, optionsList))
+		s.Assert().True(utils.IsStringInSlice(m, optionsList))
 	}
 }

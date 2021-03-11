@@ -18,7 +18,7 @@ func TestShouldInitializerSession(t *testing.T) {
 	configuration.Name = testName
 	configuration.Expiration = testExpiration
 
-	provider := NewProvider(configuration)
+	provider := NewProvider(configuration, nil)
 	session, err := provider.GetSession(ctx)
 	require.NoError(t, err)
 
@@ -32,7 +32,7 @@ func TestShouldUpdateSession(t *testing.T) {
 	configuration.Name = testName
 	configuration.Expiration = testExpiration
 
-	provider := NewProvider(configuration)
+	provider := NewProvider(configuration, nil)
 	session, _ := provider.GetSession(ctx)
 
 	session.Username = testUsername
@@ -57,7 +57,7 @@ func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	configuration.Name = testName
 	configuration.Expiration = testExpiration
 
-	provider := NewProvider(configuration)
+	provider := NewProvider(configuration, nil)
 	session, err := provider.GetSession(ctx)
 	require.NoError(t, err)
 

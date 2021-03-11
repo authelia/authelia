@@ -1,6 +1,6 @@
 ---
 layout: default
-title: One-Time Password
+title: Time-based One-Time Password
 nav_order: 1
 parent: Second Factor
 grand_parent: Features
@@ -17,12 +17,11 @@ grand_parent: Features
 
 
 After having successfully completed the first factor, select **One-Time Password method**
-option and click on **Not registered yet?** link. This will send you an e-mail to confirm
-your identity.
+option and click on **Not registered yet?** link. This will e-mail you to confirm your identity.
 
 *NOTE: If you're testing **Authelia**, this e-mail has likely been sent to the mailbox available at https://mail.example.com:8080/*
 
-Once this validation step is completed, a QRCode gets displayed.
+Once this validation step is completed, a QR Code gets displayed.
 
 <p align="center">
   <img src="../../images/REGISTER-TOTP.png" width="400">
@@ -34,5 +33,9 @@ From now on, you get tokens generated every 30 seconds that
 you can use to validate the second factor in **Authelia**.
 
 
+## Limitations
+
+Users currently can only enroll a single TOTP device in **Authelia**.
+Multiple single type device enrollment will be available when [this issue](https://github.com/authelia/authelia/issues/275) has been resolved.
 
 [Google Authenticator]: https://google-authenticator.com/
