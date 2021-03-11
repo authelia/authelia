@@ -428,6 +428,15 @@
         "doc",
         "test"
       ]
+    },
+    {
+      "login": "except",
+      "name": "Hasan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26675576?v=4",
+      "profile": "https://github.com/except",
+      "contributions": [
+        "security"
+      ]
     }
   ],
   "contributorsPerLine": 7
