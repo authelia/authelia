@@ -446,6 +446,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "mardom1",
+      "name": "Marcel Marquardt",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32371724?v=4",
+      "profile": "https://github.com/mardom1",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7
