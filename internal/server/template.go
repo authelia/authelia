@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/valyala/fasthttp"
@@ -37,6 +38,11 @@ func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, sessio
 	}
 
 	return func(ctx *fasthttp.RequestCtx) {
+		if publicDir == embeddedAssets && strings.HasPrefix(string(ctx.Path()), "/api/") {
+			ctx.SetStatusCode(404)
+			return
+		}
+
 		nonce := utils.RandomString(32, alphaNumericRunes)
 
 		switch extension := filepath.Ext(file); extension {
