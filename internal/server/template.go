@@ -39,7 +39,7 @@ func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, sessio
 
 	return func(ctx *fasthttp.RequestCtx) {
 		if publicDir == embeddedAssets && strings.HasPrefix(string(ctx.Path()), "/api/") {
-			ctx.SetStatusCode(404)
+			ctx.Error(fasthttp.StatusMessage(fasthttp.StatusNotFound), fasthttp.StatusNotFound)
 			return
 		}
 
