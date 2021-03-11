@@ -43,71 +43,77 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
 	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
 
-	r := router.New()
-	r.GET("/", serveIndexHandler)
-	r.GET("/api/", serveSwaggerHandler)
-	r.GET("/api/"+apiFile, serveSwaggerAPIHandler)
+	rootRouter := router.New()
+	apiRouter := router.New()
+
+	rootRouter.ANY("/api/", apiRouter.Handler)
+	rootRouter.ANY("/api/v1/", apiRouter.Handler)
+
+	rootRouter.GET("/", serveIndexHandler)
+
+	apiRouter.GET("/", serveSwaggerHandler)
+	apiRouter.GET("/"+apiFile, serveSwaggerAPIHandler)
 
 	for _, f := range rootFiles {
-		r.GET("/"+f, embeddedFS)
+		rootRouter.GET("/"+f, embeddedFS)
 	}
 
-	r.GET("/static/{filepath:*}", embeddedFS)
-	r.GET("/api/{filepath:*}", embeddedFS)
+	rootRouter.GET("/static/{filepath:*}", embeddedFS)
+	apiRouter.GET("/{filepath:*}", embeddedFS)
 
-	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
-	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
+	apiRouter.GET("/health", autheliaMiddleware(handlers.HealthGet))
+	apiRouter.GET("/state", autheliaMiddleware(handlers.StateGet))
 
-	r.GET("/api/configuration", autheliaMiddleware(
+	apiRouter.GET("/configuration", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.ConfigurationGet)))
 
-	r.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
-	r.HEAD("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
+	apiRouter.GET("/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
+	apiRouter.HEAD("/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
 
-	r.POST("/api/firstfactor", autheliaMiddleware(handlers.FirstFactorPost(1000, true)))
-	r.POST("/api/logout", autheliaMiddleware(handlers.LogoutPost))
+	apiRouter.POST("/firstfactor", autheliaMiddleware(handlers.FirstFactorPost(1000, true)))
+	apiRouter.POST("/logout", autheliaMiddleware(handlers.LogoutPost))
 
 	// Only register endpoints if forgot password is not disabled.
 	if !configuration.AuthenticationBackend.DisableResetPassword {
 		// Password reset related endpoints.
-		r.POST("/api/reset-password/identity/start", autheliaMiddleware(
+		apiRouter.POST("/reset-password/identity/start", autheliaMiddleware(
 			handlers.ResetPasswordIdentityStart))
-		r.POST("/api/reset-password/identity/finish", autheliaMiddleware(
+		apiRouter.POST("/reset-password/identity/finish", autheliaMiddleware(
 			handlers.ResetPasswordIdentityFinish))
-		r.POST("/api/reset-password", autheliaMiddleware(
+		apiRouter.POST("/reset-password", autheliaMiddleware(
 			handlers.ResetPasswordPost))
 	}
 
 	// Information about the user.
-	r.GET("/api/user/info", autheliaMiddleware(
+	apiRouter.GET("/user/info", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.UserInfoGet)))
-	r.POST("/api/user/info/2fa_method", autheliaMiddleware(
+	apiRouter.POST("/user/info/2fa_method", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
 
 	// TOTP related endpoints.
-	r.POST("/api/secondfactor/totp/identity/start", autheliaMiddleware(
+	apiRouter.POST("/secondfactor/totp/identity/start", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityStart)))
-	r.POST("/api/secondfactor/totp/identity/finish", autheliaMiddleware(
+	apiRouter.POST("/secondfactor/totp/identity/finish", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityFinish)))
-	r.POST("/api/secondfactor/totp", autheliaMiddleware(
+	apiRouter.POST("/secondfactor/totp", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost(&handlers.TOTPVerifierImpl{
 			Period: uint(configuration.TOTP.Period),
 			Skew:   uint(*configuration.TOTP.Skew),
 		}))))
 
 	// U2F related endpoints.
-	r.POST("/api/secondfactor/u2f/identity/start", autheliaMiddleware(
+	apiRouter.POST("/secondfactor/u2f/identity/start", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FIdentityStart)))
-	r.POST("/api/secondfactor/u2f/identity/finish", autheliaMiddleware(
+	apiRouter.POST("/secondfactor/u2f/identity/finish", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FIdentityFinish)))
 
-	r.POST("/api/secondfactor/u2f/register", autheliaMiddleware(
+	apiRouter.POST("/secondfactor/u2f/register", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FRegister)))
 
-	r.POST("/api/secondfactor/u2f/sign_request", autheliaMiddleware(
+	apiRouter.POST("/secondfactor/u2f/sign_request", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignGet)))
 
-	r.POST("/api/secondfactor/u2f/sign", autheliaMiddleware(
+	apiRouter.POST("/secondfactor/u2f/sign", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignPost(&handlers.U2FVerifierImpl{}))))
 
 	// Configure DUO api endpoint only if configuration exists.
@@ -125,19 +131,20 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 				configuration.DuoAPI.Hostname, ""))
 		}
 
-		r.POST("/api/secondfactor/duo", autheliaMiddleware(
+		apiRouter.POST("/secondfactor/duo", autheliaMiddleware(
 			middlewares.RequireFirstFactor(handlers.SecondFactorDuoPost(duoAPI))))
 	}
 
 	// If trace is set, enable pprofhandler and expvarhandler.
 	if configuration.LogLevel == "trace" {
-		r.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
-		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
+		rootRouter.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
+		rootRouter.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	r.NotFound = serveIndexHandler
+	rootRouter.NotFound = serveIndexHandler
+	apiRouter.NotFound = serveIndexHandler
 
-	handler := middlewares.LogRequestMiddleware(r.Handler)
+	handler := middlewares.LogRequestMiddleware(rootRouter.Handler)
 	if configuration.Server.Path != "" {
 		handler = middlewares.StripPathMiddleware(handler)
 	}
