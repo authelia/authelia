@@ -43,77 +43,74 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
 	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
 
-	rootRouter := router.New()
-	apiRouter := router.New()
+	rtr := router.New()
+	rtrGroupAPI := rtr.Group("/api")
 
-	rootRouter.ANY("/api/", apiRouter.Handler)
-	rootRouter.ANY("/api/v1/", apiRouter.Handler)
+	rtr.GET("/", serveIndexHandler)
 
-	rootRouter.GET("/", serveIndexHandler)
-
-	apiRouter.GET("/", serveSwaggerHandler)
-	apiRouter.GET("/"+apiFile, serveSwaggerAPIHandler)
+	rtrGroupAPI.GET("/", serveSwaggerHandler)
+	rtrGroupAPI.GET("/"+apiFile, serveSwaggerAPIHandler)
 
 	for _, f := range rootFiles {
-		rootRouter.GET("/"+f, embeddedFS)
+		rtr.GET("/"+f, embeddedFS)
 	}
 
-	rootRouter.GET("/static/{filepath:*}", embeddedFS)
-	apiRouter.GET("/{filepath:*}", embeddedFS)
+	rtr.GET("/static/{filepath:*}", embeddedFS)
+	rtrGroupAPI.GET("/{filepath:*}", embeddedFS)
 
-	apiRouter.GET("/health", autheliaMiddleware(handlers.HealthGet))
-	apiRouter.GET("/state", autheliaMiddleware(handlers.StateGet))
+	rtrGroupAPI.GET("/health", autheliaMiddleware(handlers.HealthGet))
+	rtrGroupAPI.GET("/state", autheliaMiddleware(handlers.StateGet))
 
-	apiRouter.GET("/configuration", autheliaMiddleware(
+	rtrGroupAPI.GET("/configuration", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.ConfigurationGet)))
 
-	apiRouter.GET("/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
-	apiRouter.HEAD("/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
+	rtrGroupAPI.GET("/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
+	rtrGroupAPI.HEAD("/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
 
-	apiRouter.POST("/firstfactor", autheliaMiddleware(handlers.FirstFactorPost(1000, true)))
-	apiRouter.POST("/logout", autheliaMiddleware(handlers.LogoutPost))
+	rtrGroupAPI.POST("/firstfactor", autheliaMiddleware(handlers.FirstFactorPost(1000, true)))
+	rtrGroupAPI.POST("/logout", autheliaMiddleware(handlers.LogoutPost))
 
 	// Only register endpoints if forgot password is not disabled.
 	if !configuration.AuthenticationBackend.DisableResetPassword {
 		// Password reset related endpoints.
-		apiRouter.POST("/reset-password/identity/start", autheliaMiddleware(
+		rtrGroupAPI.POST("/reset-password/identity/start", autheliaMiddleware(
 			handlers.ResetPasswordIdentityStart))
-		apiRouter.POST("/reset-password/identity/finish", autheliaMiddleware(
+		rtrGroupAPI.POST("/reset-password/identity/finish", autheliaMiddleware(
 			handlers.ResetPasswordIdentityFinish))
-		apiRouter.POST("/reset-password", autheliaMiddleware(
+		rtrGroupAPI.POST("/reset-password", autheliaMiddleware(
 			handlers.ResetPasswordPost))
 	}
 
 	// Information about the user.
-	apiRouter.GET("/user/info", autheliaMiddleware(
+	rtrGroupAPI.GET("/user/info", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.UserInfoGet)))
-	apiRouter.POST("/user/info/2fa_method", autheliaMiddleware(
+	rtrGroupAPI.POST("/user/info/2fa_method", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
 
 	// TOTP related endpoints.
-	apiRouter.POST("/secondfactor/totp/identity/start", autheliaMiddleware(
+	rtrGroupAPI.POST("/secondfactor/totp/identity/start", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityStart)))
-	apiRouter.POST("/secondfactor/totp/identity/finish", autheliaMiddleware(
+	rtrGroupAPI.POST("/secondfactor/totp/identity/finish", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityFinish)))
-	apiRouter.POST("/secondfactor/totp", autheliaMiddleware(
+	rtrGroupAPI.POST("/secondfactor/totp", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost(&handlers.TOTPVerifierImpl{
 			Period: uint(configuration.TOTP.Period),
 			Skew:   uint(*configuration.TOTP.Skew),
 		}))))
 
 	// U2F related endpoints.
-	apiRouter.POST("/secondfactor/u2f/identity/start", autheliaMiddleware(
+	rtrGroupAPI.POST("/secondfactor/u2f/identity/start", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FIdentityStart)))
-	apiRouter.POST("/secondfactor/u2f/identity/finish", autheliaMiddleware(
+	rtrGroupAPI.POST("/secondfactor/u2f/identity/finish", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FIdentityFinish)))
 
-	apiRouter.POST("/secondfactor/u2f/register", autheliaMiddleware(
+	rtrGroupAPI.POST("/secondfactor/u2f/register", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FRegister)))
 
-	apiRouter.POST("/secondfactor/u2f/sign_request", autheliaMiddleware(
+	rtrGroupAPI.POST("/secondfactor/u2f/sign_request", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignGet)))
 
-	apiRouter.POST("/secondfactor/u2f/sign", autheliaMiddleware(
+	rtrGroupAPI.POST("/secondfactor/u2f/sign", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignPost(&handlers.U2FVerifierImpl{}))))
 
 	// Configure DUO api endpoint only if configuration exists.
@@ -131,20 +128,19 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 				configuration.DuoAPI.Hostname, ""))
 		}
 
-		apiRouter.POST("/secondfactor/duo", autheliaMiddleware(
+		rtrGroupAPI.POST("/secondfactor/duo", autheliaMiddleware(
 			middlewares.RequireFirstFactor(handlers.SecondFactorDuoPost(duoAPI))))
 	}
 
 	// If trace is set, enable pprofhandler and expvarhandler.
 	if configuration.LogLevel == "trace" {
-		rootRouter.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
-		rootRouter.GET("/debug/vars", expvarhandler.ExpvarHandler)
+		rtr.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
+		rtr.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	rootRouter.NotFound = serveIndexHandler
-	apiRouter.NotFound = serveIndexHandler
+	rtr.NotFound = serveIndexHandler
 
-	handler := middlewares.LogRequestMiddleware(rootRouter.Handler)
+	handler := middlewares.LogRequestMiddleware(rtr.Handler)
 	if configuration.Server.Path != "" {
 		handler = middlewares.StripPathMiddleware(handler)
 	}
