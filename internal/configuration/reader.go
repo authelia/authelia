@@ -1,13 +1,13 @@
 package configuration
 
 import (
+	_ "embed" // Embed config.template.yml.
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 
-	_ "embed" // Embed config.template.yml.
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 

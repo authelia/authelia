@@ -16,7 +16,7 @@ func ValidateOAuth(configuration *schema.OAuthConfiguration, validator *schema.S
 func validateOIDCServer(configuration *schema.OpenIDConnectServerConfiguration, validator *schema.StructValidator) {
 	if configuration != nil {
 		if configuration.IssuerPrivateKey == "" {
-			validator.Push(fmt.Errorf("OIDC Server issuer private key path must be provided"))
+			validator.Push(fmt.Errorf("OIDC Server issuer private key must be provided"))
 		}
 
 		if len(configuration.HMACSecret) != 32 {
