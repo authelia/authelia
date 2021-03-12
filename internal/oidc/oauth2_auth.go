@@ -118,12 +118,12 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 		}
 
 		// Now that the user is authorized, we set up a session:
-		session := newSession(userSession.Username)
+		oauthSession := newSession(userSession.Username)
 
 		// Now we need to get a response. This is the place where the AuthorizeEndpointHandlers kick in and start processing the request.
 		// NewAuthorizeResponse is capable of running multiple response type handlers which in turn enables this library
 		// to support open id connect.
-		response, err := oauth2.NewAuthorizeResponse(r.Context(), ar, session)
+		response, err := oauth2.NewAuthorizeResponse(r.Context(), ar, oauthSession)
 
 		// Catch any errors, e.g.:
 		// * unknown client

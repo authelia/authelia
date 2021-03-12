@@ -146,7 +146,7 @@ var validKeys = []string{
 
 	// OIDC Keys
 	"oauth.oidc_server.hmac_secret",
-	"oauth.oidc_server.issuer_private_key_path",
+	"oauth.oidc_server.issuer_private_key",
 	"oauth.oidc_server.clients",
 
 	// Secret Keys.

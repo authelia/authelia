@@ -520,7 +520,9 @@ notifier:
 oauth:
   oidc_server:
     hmac_secret: this_is_a_secret_abc123abc123abc
-    issuer_private_key_path: /path/to/private/key.pem
+    issuer_private_key: |
+      --- KEY START
+      --- KEY END
     clients:
       - id: myapp
         secret: this_is_a_secret
