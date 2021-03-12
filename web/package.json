@@ -23,7 +23,7 @@
     "@types/react-router-dom": "5.1.7",
     "axios": "0.21.1",
     "babel-preset-react-app": "10.0.0",
-    "chai": "4.3.3",
+    "chai": "4.3.4",
     "classnames": "2.2.6",
     "enzyme": "3.11.0",
     "enzyme-adapter-react-16": "1.15.6",
