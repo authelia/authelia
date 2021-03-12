@@ -46,13 +46,13 @@ notifier:
     sender: admin@example.com
     disable_require_tls: true
 
-openid_connect:
-  # This secret must be 32 bytes long
-  oauth2_hmac_secret: IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm
-  oidc_issuer_private_key_path: /config/issuer.pem
-  clients:
-    client_id: oidc-tester-app
-    # This secret must be a bcrypt hash
-    client_secret: $2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO
-    redirect_uris:
-      - https://oidc.example.com:8080/oauth2/callback
+oauth:
+  oidc_server:
+    hmac_secret: IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm
+    issuer_private_key_path: /config/issuer.pem
+    clients:
+      - id: oidc-tester-app
+        secret: $2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO
+        policy: this_policy
+        redirect_uris:
+          - https://oidc.example.com:8080/oauth2/callback
