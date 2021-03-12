@@ -18,7 +18,7 @@ import (
 )
 
 // NewStore creates a new OIDC store.
-func NewStore(config *schema.OpenIDConnectConfiguration) *storage.MemoryStore {
+func NewStore(config *schema.OpenIDConnectServerConfiguration) *storage.MemoryStore {
 	clients := make(map[string]fosite.Client)
 
 	for _, v := range config.Clients {
@@ -46,7 +46,7 @@ func NewStore(config *schema.OpenIDConnectConfiguration) *storage.MemoryStore {
 }
 
 // InitializeOIDC configures the fasthttp router to provide OIDC.
-func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *router.Router, autheliaMiddleware middlewares.RequestHandlerBridge) {
+func InitializeOIDC(configuration *schema.OpenIDConnectServerConfiguration, router *router.Router, autheliaMiddleware middlewares.RequestHandlerBridge) {
 	if configuration == nil {
 		return
 	}
@@ -56,7 +56,7 @@ func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *ro
 
 	var oidcConfig = new(compose.Config)
 
-	b, err := ioutil.ReadFile(configuration.OIDCIssuerPrivateKeyPath)
+	b, err := ioutil.ReadFile(configuration.IssuerPrivateKeyPath)
 	if err != nil {
 		panic(err)
 	}
@@ -69,7 +69,7 @@ func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *ro
 	// Because we are using oauth2 and open connect id, we use this little helper to combine the two in one
 	// variable.
 	var start = compose.CommonStrategy{
-		CoreStrategy:               compose.NewOAuth2HMACStrategy(oidcConfig, []byte(configuration.OAuth2HMACSecret), nil),
+		CoreStrategy:               compose.NewOAuth2HMACStrategy(oidcConfig, []byte(configuration.HMACSecret), nil),
 		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(oidcConfig, privateKey),
 	}
 

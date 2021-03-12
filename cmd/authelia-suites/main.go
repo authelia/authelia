@@ -83,7 +83,7 @@ func setupSuite(cmd *cobra.Command, args []string) {
 
 	suiteResourcePath := cwd + "/internal/suites/" + suiteName
 
-	exist, err := utils.FileExists(suiteResourcePath)
+	exist, err := utils.PathExists(suiteResourcePath)
 
 	if err != nil {
 		log.Fatal(err)

@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -170,7 +171,12 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	ValidateConfiguration(&config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "Error checking certificate directory: stat not-a-real-file.go: no such file or directory")
+
+	if runtime.GOOS == "windows" {
+		assert.EqualError(t, validator.Errors()[0], "Error checking certificate directory: CreateFile not-a-real-file.go: The system cannot find the file specified.")
+	} else {
+		assert.EqualError(t, validator.Errors()[0], "Error checking certificate directory: stat not-a-real-file.go: no such file or directory")
+	}
 
 	validator = schema.NewStructValidator()
 	config.CertificatesDirectory = "const.go"

@@ -26,7 +26,7 @@ type OIDCClaims struct {
 	RequestedScopes []string `json:"requested_scopes,omitempty"`
 }
 
-func getOIDCClientConfig(clientID string, configuration schema.OpenIDConnectConfiguration) *schema.OpenIDConnectClientConfiguration {
+func getOIDCClientConfig(clientID string, configuration schema.OpenIDConnectServerConfiguration) *schema.OpenIDConnectClientConfiguration {
 	for _, c := range configuration.Clients {
 		if clientID == c.ClientID {
 			return &c
@@ -51,7 +51,7 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 
 		clientID := ar.GetClient().GetID()
 
-		clientConfig := getOIDCClientConfig(clientID, *ctx.Configuration.OpenIDConnect)
+		clientConfig := getOIDCClientConfig(clientID, *ctx.Configuration.OAuth.OIDCServer)
 		if clientConfig == nil {
 			err := fmt.Errorf("Unable to find related client configuration with name %s", ar.GetID())
 			ctx.Logger.Error(err)

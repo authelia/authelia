@@ -47,3 +47,5 @@ const TLS11 = "1.1"
 
 // TLS10 is the textual representation of TLS 1.0.
 const TLS10 = "1.0"
+
+const windows = "windows"
