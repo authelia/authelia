@@ -11,8 +11,11 @@ const ResetPasswordAction = "ResetPassword"
 
 const authPrefix = "Basic "
 
-// AuthorizationHeader is the basic-auth HTTP header Authelia utilises.
-const AuthorizationHeader = "Proxy-Authorization"
+// ProxyAuthorizationHeader is the basic-auth HTTP header Authelia utilises.
+const ProxyAuthorizationHeader = "Proxy-Authorization"
+
+// AuthorizationHeader is the basic-auth HTTP header Authelia utilises with "auth=basic" query param.
+const AuthorizationHeader = "Authorization"
 
 // SessionUsernameHeader is used as additional protection to validate a user for things like pam_exec.
 const SessionUsernameHeader = "Session-Username"

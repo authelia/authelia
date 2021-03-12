@@ -93,22 +93,27 @@ func (c *AutheliaCtx) ReplyBadRequest() {
 	c.RequestCtx.Error(fasthttp.StatusMessage(fasthttp.StatusBadRequest), fasthttp.StatusBadRequest)
 }
 
-// XForwardedProto return the content of the header X-Forwarded-Proto.
+// XForwardedProto return the content of the X-Forwarded-Proto header.
 func (c *AutheliaCtx) XForwardedProto() []byte {
 	return c.RequestCtx.Request.Header.Peek(xForwardedProtoHeader)
 }
 
-// XForwardedHost return the content of the header X-Forwarded-Host.
+// XForwardedMethod return the content of the X-Forwarded-Method header.
+func (c *AutheliaCtx) XForwardedMethod() []byte {
+	return c.RequestCtx.Request.Header.Peek(xForwardedMethodHeader)
+}
+
+// XForwardedHost return the content of the X-Forwarded-Host header.
 func (c *AutheliaCtx) XForwardedHost() []byte {
 	return c.RequestCtx.Request.Header.Peek(xForwardedHostHeader)
 }
 
-// XForwardedURI return the content of the header X-Forwarded-URI.
+// XForwardedURI return the content of the X-Forwarded-URI header.
 func (c *AutheliaCtx) XForwardedURI() []byte {
 	return c.RequestCtx.Request.Header.Peek(xForwardedURIHeader)
 }
 
-// XOriginalURL return the content of the header X-Original-URL.
+// XOriginalURL return the content of the X-Original-URL header.
 func (c *AutheliaCtx) XOriginalURL() []byte {
 	return c.RequestCtx.Request.Header.Peek(xOriginalURLHeader)
 }

@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"crypto/subtle"
 	"errors"
 	"fmt"
 	"strconv"
@@ -151,7 +152,7 @@ func CheckPassword(password, hash string) (ok bool, err error) {
 		return false, err
 	}
 
-	return passwordHash.Key == expectedHash.Key, nil
+	return subtle.ConstantTimeCompare([]byte(passwordHash.Key), []byte(expectedHash.Key)) == 1, nil
 }
 
 func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, parallelism, keyLength int) (settings string) {

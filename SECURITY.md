@@ -19,9 +19,15 @@ Join the [Matrix Room](https://riot.im/app/#/room/#authelia:matrix.org) and loca
 You can identify them as they are the room administrators. Alternatively you can just ask for one of the
 maintainers. Once you've made contact we ask you privately message the maintainer to communicate the vulnerability.
 
+### Discord
+
+Join the [Discord Server](https://discord.authelia.com) and message the
+[#support](https://discord.com/channels/707844280412012608/707844280412012612) chat which links to [Matrix](#matrix)
+and contact a maintainer.
+
 ### Email
 
-You can contact any of the maintainers for security vulnerability related issues by emailing 
+You can contact any of the maintainers for security vulnerability related issues by emailing
 [security@authelia.com](mailto:security@authelia.com). This email is strictly reserved for security and vulnerability
 disclosure related matters. If you need to contact us for another reason please use [Matrix](#matrix) or
-[team@authelia.com](mailto:security@authelia.com).
+[team@authelia.com](mailto:team@authelia.com).

@@ -47,6 +47,92 @@ func (s *HighAvailabilityWebDriverSuite) SetupTest() {
 	s.verifyIsHome(ctx, s.T())
 }
 
+func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
+
+	err := haDockerEnvironment.Restart("redis-node-0")
+	s.Require().NoError(err)
+
+	time.Sleep(5 * time.Second)
+
+	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
+	s.verifyIsSecondFactorPage(ctx, s.T())
+}
+
+func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisNodeFailure() {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
+
+	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
+	s.verifyIsSecondFactorPage(ctx, s.T())
+
+	err := haDockerEnvironment.Stop("redis-node-0")
+	s.Require().NoError(err)
+
+	defer func() {
+		err = haDockerEnvironment.Start("redis-node-0")
+		s.Require().NoError(err)
+	}()
+
+	// Allow fail over to occur.
+	time.Sleep(3 * time.Second)
+
+	s.doVisit(s.T(), HomeBaseURL)
+	s.verifyIsHome(ctx, s.T())
+
+	// Verify the user is still authenticated
+	s.doVisit(s.T(), GetLoginBaseURL())
+	s.verifyIsSecondFactorPage(ctx, s.T())
+
+	// Then logout and login again to check we can see the secret.
+	s.doLogout(ctx, s.T())
+	s.verifyIsFirstFactorPage(ctx, s.T())
+
+	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, fmt.Sprintf("%s/secret.html", SecureBaseURL))
+	s.verifySecretAuthorized(ctx, s.T())
+}
+
+func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisSentinelFailureAndSecondaryRedisNodeFailure() {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
+
+	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
+	s.verifyIsSecondFactorPage(ctx, s.T())
+
+	err := haDockerEnvironment.Stop("redis-sentinel-0")
+	s.Require().NoError(err)
+
+	defer func() {
+		err = haDockerEnvironment.Start("redis-sentinel-0")
+		s.Require().NoError(err)
+	}()
+
+	err = haDockerEnvironment.Stop("redis-node-2")
+	s.Require().NoError(err)
+
+	defer func() {
+		err = haDockerEnvironment.Start("redis-node-2")
+		s.Require().NoError(err)
+	}()
+
+	// Allow fail over to occur.
+	time.Sleep(3 * time.Second)
+
+	s.doVisit(s.T(), HomeBaseURL)
+	s.verifyIsHome(ctx, s.T())
+
+	// Verify the user is still authenticated
+	s.doVisit(s.T(), GetLoginBaseURL())
+	s.verifyIsSecondFactorPage(ctx, s.T())
+}
+
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()

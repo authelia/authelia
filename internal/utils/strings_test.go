@@ -9,7 +9,9 @@ import (
 
 func TestShouldSplitIntoEvenStringsOfFour(t *testing.T) {
 	input := testStringInput
+
 	arrayOfStrings := SliceString(input, 4)
+
 	assert.Equal(t, len(arrayOfStrings), 3)
 	assert.Equal(t, "abcd", arrayOfStrings[0])
 	assert.Equal(t, "efgh", arrayOfStrings[1])
@@ -18,7 +20,9 @@ func TestShouldSplitIntoEvenStringsOfFour(t *testing.T) {
 
 func TestShouldSplitIntoEvenStringsOfOne(t *testing.T) {
 	input := testStringInput
+
 	arrayOfStrings := SliceString(input, 1)
+
 	assert.Equal(t, 12, len(arrayOfStrings))
 	assert.Equal(t, "a", arrayOfStrings[0])
 	assert.Equal(t, "b", arrayOfStrings[1])
@@ -29,7 +33,9 @@ func TestShouldSplitIntoEvenStringsOfOne(t *testing.T) {
 
 func TestShouldSplitIntoUnevenStringsOfFour(t *testing.T) {
 	input := testStringInput + "m"
+
 	arrayOfStrings := SliceString(input, 4)
+
 	assert.Equal(t, len(arrayOfStrings), 4)
 	assert.Equal(t, "abcd", arrayOfStrings[0])
 	assert.Equal(t, "efgh", arrayOfStrings[1])
@@ -40,7 +46,9 @@ func TestShouldSplitIntoUnevenStringsOfFour(t *testing.T) {
 func TestShouldFindSliceDifferencesDelta(t *testing.T) {
 	before := []string{"abc", "onetwothree"}
 	after := []string{"abc", "xyz"}
+
 	added, removed := StringSlicesDelta(before, after)
+
 	require.Len(t, added, 1)
 	require.Len(t, removed, 1)
 	assert.Equal(t, "onetwothree", removed[0])
@@ -50,7 +58,9 @@ func TestShouldFindSliceDifferencesDelta(t *testing.T) {
 func TestShouldNotFindSliceDifferencesDelta(t *testing.T) {
 	before := []string{"abc", "onetwothree"}
 	after := []string{"abc", "onetwothree"}
+
 	added, removed := StringSlicesDelta(before, after)
+
 	require.Len(t, added, 0)
 	require.Len(t, removed, 0)
 }
@@ -58,27 +68,52 @@ func TestShouldNotFindSliceDifferencesDelta(t *testing.T) {
 func TestShouldFindSliceDifferences(t *testing.T) {
 	a := []string{"abc", "onetwothree"}
 	b := []string{"abc", "xyz"}
-	diff := IsStringSlicesDifferent(a, b)
-	assert.True(t, diff)
+
+	assert.True(t, IsStringSlicesDifferent(a, b))
 }
 
 func TestShouldNotFindSliceDifferences(t *testing.T) {
 	a := []string{"abc", "onetwothree"}
 	b := []string{"abc", "onetwothree"}
-	diff := IsStringSlicesDifferent(a, b)
-	assert.False(t, diff)
+
+	assert.False(t, IsStringSlicesDifferent(a, b))
+}
+
+func TestShouldFindSliceDifferenceWhenDifferentLength(t *testing.T) {
+	a := []string{"abc", "onetwothree"}
+	b := []string{"abc", "onetwothree", "more"}
+
+	assert.True(t, IsStringSlicesDifferent(a, b))
 }
 
 func TestShouldFindStringInSliceContains(t *testing.T) {
 	a := "abc"
-	b := []string{"abc", "onetwothree"}
-	s := IsStringInSliceContains(a, b)
-	assert.True(t, s)
+	slice := []string{"abc", "onetwothree"}
+
+	assert.True(t, IsStringInSliceContains(a, slice))
 }
 
 func TestShouldNotFindStringInSliceContains(t *testing.T) {
 	a := "xyz"
-	b := []string{"abc", "onetwothree"}
-	s := IsStringInSliceContains(a, b)
-	assert.False(t, s)
+	slice := []string{"abc", "onetwothree"}
+
+	assert.False(t, IsStringInSliceContains(a, slice))
+}
+
+func TestShouldFindStringInSliceFold(t *testing.T) {
+	a := "xYz"
+	b := "AbC"
+	slice := []string{"XYz", "abc"}
+
+	assert.True(t, IsStringInSliceFold(a, slice))
+	assert.True(t, IsStringInSliceFold(b, slice))
+}
+
+func TestShouldNotFindStringInSliceFold(t *testing.T) {
+	a := "xyZ"
+	b := "ABc"
+	slice := []string{"cba", "zyx"}
+
+	assert.False(t, IsStringInSliceFold(a, slice))
+	assert.False(t, IsStringInSliceFold(b, slice))
 }

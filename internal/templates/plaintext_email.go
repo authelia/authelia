@@ -22,5 +22,5 @@ If you did not initiate the process your credentials might have been compromised
 
 To setup your 2FA please visit the following URL: {{.url}}
 
-Please ignore this email if you did not initiate the process.
+Please contact an administrator if you did not initiate the process.
 `

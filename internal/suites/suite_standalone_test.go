@@ -103,6 +103,31 @@ func NewStandaloneSuite() *StandaloneSuite {
 	return &StandaloneSuite{}
 }
 
+func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
+	s.Assert().NoError(err)
+	req.Header.Set("X-Forwarded-Method", "GET")
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Host", fmt.Sprintf("secure.%s", BaseDomain))
+	req.Header.Set("X-Forwarded-URI", "/")
+
+	client := NewHTTPClient()
+	res, err := client.Do(req)
+	s.Assert().NoError(err)
+	s.Assert().Equal(res.StatusCode, 302)
+	body, err := ioutil.ReadAll(res.Body)
+	s.Assert().NoError(err)
+
+	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
+	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s&rm=GET", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
+
+	req.Header.Set("X-Forwarded-Method", "OPTIONS")
+
+	res, err = client.Do(req)
+	s.Assert().NoError(err)
+	s.Assert().Equal(res.StatusCode, 200)
+}
+
 // Standard case using nginx.
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorize() {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify", AutheliaBaseURL), nil)
@@ -180,7 +205,7 @@ func (s *StandaloneSuite) TestResetPasswordScenario() {
 }
 
 func (s *StandaloneSuite) TestAvailableMethodsScenario() {
-	suite.Run(s.T(), NewAvailableMethodsScenario([]string{"ONE-TIME PASSWORD"}))
+	suite.Run(s.T(), NewAvailableMethodsScenario([]string{"TIME-BASED ONE-TIME PASSWORD"}))
 }
 
 func (s *StandaloneSuite) TestRedirectionURLScenario() {

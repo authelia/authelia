@@ -25,3 +25,12 @@ cat << EOF
 EOF
 fi
 done
+cat << EOF
+
+  - wait
+
+  - label: ":vertical_traffic_light: Test Concurrency Gate"
+    command: "echo End of concurrency gate"
+    concurrency: 3
+    concurrency_group: "tests"
+EOF

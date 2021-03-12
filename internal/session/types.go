@@ -13,9 +13,10 @@ import (
 
 // ProviderConfig is the configuration used to create the session provider.
 type ProviderConfig struct {
-	config       session.Config
-	redisConfig  *redis.Config
-	providerName string
+	config              session.Config
+	redisConfig         *redis.Config
+	redisSentinelConfig *redis.FailoverConfig
+	providerName        string
 }
 
 // U2FRegistration is a serializable version of a U2F registration.

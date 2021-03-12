@@ -5,6 +5,7 @@ import { Switch, Route, Redirect, useHistory, useLocation } from "react-router";
 import { useConfiguration } from "../../hooks/Configuration";
 import { useNotifications } from "../../hooks/NotificationsContext";
 import { useRedirectionURL } from "../../hooks/RedirectionURL";
+import { useRequestMethod } from "../../hooks/RequestMethod";
 import { useAutheliaState } from "../../hooks/State";
 import { useUserPreferences as userUserInfo } from "../../hooks/UserInfo";
 import { SecondFactorMethod } from "../../models/Methods";
@@ -31,6 +32,7 @@ const LoginPortal = function (props: Props) {
     const history = useHistory();
     const location = useLocation();
     const redirectionURL = useRedirectionURL();
+    const requestMethod = useRequestMethod();
     const { createErrorNotification } = useNotifications();
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
 
@@ -84,7 +86,9 @@ const LoginPortal = function (props: Props) {
     // Redirect to the correct stage if not enough authenticated
     useEffect(() => {
         if (state) {
-            const redirectionSuffix = redirectionURL ? `?rd=${encodeURIComponent(redirectionURL)}` : "";
+            const redirectionSuffix = redirectionURL
+                ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}`
+                : "";
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
@@ -103,7 +107,7 @@ const LoginPortal = function (props: Props) {
                 }
             }
         }
-    }, [state, redirectionURL, redirect, userInfo, setFirstFactorDisabled, configuration]);
+    }, [state, redirectionURL, requestMethod, redirect, userInfo, setFirstFactorDisabled, configuration]);
 
     const handleAuthSuccess = async (redirectionURL: string | undefined) => {
         if (redirectionURL) {

@@ -98,6 +98,7 @@ const PushNotificationMethod = function (props: Props) {
             id={props.id}
             title="Push Notification"
             explanation="A notification has been sent to your smartphone"
+            registered={true}
             state={methodState}
         >
             <div className={style.icon}>{icon}</div>

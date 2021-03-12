@@ -1,7 +1,7 @@
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.15.6-alpine AS builder-backend
+FROM golang:1.16-alpine AS builder-backend
 
 ARG BUILD_TAG
 ARG BUILD_COMMIT
@@ -17,14 +17,10 @@ RUN go mod download
 
 COPY cmd cmd
 COPY internal internal
-COPY public_html public_html
 
 # Prepare static files to be embedded in Go binary
-RUN go get -u aletheia.icu/broccoli && \
-cd internal/configuration && \
-go generate . && \
-cd ../server && \
-go generate .
+RUN rm -rf internal/server/public_html
+COPY public_html internal/server/public_html
 
 # Set the build version and time
 RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
@@ -38,7 +34,7 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-s -w -link
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.13.0
+FROM alpine:3.13.2
 
 WORKDIR /app
 

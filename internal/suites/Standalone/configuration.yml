@@ -36,6 +36,11 @@ access_control:
       policy: bypass
 
     - domain: secure.example.com
+      policy: bypass
+      methods:
+        - OPTIONS
+
+    - domain: secure.example.com
       policy: two_factor
 
     - domain: "*.example.com"

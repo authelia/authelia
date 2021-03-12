@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	_ "embed" // Embed config.template.yml.
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -16,7 +17,6 @@ import (
 )
 
 // Read a YAML configuration and create a Configuration object out of it.
-//go:generate broccoli -src ../../config.template.yml -var=cfg -o configuration
 func Read(configPath string) (*schema.Configuration, []error) {
 	logger := logging.Logger()
 
@@ -91,18 +91,11 @@ func Read(configPath string) (*schema.Configuration, []error) {
 	return &configuration, nil
 }
 
+//go:embed config.template.yml
+var cfg []byte
+
 func generateConfigFromTemplate(configPath string) error {
-	f, err := cfg.Open("config.template.yml")
-	if err != nil {
-		return fmt.Errorf("Unable to open config.template.yml: %v", err)
-	}
-
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return fmt.Errorf("Unable to read config.template.yml: %v", err)
-	}
-
-	err = ioutil.WriteFile(configPath, b, 0600)
+	err := ioutil.WriteFile(configPath, cfg, 0600)
 	if err != nil {
 		return fmt.Errorf("Unable to generate %v: %v", configPath, err)
 	}

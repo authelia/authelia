@@ -195,10 +195,6 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	} else if !strings.HasPrefix(configuration.GroupsFilter, "(") || !strings.HasSuffix(configuration.GroupsFilter, ")") {
 		validator.Push(errors.New("The groups filter should contain enclosing parenthesis. For instance cn={input} should be (cn={input})"))
 	}
-
-	if configuration.UsernameAttribute == "" {
-		validator.Push(errors.New("Please provide a username attribute with `username_attribute`"))
-	}
 }
 
 func setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {

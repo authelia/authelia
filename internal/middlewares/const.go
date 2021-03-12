@@ -3,6 +3,7 @@ package middlewares
 const jwtIssuer = "Authelia"
 
 const xForwardedProtoHeader = "X-Forwarded-Proto"
+const xForwardedMethodHeader = "X-Forwarded-Method"
 const xForwardedHostHeader = "X-Forwarded-Host"
 const xForwardedURIHeader = "X-Forwarded-URI"
 

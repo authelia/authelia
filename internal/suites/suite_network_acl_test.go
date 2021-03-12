@@ -24,7 +24,10 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon2FA() {
 	wds, err := StartWebDriver()
 	s.Require().NoError(err)
 
-	defer wds.Stop() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	defer func() {
+		err = wds.Stop()
+		s.Require().NoError(err)
+	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SecureBaseURL)
 	wds.doVisit(s.T(), targetURL)
@@ -42,7 +45,10 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 	wds, err := StartWebDriverWithProxy("http://proxy-client1.example.com:3128", GetWebDriverPort())
 	s.Require().NoError(err)
 
-	defer wds.Stop() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	defer func() {
+		err = wds.Stop()
+		s.Require().NoError(err)
+	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SecureBaseURL)
 	wds.doVisit(s.T(), targetURL)
@@ -61,7 +67,10 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon0FA() {
 	wds, err := StartWebDriverWithProxy("http://proxy-client2.example.com:3128", GetWebDriverPort())
 	s.Require().NoError(err)
 
-	defer wds.Stop() //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	defer func() {
+		err = wds.Stop()
+		s.Require().NoError(err)
+	}()
 
 	wds.doVisit(s.T(), fmt.Sprintf("%s/secret.html", SecureBaseURL))
 	wds.verifySecretAuthorized(ctx, s.T())

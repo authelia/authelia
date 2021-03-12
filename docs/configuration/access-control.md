@@ -8,7 +8,7 @@ nav_order: 1
 # Access Control
 {: .no_toc }
 
-## Access Control List
+## Policies
 
 With **Authelia** you can define a list of rules that are going to be evaluated in
 sequential order when authorization is delegated to Authelia.
@@ -16,8 +16,46 @@ sequential order when authorization is delegated to Authelia.
 The first matching rule of the list defines the policy applied to the resource, if
 no rule matches the resource a customizable default policy is applied.
 
+### deny
 
-## Access Control Rule
+This is the policy applied by default, and is what we recommend as the default policy for all installs. Its effect
+is literally to deny the user access to the resource. Additionally you can use this policy to conditionally deny 
+access in desired situations. Examples include denying access to an API that has no authentication mechanism built in.
+
+### bypass
+
+This policy skips all authentication and allows anyone to use the resource. This policy is not available with a rule
+that includes a [subject](#Subjects) restriction because the minimum authentication level required to obtain information 
+about the subject is [one_factor](#one_factor).
+
+### one_factor
+
+This policy requires the user at minimum complete 1FA successfully (username and password). This means if they have 
+performed 2FA then they will be allowed to access the resource.
+
+### two_factor
+
+This policy requires the user to complete 2FA successfully. This is currently the highest level of authentication
+policy available.
+
+## Default Policy
+
+The default policy is the policy applied when no other rule matches. It is recommended that this is configured to 
+[deny](#deny) for security reasons. Sites which you do not wish to secure with Authelia should not be configured to 
+perform authentication with Authelia at all.
+
+See [Policies](#policies) for more information.
+
+## Network Aliases
+
+The main networks section defines a list of network aliases, where the name matches a list of networks. These names can
+be used in any [rule](#rules) instead of a literal network. This makes it easier to define a group of networks multiple
+times.
+
+You can combine both literal networks and these aliases inside the [networks](#networks) section of a rule. See this
+section for more details.
+
+## Rules
 
 A rule defines two things:
 
@@ -26,29 +64,24 @@ A rule defines two things:
 
 The criteria are:
 
-* domain: domain targeted by the request.
-* resources: list of patterns that the path should match (one is sufficient).
+* domain: domain or list of domains targeted by the request.
+* resources: pattern or list of patterns that the path should match.
 * subject: the user or group of users to define the policy for.
 * networks: the network addresses, ranges (CIDR notation) or groups from where the request originates.
+* methods: the http methods used in the request.
 
-A rule is matched when all criteria of the rule match.
+A rule is matched when all criteria of the rule match. Rules are evaluated in sequential order, and this is
+particularly **important** for bypass rules. Bypass rules should generally appear near the top of the rules list.
 
 
-## Policies
+### Policy
 
 A policy represents the level of authentication the user needs to pass before
 being authorized to request the resource.
 
-There exist 4 policies:
+See [Policies](#policies) for more information.
 
-* bypass: the resource is public as the user does not need any authentication to
-get access to it.
-* one_factor: the user needs to pass at least the first factor to get access to
-the resource.
-* two_factor: the user needs to pass two factors to get access to the resource.
-* deny: the user does not have access to the resource.
-
-## Domains
+### Domains
 
 The domains defined in rules must obviously be either a subdomain of the domain
 protected by Authelia or the protected domain itself. In order to match multiple
@@ -58,7 +91,12 @@ For instance, to define a rule for all subdomains of *example.com*, one would us
 These domains can be either listed in YAML-short form `["example1.com", "example2.com"]`
 or in YAML long-form as dashed list.
 
-## Resources
+Domain prefixes can also be dynamically match users or groups. For example you can have a 
+specific policy adjustment if the user or group matches the subdomain. For
+example `{user}.example.com` or `{group}.example.com` check the users name or 
+groups against the subdomain.
+
+### Resources
 
 A rule can define multiple regular expressions for matching the path of the resource
 similar to the list of domains. If any one of them matches, the resource criteria of
@@ -72,7 +110,7 @@ when you are using regular expressions, you enclose them between quotes. It's op
 it will likely save you a lot of debugging time.
 
 
-## Subjects
+### Subjects
 
 A subject is a representation of a user or a group of user for who the rule should apply.
 
@@ -86,20 +124,55 @@ In summary, the first list level of subjects are evaluated using a logical `OR`,
 second level by a logical `AND`. The last example below reads as: the group is `dev` AND the
 username is `john` OR the group is `admins`.
 
-## Networks
+#### Combining subjects and the bypass policy
+
+A subject cannot be combined with the `bypass` policy since the minimum authentication level to identify a subject is
+`one_factor`. Combining the `one_factor` policy with a subject is effectively the same as setting the policy to `bypass`
+in the past. We have taken an opinionated stance on preventing this configuration as it could result in problematic
+security scenarios with badly thought out configurations and cannot see a likely configuration scenario that would 
+require users to do this. If you have a scenario in mind please open an 
+[issue](https://github.com/authelia/authelia/issues/new) on GitHub.
+
+### Networks
 
 A list of network addresses, ranges (CIDR notation) or groups can be specified in a rule in order to apply different
-policies when requests originate from different networks.
+policies when requests originate from different networks. This list can contain both literal definitions of networks
+and [network aliases](#network-aliases).
 
-The main use case is when, lets say a resource should be exposed both on the Internet and from an
+Network addresses specified will be matched against the first IP in the X-Forwarded-For, and if there is none it will fall back to the IP address of the request. If using Authelia with a reverse proxy, additional configuration
+may be required on the reverse proxy to ensure these headers are present and correct.
+
+Main use cases for this rule option is to adjust the security requirements of a resource based on the location of
+the user. For example lets say a resource should be exposed both on the Internet and from an
 authenticated VPN for instance. Passing a second factor a first time to get access to the VPN and
 a second time to get access to the application can sometimes be cumbersome if the endpoint is not
 considered overly sensitive.
+
+An additional situation where this may be useful is if there is a specific network you wish to deny access
+or require a higher level of authentication for; like a public machine network vs a company device network, or a 
+BYOD network.
 
 Even if Authelia provides this flexibility, you might prefer a higher level of security and avoid
 this option entirely. You and only you can define your security policy and it's up to you to
 configure Authelia accordingly.
 
+### Methods
+
+A list of HTTP request methods to apply the rule to. Valid values are GET, HEAD, POST, PUT, DELETE, 
+CONNECT, OPTIONS, and TRACE. Additional information about HTTP request methods can be found on the 
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods).
+
+It's important to note this policy type is primarily intended for use when you wish to bypass authentication for
+a specific request method. This is because there are several key limitations in what is possible to accomplish
+without Authelia being a reverse proxy server. This rule type is discouraged unless you really know what you're
+doing or you wish to setup a rule to bypass CORS preflight requests by bypassing for the OPTIONS method.
+
+For example, if you require authentication only for write events (POST, PATCH, DELETE, PUT), when a user who is not
+currently authenticated tries to do one of these actions, they will be redirected to Authelia. Authelia will decide
+what level is required for authentication, and then after the user authenticates it will redirect them to the original
+URL where Authelia decided they needed to authenticate. So if the endpoint they are redirected to originally had
+data sent as part of the request, this data is completely lost. Further if the endpoint expects the data or doesn't allow
+GET request types, the user may be presented with an error leading to a bad user experience.
 
 ## Complete example
 
@@ -118,6 +191,11 @@ access_control:
   rules:
     - domain: public.example.com
       policy: bypass
+
+    - domain: "*.example.com"
+      policy: bypass
+      methods:
+        - OPTIONS
 
     - domain: secure.example.com
       policy: one_factor
@@ -158,4 +236,7 @@ access_control:
       - ["group:dev", "user:john"]
       - "group:admins"
       policy: two_factor
+
+    - domain: "{user}.example.com"
+      policy: bypass
 ```

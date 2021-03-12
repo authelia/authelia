@@ -115,7 +115,7 @@ func startServer() {
 
 	clock := utils.RealClock{}
 	authorizer := authorization.NewAuthorizer(config.AccessControl)
-	sessionProvider := session.NewProvider(config.Session)
+	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
 
 	providers := middlewares.Providers{
