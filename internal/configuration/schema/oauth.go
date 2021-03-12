@@ -18,8 +18,18 @@ type OpenIDConnectServerConfiguration struct {
 
 // OpenIDConnectClientConfiguration configuration for an OpenID Connect client.
 type OpenIDConnectClientConfiguration struct {
-	ClientID     string   `mapstructure:"client_id"`
-	ClientSecret string   `mapstructure:"client_secret"`
-	RedirectURIs []string `mapstructure:"redirect_uris"`
-	Policy       string   `mapstructure:"policy"`
+	ID            string   `mapstructure:"id"`
+	Secret        string   `mapstructure:"secret"`
+	RedirectURIs  []string `mapstructure:"redirect_uris"`
+	Policy        string   `mapstructure:"policy"`
+	Scopes        []string `mapstructure:"scopes"`
+	GrantTypes    []string `mapstructure:"grant_types"`
+	ResponseTypes []string `mapstructure:"response_types"`
+}
+
+// DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
+var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
+	Scopes:        []string{"openid"},
+	ResponseTypes: []string{"code"},
+	GrantTypes:    []string{"refresh_token", "authorization_code"},
 }

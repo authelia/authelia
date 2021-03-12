@@ -201,7 +201,9 @@ func TestShouldValidateConfigurationTemplate(t *testing.T) {
 	resetEnv()
 
 	_, errors := Read("../../config.template.yml")
-	assert.Len(t, errors, 0)
+	require.Len(t, errors, 1)
+
+	assert.EqualError(t, errors[0], "OIDC Server issuer private key path doesn't exist")
 }
 
 func TestShouldOnlyAllowEnvOrConfig(t *testing.T) {

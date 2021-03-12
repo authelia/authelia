@@ -28,7 +28,7 @@ type OIDCClaims struct {
 
 func getOIDCClientConfig(clientID string, configuration schema.OpenIDConnectServerConfiguration) *schema.OpenIDConnectClientConfiguration {
 	for _, c := range configuration.Clients {
-		if clientID == c.ClientID {
+		if clientID == c.ID {
 			return &c
 		}
 	}

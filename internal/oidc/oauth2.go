@@ -22,13 +22,13 @@ func NewStore(config *schema.OpenIDConnectServerConfiguration) *storage.MemorySt
 	clients := make(map[string]fosite.Client)
 
 	for _, v := range config.Clients {
-		clients[v.ClientID] = &fosite.DefaultClient{
-			ID:            v.ClientID,
-			Secret:        []byte(v.ClientSecret),
+		clients[v.ID] = &fosite.DefaultClient{
+			ID:            v.ID,
+			Secret:        []byte(v.Secret),
 			RedirectURIs:  v.RedirectURIs,
-			ResponseTypes: []string{"code"},
-			GrantTypes:    []string{"refresh_token", "authorization_code"},
-			Scopes:        []string{"openid"},
+			ResponseTypes: v.ResponseTypes,
+			GrantTypes:    v.GrantTypes,
+			Scopes:        v.Scopes,
 		}
 	}
 

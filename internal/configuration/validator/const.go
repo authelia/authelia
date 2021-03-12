@@ -145,9 +145,9 @@ var validKeys = []string{
 	"authentication_backend.file.password.parallelism",
 
 	// OIDC Keys
-	"openid_connect.oauth2_hmac_secret",
-	"openid_connect.oidc_issuer_private_key_path",
-	"openid_connect.clients",
+	"oauth.oidc_server.hmac_secret",
+	"oauth.oidc_server.issuer_private_key_path",
+	"oauth.oidc_server.clients",
 
 	// Secret Keys.
 	"authelia.jwt_secret",
@@ -166,7 +166,7 @@ var validKeys = []string{
 	"authelia.session.redis.password.file",
 	"authelia.storage.mysql.password.file",
 	"authelia.storage.postgres.password.file",
-	"authelia.openid_connect.oauth2_hmac_secret.file",
+	"authelia.oauth.oidc_server.hmac_secret.file",
 }
 
 var specificErrorKeys = map[string]string{
@@ -219,3 +219,8 @@ const testTLSCert = "/tmp/cert.pem"
 const testTLSKey = "/tmp/key.pem"
 
 const errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for domain %s with subjects %s is invalid. It is not supported to configure both policy bypass and subjects. For more information see: https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
+
+const errOAuthOIDCServerIssuerPrivateKeyPathInvalidFmt = "OIDC Server issuer private key path is invalid: %v"
+const errOAuthOIDCServerHMACLengthMustBe32Fmt = "OIDC Server HMAC secret must be exactly 32 chars long but is %d long"
+const errOAuthOIDCServerClientRedirectURIFmt = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be https"
+const errOAuthOIDCServerClientRedirectURICantBeParsedFmt = "OIDC Server Client redirect URI %s could not be parsed: %v"
