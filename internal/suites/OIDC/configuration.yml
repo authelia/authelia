@@ -3,8 +3,8 @@
 ###############################################################
 
 port: 9091
-tls_cert: /var/lib/authelia/ssl/cert.pem
-tls_key: /var/lib/authelia/ssl/key.pem
+tls_cert: /config/ssl/cert.pem
+tls_key: /config/ssl/key.pem
 
 log_level: debug
 
@@ -12,7 +12,7 @@ jwt_secret: unsecure_secret
 
 authentication_backend:
   file:
-    path: /var/lib/authelia/users.yml
+    path: /config/users.yml
 
 session:
   secret: unsecure_session_secret
@@ -23,7 +23,7 @@ session:
 
 storage:
   local:
-    path: /var/lib/authelia/db.sqlite
+    path: /config/db.sqlite
 
 access_control:
   default_policy: deny
@@ -49,7 +49,7 @@ notifier:
 openid_connect:
   # This secret must be 32 bytes long
   oauth2_hmac_secret: IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm
-  oidc_issuer_private_key_path: /var/lib/authelia/issuer.pem
+  oidc_issuer_private_key_path: /config/issuer.pem
   clients:
     client_id: oidc-tester-app
     # This secret must be a bcrypt hash
