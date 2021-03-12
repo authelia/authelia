@@ -1,6 +1,5 @@
-import { PostWithOptionalResponse, Get } from "./Client";
 import { ConsentPath } from "./Api";
-import { SignInResponse } from "./SignIn";
+import { PostWithOptionalResponse, Get } from "./Client";
 
 interface ConsentPostRequestBody {
     client_id: string;
