@@ -216,6 +216,7 @@ func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 		}
 
 		c.Logger.Trace("Using X-Original-URL header content as targeted site URL")
+
 		return url, nil
 	}
 
@@ -244,5 +245,6 @@ func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 
 	c.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
 		"to construct targeted site URL")
+
 	return url, nil
 }
