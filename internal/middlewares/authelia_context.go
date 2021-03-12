@@ -113,6 +113,24 @@ func (c *AutheliaCtx) XForwardedURI() []byte {
 	return c.RequestCtx.Request.Header.Peek(xForwardedURIHeader)
 }
 
+// ForwardedURL gets the X-Forwarded-Proto and X-Forwarded-Host and X-Forwarded-URI headers and forms them into a URL.
+func (c AutheliaCtx) ForwardedURL() (string, error) {
+	XForwardedProto := c.XForwardedProto()
+
+	if XForwardedProto == nil {
+		return "", errMissingXForwardedProto
+	}
+
+	XForwardedHost := c.XForwardedHost()
+
+	if XForwardedHost == nil {
+		return "", errMissingXForwardedHost
+	}
+
+	return fmt.Sprintf("%s://%s%s", XForwardedProto,
+		XForwardedHost, c.XForwardedURI()), nil
+}
+
 // XOriginalURL return the content of the X-Original-URL header.
 func (c *AutheliaCtx) XOriginalURL() []byte {
 	return c.RequestCtx.Request.Header.Peek(xOriginalURLHeader)
@@ -188,7 +206,7 @@ func (c *AutheliaCtx) RemoteIP() net.IP {
 	return c.RequestCtx.RemoteIP()
 }
 
-// getOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers).
+// GetOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers).
 func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 	originalURL := c.XOriginalURL()
 	if originalURL != nil {

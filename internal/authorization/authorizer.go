@@ -1,7 +1,6 @@
 package authorization
 
 import (
-	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 )
@@ -49,15 +48,4 @@ func (p *Authorizer) GetRequiredLevel(subject Subject, object Object) Level {
 	logger.Tracef("No matching rule for subject %s and url %s... Applying default policy.", subject.String(), object.String())
 
 	return p.defaultPolicy
-}
-
-func IsAuthLevelSufficient(authenticationLevel authentication.Level, authorizationLevel Level) bool {
-	if authorizationLevel == Denied {
-		return false
-	} else if authorizationLevel == OneFactor {
-		return authenticationLevel >= authentication.OneFactor
-	} else if authorizationLevel == TwoFactor {
-		return authenticationLevel >= authentication.TwoFactor
-	}
-	return true
 }

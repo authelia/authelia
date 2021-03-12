@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -43,7 +43,7 @@ type RequestHandler = func(*AutheliaCtx)
 // Middleware represent an Authelia middleware.
 type Middleware = func(RequestHandler) RequestHandler
 
-// RequestHandlerBridge bridge a AutheliaCtx handle to a RequestHandler handler
+// RequestHandlerBridge bridge a AutheliaCtx handle to a RequestHandler handler.
 type RequestHandlerBridge = func(RequestHandler) fasthttp.RequestHandler
 
 // IdentityVerificationStartArgs represent the arguments used to customize the starting phase

@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+// OIDCClaims represents a set of OIDC claims.
 type OIDCClaims struct {
 	jwt.StandardClaims
 
@@ -31,9 +32,11 @@ func getOIDCClientConfig(clientID string, configuration schema.OpenIDConnectConf
 			return &c
 		}
 	}
+
 	return nil
 }
 
+// AuthEndpointGet handles requests to the OIDC authentication endpoint.
 func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc {
 	return func(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 		// Let's create an AuthorizeRequest object!
@@ -42,6 +45,7 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 		if err != nil {
 			logging.Logger().Errorf("Error occurred in NewAuthorizeRequest: %+v", err)
 			oauth2.WriteAuthorizeError(rw, ar, err)
+
 			return
 		}
 
@@ -52,6 +56,7 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 			err := fmt.Errorf("Unable to find related client configuration with name %s", ar.GetID())
 			ctx.Logger.Error(err)
 			oauth2.WriteAuthorizeError(rw, ar, err)
+
 			return
 		}
 
@@ -93,15 +98,17 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 				http.Error(rw, err.Error(), 500)
 			}
 
-			uri, err := middlewares.GetForwardedURI(ctx)
+			uri, err := ctx.ForwardedURL()
 			if err != nil {
 				ctx.Logger.Errorf("%v", err)
 				http.Error(rw, err.Error(), 500)
+
 				return
 			}
 
 			// Redirect to the authentication portal with a workflow token
 			http.Redirect(rw, r, fmt.Sprintf("%s?workflow=openid", uri), 302)
+
 			return
 		}
 
@@ -125,6 +132,7 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 		if err != nil {
 			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
 			oauth2.WriteAuthorizeError(rw, ar, err)
+
 			return
 		}
 

@@ -4,8 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/ory/fosite"
+
+	"github.com/authelia/authelia/internal/middlewares"
 )
 
 func tokenEndpoint(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc {
@@ -23,11 +24,12 @@ func tokenEndpoint(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc
 		if err != nil {
 			log.Printf("Error occurred in NewAccessRequest: %+v", err)
 			oauth2.WriteAccessError(rw, accessRequest, err)
+
 			return
 		}
 
 		// If this is a client_credentials grant, grant all scopes the client is allowed to perform.
-		if accessRequest.GetGrantTypes().Exact("client_credentials") {
+		if accessRequest.GetGrantTypes().ExactOne("client_credentials") {
 			for _, scope := range accessRequest.GetRequestedScopes() {
 				if fosite.HierarchicScopeStrategy(accessRequest.GetClient().GetScopes(), scope) {
 					accessRequest.GrantScope(scope)
@@ -41,12 +43,11 @@ func tokenEndpoint(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc
 		if err != nil {
 			log.Printf("Error occurred in NewAccessResponse: %+v", err)
 			oauth2.WriteAccessError(rw, accessRequest, err)
+
 			return
 		}
 
-		// All done, send the response.
+		// All done, send the response. The client now has a valid access token
 		oauth2.WriteAccessResponse(rw, accessRequest, response)
-
-		// The client now has a valid access token
 	}
 }

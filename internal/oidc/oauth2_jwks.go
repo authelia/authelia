@@ -4,8 +4,9 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 
-	"github.com/authelia/authelia/internal/middlewares"
 	"gopkg.in/square/go-jose.v2"
+
+	"github.com/authelia/authelia/internal/middlewares"
 )
 
 // JWKsGet handler serving the jwks used to verify the JWT tokens.

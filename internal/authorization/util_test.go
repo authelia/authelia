@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
@@ -181,4 +182,16 @@ func TestShouldParseACLNetworks(t *testing.T) {
 
 	assert.Equal(t, fourthNetwork, networksCacheMap["fec0::1"])
 	assert.Equal(t, fourthNetwork, networksCacheMap["fec0::1/128"])
+}
+
+func TestShouldReturnCorrectValidationLevel(t *testing.T) {
+	assert.True(t, IsAuthLevelSufficient(authentication.NotAuthenticated, Bypass))
+	assert.True(t, IsAuthLevelSufficient(authentication.OneFactor, Bypass))
+	assert.True(t, IsAuthLevelSufficient(authentication.TwoFactor, Bypass))
+	assert.False(t, IsAuthLevelSufficient(authentication.NotAuthenticated, OneFactor))
+	assert.True(t, IsAuthLevelSufficient(authentication.OneFactor, OneFactor))
+	assert.True(t, IsAuthLevelSufficient(authentication.TwoFactor, OneFactor))
+	assert.False(t, IsAuthLevelSufficient(authentication.NotAuthenticated, TwoFactor))
+	assert.False(t, IsAuthLevelSufficient(authentication.OneFactor, TwoFactor))
+	assert.True(t, IsAuthLevelSufficient(authentication.TwoFactor, TwoFactor))
 }

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 
 	"github.com/authelia/authelia/internal/templates"
 )
@@ -51,7 +51,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		uri, err := GetForwardedURI(ctx)
+		uri, err := ctx.ForwardedURL()
 		if err != nil {
 			ctx.Error(err, operationFailedMessage)
 			return

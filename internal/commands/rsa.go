@@ -5,8 +5,9 @@ import (
 	"os"
 	"path"
 
-	"github.com/authelia/authelia/internal/utils"
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 var rsaTargetDirectory string
