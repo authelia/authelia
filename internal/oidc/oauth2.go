@@ -47,6 +47,10 @@ func NewStore(config *schema.OpenIDConnectConfiguration) *storage.MemoryStore {
 
 // InitializeOIDC configures the fasthttp router to provide OIDC.
 func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *router.Router, autheliaMiddleware middlewares.RequestHandlerBridge) {
+	if configuration == nil {
+		return
+	}
+
 	// This is an exemplary storage instance. We will add a client and a user to it so we can use these later on.
 	var store = NewStore(configuration)
 
