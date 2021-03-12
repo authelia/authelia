@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"fmt"
-	"io/ioutil"
 	"time"
 
 	"github.com/fasthttp/router"
@@ -56,12 +55,7 @@ func InitializeOIDC(configuration *schema.OpenIDConnectServerConfiguration, rout
 
 	var oidcConfig = new(compose.Config)
 
-	b, err := ioutil.ReadFile(configuration.IssuerPrivateKeyPath)
-	if err != nil {
-		panic(err)
-	}
-
-	privateKey, err := utils.ParseRsaPrivateKeyFromPemStr(string(b))
+	privateKey, err := utils.ParseRsaPrivateKeyFromPemStr(configuration.IssuerPrivateKey)
 	if err != nil {
 		panic(err)
 	}

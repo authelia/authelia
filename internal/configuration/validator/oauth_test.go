@@ -14,8 +14,8 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.OAuthConfiguration{
 		OIDCServer: &schema.OpenIDConnectServerConfiguration{
-			HMACSecret:           "abc",
-			IssuerPrivateKeyPath: "",
+			HMACSecret:       "abc",
+			IssuerPrivateKey: "",
 		},
 	}
 
@@ -32,25 +32,24 @@ func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T)
 	validator := schema.NewStructValidator()
 	config := &schema.OAuthConfiguration{
 		OIDCServer: &schema.OpenIDConnectServerConfiguration{
-			HMACSecret:           "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKeyPath: "../abc",
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: "key-material",
 		},
 	}
 
 	ValidateOAuth(config, validator)
 
-	require.Len(t, validator.Errors(), 2)
+	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "OIDC Server issuer private key path doesn't exist")
-	assert.EqualError(t, validator.Errors()[1], "OIDC Server has no clients defined")
+	assert.EqualError(t, validator.Errors()[0], "OIDC Server has no clients defined")
 }
 
 func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.OAuthConfiguration{
 		OIDCServer: &schema.OpenIDConnectServerConfiguration{
-			HMACSecret:           "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKeyPath: "../../../README.md",
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: "key-material",
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "",
@@ -95,8 +94,8 @@ func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.OAuthConfiguration{
 		OIDCServer: &schema.OpenIDConnectServerConfiguration{
-			HMACSecret:           "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKeyPath: "../../../README.md",
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: "../../../README.md",
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "a-client",

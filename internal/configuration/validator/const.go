@@ -167,6 +167,7 @@ var validKeys = []string{
 	"authelia.storage.mysql.password.file",
 	"authelia.storage.postgres.password.file",
 	"authelia.oauth.oidc_server.hmac_secret.file",
+	"authelia.oauth.oidc_server.issuer_private_key.file",
 }
 
 var specificErrorKeys = map[string]string{
@@ -220,7 +221,6 @@ const testTLSKey = "/tmp/key.pem"
 
 const errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for domain %s with subjects %s is invalid. It is not supported to configure both policy bypass and subjects. For more information see: https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 
-const errOAuthOIDCServerIssuerPrivateKeyPathInvalidFmt = "OIDC Server issuer private key path is invalid: %v"
 const errOAuthOIDCServerHMACLengthMustBe32Fmt = "OIDC Server HMAC secret must be exactly 32 chars long but is %d long"
 const errOAuthOIDCServerClientRedirectURIFmt = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be https"
 const errOAuthOIDCServerClientRedirectURICantBeParsedFmt = "OIDC Server Client redirect URI %s could not be parsed: %v"

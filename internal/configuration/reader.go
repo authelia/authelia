@@ -1,13 +1,13 @@
 package configuration
 
 import (
-	_ "embed" // Embed config.template.yml.
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 
+	_ "embed" // Embed config.template.yml.
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 
@@ -64,6 +64,7 @@ func Read(configPath string) (*schema.Configuration, []error) {
 	viper.BindEnv("authelia.storage.mysql.password.file")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	viper.BindEnv("authelia.storage.postgres.password.file")            //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 	viper.BindEnv("authelia.oauth.oidc_server.hmac_secret.file")        //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	viper.BindEnv("authelia.oauth.oidc_server.issuer_private_key.file") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
 
 	viper.SetConfigFile(configPath)
 

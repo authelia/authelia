@@ -41,6 +41,7 @@ func ValidateSecrets(configuration *schema.Configuration, validator *schema.Stru
 
 	if configuration.OAuth.OIDCServer != nil {
 		configuration.OAuth.OIDCServer.HMACSecret = getSecretValue("oauth.oidc_server.hmac_secret", validator, viper)
+		configuration.OAuth.OIDCServer.IssuerPrivateKey = getSecretValue("oauth.oidc_server.issuer_private_key", validator, viper)
 	}
 }
 
