@@ -94,5 +94,5 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		ValidateNotifier(configuration.Notifier, validator)
 	}
 
-	ValidateOIDC(&configuration.OpenIDConnect, validator)
+	ValidateOIDC(configuration.OpenIDConnect, validator)
 }

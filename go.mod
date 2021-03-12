@@ -17,10 +17,9 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.5.0
 	github.com/jackc/pgx/v4 v4.10.1
-	github.com/mattn/go-sqlite3 v1.14.6
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/ory/fosite v0.39.0
 	github.com/otiai10/copy v1.5.0
-	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/pquerna/otp v1.2.0
 	github.com/simia-tech/crypt v0.4.3
 	github.com/sirupsen/logrus v1.8.1
@@ -29,8 +28,8 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
-	gopkg.in/square/go-jose.v2 v2.5.1
 	github.com/valyala/fasthttp v1.22.0
 	golang.org/x/text v0.3.5
+	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v2 v2.4.0
 )

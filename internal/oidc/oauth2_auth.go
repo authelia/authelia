@@ -6,14 +6,15 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dgrijalva/jwt-go"
+	"github.com/ory/fosite"
+
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/utils"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/ory/fosite"
 )
 
 type OIDCClaims struct {
@@ -46,7 +47,7 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 
 		clientID := ar.GetClient().GetID()
 
-		clientConfig := getOIDCClientConfig(clientID, ctx.Configuration.OpenIDConnect)
+		clientConfig := getOIDCClientConfig(clientID, *ctx.Configuration.OpenIDConnect)
 		if clientConfig == nil {
 			err := fmt.Errorf("Unable to find related client configuration with name %s", ar.GetID())
 			ctx.Logger.Error(err)
@@ -68,7 +69,7 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 			Username: userSession.Username,
 			Groups:   userSession.Groups,
 			IP:       ctx.RemoteIP(),
-		}, *originalURL)
+		}, authorization.NewObjectRaw(originalURL, ctx.Method()))
 
 		isAuthInsufficient := !authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, requiredAuthorizationLevel)
 		isConsentMissing := len(ar.GetRequestedScopes()) > 0 && (userSession.OIDCWorkflowSession == nil ||

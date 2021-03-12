@@ -1,11 +1,6 @@
 package authorization
 
 import (
-	"fmt"
-	"net"
-	"net/url"
-	"strings"
-
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"

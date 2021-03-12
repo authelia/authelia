@@ -36,7 +36,7 @@ func NewStore(config *schema.OpenIDConnectConfiguration) *storage.MemoryStore {
 		Users:                  map[string]storage.MemoryUserRelation{},
 		AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
 		AccessTokens:           map[string]fosite.Requester{},
-		RefreshTokens:          map[string]fosite.Requester{},
+		RefreshTokens:          map[string]storage.StoreRefreshToken{},
 		PKCES:                  map[string]fosite.Requester{},
 		AccessTokenRequestIDs:  map[string]string{},
 		RefreshTokenRequestIDs: map[string]string{},
