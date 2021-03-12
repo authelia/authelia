@@ -34,6 +34,6 @@ const ConsentView = function (props: Props) {
             </Grid>
         </LoginLayout>
     );
-}
+};
 
 export default ConsentView;
