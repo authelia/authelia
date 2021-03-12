@@ -98,7 +98,7 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 				http.Error(rw, err.Error(), 500)
 			}
 
-			uri, err := ctx.ForwardedURL()
+			uri, err := ctx.ForwardedProtoHost()
 			if err != nil {
 				ctx.Logger.Errorf("%v", err)
 				http.Error(rw, err.Error(), 500)
@@ -107,7 +107,7 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 			}
 
 			// Redirect to the authentication portal with a workflow token
-			http.Redirect(rw, r, fmt.Sprintf("%s?workflow=openid", uri), 302)
+			http.Redirect(rw, r, fmt.Sprintf("%s%s?workflow=openid", uri, ctx.Configuration.Server.Path), 302)
 
 			return
 		}

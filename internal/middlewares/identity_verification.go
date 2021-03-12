@@ -51,13 +51,13 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		uri, err := ctx.ForwardedURL()
+		uri, err := ctx.ForwardedProtoHost()
 		if err != nil {
 			ctx.Error(err, operationFailedMessage)
 			return
 		}
 
-		link := fmt.Sprintf("%s%s?token=%s", uri, args.TargetEndpoint, ss)
+		link := fmt.Sprintf("%s%s%s?token=%s", uri, ctx.Configuration.Server.Path, args.TargetEndpoint, ss)
 
 		bufHTML := new(bytes.Buffer)
 
