@@ -145,12 +145,9 @@ var validKeys = []string{
 	"authentication_backend.file.password.parallelism",
 
 	// OIDC Keys
-	"openid_connect.clients.redirect_uris",
-	"openid_connect.clients.client_id",
-	"openid_connect.clients.client_secret",
-	"openid_connect.clients.policy",
 	"openid_connect.oauth2_hmac_secret",
 	"openid_connect.oidc_issuer_private_key_path",
+	"openid_connect.clients",
 
 	// Secret Keys.
 	"authelia.jwt_secret",
