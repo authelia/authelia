@@ -455,6 +455,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "craSH",
+      "name": "Ian Gallagher",
+      "avatar_url": "https://avatars.githubusercontent.com/u/127512?v=4",
+      "profile": "https://cdine.org",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7

@@ -102,8 +102,9 @@ A rule can define multiple regular expressions for matching the path of the reso
 similar to the list of domains. If any one of them matches, the resource criteria of
 the rule matches.
 
-Note that regular expressions can be used to match a given path. However, they do not match
-the query parameters in the URL, only the path.
+Note that regular expressions can be used to match a given path. However prior to 4.27.0, they do not match
+the query parameters in the URL, only the path. If you're upgrading to 4.27.0+ you may have to alter some 
+resource rules to get them to work as they previously did.
 
 You might also face some escaping issues preventing Authelia to start. Please make sure that
 when you are using regular expressions, you enclose them between quotes. It's optional but
