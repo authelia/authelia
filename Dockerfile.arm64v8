@@ -1,7 +1,7 @@
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.16-alpine AS builder-backend
+FROM golang:1.16.2-alpine AS builder-backend
 
 ARG BUILD_TAG
 ARG BUILD_COMMIT
