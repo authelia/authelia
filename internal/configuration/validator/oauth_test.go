@@ -116,6 +116,13 @@ func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
 					Scopes: []string{
 						"groups",
 					},
+					GrantTypes: []string{
+						"refresh_token",
+					},
+					ResponseTypes: []string{
+						"token",
+						"code",
+					},
 				},
 			},
 		},
@@ -128,6 +135,20 @@ func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
 	require.Len(t, config.OIDCServer.Clients[0].Scopes, 1)
 	assert.Equal(t, "openid", config.OIDCServer.Clients[0].Scopes[0])
 
+	require.Len(t, config.OIDCServer.Clients[0].GrantTypes, 2)
+	assert.Equal(t, "refresh_token", config.OIDCServer.Clients[0].GrantTypes[0])
+	assert.Equal(t, "authorization_code", config.OIDCServer.Clients[0].GrantTypes[1])
+
+	require.Len(t, config.OIDCServer.Clients[0].ResponseTypes, 1)
+	assert.Equal(t, "code", config.OIDCServer.Clients[0].ResponseTypes[0])
+
 	require.Len(t, config.OIDCServer.Clients[1].Scopes, 1)
 	assert.Equal(t, "groups", config.OIDCServer.Clients[1].Scopes[0])
+
+	require.Len(t, config.OIDCServer.Clients[1].GrantTypes, 1)
+	assert.Equal(t, "refresh_token", config.OIDCServer.Clients[1].GrantTypes[0])
+
+	require.Len(t, config.OIDCServer.Clients[1].ResponseTypes, 2)
+	assert.Equal(t, "token", config.OIDCServer.Clients[1].ResponseTypes[0])
+	assert.Equal(t, "code", config.OIDCServer.Clients[1].ResponseTypes[1])
 }

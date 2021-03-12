@@ -16,8 +16,6 @@ services:
     environment:
       - ENVIRONMENT=dev
     restart: always
-    healthcheck:
-      test: curl --insecure -f https://localhost:9091/${PathPrefix}/api/health || exit 1
     networks:
       authelianet:
         ipv4_address: 192.168.240.50
