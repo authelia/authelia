@@ -55,6 +55,16 @@ func (de *DockerEnvironment) Restart(service string) error {
 	return de.createCommandWithStdout(fmt.Sprintf("restart %s", service)).Run()
 }
 
+// Stop a docker service.
+func (de *DockerEnvironment) Stop(service string) error {
+	return de.createCommandWithStdout(fmt.Sprintf("stop %s", service)).Run()
+}
+
+// Start a docker service.
+func (de *DockerEnvironment) Start(service string) error {
+	return de.createCommandWithStdout(fmt.Sprintf("start %s", service)).Run()
+}
+
 // Down destroy a docker environment.
 func (de *DockerEnvironment) Down() error {
 	return de.createCommandWithStdout("down -v").Run()

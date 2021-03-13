@@ -417,6 +417,53 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "ThinkChaos",
+      "name": "ThinkChaos",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4761135?v=4",
+      "profile": "https://github.com/ThinkChaos",
+      "contributions": [
+        "code",
+        "doc",
+        "test"
+      ]
+    },
+    {
+      "login": "except",
+      "name": "Hasan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26675576?v=4",
+      "profile": "https://github.com/except",
+      "contributions": [
+        "security"
+      ]
+    },
+    {
+      "login": "dchidell",
+      "name": "David Chidell",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26146619?v=4",
+      "profile": "http://blog.dchidell.com",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "mardom1",
+      "name": "Marcel Marquardt",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32371724?v=4",
+      "profile": "https://github.com/mardom1",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "craSH",
+      "name": "Ian Gallagher",
+      "avatar_url": "https://avatars.githubusercontent.com/u/127512?v=4",
+      "profile": "https://cdine.org",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7

@@ -18,11 +18,10 @@ var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
-//go:generate broccoli -src ../../public_html -o public_html
 func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, session, theme string) fasthttp.RequestHandler {
 	logger := logging.Logger()
 
-	f, err := br.Open(publicDir + file)
+	f, err := assets.Open(publicDir + file)
 	if err != nil {
 		logger.Fatalf("Unable to open %s: %s", file, err)
 	}
@@ -48,7 +47,7 @@ func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, sessio
 		}
 
 		switch {
-		case publicDir == "/public_html/api/":
+		case publicDir == swaggerAssets:
 			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("base-uri 'self' ; default-src 'self' ; img-src 'self' https://validator.swagger.io data: ; object-src 'none' ; script-src 'self' 'unsafe-inline' 'nonce-%s' ; style-src 'self' 'nonce-%s'", nonce, nonce))
 		case os.Getenv("ENVIRONMENT") == dev:
 			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' 'unsafe-eval'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))

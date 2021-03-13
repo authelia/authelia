@@ -33,8 +33,17 @@ cat << EOF
 EOF
 else
 cat << EOF
-    if: build.branch !~ /^renovate\/.*/
+    if: build.branch !~ /^(dependabot|renovate)\/.*/
 EOF
 fi
   done
 done
+cat << EOF
+
+  - wait
+
+  - label: ":vertical_traffic_light: Build Concurrency Gate"
+    command: "echo End of concurrency gate"
+    concurrency: 3
+    concurrency_group: "builds"
+EOF

@@ -210,6 +210,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
+		"requestMethod": "GET",
 		"keepMeLoggedIn": false
 	}`)
 	FirstFactorPost(0, false)(s.mock.Ctx)
@@ -253,6 +254,7 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
+		"requestMethod": "GET",
 		"keepMeLoggedIn": true
 	}`)
 	FirstFactorPost(0, false)(s.mock.Ctx)
@@ -323,6 +325,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTarget
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
+		"requestMethod": "GET",
 		"keepMeLoggedIn": false
 	}`)
 	FirstFactorPost(0, false)(s.mock.Ctx)
@@ -341,6 +344,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
+		"requestMethod": "GET",
 		"keepMeLoggedIn": false,
 		"targetURL": "http://notsafe.local"
 	}`)
@@ -362,6 +366,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
+		"requestMethod": "GET",
 		"keepMeLoggedIn": false
 	}`)
 
@@ -392,6 +397,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
+		"requestMethod": "GET",
 		"keepMeLoggedIn": false
 	}`)
 

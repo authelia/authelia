@@ -1,8 +1,11 @@
 package server
 
 import (
+	"embed"
+	"io/fs"
 	"io/ioutil"
 	"net"
+	"net/http"
 	"os"
 	"runtime"
 	"strconv"
@@ -22,15 +25,18 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
+//go:embed public_html
+var assets embed.FS
+
 // StartServer start Authelia server with the given configuration and providers.
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
 	logger := logging.Logger()
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-	embeddedAssets := "/public_html/"
-	swaggerAssets := embeddedAssets + "api/"
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
+	embeddedPath, _ := fs.Sub(assets, "public_html")
+	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
 	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
@@ -43,11 +49,11 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	r.GET("/api/"+apiFile, serveSwaggerAPIHandler)
 
 	for _, f := range rootFiles {
-		r.GET("/"+f, fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
+		r.GET("/"+f, embeddedFS)
 	}
 
-	r.GET("/static/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
-	r.GET("/api/{filepath:*}", fasthttpadaptor.NewFastHTTPHandler(br.Serve(embeddedAssets)))
+	r.GET("/static/{filepath:*}", embeddedFS)
+	r.ANY("/api/{filepath:*}", embeddedFS)
 
 	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))

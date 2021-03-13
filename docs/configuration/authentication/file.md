@@ -25,7 +25,7 @@ authentication_backend:
       iterations: 1
       salt_length: 16
       parallelism: 8
-      memory: 1024
+      memory: 64
 ```
 
 
@@ -94,7 +94,7 @@ Flags:
   -h, --help              help for hash-password
   -i, --iterations int    set the number of hashing iterations (default 1)
   -k, --key-length int    [argon2id] set the key length param (default 32)
-  -m, --memory int        [argon2id] set the amount of memory param (in MB) (default 1024)
+  -m, --memory int        [argon2id] set the amount of memory param (in MB) (default 64)
   -p, --parallelism int   [argon2id] set the parallelism param (default 8)
   -s, --salt string       set the salt string
   -l, --salt-length int   set the auto-generated salt length (default 16)
@@ -185,7 +185,7 @@ parameters below, or for a more in depth understanding see the referenced docume
 #### memory
  - Value Type: Int
  - Possible Value: at least `8` times the value of `parallelism`
- - Recommended: `1024‬‬` (1GB) or as much RAM as you can afford to give to hashing
+ - Recommended: `64` (64MB) or as much RAM as you can afford to give to hashing
  - What it Does: Sets the amount of RAM used in MB for hashing
 
 

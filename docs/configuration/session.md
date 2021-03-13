@@ -28,8 +28,25 @@ session:
   redis:
     host: 127.0.0.1
     port: 6379
+    username: authelia
     password: authelia
     database_index: 0
+    maximum_active_connections: 8
+    minimum_idle_connections: 0
+    tls:
+      server_name: myredis.example.com
+      skip_verify: false
+      minimum_version: TLS1.2
+    high_availability:
+      sentinel_name: mysentinel
+      sentinel_password: sentinel_specific_pass
+      nodes:
+        - host: sentinel-node1
+          port: 26379
+        - host: sentinel-node2
+          port: 26379
+      route_by_latency: false
+      route_randomly: false
 ```
 
 ## Options
@@ -96,3 +113,8 @@ Configuration of this section has an impact on security. You should read notes i
 ## Loading a password from a secret instead of inside the configuration
 
 Password can also be defined using a [secret](../secrets.md).
+
+## Redis Sentinel
+
+When using Redis Sentinel, the host specified in the main redis section is added (it will be the first node) to the 
+nodes in the high availability section. This however is optional.

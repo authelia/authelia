@@ -188,6 +188,6 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		successful = true
 
-		Handle1FAResponse(ctx, bodyJSON.TargetURL, userSession.Username, userSession.Groups)
+		Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 	}
 }

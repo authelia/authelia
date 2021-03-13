@@ -32,7 +32,7 @@ func NewTLSConfig(config *schema.TLSConfig, defaultMinVersion uint16, certPool *
 func NewX509CertPool(directory string, config *schema.Configuration) (certPool *x509.CertPool, errors []error, nonFatalErrors []error) {
 	certPool, err := x509.SystemCertPool()
 	if err != nil {
-		nonFatalErrors = append(nonFatalErrors, fmt.Errorf("could not load system certificate pool which may result in untruested certificate issues: %v", err))
+		nonFatalErrors = append(nonFatalErrors, fmt.Errorf("could not load system certificate pool which may result in untrusted certificate issues: %v", err))
 		certPool = x509.NewCertPool()
 	}
 

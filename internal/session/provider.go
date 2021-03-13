@@ -1,15 +1,17 @@
 package session
 
 import (
+	"crypto/x509"
 	"encoding/json"
 	"time"
 
-	fasthttpsession "github.com/authelia/session/v2"
-	"github.com/authelia/session/v2/providers/memory"
-	"github.com/authelia/session/v2/providers/redis"
+	fasthttpsession "github.com/fasthttp/session/v2"
+	"github.com/fasthttp/session/v2/providers/memory"
+	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -21,42 +23,51 @@ type Provider struct {
 }
 
 // NewProvider instantiate a session provider given a configuration.
-func NewProvider(configuration schema.SessionConfiguration) *Provider {
-	providerConfig := NewProviderConfig(configuration)
+func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertPool) *Provider {
+	providerConfig := NewProviderConfig(configuration, certPool)
 
 	provider := new(Provider)
 	provider.sessionHolder = fasthttpsession.New(providerConfig.config)
 
+	logger := logging.Logger()
+
 	duration, err := utils.ParseDurationString(configuration.RememberMeDuration)
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 
 	provider.RememberMe = duration
 
 	duration, err = utils.ParseDurationString(configuration.Inactivity)
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 
 	provider.Inactivity = duration
 
 	var providerImpl fasthttpsession.Provider
-	if providerConfig.redisConfig != nil {
+
+	switch {
+	case providerConfig.redisConfig != nil:
 		providerImpl, err = redis.New(*providerConfig.redisConfig)
 		if err != nil {
-			panic(err)
+			logger.Fatal(err)
 		}
-	} else {
+	case providerConfig.redisSentinelConfig != nil:
+		providerImpl, err = redis.NewFailoverCluster(*providerConfig.redisSentinelConfig)
+		if err != nil {
+			logger.Fatal(err)
+		}
+	default:
 		providerImpl, err = memory.New(memory.Config{})
 		if err != nil {
-			panic(err)
+			logger.Fatal(err)
 		}
 	}
 
 	err = provider.sessionHolder.SetProvider(providerImpl)
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 
 	return provider

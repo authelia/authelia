@@ -214,6 +214,18 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldValidateCompleteConfigura
 	suite.Assert().False(suite.validator.HasErrors())
 }
 
+func (suite *LdapAuthenticationBackendSuite) TestShouldValidateDefaultImplementationAndUsernameAttribute() {
+	suite.configuration.Ldap.Implementation = ""
+	suite.configuration.Ldap.UsernameAttribute = ""
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+
+	suite.Assert().Equal(schema.LDAPImplementationCustom, suite.configuration.Ldap.Implementation)
+
+	suite.Assert().Equal(suite.configuration.Ldap.UsernameAttribute, schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute)
+	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().False(suite.validator.HasErrors())
+}
+
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenImplementationIsInvalidMSAD() {
 	suite.configuration.Ldap.Implementation = "masd"
 
