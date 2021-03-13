@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/authelia/session/v2"
-	"github.com/authelia/session/v2/providers/redis"
+	"github.com/fasthttp/session/v2"
+	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
