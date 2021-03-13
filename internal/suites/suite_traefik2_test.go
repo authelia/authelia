@@ -58,5 +58,9 @@ func (s *Traefik2Suite) TestShouldKeepSessionAfterRedisRestart() {
 }
 
 func TestTraefik2Suite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
 	suite.Run(t, NewTraefik2Suite())
 }

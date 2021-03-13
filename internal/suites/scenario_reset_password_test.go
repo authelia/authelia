@@ -97,5 +97,9 @@ func (s *ResetPasswordScenario) TestShouldLetUserNoticeThereIsAPasswordMismatch(
 }
 
 func TestRunResetPasswordScenario(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
 	suite.Run(t, NewResetPasswordScenario())
 }

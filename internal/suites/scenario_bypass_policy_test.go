@@ -59,5 +59,9 @@ func (s *BypassPolicyScenario) TestShouldAccessPublicResource() {
 }
 
 func TestBypassPolicyScenario(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
 	suite.Run(t, NewBypassPolicyScenario())
 }
