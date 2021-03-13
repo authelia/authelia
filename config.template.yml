@@ -35,8 +35,10 @@ server:
 
 ## Level of verbosity for logs: info, debug, trace.
 log_level: debug
+
 ## Format the logs are written as: json, text.
 # log_format: json
+
 ## File path where the logs will be written. If not set logs are written to stdout.
 # log_file_path: /config/authelia.log
 
@@ -56,7 +58,7 @@ default_redirection_url: https://home.example.com:8080/
 ##
 ## TOTP Configuration
 ##
-## Parameters used for TOTP generation
+## Parameters used for TOTP generation.
 totp:
   ## The issuer name displayed in the Authenticator application of your choice
   ## See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
@@ -87,7 +89,7 @@ duo_api:
 ##
 ## The available providers are: `file`, `ldap`. You must use one and only one of these providers.
 authentication_backend:
-  ## Disable both the HTML element and the API for reset password functionality
+  ## Disable both the HTML element and the API for reset password functionality.
   disable_reset_password: false
 
   ## The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
@@ -136,7 +138,7 @@ authentication_backend:
       ## Minimum TLS version for either Secure LDAP or LDAP StartTLS.
       minimum_version: TLS1.2
 
-    ## The base dn for every entries.
+    ## The base dn used when looking up objects (users/groups) in the directory.
     base_dn: dc=example,dc=com
 
     ## The attribute holding the username of the user. This attribute is used to populate the username in the session
@@ -149,7 +151,7 @@ authentication_backend:
     ## (sAMAccountName and uid) to follow https://www.ietf.org/rfc/rfc2307.txt.
     # username_attribute: uid
 
-    ## An additional dn to define the scope to all users.
+    ## The additional_users_dn is appended to the start of base_dn and delimited by a comma when searching for users.
     additional_users_dn: ou=users
 
     ## The users filter used in search queries to find the user profile based on input filled in login form.
@@ -170,7 +172,7 @@ authentication_backend:
     ## (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     users_filter: (&({username_attribute}={input})(objectClass=person))
 
-    ## An additional dn to define the scope of groups.
+    ## The additional_groups_dn is appended to the start of base_dn and delimited by a comma when searching for groups.
     additional_groups_dn: ou=groups
 
     ## The groups filter used in search queries to find the groups of the user.
@@ -188,7 +190,7 @@ authentication_backend:
     ##    (&(uniquemember={dn})(objectclass=groupOfUniqueNames))
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
 
-    ## The attribute holding the name of the group
+    ## The attribute holding the name of the group.
     # group_name_attribute: cn
 
     ## The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the
@@ -375,8 +377,8 @@ session:
     ## Use a unix socket instead
     # host: /var/run/redis/redis.sock
 
-    ## Optional username to be used with authentication.
-    username: authelia
+    ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
+    # username: authelia
 
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: authelia
@@ -406,7 +408,7 @@ session:
     ## The Redis HA configuration options.
     ## This provides specific options to Redis Sentinel, sentinel_name must be defined (Master Name).
     # high_availability:
-      ## Sentinel Name / Master Name
+      ## Sentinel Name / Master Name.
       # sentinel_name: mysentinel
 
       ## Specific password for Redis Sentinel. The node username and password is configured above.
@@ -462,9 +464,7 @@ storage:
   #   path: /config/db.sqlite3
 
   ##
-  ## MySQL (Storage Provider)
-  ##
-  ## Also supports MariaDB
+  ## MySQL / MariaDB (Storage Provider)
   ##
   mysql:
     host: 127.0.0.1
@@ -488,7 +488,6 @@ storage:
 
 ##
 ## Notification Provider
-##
 ##
 ## Notifications are sent to users when they require a password reset, a u2f registration or a TOTP registration.
 ## The available providers are: filesystem, smtp. You must use one and only one of these providers.
@@ -523,8 +522,7 @@ notifier:
     sender: admin@example.com
     ## HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
     identifier: localhost
-    ## Subject configuration of the emails sent.
-    ## {title} is replaced by the text from the notifier
+    ## Subject configuration of the emails sent. {title} is replaced by the text from the notifier.
     subject: "[Authelia] {title}"
     ## This address is used during the startup check to verify the email configuration is correct.
     ## It's not important what it is except if your email server only allows local delivery.
