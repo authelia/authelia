@@ -1,6 +1,6 @@
 [Unit]
 Description=Authelia authentication and authorization server
-After=network.target
+After=multi-user.target
 
 [Service]
 ExecStart=/usr/bin/authelia --config /etc/authelia/configuration.yml
