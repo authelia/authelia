@@ -27,5 +27,9 @@ func (s *HAProxySuite) TestCustomHeaders() {
 }
 
 func TestHAProxySuite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
 	suite.Run(t, NewHAProxySuite())
 }

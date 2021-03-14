@@ -35,5 +35,9 @@ func (s *ActiveDirectorySuite) TestSigninEmailScenario() {
 }
 
 func TestActiveDirectorySuite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
 	suite.Run(t, NewActiveDirectorySuite())
 }
