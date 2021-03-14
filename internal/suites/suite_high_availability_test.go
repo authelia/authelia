@@ -183,38 +183,38 @@ var UserHarry = "harry"
 var Users = []string{UserJohn, UserBob, UserHarry}
 
 var expectedAuthorizations = map[string](map[string]bool){
-	fmt.Sprintf("%s/secret.html", PublicBaseURL): map[string]bool{
+	fmt.Sprintf("%s/secret.html", PublicBaseURL): {
 		UserJohn: true, UserBob: true, UserHarry: true,
 	},
-	fmt.Sprintf("%s/secret.html", SecureBaseURL): map[string]bool{
+	fmt.Sprintf("%s/secret.html", SecureBaseURL): {
 		UserJohn: true, UserBob: true, UserHarry: true,
 	},
-	fmt.Sprintf("%s/secret.html", AdminBaseURL): map[string]bool{
+	fmt.Sprintf("%s/secret.html", AdminBaseURL): {
 		UserJohn: true, UserBob: false, UserHarry: false,
 	},
-	fmt.Sprintf("%s/secret.html", SingleFactorBaseURL): map[string]bool{
+	fmt.Sprintf("%s/secret.html", SingleFactorBaseURL): {
 		UserJohn: true, UserBob: true, UserHarry: true,
 	},
-	fmt.Sprintf("%s/secret.html", MX1MailBaseURL): map[string]bool{
+	fmt.Sprintf("%s/secret.html", MX1MailBaseURL): {
 		UserJohn: true, UserBob: true, UserHarry: false,
 	},
-	fmt.Sprintf("%s/secret.html", MX2MailBaseURL): map[string]bool{
+	fmt.Sprintf("%s/secret.html", MX2MailBaseURL): {
 		UserJohn: false, UserBob: true, UserHarry: false,
 	},
 
-	fmt.Sprintf("%s/groups/admin/secret.html", DevBaseURL): map[string]bool{
+	fmt.Sprintf("%s/groups/admin/secret.html", DevBaseURL): {
 		UserJohn: true, UserBob: false, UserHarry: false,
 	},
-	fmt.Sprintf("%s/groups/dev/secret.html", DevBaseURL): map[string]bool{
+	fmt.Sprintf("%s/groups/dev/secret.html", DevBaseURL): {
 		UserJohn: true, UserBob: true, UserHarry: false,
 	},
-	fmt.Sprintf("%s/users/john/secret.html", DevBaseURL): map[string]bool{
+	fmt.Sprintf("%s/users/john/secret.html", DevBaseURL): {
 		UserJohn: true, UserBob: false, UserHarry: false,
 	},
-	fmt.Sprintf("%s/users/harry/secret.html", DevBaseURL): map[string]bool{
+	fmt.Sprintf("%s/users/harry/secret.html", DevBaseURL): {
 		UserJohn: true, UserBob: false, UserHarry: true,
 	},
-	fmt.Sprintf("%s/users/bob/secret.html", DevBaseURL): map[string]bool{
+	fmt.Sprintf("%s/users/bob/secret.html", DevBaseURL): {
 		UserJohn: true, UserBob: true, UserHarry: false,
 	},
 }
@@ -264,8 +264,8 @@ func NewHighAvailabilitySuite() *HighAvailabilitySuite {
 func DoGetWithAuth(t *testing.T, username, password string) int {
 	client := NewHTTPClient()
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/secret.html", SingleFactorBaseURL), nil)
-	req.SetBasicAuth(username, password)
 	assert.NoError(t, err)
+	req.SetBasicAuth(username, password)
 
 	res, err := client.Do(req)
 	assert.NoError(t, err)
@@ -304,9 +304,17 @@ func (s *HighAvailabilitySuite) TestHighAvailabilityWebDriverSuite() {
 }
 
 func TestHighAvailabilityWebDriverSuite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
 	suite.Run(t, NewHighAvailabilityWebDriverSuite())
 }
 
 func TestHighAvailabilitySuite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
 	suite.Run(t, NewHighAvailabilitySuite())
 }
