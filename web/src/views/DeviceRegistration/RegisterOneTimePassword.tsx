@@ -88,7 +88,12 @@ const RegisterOneTimePassword = function () {
                 </div>
                 <div className={style.qrcodeContainer}>
                     <Link href={secretURL}>
-                        <QRCode value={secretURL} className={classnames(qrcodeFuzzyStyle, style.qrcode)} size={256} />
+                        <QRCode
+                            value={secretURL}
+                            includeMargin={true}
+                            className={classnames(qrcodeFuzzyStyle, style.qrcode)}
+                            size={256}
+                        />
                         {!hasErrored && isLoading ? <CircularProgress className={style.loader} size={128} /> : null}
                         {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
                     </Link>
