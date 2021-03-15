@@ -46,8 +46,8 @@ notifier:
     sender: admin@example.com
     disable_require_tls: true
 
-oauth:
-  oidc_server:
+identity_providers:
+  oidc:
     hmac_secret: IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm
     issuer_private_key: |
       -----BEGIN RSA PRIVATE KEY-----

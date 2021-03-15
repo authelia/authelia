@@ -2,11 +2,13 @@ package oidc
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-type configurationJSON struct {
+// WellKnownConfigurationJSON is the OIDC well known config struct.
+type WellKnownConfigurationJSON struct {
 	Issuer                 string   `json:"issuer"`
 	AuthURL                string   `json:"authorization_endpoint"`
 	TokenURL               string   `json:"token_endpoint"`
@@ -16,15 +18,21 @@ type configurationJSON struct {
 	ResponseTypesSupported []string `json:"response_types_supported"`
 }
 
-// WellKnownConfigurationGet handler serving the openid configuration.
-func WellKnownConfigurationGet(req *middlewares.AutheliaCtx) {
-	var configuration configurationJSON
+// WellKnownConfigurationHandler handler serving the openid configuration.
+func WellKnownConfigurationHandler(ctx *middlewares.AutheliaCtx) {
+	var configuration WellKnownConfigurationJSON
 
-	configuration.Issuer = "https://login.example.com:8080"
-	configuration.AuthURL = "https://login.example.com:8080/api/oidc/auth"
-	configuration.TokenURL = "https://login.example.com:8080/api/oidc/token"
-	configuration.JWKSURL = "https://login.example.com:8080/api/oidc/jwks"
-	configuration.UserInfoURL = "https://login.example.com:8080/api/oidc/userinfo"
+	issuer, err := ctx.ForwardedProtoHost()
+
+	if err != nil {
+		issuer = fallbackOIDCIssuer
+	}
+
+	configuration.Issuer = issuer
+	configuration.AuthURL = fmt.Sprintf("%s%s", issuer, authPath)
+	configuration.TokenURL = fmt.Sprintf("%s%s", issuer, tokenPath)
+	configuration.JWKSURL = fmt.Sprintf("%s%s", issuer, jwksPath)
+	configuration.UserInfoURL = fmt.Sprintf("%s%s", issuer, userinfoPath)
 	configuration.Algorithms = []string{"RS256"}
 	configuration.ResponseTypesSupported = []string{
 		"code",
@@ -37,7 +45,7 @@ func WellKnownConfigurationGet(req *middlewares.AutheliaCtx) {
 		"none",
 	}
 
-	if err := json.NewEncoder(req).Encode(configuration); err != nil {
-		req.Error(err, "Failed to serve openid configuration")
+	if err := json.NewEncoder(ctx).Encode(configuration); err != nil {
+		ctx.Error(err, "Failed to serve openid configuration")
 	}
 }

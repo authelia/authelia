@@ -26,7 +26,7 @@ type OIDCClaims struct {
 	RequestedScopes []string `json:"requested_scopes,omitempty"`
 }
 
-func getOIDCClientConfig(clientID string, configuration schema.OpenIDConnectServerConfiguration) *schema.OpenIDConnectClientConfiguration {
+func getOIDCClientConfig(clientID string, configuration schema.OpenIDConnectConfiguration) *schema.OpenIDConnectClientConfiguration {
 	for _, c := range configuration.Clients {
 		if clientID == c.ID {
 			return &c
@@ -51,7 +51,7 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 
 		clientID := ar.GetClient().GetID()
 
-		clientConfig := getOIDCClientConfig(clientID, *ctx.Configuration.OAuth.OIDCServer)
+		clientConfig := getOIDCClientConfig(clientID, *ctx.Configuration.IdentityProviders.OIDCServer)
 		if clientConfig == nil {
 			err := fmt.Errorf("Unable to find related client configuration with name %s", ar.GetID())
 			ctx.Logger.Error(err)
@@ -112,18 +112,20 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 			return
 		}
 
+		scopes := ar.GetRequestedScopes()
+
 		// We grant the requested scopes at this stage.
-		for _, scope := range ar.GetRequestedScopes() {
+		for _, scope := range scopes {
 			ar.GrantScope(scope)
 		}
 
 		// Now that the user is authorized, we set up a session:
-		oauthSession := newSession(userSession.Username)
+		oauthSession := newSession(ctx, scopes)
 
 		// Now we need to get a response. This is the place where the AuthorizeEndpointHandlers kick in and start processing the request.
 		// NewAuthorizeResponse is capable of running multiple response type handlers which in turn enables this library
 		// to support open id connect.
-		response, err := oauth2.NewAuthorizeResponse(r.Context(), ar, oauthSession)
+		response, err := oauth2.NewAuthorizeResponse(ctx, ar, oauthSession)
 
 		// Catch any errors, e.g.:
 		// * unknown client

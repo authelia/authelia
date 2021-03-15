@@ -55,16 +55,17 @@ func Read(configPath string) (*schema.Configuration, []error) {
 
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	viper.BindEnv("authelia.jwt_secret.file")                           //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.duo_api.secret_key.file")                   //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.session.secret.file")                       //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.authentication_backend.ldap.password.file") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.notifier.smtp.password.file")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.session.redis.password.file")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.storage.mysql.password.file")               //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.storage.postgres.password.file")            //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.oauth.oidc_server.hmac_secret.file")        //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
-	viper.BindEnv("authelia.oauth.oidc_server.issuer_private_key.file") //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	// Safely ignore errors since the only error that can be returned is when the string has a length of zero.
+	_ = viper.BindEnv("authelia.jwt_secret.file")
+	_ = viper.BindEnv("authelia.duo_api.secret_key.file")
+	_ = viper.BindEnv("authelia.session.secret.file")
+	_ = viper.BindEnv("authelia.authentication_backend.ldap.password.file")
+	_ = viper.BindEnv("authelia.notifier.smtp.password.file")
+	_ = viper.BindEnv("authelia.session.redis.password.file")
+	_ = viper.BindEnv("authelia.storage.mysql.password.file")
+	_ = viper.BindEnv("authelia.storage.postgres.password.file")
+	_ = viper.BindEnv("authelia.identity_providers.oidc.hmac_secret.file")
+	_ = viper.BindEnv("authelia.identity_providers.oidc.issuer_private_key.file")
 
 	viper.SetConfigFile(configPath)
 

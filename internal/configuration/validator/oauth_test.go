@@ -12,8 +12,8 @@ import (
 
 func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.OAuthConfiguration{
-		OIDCServer: &schema.OpenIDConnectServerConfiguration{
+	config := &schema.IdentityProvidersConfiguration{
+		OIDCServer: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "abc",
 			IssuerPrivateKey: "",
 		},
@@ -30,8 +30,8 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 
 func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.OAuthConfiguration{
-		OIDCServer: &schema.OpenIDConnectServerConfiguration{
+	config := &schema.IdentityProvidersConfiguration{
+		OIDCServer: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: "key-material",
 		},
@@ -46,8 +46,8 @@ func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T)
 
 func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.OAuthConfiguration{
-		OIDCServer: &schema.OpenIDConnectServerConfiguration{
+	config := &schema.IdentityProvidersConfiguration{
+		OIDCServer: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: "key-material",
 			Clients: []schema.OpenIDConnectClientConfiguration{
@@ -92,8 +92,8 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.OAuthConfiguration{
-		OIDCServer: &schema.OpenIDConnectServerConfiguration{
+	config := &schema.IdentityProvidersConfiguration{
+		OIDCServer: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: "../../../README.md",
 			Clients: []schema.OpenIDConnectClientConfiguration{

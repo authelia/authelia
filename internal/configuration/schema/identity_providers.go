@@ -1,12 +1,12 @@
 package schema
 
-// OAuthConfiguration represents the OAuth 2.0 configuration for Authelia.
-type OAuthConfiguration struct {
-	OIDCServer *OpenIDConnectServerConfiguration `mapstructure:"oidc_server"`
+// IdentityProvidersConfiguration represents the IdentityProviders 2.0 configuration for Authelia.
+type IdentityProvidersConfiguration struct {
+	OIDCServer *OpenIDConnectConfiguration `mapstructure:"oidc"`
 }
 
-// OpenIDConnectServerConfiguration configuration for OpenID Connect.
-type OpenIDConnectServerConfiguration struct {
+// OpenIDConnectConfiguration configuration for OpenID Connect.
+type OpenIDConnectConfiguration struct {
 	// This secret must be 32 bytes long
 	HMACSecret       string `mapstructure:"hmac_secret"`
 	IssuerPrivateKey string `mapstructure:"issuer_private_key"`

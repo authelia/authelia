@@ -20,12 +20,12 @@ type ConsentGetResponseBody struct {
 }
 
 // ConsentGet handler serving the list consent requested by the app.
-func ConsentGet(req *middlewares.AutheliaCtx) {
-	userSession := req.GetSession()
+func ConsentGet(ctx *middlewares.AutheliaCtx) {
+	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {
-		req.Logger.Debug("Cannot consent when OIDC workflow has not been initiated")
-		req.ReplyForbidden()
+		ctx.Logger.Debug("Cannot consent when OIDC workflow has not been initiated")
+		ctx.ReplyForbidden()
 
 		return
 	}
@@ -33,8 +33,8 @@ func ConsentGet(req *middlewares.AutheliaCtx) {
 	if authorization.IsAuthLevelSufficient(
 		userSession.AuthenticationLevel,
 		userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
-		req.Logger.Debug("Insufficient permissions to give consent")
-		req.ReplyForbidden()
+		ctx.Logger.Debug("Insufficient permissions to give consent")
+		ctx.ReplyForbidden()
 
 		return
 	}
@@ -43,18 +43,18 @@ func ConsentGet(req *middlewares.AutheliaCtx) {
 	body.Scopes = userSession.OIDCWorkflowSession.RequestedScopes
 	body.ClientID = userSession.OIDCWorkflowSession.ClientID
 
-	if err := req.SetJSONBody(body); err != nil {
-		req.Error(fmt.Errorf("Unable to set JSON body: %v", err), "Operation failed")
+	if err := ctx.SetJSONBody(body); err != nil {
+		ctx.Error(fmt.Errorf("Unable to set JSON body: %v", err), "Operation failed")
 	}
 }
 
 // ConsentPost handler granting permissions according to the requested scopes.
-func ConsentPost(req *middlewares.AutheliaCtx) {
-	userSession := req.GetSession()
+func ConsentPost(ctx *middlewares.AutheliaCtx) {
+	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {
-		req.Logger.Debug("Cannot consent when OIDC workflow has not been initiated")
-		req.ReplyForbidden()
+		ctx.Logger.Debug("Cannot consent when OIDC workflow has not been initiated")
+		ctx.ReplyForbidden()
 
 		return
 	}
@@ -62,33 +62,33 @@ func ConsentPost(req *middlewares.AutheliaCtx) {
 	if authorization.IsAuthLevelSufficient(
 		userSession.AuthenticationLevel,
 		userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
-		req.Logger.Debug("Insufficient permissions to give consent")
-		req.ReplyForbidden()
+		ctx.Logger.Debug("Insufficient permissions to give consent")
+		ctx.ReplyForbidden()
 
 		return
 	}
 
 	var body ConsentPostRequestBody
-	err := json.Unmarshal(req.Request.Body(), &body)
+	err := json.Unmarshal(ctx.Request.Body(), &body)
 
 	if err != nil {
-		req.Error(fmt.Errorf("Unable to unmarshal body: %v", err), "Operation failed")
+		ctx.Error(fmt.Errorf("Unable to unmarshal body: %v", err), "Operation failed")
 		return
 	}
 
 	if userSession.OIDCWorkflowSession.ClientID != body.ClientID {
-		req.Logger.Infof("User %s consented to scopes of another client (%s) than expected (%s). Beware this can be a sign of attack",
+		ctx.Logger.Infof("User %s consented to scopes of another client (%s) than expected (%s). Beware this can be a sign of attack",
 			userSession.Username, body.ClientID, userSession.OIDCWorkflowSession.ClientID)
-		req.ReplyBadRequest()
+		ctx.ReplyBadRequest()
 
 		return
 	}
 
 	userSession.OIDCWorkflowSession.GrantedScopes = userSession.OIDCWorkflowSession.RequestedScopes
-	if err := req.SaveSession(userSession); err != nil {
-		req.Error(fmt.Errorf("Unable to write session: %v", err), "Operation failed")
+	if err := ctx.SaveSession(userSession); err != nil {
+		ctx.Error(fmt.Errorf("Unable to write session: %v", err), "Operation failed")
 		return
 	}
 
-	req.Redirect(userSession.OIDCWorkflowSession.OriginalURI, 302)
+	ctx.Redirect(userSession.OIDCWorkflowSession.OriginalURI, 302)
 }

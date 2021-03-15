@@ -8,12 +8,12 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// ValidateOAuth validates and update OAuth configuration.
-func ValidateOAuth(configuration *schema.OAuthConfiguration, validator *schema.StructValidator) {
+// ValidateOAuth validates and update IdentityProviders configuration.
+func ValidateOAuth(configuration *schema.IdentityProvidersConfiguration, validator *schema.StructValidator) {
 	validateOIDCServer(configuration.OIDCServer, validator)
 }
 
-func validateOIDCServer(configuration *schema.OpenIDConnectServerConfiguration, validator *schema.StructValidator) {
+func validateOIDCServer(configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	if configuration != nil {
 		if configuration.IssuerPrivateKey == "" {
 			validator.Push(fmt.Errorf("OIDC Server issuer private key must be provided"))
@@ -31,7 +31,7 @@ func validateOIDCServer(configuration *schema.OpenIDConnectServerConfiguration, 
 	}
 }
 
-func validateOIDCServerClients(configuration *schema.OpenIDConnectServerConfiguration, validator *schema.StructValidator) {
+func validateOIDCServerClients(configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	invalidID, invalidSecret, invalidPolicy, duplicateIDs := false, false, false, false
 
 	var ids []string

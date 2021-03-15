@@ -12,10 +12,10 @@ import (
 func tokenEndpoint(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc {
 	return func(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 		// This context will be passed to all methods.
-		session := newSession("")
+		oidcSession := newDefaultSession(ctx)
 
 		// This will create an access request object and iterate through the registered TokenEndpointHandlers to validate the request.
-		accessRequest, err := oauth2.NewAccessRequest(ctx, req, session)
+		accessRequest, err := oauth2.NewAccessRequest(ctx, req, oidcSession)
 
 		// Catch any errors, e.g.:
 		// * unknown client

@@ -14,7 +14,7 @@ type Configuration struct {
 	JWTSecret             string `mapstructure:"jwt_secret"`
 	DefaultRedirectionURL string `mapstructure:"default_redirection_url"`
 
-	OAuth                 OAuthConfiguration                 `mapstructure:"oauth"`
+	IdentityProviders     IdentityProvidersConfiguration     `mapstructure:"identity_providers"`
 	AuthenticationBackend AuthenticationBackendConfiguration `mapstructure:"authentication_backend"`
 	Session               SessionConfiguration               `mapstructure:"session"`
 	TOTP                  *TOTPConfiguration                 `mapstructure:"totp"`

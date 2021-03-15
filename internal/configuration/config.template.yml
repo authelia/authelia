@@ -517,8 +517,8 @@ notifier:
   ##   host: smtp.gmail.com
   ##   port: 587
 
-oauth:
-  oidc_server:
+identity_providers:
+  oidc:
     hmac_secret: this_is_a_secret_abc123abc123abc
     issuer_private_key: |
       --- KEY START

@@ -143,7 +143,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		handler = middlewares.StripPathMiddleware(handler)
 	}
 
-	oidc.InitializeOIDC(configuration.OAuth.OIDCServer, r, autheliaMiddleware)
+	oidc.InitializeOIDC(configuration.IdentityProviders.OIDCServer, r, autheliaMiddleware)
 
 	server := &fasthttp.Server{
 		ErrorHandler:          autheliaErrorHandler,

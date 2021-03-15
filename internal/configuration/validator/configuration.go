@@ -94,5 +94,5 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		ValidateNotifier(configuration.Notifier, validator)
 	}
 
-	ValidateOAuth(&configuration.OAuth, validator)
+	ValidateOAuth(&configuration.IdentityProviders, validator)
 }

@@ -1,7 +1,6 @@
 package oidc
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/fasthttp/router"
@@ -17,7 +16,7 @@ import (
 )
 
 // NewStore creates a new OIDC store.
-func NewStore(config *schema.OpenIDConnectServerConfiguration) *storage.MemoryStore {
+func NewStore(config *schema.OpenIDConnectConfiguration) *storage.MemoryStore {
 	clients := make(map[string]fosite.Client)
 
 	for _, v := range config.Clients {
@@ -45,7 +44,7 @@ func NewStore(config *schema.OpenIDConnectServerConfiguration) *storage.MemorySt
 }
 
 // InitializeOIDC configures the fasthttp router to provide OIDC.
-func InitializeOIDC(configuration *schema.OpenIDConnectServerConfiguration, router *router.Router, autheliaMiddleware middlewares.RequestHandlerBridge) {
+func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *router.Router, autheliaMiddleware middlewares.RequestHandlerBridge) {
 	if configuration == nil {
 		return
 	}
@@ -62,46 +61,59 @@ func InitializeOIDC(configuration *schema.OpenIDConnectServerConfiguration, rout
 
 	// Because we are using oauth2 and open connect id, we use this little helper to combine the two in one
 	// variable.
-	var start = compose.CommonStrategy{
-		CoreStrategy:               compose.NewOAuth2HMACStrategy(oidcConfig, []byte(configuration.HMACSecret), nil),
-		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(oidcConfig, privateKey),
-	}
+	/*
+		var start = compose.CommonStrategy{
+			CoreStrategy:               compose.NewOAuth2HMACStrategy(oidcConfig, []byte(configuration.HMACSecret), nil),
+			OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(oidcConfig, privateKey),
+		}
 
-	var oauth2 = compose.Compose(
-		oidcConfig,
-		store,
-		start,
-		nil,
 
-		// enabled handlers
-		compose.OAuth2AuthorizeExplicitFactory,
-		compose.OAuth2AuthorizeImplicitFactory,
-		compose.OAuth2ClientCredentialsGrantFactory,
-		compose.OAuth2RefreshTokenGrantFactory,
-		compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
+		var oauth2 = compose.Compose(
+			oidcConfig,
+			store,
+			start,
+			nil,
 
-		compose.OAuth2TokenRevocationFactory,
-		compose.OAuth2TokenIntrospectionFactory,
+			// enabled handlers
+			compose.OAuth2AuthorizeExplicitFactory,
+			compose.OAuth2AuthorizeImplicitFactory,
+			compose.OAuth2ClientCredentialsGrantFactory,
+			compose.OAuth2RefreshTokenGrantFactory,
+			compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
 
-		// be aware that open id connect factories need to be added after oauth2 factories to work properly.
-		compose.OpenIDConnectExplicitFactory,
-		compose.OpenIDConnectImplicitFactory,
-		compose.OpenIDConnectHybridFactory,
-		compose.OpenIDConnectRefreshFactory,
-	)
+			compose.OAuth2TokenRevocationFactory,
+			compose.OAuth2TokenIntrospectionFactory,
 
-	// revoke tokens
-	// http.HandleFunc("/oauth2/revoke", revokeEndpoint)
-	// http.HandleFunc("/oauth2/introspect", introspectionEndpoint)
+			// be aware that open id connect factories need to be added after oauth2 factories to work properly.
+			compose.OpenIDConnectExplicitFactory,
+			compose.OpenIDConnectImplicitFactory,
+			compose.OpenIDConnectHybridFactory,
+			compose.OpenIDConnectRefreshFactory,
+		)
+	*/
+	oauth2 := compose.ComposeAllEnabled(oidcConfig, store, []byte(configuration.HMACSecret), privateKey)
 
-	// OpenID Connect discovery: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
-	router.GET("/.well-known/openid-configuration", autheliaMiddleware(WellKnownConfigurationGet))
-	router.GET("/api/oidc/consent", autheliaMiddleware(ConsentGet))
-	router.POST("/api/oidc/consent", autheliaMiddleware(ConsentPost))
+	// TODO: Add paths for UserInfo, Flush, Logout.
 
-	router.GET("/api/oidc/jwks", autheliaMiddleware(JWKsGet(&privateKey.PublicKey)))
-	router.GET("/api/oidc/auth", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthEndpointGet(oauth2))))
-	router.POST("/api/oidc/token", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(tokenEndpoint(oauth2))))
+	// TODO: Add OPTIONS handler.
+	router.GET(wellKnownPath, autheliaMiddleware(WellKnownConfigurationHandler))
+
+	router.GET(consentPath, autheliaMiddleware(ConsentGet))
+
+	router.POST(consentPath, autheliaMiddleware(ConsentPost))
+
+	router.GET(jwksPath, autheliaMiddleware(JWKsGet(&privateKey.PublicKey)))
+
+	router.GET(authPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthEndpointGet(oauth2))))
+	router.POST(authPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthEndpointGet(oauth2))))
+
+	// TODO: Add OPTIONS handler.
+	router.POST(tokenPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(tokenEndpoint(oauth2))))
+
+	router.POST(introspectPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(introspectEndpoint(oauth2))))
+
+	// TODO: Add OPTIONS handler.
+	router.POST(revokePath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(revokeEndpoint(oauth2))))
 }
 
 // A session is passed from the `/auth` to the `/token` endpoint. You probably want to store data like: "Who made the request",
@@ -114,21 +126,54 @@ func InitializeOIDC(configuration *schema.OpenIDConnectServerConfiguration, rout
 // Usually, you could do:
 //
 //  session = new(fosite.DefaultSession)
-func newSession(user string) *openid.DefaultSession {
-	extra := map[string]interface{}{
-		"email": fmt.Sprintf("%s@authelia.com", user),
+func newSession(ctx *middlewares.AutheliaCtx, scopes fosite.Arguments) *openid.DefaultSession {
+	session := ctx.GetSession()
+
+	extra := map[string]interface{}{}
+
+	if len(session.Emails) != 0 && scopes.Has("email") {
+		extra["email"] = session.Emails[0]
+	}
+
+	if scopes.Has("groups") {
+		extra["groups"] = session.Groups
+	}
+
+	/*
+		TODO: Adjust auth backends to return more profile information.
+		It's probably ideal to adjust the auth providers at this time to not store 'extra' information in the session
+		storage, and instead create a memory only storage for them.
+		This is a simple design, have a map with a key of username, and a struct with the relevant information.
+		If the
+	*/
+	if scopes.Has("profile") {
+		extra["name"] = session.DisplayName
+	}
+
+	oidcSession := newDefaultSession(ctx)
+	oidcSession.Claims.Extra = extra
+	oidcSession.Claims.Subject = session.Username
+
+	return oidcSession
+}
+
+func newDefaultSession(ctx *middlewares.AutheliaCtx) *openid.DefaultSession {
+	issuer, err := ctx.ForwardedProtoHost()
+
+	if err != nil {
+		issuer = fallbackOIDCIssuer
 	}
 
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{
-			Issuer:      "https://login.example.com:8080",
-			Subject:     user,
+			Issuer:      issuer,
+			Subject:     "",
 			Audience:    []string{"https://oidc.example.com:8080"},
 			ExpiresAt:   time.Now().Add(time.Hour * 6),
 			IssuedAt:    time.Now(),
 			RequestedAt: time.Now(),
 			AuthTime:    time.Now(),
-			Extra:       extra,
+			Extra:       make(map[string]interface{}),
 		},
 		Headers: &jwt.Headers{
 			Extra: make(map[string]interface{}),
