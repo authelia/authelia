@@ -31,5 +31,9 @@ func (s *TraefikSuite) TestCustomHeaders() {
 }
 
 func TestTraefikSuite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
 	suite.Run(t, NewTraefikSuite())
 }

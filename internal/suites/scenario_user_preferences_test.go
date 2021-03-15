@@ -94,5 +94,9 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 }
 
 func TestUserPreferencesScenario(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
 	suite.Run(t, NewUserPreferencesScenario())
 }

@@ -193,8 +193,13 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 }
 
 func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string, method []byte) {
+	friendlyUsername := "<anonymous>"
+	if username != "" {
+		friendlyUsername = username
+	}
+
 	if isBasicAuth {
-		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response with basic auth header", targetURL.String(), username)
+		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response with basic auth header", targetURL.String(), friendlyUsername)
 		ctx.ReplyUnauthorized()
 		ctx.Response.Header.Add("WWW-Authenticate", "Basic realm=\"Authentication required\"")
 
@@ -222,11 +227,11 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 			redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
 		}
 
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, redirecting to %s", targetURL.String(), friendlyMethod, username, redirectionURL)
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, redirecting to %s", targetURL.String(), friendlyMethod, friendlyUsername, redirectionURL)
 		ctx.Redirect(redirectionURL, 302)
 		ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
 	} else {
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, sending 401 response", targetURL.String(), friendlyMethod, username)
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, sending 401 response", targetURL.String(), friendlyMethod, friendlyUsername)
 		ctx.ReplyUnauthorized()
 	}
 }
