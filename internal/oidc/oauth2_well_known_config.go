@@ -29,7 +29,7 @@ func WellKnownConfigurationHandler(ctx *middlewares.AutheliaCtx) {
 	}
 
 	configuration.Issuer = issuer
-	configuration.AuthURL = fmt.Sprintf("%s%s", issuer, authPath)
+	configuration.AuthURL = fmt.Sprintf("%s%s", issuer, authorizePath)
 	configuration.TokenURL = fmt.Sprintf("%s%s", issuer, tokenPath)
 	configuration.JWKSURL = fmt.Sprintf("%s%s", issuer, jwksPath)
 	configuration.UserInfoURL = fmt.Sprintf("%s%s", issuer, userinfoPath)

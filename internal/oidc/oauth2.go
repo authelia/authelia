@@ -104,8 +104,8 @@ func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *ro
 
 	router.GET(jwksPath, autheliaMiddleware(JWKsGet(&privateKey.PublicKey)))
 
-	router.GET(authPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthEndpointGet(oauth2))))
-	router.POST(authPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthEndpointGet(oauth2))))
+	router.GET(authorizePath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthorizeEndpointGet(oauth2))))
+	router.POST(authorizePath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthorizeEndpointPost(oauth2))))
 
 	// TODO: Add OPTIONS handler.
 	router.POST(tokenPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(tokenEndpoint(oauth2))))
@@ -126,7 +126,7 @@ func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *ro
 // Usually, you could do:
 //
 //  session = new(fosite.DefaultSession)
-func newSession(ctx *middlewares.AutheliaCtx, scopes fosite.Arguments) *openid.DefaultSession {
+func newSession(ctx *middlewares.AutheliaCtx, scopes fosite.Arguments, audience []string) *openid.DefaultSession {
 	session := ctx.GetSession()
 
 	extra := map[string]interface{}{}
@@ -144,7 +144,6 @@ func newSession(ctx *middlewares.AutheliaCtx, scopes fosite.Arguments) *openid.D
 		It's probably ideal to adjust the auth providers at this time to not store 'extra' information in the session
 		storage, and instead create a memory only storage for them.
 		This is a simple design, have a map with a key of username, and a struct with the relevant information.
-		If the
 	*/
 	if scopes.Has("profile") {
 		extra["name"] = session.DisplayName
@@ -153,6 +152,7 @@ func newSession(ctx *middlewares.AutheliaCtx, scopes fosite.Arguments) *openid.D
 	oidcSession := newDefaultSession(ctx)
 	oidcSession.Claims.Extra = extra
 	oidcSession.Claims.Subject = session.Username
+	oidcSession.Claims.Audience = audience
 
 	return oidcSession
 }

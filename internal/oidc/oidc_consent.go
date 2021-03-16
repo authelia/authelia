@@ -57,16 +57,14 @@ func ConsentGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	clientConfiguration := getOIDCClientConfig(userSession.OIDCWorkflowSession.ClientID, *ctx.Configuration.IdentityProviders.OIDC)
+
 	var body ConsentGetResponseBody
 	body.Scopes = scopeNamesToScopes(userSession.OIDCWorkflowSession.RequestedScopes)
 	body.ClientID = userSession.OIDCWorkflowSession.ClientID
 
-	for _, client := range ctx.Configuration.IdentityProviders.OIDC.Clients {
-		if client.ID == userSession.OIDCWorkflowSession.ClientID {
-			body.ClientDescription = client.Description
-
-			break
-		}
+	if clientConfiguration != nil {
+		body.ClientDescription = clientConfiguration.Description
 	}
 
 	if err := ctx.SetJSONBody(body); err != nil {
