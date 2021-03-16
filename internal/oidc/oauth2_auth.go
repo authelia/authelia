@@ -119,6 +119,10 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 			ar.GrantScope(scope)
 		}
 
+		for _, audience := range ar.GetRequestedAudience() {
+			ar.GrantAudience(audience)
+		}
+
 		// Now that the user is authorized, we set up a session:
 		oauthSession := newSession(ctx, scopes)
 
@@ -138,7 +142,8 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 			return
 		}
 
-		// Last but not least, send the response!
+		// TODO: Record Authorized Responses.
+
 		oauth2.WriteAuthorizeResponse(rw, ar, response)
 	}
 }

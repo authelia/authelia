@@ -8,12 +8,12 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// ValidateOAuth validates and update IdentityProviders configuration.
-func ValidateOAuth(configuration *schema.IdentityProvidersConfiguration, validator *schema.StructValidator) {
-	validateOIDCServer(configuration.OIDCServer, validator)
+// ValidateIdentityProviders validates and update IdentityProviders configuration.
+func ValidateIdentityProviders(configuration *schema.IdentityProvidersConfiguration, validator *schema.StructValidator) {
+	validateOIDC(configuration.OIDCServer, validator)
 }
 
-func validateOIDCServer(configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+func validateOIDC(configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	if configuration != nil {
 		if configuration.IssuerPrivateKey == "" {
 			validator.Push(fmt.Errorf("OIDC Server issuer private key must be provided"))
@@ -23,7 +23,7 @@ func validateOIDCServer(configuration *schema.OpenIDConnectConfiguration, valida
 			validator.Push(fmt.Errorf(errOAuthOIDCServerHMACLengthMustBe32Fmt, len(configuration.HMACSecret)))
 		}
 
-		validateOIDCServerClients(configuration, validator)
+		validateOIDCClients(configuration, validator)
 
 		if len(configuration.Clients) == 0 {
 			validator.Push(fmt.Errorf("OIDC Server has no clients defined"))
@@ -31,7 +31,7 @@ func validateOIDCServer(configuration *schema.OpenIDConnectConfiguration, valida
 	}
 }
 
-func validateOIDCServerClients(configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	invalidID, invalidSecret, invalidPolicy, duplicateIDs := false, false, false, false
 
 	var ids []string
@@ -66,7 +66,7 @@ func validateOIDCServerClients(configuration *schema.OpenIDConnectConfiguration,
 			configuration.Clients[c].ResponseTypes = schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes
 		}
 
-		validateOIDCServerClientRedirectURIs(client, validator)
+		validateOIDCClientRedirectURIs(client, validator)
 	}
 
 	if invalidID {
@@ -86,7 +86,7 @@ func validateOIDCServerClients(configuration *schema.OpenIDConnectConfiguration,
 	}
 }
 
-func validateOIDCServerClientRedirectURIs(client schema.OpenIDConnectClientConfiguration, validator *schema.StructValidator) {
+func validateOIDCClientRedirectURIs(client schema.OpenIDConnectClientConfiguration, validator *schema.StructValidator) {
 	for _, redirectURI := range client.RedirectURIs {
 		parsedURI, err := url.Parse(redirectURI)
 
@@ -95,7 +95,7 @@ func validateOIDCServerClientRedirectURIs(client schema.OpenIDConnectClientConfi
 			break
 		}
 
-		if parsedURI.Scheme != "https" {
+		if parsedURI.Scheme != "https" && parsedURI.Scheme != "http" {
 			validator.Push(fmt.Errorf(errOAuthOIDCServerClientRedirectURIFmt, redirectURI, parsedURI.Scheme))
 		}
 	}

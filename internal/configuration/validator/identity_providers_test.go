@@ -19,7 +19,7 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 		},
 	}
 
-	ValidateOAuth(config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 3)
 
@@ -37,7 +37,7 @@ func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T)
 		},
 	}
 
-	ValidateOAuth(config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
 
@@ -56,7 +56,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					Secret: "",
 					Policy: "",
 					RedirectURIs: []string{
-						"http://google.com",
+						"tcp://google.com",
 					},
 				},
 				{
@@ -79,11 +79,11 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 	}
 
-	ValidateOAuth(config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 5)
 
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errOAuthOIDCServerClientRedirectURIFmt, "http://google.com", "http"))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errOAuthOIDCServerClientRedirectURIFmt, "tcp://google.com", "tcp"))
 	assert.EqualError(t, validator.Errors()[1], "OIDC Server has one or more clients with an empty ID")
 	assert.EqualError(t, validator.Errors()[2], "OIDC Server has one or more clients with an empty secret")
 	assert.EqualError(t, validator.Errors()[3], "OIDC Server has one or more clients with an empty policy")
@@ -127,7 +127,7 @@ func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
 		},
 	}
 
-	ValidateOAuth(config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
 
