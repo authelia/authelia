@@ -15,8 +15,25 @@ type ConsentPostRequestBody struct {
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
-	ClientID string   `json:"client_id"`
-	Scopes   []string `json:"scopes"`
+	ClientID          string  `json:"client_id"`
+	ClientDescription string  `json:"client_description"`
+	Scopes            []Scope `json:"scopes"`
+}
+
+// Scope represents the scope information.
+type Scope struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+func scopeNamesToScopes(scopeSlice []string) (scopes []Scope) {
+	for _, scope := range scopeSlice {
+		if val, ok := scopeDescriptions[scope]; ok {
+			scopes = append(scopes, Scope{scope, val})
+		}
+	}
+
+	return scopes
 }
 
 // ConsentGet handler serving the list consent requested by the app.
@@ -40,8 +57,16 @@ func ConsentGet(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var body ConsentGetResponseBody
-	body.Scopes = userSession.OIDCWorkflowSession.RequestedScopes
+	body.Scopes = scopeNamesToScopes(userSession.OIDCWorkflowSession.RequestedScopes)
 	body.ClientID = userSession.OIDCWorkflowSession.ClientID
+
+	for _, client := range ctx.Configuration.IdentityProviders.OIDC.Clients {
+		if client.ID == userSession.OIDCWorkflowSession.ClientID {
+			body.ClientDescription = client.Description
+
+			break
+		}
+	}
 
 	if err := ctx.SetJSONBody(body); err != nil {
 		ctx.Error(fmt.Errorf("Unable to set JSON body: %v", err), "Operation failed")

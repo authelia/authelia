@@ -39,9 +39,9 @@ func ValidateSecrets(configuration *schema.Configuration, validator *schema.Stru
 		configuration.Storage.PostgreSQL.Password = getSecretValue("storage.postgres.password", validator, viper)
 	}
 
-	if configuration.IdentityProviders.OIDCServer != nil {
-		configuration.IdentityProviders.OIDCServer.HMACSecret = getSecretValue("identity_providers.oidc.hmac_secret", validator, viper)
-		configuration.IdentityProviders.OIDCServer.IssuerPrivateKey = getSecretValue("identity_providers.oidc.issuer_private_key", validator, viper)
+	if configuration.IdentityProviders.OIDC != nil {
+		configuration.IdentityProviders.OIDC.HMACSecret = getSecretValue("identity_providers.oidc.hmac_secret", validator, viper)
+		configuration.IdentityProviders.OIDC.IssuerPrivateKey = getSecretValue("identity_providers.oidc.issuer_private_key", validator, viper)
 	}
 }
 

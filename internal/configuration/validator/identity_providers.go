@@ -10,7 +10,7 @@ import (
 
 // ValidateIdentityProviders validates and update IdentityProviders configuration.
 func ValidateIdentityProviders(configuration *schema.IdentityProvidersConfiguration, validator *schema.StructValidator) {
-	validateOIDC(configuration.OIDCServer, validator)
+	validateOIDC(configuration.OIDC, validator)
 }
 
 func validateOIDC(configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
@@ -40,6 +40,10 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 		if client.ID == "" {
 			invalidID = true
 		} else {
+			if client.Description == "" {
+				configuration.Clients[c].Description = client.ID
+			}
+
 			if utils.IsStringInSliceFold(client.ID, ids) {
 				duplicateIDs = true
 			}
@@ -56,6 +60,8 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 
 		if len(client.Scopes) == 0 {
 			configuration.Clients[c].Scopes = schema.DefaultOpenIDConnectClientConfiguration.Scopes
+		} else if !utils.IsStringInSlice("openid", client.Scopes) {
+			configuration.Clients[c].Scopes = append(configuration.Clients[c].Scopes, "openid")
 		}
 
 		if len(client.GrantTypes) == 0 {

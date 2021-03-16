@@ -2,7 +2,7 @@ package schema
 
 // IdentityProvidersConfiguration represents the IdentityProviders 2.0 configuration for Authelia.
 type IdentityProvidersConfiguration struct {
-	OIDCServer *OpenIDConnectConfiguration `mapstructure:"oidc"`
+	OIDC *OpenIDConnectConfiguration `mapstructure:"oidc"`
 }
 
 // OpenIDConnectConfiguration configuration for OpenID Connect.
@@ -17,6 +17,7 @@ type OpenIDConnectConfiguration struct {
 // OpenIDConnectClientConfiguration configuration for an OpenID Connect client.
 type OpenIDConnectClientConfiguration struct {
 	ID            string   `mapstructure:"id"`
+	Description   string   `mapstructure:"description"`
 	Secret        string   `mapstructure:"secret"`
 	RedirectURIs  []string `mapstructure:"redirect_uris"`
 	Policy        string   `mapstructure:"policy"`
@@ -27,7 +28,7 @@ type OpenIDConnectClientConfiguration struct {
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
-	Scopes:        []string{"openid"},
+	Scopes:        []string{"openid", "groups", "profile", "email"},
 	ResponseTypes: []string{"code"},
 	GrantTypes:    []string{"refresh_token", "authorization_code"},
 }

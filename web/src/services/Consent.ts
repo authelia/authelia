@@ -7,7 +7,13 @@ interface ConsentPostRequestBody {
 
 interface ConsentGetResponseBody {
     client_id: string;
-    scopes: string[];
+    client_description: string;
+    scopes: Scope[];
+}
+
+interface Scope {
+    name: string;
+    description: string;
 }
 
 export function getRequestedScopes() {

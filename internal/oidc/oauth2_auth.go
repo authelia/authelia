@@ -51,7 +51,7 @@ func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFu
 
 		clientID := ar.GetClient().GetID()
 
-		clientConfig := getOIDCClientConfig(clientID, *ctx.Configuration.IdentityProviders.OIDCServer)
+		clientConfig := getOIDCClientConfig(clientID, *ctx.Configuration.IdentityProviders.OIDC)
 		if clientConfig == nil {
 			err := fmt.Errorf("Unable to find related client configuration with name %s", ar.GetID())
 			ctx.Logger.Error(err)
