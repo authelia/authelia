@@ -11,6 +11,8 @@ import (
 
 func tokenEndpoint(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc {
 	return func(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+		ctx.Logger.Debugf("Hit token endpoint")
+
 		// This context will be passed to all methods.
 		oidcSession := newDefaultSession(ctx)
 

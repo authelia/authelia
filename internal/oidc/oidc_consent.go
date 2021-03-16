@@ -39,6 +39,7 @@ func scopeNamesToScopes(scopeSlice []string) (scopes []Scope) {
 // ConsentGet handler serving the list consent requested by the app.
 func ConsentGet(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
+	ctx.Logger.Debugf("Hit consent (GET) endpoint")
 
 	if userSession.OIDCWorkflowSession == nil {
 		ctx.Logger.Debug("Cannot consent when OIDC workflow has not been initiated")
@@ -76,6 +77,8 @@ func ConsentGet(ctx *middlewares.AutheliaCtx) {
 // ConsentPost handler granting permissions according to the requested scopes.
 func ConsentPost(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
+
+	ctx.Logger.Debugf("Hit consent (POST) endpoint")
 
 	if userSession.OIDCWorkflowSession == nil {
 		ctx.Logger.Debug("Cannot consent when OIDC workflow has not been initiated")

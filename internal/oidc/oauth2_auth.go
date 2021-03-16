@@ -39,6 +39,8 @@ func getOIDCClientConfig(clientID string, configuration schema.OpenIDConnectConf
 // AuthEndpointGet handles requests to the OIDC authentication endpoint.
 func AuthEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc {
 	return func(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+		ctx.Logger.Debugf("Hit Auth endpoint")
+
 		// Let's create an AuthorizeRequest object!
 		// It will analyze the request and extract important information like scopes, response type and others.
 		ar, err := oauth2.NewAuthorizeRequest(r.Context(), r)

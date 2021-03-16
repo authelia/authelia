@@ -12,6 +12,8 @@ import (
 // JWKsGet handler serving the jwks used to verify the JWT tokens.
 func JWKsGet(publicKey *rsa.PublicKey) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
+		ctx.Logger.Debugf("Hit JWKs endpoint")
+
 		key := jose.JSONWebKey{}
 		key.Key = publicKey
 		key.KeyID = "main-key"
@@ -20,6 +22,8 @@ func JWKsGet(publicKey *rsa.PublicKey) middlewares.RequestHandler {
 
 		keySet := new(jose.JSONWebKeySet)
 		keySet.Keys = append(keySet.Keys, key)
+
+		ctx.SetContentType("application/json")
 
 		if err := json.NewEncoder(ctx).Encode(keySet); err != nil {
 			ctx.Error(err, "failed to serve jwk set")

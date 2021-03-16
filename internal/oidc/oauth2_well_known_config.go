@@ -45,6 +45,8 @@ func WellKnownConfigurationHandler(ctx *middlewares.AutheliaCtx) {
 		"none",
 	}
 
+	ctx.SetContentType("application/json")
+
 	if err := json.NewEncoder(ctx).Encode(configuration); err != nil {
 		ctx.Error(err, "Failed to serve openid configuration")
 	}
