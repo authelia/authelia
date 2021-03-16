@@ -98,6 +98,9 @@ frontend fe_http
     acl host-nextcloud hdr(host) -i nextcloud.example.com
     acl host-heimdall hdr(host) -i heimdall.example.com
 
+    # This is required if utilising basic auth with /api/verify?auth=basic
+    http-request set-var(txn.host) hdr(Host)
+
     http-request set-var(req.scheme) str(https) if { ssl_fc }
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
     http-request set-var(req.questionmark) str(?) if { query -m found }
@@ -125,11 +128,16 @@ frontend fe_http
     http-request lua.auth-request be_authelia /api/verify if protected-frontends
     # Force `Authorization` header via query arg to /api/verify
     http-request lua.auth-request be_authelia /api/verify?auth=basic if protected-frontends-basic
-   
+
+    # Redirect protected-frontends to Authelia if not authenticated
+    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
+    # Send 401 and pass `WWW-Authenticate` header on protected-frontend-basic if not pre-authenticated
+    http-request set-var(txn.auth) var(req.auth_response_header.www_authenticate) if protected-frontends-basic !{ var(txn.auth_response_successful) -m bool }
+    http-response deny deny_status 401 hdr WWW-Authenticate %[var(txn.auth)] if { var(txn.host) -m reg -i ^(?i)(heimdall)\.example\.com } !{ var(txn.auth_response_successful) -m bool }
+
     # Authelia backend route
     use_backend be_authelia if host-authelia
-    # Redirect protected-frontends to Authelia if not authenticated
-    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if (protected-frontends || protected-frontends-basic) !{ var(txn.auth_response_successful) -m bool }
+
     # Service backend route(s)
     use_backend be_nextcloud if host-nextcloud
     use_backend be_heimdall if host-heimdall
@@ -189,6 +197,9 @@ frontend fe_http
     acl host-nextcloud hdr(host) -i nextcloud.example.com
     acl host-heimdall hdr(host) -i heimdall.example.com
 
+    # This is required if utilising basic auth with /api/verify?auth=basic
+    http-request set-var(txn.host) hdr(Host)
+
     http-request set-var(req.scheme) str(https) if { ssl_fc }
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
     http-request set-var(req.questionmark) str(?) if { query -m found }
@@ -214,12 +225,17 @@ frontend fe_http
     # Protect endpoints with haproxy-auth-request and Authelia
     http-request lua.auth-request be_authelia_proxy /api/verify if protected-frontends
     # Force `Authorization` header via query arg to /api/verify
-    http-request lua.auth-request be_authelia /api/verify?auth=basic if protected-frontends-basic
-   
+    http-request lua.auth-request be_authelia_proxy /api/verify?auth=basic if protected-frontends-basic
+
+    # Redirect protected-frontends to Authelia if not authenticated
+    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
+    # Send 401 and pass `WWW-Authenticate` header on protected-frontend-basic if not pre-authenticated
+    http-request set-var(txn.auth) var(req.auth_response_header.www_authenticate) if protected-frontends-basic !{ var(txn.auth_response_successful) -m bool }
+    http-response deny deny_status 401 hdr WWW-Authenticate %[var(txn.auth)] if { var(txn.host) -m reg -i ^(?i)(heimdall)\.example\.com } !{ var(txn.auth_response_successful) -m bool }
+
     # Authelia backend route
     use_backend be_authelia if host-authelia
-    # Redirect protected-frontends to Authelia if not authenticated
-    http-request redirect location https://auth.example.com/?rd=%[var(req.scheme)]://%[base]%[var(req.questionmark)]%[query] if (protected-frontends || protected-frontends-basic) !{ var(txn.auth_response_successful) -m bool }
+
     # Service backend route(s)
     use_backend be_nextcloud if host-nextcloud
     use_backend be_heimdall if host-heimdall
