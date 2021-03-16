@@ -33,7 +33,7 @@ func ConsentGet(ctx *middlewares.AutheliaCtx) {
 	if authorization.IsAuthLevelSufficient(
 		userSession.AuthenticationLevel,
 		userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
-		ctx.Logger.Debug("Insufficient permissions to give consent")
+		ctx.Logger.Debugf("Insufficient permissions to give consent v2 %d -> %d", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel)
 		ctx.ReplyForbidden()
 
 		return
@@ -62,7 +62,7 @@ func ConsentPost(ctx *middlewares.AutheliaCtx) {
 	if authorization.IsAuthLevelSufficient(
 		userSession.AuthenticationLevel,
 		userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
-		ctx.Logger.Debug("Insufficient permissions to give consent")
+		ctx.Logger.Debugf("Insufficient permissions to give consent v1 %d -> %d", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel)
 		ctx.ReplyForbidden()
 
 		return
