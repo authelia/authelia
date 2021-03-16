@@ -8,9 +8,18 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
+const constAccept = "accept"
+const constReject = "reject"
+
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
 type ConsentPostRequestBody struct {
-	ClientID string `json:"client_id"`
+	ClientID       string `json:"client_id"`
+	AcceptOrReject string `json:"accept_or_reject"`
+}
+
+// ConsentPostResponseBody schema of the response body of the consent POST endpoint.
+type ConsentPostResponseBody struct {
+	RedirectURI string `json:"redirect_uri"`
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
@@ -102,6 +111,13 @@ func ConsentPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if body.AcceptOrReject != constAccept && body.AcceptOrReject != constReject {
+		ctx.Logger.Infof("User %s tried to reply to consent with an unexpected verb", userSession.Username)
+		ctx.ReplyBadRequest()
+
+		return
+	}
+
 	if userSession.OIDCWorkflowSession.ClientID != body.ClientID {
 		ctx.Logger.Infof("User %s consented to scopes of another client (%s) than expected (%s). Beware this can be a sign of attack",
 			userSession.Username, body.ClientID, userSession.OIDCWorkflowSession.ClientID)
@@ -110,11 +126,30 @@ func ConsentPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userSession.OIDCWorkflowSession.GrantedScopes = userSession.OIDCWorkflowSession.RequestedScopes
-	if err := ctx.SaveSession(userSession); err != nil {
-		ctx.Error(fmt.Errorf("Unable to write session: %v", err), "Operation failed")
-		return
+	var redirectionURL string
+
+	if body.AcceptOrReject == constAccept {
+		redirectionURL = userSession.OIDCWorkflowSession.AuthURI
+		userSession.OIDCWorkflowSession.GrantedScopes = userSession.OIDCWorkflowSession.RequestedScopes
+
+		if err := ctx.SaveSession(userSession); err != nil {
+			ctx.Error(fmt.Errorf("Unable to write session: %v", err), "Operation failed")
+			return
+		}
+	} else if body.AcceptOrReject == constReject {
+		redirectionURL = fmt.Sprintf("%s?error=access_denied&error_description=%s",
+			userSession.OIDCWorkflowSession.TargetURI, "User has rejected the scopes")
+		userSession.OIDCWorkflowSession = nil
+
+		if err := ctx.SaveSession(userSession); err != nil {
+			ctx.Error(fmt.Errorf("Unable to write session: %v", err), "Operation failed")
+			return
+		}
 	}
 
-	ctx.Redirect(userSession.OIDCWorkflowSession.OriginalURI, 302)
+	response := ConsentPostResponseBody{RedirectURI: redirectionURL}
+
+	if err := ctx.SetJSONBody(response); err != nil {
+		ctx.Error(fmt.Errorf("Unable to set JSON body in response"), "Operation failed")
+	}
 }

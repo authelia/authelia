@@ -6,6 +6,7 @@ import { Redirect } from "react-router";
 import { useIsMountedRef } from "../../../hooks/Mounted";
 import { useNotifications } from "../../../hooks/NotificationsContext";
 import { useRedirectionURL } from "../../../hooks/RedirectionURL";
+import { useRedirector } from "../../../hooks/Redirector";
 import LoginLayout from "../../../layouts/LoginLayout";
 import { FirstFactorRoute } from "../../../Routes";
 import { signOut } from "../../../services/SignOut";
@@ -18,6 +19,7 @@ const SignOut = function (props: Props) {
     const { createErrorNotification } = useNotifications();
     const redirectionURL = useRedirectionURL();
     const [timedOut, setTimedOut] = useState(false);
+    const redirector = useRedirector();
 
     const doSignOut = useCallback(async () => {
         try {
@@ -41,7 +43,7 @@ const SignOut = function (props: Props) {
 
     if (timedOut) {
         if (redirectionURL) {
-            window.location.href = redirectionURL;
+            redirector(redirectionURL);
         } else {
             return <Redirect to={FirstFactorRoute} />;
         }

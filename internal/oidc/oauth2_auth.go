@@ -9,6 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/ory/fosite"
 
+	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
@@ -58,22 +59,41 @@ func authorizeHandler(oauth2 fosite.OAuth2Provider, ctx *middlewares.AutheliaCtx
 	}
 
 	if !post {
+		targetURL := ar.GetRedirectURI()
 		userSession := ctx.GetSession()
 
+		// Resolve the required level of authorizations to proceed with OIDC
+		requiredAuthorizationLevel := ctx.Providers.Authorizer.GetRequiredLevel(authorization.Subject{
+			Username: userSession.Username,
+			Groups:   userSession.Groups,
+			IP:       ctx.RemoteIP(),
+		}, authorization.NewObjectRaw(targetURL, []byte("GET")))
+
+		isAuthInsufficient := !authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, requiredAuthorizationLevel)
 		isConsentMissing := len(ar.GetRequestedScopes()) > 0 && (userSession.OIDCWorkflowSession == nil ||
 			utils.IsStringSlicesDifferent(ar.GetRequestedScopes(), userSession.OIDCWorkflowSession.GrantedScopes))
 
-		if isConsentMissing {
+		if isAuthInsufficient || isConsentMissing {
+			forwardedURI, err := ctx.GetOriginalURL()
+			if err != nil {
+				ctx.Logger.Errorf("%v", err)
+				http.Error(rw, err.Error(), 500)
+				return
+			}
+
 			ctx.Logger.Debugf("User %s must consent with scopes %s", userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))
 			userSession.OIDCWorkflowSession = new(session.OIDCWorkflowSession)
 			userSession.OIDCWorkflowSession.ClientID = clientID
 			userSession.OIDCWorkflowSession.RequestedScopes = ar.GetRequestedScopes()
-			userSession.OIDCWorkflowSession.OriginalURI = ctx.URI().String()
-			userSession.OIDCWorkflowSession.RequiredAuthorizationLevel = 2
+			userSession.OIDCWorkflowSession.AuthURI = forwardedURI.String()
+			userSession.OIDCWorkflowSession.TargetURI = targetURL.String()
+			userSession.OIDCWorkflowSession.RequiredAuthorizationLevel = requiredAuthorizationLevel
 
 			if err := ctx.SaveSession(userSession); err != nil {
 				ctx.Logger.Errorf("%v", err)
 				http.Error(rw, err.Error(), 500)
+
+				return
 			}
 
 			uri, err := ctx.ForwardedProtoHost()
@@ -84,8 +104,11 @@ func authorizeHandler(oauth2 fosite.OAuth2Provider, ctx *middlewares.AutheliaCtx
 				return
 			}
 
-			// Redirect to the authentication portal with a workflow token
-			http.Redirect(rw, r, fmt.Sprintf("%s%s?workflow=openid", uri, ctx.Configuration.Server.Path), 302)
+			if isConsentMissing {
+				http.Redirect(rw, r, fmt.Sprintf("%s/consent", uri), 302)
+			} else {
+				http.Redirect(rw, r, fmt.Sprintf("%s?workflow=openid", uri), 302)
+			}
 
 			return
 		}
@@ -102,6 +125,15 @@ func authorizeHandler(oauth2 fosite.OAuth2Provider, ctx *middlewares.AutheliaCtx
 
 	for _, a := range audience {
 		ar.GrantAudience(a)
+	}
+
+	userSession := ctx.GetSession()
+
+	userSession.OIDCWorkflowSession = nil
+	if err := ctx.SaveSession(userSession); err != nil {
+		ctx.Logger.Errorf("%v", err)
+		http.Error(rw, err.Error(), 500)
+		return
 	}
 
 	// Now that the user is authorized, we set up a session:

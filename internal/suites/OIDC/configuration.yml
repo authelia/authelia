@@ -20,6 +20,11 @@ session:
   expiration: 3600 # 1 hour
   inactivity: 300 # 5 minutes
   remember_me_duration: 1y
+  # We use redis here to keep the users authenticated when Authelia restarts
+  # It eases development.
+  redis:
+    host: redis
+    port: 6379
 
 storage:
   local:
@@ -38,6 +43,8 @@ access_control:
       policy: one_factor
     - domain: "oidc.example.com"
       policy: two_factor
+    - domain: "oidc-public.example.com"
+      policy: bypass
 
 notifier:
   smtp:
@@ -83,3 +90,11 @@ identity_providers:
         policy: this_policy
         redirect_uris:
           - https://oidc.example.com:8080/oauth2/callback
+      # This client is used for testing purpose. As of now, the app must be protected by ACLs
+      # otherwise it won't work properly.
+      - id: oidc-tester-app-public
+        # This secret must be a bcrypt hash
+        secret: $2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO
+        policy: this_policy
+        redirect_uris:
+          - https://oidc-public.example.com:8080/oauth2/callback

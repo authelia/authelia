@@ -5,6 +5,7 @@ import { Switch, Route, Redirect, useHistory, useLocation } from "react-router";
 import { useConfiguration } from "../../hooks/Configuration";
 import { useNotifications } from "../../hooks/NotificationsContext";
 import { useRedirectionURL } from "../../hooks/RedirectionURL";
+import { useRedirector } from "../../hooks/Redirector";
 import { useRequestMethod } from "../../hooks/RequestMethod";
 import { useAutheliaState } from "../../hooks/State";
 import { useUserPreferences as userUserInfo } from "../../hooks/UserInfo";
@@ -35,6 +36,7 @@ const LoginPortal = function (props: Props) {
     const requestMethod = useRequestMethod();
     const { createErrorNotification } = useNotifications();
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
+    const redirector = useRedirector();
 
     const [state, fetchState, , fetchStateError] = useAutheliaState();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = userUserInfo();
@@ -112,7 +114,7 @@ const LoginPortal = function (props: Props) {
     const handleAuthSuccess = async (redirectionURL: string | undefined) => {
         if (redirectionURL) {
             // Do an external redirection pushed by the server.
-            window.location.href = redirectionURL;
+            redirector(redirectionURL);
         } else {
             // Refresh state
             fetchState();
