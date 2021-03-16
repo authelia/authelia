@@ -25,17 +25,25 @@ const ConsentView = function (props: Props) {
     return (
         <LoginLayout id="consent-stage" title={`Permissions Request`} showBrand>
             <Grid container>
-                <div>
-                    The application {resp?.client_description} ({resp?.client_id}) is requesting the following
-                    permissions:
-                </div>
-                <ul>
-                    {resp?.scopes.map((s) => (
-                        <li id={"scope-" + s.name}>{s.description}</li>
-                    ))}
-                </ul>
-                <Button color="primary">Accept</Button>
-                <Button color="secondary">Deny</Button>
+                <Grid item xs={12}>
+                    <div>
+                        The application {resp?.client_description} ({resp?.client_id}) is requesting the following
+                        permissions:
+                    </div>
+                </Grid>
+                <Grid item xs={12}>
+                    <ul>
+                        {resp?.scopes.map((s) => (
+                            <li id={"scope-" + s.name}>{s.description}</li>
+                        ))}
+                    </ul>
+                </Grid>
+                <Grid item xs={12}>
+                    <div>
+                        <Button color="primary">Accept</Button>
+                        <Button color="secondary">Deny</Button>
+                    </div>
+                </Grid>
             </Grid>
         </LoginLayout>
     );

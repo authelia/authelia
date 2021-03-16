@@ -84,7 +84,7 @@ func ConsentPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if authorization.IsAuthLevelSufficient(
+	if !authorization.IsAuthLevelSufficient(
 		userSession.AuthenticationLevel,
 		userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
 		ctx.Logger.Debugf("Insufficient permissions to give consent v1 %d -> %d", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel)
