@@ -135,12 +135,15 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 			return
 		}
 
-		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+		/*
+			err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
-		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
-			return
-		}
+			if err != nil {
+				handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+				return
+			}
+			TODO: Reevaluate this.
+		*/
 
 		// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data
 		keepMeLoggedIn := ctx.Providers.SessionProvider.RememberMe != 0 && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn

@@ -44,6 +44,7 @@ func HandleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 	} else {
+		ctx.Logger.Debugf("OIDC Auth Forwarding")
 		err := ctx.SetJSONBody(redirectResponse{Redirect: userSession.OIDCWorkflowSession.AuthURI})
 		if err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
