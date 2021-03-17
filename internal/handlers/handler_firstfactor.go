@@ -135,15 +135,17 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 			return
 		}
 
-		/*
+		userSession := ctx.GetSession()
+
+		if userSession.OIDCWorkflowSession == nil {
+			ctx.Logger.Debugf("Regenerating Session 1FA") // TODO: Remove.
 			err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 			if err != nil {
 				handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 				return
 			}
-			TODO: Reevaluate this.
-		*/
+		}
 
 		// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data
 		keepMeLoggedIn := ctx.Providers.SessionProvider.RememberMe != 0 && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
@@ -168,7 +170,6 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		ctx.Logger.Tracef("Details for user %s => groups: %s, emails %s", bodyJSON.Username, userDetails.Groups, userDetails.Emails)
 
 		// And set those information in the new session.
-		userSession := ctx.GetSession()
 		userSession.Username = userDetails.Username
 		userSession.DisplayName = userDetails.DisplayName
 		userSession.Groups = userDetails.Groups

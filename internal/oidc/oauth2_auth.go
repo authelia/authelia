@@ -8,6 +8,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/ory/fosite"
 
+	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
@@ -86,6 +87,11 @@ func AuthorizeEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHand
 				http.Error(rw, err.Error(), 500)
 
 				return
+			}
+
+			if userSession.AuthenticationLevel == authentication.NotAuthenticated {
+				ctx.Logger.Debugf("Flow Regen Sesssion") // TODO: Remove.
+				_ = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 			}
 
 			ctx.Logger.Debugf("User %s must consent with scopes %s", userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))
