@@ -112,10 +112,10 @@ func AuthorizeEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHand
 				return
 			}
 
-			if isConsentMissingScopes || isConsentMissingAudience {
-				http.Redirect(rw, r, fmt.Sprintf("%s/consent", uri), 302)
+			if isAuthInsufficient {
+				http.Redirect(rw, r, uri, 302)
 			} else {
-				http.Redirect(rw, r, fmt.Sprintf("%s?workflow=openid", uri), 302)
+				http.Redirect(rw, r, fmt.Sprintf("%s/consent", uri), 302)
 			}
 
 			return
