@@ -90,8 +90,15 @@ func AuthorizeEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHand
 			}
 
 			if userSession.AuthenticationLevel == authentication.NotAuthenticated {
-				ctx.Logger.Debugf("Flow Regen Sesssion") // TODO: Remove.
-				_ = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+				ctx.Logger.Debugf("Flow New Sesssion") // TODO: Remove.
+				// Reset all values from previous session before regenerating the cookie.
+				err = ctx.SaveSession(session.NewDefaultUserSession())
+
+				if err != nil {
+					http.Error(rw, err.Error(), 500)
+
+					return
+				}
 			}
 
 			ctx.Logger.Debugf("User %s must consent with scopes %s", userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))

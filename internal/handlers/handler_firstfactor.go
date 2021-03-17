@@ -127,24 +127,24 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		ctx.Logger.Debugf("Credentials validation of user %s is ok", bodyJSON.Username)
 
-		// Reset all values from previous session before regenerating the cookie.
-		err = ctx.SaveSession(session.NewDefaultUserSession())
-
-		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
-			return
-		}
-
 		userSession := ctx.GetSession()
 
 		if userSession.OIDCWorkflowSession == nil {
-			ctx.Logger.Debugf("Regenerating Session 1FA") // TODO: Remove.
-			err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+			// Reset all values from previous session before regenerating the cookie.
+			err = ctx.SaveSession(session.NewDefaultUserSession())
 
 			if err != nil {
-				handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+				handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
 				return
 			}
+		}
+
+		ctx.Logger.Debugf("Regenerating Session 1FA") // TODO: Remove.
+		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+
+		if err != nil {
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+			return
 		}
 
 		// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data
