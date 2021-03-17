@@ -188,6 +188,10 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		successful = true
 
-		Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
+		if userSession.OIDCWorkflowSession != nil {
+			HandleOIDCWorkflowResponse(ctx)
+		} else {
+			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
+		}
 	}
 }

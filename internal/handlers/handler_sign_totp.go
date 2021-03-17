@@ -10,8 +10,8 @@ import (
 // SecondFactorTOTPPost validate the TOTP passcode provided by the user.
 func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
-		bodyJSON := signTOTPRequestBody{}
-		err := ctx.ParseBody(&bodyJSON)
+		requestBody := signTOTPRequestBody{}
+		err := ctx.ParseBody(&requestBody)
 
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, err, mfaValidationFailedMessage)
@@ -26,7 +26,7 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 			return
 		}
 
-		isValid, err := totpVerifier.Verify(bodyJSON.Token, secret)
+		isValid, err := totpVerifier.Verify(requestBody.Token, secret)
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error occurred during OTP validation for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
 			return
@@ -52,6 +52,10 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 			return
 		}
 
-		Handle2FAResponse(ctx, bodyJSON.TargetURL)
+		if userSession.OIDCWorkflowSession != nil {
+			HandleOIDCWorkflowResponse(ctx)
+		} else {
+			Handle2FAResponse(ctx, requestBody.TargetURL)
+		}
 	}
 }
