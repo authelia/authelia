@@ -139,7 +139,7 @@ func AuthorizeEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHand
 		}
 
 		// Now that the user is authorized, we set up a session:
-		oauthSession := newSession(ctx, ar.GetGrantedAudience())
+		oauthSession := newSession(ctx, ar.GetGrantedScopes(), ar.GetGrantedAudience())
 
 		// Now we need to get a response. This is the place where the AuthorizeEndpointHandlers kick in and start processing the request.
 		// NewAuthorizeResponse is capable of running multiple response type handlers which in turn enables this library

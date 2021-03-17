@@ -93,25 +93,31 @@ func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *ro
 // Usually, you could do:
 //
 //  session = new(fosite.DefaultSession)
-func newSession(ctx *middlewares.AutheliaCtx, audience []string) *openid.DefaultSession {
+func newSession(ctx *middlewares.AutheliaCtx, scopes fosite.Arguments, audience fosite.Arguments) *openid.DefaultSession {
 	session := ctx.GetSession()
 
 	extra := map[string]interface{}{}
 
-	if len(session.Emails) != 0 {
+	if len(session.Emails) != 0 && scopes.Has("email") {
 		extra["email"] = session.Emails[0]
 	}
 
-	extra["groups"] = session.Groups
+	if scopes.Has("groups") {
+		extra["groups"] = session.Groups
+	}
+
+	if scopes.Has("profile") {
+		extra["profile"] = map[string]string{
+			"name": session.DisplayName,
+		}
+	}
+
 	/*
 		TODO: Adjust auth backends to return more profile information.
 		It's probably ideal to adjust the auth providers at this time to not store 'extra' information in the session
 		storage, and instead create a memory only storage for them.
 		This is a simple design, have a map with a key of username, and a struct with the relevant information.
 	*/
-	extra["profile"] = map[string]string{
-		"name": session.DisplayName,
-	}
 
 	oidcSession := newDefaultSession(ctx)
 	oidcSession.Claims.Extra = extra
