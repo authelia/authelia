@@ -18,3 +18,5 @@ var scopeDescriptions = map[string]string{
 	"profile": "User Profile",
 	"groups":  "Group Membership",
 }
+
+var audienceDescriptions = map[string]string{}

@@ -24,9 +24,10 @@ type ConsentPostResponseBody struct {
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
-	ClientID          string  `json:"client_id"`
-	ClientDescription string  `json:"client_description"`
-	Scopes            []Scope `json:"scopes"`
+	ClientID          string     `json:"client_id"`
+	ClientDescription string     `json:"client_description"`
+	Scopes            []Scope    `json:"scopes"`
+	Audience          []Audience `json:"audience"`
 }
 
 // Scope represents the scope information.
@@ -35,14 +36,34 @@ type Scope struct {
 	Description string `json:"description"`
 }
 
+// Audience represents the audience information.
+type Audience struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 func scopeNamesToScopes(scopeSlice []string) (scopes []Scope) {
-	for _, scope := range scopeSlice {
-		if val, ok := scopeDescriptions[scope]; ok {
-			scopes = append(scopes, Scope{scope, val})
+	for _, name := range scopeSlice {
+		if val, ok := scopeDescriptions[name]; ok {
+			scopes = append(scopes, Scope{name, val})
+		} else {
+			scopes = append(scopes, Scope{name, name})
 		}
 	}
 
 	return scopes
+}
+
+func audienceNamesToAudience(scopeSlice []string) (audience []Audience) {
+	for _, name := range scopeSlice {
+		if val, ok := audienceDescriptions[name]; ok {
+			audience = append(audience, Audience{name, val})
+		} else {
+			audience = append(audience, Audience{name, name})
+		}
+	}
+
+	return audience
 }
 
 // ConsentGet handler serving the list consent requested by the app.
@@ -70,6 +91,7 @@ func ConsentGet(ctx *middlewares.AutheliaCtx) {
 
 	var body ConsentGetResponseBody
 	body.Scopes = scopeNamesToScopes(userSession.OIDCWorkflowSession.RequestedScopes)
+	body.Audience = audienceNamesToAudience(userSession.OIDCWorkflowSession.RequestedAudience)
 	body.ClientID = userSession.OIDCWorkflowSession.ClientID
 
 	if clientConfiguration != nil {
@@ -131,6 +153,7 @@ func ConsentPost(ctx *middlewares.AutheliaCtx) {
 	if body.AcceptOrReject == constAccept {
 		redirectionURL = userSession.OIDCWorkflowSession.AuthURI
 		userSession.OIDCWorkflowSession.GrantedScopes = userSession.OIDCWorkflowSession.RequestedScopes
+		userSession.OIDCWorkflowSession.GrantedAudience = userSession.OIDCWorkflowSession.RequestedAudience
 
 		if err := ctx.SaveSession(userSession); err != nil {
 			ctx.Error(fmt.Errorf("Unable to write session: %v", err), "Operation failed")

@@ -59,38 +59,6 @@ func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *ro
 		panic(err)
 	}
 
-	// Because we are using oauth2 and open connect id, we use this little helper to combine the two in one
-	// variable.
-	/*
-		var start = compose.CommonStrategy{
-			CoreStrategy:               compose.NewOAuth2HMACStrategy(oidcConfig, []byte(configuration.HMACSecret), nil),
-			OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(oidcConfig, privateKey),
-		}
-
-
-		var oauth2 = compose.Compose(
-			oidcConfig,
-			store,
-			start,
-			nil,
-
-			// enabled handlers
-			compose.OAuth2AuthorizeExplicitFactory,
-			compose.OAuth2AuthorizeImplicitFactory,
-			compose.OAuth2ClientCredentialsGrantFactory,
-			compose.OAuth2RefreshTokenGrantFactory,
-			compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
-
-			compose.OAuth2TokenRevocationFactory,
-			compose.OAuth2TokenIntrospectionFactory,
-
-			// be aware that open id connect factories need to be added after oauth2 factories to work properly.
-			compose.OpenIDConnectExplicitFactory,
-			compose.OpenIDConnectImplicitFactory,
-			compose.OpenIDConnectHybridFactory,
-			compose.OpenIDConnectRefreshFactory,
-		)
-	*/
 	oauth2 := compose.ComposeAllEnabled(oidcConfig, store, []byte(configuration.HMACSecret), privateKey)
 
 	// TODO: Add paths for UserInfo, Flush, Logout.
@@ -105,7 +73,6 @@ func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *ro
 	router.GET(jwksPath, autheliaMiddleware(JWKsGet(&privateKey.PublicKey)))
 
 	router.GET(authorizePath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthorizeEndpointGet(oauth2))))
-	router.POST(authorizePath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(AuthorizeEndpointPost(oauth2))))
 
 	// TODO: Add OPTIONS handler.
 	router.POST(tokenPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(tokenEndpoint(oauth2))))
@@ -126,27 +93,24 @@ func InitializeOIDC(configuration *schema.OpenIDConnectConfiguration, router *ro
 // Usually, you could do:
 //
 //  session = new(fosite.DefaultSession)
-func newSession(ctx *middlewares.AutheliaCtx, scopes fosite.Arguments, audience []string) *openid.DefaultSession {
+func newSession(ctx *middlewares.AutheliaCtx, audience []string) *openid.DefaultSession {
 	session := ctx.GetSession()
 
 	extra := map[string]interface{}{}
 
-	if len(session.Emails) != 0 && scopes.Has("email") {
+	if len(session.Emails) != 0 {
 		extra["email"] = session.Emails[0]
 	}
 
-	if scopes.Has("groups") {
-		extra["groups"] = session.Groups
-	}
-
+	extra["groups"] = session.Groups
 	/*
 		TODO: Adjust auth backends to return more profile information.
 		It's probably ideal to adjust the auth providers at this time to not store 'extra' information in the session
 		storage, and instead create a memory only storage for them.
 		This is a simple design, have a map with a key of username, and a struct with the relevant information.
 	*/
-	if scopes.Has("profile") {
-		extra["name"] = session.DisplayName
+	extra["profile"] = map[string]string{
+		"name": session.DisplayName,
 	}
 
 	oidcSession := newDefaultSession(ctx)

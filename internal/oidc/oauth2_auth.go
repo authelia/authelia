@@ -36,30 +36,31 @@ func getOIDCClientConfig(clientID string, configuration schema.OpenIDConnectConf
 	return nil
 }
 
+// AuthorizeEndpointGet handles GET requests to the authorize endpoint.
 // nolint:gocyclo
-func authorizeHandler(oauth2 fosite.OAuth2Provider, ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request, post bool) {
-	ctx.Logger.Debugf("Hit Authorize POST endpoint")
+func AuthorizeEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc {
+	return func(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+		ctx.Logger.Debugf("Hit Authorize GET endpoint")
 
-	ar, err := oauth2.NewAuthorizeRequest(r.Context(), r)
-	if err != nil {
-		logging.Logger().Errorf("Error occurred in NewAuthorizeRequest: %+v", err)
-		oauth2.WriteAuthorizeError(rw, ar, err)
+		ar, err := oauth2.NewAuthorizeRequest(ctx, r)
+		if err != nil {
+			logging.Logger().Errorf("Error occurred in NewAuthorizeRequest: %+v", err)
+			oauth2.WriteAuthorizeError(rw, ar, err)
 
-		return
-	}
+			return
+		}
 
-	clientID := ar.GetClient().GetID()
+		clientID := ar.GetClient().GetID()
 
-	clientConfig := getOIDCClientConfig(clientID, *ctx.Configuration.IdentityProviders.OIDC)
-	if clientConfig == nil {
-		err := fmt.Errorf("Unable to find related client configuration with name %s", ar.GetID())
-		ctx.Logger.Error(err)
-		oauth2.WriteAuthorizeError(rw, ar, err)
+		clientConfig := getOIDCClientConfig(clientID, *ctx.Configuration.IdentityProviders.OIDC)
+		if clientConfig == nil {
+			err := fmt.Errorf("Unable to find related client configuration with name %s", ar.GetID())
+			ctx.Logger.Error(err)
+			oauth2.WriteAuthorizeError(rw, ar, err)
 
-		return
-	}
+			return
+		}
 
-	if !post {
 		targetURL := ar.GetRedirectURI()
 		userSession := ctx.GetSession()
 
@@ -70,11 +71,16 @@ func authorizeHandler(oauth2 fosite.OAuth2Provider, ctx *middlewares.AutheliaCtx
 			IP:       ctx.RemoteIP(),
 		}, authorization.NewObjectRaw(targetURL, []byte("GET")))
 
-		isAuthInsufficient := !authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, requiredAuthorizationLevel)
-		isConsentMissing := len(ar.GetRequestedScopes()) > 0 && (userSession.OIDCWorkflowSession == nil ||
-			utils.IsStringSlicesDifferent(ar.GetRequestedScopes(), userSession.OIDCWorkflowSession.GrantedScopes))
+		requestedScopes := ar.GetRequestedScopes()
+		requestedAudience := ar.GetRequestedAudience()
 
-		if isAuthInsufficient || isConsentMissing {
+		isAuthInsufficient := !authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, requiredAuthorizationLevel)
+		isConsentMissingScopes := len(requestedScopes) > 0 && (userSession.OIDCWorkflowSession == nil ||
+			utils.IsStringSlicesDifferent(requestedScopes, userSession.OIDCWorkflowSession.GrantedScopes))
+		isConsentMissingAudience := len(requestedAudience) > 0 && (userSession.OIDCWorkflowSession == nil ||
+			utils.IsStringSlicesDifferent(requestedAudience, userSession.OIDCWorkflowSession.GrantedAudience))
+
+		if isAuthInsufficient || (isConsentMissingScopes || isConsentMissingAudience) {
 			forwardedURI, err := ctx.GetOriginalURL()
 			if err != nil {
 				ctx.Logger.Errorf("%v", err)
@@ -86,7 +92,8 @@ func authorizeHandler(oauth2 fosite.OAuth2Provider, ctx *middlewares.AutheliaCtx
 			ctx.Logger.Debugf("User %s must consent with scopes %s", userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))
 			userSession.OIDCWorkflowSession = new(session.OIDCWorkflowSession)
 			userSession.OIDCWorkflowSession.ClientID = clientID
-			userSession.OIDCWorkflowSession.RequestedScopes = ar.GetRequestedScopes()
+			userSession.OIDCWorkflowSession.RequestedScopes = requestedScopes
+			userSession.OIDCWorkflowSession.RequestedAudience = requestedAudience
 			userSession.OIDCWorkflowSession.AuthURI = forwardedURI.String()
 			userSession.OIDCWorkflowSession.TargetURI = targetURL.String()
 			userSession.OIDCWorkflowSession.RequiredAuthorizationLevel = requiredAuthorizationLevel
@@ -106,7 +113,7 @@ func authorizeHandler(oauth2 fosite.OAuth2Provider, ctx *middlewares.AutheliaCtx
 				return
 			}
 
-			if isConsentMissing {
+			if isConsentMissingScopes || isConsentMissingAudience {
 				http.Redirect(rw, r, fmt.Sprintf("%s/consent", uri), 302)
 			} else {
 				http.Redirect(rw, r, fmt.Sprintf("%s?workflow=openid", uri), 302)
@@ -114,69 +121,45 @@ func authorizeHandler(oauth2 fosite.OAuth2Provider, ctx *middlewares.AutheliaCtx
 
 			return
 		}
-	}
 
-	scopes := ar.GetRequestedScopes()
+		// We grant the requested scopes at this stage.
+		for _, scope := range requestedScopes {
+			ar.GrantScope(scope)
+		}
 
-	// We grant the requested scopes at this stage.
-	for _, scope := range scopes {
-		ar.GrantScope(scope)
-	}
+		for _, a := range requestedAudience {
+			ar.GrantAudience(a)
+		}
 
-	audience := ar.GetRequestedAudience()
+		userSession.OIDCWorkflowSession = nil
+		if err := ctx.SaveSession(userSession); err != nil {
+			ctx.Logger.Errorf("%v", err)
+			http.Error(rw, err.Error(), 500)
 
-	for _, a := range audience {
-		ar.GrantAudience(a)
-	}
+			return
+		}
 
-	userSession := ctx.GetSession()
+		// Now that the user is authorized, we set up a session:
+		oauthSession := newSession(ctx, ar.GetGrantedAudience())
 
-	userSession.OIDCWorkflowSession = nil
-	if err := ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("%v", err)
-		http.Error(rw, err.Error(), 500)
+		// Now we need to get a response. This is the place where the AuthorizeEndpointHandlers kick in and start processing the request.
+		// NewAuthorizeResponse is capable of running multiple response type handlers which in turn enables this library
+		// to support open id connect.
+		response, err := oauth2.NewAuthorizeResponse(ctx, ar, oauthSession)
 
-		return
-	}
+		// Catch any errors, e.g.:
+		// * unknown client
+		// * invalid redirect
+		// * ...
+		if err != nil {
+			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
+			oauth2.WriteAuthorizeError(rw, ar, err)
 
-	// Now that the user is authorized, we set up a session:
-	oauthSession := newSession(ctx, scopes, audience)
+			return
+		}
 
-	// Now we need to get a response. This is the place where the AuthorizeEndpointHandlers kick in and start processing the request.
-	// NewAuthorizeResponse is capable of running multiple response type handlers which in turn enables this library
-	// to support open id connect.
-	response, err := oauth2.NewAuthorizeResponse(ctx, ar, oauthSession)
+		// TODO: Record Authorized Responses.
 
-	// Catch any errors, e.g.:
-	// * unknown client
-	// * invalid redirect
-	// * ...
-	if err != nil {
-		log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
-		oauth2.WriteAuthorizeError(rw, ar, err)
-
-		return
-	}
-
-	// TODO: Record Authorized Responses.
-
-	oauth2.WriteAuthorizeResponse(rw, ar, response)
-}
-
-// AuthorizeEndpointPost handles POST requests to the authorize endpoint.
-func AuthorizeEndpointPost(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc {
-	return func(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
-		ctx.Logger.Debugf("Hit Authorize POST endpoint")
-
-		authorizeHandler(oauth2, ctx, rw, r, true)
-	}
-}
-
-// AuthorizeEndpointGet handles GET requests to the authorize endpoint.
-func AuthorizeEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc {
-	return func(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
-		ctx.Logger.Debugf("Hit Authorize GET endpoint")
-
-		authorizeHandler(oauth2, ctx, rw, r, false)
+		oauth2.WriteAuthorizeResponse(rw, ar, response)
 	}
 }
