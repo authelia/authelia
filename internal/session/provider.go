@@ -3,7 +3,6 @@ package session
 import (
 	"crypto/x509"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	fasthttpsession "github.com/fasthttp/session/v2"
@@ -87,8 +86,6 @@ func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 	// If userSession is not yet defined we create the new session with default values
 	// and save it in the store.
 	if !ok {
-		fmt.Println("New Session Generated") // TODO: Remove.
-
 		userSession := NewDefaultUserSession()
 
 		store.Set(userSessionStorerKey, userSession)
@@ -109,8 +106,6 @@ func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 // SaveSession save the user session.
 func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession) error {
 	store, err := p.sessionHolder.Get(ctx)
-
-	fmt.Println("Session Save") // TODO: Remove.
 
 	if err != nil {
 		return err
@@ -135,8 +130,6 @@ func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession
 
 // RegenerateSession regenerate a session ID.
 func (p *Provider) RegenerateSession(ctx *fasthttp.RequestCtx) error {
-	fmt.Println("Session Regen") // TODO: Remove.
-
 	err := p.sessionHolder.Regenerate(ctx)
 
 	return err
@@ -144,8 +137,6 @@ func (p *Provider) RegenerateSession(ctx *fasthttp.RequestCtx) error {
 
 // DestroySession destroy a session ID and delete the cookie.
 func (p *Provider) DestroySession(ctx *fasthttp.RequestCtx) error {
-	fmt.Println("Session Dest") // TODO: Remove.
-
 	return p.sessionHolder.Destroy(ctx)
 }
 

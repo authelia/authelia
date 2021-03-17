@@ -210,14 +210,14 @@ func (c *AutheliaCtx) RemoteIP() net.IP {
 func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 	originalURL := c.XOriginalURL()
 	if originalURL != nil {
-		url, err := url.ParseRequestURI(string(originalURL))
+		parsedURL, err := url.ParseRequestURI(string(originalURL))
 		if err != nil {
 			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
 		}
 
 		c.Logger.Trace("Using X-Original-URL header content as targeted site URL")
 
-		return url, nil
+		return parsedURL, nil
 	}
 
 	forwardedProto := c.XForwardedProto()
@@ -238,7 +238,7 @@ func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 	requestURI = string(append(scheme,
 		append(forwardedHost, forwardedURI...)...))
 
-	url, err := url.ParseRequestURI(requestURI)
+	parsedURL, err := url.ParseRequestURI(requestURI)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
 	}
@@ -246,5 +246,5 @@ func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 	c.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
 		"to construct targeted site URL")
 
-	return url, nil
+	return parsedURL, nil
 }

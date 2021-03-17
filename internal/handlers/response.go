@@ -13,7 +13,6 @@ import (
 
 // HandleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
 func HandleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
-	ctx.Logger.Debugf("OIDC Workflow Response Handler") // TODO: Remove.
 	userSession := ctx.GetSession()
 
 	if !authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
@@ -37,14 +36,12 @@ func HandleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		utils.IsStringSlicesDifferent(userSession.OIDCWorkflowSession.RequestedAudience, userSession.OIDCWorkflowSession.GrantedAudience))
 
 	if isConsentMissingScopes || isConsentMissingAudience {
-		ctx.Logger.Debugf("OIDC Consent forwarding") // TODO: Remove.
 		err := ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", uri)})
 
 		if err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 	} else {
-		ctx.Logger.Debugf("OIDC Auth Forwarding") // TODO: Remove.
 		err := ctx.SetJSONBody(redirectResponse{Redirect: userSession.OIDCWorkflowSession.AuthURI})
 		if err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
@@ -54,8 +51,6 @@ func HandleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
 func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod string, username string, groups []string) {
-	ctx.Logger.Debugf("1FA Response") // TODO: Remove.
-
 	if targetURI == "" {
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
 			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
@@ -119,8 +114,6 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 
 // Handle2FAResponse handle the redirection upon 2FA authentication.
 func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
-	ctx.Logger.Debugf("2FA Response") // TODO: Remove.
-
 	if targetURI == "" {
 		if ctx.Configuration.DefaultRedirectionURL != "" {
 			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})

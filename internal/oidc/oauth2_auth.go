@@ -90,7 +90,6 @@ func AuthorizeEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHand
 			}
 
 			if userSession.AuthenticationLevel == authentication.NotAuthenticated {
-				ctx.Logger.Debugf("Flow New Sesssion") // TODO: Remove.
 				// Reset all values from previous session before regenerating the cookie.
 				err = ctx.SaveSession(session.NewDefaultUserSession())
 

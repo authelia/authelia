@@ -139,7 +139,6 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 			}
 		}
 
-		ctx.Logger.Debugf("Regenerating Session 1FA") // TODO: Remove.
 		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 		if err != nil {
