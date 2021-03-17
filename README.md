@@ -165,8 +165,8 @@ Internet (your reverse proxies are) however, it's still the control plane for yo
 
 If you want to contribute to Authelia, please read our [contribution guidelines](./CONTRIBUTING.md).
 
-Authelia exists thanks to all the people who contribute so don't be shy, come chat with us on [Matrix](#matrix) and 
-start contributing too.
+Authelia exists thanks to all the people who contribute so don't be shy, come chat with us on either [Matrix](#matrix) 
+or [Discord](#discord) and start contributing too.
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
@@ -269,7 +269,7 @@ Support Authelia by becoming a sponsor. Your logo will show up here with a link 
 ### Jetbrains
 
 Thank you to [<img src="./docs/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
-for providing us with free licenses to their great tools
+for providing us with free licenses to their great tools.
 
 * [<img src="./docs/images/logos/intellij-idea.svg" alt="IDEA" width="32"> IDEA](http://www.jetbrains.com/idea/)
 * [<img src="./docs/images/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
