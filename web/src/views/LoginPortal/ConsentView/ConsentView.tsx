@@ -28,7 +28,7 @@ const ConsentView = function (props: Props) {
                 history.push("/");
             }, 1000);
         }
-    }, [createErrorNotification, err]);
+    }, [history, resetNotification, createErrorNotification, err]);
 
     useEffect(() => {
         fetch();

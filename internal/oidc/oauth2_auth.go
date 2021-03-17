@@ -36,6 +36,7 @@ func getOIDCClientConfig(clientID string, configuration schema.OpenIDConnectConf
 	return nil
 }
 
+// nolint:gocyclo
 func authorizeHandler(oauth2 fosite.OAuth2Provider, ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request, post bool) {
 	ctx.Logger.Debugf("Hit Authorize POST endpoint")
 
@@ -78,6 +79,7 @@ func authorizeHandler(oauth2 fosite.OAuth2Provider, ctx *middlewares.AutheliaCtx
 			if err != nil {
 				ctx.Logger.Errorf("%v", err)
 				http.Error(rw, err.Error(), 500)
+
 				return
 			}
 
@@ -133,6 +135,7 @@ func authorizeHandler(oauth2 fosite.OAuth2Provider, ctx *middlewares.AutheliaCtx
 	if err := ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf("%v", err)
 		http.Error(rw, err.Error(), 500)
+
 		return
 	}
 
