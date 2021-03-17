@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -152,7 +151,7 @@ func AuthorizeEndpointGet(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHand
 		// * invalid redirect
 		// * ...
 		if err != nil {
-			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
+			ctx.Logger.Errorf("Error occurred in NewAuthorizeResponse: %+v", err)
 			oauth2.WriteAuthorizeError(rw, ar, err)
 
 			return

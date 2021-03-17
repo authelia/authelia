@@ -1,7 +1,6 @@
 package oidc
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/ory/fosite"
@@ -24,7 +23,7 @@ func tokenEndpoint(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc
 		// * invalid redirect
 		// * ...
 		if err != nil {
-			log.Printf("Error occurred in NewAccessRequest: %+v", err)
+			ctx.Logger.Errorf("Error occurred in NewAccessRequest: %+v", err)
 			oauth2.WriteAccessError(rw, accessRequest, err)
 
 			return
@@ -43,7 +42,7 @@ func tokenEndpoint(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc
 		// and aggregate the result in response.
 		response, err := oauth2.NewAccessResponse(ctx, accessRequest)
 		if err != nil {
-			log.Printf("Error occurred in NewAccessResponse: %+v", err)
+			ctx.Logger.Errorf("Error occurred in NewAccessResponse: %+v", err)
 			oauth2.WriteAccessError(rw, accessRequest, err)
 
 			return
