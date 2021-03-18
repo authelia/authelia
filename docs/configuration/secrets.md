@@ -31,16 +31,16 @@ Here is the list of the environment variables which are considered
 secrets and can be defined. Any other option defined using an
 environment variable will not be replaced.
 
-|Configuration Key                   |Environment Variable                              |
-|:----------------------------------:|:------------------------------------------------:|
-|jwt_secret                          |AUTHELIA_JWT_SECRET_FILE                          |
-|duo_api.secret_key                  |AUTHELIA_DUO_API_SECRET_KEY_FILE                  |
-|session.secret                      |AUTHELIA_SESSION_SECRET_FILE                      |
-|session.redis.password              |AUTHELIA_SESSION_REDIS_PASSWORD_FILE              |
-|storage.mysql.password              |AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE              |
-|storage.postgres.password           |AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE           |
-|notifier.smtp.password              |AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE              |
-|authentication_backend.ldap.password|AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE|
+|Configuration Key                                |Environment Variable                              |
+|:-----------------------------------------------:|:------------------------------------------------:|
+|jwt_secret                                       |AUTHELIA_JWT_SECRET_FILE                          |
+|duo_api.secret_key                               |AUTHELIA_DUO_API_SECRET_KEY_FILE                  |
+|session.secret                                   |AUTHELIA_SESSION_SECRET_FILE                      |
+|session.redis.password                           |AUTHELIA_SESSION_REDIS_PASSWORD_FILE              |
+|storage.mysql.password                           |AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE              |
+|storage.postgres.password                        |AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE           |
+|notifier.smtp.password                           |AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE              |
+|authentication_backend.ldap.password             |AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE|
 
 ## Secrets in configuration file
 

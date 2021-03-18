@@ -48,7 +48,9 @@ server:
   path: authelia
 ```
 
-## Additional Notes on Buffer Sizes
+## Additional Notes
+
+### Buffer Sizes
 
 The read and write buffer sizes generally should be the same. This is because when Authelia verifies 
 if the user is authorized to visit a URL, it also sends back nearly the same size response as the request. However
