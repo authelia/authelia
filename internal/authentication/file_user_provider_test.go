@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -34,6 +35,10 @@ func WithDatabase(content []byte, f func(path string)) {
 }
 
 func TestShouldErrorPermissionsOnLocalFS(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test due to being on windows")
+	}
+
 	_ = os.Mkdir("/tmp/noperms/", 0000)
 	errors := checkDatabase("/tmp/noperms/users_database.yml")
 
