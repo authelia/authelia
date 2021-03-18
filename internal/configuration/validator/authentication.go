@@ -92,10 +92,6 @@ func validateLdapURL(ldapURL string, validator *schema.StructValidator) (finalUR
 		return "", ""
 	}
 
-	if !parsedURL.IsAbs() {
-		validator.Push(fmt.Errorf("URL to LDAP %s is still not absolute, it should be something like ldap://127.0.0.1:389", parsedURL.String()))
-	}
-
 	return parsedURL.String(), parsedURL.Hostname()
 }
 
