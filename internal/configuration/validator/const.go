@@ -6,6 +6,10 @@ const (
 	errFmtSessionRedisHostRequired        = "The host must be provided when using the %s session provider"
 	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
 
+	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
+	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
+	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
+
 	denyPolicy   = "deny"
 	bypassPolicy = "bypass"
 
@@ -186,34 +190,22 @@ var specificErrorKeys = map[string]string{
 	"logs_file_path":   "config key replaced: logs_file is now log_file",
 	"logs_level":       "config key replaced: logs_level is now log_level",
 	"google_analytics": "config key removed: google_analytics - this functionality has been deprecated",
-	"authentication_backend.file.password_options.algorithm": "config key incorrect: authentication_backend.file.password_options should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.password_options.iterations": "config key incorrect: authentication_backend.file.password_options should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.password_options.key_length": "config key incorrect: authentication_backend.file.password_options should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.password_options.salt_length": "config key incorrect: authentication_backend.file.password_options should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.password_options.memory": "config key incorrect: authentication_backend.file.password_options should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.password_options.parallelism": "config key incorrect: authentication_backend.file.password_options should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.algorithm": "config key incorrect: authentication_backend.file.password_hashing should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.iterations": "config key incorrect: authentication_backend.file.password_hashing should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.key_length": "config key incorrect: authentication_backend.file.password_hashing should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.salt_length": "config key incorrect: authentication_backend.file.password_hashing should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.memory": "config key incorrect: authentication_backend.file.password_hashing should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.parallelism": "config key incorrect: authentication_backend.file.password_hashing should be " +
-		"authentication_backend.file.password",
-	"authentication_backend.file.hashing.algorithm":   "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
-	"authentication_backend.file.hashing.iterations":  "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
-	"authentication_backend.file.hashing.key_length":  "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
-	"authentication_backend.file.hashing.salt_length": "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
-	"authentication_backend.file.hashing.memory":      "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
-	"authentication_backend.file.hashing.parallelism": "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
+	"authentication_backend.file.password_options.algorithm":   errFilePOptions,
+	"authentication_backend.file.password_options.iterations":  errFilePOptions,
+	"authentication_backend.file.password_options.key_length":  errFilePOptions,
+	"authentication_backend.file.password_options.salt_length": errFilePOptions,
+	"authentication_backend.file.password_options.memory":      errFilePOptions,
+	"authentication_backend.file.password_options.parallelism": errFilePOptions,
+	"authentication_backend.file.password_hashing.algorithm":   errFilePHashing,
+	"authentication_backend.file.password_hashing.iterations":  errFilePHashing,
+	"authentication_backend.file.password_hashing.key_length":  errFilePHashing,
+	"authentication_backend.file.password_hashing.salt_length": errFilePHashing,
+	"authentication_backend.file.password_hashing.memory":      errFilePHashing,
+	"authentication_backend.file.password_hashing.parallelism": errFilePHashing,
+	"authentication_backend.file.hashing.algorithm":            errFileHashing,
+	"authentication_backend.file.hashing.iterations":           errFileHashing,
+	"authentication_backend.file.hashing.key_length":           errFileHashing,
+	"authentication_backend.file.hashing.salt_length":          errFileHashing,
+	"authentication_backend.file.hashing.memory":               errFileHashing,
+	"authentication_backend.file.hashing.parallelism":          errFileHashing,
 }
