@@ -65,6 +65,7 @@ func newSession(ctx *middlewares.AutheliaCtx, scopes fosite.Arguments, audience 
 
 	if len(session.Emails) != 0 && scopes.Has("email") {
 		extra["email"] = session.Emails[0]
+		extra["email_verified"] = true
 	}
 
 	if scopes.Has("groups") {
@@ -72,9 +73,7 @@ func newSession(ctx *middlewares.AutheliaCtx, scopes fosite.Arguments, audience 
 	}
 
 	if scopes.Has("profile") {
-		extra["profile"] = map[string]string{
-			"name": session.DisplayName,
-		}
+		extra["name"] = session.DisplayName
 	}
 
 	/*

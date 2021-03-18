@@ -29,6 +29,21 @@ func WellKnownConfigurationHandler(ctx *middlewares.AutheliaCtx) {
 		"groups",
 		"email",
 	}
+	configuration.ClaimsSupported = []string{
+		"auth_time",
+		"exp",
+		"iss",
+		"sub",
+		"aud",
+		"ist",
+		"jti",
+		"rat",
+		"nonce",
+		"email",
+		"email_verified",
+		"groups",
+		"name",
+	}
 	configuration.ResponseTypesSupported = []string{
 		"code",
 		"token",

@@ -54,6 +54,7 @@ type WellKnownConfigurationJSON struct {
 	Algorithms                         []string `json:"id_token_signing_alg_values_supported"`
 	ResponseTypesSupported             []string `json:"response_types_supported"`
 	ScopesSupported                    []string `json:"scopes_supported"`
+	ClaimsSupported                    []string `json:"claims_supported"`
 	BackChannelLogoutSupported         bool     `json:"backchannel_logout_supported"`
 	BackChannelLogoutSessionSupported  bool     `json:"backchannel_logout_session_supported"`
 	FrontChannelLogoutSupported        bool     `json:"frontchannel_logout_supported"`

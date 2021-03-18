@@ -3,7 +3,7 @@ package oidc
 const (
 	fallbackOIDCIssuer = "https://login.example.com:8080"
 	wellKnownPath      = "/.well-known/openid-configuration"
-	jwksPath           = "/.well-known/jwks.json"
+	jwksPath           = "/api/oidc/jwks"
 	authorizePath      = "/api/oidc/authorize"
 	tokenPath          = "/api/oidc/token" // nolint:gosec
 	consentPath        = "/api/oidc/consent"
