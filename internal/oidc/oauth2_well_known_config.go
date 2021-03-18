@@ -20,8 +20,15 @@ func WellKnownConfigurationHandler(ctx *middlewares.AutheliaCtx) {
 	configuration.Issuer = issuer
 	configuration.AuthURL = fmt.Sprintf("%s%s", issuer, authorizePath)
 	configuration.TokenURL = fmt.Sprintf("%s%s", issuer, tokenPath)
+	configuration.RevocationEndpoint = fmt.Sprintf("%s%s", issuer, revokePath)
 	configuration.JWKSURL = fmt.Sprintf("%s%s", issuer, jwksPath)
 	configuration.Algorithms = []string{"RS256"}
+	configuration.ScopesSupported = []string{
+		"openid",
+		"profile",
+		"groups",
+		"email",
+	}
 	configuration.ResponseTypesSupported = []string{
 		"code",
 		"token",
