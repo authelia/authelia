@@ -171,6 +171,7 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	ValidateConfiguration(&config, validator)
 
 	require.Len(t, validator.Errors(), 1)
+
 	if runtime.GOOS == "windows" {
 		assert.EqualError(t, validator.Errors()[0], "Error checking certificate directory: CreateFile not-a-real-file.go: The system cannot find the file specified.")
 	} else {

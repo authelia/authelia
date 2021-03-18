@@ -85,14 +85,26 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 
 	require.Len(t, errors, 12)
 
-	assert.EqualError(t, errors[0], "error loading secret file (jwt_secret): open /path/not/existjwt: The system cannot find the path specified.")
-	assert.EqualError(t, errors[1], "error loading secret file (session.secret): open /path/not/existsession: The system cannot find the path specified.")
-	assert.EqualError(t, errors[2], "error loading secret file (duo_api.secret_key): open /path/not/existduo: The system cannot find the path specified.")
-	assert.EqualError(t, errors[3], "error loading secret file (session.redis.password): open /path/not/existredis: The system cannot find the path specified.")
-	assert.EqualError(t, errors[4], "error loading secret file (session.redis.high_availability.sentinel_password): open /path/not/existredis-sentinel: The system cannot find the path specified.")
-	assert.EqualError(t, errors[5], "error loading secret file (authentication_backend.ldap.password): open /path/not/existauthentication: The system cannot find the path specified.")
-	assert.EqualError(t, errors[6], "error loading secret file (notifier.smtp.password): open /path/not/existnotifier: The system cannot find the path specified.")
-	assert.EqualError(t, errors[7], "error loading secret file (storage.mysql.password): open /path/not/existmysql: The system cannot find the path specified.")
+	if runtime.GOOS == windows {
+		assert.EqualError(t, errors[0], "error loading secret file (jwt_secret): open /path/not/existjwt: The system cannot find the path specified.")
+		assert.EqualError(t, errors[1], "error loading secret file (session.secret): open /path/not/existsession: The system cannot find the path specified.")
+		assert.EqualError(t, errors[2], "error loading secret file (duo_api.secret_key): open /path/not/existduo: The system cannot find the path specified.")
+		assert.EqualError(t, errors[3], "error loading secret file (session.redis.password): open /path/not/existredis: The system cannot find the path specified.")
+		assert.EqualError(t, errors[4], "error loading secret file (session.redis.high_availability.sentinel_password): open /path/not/existredis-sentinel: The system cannot find the path specified.")
+		assert.EqualError(t, errors[5], "error loading secret file (authentication_backend.ldap.password): open /path/not/existauthentication: The system cannot find the path specified.")
+		assert.EqualError(t, errors[6], "error loading secret file (notifier.smtp.password): open /path/not/existnotifier: The system cannot find the path specified.")
+		assert.EqualError(t, errors[7], "error loading secret file (storage.mysql.password): open /path/not/existmysql: The system cannot find the path specified.")
+	} else {
+		assert.EqualError(t, errors[0], "error loading secret file (jwt_secret): open /path/not/existjwt: no such file or directory")
+		assert.EqualError(t, errors[1], "error loading secret file (session.secret): open /path/not/existsession: no such file or directory")
+		assert.EqualError(t, errors[2], "error loading secret file (duo_api.secret_key): open /path/not/existduo: no such file or directory")
+		assert.EqualError(t, errors[3], "error loading secret file (session.redis.password): open /path/not/existredis: no such file or directory")
+		assert.EqualError(t, errors[4], "error loading secret file (session.redis.high_availability.sentinel_password): open /path/not/existredis-sentinel: no such file or directory")
+		assert.EqualError(t, errors[5], "error loading secret file (authentication_backend.ldap.password): open /path/not/existauthentication: no such file or directory")
+		assert.EqualError(t, errors[6], "error loading secret file (notifier.smtp.password): open /path/not/existnotifier: no such file or directory")
+		assert.EqualError(t, errors[7], "error loading secret file (storage.mysql.password): open /path/not/existmysql: no such file or directory")
+	}
+
 	assert.EqualError(t, errors[8], "Provide a JWT secret using \"jwt_secret\" key")
 	assert.EqualError(t, errors[9], "Please provide a password to connect to the LDAP server")
 	assert.EqualError(t, errors[10], "The session secret must be set when using the redis sentinel session provider")
