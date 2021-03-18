@@ -129,6 +129,8 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		userSession := ctx.GetSession()
 
+		// We skip this when the OIDC workflow is defined in the session because in the oidc.AuthorizeEndpointGet
+		// handler we do this part earlier. If we were to destroy the session here we'd lose the workflow values.
 		if userSession.OIDCWorkflowSession == nil {
 			// Reset all values from previous session before regenerating the cookie.
 			err = ctx.SaveSession(session.NewDefaultUserSession())

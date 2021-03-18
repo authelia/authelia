@@ -48,7 +48,7 @@ Here is what Authelia's portal looks like
 
 Here is the list of the main available features:
 
-* Several kind of second factor:
+* Several second factor methods:
   * **[Security Key (U2F)](https://docs.authelia.com/features/2fa/security-key)** with [Yubikey].
   * **[Time-based One-Time password](https://docs.authelia.com/features/2fa/one-time-password)** with [Google Authenticator].
   * **[Mobile Push Notifications](https://docs.authelia.com/features/2fa/push-notifications)** with [Duo](https://duo.com/).
@@ -57,6 +57,7 @@ Here is the list of the main available features:
 * Access restriction after too many authentication attempts.
 * Fine-grained access control per subdomain, user, resource and network.
 * Support of basic authentication for endpoints protected by single factor.
+* Preview support for [OpenID Connect](https://www.authelia.com/docs/configuration/identity-providers/oidc.html).
 * Highly available using a remote database and Redis as a highly available KV store.
 * Compatible with Kubernetes [ingress-nginx](https://github.com/kubernetes/ingress-nginx) controller out of the box.
 

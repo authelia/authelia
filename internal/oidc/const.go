@@ -6,7 +6,6 @@ const (
 	jwksPath           = "/.well-known/jwks.json"
 	authorizePath      = "/api/oidc/authorize"
 	tokenPath          = "/api/oidc/token" // nolint:gosec
-	userinfoPath       = "/api/oidc/userinfo"
 	consentPath        = "/api/oidc/consent"
 	introspectPath     = "/api/oidc/introspect"
 	revokePath         = "/api/oidc/revoke"

@@ -10,8 +10,6 @@ import (
 
 func introspectEndpoint(oauth2 fosite.OAuth2Provider) middlewares.AutheliaHandlerFunc {
 	return func(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
-		ctx.Logger.Debugf("Hit Introspect endpoint")
-
 		oidcSession := newDefaultSession(ctx)
 
 		ir, err := oauth2.NewIntrospectionRequest(ctx, req, oidcSession)

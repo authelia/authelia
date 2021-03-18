@@ -11,65 +11,9 @@ import (
 const constAccept = "accept"
 const constReject = "reject"
 
-// ConsentPostRequestBody schema of the request body of the consent POST endpoint.
-type ConsentPostRequestBody struct {
-	ClientID       string `json:"client_id"`
-	AcceptOrReject string `json:"accept_or_reject"`
-}
-
-// ConsentPostResponseBody schema of the response body of the consent POST endpoint.
-type ConsentPostResponseBody struct {
-	RedirectURI string `json:"redirect_uri"`
-}
-
-// ConsentGetResponseBody schema of the response body of the consent GET endpoint.
-type ConsentGetResponseBody struct {
-	ClientID          string     `json:"client_id"`
-	ClientDescription string     `json:"client_description"`
-	Scopes            []Scope    `json:"scopes"`
-	Audience          []Audience `json:"audience"`
-}
-
-// Scope represents the scope information.
-type Scope struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
-// Audience represents the audience information.
-type Audience struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
-func scopeNamesToScopes(scopeSlice []string) (scopes []Scope) {
-	for _, name := range scopeSlice {
-		if val, ok := scopeDescriptions[name]; ok {
-			scopes = append(scopes, Scope{name, val})
-		} else {
-			scopes = append(scopes, Scope{name, name})
-		}
-	}
-
-	return scopes
-}
-
-func audienceNamesToAudience(scopeSlice []string) (audience []Audience) {
-	for _, name := range scopeSlice {
-		if val, ok := audienceDescriptions[name]; ok {
-			audience = append(audience, Audience{name, val})
-		} else {
-			audience = append(audience, Audience{name, name})
-		}
-	}
-
-	return audience
-}
-
 // ConsentGet handler serving the list consent requested by the app.
 func ConsentGet(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
-	ctx.Logger.Debugf("Hit consent (GET) endpoint")
 
 	if userSession.OIDCWorkflowSession == nil {
 		ctx.Logger.Debug("Cannot consent when OIDC workflow has not been initiated")
@@ -106,8 +50,6 @@ func ConsentGet(ctx *middlewares.AutheliaCtx) {
 // ConsentPost handler granting permissions according to the requested scopes.
 func ConsentPost(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
-
-	ctx.Logger.Debugf("Hit consent (POST) endpoint")
 
 	if userSession.OIDCWorkflowSession == nil {
 		ctx.Logger.Debug("Cannot consent when OIDC workflow has not been initiated")

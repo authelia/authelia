@@ -8,6 +8,7 @@ import (
 
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/oidc"
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -30,12 +31,10 @@ func HandleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	isConsentMissingScopes := len(userSession.OIDCWorkflowSession.RequestedScopes) > 0 && (userSession.OIDCWorkflowSession == nil ||
-		utils.IsStringSlicesDifferent(userSession.OIDCWorkflowSession.RequestedScopes, userSession.OIDCWorkflowSession.GrantedScopes))
-	isConsentMissingAudience := len(userSession.OIDCWorkflowSession.RequestedAudience) > 0 && (userSession.OIDCWorkflowSession == nil ||
-		utils.IsStringSlicesDifferent(userSession.OIDCWorkflowSession.RequestedAudience, userSession.OIDCWorkflowSession.GrantedAudience))
-
-	if isConsentMissingScopes || isConsentMissingAudience {
+	if oidc.IsConsentMissing(
+		userSession.OIDCWorkflowSession,
+		userSession.OIDCWorkflowSession.RequestedScopes,
+		userSession.OIDCWorkflowSession.RequestedAudience) {
 		err := ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", uri)})
 
 		if err != nil {
