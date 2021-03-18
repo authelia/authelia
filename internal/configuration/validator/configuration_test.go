@@ -54,7 +54,7 @@ func TestShouldValidateAndUpdatePort(t *testing.T) {
 	ValidateConfiguration(&config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, 8080, config.Port)
+	assert.Equal(t, 9091, config.Port)
 }
 
 func TestShouldValidateAndUpdateHost(t *testing.T) {
