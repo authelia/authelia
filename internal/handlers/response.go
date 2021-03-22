@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/authelia/authelia/internal/oidc/handlers"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/oidc/handlers"
 	"github.com/authelia/authelia/internal/utils"
 )
 

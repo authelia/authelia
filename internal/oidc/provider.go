@@ -65,7 +65,7 @@ func New(configuration *schema.OpenIDConnectConfiguration) (provider *OpenIDConn
 
 	provider.KeySet.Keys = append(provider.KeySet.Keys, webKey)
 
-	provider.Fosite = compose.ComposeAllEnabled(provider.ComposeConfiguration, provider.ComposeConfiguration, []byte(configuration.HMACSecret), provider.KeySet.Keys[0].Key.(*rsa.PrivateKey))
+	provider.Fosite = compose.ComposeAllEnabled(provider.ComposeConfiguration, provider.Storage, []byte(configuration.HMACSecret), provider.KeySet.Keys[0].Key.(*rsa.PrivateKey))
 
 	return provider
 }

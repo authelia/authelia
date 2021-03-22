@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/authelia/authelia/internal/oidc"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/notification"
+	"github.com/authelia/authelia/internal/oidc"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/server"
 	"github.com/authelia/authelia/internal/session"
