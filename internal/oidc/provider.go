@@ -60,9 +60,14 @@ func New(configuration *schema.OpenIDConnectConfiguration) (provider *OpenIDConn
 		panic(err)
 	}
 
+	provider.PrivateKeys = make(map[string]*rsa.PrivateKey)
 	provider.PrivateKeys["main-key"] = key
 
-	provider.Fosite = compose.ComposeAllEnabled(provider.ComposeConfiguration, provider.Storage, []byte(configuration.HMACSecret), key)
+	provider.Fosite = compose.ComposeAllEnabled(
+		provider.ComposeConfiguration,
+		provider.Storage,
+		[]byte(configuration.HMACSecret),
+		provider.PrivateKeys["main-key"])
 
 	return provider
 }
