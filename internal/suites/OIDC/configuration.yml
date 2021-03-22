@@ -87,7 +87,7 @@ identity_providers:
     clients:
       - id: oidc-tester-app
         secret: $2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO
-        policy: this_policy
+        policy: two_factor
         redirect_uris:
           - https://oidc.example.com:8080/oauth2/callback
       # This client is used for testing purpose. As of now, the app must be protected by ACLs
@@ -95,6 +95,6 @@ identity_providers:
       - id: oidc-tester-app-public
         # This secret must be a bcrypt hash
         secret: $2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO
-        policy: this_policy
+        policy: one_factor
         redirect_uris:
           - https://oidc-public.example.com:8080/oauth2/callback

@@ -128,9 +128,7 @@ func startServer() {
 		SessionProvider: sessionProvider,
 	}
 
-	if config.IdentityProviders.OIDC != nil {
-		providers.OpenIDConnect = oidc.New(config.IdentityProviders.OIDC)
-	}
+	providers.OpenIDConnect = oidc.New(config.IdentityProviders.OIDC)
 
 	server.StartServer(*config, providers)
 }

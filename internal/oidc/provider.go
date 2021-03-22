@@ -16,6 +16,10 @@ import (
 
 // New new-ups a OpenIDConnectProvider.
 func New(configuration *schema.OpenIDConnectConfiguration) (provider *OpenIDConnectProvider) {
+	if configuration == nil {
+		return nil
+	}
+
 	provider = &OpenIDConnectProvider{}
 
 	var err error
@@ -56,28 +60,37 @@ func New(configuration *schema.OpenIDConnectConfiguration) (provider *OpenIDConn
 		panic(err)
 	}
 
-	webKey := jose.JSONWebKey{
-		Key:       key,
-		KeyID:     "main-key",
-		Algorithm: "RS256",
-		Use:       "sig",
-	}
+	provider.PrivateKeys["main-key"] = key
 
-	provider.KeySet.Keys = append(provider.KeySet.Keys, webKey)
-
-	provider.Fosite = compose.ComposeAllEnabled(provider.ComposeConfiguration, provider.Storage, []byte(configuration.HMACSecret), provider.KeySet.Keys[0].Key.(*rsa.PrivateKey))
+	provider.Fosite = compose.ComposeAllEnabled(provider.ComposeConfiguration, provider.Storage, []byte(configuration.HMACSecret), key)
 
 	return provider
 }
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
-	Configuration        *schema.OpenIDConnectConfiguration
-	Clients              map[string]*AutheliaClient
-	Fosite               fosite.OAuth2Provider
-	KeySet               jose.JSONWebKeySet
+	Clients     map[string]*AutheliaClient
+	PrivateKeys map[string]*rsa.PrivateKey
+
 	ComposeConfiguration *compose.Config
+	Fosite               fosite.OAuth2Provider
 	Storage              fosite.Storage
+}
+
+// GetKeySet returns the jose.JSONWebKeySet for the OpenIDConnectProvider.
+func (p OpenIDConnectProvider) GetKeySet() (webKeySet jose.JSONWebKeySet) {
+	for keyID, key := range p.PrivateKeys {
+		webKey := jose.JSONWebKey{
+			Key:       key.PublicKey,
+			KeyID:     keyID,
+			Algorithm: "RS256",
+			Use:       "sig",
+		}
+
+		webKeySet.Keys = append(webKeySet.Keys, webKey)
+	}
+
+	return webKeySet
 }
 
 // GetClient returns the AutheliaClient matching the id provided if it exists.
