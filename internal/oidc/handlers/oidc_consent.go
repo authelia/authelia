@@ -1,4 +1,4 @@
-package oidc
+package handlers
 
 import (
 	"encoding/json"
@@ -8,11 +8,7 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-const constAccept = "accept"
-const constReject = "reject"
-
-// ConsentGet handler serving the list consent requested by the app.
-func ConsentGet(ctx *middlewares.AutheliaCtx) {
+func consentHandler(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {
@@ -22,16 +18,14 @@ func ConsentGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !authorization.IsAuthLevelSufficient(
-		userSession.AuthenticationLevel,
-		userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
+	if !ctx.Providers.OpenIDConnect.IsAuthenticationLevelSufficient(userSession.OIDCWorkflowSession.ClientID, userSession.AuthenticationLevel) {
 		ctx.Logger.Debugf("Insufficient permissions to give consent v2 %d -> %d", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel)
 		ctx.ReplyForbidden()
 
 		return
 	}
 
-	clientConfiguration := getOIDCClientConfig(userSession.OIDCWorkflowSession.ClientID, *ctx.Configuration.IdentityProviders.OIDC)
+	clientConfiguration := ctx.Providers.OpenIDConnect.GetClient(userSession.OIDCWorkflowSession.ClientID)
 
 	var body ConsentGetResponseBody
 	body.Scopes = scopeNamesToScopes(userSession.OIDCWorkflowSession.RequestedScopes)
@@ -47,8 +41,7 @@ func ConsentGet(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-// ConsentPost handler granting permissions according to the requested scopes.
-func ConsentPost(ctx *middlewares.AutheliaCtx) {
+func consentPOSTHandler(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {
@@ -75,7 +68,7 @@ func ConsentPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if body.AcceptOrReject != constAccept && body.AcceptOrReject != constReject {
+	if body.AcceptOrReject != accept && body.AcceptOrReject != reject {
 		ctx.Logger.Infof("User %s tried to reply to consent with an unexpected verb", userSession.Username)
 		ctx.ReplyBadRequest()
 
@@ -92,7 +85,7 @@ func ConsentPost(ctx *middlewares.AutheliaCtx) {
 
 	var redirectionURL string
 
-	if body.AcceptOrReject == constAccept {
+	if body.AcceptOrReject == accept {
 		redirectionURL = userSession.OIDCWorkflowSession.AuthURI
 		userSession.OIDCWorkflowSession.GrantedScopes = userSession.OIDCWorkflowSession.RequestedScopes
 		userSession.OIDCWorkflowSession.GrantedAudience = userSession.OIDCWorkflowSession.RequestedAudience
@@ -101,7 +94,7 @@ func ConsentPost(ctx *middlewares.AutheliaCtx) {
 			ctx.Error(fmt.Errorf("Unable to write session: %v", err), "Operation failed")
 			return
 		}
-	} else if body.AcceptOrReject == constReject {
+	} else if body.AcceptOrReject == reject {
 		redirectionURL = fmt.Sprintf("%s?error=access_denied&error_description=%s",
 			userSession.OIDCWorkflowSession.TargetURI, "User has rejected the scopes")
 		userSession.OIDCWorkflowSession = nil

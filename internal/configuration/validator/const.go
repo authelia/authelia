@@ -199,28 +199,42 @@ const errFmtSessionRedisPortRange = "The port must be between 1 and 65535 for th
 const errFmtSessionRedisHostRequired = "The host must be provided when using the %s session provider"
 const errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
 
-const denyPolicy = "deny"
-const bypassPolicy = "bypass"
+const (
+	denyPolicy      = "deny"
+	oneFactorPolicy = "one_factor"
+	twoFactorPolicy = "two_factor"
+	bypassPolicy    = "bypass"
+)
 
-const argon2id = "argon2id"
-const sha512 = "sha512"
+const (
+	argon2id = "argon2id"
+	sha512   = "sha512"
+)
 
-const schemeLDAP = "ldap"
-const schemeLDAPS = "ldaps"
+const (
+	schemeLDAP  = "ldap"
+	schemeLDAPS = "ldaps"
+)
 
-const testBadTimer = "-1"
-const testInvalidPolicy = "invalid"
-const testJWTSecret = "a_secret"
-const testLDAPBaseDN = "base_dn"
-const testLDAPPassword = "password"
-const testLDAPURL = "ldap://ldap"
-const testLDAPUser = "user"
-const testModeDisabled = "disable"
-const testTLSCert = "/tmp/cert.pem"
-const testTLSKey = "/tmp/key.pem"
+const (
+	testBadTimer      = "-1"
+	testInvalidPolicy = "invalid"
+	testJWTSecret     = "a_secret"
+	testLDAPBaseDN    = "base_dn"
+	testLDAPPassword  = "password"
+	testLDAPURL       = "ldap://ldap"
+	testLDAPUser      = "user"
+	testModeDisabled  = "disable"
+	testTLSCert       = "/tmp/cert.pem"
+	testTLSKey        = "/tmp/key.pem"
+)
 
 const errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for domain %s with subjects %s is invalid. It is not supported to configure both policy bypass and subjects. For more information see: https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 
-const errOAuthOIDCServerHMACLengthMustBe32Fmt = "OIDC Server HMAC secret must be exactly 32 chars long but is %d long"
-const errOAuthOIDCServerClientRedirectURIFmt = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
-const errOAuthOIDCServerClientRedirectURICantBeParsedFmt = "OIDC Server Client redirect URI %s could not be parsed: %v"
+const (
+	errOAuthOIDCServerHMACLengthMustBe32Fmt              = "OIDC Server HMAC secret must be exactly 32 chars long but is %d long"
+	errOAuthOIDCServerClientRedirectURIFmt               = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
+	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "OIDC Client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
+	errIdentityProvidersOIDCServerClientInvalidPolicyFmt = "OIDC Client with ID '%s' has an invalid policy '%s', should be either 'one_factor' or 'two_factor'"
+	errIdentityProvidersOIDCServerClientInvalidSecFmt    = "OIDC Client with ID '%s' has an empty secret"
+)

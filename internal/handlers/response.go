@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/authelia/authelia/internal/oidc/handlers"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/oidc"
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -31,7 +31,7 @@ func HandleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if oidc.IsConsentMissing(
+	if handlers.IsConsentMissing(
 		userSession.OIDCWorkflowSession,
 		userSession.OIDCWorkflowSession.RequestedScopes,
 		userSession.OIDCWorkflowSession.RequestedAudience) {

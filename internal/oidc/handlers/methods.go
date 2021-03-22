@@ -1,4 +1,4 @@
-package oidc
+package handlers
 
 import (
 	"time"
@@ -7,7 +7,6 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/utils"
@@ -22,16 +21,6 @@ func IsConsentMissing(workflow *session.OIDCWorkflowSession, requestedScopes, re
 
 	return len(requestedScopes) > 0 && utils.IsStringSlicesDifferent(requestedScopes, workflow.GrantedScopes) ||
 		len(requestedAudience) > 0 && utils.IsStringSlicesDifferentFold(requestedAudience, workflow.GrantedAudience)
-}
-
-func getOIDCClientConfig(clientID string, configuration schema.OpenIDConnectConfiguration) *schema.OpenIDConnectClientConfiguration {
-	for _, c := range configuration.Clients {
-		if clientID == c.ID {
-			return &c
-		}
-	}
-
-	return nil
 }
 
 func scopeNamesToScopes(scopeSlice []string) (scopes []Scope) {
@@ -58,22 +47,24 @@ func audienceNamesToAudience(scopeSlice []string) (audience []Audience) {
 	return audience
 }
 
-func newSession(ctx *middlewares.AutheliaCtx, scopes fosite.Arguments, audience fosite.Arguments) *openid.DefaultSession {
-	session := ctx.GetSession()
+func newSession(ctx *middlewares.AutheliaCtx, ar fosite.AuthorizeRequester) *openid.DefaultSession {
+	userSession := ctx.GetSession()
+
+	scopes := ar.GetGrantedScopes()
 
 	extra := map[string]interface{}{}
 
-	if len(session.Emails) != 0 && scopes.Has("email") {
-		extra["email"] = session.Emails[0]
+	if len(userSession.Emails) != 0 && scopes.Has("email") {
+		extra["email"] = userSession.Emails[0]
 		extra["email_verified"] = true
 	}
 
 	if scopes.Has("groups") {
-		extra["groups"] = session.Groups
+		extra["groups"] = userSession.Groups
 	}
 
 	if scopes.Has("profile") {
-		extra["name"] = session.DisplayName
+		extra["name"] = userSession.DisplayName
 	}
 
 	/*
@@ -85,8 +76,8 @@ func newSession(ctx *middlewares.AutheliaCtx, scopes fosite.Arguments, audience 
 
 	oidcSession := newDefaultSession(ctx)
 	oidcSession.Claims.Extra = extra
-	oidcSession.Claims.Subject = session.Username
-	oidcSession.Claims.Audience = audience
+	oidcSession.Claims.Subject = userSession.Username
+	oidcSession.Claims.Audience = ar.GetGrantedAudience()
 
 	return oidcSession
 }
@@ -102,7 +93,6 @@ func newDefaultSession(ctx *middlewares.AutheliaCtx) *openid.DefaultSession {
 		Claims: &jwt.IDTokenClaims{
 			Issuer:      issuer,
 			Subject:     "",
-			Audience:    []string{"https://oidc.example.com:8080"},
 			ExpiresAt:   time.Now().Add(time.Hour * 6),
 			IssuedAt:    time.Now(),
 			RequestedAt: time.Now(),

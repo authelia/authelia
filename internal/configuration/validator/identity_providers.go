@@ -32,7 +32,7 @@ func validateOIDC(configuration *schema.OpenIDConnectConfiguration, validator *s
 }
 
 func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
-	invalidID, invalidSecret, invalidPolicy, duplicateIDs := false, false, false, false
+	invalidID, duplicateIDs := false, false
 
 	var ids []string
 
@@ -51,11 +51,13 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 		}
 
 		if client.Secret == "" {
-			invalidSecret = true
+			validator.Push(fmt.Errorf(errIdentityProvidersOIDCServerClientInvalidSecFmt, client.ID))
 		}
 
 		if client.Policy == "" {
-			invalidPolicy = true
+			configuration.Clients[c].Policy = schema.DefaultOpenIDConnectClientConfiguration.Policy
+		} else if client.Policy != oneFactorPolicy && client.Policy != twoFactorPolicy {
+			validator.Push(fmt.Errorf(errIdentityProvidersOIDCServerClientInvalidPolicyFmt, client.ID, client.Policy))
 		}
 
 		if len(client.Scopes) == 0 {
@@ -79,14 +81,6 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 		validator.Push(fmt.Errorf("OIDC Server has one or more clients with an empty ID"))
 	}
 
-	if invalidSecret {
-		validator.Push(fmt.Errorf("OIDC Server has one or more clients with an empty secret"))
-	}
-
-	if invalidPolicy {
-		validator.Push(fmt.Errorf("OIDC Server has one or more clients with an empty policy"))
-	}
-
 	if duplicateIDs {
 		validator.Push(fmt.Errorf("OIDC Server has clients with duplicate ID's"))
 	}
@@ -97,7 +91,7 @@ func validateOIDCClientRedirectURIs(client schema.OpenIDConnectClientConfigurati
 		parsedURI, err := url.Parse(redirectURI)
 
 		if err != nil {
-			validator.Push(fmt.Errorf(errOAuthOIDCServerClientRedirectURICantBeParsedFmt, redirectURI, err))
+			validator.Push(fmt.Errorf(errOAuthOIDCServerClientRedirectURICantBeParsedFmt, client.ID, redirectURI, err))
 			break
 		}
 

@@ -1,4 +1,4 @@
-package oidc
+package handlers
 
 import (
 	"encoding/json"
@@ -7,8 +7,7 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-// WellKnownConfigurationHandler handler serving the openid configuration.
-func WellKnownConfigurationHandler(ctx *middlewares.AutheliaCtx) {
+func wellKnownConfigurationHandler(ctx *middlewares.AutheliaCtx) {
 	var configuration WellKnownConfigurationJSON
 
 	issuer, err := ctx.ForwardedProtoHost()
@@ -28,16 +27,17 @@ func WellKnownConfigurationHandler(ctx *middlewares.AutheliaCtx) {
 		"profile",
 		"groups",
 		"email",
+		"offline_access",
 	}
 	configuration.ClaimsSupported = []string{
-		"auth_time",
-		"exp",
-		"iss",
-		"sub",
 		"aud",
-		"ist",
+		"exp",
+		"iat",
+		"iss",
 		"jti",
 		"rat",
+		"sub",
+		"auth_time",
 		"nonce",
 		"email",
 		"email_verified",

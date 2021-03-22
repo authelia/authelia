@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -75,19 +76,30 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 						"https://google.com",
 					},
 				},
+				{
+					ID:     "client-check-uri-parse",
+					Secret: "a-secret",
+					Policy: twoFactorPolicy,
+					RedirectURIs: []string{
+						"http://abc@%two",
+					},
+				},
 			},
 		},
 	}
 
 	ValidateIdentityProviders(config, validator)
 
-	require.Len(t, validator.Errors(), 5)
+	require.Len(t, validator.Errors(), 7)
 
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errOAuthOIDCServerClientRedirectURIFmt, "tcp://google.com", "tcp"))
-	assert.EqualError(t, validator.Errors()[1], "OIDC Server has one or more clients with an empty ID")
-	assert.EqualError(t, validator.Errors()[2], "OIDC Server has one or more clients with an empty secret")
-	assert.EqualError(t, validator.Errors()[3], "OIDC Server has one or more clients with an empty policy")
-	assert.EqualError(t, validator.Errors()[4], "OIDC Server has clients with duplicate ID's")
+	assert.Equal(t, schema.DefaultOpenIDConnectClientConfiguration.Policy, config.OIDC.Clients[0].Policy)
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errIdentityProvidersOIDCServerClientInvalidSecFmt, ""))
+	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errOAuthOIDCServerClientRedirectURIFmt, "tcp://google.com", "tcp"))
+	assert.EqualError(t, validator.Errors()[2], fmt.Sprintf(errIdentityProvidersOIDCServerClientInvalidPolicyFmt, "a-client", "a-policy"))
+	assert.EqualError(t, validator.Errors()[3], fmt.Sprintf(errIdentityProvidersOIDCServerClientInvalidPolicyFmt, "a-client", "a-policy"))
+	assert.EqualError(t, validator.Errors()[4], fmt.Sprintf(errOAuthOIDCServerClientRedirectURICantBeParsedFmt, "client-check-uri-parse", "http://abc@%two", errors.New("parse \"http://abc@%two\": invalid URL escape \"%tw\"")))
+	assert.EqualError(t, validator.Errors()[5], "OIDC Server has one or more clients with an empty ID")
+	assert.EqualError(t, validator.Errors()[6], "OIDC Server has clients with duplicate ID's")
 }
 
 func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
@@ -100,7 +112,7 @@ func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
 				{
 					ID:     "a-client",
 					Secret: "a-client-secret",
-					Policy: "one_factor",
+					Policy: oneFactorPolicy,
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -109,7 +121,7 @@ func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
 					ID:          "b-client",
 					Description: "Normal Description",
 					Secret:      "b-client-secret",
-					Policy:      "one_factor",
+					Policy:      oneFactorPolicy,
 					RedirectURIs: []string{
 						"https://google.com",
 					},

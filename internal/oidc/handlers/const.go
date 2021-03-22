@@ -1,4 +1,4 @@
-package oidc
+package handlers
 
 const (
 	fallbackOIDCIssuer = "https://login.example.com:8080"
@@ -9,6 +9,11 @@ const (
 	consentPath        = "/api/oidc/consent"
 	introspectPath     = "/api/oidc/introspect"
 	revokePath         = "/api/oidc/revoke"
+)
+
+const (
+	accept = "accept"
+	reject = "reject"
 )
 
 var scopeDescriptions = map[string]string{

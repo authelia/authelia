@@ -1,4 +1,4 @@
-package oidc
+package handlers
 
 import (
 	"github.com/dgrijalva/jwt-go"

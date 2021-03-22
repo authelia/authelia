@@ -26,9 +26,10 @@ type OpenIDConnectClientConfiguration struct {
 	ResponseTypes []string `mapstructure:"response_types"`
 }
 
-// DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
+// DefaultOpenIDConnectClientConfiguration contains defaults for OIDC AutheliaClients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	Scopes:        []string{"openid", "groups", "profile", "email"},
 	ResponseTypes: []string{"code"},
 	GrantTypes:    []string{"refresh_token", "authorization_code"},
+	Policy:        "two_factor",
 }

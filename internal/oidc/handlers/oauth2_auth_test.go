@@ -1,4 +1,4 @@
-package oidc
+package handlers
 
 import (
 	"testing"

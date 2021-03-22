@@ -12,7 +12,7 @@ import (
 
 // IsPolicyValid check if policy is valid.
 func IsPolicyValid(policy string) (isValid bool) {
-	return policy == denyPolicy || policy == "one_factor" || policy == "two_factor" || policy == bypassPolicy
+	return policy == denyPolicy || policy == oneFactorPolicy || policy == twoFactorPolicy || policy == bypassPolicy
 }
 
 // IsResourceValid check if a resource is valid.

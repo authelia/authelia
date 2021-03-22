@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"github.com/authelia/authelia/internal/oidc"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -31,6 +32,7 @@ type Providers struct {
 	Authorizer      *authorization.Authorizer
 	SessionProvider *session.Provider
 	Regulator       *regulation.Regulator
+	OpenIDConnect   *oidc.OpenIDConnectProvider
 
 	UserProvider    authentication.UserProvider
 	StorageProvider storage.Provider

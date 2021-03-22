@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/authelia/authelia/internal/oidc"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -126,6 +127,11 @@ func startServer() {
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
 	}
+
+	if config.IdentityProviders.OIDC != nil {
+		providers.OpenIDConnect = oidc.New(config.IdentityProviders.OIDC)
+	}
+
 	server.StartServer(*config, providers)
 }
 
