@@ -55,17 +55,10 @@ func Read(configPath string) (*schema.Configuration, []error) {
 
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	// Safely ignore errors since the only error that can be returned is when the string has a length of zero.
-	_ = viper.BindEnv("authelia.jwt_secret.file")
-	_ = viper.BindEnv("authelia.duo_api.secret_key.file")
-	_ = viper.BindEnv("authelia.session.secret.file")
-	_ = viper.BindEnv("authelia.authentication_backend.ldap.password.file")
-	_ = viper.BindEnv("authelia.notifier.smtp.password.file")
-	_ = viper.BindEnv("authelia.session.redis.password.file")
-	_ = viper.BindEnv("authelia.storage.mysql.password.file")
-	_ = viper.BindEnv("authelia.storage.postgres.password.file")
-	_ = viper.BindEnv("authelia.identity_providers.oidc.hmac_secret.file")
-	_ = viper.BindEnv("authelia.identity_providers.oidc.issuer_private_key.file")
+	// Dynamically load the secret env names from the SecretNames map.
+	for _, secretName := range validator.SecretNames {
+		_ = viper.BindEnv(validator.SecretNameToEnvName(secretName))
+	}
 
 	viper.SetConfigFile(configPath)
 

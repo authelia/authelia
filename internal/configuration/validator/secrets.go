@@ -10,44 +10,64 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
+// SecretNameToEnvName converts a secret name into the env name.
+func SecretNameToEnvName(secretName string) (envName string) {
+	return "authelia." + secretName + ".file"
+}
+
+func isSecretKey(value string) (isSecretKey bool) {
+	for _, secretKey := range SecretNames {
+		if value == secretKey || value == SecretNameToEnvName(secretKey) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // ValidateSecrets checks that secrets are either specified by config file/env or by file references.
 func ValidateSecrets(configuration *schema.Configuration, validator *schema.StructValidator, viper *viper.Viper) {
-	configuration.JWTSecret = getSecretValue("jwt_secret", validator, viper)
-	configuration.Session.Secret = getSecretValue("session.secret", validator, viper)
+	configuration.JWTSecret = getSecretValue(SecretNames["JWTSecret"], validator, viper)
+	configuration.Session.Secret = getSecretValue(SecretNames["SessionSecret"], validator, viper)
 
 	if configuration.DuoAPI != nil {
-		configuration.DuoAPI.SecretKey = getSecretValue("duo_api.secret_key", validator, viper)
+		configuration.DuoAPI.SecretKey = getSecretValue(SecretNames["DUOSecretKey"], validator, viper)
 	}
 
 	if configuration.Session.Redis != nil {
-		configuration.Session.Redis.Password = getSecretValue("session.redis.password", validator, viper)
+		configuration.Session.Redis.Password = getSecretValue(SecretNames["RedisPassword"], validator, viper)
+
+		if configuration.Session.Redis.HighAvailability != nil {
+			configuration.Session.Redis.HighAvailability.SentinelPassword =
+				getSecretValue(SecretNames["RedisSentinelPassword"], validator, viper)
+		}
 	}
 
 	if configuration.AuthenticationBackend.Ldap != nil {
-		configuration.AuthenticationBackend.Ldap.Password = getSecretValue("authentication_backend.ldap.password", validator, viper)
+		configuration.AuthenticationBackend.Ldap.Password = getSecretValue(SecretNames["LDAPPassword"], validator, viper)
 	}
 
 	if configuration.Notifier != nil && configuration.Notifier.SMTP != nil {
-		configuration.Notifier.SMTP.Password = getSecretValue("notifier.smtp.password", validator, viper)
+		configuration.Notifier.SMTP.Password = getSecretValue(SecretNames["SMTPPassword"], validator, viper)
 	}
 
 	if configuration.Storage.MySQL != nil {
-		configuration.Storage.MySQL.Password = getSecretValue("storage.mysql.password", validator, viper)
+		configuration.Storage.MySQL.Password = getSecretValue(SecretNames["MySQLPassword"], validator, viper)
 	}
 
 	if configuration.Storage.PostgreSQL != nil {
-		configuration.Storage.PostgreSQL.Password = getSecretValue("storage.postgres.password", validator, viper)
+		configuration.Storage.PostgreSQL.Password = getSecretValue(SecretNames["PostgreSQLPassword"], validator, viper)
 	}
 
 	if configuration.IdentityProviders.OIDC != nil {
-		configuration.IdentityProviders.OIDC.HMACSecret = getSecretValue("identity_providers.oidc.hmac_secret", validator, viper)
-		configuration.IdentityProviders.OIDC.IssuerPrivateKey = getSecretValue("identity_providers.oidc.issuer_private_key", validator, viper)
+		configuration.IdentityProviders.OIDC.HMACSecret = getSecretValue(SecretNames["OpenIDConnectHMACSecret"], validator, viper)
+		configuration.IdentityProviders.OIDC.IssuerPrivateKey = getSecretValue(SecretNames["OpenIDConnectIssuerPrivateKey"], validator, viper)
 	}
 }
 
 func getSecretValue(name string, validator *schema.StructValidator, viper *viper.Viper) string {
 	configValue := viper.GetString(name)
-	fileEnvValue := viper.GetString("authelia." + name + ".file")
+	fileEnvValue := viper.GetString(SecretNameToEnvName(name))
 
 	// Error Checking.
 	if fileEnvValue != "" && configValue != "" {

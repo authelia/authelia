@@ -8,7 +8,7 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
-var defaultPort = 8080
+var defaultPort = 9091
 var defaultLogLevel = "info"
 
 // ValidateConfiguration and adapt the configuration read from file.

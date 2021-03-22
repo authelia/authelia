@@ -122,19 +122,19 @@ func TestShouldRaiseNonFatalErrWhenNotifierTrustedCertConfigured(t *testing.T) {
 	pool, errs, nonFatalErrs := NewX509CertPool("/tmp", config)
 	assert.NotNil(t, pool)
 
-	i := 0
+	index := 0
 
 	if runtime.GOOS == windows {
 		require.Len(t, nonFatalErrs, 2)
 		assert.EqualError(t, nonFatalErrs[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
 
-		i = 1
+		index = 1
 	} else {
 		require.Len(t, nonFatalErrs, 1)
 	}
 
-	assert.EqualError(t, nonFatalErrs[i], "defining the trusted cert in the SMTP notifier is deprecated and will be removed in 4.28.0, please use the global certificates_directory instead")
 	assert.Len(t, errs, 0)
+	assert.EqualError(t, nonFatalErrs[index], "defining the trusted cert in the SMTP notifier is deprecated and will be removed in 4.28.0, please use the global certificates_directory instead")
 }
 
 func TestShouldRaiseErrAndNonFatalErrWhenNotifierTrustedCertConfiguredAndNotExist(t *testing.T) {
@@ -149,13 +149,13 @@ func TestShouldRaiseErrAndNonFatalErrWhenNotifierTrustedCertConfiguredAndNotExis
 	pool, errs, nonFatalErrs := NewX509CertPool("/tmp", config)
 	assert.NotNil(t, pool)
 
-	i := 0
+	index := 0
 
 	if runtime.GOOS == windows {
 		require.Len(t, nonFatalErrs, 2)
 		assert.EqualError(t, nonFatalErrs[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
 
-		i = 1
+		index = 1
 	} else {
 		require.Len(t, nonFatalErrs, 1)
 	}
@@ -163,7 +163,7 @@ func TestShouldRaiseErrAndNonFatalErrWhenNotifierTrustedCertConfiguredAndNotExis
 	require.Len(t, errs, 1)
 
 	assert.EqualError(t, errs[0], "could not import legacy SMTP trusted_cert (see the new certificates_directory option) certificate /tmp/asdfzyxabc123/not/a/real/cert.pem (file does not exist)")
-	assert.EqualError(t, nonFatalErrs[i], "defining the trusted cert in the SMTP notifier is deprecated and will be removed in 4.28.0, please use the global certificates_directory instead")
+	assert.EqualError(t, nonFatalErrs[index], "defining the trusted cert in the SMTP notifier is deprecated and will be removed in 4.28.0, please use the global certificates_directory instead")
 }
 
 func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
@@ -171,11 +171,11 @@ func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
 	assert.NotNil(t, pool)
 	require.Len(t, errs, 1)
 
-	if runtime.GOOS == windows {
+	if runtime.GOOS == "windows" {
 		require.Len(t, nonFatalErrs, 1)
 		assert.EqualError(t, nonFatalErrs[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
 	} else {
-		require.Len(t, nonFatalErrs, 0)
+		assert.Len(t, nonFatalErrs, 0)
 	}
 
 	assert.EqualError(t, errs[0], "could not import certificate key.pem")

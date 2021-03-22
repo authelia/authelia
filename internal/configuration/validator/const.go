@@ -1,7 +1,67 @@
 package validator
 
+const (
+	errFmtSessionSecretRedisProvider      = "The session secret must be set when using the %s session provider"
+	errFmtSessionRedisPortRange           = "The port must be between 1 and 65535 for the %s session provider"
+	errFmtSessionRedisHostRequired        = "The host must be provided when using the %s session provider"
+	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
+
+	errOAuthOIDCServerHMACLengthMustBe32Fmt              = "OIDC Server HMAC secret must be exactly 32 chars long but is %d long"
+	errOAuthOIDCServerClientRedirectURIFmt               = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
+	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "OIDC Client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
+	errIdentityProvidersOIDCServerClientInvalidPolicyFmt = "OIDC Client with ID '%s' has an invalid policy '%s', should be either 'one_factor' or 'two_factor'"
+	errIdentityProvidersOIDCServerClientInvalidSecFmt    = "OIDC Client with ID '%s' has an empty secret"
+
+	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
+	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
+	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
+
+	denyPolicy      = "deny"
+	oneFactorPolicy = "one_factor"
+	twoFactorPolicy = "two_factor"
+	bypassPolicy    = "bypass"
+
+	argon2id = "argon2id"
+	sha512   = "sha512"
+
+	schemeLDAP  = "ldap"
+	schemeLDAPS = "ldaps"
+
+	testBadTimer      = "-1"
+	testInvalidPolicy = "invalid"
+	testJWTSecret     = "a_secret"
+	testLDAPBaseDN    = "base_dn"
+	testLDAPPassword  = "password"
+	testLDAPURL       = "ldap://ldap"
+	testLDAPUser      = "user"
+	testModeDisabled  = "disable"
+	testTLSCert       = "/tmp/cert.pem"
+	testTLSKey        = "/tmp/key.pem"
+
+	errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for domain %s with subjects %s is invalid. It is " +
+		"not supported to configure both policy bypass and subjects. For more information see: " +
+		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
+)
+
 var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 
+// SecretNames contains a map of secret names.
+var SecretNames = map[string]string{
+	"JWTSecret":                     "jwt_secret",
+	"SessionSecret":                 "session.secret",
+	"DUOSecretKey":                  "duo_api.secret_key",
+	"RedisPassword":                 "session.redis.password",
+	"RedisSentinelPassword":         "session.redis.high_availability.sentinel_password",
+	"LDAPPassword":                  "authentication_backend.ldap.password",
+	"SMTPPassword":                  "notifier.smtp.password",
+	"MySQLPassword":                 "storage.mysql.password",
+	"PostgreSQLPassword":            "storage.postgres.password",
+	"OpenIDConnectHMACSecret":       "identity_providers.oidc.hmac_secret",
+	"OpenIDConnectIssuerPrivateKey": "identity_providers.oidc.issuer_private_key",
+}
+
+// validKeys is a list of valid keys that are not secret names. For the sake of consistency please place any secret in
+// the secret names map and reuse it in relevant sections.
 var validKeys = []string{
 	// Root Keys.
 	"host",
@@ -10,7 +70,6 @@ var validKeys = []string{
 	"log_format",
 	"log_file_path",
 	"default_redirection_url",
-	"jwt_secret",
 	"theme",
 	"tls_key",
 	"tls_cert",
@@ -33,7 +92,6 @@ var validKeys = []string{
 
 	// Session Keys.
 	"session.name",
-	"session.secret",
 	"session.expiration",
 	"session.inactivity",
 	"session.remember_me_duration",
@@ -43,7 +101,6 @@ var validKeys = []string{
 	"session.redis.host",
 	"session.redis.port",
 	"session.redis.username",
-	"session.redis.password",
 	"session.redis.database_index",
 	"session.redis.maximum_active_connections",
 	"session.redis.minimum_idle_connections",
@@ -51,7 +108,6 @@ var validKeys = []string{
 	"session.redis.tls.skip_verify",
 	"session.redis.tls.server_name",
 	"session.redis.high_availability.sentinel_name",
-	"session.redis.high_availability.sentinel_password",
 	"session.redis.high_availability.nodes",
 	"session.redis.high_availability.route_by_latency",
 	"session.redis.high_availability.route_randomly",
@@ -69,14 +125,12 @@ var validKeys = []string{
 	"storage.mysql.port",
 	"storage.mysql.database",
 	"storage.mysql.username",
-	"storage.mysql.password",
 
 	// PostgreSQL Storage Keys.
 	"storage.postgres.host",
 	"storage.postgres.port",
 	"storage.postgres.database",
 	"storage.postgres.username",
-	"storage.postgres.password",
 	"storage.postgres.sslmode",
 
 	// FileSystem Notifier Keys.
@@ -85,7 +139,6 @@ var validKeys = []string{
 
 	// SMTP Notifier Keys.
 	"notifier.smtp.username",
-	"notifier.smtp.password",
 	"notifier.smtp.host",
 	"notifier.smtp.port",
 	"notifier.smtp.identifier",
@@ -108,7 +161,6 @@ var validKeys = []string{
 	// DUO API Keys.
 	"duo_api.hostname",
 	"duo_api.integration_key",
-	"duo_api.secret_key",
 
 	// Authentication Backend Keys.
 	"authentication_backend.disable_reset_password",
@@ -127,7 +179,6 @@ var validKeys = []string{
 	"authentication_backend.ldap.mail_attribute",
 	"authentication_backend.ldap.display_name_attribute",
 	"authentication_backend.ldap.user",
-	"authentication_backend.ldap.password",
 	"authentication_backend.ldap.start_tls",
 	"authentication_backend.ldap.tls.minimum_version",
 	"authentication_backend.ldap.tls.skip_verify",
@@ -145,96 +196,29 @@ var validKeys = []string{
 	"authentication_backend.file.password.parallelism",
 
 	// Identity Provider Keys.
-	"identity_providers.oidc.hmac_secret",
-	"identity_providers.oidc.issuer_private_key",
 	"identity_providers.oidc.clients",
-
-	// Secret Keys.
-	"authelia.jwt_secret",
-	"authelia.duo_api.secret_key",
-	"authelia.session.secret",
-	"authelia.authentication_backend.ldap.password",
-	"authelia.notifier.smtp.password",
-	"authelia.session.redis.password",
-	"authelia.storage.mysql.password",
-	"authelia.storage.postgres.password",
-	"authelia.jwt_secret.file",
-	"authelia.duo_api.secret_key.file",
-	"authelia.session.secret.file",
-	"authelia.authentication_backend.ldap.password.file",
-	"authelia.notifier.smtp.password.file",
-	"authelia.session.redis.password.file",
-	"authelia.storage.mysql.password.file",
-	"authelia.storage.postgres.password.file",
-	"authelia.identity_providers.oidc.hmac_secret.file",
-	"authelia.identity_providers.oidc.issuer_private_key.file",
 }
 
 var specificErrorKeys = map[string]string{
 	"logs_file_path":   "config key replaced: logs_file is now log_file",
 	"logs_level":       "config key replaced: logs_level is now log_level",
 	"google_analytics": "config key removed: google_analytics - this functionality has been deprecated",
-	"authentication_backend.file.password_options.algorithm":   "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
-	"authentication_backend.file.password_options.iterations":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
-	"authentication_backend.file.password_options.key_length":  "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
-	"authentication_backend.file.password_options.salt_length": "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
-	"authentication_backend.file.password_options.memory":      "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
-	"authentication_backend.file.password_options.parallelism": "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.algorithm":   "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.iterations":  "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.key_length":  "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.salt_length": "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.memory":      "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password",
-	"authentication_backend.file.password_hashing.parallelism": "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password",
-	"authentication_backend.file.hashing.algorithm":            "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
-	"authentication_backend.file.hashing.iterations":           "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
-	"authentication_backend.file.hashing.key_length":           "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
-	"authentication_backend.file.hashing.salt_length":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
-	"authentication_backend.file.hashing.memory":               "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
-	"authentication_backend.file.hashing.parallelism":          "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password",
+	"authentication_backend.file.password_options.algorithm":   errFilePOptions,
+	"authentication_backend.file.password_options.iterations":  errFilePOptions,
+	"authentication_backend.file.password_options.key_length":  errFilePOptions,
+	"authentication_backend.file.password_options.salt_length": errFilePOptions,
+	"authentication_backend.file.password_options.memory":      errFilePOptions,
+	"authentication_backend.file.password_options.parallelism": errFilePOptions,
+	"authentication_backend.file.password_hashing.algorithm":   errFilePHashing,
+	"authentication_backend.file.password_hashing.iterations":  errFilePHashing,
+	"authentication_backend.file.password_hashing.key_length":  errFilePHashing,
+	"authentication_backend.file.password_hashing.salt_length": errFilePHashing,
+	"authentication_backend.file.password_hashing.memory":      errFilePHashing,
+	"authentication_backend.file.password_hashing.parallelism": errFilePHashing,
+	"authentication_backend.file.hashing.algorithm":            errFileHashing,
+	"authentication_backend.file.hashing.iterations":           errFileHashing,
+	"authentication_backend.file.hashing.key_length":           errFileHashing,
+	"authentication_backend.file.hashing.salt_length":          errFileHashing,
+	"authentication_backend.file.hashing.memory":               errFileHashing,
+	"authentication_backend.file.hashing.parallelism":          errFileHashing,
 }
-
-const errFmtSessionSecretRedisProvider = "The session secret must be set when using the %s session provider"
-const errFmtSessionRedisPortRange = "The port must be between 1 and 65535 for the %s session provider"
-const errFmtSessionRedisHostRequired = "The host must be provided when using the %s session provider"
-const errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
-
-const (
-	denyPolicy      = "deny"
-	oneFactorPolicy = "one_factor"
-	twoFactorPolicy = "two_factor"
-	bypassPolicy    = "bypass"
-)
-
-const (
-	argon2id = "argon2id"
-	sha512   = "sha512"
-)
-
-const (
-	schemeLDAP  = "ldap"
-	schemeLDAPS = "ldaps"
-)
-
-const (
-	testBadTimer      = "-1"
-	testInvalidPolicy = "invalid"
-	testJWTSecret     = "a_secret"
-	testLDAPBaseDN    = "base_dn"
-	testLDAPPassword  = "password"
-	testLDAPURL       = "ldap://ldap"
-	testLDAPUser      = "user"
-	testModeDisabled  = "disable"
-	testTLSCert       = "/tmp/cert.pem"
-	testTLSKey        = "/tmp/key.pem"
-)
-
-const errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for domain %s with subjects %s is invalid. It is not supported to configure both policy bypass and subjects. For more information see: https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
-
-const (
-	errOAuthOIDCServerHMACLengthMustBe32Fmt              = "OIDC Server HMAC secret must be exactly 32 chars long but is %d long"
-	errOAuthOIDCServerClientRedirectURIFmt               = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
-	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "OIDC Client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
-	errIdentityProvidersOIDCServerClientInvalidPolicyFmt = "OIDC Client with ID '%s' has an invalid policy '%s', should be either 'one_factor' or 'two_factor'"
-	errIdentityProvidersOIDCServerClientInvalidSecFmt    = "OIDC Client with ID '%s' has an empty secret"
-)
