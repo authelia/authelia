@@ -55,8 +55,8 @@ func (suite *StorageSuite) TestShouldValidateSQLUsernamePasswordAndDatabaseArePr
 	ValidateStorage(suite.configuration, suite.validator)
 
 	suite.Require().Len(suite.validator.Errors(), 2)
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Username and password must be provided")
-	suite.Assert().EqualError(suite.validator.Errors()[1], "A database must be provided")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "the SQL username and password must be provided")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "the SQL database must be provided")
 
 	suite.validator.Clear()
 	suite.configuration.MySQL = &schema.MySQLStorageConfiguration{
