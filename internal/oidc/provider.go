@@ -15,12 +15,14 @@ import (
 )
 
 // New new-ups a OpenIDConnectProvider.
-func New(configuration *schema.OpenIDConnectConfiguration) (provider *OpenIDConnectProvider) {
-	if configuration == nil {
-		return nil
+func New(configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConnectProvider) {
+	provider = OpenIDConnectProvider{
+		Fosite: nil,
 	}
 
-	provider = &OpenIDConnectProvider{}
+	if configuration == nil {
+		return provider
+	}
 
 	var err error
 
@@ -86,7 +88,7 @@ type OpenIDConnectProvider struct {
 func (p OpenIDConnectProvider) GetKeySet() (webKeySet jose.JSONWebKeySet) {
 	for keyID, key := range p.PrivateKeys {
 		webKey := jose.JSONWebKey{
-			Key:       key.PublicKey,
+			Key:       &key.PublicKey,
 			KeyID:     keyID,
 			Algorithm: "RS256",
 			Use:       "sig",

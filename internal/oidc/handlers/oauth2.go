@@ -2,13 +2,19 @@ package handlers
 
 import (
 	"github.com/fasthttp/router"
+	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
 // Register when provided a non nil fosite.OAuth2Provider registers the handlers with the fasthttp *router.Router.
-func Register(router *router.Router, middleware middlewares.RequestHandlerBridge) {
+func Register(router *router.Router, middleware middlewares.RequestHandlerBridge, provider fosite.OAuth2Provider) {
+	if provider == nil {
+		return
+	}
+
 	// TODO: Add paths for UserInfo, Flush, Logout.
+
 	// TODO: Add OPTIONS handler.
 	router.GET(wellKnownPath, middleware(wellKnownConfigurationHandler))
 

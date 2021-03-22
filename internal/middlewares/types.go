@@ -32,7 +32,7 @@ type Providers struct {
 	Authorizer      *authorization.Authorizer
 	SessionProvider *session.Provider
 	Regulator       *regulation.Regulator
-	OpenIDConnect   *oidc.OpenIDConnectProvider
+	OpenIDConnect   oidc.OpenIDConnectProvider
 
 	UserProvider    authentication.UserProvider
 	StorageProvider storage.Provider

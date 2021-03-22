@@ -30,7 +30,6 @@ import (
 var assets embed.FS
 
 // StartServer start Authelia server with the given configuration and providers.
-// nolint:gocyclo
 func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
 	logger := logging.Logger()
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
@@ -144,9 +143,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		handler = middlewares.StripPathMiddleware(handler)
 	}
 
-	if providers.OpenIDConnect != nil {
-		oidchandlers.Register(r, autheliaMiddleware)
-	}
+	oidchandlers.Register(r, autheliaMiddleware, providers.OpenIDConnect.Fosite)
 
 	server := &fasthttp.Server{
 		ErrorHandler:          autheliaErrorHandler,
