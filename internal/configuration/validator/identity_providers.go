@@ -19,10 +19,6 @@ func validateOIDC(configuration *schema.OpenIDConnectConfiguration, validator *s
 			validator.Push(fmt.Errorf("OIDC Server issuer private key must be provided"))
 		}
 
-		if len(configuration.HMACSecret) != 32 {
-			validator.Push(fmt.Errorf(errOAuthOIDCServerHMACLengthMustBe32Fmt, len(configuration.HMACSecret)))
-		}
-
 		validateOIDCClients(configuration, validator)
 
 		if len(configuration.Clients) == 0 {

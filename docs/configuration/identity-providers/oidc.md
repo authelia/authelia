@@ -43,17 +43,20 @@ identity_providers:
 
 ### hmac_secret
 
-The HMAC secret used to sign the [OpenID Connect] JWT's. 
+The HMAC secret used to sign the [OpenID Connect] JWT's. The provided string is hashed to a SHA256 byte string for
+the purpose of meeting the required format.
+
 Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
 ### issuer_private_key
 
-The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's. 
+The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's.
+
 Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
 ### clients
 
-A list of clients to setup. The options for each client are described below.
+A list of clients to configure. The options for each client are described below.
 
 #### id
 
@@ -81,41 +84,55 @@ A list of scopes to allow this client to consume. See [scope definitions](#scope
 
 #### grant_types
 
-A list of grant types this client can return.
+A list of grant types this client can return. It is recommended that this isn't configured at this time unless you know
+what you're doing. 
 
 #### response_types
 
-A list of response types this client can return.
+A list of response types this client can return. It is recommended that this isn't configured at this time unless you 
+know what you're doing.
 
 ## Scope Definitions
 
 ### openid
 
-This is the default scope for openid and is required. Force this on.
+This is the default scope for openid. This field is forced on every client by the configuration
+validation that Authelia does.
 
-|JWT Field|JWT Type     |Authelia Attribute|Description           |
-|:-------:|:-----------:|:----------------:|:--------------------:|
-|         |             |                  |                      |
+|JWT Field|JWT Type     |Authelia Attribute|Description                             |
+|:-------:|:-----------:|:----------------:|:--------------------------------------:|
+|sub      |string       |Username          |The username the user used to login with|
+|scope    |string       |scopes            |Granted scopes (space delimited)        |
+|scp      |array[string]|scopes            |Granted scopes                          |
+|iss      |string       |hostname          |The issuer name, determined by URL      |
+|at_hash  |string       |_N/A_             |Access Token Hash                       |
+|auth_time|number       |_N/A_             |Authorize Time                          |
+|aud      |array[string]|_N/A_             |Audience                                |
+|exp      |number       |_N/A_             |Expires                                 |
+|iat      |number       |_N/A_             |Issued At                               |
+|rat      |number       |_N/A_             |Requested At                            |
+|jti      |string(uuid) |_N/A_             |JWT Identifier                          |
 
 ### groups
 
-This scope includes the groups the authentication backend reports the user is a member of in the JWT.
+This scope includes the groups the authentication backend reports the user is a member of in the token.
 
 |JWT Field|JWT Type     |Authelia Attribute|Description           |
 |:-------:|:-----------:|:----------------:|:--------------------:|
-|groups   |array[string]| groups           |The users display name|
+|groups   |array[string]|Groups            |The users display name|
 
 ### email
 
-This scope includes the email information the authentication backend reports about the user in the JWT.
+This scope includes the email information the authentication backend reports about the user in the token.
 
-|JWT Field|JWT Type|Authelia Attribute|Description                          |
-|:-------:|:------:|:----------------:|:-----------------------------------:|
-|email    |string  | email[0]         |The first email in the list of emails|
+|JWT Field     |JWT Type|Authelia Attribute|Description                                              |
+|:------------:|:------:|:----------------:|:-------------------------------------------------------:|
+|email         |string  |email[0]          |The first email in the list of emails                    |
+|email_verified|bool    |_N/A_             |If the email is verified, assumed true for the time being|
 
 ### profile
 
-This scope includes the profile information the authentication backend reports about the user in the JWT.
+This scope includes the profile information the authentication backend reports about the user in the token.
 
 |JWT Field|JWT Type|Authelia Attribute|Description           |
 |:-------:|:------:|:----------------:|:--------------------:|

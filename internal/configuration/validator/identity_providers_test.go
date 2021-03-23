@@ -22,11 +22,10 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 
 	ValidateIdentityProviders(config, validator)
 
-	require.Len(t, validator.Errors(), 3)
+	require.Len(t, validator.Errors(), 2)
 
 	assert.EqualError(t, validator.Errors()[0], "OIDC Server issuer private key must be provided")
-	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errOAuthOIDCServerHMACLengthMustBe32Fmt, 3))
-	assert.EqualError(t, validator.Errors()[2], "OIDC Server has no clients defined")
+	assert.EqualError(t, validator.Errors()[1], "OIDC Server has no clients defined")
 }
 
 func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T) {

@@ -6,7 +6,6 @@ const (
 	errFmtSessionRedisHostRequired        = "The host must be provided when using the %s session provider"
 	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
 
-	errOAuthOIDCServerHMACLengthMustBe32Fmt              = "OIDC Server HMAC secret must be exactly 32 chars long but is %d long"
 	errOAuthOIDCServerClientRedirectURIFmt               = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
 	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "OIDC Client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
 	errIdentityProvidersOIDCServerClientInvalidPolicyFmt = "OIDC Client with ID '%s' has an invalid policy '%s', should be either 'one_factor' or 'two_factor'"

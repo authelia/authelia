@@ -68,7 +68,7 @@ func New(configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConne
 	provider.Fosite = compose.ComposeAllEnabled(
 		provider.ComposeConfiguration,
 		provider.Storage,
-		[]byte(configuration.HMACSecret),
+		[]byte(utils.HashSHA256FromString(configuration.HMACSecret)),
 		provider.PrivateKeys["main-key"])
 
 	return provider
