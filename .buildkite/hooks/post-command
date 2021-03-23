@@ -37,6 +37,7 @@ fi
 
 if [[ $BUILDKITE_LABEL =~ ":docker: Deploy" ]]; then
   docker logout
+  docker logout ghcr.io
 fi
 
 if [[ $BUILDKITE_LABEL == ":docker: Deploy Manifests" ]] && [[ $BUILDKITE_BRANCH == "master" ]] && [[ $BUILDKITE_PULL_REQUEST == "false" ]]; then
@@ -49,6 +50,9 @@ if [[ $BUILDKITE_LABEL == ":docker: Deploy Manifests" ]] && [[ $BUILDKITE_BRANCH
   comm -23 <(echo "${dockerbranchtags}") <(echo "${githubbranches}")); do
     echo "Removing tag ${BRANCH_TAG}"
     curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: JWT ${authtoken}" https://hub.docker.com/v2/repositories/authelia/authelia/tags/${BRANCH_TAG}/
+    for GHCR_VERSION in $(curl -fsL --retry 3 -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/authelia/packages/container/authelia/versions | jq --arg tag ${BRANCH_TAG} '.[] | select(.metadata.container.tags[] | contains($tag)) | .id'); do
+      curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/authelia/packages/container/authelia/versions/${GHCR_VERSION}
+    done
   done
   echo "--- :docker: Removing tags for merged or closed pull requests"
   for PR_TAG in $(dockerprtags=$(curl -fsL --retry 3 -H "Authorization: Bearer ${anontoken}" https://registry-1.docker.io/v2/authelia/authelia/tags/list | jq -r '.tags[] | select(startswith("PR"))' | \
@@ -57,5 +61,8 @@ if [[ $BUILDKITE_LABEL == ":docker: Deploy Manifests" ]] && [[ $BUILDKITE_BRANCH
   comm -23 <(echo "${dockerprtags}") <(echo "${githubprs}")); do
     echo "Removing tag ${PR_TAG}"
     curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: JWT ${authtoken}" https://hub.docker.com/v2/repositories/authelia/authelia/tags/${PR_TAG}/
+    for GHCR_VERSION in $(curl -fsL --retry 3 -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/authelia/packages/container/authelia/versions | jq --arg tag ${PR_TAG} '.[] | select(.metadata.container.tags[] | contains($tag)) | .id'); do
+      curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/authelia/packages/container/authelia/versions/${GHCR_VERSION}
+    done
   done
 fi
