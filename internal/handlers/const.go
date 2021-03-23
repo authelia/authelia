@@ -55,3 +55,29 @@ const testUsername = "john"
 const movingAverageWindow = 10
 const msMinimumDelay1FA = float64(250)
 const msMaximumRandomDelay = int64(85)
+
+// OIDC constants.
+const (
+	fallbackOIDCIssuer = "https://login.example.com:8080"
+	oidcWellKnownPath  = "/.well-known/openid-configuration"
+	oidcJWKsPath       = "/api/oidc/jwks"
+	oidcAuthorizePath  = "/api/oidc/authorize"
+	oidcTokenPath      = "/api/oidc/token" // nolint:gosec
+	oidcConsentPath    = "/api/oidc/consent"
+	oidcIntrospectPath = "/api/oidc/introspect"
+	oidcRevokePath     = "/api/oidc/revoke"
+)
+
+const (
+	accept = "accept"
+	reject = "reject"
+)
+
+var scopeDescriptions = map[string]string{
+	"openid":  "Account Information",
+	"email":   "Email Addresses",
+	"profile": "User Profile",
+	"groups":  "Group Membership",
+}
+
+var audienceDescriptions = map[string]string{}

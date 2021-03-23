@@ -8,7 +8,7 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-func consentHandler(ctx *middlewares.AutheliaCtx) {
+func oidcConsent(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {
@@ -41,7 +41,7 @@ func consentHandler(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-func consentPOSTHandler(ctx *middlewares.AutheliaCtx) {
+func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {

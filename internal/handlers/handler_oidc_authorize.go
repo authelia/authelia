@@ -12,7 +12,7 @@ import (
 	"github.com/authelia/authelia/internal/session"
 )
 
-func authorizeHandler(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	ar, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r)
 	if err != nil {
 		logging.Logger().Errorf("Error occurred in NewAuthorizeRequest: %+v", err)
@@ -46,7 +46,7 @@ func authorizeHandler(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *h
 
 	isAuthInsufficient := !ctx.Providers.OpenIDConnect.IsAuthenticationLevelSufficient(clientID, userSession.AuthenticationLevel)
 
-	if isAuthInsufficient || (IsConsentMissing(userSession.OIDCWorkflowSession, requestedScopes, requestedAudience)) {
+	if isAuthInsufficient || (isConsentMissing(userSession.OIDCWorkflowSession, requestedScopes, requestedAudience)) {
 		forwardedURI, err := ctx.GetOriginalURL()
 		if err != nil {
 			ctx.Logger.Errorf("%v", err)
@@ -116,7 +116,7 @@ func authorizeHandler(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *h
 		return
 	}
 
-	oauthSession := newSession(ctx, ar)
+	oauthSession := newOIDCSession(ctx, ar)
 	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, oauthSession)
 
 	if err != nil {

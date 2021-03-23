@@ -23,7 +23,6 @@ import (
 	"github.com/authelia/authelia/internal/handlers"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
-	oidchandlers "github.com/authelia/authelia/internal/oidc/handlers"
 )
 
 //go:embed public_html
@@ -143,7 +142,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		handler = middlewares.StripPathMiddleware(handler)
 	}
 
-	oidchandlers.Register(r, autheliaMiddleware, providers.OpenIDConnect.Fosite)
+	handlers.RegisterOIDC(r, autheliaMiddleware, providers.OpenIDConnect.Fosite)
 
 	server := &fasthttp.Server{
 		ErrorHandler:          autheliaErrorHandler,

@@ -7,7 +7,7 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-func wellKnownConfigurationHandler(ctx *middlewares.AutheliaCtx) {
+func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 	var configuration WellKnownConfigurationJSON
 
 	issuer, err := ctx.ForwardedProtoHost()
@@ -17,10 +17,10 @@ func wellKnownConfigurationHandler(ctx *middlewares.AutheliaCtx) {
 	}
 
 	configuration.Issuer = issuer
-	configuration.AuthURL = fmt.Sprintf("%s%s", issuer, authorizePath)
-	configuration.TokenURL = fmt.Sprintf("%s%s", issuer, tokenPath)
-	configuration.RevocationEndpoint = fmt.Sprintf("%s%s", issuer, revokePath)
-	configuration.JWKSURL = fmt.Sprintf("%s%s", issuer, jwksPath)
+	configuration.AuthURL = fmt.Sprintf("%s%s", issuer, oidcAuthorizePath)
+	configuration.TokenURL = fmt.Sprintf("%s%s", issuer, oidcTokenPath)
+	configuration.RevocationEndpoint = fmt.Sprintf("%s%s", issuer, oidcRevokePath)
+	configuration.JWKSURL = fmt.Sprintf("%s%s", issuer, oidcJWKsPath)
 	configuration.Algorithms = []string{"RS256"}
 	configuration.ScopesSupported = []string{
 		"openid",

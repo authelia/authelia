@@ -6,8 +6,8 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-func introspectHandler(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
-	oidcSession := newDefaultSession(ctx)
+func oidcIntrospect(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+	oidcSession := newDefaultOIDCSession(ctx)
 
 	ir, err := ctx.Providers.OpenIDConnect.Fosite.NewIntrospectionRequest(ctx, req, oidcSession)
 	if err != nil {

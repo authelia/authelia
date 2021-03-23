@@ -12,9 +12,9 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// IsConsentMissing compares the requestedScopes and requestedAudience to the workflows
+// isConsentMissing compares the requestedScopes and requestedAudience to the workflows
 // GrantedScopes and GrantedAudience and returns true if they do not match or the workflow is nil.
-func IsConsentMissing(workflow *session.OIDCWorkflowSession, requestedScopes, requestedAudience []string) (isMissing bool) {
+func isConsentMissing(workflow *session.OIDCWorkflowSession, requestedScopes, requestedAudience []string) (isMissing bool) {
 	if workflow == nil {
 		return true
 	}
@@ -47,7 +47,7 @@ func audienceNamesToAudience(scopeSlice []string) (audience []Audience) {
 	return audience
 }
 
-func newSession(ctx *middlewares.AutheliaCtx, ar fosite.AuthorizeRequester) *openid.DefaultSession {
+func newOIDCSession(ctx *middlewares.AutheliaCtx, ar fosite.AuthorizeRequester) *openid.DefaultSession {
 	userSession := ctx.GetSession()
 
 	scopes := ar.GetGrantedScopes()
@@ -74,7 +74,7 @@ func newSession(ctx *middlewares.AutheliaCtx, ar fosite.AuthorizeRequester) *ope
 		This is a simple design, have a map with a key of username, and a struct with the relevant information.
 	*/
 
-	oidcSession := newDefaultSession(ctx)
+	oidcSession := newDefaultOIDCSession(ctx)
 	oidcSession.Claims.Extra = extra
 	oidcSession.Claims.Subject = userSession.Username
 	oidcSession.Claims.Audience = ar.GetGrantedAudience()
@@ -82,7 +82,7 @@ func newSession(ctx *middlewares.AutheliaCtx, ar fosite.AuthorizeRequester) *ope
 	return oidcSession
 }
 
-func newDefaultSession(ctx *middlewares.AutheliaCtx) *openid.DefaultSession {
+func newDefaultOIDCSession(ctx *middlewares.AutheliaCtx) *openid.DefaultSession {
 	issuer, err := ctx.ForwardedProtoHost()
 
 	if err != nil {

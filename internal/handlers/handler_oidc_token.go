@@ -8,8 +8,8 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-func tokenHandler(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
-	oidcSession := newDefaultSession(ctx)
+func oidcToken(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+	oidcSession := newDefaultOIDCSession(ctx)
 	accessRequest, err := ctx.Providers.OpenIDConnect.Fosite.NewAccessRequest(ctx, req, oidcSession)
 
 	if err != nil {

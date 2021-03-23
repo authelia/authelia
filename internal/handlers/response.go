@@ -8,7 +8,6 @@ import (
 
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/oidc/handlers"
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -31,7 +30,7 @@ func HandleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if handlers.IsConsentMissing(
+	if isConsentMissing(
 		userSession.OIDCWorkflowSession,
 		userSession.OIDCWorkflowSession.RequestedScopes,
 		userSession.OIDCWorkflowSession.RequestedAudience) {

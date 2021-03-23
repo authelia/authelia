@@ -14,20 +14,20 @@ func TestShouldDetectIfConsentIsMissing(t *testing.T) {
 	requestedScopes := []string{"openid", "profile"}
 	requestedAudience := []string{"https://authelia.com"}
 
-	assert.True(t, IsConsentMissing(workflow, requestedScopes, requestedAudience))
+	assert.True(t, isConsentMissing(workflow, requestedScopes, requestedAudience))
 
 	workflow = &session.OIDCWorkflowSession{
 		GrantedScopes:   []string{"openid", "profile"},
 		GrantedAudience: []string{"https://authelia.com"},
 	}
 
-	assert.False(t, IsConsentMissing(workflow, requestedScopes, requestedAudience))
+	assert.False(t, isConsentMissing(workflow, requestedScopes, requestedAudience))
 
 	requestedScopes = []string{"openid", "profile", "group"}
 
-	assert.True(t, IsConsentMissing(workflow, requestedScopes, requestedAudience))
+	assert.True(t, isConsentMissing(workflow, requestedScopes, requestedAudience))
 
 	requestedScopes = []string{"openid", "profile"}
 	requestedAudience = []string{"https://not.authelia.com"}
-	assert.True(t, IsConsentMissing(workflow, requestedScopes, requestedAudience))
+	assert.True(t, isConsentMissing(workflow, requestedScopes, requestedAudience))
 }
