@@ -31,7 +31,7 @@ setup can easily be adapted to utilise said [service](../configuration/storage/i
 ## Steps
 
 - `git clone https://github.com/authelia/authelia.git`
-- `cd authelia/compose/lite`
+- `cd authelia/examples/compose/lite`
 - Modify the `users_database.yml` the default username and password is `authelia`
 - Modify the `configuration.yml` and `docker-compose.yml` with your respective domains and secrets
 - `docker-compose up -d`
