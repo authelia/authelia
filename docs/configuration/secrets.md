@@ -37,6 +37,7 @@ environment variable will not be replaced.
 |duo_api.secret_key                               |AUTHELIA_DUO_API_SECRET_KEY_FILE                  |
 |session.secret                                   |AUTHELIA_SESSION_SECRET_FILE                      |
 |session.redis.password                           |AUTHELIA_SESSION_REDIS_PASSWORD_FILE              |
+|session.redis.high_availability.sentinel_password|AUTHELIA_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD|
 |storage.mysql.password                           |AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE              |
 |storage.postgres.password                        |AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE           |
 |notifier.smtp.password                           |AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE              |
