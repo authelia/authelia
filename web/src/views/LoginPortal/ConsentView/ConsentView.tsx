@@ -85,14 +85,16 @@ const ConsentView = function (props: Props) {
                     </div>
                 </Grid>
                 <Grid item xs={12}>
-                    <List className={classes.scopesList}>
-                        {resp?.scopes.map((s) => (
-                            <ListItem id={s.name}>
-                                <ListItemIcon>{showListItemAvatar(s.name)}</ListItemIcon>
-                                <ListItemText primary={s.description} />
-                            </ListItem>
-                        ))}
-                    </List>
+                    <div>
+                        <List className={classes.scopesList}>
+                            {resp?.scopes.map((s) => (
+                                <ListItem id={s.name}>
+                                    <ListItemIcon>{showListItemAvatar(s.name)}</ListItemIcon>
+                                    <ListItemText primary={s.description} />
+                                </ListItem>
+                            ))}
+                        </List>
+                    </div>
                 </Grid>
                 <Grid item xs={12}>
                     <div>
