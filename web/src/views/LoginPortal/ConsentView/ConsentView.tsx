@@ -15,7 +15,7 @@ export interface Props {}
 function showListItemAvatar(id: string) {
     switch (id) {
         case "openid":
-            return <AccountBox />
+            return <AccountBox />;
         case "profile":
             return <Contacts />;
         case "groups":
