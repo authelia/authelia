@@ -133,9 +133,9 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: "center",
     },
     scopesList: {
-        alignItems: "center",
         backgroundColor: theme.palette.background.paper,
-        justifyContent: "center",
+        marginLeft: theme.spacing(),
+        marginRight: theme.spacing(),
     },
     clientID: {
         fontWeight: "bold",
