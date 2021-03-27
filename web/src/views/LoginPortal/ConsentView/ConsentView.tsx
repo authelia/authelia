@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-import { Grid, Button, List, ListItem, ListItemText, ListItemIcon, makeStyles } from "@material-ui/core";
+import { Button, Grid, List, ListItem, ListItemIcon, ListItemText, Tooltip, makeStyles } from "@material-ui/core";
 import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
 import { useHistory } from "react-router-dom";
 
@@ -90,7 +90,9 @@ const ConsentView = function (props: Props) {
                             {resp?.scopes.map((s) => (
                                 <ListItem id={s.name}>
                                     <ListItemIcon>{showListItemAvatar(s.name)}</ListItemIcon>
-                                    <ListItemText primary={s.description} />
+                                    <Tooltip title={s.name + " scope"}>
+                                        <ListItemText primary={s.description} />
+                                    </Tooltip>
                                 </ListItem>
                             ))}
                         </List>
@@ -132,6 +134,7 @@ const useStyles = makeStyles((theme) => ({
     },
     scopesList: {
         backgroundColor: theme.palette.background.paper,
+        justifyContent: "center",
     },
     clientID: {
         fontWeight: "bold",
