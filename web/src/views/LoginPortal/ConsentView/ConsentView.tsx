@@ -84,12 +84,12 @@ const ConsentView = function (props: Props) {
                         permissions:
                     </div>
                 </Grid>
-                <Grid item xs={12} className={classes.scopesList}>
+                <Grid item xs={12}>
                     <div>
-                        <List>
+                        <List className={classes.scopesList}>
                             {resp?.scopes.map((s) => (
                                 <Tooltip title={"Scope " + s.name}>
-                                    <ListItem id={s.name}>
+                                    <ListItem id={"scope-" + s.name}>
                                         <ListItemIcon>{showListItemAvatar(s.name)}</ListItemIcon>
                                         <ListItemText primary={s.description} />
                                     </ListItem>
@@ -152,7 +152,7 @@ const useStyles = makeStyles((theme) => ({
         margin: theme.spacing(4),
     },
     listItem: {
-        textAlign: "left",
+        textAlign: "center",
         marginRight: theme.spacing(2),
     },
 }));
