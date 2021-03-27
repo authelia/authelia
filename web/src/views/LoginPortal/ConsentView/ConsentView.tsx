@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 
-import { Grid, Button, List, ListItem, ListItemText, ListItemAvatar, Avatar, makeStyles } from "@material-ui/core";
-import { AccountBox, Drafts, Group, CheckBox } from "@material-ui/icons";
+import { Grid, Button, List, ListItem, ListItemText, ListItemIcon, makeStyles } from "@material-ui/core";
+import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
 import { useHistory } from "react-router-dom";
 
 import { useRequestedScopes } from "../../../hooks/Consent";
@@ -15,7 +15,9 @@ export interface Props {}
 function showListItemAvatar(id: string) {
     switch (id) {
         case "openid":
-            return <AccountBox />;
+            return <AccountBox />
+        case "profile":
+            return <Contacts />;
         case "groups":
             return <Group />;
         case "email":
@@ -85,11 +87,9 @@ const ConsentView = function (props: Props) {
                 <Grid item xs={12}>
                     <List className={classes.scopesList}>
                         {resp?.scopes.map((s) => (
-                            <ListItem>
-                                <ListItemAvatar>
-                                    <Avatar>{showListItemAvatar(s.name)}</Avatar>
-                                </ListItemAvatar>
-                                <ListItemText primary={s.description} secondary={s.name} />
+                            <ListItem id={s.name}>
+                                <ListItemIcon>{showListItemAvatar(s.name)}</ListItemIcon>
+                                <ListItemText primary={s.description} />
                             </ListItem>
                         ))}
                     </List>
