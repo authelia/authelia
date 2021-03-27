@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 
-import { Grid, Button, makeStyles } from "@material-ui/core";
+import { Grid, Button, List, ListItem, ListItemText, ListItemAvatar, Avatar, makeStyles } from "@material-ui/core";
+import { AccountBox, Drafts, Group, CheckBox } from "@material-ui/icons";
 import { useHistory } from "react-router-dom";
 
 import { useRequestedScopes } from "../../../hooks/Consent";
@@ -10,6 +11,19 @@ import LoginLayout from "../../../layouts/LoginLayout";
 import { acceptConsent, rejectConsent } from "../../../services/Consent";
 
 export interface Props {}
+
+function showListItemAvatar(id: string) {
+    switch (id) {
+        case "openid":
+            return <AccountBox />;
+        case "groups":
+            return <Group />;
+        case "email":
+            return <Drafts />;
+        default:
+            return <CheckBox />;
+    }
+}
 
 const ConsentView = function (props: Props) {
     const classes = useStyles();
@@ -69,11 +83,16 @@ const ConsentView = function (props: Props) {
                     </div>
                 </Grid>
                 <Grid item xs={12}>
-                    <ul>
+                    <List className={classes.scopesList}>
                         {resp?.scopes.map((s) => (
-                            <li id={"scope-" + s.name}>{s.description}</li>
+                            <ListItem>
+                                <ListItemAvatar>
+                                    <Avatar>{showListItemAvatar(s.name)}</Avatar>
+                                </ListItemAvatar>
+                                <ListItemText primary={s.description} secondary={s.name} />
+                            </ListItem>
                         ))}
-                    </ul>
+                    </List>
                 </Grid>
                 <Grid item xs={12}>
                     <div>
@@ -110,7 +129,7 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: "center",
     },
     scopesList: {
-        display: "inline-block",
+        backgroundColor: theme.palette.background.paper,
     },
     clientID: {
         fontWeight: "bold",
