@@ -16,12 +16,12 @@ echo "Checking for pre-requisites"
 
 if [[ ! -x "$(command -v docker)" ]]; then
   echo "You must install Docker on your machine";
-  return
+  exit
 fi
 
 if [[ ! -x "$(command -v docker-compose)" ]]; then
   echo "You must install Docker Compose on your machine";
-  return
+  exit
 fi
 
 echo "Pulling Authelia docker image for setup"
