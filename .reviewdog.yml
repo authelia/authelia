@@ -11,7 +11,7 @@ runner:
     format: rdjson
     level: error
   yamllint:
-    cmd: yamllint config.template.yml .reviewdog.yml
+    cmd: yamllint --format parsable config.template.yml .reviewdog.yml
     errorformat:
       - '%f:%l:%c: %m'
     level: warning
