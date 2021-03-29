@@ -10,3 +10,8 @@ runner:
     cmd: cd web && eslint -f rdjson '*/**/*.{js,ts,tsx}'
     format: rdjson
     level: error
+  yamllint:
+    cmd: yamllint config.template.yml
+    errorformat:
+      - '%f:%l:%c: %m'
+    level: warning
