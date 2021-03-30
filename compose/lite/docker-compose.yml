@@ -78,7 +78,7 @@ services:
       - '--log.level=DEBUG'
 
   secure:
-    image: containous/whoami
+    image: traefik/whoami
     container_name: secure
     networks:
       - net
@@ -94,7 +94,7 @@ services:
     restart: unless-stopped
 
   public:
-    image: containous/whoami
+    image: traefik/whoami
     container_name: public
     networks:
       - net
