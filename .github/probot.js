@@ -13,10 +13,11 @@ on('pull_request.opened')
             context.payload.pull_request.head.ref.slice(0, 9) !== 'renovate/'
     )
     .comment(`## Artifacts
-These changes are published for testing on Buildkite and DockerHub.
+These changes are published for testing on Buildkite, DockerHub and GitHub Container Registry.
 
 ### Docker Container
-* \`docker pull authelia/authelia:{{ pull_request.head.ref }}\``)
+* \`docker pull authelia/authelia:{{ pull_request.head.ref }}\`
+* \`docker pull ghcr.io/authelia/authelia:{{ pull_request.head.ref }}\``)
 
 // PR commentary for third party based contributions
 on('pull_request.opened')
@@ -29,7 +30,8 @@ on('pull_request.opened')
 You are free to apply the changes if you're comfortable, alternatively you are welcome to ask a team member for advice.
 
 ## Artifacts
-These changes once approved by a team member will be published for testing on Buildkite and DockerHub.
+These changes once approved by a team member will be published for testing on Buildkite, DockerHub and GitHub Container Registry.
 
 ### Docker Container
-* \`docker pull authelia/authelia:PR{{ pull_request.number }}\``)
+* \`docker pull authelia/authelia:PR{{ pull_request.number }}\`
+* \`docker pull ghcr.io/authelia/authelia:PR{{ pull_request.number }}\``)
