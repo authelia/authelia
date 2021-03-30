@@ -24,6 +24,8 @@ services:
     expose:
       - 9091
     restart: unless-stopped
+    healthcheck:
+      disable: true
     environment:
       - TZ=Australia/Melbourne
 
@@ -74,7 +76,6 @@ services:
       - '--certificatesResolvers.letsencrypt.acme.httpChallenge.entryPoint=http'
       - '--log=true'
       - '--log.level=DEBUG'
-      - '--log.filepath=/var/log/traefik.log'
 
   secure:
     image: containous/whoami

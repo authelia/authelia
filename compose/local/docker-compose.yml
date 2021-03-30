@@ -24,6 +24,8 @@ services:
     expose:
       - 9091
     restart: unless-stopped
+    healthcheck:
+      disable: true
     environment:
       - TZ=Australia/Melbourne
 
@@ -59,7 +61,6 @@ services:
       - '--entrypoints.https.address=:443'
       - '--log=true'
       - '--log.level=DEBUG'
-      - '--log.filepath=/var/log/traefik.log'
 
   secure:
     image: containous/whoami
