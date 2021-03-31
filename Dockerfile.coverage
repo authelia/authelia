@@ -46,7 +46,7 @@ go test -c --tags coverage -covermode=atomic -o authelia -coverpkg github.com/au
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.13.3
+FROM alpine:3.13.4
 
 RUN apk --no-cache add ca-certificates tzdata
 
