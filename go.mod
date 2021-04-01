@@ -29,6 +29,6 @@ require (
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.23.0
-	golang.org/x/text v0.3.5
+	golang.org/x/text v0.3.6
 	gopkg.in/yaml.v2 v2.4.0
 )
