@@ -24,7 +24,7 @@
     "axios": "0.21.1",
     "babel-preset-react-app": "10.0.0",
     "chai": "4.3.4",
-    "classnames": "2.2.6",
+    "classnames": "2.3.0",
     "enzyme": "3.11.0",
     "enzyme-adapter-react-16": "1.15.6",
     "eslint-config-prettier": "8.1.0",
