@@ -14,7 +14,7 @@ require (
 	github.com/fasthttp/router v1.3.10
 	github.com/fasthttp/session/v2 v2.3.0
 	github.com/go-ldap/ldap/v3 v3.2.4
-	github.com/go-sql-driver/mysql v1.5.0
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/mock v1.5.0
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/mattn/go-sqlite3 v1.14.6
