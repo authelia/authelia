@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, Fragment, ReactNode } from "react";
 
 import { Button, Grid, List, ListItem, ListItemIcon, ListItemText, Tooltip, makeStyles } from "@material-ui/core";
 import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
@@ -9,6 +9,7 @@ import { useNotifications } from "../../../hooks/NotificationsContext";
 import { useRedirector } from "../../../hooks/Redirector";
 import LoginLayout from "../../../layouts/LoginLayout";
 import { acceptConsent, rejectConsent } from "../../../services/Consent";
+import LoadingPage from "../../LoadingPage/LoadingPage";
 
 export interface Props {}
 
@@ -76,52 +77,54 @@ const ConsentView = function (props: Props) {
     };
 
     return (
-        <LoginLayout id="consent-stage" title={`Permissions Request`} showBrand>
-            <Grid container>
-                <Grid item xs={12}>
-                    <div>
-                        The application {resp?.client_description} ({resp?.client_id}) is requesting the following
-                        permissions:
-                    </div>
+        <ComponentOrLoading ready={resp !== undefined}>
+            <LoginLayout id="consent-stage" title={`Permissions Request`} showBrand>
+                <Grid container>
+                    <Grid item xs={12}>
+                        <div>
+                            The application {resp?.client_description} ({resp?.client_id}) is requesting the following
+                            permissions:
+                        </div>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <div>
+                            <List className={classes.scopesList}>
+                                {resp?.scopes.map((s) => (
+                                    <Tooltip title={"Scope " + s.name}>
+                                        <ListItem id={"scope-" + s.name}>
+                                            <ListItemIcon>{showListItemAvatar(s.name)}</ListItemIcon>
+                                            <ListItemText primary={s.description} />
+                                        </ListItem>
+                                    </Tooltip>
+                                ))}
+                            </List>
+                        </div>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <div>
+                            <Button
+                                className={classes.button}
+                                disabled={!resp}
+                                onClick={handleAcceptConsent}
+                                color="primary"
+                                variant="contained"
+                            >
+                                Accept
+                            </Button>
+                            <Button
+                                className={classes.button}
+                                disabled={!resp}
+                                onClick={handleRejectConsent}
+                                color="secondary"
+                                variant="contained"
+                            >
+                                Deny
+                            </Button>
+                        </div>
+                    </Grid>
                 </Grid>
-                <Grid item xs={12}>
-                    <div>
-                        <List className={classes.scopesList}>
-                            {resp?.scopes.map((s) => (
-                                <Tooltip title={"Scope " + s.name}>
-                                    <ListItem id={"scope-" + s.name}>
-                                        <ListItemIcon>{showListItemAvatar(s.name)}</ListItemIcon>
-                                        <ListItemText primary={s.description} />
-                                    </ListItem>
-                                </Tooltip>
-                            ))}
-                        </List>
-                    </div>
-                </Grid>
-                <Grid item xs={12}>
-                    <div>
-                        <Button
-                            className={classes.button}
-                            disabled={!resp}
-                            onClick={handleAcceptConsent}
-                            color="primary"
-                            variant="contained"
-                        >
-                            Accept
-                        </Button>
-                        <Button
-                            className={classes.button}
-                            disabled={!resp}
-                            onClick={handleRejectConsent}
-                            color="secondary"
-                            variant="contained"
-                        >
-                            Deny
-                        </Button>
-                    </div>
-                </Grid>
-            </Grid>
-        </LoginLayout>
+            </LoginLayout>
+        </ComponentOrLoading>
     );
 };
 
@@ -158,3 +161,20 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default ConsentView;
+
+interface ComponentOrLoadingProps {
+    ready: boolean;
+
+    children: ReactNode;
+}
+
+function ComponentOrLoading(props: ComponentOrLoadingProps) {
+    return (
+        <Fragment>
+            <div className={props.ready ? "hidden" : ""}>
+                <LoadingPage />
+            </div>
+            {props.ready ? props.children : null}
+        </Fragment>
+    );
+}
