@@ -50,7 +50,6 @@ func (de *DockerEnvironment) Pull(images ...string) error {
 	return de.createCommandWithStdout(fmt.Sprintf("pull %s", strings.Join(images, " "))).Run()
 }
 
-
 // Up spawn a docker environment.
 func (de *DockerEnvironment) Up() error {
 	return de.createCommandWithStdout("up --build -d").Run()
