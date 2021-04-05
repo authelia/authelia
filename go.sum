@@ -112,8 +112,8 @@ github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojt
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
 github.com/fasthttp/router v1.3.11 h1:WRci1FAm1/WusORq0sLSNKpWMrO1yjdtZNbDiHl2V9s=
 github.com/fasthttp/router v1.3.11/go.mod h1:ydSY1+K2/V8Ge5pofTqg+FRxNYvN76LrBDnCFJta6ZE=
-github.com/fasthttp/session/v2 v2.3.0 h1:ej+hYbgybXZPoJYOqNsoaG6/bA0JGiFAwV72bzZ77RI=
-github.com/fasthttp/session/v2 v2.3.0/go.mod h1:bnbhn/R1imDC1MCK6lvjPQoxZdsuGH3j6QkSx1xj1t8=
+github.com/fasthttp/session/v2 v2.3.1 h1:XFD3XHSBT6bR4F7rBXreCZv0lgLz6kJzjRRUR3ftavQ=
+github.com/fasthttp/session/v2 v2.3.1/go.mod h1:0K7r3dmf/QuBg7dTx2SfyGc/fI3n+W4VihBRAwtBt3o=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/franela/goblin v0.0.0-20200105215937-c9ffbefa60db/go.mod h1:7dvUGVsVBjqR7JHJk0brhHOZYGmfBYOrK0ZhYMEtBr4=
 github.com/franela/goreq v0.0.0-20171204163338-bcd34c9993f8/go.mod h1:ZhphrRTfi2rbfLwlschooIH4+wKKDR4Pdxhh+TRoA20=
@@ -135,7 +135,6 @@ github.com/go-logfmt/logfmt v0.5.0/go.mod h1:wCYkCAKZfumFQihp8CzCvQ3paCTfi41vtzG
 github.com/go-redis/redis/v8 v8.3.4 h1:ZF7juZS2wzxloqMKslTutWJ05IQrnchCSk1HD4d4Vbs=
 github.com/go-redis/redis/v8 v8.3.4/go.mod h1:jszGxBCez8QA1HWSmQxJO9Y82kNibbUmeYhKWrBejTU=
 github.com/go-sql-driver/mysql v1.4.0/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
-github.com/go-sql-driver/mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 github.com/go-sql-driver/mysql v1.6.0 h1:BCTh4TKNUYmOmMUcQ3IipzF5prigylS7XXjEkfCHuOE=
 github.com/go-sql-driver/mysql v1.6.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
@@ -429,10 +428,8 @@ github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQD
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da/go.mod h1:gi+0XIa01GRL2eRQVjQkKGqKF3SF9vZR/HnPullcV2E=
 github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdhQKdks0=
-github.com/savsgio/dictpool v0.0.0-20210217113430-85d3b37fb239 h1:aTxmMsYGLUZfj0EsWaJ1s0HnctxCgjRw3A+TFoO1Tsc=
-github.com/savsgio/dictpool v0.0.0-20210217113430-85d3b37fb239/go.mod h1:CfPSewBwpXF/05Izyk9s379O1ysmtUajFVr1nOD83Fs=
-github.com/savsgio/gotils v0.0.0-20210217112953-d4a072536008/go.mod h1:TWNAOTaVzGOXq8RbEvHnhzA/A2sLZzgn0m6URjnukY8=
-github.com/savsgio/gotils v0.0.0-20210225112730-595c7e5a8a7a/go.mod h1:TWNAOTaVzGOXq8RbEvHnhzA/A2sLZzgn0m6URjnukY8=
+github.com/savsgio/dictpool v0.0.0-20210404150759-6de1ea7c0e13 h1:GHosyqopD9q+RnHRd4HsqhT1873lF5necC/vB2oMcDI=
+github.com/savsgio/dictpool v0.0.0-20210404150759-6de1ea7c0e13/go.mod h1:jYioskm8OBnvGMa37NVB/Ndy/ZiyCZouiEZlRl3T+wY=
 github.com/savsgio/gotils v0.0.0-20210316171653-c54912823645 h1:ug9pfpEqVhvazyl1GezkQ9M/XdWsQn3VSx0s4qfH82I=
 github.com/savsgio/gotils v0.0.0-20210316171653-c54912823645/go.mod h1:CN0/b5o0sSBi9K8fZTUamBG5NZXO0I64vTh9L3Mzhn0=
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
@@ -499,7 +496,6 @@ github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijb
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
-github.com/valyala/fasthttp v1.22.0/go.mod h1:0mw2RjXGOzxf4NL2jni3gUQ7LfjjUSiG5sskOUUSEpU=
 github.com/valyala/fasthttp v1.23.0 h1:0ufwSD9BhWa6f8HWdmdq4FHQ23peRo3Ng/Qs8m5NcFs=
 github.com/valyala/fasthttp v1.23.0/go.mod h1:0mw2RjXGOzxf4NL2jni3gUQ7LfjjUSiG5sskOUUSEpU=
 github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a/go.mod h1:v3UYOV9WzVtRmSR+PDvWpU/qWl4Wa5LApYYX4ZtKbio=
