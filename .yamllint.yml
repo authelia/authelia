@@ -18,7 +18,10 @@ rules:
   empty-lines: enable
   empty-values: enable
   hyphens: enable
-  indentation: enable
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: true
   key-duplicates: enable
   key-ordering: disable
   line-length:
