@@ -10,7 +10,7 @@ nav_order: 1
 **Authelia** is written in Go and comes with a dedicated CLI called [authelia-scripts](./authelia-scripts.md) which is 
 available after running `source bootstrap.sh`. This CLI provides many useful tools to help you during development.
 
-In order to build and contribute to **Authelia**, you need to make sure Go >= v1.13, Docker, docker-compose and 
+In order to build and contribute to **Authelia**, you need to make sure Go >= v1.16, Docker, docker-compose and 
 Node >= v12 are installed on your machine.
 
 ## Get started

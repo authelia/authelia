@@ -24,4 +24,4 @@ notifier:
 
 ### filename
 
-The file to add email text to. If it doesn't exist it will be created.
+The file to write email text to. If it doesn't exist it will be created.

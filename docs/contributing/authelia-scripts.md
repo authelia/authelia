@@ -7,10 +7,10 @@ nav_order: 2
 
 # Authelia Scripts
 
-Authelia comes with a set of dedicated scripts doing a broad range of operations such as building the distributed 
+Authelia comes with a set of dedicated scripts to perform a broad range of operations such as building the distributed 
 version of Authelia, building the Docker image, running suites, testing the code, etc...
 
-Those scripts becomes available after sourcing the bootstrap.sh script with
+Those scripts become available after sourcing the bootstrap.sh script with
 
 ```console
 $ source bootstrap.sh

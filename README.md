@@ -32,7 +32,7 @@ The architecture is shown in the diagram below.
 [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a 
 [Static binary](https://github.com/authelia/authelia/releases/latest), [Docker] or [Kubernetes] leveraging ingress 
 controllers and ingress configurations. Assistance to publish a 
-[debian package](https://github.com/authelia/authelia/issues/573) would be greatly appreciated.
+[Debian package](https://github.com/authelia/authelia/issues/573) would be greatly appreciated.
 
 <p align="center">
   <img src="./docs/images/logos/kubernetes.logo.png" height="100"/>
@@ -147,13 +147,13 @@ disclosure related matters. If you need to contact us for another reason please 
 Since Authelia is still under active development, it is subject to breaking changes. It's recommended to pin a version 
 tag instead of using the `latest` tag and reading the [release notes](https://github.com/authelia/authelia/releases) 
 before upgrading. This is where you will find information about breaking changes and what you should do to overcome 
-those changes.
+said changes.
 
 ## Why Open Source?
 
 You might wonder why Authelia is open source while it adds a great deal of security and user experience to your 
 infrastructure at zero cost. It is open source because we firmly believe that security should be available for all to 
-benefit in the face the battlefield which is the Internet with near zero effort.
+benefit in the face of the battlefield which is the Internet, with near zero effort.
 
 Additionally, keeping the code open source is a way to leave it auditable by anyone who is willing to contribute. This 
 way, you can be confident that the product remains secure and does not act maliciously.

@@ -9,7 +9,7 @@
 host: 0.0.0.0
 port: 9091
 
-## The TLS key and cert to used with the port Authelia listens on.
+## The TLS key and cert used with Authelia.
 # tls_key: /config/ssl/key.pem
 # tls_cert: /config/ssl/cert.pem
 
@@ -89,7 +89,7 @@ duo_api:
 ##
 ## Used for verifying user passwords and retrieve information such as email address and groups users belong to.
 ##
-## The available providers are: `file`, `ldap`. You must use one and only one of these providers.
+## The available providers are: `file`, `ldap`. You must use only one of these providers.
 authentication_backend:
   ## Disable both the HTML element and the API for reset password functionality.
   disable_reset_password: false
@@ -434,7 +434,7 @@ session:
 ##
 ## Regulation Configuration
 ##
-## This mechanism prevents attackers from brute forcing the first factor. It bans the user if too many attempts are done
+## This mechanism prevents attackers from brute forcing the first factor. It bans the user if too many attempts are made
 ## in a short period of time.
 regulation:
   ## The number of failed login attempts before user is banned. Set it to 0 to disable regulation.
@@ -491,8 +491,8 @@ storage:
 ##
 ## Notification Provider
 ##
-## Notifications are sent to users when they require a password reset, a u2f registration or a TOTP registration.
-## The available providers are: filesystem, smtp. You must use one and only one of these providers.
+## Notifications are sent to users when they require a password reset, a U2F registration or a TOTP registration.
+## The available providers are: filesystem, smtp. You must use only one of these providers.
 notifier:
   ## You can disable the notifier startup check by setting this to true.
   disable_startup_check: false

@@ -10,7 +10,7 @@ nav_order: 1
 
 This is a session provider. By default Authelia uses an in-memory provider. Not configuring redis leaves Authelia
 [stateful](../../features/statelessness.md). It's important in highly available scenarios to configure this option and
-we highly recommend it in production environments. It requires you setup [redis] as well.
+we highly recommend it in production environments. It requires you to setup [redis] as well.
 
 ## Configuration
 

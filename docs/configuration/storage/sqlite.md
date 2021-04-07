@@ -14,7 +14,7 @@ instances of Authelia since the database will be a local file.
 
 Use of this storage provider leaves Authelia [stateful](../features/statelessness.md). It's important in highly 
 available scenarios to use one of the other providers, and we highly recommend it in production environments, but this
-requires you setup an external database.
+requires you to setup an external database.
 
 ## Configuration
 

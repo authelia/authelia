@@ -36,7 +36,7 @@ Defines the port to listen on. See also [host](#host).
 ## TLS
 
 Authelia's port typically listens for plain unencrypted connections. This is by design as most environments allow to 
-security on lower areas of the OSI model. However it required, if you specify both of the tls options the port will 
+security on lower areas of the OSI model. However if required, when you specify both of the tls options the port will 
 listen for TLS connections.
 
 ```yaml

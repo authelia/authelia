@@ -17,14 +17,14 @@ backend.
 I'm using traefik with docker as an example, but any proxy that can forward
 authelia `Remote-User` header is fine.
 
-First of all, users should exist on both authelia and Jira AND have the same
+First of all, users should exist on both Authelia and Jira, and have the same
 username for this to work. Also you will have to
 [pay for a plugin](https://marketplace.atlassian.com/apps/1212581/easy-sso-jira-kerberos-ntlm-saml?hosting=server&tab=overview).
 
 After both steps are done:
   - Add `traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User` in the labels of authelia
-  - Add `traefik.http.routers.jira.middlewares=authelia@docker` in the labels of Jira (to actually enable authelia for 
-    the jira instance)
+  - Add `traefik.http.routers.jira.middlewares=authelia@docker` in the labels of Jira (to actually enable Authelia for 
+    the Jira instance)
   - Install EasySSO in Jira
   - Go to EasySSO preferences and add the "Remote-User" header under HTTP and tick the "Username" checkbox.
   - Save
