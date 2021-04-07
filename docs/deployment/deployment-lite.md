@@ -22,7 +22,7 @@ provision](https://docs.traefik.io/https/acme/) up-to-date certificates for your
 Traefik publishes the respective services with LetsEncrypt provided certificates on port `443`.
 The provided examples protect the Traefik dashboard with Authelia's one-factor auth
 (traefik.example.com) and two instances of the
-[whoami container](https://hub.docker.com/r/containous/whoami) with Authelia being
+[whoami container](https://hub.docker.com/r/traefik/whoami) with Authelia being
 bypassed (public.example.com) and another with it's two-factor auth (secure.example.com). 
 
 If you happen to already have an external SQL instance (MariaDB, MySQL or Postgres) this 
