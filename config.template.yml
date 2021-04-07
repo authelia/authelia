@@ -3,6 +3,8 @@
 #                           Authelia Configuration                            #
 ###############################################################################
 
+# yamllint disable rule:comments-indentation
+
 ## The host and port to listen on.
 host: 0.0.0.0
 port: 9091

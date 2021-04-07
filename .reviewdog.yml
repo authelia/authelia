@@ -1,3 +1,4 @@
+---
 runner:
   golangci:
     cmd: golangci-lint run
@@ -11,7 +12,8 @@ runner:
     format: rdjson
     level: error
   yamllint:
-    cmd: yamllint --format parsable config.template.yml .reviewdog.yml
+    cmd: yamllint --format parsable config.template.yml internal/configuration/config.template.yml
     errorformat:
       - '%f:%l:%c: %m'
     level: warning
+...
