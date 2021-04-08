@@ -1,9 +1,8 @@
+# yamllint disable rule:comments-indentation
 ---
 ###############################################################################
 #                           Authelia Configuration                            #
 ###############################################################################
-
-# yamllint disable rule:comments-indentation
 
 ## The host and port to listen on.
 host: 0.0.0.0
