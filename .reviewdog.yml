@@ -1,4 +1,3 @@
----
 runner:
   golangci:
     cmd: golangci-lint run
@@ -11,9 +10,3 @@ runner:
     cmd: cd web && eslint -f rdjson '*/**/*.{js,ts,tsx}'
     format: rdjson
     level: error
-  yamllint:
-    cmd: yamllint --format parsable config.template.yml internal/configuration/config.template.yml
-    errorformat:
-      - '%f:%l:%c: %m'
-    level: warning
-...
