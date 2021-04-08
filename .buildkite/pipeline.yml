@@ -1,7 +1,7 @@
-# yamllint disable rule:line-length rule:empty-values
 ---
 # This represents the hardcoded pipeline set in Buildkite interface which executes the repo provided dynamic pipeline.
-# It is used to ensure that insecure code from external PR cannot be executed before a maintainers approval, to avoid secret leaks.
+# It is used to ensure that insecure code from external PR cannot be executed before a maintainers approval, to avoid
+# secret leaks.
 steps:
   # Blocking pipeline for master branch deployments (concurrency_group).
   - label: ":pipeline: Setup Pipeline"
@@ -15,7 +15,7 @@ steps:
     command: ".buildkite/pipeline.sh | buildkite-agent pipeline upload"
     if: build.branch != "master"
 
-  - wait:
+  - wait:  # yamllint disable-line rule:empty-values
     if: build.pull_request.repository.fork != true && build.branch !~ /^(dependabot|renovate)\/.*/
 
   # Manual intervention by team required to deploy for forked PRs (prevent secret leakage).
@@ -34,7 +34,7 @@ steps:
   - label: ":rocket: Setup Deployment"
     command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
     depends_on: ~
-    if: build.branch != "master" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.pull_request.repository.fork != true
+    if: build.branch != "master" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.pull_request.repository.fork != true  # yamllint disable-line rule:line-length
 
   # Removed dependency optimisation for forked PRs to enforce block step.
   - label: ":rocket: Setup Deployment"

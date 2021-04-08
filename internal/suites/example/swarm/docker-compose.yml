@@ -1,4 +1,3 @@
-# yamllint disable rule:octal-values
 ---
 version: '3.4'
 services:
@@ -10,7 +9,7 @@ services:
         target: /config/configuration.yml
         uid: '0'
         gid: '0'
-        mode: 0444
+        mode: 0444  # yamllint disable-line rule:octal-values
     environment:
       - NODE_TLS_REJECT_UNAUTHORIZED=0
     # Where the authelia volume is to be mounted. To only use a single volume, the minimal config
