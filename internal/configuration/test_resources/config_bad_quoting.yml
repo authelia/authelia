@@ -1,6 +1,4 @@
 ---
-# yamllint disable-file
-
 host: 0.0.0.0
 port: 9091
 log_level: debug

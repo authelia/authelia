@@ -1,5 +1,5 @@
----
 # yamllint disable rule:line-length rule:empty-values
+---
 # This represents the hardcoded pipeline set in Buildkite interface which executes the repo provided dynamic pipeline.
 # It is used to ensure that insecure code from external PR cannot be executed before a maintainers approval, to avoid secret leaks.
 steps:
