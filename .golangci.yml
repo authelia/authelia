@@ -24,8 +24,6 @@ linters:
     - goimports
     - golint
     - gosec
-    - interfacer
-    - maligned
     - misspell
     - nolintlint
     - prealloc
