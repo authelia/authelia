@@ -1,3 +1,4 @@
+---
 ###############################################################
 #                Authelia minimal configuration               #
 ###############################################################
@@ -22,6 +23,7 @@ authentication_backend:
     base_dn: dc=example,dc=com
     username_attribute: uid
     additional_users_dn: ou=users
+    # yamllint disable rule:line-length
     users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(objectClass=inetOrgPerson))
     additional_groups_dn: ou=groups
     groups_filter: (&(member={dn})(objectclass=groupOfNames))
@@ -34,8 +36,8 @@ authentication_backend:
 session:
   secret: unsecure_session_secret
   domain: example.com
-  expiration: 3600 # 1 hour
-  inactivity: 300 # 5 minutes
+  expiration: 3600  # 1 hour
+  inactivity: 300  # 5 minutes
   remember_me_duration: 1y
 
 storage:
@@ -68,3 +70,4 @@ notifier:
     port: 1025
     sender: admin@example.com
     disable_require_tls: true
+...

@@ -1,0 +1,21 @@
+---
+extends: default
+
+ignore: |
+  internal/configuration/test_resources/config_bad_quoting.yml
+  compose/
+  config.template.yml
+  internal/configuration/config.template.yml
+
+rules:
+  document-end:
+    level: warning
+  empty-values:
+    level: warning
+  indentation:
+    spaces: 2
+    check-multi-line-strings: true
+  line-length:
+    max: 120
+  octal-values: enable
+...

@@ -17,11 +17,11 @@ spec:
         app: redis
     spec:
       containers:
-      - name: redis
-        image: redis:3.2.11-alpine
-        ports:
-        - containerPort: 6379
-
+        - name: redis
+          image: redis:3.2.11-alpine
+          ports:
+            - containerPort: 6379
+...
 ---
 apiVersion: v1
 kind: Service
@@ -32,5 +32,6 @@ spec:
   selector:
     app: redis
   ports:
-  - protocol: TCP
-    port: 6379
+    - protocol: TCP
+      port: 6379
+...

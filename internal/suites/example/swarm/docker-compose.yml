@@ -1,3 +1,5 @@
+# yamllint disable rule:octal-values
+---
 version: '3.4'
 services:
   authelia:
@@ -11,20 +13,22 @@ services:
         mode: 0444
     environment:
       - NODE_TLS_REJECT_UNAUTHORIZED=0
-    # Where the authelia volume is to be mounted. To only use a single volume, the minimal config needs to be changed to read the users_database.yml also from this subdirectory.
+    # Where the authelia volume is to be mounted. To only use a single volume, the minimal config
+    # needs to be changed to read the users_database.yml also from this subdirectory.
     # Otherwise a second volume will need to be configured here to mount the users_database.yml.
     volumes:
       - authelia:/config/storage
     networks:
       - overlay
     deploy:
-      #Configure Authelia to automatically restart on failure.
+      # Configure Authelia to automatically restart on failure.
       restart_policy:
         condition: on-failure
         delay: 5s
         max_attempts: 3
         window: 120s
-      # Mode: global would start authelia on all available nodes, replicated limits it to how many replicas are configured.
+      # Mode: global would start authelia on all available nodes,
+      # replicated limits it to how many replicas are configured.
       mode: replicated
       # How many replicas are wanted. Can be any number >0 up to however many nodes are available.
       replicas: 1
@@ -32,7 +36,8 @@ services:
         constraints:
           - node.role == worker
 
-#The volume for authelia needs to be configured. There are many drivers available. Such as local storage, ceph-rdb, nfs, cifs etc.
+# The volume for authelia needs to be configured.
+# There are many drivers available. Such as local storage, ceph-rdb, nfs, cifs etc.
 volumes:
   authelia:
     driver: default
@@ -46,3 +51,4 @@ networks:
 configs:
   authelia:
     external: true
+...

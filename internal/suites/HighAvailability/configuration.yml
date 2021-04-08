@@ -1,3 +1,4 @@
+---
 ###############################################################
 #                   Authelia configuration                    #
 ###############################################################
@@ -81,8 +82,8 @@ access_control:
 session:
   name: authelia_session
   secret: unsecure_session_secret
-  expiration: 3600 # 1 hour
-  inactivity: 300 # 5 minutes
+  expiration: 3600  # 1 hour
+  inactivity: 300  # 5 minutes
   domain: example.com
   redis:
     username: authelia
@@ -119,3 +120,4 @@ notifier:
     port: 1025
     sender: admin@example.com
     disable_require_tls: true
+...

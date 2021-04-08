@@ -1,3 +1,5 @@
+---
+# yamllint disable rule:line-length rule:empty-values
 # This represents the hardcoded pipeline set in Buildkite interface which executes the repo provided dynamic pipeline.
 # It is used to ensure that insecure code from external PR cannot be executed before a maintainers approval, to avoid secret leaks.
 steps:
@@ -38,3 +40,4 @@ steps:
   - label: ":rocket: Setup Deployment"
     command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
     if: build.pull_request.repository.fork == true
+...

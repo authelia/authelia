@@ -1,3 +1,6 @@
+---
+# yamllint disable rule:line-length
+
 run:
   timeout: 3m
 
@@ -23,6 +26,8 @@ linters:
     - goimports
     - golint
     - gosec
+    - interfacer
+    - maligned
     - misspell
     - nolintlint
     - prealloc
@@ -45,3 +50,4 @@ issues:
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
+...

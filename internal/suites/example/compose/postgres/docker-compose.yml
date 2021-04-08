@@ -1,3 +1,4 @@
+---
 version: "3"
 services:
   postgres:
@@ -8,3 +9,4 @@ services:
       - POSTGRES_DB=authelia
     networks:
       - authelianet
+...
