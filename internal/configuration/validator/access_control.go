@@ -71,7 +71,7 @@ func ValidateRules(configuration schema.AccessControlConfiguration, validator *s
 	if len(configuration.Rules) == 0 {
 		defaultPolicy := strings.ToLower(configuration.DefaultPolicy)
 		if defaultPolicy == denyPolicy || defaultPolicy == bypassPolicy {
-			validator.Push(fmt.Errorf("Default policy is [%s] invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'", defaultPolicy))
+			validator.Push(fmt.Errorf("Default Policy [%s] is invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'", defaultPolicy))
 
 			return
 		}

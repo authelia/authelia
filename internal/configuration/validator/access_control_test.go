@@ -64,7 +64,7 @@ func (suite *AccessControl) TestShouldRaiseErrorWithNoRulesDefined() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Default policy is [deny] invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Default Policy [deny] is invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'")
 }
 
 func (suite *AccessControl) TestShouldRaiseWarningWithNoRulesDefined() {
