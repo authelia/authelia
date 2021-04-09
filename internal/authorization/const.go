@@ -16,3 +16,5 @@ const (
 
 const userPrefix = "user:"
 const groupPrefix = "group:"
+
+const traceFmtACLHitMiss = "ACL %s ID %d for subject %s and object %s (Method %s)"
