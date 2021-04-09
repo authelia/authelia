@@ -10,8 +10,10 @@ const (
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
 
-	denyPolicy   = "deny"
-	bypassPolicy = "bypass"
+	bypassPolicy    = "bypass"
+	oneFactorPolicy = "one_factor"
+	twoFactorPolicy = "two_factor"
+	denyPolicy      = "deny"
 
 	argon2id = "argon2id"
 	sha512   = "sha512"

@@ -51,16 +51,22 @@ func (p *Authorizer) IsSecondFactorEnabled() bool {
 func (p Authorizer) GetRequiredLevel(subject Subject, object Object) Level {
 	logger := logging.Logger()
 
+	logger.Debugf("Check authorization of subject %s and object %s (method %s).",
+		subject.String(), object.String(), object.Method)
+
 	policy := p.getRequiredLevelFunc(logger, p.rules, subject, object)
 
 	if policy == nil {
+		logger.Debugf("No matching rule for subject %s and url %s... Applying default policy.",
+			subject.String(), object.String())
+
 		return p.defaultPolicy
 	}
 
 	return *policy
 }
 
-func getRequiredLevelFunc(log *logrus.Logger, rules []*AccessControlRule, subject Subject, object Object) *Level {
+func getRequiredLevelFunc(_ *logrus.Logger, rules []*AccessControlRule, subject Subject, object Object) *Level {
 	for _, rule := range rules {
 		if rule.IsMatch(subject, object) {
 			return &rule.Policy
@@ -71,8 +77,6 @@ func getRequiredLevelFunc(log *logrus.Logger, rules []*AccessControlRule, subjec
 }
 
 func getRequiredLevelTraceFunc(log *logrus.Logger, rules []*AccessControlRule, subject Subject, object Object) *Level {
-	log.Tracef("Check authorization of subject %s and url %s.", subject.String(), object.String())
-
 	for _, rule := range rules {
 		if rule.IsMatch(subject, object) {
 			log.Tracef(traceFmtACLHitMiss, "HIT", rule.ID, subject.String(), object.String(), object.Method)
@@ -82,9 +86,6 @@ func getRequiredLevelTraceFunc(log *logrus.Logger, rules []*AccessControlRule, s
 
 		log.Tracef(traceFmtACLHitMiss, "MISS", rule.ID, subject.String(), object.String(), object.Method)
 	}
-
-	log.Tracef("No matching rule for subject %s and url %s... Applying default policy.",
-		subject.String(), object.String())
 
 	return nil
 }

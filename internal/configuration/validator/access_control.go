@@ -12,7 +12,7 @@ import (
 
 // IsPolicyValid check if policy is valid.
 func IsPolicyValid(policy string) (isValid bool) {
-	return policy == denyPolicy || policy == "one_factor" || policy == "two_factor" || policy == bypassPolicy
+	return policy == denyPolicy || policy == oneFactorPolicy || policy == twoFactorPolicy || policy == bypassPolicy
 }
 
 // IsResourceValid check if a resource is valid.
@@ -70,7 +70,7 @@ func ValidateAccessControl(configuration schema.AccessControlConfiguration, vali
 func ValidateRules(configuration schema.AccessControlConfiguration, validator *schema.StructValidator) {
 	if len(configuration.Rules) == 0 {
 		defaultPolicy := strings.ToLower(configuration.DefaultPolicy)
-		if defaultPolicy == "deny" || defaultPolicy == "bypass" {
+		if defaultPolicy == denyPolicy || defaultPolicy == bypassPolicy {
 			validator.Push(fmt.Errorf("Default policy is [%s] invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'", defaultPolicy))
 
 			return

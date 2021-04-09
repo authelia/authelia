@@ -70,7 +70,7 @@ func (suite *AccessControl) TestShouldRaiseErrorWithNoRulesDefined() {
 func (suite *AccessControl) TestShouldRaiseWarningWithNoRulesDefined() {
 	suite.configuration.Rules = []schema.ACLRule{}
 
-	suite.configuration.DefaultPolicy = "two_factor"
+	suite.configuration.DefaultPolicy = twoFactorPolicy
 
 	ValidateRules(suite.configuration, suite.validator)
 
