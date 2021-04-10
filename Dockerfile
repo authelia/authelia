@@ -1,7 +1,7 @@
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.16.2-alpine AS builder-backend
+FROM golang:1.16.3-alpine AS builder-backend
 
 ARG BUILD_TAG
 ARG BUILD_COMMIT
@@ -34,7 +34,7 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-s -w -link
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.13.3
+FROM alpine:3.13.4
 
 WORKDIR /app
 

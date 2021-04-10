@@ -8,5 +8,6 @@ spec:
   selector:
     app: ldap
   ports:
-  - protocol: TCP
-    port: 636
+    - protocol: TCP
+      port: 636
+...

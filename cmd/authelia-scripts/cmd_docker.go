@@ -23,7 +23,7 @@ var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
 var ciTag = os.Getenv("BUILDKITE_TAG")
 var dockerTags = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
 var ignoredSuffixes = regexp.MustCompile("alpha|beta")
-var publicRepo = regexp.MustCompile(`.*\:.*`)
+var publicRepo = regexp.MustCompile(`.*:.*`)
 var tags = dockerTags.FindStringSubmatch(ciTag)
 
 func init() {
@@ -144,30 +144,39 @@ var DockerManifestCmd = &cobra.Command{
 	},
 }
 
-func login(docker *Docker) {
-	username := os.Getenv("DOCKER_USERNAME")
-	password := os.Getenv("DOCKER_PASSWORD")
+func login(docker *Docker, registry string) {
+	username := ""
+	password := ""
+
+	switch registry {
+	case dockerhub:
+		username = os.Getenv("DOCKER_USERNAME")
+		password = os.Getenv("DOCKER_PASSWORD")
+	case ghcr:
+		username = os.Getenv("GHCR_USERNAME")
+		password = os.Getenv("GHCR_PASSWORD")
+	}
 
 	if username == "" {
-		log.Fatal(errors.New("DOCKER_USERNAME is empty"))
+		log.Fatal(errors.New("DOCKER_USERNAME/GHCR_USERNAME is empty"))
 	}
 
 	if password == "" {
-		log.Fatal(errors.New("DOCKER_PASSWORD is empty"))
+		log.Fatal(errors.New("DOCKER_PASSWORD/GHCR_PASSWORD is empty"))
 	}
 
-	log.Infof("Login to Docker Hub as %s", username)
-	err := docker.Login(username, password)
+	log.Infof("Login to %s as %s", registry, username)
+	err := docker.Login(username, password, registry)
 
 	if err != nil {
-		log.Fatal("Login to Docker Hub failed", err)
+		log.Fatalf("Login to %s failed: %s", registry, err)
 	}
 }
 
-func deploy(docker *Docker, tag string) {
-	imageWithTag := DockerImageName + ":" + tag
+func deploy(docker *Docker, tag, registry string) {
+	imageWithTag := registry + "/" + DockerImageName + ":" + tag
 
-	log.Infof("Docker image %s will be deployed on Docker Hub", imageWithTag)
+	log.Infof("Docker image %s will be deployed on %s", imageWithTag, registry)
 
 	if err := docker.Tag(DockerImageName, imageWithTag); err != nil {
 		log.Fatal(err)
@@ -178,10 +187,10 @@ func deploy(docker *Docker, tag string) {
 	}
 }
 
-func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag string, arm64v8tag string) {
-	dockerImagePrefix := DockerImageName + ":"
+func deployManifest(docker *Docker, tag, amd64tag, arm32v7tag, arm64v8tag, registry string) {
+	dockerImagePrefix := registry + "/" + DockerImageName + ":"
 
-	log.Infof("Docker manifest %s%s will be deployed on Docker Hub", dockerImagePrefix, tag)
+	log.Infof("Docker manifest %s%s will be deployed on %s", dockerImagePrefix, tag, registry)
 
 	err := docker.Manifest(dockerImagePrefix+tag, dockerImagePrefix+amd64tag, dockerImagePrefix+arm32v7tag, dockerImagePrefix+arm64v8tag)
 
@@ -190,11 +199,14 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 	}
 
 	tags := []string{amd64tag, arm32v7tag, arm64v8tag}
-	for _, t := range tags {
-		log.Infof("Docker removing tag for %s%s on Docker Hub", dockerImagePrefix, t)
 
-		if err := docker.CleanTag(t); err != nil {
-			panic(err)
+	if registry == dockerhub {
+		for _, t := range tags {
+			log.Infof("Docker removing tag for %s%s on Docker Hub", dockerImagePrefix, t)
+
+			if err := docker.CleanTag(t); err != nil {
+				panic(err)
+			}
 		}
 	}
 }
@@ -202,68 +214,81 @@ func deployManifest(docker *Docker, tag string, amd64tag string, arm32v7tag stri
 func publishDockerImage(arch string) {
 	docker := &Docker{}
 
-	switch {
-	case ciTag != "":
-		if len(tags) == 4 {
-			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
-			login(docker)
-			deploy(docker, tags[1]+"-"+arch)
+	for _, registry := range registries {
+		switch {
+		case ciTag != "":
+			if len(tags) == 4 {
+				log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
+				login(docker, registry)
+				deploy(docker, tags[1]+"-"+arch, registry)
 
-			if !ignoredSuffixes.MatchString(ciTag) {
-				deploy(docker, tags[2]+"-"+arch)
-				deploy(docker, tags[3]+"-"+arch)
-				deploy(docker, "latest-"+arch)
+				if !ignoredSuffixes.MatchString(ciTag) {
+					deploy(docker, tags[2]+"-"+arch, registry)
+					deploy(docker, tags[3]+"-"+arch, registry)
+					deploy(docker, "latest-"+arch, registry)
+				}
+			} else {
+				log.Fatal("Docker image will not be published, the specified tag does not conform to the standard")
 			}
-		} else {
-			log.Fatal("Docker image will not be published, the specified tag does not conform to the standard")
+		case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
+			login(docker, registry)
+			deploy(docker, ciBranch+"-"+arch, registry)
+		case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
+			login(docker, registry)
+			deploy(docker, "PR"+ciPullRequest+"-"+arch, registry)
+		case ciBranch == masterTag && ciPullRequest == stringFalse:
+			login(docker, registry)
+			deploy(docker, "master-"+arch, registry)
+		default:
+			log.Info("Docker image will not be published")
 		}
-	case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
-		login(docker)
-		deploy(docker, ciBranch+"-"+arch)
-	case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
-		login(docker)
-		deploy(docker, "PR"+ciPullRequest+"-"+arch)
-	case ciBranch == masterTag && ciPullRequest == stringFalse:
-		login(docker)
-		deploy(docker, "master-"+arch)
-	default:
-		log.Info("Docker image will not be published")
 	}
 }
 
 func publishDockerManifest() {
 	docker := &Docker{}
 
-	switch {
-	case ciTag != "":
-		if len(tags) == 4 {
-			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
-			login(docker)
-			deployManifest(docker, tags[1], tags[1]+"-amd64", tags[1]+"-arm32v7", tags[1]+"-arm64v8")
-			publishDockerReadme(docker)
+	for _, registry := range registries {
+		switch {
+		case ciTag != "":
+			if len(tags) == 4 {
+				log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
+				login(docker, registry)
+				deployManifest(docker, tags[1], tags[1]+"-amd64", tags[1]+"-arm32v7", tags[1]+"-arm64v8", registry)
 
-			if !ignoredSuffixes.MatchString(ciTag) {
-				deployManifest(docker, tags[2], tags[2]+"-amd64", tags[2]+"-arm32v7", tags[2]+"-arm64v8")
-				deployManifest(docker, tags[3], tags[3]+"-amd64", tags[3]+"-arm32v7", tags[3]+"-arm64v8")
-				deployManifest(docker, "latest", "latest-amd64", "latest-arm32v7", "latest-arm64v8")
-				publishDockerReadme(docker)
-				updateMicroBadger(docker)
+				if registry == dockerhub {
+					publishDockerReadme(docker)
+				}
+
+				if !ignoredSuffixes.MatchString(ciTag) {
+					deployManifest(docker, tags[2], tags[2]+"-amd64", tags[2]+"-arm32v7", tags[2]+"-arm64v8", registry)
+					deployManifest(docker, tags[3], tags[3]+"-amd64", tags[3]+"-arm32v7", tags[3]+"-arm64v8", registry)
+					deployManifest(docker, "latest", "latest-amd64", "latest-arm32v7", "latest-arm64v8", registry)
+
+					if registry == dockerhub {
+						publishDockerReadme(docker)
+						updateMicroBadger(docker)
+					}
+				}
+			} else {
+				log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
 			}
-		} else {
-			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
+		case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
+			login(docker, registry)
+			deployManifest(docker, ciBranch, ciBranch+"-amd64", ciBranch+"-arm32v7", ciBranch+"-arm64v8", registry)
+		case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
+			login(docker, registry)
+			deployManifest(docker, "PR"+ciPullRequest, "PR"+ciPullRequest+"-amd64", "PR"+ciPullRequest+"-arm32v7", "PR"+ciPullRequest+"-arm64v8", registry)
+		case ciBranch == masterTag && ciPullRequest == stringFalse:
+			login(docker, registry)
+			deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8", registry)
+
+			if registry == dockerhub {
+				publishDockerReadme(docker)
+			}
+		default:
+			log.Info("Docker manifest will not be published")
 		}
-	case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
-		login(docker)
-		deployManifest(docker, ciBranch, ciBranch+"-amd64", ciBranch+"-arm32v7", ciBranch+"-arm64v8")
-	case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
-		login(docker)
-		deployManifest(docker, "PR"+ciPullRequest, "PR"+ciPullRequest+"-amd64", "PR"+ciPullRequest+"-arm32v7", "PR"+ciPullRequest+"-arm64v8")
-	case ciBranch == masterTag && ciPullRequest == stringFalse:
-		login(docker)
-		deployManifest(docker, "master", "master-amd64", "master-arm32v7", "master-arm64v8")
-		publishDockerReadme(docker)
-	default:
-		log.Info("Docker manifest will not be published")
 	}
 }
 

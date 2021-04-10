@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   smtp:
@@ -13,3 +14,4 @@ services:
       - 'traefik.http.services.mail.loadbalancer.server.port=1080'
     networks:
       - authelianet
+...

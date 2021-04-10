@@ -23,22 +23,23 @@ spec:
       terminationGracePeriodSeconds: 60
       serviceAccountName: nginx-ingress-controller-serviceaccount
       containers:
-      - image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.23.0
-        name: nginx-ingress-controller
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 80
-        - containerPort: 443
-        env:
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        args:
-        - /nginx-ingress-controller
-        - --ingress-class=nginx
-        - --election-id=ingress-controller-leader
+        - image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.23.0
+          name: nginx-ingress-controller
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          args:
+            - /nginx-ingress-controller
+            - --ingress-class=nginx
+            - --election-id=ingress-controller-leader
+...
