@@ -2,7 +2,7 @@
 layout: default
 title: Example of authelia lite on docker swarm
 parent: Community
-nav_order: 3
+nav_order: 4
 ---
 
 The overlay network for docker swarm can be initialized with:
@@ -179,4 +179,3 @@ $ find . -type f -name "*.yml" -exec sed -i'' -e 's/your@email.com/wuhanstudio@q
 
 $ docker stack deploy -c traefik-compose.yml traefik
 ```
-
