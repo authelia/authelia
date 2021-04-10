@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   sambaldap:
@@ -12,3 +13,4 @@ services:
       - NOCOMPLEXITY=true
     networks:
       - authelianet
+...

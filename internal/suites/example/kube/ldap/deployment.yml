@@ -17,42 +17,43 @@ spec:
         app: ldap
     spec:
       containers:
-      - name: ldap
-        image: osixia/openldap:1.3.0
-        ports:
-        - containerPort: 389
-        - containerPort: 636
-        args: ["--copy-service", "--loglevel", "debug"]
-        env:
-        - name: LDAP_ORGANISATION
-          value: MyCompany
-        - name: LDAP_DOMAIN
-          value: example.com
-        - name: LDAP_ADMIN_PASSWORD
-          value: password
-        - name: LDAP_CONFIG_PASSWORD
-          value: password
-        - name: LDAP_ADDITIONAL_MODULES
-          value: memberof
-        - name: LDAP_ADDITIONAL_SCHEMAS
-          value: openldap
-        - name: LDAP_FORCE_RECONFIGURE
-          value: "true"
-        - name: LDAP_TLS_VERIFY_CLIENT
-          value: try
-        volumeMounts:
-        - name: config-volume
-          mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom/base.ldif
-          subPath: base.ldif
-        - name: config-volume
-          mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom/access.rules
-          subPath: access.rules
+        - name: ldap
+          image: osixia/openldap:1.3.0
+          ports:
+            - containerPort: 389
+            - containerPort: 636
+          args: ["--copy-service", "--loglevel", "debug"]
+          env:
+            - name: LDAP_ORGANISATION
+              value: MyCompany
+            - name: LDAP_DOMAIN
+              value: example.com
+            - name: LDAP_ADMIN_PASSWORD
+              value: password
+            - name: LDAP_CONFIG_PASSWORD
+              value: password
+            - name: LDAP_ADDITIONAL_MODULES
+              value: memberof
+            - name: LDAP_ADDITIONAL_SCHEMAS
+              value: openldap
+            - name: LDAP_FORCE_RECONFIGURE
+              value: "true"
+            - name: LDAP_TLS_VERIFY_CLIENT
+              value: try
+          volumeMounts:
+            - name: config-volume
+              mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom/base.ldif
+              subPath: base.ldif
+            - name: config-volume
+              mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom/access.rules
+              subPath: access.rules
       volumes:
-      - name: config-volume
-        configMap:
-          name: ldap-config
-          items:
-          - key: base.ldif
-            path: base.ldif
-          - key: access.rules
-            path: access.rules
+        - name: config-volume
+          configMap:
+            name: ldap-config
+            items:
+              - key: base.ldif
+                path: base.ldif
+              - key: access.rules
+                path: access.rules
+...
