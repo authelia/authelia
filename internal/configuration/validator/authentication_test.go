@@ -10,7 +10,22 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
-func TestShouldRaiseErrorsWhenNoBackendProvided(t *testing.T) {
+func TestShouldRaiseErrorWhenBothBackendsProvided(t *testing.T) {
+	validator := schema.NewStructValidator()
+	backendConfig := schema.AuthenticationBackendConfiguration{}
+
+	backendConfig.Ldap = &schema.LDAPAuthenticationBackendConfiguration{}
+	backendConfig.File = &schema.FileAuthenticationBackendConfiguration{
+		Path: "/tmp",
+	}
+
+	ValidateAuthenticationBackend(&backendConfig, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "You cannot provide both `ldap` and `file` objects in `authentication_backend`")
+}
+
+func TestShouldRaiseErrorWhenNoBackendProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	backendConfig := schema.AuthenticationBackendConfiguration{}
 

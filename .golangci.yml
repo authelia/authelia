@@ -1,3 +1,4 @@
+---
 run:
   timeout: 3m
 
@@ -23,8 +24,6 @@ linters:
     - goimports
     - golint
     - gosec
-    - interfacer
-    - maligned
     - misspell
     - nolintlint
     - prealloc
@@ -35,7 +34,7 @@ linters:
 
 issues:
   exclude:
-    - Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked
+    - Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked  # yamllint disable-line rule:line-length
     - func name will be used as test\.Test.* by other packages, and that stutters; consider calling this
     - (possible misuse of unsafe.Pointer|should have signature)
     - ineffective break statement. Did you mean to break out of the outer loop
@@ -47,3 +46,4 @@ issues:
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
+...

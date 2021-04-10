@@ -18,6 +18,18 @@ func TestShouldSetDefaultConfig(t *testing.T) {
 	assert.Equal(t, defaultWriteBufferSize, config.WriteBufferSize)
 }
 
+func TestShouldParsePathCorrectly(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := schema.ServerConfiguration{
+		Path: "apple",
+	}
+
+	ValidateServer(&config, validator)
+	require.Len(t, validator.Errors(), 0)
+
+	assert.Equal(t, "/apple", config.Path)
+}
+
 func TestShouldRaiseOnNegativeValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := schema.ServerConfiguration{

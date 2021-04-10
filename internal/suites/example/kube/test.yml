@@ -17,6 +17,7 @@ spec:
         app: test-app1
     spec:
       containers:
-      - name: test-app1
-        image: authelia/authelia:kube
-        imagePullPolicy: Never
+        - name: test-app1
+          image: authelia/authelia:kube
+          imagePullPolicy: Never
+...

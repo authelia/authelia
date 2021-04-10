@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   nginx-portal:
@@ -14,3 +15,4 @@ services:
           - duo.example.com
         # Set the IP to be able to query on port 443
         ipv4_address: 192.168.240.100
+...

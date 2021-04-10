@@ -24,6 +24,8 @@ services:
     expose:
       - 9091
     restart: unless-stopped
+    healthcheck:
+      disable: true
     environment:
       - TZ=Australia/Melbourne
 
@@ -74,10 +76,9 @@ services:
       - '--certificatesResolvers.letsencrypt.acme.httpChallenge.entryPoint=http'
       - '--log=true'
       - '--log.level=DEBUG'
-      - '--log.filepath=/var/log/traefik.log'
 
   secure:
-    image: containous/whoami
+    image: traefik/whoami
     container_name: secure
     networks:
       - net
@@ -93,7 +94,7 @@ services:
     restart: unless-stopped
 
   public:
-    image: containous/whoami
+    image: traefik/whoami
     container_name: public
     networks:
       - net
