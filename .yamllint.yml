@@ -4,7 +4,6 @@ extends: default
 ignore: |
   internal/configuration/test_resources/config_bad_quoting.yml
   web/node_modules/
-  compose/
 
 rules:
   document-end:
