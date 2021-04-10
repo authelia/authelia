@@ -154,6 +154,7 @@ const LoginPortal = function (props: Props) {
             <Route path={AuthenticatedRoute} exact>
                 {userInfo ? <AuthenticatedView name={userInfo.display_name} /> : null}
             </Route>
+            {/* By default we route to first factor page */}
             <Route path="/">
                 <Redirect to={FirstFactorRoute} />
             </Route>

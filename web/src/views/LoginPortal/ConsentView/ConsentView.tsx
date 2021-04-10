@@ -37,13 +37,8 @@ const ConsentView = function (props: Props) {
 
     useEffect(() => {
         if (err) {
-            createErrorNotification(err.message);
-
-            // If there is an error we simply redirect to the main login page.
-            setTimeout(() => {
-                resetNotification();
-                history.push("/");
-            }, 1000);
+            history.replace("/");
+            console.error(`Unable to display consent screen: ${err.message}`);
         }
     }, [history, resetNotification, createErrorNotification, err]);
 
