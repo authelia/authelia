@@ -82,62 +82,62 @@ func ValidateRules(configuration schema.AccessControlConfiguration, validator *s
 	}
 
 	for i, rule := range configuration.Rules {
-		ruleID := i + 1
+		rulePosition := i + 1
 
 		if len(rule.Domains) == 0 {
-			validator.Push(fmt.Errorf("Rule #%d is invalid, a policy must have one or more domains", ruleID))
+			validator.Push(fmt.Errorf("Rule #%d is invalid, a policy must have one or more domains", rulePosition))
 		}
 
 		if !IsPolicyValid(rule.Policy) {
-			validator.Push(fmt.Errorf("Policy [%s] for rule #%d domain: %s is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'", rule.Policy, ruleID, rule.Domains))
+			validator.Push(fmt.Errorf("Policy [%s] for rule #%d domain: %s is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'", rule.Policy, rulePosition, rule.Domains))
 		}
 
-		validateNetworks(ruleID, rule, configuration, validator)
+		validateNetworks(rulePosition, rule, configuration, validator)
 
-		validateResources(ruleID, rule, validator)
+		validateResources(rulePosition, rule, validator)
 
-		validateSubjects(ruleID, rule, validator)
+		validateSubjects(rulePosition, rule, validator)
 
-		validateMethods(ruleID, rule, validator)
+		validateMethods(rulePosition, rule, validator)
 
 		if rule.Policy == bypassPolicy && len(rule.Subjects) != 0 {
-			validator.Push(fmt.Errorf(errAccessControlInvalidPolicyWithSubjects, ruleID, rule.Domains, rule.Subjects))
+			validator.Push(fmt.Errorf(errAccessControlInvalidPolicyWithSubjects, rulePosition, rule.Domains, rule.Subjects))
 		}
 	}
 }
 
-func validateNetworks(id int, r schema.ACLRule, configuration schema.AccessControlConfiguration, validator *schema.StructValidator) {
-	for _, network := range r.Networks {
+func validateNetworks(rulePosition int, rule schema.ACLRule, configuration schema.AccessControlConfiguration, validator *schema.StructValidator) {
+	for _, network := range rule.Networks {
 		if !IsNetworkValid(network) {
 			if !IsNetworkGroupValid(configuration, network) {
-				validator.Push(fmt.Errorf("Network %s for rule #%d domain: %s is not a valid network or network group", r.Networks, id, r.Domains))
+				validator.Push(fmt.Errorf("Network %s for rule #%d domain: %s is not a valid network or network group", rule.Networks, rulePosition, rule.Domains))
 			}
 		}
 	}
 }
 
-func validateResources(id int, r schema.ACLRule, validator *schema.StructValidator) {
-	for _, resource := range r.Resources {
+func validateResources(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
+	for _, resource := range rule.Resources {
 		if err := IsResourceValid(resource); err != nil {
-			validator.Push(fmt.Errorf("Resource %s for rule #%d domain: %s is invalid, %s", r.Resources, id, r.Domains, err))
+			validator.Push(fmt.Errorf("Resource %s for rule #%d domain: %s is invalid, %s", rule.Resources, rulePosition, rule.Domains, err))
 		}
 	}
 }
 
-func validateSubjects(id int, r schema.ACLRule, validator *schema.StructValidator) {
-	for _, subjectRule := range r.Subjects {
+func validateSubjects(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
+	for _, subjectRule := range rule.Subjects {
 		for _, subject := range subjectRule {
 			if !IsSubjectValid(subject) {
-				validator.Push(fmt.Errorf("Subject %s for rule #%d domain: %s is invalid, must start with 'user:' or 'group:'", subjectRule, id, r.Domains))
+				validator.Push(fmt.Errorf("Subject %s for rule #%d domain: %s is invalid, must start with 'user:' or 'group:'", subjectRule, rulePosition, rule.Domains))
 			}
 		}
 	}
 }
 
-func validateMethods(id int, r schema.ACLRule, validator *schema.StructValidator) {
-	for _, method := range r.Methods {
+func validateMethods(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
+	for _, method := range rule.Methods {
 		if !utils.IsStringInSliceFold(method, validRequestMethods) {
-			validator.Push(fmt.Errorf("Method %s for rule #%d domain: %s is invalid, must be one of the following methods: %s", method, id, r.Domains, strings.Join(validRequestMethods, ", ")))
+			validator.Push(fmt.Errorf("Method %s for rule #%d domain: %s is invalid, must be one of the following methods: %s", method, rulePosition, rule.Domains, strings.Join(validRequestMethods, ", ")))
 		}
 	}
 }

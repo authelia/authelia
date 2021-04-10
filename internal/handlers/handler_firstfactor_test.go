@@ -239,7 +239,7 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 		GetDetails(gomock.Eq("test")).
 		Return(&authentication.UserDetails{
 			// This is the name in authentication backend, in some setups the binding is
-			// case insensitive but the user ID in session must match the user in LDAP
+			// case insensitive but the user Position in session must match the user in LDAP
 			// for the other modules of Authelia to be coherent.
 			Username: "Test",
 			Emails:   []string{"test@example.com"},

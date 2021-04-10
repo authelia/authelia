@@ -79,12 +79,12 @@ func getRequiredLevelFunc(_ *logrus.Logger, rules []*AccessControlRule, subject 
 func getRequiredLevelTraceFunc(log *logrus.Logger, rules []*AccessControlRule, subject Subject, object Object) *Level {
 	for _, rule := range rules {
 		if rule.IsMatch(subject, object) {
-			log.Tracef(traceFmtACLHitMiss, "HIT", rule.ID, subject.String(), object.String(), object.Method)
+			log.Tracef(traceFmtACLHitMiss, "HIT", rule.Position, subject.String(), object.String(), object.Method)
 
 			return &rule.Policy
 		}
 
-		log.Tracef(traceFmtACLHitMiss, "MISS", rule.ID, subject.String(), object.String(), object.Method)
+		log.Tracef(traceFmtACLHitMiss, "MISS", rule.Position, subject.String(), object.String(), object.Method)
 	}
 
 	return nil
