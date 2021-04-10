@@ -11,24 +11,20 @@ import (
 type Authorizer struct {
 	defaultPolicy Level
 	rules         []*AccessControlRule
-
-	getRequiredLevelFunc func(log *logrus.Logger, rules []*AccessControlRule, subject Subject, object Object) *Level
 }
 
 // NewAuthorizer create an instance of authorizer with a given access control configuration.
 func NewAuthorizer(configuration schema.AccessControlConfiguration) *Authorizer {
 	if logging.Logger().IsLevelEnabled(logrus.TraceLevel) {
 		return &Authorizer{
-			defaultPolicy:        PolicyToLevel(configuration.DefaultPolicy),
-			rules:                NewAccessControlRules(configuration),
-			getRequiredLevelFunc: getRequiredLevelTraceFunc,
+			defaultPolicy: PolicyToLevel(configuration.DefaultPolicy),
+			rules:         NewAccessControlRules(configuration),
 		}
 	}
 
 	return &Authorizer{
-		defaultPolicy:        PolicyToLevel(configuration.DefaultPolicy),
-		rules:                NewAccessControlRules(configuration),
-		getRequiredLevelFunc: getRequiredLevelFunc,
+		defaultPolicy: PolicyToLevel(configuration.DefaultPolicy),
+		rules:         NewAccessControlRules(configuration),
 	}
 }
 
@@ -54,38 +50,18 @@ func (p Authorizer) GetRequiredLevel(subject Subject, object Object) Level {
 	logger.Debugf("Check authorization of subject %s and object %s (method %s).",
 		subject.String(), object.String(), object.Method)
 
-	policy := p.getRequiredLevelFunc(logger, p.rules, subject, object)
-
-	if policy == nil {
-		logger.Debugf("No matching rule for subject %s and url %s... Applying default policy.",
-			subject.String(), object.String())
-
-		return p.defaultPolicy
-	}
-
-	return *policy
-}
-
-func getRequiredLevelFunc(_ *logrus.Logger, rules []*AccessControlRule, subject Subject, object Object) *Level {
-	for _, rule := range rules {
+	for _, rule := range p.rules {
 		if rule.IsMatch(subject, object) {
-			return &rule.Policy
-		}
-	}
+			logger.Tracef(traceFmtACLHitMiss, "HIT", rule.Position, subject.String(), object.String(), object.Method)
 
-	return nil
-}
-
-func getRequiredLevelTraceFunc(log *logrus.Logger, rules []*AccessControlRule, subject Subject, object Object) *Level {
-	for _, rule := range rules {
-		if rule.IsMatch(subject, object) {
-			log.Tracef(traceFmtACLHitMiss, "HIT", rule.Position, subject.String(), object.String(), object.Method)
-
-			return &rule.Policy
+			return rule.Policy
 		}
 
-		log.Tracef(traceFmtACLHitMiss, "MISS", rule.Position, subject.String(), object.String(), object.Method)
+		logger.Tracef(traceFmtACLHitMiss, "MISS", rule.Position, subject.String(), object.String(), object.Method)
 	}
 
-	return nil
+	logger.Debugf("No matching rule for subject %s and url %s... Applying default policy.",
+		subject.String(), object.String())
+
+	return p.defaultPolicy
 }
