@@ -464,6 +464,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "wuhanstudio",
+      "name": "Wu Han",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15157070?v=4",
+      "profile": "https://wuhanstudio.cc",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7
