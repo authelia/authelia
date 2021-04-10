@@ -74,10 +74,10 @@ const (
 )
 
 var scopeDescriptions = map[string]string{
-	"openid":  "Account Information",
-	"email":   "Email Addresses",
-	"profile": "User Profile",
-	"groups":  "Group Membership",
+	"openid":  "Use OpenID to verify your identity",
+	"email":   "Access your email addresses",
+	"profile": "Access your username",
+	"groups":  "Access your group membership",
 }
 
 var audienceDescriptions = map[string]string{}

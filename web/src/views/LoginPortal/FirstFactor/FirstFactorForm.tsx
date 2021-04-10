@@ -79,7 +79,7 @@ const FirstFactorForm = function (props: Props) {
 
     return (
         <LoginLayout id="first-factor-stage" title="Sign in" showBrand>
-            <Grid container spacing={2} className={style.root}>
+            <Grid container spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
                         // TODO (PR: #806, Issue: #511) potentially refactor
@@ -205,10 +205,6 @@ const FirstFactorForm = function (props: Props) {
 export default FirstFactorForm;
 
 const useStyles = makeStyles((theme) => ({
-    root: {
-        marginTop: theme.spacing(),
-        marginBottom: theme.spacing(),
-    },
     actionRow: {
         display: "flex",
         flexDirection: "row",

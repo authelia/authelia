@@ -65,7 +65,11 @@ const useStyles = makeStyles((theme) => ({
         width: "64px",
         fill: theme.custom.icon,
     },
-    body: {},
+    body: {
+        marginTop: theme.spacing(),
+        paddingTop: theme.spacing(),
+        paddingBottom: theme.spacing(),
+    },
     poweredBy: {
         fontSize: "0.7em",
         color: grey[500],

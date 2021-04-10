@@ -81,17 +81,18 @@ const ConsentView = function (props: Props) {
             <LoginLayout id="consent-stage" title={`Permissions Request`} showBrand>
                 <Grid container>
                     <Grid item xs={12}>
-                        <div>
-                            The application {resp?.client_description} ({resp?.client_id}) is requesting the following
-                            permissions:
+                        <div style={{ textAlign: "left" }}>
+                            The application
+                            <b>{` ${resp?.client_description} (${resp?.client_id}) `}</b>
+                            is requesting the following permissions
                         </div>
                     </Grid>
                     <Grid item xs={12}>
-                        <div>
+                        <div className={classes.scopesListContainer}>
                             <List className={classes.scopesList}>
                                 {resp?.scopes.map((s) => (
                                     <Tooltip title={"Scope " + s.name}>
-                                        <ListItem id={"scope-" + s.name}>
+                                        <ListItem id={"scope-" + s.name} dense>
                                             <ListItemIcon>{showListItemAvatar(s.name)}</ListItemIcon>
                                             <ListItemText primary={s.description} />
                                         </ListItem>
@@ -101,26 +102,30 @@ const ConsentView = function (props: Props) {
                         </div>
                     </Grid>
                     <Grid item xs={12}>
-                        <div>
-                            <Button
-                                className={classes.button}
-                                disabled={!resp}
-                                onClick={handleAcceptConsent}
-                                color="primary"
-                                variant="contained"
-                            >
-                                Accept
-                            </Button>
-                            <Button
-                                className={classes.button}
-                                disabled={!resp}
-                                onClick={handleRejectConsent}
-                                color="secondary"
-                                variant="contained"
-                            >
-                                Deny
-                            </Button>
-                        </div>
+                        <Grid container spacing={1}>
+                            <Grid item xs={6}>
+                                <Button
+                                    className={classes.button}
+                                    disabled={!resp}
+                                    onClick={handleAcceptConsent}
+                                    color="primary"
+                                    variant="contained"
+                                >
+                                    Accept
+                                </Button>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Button
+                                    className={classes.button}
+                                    disabled={!resp}
+                                    onClick={handleRejectConsent}
+                                    color="secondary"
+                                    variant="contained"
+                                >
+                                    Deny
+                                </Button>
+                            </Grid>
+                        </Grid>
                     </Grid>
                 </Grid>
             </LoginLayout>
@@ -135,10 +140,14 @@ const useStyles = makeStyles((theme) => ({
         display: "block",
         justifyContent: "center",
     },
+    scopesListContainer: {
+        textAlign: "center",
+    },
     scopesList: {
+        display: "inline-block",
         backgroundColor: theme.palette.background.paper,
-        marginLeft: theme.spacing(),
-        marginRight: theme.spacing(),
+        marginTop: theme.spacing(2),
+        marginBottom: theme.spacing(2),
     },
     clientID: {
         fontWeight: "bold",
@@ -146,6 +155,7 @@ const useStyles = makeStyles((theme) => ({
     button: {
         marginLeft: theme.spacing(),
         marginRight: theme.spacing(),
+        width: "100%",
     },
     bulletIcon: {
         display: "inline-block",
