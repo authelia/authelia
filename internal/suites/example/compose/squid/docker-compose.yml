@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   # Simulates client 1.
@@ -17,3 +18,4 @@ services:
       authelianet:
         # Set the IP to be able to query on port 443
         ipv4_address: 192.168.240.202
+...

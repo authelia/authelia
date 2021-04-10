@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   openldap-admin:
@@ -9,3 +10,4 @@ services:
       - PHPLDAPADMIN_HTTPS=false
     networks:
       - authelianet
+...

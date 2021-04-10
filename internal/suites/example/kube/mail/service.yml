@@ -8,9 +8,10 @@ spec:
   selector:
     app: mailcatcher
   ports:
-  - protocol: TCP
-    port: 1080
-    name: ui
-  - protocol: TCP
-    port: 1025
-    name: smtp
+    - protocol: TCP
+      port: 1080
+      name: ui
+    - protocol: TCP
+      port: 1025
+      name: smtp
+...

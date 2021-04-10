@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   traefik:
@@ -9,10 +10,11 @@ services:
       - 'traefik.http.routers.api.entrypoints=https'
       - 'traefik.http.routers.api.service=api@internal'
       - 'traefik.http.routers.api.tls=true'
-      - 'traefik.http.middlewares.authelia.forwardauth.address=https://authelia-backend:9091${PathPrefix}/api/verify?rd=https://login.example.com:8080${PathPrefix}' # Traefik 2.x
-      - 'traefik.http.middlewares.authelia.forwardauth.tls.insecureSkipVerify=true' # Traefik 2.x
-      - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true' # Traefik 2.x
-      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email' # Traefik 2.x
+      # Traefik 2.x
+      - 'traefik.http.middlewares.authelia.forwardauth.address=https://authelia-backend:9091${PathPrefix}/api/verify?rd=https://login.example.com:8080${PathPrefix}'  # yamllint disable-line rule:line-length
+      - 'traefik.http.middlewares.authelia.forwardauth.tls.insecureSkipVerify=true'
+      - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
+      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'  # yamllint disable-line rule:line-length
     command:
       - '--api'
       - '--providers.docker=true'
@@ -26,3 +28,4 @@ services:
       authelianet:
         # Set the IP to be able to query on port 8080
         ipv4_address: 192.168.240.100
+...

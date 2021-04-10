@@ -17,9 +17,9 @@ spec:
         app: mailcatcher
     spec:
       containers:
-      - name: mailcatcher
-        image: schickling/mailcatcher
-        ports:
-        - containerPort: 1025
-        - containerPort: 1080
-
+        - name: mailcatcher
+          image: schickling/mailcatcher
+          ports:
+            - containerPort: 1025
+            - containerPort: 1080
+...
