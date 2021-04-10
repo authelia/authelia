@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   authelia-backend:
@@ -6,3 +7,4 @@ services:
       - './OIDC/users.yml:/config/users.yml'
       - './OIDC/keypair/key.pem:/config/issuer.pem:ro'
       - './common/ssl:/config/ssl:ro'
+...
