@@ -8,6 +8,7 @@ spec:
   selector:
     app: authelia
   ports:
-  - protocol: TCP
-    port: 443
-    targetPort: 443
+    - protocol: TCP
+      port: 443
+      targetPort: 443
+...

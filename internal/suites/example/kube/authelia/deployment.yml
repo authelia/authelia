@@ -69,3 +69,4 @@ spec:
                 path: sql_password
               - key: ldap_password
                 path: ldap_password
+...

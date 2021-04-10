@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   redis-node-0:
@@ -94,3 +95,4 @@ services:
         aliases:
           - redis-sentinel-2.example.com
         ipv4_address: 192.168.240.122
+...
