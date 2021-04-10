@@ -17,6 +17,10 @@ func ValidateKeys(validator *schema.StructValidator, keys []string) {
 			continue
 		}
 
+		if isSecretKey(key) {
+			continue
+		}
+
 		if err, ok := specificErrorKeys[key]; ok {
 			if !utils.IsStringInSlice(err, errStrings) {
 				errStrings = append(errStrings, err)

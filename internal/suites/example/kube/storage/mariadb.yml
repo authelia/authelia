@@ -39,7 +39,7 @@ spec:
         - name: data-volume
           hostPath:
             path: /data/storage/mysql
-
+...
 ---
 apiVersion: v1
 kind: Service
@@ -50,5 +50,6 @@ spec:
   selector:
     app: mariadb
   ports:
-  - protocol: TCP
-    port: 3306
+    - protocol: TCP
+      port: 3306
+...

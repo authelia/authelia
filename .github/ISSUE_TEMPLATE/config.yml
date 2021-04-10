@@ -1,0 +1,13 @@
+---
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://www.authelia.com/docs/
+    about: Read the Documentation
+  - name: Matrix
+    url: https://riot.im/app/#/room/#authelia:matrix.org
+    about: Discuss Authelia with the Developers on Matrix which is the preferred method of contact
+  - name: Discord
+    url: https://discord.authelia.com
+    about: Discuss Authelia with the Developers on Discord which is bridged to Matrix
+...

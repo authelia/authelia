@@ -24,11 +24,11 @@ func ValidateStorage(configuration schema.StorageConfiguration, validator *schem
 
 func validateSQLConfiguration(configuration *schema.SQLStorageConfiguration, validator *schema.StructValidator) {
 	if configuration.Password == "" || configuration.Username == "" {
-		validator.Push(errors.New("Username and password must be provided"))
+		validator.Push(errors.New("the SQL username and password must be provided"))
 	}
 
 	if configuration.Database == "" {
-		validator.Push(errors.New("A database must be provided"))
+		validator.Push(errors.New("the SQL database must be provided"))
 	}
 }
 

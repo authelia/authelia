@@ -17,34 +17,34 @@ spec:
         app: test-app
     spec:
       containers:
-      - name: test-app
-        image: nginx:alpine
-        command: ["/entrypoint.sh"]
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: config-volume
-          mountPath: /entrypoint.sh
-          subPath: entrypoint.sh
-        - name: config-volume
-          mountPath: /etc/nginx/nginx.conf
-          subPath: nginx.conf
-        - name: config-volume
-          mountPath: /tmp/html.tar.gz
-          subPath: html.tar.gz
+        - name: test-app
+          image: nginx:alpine
+          command: ["/entrypoint.sh"]
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: config-volume
+              mountPath: /entrypoint.sh
+              subPath: entrypoint.sh
+            - name: config-volume
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: config-volume
+              mountPath: /tmp/html.tar.gz
+              subPath: html.tar.gz
       volumes:
-      - name: config-volume
-        configMap:
-          name: nginx-config
-          items:
-            - key: entrypoint.sh
-              path: entrypoint.sh
-              mode: 0755
-            - key: nginx.conf
-              path: nginx.conf
-            - key: html.tar.gz
-              path: html.tar.gz
-
+        - name: config-volume
+          configMap:
+            name: nginx-config
+            items:
+              - key: entrypoint.sh
+                path: entrypoint.sh
+                mode: 0755  # yamllint disable-line rule:octal-values
+              - key: nginx.conf
+                path: nginx.conf
+              - key: html.tar.gz
+                path: html.tar.gz
+...
 ---
 apiVersion: v1
 kind: Service
@@ -61,7 +61,7 @@ spec:
       name: http
     - port: 443
       name: https
-
+...
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -85,7 +85,7 @@ spec:
             backend:
               serviceName: test-app-service
               servicePort: 80
-
+...
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -151,3 +151,4 @@ spec:
             backend:
               serviceName: test-app-service
               servicePort: 80
+...
