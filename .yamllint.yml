@@ -5,8 +5,6 @@ ignore: |
   internal/configuration/test_resources/config_bad_quoting.yml
   web/node_modules/
   compose/
-  config.template.yml
-  internal/configuration/config.template.yml
 
 rules:
   document-end:
