@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   duo-api:
@@ -5,3 +6,4 @@ services:
       context: ./example/compose/duo-api
     networks:
       - authelianet
+...

@@ -1,3 +1,4 @@
+---
 ###############################################################
 #                   Authelia configuration                    #
 ###############################################################
@@ -78,8 +79,8 @@ access_control:
       policy: two_factor
 
 session:
-  expiration: 3600 # 1 hour
-  inactivity: 300 # 5 minutes
+  expiration: 3600  # 1 hour
+  inactivity: 300  # 5 minutes
   remember_me_duration: 1y
   domain: example.com
   redis:
@@ -104,3 +105,4 @@ notifier:
     port: 1025
     sender: admin@example.com
     disable_require_tls: true
+...

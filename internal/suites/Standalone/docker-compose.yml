@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   authelia-backend:
@@ -10,3 +11,4 @@ services:
       - './common/ssl:/config/ssl:ro'
       - '/tmp:/tmp'
     user: ${USER_ID}:${GROUP_ID}
+...
