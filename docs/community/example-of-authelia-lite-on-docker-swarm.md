@@ -83,6 +83,9 @@ services:
         # Authelia
         - 'traefik.http.routers.apis.service=api@internal'
         - 'traefik.http.routers.apis.middlewares=authelia@docker'
+      placement:
+        constraints:
+          - node.role == manager
     command: 
       - "--api"
       - "--providers.docker=true"
@@ -104,6 +107,7 @@ services:
         published: 443
         mode: host
     volumes:
+      # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock
       - ./letsencrypt:/letsencrypt
     networks:
