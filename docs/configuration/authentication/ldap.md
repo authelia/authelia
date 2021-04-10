@@ -70,24 +70,25 @@ section [here](../index.md#tls-configuration).
 
 ### base_dn
 
-Sets the base LDAP path for all LDAP queries. If your LDAP domain is example.com this is usually 
+Sets the base distinguished name container for all LDAP queries. If your LDAP domain is example.com this is usually 
 `dc=example,dc=com`, however you can fine tune this to be more specific for example to only include objects inside the
-authelia OU: `ou=authelia,dc=example,dc=com`.
-
+authelia OU: `ou=authelia,dc=example,dc=com`. This is prefixed with the [additional_users_dn](#additional_users_dn) for
+user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
 
 ### username_attribute
 
-The LDAP attribute that maps to the username.
+The LDAP attribute that maps to the username in Authelia.
 
 ### additional_users_dn
 
-Additional LDAP path to append to the `base_dn` when searching for users. Useful if you want to restrict exactly which 
-OU to get users from for either security or performance reasons. For example setting it to `ou=users,ou=people` with a 
-base_dn set to `dc=example,dc=com` will mean user searches will occur in `ou=users,ou=people,dc=example,dc=com`.
+Additional LDAP path to append to the [base_dn](#base_dn) when searching for users. Useful if you want to restrict 
+exactly which OU to get users from for either security or performance reasons. For example setting it to 
+`ou=users,ou=people` with a base_dn set to `dc=example,dc=com` will mean user searches will occur in 
+`ou=users,ou=people,dc=example,dc=com`.
 
 ### users_filter
 
-The LDAP filter to narrow down which users are valid. This is important to set correctly so you exclude disabled users.
+The LDAP filter to narrow down which users are valid. This is important to set correctly as to exclude disabled users.
 
 ### additional_groups_dn
 

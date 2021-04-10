@@ -139,7 +139,8 @@ authentication_backend:
       ## Minimum TLS version for either Secure LDAP or LDAP StartTLS.
       minimum_version: TLS1.2
 
-    ## The base dn used when looking up objects (users/groups) in the directory.
+    ## The distinguished name of the container searched for objects in the directory information tree.
+    ## See also: additional_users_dn, additional_groups_dn.
     base_dn: dc=example,dc=com
 
     ## The attribute holding the username of the user. This attribute is used to populate the username in the session
@@ -152,7 +153,8 @@ authentication_backend:
     ## (sAMAccountName and uid) to follow https://www.ietf.org/rfc/rfc2307.txt.
     # username_attribute: uid
 
-    ## The additional_users_dn is appended to the start of base_dn and delimited by a comma when searching for users.
+    ## The additional_users_dn is prefixed to base_dn and delimited by a comma when searching for users.
+    ## i.e. with this set to OU=Users and base_dn set to DC=a,DC=com; OU=Users,DC=a,DC=com is searched for users.
     additional_users_dn: ou=users
 
     ## The users filter used in search queries to find the user profile based on input filled in login form.
@@ -173,7 +175,8 @@ authentication_backend:
     ## (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     users_filter: (&({username_attribute}={input})(objectClass=person))
 
-    ## The additional_groups_dn is appended to the start of base_dn and delimited by a comma when searching for groups.
+    ## The additional_groups_dn is prefixed to base_dn and delimited by a comma when searching for groups.
+    ## i.e. with this set to OU=Groups and base_dn set to DC=a,DC=com; OU=Groups,DC=a,DC=com is searched for groups.
     additional_groups_dn: ou=groups
 
     ## The groups filter used in search queries to find the groups of the user.
