@@ -579,7 +579,8 @@ identity_providers:
 
     ## Clients is a list of known clients and their configuration.
     clients:
-      - ## The ID is the OpenID Connect ClientID which is used to link an application to a configuration.
+      -
+        ## The ID is the OpenID Connect ClientID which is used to link an application to a configuration.
         id: myapp
 
         ## The description to show to users when they end up on the consent screen. Defaults to the ID above.
