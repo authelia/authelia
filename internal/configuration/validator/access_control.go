@@ -69,14 +69,13 @@ func ValidateAccessControl(configuration schema.AccessControlConfiguration, vali
 // ValidateRules validates an ACL Rule configuration.
 func ValidateRules(configuration schema.AccessControlConfiguration, validator *schema.StructValidator) {
 	if len(configuration.Rules) == 0 {
-		defaultPolicy := strings.ToLower(configuration.DefaultPolicy)
-		if defaultPolicy == denyPolicy || defaultPolicy == bypassPolicy {
-			validator.Push(fmt.Errorf("Default Policy [%s] is invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'", defaultPolicy))
+		if configuration.DefaultPolicy != oneFactorPolicy && configuration.DefaultPolicy != twoFactorPolicy {
+			validator.Push(fmt.Errorf("Default Policy [%s] is invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'", configuration.DefaultPolicy))
 
 			return
 		}
 
-		validator.PushWarning(fmt.Errorf("No access control rules have been defined so the default policy %s will be applied to all requests", defaultPolicy))
+		validator.PushWarning(fmt.Errorf("No access control rules have been defined so the default policy %s will be applied to all requests", configuration.DefaultPolicy))
 
 		return
 	}

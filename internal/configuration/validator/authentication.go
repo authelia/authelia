@@ -176,13 +176,13 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 
 		if !strings.Contains(configuration.UsersFilter, "{username_attribute}") {
 			validator.Push(errors.New("Unable to detect {username_attribute} placeholder in users_filter, your configuration is broken. " +
-				"Please review configuration options listed at https://docs.authelia.com/configuration/authentication/ldap.html"))
+				"Please review configuration options listed at https://www.authelia.com/docs/configuration/authentication/ldap.html"))
 		}
 
 		// This test helps the user know that users_filter is broken after the breaking change induced by this commit.
 		if !strings.Contains(configuration.UsersFilter, "{0}") && !strings.Contains(configuration.UsersFilter, "{input}") {
 			validator.Push(errors.New("Unable to detect {input} placeholder in users_filter, your configuration might be broken. " +
-				"Please review configuration options listed at https://docs.authelia.com/configuration/authentication/ldap.html"))
+				"Please review configuration options listed at https://www.authelia.com/docs/configuration/authentication/ldap.html"))
 		}
 	}
 
