@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
@@ -51,9 +50,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !authorization.IsAuthLevelSufficient(
-		userSession.AuthenticationLevel,
-		userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
+	if !ctx.Providers.OpenIDConnect.IsAuthenticationLevelSufficient(userSession.OIDCWorkflowSession.ClientID, userSession.AuthenticationLevel) {
 		ctx.Logger.Debugf("Insufficient permissions to give consent v1 %d -> %d", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel)
 		ctx.ReplyForbidden()
 

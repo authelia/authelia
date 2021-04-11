@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/session"
@@ -33,13 +32,6 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 
 	targetURL := ar.GetRedirectURI()
 	userSession := ctx.GetSession()
-
-	// Resolve the required level of authorizations to proceed with OIDC
-	requiredAuthorizationLevel := ctx.Providers.Authorizer.GetRequiredLevel(authorization.Subject{
-		Username: userSession.Username,
-		Groups:   userSession.Groups,
-		IP:       ctx.RemoteIP(),
-	}, authorization.NewObjectRaw(targetURL, []byte("GET")))
 
 	requestedScopes := ar.GetRequestedScopes()
 	requestedAudience := ar.GetRequestedAudience()
@@ -74,7 +66,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		userSession.OIDCWorkflowSession.RequestedAudience = requestedAudience
 		userSession.OIDCWorkflowSession.AuthURI = forwardedURI.String()
 		userSession.OIDCWorkflowSession.TargetURI = targetURL.String()
-		userSession.OIDCWorkflowSession.RequiredAuthorizationLevel = requiredAuthorizationLevel
+		userSession.OIDCWorkflowSession.RequiredAuthorizationLevel = ctx.Providers.OpenIDConnect.GetClient(clientID).Policy
 
 		if err := ctx.SaveSession(userSession); err != nil {
 			ctx.Logger.Errorf("%v", err)

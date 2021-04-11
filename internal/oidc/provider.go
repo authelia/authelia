@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -30,6 +31,9 @@ func New(configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConne
 	provider.Clients = make(map[string]*AutheliaClient)
 
 	for _, client := range configuration.Clients {
+		policy := authorization.PolicyToLevel(client.Policy)
+		logging.Logger().Debugf("Registering client %s with policy %s (%v)", client.ID, client.Policy, policy)
+
 		provider.Clients[client.ID] = &AutheliaClient{
 			ID:            client.ID,
 			Description:   client.Description,
