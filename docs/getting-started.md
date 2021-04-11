@@ -13,7 +13,7 @@ nav_order: 2
 These commands are intended to be run sequentially:
 
 - `git clone https://github.com/authelia/authelia.git`
-- `cd authelia/compose/local`
+- `cd authelia/examples/compose/local`
 - `sudo ./setup.sh` *sudo is required to modify the `/etc/hosts` file*
 
 You can now visit the following locations; replace example.com with the domain you specified in the setup script:
