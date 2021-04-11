@@ -26,6 +26,14 @@ storage:
 ## Options
 
 ### host
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: localhost
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The database server host.
 
@@ -35,6 +43,14 @@ host: "[fd00:1111:2222:3333::1]"
 ```
 
 ### port
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple } 
+default: 5432
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The port the database server is listening on.
 
@@ -44,15 +60,35 @@ The database name on the database server that the assigned [user](#username) has
 **Authelia**.
 
 ### username
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The username paired with the password used to connect to the database.
 
 ### password
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The password paired with the username used to connect to the database. Can also be defined using a
 [secret](../secrets.md) which is also the recommended way when running as a container.
 
 ### sslmode
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+default: disable
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 SSL mode configures how to handle SSL connections with Postgres.
 Valid options are 'disable', 'require', 'verify-ca', or 'verify-full'.

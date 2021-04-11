@@ -17,8 +17,16 @@ port: 9091
 ```
 
 ### host
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: 0.0.0.0
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-Defines the address to listen on. See also [port](#port). Should typically be `0.0.0.0` or `127.0.0.1`, the former for 
+Defines the address to listen on. See also [port](#port). Should typically be `0.0.0.0` or `127.0.0.1`, the former for
 containerized environments and the later for daemonized environments like init.d and systemd.
 
 Note: If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
@@ -28,15 +36,21 @@ host: "[fd00:1111:2222:3333::1]"
 ```
 
 ### port
-
-`optional: true`
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple } 
+default: 9091
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 Defines the port to listen on. See also [host](#host).
 
 ## TLS
 
-Authelia's port typically listens for plain unencrypted connections. This is by design as most environments allow to 
-security on lower areas of the OSI model. However if required, when you specify both of the tls options the port will 
+Authelia's port typically listens for plain unencrypted connections. This is by design as most environments allow to
+security on lower areas of the OSI model. However it required, if you specify both of the tls options the port will
 listen for TLS connections.
 
 ```yaml
@@ -45,10 +59,26 @@ tls_cert: /config/ssl/cert.pem
 ```
 
 ### tls_key
+<div markdown="1">
+type: string (path)
+{: .label .label-config .label-purple } 
+default: ""
+{: .label .label-config .label-blue }
+required: situational
+{: .label .label-config .label-yellow }
+</div>
 
-The path to the private key for TLS connections. Must be in DER base64/PEM format. 
+The path to the private key for TLS connections. Must be in DER base64/PEM format.
 
 ### tls_cert
+<div markdown="1">
+type: string (path)
+{: .label .label-config .label-purple } 
+default: ""
+{: .label .label-config .label-blue }
+required: situational
+{: .label .label-config .label-yellow }
+</div>
 
 The path to the public certificate for TLS connections. Must be in DER base64/PEM format.
 
@@ -56,7 +86,7 @@ The path to the public certificate for TLS connections. Must be in DER base64/PE
 
 This option defines the location of additional certificates to load into the trust chain specifically for Authelia.
 This currently affects both the SMTP notifier and the LDAP authentication backend. The certificates should all be in the
-PEM format and end with the extension `.pem`, `.crt`, or `.cer`. You can either add the individual certificates public 
+PEM format and end with the extension `.pem`, `.crt`, or `.cer`. You can either add the individual certificates public
 key or the CA public key which signed them (don't add the private key).
 
 ```yaml
@@ -66,9 +96,17 @@ certificates_directory: /config/certs/
 ## Logging
 
 ### log_level
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: info
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-Defines the level of logs used by Authelia. This level can be set to `trace`, `debug` or `info`. When setting log_level 
-to `trace`, you will generate a large amount of log entries and expose the `/debug/vars` and `/debug/pprof/` endpoints 
+Defines the level of logs used by Authelia. This level can be set to `trace`, `debug` or `info`. When setting log_level
+to `trace`, you will generate a large amount of log entries and expose the `/debug/vars` and `/debug/pprof/` endpoints
 which should not be enabled in production.
 
 ```yaml
@@ -76,6 +114,14 @@ log_level: debug
 ```
 
 ### log_format
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: ""
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 Defines the format of the logs written by Authelia. This format can be set to `json` or `text`.
 
@@ -95,9 +141,17 @@ time="2020-01-01T00:00:00+11:00" level=info msg="Authelia is listening for non-T
 ```
 
 ### log_file_path
+<div markdown="1">
+type: string (path)
+{: .label .label-config .label-purple } 
+default: ""
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-Logs can be stored in a file when file path is provided. Otherwise logs are written to standard output. When setting the 
-log_level to `debug` or `trace` this will generate large amount of log entries. Administrators will need to ensure that 
+Logs can be stored in a file when file path is provided. Otherwise logs are written to standard output. When setting the
+log_level to `debug` or `trace` this will generate large amount of log entries. Administrators will need to ensure that
 they rotate and/or truncate the logs over time to prevent significant long-term disk usage.
 
 ```yaml
@@ -105,8 +159,14 @@ log_file_path: /config/authelia.log
 ```
 
 ## jwt_secret
-
-`optional: false`
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: ""
+{: .label .label-config .label-blue }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 Defines the secret used to craft JWT tokens leveraged by the identity
 verification process. This can also be defined using a [secret](./secrets.md).
@@ -116,14 +176,22 @@ jwt_secret: v3ry_important_s3cr3t
 ```
 
 ## default_redirection_url
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: ""
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-The default redirection URL is the URL where users are redirected when Authelia cannot detect the target URL where the 
+The default redirection URL is the URL where users are redirected when Authelia cannot detect the target URL where the
 user was heading.
 
-In a normal authentication workflow, a user tries to access a website and she gets redirected to the sign-in portal in 
+In a normal authentication workflow, a user tries to access a website and she gets redirected to the sign-in portal in
 order to authenticate. Since the user initially targeted a website, the portal knows where the user was heading and
-can redirect her after the authentication process. However, when a user visits the sign in portal directly, the portal 
-considers the targeted website is the portal. In that case and if the default redirection URL is configured, the user is 
+can redirect her after the authentication process. However, when a user visits the sign in portal directly, the portal
+considers the targeted website is the portal. In that case and if the default redirection URL is configured, the user is
 redirected to that URL. If not defined, the user is not redirected after authentication.
 
 ```yaml

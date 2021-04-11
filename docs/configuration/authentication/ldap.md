@@ -40,35 +40,63 @@ authentication_backend:
 ## Options
 
 ### implementation
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: custom
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Configures the LDAP implementation used by Authelia.
 
 See the [Implementation Guide](#implementation-guide) for information.
 
-The user must have an email address in order for Authelia to perform
-identity verification when a user attempts to reset their password or
-register a second factor device.
-
 ### url
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
-The LDAP url which consists of a scheme, address, and port. Format is `<scheme>://<address>:<port>` or 
+The LDAP URL which consists of a scheme, address, and port. Format is `<scheme>://<address>:<port>` or
 `<scheme>://<address>` where scheme is either `ldap` or `ldaps`.
 
 If utilising an IPv6 literal address it must be enclosed by square brackets:
+
 ```yaml
 url: ldap://[fd00:1111:2222:3333::1]
 ```
 
 ### start_tls
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple } 
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-The key `start_tls` enables use of the LDAP StartTLS process which is not commonly used. You should only configure this
-if you know you need it. The initial connection will be over plain text, and Authelia will try to upgrade it with the
-LDAP server. LDAPS URL's are slightly more secure.
+Enables use of the LDAP StartTLS process which is not commonly used. You should only configure this if you know you need
+it. The initial connection will be over plain text, and Authelia will try to upgrade it with the LDAP server. LDAPS
+URL's are slightly more secure.
+
 
 ### tls
 
-Controls the TLS connection validation process. You can see how to configure the tls 
+Controls the TLS connection validation process. You can see how to configure the tls
 section [here](../index.md#tls-configuration).
 
 ### base_dn
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 Sets the base distinguished name container for all LDAP queries. If your LDAP domain is example.com this is usually 
 `dc=example,dc=com`, however you can fine tune this to be more specific for example to only include objects inside the
@@ -76,19 +104,43 @@ authelia OU: `ou=authelia,dc=example,dc=com`. This is prefixed with the [additio
 user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
 
 ### username_attribute
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-The LDAP attribute that maps to the username in Authelia.
+The LDAP attribute that maps to the username in Authelia. The default value is dependent on the [implementation](#implementation),
+refer to the [attribute defaults](#attribute-defaults) for more information.
+
 
 ### additional_users_dn
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-Additional LDAP path to append to the [base_dn](#base_dn) when searching for users. Useful if you want to restrict 
-exactly which OU to get users from for either security or performance reasons. For example setting it to 
-`ou=users,ou=people` with a base_dn set to `dc=example,dc=com` will mean user searches will occur in 
-`ou=users,ou=people,dc=example,dc=com`.
+Additional LDAP path to append to the [base_dn](#base_dn) when searching for users. Useful if you want to restrict
+exactly which OU to get users from for either security or performance reasons. For example setting it to
+`ou=users,ou=people` with a base_dn set to `dc=example,dc=com` will mean user searches will occur in
+`ou=users,ou=people,dc=example,dc=com`. The default value is dependent on the [implementation](#implementation), refer 
+to the [attribute defaults](#attribute-defaults) for more information.
+
 
 ### users_filter
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The LDAP filter to narrow down which users are valid. This is important to set correctly as to exclude disabled users.
+The default value is dependent on the [implementation](#implementation), refer to the
+[attribute defaults](#attribute-defaults) for more information.
 
 ### additional_groups_dn
 
@@ -102,6 +154,9 @@ Similar to [users_filter](#users_filter) but it applies to group searches.
 
 The attribute to retrieve which contains the users email addresses. This is important for the device registration and
 password reset processes.
+The user must have an email address in order for Authelia to perform
+identity verification when a user attempts to reset their password or
+register a second factor device.
 
 ### display_name_attribute
 
@@ -114,20 +169,20 @@ The distinguished name of the user paired with the password to bind with for loo
 ### password
 
 The password of the user paired with the user to bind with for lookup and password change operations.
-Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments. 
+Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
 ## Implementation Guide
 
 There are currently two implementations, `custom` and `activedirectory`. The `activedirectory` implementation
 must be used if you wish to allow users to change or reset their password as Active Directory
-uses a custom attribute for this, and an input format other implementations do not use. The long term 
-intention of this is to have logical defaults for various RFC implementations of LDAP. 
+uses a custom attribute for this, and an input format other implementations do not use. The long term
+intention of this is to have logical defaults for various RFC implementations of LDAP.
 
 ### Defaults
 
 The below tables describes the current attribute defaults for each implementation.
 
-#### Attributes
+#### Attribute defaults
 This table describes the attribute defaults for each implementation. i.e. the username_attribute is
 described by the Username column.
 
@@ -136,12 +191,12 @@ described by the Username column.
 |custom         |n/a           |displayname |mail|cn        |
 |activedirectory|sAMAccountName|displayname |mail|cn        |
 
-#### Filters
+#### Filter defaults
 
-The filters are probably the most important part to get correct when setting up LDAP. 
-You want to exclude disabled accounts. The active directory example has two attribute 
-filters that accomplish this as an example (more examples would be appreciated). The 
-userAccountControl filter checks that the account is not disabled and the pwdLastSet 
+The filters are probably the most important part to get correct when setting up LDAP.
+You want to exclude disabled accounts. The active directory example has two attribute
+filters that accomplish this as an example (more examples would be appreciated). The
+userAccountControl filter checks that the account is not disabled and the pwdLastSet
 makes sure that value is not 0 which means the password requires changing at the next login.
 
 |Implementation |Users Filter  |Groups Filter|
@@ -153,19 +208,19 @@ makes sure that value is not 0 which means the password requires changing at the
 ## Refresh Interval
 
 This setting takes a [duration notation](../index.md#duration-notation-format) that sets the max frequency
-for how often Authelia contacts the backend to verify the user still exists and that the groups stored 
+for how often Authelia contacts the backend to verify the user still exists and that the groups stored
 in the session are up to date. This allows us to destroy sessions when the user no longer matches the
 user_filter, or deny access to resources as they are removed from groups.
 
 In addition to the duration notation, you may provide the value `always` or `disable`. Setting to `always`
-is the same as setting it to 0 which will refresh on every request, `disable` turns the feature off, which is 
+is the same as setting it to 0 which will refresh on every request, `disable` turns the feature off, which is
 not recommended. This completely prevents Authelia from refreshing this information, and it would only be
-refreshed when the user session gets destroyed by other means like inactivity, session expiration or logging 
+refreshed when the user session gets destroyed by other means like inactivity, session expiration or logging
 out and in.
 
 This value can be any value including 0, setting it to 0 would automatically refresh the session on
 every single request. This means Authelia will have to contact the LDAP backend every time an element
-on a page loads which could be substantially costly. It's a trade-off between load and security that 
+on a page loads which could be substantially costly. It's a trade-off between load and security that
 you should adapt according to your own security policy.
 
 ## Important notes

@@ -8,7 +8,7 @@ nav_order: 1
 
 # Filesystem
 
-With this configuration, the message will be sent to a file. This option should only be used for testing purposes. 
+With this configuration, the message will be sent to a file. This option should only be used for testing purposes.
 This method will use the plain text email template for readability purposes.
 
 ## Configuration
@@ -23,5 +23,11 @@ notifier:
 ## Options
 
 ### filename
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
-The file to write email text to. If it doesn't exist it will be created.
+The file to add email text to. If it doesn't exist it will be created.

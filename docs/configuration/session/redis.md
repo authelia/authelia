@@ -10,7 +10,7 @@ nav_order: 1
 
 This is a session provider. By default Authelia uses an in-memory provider. Not configuring redis leaves Authelia
 [stateful](../../features/statelessness.md). It's important in highly available scenarios to configure this option and
-we highly recommend it in production environments. It requires you to setup [redis] as well.
+we highly recommend it in production environments. It requires you setup [redis] as well.
 
 ## Configuration
 
@@ -43,6 +43,12 @@ session:
 ## Options
 
 ### host
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The [redis] host or unix socket path. If utilising an IPv6 literal address it must be enclosed by square brackets and
 quoted:
@@ -51,35 +57,79 @@ host: "[fd00:1111:2222:3333::1]"
 ```
 
 ### port
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple }
+default: 6379
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The port [redis] is listening on.
 
 ### username
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The username for [redis authentication](https://redis.io/commands/auth). Only supported in [redis] 6.0+, and [redis]
 currently offers backwards compatibility with password-only auth. You probably do not need to set this unless you went
 through the process of setting up [redis ACLs](https://redis.io/topics/acl).
 
 ### password
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The password for [redis authentication](https://redis.io/commands/auth).
 
 ### database_index
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple }
+default: 0
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The index number of the [redis] database, the same value as specified with the redis SELECT command.
 
 ### maximum_active_connections
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple }
+default: 8
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The maximum connections open to [redis] at the same time.
 
 ### minimum_idle_connections
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple }
+default: 0
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The minimum number of [redis] connections to keep open as long as they don't exceed the maximum active connections. This
 is useful if there are long delays in establishing connections.
 
 ### tls
 
-If defined enables [redis] over TLS, and additionally controls the TLS connection validation process. You can see how to 
+If defined enables [redis] over TLS, and additionally controls the TLS connection validation process. You can see how to
 configure the tls section [here](../index.md#tls-configuration).
 
 ### high_availability
@@ -88,18 +138,30 @@ When defining this session it enables [redis sentinel] connections. It's possibl
 the future we may add [redis cluster](https://redis.io/topics/cluster-tutorial).
 
 #### sentinel_name
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The [redis sentinel] master name. This is defined in your [redis sentinel] configuration, it is not a hostname. This
 must be defined currently for a high availability configuration.
 
 #### sentinel_password
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-The password for the [redis sentinel] connection. A [redis sentinel] username is not supported at this time due to the 
-upstream library not supporting it. 
+The password for the [redis sentinel] connection. A [redis sentinel] username is not supported at this time due to the
+upstream library not supporting it.
 
 #### nodes
 
-A list of [redis sentinel] nodes to load balance over. This list is added to the host in the [redis] section above. It 
+A list of [redis sentinel] nodes to load balance over. This list is added to the host in the [redis] section above. It
 is required you either define the [redis] host or one [redis sentinel] node. The [redis] host must be a [redis sentinel]
 host, not a regular one. The individual [redis] hosts are determined using [redis sentinel] commands.
 
@@ -110,11 +172,51 @@ Each node has a host and port configuration. Example:
   port: 26379
 ```
 
+##### host
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The host of this [redis sentinel] node.
+
+##### port
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple }
+default: 26379
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The port of this [redis sentinel] node.
+
 #### route_by_latency
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 Prioritizes low latency [redis sentinel] nodes when set to true.
 
 #### route_randomly
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 Randomly chooses [redis sentinel] nodes when set to true.
 

@@ -21,14 +21,38 @@ server:
 ## Options
 
 ### read_buffer_size
+<div markdown="1">
+type: integer 
+{: .label .label-config .label-purple } 
+default: 4096
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-red }
+</div>
 
 Configures the maximum request size. The default of 4096 is generally sufficient for most use cases.
 
 ### write_buffer_size
+<div markdown="1">
+type: integer 
+{: .label .label-config .label-purple } 
+default: 4096
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 Configures the maximum response size. The default of 4096 is generally sufficient for most use cases.
 
 ### path
+<div markdown="1">
+type: string 
+{: .label .label-config .label-purple } 
+default: ""
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 Authelia by default is served from the root `/` location, either via its own domain or subdomain.
 
@@ -52,6 +76,6 @@ server:
 
 ### Buffer Sizes
 
-The read and write buffer sizes generally should be the same. This is because when Authelia verifies 
+The read and write buffer sizes generally should be the same. This is because when Authelia verifies
 if the user is authorized to visit a URL, it also sends back nearly the same size response as the request. However
 you're able to tune these individually depending on your needs.

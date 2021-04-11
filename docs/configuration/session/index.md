@@ -39,35 +39,79 @@ There are currently two providers for session storage (three if you count Redis 
 
 It's important to note when picking a provider, the stateful providers are not recommended in High Availability
 scenarios like Kubernetes. Each provider has a note beside it indicating it is *stateful* or *stateless* the stateless
-providers are recommended. 
+providers are recommended.
 
 ## Options
 
 ### name
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+default: authelia_session
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The name of the session cookie. By default this is set to authelia_session. It's mostly useful to change this if you are
 doing development or running multiple instances of Authelia.
 
 ### domain
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The domain the cookie is assigned to protect. This must be the same as the domain Authelia is served on or the root
 of the domain. For example if listening on auth.example.com the cookie should be auth.example.com or example.com.
 
 ### secret
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The secret key used to encrypt session data in Redis. It's recommended this is set using a [secret](../secrets.md).
 
 ### expiration
+<div markdown="1">
+type: string (duration)
+{: .label .label-config .label-purple }
+default: 1h
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-The time in [duration notation format](../index.md#duration-notation-format) before the cookie expires and the session 
+The time in [duration notation format](../index.md#duration-notation-format) before the cookie expires and the session
 is destroyed. This is overriden by remember_me_duration when the remember me box is checked.
 
 ### inactivity
+<div markdown="1">
+type: string (duration)
+{: .label .label-config .label-purple }
+default: 5m
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-The time in [duration notation format](../index.md#duration-notation-format) the user can be inactive for until the 
+The time in [duration notation format](../index.md#duration-notation-format) the user can be inactive for until the
 session is destroyed. Useful if you want long session timers but don't want unused devices to be vulnerable.
 
 ### remember_me_duration
+<div markdown="1">
+type: string (duration)
+{: .label .label-config .label-purple }
+default: 1M
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The time in [duration notation format](../index.md#duration-notation-format) the cookie expires and the session is
 destroyed when the remember me box is checked.
