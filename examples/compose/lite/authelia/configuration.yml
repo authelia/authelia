@@ -1,3 +1,4 @@
+---
 ###############################################################
 #                   Authelia configuration                    #
 ###############################################################
@@ -11,7 +12,7 @@ default_redirection_url: https://public.example.com
 totp:
   issuer: authelia.com
 
-#duo_api:
+# duo_api:
 #  hostname: api-123456789.example.com
 #  integration_key: ABCDEF
 #  # This secret can also be set using the env variables AUTHELIA_DUO_API_SECRET_KEY_FILE
@@ -36,9 +37,9 @@ session:
   name: authelia_session
   # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE
   secret: unsecure_session_secret
-  expiration: 3600 # 1 hour
-  inactivity: 300 # 5 minutes
-  domain: example.com # Should match whatever your root protected domain is
+  expiration: 3600  # 1 hour
+  inactivity: 300  # 5 minutes
+  domain: example.com  # Should match whatever your root protected domain is
 
   redis:
     host: redis
@@ -63,3 +64,4 @@ notifier:
     host: mail.example.com
     port: 25
     sender: admin@example.com
+...

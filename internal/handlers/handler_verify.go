@@ -304,7 +304,7 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession,
 	refreshProfile bool, refreshProfileInterval time.Duration) error {
 	// TODO: Add a check for LDAP password changes based on a time format attribute.
-	// See https://docs.authelia.com/security/threat-model.html#potential-future-guarantees
+	// See https://www.authelia.com/docs/security/threat-model.html#potential-future-guarantees
 	ctx.Logger.Tracef("Checking if we need check the authentication backend for an updated profile for %s.", userSession.Username)
 
 	if !refreshProfile || userSession.Username == "" || targetURL == nil {

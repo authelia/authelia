@@ -8,6 +8,10 @@ nav_order: 2
 
 # MySQL
 
+The MySQL storage provider.
+
+## Configuration
+
 ```yaml
 storage:
   mysql:
@@ -15,17 +19,68 @@ storage:
     port: 3306
     database: authelia
     username: authelia
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     password: mypassword
 ```
 
-## IPv6 Addresses
+## Options
+
+### host
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: localhost
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The database server host.
 
 If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
 ```yaml
 host: "[fd00:1111:2222:3333::1]"
 ```
 
-## Loading a password from a secret instead of inside the configuration
+### port
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple } 
+default: 3306
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-Password can also be defined using a [secret](../secrets.md).
+The port the database server is listening on.
+
+### database
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+The database name on the database server that the assigned [user](#username) has access to for the purpose of
+**Authelia**.
+
+### username
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+The username paired with the password used to connect to the database.
+
+### password
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+The password paired with the username used to connect to the database. Can also be defined using a
+[secret](../secrets.md) which is also the recommended way when running as a container.
