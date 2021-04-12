@@ -67,7 +67,7 @@
   },"11": {
     "doc": "Architecture",
     "title": "Architecture",
-    "content": "Authelia is a companion of reverse proxies like Nginx, Traefik and HAProxy. It can be seen as an extension of those proxies providing authentication functions and a login portal. As shown in the following architecture diagram, Authelia is directly connected to the reverse proxy but never directly connected to application backends. ",
+    "content": "Authelia is a companion of reverse proxies like Nginx, Traefik and HAProxy. It can be seen as an extension of those proxies providing authentication functions and a login portal. As shown in the following architecture diagram, Authelia is directly connected to the reverse proxy but never directly connected to application backends and therefore the payloads sent by the clients of the protected API will never reach Authelia, only the authentication pieces will, like the Authorization header for instance. Consequently, the protected APIs can be a REST, a GraphQL or any other kind of API on top of HTTP. ",
     "url": "/docs/home/architecture.html",
     "relUrl": "/home/architecture.html"
   },"12": {
