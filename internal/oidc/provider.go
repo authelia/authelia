@@ -2,39 +2,47 @@ package oidc
 
 import (
 	"crypto/rsa"
+	"fmt"
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
 	"github.com/ory/fosite/storage"
 	"gopkg.in/square/go-jose.v2"
 
-	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// New new-ups a OpenIDConnectProvider.
-func New(configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConnectProvider) {
+// OpenIDConnectProvider for OpenID Connect.
+type OpenIDConnectProvider struct {
+	clients     map[string]*InternalClient
+	privateKeys map[string]*rsa.PrivateKey
+
+	composeConfiguration *compose.Config
+	Fosite               fosite.OAuth2Provider
+	storage              fosite.Storage
+}
+
+// NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
+func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConnectProvider, err error) {
 	provider = OpenIDConnectProvider{
 		Fosite: nil,
 	}
 
 	if configuration == nil {
-		return provider
+		return provider, nil
 	}
 
-	var err error
-
 	clients := make(map[string]fosite.Client)
-	provider.Clients = make(map[string]*AutheliaClient)
+	provider.clients = make(map[string]*InternalClient)
 
 	for _, client := range configuration.Clients {
 		policy := authorization.PolicyToLevel(client.Policy)
 		logging.Logger().Debugf("Registering client %s with policy %s (%v)", client.ID, client.Policy, policy)
 
-		provider.Clients[client.ID] = &AutheliaClient{
+		provider.clients[client.ID] = &InternalClient{
 			ID:            client.ID,
 			Description:   client.Description,
 			Policy:        authorization.PolicyToLevel(client.Policy),
@@ -44,10 +52,10 @@ func New(configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConne
 			ResponseTypes: client.ResponseTypes,
 			Scopes:        client.Scopes,
 		}
-		clients[client.ID] = provider.Clients[client.ID]
+		clients[client.ID] = provider.clients[client.ID]
 	}
 
-	provider.Storage = &storage.MemoryStore{
+	provider.storage = &storage.MemoryStore{
 		IDSessions:             make(map[string]fosite.Requester),
 		Clients:                clients,
 		Users:                  map[string]storage.MemoryUserRelation{},
@@ -59,38 +67,28 @@ func New(configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConne
 		RefreshTokenRequestIDs: map[string]string{},
 	}
 
-	provider.ComposeConfiguration = new(compose.Config)
+	provider.composeConfiguration = new(compose.Config)
 
 	key, err := utils.ParseRsaPrivateKeyFromPemStr(configuration.IssuerPrivateKey)
 	if err != nil {
-		panic(err)
+		return provider, fmt.Errorf("unable to parse the private key of the OpenID issuer: %w", err)
 	}
 
-	provider.PrivateKeys = make(map[string]*rsa.PrivateKey)
-	provider.PrivateKeys["main-key"] = key
+	provider.privateKeys = make(map[string]*rsa.PrivateKey)
+	provider.privateKeys["main-key"] = key
 
 	provider.Fosite = compose.ComposeAllEnabled(
-		provider.ComposeConfiguration,
-		provider.Storage,
+		provider.composeConfiguration,
+		provider.storage,
 		[]byte(utils.HashSHA256FromString(configuration.HMACSecret)),
-		provider.PrivateKeys["main-key"])
+		provider.privateKeys["main-key"])
 
-	return provider
-}
-
-// OpenIDConnectProvider for OpenID Connect.
-type OpenIDConnectProvider struct {
-	Clients     map[string]*AutheliaClient
-	PrivateKeys map[string]*rsa.PrivateKey
-
-	ComposeConfiguration *compose.Config
-	Fosite               fosite.OAuth2Provider
-	Storage              fosite.Storage
+	return provider, nil
 }
 
 // GetKeySet returns the jose.JSONWebKeySet for the OpenIDConnectProvider.
 func (p OpenIDConnectProvider) GetKeySet() (webKeySet jose.JSONWebKeySet) {
-	for keyID, key := range p.PrivateKeys {
+	for keyID, key := range p.privateKeys {
 		webKey := jose.JSONWebKey{
 			Key:       &key.PublicKey,
 			KeyID:     keyID,
@@ -105,9 +103,9 @@ func (p OpenIDConnectProvider) GetKeySet() (webKeySet jose.JSONWebKeySet) {
 }
 
 // GetClient returns the AutheliaClient matching the id provided if it exists.
-func (p OpenIDConnectProvider) GetClient(id string) (config *AutheliaClient) {
+func (p OpenIDConnectProvider) GetClient(id string) (config *InternalClient) {
 	if p.IsValidClientID(id) {
-		return p.Clients[id]
+		return p.clients[id]
 	}
 
 	return nil
@@ -115,17 +113,8 @@ func (p OpenIDConnectProvider) GetClient(id string) (config *AutheliaClient) {
 
 // IsValidClientID returns true if the provided id exists in the OpenIDConnectProvider.Clients map.
 func (p OpenIDConnectProvider) IsValidClientID(id string) (valid bool) {
-	if _, ok := p.Clients[id]; ok {
+	if _, ok := p.clients[id]; ok {
 		return true
-	}
-
-	return false
-}
-
-// IsAuthenticationLevelSufficient returns a bool provided a clientID and authentication.Level.
-func (p OpenIDConnectProvider) IsAuthenticationLevelSufficient(clientID string, level authentication.Level) bool {
-	if client, ok := p.Clients[clientID]; ok {
-		return client.IsAuthenticationLevelSufficient(level)
 	}
 
 	return false

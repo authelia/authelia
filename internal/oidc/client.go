@@ -7,8 +7,8 @@ import (
 	"github.com/authelia/authelia/internal/authorization"
 )
 
-// AutheliaClient represents the client internally.
-type AutheliaClient struct {
+// InternalClient represents the client internally.
+type InternalClient struct {
 	ID            string              `json:"id"`
 	Description   string              `json:"-"`
 	Secret        []byte              `json:"client_secret,omitempty"`
@@ -22,27 +22,27 @@ type AutheliaClient struct {
 }
 
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
-func (c AutheliaClient) IsAuthenticationLevelSufficient(level authentication.Level) bool {
+func (c InternalClient) IsAuthenticationLevelSufficient(level authentication.Level) bool {
 	return authorization.IsAuthLevelSufficient(level, c.Policy)
 }
 
-// GetID returns the ID of the AutheliaClient.
-func (c AutheliaClient) GetID() string {
+// GetID returns the ID.
+func (c InternalClient) GetID() string {
 	return c.ID
 }
 
-// GetHashedSecret returns the Secret of the AutheliaClient.
-func (c AutheliaClient) GetHashedSecret() []byte {
+// GetHashedSecret returns the Secret.
+func (c InternalClient) GetHashedSecret() []byte {
 	return c.Secret
 }
 
-// GetRedirectURIs returns the RedirectURIs of the AutheliaClient.
-func (c AutheliaClient) GetRedirectURIs() []string {
+// GetRedirectURIs returns the RedirectURIs.
+func (c InternalClient) GetRedirectURIs() []string {
 	return c.RedirectURIs
 }
 
-// GetGrantTypes returns the GrantTypes of the AutheliaClient.
-func (c AutheliaClient) GetGrantTypes() fosite.Arguments {
+// GetGrantTypes returns the GrantTypes.
+func (c InternalClient) GetGrantTypes() fosite.Arguments {
 	if len(c.GrantTypes) == 0 {
 		return fosite.Arguments{"authorization_code"}
 	}
@@ -50,8 +50,8 @@ func (c AutheliaClient) GetGrantTypes() fosite.Arguments {
 	return c.GrantTypes
 }
 
-// GetResponseTypes returns the ResponseTypes of the AutheliaClient.
-func (c AutheliaClient) GetResponseTypes() fosite.Arguments {
+// GetResponseTypes returns the ResponseTypes.
+func (c InternalClient) GetResponseTypes() fosite.Arguments {
 	if len(c.ResponseTypes) == 0 {
 		return fosite.Arguments{"code"}
 	}
@@ -59,17 +59,17 @@ func (c AutheliaClient) GetResponseTypes() fosite.Arguments {
 	return c.ResponseTypes
 }
 
-// GetScopes returns the Scopes of the AutheliaClient.
-func (c AutheliaClient) GetScopes() fosite.Arguments {
+// GetScopes returns the Scopes.
+func (c InternalClient) GetScopes() fosite.Arguments {
 	return c.Scopes
 }
 
-// IsPublic returns the value of the Public property of the AutheliaClient.
-func (c AutheliaClient) IsPublic() bool {
+// IsPublic returns the value of the Public property.
+func (c InternalClient) IsPublic() bool {
 	return c.Public
 }
 
-// GetAudience returns the Audience of the AutheliaClient.
-func (c AutheliaClient) GetAudience() fosite.Arguments {
+// GetAudience returns the Audience.
+func (c InternalClient) GetAudience() fosite.Arguments {
 	return c.Audience
 }

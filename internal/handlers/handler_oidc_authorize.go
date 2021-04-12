@@ -21,9 +21,10 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 	}
 
 	clientID := ar.GetClient().GetID()
+	client := ctx.Providers.OpenIDConnect.GetClient(clientID)
 
-	if !ctx.Providers.OpenIDConnect.IsValidClientID(clientID) {
-		err := fmt.Errorf("Unable to find related client configuration with name %s", ar.GetID())
+	if client == nil {
+		err := fmt.Errorf("Unable to find related client configuration with name '%s'", ar.GetID())
 		ctx.Logger.Error(err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
@@ -36,7 +37,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 	requestedScopes := ar.GetRequestedScopes()
 	requestedAudience := ar.GetRequestedAudience()
 
-	isAuthInsufficient := !ctx.Providers.OpenIDConnect.IsAuthenticationLevelSufficient(clientID, userSession.AuthenticationLevel)
+	isAuthInsufficient := !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel)
 
 	if isAuthInsufficient || (isConsentMissing(userSession.OIDCWorkflowSession, requestedScopes, requestedAudience)) {
 		forwardedURI, err := ctx.GetOriginalURL()

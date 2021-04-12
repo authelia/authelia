@@ -11,29 +11,34 @@ func oidcConsent(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {
-		ctx.Logger.Debug("Cannot consent when OIDC workflow has not been initiated")
+		ctx.Logger.Debugf("Cannot consent for user %s when OIDC workflow has not been initiated", userSession.Username)
 		ctx.ReplyForbidden()
 
 		return
 	}
 
-	if !ctx.Providers.OpenIDConnect.IsAuthenticationLevelSufficient(userSession.OIDCWorkflowSession.ClientID, userSession.AuthenticationLevel) {
+	clientID := userSession.OIDCWorkflowSession.ClientID
+	client := ctx.Providers.OpenIDConnect.GetClient(clientID)
+
+	if client == nil {
+		ctx.Logger.Debugf("Unable to find related client configuration with name '%s'", clientID)
+		ctx.ReplyForbidden()
+
+		return
+	}
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
 		ctx.Logger.Debugf("Insufficient permissions to give consent v2 %d -> %d", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel)
 		ctx.ReplyForbidden()
 
 		return
 	}
 
-	clientConfiguration := ctx.Providers.OpenIDConnect.GetClient(userSession.OIDCWorkflowSession.ClientID)
-
 	var body ConsentGetResponseBody
 	body.Scopes = scopeNamesToScopes(userSession.OIDCWorkflowSession.RequestedScopes)
 	body.Audience = audienceNamesToAudience(userSession.OIDCWorkflowSession.RequestedAudience)
-	body.ClientID = userSession.OIDCWorkflowSession.ClientID
-
-	if clientConfiguration != nil {
-		body.ClientDescription = clientConfiguration.Description
-	}
+	body.ClientID = client.ID
+	body.ClientDescription = client.Description
 
 	if err := ctx.SetJSONBody(body); err != nil {
 		ctx.Error(fmt.Errorf("Unable to set JSON body: %v", err), "Operation failed")
@@ -44,13 +49,23 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {
-		ctx.Logger.Debug("Cannot consent when OIDC workflow has not been initiated")
+		ctx.Logger.Debugf("Cannot consent for user %s when OIDC workflow has not been initiated", userSession.Username)
 		ctx.ReplyForbidden()
 
 		return
 	}
 
-	if !ctx.Providers.OpenIDConnect.IsAuthenticationLevelSufficient(userSession.OIDCWorkflowSession.ClientID, userSession.AuthenticationLevel) {
+	clientID := userSession.OIDCWorkflowSession.ClientID
+	client := ctx.Providers.OpenIDConnect.GetClient(clientID)
+
+	if client == nil {
+		ctx.Logger.Debugf("Unable to find related client configuration with name '%s'", clientID)
+		ctx.ReplyForbidden()
+
+		return
+	}
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
 		ctx.Logger.Debugf("Insufficient permissions to give consent v1 %d -> %d", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel)
 		ctx.ReplyForbidden()
 

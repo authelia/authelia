@@ -118,7 +118,11 @@ func startServer() {
 	authorizer := authorization.NewAuthorizer(config.AccessControl)
 	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
-	oidcProvider := oidc.New(config.IdentityProviders.OIDC)
+	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
+
+	if err != nil {
+		panic(err)
+	}
 
 	providers := middlewares.Providers{
 		Authorizer:      authorizer,
