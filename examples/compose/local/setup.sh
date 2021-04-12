@@ -16,12 +16,12 @@ echo "Checking for pre-requisites"
 
 if [[ ! -x "$(command -v docker)" ]]; then
   echo "You must install Docker on your machine";
-  return
+  exit 1
 fi
 
 if [[ ! -x "$(command -v docker-compose)" ]]; then
   echo "You must install Docker Compose on your machine";
-  return
+  exit 1
 fi
 
 echo "Pulling Authelia docker image for setup"
@@ -108,4 +108,3 @@ You will need to authorize the self-signed certificate upon visiting each domain
 To visit https://secure.$DOMAIN you will need to register a device for second factor authentication and confirm by clicking on a link sent by email. Since this is a demo with a fake email address, the content of the email will be stored in './authelia/notification.txt'.
 Upon registering, you can grab this link easily by running the following command: 'grep -Eo '"https://.*" ' ./authelia/notification.txt'.
 EOF
-

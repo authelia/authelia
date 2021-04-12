@@ -8,8 +8,8 @@ If you discover a vulnerability in Authelia, please first contact one of the mai
 either via [Matrix](#matrix) or [email](#email) as described in the [contact options](#contact-options) below.
 
 For details about security measures implemented in Authelia, please follow
-this [link](https://docs.authelia.com/security/measures.html) and for reading about 
-the threat model follow this [link](https://docs.authelia.com/security/threat-model.html).
+this [link](https://www.authelia.com/docs/security/measures.html) and for reading about 
+the threat model follow this [link](https://www.authelia.com/docs/security/threat-model.html).
 
 ## Contact Options
 

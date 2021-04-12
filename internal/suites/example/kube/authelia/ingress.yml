@@ -9,14 +9,15 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   tls:
-  - secretName: authelia-tls
-    hosts:
-    - login.example.com
+    - secretName: authelia-tls
+      hosts:
+        - login.example.com
   rules:
-  - host: login.example.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: authelia-service
-          servicePort: 443
+    - host: login.example.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: authelia-service
+              servicePort: 443
+...

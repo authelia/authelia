@@ -2,7 +2,9 @@
 openapi: 3.0.0
 info:
   title: Authelia API
-  description: Authelia is an open-source authentication and authorization server providing 2-factor authentication and single sign-on (SSO) for your applications via a web portal.
+  description: >
+    Authelia is an open-source authentication and authorization server providing 2-factor authentication and single
+    sign-on (SSO) for your applications via a web portal.
   contact:
     name: Authelia Support
     url: https://github.com/authelia/authelia#contact-options
@@ -28,7 +30,9 @@ paths:
       tags:
         - State
       summary: Application Configuration
-      description: The configuration endpoint provides detailed information including available second factor methods, if any second factor policies exist and the TOTP period configuration.
+      description: >
+        The configuration endpoint provides detailed information including available second factor methods, if any
+        second factor policies exist and the TOTP period configuration.
       responses:
         "200":
           description: Successful Operation
@@ -39,7 +43,7 @@ paths:
         "403":
           description: Forbidden
       security:
-        - authelia_auth: [ ]
+        - authelia_auth: []
   /api/health:
     get:
       tags:
@@ -58,7 +62,9 @@ paths:
       tags:
         - State
       summary: User Application State
-      description: The state endpoint provides detailed information including the user, current authenticate level and Authelia's configured default redirection URL.
+      description: >
+        The state endpoint provides detailed information including the user, current authenticate level and Authelia's
+        configured default redirection URL.
       responses:
         "200":
           description: Successful Operation
@@ -71,7 +77,9 @@ paths:
       tags:
         - Authentication
       summary: Verification
-      description: The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified domain.
+      description: >
+        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
+        domain.
       parameters:
         - $ref: '#/components/parameters/originalURLParam'
         - $ref: '#/components/parameters/forwardedMethodParam'
@@ -108,7 +116,9 @@ paths:
       tags:
         - Authentication
       summary: Verification
-      description: The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified domain.
+      description: >
+        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
+        domain.
       parameters:
         - $ref: '#/components/parameters/originalURLParam'
         - $ref: '#/components/parameters/forwardedMethodParam'
@@ -146,7 +156,8 @@ paths:
       tags:
         - Authentication
       summary: Login
-      description: The firstfactor endpoint allows a user to login and generates an authentication cookie for authorization.
+      description: >
+        The firstfactor endpoint allows a user to login and generates an authentication cookie for authorization.
       requestBody:
         content:
           application/json:
@@ -184,13 +195,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/middlewares.OkResponse'
       security:
-        - authelia_auth: [ ]
+        - authelia_auth: []
   /api/reset-password/identity/start:
     post:
       tags:
         - Password Reset
       summary: Identity Verification Token Creation
-      description: "This endpoint is step 1 of 3 in the password reset process.\n\nIt validates the user session and sends the user an email with a token and a link to reset their password. This step also generates a session cookie for the rest of the process.\n\nThe same session cookie must be used for all steps in this process."
+      description: >
+        This endpoint is step 1 of 3 in the password reset process.
+
+        It validates the user session and sends the user an email with a token and a link to reset their password. This
+        step also generates a session cookie for the rest of the process.
+
+        The same session cookie must be used for all steps in this process.
       requestBody:
         required: true
         content:
@@ -211,7 +228,12 @@ paths:
       tags:
         - Password Reset
       summary: Identity Verification Token Validation
-      description: "This endpoint is step 2 of 3 in the password reset process.\n\nIt validates the user session and reset token.\n\nThe same session cookie must be used for all steps in this process."
+      description: >
+        This endpoint is step 2 of 3 in the password reset process.
+
+        It validates the user session and reset token.
+
+        The same session cookie must be used for all steps in this process.
       requestBody:
         required: true
         content:
@@ -232,7 +254,12 @@ paths:
       tags:
         - Password Reset
       summary: Password Reset
-      description: "This endpoint is step 3 of 3 in the password reset process.\n\nIt validates the user session and changes the password.\n\nThe same session cookie must be used for all steps in this process."
+      description: >
+        This endpoint is step 3 of 3 in the password reset process.
+
+        It validates the user session and changes the password.
+
+        The same session cookie must be used for all steps in this process.
       requestBody:
         required: true
         content:
@@ -253,7 +280,9 @@ paths:
       tags:
         - User Information
       summary: User Configuration
-      description: The user info endpoint provides detailed information including a users display name, preferred and registered second factor method(s).
+      description: >
+        The user info endpoint provides detailed information including a users display name, preferred and registered
+        second factor method(s).
       responses:
         "200":
           description: Successful Operation
@@ -264,7 +293,7 @@ paths:
         "403":
           description: Forbidden
       security:
-        - authelia_auth: [ ]
+        - authelia_auth: []
   /api/user/info/2fa_method:
     post:
       tags:
@@ -286,13 +315,17 @@ paths:
         "403":
           description: Forbidden
       security:
-        - authelia_auth: [ ]
+        - authelia_auth: []
   /api/secondfactor/totp/identity/start:
     post:
       tags:
         - Second Factor
       summary: Identity Verification TOTP Token Creation
-      description: "This endpoint performs identity verification to begin the TOTP device registration process.\n\nThe session generated from this endpoint must be utilised for the subsequent step in the `/api/secondfactor/totp/identity/finish` endpoint."
+      description: >
+        This endpoint performs identity verification to begin the TOTP device registration process.
+
+        The session generated from this endpoint must be utilised for the subsequent step in the
+        `/api/secondfactor/totp/identity/finish` endpoint.
       responses:
         "200":
           description: Successful Operation
@@ -307,7 +340,12 @@ paths:
       tags:
         - Second Factor
       summary: Identity Verification TOTP Token Validation and Device Creation
-      description: "This endpoint performs identity and token verification, upon success also generates TOTP device secret and registers said device.\n\nThe session cookie generated from the `/api/secondfactor/totp/identity/start` endpoint must be utilised for the step here"
+      description: >
+        This endpoint performs identity and token verification, upon success also generates TOTP device secret and
+        registers said device.
+
+        The session cookie generated from the `/api/secondfactor/totp/identity/start` endpoint must be utilised for the
+        step here.
       requestBody:
         required: true
         content:
@@ -328,7 +366,7 @@ paths:
       tags:
         - Second Factor
       summary: Second Factor Authentication - TOTP
-      description: "This endpoint performs second factor authentication with a TOTP key."
+      description: This endpoint performs second factor authentication with a TOTP key.
       requestBody:
         required: true
         content:
@@ -355,7 +393,7 @@ paths:
       tags:
         - Second Factor
       summary: Second Factor Authentication - U2F (Request)
-      description: "This endpoint starts the second factor authentication process with the U2F key."
+      description: This endpoint starts the second factor authentication process with the U2F key.
       responses:
         "200":
           description: Successful Operation
@@ -395,7 +433,11 @@ paths:
       tags:
         - Second Factor
       summary: Identity Verification U2F Token Creation
-      description: "This endpoint performs identity verification to begin the U2F device registration process.\n\nThe session generated from this endpoint must be utilised for the subsequent steps in the `/api/secondfactor/u2f/identity/finish` and `/api/secondfactor/u2f/register` endpoints."
+      description: >
+        This endpoint performs identity verification to begin the U2F device registration process.
+
+        The session generated from this endpoint must be utilised for the subsequent steps in the
+        `/api/secondfactor/u2f/identity/finish` and `/api/secondfactor/u2f/register` endpoints.
       responses:
         "200":
           description: Successful Operation
@@ -410,7 +452,12 @@ paths:
       tags:
         - Second Factor
       summary: Identity Verification U2F Token Validation
-      description: "This endpoint performs identity and token verification, upon success generates a U2F device registration challenge.\n\nThe session cookie generated from the `/api/secondfactor/u2f/identity/start` endpoint must be utilised for the subsequent steps here and in the `/api/secondfactor/u2f/register` endpoint."
+      description: >
+        This endpoint performs identity and token verification, upon success generates a U2F device registration
+        challenge.
+
+        The session cookie generated from the `/api/secondfactor/u2f/identity/start` endpoint must be utilised for the
+        subsequent steps here and in the `/api/secondfactor/u2f/register` endpoint.
       requestBody:
         required: true
         content:
@@ -431,7 +478,7 @@ paths:
       tags:
         - Second Factor
       summary: U2F Device Registration
-      description: "This endpoint performs U2F device registration."
+      description: This endpoint performs U2F device registration.
       requestBody:
         required: true
         content:
@@ -452,7 +499,7 @@ paths:
       tags:
         - Second Factor
       summary: Second Factor Authentication - Duo Mobile Push
-      description: "This endpoint performs second factor authentication with a Duo Mobile Push."
+      description: This endpoint performs second factor authentication with a Duo Mobile Push.
       requestBody:
         required: true
         content:
@@ -634,7 +681,7 @@ components:
               example: 5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
             otpauth_url:
               type: string
-              example: otpauth://totp/auth.example.com:john?algorithm=SHA1&digits=6&issuer=auth.example.com&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
+              example: otpauth://totp/auth.example.com:john?algorithm=SHA1&digits=6&issuer=auth.example.com&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q  # yamllint disable-line rule:line-length
     handlers.UserInfo:
       type: object
       properties:
@@ -682,7 +729,7 @@ components:
       properties:
         token:
           type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5MjU1OTYsImlzcyI6IkF1dGhlbGlhIiwiYWN0aW9uIjoiUmVzZXRQYXNzd29yZCIsInVzZXJuYW1lIjoiQW1pciJ9.636yqRrUCGCe4jsMCsonleX5CYWHncYqZum-YYb6VaY
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5MjU1OTYsImlzcyI6IkF1dGhlbGlhIiwiYWN0aW9uIjoiUmVzZXRQYXNzd29yZCIsInVzZXJuYW1lIjoiQW1pciJ9.636yqRrUCGCe4jsMCsonleX5CYWHncYqZum-YYb6VaY  # yamllint disable-line rule:line-length
     middlewares.OkResponse:
       type: object
       properties:
@@ -771,3 +818,4 @@ components:
       type: apiKey
       name: "{{.Session}}"
       in: cookie
+...

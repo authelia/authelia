@@ -1,7 +1,4 @@
-###############################################################
-#                   Authelia configuration                    #
-###############################################################
-
+---
 host: 127.0.0.1
 port: 9091
 loggy_file: /config/svc.log
@@ -96,8 +93,8 @@ access_control:
 
 session:
   name: authelia_session
-  expiration: 3600000 # 1 hour
-  inactivity: 300000 # 5 minutes
+  expiration: 3600000  # 1 hour
+  inactivity: 300000  # 5 minutes
   domain: example.com
   redis:
     host: 127.0.0.1
@@ -122,3 +119,4 @@ notifier:
     port: 1025
     sender: admin@example.com
     disable_require_tls: true
+...

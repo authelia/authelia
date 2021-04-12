@@ -11,7 +11,16 @@ nav_order: 3
     <img src="../images/logos/kubernetes.logo.png" width="100" style="padding-right: 10px">
 </p>
 
-UNDER CONSTRUCTION
+## UNDER CONSTRUCTION
+
+The following areas are actively being worked on for Kubernetes:
+1. Detailed Documentaiton
+2. [Helm Chart (v3)](https://github.com/authelia/chartrepo)
+3. Kustomize Deployment
+4. Manifest Examples
+
+Users are welcome to reach out directly on our [Matrix Room](https://riot.im/app/#/room/#authelia:matrix.org) or 
+[Discord Server](https://discord.authelia.com) if they are looking for help setting up on Kubernetes in the meantime. 
 
 ## FAQ
 

@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   httpbin:
@@ -17,3 +18,4 @@ services:
       - 'traefik.http.routers.httpbin.priority=150'
       - 'traefik.http.routers.httpbin.tls=true'
       - 'traefik.http.routers.httpbin.middlewares=authelia@docker'
+...

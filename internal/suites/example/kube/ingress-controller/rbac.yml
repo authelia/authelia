@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -5,7 +6,7 @@ metadata:
   namespace: authelia
   labels:
     app: nginx-ingress-controller
-
+...
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -60,7 +61,7 @@ rules:
       - ingresses/status
     verbs:
       - update
-
+...
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
@@ -104,7 +105,7 @@ rules:
       - endpoints
     verbs:
       - get
-
+...
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
@@ -121,7 +122,7 @@ subjects:
   - kind: ServiceAccount
     name: nginx-ingress-controller-serviceaccount
     namespace: authelia
-
+...
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -137,5 +138,4 @@ subjects:
   - kind: ServiceAccount
     name: nginx-ingress-controller-serviceaccount
     namespace: authelia
-
----
+...

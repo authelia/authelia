@@ -1,0 +1,19 @@
+---
+extends: default
+
+ignore: |
+  internal/configuration/test_resources/config_bad_quoting.yml
+  web/node_modules/
+
+rules:
+  document-end:
+    level: warning
+  empty-values:
+    level: warning
+  indentation:
+    spaces: 2
+    check-multi-line-strings: true
+  line-length:
+    max: 120
+  octal-values: enable
+...

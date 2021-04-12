@@ -37,10 +37,6 @@ func (n *FileNotifier) StartupCheck() (bool, error) {
 		if !os.IsNotExist(err) {
 			return false, err
 		}
-	} else {
-		if err = os.Remove(n.path); err != nil {
-			return false, err
-		}
 	}
 
 	if err := ioutil.WriteFile(n.path, []byte(""), fileNotifierMode); err != nil {

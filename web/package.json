@@ -10,7 +10,7 @@
     "@fortawesome/react-fontawesome": "0.1.14",
     "@material-ui/core": "4.11.3",
     "@material-ui/icons": "4.11.2",
-    "@types/chai": "4.2.15",
+    "@types/chai": "4.2.16",
     "@types/classnames": "2.2.11",
     "@types/enzyme": "3.10.8",
     "@types/jest": "26.0.22",
@@ -24,7 +24,7 @@
     "axios": "0.21.1",
     "babel-preset-react-app": "10.0.0",
     "chai": "4.3.4",
-    "classnames": "2.2.6",
+    "classnames": "2.3.1",
     "enzyme": "3.11.0",
     "enzyme-adapter-react-16": "1.15.6",
     "eslint-config-prettier": "8.1.0",
@@ -41,7 +41,7 @@
     "react-router-dom": "5.2.0",
     "react-scripts": "4.0.3",
     "react-test-renderer": "16.14.0",
-    "typescript": "4.2.3",
+    "typescript": "4.2.4",
     "u2f-api": "1.2.1"
   },
   "scripts": {

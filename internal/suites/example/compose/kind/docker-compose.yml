@@ -1,3 +1,4 @@
+---
 version: '3'
 services:
   authelia-kind-proxy:
@@ -39,4 +40,5 @@ services:
         ipv4_address: 192.168.240.110
 
 volumes:
-  kind-volume:
+  kind-volume:  # yamllint disable-line rule:empty-values
+...

@@ -17,7 +17,7 @@ Below are the prioritised roadmap items:
 1. [Authelia acts as an OpenID Connect Provider](https://github.com/authelia/authelia/issues/189). This is a high
 priority because currently the only way to pass authentication information back to the protected app is through the
 use of HTTP headers as described
-[here](https://docs.authelia.com/deployment/supported-proxies/#how-can-the-backend-be-aware-of-the-authenticated-users)
+[here](https://www.authelia.com/docs/deployment/supported-proxies/#how-can-the-backend-be-aware-of-the-authenticated-users)
 however, many apps either do not support this method or are starting to move away from this in favour of OpenID Connect or OAuth2
 internally or via plugins.
 
