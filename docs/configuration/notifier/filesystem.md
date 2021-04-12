@@ -8,21 +8,26 @@ nav_order: 1
 
 # Filesystem
 
-With this configuration, the message will be sent to a file. This option
-should only be used for testing purposes. This method will use the plain
-text email template for readability purposes.
+With this configuration, the message will be sent to a file. This option should only be used for testing purposes.
+This method will use the plain text email template for readability purposes.
+
+## Configuration
 
 ```yaml
-# Configuration of the notification system.
-#
-# Notifications are sent to users when they require a password reset, a U2F
-# registration or a TOTP registration.
-# Use only an available configuration: filesystem, smtp.
 notifier:
-  # You can disable the notifier startup check by setting this to true.
   disable_startup_check: false
-
-  # For testing purpose, notifications can be sent in a file.
   filesystem:
     filename: /config/notification.txt
 ```
+
+## Options
+
+### filename
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+The file to add email text to. If it doesn't exist it will be created.
