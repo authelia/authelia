@@ -725,8 +725,8 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 
 	assert.Equal(t, "(&(|(uid={input})(mail={input})(displayname={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))", ldapClient.configuration.UsersFilter)
 	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", ldapClient.configuration.GroupsFilter)
-	assert.Equal(t, "ou=users,dc=example,dc=com", ldapClient.usersDN)
-	assert.Equal(t, "ou=groups,dc=example,dc=com", ldapClient.groupsDN)
+	assert.Equal(t, "ou=users,dc=example,dc=com", ldapClient.usersBaseDN)
+	assert.Equal(t, "ou=groups,dc=example,dc=com", ldapClient.groupsBaseDN)
 }
 
 func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T) {
