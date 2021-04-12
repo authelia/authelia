@@ -12,7 +12,10 @@ It can be seen as an extension of those proxies providing authentication functio
 and a login portal.
 
 As shown in the following architecture diagram, Authelia is directly connected to
-the reverse proxy but never directly connected to application backends.
+the reverse proxy but never directly connected to application backends and therefore
+the payloads sent by the clients of the protected API will never reach Authelia, only
+the authentication pieces will, like the Authorization header for instance. Consequently,
+the protected APIs can be a REST, a GraphQL or any other kind of API on top of HTTP.
 
 <p align="center" style="margin:50px">
   <img src="../images/archi.png"/>
