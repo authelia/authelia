@@ -87,13 +87,15 @@ func (p *LDAPUserProvider) parseDynamicConfiguration() {
 	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{mail_attribute}", p.configuration.MailAttribute)
 	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{display_name_attribute}", p.configuration.DisplayNameAttribute)
 
+	p.logger.Tracef("Dynamically generated users filter is %s", p.configuration.UsersFilter)
+
 	if p.configuration.AdditionalUsersDN != "" {
 		p.usersBaseDN = p.configuration.AdditionalUsersDN + "," + p.configuration.BaseDN
 	} else {
 		p.usersBaseDN = p.configuration.BaseDN
 	}
 
-	p.logger.Tracef("Computed user BaseDN is %s", p.usersBaseDN)
+	p.logger.Tracef("Dynamically generated users BaseDN is %s", p.usersBaseDN)
 
 	if p.configuration.AdditionalGroupsDN != "" {
 		p.groupsBaseDN = ldap.EscapeFilter(p.configuration.AdditionalGroupsDN + "," + p.configuration.BaseDN)
@@ -101,7 +103,7 @@ func (p *LDAPUserProvider) parseDynamicConfiguration() {
 		p.groupsBaseDN = p.configuration.BaseDN
 	}
 
-	p.logger.Tracef("Computed groups BaseDN is %s", p.groupsBaseDN)
+	p.logger.Tracef("Dynamically generated groups BaseDN is %s", p.groupsBaseDN)
 }
 
 func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
