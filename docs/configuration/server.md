@@ -27,7 +27,7 @@ type: integer
 default: 4096
 {: .label .label-config .label-blue }
 required: no
-{: .label .label-config .label-red }
+{: .label .label-config .label-green }
 </div>
 
 Configures the maximum request size. The default of 4096 is generally sufficient for most use cases.
