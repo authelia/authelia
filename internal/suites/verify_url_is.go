@@ -2,7 +2,6 @@ package suites
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -16,8 +15,6 @@ func (wds *WebDriverSession) verifyURLIs(ctx context.Context, t *testing.T, url 
 		if err != nil {
 			return false, err
 		}
-
-		fmt.Printf("DEBUG: currentURL: %s, expectedURL: %s\n", currentURL, url)
 
 		return currentURL == url, nil
 	})

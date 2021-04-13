@@ -81,7 +81,7 @@ var logoutRedirectionURLs = map[string]bool{
 	// external website
 	"https://www.google.fr": false,
 	// Not the right domain
-	"https://public.example-not-right.com:8080/secret.html": false,
+	"https://public.example-not-right.com:8080/index.html": false,
 	// Not https
 	"http://public.example.com:8080/index.html": false,
 	// Domain handled by Authelia
