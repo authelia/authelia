@@ -9,17 +9,17 @@ import (
 )
 
 type logoutBody struct {
-	RedirectionURL string `json:"redirection_url"`
+	TargetURL string `json:"targetURL"`
 }
 
 type logoutResponseBody struct {
-	SafeRedirection bool `json:"safe_redirection"`
+	SafeTargetURL bool `json:"safeTargetURL"`
 }
 
 // LogoutPost is the handler logging out the user attached to the given cookie.
 func LogoutPost(ctx *middlewares.AutheliaCtx) {
 	body := logoutBody{}
-	responseBody := logoutResponseBody{SafeRedirection: false}
+	responseBody := logoutResponseBody{SafeTargetURL: false}
 
 	ctx.Logger.Tracef("Attempting to decode body")
 
@@ -35,12 +35,14 @@ func LogoutPost(ctx *middlewares.AutheliaCtx) {
 		ctx.Error(fmt.Errorf("Unable to destroy session during logout: %s", err), operationFailedMessage)
 	}
 
-	redirectionURL, err := url.Parse(body.RedirectionURL)
+	redirectionURL, err := url.Parse(body.TargetURL)
 	if err == nil {
-		responseBody.SafeRedirection = utils.IsRedirectionSafe(*redirectionURL, ctx.Configuration.Session.Domain)
+		responseBody.SafeTargetURL = utils.IsRedirectionSafe(*redirectionURL, ctx.Configuration.Session.Domain)
 	}
 
-	ctx.Logger.Debugf("Logout redirection url is %s, safe %t", body.RedirectionURL, responseBody.SafeRedirection)
+	if body.TargetURL != "" {
+		ctx.Logger.Debugf("Logout target url is %s, safe %t", body.TargetURL, responseBody.SafeTargetURL)
+	}
 
 	err = ctx.SetJSONBody(responseBody)
 	if err != nil {

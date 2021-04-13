@@ -1,16 +1,16 @@
 import { LogoutPath } from "./Api";
 import { PostWithOptionalResponse } from "./Client";
 
-export type SignOutResponse = { safe_redirect: boolean } | undefined;
+export type SignOutResponse = { safeTargetURL: boolean } | undefined;
 
 export type SignOutBody = {
-    redirection_url?: string;
+    targetURL?: string;
 };
 
-export async function signOut(redirectionURL: string | undefined): Promise<SignOutResponse> {
+export async function signOut(targetURL: string | undefined): Promise<SignOutResponse> {
     const body: SignOutBody = {};
-    if (redirectionURL) {
-        body.redirection_url = redirectionURL;
+    if (targetURL) {
+        body.targetURL = targetURL;
     }
 
     return PostWithOptionalResponse<SignOutResponse>(LogoutPath, body);

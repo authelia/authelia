@@ -187,13 +187,19 @@ paths:
         - Authentication
       summary: Logout
       description: The logout endpoint allows a user to logout and destroy a sesssion.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.logoutRequestBody'
       responses:
         "200":
           description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/middlewares.OkResponse'
+                $ref: '#/components/schemas/handlers.logoutResponseBody'
       security:
         - authelia_auth: []
   /api/reset-password/identity/start:
@@ -567,6 +573,24 @@ components:
             totp_period:
               type: integer
               example: 30
+    handlers.logoutRequestBody:
+      type: object
+      properties:
+        targetURL:
+          type: string
+          example: https://redirect.example.com
+    handlers.logoutResponseBody:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            safeTargetURL:
+              type: boolean
+              example: true
     handlers.firstFactorRequestBody:
       required:
         - username

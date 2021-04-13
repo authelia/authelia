@@ -23,7 +23,7 @@ const SignOut = function (props: Props) {
     const doSignOut = useCallback(async () => {
         try {
             const res = await signOut(redirectionURL);
-            if (res !== undefined && res.safe_redirect) {
+            if (res !== undefined && res.safeTargetURL) {
                 setSafeRedirect(true);
             }
             setTimeout(() => {
