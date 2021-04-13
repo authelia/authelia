@@ -57,7 +57,7 @@ func (s *StandaloneWebDriverSuite) TestShouldValidateLogoutRedirection() {
 
 	s.doLogout(ctx, s.T())
 	s.doLogoutWithRedirect(ctx, s.T(), "https://google.com", true)
-	s.doLogoutWithRedirect(ctx, s.T(), "https://public.example.com", false)
+	s.doLogoutWithRedirect(ctx, s.T(), PublicBaseURL, false)
 }
 
 func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated() {
