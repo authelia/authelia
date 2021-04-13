@@ -51,15 +51,6 @@ func (s *StandaloneWebDriverSuite) SetupTest() {
 	s.verifyIsHome(ctx, s.T())
 }
 
-func (s *StandaloneWebDriverSuite) TestShouldValidateLogoutRedirection() {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	s.doLogout(ctx, s.T())
-	s.doLogoutWithRedirect(ctx, s.T(), "https://google.com", true)
-	s.doLogoutWithRedirect(ctx, s.T(), HomeBaseURL+"/", false)
-}
-
 func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()

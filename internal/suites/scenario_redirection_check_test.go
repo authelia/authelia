@@ -57,7 +57,7 @@ var redirectionAuthorizations = map[string]bool{
 	"https://secure.example.com:8080/secret.html": true,
 }
 
-func (s *RedirectionCheckScenario) TestShouldRedirectOnlyWhenDomainIsHandledByAuthelia() {
+func (s *RedirectionCheckScenario) TestShouldRedirectOnLoginOnlyWhenDomainIsSafe() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -73,6 +73,17 @@ func (s *RedirectionCheckScenario) TestShouldRedirectOnlyWhenDomainIsHandledByAu
 				s.verifyIsAuthenticatedPage(ctx, t)
 			}
 			s.doLogout(ctx, t)
+		})
+	}
+}
+
+func (s *RedirectionCheckScenario) TestShouldRedirectOnLogoutOnlyWhenDomainIsSafe() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for url, redirected := range redirectionAuthorizations {
+		s.T().Run(url, func(t *testing.T) {
+			s.doLogoutWithRedirect(ctx, t, url, !redirected)
 		})
 	}
 }
