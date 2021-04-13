@@ -8,7 +8,7 @@ import { useNotifications } from "../../../hooks/NotificationsContext";
 import { useRedirectionURL } from "../../../hooks/RedirectionURL";
 import LoginLayout from "../../../layouts/LoginLayout";
 import { FirstFactorRoute } from "../../../Routes";
-import {signOut, SignOutResponse} from "../../../services/SignOut";
+import { signOut } from "../../../services/SignOut";
 
 export interface Props {
     safeRedirect: boolean | undefined;
