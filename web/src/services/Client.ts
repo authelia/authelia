@@ -2,13 +2,13 @@ import axios from "axios";
 
 import { ServiceResponse, hasServiceError, toData } from "./Api";
 
-export async function PostWithOptionalResponse<T = undefined>(path: string, body?: any) {
+export async function PostWithOptionalResponse<T = undefined>(path: string, body?: any): Promise<T | undefined> {
     const res = await axios.post<ServiceResponse<T>>(path, body);
 
     if (res.status !== 200 || hasServiceError(res).errored) {
         throw new Error(`Failed POST to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
     }
-    return toData(res);
+    return toData<T>(res);
 }
 
 export async function Post<T>(path: string, body?: any) {

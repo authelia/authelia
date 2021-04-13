@@ -212,6 +212,10 @@ func (s *StandaloneSuite) TestRedirectionURLScenario() {
 	suite.Run(s.T(), NewRedirectionURLScenario())
 }
 
+func (s *StandaloneSuite) TestRedirectionCheckScenario() {
+	suite.Run(s.T(), NewRedirectionCheckScenario())
+}
+
 func TestStandaloneSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
