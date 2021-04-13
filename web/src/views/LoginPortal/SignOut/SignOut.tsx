@@ -10,9 +10,7 @@ import LoginLayout from "../../../layouts/LoginLayout";
 import { FirstFactorRoute } from "../../../Routes";
 import { signOut } from "../../../services/SignOut";
 
-export interface Props {
-    safeRedirect: boolean | undefined;
-}
+export interface Props {}
 
 const SignOut = function (props: Props) {
     const mounted = useIsMountedRef();
@@ -20,11 +18,14 @@ const SignOut = function (props: Props) {
     const { createErrorNotification } = useNotifications();
     const redirectionURL = useRedirectionURL();
     const [timedOut, setTimedOut] = useState(false);
+    const [safeRedirect, setSafeRedirect] = useState(false);
 
     const doSignOut = useCallback(async () => {
         try {
             const res = await signOut(redirectionURL);
-            props.safeRedirect = res ? res.safe_redirect : undefined;
+            if (res !== undefined && res.safe_redirect) {
+                setSafeRedirect(true);
+            }
             setTimeout(() => {
                 if (!mounted) {
                     return;
@@ -35,14 +36,14 @@ const SignOut = function (props: Props) {
             console.error(err);
             createErrorNotification("There was an issue signing out");
         }
-    }, [createErrorNotification, props, redirectionURL, setTimedOut, mounted]);
+    }, [createErrorNotification, redirectionURL, setSafeRedirect, setTimedOut, mounted]);
 
     useEffect(() => {
         doSignOut();
     }, [doSignOut]);
 
     if (timedOut) {
-        if (redirectionURL && props.safeRedirect !== undefined && props.safeRedirect) {
+        if (redirectionURL && safeRedirect) {
             window.location.href = redirectionURL;
         } else {
             return <Redirect to={FirstFactorRoute} />;
