@@ -8,9 +8,11 @@ import { useNotifications } from "../../../hooks/NotificationsContext";
 import { useRedirectionURL } from "../../../hooks/RedirectionURL";
 import LoginLayout from "../../../layouts/LoginLayout";
 import { FirstFactorRoute } from "../../../Routes";
-import { signOut } from "../../../services/SignOut";
+import {signOut, SignOutResponse} from "../../../services/SignOut";
 
-export interface Props {}
+export interface Props {
+    safeRedirect: boolean | undefined;
+}
 
 const SignOut = function (props: Props) {
     const mounted = useIsMountedRef();
@@ -21,8 +23,8 @@ const SignOut = function (props: Props) {
 
     const doSignOut = useCallback(async () => {
         try {
-            // TODO(c.michaud): pass redirection URL to backend for validation.
-            await signOut();
+            const res = await signOut(redirectionURL);
+            props.safeRedirect = res ? res.safe_redirect : undefined;
             setTimeout(() => {
                 if (!mounted) {
                     return;
@@ -40,7 +42,7 @@ const SignOut = function (props: Props) {
     }, [doSignOut]);
 
     if (timedOut) {
-        if (redirectionURL) {
+        if (redirectionURL && props.safeRedirect !== undefined && props.safeRedirect) {
             window.location.href = redirectionURL;
         } else {
             return <Redirect to={FirstFactorRoute} />;
