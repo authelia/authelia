@@ -117,7 +117,7 @@ log_level: debug
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
-default: ""
+default: text
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }

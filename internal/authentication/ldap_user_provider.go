@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/text/encoding/unicode"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -19,9 +20,10 @@ type LDAPUserProvider struct {
 	configuration     schema.LDAPAuthenticationBackendConfiguration
 	tlsConfig         *tls.Config
 	dialOpts          ldap.DialOpt
+	logger            *logrus.Logger
 	connectionFactory LDAPConnectionFactory
-	usersDN           string
-	groupsDN          string
+	usersBaseDN       string
+	groupsBaseDN      string
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
@@ -42,6 +44,7 @@ func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 		configuration:     configuration,
 		tlsConfig:         tlsConfig,
 		dialOpts:          dialOpts,
+		logger:            logging.Logger(),
 		connectionFactory: NewLDAPConnectionFactoryImpl(),
 	}
 
@@ -59,25 +62,23 @@ func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBacke
 }
 
 func (p *LDAPUserProvider) parseDynamicConfiguration() {
-	logger := logging.Logger() // Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
-
 	// Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
 	if strings.Contains(p.configuration.UsersFilter, "{0}") {
-		logger.Warnf("DEPRECATION NOTICE: LDAP Users Filter will no longer support replacing `{0}` in 4.28.0. Please use `{input}` instead.")
+		p.logger.Warnf("DEPRECATION NOTICE: LDAP Users Filter will no longer support replacing `{0}` in 4.28.0. Please use `{input}` instead.")
 
 		p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{0}", "{input}")
 	}
 
 	// Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
 	if strings.Contains(p.configuration.GroupsFilter, "{0}") {
-		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{0}` in 4.28.0. Please use `{input}` instead.")
+		p.logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{0}` in 4.28.0. Please use `{input}` instead.")
 
 		p.configuration.GroupsFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{0}", "{input}")
 	}
 
 	// Deprecated: This is temporary for deprecation notice purposes. TODO: Remove in 4.28.
 	if strings.Contains(p.configuration.GroupsFilter, "{1}") {
-		logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{1}` in 4.28.0. Please use `{username}` instead.")
+		p.logger.Warnf("DEPRECATION NOTICE: LDAP Groups Filter will no longer support replacing `{1}` in 4.28.0. Please use `{username}` instead.")
 
 		p.configuration.GroupsFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{1}", "{username}")
 	}
@@ -86,17 +87,23 @@ func (p *LDAPUserProvider) parseDynamicConfiguration() {
 	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{mail_attribute}", p.configuration.MailAttribute)
 	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{display_name_attribute}", p.configuration.DisplayNameAttribute)
 
+	p.logger.Tracef("Dynamically generated users filter is %s", p.configuration.UsersFilter)
+
 	if p.configuration.AdditionalUsersDN != "" {
-		p.usersDN = p.configuration.AdditionalUsersDN + "," + p.configuration.BaseDN
+		p.usersBaseDN = p.configuration.AdditionalUsersDN + "," + p.configuration.BaseDN
 	} else {
-		p.usersDN = p.configuration.BaseDN
+		p.usersBaseDN = p.configuration.BaseDN
 	}
 
+	p.logger.Tracef("Dynamically generated users BaseDN is %s", p.usersBaseDN)
+
 	if p.configuration.AdditionalGroupsDN != "" {
-		p.groupsDN = p.configuration.AdditionalGroupsDN + "," + p.configuration.BaseDN
+		p.groupsBaseDN = ldap.EscapeFilter(p.configuration.AdditionalGroupsDN + "," + p.configuration.BaseDN)
 	} else {
-		p.groupsDN = p.configuration.BaseDN
+		p.groupsBaseDN = p.configuration.BaseDN
 	}
+
+	p.logger.Tracef("Dynamically generated groups BaseDN is %s", p.groupsBaseDN)
 }
 
 func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
@@ -162,13 +169,13 @@ func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, inputUsername s
 	// The {input} placeholder is replaced by the users username input.
 	userFilter = strings.ReplaceAll(userFilter, "{input}", inputUsername)
 
+	p.logger.Tracef("Computed user filter is %s", userFilter)
+
 	return userFilter
 }
 
 func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername string) (*ldapUserProfile, error) {
-	logger := logging.Logger()
 	userFilter := p.resolveUsersFilter(p.configuration.UsersFilter, inputUsername)
-	logger.Tracef("Computed user filter is %s", userFilter)
 
 	attributes := []string{"dn",
 		p.configuration.DisplayNameAttribute,
@@ -177,7 +184,7 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 
 	// Search for the given username.
 	searchRequest := ldap.NewSearchRequest(
-		p.usersDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
 		1, 0, false, userFilter, attributes, nil,
 	)
 
@@ -235,13 +242,13 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 		groupFilter = strings.ReplaceAll(groupFilter, "{dn}", ldap.EscapeFilter(profile.DN))
 	}
 
+	p.logger.Tracef("Computed groups filter is %s", groupFilter)
+
 	return groupFilter, nil
 }
 
 // GetDetails retrieve the groups a user belongs to.
 func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error) {
-	logger := logging.Logger()
-
 	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
 		return nil, err
@@ -258,11 +265,9 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 		return nil, fmt.Errorf("Unable to create group filter for user %s. Cause: %s", inputUsername, err)
 	}
 
-	logger.Tracef("Computed groups filter is %s", groupsFilter)
-
 	// Search for the given username.
 	searchGroupRequest := ldap.NewSearchRequest(
-		p.groupsDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		p.groupsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
 		0, 0, false, groupsFilter, []string{p.configuration.GroupNameAttribute}, nil,
 	)
 
@@ -276,7 +281,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 
 	for _, res := range sr.Entries {
 		if len(res.Attributes) == 0 {
-			logger.Warningf("No groups retrieved from LDAP for user %s", inputUsername)
+			p.logger.Warningf("No groups retrieved from LDAP for user %s", inputUsername)
 			break
 		}
 		// Append all values of the document. Normally there should be only one per document.

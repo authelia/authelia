@@ -18,13 +18,16 @@ const SignOut = function (props: Props) {
     const style = useStyles();
     const { createErrorNotification } = useNotifications();
     const redirectionURL = useRedirectionURL();
-    const [timedOut, setTimedOut] = useState(false);
     const redirector = useRedirector();
+    const [timedOut, setTimedOut] = useState(false);
+    const [safeRedirect, setSafeRedirect] = useState(false);
 
     const doSignOut = useCallback(async () => {
         try {
-            // TODO(c.michaud): pass redirection URL to backend for validation.
-            await signOut();
+            const res = await signOut(redirectionURL);
+            if (res !== undefined && res.safeTargetURL) {
+                setSafeRedirect(true);
+            }
             setTimeout(() => {
                 if (!mounted) {
                     return;
@@ -35,14 +38,14 @@ const SignOut = function (props: Props) {
             console.error(err);
             createErrorNotification("There was an issue signing out");
         }
-    }, [createErrorNotification, setTimedOut, mounted]);
+    }, [createErrorNotification, redirectionURL, setSafeRedirect, setTimedOut, mounted]);
 
     useEffect(() => {
         doSignOut();
     }, [doSignOut]);
 
     if (timedOut) {
-        if (redirectionURL) {
+        if (redirectionURL && safeRedirect) {
             redirector(redirectionURL);
         } else {
             return <Redirect to={FirstFactorRoute} />;
