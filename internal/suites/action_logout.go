@@ -12,8 +12,10 @@ func (wds *WebDriverSession) doLogout(ctx context.Context, t *testing.T) {
 	wds.verifyIsFirstFactorPage(ctx, t)
 }
 
-func (wds *WebDriverSession) doLogoutWithRedirect(ctx context.Context, t *testing.T, redirectURL string, firstFactor bool) {
-	wds.doVisit(t, fmt.Sprintf("%s%s%s", GetLoginBaseURL(), "/logout?rd=", url.QueryEscape(redirectURL)))
+func (wds *WebDriverSession) doLogoutWithRedirect(ctx context.Context, t *testing.T, targetURL string, firstFactor bool) {
+	wds.doVisit(t, fmt.Sprintf("%s%s%s", GetLoginBaseURL(), "/logout?rd=", url.QueryEscape(targetURL)))
+
+	fmt.Printf("DEBUG: Logout Target URL is: %s, firstFactor: %t\n", targetURL, firstFactor)
 
 	if firstFactor {
 		wds.verifyIsFirstFactorPage(ctx, t)
@@ -21,5 +23,5 @@ func (wds *WebDriverSession) doLogoutWithRedirect(ctx context.Context, t *testin
 		return
 	}
 
-	wds.verifyURLIs(ctx, t, redirectURL)
+	wds.verifyURLIs(ctx, t, targetURL)
 }

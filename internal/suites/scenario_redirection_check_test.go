@@ -77,13 +77,24 @@ func (s *RedirectionCheckScenario) TestShouldRedirectOnLoginOnlyWhenDomainIsSafe
 	}
 }
 
+var logoutRedirectionURLs = map[string]bool{
+	// external website
+	"https://www.google.fr": false,
+	// Not the right domain
+	"https://public.example-not-right.com:8080/secret.html": false,
+	// Not https
+	"http://public.example.com:8080/index.html": false,
+	// Domain handled by Authelia
+	"https://public.example.com:8080/index.html": true,
+}
+
 func (s *RedirectionCheckScenario) TestShouldRedirectOnLogoutOnlyWhenDomainIsSafe() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	for url, redirected := range redirectionAuthorizations {
+	for url, success := range logoutRedirectionURLs {
 		s.T().Run(url, func(t *testing.T) {
-			s.doLogoutWithRedirect(ctx, t, url, !redirected)
+			s.doLogoutWithRedirect(ctx, t, url, !success)
 		})
 	}
 }
