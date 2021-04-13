@@ -52,7 +52,7 @@ func (s *StandaloneWebDriverSuite) SetupTest() {
 }
 
 func (s *StandaloneWebDriverSuite) TestShouldValidateLogoutRedirection() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	s.doLogout(ctx, s.T())
