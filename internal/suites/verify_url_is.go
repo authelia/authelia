@@ -10,7 +10,6 @@ import (
 )
 
 func (wds *WebDriverSession) verifyURLIs(ctx context.Context, t *testing.T, url string) {
-
 	// TODO: REMOVE.
 	fmt.Printf("DEBUG: Verifying URL is: %s\n", url)
 

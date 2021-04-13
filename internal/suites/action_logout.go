@@ -23,6 +23,7 @@ func (wds *WebDriverSession) doLogoutWithRedirect(ctx context.Context, t *testin
 		fmt.Printf("DEBUG: Attempting Logout Expected Page is First Factor\n")
 
 		wds.verifyIsFirstFactorPage(ctx, t)
+
 		return
 	}
 
