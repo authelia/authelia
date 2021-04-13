@@ -40,10 +40,10 @@ func LogoutPost(ctx *middlewares.AutheliaCtx) {
 		responseBody.SafeRedirection = utils.IsRedirectionSafe(*redirectionURL, ctx.Configuration.Session.Domain)
 	}
 
+	ctx.Logger.Debugf("Logout redirection url is %s, safe %t", body.RedirectionURL, responseBody.SafeRedirection)
+
 	err = ctx.SetJSONBody(responseBody)
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to set body during logout: %s", err), operationFailedMessage)
 	}
-
-	ctx.ReplyOK()
 }
