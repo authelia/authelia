@@ -27,7 +27,7 @@
     "classnames": "2.3.1",
     "enzyme": "3.11.0",
     "enzyme-adapter-react-16": "1.15.6",
-    "eslint-config-prettier": "8.1.0",
+    "eslint-config-prettier": "8.2.0",
     "eslint-import-resolver-typescript": "2.4.0",
     "eslint-plugin-prettier": "3.3.1",
     "prettier": "2.2.1",
