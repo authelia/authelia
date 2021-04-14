@@ -124,6 +124,17 @@ func validateLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		validator.Push(fmt.Errorf("authentication backend ldap implementation must be blank or one of the following values `%s`, `%s`", schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory))
 	}
 
+	if strings.Contains(configuration.UsersFilter, "{0}") {
+		validator.Push(fmt.Errorf("authentication backend ldap users filter must not contain removed placeholders" +
+			", {0} has been replaced with {input}"))
+	}
+
+	if strings.Contains(configuration.GroupsFilter, "{0}") ||
+		strings.Contains(configuration.GroupsFilter, "{1}") {
+		validator.Push(fmt.Errorf("authentication backend ldap groups filter must not contain removed " +
+			"placeholders, {0} has been replaced with {input} and {1} has been replaced with {username}"))
+	}
+
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))
 	} else {
