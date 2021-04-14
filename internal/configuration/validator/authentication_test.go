@@ -14,7 +14,7 @@ func TestShouldRaiseErrorWhenBothBackendsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	backendConfig := schema.AuthenticationBackendConfiguration{}
 
-	backendConfig.Ldap = &schema.LDAPAuthenticationBackendConfiguration{}
+	backendConfig.LDAP = &schema.LDAPAuthenticationBackendConfiguration{}
 	backendConfig.File = &schema.FileAuthenticationBackendConfiguration{
 		Path: "/tmp",
 	}
@@ -211,15 +211,15 @@ type LdapAuthenticationBackendSuite struct {
 func (suite *LdapAuthenticationBackendSuite) SetupTest() {
 	suite.validator = schema.NewStructValidator()
 	suite.configuration = schema.AuthenticationBackendConfiguration{}
-	suite.configuration.Ldap = &schema.LDAPAuthenticationBackendConfiguration{}
-	suite.configuration.Ldap.Implementation = schema.LDAPImplementationCustom
-	suite.configuration.Ldap.URL = testLDAPURL
-	suite.configuration.Ldap.User = testLDAPUser
-	suite.configuration.Ldap.Password = testLDAPPassword
-	suite.configuration.Ldap.BaseDN = testLDAPBaseDN
-	suite.configuration.Ldap.UsernameAttribute = "uid"
-	suite.configuration.Ldap.UsersFilter = "({username_attribute}={input})"
-	suite.configuration.Ldap.GroupsFilter = "(cn={input})"
+	suite.configuration.LDAP = &schema.LDAPAuthenticationBackendConfiguration{}
+	suite.configuration.LDAP.Implementation = schema.LDAPImplementationCustom
+	suite.configuration.LDAP.URL = testLDAPURL
+	suite.configuration.LDAP.User = testLDAPUser
+	suite.configuration.LDAP.Password = testLDAPPassword
+	suite.configuration.LDAP.BaseDN = testLDAPBaseDN
+	suite.configuration.LDAP.UsernameAttribute = "uid"
+	suite.configuration.LDAP.UsersFilter = "({username_attribute}={input})"
+	suite.configuration.LDAP.GroupsFilter = "(cn={input})"
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldValidateCompleteConfiguration() {
@@ -230,19 +230,19 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldValidateCompleteConfigura
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldValidateDefaultImplementationAndUsernameAttribute() {
-	suite.configuration.Ldap.Implementation = ""
-	suite.configuration.Ldap.UsernameAttribute = ""
+	suite.configuration.LDAP.Implementation = ""
+	suite.configuration.LDAP.UsernameAttribute = ""
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
-	suite.Assert().Equal(schema.LDAPImplementationCustom, suite.configuration.Ldap.Implementation)
+	suite.Assert().Equal(schema.LDAPImplementationCustom, suite.configuration.LDAP.Implementation)
 
-	suite.Assert().Equal(suite.configuration.Ldap.UsernameAttribute, schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute)
+	suite.Assert().Equal(suite.configuration.LDAP.UsernameAttribute, schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute)
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenImplementationIsInvalidMSAD() {
-	suite.configuration.Ldap.Implementation = "masd"
+	suite.configuration.LDAP.Implementation = "masd"
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
@@ -253,7 +253,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenImplementat
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenURLNotProvided() {
-	suite.configuration.Ldap.URL = ""
+	suite.configuration.LDAP.URL = ""
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
@@ -263,7 +263,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenURLNotProvi
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenUserNotProvided() {
-	suite.configuration.Ldap.User = ""
+	suite.configuration.LDAP.User = ""
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
@@ -274,7 +274,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenUserNotProv
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenPasswordNotProvided() {
-	suite.configuration.Ldap.Password = ""
+	suite.configuration.LDAP.Password = ""
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
@@ -285,7 +285,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenPasswordNot
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenBaseDNNotProvided() {
-	suite.configuration.Ldap.BaseDN = ""
+	suite.configuration.LDAP.BaseDN = ""
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
@@ -296,7 +296,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseErrorWhenBaseDNNotPr
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyGroupsFilter() {
-	suite.configuration.Ldap.GroupsFilter = ""
+	suite.configuration.LDAP.GroupsFilter = ""
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
@@ -307,7 +307,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyGroupsFilter(
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsersFilter() {
-	suite.configuration.Ldap.UsersFilter = ""
+	suite.configuration.LDAP.UsersFilter = ""
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
@@ -318,7 +318,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsersFilter()
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldNotRaiseOnEmptyUsernameAttribute() {
-	suite.configuration.Ldap.UsernameAttribute = ""
+	suite.configuration.LDAP.UsernameAttribute = ""
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
@@ -343,7 +343,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultImplementation(
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.Assert().Equal(schema.LDAPImplementationCustom, suite.configuration.Ldap.Implementation)
+	suite.Assert().Equal(schema.LDAPImplementationCustom, suite.configuration.LDAP.Implementation)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultGroupNameAttribute() {
@@ -352,7 +352,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultGroupNameAttrib
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.Assert().Equal("cn", suite.configuration.Ldap.GroupNameAttribute)
+	suite.Assert().Equal("cn", suite.configuration.LDAP.GroupNameAttribute)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultMailAttribute() {
@@ -361,7 +361,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultMailAttribute()
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.Assert().Equal("mail", suite.configuration.Ldap.MailAttribute)
+	suite.Assert().Equal("mail", suite.configuration.LDAP.MailAttribute)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultDisplayNameAttribute() {
@@ -370,7 +370,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultDisplayNameAttr
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.Assert().Equal("displayname", suite.configuration.Ldap.DisplayNameAttribute)
+	suite.Assert().Equal("displayname", suite.configuration.LDAP.DisplayNameAttribute)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultRefreshInterval() {
@@ -383,7 +383,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldSetDefaultRefreshInterval
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesNotContainEnclosingParenthesis() {
-	suite.configuration.Ldap.UsersFilter = "{username_attribute}={input}"
+	suite.configuration.LDAP.UsersFilter = "{username_attribute}={input}"
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
@@ -394,7 +394,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesN
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenGroupsFilterDoesNotContainEnclosingParenthesis() {
-	suite.configuration.Ldap.GroupsFilter = "cn={input}"
+	suite.configuration.LDAP.GroupsFilter = "cn={input}"
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
@@ -405,7 +405,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenGroupsFilterDoes
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesNotContainUsernameAttribute() {
-	suite.configuration.Ldap.UsersFilter = "(&({mail_attribute}={input})(objectClass=person))"
+	suite.configuration.LDAP.UsersFilter = "(&({mail_attribute}={input})(objectClass=person))"
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
@@ -415,7 +415,7 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesN
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlaceholder() {
-	suite.configuration.Ldap.UsersFilter = "(&({username_attribute}={mail_attribute})(objectClass=person))"
+	suite.configuration.LDAP.UsersFilter = "(&({username_attribute}={mail_attribute})(objectClass=person))"
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
@@ -426,26 +426,26 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlacehol
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {
-	suite.Assert().Equal("", validateLdapURLSimple("127.0.0.1", suite.validator))
+	suite.Assert().Equal("", validateLDAPURLSimple("127.0.0.1", suite.validator))
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "Unknown scheme for ldap url, should be ldap:// or ldaps://")
 
-	suite.Assert().Equal("", validateLdapURLSimple("127.0.0.1:636", suite.validator))
+	suite.Assert().Equal("", validateLDAPURLSimple("127.0.0.1:636", suite.validator))
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 2)
 	suite.Assert().EqualError(suite.validator.Errors()[1], "Unable to parse URL to ldap server. The scheme is probably missing: ldap:// or ldaps://")
 
-	suite.Assert().Equal("ldap://127.0.0.1", validateLdapURLSimple("ldap://127.0.0.1", suite.validator))
-	suite.Assert().Equal("ldap://127.0.0.1:390", validateLdapURLSimple("ldap://127.0.0.1:390", suite.validator))
-	suite.Assert().Equal("ldap://127.0.0.1/abc", validateLdapURLSimple("ldap://127.0.0.1/abc", suite.validator))
-	suite.Assert().Equal("ldap://127.0.0.1/abc?test=abc&x=y", validateLdapURLSimple("ldap://127.0.0.1/abc?test=abc&x=y", suite.validator))
+	suite.Assert().Equal("ldap://127.0.0.1", validateLDAPURLSimple("ldap://127.0.0.1", suite.validator))
+	suite.Assert().Equal("ldap://127.0.0.1:390", validateLDAPURLSimple("ldap://127.0.0.1:390", suite.validator))
+	suite.Assert().Equal("ldap://127.0.0.1/abc", validateLDAPURLSimple("ldap://127.0.0.1/abc", suite.validator))
+	suite.Assert().Equal("ldap://127.0.0.1/abc?test=abc&x=y", validateLDAPURLSimple("ldap://127.0.0.1/abc?test=abc&x=y", suite.validator))
 
-	suite.Assert().Equal("ldaps://127.0.0.1:390", validateLdapURLSimple("ldaps://127.0.0.1:390", suite.validator))
-	suite.Assert().Equal("ldaps://127.0.0.1", validateLdapURLSimple("ldaps://127.0.0.1", suite.validator))
+	suite.Assert().Equal("ldaps://127.0.0.1:390", validateLDAPURLSimple("ldaps://127.0.0.1:390", suite.validator))
+	suite.Assert().Equal("ldaps://127.0.0.1", validateLDAPURLSimple("ldaps://127.0.0.1", suite.validator))
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldDefaultTLS12() {
@@ -454,11 +454,11 @@ func (suite *LdapAuthenticationBackendSuite) TestShouldDefaultTLS12() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.Assert().Equal(schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion, suite.configuration.Ldap.TLS.MinimumVersion)
+	suite.Assert().Equal(schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion, suite.configuration.LDAP.TLS.MinimumVersion)
 }
 
 func (suite *LdapAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue() {
-	suite.configuration.Ldap.TLS = &schema.TLSConfig{
+	suite.configuration.LDAP.TLS = &schema.TLSConfig{
 		MinimumVersion: "SSL2.0",
 	}
 
@@ -483,13 +483,13 @@ type ActiveDirectoryAuthenticationBackendSuite struct {
 func (suite *ActiveDirectoryAuthenticationBackendSuite) SetupTest() {
 	suite.validator = schema.NewStructValidator()
 	suite.configuration = schema.AuthenticationBackendConfiguration{}
-	suite.configuration.Ldap = &schema.LDAPAuthenticationBackendConfiguration{}
-	suite.configuration.Ldap.Implementation = schema.LDAPImplementationActiveDirectory
-	suite.configuration.Ldap.URL = testLDAPURL
-	suite.configuration.Ldap.User = testLDAPUser
-	suite.configuration.Ldap.Password = testLDAPPassword
-	suite.configuration.Ldap.BaseDN = testLDAPBaseDN
-	suite.configuration.Ldap.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
+	suite.configuration.LDAP = &schema.LDAPAuthenticationBackendConfiguration{}
+	suite.configuration.LDAP.Implementation = schema.LDAPImplementationActiveDirectory
+	suite.configuration.LDAP.URL = testLDAPURL
+	suite.configuration.LDAP.User = testLDAPUser
+	suite.configuration.LDAP.Password = testLDAPPassword
+	suite.configuration.LDAP.BaseDN = testLDAPBaseDN
+	suite.configuration.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 }
 
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirectoryDefaults() {
@@ -499,52 +499,52 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirec
 	suite.Assert().False(suite.validator.HasErrors())
 
 	suite.Assert().Equal(
-		suite.configuration.Ldap.UsersFilter,
+		suite.configuration.LDAP.UsersFilter,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter)
 	suite.Assert().Equal(
-		suite.configuration.Ldap.UsernameAttribute,
+		suite.configuration.LDAP.UsernameAttribute,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute)
 	suite.Assert().Equal(
-		suite.configuration.Ldap.DisplayNameAttribute,
+		suite.configuration.LDAP.DisplayNameAttribute,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute)
 	suite.Assert().Equal(
-		suite.configuration.Ldap.MailAttribute,
+		suite.configuration.LDAP.MailAttribute,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute)
 	suite.Assert().Equal(
-		suite.configuration.Ldap.GroupsFilter,
+		suite.configuration.LDAP.GroupsFilter,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter)
 	suite.Assert().Equal(
-		suite.configuration.Ldap.GroupNameAttribute,
+		suite.configuration.LDAP.GroupNameAttribute,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute)
 }
 
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
-	suite.configuration.Ldap.UsersFilter = "(&({username_attribute}={input})(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2))"
-	suite.configuration.Ldap.UsernameAttribute = "cn"
-	suite.configuration.Ldap.MailAttribute = "userPrincipalName"
-	suite.configuration.Ldap.DisplayNameAttribute = "name"
-	suite.configuration.Ldap.GroupsFilter = "(&(member={dn})(objectClass=group)(objectCategory=group))"
-	suite.configuration.Ldap.GroupNameAttribute = "distinguishedName"
+	suite.configuration.LDAP.UsersFilter = "(&({username_attribute}={input})(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2))"
+	suite.configuration.LDAP.UsernameAttribute = "cn"
+	suite.configuration.LDAP.MailAttribute = "userPrincipalName"
+	suite.configuration.LDAP.DisplayNameAttribute = "name"
+	suite.configuration.LDAP.GroupsFilter = "(&(member={dn})(objectClass=group)(objectCategory=group))"
+	suite.configuration.LDAP.GroupNameAttribute = "distinguishedName"
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
 	suite.Assert().NotEqual(
-		suite.configuration.Ldap.UsersFilter,
+		suite.configuration.LDAP.UsersFilter,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter)
 	suite.Assert().NotEqual(
-		suite.configuration.Ldap.UsernameAttribute,
+		suite.configuration.LDAP.UsernameAttribute,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute)
 	suite.Assert().NotEqual(
-		suite.configuration.Ldap.DisplayNameAttribute,
+		suite.configuration.LDAP.DisplayNameAttribute,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute)
 	suite.Assert().NotEqual(
-		suite.configuration.Ldap.MailAttribute,
+		suite.configuration.LDAP.MailAttribute,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute)
 	suite.Assert().NotEqual(
-		suite.configuration.Ldap.GroupsFilter,
+		suite.configuration.LDAP.GroupsFilter,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter)
 	suite.Assert().NotEqual(
-		suite.configuration.Ldap.GroupNameAttribute,
+		suite.configuration.LDAP.GroupNameAttribute,
 		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute)
 }
 

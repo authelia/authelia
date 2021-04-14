@@ -109,3 +109,18 @@ func TestReplacedErrors(t *testing.T) {
 	assert.EqualError(t, errs[3], fmt.Sprintf(errFmtReplacedConfigurationKey, "logs_file_path", "log_file"))
 	assert.EqualError(t, errs[4], fmt.Sprintf(errFmtReplacedConfigurationKey, "logs_level", "log_level"))
 }
+
+func TestSecretKeysDontRaiseErrors(t *testing.T) {
+	configKeys := []string{}
+
+	for _, key := range SecretNames {
+		configKeys = append(configKeys, SecretNameToEnvName(key))
+		configKeys = append(configKeys, key)
+	}
+
+	val := schema.NewStructValidator()
+	ValidateKeys(val, configKeys)
+
+	assert.Len(t, val.Warnings(), 0)
+	assert.Len(t, val.Errors(), 0)
+}

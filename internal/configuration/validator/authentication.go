@@ -10,6 +10,32 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+// ValidateAuthenticationBackend validates and update authentication backend configuration.
+func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if configuration.LDAP == nil && configuration.File == nil {
+		validator.Push(errors.New("Please provide `ldap` or `file` object in `authentication_backend`"))
+	}
+
+	if configuration.LDAP != nil && configuration.File != nil {
+		validator.Push(errors.New("You cannot provide both `ldap` and `file` objects in `authentication_backend`"))
+	}
+
+	if configuration.File != nil {
+		validateFileAuthenticationBackend(configuration.File, validator)
+	} else if configuration.LDAP != nil {
+		validateLDAPAuthenticationBackend(configuration.LDAP, validator)
+	}
+
+	if configuration.RefreshInterval == "" {
+		configuration.RefreshInterval = schema.RefreshIntervalDefault
+	} else {
+		_, err := utils.ParseDurationString(configuration.RefreshInterval)
+		if err != nil && configuration.RefreshInterval != schema.ProfileRefreshDisabled && configuration.RefreshInterval != schema.ProfileRefreshAlways {
+			validator.Push(fmt.Errorf("Auth Backend `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
+		}
+	}
+}
+
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.Path == "" {
@@ -72,31 +98,7 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 	}
 }
 
-// Wrapper for test purposes to exclude the hostname from the return.
-func validateLdapURLSimple(ldapURL string, validator *schema.StructValidator) (finalURL string) {
-	finalURL, _ = validateLdapURL(ldapURL, validator)
-
-	return finalURL
-}
-
-func validateLdapURL(ldapURL string, validator *schema.StructValidator) (finalURL string, hostname string) {
-	parsedURL, err := url.Parse(ldapURL)
-
-	if err != nil {
-		validator.Push(errors.New("Unable to parse URL to ldap server. The scheme is probably missing: ldap:// or ldaps://"))
-		return "", ""
-	}
-
-	if !(parsedURL.Scheme == schemeLDAP || parsedURL.Scheme == schemeLDAPS) {
-		validator.Push(errors.New("Unknown scheme for ldap url, should be ldap:// or ldaps://"))
-		return "", ""
-	}
-
-	return parsedURL.String(), parsedURL.Hostname()
-}
-
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
-func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+func validateLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.Implementation == "" {
 		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
 	}
@@ -115,9 +117,9 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 
 	switch configuration.Implementation {
 	case schema.LDAPImplementationCustom:
-		setDefaultImplementationCustomLdapAuthenticationBackend(configuration)
+		setDefaultImplementationCustomLDAPAuthenticationBackend(configuration)
 	case schema.LDAPImplementationActiveDirectory:
-		setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration)
+		setDefaultImplementationActiveDirectoryLDAPAuthenticationBackend(configuration)
 	default:
 		validator.Push(fmt.Errorf("authentication backend ldap implementation must be blank or one of the following values `%s`, `%s`", schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory))
 	}
@@ -125,7 +127,7 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	if configuration.URL == "" {
 		validator.Push(errors.New("Please provide a URL to the LDAP server"))
 	} else {
-		ldapURL, serverName := validateLdapURL(configuration.URL, validator)
+		ldapURL, serverName := validateLDAPURL(configuration.URL, validator)
 
 		configuration.URL = ldapURL
 
@@ -134,6 +136,33 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 		}
 	}
 
+	validateLDAPRequiredParameters(configuration, validator)
+}
+
+// Wrapper for test purposes to exclude the hostname from the return.
+func validateLDAPURLSimple(ldapURL string, validator *schema.StructValidator) (finalURL string) {
+	finalURL, _ = validateLDAPURL(ldapURL, validator)
+
+	return finalURL
+}
+
+func validateLDAPURL(ldapURL string, validator *schema.StructValidator) (finalURL string, hostname string) {
+	parsedURL, err := url.Parse(ldapURL)
+
+	if err != nil {
+		validator.Push(errors.New("Unable to parse URL to ldap server. The scheme is probably missing: ldap:// or ldaps://"))
+		return "", ""
+	}
+
+	if !(parsedURL.Scheme == schemeLDAP || parsedURL.Scheme == schemeLDAPS) {
+		validator.Push(errors.New("Unknown scheme for ldap url, should be ldap:// or ldaps://"))
+		return "", ""
+	}
+
+	return parsedURL.String(), parsedURL.Hostname()
+}
+
+func validateLDAPRequiredParameters(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387)
 	if configuration.User == "" {
 		validator.Push(errors.New("Please provide a user name to connect to the LDAP server"))
@@ -174,7 +203,7 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	}
 }
 
-func setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+func setDefaultImplementationActiveDirectoryLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
 	if configuration.UsersFilter == "" {
 		configuration.UsersFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter
 	}
@@ -200,7 +229,7 @@ func setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configurat
 	}
 }
 
-func setDefaultImplementationCustomLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+func setDefaultImplementationCustomLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
 	if configuration.UsernameAttribute == "" {
 		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute
 	}
@@ -215,31 +244,5 @@ func setDefaultImplementationCustomLdapAuthenticationBackend(configuration *sche
 
 	if configuration.DisplayNameAttribute == "" {
 		configuration.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.DisplayNameAttribute
-	}
-}
-
-// ValidateAuthenticationBackend validates and update authentication backend configuration.
-func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
-	if configuration.Ldap == nil && configuration.File == nil {
-		validator.Push(errors.New("Please provide `ldap` or `file` object in `authentication_backend`"))
-	}
-
-	if configuration.Ldap != nil && configuration.File != nil {
-		validator.Push(errors.New("You cannot provide both `ldap` and `file` objects in `authentication_backend`"))
-	}
-
-	if configuration.File != nil {
-		validateFileAuthenticationBackend(configuration.File, validator)
-	} else if configuration.Ldap != nil {
-		validateLdapAuthenticationBackend(configuration.Ldap, validator)
-	}
-
-	if configuration.RefreshInterval == "" {
-		configuration.RefreshInterval = schema.RefreshIntervalDefault
-	} else {
-		_, err := utils.ParseDurationString(configuration.RefreshInterval)
-		if err != nil && configuration.RefreshInterval != schema.ProfileRefreshDisabled && configuration.RefreshInterval != schema.ProfileRefreshAlways {
-			validator.Push(fmt.Errorf("Auth Backend `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
-		}
 	}
 }

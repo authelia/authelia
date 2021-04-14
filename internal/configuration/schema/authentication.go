@@ -39,7 +39,7 @@ type PasswordConfiguration struct {
 type AuthenticationBackendConfiguration struct {
 	DisableResetPassword bool                                    `mapstructure:"disable_reset_password"`
 	RefreshInterval      string                                  `mapstructure:"refresh_interval"`
-	Ldap                 *LDAPAuthenticationBackendConfiguration `mapstructure:"ldap"`
+	LDAP                 *LDAPAuthenticationBackendConfiguration `mapstructure:"ldap"`
 	File                 *FileAuthenticationBackendConfiguration `mapstructure:"file"`
 }
 

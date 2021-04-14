@@ -89,8 +89,8 @@ func startServer() {
 	switch {
 	case config.AuthenticationBackend.File != nil:
 		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
-	case config.AuthenticationBackend.Ldap != nil:
-		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.Ldap, autheliaCertPool)
+	case config.AuthenticationBackend.LDAP != nil:
+		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, autheliaCertPool)
 	default:
 		logger.Fatalf("Unrecognized authentication backend")
 	}
