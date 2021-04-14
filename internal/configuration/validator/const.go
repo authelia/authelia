@@ -11,8 +11,10 @@ const (
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
 
-	denyPolicy   = "deny"
-	bypassPolicy = "bypass"
+	bypassPolicy    = "bypass"
+	oneFactorPolicy = "one_factor"
+	twoFactorPolicy = "two_factor"
+	denyPolicy      = "deny"
 
 	argon2id = "argon2id"
 	sha512   = "sha512"
@@ -31,7 +33,7 @@ const (
 	testTLSCert       = "/tmp/cert.pem"
 	testTLSKey        = "/tmp/key.pem"
 
-	errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for domain %s with subjects %s is invalid. It is " +
+	errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for rule #%d domain %s with subjects %s is invalid. It is " +
 		"not supported to configure both policy bypass and subjects. For more information see: " +
 		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 )

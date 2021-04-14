@@ -17,8 +17,12 @@ func newDefaultConfig() schema.Configuration {
 	config.LogLevel = "info"
 	config.LogFormat = "text"
 	config.JWTSecret = testJWTSecret
-	config.AuthenticationBackend.File = new(schema.FileAuthenticationBackendConfiguration)
-	config.AuthenticationBackend.File.Path = "/a/path"
+	config.AuthenticationBackend.File = &schema.FileAuthenticationBackendConfiguration{
+		Path: "/a/path",
+	}
+	config.AccessControl = schema.AccessControlConfiguration{
+		DefaultPolicy: "two_factor",
+	}
 	config.Session = schema.SessionConfiguration{
 		Domain: "example.com",
 		Name:   "authelia_session",
@@ -97,6 +101,16 @@ func TestShouldEnsureNotifierConfigIsProvided(t *testing.T) {
 func TestShouldAddDefaultAccessControl(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
+
+	config.AccessControl.DefaultPolicy = ""
+	config.AccessControl.Rules = []schema.ACLRule{
+		{
+			Policy: "bypass",
+			Domains: []string{
+				"public.example.com",
+			},
+		},
+	}
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 0)

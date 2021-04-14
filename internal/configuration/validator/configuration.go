@@ -72,9 +72,7 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 
 	ValidateAccessControl(configuration.AccessControl, validator)
 
-	if configuration.AccessControl.Rules != nil {
-		ValidateRules(configuration.AccessControl, validator)
-	}
+	ValidateRules(configuration.AccessControl, validator)
 
 	ValidateSession(&configuration.Session, validator)
 
