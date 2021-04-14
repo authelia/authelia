@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -183,4 +184,16 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 
 func TestAccessControl(t *testing.T) {
 	suite.Run(t, new(AccessControl))
+}
+
+func TestShouldReturnCorrectResultsForValidNetworkGroups(t *testing.T) {
+	config := schema.AccessControlConfiguration{
+		Networks: schema.DefaultACLNetwork,
+	}
+
+	validNetwork := IsNetworkGroupValid(config, "internal")
+	invalidNetwork := IsNetworkGroupValid(config, "127.0.0.1")
+
+	assert.True(t, validNetwork)
+	assert.False(t, invalidNetwork)
 }
