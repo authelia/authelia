@@ -15,6 +15,7 @@ func (wds *WebDriverSession) verifyURLIs(ctx context.Context, t *testing.T, url 
 		if err != nil {
 			return false, err
 		}
+
 		return currentURL == url, nil
 	})
 
