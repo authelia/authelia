@@ -21,6 +21,11 @@ func ValidateKeys(validator *schema.StructValidator, keys []string) {
 			continue
 		}
 
+		if newKey, ok := replacedKeys[key]; ok {
+			validator.Push(fmt.Errorf(errFmtReplacedConfigurationKey, key, newKey))
+			continue
+		}
+
 		if err, ok := specificErrorKeys[key]; ok {
 			if !utils.IsStringInSlice(err, errStrings) {
 				errStrings = append(errStrings, err)

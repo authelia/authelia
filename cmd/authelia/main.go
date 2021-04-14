@@ -36,7 +36,7 @@ func startServer() {
 		os.Exit(1)
 	}
 
-	autheliaCertPool, errs, nonFatalErrs := utils.NewX509CertPool(config.CertificatesDirectory, config)
+	autheliaCertPool, errs, nonFatalErrs := utils.NewX509CertPool(config.CertificatesDirectory)
 	if len(errs) > 0 {
 		for _, err := range errs {
 			logger.Error(err)

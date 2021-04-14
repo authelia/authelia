@@ -17,8 +17,6 @@ type LDAPAuthenticationBackendConfiguration struct {
 	Password             string     `mapstructure:"password"`
 	StartTLS             bool       `mapstructure:"start_tls"`
 	TLS                  *TLSConfig `mapstructure:"tls"`
-	SkipVerify           *bool      `mapstructure:"skip_verify"`         // Deprecated: Replaced with LDAPAuthenticationBackendConfiguration.TLS.SkipVerify. TODO: Remove in 4.28.
-	MinimumTLSVersion    string     `mapstructure:"minimum_tls_version"` // Deprecated: Replaced with LDAPAuthenticationBackendConfiguration.TLS.MinimumVersion. TODO: Remove in 4.28.
 }
 
 // FileAuthenticationBackendConfiguration represents the configuration related to file-based backend.
