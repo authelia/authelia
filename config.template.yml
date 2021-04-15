@@ -162,7 +162,6 @@ authentication_backend:
     ## - {input} is a placeholder replaced by what the user inputs in the login form.
     ## - {username_attribute} is a mandatory placeholder replaced by what is configured in `username_attribute`.
     ## - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
-    ##   versions, so please don't use it.
     ##
     ## Recommended settings are as follows:
     ## - Microsoft Active Directory: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
@@ -184,8 +183,6 @@ authentication_backend:
     ## - {dn} is a matcher replaced by the user distinguished name, aka, user DN.
     ## - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
     ## - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
-    ##   versions, so please don't use it.
-    ##   later version, so please don't use it.
     ##
     ## If your groups use the `groupOfUniqueNames` structure use this instead:
     ##    (&(uniquemember={dn})(objectclass=groupOfUniqueNames))

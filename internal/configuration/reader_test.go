@@ -253,7 +253,7 @@ func TestShouldNotParseConfigFileWithOldOrUnexpectedKeys(t *testing.T) {
 		return errors[i].Error() < errors[j].Error()
 	})
 	assert.EqualError(t, errors[0], "config key not expected: loggy_file")
-	assert.EqualError(t, errors[1], "invalid configuration key `logs_level` was replaced by `log_level`")
+	assert.EqualError(t, errors[1], "invalid configuration key 'logs_level' was replaced by 'log_level'")
 }
 
 func TestShouldValidateConfigurationTemplate(t *testing.T) {

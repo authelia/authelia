@@ -5,7 +5,7 @@ const (
 	errFmtSessionRedisPortRange           = "The port must be between 1 and 65535 for the %s session provider"
 	errFmtSessionRedisHostRequired        = "The host must be provided when using the %s session provider"
 	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
-	errFmtReplacedConfigurationKey        = "invalid configuration key `%s` was replaced by `%s`"
+	errFmtReplacedConfigurationKey        = "invalid configuration key '%s' was replaced by '%s'"
 
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
