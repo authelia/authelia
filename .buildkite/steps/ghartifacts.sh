@@ -3,13 +3,15 @@ set -eu
 
 artifacts=()
 
-for FILES in \
+for FILE in \
   authelia-linux-amd64.tar.gz authelia-linux-amd64.tar.gz.sha256 \
   authelia-linux-arm32v7.tar.gz authelia-linux-arm32v7.tar.gz.sha256 \
   authelia-linux-arm64v8.tar.gz authelia-linux-arm64v8.tar.gz.sha256 \
   authelia-public_html.tar.gz authelia-public_html.tar.gz.sha256;
 do
-  artifacts+=(-a "${FILES}")
+  # Add the version to the artifact name
+  mv $FILE ${FILE/authelia-/authelia-${BUILDKITE_TAG}-}
+  artifacts+=(-a "${FILE/authelia-/authelia-${BUILDKITE_TAG}-}")
 done
 
 echo "--- :github: Deploy artifacts for release: ${BUILDKITE_TAG}"
