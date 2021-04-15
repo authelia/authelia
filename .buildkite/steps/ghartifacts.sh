@@ -10,8 +10,8 @@ for FILE in \
   authelia-public_html.tar.gz authelia-public_html.tar.gz.sha256;
 do
   # Add the version to the artifact name
-  FILE=`echo $FILE | sed "s/authelia-/authelia-${BUILDKITE_TAG}-/g"`
-  artifacts+=(-a "${FILES}")
+  mv $FILE ${FILE/authelia-/authelia-${BUILDKITE_TAG}-}
+  artifacts+=(-a "${FILE/authelia-/authelia-${BUILDKITE_TAG}-}")
 done
 
 echo "--- :github: Deploy artifacts for release: ${BUILDKITE_TAG}"
