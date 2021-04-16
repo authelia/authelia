@@ -338,6 +338,15 @@ session:
   ## The name of the session cookie.
   name: authelia_session
 
+  ## The domain to protect.
+  ## Note: the authenticator must also be in that domain.
+  ## If empty, the cookie is restricted to the subdomain of the issuer.
+  domain: example.com
+
+  ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
+  ## Please read https:///www/authelia.com/docs/configuration/session.html#same_site
+  same_site: lax
+
   ## The secret to encrypt the session data. This is only used with Redis / Redis Sentinel.
   ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   secret: insecure_session_secret
@@ -358,11 +367,6 @@ session:
   ## The time before the cookie expires and the session is destroyed if remember me IS selected.
   ## Value of 0 disables remember me.
   remember_me_duration: 1M
-
-  ## The domain to protect.
-  ## Note: the authenticator must also be in that domain.
-  ## If empty, the cookie is restricted to the subdomain of the issuer.
-  domain: example.com
 
   ##
   ## Redis Provider

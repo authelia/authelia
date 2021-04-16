@@ -24,6 +24,16 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 	// Set the cookie to the given domain.
 	config.Domain = configuration.Domain
 
+	// Set the cookie SameSite option.
+	switch configuration.SameSite {
+	case "lax":
+		config.CookieSameSite = fasthttp.CookieSameSiteLaxMode
+	case "strict":
+		config.CookieSameSite = fasthttp.CookieSameSiteStrictMode
+	case "none":
+		config.CookieSameSite = fasthttp.CookieSameSiteNoneMode
+	}
+
 	// Only serve the header over HTTPS.
 	config.Secure = true
 
