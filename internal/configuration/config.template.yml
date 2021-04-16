@@ -344,7 +344,7 @@ session:
   domain: example.com
 
   ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
-  ## Please read https:///www.authelia.com/docs/configuration/session.html#same_site
+  ## Please read https://www.authelia.com/docs/configuration/session.html#same_site
   same_site: lax
 
   ## The secret to encrypt the session data. This is only used with Redis / Redis Sentinel.
