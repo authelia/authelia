@@ -195,7 +195,7 @@ func TestShouldParseConfigFile(t *testing.T) {
 	assert.Equal(t, "duo_secret_from_env", config.DuoAPI.SecretKey)
 
 	assert.Equal(t, "session_secret_from_env", config.Session.Secret)
-	assert.Equal(t, "ldap_secret_from_env", config.AuthenticationBackend.Ldap.Password)
+	assert.Equal(t, "ldap_secret_from_env", config.AuthenticationBackend.LDAP.Password)
 	assert.Equal(t, "smtp_secret_from_env", config.Notifier.SMTP.Password)
 	assert.Equal(t, "redis_secret_from_env", config.Session.Redis.Password)
 	assert.Equal(t, "redis-sentinel_secret_from_env", config.Session.Redis.HighAvailability.SentinelPassword)
@@ -253,7 +253,7 @@ func TestShouldNotParseConfigFileWithOldOrUnexpectedKeys(t *testing.T) {
 		return errors[i].Error() < errors[j].Error()
 	})
 	assert.EqualError(t, errors[0], "config key not expected: loggy_file")
-	assert.EqualError(t, errors[1], "config key replaced: logs_level is now log_level")
+	assert.EqualError(t, errors[1], "invalid configuration key 'logs_level' was replaced by 'log_level'")
 }
 
 func TestShouldValidateConfigurationTemplate(t *testing.T) {
