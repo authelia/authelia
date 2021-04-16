@@ -18,8 +18,6 @@ type SMTPNotifierConfiguration struct {
 	DisableRequireTLS   bool       `mapstructure:"disable_require_tls"`
 	DisableHTMLEmails   bool       `mapstructure:"disable_html_emails"`
 	TLS                 *TLSConfig `mapstructure:"tls"`
-	TrustedCert         string     `mapstructure:"trusted_cert"`        // Deprecated: Replaced with Global Option CertificatesDirectory. TODO: Remove in 4.28.
-	DisableVerifyCert   *bool      `mapstructure:"disable_verify_cert"` // Deprecated: Replaced with LDAPAuthenticationBackendConfiguration.TLS.SkipVerify. TODO: Remove in 4.28.
 }
 
 // NotifierConfiguration represents the configuration of the notifier to use when sending notifications to users.

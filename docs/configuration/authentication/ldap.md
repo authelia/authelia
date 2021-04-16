@@ -148,7 +148,11 @@ Similar to [additional_users_dn](#additional_users_dn) but it applies to group s
 
 ### groups_filter
 
-Similar to [users_filter](#users_filter) but it applies to group searches.
+Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the memeber is not
+a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
+using the following filter which is currently only tested against Microsoft Active Directory:
+
+`(&(member:1.2.840.113556.1.4.1941:={dn})(objectClass=group)(objectCategory=group))`
 
 ### mail_attribute
 

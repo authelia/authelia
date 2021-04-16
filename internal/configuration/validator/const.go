@@ -5,6 +5,7 @@ const (
 	errFmtSessionRedisPortRange           = "The port must be between 1 and 65535 for the %s session provider"
 	errFmtSessionRedisHostRequired        = "The host must be provided when using the %s session provider"
 	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
+	errFmtReplacedConfigurationKey        = "invalid configuration key '%s' was replaced by '%s'"
 
 	errOAuthOIDCServerClientRedirectURIFmt               = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
 	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "OIDC Client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
@@ -15,10 +16,10 @@ const (
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
 
-	denyPolicy      = "deny"
+	bypassPolicy    = "bypass"
 	oneFactorPolicy = "one_factor"
 	twoFactorPolicy = "two_factor"
-	bypassPolicy    = "bypass"
+	denyPolicy      = "deny"
 
 	argon2id = "argon2id"
 	sha512   = "sha512"
@@ -37,7 +38,7 @@ const (
 	testTLSCert       = "/tmp/cert.pem"
 	testTLSKey        = "/tmp/key.pem"
 
-	errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for domain %s with subjects %s is invalid. It is " +
+	errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for rule #%d domain %s with subjects %s is invalid. It is " +
 		"not supported to configure both policy bypass and subjects. For more information see: " +
 		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 )
@@ -145,12 +146,10 @@ var validKeys = []string{
 	"notifier.smtp.subject",
 	"notifier.smtp.startup_check_address",
 	"notifier.smtp.disable_require_tls",
-	"notifier.smtp.trusted_cert", // TODO: Deprecated: Remove in 4.28.
 	"notifier.smtp.disable_html_emails",
 	"notifier.smtp.tls.minimum_version",
 	"notifier.smtp.tls.skip_verify",
 	"notifier.smtp.tls.server_name",
-	"notifier.smtp.disable_verify_cert", // TODO: Deprecated: Remove in 4.28.
 
 	// Regulation Keys.
 	"regulation.max_retries",
@@ -182,8 +181,6 @@ var validKeys = []string{
 	"authentication_backend.ldap.tls.minimum_version",
 	"authentication_backend.ldap.tls.skip_verify",
 	"authentication_backend.ldap.tls.server_name",
-	"authentication_backend.ldap.skip_verify",         // TODO: Deprecated: Remove in 4.28.
-	"authentication_backend.ldap.minimum_tls_version", // TODO: Deprecated: Remove in 4.28.
 
 	// File Authentication Backend Keys.
 	"authentication_backend.file.path",
@@ -198,10 +195,19 @@ var validKeys = []string{
 	"identity_providers.oidc.clients",
 }
 
+var replacedKeys = map[string]string{
+	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",
+	"authentication_backend.ldap.minimum_tls_version": "authentication_backend.ldap.tls.minimum_version",
+	"notifier.smtp.disable_verify_cert":               "notifier.smtp.tls.skip_verify",
+	"logs_file_path":                                  "log_file",
+	"logs_level":                                      "log_level",
+}
+
 var specificErrorKeys = map[string]string{
-	"logs_file_path":   "config key replaced: logs_file is now log_file",
-	"logs_level":       "config key replaced: logs_level is now log_level",
 	"google_analytics": "config key removed: google_analytics - this functionality has been deprecated",
+	"notifier.smtp.trusted_cert": "invalid configuration key `notifier.smtp.trusted_cert` it has been removed, " +
+		"option has been replaced by the global option `certificates_directory`",
+
 	"authentication_backend.file.password_options.algorithm":   errFilePOptions,
 	"authentication_backend.file.password_options.iterations":  errFilePOptions,
 	"authentication_backend.file.password_options.key_length":  errFilePOptions,

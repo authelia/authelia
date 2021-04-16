@@ -10,6 +10,32 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+// ValidateAuthenticationBackend validates and update authentication backend configuration.
+func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if configuration.LDAP == nil && configuration.File == nil {
+		validator.Push(errors.New("Please provide `ldap` or `file` object in `authentication_backend`"))
+	}
+
+	if configuration.LDAP != nil && configuration.File != nil {
+		validator.Push(errors.New("You cannot provide both `ldap` and `file` objects in `authentication_backend`"))
+	}
+
+	if configuration.File != nil {
+		validateFileAuthenticationBackend(configuration.File, validator)
+	} else if configuration.LDAP != nil {
+		validateLDAPAuthenticationBackend(configuration.LDAP, validator)
+	}
+
+	if configuration.RefreshInterval == "" {
+		configuration.RefreshInterval = schema.RefreshIntervalDefault
+	} else {
+		_, err := utils.ParseDurationString(configuration.RefreshInterval)
+		if err != nil && configuration.RefreshInterval != schema.ProfileRefreshDisabled && configuration.RefreshInterval != schema.ProfileRefreshAlways {
+			validator.Push(fmt.Errorf("Auth Backend `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
+		}
+	}
+}
+
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.Path == "" {
@@ -72,14 +98,66 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 	}
 }
 
+func validateLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if configuration.Implementation == "" {
+		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
+	}
+
+	if configuration.TLS == nil {
+		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
+	}
+
+	if configuration.TLS.MinimumVersion == "" {
+		configuration.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
+	}
+
+	if _, err := utils.TLSStringToTLSConfigVersion(configuration.TLS.MinimumVersion); err != nil {
+		validator.Push(fmt.Errorf("error occurred validating the LDAP minimum_tls_version key with value %s: %v", configuration.TLS.MinimumVersion, err))
+	}
+
+	switch configuration.Implementation {
+	case schema.LDAPImplementationCustom:
+		setDefaultImplementationCustomLDAPAuthenticationBackend(configuration)
+	case schema.LDAPImplementationActiveDirectory:
+		setDefaultImplementationActiveDirectoryLDAPAuthenticationBackend(configuration)
+	default:
+		validator.Push(fmt.Errorf("authentication backend ldap implementation must be blank or one of the following values `%s`, `%s`", schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory))
+	}
+
+	if strings.Contains(configuration.UsersFilter, "{0}") {
+		validator.Push(fmt.Errorf("authentication backend ldap users filter must not contain removed placeholders" +
+			", {0} has been replaced with {input}"))
+	}
+
+	if strings.Contains(configuration.GroupsFilter, "{0}") ||
+		strings.Contains(configuration.GroupsFilter, "{1}") {
+		validator.Push(fmt.Errorf("authentication backend ldap groups filter must not contain removed " +
+			"placeholders, {0} has been replaced with {input} and {1} has been replaced with {username}"))
+	}
+
+	if configuration.URL == "" {
+		validator.Push(errors.New("Please provide a URL to the LDAP server"))
+	} else {
+		ldapURL, serverName := validateLDAPURL(configuration.URL, validator)
+
+		configuration.URL = ldapURL
+
+		if configuration.TLS.ServerName == "" {
+			configuration.TLS.ServerName = serverName
+		}
+	}
+
+	validateLDAPRequiredParameters(configuration, validator)
+}
+
 // Wrapper for test purposes to exclude the hostname from the return.
-func validateLdapURLSimple(ldapURL string, validator *schema.StructValidator) (finalURL string) {
-	finalURL, _ = validateLdapURL(ldapURL, validator)
+func validateLDAPURLSimple(ldapURL string, validator *schema.StructValidator) (finalURL string) {
+	finalURL, _ = validateLDAPURL(ldapURL, validator)
 
 	return finalURL
 }
 
-func validateLdapURL(ldapURL string, validator *schema.StructValidator) (finalURL string, hostname string) {
+func validateLDAPURL(ldapURL string, validator *schema.StructValidator) (finalURL string, hostname string) {
 	parsedURL, err := url.Parse(ldapURL)
 
 	if err != nil {
@@ -95,64 +173,7 @@ func validateLdapURL(ldapURL string, validator *schema.StructValidator) (finalUR
 	return parsedURL.String(), parsedURL.Hostname()
 }
 
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
-func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
-	if configuration.Implementation == "" {
-		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
-	}
-
-	nilTLS := configuration.TLS == nil
-	if nilTLS {
-		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
-	}
-
-	// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28 (if block).
-	if configuration.SkipVerify != nil {
-		validator.PushWarning(errors.New("DEPRECATED: LDAP Auth Backend `skip_verify` option has been replaced by `authentication_backend.ldap.tls.skip_verify` (will be removed in 4.28.0)"))
-
-		if nilTLS {
-			configuration.TLS.SkipVerify = *configuration.SkipVerify
-		}
-	}
-
-	// Deprecated. Maps deprecated values to the new ones. TODO: Remove in 4.28 (if block).
-	if configuration.MinimumTLSVersion != "" {
-		validator.PushWarning(errors.New("DEPRECATED: LDAP Auth Backend `minimum_tls_version` option has been replaced by `authentication_backend.ldap.tls.minimum_version` (will be removed in 4.28.0)"))
-
-		if nilTLS {
-			configuration.TLS.MinimumVersion = configuration.MinimumTLSVersion
-		}
-	}
-
-	if configuration.TLS.MinimumVersion == "" {
-		configuration.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
-	}
-
-	if _, err := utils.TLSStringToTLSConfigVersion(configuration.TLS.MinimumVersion); err != nil {
-		validator.Push(fmt.Errorf("error occurred validating the LDAP minimum_tls_version key with value %s: %v", configuration.TLS.MinimumVersion, err))
-	}
-
-	switch configuration.Implementation {
-	case schema.LDAPImplementationCustom:
-		setDefaultImplementationCustomLdapAuthenticationBackend(configuration)
-	case schema.LDAPImplementationActiveDirectory:
-		setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration)
-	default:
-		validator.Push(fmt.Errorf("authentication backend ldap implementation must be blank or one of the following values `%s`, `%s`", schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory))
-	}
-
-	if configuration.URL == "" {
-		validator.Push(errors.New("Please provide a URL to the LDAP server"))
-	} else {
-		ldapURL, serverName := validateLdapURL(configuration.URL, validator)
-
-		configuration.URL = ldapURL
-
-		if configuration.TLS.ServerName == "" {
-			configuration.TLS.ServerName = serverName
-		}
-	}
-
+func validateLDAPRequiredParameters(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387)
 	if configuration.User == "" {
 		validator.Push(errors.New("Please provide a user name to connect to the LDAP server"))
@@ -193,7 +214,7 @@ func validateLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	}
 }
 
-func setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+func setDefaultImplementationActiveDirectoryLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
 	if configuration.UsersFilter == "" {
 		configuration.UsersFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter
 	}
@@ -219,7 +240,7 @@ func setDefaultImplementationActiveDirectoryLdapAuthenticationBackend(configurat
 	}
 }
 
-func setDefaultImplementationCustomLdapAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
+func setDefaultImplementationCustomLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
 	if configuration.UsernameAttribute == "" {
 		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute
 	}
@@ -234,31 +255,5 @@ func setDefaultImplementationCustomLdapAuthenticationBackend(configuration *sche
 
 	if configuration.DisplayNameAttribute == "" {
 		configuration.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.DisplayNameAttribute
-	}
-}
-
-// ValidateAuthenticationBackend validates and update authentication backend configuration.
-func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
-	if configuration.Ldap == nil && configuration.File == nil {
-		validator.Push(errors.New("Please provide `ldap` or `file` object in `authentication_backend`"))
-	}
-
-	if configuration.Ldap != nil && configuration.File != nil {
-		validator.Push(errors.New("You cannot provide both `ldap` and `file` objects in `authentication_backend`"))
-	}
-
-	if configuration.File != nil {
-		validateFileAuthenticationBackend(configuration.File, validator)
-	} else if configuration.Ldap != nil {
-		validateLdapAuthenticationBackend(configuration.Ldap, validator)
-	}
-
-	if configuration.RefreshInterval == "" {
-		configuration.RefreshInterval = schema.RefreshIntervalDefault
-	} else {
-		_, err := utils.ParseDurationString(configuration.RefreshInterval)
-		if err != nil && configuration.RefreshInterval != schema.ProfileRefreshDisabled && configuration.RefreshInterval != schema.ProfileRefreshAlways {
-			validator.Push(fmt.Errorf("Auth Backend `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
-		}
 	}
 }

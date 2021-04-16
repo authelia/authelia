@@ -23,7 +23,7 @@ import (
 
 var verifyGetCfg = schema.AuthenticationBackendConfiguration{
 	RefreshInterval: schema.RefreshIntervalDefault,
-	Ldap:            &schema.LDAPAuthenticationBackendConfiguration{},
+	LDAP:            &schema.LDAPAuthenticationBackendConfiguration{},
 }
 
 func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {

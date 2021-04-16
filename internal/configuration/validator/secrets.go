@@ -43,8 +43,8 @@ func ValidateSecrets(configuration *schema.Configuration, validator *schema.Stru
 		}
 	}
 
-	if configuration.AuthenticationBackend.Ldap != nil {
-		configuration.AuthenticationBackend.Ldap.Password = getSecretValue(SecretNames["LDAPPassword"], validator, viper)
+	if configuration.AuthenticationBackend.LDAP != nil {
+		configuration.AuthenticationBackend.LDAP.Password = getSecretValue(SecretNames["LDAPPassword"], validator, viper)
 	}
 
 	if configuration.Notifier != nil && configuration.Notifier.SMTP != nil {
