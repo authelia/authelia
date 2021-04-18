@@ -237,6 +237,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://wuhanstudio.cc"><img src="https://avatars.githubusercontent.com/u/15157070?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Wu Han</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=wuhanstudio" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/lavih"><img src="https://avatars.githubusercontent.com/u/47455309?v=4?s=100" width="100px;" alt=""/><br /><sub><b>lavih</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=lavih" title="Documentation">📖</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="http://jonbayl"><img src="https://avatars.githubusercontent.com/u/30201351?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jon B. </b></sub></a><br /><a href="#security-jonbayl" title="Security">🛡️</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->

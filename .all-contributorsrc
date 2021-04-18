@@ -482,6 +482,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "jonbayl",
+      "name": "Jon B. ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30201351?v=4",
+      "profile": "http://jonbayl",
+      "contributions": [
+        "security"
+      ]
     }
   ],
   "contributorsPerLine": 7
