@@ -7,6 +7,6 @@ metadata:
     app.kubernetes.io/instance: authelia
     app.kubernetes.io/name: authelia
 data:
-  configuration.yaml: |
+  configuration.yml: |
     # Obtain the configuration template content from https://github.com/authelia/authelia/blob/master/config.template.yml
 ...

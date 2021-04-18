@@ -25,7 +25,7 @@ spec:
           command:
             - authelia
           args:
-            - '--config=/config/configuration.yaml'
+            - '--config=/config/configuration.yml'
           ports:
             - name: http
               containerPort: 9091
@@ -95,8 +95,8 @@ spec:
           configMap:
             name: authelia
             items:
-              - key: configuration.yaml
-                path: configuration.yaml
+              - key: configuration.yml
+                path: configuration.yml
         - name: secrets
           secret:
             secretName: authelia
