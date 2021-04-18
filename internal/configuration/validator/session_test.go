@@ -51,6 +51,17 @@ func TestShouldSetDefaultSessionExpiration(t *testing.T) {
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
 }
 
+func TestShouldSetDefaultSessionSameSite(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	assert.False(t, validator.HasErrors())
+	assert.Equal(t, schema.DefaultSessionConfiguration.SameSite, config.SameSite)
+}
+
 func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
@@ -379,6 +390,34 @@ func TestShouldRaiseErrorWhenDomainIsWildcard(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "The domain of the session must be the root domain you're protecting instead of a wildcard domain")
+}
+
+func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.SameSite = "NOne"
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	assert.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "session same_site is configured incorrectly, must be one of 'none', 'lax', or 'strict'")
+}
+
+func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	validOptions := []string{"none", "lax", "strict"}
+
+	for _, opt := range validOptions {
+		config.SameSite = opt
+
+		ValidateSession(&config, validator)
+
+		assert.False(t, validator.HasWarnings())
+		assert.Len(t, validator.Errors(), 0)
+	}
 }
 
 func TestShouldRaiseErrorWhenBadInactivityAndExpirationSet(t *testing.T) {

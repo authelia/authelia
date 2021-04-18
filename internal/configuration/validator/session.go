@@ -56,6 +56,12 @@ func validateSession(configuration *schema.SessionConfiguration, validator *sche
 	if strings.Contains(configuration.Domain, "*") {
 		validator.Push(errors.New("The domain of the session must be the root domain you're protecting instead of a wildcard domain"))
 	}
+
+	if configuration.SameSite == "" {
+		configuration.SameSite = schema.DefaultSessionConfiguration.SameSite
+	} else if configuration.SameSite != "none" && configuration.SameSite != "lax" && configuration.SameSite != "strict" {
+		validator.Push(errors.New("session same_site is configured incorrectly, must be one of 'none', 'lax', or 'strict'"))
+	}
 }
 
 func validateRedis(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {

@@ -22,6 +22,7 @@ and can then order the reverse proxy to let the request pass through to the appl
 session:
   name: authelia_session
   domain: example.com
+  same_site: lax
   secret: unsecure_session_secret
   expiration: 1h
   inactivity: 5m
@@ -66,6 +67,26 @@ required: yes
 
 The domain the cookie is assigned to protect. This must be the same as the domain Authelia is served on or the root
 of the domain. For example if listening on auth.example.com the cookie should be auth.example.com or example.com.
+
+### same_site
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+default: lax
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Sets the cookies SameSite value. Prior to offering the configuration choice this defaulted to None. The new default is
+Lax. This option is defined in lower-case. So for example if you want to set it to `Strict`, the value in configuration
+needs to be `strict`.
+
+You can read about the SameSite cookie in detail on the 
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite). In short setting SameSite to Lax
+is generally the most desirable option for Authelia. None is not recommended unless you absolutely know what you're
+doing and trust all the protected apps. Strict is not going to work in many use cases and we have not tested it in this
+state but it's available as an option anyway.
 
 ### secret
 <div markdown="1">

@@ -9,6 +9,7 @@ import (
 	"github.com/fasthttp/session/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
@@ -27,7 +28,6 @@ func TestShouldCreateInMemorySessionProvider(t *testing.T) {
 	assert.Equal(t, true, providerConfig.config.Secure)
 	assert.Equal(t, time.Duration(40)*time.Second, providerConfig.config.Expiration)
 	assert.True(t, providerConfig.config.IsSecureFunc(nil))
-
 	assert.Equal(t, "memory", providerConfig.providerName)
 }
 
@@ -183,6 +183,28 @@ func TestShouldCreateRedisSentinelSessionProvider(t *testing.T) {
 	// DbNumber is the fasthttp/session property for the Redis DB Index
 	assert.Equal(t, 0, pConfig.DB)
 	assert.Nil(t, pConfig.TLSConfig)
+}
+
+func TestShouldSetCookieSameSite(t *testing.T) {
+	configuration := schema.SessionConfiguration{}
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
+
+	configValueExpectedValue := map[string]fasthttp.CookieSameSite{
+		"":        fasthttp.CookieSameSiteLaxMode,
+		"lax":     fasthttp.CookieSameSiteLaxMode,
+		"strict":  fasthttp.CookieSameSiteStrictMode,
+		"none":    fasthttp.CookieSameSiteNoneMode,
+		"invalid": fasthttp.CookieSameSiteLaxMode,
+	}
+
+	for configValue, expectedValue := range configValueExpectedValue {
+		configuration.SameSite = configValue
+		providerConfig := NewProviderConfig(configuration, nil)
+
+		assert.Equal(t, expectedValue, providerConfig.config.CookieSameSite)
+	}
 }
 
 func TestShouldCreateRedisSessionProviderWithUnixSocket(t *testing.T) {
