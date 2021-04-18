@@ -9,11 +9,13 @@ nav_order: 1
 
 ## Protection against cookie theft
 
-Authelia uses two mechanisms to protect against cookie theft:
-1. session attribute `httpOnly` set to true make client-side code unable to
-read the cookie.
-2. session attribute `secure` ensure the cookie will never be sent over an
-insecure HTTP connections.
+Authelia sets several key cookie attributes to prevent cookie theft:
+1. `HttpOnly` is set forbidding client-side code like javascript from access to the cookie.
+2. `Secure` is set forbidding the browser from sending the cookie to sites which do not use the https scheme.
+3. `SameSite` is by default set to `Lax` which prevents it being sent over cross-origin requests.
+
+Read about these attributes in detail on the 
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie).
 
 ## Protection against multi-domain cookie attacks
 

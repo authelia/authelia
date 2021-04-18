@@ -31,11 +31,12 @@ type RedisSessionConfiguration struct {
 // SessionConfiguration represents the configuration related to user sessions.
 type SessionConfiguration struct {
 	Name               string                     `mapstructure:"name"`
+	Domain             string                     `mapstructure:"domain"`
+	SameSite           string                     `mapstructure:"same_site"`
 	Secret             string                     `mapstructure:"secret"`
 	Expiration         string                     `mapstructure:"expiration"`
 	Inactivity         string                     `mapstructure:"inactivity"`
 	RememberMeDuration string                     `mapstructure:"remember_me_duration"`
-	Domain             string                     `mapstructure:"domain"`
 	Redis              *RedisSessionConfiguration `mapstructure:"redis"`
 }
 
@@ -45,4 +46,5 @@ var DefaultSessionConfiguration = SessionConfiguration{
 	Expiration:         "1h",
 	Inactivity:         "5m",
 	RememberMeDuration: "1M",
+	SameSite:           "lax",
 }

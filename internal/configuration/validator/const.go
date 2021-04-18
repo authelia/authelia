@@ -92,10 +92,11 @@ var validKeys = []string{
 
 	// Session Keys.
 	"session.name",
+	"session.domain",
+	"session.same_site",
 	"session.expiration",
 	"session.inactivity",
 	"session.remember_me_duration",
-	"session.domain",
 
 	// Redis Session Keys.
 	"session.redis.host",
