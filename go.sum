@@ -438,8 +438,8 @@ github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24/go.mod h1:M+9Nz
 github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc h1:jUIKcSPO9MoMJBbEoyE/RJoE8vz7Mb8AjvifMMwSyvY=
 github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
-github.com/simia-tech/crypt v0.4.3 h1:aljHxrQWZFUuTWGhLsCwr+0fwCBqDjEaRVyq69PfltY=
-github.com/simia-tech/crypt v0.4.3/go.mod h1:DMwvjPTzsiHrjqHVW5HvIbF4vUUzMCYDKVLsPWmLdTo=
+github.com/simia-tech/crypt v0.5.0 h1:Y8xfAGqgd2wW2o4E63WIy9xr9w4jC1tDsOBHGKiqP0s=
+github.com/simia-tech/crypt v0.5.0/go.mod h1:DMwvjPTzsiHrjqHVW5HvIbF4vUUzMCYDKVLsPWmLdTo=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
