@@ -590,7 +590,7 @@ identity_providers:
         ## The policy to require for this client; one_factor or two_factor.
         policy: two_factor
 
-        ## Redirect URI's specifies a list of valid callbacks for this client.
+        ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
         redirect_uris:
           - https://oidc.example.com:8080/oauth2/callback
 

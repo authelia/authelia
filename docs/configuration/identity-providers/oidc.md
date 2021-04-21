@@ -68,7 +68,7 @@ A friendly description for this client shown in the UI. This defaults to the sam
 
 #### secret
 
-The shared secret between Authelia and the application consuming this client.
+The shared secret between Authelia and the application consuming this client. Currently this is stored in plain text.
 
 #### policy
 
@@ -76,7 +76,8 @@ The authentication policy for this client. Either `one_factor` or `two_factor`.
 
 #### redirect_uris
 
-A list of valid callback URL's this client will redirect to. All other callbacks will be considered unsafe.
+A list of valid callback URL's this client will redirect to. All other callbacks will be considered unsafe. The URL's
+are case-sensitive. 
 
 #### scopes
 

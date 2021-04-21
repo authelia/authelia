@@ -91,7 +91,7 @@ identity_providers:
       # otherwise it won't work properly.
       - id: oidc-tester-app-public
         # This secret must be a bcrypt hash
-        secret: $2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO
+        secret: foobar
         policy: one_factor
         redirect_uris:
           - https://oidc-public.example.com:8080/oauth2/callback

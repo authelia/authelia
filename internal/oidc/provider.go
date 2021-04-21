@@ -7,6 +7,7 @@ import (
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
 	"github.com/ory/fosite/storage"
+	"github.com/ory/fosite/token/jwt"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/internal/authorization"
@@ -20,9 +21,8 @@ type OpenIDConnectProvider struct {
 	clients     map[string]*InternalClient
 	privateKeys map[string]*rsa.PrivateKey
 
-	composeConfiguration *compose.Config
-	Fosite               fosite.OAuth2Provider
-	storage              fosite.Storage
+	Fosite  fosite.OAuth2Provider
+	storage fosite.Storage
 }
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
@@ -55,6 +55,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		clients[client.ID] = provider.clients[client.ID]
 	}
 
+	// TODO: Implement our own storage mapping.
 	provider.storage = &storage.MemoryStore{
 		IDSessions:             make(map[string]fosite.Requester),
 		Clients:                clients,
@@ -67,7 +68,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		RefreshTokenRequestIDs: map[string]string{},
 	}
 
-	provider.composeConfiguration = new(compose.Config)
+	composeConfiguration := new(compose.Config)
 
 	key, err := utils.ParseRsaPrivateKeyFromPemStr(configuration.IssuerPrivateKey)
 	if err != nil {
@@ -77,11 +78,50 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 	provider.privateKeys = make(map[string]*rsa.PrivateKey)
 	provider.privateKeys["main-key"] = key
 
-	provider.Fosite = compose.ComposeAllEnabled(
-		provider.composeConfiguration,
+	// TODO: Consider implementing RS512 as well.
+	jwtStrategy := &jwt.RS256JWTStrategy{PrivateKey: key}
+
+	strategy := &compose.CommonStrategy{
+		CoreStrategy: compose.NewOAuth2HMACStrategy(
+			composeConfiguration,
+			[]byte(utils.HashSHA256FromString(configuration.HMACSecret)),
+			nil,
+		),
+		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(
+			composeConfiguration,
+			provider.privateKeys["main-key"],
+		),
+		JWTStrategy: jwtStrategy,
+	}
+
+	provider.Fosite = compose.Compose(
+		composeConfiguration,
 		provider.storage,
-		[]byte(utils.HashSHA256FromString(configuration.HMACSecret)),
-		provider.privateKeys["main-key"])
+		strategy,
+		AutheliaHasher{},
+
+		/*
+			These are the OAuth2 and OpenIDConnect factories. Order is important (the OAuth2 factories at the top must
+			be before the OpenIDConnect factories) and taken directly from fosite.compose.ComposeAllEnabled. The
+			commented factories are not enabled as we don't yet use them but are still here for reference purposes.
+		*/
+		compose.OAuth2AuthorizeExplicitFactory,
+		compose.OAuth2AuthorizeImplicitFactory,
+		compose.OAuth2ClientCredentialsGrantFactory,
+		compose.OAuth2RefreshTokenGrantFactory,
+		compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
+		// compose.RFC7523AssertionGrantFactory,
+
+		compose.OpenIDConnectExplicitFactory,
+		compose.OpenIDConnectImplicitFactory,
+		compose.OpenIDConnectHybridFactory,
+		compose.OpenIDConnectRefreshFactory,
+
+		compose.OAuth2TokenIntrospectionFactory,
+		compose.OAuth2TokenRevocationFactory,
+
+		// compose.OAuth2PKCEFactory,
+	)
 
 	return provider, nil
 }
