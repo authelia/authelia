@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/ory/fosite"
@@ -76,7 +75,7 @@ func (s OpenIDConnectStore) GetClientPolicy(id string) (level authorization.Leve
 func (s OpenIDConnectStore) GetInternalClient(id string) (client *InternalClient, err error) {
 	client, ok := s.clients[id]
 	if !ok {
-		return nil, errors.New("not found")
+		return nil, fosite.ErrNotFound
 	}
 
 	return client, nil
