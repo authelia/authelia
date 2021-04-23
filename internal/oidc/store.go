@@ -16,7 +16,9 @@ import (
 
 // NewOpenIDConnectStore returns a new OpenIDConnectStore using the provided schema.OpenIDConnectConfiguration.
 func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (store *OpenIDConnectStore) {
-	clients := make(map[string]fosite.Client)
+	store = &OpenIDConnectStore{}
+
+	store.clients = make(map[string]*InternalClient)
 
 	for _, clientConf := range configuration.Clients {
 		policy := authorization.PolicyToLevel(clientConf.Policy)
@@ -33,21 +35,21 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (st
 			Scopes:        clientConf.Scopes,
 		}
 
-		clients[client.ID] = client
+		store.clients[client.ID] = client
 	}
 
-	return &OpenIDConnectStore{
-		memory: &storage.MemoryStore{
-			IDSessions:             make(map[string]fosite.Requester),
-			Users:                  map[string]storage.MemoryUserRelation{},
-			AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
-			AccessTokens:           map[string]fosite.Requester{},
-			RefreshTokens:          map[string]storage.StoreRefreshToken{},
-			PKCES:                  map[string]fosite.Requester{},
-			AccessTokenRequestIDs:  map[string]string{},
-			RefreshTokenRequestIDs: map[string]string{},
-		},
+	store.memory = &storage.MemoryStore{
+		IDSessions:             make(map[string]fosite.Requester),
+		Users:                  map[string]storage.MemoryUserRelation{},
+		AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
+		AccessTokens:           map[string]fosite.Requester{},
+		RefreshTokens:          map[string]storage.StoreRefreshToken{},
+		PKCES:                  map[string]fosite.Requester{},
+		AccessTokenRequestIDs:  map[string]string{},
+		RefreshTokenRequestIDs: map[string]string{},
 	}
+
+	return store
 }
 
 // OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface.
