@@ -15,7 +15,7 @@ import (
 )
 
 // NewOpenIDConnectStore returns a new OpenIDConnectStore using the provided schema.OpenIDConnectConfiguration.
-func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) *OpenIDConnectStore {
+func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (store *OpenIDConnectStore) {
 	clients := make(map[string]fosite.Client)
 
 	for _, clientConf := range configuration.Clients {
@@ -61,8 +61,8 @@ type OpenIDConnectStore struct {
 }
 
 // GetClientPolicy retrieves the policy from the client with the matching provided id.
-func (s OpenIDConnectStore) GetClientPolicy(ctx context.Context, id string) (level authorization.Level) {
-	client, err := s.GetInternalClient(ctx, id)
+func (s OpenIDConnectStore) GetClientPolicy(id string) (level authorization.Level) {
+	client, err := s.GetInternalClient(id)
 	if err != nil {
 		return authorization.TwoFactor
 	}
@@ -71,7 +71,7 @@ func (s OpenIDConnectStore) GetClientPolicy(ctx context.Context, id string) (lev
 }
 
 // GetInternalClient returns a fosite.Client asserted as an InternalClient matching the provided id.
-func (s OpenIDConnectStore) GetInternalClient(_ context.Context, id string) (*InternalClient, error) {
+func (s OpenIDConnectStore) GetInternalClient(id string) (client *InternalClient, err error) {
 	client, ok := s.clients[id]
 	if !ok {
 		return nil, errors.New("not found")
@@ -82,11 +82,9 @@ func (s OpenIDConnectStore) GetInternalClient(_ context.Context, id string) (*In
 
 // IsValidClientID returns true if the provided id exists in the OpenIDConnectProvider.Clients map.
 func (s OpenIDConnectStore) IsValidClientID(id string) (valid bool) {
-	if _, ok := s.clients[id]; ok {
-		return true
-	}
+	_, err := s.GetInternalClient(id)
 
-	return false
+	return err == nil
 }
 
 // CreateOpenIDConnectSession decorates fosite's storage.MemoryStore CreateOpenIDConnectSession method.
@@ -105,8 +103,8 @@ func (s *OpenIDConnectStore) DeleteOpenIDConnectSession(ctx context.Context, aut
 }
 
 // GetClient decorates fosite's storage.MemoryStore GetClient method.
-func (s *OpenIDConnectStore) GetClient(ctx context.Context, id string) (fosite.Client, error) {
-	return s.GetInternalClient(ctx, id)
+func (s *OpenIDConnectStore) GetClient(_ context.Context, id string) (fosite.Client, error) {
+	return s.GetInternalClient(id)
 }
 
 // ClientAssertionJWTValid decorates fosite's storage.MemoryStore ClientAssertionJWTValid method.
