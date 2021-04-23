@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -66,13 +67,18 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	time.Sleep(1 * time.Second)
 
 	s.waitBodyContains(ctx, s.T(), "Not logged yet...")
+
 	// this href represents the 'login' link
-	s.WaitElementLocatedByTagName(ctx, s.T(), "a").Click()
+	err := s.WaitElementLocatedByTagName(ctx, s.T(), "a").Click()
+	assert.NoError(s.T(), err)
+
 	s.verifyIsConsentPage(ctx, s.T())
-	s.WaitElementLocatedByID(ctx, s.T(), "accept-button").Click()
-	time.Sleep(1 * time.Second)
+
+	err = s.WaitElementLocatedByID(ctx, s.T(), "accept-button").Click()
+	assert.NoError(s.T(), err)
 
 	// Verify that the app is showing the info related to the user stored in the JWT token
+	time.Sleep(1 * time.Second)
 	s.waitBodyContains(ctx, s.T(), "Logged in as john!")
 }
 
@@ -89,11 +95,16 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 
 	s.waitBodyContains(ctx, s.T(), "Not logged yet...")
 	// this href represents the 'login' link
-	s.WaitElementLocatedByTagName(ctx, s.T(), "a").Click()
-	s.verifyIsConsentPage(ctx, s.T())
-	s.WaitElementLocatedByID(ctx, s.T(), "deny-button").Click()
-	time.Sleep(1 * time.Second)
 
+	err := s.WaitElementLocatedByTagName(ctx, s.T(), "a").Click()
+	assert.NoError(s.T(), err)
+
+	s.verifyIsConsentPage(ctx, s.T())
+
+	err = s.WaitElementLocatedByID(ctx, s.T(), "deny-button").Click()
+	assert.NoError(s.T(), err)
+
+	time.Sleep(1 * time.Second)
 	s.verifyURLIs(ctx, s.T(), "https://oidc.example.com:8080/oauth2/callback?error=access_denied&error_description=User%20has%20rejected%20the%20scopes")
 }
 
