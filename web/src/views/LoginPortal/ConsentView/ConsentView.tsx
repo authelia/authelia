@@ -100,6 +100,7 @@ const ConsentView = function (props: Props) {
                         <Grid container spacing={1}>
                             <Grid item xs={6}>
                                 <Button
+                                    id="accept-button"
                                     className={classes.button}
                                     disabled={!resp}
                                     onClick={handleAcceptConsent}
@@ -111,6 +112,7 @@ const ConsentView = function (props: Props) {
                             </Grid>
                             <Grid item xs={6}>
                                 <Button
+                                    id="deny-button"
                                     className={classes.button}
                                     disabled={!resp}
                                     onClick={handleRejectConsent}

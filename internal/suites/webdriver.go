@@ -229,3 +229,16 @@ func (wds *WebDriverSession) WaitElementTextContains(ctx context.Context, t *tes
 	})
 	require.NoError(t, err)
 }
+
+func (wds *WebDriverSession) waitBodyContains(ctx context.Context, t *testing.T, pattern string) {
+	err := wds.Wait(ctx, func(driver selenium.WebDriver) (bool, error) {
+		text, err := wds.WaitElementLocatedByTagName(ctx, t, "body").Text()
+
+		if err != nil {
+			return false, err
+		}
+
+		return strings.Contains(text, pattern), nil
+	})
+	require.NoError(t, err)
+}

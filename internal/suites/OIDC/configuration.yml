@@ -83,7 +83,7 @@ identity_providers:
       -----END RSA PRIVATE KEY-----
     clients:
       - id: oidc-tester-app
-        secret: $2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO
+        secret: foobar
         policy: two_factor
         redirect_uris:
           - https://oidc.example.com:8080/oauth2/callback
