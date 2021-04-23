@@ -3,7 +3,6 @@ package oidc
 import (
 	"context"
 	"errors"
-	"sync"
 	"time"
 
 	"github.com/ory/fosite"
@@ -59,12 +58,10 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) *Op
 type OpenIDConnectStore struct {
 	clients map[string]*InternalClient
 	memory  *storage.MemoryStore
-
-	clientsMutex sync.RWMutex
 }
 
 // GetClientPolicy retrieves the policy from the client with the matching provided id.
-func (s *OpenIDConnectStore) GetClientPolicy(ctx context.Context, id string) (level authorization.Level) {
+func (s OpenIDConnectStore) GetClientPolicy(ctx context.Context, id string) (level authorization.Level) {
 	client, err := s.GetInternalClient(ctx, id)
 	if err != nil {
 		return authorization.TwoFactor
@@ -74,10 +71,7 @@ func (s *OpenIDConnectStore) GetClientPolicy(ctx context.Context, id string) (le
 }
 
 // GetInternalClient returns a fosite.Client asserted as an InternalClient matching the provided id.
-func (s *OpenIDConnectStore) GetInternalClient(_ context.Context, id string) (*InternalClient, error) {
-	s.clientsMutex.RLock()
-	defer s.clientsMutex.RUnlock()
-
+func (s OpenIDConnectStore) GetInternalClient(_ context.Context, id string) (*InternalClient, error) {
 	client, ok := s.clients[id]
 	if !ok {
 		return nil, errors.New("not found")
@@ -87,10 +81,7 @@ func (s *OpenIDConnectStore) GetInternalClient(_ context.Context, id string) (*I
 }
 
 // IsValidClientID returns true if the provided id exists in the OpenIDConnectProvider.Clients map.
-func (s *OpenIDConnectStore) IsValidClientID(id string) (valid bool) {
-	s.clientsMutex.RLock()
-	defer s.clientsMutex.RUnlock()
-
+func (s OpenIDConnectStore) IsValidClientID(id string) (valid bool) {
 	if _, ok := s.clients[id]; ok {
 		return true
 	}
