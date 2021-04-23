@@ -2,6 +2,8 @@ package oidc
 
 import (
 	"context"
+	"errors"
+	"sync"
 	"time"
 
 	"github.com/ory/fosite"
@@ -36,9 +38,8 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) *Op
 	}
 
 	return &OpenIDConnectStore{
-		&storage.MemoryStore{
+		memory: &storage.MemoryStore{
 			IDSessions:             make(map[string]fosite.Requester),
-			Clients:                clients,
 			Users:                  map[string]storage.MemoryUserRelation{},
 			AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
 			AccessTokens:           map[string]fosite.Requester{},
@@ -56,11 +57,14 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) *Op
 //	The long term plan is toh ave these methods interact with the Authelia storage and
 //	session providers where applicable.
 type OpenIDConnectStore struct {
-	memory *storage.MemoryStore
+	clients map[string]*InternalClient
+	memory  *storage.MemoryStore
+
+	clientsMutex sync.RWMutex
 }
 
 // GetClientPolicy retrieves the policy from the client with the matching provided id.
-func (s OpenIDConnectStore) GetClientPolicy(ctx context.Context, id string) (level authorization.Level) {
+func (s *OpenIDConnectStore) GetClientPolicy(ctx context.Context, id string) (level authorization.Level) {
 	client, err := s.GetInternalClient(ctx, id)
 	if err != nil {
 		return authorization.TwoFactor
@@ -70,25 +74,24 @@ func (s OpenIDConnectStore) GetClientPolicy(ctx context.Context, id string) (lev
 }
 
 // GetInternalClient returns a fosite.Client asserted as an InternalClient matching the provided id.
-func (s *OpenIDConnectStore) GetInternalClient(ctx context.Context, id string) (*InternalClient, error) {
-	client, err := s.memory.GetClient(ctx, id)
+func (s *OpenIDConnectStore) GetInternalClient(_ context.Context, id string) (*InternalClient, error) {
+	s.clientsMutex.RLock()
+	defer s.clientsMutex.RUnlock()
 
-	if err != nil {
-		return nil, err
+	client, ok := s.clients[id]
+	if !ok {
+		return nil, errors.New("not found")
 	}
 
-	/*
-		TODO: Decide if we need to check the type assert here. Reasonably we shouldn't need to if we never allow adding
-			  structs other than the InternalClient.
-	*/
-	internalClient := client.(*InternalClient)
-
-	return internalClient, err
+	return client, nil
 }
 
 // IsValidClientID returns true if the provided id exists in the OpenIDConnectProvider.Clients map.
-func (s OpenIDConnectStore) IsValidClientID(id string) (valid bool) {
-	if _, ok := s.memory.Clients[id]; ok {
+func (s *OpenIDConnectStore) IsValidClientID(id string) (valid bool) {
+	s.clientsMutex.RLock()
+	defer s.clientsMutex.RUnlock()
+
+	if _, ok := s.clients[id]; ok {
 		return true
 	}
 
@@ -112,7 +115,7 @@ func (s *OpenIDConnectStore) DeleteOpenIDConnectSession(ctx context.Context, aut
 
 // GetClient decorates fosite's storage.MemoryStore GetClient method.
 func (s *OpenIDConnectStore) GetClient(ctx context.Context, id string) (fosite.Client, error) {
-	return s.memory.GetClient(ctx, id)
+	return s.GetInternalClient(ctx, id)
 }
 
 // ClientAssertionJWTValid decorates fosite's storage.MemoryStore ClientAssertionJWTValid method.
