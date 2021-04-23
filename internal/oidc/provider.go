@@ -6,23 +6,19 @@ import (
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
-	"github.com/ory/fosite/storage"
 	"github.com/ory/fosite/token/jwt"
 	"gopkg.in/square/go-jose.v2"
 
-	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
 )
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
-	clients     map[string]*InternalClient
 	privateKeys map[string]*rsa.PrivateKey
 
-	Fosite  fosite.OAuth2Provider
-	storage fosite.Storage
+	Fosite fosite.OAuth2Provider
+	Store  *OpenIDConnectStore
 }
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
@@ -35,38 +31,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		return provider, nil
 	}
 
-	clients := make(map[string]fosite.Client)
-	provider.clients = make(map[string]*InternalClient)
-
-	for _, client := range configuration.Clients {
-		policy := authorization.PolicyToLevel(client.Policy)
-		logging.Logger().Debugf("Registering client %s with policy %s (%v)", client.ID, client.Policy, policy)
-
-		provider.clients[client.ID] = &InternalClient{
-			ID:            client.ID,
-			Description:   client.Description,
-			Policy:        authorization.PolicyToLevel(client.Policy),
-			Secret:        []byte(client.Secret),
-			RedirectURIs:  client.RedirectURIs,
-			GrantTypes:    client.GrantTypes,
-			ResponseTypes: client.ResponseTypes,
-			Scopes:        client.Scopes,
-		}
-		clients[client.ID] = provider.clients[client.ID]
-	}
-
-	// TODO: Implement our own storage mapping.
-	provider.storage = &storage.MemoryStore{
-		IDSessions:             make(map[string]fosite.Requester),
-		Clients:                clients,
-		Users:                  map[string]storage.MemoryUserRelation{},
-		AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
-		AccessTokens:           map[string]fosite.Requester{},
-		RefreshTokens:          map[string]storage.StoreRefreshToken{},
-		PKCES:                  map[string]fosite.Requester{},
-		AccessTokenRequestIDs:  map[string]string{},
-		RefreshTokenRequestIDs: map[string]string{},
-	}
+	provider.Store = NewOpenIDConnectStore(configuration)
 
 	composeConfiguration := new(compose.Config)
 
@@ -96,7 +61,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 
 	provider.Fosite = compose.Compose(
 		composeConfiguration,
-		provider.storage,
+		provider.Store,
 		strategy,
 		AutheliaHasher{},
 
@@ -140,22 +105,4 @@ func (p OpenIDConnectProvider) GetKeySet() (webKeySet jose.JSONWebKeySet) {
 	}
 
 	return webKeySet
-}
-
-// GetClient returns the AutheliaClient matching the id provided if it exists.
-func (p OpenIDConnectProvider) GetClient(id string) (config *InternalClient) {
-	if p.IsValidClientID(id) {
-		return p.clients[id]
-	}
-
-	return nil
-}
-
-// IsValidClientID returns true if the provided id exists in the OpenIDConnectProvider.Clients map.
-func (p OpenIDConnectProvider) IsValidClientID(id string) (valid bool) {
-	if _, ok := p.clients[id]; ok {
-		return true
-	}
-
-	return false
 }

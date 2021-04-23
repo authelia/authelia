@@ -3,13 +3,19 @@ package oidc
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/stretchr/testify/assert"
 )
 
-var ExampleIssuerPrivateKey = "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEAvcMVMB2vEbqI6PlSNJ4HmUyMxBDJ5iY7FS+zDDAHOZBg9S3S\nKcAn1CZcnyL0VvJ7wcdhR6oTnOwR94eKvzUyJZ+GL2hTMm27dubEYsNdhoCl6N3X\nyEEohNfoxiiCYraVauX8X3M9jFzbEz9+pacaDbHB2syaJ1qFmMNR+HSu2jPzOo7M\nlqKIOgUzA0741MaYNt47AEVg4XU5ORLdolbAkItmYg1QbyFndg9H5IvwKkYaXTGE\nlgDBcPUC0yVjAC15Mguquq+jZeQay+6PSbHTD8PQMOkLjyChI2xEhVNbdCXe676R\ncMW2R/gjrcK23zmtmTWRfdC1iZLSlHO+bJj9vQIDAQABAoIBAEZvkP/JJOCJwqPn\nV3IcbmmilmV4bdi1vByDFgyiDyx4wOSA24+PubjvfFW9XcCgRPuKjDtTj/AhWBHv\nB7stfa2lZuNV7/u562mZArA+IAr62Zp0LdIxDV8x3T8gbjVB3HhPYbv0RJZDKTYd\nzV6jhfIrVu9mHpoY6ZnodhapCPYIyk/d49KBIHZuAc25CUjMXgTeaVtf0c996036\nUxW6ef33wAOJAvW0RCvbXAJfmBeEq2qQlkjTIlpYx71fhZWexHifi8Ouv3Zonc+1\n/P2Adq5uzYVBT92f9RKHg9QxxNzVrLjSMaxyvUtWQCAQfW0tFIRdqBGsHYsQrFtI\nF4yzv8ECgYEA7ntpyN9HD9Z9lYQzPCR73sFCLM+ID99aVij0wHuxK97bkSyyvkLd\n7MyTaym3lg1UEqWNWBCLvFULZx7F0Ah6qCzD4ymm3Bj/ADpWWPgljBI0AFml+HHs\nhcATmXUrj5QbLyhiP2gmJjajp1o/rgATx6ED66seSynD6JOH8wUhhZUCgYEAy7OA\n06PF8GfseNsTqlDjNF0K7lOqd21S0prdwrsJLiVzUlfMM25MLE0XLDUutCnRheeh\nIlcuDoBsVTxz6rkvFGD74N+pgXlN4CicsBq5ofK060PbqCQhSII3fmHobrZ9Cr75\nHmBjAxHx998SKaAAGbBbcYGUAp521i1pH5CEPYkCgYEAkUd1Zf0+2RMdZhwm6hh/\nrW+l1I6IoMK70YkZsLipccRNld7Y9LbfYwYtODcts6di9AkOVfueZJiaXbONZfIE\nZrb+jkAteh9wGL9xIrnohbABJcV3Kiaco84jInUSmGDtPokncOENfHIEuEpuSJ2b\nbx1TuhmAVuGWivR0+ULC7RECgYEAgS0cDRpWc9Xzh9Cl7+PLsXEvdWNpPsL9OsEq\n0Ep7z9+/+f/jZtoTRCS/BTHUpDvAuwHglT5j3p5iFMt5VuiIiovWLwynGYwrbnNS\nqfrIrYKUaH1n1oDS+oBZYLQGCe9/7EifAjxtjYzbvSyg//SPG7tSwfBCREbpZXj2\nqSWkNsECgYA/mCDzCTlrrWPuiepo6kTmN+4TnFA+hJI6NccDVQ+jvbqEdoJ4SW4L\nzqfZSZRFJMNpSgIqkQNRPJqMP0jQ5KRtJrjMWBnYxktwKz9fDg2R2MxdFgMF2LH2\nHEMMhFHlv8NDjVOXh1KwRoltNGVWYsSrD9wKU9GhRCEfmNCGrvBcEg==\n-----END RSA PRIVATE KEY-----"
+var exampleIssuerPrivateKey = "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEAvcMVMB2vEbqI6PlSNJ4HmUyMxBDJ5iY7FS+zDDAHOZBg9S3S\nKcAn1CZcnyL0VvJ7wcdhR6oTnOwR94eKvzUyJZ+GL2hTMm27dubEYsNdhoCl6N3X\nyEEohNfoxiiCYraVauX8X3M9jFzbEz9+pacaDbHB2syaJ1qFmMNR+HSu2jPzOo7M\nlqKIOgUzA0741MaYNt47AEVg4XU5ORLdolbAkItmYg1QbyFndg9H5IvwKkYaXTGE\nlgDBcPUC0yVjAC15Mguquq+jZeQay+6PSbHTD8PQMOkLjyChI2xEhVNbdCXe676R\ncMW2R/gjrcK23zmtmTWRfdC1iZLSlHO+bJj9vQIDAQABAoIBAEZvkP/JJOCJwqPn\nV3IcbmmilmV4bdi1vByDFgyiDyx4wOSA24+PubjvfFW9XcCgRPuKjDtTj/AhWBHv\nB7stfa2lZuNV7/u562mZArA+IAr62Zp0LdIxDV8x3T8gbjVB3HhPYbv0RJZDKTYd\nzV6jhfIrVu9mHpoY6ZnodhapCPYIyk/d49KBIHZuAc25CUjMXgTeaVtf0c996036\nUxW6ef33wAOJAvW0RCvbXAJfmBeEq2qQlkjTIlpYx71fhZWexHifi8Ouv3Zonc+1\n/P2Adq5uzYVBT92f9RKHg9QxxNzVrLjSMaxyvUtWQCAQfW0tFIRdqBGsHYsQrFtI\nF4yzv8ECgYEA7ntpyN9HD9Z9lYQzPCR73sFCLM+ID99aVij0wHuxK97bkSyyvkLd\n7MyTaym3lg1UEqWNWBCLvFULZx7F0Ah6qCzD4ymm3Bj/ADpWWPgljBI0AFml+HHs\nhcATmXUrj5QbLyhiP2gmJjajp1o/rgATx6ED66seSynD6JOH8wUhhZUCgYEAy7OA\n06PF8GfseNsTqlDjNF0K7lOqd21S0prdwrsJLiVzUlfMM25MLE0XLDUutCnRheeh\nIlcuDoBsVTxz6rkvFGD74N+pgXlN4CicsBq5ofK060PbqCQhSII3fmHobrZ9Cr75\nHmBjAxHx998SKaAAGbBbcYGUAp521i1pH5CEPYkCgYEAkUd1Zf0+2RMdZhwm6hh/\nrW+l1I6IoMK70YkZsLipccRNld7Y9LbfYwYtODcts6di9AkOVfueZJiaXbONZfIE\nZrb+jkAteh9wGL9xIrnohbABJcV3Kiaco84jInUSmGDtPokncOENfHIEuEpuSJ2b\nbx1TuhmAVuGWivR0+ULC7RECgYEAgS0cDRpWc9Xzh9Cl7+PLsXEvdWNpPsL9OsEq\n0Ep7z9+/+f/jZtoTRCS/BTHUpDvAuwHglT5j3p5iFMt5VuiIiovWLwynGYwrbnNS\nqfrIrYKUaH1n1oDS+oBZYLQGCe9/7EifAjxtjYzbvSyg//SPG7tSwfBCREbpZXj2\nqSWkNsECgYA/mCDzCTlrrWPuiepo6kTmN+4TnFA+hJI6NccDVQ+jvbqEdoJ4SW4L\nzqfZSZRFJMNpSgIqkQNRPJqMP0jQ5KRtJrjMWBnYxktwKz9fDg2R2MxdFgMF2LH2\nHEMMhFHlv8NDjVOXh1KwRoltNGVWYsSrD9wKU9GhRCEfmNCGrvBcEg==\n-----END RSA PRIVATE KEY-----"
+
+func TestOpenIDConnectProvider_NewOpenIDConnectProvider_NotConfigured(t *testing.T) {
+	provider, err := NewOpenIDConnectProvider(nil)
+
+	assert.NoError(t, err)
+	assert.Nil(t, provider.Fosite)
+	assert.Nil(t, provider.Store)
+}
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_BadIssuerKey(t *testing.T) {
 	_, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
@@ -21,7 +27,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_BadIssuerKey(t *testing.
 
 func TestOpenIDConnectProvider_GetKeySet(t *testing.T) {
 	p, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: ExampleIssuerPrivateKey,
+		IssuerPrivateKey: exampleIssuerPrivateKey,
 	})
 
 	assert.NoError(t, err)
@@ -30,48 +36,4 @@ func TestOpenIDConnectProvider_GetKeySet(t *testing.T) {
 	assert.Equal(t, "RS256", p.GetKeySet().Keys[0].Algorithm)
 	assert.Equal(t, "sig", p.GetKeySet().Keys[0].Use)
 	assert.Equal(t, "main-key", p.GetKeySet().Keys[0].KeyID)
-}
-
-func TestOpenIDConnectProvider_GetClient_ValidClient(t *testing.T) {
-	c1 := schema.OpenIDConnectClientConfiguration{
-		ID:          "myclient",
-		Description: "myclient desc",
-		Policy:      "one_factor",
-		Scopes:      []string{"openid", "profile"},
-		Secret:      "mysecret",
-	}
-	p, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: ExampleIssuerPrivateKey,
-		Clients:          []schema.OpenIDConnectClientConfiguration{c1},
-	})
-
-	assert.NoError(t, err)
-
-	assert.NotNil(t, p.GetClient(c1.ID))
-	assert.Equal(t, p.GetClient(c1.ID).ID, c1.ID)
-	assert.Equal(t, p.GetClient(c1.ID).Description, c1.Description)
-	assert.Equal(t, p.GetClient(c1.ID).Scopes, c1.Scopes)
-	assert.Equal(t, p.GetClient(c1.ID).GrantTypes, c1.GrantTypes)
-	assert.Equal(t, p.GetClient(c1.ID).ResponseTypes, c1.ResponseTypes)
-	assert.Equal(t, p.GetClient(c1.ID).RedirectURIs, c1.RedirectURIs)
-	assert.Equal(t, p.GetClient(c1.ID).Policy, authorization.OneFactor)
-	assert.Equal(t, p.GetClient(c1.ID).Secret, []byte(c1.Secret))
-}
-
-func TestOpenIDConnectProvider_GetClient_NotValidClient(t *testing.T) {
-	c1 := schema.OpenIDConnectClientConfiguration{
-		ID:          "myclient",
-		Description: "myclient desc",
-		Policy:      "one_factor",
-		Scopes:      []string{"openid", "profile"},
-		Secret:      "mysecret",
-	}
-	p, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: ExampleIssuerPrivateKey,
-		Clients:          []schema.OpenIDConnectClientConfiguration{c1},
-	})
-
-	assert.NoError(t, err)
-
-	assert.Nil(t, p.GetClient("another-client"))
 }

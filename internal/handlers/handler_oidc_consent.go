@@ -18,10 +18,10 @@ func oidcConsent(ctx *middlewares.AutheliaCtx) {
 	}
 
 	clientID := userSession.OIDCWorkflowSession.ClientID
-	client := ctx.Providers.OpenIDConnect.GetClient(clientID)
+	client, err := ctx.Providers.OpenIDConnect.Store.GetInternalClient(ctx, clientID)
 
-	if client == nil {
-		ctx.Logger.Debugf("Unable to find related client configuration with name '%s'", clientID)
+	if err != nil {
+		ctx.Logger.Debugf("Unable to find related client configuration with name '%s': %v", clientID, err)
 		ctx.ReplyForbidden()
 
 		return
@@ -56,10 +56,10 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	clientID := userSession.OIDCWorkflowSession.ClientID
-	client := ctx.Providers.OpenIDConnect.GetClient(clientID)
+	client, err := ctx.Providers.OpenIDConnect.Store.GetInternalClient(ctx, clientID)
 
-	if client == nil {
-		ctx.Logger.Debugf("Unable to find related client configuration with name '%s'", clientID)
+	if err != nil {
+		ctx.Logger.Debugf("Unable to find related client configuration with name '%s': %v", clientID, err)
 		ctx.ReplyForbidden()
 
 		return
@@ -73,7 +73,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var body ConsentPostRequestBody
-	err := json.Unmarshal(ctx.Request.Body(), &body)
+	err = json.Unmarshal(ctx.Request.Body(), &body)
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to unmarshal body: %v", err), "Operation failed")
