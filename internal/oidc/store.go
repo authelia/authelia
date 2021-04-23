@@ -53,7 +53,7 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) *Op
 // OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface.
 //
 //	Currently it is mostly just implementing a decorator pattern other then GetInternalClient.
-//	The long term plan is toh ave these methods interact with the Authelia storage and
+//	The long term plan is to have these methods interact with the Authelia storage and
 //	session providers where applicable.
 type OpenIDConnectStore struct {
 	clients map[string]*InternalClient
