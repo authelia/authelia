@@ -94,8 +94,8 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 	time.Sleep(1 * time.Second)
 
 	s.waitBodyContains(ctx, s.T(), "Not logged yet...")
-	// this href represents the 'login' link
 
+	// this href represents the 'login' link
 	err := s.WaitElementLocatedByTagName(ctx, s.T(), "a").Click()
 	assert.NoError(s.T(), err)
 
