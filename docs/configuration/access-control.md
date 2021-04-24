@@ -8,6 +8,308 @@ nav_order: 1
 # Access Control
 {: .no_toc }
 
+
+## Configuration
+
+```yaml
+access_control:
+  default_policy: deny
+  networks:
+  - name: internal
+    networks:
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/18
+
+  rules:
+  - domain: public.example.com
+    policy: bypass
+    networks:
+    - internal
+    - 1.1.1.1
+    subject:
+    - ["user:adam", "user:fred"]
+    - ["group:admins"]
+    methods:
+    - GET
+    - HEAD
+    resources:
+    - "^/api.*"
+```
+
+## Options
+
+### default_policy
+
+The default [policy](#policies) defines the policy applied if no [rules](#rules) section apply to the information known
+about the request. It is recommended that this is configured to [deny](#deny) for security reasons. Sites which you do
+not wish to secure at all with Authelia should not be configured in your reverse proxy to perform authentication with
+Authelia at all for performance reasons.
+
+See [Policies](#policies) for more information.
+
+### networks (global)
+
+The main/global networks section contains a list of networks with a name label that can be reused in the 
+[rules](#networks) section instead of redefining the same networks over and over again. This additionally makes 
+complicated network related configuration a lot cleaner and easier to read.
+
+This section has two options, `name` and `networks`. Where the `networks` section is a list of IP addresses in CIDR
+notation and where `name` is a friendly name to label the collection of networks for reuse in the [rules](#networks) 
+below.
+
+This configuration option *does nothing* by itself, it's only useful if you use theese aliases in the [rules](#networks)
+section below.
+
+### rules
+
+The rules have many configuration options. A rule matches when all criteria of the rule match the request excluding the
+`policy` which is the [policy](#policies) applied to the request.
+
+A rule defines two primary things:
+
+* the policy applied when all criteria match.
+  
+* the matching criteria of the request presented to the reverse proxy
+  
+The criteria is broken into several parts:
+
+* [domain](#domain): domain or list of domains targeted by the request.
+* [resources](#resources): pattern or list of patterns that the path should match.
+* [subject](#subject): the user or group of users to define the policy for.
+* [networks](#networks): the network addresses, ranges (CIDR notation) or groups from where the request originates.
+* [methods](#methods): the http methods used in the request.
+
+A rule is matched when all criteria of the rule match. Rules are evaluated in sequential order, and this is
+particularly **important** for bypass rules. Bypass rules should generally appear near the top of the rules list.
+However you need to carefully evaluate your rule list **in order** to see which rule matches a particular scenario. A
+comprehensive understanding of how rules apply is also recommended. ***Note:** we could theoretically devise a tool that
+policy output given input of a users request and a rule list in the future.* 
+
+#### policy
+
+The specific [policy](#policies) to apply to the selected rule. This is not criteria for a match, this is the action to
+take when a match is made.
+
+#### domain
+
+This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of 
+strings. When it's a list of strings the rule matches when **any** of the domains in the list match the request domain.
+
+Rules may start with a few different wildcards:
+
+* The standard wildcard is `*.`, which when in front of a domain means that any subdomain is effectively a match. For 
+  example `*.example.com` would match `abc.example.com` and `secure.example.com`. When using a wildcard like this the
+  string **must** be quoted like `"*.example.com"`.
+    
+* The user wildcard is `{user}.`, which when in front of a domain dynamically matches the username of the user. For
+  example `{user}.example.com` would match `fred.example.com` if the user logged in was named `fred`. ***Note:** we're
+  considering refactoring this to just be regex which would likely allow many additional possibilities.*
+  
+* The group wildcard is `{group}.`, which when in front of a domain dynamically matches if the logged in user has the
+  group in that location. For example `{group}.example.com` would match `admins.example.com` if the user logged in was
+  in the following groups `admins,users,people` because `admins` is in the list. ***Note:** we're considering 
+  refactoring this to just be regex which would likely allow many additional possibilities.*
+
+Domains in this section must be the domain configured in the [session](./session/index.md#domain) configuration or
+subdomains of that domain. This is because a website can only write cookies for a domain it is part of. It is
+theoretically possible for us to do this with multiple domains however we would have to be security conscious in our
+implementation, and it is not currently a priority.
+
+
+Examples:
+
+*Single domain of `*.example.com` matched. All rules in this list are effectively the same rule just expressed in
+different ways.*
+
+```yaml
+access_control:
+  rules:
+  - domain: "*.example.com"
+    policy: bypass
+  - domain:
+    - "*.example.com"
+    policy: bypass
+```
+
+*Multiple domains matched. These rules would match either `apple.example.com` or `orange.example.com`. All rules in this
+list are effectively the same rule just expressed in different ways.*
+
+```yaml
+access_control:
+  rules:
+  - domain: ["apple.example.com", "banana.example.com"]
+    policy: bypass
+  - domain:
+    - apple.example.com
+    - banana.example.com
+    policy: bypass
+```
+
+### subject
+
+***Note:** this rule criteria **may not** be used for the `bypass` policy the minimum required authentication level to
+identify the subject is `one_factor`. We have taken an opinionated stance on preventing this configuration as it could 
+result in problematic security scenarios with badly thought out configurations and cannot see a likely configuration 
+scenario that would require users to do this. If you have a scenario in mind please open an 
+[issue](https://github.com/authelia/authelia/issues/new) on GitHub.*
+
+This criteria matches identifying characteristics about the subject. Currently this is either user or groups the user 
+belongs to. This allows you to effectively control exactly what each user is authorized to access or to specifically 
+require two-factor authentication to specific users. Subjects are prefixed with either `user:` or `group:` to identify 
+which part of the identity to check.
+
+The format of this rule is unique in as much as it is a list of lists. The logic behind this format is to allow for both
+`OR` and `AND` logic. The first level of the list defines the `OR` logic, and the second level defines the `AND` logic.
+Additionally each level of these lists does not have to be explicitly defined.
+
+Example:
+
+*Matches when the user has the username `john`, **or** the user is in the groups `admin` **and** `app-name`, **or** the
+user is in the group `super-admin`. All rules in this list are effectively the same rule just expressed in different
+ways.*
+
+```yaml
+access_control:
+  rules:
+  - domain: example.com
+    policy: two_factor
+    subject:
+    - "user:john"
+    - ["group:admin", "group:app-name"]
+    - "group:super-admin"
+  - domain: example.com
+    policy: two_factor
+    subject:
+    - ["user:john"]
+    - ["group:admin", "group:app-name"]
+    - ["group:super-admin"]
+```
+
+*Matches when the user is in the `super-admin` group. All rules in this list are effectively the same rule just
+expressed in different ways.*
+
+```yaml
+access_control:
+  rules:
+  - domain: example.com
+    policy: one_factor
+    subject: "group:super-admin"
+  - domain: example.com
+    policy: one_factor
+    subject: 
+    - "group:super-admin"
+  - domain: example.com
+    policy: one_factor
+    subject:
+    - ["group:super-admin"]
+```
+
+### methods
+
+This criteria matches the HTTP request method. This is primarily useful when trying to bypass authentication for specific
+request types when those requests would prevent essential or public operation of the website. An example is when you
+need to do CORS preflight requests you could apply the `bypass` policy to `OPTIONS` requests.
+
+It's important to note that Authelia cannot preserve request data when redirecting the user. For example if the user had
+permission to do GET requests, their authentication level was `one_factor`, and POST requests required them to do
+`two_factor` authentication, they would lose the form data. Additionally it is sometimes not possible to redirect users
+who have done requests other than HEAD or GET which means the user experience may suffer. These are the reasons it's
+only recommended to use this to increase security where essential and for CORS preflight.
+
+Example:
+
+```yaml
+access_control:
+  rules:
+  - domain: example.com
+    policy: bypass
+    methods:
+    - OPTIONS
+```
+
+The valid request methods are: OPTIONS, HEAD, GET, POST, PUT, PATCH, DELETE, TRACE, CONNECT. Additional information 
+about HTTP request methods can be found on the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods).
+
+### networks
+
+This criteria is a list of network address ranges in CIDR notation or an alias from the [global](#networks-global)
+section. It matches against the first address in the `X-Forwarded-For` header, or if there are none it will fall back to
+the IP address of the packet TCP source IP address. For this reason it's important for you to configure the proxy server
+correctly in order to accurately match requests with this criteria. ***Note:** you may combine CIDR networks with the
+alias rules as you please.*
+
+The main use case for this criteria is adjust the security requirements of a resource based on the location of a user.
+You can theoretically consider a specific network to be one of the factors involved in authentiation, you can deny
+specific networks, etc.
+
+For example if you have an application exposed on both the local networks and the external networks, you are able to
+distinguish between those requests and apply differing policies to each. Either denying access when the user is on the
+external networks and allowing specific external clients to access it as well as internal clients, or by requiring less
+privileges when a user is on the local networks.
+
+There are a large number of scenarios regarding networks and the order of the rules. This provides a lot of flexibility
+for administrators to tune the security to their specific needs if desired.
+
+Examples:
+
+*Require [two_factor](#two_factor) for all clients other than internal clients and `112.134.145.167`. The first two 
+rules in this list are effectively the same rule just expressed in different ways.*
+
+```yaml
+access_control:
+  default_policy: two_factor
+  networks:
+  - name: internal
+    networks:
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/18
+  rules:
+  - domain: secure.example.com
+    policy: one_factor
+    networks:
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/18
+    - 112.134.145.167/32
+  - domain: secure.example.com
+    policy: one_factor
+    networks:
+    - internal
+    - 112.134.145.167/32
+  - domain: secure.example.com
+    policy: two_factor
+```
+
+### resources
+
+This criteria matches the path and query of the request using regular expressions. The rule is expressed as a list of
+strings. If any one of the regular expressions in the list matches the request it's considered a match. A useful tool
+for debugging these regular expressions is called [Rego](https://regoio.herokuapp.com/).
+
+***Note:** Prior to 4.27.0 the regular expressions only matched the path excluding the query parameters. After 4.27.0 
+they match the entire path including the query parameters. When upgrading you may be required to alter some of your 
+resource rules to get them to operate as they previously did.*
+
+It's important when configuring resource rules that you enclose them in quotes otherwise you may run into some issues
+with escaping the expressions. Failure to do so may prevent Authelia from starting. It's technically optional but will
+likely save you a lot of time if you do it for all resource rules.
+
+Examples:
+
+*Applies the [bypass](#bypass) policy when the domain is `app.example.com` and the url is `/api`, or starts with either
+`/api/` or `/api?`.*
+
+```yaml
+access_control:
+  rules:
+  - domain: app.example.com
+    policy: bypass
+    resources:
+    - "^/api([/?].*)?$"
+```
+
 ## Policies
 
 With **Authelia** you can define a list of rules that are going to be evaluated in
@@ -38,146 +340,9 @@ performed 2FA then they will be allowed to access the resource.
 This policy requires the user to complete 2FA successfully. This is currently the highest level of authentication
 policy available.
 
-## Default Policy
+## Detailed example
 
-The default policy is the policy applied when no other rule matches. It is recommended that this is configured to 
-[deny](#deny) for security reasons. Sites which you do not wish to secure with Authelia should not be configured to 
-perform authentication with Authelia at all.
-
-See [Policies](#policies) for more information.
-
-## Network Aliases
-
-The main networks section defines a list of network aliases, where the name matches a list of networks. These names can
-be used in any [rule](#rules) instead of a literal network. This makes it easier to define a group of networks multiple
-times.
-
-You can combine both literal networks and these aliases inside the [networks](#networks) section of a rule. See this
-section for more details.
-
-## Rules
-
-A rule defines two things:
-
-* the matching criteria of the request presented to the reverse proxy
-* the policy applied when all criteria match.
-
-The criteria are:
-
-* domain: domain or list of domains targeted by the request.
-* resources: pattern or list of patterns that the path should match.
-* subject: the user or group of users to define the policy for.
-* networks: the network addresses, ranges (CIDR notation) or groups from where the request originates.
-* methods: the http methods used in the request.
-
-A rule is matched when all criteria of the rule match. Rules are evaluated in sequential order, and this is
-particularly **important** for bypass rules. Bypass rules should generally appear near the top of the rules list.
-
-
-### Policy
-
-A policy represents the level of authentication the user needs to pass before
-being authorized to request the resource.
-
-See [Policies](#policies) for more information.
-
-### Domains
-
-The domains defined in rules must obviously be either a subdomain of the domain
-protected by Authelia or the protected domain itself. In order to match multiple
-subdomains, the wildcard matcher character `*.` can be used as prefix of the domain.
-For instance, to define a rule for all subdomains of *example.com*, one would use
-`*.example.com` in the rule. A single rule can define multiple domains for matching.
-These domains can be either listed in YAML-short form `["example1.com", "example2.com"]`
-or in YAML long-form as dashed list.
-
-Domain prefixes can also be dynamically match users or groups. For example you can have a 
-specific policy adjustment if the user or group matches the subdomain. For
-example `{user}.example.com` or `{group}.example.com` check the users name or 
-groups against the subdomain.
-
-### Resources
-
-A rule can define multiple regular expressions for matching the path of the resource
-similar to the list of domains. If any one of them matches, the resource criteria of
-the rule matches.
-
-Note that regular expressions can be used to match a given path. However prior to 4.27.0, they do not match
-the query parameters in the URL, only the path. If you're upgrading to 4.27.0+ you may have to alter some 
-resource rules to get them to work as they previously did.
-
-You might also face some escaping issues preventing Authelia to start. Please make sure that
-when you are using regular expressions, you enclose them between quotes. It's optional but
-it will likely save you a lot of debugging time.
-
-
-### Subjects
-
-A subject is a representation of a user or a group of user for who the rule should apply.
-
-For a user with unique identifier `john`, the subject should be `user:john` and for a group
-uniquely identified by `developers`, the subject should be `group:developers`. Similar to resources
-and domains you can define multiple subjects in a single rule.
-
-If you want a combination of subjects to be matched at once using a logical `AND`, you can
-specify a nested list of subjects like `- ["group:developers", "group:admins"]`.
-In summary, the first list level of subjects are evaluated using a logical `OR`, whereas the
-second level by a logical `AND`. The last example below reads as: the group is `dev` AND the
-username is `john` OR the group is `admins`.
-
-#### Combining subjects and the bypass policy
-
-A subject cannot be combined with the `bypass` policy since the minimum authentication level to identify a subject is
-`one_factor`. Combining the `one_factor` policy with a subject is effectively the same as setting the policy to `bypass`
-in the past. We have taken an opinionated stance on preventing this configuration as it could result in problematic
-security scenarios with badly thought out configurations and cannot see a likely configuration scenario that would 
-require users to do this. If you have a scenario in mind please open an 
-[issue](https://github.com/authelia/authelia/issues/new) on GitHub.
-
-### Networks
-
-A list of network addresses, ranges (CIDR notation) or groups can be specified in a rule in order to apply different
-policies when requests originate from different networks. This list can contain both literal definitions of networks
-and [network aliases](#network-aliases).
-
-Network addresses specified will be matched against the first IP in the X-Forwarded-For, and if there is none it will fall back to the IP address of the request. If using Authelia with a reverse proxy, additional configuration
-may be required on the reverse proxy to ensure these headers are present and correct.
-
-Main use cases for this rule option is to adjust the security requirements of a resource based on the location of
-the user. For example lets say a resource should be exposed both on the Internet and from an
-authenticated VPN for instance. Passing a second factor a first time to get access to the VPN and
-a second time to get access to the application can sometimes be cumbersome if the endpoint is not
-considered overly sensitive.
-
-An additional situation where this may be useful is if there is a specific network you wish to deny access
-or require a higher level of authentication for; like a public machine network vs a company device network, or a 
-BYOD network.
-
-Even if Authelia provides this flexibility, you might prefer a higher level of security and avoid
-this option entirely. You and only you can define your security policy and it's up to you to
-configure Authelia accordingly.
-
-### Methods
-
-A list of HTTP request methods to apply the rule to. Valid values are GET, HEAD, POST, PUT, DELETE, 
-CONNECT, OPTIONS, and TRACE. Additional information about HTTP request methods can be found on the 
-[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods).
-
-It's important to note this policy type is primarily intended for use when you wish to bypass authentication for
-a specific request method. This is because there are several key limitations in what is possible to accomplish
-without Authelia being a reverse proxy server. This rule type is discouraged unless you really know what you're
-doing or you wish to setup a rule to bypass CORS preflight requests by bypassing for the OPTIONS method.
-
-For example, if you require authentication only for write events (POST, PATCH, DELETE, PUT), when a user who is not
-currently authenticated tries to do one of these actions, they will be redirected to Authelia. Authelia will decide
-what level is required for authentication, and then after the user authenticates it will redirect them to the original
-URL where Authelia decided they needed to authenticate. So if the endpoint they are redirected to originally had
-data sent as part of the request, this data is completely lost. Further if the endpoint expects the data or doesn't allow
-GET request types, the user may be presented with an error leading to a bad user experience.
-
-## Complete example
-
-Here is a complete example of complex access control list that can be defined in Authelia.
+Here is a detailed example of an example access control section:
 
 ```yaml
 access_control:
