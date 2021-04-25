@@ -62,9 +62,11 @@ const (
 	oidcJWKsPath       = "/oidc/jwks"
 	oidcAuthorizePath  = "/oidc/authorize"
 	oidcTokenPath      = "/oidc/token"
-	oidcConsentPath    = "/oidc/consent"
 	oidcIntrospectPath = "/oidc/introspect"
 	oidcRevokePath     = "/oidc/revoke"
+
+	// Note: If you change this const you must also do so in the frontend at web/src/services/Api.ts.
+	oidcConsentPath = "/api/oidc/consent"
 )
 
 const (
