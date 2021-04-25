@@ -109,9 +109,15 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		return
 	}
 
-	oauthSession := newOIDCSession(ctx, ar)
-	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, oauthSession)
+	oauthSession, err := newOIDCSession(ctx, ar)
+	if err != nil {
+		ctx.Logger.Errorf("Error occurred in NewOIDCSession: %+v", err)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
+		return
+	}
+
+	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, oauthSession)
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred in NewAuthorizeResponse: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)

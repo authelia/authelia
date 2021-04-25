@@ -9,11 +9,17 @@ import (
 )
 
 func oidcToken(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
-	oidcSession := newDefaultOIDCSession(ctx)
-	accessRequest, err := ctx.Providers.OpenIDConnect.Fosite.NewAccessRequest(ctx, req, oidcSession)
+	oidcSession, err := newDefaultOIDCSession(ctx)
 
-	if err != nil {
+	accessRequest, accessReqErr := ctx.Providers.OpenIDConnect.Fosite.NewAccessRequest(ctx, req, oidcSession)
+	if accessReqErr != nil {
 		ctx.Logger.Errorf("Error occurred in NewAccessRequest: %+v", err)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, accessRequest, err)
+
+		return
+	}
+	if err != nil {
+		ctx.Logger.Errorf("Error occurred in NewDefaultOIDCSession: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, accessRequest, err)
 
 		return

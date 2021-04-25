@@ -58,14 +58,13 @@ const msMaximumRandomDelay = int64(85)
 
 // OIDC constants.
 const (
-	fallbackOIDCIssuer = "https://login.example.com:8080"
 	oidcWellKnownPath  = "/.well-known/openid-configuration"
-	oidcJWKsPath       = "/api/oidc/jwks"
-	oidcAuthorizePath  = "/api/oidc/authorize"
-	oidcTokenPath      = "/api/oidc/token" // nolint:gosec
-	oidcConsentPath    = "/api/oidc/consent"
-	oidcIntrospectPath = "/api/oidc/introspect"
-	oidcRevokePath     = "/api/oidc/revoke"
+	oidcJWKsPath       = "/oidc/jwks"
+	oidcAuthorizePath  = "/oidc/authorize"
+	oidcTokenPath      = "/oidc/token" // nolint:gosec
+	oidcConsentPath    = "/oidc/consent"
+	oidcIntrospectPath = "/oidc/introspect"
+	oidcRevokePath     = "/oidc/revoke"
 )
 
 const (

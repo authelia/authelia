@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
@@ -11,9 +13,11 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 	var configuration WellKnownConfigurationJSON
 
 	issuer, err := ctx.ForwardedProtoHost()
-
 	if err != nil {
-		issuer = fallbackOIDCIssuer
+		ctx.Logger.Errorf("Error occurred in ForwardedProtoHost: %+v", err)
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+
+		return
 	}
 
 	configuration.Issuer = issuer
@@ -58,6 +62,10 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 	ctx.SetContentType("application/json")
 
 	if err := json.NewEncoder(ctx).Encode(configuration); err != nil {
-		ctx.Error(err, "Failed to serve openid configuration")
+		ctx.Logger.Errorf("Error occurred in json Encode: %+v", err)
+		// TODO: Determine if this is the appropriate error code here.
+		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
+
+		return
 	}
 }

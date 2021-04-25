@@ -47,7 +47,7 @@ func audienceNamesToAudience(scopeSlice []string) (audience []Audience) {
 	return audience
 }
 
-func newOIDCSession(ctx *middlewares.AutheliaCtx, ar fosite.AuthorizeRequester) *openid.DefaultSession {
+func newOIDCSession(ctx *middlewares.AutheliaCtx, ar fosite.AuthorizeRequester) (session *openid.DefaultSession, err error) {
 	userSession := ctx.GetSession()
 
 	scopes := ar.GetGrantedScopes()
@@ -74,20 +74,20 @@ func newOIDCSession(ctx *middlewares.AutheliaCtx, ar fosite.AuthorizeRequester) 
 		This is a simple design, have a map with a key of username, and a struct with the relevant information.
 	*/
 
-	oidcSession := newDefaultOIDCSession(ctx)
+	oidcSession, err := newDefaultOIDCSession(ctx)
+	if oidcSession == nil {
+		return nil, err
+	}
+
 	oidcSession.Claims.Extra = extra
 	oidcSession.Claims.Subject = userSession.Username
 	oidcSession.Claims.Audience = ar.GetGrantedAudience()
 
-	return oidcSession
+	return oidcSession, err
 }
 
-func newDefaultOIDCSession(ctx *middlewares.AutheliaCtx) *openid.DefaultSession {
+func newDefaultOIDCSession(ctx *middlewares.AutheliaCtx) (session *openid.DefaultSession, err error) {
 	issuer, err := ctx.ForwardedProtoHost()
-
-	if err != nil {
-		issuer = fallbackOIDCIssuer
-	}
 
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{
@@ -102,5 +102,5 @@ func newDefaultOIDCSession(ctx *middlewares.AutheliaCtx) *openid.DefaultSession 
 		Headers: &jwt.Headers{
 			Extra: make(map[string]interface{}),
 		},
-	}
+	}, err
 }
