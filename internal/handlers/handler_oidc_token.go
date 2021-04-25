@@ -18,6 +18,7 @@ func oidcToken(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.R
 
 		return
 	}
+
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred in NewDefaultOIDCSession: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, accessRequest, err)

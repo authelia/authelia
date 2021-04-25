@@ -61,7 +61,7 @@ const (
 	oidcWellKnownPath  = "/.well-known/openid-configuration"
 	oidcJWKsPath       = "/oidc/jwks"
 	oidcAuthorizePath  = "/oidc/authorize"
-	oidcTokenPath      = "/oidc/token" // nolint:gosec
+	oidcTokenPath      = "/oidc/token"
 	oidcConsentPath    = "/oidc/consent"
 	oidcIntrospectPath = "/oidc/introspect"
 	oidcRevokePath     = "/oidc/revoke"

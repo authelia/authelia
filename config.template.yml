@@ -588,7 +588,7 @@ identity_providers:
         secret: this_is_a_secret
 
         ## The policy to require for this client; one_factor or two_factor.
-        policy: two_factor
+        authorization_policy: two_factor
 
         ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
         redirect_uris:

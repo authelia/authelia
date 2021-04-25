@@ -61,7 +61,7 @@ Here is the list of the main available features:
 * Access restriction after too many authentication attempts.
 * Fine-grained access control per subdomain, user, resource and network.
 * Support of basic authentication for endpoints protected by single factor.
-* Preview support for [OpenID Connect](https://www.authelia.com/docs/configuration/identity-providers/oidc.html).
+* Beta support for [OpenID Connect](https://www.authelia.com/docs/configuration/identity-providers/oidc.html).
 * Highly available using a remote database and Redis as a highly available KV store.
 * Compatible with Kubernetes [ingress-nginx](https://github.com/kubernetes/ingress-nginx) controller out of the box.
 

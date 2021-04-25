@@ -90,9 +90,8 @@ identity_providers:
       # This client is used for testing purpose. As of now, the app must be protected by ACLs
       # otherwise it won't work properly.
       - id: oidc-tester-app-public
-        # This secret must be a bcrypt hash
         secret: foobar
-        policy: one_factor
+        authorization_policy: one_factor
         redirect_uris:
           - https://oidc-public.example.com:8080/oauth2/callback
 ...

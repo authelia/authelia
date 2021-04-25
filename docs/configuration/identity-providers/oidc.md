@@ -8,7 +8,7 @@ nav_order: 2
 
 # OpenID Connect
 
-**Authelia** currently supports [OpenID Connect] but is preview status. This means it's suggested you only implement
+**Authelia** currently supports [OpenID Connect] as a beta feature. This means it's suggested you only implement
 it with caution. The main purpose of it being available is for us to allow users to try it and provide feedback. The 
 reason we do it this way is [OpenID Connect] is a complicated technology to implement well, and we are more likely to
 get good feedback if we allow people to test it. By default [OpenID Connect] is disabled unless you configure it.
@@ -70,9 +70,9 @@ A friendly description for this client shown in the UI. This defaults to the sam
 
 The shared secret between Authelia and the application consuming this client. Currently this is stored in plain text.
 
-#### policy
+#### authorization_policy
 
-The authentication policy for this client. Either `one_factor` or `two_factor`.
+The authorization policy for this client. Either `one_factor` or `two_factor`.
 
 #### redirect_uris
 
