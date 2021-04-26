@@ -122,7 +122,7 @@ which means the emails are sent in plain text. This is the least secure option a
 of SMTP certificates and removes the encryption offered by the STARTTLS/SMTPS connection all together.
 
 This means not only can the vulnerabilities of the [skip_verify](#configuration-option-tlsskip_verify) option be
-exploited, but any router or switch along the route of the email which recieves the packets could be used to silently
+exploited, but any router or switch along the route of the email which receives the packets could be used to silently
 exploit the plain text nature of the email. This is only usable currently with authentication disabled (comment out the 
 password) and as such is only an option for SMTP servers that allow unauthenticated relay (bad practice).
 
@@ -132,7 +132,7 @@ All connections start as plain text and are upgraded via STARTTLS. SMTPS is an e
 connection is over TLS. As SMTPS is deprecated, the only way to configure this is to set the SMTP 
 [port](../configuration/notifier/smtp.md#port) to the officially recognized SMTPS port of 465 which will cause Authelia
 to automatically consider it to be a SMTPS connection. As such your SMTP server, if not offering SMTPS, should not be
-listening on port 464 which is bad practice anyway.
+listening on port 465 which is bad practice anyway.
 
 ## Additional security
 
@@ -146,7 +146,7 @@ information.
 
 We have a few options to configure the security of a session. The main and most important one is the session secret.
 This is used to encrypt the session data when it is stored in the [Redis](../configuration/session/redis.md) key value
-database. The value of this option should long and as random as possible. See more in the
+database. The value of this option should be long and as random as possible. See more in the
 [documentation](../configuration/session/index.md#secret) for this option.
 
 The validity period of session is highly configurable. For example in a highly security conscious domain you could
@@ -312,7 +312,7 @@ The docker user directive allows you to configure the user the entrypoint runs a
 option for containers as no process accessible to the container ever runs as root which prevents a compromised container
 from exploiting unnecessary privileges.
 
-The directive can applied either be applied in your `docker run` command using the `--user` argument or by
+The directive can either be applied in your `docker run` command using the `--user` argument or by
 the docker-compose `user:` key. The examples below assume you'd like to run the container as UID 8000 and GID 9000.
 
 Example for the docker CLI:
