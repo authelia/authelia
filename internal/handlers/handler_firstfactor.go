@@ -128,17 +128,15 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		ctx.Logger.Debugf("Credentials validation of user %s is ok", bodyJSON.Username)
 
 		userSession := ctx.GetSession()
+		newSession := session.NewDefaultUserSession()
+		newSession.OIDCWorkflowSession = userSession.OIDCWorkflowSession
 
-		// We skip this when the OIDC workflow is defined in the session because in the oidc.AuthorizeEndpointGet
-		// handler we do this part earlier. If we were to destroy the session here we'd lose the workflow values.
-		if userSession.OIDCWorkflowSession == nil {
-			// Reset all values from previous session before regenerating the cookie.
-			err = ctx.SaveSession(session.NewDefaultUserSession())
+		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
+		err = ctx.SaveSession(newSession)
 
-			if err != nil {
-				handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
-				return
-			}
+		if err != nil {
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+			return
 		}
 
 		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)

@@ -562,14 +562,14 @@ identity_providers:
   ##
   ## OpenID Connect (Identity Provider)
   ##
-  ## It's recommended you read the documentation before configuraiton of this section:
+  ## It's recommended you read the documentation before configuration of this section:
   ## https://www.authelia.com/docs/configuration/identity-providers/oidc.html
   oidc:
-    ## The hmac_secret is used to sign the JWT's sent by OpenID Connect.
+    ## The hmac_secret is used for the signature of OAuth2 tokens (authorization code, access tokens and refresh tokens).
     ## HMAC Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     hmac_secret: this_is_a_secret_abc123abc123abc
 
-    ## The issuer_private_key is used to encrypt the JWT's sent by OpenID Connect.
+    ## The issuer_private_key is used to sign the JWT forged by OpenID Connect.
     ## Issuer Private Key can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
     issuer_private_key: |
       --- KEY START

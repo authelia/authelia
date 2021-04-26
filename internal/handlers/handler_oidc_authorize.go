@@ -7,7 +7,6 @@ import (
 
 	"github.com/ory/fosite"
 
-	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/oidc"
@@ -92,18 +91,6 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 
 		return
-	}
-
-	if userSession.AuthenticationLevel == authentication.NotAuthenticated {
-		// Reset all values from previous session before regenerating the cookie. We do this here because it's
-		// skipped for the OIDC workflow on the 1FA post handler.
-		err = ctx.SaveSession(session.NewDefaultUserSession())
-
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-
-			return
-		}
 	}
 
 	ctx.Logger.Debugf("User %s must consent with scopes %s",

@@ -77,7 +77,7 @@ The authorization policy for this client. Either `one_factor` or `two_factor`.
 #### redirect_uris
 
 A list of valid callback URL's this client will redirect to. All other callbacks will be considered unsafe. The URL's
-are case-sensitive. 
+are case-sensitive.
 
 #### scopes
 

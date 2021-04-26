@@ -31,6 +31,8 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 		"profile",
 		"groups",
 		"email",
+		// Determine if this is really mandatory knowing the RP can request for a refresh token through the authorize
+		// endpoint anyway.
 		"offline_access",
 	}
 	configuration.ClaimsSupported = []string{

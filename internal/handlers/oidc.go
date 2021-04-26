@@ -91,8 +91,8 @@ func newDefaultOIDCSession(ctx *middlewares.AutheliaCtx) (session *openid.Defaul
 
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{
-			Issuer:      issuer,
-			Subject:     "",
+			Issuer: issuer,
+			// TODO(c.michaud): make this configurable
 			ExpiresAt:   time.Now().Add(time.Hour * 6),
 			IssuedAt:    time.Now(),
 			RequestedAt: time.Now(),
