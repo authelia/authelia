@@ -215,5 +215,5 @@ func (s *OpenIDConnectStore) IsJWTUsed(ctx context.Context, jti string) (bool, e
 
 // MarkJWTUsedForTime decorates fosite's storage.MemoryStore MarkJWTUsedForTime method.
 func (s *OpenIDConnectStore) MarkJWTUsedForTime(ctx context.Context, jti string, exp time.Time) error {
-	return s.memory.SetClientAssertionJWT(ctx, jti, exp)
+	return s.memory.MarkJWTUsedForTime(ctx, jti, exp)
 }
