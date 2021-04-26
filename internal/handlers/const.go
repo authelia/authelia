@@ -59,11 +59,11 @@ const msMaximumRandomDelay = int64(85)
 // OIDC constants.
 const (
 	oidcWellKnownPath  = "/.well-known/openid-configuration"
-	oidcJWKsPath       = "/oidc/jwks"
-	oidcAuthorizePath  = "/oidc/authorize"
-	oidcTokenPath      = "/oidc/token"
-	oidcIntrospectPath = "/oidc/introspect"
-	oidcRevokePath     = "/oidc/revoke"
+	oidcJWKsPath       = "/api/oidc/jwks"
+	oidcAuthorizePath  = "/api/oidc/authorize"
+	oidcTokenPath      = "/api/oidc/token"
+	oidcIntrospectPath = "/api/oidc/introspect"
+	oidcRevokePath     = "/api/oidc/revoke"
 
 	// Note: If you change this const you must also do so in the frontend at web/src/services/Api.ts.
 	oidcConsentPath = "/api/oidc/consent"

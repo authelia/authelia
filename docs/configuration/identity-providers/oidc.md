@@ -8,10 +8,92 @@ nav_order: 2
 
 # OpenID Connect
 
-**Authelia** currently supports [OpenID Connect] as a beta feature. This means it's suggested you only implement
-it with caution. The main purpose of it being available is for us to allow users to try it and provide feedback. The 
-reason we do it this way is [OpenID Connect] is a complicated technology to implement well, and we are more likely to
-get good feedback if we allow people to test it. By default [OpenID Connect] is disabled unless you configure it.
+**Authelia** currently supports the [OpenID Connect] OP role as a [beta](#beta) feature. The OP role is the 
+[OpenID Connect] Provider role, not the Relaying Party or RP role. This means other applications that implement the 
+[OpenID Connect] RP role can use Authelia as an authentication and authorization backend similar to how you may use 
+social media or development platforms for login.
+
+The Relaying Party role is the role which allows an application to use GitHub, Google, or other [OpenID Connect]
+providers for authentication and authorization. We do not intend to support this functionality at this moment in time.
+
+## Beta
+
+We have decided to implement [OpenID Connect] as a beta feature, it's suggested you only utilize it for testing and
+providing feedback, and should take caution in relying on it in production. [OpenID Connect] and it's related endpoints
+are not enabled by default unless you specifically configure the [OpenID Connect] section.
+
+The beta will be broken up into stages. Each stage will bring additional features. The following table is a *rough* plan
+for which stage will have each feature, and may evolve over time:
+
+<table>
+    <thead>
+      <tr>
+        <th class="tbl-header">Stage</th>
+        <th class="tbl-header">Feature Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td rowspan="7" class="tbl-header tbl-beta-stage">beta1</td>
+        <td><a href="https://openid.net/specs/openid-connect-core-1_0.html#Consent" target="_blank" rel="noopener noreferrer">User Consent</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowSteps" target="_blank" rel="noopener noreferrer">Authorization Code Flow</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://openid.net/specs/openid-connect-discovery-1_0.html" target="_blank" rel="noopener noreferrer">OpenID Connect Discovery</a></td>
+      </tr>
+      <tr>
+        <td>RS256 Signature Strategy</td>
+      </tr>
+      <tr>
+        <td>Per Client Scope/Grant Type/Response Type Restriction</td>
+      </tr>
+      <tr>
+        <td>Per Client Authorization Policy (1FA/2FA)</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Per Client List of Valid Redirection URI's</td>
+      </tr>
+      <tr>
+        <td rowspan="2" class="tbl-header tbl-beta-stage">beta2 <sup>1</sup></td>
+        <td>Token Storage</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Audit Storage</td>
+      </tr>
+      <tr>
+        <td rowspan="4" class="tbl-header tbl-beta-stage">beta3 <sup>1</sup></td>
+        <td><a href="https://openid.net/specs/openid-connect-backchannel-1_0.html" target="_blank" rel="noopener noreferrer">Back-Channel Logout</a></td>
+      </tr>
+      <tr>
+        <td>Deny Refresh on Session Expiration</td>
+      </tr>
+      <tr>
+        <td><a href="https://openid.net/specs/openid-connect-messages-1_0-20.html#rotate.sig.keys" target="_blank" rel="noopener noreferrer">Signing Key Rotation Policy</a></td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Client Secrets Hashed in Configuration</td>
+      </tr>
+      <tr>
+        <td class="tbl-header tbl-beta-stage">GA <sup>1</sup></td>
+        <td class="tbl-beta-stage">General Availability after previous stages are vetted for bug fixes</td>
+      </tr>
+      <tr>
+        <td rowspan="2" class="tbl-header">misc</td>
+        <td>List of other features that may be implemented</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage"><a href="https://openid.net/specs/openid-connect-frontchannel-1_0.html" target="_blank" rel="noopener noreferrer">Front-Channel Logout</a> <sup>2</sup></td>
+      </tr>
+    </tbody>
+</table>
+
+*<sup>1</sup> this stage has not been implemented as of yet*
+
+*<sup>2</sup> this individual feature has not been implemented as of yet*
+
+## Configuration
 
 ```yaml
 identity_providers:
@@ -24,7 +106,7 @@ identity_providers:
       - id: myapp
         description: My Application
         secret: this_is_a_secret
-        policy: two_factor
+        authorization_policy: two_factor
         redirect_uris:
           - https://oidc.example.com:8080/oauth2/callback
         scopes:
