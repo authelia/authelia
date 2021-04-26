@@ -5,13 +5,15 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ory/fosite"
+
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/oidc"
 	"github.com/authelia/authelia/internal/session"
 )
 
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	ar, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r)
 	if err != nil {
@@ -40,57 +42,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 	isAuthInsufficient := !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel)
 
 	if isAuthInsufficient || (isConsentMissing(userSession.OIDCWorkflowSession, requestedScopes, requestedAudience)) {
-		forwardedURI, err := ctx.GetOriginalURL()
-		if err != nil {
-			ctx.Logger.Errorf("%v", err)
-			http.Error(rw, err.Error(), http.StatusBadRequest)
-
-			return
-		}
-
-		if userSession.AuthenticationLevel == authentication.NotAuthenticated {
-			// Reset all values from previous session before regenerating the cookie. We do this here because it's
-			// skipped for the OIDC workflow on the 1FA post handler.
-			err = ctx.SaveSession(session.NewDefaultUserSession())
-
-			if err != nil {
-				http.Error(rw, err.Error(), http.StatusInternalServerError)
-
-				return
-			}
-		}
-
-		ctx.Logger.Debugf("User %s must consent with scopes %s",
-			userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))
-
-		userSession.OIDCWorkflowSession = new(session.OIDCWorkflowSession)
-		userSession.OIDCWorkflowSession.ClientID = clientID
-		userSession.OIDCWorkflowSession.RequestedScopes = requestedScopes
-		userSession.OIDCWorkflowSession.RequestedAudience = requestedAudience
-		userSession.OIDCWorkflowSession.AuthURI = forwardedURI.String()
-		userSession.OIDCWorkflowSession.TargetURI = ar.GetRedirectURI().String()
-		userSession.OIDCWorkflowSession.RequiredAuthorizationLevel = ctx.Providers.OpenIDConnect.Store.GetClientPolicy(clientID)
-
-		if err := ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.Errorf("%v", err)
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-
-			return
-		}
-
-		uri, err := ctx.ForwardedProtoHost()
-		if err != nil {
-			ctx.Logger.Errorf("%v", err)
-			http.Error(rw, err.Error(), http.StatusBadRequest)
-
-			return
-		}
-
-		if isAuthInsufficient {
-			http.Redirect(rw, r, uri, http.StatusFound)
-		} else {
-			http.Redirect(rw, r, fmt.Sprintf("%s/consent", uri), http.StatusFound)
-		}
+		oidcAuthorizeHandleAuthorizationOrConsentInsufficient(ctx, userSession, client, isAuthInsufficient, rw, r, ar)
 
 		return
 	}
@@ -128,4 +80,61 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 	}
 
 	ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeResponse(rw, ar, response)
+}
+
+func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
+	ctx *middlewares.AutheliaCtx, userSession session.UserSession, client *oidc.InternalClient, isAuthInsufficient bool,
+	rw http.ResponseWriter, r *http.Request,
+	ar fosite.AuthorizeRequester) {
+	forwardedURI, err := ctx.GetOriginalURL()
+	if err != nil {
+		ctx.Logger.Errorf("%v", err)
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+
+		return
+	}
+
+	if userSession.AuthenticationLevel == authentication.NotAuthenticated {
+		// Reset all values from previous session before regenerating the cookie. We do this here because it's
+		// skipped for the OIDC workflow on the 1FA post handler.
+		err = ctx.SaveSession(session.NewDefaultUserSession())
+
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
+	}
+
+	ctx.Logger.Debugf("User %s must consent with scopes %s",
+		userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))
+
+	userSession.OIDCWorkflowSession = new(session.OIDCWorkflowSession)
+	userSession.OIDCWorkflowSession.ClientID = client.ID
+	userSession.OIDCWorkflowSession.RequestedScopes = ar.GetRequestedScopes()
+	userSession.OIDCWorkflowSession.RequestedAudience = ar.GetRequestedAudience()
+	userSession.OIDCWorkflowSession.AuthURI = forwardedURI.String()
+	userSession.OIDCWorkflowSession.TargetURI = ar.GetRedirectURI().String()
+	userSession.OIDCWorkflowSession.RequiredAuthorizationLevel = client.Policy
+
+	if err := ctx.SaveSession(userSession); err != nil {
+		ctx.Logger.Errorf("%v", err)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+
+		return
+	}
+
+	uri, err := ctx.ForwardedProtoHost()
+	if err != nil {
+		ctx.Logger.Errorf("%v", err)
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+
+		return
+	}
+
+	if isAuthInsufficient {
+		http.Redirect(rw, r, uri, http.StatusFound)
+	} else {
+		http.Redirect(rw, r, fmt.Sprintf("%s/consent", uri), http.StatusFound)
+	}
 }
