@@ -565,7 +565,7 @@ notifier:
   ## It's recommended you read the documentation before configuration of this section:
   ## https://www.authelia.com/docs/configuration/identity-providers/oidc.html
   # oidc:
-    ## The hmac_secret is used for the signature of OAuth2 tokens (authorization code, access tokens and refresh tokens).
+    ## The hmac_secret is used to sign OAuth2 tokens (authorization code, access tokens and refresh tokens).
     ## HMAC Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     # hmac_secret: this_is_a_secret_abc123abc123abc
 
