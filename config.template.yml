@@ -585,7 +585,7 @@ notifier:
         # description: My Application
 
         ## The client secret is a shared secret between Authelia and the consumer of this client.
-        secret: this_is_a_secret
+        # secret: this_is_a_secret
 
         ## The policy to require for this client; one_factor or two_factor.
         # authorization_policy: two_factor
