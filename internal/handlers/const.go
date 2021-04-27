@@ -61,7 +61,7 @@ const (
 	oidcWellKnownPath  = "/.well-known/openid-configuration"
 	oidcJWKsPath       = "/api/oidc/jwks"
 	oidcAuthorizePath  = "/api/oidc/authorize"
-	oidcTokenPath      = "/api/oidc/token"
+	oidcTokenPath      = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.
 	oidcIntrospectPath = "/api/oidc/introspect"
 	oidcRevokePath     = "/api/oidc/revoke"
 
