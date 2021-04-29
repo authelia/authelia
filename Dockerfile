@@ -20,7 +20,7 @@ COPY internal internal
 
 # Prepare static files to be embedded in Go binary
 RUN rm -rf internal/server/public_html
-COPY public_html internal/server/public_html
+COPY internal/server/public_html internal/server/public_html
 
 # Set the build version and time
 RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
