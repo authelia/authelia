@@ -59,7 +59,7 @@ var Commands = []AutheliaCommandDefinition{
 	},
 	{
 		Name:  "suites",
-		Short: "Compute hash of a password for creating a file-based users database",
+		Short: "Commands related to suites management",
 		SubCommands: CobraCommands{
 			SuitesTestCmd,
 			SuitesListCmd,

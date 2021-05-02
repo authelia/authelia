@@ -85,13 +85,15 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	ctx *middlewares.AutheliaCtx, userSession session.UserSession, client *oidc.InternalClient, isAuthInsufficient bool,
 	rw http.ResponseWriter, r *http.Request,
 	ar fosite.AuthorizeRequester) {
-	forwardedURI, err := ctx.GetOriginalURL()
+	forwardedProtoHost, err := ctx.ForwardedProtoHost()
 	if err != nil {
 		ctx.Logger.Errorf("%v", err)
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 
 		return
 	}
+
+	redirectURL := fmt.Sprintf("%s%s", forwardedProtoHost, string(ctx.Request.RequestURI()))
 
 	ctx.Logger.Debugf("User %s must consent with scopes %s",
 		userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))
@@ -100,7 +102,7 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	userSession.OIDCWorkflowSession.ClientID = client.ID
 	userSession.OIDCWorkflowSession.RequestedScopes = ar.GetRequestedScopes()
 	userSession.OIDCWorkflowSession.RequestedAudience = ar.GetRequestedAudience()
-	userSession.OIDCWorkflowSession.AuthURI = forwardedURI.String()
+	userSession.OIDCWorkflowSession.AuthURI = redirectURL
 	userSession.OIDCWorkflowSession.TargetURI = ar.GetRedirectURI().String()
 	userSession.OIDCWorkflowSession.RequiredAuthorizationLevel = client.Policy
 
