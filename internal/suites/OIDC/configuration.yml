@@ -30,6 +30,8 @@ storage:
 access_control:
   default_policy: deny
   rules:
+    - domain: "home.example.com"
+      policy: bypass
     - domain: "public.example.com"
       policy: bypass
     - domain: "admin.example.com"
