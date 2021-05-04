@@ -53,6 +53,13 @@ func init() {
 
 		fmt.Println(frontendLogs)
 
+		oidcClientLogs, err := dockerEnvironment.Logs("oidc-client", nil)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(oidcClientLogs)
+
 		return nil
 	}
 
