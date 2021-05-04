@@ -2250,3 +2250,7 @@ figure.highlight pre, figure.highlight code { padding: 0; margin: 0; border: 0; 
   pre.highlight { border: 1px solid #eeebee; }
   .main { max-width: none; margin-left: 0; } }
 .label.label-config { text-transform: none; }
+
+.tbl-header { font-weight: bold; text-align: center; }
+
+.tbl-beta-stage { border-bottom-width: 3px !important; }
