@@ -56,7 +56,7 @@ func (s *OIDCScenario) SetupTest() {
 }
 
 func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	s.doVisit(s.T(), OIDCBaseURL)
@@ -83,7 +83,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 }
 
 func (s *OIDCScenario) TestShouldDenyConsent() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	s.doVisit(s.T(), OIDCBaseURL)
