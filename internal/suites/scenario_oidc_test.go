@@ -64,7 +64,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	s.doFillLoginPageAndClick(ctx, s.T(), "john", "password", false)
 	s.verifyIsSecondFactorPage(ctx, s.T())
 	s.doValidateTOTP(ctx, s.T(), s.secret)
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	s.waitBodyContains(ctx, s.T(), "Not logged yet...")
 
@@ -78,7 +78,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	assert.NoError(s.T(), err)
 
 	// Verify that the app is showing the info related to the user stored in the JWT token
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	s.waitBodyContains(ctx, s.T(), "Logged in as john!")
 }
 
