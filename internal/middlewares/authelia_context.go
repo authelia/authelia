@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/url"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -37,7 +38,7 @@ func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration
 }
 
 // AutheliaMiddleware is wrapping the RequestCtx into an AutheliaCtx providing Authelia related objects.
-func AutheliaMiddleware(configuration schema.Configuration, providers Providers) func(next RequestHandler) fasthttp.RequestHandler {
+func AutheliaMiddleware(configuration schema.Configuration, providers Providers) RequestHandlerBridge {
 	return func(next RequestHandler) fasthttp.RequestHandler {
 		return func(ctx *fasthttp.RequestCtx) {
 			autheliaCtx, err := NewAutheliaCtx(ctx, configuration, providers)
@@ -87,6 +88,11 @@ func (c *AutheliaCtx) ReplyForbidden() {
 	c.RequestCtx.Error(fasthttp.StatusMessage(fasthttp.StatusForbidden), fasthttp.StatusForbidden)
 }
 
+// ReplyBadRequest response sent when bad request has been sent.
+func (c *AutheliaCtx) ReplyBadRequest() {
+	c.RequestCtx.Error(fasthttp.StatusMessage(fasthttp.StatusBadRequest), fasthttp.StatusBadRequest)
+}
+
 // XForwardedProto return the content of the X-Forwarded-Proto header.
 func (c *AutheliaCtx) XForwardedProto() []byte {
 	return c.RequestCtx.Request.Header.Peek(xForwardedProtoHeader)
@@ -105,6 +111,24 @@ func (c *AutheliaCtx) XForwardedHost() []byte {
 // XForwardedURI return the content of the X-Forwarded-URI header.
 func (c *AutheliaCtx) XForwardedURI() []byte {
 	return c.RequestCtx.Request.Header.Peek(xForwardedURIHeader)
+}
+
+// ForwardedProtoHost gets the X-Forwarded-Proto and X-Forwarded-Host headers and forms them into a URL.
+func (c AutheliaCtx) ForwardedProtoHost() (string, error) {
+	XForwardedProto := c.XForwardedProto()
+
+	if XForwardedProto == nil {
+		return "", errMissingXForwardedProto
+	}
+
+	XForwardedHost := c.XForwardedHost()
+
+	if XForwardedHost == nil {
+		return "", errMissingXForwardedHost
+	}
+
+	return fmt.Sprintf("%s://%s", XForwardedProto,
+		XForwardedHost), nil
 }
 
 // XOriginalURL return the content of the X-Original-URL header.
@@ -180,4 +204,47 @@ func (c *AutheliaCtx) RemoteIP() net.IP {
 	}
 
 	return c.RequestCtx.RemoteIP()
+}
+
+// GetOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers).
+func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
+	originalURL := c.XOriginalURL()
+	if originalURL != nil {
+		parsedURL, err := url.ParseRequestURI(string(originalURL))
+		if err != nil {
+			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
+		}
+
+		c.Logger.Trace("Using X-Original-URL header content as targeted site URL")
+
+		return parsedURL, nil
+	}
+
+	forwardedProto := c.XForwardedProto()
+	forwardedHost := c.XForwardedHost()
+	forwardedURI := c.XForwardedURI()
+
+	if forwardedProto == nil {
+		return nil, errMissingXForwardedProto
+	}
+
+	if forwardedHost == nil {
+		return nil, errMissingXForwardedHost
+	}
+
+	var requestURI string
+
+	scheme := append(forwardedProto, protoHostSeparator...)
+	requestURI = string(append(scheme,
+		append(forwardedHost, forwardedURI...)...))
+
+	parsedURL, err := url.ParseRequestURI(requestURI)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
+	}
+
+	c.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
+		"to construct targeted site URL")
+
+	return parsedURL, nil
 }

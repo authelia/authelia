@@ -7,6 +7,11 @@ const (
 	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
 	errFmtReplacedConfigurationKey        = "invalid configuration key '%s' was replaced by '%s'"
 
+	errOAuthOIDCServerClientRedirectURIFmt               = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
+	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "OIDC Client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
+	errIdentityProvidersOIDCServerClientInvalidPolicyFmt = "OIDC Client with ID '%s' has an invalid policy '%s', should be either 'one_factor' or 'two_factor'"
+	errIdentityProvidersOIDCServerClientInvalidSecFmt    = "OIDC Client with ID '%s' has an empty secret"
+
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
@@ -42,15 +47,17 @@ var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELET
 
 // SecretNames contains a map of secret names.
 var SecretNames = map[string]string{
-	"JWTSecret":             "jwt_secret",
-	"SessionSecret":         "session.secret",
-	"DUOSecretKey":          "duo_api.secret_key",
-	"RedisPassword":         "session.redis.password",
-	"RedisSentinelPassword": "session.redis.high_availability.sentinel_password",
-	"LDAPPassword":          "authentication_backend.ldap.password",
-	"SMTPPassword":          "notifier.smtp.password",
-	"MySQLPassword":         "storage.mysql.password",
-	"PostgreSQLPassword":    "storage.postgres.password",
+	"JWTSecret":                     "jwt_secret",
+	"SessionSecret":                 "session.secret",
+	"DUOSecretKey":                  "duo_api.secret_key",
+	"RedisPassword":                 "session.redis.password",
+	"RedisSentinelPassword":         "session.redis.high_availability.sentinel_password",
+	"LDAPPassword":                  "authentication_backend.ldap.password",
+	"SMTPPassword":                  "notifier.smtp.password",
+	"MySQLPassword":                 "storage.mysql.password",
+	"PostgreSQLPassword":            "storage.postgres.password",
+	"OpenIDConnectHMACSecret":       "identity_providers.oidc.hmac_secret",
+	"OpenIDConnectIssuerPrivateKey": "identity_providers.oidc.issuer_private_key",
 }
 
 // validKeys is a list of valid keys that are not secret names. For the sake of consistency please place any secret in
@@ -184,6 +191,9 @@ var validKeys = []string{
 	"authentication_backend.file.password.salt_length",
 	"authentication_backend.file.password.memory",
 	"authentication_backend.file.password.parallelism",
+
+	// Identity Provider Keys.
+	"identity_providers.oidc.clients",
 }
 
 var replacedKeys = map[string]string{

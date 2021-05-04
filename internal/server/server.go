@@ -28,9 +28,7 @@ import (
 //go:embed public_html
 var assets embed.FS
 
-// StartServer start Authelia server with the given configuration and providers.
-func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
-	logger := logging.Logger()
+func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
@@ -142,6 +140,19 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		handler = middlewares.StripPathMiddleware(handler)
 	}
 
+	if providers.OpenIDConnect.Fosite != nil {
+		handlers.RegisterOIDC(r, autheliaMiddleware)
+	}
+
+	return handler
+}
+
+// StartServer start Authelia server with the given configuration and providers.
+func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
+	logger := logging.Logger()
+
+	handler := registerRoutes(configuration, providers)
+
 	server := &fasthttp.Server{
 		ErrorHandler:          autheliaErrorHandler,
 		Handler:               handler,
@@ -157,6 +168,7 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 		logger.Fatalf("Error initializing listener: %s", err)
 	}
 
+	// TODO(clems4ever): move that piece to a more related location, probably in the configuration package.
 	if configuration.AuthenticationBackend.File != nil && configuration.AuthenticationBackend.File.Password.Algorithm == "argon2id" && runtime.GOOS == "linux" {
 		f, err := ioutil.ReadFile("/sys/fs/cgroup/memory/memory.limit_in_bytes")
 		if err != nil {

@@ -73,6 +73,10 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 			return
 		}
 
-		Handle2FAResponse(ctx, requestBody.TargetURL)
+		if userSession.OIDCWorkflowSession != nil {
+			HandleOIDCWorkflowResponse(ctx)
+		} else {
+			Handle2FAResponse(ctx, requestBody.TargetURL)
+		}
 	}
 }

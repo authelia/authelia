@@ -14,12 +14,14 @@ import {
     RegisterSecurityKeyRoute,
     RegisterOneTimePasswordRoute,
     LogoutRoute,
+    ConsentRoute,
 } from "./Routes";
 import * as themes from "./themes";
 import { getBasePath } from "./utils/BasePath";
 import { getRememberMe, getResetPassword, getTheme } from "./utils/Configuration";
 import RegisterOneTimePassword from "./views/DeviceRegistration/RegisterOneTimePassword";
 import RegisterSecurityKey from "./views/DeviceRegistration/RegisterSecurityKey";
+import ConsentView from "./views/LoginPortal/ConsentView/ConsentView";
 import LoginPortal from "./views/LoginPortal/LoginPortal";
 import SignOut from "./views/LoginPortal/SignOut/SignOut";
 import ResetPasswordStep1 from "./views/ResetPassword/ResetPasswordStep1";
@@ -64,6 +66,9 @@ const App: React.FC = () => {
                         </Route>
                         <Route path={LogoutRoute} exact>
                             <SignOut />
+                        </Route>
+                        <Route path={ConsentRoute} exact>
+                            <ConsentView />
                         </Route>
                         <Route path={FirstFactorRoute}>
                             <LoginPortal rememberMe={getRememberMe()} resetPassword={getResetPassword()} />

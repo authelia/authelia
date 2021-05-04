@@ -55,6 +55,10 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 			return
 		}
 
-		Handle2FAResponse(ctx, requestBody.TargetURL)
+		if userSession.OIDCWorkflowSession != nil {
+			HandleOIDCWorkflowResponse(ctx)
+		} else {
+			Handle2FAResponse(ctx, requestBody.TargetURL)
+		}
 	}
 }

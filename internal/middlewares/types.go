@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -9,6 +9,7 @@ import (
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/notification"
+	"github.com/authelia/authelia/internal/oidc"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/storage"
@@ -31,6 +32,7 @@ type Providers struct {
 	Authorizer      *authorization.Authorizer
 	SessionProvider *session.Provider
 	Regulator       *regulation.Regulator
+	OpenIDConnect   oidc.OpenIDConnectProvider
 
 	UserProvider    authentication.UserProvider
 	StorageProvider storage.Provider
@@ -42,6 +44,9 @@ type RequestHandler = func(*AutheliaCtx)
 
 // Middleware represent an Authelia middleware.
 type Middleware = func(RequestHandler) RequestHandler
+
+// RequestHandlerBridge bridge a AutheliaCtx handle to a RequestHandler handler.
+type RequestHandlerBridge = func(RequestHandler) fasthttp.RequestHandler
 
 // IdentityVerificationStartArgs represent the arguments used to customize the starting phase
 // of the identity verification process.

@@ -41,6 +41,9 @@ var MX1MailBaseURL = fmt.Sprintf("https://mx1.mail.%s", BaseDomain)
 // MX2MailBaseURL the base URL of the mx2.mail domain.
 var MX2MailBaseURL = fmt.Sprintf("https://mx2.mail.%s", BaseDomain)
 
+// OIDCBaseURL the base URL of the oidc domain.
+var OIDCBaseURL = fmt.Sprintf("https://oidc.%s", BaseDomain)
+
 // DuoBaseURL the base URL of the Duo configuration API.
 var DuoBaseURL = "https://duo.example.com"
 

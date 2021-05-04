@@ -91,4 +91,6 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	} else {
 		ValidateNotifier(configuration.Notifier, validator)
 	}
+
+	ValidateIdentityProviders(&configuration.IdentityProviders, validator)
 }

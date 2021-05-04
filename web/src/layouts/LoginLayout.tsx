@@ -8,7 +8,7 @@ import { ReactComponent as UserSvg } from "../assets/images/user.svg";
 export interface Props {
     id?: string;
     children?: ReactNode;
-    title: string;
+    title?: string;
     showBrand?: boolean;
 }
 
@@ -21,11 +21,13 @@ const LoginLayout = function (props: Props) {
                     <Grid item xs={12}>
                         <UserSvg className={style.icon}></UserSvg>
                     </Grid>
-                    <Grid item xs={12}>
-                        <Typography variant="h5" className={style.title}>
-                            {props.title}
-                        </Typography>
-                    </Grid>
+                    {props.title ? (
+                        <Grid item xs={12}>
+                            <Typography variant="h5" className={style.title}>
+                                {props.title}
+                            </Typography>
+                        </Grid>
+                    ) : null}
                     <Grid item xs={12} className={style.body}>
                         {props.children}
                     </Grid>
@@ -63,7 +65,11 @@ const useStyles = makeStyles((theme) => ({
         width: "64px",
         fill: theme.custom.icon,
     },
-    body: {},
+    body: {
+        marginTop: theme.spacing(),
+        paddingTop: theme.spacing(),
+        paddingBottom: theme.spacing(),
+    },
     poweredBy: {
         fontSize: "0.7em",
         color: grey[500],

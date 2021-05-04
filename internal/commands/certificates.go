@@ -21,14 +21,14 @@ import (
 )
 
 var (
-	host            string
-	validFrom       string
-	validFor        time.Duration
-	isCA            bool
-	rsaBits         int
-	ecdsaCurve      string
-	ed25519Key      bool
-	targetDirectory string
+	host                       string
+	validFrom                  string
+	validFor                   time.Duration
+	isCA                       bool
+	rsaBits                    int
+	ecdsaCurve                 string
+	ed25519Key                 bool
+	certificateTargetDirectory string
 )
 
 func init() {
@@ -45,7 +45,7 @@ func init() {
 	CertificatesGenerateCmd.PersistentFlags().IntVar(&rsaBits, "rsa-bits", 2048, "Size of RSA key to generate. Ignored if --ecdsa-curve is set")
 	CertificatesGenerateCmd.PersistentFlags().StringVar(&ecdsaCurve, "ecdsa-curve", "", "ECDSA curve to use to generate a key. Valid values are P224, P256 (recommended), P384, P521")
 	CertificatesGenerateCmd.PersistentFlags().BoolVar(&ed25519Key, "ed25519", false, "Generate an Ed25519 key")
-	CertificatesGenerateCmd.PersistentFlags().StringVar(&targetDirectory, "dir", "", "Target directory where the certificate and keys will be stored")
+	CertificatesGenerateCmd.PersistentFlags().StringVar(&certificateTargetDirectory, "dir", "", "Target directory where the certificate and keys will be stored")
 
 	CertificatesCmd.AddCommand(CertificatesGenerateCmd)
 }
@@ -144,7 +144,7 @@ func generateSelfSignedCertificate(cmd *cobra.Command, args []string) {
 		log.Fatalf("Failed to create certificate: %v", err)
 	}
 
-	certPath := path.Join(targetDirectory, "cert.pem")
+	certPath := path.Join(certificateTargetDirectory, "cert.pem")
 	certOut, err := os.Create(certPath)
 
 	if err != nil {
@@ -161,7 +161,7 @@ func generateSelfSignedCertificate(cmd *cobra.Command, args []string) {
 
 	log.Printf("wrote %s\n", certPath)
 
-	keyPath := path.Join(targetDirectory, "key.pem")
+	keyPath := path.Join(certificateTargetDirectory, "key.pem")
 	keyOut, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 
 	if err != nil {
