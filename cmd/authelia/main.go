@@ -121,7 +121,7 @@ func startServer() {
 	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
 
 	if err != nil {
-		panic(err)
+		logger.Fatalf("Error initializing OpenID Connect Provider: %+v", err)
 	}
 
 	providers := middlewares.Providers{
