@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -57,27 +58,27 @@ func dockerBuildOfficialImage(arch string) error {
 		if buildkiteQEMU != stringTrue {
 			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 		}
 
 		err := utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-arm-static -O ./qemu-arm-static && chmod +x ./qemu-arm-static").Run()
 
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	} else if arch == "arm64v8" {
 		if buildkiteQEMU != stringTrue {
 			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 		}
 
 		err := utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-aarch64-static -O ./qemu-aarch64-static && chmod +x ./qemu-aarch64-static").Run()
 
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	}
 
@@ -118,7 +119,7 @@ var DockerBuildCmd = &cobra.Command{
 		err = docker.Tag(IntermediateDockerImageName, DockerImageName)
 
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	},
 }
@@ -204,8 +205,11 @@ func deployManifest(docker *Docker, tag, amd64tag, arm32v7tag, arm64v8tag, regis
 		for _, t := range tags {
 			log.Infof("Docker removing tag for %s%s on Docker Hub", dockerImagePrefix, t)
 
-			if err := docker.CleanTag(t); err != nil {
-				panic(err)
+			if err := utils.RunFuncWithRetry(3, 10*time.Second, func() (err error) {
+				err = docker.CleanTag(t)
+				return
+			}); err != nil {
+				log.Fatal(err)
 			}
 		}
 	}

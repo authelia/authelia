@@ -147,3 +147,23 @@ func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
 		return err
 	}
 }
+
+// RunFuncWithRetry run a function for n attempts with a sleep of n duration between each attempt.
+func RunFuncWithRetry(attempts int, sleep time.Duration, f func() error) (err error) {
+	for i := 0; ; i++ {
+		err = f()
+		if err == nil {
+			return
+		}
+
+		if i >= (attempts - 1) {
+			break
+		}
+
+		time.Sleep(sleep)
+
+		log.Printf("Retrying after error: %s", err)
+	}
+
+	return fmt.Errorf("Failed after %d attempts, last error: %s", attempts, err)
+}
