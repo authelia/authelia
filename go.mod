@@ -17,7 +17,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/mock v1.5.0
 	github.com/jackc/pgx/v4 v4.11.0
-	github.com/mattn/go-sqlite3 v1.14.7
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/ory/fosite v0.39.0
 	github.com/otiai10/copy v1.5.1
 	github.com/pquerna/otp v1.3.0
@@ -34,6 +34,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-replace github.com/mattn/go-sqlite3 => github.com/mattn/go-sqlite3 v1.14.7
-
-exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible
+replace github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.7
