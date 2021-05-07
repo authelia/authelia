@@ -20,12 +20,14 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) *InternalClient {
 		GrantTypes:    config.GrantTypes,
 		ResponseTypes: config.ResponseTypes,
 		Scopes:        config.Scopes,
+
 		ResponseModes: []fosite.ResponseModeType{
 			fosite.ResponseModeDefault,
 			fosite.ResponseModeFormPost,
 			fosite.ResponseModeQuery,
 			fosite.ResponseModeFragment,
 		},
+		TokenEndpointAuthMethod: "client_secret_post",
 	}
 }
 
