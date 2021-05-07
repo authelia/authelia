@@ -19,22 +19,11 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (st
 
 	store.clients = make(map[string]*InternalClient)
 
-	for _, clientConf := range configuration.Clients {
-		policy := authorization.PolicyToLevel(clientConf.Policy)
-		logging.Logger().Debugf("Registering client %s with policy %s (%v)", clientConf.ID, clientConf.Policy, policy)
+	for _, client := range configuration.Clients {
+		policy := authorization.PolicyToLevel(client.Policy)
+		logging.Logger().Debugf("Registering client %s with policy %s (%v)", client.ID, client.Policy, policy)
 
-		client := &InternalClient{
-			ID:            clientConf.ID,
-			Description:   clientConf.Description,
-			Policy:        authorization.PolicyToLevel(clientConf.Policy),
-			Secret:        []byte(clientConf.Secret),
-			RedirectURIs:  clientConf.RedirectURIs,
-			GrantTypes:    clientConf.GrantTypes,
-			ResponseTypes: clientConf.ResponseTypes,
-			Scopes:        clientConf.Scopes,
-		}
-
-		store.clients[client.ID] = client
+		store.clients[client.ID] = NewClient(client)
 	}
 
 	store.memory = &storage.MemoryStore{
