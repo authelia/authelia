@@ -100,7 +100,10 @@ func newDefaultOIDCSession(ctx *middlewares.AutheliaCtx) (session *openid.Defaul
 			Extra:       make(map[string]interface{}),
 		},
 		Headers: &jwt.Headers{
-			Extra: make(map[string]interface{}),
+			Extra: map[string]interface{}{
+				// TODO: Obtain this from the active keys when we implement key rotation.
+				"kid": "main-key",
+			},
 		},
 	}, err
 }
