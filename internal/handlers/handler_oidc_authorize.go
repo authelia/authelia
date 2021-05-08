@@ -57,6 +57,8 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		ar.GrantAudience(a)
 	}
 
+	workflowCreated := time.Unix(userSession.OIDCWorkflowSession.Created, 0)
+
 	userSession.OIDCWorkflowSession = nil
 	if err := ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf("%v", err)
@@ -69,7 +71,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		Subject:     userSession.Username,
 		Issuer:      ctx.Configuration.ExternalURL,
 		AuthTime:    time.Unix(userSession.Authenticated, 0),
-		RequestedAt: userSession.OIDCWorkflowSession.Created,
+		RequestedAt: workflowCreated,
 		IssuedAt:    time.Now(),
 		Nonce:       ar.GetRequestForm().Get("nonce"),
 		Audience:    []string{ar.GetClient().GetID()},
@@ -119,7 +121,7 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 		AuthURI:                    redirectURL,
 		TargetURI:                  ar.GetRedirectURI().String(),
 		RequiredAuthorizationLevel: client.Policy,
-		Created:                    time.Now(),
+		Created:                    time.Now().Unix(),
 	}
 
 	if err := ctx.SaveSession(userSession); err != nil {

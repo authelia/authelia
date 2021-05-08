@@ -14,11 +14,11 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 	if ctx.Providers.OpenIDConnect.WellKnown == nil {
 		ctx.Providers.OpenIDConnect.WellKnown = &oidc.WellKnownConfiguration{
 			Issuer:             ctx.Configuration.ExternalURL,
-			AuthURL:            fmt.Sprintf("%s/%s", ctx.Configuration.ExternalURL, oidcAuthorizePath),
-			TokenURL:           fmt.Sprintf("%s/%s", ctx.Configuration.ExternalURL, oidcTokenPath),
-			RevocationEndpoint: fmt.Sprintf("%s/%s", ctx.Configuration.ExternalURL, oidcRevokePath),
-			UserinfoEndpoint:   fmt.Sprintf("%s/%s", ctx.Configuration.ExternalURL, oidcUserinfoPath),
-			JWKSURL:            fmt.Sprintf("%s/%s", ctx.Configuration.ExternalURL, oidcJWKsPath),
+			AuthURL:            fmt.Sprintf("%s%s", ctx.Configuration.ExternalURL, oidcAuthorizePath),
+			TokenURL:           fmt.Sprintf("%s%s", ctx.Configuration.ExternalURL, oidcTokenPath),
+			RevocationEndpoint: fmt.Sprintf("%s%s", ctx.Configuration.ExternalURL, oidcRevokePath),
+			UserinfoEndpoint:   fmt.Sprintf("%s%s", ctx.Configuration.ExternalURL, oidcUserinfoPath),
+			JWKSURL:            fmt.Sprintf("%s%s", ctx.Configuration.ExternalURL, oidcJWKsPath),
 			Algorithms:         []string{"RS256"},
 			ScopesSupported: []string{
 				"openid",

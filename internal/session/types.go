@@ -71,5 +71,5 @@ type OIDCWorkflowSession struct {
 	TargetURI                  string
 	AuthURI                    string
 	RequiredAuthorizationLevel authorization.Level
-	Created                    time.Time
+	Created                    int64
 }
