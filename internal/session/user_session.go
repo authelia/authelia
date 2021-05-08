@@ -1,6 +1,8 @@
 package session
 
 import (
+	"time"
+
 	"github.com/authelia/authelia/internal/authentication"
 )
 
@@ -10,5 +12,6 @@ func NewDefaultUserSession() UserSession {
 		KeepMeLoggedIn:      false,
 		AuthenticationLevel: authentication.NotAuthenticated,
 		LastActivity:        0,
+		Created:             time.Now(),
 	}
 }

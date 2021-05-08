@@ -1,13 +1,9 @@
 package oidc
 
 import (
-	"crypto/rsa"
-	"fmt"
-
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
-	"github.com/ory/fosite/token/jwt"
-	"gopkg.in/square/go-jose.v2"
+	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
@@ -15,14 +11,14 @@ import (
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
-	privateKeys map[string]*rsa.PrivateKey
-
-	Fosite fosite.OAuth2Provider
-	Store  *OpenIDConnectStore
+	Fosite    fosite.OAuth2Provider
+	Store     *OpenIDConnectStore
+	Writer    *herodot.JSONWriter
+	WellKnown *WellKnownConfiguration
 }
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
-func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConnectProvider, err error) {
+func NewOpenIDConnectProvider(issuer string, configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConnectProvider, err error) {
 	provider = OpenIDConnectProvider{
 		Fosite: nil,
 	}
@@ -31,20 +27,21 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		return provider, nil
 	}
 
-	provider.Store = NewOpenIDConnectStore(configuration)
-
-	composeConfiguration := new(compose.Config)
-
-	key, err := utils.ParseRsaPrivateKeyFromPemStr(configuration.IssuerPrivateKey)
+	provider.Store, err = NewOpenIDConnectStore(configuration)
 	if err != nil {
-		return provider, fmt.Errorf("unable to parse the private key of the OpenID issuer: %w", err)
+		return provider, err
 	}
 
-	provider.privateKeys = make(map[string]*rsa.PrivateKey)
-	provider.privateKeys["main-key"] = key
+	composeConfiguration := &compose.Config{
+		IDTokenIssuer:       issuer,
+		IDTokenLifespan:     configuration.IDTokenLifespan,
+		AccessTokenLifespan: configuration.AccessTokenLifespan,
+	}
 
-	// TODO: Consider implementing RS512 as well.
-	jwtStrategy := &jwt.RS256JWTStrategy{PrivateKey: key}
+	key, err := provider.Store.KeyManager.GetActivePrivateKey()
+	if err != nil {
+		return provider, err
+	}
 
 	strategy := &compose.CommonStrategy{
 		CoreStrategy: compose.NewOAuth2HMACStrategy(
@@ -54,10 +51,12 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		),
 		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(
 			composeConfiguration,
-			provider.privateKeys["main-key"],
+			key,
 		),
-		JWTStrategy: jwtStrategy,
+		JWTStrategy: provider.Store.KeyManager.Strategy(),
 	}
+
+	provider.Writer = herodot.NewJSONWriter(nil)
 
 	provider.Fosite = compose.Compose(
 		composeConfiguration,
@@ -89,20 +88,4 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 	)
 
 	return provider, nil
-}
-
-// GetKeySet returns the jose.JSONWebKeySet for the OpenIDConnectProvider.
-func (p OpenIDConnectProvider) GetKeySet() (webKeySet jose.JSONWebKeySet) {
-	for keyID, key := range p.privateKeys {
-		webKey := jose.JSONWebKey{
-			Key:       &key.PublicKey,
-			KeyID:     keyID,
-			Algorithm: "RS256",
-			Use:       "sig",
-		}
-
-		webKeySet.Keys = append(webKeySet.Keys, webKey)
-	}
-
-	return webKeySet
 }

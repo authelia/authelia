@@ -5,6 +5,8 @@ tls_key: /config/ssl/key.pem
 
 log_level: debug
 
+external_url: https://login.example.com:8080
+
 jwt_secret: unsecure_secret
 
 authentication_backend:

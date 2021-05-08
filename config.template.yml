@@ -54,7 +54,12 @@ jwt_secret: a_very_important_secret
 ## in such a case.
 ##
 ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
-default_redirection_url: https://home.example.com:8080/
+default_redirection_url: https://home.example.com/
+
+## External URL
+##
+## Currently is only used for OpenID Connect to set the issuer. Will likely be used in the future for other purposes.
+# external_url: https://auth.example.com
 
 ##
 ## TOTP Configuration
@@ -574,6 +579,11 @@ notifier:
     # issuer_private_key: |
     #   --- KEY START
     #   --- KEY END
+
+    ## The id_token_lifespan and access_token_lifespan configure the expiration for these token types.
+    ## Both default to 1 hour.
+    # id_token_lifespan: 1h
+    # access_token_lifespan: 1h
 
     ## Clients is a list of known clients and their configuration.
     # clients:

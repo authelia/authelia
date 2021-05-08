@@ -1,5 +1,7 @@
 package schema
 
+import "time"
+
 // IdentityProvidersConfiguration represents the IdentityProviders 2.0 configuration for Authelia.
 type IdentityProvidersConfiguration struct {
 	OIDC *OpenIDConnectConfiguration `mapstructure:"oidc"`
@@ -10,6 +12,9 @@ type OpenIDConnectConfiguration struct {
 	// This secret must be 32 bytes long
 	HMACSecret       string `mapstructure:"hmac_secret"`
 	IssuerPrivateKey string `mapstructure:"issuer_private_key"`
+
+	IDTokenLifespan     time.Duration `mapstructure:"id_token_lifespan"`
+	AccessTokenLifespan time.Duration `mapstructure:"access_token_lifespan"`
 
 	Clients []OpenIDConnectClientConfiguration `mapstructure:"clients"`
 }
@@ -24,6 +29,11 @@ type OpenIDConnectClientConfiguration struct {
 	Scopes        []string `mapstructure:"scopes"`
 	GrantTypes    []string `mapstructure:"grant_types"`
 	ResponseTypes []string `mapstructure:"response_types"`
+}
+
+var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
+	IDTokenLifespan:     time.Hour,
+	AccessTokenLifespan: time.Hour,
 }
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC AutheliaClients.

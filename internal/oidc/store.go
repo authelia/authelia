@@ -14,8 +14,19 @@ import (
 )
 
 // NewOpenIDConnectStore returns a new OpenIDConnectStore using the provided schema.OpenIDConnectConfiguration.
-func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (store *OpenIDConnectStore) {
-	store = &OpenIDConnectStore{}
+func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (store *OpenIDConnectStore, err error) {
+	store = &OpenIDConnectStore{
+		memory: &storage.MemoryStore{
+			IDSessions:             make(map[string]fosite.Requester),
+			Users:                  map[string]storage.MemoryUserRelation{},
+			AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
+			AccessTokens:           map[string]fosite.Requester{},
+			RefreshTokens:          map[string]storage.StoreRefreshToken{},
+			PKCES:                  map[string]fosite.Requester{},
+			AccessTokenRequestIDs:  map[string]string{},
+			RefreshTokenRequestIDs: map[string]string{},
+		},
+	}
 
 	store.clients = make(map[string]*InternalClient)
 
@@ -26,18 +37,14 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (st
 		store.clients[client.ID] = NewClient(client)
 	}
 
-	store.memory = &storage.MemoryStore{
-		IDSessions:             make(map[string]fosite.Requester),
-		Users:                  map[string]storage.MemoryUserRelation{},
-		AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
-		AccessTokens:           map[string]fosite.Requester{},
-		RefreshTokens:          map[string]storage.StoreRefreshToken{},
-		PKCES:                  map[string]fosite.Requester{},
-		AccessTokenRequestIDs:  map[string]string{},
-		RefreshTokenRequestIDs: map[string]string{},
+	keyManager, err := NewKeyManager(configuration)
+	if err != nil {
+		return nil, err
 	}
 
-	return store
+	store.KeyManager = keyManager
+
+	return store, nil
 }
 
 // OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface.
@@ -46,8 +53,9 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (st
 //	The long term plan is to have these methods interact with the Authelia storage and
 //	session providers where applicable.
 type OpenIDConnectStore struct {
-	clients map[string]*InternalClient
-	memory  *storage.MemoryStore
+	clients    map[string]*InternalClient
+	memory     *storage.MemoryStore
+	KeyManager *KeyManager
 }
 
 // GetClientPolicy retrieves the policy from the client with the matching provided id.

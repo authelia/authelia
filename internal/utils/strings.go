@@ -1,11 +1,28 @@
 package utils
 
 import (
+	"fmt"
 	"math/rand"
+	"net/url"
 	"strings"
 	"time"
 	"unicode"
 )
+
+// IsStringAbsURL checks a string can be parsed as a URL and that is IsAbs and if it can't it returns an error
+// describing why.
+func IsStringAbsURL(input string) (err error) {
+	parsedURL, err := url.Parse(input)
+	if err != nil {
+		return fmt.Errorf("could not parse '%s' as a URL", input)
+	}
+
+	if !parsedURL.IsAbs() {
+		return fmt.Errorf("url '%s' is not absolute", input)
+	}
+
+	return nil
+}
 
 // IsStringAlphaNumeric returns false if any rune in the string is not alpha-numeric.
 func IsStringAlphaNumeric(input string) bool {

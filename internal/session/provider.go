@@ -77,6 +77,8 @@ func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertP
 func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 	store, err := p.sessionHolder.Get(ctx)
 
+	store.GetSessionID()
+
 	if err != nil {
 		return NewDefaultUserSession(), err
 	}

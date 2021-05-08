@@ -20,7 +20,7 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(exampleExternalURL, config, validator)
 
 	require.Len(t, validator.Errors(), 2)
 
@@ -37,7 +37,7 @@ func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T)
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(exampleExternalURL, config, validator)
 
 	require.Len(t, validator.Errors(), 1)
 
@@ -87,7 +87,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(exampleExternalURL, config, validator)
 
 	require.Len(t, validator.Errors(), 7)
 
@@ -99,6 +99,33 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[4], fmt.Sprintf(errOAuthOIDCServerClientRedirectURICantBeParsedFmt, "client-check-uri-parse", "http://abc@%two", errors.New("parse \"http://abc@%two\": invalid URL escape \"%tw\"")))
 	assert.EqualError(t, validator.Errors()[5], "OIDC Server has one or more clients with an empty ID")
 	assert.EqualError(t, validator.Errors()[6], "OIDC Server has clients with duplicate ID's")
+}
+
+func TestShouldNotRaiseErrorWhenOIDCServerConfiguredWithoutExternalURL(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: "../../../README.md",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "a-client",
+					Secret: "a-client-secret",
+					Policy: oneFactorPolicy,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders("", config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "OIDC Provider cannot be configured without an external_url")
 }
 
 func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
@@ -139,7 +166,7 @@ func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(exampleExternalURL, config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
 

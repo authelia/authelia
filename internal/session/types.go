@@ -51,6 +51,7 @@ type UserSession struct {
 	// while doing the query actually updating the password.
 	PasswordResetUsername *string
 
+	Created    time.Time
 	RefreshTTL time.Time
 }
 
@@ -70,4 +71,5 @@ type OIDCWorkflowSession struct {
 	TargetURI                  string
 	AuthURI                    string
 	RequiredAuthorizationLevel authorization.Level
+	Created                    time.Time
 }

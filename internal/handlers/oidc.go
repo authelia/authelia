@@ -1,13 +1,9 @@
 package handlers
 
 import (
-	"time"
-
-	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 
-	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/utils"
 )
@@ -23,63 +19,20 @@ func isConsentMissing(workflow *session.OIDCWorkflowSession, requestedScopes, re
 		len(requestedAudience) > 0 && utils.IsStringSlicesDifferentFold(requestedAudience, workflow.GrantedAudience)
 }
 
-func newOIDCSession(ctx *middlewares.AutheliaCtx, ar fosite.AuthorizeRequester) (session *openid.DefaultSession, err error) {
-	userSession := ctx.GetSession()
-
-	scopes := ar.GetGrantedScopes()
-
-	extra := map[string]interface{}{}
-
-	if len(userSession.Emails) != 0 && scopes.Has("email") {
-		extra["email"] = userSession.Emails[0]
-		extra["email_verified"] = true
+func newOpenIDSession(subject string) *OpenIDSession {
+	return &OpenIDSession{
+		DefaultSession: &openid.DefaultSession{
+			Claims:  new(jwt.IDTokenClaims),
+			Headers: new(jwt.Headers),
+			Subject: subject,
+		},
+		Extra: map[string]interface{}{},
 	}
-
-	if scopes.Has("groups") {
-		extra["groups"] = userSession.Groups
-	}
-
-	if scopes.Has("profile") {
-		extra["name"] = userSession.DisplayName
-	}
-
-	/*
-		TODO: Adjust auth backends to return more profile information.
-		It's probably ideal to adjust the auth providers at this time to not store 'extra' information in the session
-		storage, and instead create a memory only storage for them.
-		This is a simple design, have a map with a key of username, and a struct with the relevant information.
-	*/
-
-	oidcSession, err := newDefaultOIDCSession(ctx)
-	if oidcSession == nil {
-		return nil, err
-	}
-
-	oidcSession.Claims.Extra = extra
-	oidcSession.Claims.Subject = userSession.Username
-	oidcSession.Claims.Audience = ar.GetGrantedAudience()
-
-	return oidcSession, err
 }
 
-func newDefaultOIDCSession(ctx *middlewares.AutheliaCtx) (session *openid.DefaultSession, err error) {
-	issuer, err := ctx.ForwardedProtoHost()
+type OpenIDSession struct {
+	*openid.DefaultSession `json:"idToken"`
 
-	return &openid.DefaultSession{
-		Claims: &jwt.IDTokenClaims{
-			Issuer: issuer,
-			// TODO(c.michaud): make this configurable
-			ExpiresAt:   time.Now().Add(time.Hour * 6),
-			IssuedAt:    time.Now(),
-			RequestedAt: time.Now(),
-			AuthTime:    time.Now(),
-			Extra:       make(map[string]interface{}),
-		},
-		Headers: &jwt.Headers{
-			Extra: map[string]interface{}{
-				// TODO: Obtain this from the active keys when we implement key rotation.
-				"kid": "main-key",
-			},
-		},
-	}, err
+	Extra    map[string]interface{} `json:"extra"`
+	ClientID string
 }

@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/openid"
+	"github.com/ory/fosite/token/jwt"
 
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
@@ -62,15 +65,26 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		return
 	}
 
-	oauthSession, err := newOIDCSession(ctx, ar)
-	if err != nil {
-		ctx.Logger.Errorf("Error occurred in NewOIDCSession: %+v", err)
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
-
-		return
+	claims := &jwt.IDTokenClaims{
+		Subject:     userSession.Username,
+		Issuer:      ctx.Configuration.ExternalURL,
+		AuthTime:    userSession.Created,
+		RequestedAt: userSession.OIDCWorkflowSession.Created,
+		IssuedAt:    time.Now(),
+		Nonce:       ar.GetRequestForm().Get("nonce"),
+		Audience:    []string{ar.GetClient().GetID()},
 	}
 
-	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, oauthSession)
+	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &OpenIDSession{
+		DefaultSession: &openid.DefaultSession{
+			Claims: claims,
+			Headers: &jwt.Headers{Extra: map[string]interface{}{
+				"kid": ctx.Providers.OpenIDConnect.Store.KeyManager.GetActiveKeyID(),
+			}},
+			Subject: userSession.Username,
+		},
+		ClientID: clientID,
+	})
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred in NewAuthorizeResponse: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
@@ -98,13 +112,15 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	ctx.Logger.Debugf("User %s must consent with scopes %s",
 		userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))
 
-	userSession.OIDCWorkflowSession = new(session.OIDCWorkflowSession)
-	userSession.OIDCWorkflowSession.ClientID = client.ID
-	userSession.OIDCWorkflowSession.RequestedScopes = ar.GetRequestedScopes()
-	userSession.OIDCWorkflowSession.RequestedAudience = ar.GetRequestedAudience()
-	userSession.OIDCWorkflowSession.AuthURI = redirectURL
-	userSession.OIDCWorkflowSession.TargetURI = ar.GetRedirectURI().String()
-	userSession.OIDCWorkflowSession.RequiredAuthorizationLevel = client.Policy
+	userSession.OIDCWorkflowSession = &session.OIDCWorkflowSession{
+		ClientID:                   client.ID,
+		RequestedScopes:            ar.GetRequestedScopes(),
+		RequestedAudience:          ar.GetRequestedAudience(),
+		AuthURI:                    redirectURL,
+		TargetURI:                  ar.GetRedirectURI().String(),
+		RequiredAuthorizationLevel: client.Policy,
+		Created:                    time.Now(),
+	}
 
 	if err := ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf("%v", err)
