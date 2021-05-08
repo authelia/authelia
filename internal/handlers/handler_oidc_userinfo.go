@@ -12,6 +12,7 @@ import (
 	fositejwt "github.com/ory/fosite/token/jwt"
 
 	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/internal/oidc"
 )
 
 func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
@@ -38,7 +39,7 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 		return
 	}
 
-	claims := ar.GetSession().(*OpenIDSession).IDTokenClaims().ToMap()
+	claims := ar.GetSession().(*oidc.OpenIDSession).IDTokenClaims().ToMap()
 
 	delete(claims, "nonce")
 	delete(claims, "at_hash")

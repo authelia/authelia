@@ -75,7 +75,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		Audience:    []string{ar.GetClient().GetID()},
 	}
 
-	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &OpenIDSession{
+	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &oidc.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: claims,
 			Headers: &jwt.Headers{Extra: map[string]interface{}{

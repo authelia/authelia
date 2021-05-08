@@ -23,8 +23,8 @@ func TestKeyManager_AddActiveKeyData(t *testing.T) {
 
 	thumbprint, err := wk.Thumbprint(crypto.SHA256)
 	assert.NoError(t, err)
-	kid := fmt.Sprintf("%x", thumbprint)
 
+	kid := fmt.Sprintf("%x", thumbprint)
 	assert.Equal(t, manager.activeKeyID, kid)
 	assert.Equal(t, kid, wk.KeyID)
 	assert.Len(t, manager.keys, 1)
@@ -48,7 +48,5 @@ func TestKeyManager_AddActiveKeyData(t *testing.T) {
 
 	keySet := manager.GetKeySet()
 	assert.NotNil(t, keySet)
-
 	assert.Equal(t, kid, manager.GetActiveKeyID())
-
 }

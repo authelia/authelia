@@ -1,5 +1,7 @@
 package oidc
 
+import "github.com/ory/fosite/handler/openid"
+
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
 	ClientID          string     `json:"client_id"`
@@ -36,4 +38,12 @@ type WellKnownConfiguration struct {
 	BackChannelLogoutSessionSupported  bool     `json:"backchannel_logout_session_supported"`
 	FrontChannelLogoutSupported        bool     `json:"frontchannel_logout_supported"`
 	FrontChannelLogoutSessionSupported bool     `json:"frontchannel_logout_session_supported"`
+}
+
+// OpenIDSession holds OIDC Session information.
+type OpenIDSession struct {
+	*openid.DefaultSession `json:"idToken"`
+
+	Extra    map[string]interface{} `json:"extra"`
+	ClientID string
 }
