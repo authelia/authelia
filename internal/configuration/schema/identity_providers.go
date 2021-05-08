@@ -31,12 +31,13 @@ type OpenIDConnectClientConfiguration struct {
 	ResponseTypes []string `mapstructure:"response_types"`
 }
 
+// DefaultOpenIDConnectConfiguration contains defaults for OIDC.
 var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
 	IDTokenLifespan:     time.Hour,
 	AccessTokenLifespan: time.Hour,
 }
 
-// DefaultOpenIDConnectClientConfiguration contains defaults for OIDC AutheliaClients.
+// DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	Scopes:        []string{"openid", "groups", "profile", "email"},
 	ResponseTypes: []string{"code"},

@@ -26,6 +26,7 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 		}
 
 		ctx.Providers.OpenIDConnect.Writer.WriteError(rw, req, err)
+
 		return
 	}
 
@@ -33,6 +34,7 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 		errorDescription := "Only access tokens are allowed in the authorization header."
 		rw.Header().Set("WWW-Authenticate", fmt.Sprintf("error_description=\"%s\"", errorDescription))
 		ctx.Providers.OpenIDConnect.Writer.WriteErrorCode(rw, req, http.StatusUnauthorized, errors.New(errorDescription))
+
 		return
 	}
 
@@ -48,6 +50,7 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 	client, err := ctx.Providers.OpenIDConnect.Store.GetInternalClient(ar.GetClient().GetID())
 	if err != nil {
 		ctx.Providers.OpenIDConnect.Writer.WriteError(rw, req, err)
+
 		return
 	}
 
@@ -63,8 +66,10 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 	token, _, err := ctx.Providers.OpenIDConnect.Store.KeyManager.Strategy().Generate(req.Context(), jwt.MapClaims(claims), &fositejwt.Headers{
 		Extra: map[string]interface{}{"kid": keyID},
 	})
+
 	if err != nil {
 		ctx.Providers.OpenIDConnect.Writer.WriteError(rw, req, err)
+
 		return
 	}
 
