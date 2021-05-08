@@ -174,6 +174,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		userSession.Groups = userDetails.Groups
 		userSession.Emails = userDetails.Emails
 		userSession.AuthenticationLevel = authentication.OneFactor
+		userSession.Authenticated = time.Now().Unix()
 		userSession.LastActivity = time.Now().Unix()
 		userSession.KeepMeLoggedIn = keepMeLoggedIn
 		refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend)

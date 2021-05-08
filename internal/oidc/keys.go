@@ -15,24 +15,26 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// NewKeyManager when provided a schema.OpenIDConnectConfiguration creates a new KeyManager and initializes the Strategy
-// for use with Fosite.
-func NewKeyManager(configuration *schema.OpenIDConnectConfiguration) (manager *KeyManager, err error) {
-	manager = new(KeyManager)
-	manager.keys = map[string]*rsa.PrivateKey{}
-	manager.keySet = new(jose.JSONWebKeySet)
+// NewKeyManagerWithConfiguration when provided a schema.OpenIDConnectConfiguration creates a new KeyManager and adds an
+// initial key to the manager.
+func NewKeyManagerWithConfiguration(configuration *schema.OpenIDConnectConfiguration) (manager *KeyManager, err error) {
+	manager = NewKeyManager()
 
-	key, webKey, err := manager.AddActiveKeyData(configuration.IssuerPrivateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	manager.strategy, err = NewRS256JWTStrategy(webKey.KeyID, key)
+	_, _, err = manager.AddActiveKeyData(configuration.IssuerPrivateKey)
 	if err != nil {
 		return nil, err
 	}
 
 	return manager, nil
+}
+
+// NewKeyManager creates a new empty KeyManager.
+func NewKeyManager() (manager *KeyManager) {
+	manager = new(KeyManager)
+	manager.keys = map[string]*rsa.PrivateKey{}
+	manager.keySet = new(jose.JSONWebKeySet)
+
+	return manager
 }
 
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
@@ -79,7 +81,7 @@ func (m KeyManager) GetActiveKey() (key *rsa.PublicKey, err error) {
 		return &key.PublicKey, nil
 	}
 
-	return nil, errors.New("failed to retrieve active key")
+	return nil, errors.New("failed to retrieve active public key")
 }
 
 // GetActivePrivateKey returns the rsa.PrivateKey of the currently active key.
@@ -88,7 +90,7 @@ func (m KeyManager) GetActivePrivateKey() (key *rsa.PrivateKey, err error) {
 		return key, nil
 	}
 
-	return nil, errors.New("failed to retrieve active key")
+	return nil, errors.New("failed to retrieve active private key")
 }
 
 // AddActiveKeyData adds a rsa.PublicKey given the key in the PEM string format, then sets it to the active key.
@@ -116,7 +118,7 @@ func (m *KeyManager) AddActiveKey(key *rsa.PrivateKey) (webKey *jose.JSONWebKey,
 		return nil, err
 	}
 
-	strKeyID := string(keyID)
+	strKeyID := fmt.Sprintf("%x", keyID)
 
 	if _, ok := m.keys[strKeyID]; ok {
 		return nil, fmt.Errorf("key id %s already exists", strKeyID)
@@ -126,6 +128,14 @@ func (m *KeyManager) AddActiveKey(key *rsa.PrivateKey) (webKey *jose.JSONWebKey,
 	wk.KeyID = strKeyID
 	m.keySet.Keys = append(m.keySet.Keys, wk)
 	m.keys[strKeyID] = key
+	m.activeKeyID = strKeyID
+
+	if m.strategy == nil {
+		m.strategy, err = NewRS256JWTStrategy(wk.KeyID, key)
+		if err != nil {
+			return &wk, err
+		}
+	}
 
 	return &wk, nil
 }

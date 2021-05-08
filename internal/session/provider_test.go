@@ -44,8 +44,10 @@ func TestShouldUpdateSession(t *testing.T) {
 	session, err = provider.GetSession(ctx)
 	require.NoError(t, err)
 
-	assert.Equal(t, testUsername, session.Username)
-	assert.Equal(t, authentication.TwoFactor, session.AuthenticationLevel)
+	assert.Equal(t, UserSession{
+		Username:            testUsername,
+		AuthenticationLevel: authentication.TwoFactor,
+	}, session)
 }
 
 func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {

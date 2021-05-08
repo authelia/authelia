@@ -25,3 +25,42 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_BadIssuerKey(t *testing.
 
 	assert.Error(t, err, "abc")
 }
+
+func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *testing.T) {
+	provider, err := NewOpenIDConnectProvider("", &schema.OpenIDConnectConfiguration{
+		IssuerPrivateKey: exampleIssuerPrivateKey,
+		HMACSecret:       "asbdhaaskmdlkamdklasmdlkams",
+		Clients: []schema.OpenIDConnectClientConfiguration{
+			{
+				ID:     "a-client",
+				Secret: "a-client-secret",
+				Policy: "one_factor",
+				RedirectURIs: []string{
+					"https://google.com",
+				},
+			},
+			{
+				ID:          "b-client",
+				Description: "Normal Description",
+				Secret:      "b-client-secret",
+				Policy:      "two_factor",
+				RedirectURIs: []string{
+					"https://google.com",
+				},
+				Scopes: []string{
+					"groups",
+				},
+				GrantTypes: []string{
+					"refresh_token",
+				},
+				ResponseTypes: []string{
+					"token",
+					"code",
+				},
+			},
+		},
+	})
+
+	assert.NotNil(t, provider)
+	assert.NoError(t, err)
+}

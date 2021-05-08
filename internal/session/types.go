@@ -36,6 +36,7 @@ type UserSession struct {
 	KeepMeLoggedIn      bool
 	AuthenticationLevel authentication.Level
 	LastActivity        int64
+	Authenticated       int64
 
 	// The challenge generated in first step of U2F registration (after identity verification) or authentication.
 	// This is used reused in the second phase to check that the challenge has been completed.
@@ -51,7 +52,6 @@ type UserSession struct {
 	// while doing the query actually updating the password.
 	PasswordResetUsername *string
 
-	Created    time.Time
 	RefreshTTL time.Time
 }
 

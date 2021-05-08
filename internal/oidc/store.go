@@ -37,7 +37,7 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (st
 		store.clients[client.ID] = NewClient(client)
 	}
 
-	keyManager, err := NewKeyManager(configuration)
+	keyManager, err := NewKeyManagerWithConfiguration(configuration)
 	if err != nil {
 		return nil, err
 	}

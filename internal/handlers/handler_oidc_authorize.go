@@ -68,7 +68,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 	claims := &jwt.IDTokenClaims{
 		Subject:     userSession.Username,
 		Issuer:      ctx.Configuration.ExternalURL,
-		AuthTime:    userSession.Created,
+		AuthTime:    time.Unix(userSession.Authenticated, 0),
 		RequestedAt: userSession.OIDCWorkflowSession.Created,
 		IssuedAt:    time.Now(),
 		Nonce:       ar.GetRequestForm().Get("nonce"),
