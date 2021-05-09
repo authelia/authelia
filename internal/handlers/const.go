@@ -63,7 +63,6 @@ const (
 	oidcTokenPath      = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.
 	oidcIntrospectPath = "/api/oidc/introspect"
 	oidcRevokePath     = "/api/oidc/revoke"
-	oidcUserinfoPath   = "/api/oidc/userinfo"
 
 	// Note: If you change this const you must also do so in the frontend at web/src/services/Api.ts.
 	oidcConsentPath = "/api/oidc/consent"
