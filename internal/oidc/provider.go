@@ -33,9 +33,12 @@ func NewOpenIDConnectProvider(issuer string, configuration *schema.OpenIDConnect
 	}
 
 	composeConfiguration := &compose.Config{
-		IDTokenIssuer:       issuer,
-		IDTokenLifespan:     configuration.IDTokenLifespan,
-		AccessTokenLifespan: configuration.AccessTokenLifespan,
+		AccessTokenLifespan:        configuration.AccessTokenLifespan,
+		AuthorizeCodeLifespan:      configuration.AuthorizeCodeLifespan,
+		IDTokenIssuer:              issuer,
+		IDTokenLifespan:            configuration.IDTokenLifespan,
+		RefreshTokenLifespan:       configuration.RefreshTokenLifespan,
+		SendDebugMessagesToClients: configuration.EnableClientDebugMessages,
 	}
 
 	key, err := provider.Store.KeyManager.GetActivePrivateKey()

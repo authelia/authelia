@@ -199,6 +199,9 @@ var validKeys = []string{
 	"identity_providers.oidc.clients",
 	"identity_providers.oidc.id_token_lifespan",
 	"identity_providers.oidc.access_token_lifespan",
+	"identity_providers.oidc.refresh_token_lifespan",
+	"identity_providers.oidc.authorize_code_lifespan",
+	"identity_providers.oidc.enable_client_debug_messages",
 }
 
 var replacedKeys = map[string]string{

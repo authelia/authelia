@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -168,23 +169,8 @@ func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
 
 	ValidateIdentityProviders(exampleExternalURL, config, validator)
 
+	assert.Len(t, validator.Warnings(), 0)
 	assert.Len(t, validator.Errors(), 0)
-
-	assert.Equal(t, config.OIDC.Clients[0].ID, config.OIDC.Clients[0].Description)
-	assert.Equal(t, "Normal Description", config.OIDC.Clients[1].Description)
-
-	require.Len(t, config.OIDC.Clients[0].Scopes, 4)
-	assert.Equal(t, "openid", config.OIDC.Clients[0].Scopes[0])
-	assert.Equal(t, "groups", config.OIDC.Clients[0].Scopes[1])
-	assert.Equal(t, "profile", config.OIDC.Clients[0].Scopes[2])
-	assert.Equal(t, "email", config.OIDC.Clients[0].Scopes[3])
-
-	require.Len(t, config.OIDC.Clients[0].GrantTypes, 2)
-	assert.Equal(t, "refresh_token", config.OIDC.Clients[0].GrantTypes[0])
-	assert.Equal(t, "authorization_code", config.OIDC.Clients[0].GrantTypes[1])
-
-	require.Len(t, config.OIDC.Clients[0].ResponseTypes, 1)
-	assert.Equal(t, "code", config.OIDC.Clients[0].ResponseTypes[0])
 
 	require.Len(t, config.OIDC.Clients[1].Scopes, 2)
 	assert.Equal(t, "groups", config.OIDC.Clients[1].Scopes[0])
@@ -196,4 +182,91 @@ func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
 	require.Len(t, config.OIDC.Clients[1].ResponseTypes, 2)
 	assert.Equal(t, "token", config.OIDC.Clients[1].ResponseTypes[0])
 	assert.Equal(t, "code", config.OIDC.Clients[1].ResponseTypes[1])
+}
+
+func TestValidateIdentityProviders_ShouldSetDefaultValues(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: "../../../README.md",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "a-client",
+					Secret: "a-client-secret",
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+				},
+				{
+					ID:          "b-client",
+					Description: "Normal Description",
+					Secret:      "b-client-secret",
+					Policy:      oneFactorPolicy,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					Scopes: []string{
+						"groups",
+					},
+					GrantTypes: []string{
+						"refresh_token",
+					},
+					ResponseTypes: []string{
+						"token",
+						"code",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(exampleExternalURL, config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+
+	// Assert Clients[0] Policy is set to the default, and the default doesn't override Clients[1]'s Policy.
+	assert.Equal(t, config.OIDC.Clients[0].Policy, twoFactorPolicy)
+	assert.Equal(t, config.OIDC.Clients[1].Policy, oneFactorPolicy)
+
+	// Assert Clients[0] Description is set to the Clients[0] ID, and Clients[1]'s Description is not overridden.
+	assert.Equal(t, config.OIDC.Clients[0].ID, config.OIDC.Clients[0].Description)
+	assert.Equal(t, "Normal Description", config.OIDC.Clients[1].Description)
+
+	// Assert Clients[0] ends up configured with the default Scopes.
+	require.Len(t, config.OIDC.Clients[0].Scopes, 4)
+	assert.Equal(t, "openid", config.OIDC.Clients[0].Scopes[0])
+	assert.Equal(t, "groups", config.OIDC.Clients[0].Scopes[1])
+	assert.Equal(t, "profile", config.OIDC.Clients[0].Scopes[2])
+	assert.Equal(t, "email", config.OIDC.Clients[0].Scopes[3])
+
+	// Assert Clients[1] ends up configured with the configured Scopes and the openid Scope.
+	require.Len(t, config.OIDC.Clients[1].Scopes, 2)
+	assert.Equal(t, "groups", config.OIDC.Clients[1].Scopes[0])
+	assert.Equal(t, "openid", config.OIDC.Clients[1].Scopes[1])
+
+	// Assert Clients[0] ends up configured with the default GrantTypes.
+	require.Len(t, config.OIDC.Clients[0].GrantTypes, 2)
+	assert.Equal(t, "refresh_token", config.OIDC.Clients[0].GrantTypes[0])
+	assert.Equal(t, "authorization_code", config.OIDC.Clients[0].GrantTypes[1])
+
+	// Assert Clients[1] ends up configured with only the configured GrantTypes.
+	require.Len(t, config.OIDC.Clients[1].GrantTypes, 1)
+	assert.Equal(t, "refresh_token", config.OIDC.Clients[1].GrantTypes[0])
+
+	// Assert Clients[0] ends up configured with the default ResponseTypes.
+	require.Len(t, config.OIDC.Clients[0].ResponseTypes, 1)
+	assert.Equal(t, "code", config.OIDC.Clients[0].ResponseTypes[0])
+
+	// Assert Clients[1] ends up configured only with the configured ResponseTypes.
+	require.Len(t, config.OIDC.Clients[1].ResponseTypes, 2)
+	assert.Equal(t, "token", config.OIDC.Clients[1].ResponseTypes[0])
+	assert.Equal(t, "code", config.OIDC.Clients[1].ResponseTypes[1])
+
+	assert.Equal(t, false, config.OIDC.EnableClientDebugMessages)
+	assert.Equal(t, time.Hour, config.OIDC.AccessTokenLifespan)
+	assert.Equal(t, time.Hour, config.OIDC.AuthorizeCodeLifespan)
+	assert.Equal(t, time.Hour, config.OIDC.IDTokenLifespan)
+	assert.Equal(t, time.Hour*24*30, config.OIDC.RefreshTokenLifespan)
 }

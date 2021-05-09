@@ -13,8 +13,11 @@ type OpenIDConnectConfiguration struct {
 	HMACSecret       string `mapstructure:"hmac_secret"`
 	IssuerPrivateKey string `mapstructure:"issuer_private_key"`
 
-	IDTokenLifespan     time.Duration `mapstructure:"id_token_lifespan"`
-	AccessTokenLifespan time.Duration `mapstructure:"access_token_lifespan"`
+	AccessTokenLifespan       time.Duration `mapstructure:"access_token_lifespan"`
+	AuthorizeCodeLifespan     time.Duration `mapstructure:"authorize_code_lifespan"`
+	IDTokenLifespan           time.Duration `mapstructure:"id_token_lifespan"`
+	RefreshTokenLifespan      time.Duration `mapstructure:"refresh_token_lifespan"`
+	EnableClientDebugMessages bool          `mapstructure:"enable_client_debug_messages"`
 
 	Clients []OpenIDConnectClientConfiguration `mapstructure:"clients"`
 }
@@ -33,8 +36,10 @@ type OpenIDConnectClientConfiguration struct {
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
 var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
-	IDTokenLifespan:     time.Hour,
-	AccessTokenLifespan: time.Hour,
+	AccessTokenLifespan:   time.Hour,
+	AuthorizeCodeLifespan: time.Hour,
+	IDTokenLifespan:       time.Hour,
+	RefreshTokenLifespan:  time.Hour * 24 * 30,
 }
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.

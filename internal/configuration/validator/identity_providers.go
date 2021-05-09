@@ -24,12 +24,20 @@ func validateOIDC(externalURL string, configuration *schema.OpenIDConnectConfigu
 			validator.Push(fmt.Errorf("OIDC Server issuer private key must be provided"))
 		}
 
+		if configuration.AccessTokenLifespan == time.Duration(0) {
+			configuration.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
+		}
+
+		if configuration.AuthorizeCodeLifespan == time.Duration(0) {
+			configuration.AuthorizeCodeLifespan = schema.DefaultOpenIDConnectConfiguration.AuthorizeCodeLifespan
+		}
+
 		if configuration.IDTokenLifespan == time.Duration(0) {
 			configuration.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
 		}
 
-		if configuration.AccessTokenLifespan == time.Duration(0) {
-			configuration.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
+		if configuration.RefreshTokenLifespan == time.Duration(0) {
+			configuration.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
 		}
 
 		validateOIDCClients(configuration, validator)

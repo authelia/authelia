@@ -580,10 +580,11 @@ notifier:
     #   --- KEY START
     #   --- KEY END
 
-    ## The id_token_lifespan and access_token_lifespan configure the expiration for these token types.
-    ## Both default to 1 hour.
-    # id_token_lifespan: 1h
+    ## The lifespans configure the expiration for these token types.
     # access_token_lifespan: 1h
+    # authorize_code_lifespan: 1h
+    # id_token_lifespan: 1h
+    # refresh_token_lifespan: 720h
 
     ## Clients is a list of known clients and their configuration.
     # clients:

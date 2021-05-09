@@ -161,21 +161,21 @@ func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
 func TestShouldRaiseErrorWithBadExternalURL(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.ExternalURL = "abc"
+	config.ExternalURL = "bad_external_url"
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "Value for \"external_url\" is invalid: url 'abc' is not absolute")
+	assert.EqualError(t, validator.Errors()[0], "Value for \"external_url\" is invalid: url 'bad_external_url' is not absolute")
 }
 
 func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.DefaultRedirectionURL = "abc"
+	config.DefaultRedirectionURL = "bad_default_redirection_url"
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "Value for \"default_redirection_url\" is invalid: url 'abc' is not absolute")
+	assert.EqualError(t, validator.Errors()[0], "Value for \"default_redirection_url\" is invalid: url 'bad_default_redirection_url' is not absolute")
 }
 
 func TestShouldNotOverrideCertificatesDirectoryAndShouldPassWhenBlank(t *testing.T) {
