@@ -129,61 +129,6 @@ func TestShouldNotRaiseErrorWhenOIDCServerConfiguredWithoutExternalURL(t *testin
 	assert.EqualError(t, validator.Errors()[0], "OIDC Provider cannot be configured without an external_url")
 }
 
-func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "../../../README.md",
-			Clients: []schema.OpenIDConnectClientConfiguration{
-				{
-					ID:     "a-client",
-					Secret: "a-client-secret",
-					Policy: oneFactorPolicy,
-					RedirectURIs: []string{
-						"https://google.com",
-					},
-				},
-				{
-					ID:          "b-client",
-					Description: "Normal Description",
-					Secret:      "b-client-secret",
-					Policy:      oneFactorPolicy,
-					RedirectURIs: []string{
-						"https://google.com",
-					},
-					Scopes: []string{
-						"groups",
-					},
-					GrantTypes: []string{
-						"refresh_token",
-					},
-					ResponseTypes: []string{
-						"token",
-						"code",
-					},
-				},
-			},
-		},
-	}
-
-	ValidateIdentityProviders(exampleExternalURL, config, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	assert.Len(t, validator.Errors(), 0)
-
-	require.Len(t, config.OIDC.Clients[1].Scopes, 2)
-	assert.Equal(t, "groups", config.OIDC.Clients[1].Scopes[0])
-	assert.Equal(t, "openid", config.OIDC.Clients[1].Scopes[1])
-
-	require.Len(t, config.OIDC.Clients[1].GrantTypes, 1)
-	assert.Equal(t, "refresh_token", config.OIDC.Clients[1].GrantTypes[0])
-
-	require.Len(t, config.OIDC.Clients[1].ResponseTypes, 2)
-	assert.Equal(t, "token", config.OIDC.Clients[1].ResponseTypes[0])
-	assert.Equal(t, "code", config.OIDC.Clients[1].ResponseTypes[1])
-}
-
 func TestValidateIdentityProviders_ShouldSetDefaultValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
