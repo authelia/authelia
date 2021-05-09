@@ -66,7 +66,7 @@ const (
 		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 )
 
-var validScopes = []string{"openid", "email", "profile", "groups", "offline", "offline_access"}
+var validScopes = []string{"openid", "email", "profile", "groups", "offline_access"}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
 var validOIDCResponseTypes = []string{
 	"code", "code id_token", "id_token", "token id_token", "token", "token id_token code",

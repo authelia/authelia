@@ -49,8 +49,26 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		return
 	}
 
+	extraClaims := map[string]interface{}{}
+
 	for _, scope := range requestedScopes {
 		ar.GrantScope(scope)
+
+		switch scope {
+		case "groups":
+			extraClaims["groups"] = userSession.Groups
+		case "profile":
+			extraClaims["name"] = userSession.DisplayName
+		case "email":
+			if len(userSession.Emails) != 0 {
+				extraClaims["email"] = userSession.Emails[0]
+				if len(userSession.Emails) > 1 {
+					extraClaims["alt_emails"] = userSession.Emails[1:]
+				}
+				// TODO (james-d-elliott): actually verify emails and record that information.
+				extraClaims["email_verified"] = true
+			}
+		}
 	}
 
 	for _, a := range requestedAudience {
@@ -67,19 +85,18 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		return
 	}
 
-	claims := &jwt.IDTokenClaims{
-		Subject:     userSession.Username,
-		Issuer:      ctx.Configuration.ExternalURL,
-		AuthTime:    time.Unix(userSession.Authenticated, 0),
-		RequestedAt: workflowCreated,
-		IssuedAt:    time.Now(),
-		Nonce:       ar.GetRequestForm().Get("nonce"),
-		Audience:    []string{ar.GetClient().GetID()},
-	}
-
 	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &oidc.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
-			Claims: claims,
+			Claims: &jwt.IDTokenClaims{
+				Subject:     userSession.Username,
+				Issuer:      ctx.Configuration.ExternalURL,
+				AuthTime:    time.Unix(userSession.Authenticated, 0),
+				RequestedAt: workflowCreated,
+				IssuedAt:    time.Now(),
+				Nonce:       ar.GetRequestForm().Get("nonce"),
+				Audience:    []string{ar.GetClient().GetID()},
+				Extra:       extraClaims,
+			},
 			Headers: &jwt.Headers{Extra: map[string]interface{}{
 				"kid": ctx.Providers.OpenIDConnect.Store.KeyManager.GetActiveKeyID(),
 			}},

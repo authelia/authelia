@@ -213,19 +213,19 @@ know what you're doing. Potential values are `form_post`, `query`, and `fragment
 This is the default scope for openid. This field is forced on every client by the configuration
 validation that Authelia does.
 
-|JWT Field|JWT Type     |Authelia Attribute|Description                             |
-|:-------:|:-----------:|:----------------:|:--------------------------------------:|
-|sub      |string       |Username          |The username the user used to login with|
-|scope    |string       |scopes            |Granted scopes (space delimited)        |
-|scp      |array[string]|scopes            |Granted scopes                          |
-|iss      |string       |hostname          |The issuer name, determined by URL      |
-|at_hash  |string       |_N/A_             |Access Token Hash                       |
-|auth_time|number       |_N/A_             |Authorize Time                          |
-|aud      |array[string]|_N/A_             |Audience                                |
-|exp      |number       |_N/A_             |Expires                                 |
-|iat      |number       |_N/A_             |Issued At                               |
-|rat      |number       |_N/A_             |Requested At                            |
-|jti      |string(uuid) |_N/A_             |JWT Identifier                          |
+|JWT Field|JWT Type     |Authelia Attribute|Description                                  |
+|:-------:|:-----------:|:----------------:|:-------------------------------------------:|
+|sub      |string       |Username          |The username the user used to login with     |
+|scope    |string       |scopes            |Granted scopes (space delimited)             |
+|scp      |array[string]|scopes            |Granted scopes                               |
+|iss      |string       |hostname          |The issuer name, determined by URL           |
+|at_hash  |string       |_N/A_             |Access Token Hash                            |
+|aud      |array[string]|_N/A_             |Audience                                     |
+|exp      |number       |_N/A_             |Expires                                      |
+|auth_time|number       |_N/A_             |The time the user authenticated with Authelia|
+|rat      |number       |_N/A_             |The time when the token was requested        |
+|iat      |number       |_N/A_             |The time when the token was issued           |
+|jti      |string(uuid) |_N/A_             |JWT Identifier                               |
 
 ### groups
 
