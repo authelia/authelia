@@ -9,8 +9,39 @@ import (
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/session"
 )
+
+func TestNewClient(t *testing.T) {
+	blankConfig := schema.OpenIDConnectClientConfiguration{}
+	blankClient := NewClient(blankConfig)
+	assert.Equal(t, "", blankClient.ID)
+	assert.Equal(t, "", blankClient.Description)
+	assert.Equal(t, "", blankClient.Description)
+	require.Len(t, blankClient.ResponseModes, 1)
+	assert.Equal(t, fosite.ResponseModeDefault, blankClient.ResponseModes[0])
+
+	exampleConfig := schema.OpenIDConnectClientConfiguration{
+		ID:            "myapp",
+		Description:   "My App",
+		Policy:        "two_factor",
+		Secret:        "abcdef",
+		RedirectURIs:  []string{"https://google.com/callback"},
+		Scopes:        schema.DefaultOpenIDConnectClientConfiguration.Scopes,
+		ResponseTypes: schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
+		GrantTypes:    schema.DefaultOpenIDConnectClientConfiguration.GrantTypes,
+		ResponseModes: schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
+	}
+
+	exampleClient := NewClient(exampleConfig)
+	assert.Equal(t, "myapp", exampleClient.ID)
+	require.Len(t, exampleClient.ResponseModes, 4)
+	assert.Equal(t, fosite.ResponseModeDefault, exampleClient.ResponseModes[0])
+	assert.Equal(t, fosite.ResponseModeFormPost, exampleClient.ResponseModes[1])
+	assert.Equal(t, fosite.ResponseModeQuery, exampleClient.ResponseModes[2])
+	assert.Equal(t, fosite.ResponseModeFragment, exampleClient.ResponseModes[3])
+}
 
 func TestIsAuthenticationLevelSufficient(t *testing.T) {
 	c := InternalClient{}

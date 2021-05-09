@@ -11,8 +11,8 @@ import (
 )
 
 // NewClient creates a new InternalClient.
-func NewClient(config schema.OpenIDConnectClientConfiguration) *InternalClient {
-	return &InternalClient{
+func NewClient(config schema.OpenIDConnectClientConfiguration) (client *InternalClient) {
+	client = &InternalClient{
 		ID:            config.ID,
 		Description:   config.Description,
 		Policy:        authorization.PolicyToLevel(config.Policy),
@@ -24,12 +24,15 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) *InternalClient {
 
 		ResponseModes: []fosite.ResponseModeType{
 			fosite.ResponseModeDefault,
-			fosite.ResponseModeFormPost,
-			fosite.ResponseModeQuery,
-			fosite.ResponseModeFragment,
 		},
 		TokenEndpointAuthMethod: "client_secret_post",
 	}
+
+	for _, mode := range config.ResponseModes {
+		client.ResponseModes = append(client.ResponseModes, fosite.ResponseModeType(mode))
+	}
+
+	return client
 }
 
 // InternalClient represents the client internally.

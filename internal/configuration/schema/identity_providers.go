@@ -28,10 +28,12 @@ type OpenIDConnectClientConfiguration struct {
 	Description   string   `mapstructure:"description"`
 	Secret        string   `mapstructure:"secret"`
 	RedirectURIs  []string `mapstructure:"redirect_uris"`
+	RequestURIs   []string `mapstructure:"request_uris"`
 	Policy        string   `mapstructure:"authorization_policy"`
 	Scopes        []string `mapstructure:"scopes"`
 	GrantTypes    []string `mapstructure:"grant_types"`
 	ResponseTypes []string `mapstructure:"response_types"`
+	ResponseModes []string `mapstructure:"response_modes"`
 }
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
@@ -44,8 +46,9 @@ var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
-	Scopes:        []string{"openid", "groups", "profile", "email"},
-	ResponseTypes: []string{"code"},
-	GrantTypes:    []string{"refresh_token", "authorization_code"},
 	Policy:        "two_factor",
+	Scopes:        []string{"openid", "groups", "profile", "email"},
+	GrantTypes:    []string{"refresh_token", "authorization_code"},
+	ResponseTypes: []string{"code"},
+	ResponseModes: []string{"form_post", "query", "fragment"},
 }

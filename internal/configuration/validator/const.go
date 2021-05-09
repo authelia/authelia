@@ -6,17 +6,36 @@ const (
 	errFmtSessionSecretRedisProvider      = "The session secret must be set when using the %s session provider"
 	errFmtSessionRedisPortRange           = "The port must be between 1 and 65535 for the %s session provider"
 	errFmtSessionRedisHostRequired        = "The host must be provided when using the %s session provider"
-	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
-	errFmtReplacedConfigurationKey        = "invalid configuration key '%s' was replaced by '%s'"
+	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s " +
+		"session provider"
+	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
 
-	errOAuthOIDCServerClientRedirectURIFmt               = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
-	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "OIDC Client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
-	errIdentityProvidersOIDCServerClientInvalidPolicyFmt = "OIDC Client with ID '%s' has an invalid policy '%s', should be either 'one_factor' or 'two_factor'"
-	errIdentityProvidersOIDCServerClientInvalidSecFmt    = "OIDC Client with ID '%s' has an empty secret"
+	errFmtOIDCServerClientRedirectURI = "OIDC Client with ID '%s' redirect URI %s has an invalid scheme '%s', " +
+		"should be http or https"
+	errFmtOIDCServerClientRequestURI = "OIDC Client with ID '%s' request URI %s has an invalid scheme '%s', " +
+		"should be http or https"
+	errFmtOIDCServerClientRedirectURICantBeParsed = "OIDC Client with ID '%s' has an invalid redirect URI '%s' " +
+		"could not be parsed: %v"
+	errFmtOIDCServerClientRequestURICantBeParsed = "OIDC Client with ID '%s' has an invalid request URI '%s' " +
+		"could not be parsed: %v"
+	errFmtOIDCServerClientInvalidPolicy = "OIDC Client with ID '%s' has an invalid policy '%s', " +
+		"should be either 'one_factor' or 'two_factor'"
+	errFmtOIDCServerClientInvalidSec   = "OIDC Client with ID '%s' has an empty secret"
+	errFmtOIDCServerClientInvalidScope = "OIDC Client with ID '%s' has an invalid scope '%s', " +
+		"must be one of: '%s'"
+	errFmtOIDCServerClientInvalidGrantType = "OIDC Client with ID '%s' has an invalid grant type '%s', " +
+		"must be one of: '%s'"
+	errFmtOIDCServerClientInvalidResponseMode = "OIDC Client with ID '%s' has an invalid response mode '%s', " +
+		"must be one of: '%s'"
+	errFmtOIDCServerClientInvalidResponseType = "OIDC Client with ID '%s' has an invalid response type '%s', " +
+		"must be one of: '%s'"
 
-	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
-	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
-	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
+	errFileHashing = "config key incorrect: authentication_backend.file.hashing should be " +
+		"authentication_backend.file.password"
+	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be " +
+		"authentication_backend.file.password"
+	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be " +
+		"authentication_backend.file.password"
 
 	bypassPolicy    = "bypass"
 	oneFactorPolicy = "one_factor"
@@ -28,6 +47,8 @@ const (
 
 	schemeLDAP  = "ldap"
 	schemeLDAPS = "ldaps"
+	schemeHTTP  = "http"
+	schemeHTTPS = "https"
 
 	testBadTimer      = "-1"
 	testInvalidPolicy = "invalid"
@@ -40,10 +61,17 @@ const (
 	testTLSCert       = "/tmp/cert.pem"
 	testTLSKey        = "/tmp/key.pem"
 
-	errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for rule #%d domain %s with subjects %s is invalid. It is " +
-		"not supported to configure both policy bypass and subjects. For more information see: " +
+	errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for rule #%d domain %s with subjects %s is invalid. " +
+		"It is not supported to configure both policy bypass and subjects. For more information see: " +
 		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 )
+
+var validScopes = []string{"openid", "email", "profile", "groups", "offline", "offline_access"}
+var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
+var validOIDCResponseTypes = []string{
+	"code", "code id_token", "id_token", "token id_token", "token", "token id_token code",
+}
+var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
 
 var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 

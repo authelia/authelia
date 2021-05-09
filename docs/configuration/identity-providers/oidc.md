@@ -136,6 +136,26 @@ The private key in DER base64 encoded PEM format used to encrypt the [OpenID Con
 
 Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
+### access_token_lifespan
+
+The maximum lifetime of an access token.
+
+### authorize_code_lifespan
+
+The maximum lifetime of an authorize code.
+
+### id_token_lifespan
+
+The maximum lifetime of an ID token.
+
+### refresh_token_lifespan
+
+The maximum lifetime of a refresh token.
+
+### enable_client_debug_messages
+
+Allows additional debug messages to be sent to the clients.
+
 ### clients
 
 A list of clients to configure. The options for each client are described below.
@@ -161,6 +181,10 @@ The authorization policy for this client. Either `one_factor` or `two_factor`.
 A list of valid callback URL's this client will redirect to. All other callbacks will be considered unsafe. The URL's
 are case-sensitive.
 
+#### request_uris
+
+TODO: Document
+
 #### scopes
 
 A list of scopes to allow this client to consume. See [scope definitions](#scope-definitions) for more information.
@@ -168,12 +192,19 @@ A list of scopes to allow this client to consume. See [scope definitions](#scope
 #### grant_types
 
 A list of grant types this client can return. It is recommended that this isn't configured at this time unless you know
-what you're doing. 
+what you're doing. Valid options are: `implicit`, `refresh_token`, `authorization_code`, `password`, 
+`client_credentials`.
 
 #### response_types
 
 A list of response types this client can return. It is recommended that this isn't configured at this time unless you 
-know what you're doing.
+know what you're doing. Valid options are: `code`, `code id_token`, `id_token`, `token id_token`, `token`, 
+`token id_token code`.
+
+#### response_modes
+
+A list of response modes this client can return. It is recommended that this isn't configured at this time unless you
+know what you're doing. Potential values are `form_post`, `query`, and `fragment`.
 
 ## Scope Definitions
 

@@ -603,7 +603,10 @@ notifier:
 
         ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
         # redirect_uris:
-        #   - https://oidc.example.com:8080/oauth2/callback
+        # - https://oidc.example.com:8080/oauth2/callback
+
+        ## Request URI's
+        # request_uris: []
 
         ## Scopes defines the valid scopes this client can request
         # scopes:
@@ -622,4 +625,10 @@ notifier:
         ## It's not recommended to define this unless you know what you're doing.
         # response_types:
         # - code
+
+        ## Response Modes configures which response modes this client supoprts.
+        # response_modes:
+        # - form_post
+        # - query
+        # - fragment
 ...
