@@ -23,7 +23,7 @@ func TestScopeNamesToScopes(t *testing.T) {
 
 	scopes = scopeNamesToScopes(scopeNames)
 	assert.Equal(t, "profile", scopes[0].Name)
-	assert.Equal(t, "Access your username", scopes[0].Description)
+	assert.Equal(t, "Access your display name", scopes[0].Description)
 
 	scopeNames = []string{"email"}
 

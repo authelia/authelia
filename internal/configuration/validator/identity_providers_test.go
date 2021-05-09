@@ -126,7 +126,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' has an invalid scope "+
-		"'bad_scope', must be one of: 'openid', 'email', 'profile', 'groups', 'offline', 'offline_access'")
+		"'bad_scope', must be one of: 'openid', 'email', 'profile', 'groups', 'offline_access'")
 }
 
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T) {
