@@ -128,61 +128,7 @@ func (c InternalClient) GetAudience() fosite.Arguments {
 
 // GetResponseModes returns the valid response modes for this client.
 //
-// Implements part of fosite.OpenIDConnectClient.
+// Implements the fosite.ResponseModeClient.
 func (c InternalClient) GetResponseModes() []fosite.ResponseModeType {
 	return c.ResponseModes
-}
-
-// GetRequestURIs returns the valid request URIs for this client.
-//
-// Implements part of fosite.OpenIDConnectClient.
-func (c InternalClient) GetRequestURIs() []string {
-	return c.RequestURIs
-}
-
-// GetJSONWebKeys returns the jose.JSONWebKeySet for this client.
-//
-// This should only be set for RP's that don't understand the JSONWebKeysURI, and should not be set along side this.
-// Implements part of fosite.OpenIDConnectClient.
-func (c InternalClient) GetJSONWebKeys() *jose.JSONWebKeySet {
-	return c.JSONWebKeys
-}
-
-// GetJSONWebKeysURI returns the URI containing the JWKS for this client.
-//
-// This should generally always be set unless the client does not understand the JWKS URI in which case
-// GetJSONWebKeys should be set instead.
-//
-// Implements part of fosite.OpenIDConnectClient.
-func (c InternalClient) GetJSONWebKeysURI() string {
-	return c.JSONWebKeysURI
-}
-
-// GetRequestObjectSigningAlgorithm returns the object sig alg.
-//
-// Implements part of fosite.OpenIDConnectClient.
-func (c InternalClient) GetRequestObjectSigningAlgorithm() string {
-	return c.RequestObjectSigningAlgorithm
-}
-
-// GetTokenEndpointAuthMethod returns the token endpoint auth method.
-//
-// Implements part of fosite.OpenIDConnectClient.
-func (c InternalClient) GetTokenEndpointAuthMethod() string {
-	if c.TokenEndpointAuthMethod == "" {
-		return "client_secret_basic"
-	}
-
-	return c.TokenEndpointAuthMethod
-}
-
-// GetTokenEndpointAuthSigningAlgorithm returns the token auth sig alg.
-//
-// Implements part of fosite.OpenIDConnectClient.
-func (c InternalClient) GetTokenEndpointAuthSigningAlgorithm() string {
-	if c.TokenEndpointAuthSigningAlgorithm == "" {
-		return "RS256"
-	}
-
-	return c.TokenEndpointAuthSigningAlgorithm
 }

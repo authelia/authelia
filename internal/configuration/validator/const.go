@@ -10,11 +10,7 @@ const (
 
 	errFmtOIDCServerClientRedirectURI = "OIDC Client with ID '%s' redirect URI %s has an invalid scheme '%s', " +
 		"should be http or https"
-	errFmtOIDCServerClientRequestURI = "OIDC Client with ID '%s' request URI %s has an invalid scheme '%s', " +
-		"should be http or https"
 	errFmtOIDCServerClientRedirectURICantBeParsed = "OIDC Client with ID '%s' has an invalid redirect URI '%s' " +
-		"could not be parsed: %v"
-	errFmtOIDCServerClientRequestURICantBeParsed = "OIDC Client with ID '%s' has an invalid request URI '%s' " +
 		"could not be parsed: %v"
 	errFmtOIDCServerClientInvalidPolicy = "OIDC Client with ID '%s' has an invalid policy '%s', " +
 		"should be either 'one_factor' or 'two_factor'"

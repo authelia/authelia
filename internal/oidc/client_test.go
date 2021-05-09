@@ -175,19 +175,6 @@ func TestInternalClient_GetRedirectURIs(t *testing.T) {
 	assert.Equal(t, "https://example.com/oauth2/callback", redirectURIs[0])
 }
 
-func TestInternalClient_GetRequestURIs(t *testing.T) {
-	c := InternalClient{}
-
-	requestURIs := c.GetRequestURIs()
-	require.Len(t, requestURIs, 0)
-
-	c.RequestURIs = []string{"https://example.com/oauth2/callback"}
-
-	requestURIs = c.GetRequestURIs()
-	require.Len(t, requestURIs, 1)
-	assert.Equal(t, "https://example.com/oauth2/callback", requestURIs[0])
-}
-
 func TestInternalClient_GetResponseModes(t *testing.T) {
 	c := InternalClient{}
 
@@ -229,20 +216,4 @@ func TestInternalClient_IsPublic(t *testing.T) {
 
 	c.Public = true
 	assert.True(t, c.IsPublic())
-}
-
-func TestInternalClient_GetTokenEndpointAuthSigningAlgorithm(t *testing.T) {
-	c := InternalClient{}
-	assert.Equal(t, "RS256", c.GetTokenEndpointAuthSigningAlgorithm())
-
-	c.TokenEndpointAuthSigningAlgorithm = "HS256"
-	assert.Equal(t, "HS256", c.GetTokenEndpointAuthSigningAlgorithm())
-}
-
-func TestInternalClient_GetTokenEndpointAuthMethod(t *testing.T) {
-	c := InternalClient{}
-	assert.Equal(t, "client_secret_basic", c.GetTokenEndpointAuthMethod())
-
-	c.TokenEndpointAuthMethod = "token-endpoint-auth-method"
-	assert.Equal(t, "token-endpoint-auth-method", c.GetTokenEndpointAuthMethod())
 }

@@ -17,11 +17,9 @@ require (
 	github.com/go-ldap/ldap/v3 v3.3.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/mock v1.5.0
-	github.com/google/uuid v1.1.2
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/ory/fosite v0.39.0
-	github.com/ory/herodot v0.9.5
 	github.com/otiai10/copy v1.5.1
 	github.com/pquerna/otp v1.3.0
 	github.com/simia-tech/crypt v0.5.0
@@ -40,5 +38,4 @@ require (
 replace (
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.1+incompatible
 	github.com/mattn/go-sqlite3 => github.com/mattn/go-sqlite3 v1.14.7
-	github.com/seatgeek/logrus-gelf-formatter => github.com/zepatrik/logrus-gelf-formatter v0.0.0-20210305135027-b8b3731dba10
 )

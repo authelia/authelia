@@ -28,7 +28,6 @@ type OpenIDConnectClientConfiguration struct {
 	Description   string   `mapstructure:"description"`
 	Secret        string   `mapstructure:"secret"`
 	RedirectURIs  []string `mapstructure:"redirect_uris"`
-	RequestURIs   []string `mapstructure:"request_uris"`
 	Policy        string   `mapstructure:"authorization_policy"`
 	Scopes        []string `mapstructure:"scopes"`
 	GrantTypes    []string `mapstructure:"grant_types"`

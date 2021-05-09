@@ -212,38 +212,6 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 		"'bad_responsemode', must be one of: 'form_post', 'query', 'fragment'")
 }
 
-func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadRequestURIs(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
-			Clients: []schema.OpenIDConnectClientConfiguration{
-				{
-					ID:     "good_id",
-					Secret: "good_secret",
-					Policy: "two_factor",
-					RequestURIs: []string{
-						"tcp://example.com",
-						"apple@%.com",
-					},
-					RedirectURIs: []string{
-						"https://google.com/callback",
-					},
-				},
-			},
-		},
-	}
-
-	ValidateIdentityProviders(config, validator)
-
-	require.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' request URI tcp://example.com "+
-		"has an invalid scheme 'tcp', should be http or https")
-	assert.EqualError(t, validator.Errors()[1], "OIDC Client with ID 'good_id' has an invalid request URI "+
-		"'apple@%.com' could not be parsed: parse \"apple@%.com\": invalid URL escape \"%.c\"")
-}
-
 func TestValidateIdentityProviders_ShouldSetDefaultValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{

@@ -79,7 +79,6 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 		validateOIDCClientResponseTypes(c, configuration, validator)
 		validateOIDCClientResponseModes(c, configuration, validator)
 
-		validateOIDCClientRequestURIs(client, validator)
 		validateOIDCClientRedirectURIs(client, validator)
 	}
 
@@ -152,21 +151,6 @@ func validateOIDCClientResponseModes(c int, configuration *schema.OpenIDConnectC
 			validator.Push(fmt.Errorf(
 				errFmtOIDCServerClientInvalidResponseMode,
 				configuration.Clients[c].ID, responseMode, strings.Join(validOIDCResponseModes, "', '")))
-		}
-	}
-}
-
-func validateOIDCClientRequestURIs(client schema.OpenIDConnectClientConfiguration, validator *schema.StructValidator) {
-	for _, requestURI := range client.RequestURIs {
-		parsedURI, err := url.Parse(requestURI)
-
-		if err != nil {
-			validator.Push(fmt.Errorf(errFmtOIDCServerClientRequestURICantBeParsed, client.ID, requestURI, err))
-			break
-		}
-
-		if parsedURI.Scheme != schemeHTTPS && parsedURI.Scheme != schemeHTTP {
-			validator.Push(fmt.Errorf(errFmtOIDCServerClientRequestURI, client.ID, requestURI, parsedURI.Scheme))
 		}
 	}
 }
