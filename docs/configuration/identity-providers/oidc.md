@@ -239,10 +239,11 @@ This scope includes the groups the authentication backend reports the user is a 
 
 This scope includes the email information the authentication backend reports about the user in the token.
 
-|JWT Field     |JWT Type|Authelia Attribute|Description                                              |
-|:------------:|:------:|:----------------:|:-------------------------------------------------------:|
-|email         |string  |email[0]          |The first email in the list of emails                    |
-|email_verified|bool    |_N/A_             |If the email is verified, assumed true for the time being|
+|JWT Field     |JWT Type     |Authelia Attribute|Description                                              |
+|:------------:|:-----------:|:----------------:|:-------------------------------------------------------:|
+|email         |string       |email[0]          |The first email address in the list of emails            |
+|email_verified|bool         |_N/A_             |If the email is verified, assumed true for the time being|
+|alt_emails    |array[string]|email[1:]         |All email addresses that are not in the email JWT field  |
 
 ### profile
 

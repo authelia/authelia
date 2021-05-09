@@ -41,6 +41,7 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 				"nonce",
 				"email",
 				"email_verified",
+				"alt_emails",
 				"groups",
 				"name",
 			},
