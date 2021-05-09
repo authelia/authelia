@@ -18,7 +18,7 @@ type OpenIDConnectProvider struct {
 }
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
-func NewOpenIDConnectProvider(issuer string, configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConnectProvider, err error) {
+func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConnectProvider, err error) {
 	provider = OpenIDConnectProvider{
 		Fosite: nil,
 	}
@@ -35,7 +35,6 @@ func NewOpenIDConnectProvider(issuer string, configuration *schema.OpenIDConnect
 	composeConfiguration := &compose.Config{
 		AccessTokenLifespan:        configuration.AccessTokenLifespan,
 		AuthorizeCodeLifespan:      configuration.AuthorizeCodeLifespan,
-		IDTokenIssuer:              issuer,
 		IDTokenLifespan:            configuration.IDTokenLifespan,
 		RefreshTokenLifespan:       configuration.RefreshTokenLifespan,
 		SendDebugMessagesToClients: configuration.EnableClientDebugMessages,

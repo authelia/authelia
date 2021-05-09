@@ -11,16 +11,12 @@ import (
 )
 
 // ValidateIdentityProviders validates and update IdentityProviders configuration.
-func ValidateIdentityProviders(externalURL string, configuration *schema.IdentityProvidersConfiguration, validator *schema.StructValidator) {
-	validateOIDC(externalURL, configuration.OIDC, validator)
+func ValidateIdentityProviders(configuration *schema.IdentityProvidersConfiguration, validator *schema.StructValidator) {
+	validateOIDC(configuration.OIDC, validator)
 }
 
-func validateOIDC(externalURL string, configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+func validateOIDC(configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	if configuration != nil {
-		if externalURL == "" {
-			validator.Push(fmt.Errorf("OIDC Provider cannot be configured without an external_url"))
-		}
-
 		if configuration.IssuerPrivateKey == "" {
 			validator.Push(fmt.Errorf("OIDC Server issuer private key must be provided"))
 		}

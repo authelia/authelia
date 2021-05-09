@@ -85,11 +85,19 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		return
 	}
 
+	issuer, err := ctx.ForwardedProtoHost()
+	if err != nil {
+		ctx.Logger.Errorf("Error occurred obtaining issuer: %+v", err)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
+
+		return
+	}
+
 	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &oidc.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
 				Subject:     userSession.Username,
-				Issuer:      ctx.Configuration.ExternalURL,
+				Issuer:      issuer,
 				AuthTime:    time.Unix(userSession.Authenticated, 0),
 				RequestedAt: workflowCreated,
 				IssuedAt:    time.Now(),

@@ -52,13 +52,6 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		}
 	}
 
-	if configuration.ExternalURL != "" {
-		err := utils.IsStringAbsURL(configuration.ExternalURL)
-		if err != nil {
-			validator.Push(fmt.Errorf("Value for \"external_url\" is invalid: %+v", err))
-		}
-	}
-
 	if configuration.Theme == "" {
 		configuration.Theme = "light"
 	}
@@ -99,5 +92,5 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		ValidateNotifier(configuration.Notifier, validator)
 	}
 
-	ValidateIdentityProviders(configuration.ExternalURL, &configuration.IdentityProviders, validator)
+	ValidateIdentityProviders(&configuration.IdentityProviders, validator)
 }

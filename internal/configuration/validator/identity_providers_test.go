@@ -21,7 +21,7 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(exampleExternalURL, config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 2)
 
@@ -38,7 +38,7 @@ func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T)
 		},
 	}
 
-	ValidateIdentityProviders(exampleExternalURL, config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
 
@@ -88,7 +88,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(exampleExternalURL, config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 7)
 
@@ -122,7 +122,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(exampleExternalURL, config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' has an invalid scope "+
@@ -149,7 +149,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 		},
 	}
 
-	ValidateIdentityProviders(exampleExternalURL, config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' has an invalid grant type "+
@@ -177,7 +177,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseTypes(t *testing
 		},
 	}
 
-	ValidateIdentityProviders(exampleExternalURL, config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' has an invalid response type "+
@@ -205,7 +205,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 		},
 	}
 
-	ValidateIdentityProviders(exampleExternalURL, config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' has an invalid response mode "+
@@ -235,40 +235,13 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadRequestURIs(t *testing.T
 		},
 	}
 
-	ValidateIdentityProviders(exampleExternalURL, config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 2)
 	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' request URI tcp://example.com "+
 		"has an invalid scheme 'tcp', should be http or https")
 	assert.EqualError(t, validator.Errors()[1], "OIDC Client with ID 'good_id' has an invalid request URI "+
 		"'apple@%.com' could not be parsed: parse \"apple@%.com\": invalid URL escape \"%.c\"")
-}
-
-func TestShouldNotRaiseErrorWhenOIDCServerConfiguredWithoutExternalURL(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "../../../README.md",
-			Clients: []schema.OpenIDConnectClientConfiguration{
-				{
-					ID:     "a-client",
-					Secret: "a-client-secret",
-					Policy: oneFactorPolicy,
-					RedirectURIs: []string{
-						"https://google.com",
-					},
-				},
-			},
-		},
-	}
-
-	ValidateIdentityProviders("", config, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "OIDC Provider cannot be configured without an external_url")
 }
 
 func TestValidateIdentityProviders_ShouldSetDefaultValues(t *testing.T) {
@@ -312,7 +285,7 @@ func TestValidateIdentityProviders_ShouldSetDefaultValues(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(exampleExternalURL, config, validator)
+	ValidateIdentityProviders(config, validator)
 
 	assert.Len(t, validator.Warnings(), 0)
 	assert.Len(t, validator.Errors(), 0)

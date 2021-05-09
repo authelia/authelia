@@ -158,16 +158,6 @@ func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "Provide a JWT secret using \"jwt_secret\" key")
 }
 
-func TestShouldRaiseErrorWithBadExternalURL(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.ExternalURL = "bad_external_url"
-
-	ValidateConfiguration(&config, validator)
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "Value for \"external_url\" is invalid: url 'bad_external_url' is not absolute")
-}
-
 func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()

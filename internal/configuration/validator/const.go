@@ -1,8 +1,6 @@
 package validator
 
 const (
-	exampleExternalURL = "https://auth.example.com"
-
 	errFmtSessionSecretRedisProvider      = "The session secret must be set when using the %s session provider"
 	errFmtSessionRedisPortRange           = "The port must be between 1 and 65535 for the %s session provider"
 	errFmtSessionRedisHostRequired        = "The host must be provided when using the %s session provider"
@@ -100,7 +98,6 @@ var validKeys = []string{
 	"log_format",
 	"log_file_path",
 	"default_redirection_url",
-	"external_url",
 	"theme",
 	"tls_key",
 	"tls_cert",

@@ -56,11 +56,6 @@ jwt_secret: a_very_important_secret
 ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
 default_redirection_url: https://home.example.com/
 
-## External URL
-##
-## Currently is only used for OpenID Connect to set the issuer. Will likely be used in the future for other purposes.
-# external_url: https://auth.example.com
-
 ##
 ## TOTP Configuration
 ##

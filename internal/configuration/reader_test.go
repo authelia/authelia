@@ -184,8 +184,6 @@ func TestShouldParseConfigFile(t *testing.T) {
 
 	require.Len(t, errors, 0)
 
-	assert.Equal(t, "https://authelia.example.com", config.ExternalURL)
-
 	assert.Equal(t, 9091, config.Port)
 	assert.Equal(t, "debug", config.LogLevel)
 	assert.Equal(t, "https://home.example.com:8080/", config.DefaultRedirectionURL)
