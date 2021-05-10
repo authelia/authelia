@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	fositejwt "github.com/ory/fosite/token/jwt"
@@ -113,12 +114,12 @@ func (m *KeyManager) AddActiveKey(key *rsa.PrivateKey) (webKey *jose.JSONWebKey,
 		Use:       "sig",
 	}
 
-	keyID, err := wk.Thumbprint(crypto.SHA256)
+	keyID, err := wk.Thumbprint(crypto.SHA1)
 	if err != nil {
 		return nil, err
 	}
 
-	strKeyID := fmt.Sprintf("%x", keyID)
+	strKeyID := strings.ToLower(fmt.Sprintf("%x", keyID)[0:6])
 
 	if _, ok := m.keys[strKeyID]; ok {
 		return nil, fmt.Errorf("key id %s already exists", strKeyID)

@@ -3,6 +3,7 @@ package oidc
 import (
 	"crypto"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,10 +22,10 @@ func TestKeyManager_AddActiveKeyData(t *testing.T) {
 	require.NotNil(t, manager.strategy)
 	require.NotNil(t, manager.Strategy())
 
-	thumbprint, err := wk.Thumbprint(crypto.SHA256)
+	thumbprint, err := wk.Thumbprint(crypto.SHA1)
 	assert.NoError(t, err)
 
-	kid := fmt.Sprintf("%x", thumbprint)
+	kid := strings.ToLower(fmt.Sprintf("%x", thumbprint)[0:6])
 	assert.Equal(t, manager.activeKeyID, kid)
 	assert.Equal(t, kid, wk.KeyID)
 	assert.Len(t, manager.keys, 1)
