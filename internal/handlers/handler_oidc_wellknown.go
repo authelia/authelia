@@ -50,6 +50,9 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 		"groups",
 		"name",
 	}
+	configuration.SubjectTypesSupported = []string{
+		"plain",
+	}
 	configuration.ResponseTypesSupported = []string{
 		"code",
 		"token",
