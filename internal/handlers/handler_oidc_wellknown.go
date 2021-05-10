@@ -51,10 +51,8 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 			"groups",
 			"name",
 		},
-		ResponseModesSupported: []string{
-			"form_post",
-			"query",
-			"fragment",
+		SubjectTypesSupported: []string{
+			"public",
 		},
 		ResponseTypesSupported: []string{
 			"code",
@@ -65,6 +63,11 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 			"token id_token",
 			"code token id_token",
 			"none",
+		},
+		ResponseModesSupported: []string{
+			"form_post",
+			"query",
+			"fragment",
 		},
 	}
 
