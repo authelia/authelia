@@ -21,20 +21,19 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 	}
 
 	wellKnown := oidc.WellKnownConfiguration{
-		Issuer:             issuer,
-		AuthURL:            fmt.Sprintf("%s%s", issuer, oidcAuthorizePath),
-		TokenURL:           fmt.Sprintf("%s%s", issuer, oidcTokenPath),
-		RevocationEndpoint: fmt.Sprintf("%s%s", issuer, oidcRevokePath),
-		JWKSURL:            fmt.Sprintf("%s%s", issuer, oidcJWKsPath),
-		Algorithms:         []string{"RS256"},
+		Issuer:                       issuer,
+		AuthURL:                      fmt.Sprintf("%s%s", issuer, oidcAuthorizePath),
+		TokenURL:                     fmt.Sprintf("%s%s", issuer, oidcTokenPath),
+		RevocationEndpoint:           fmt.Sprintf("%s%s", issuer, oidcRevokePath),
+		JWKSURL:                      fmt.Sprintf("%s%s", issuer, oidcJWKsPath),
+		Algorithms:                   []string{"RS256"},
+		RequestURIParameterSupported: false,
 		ScopesSupported: []string{
 			"openid",
+			"offline_access",
 			"profile",
 			"groups",
 			"email",
-			// Determine if this is really mandatory knowing the RP can request for a refresh token through the authorize
-			// endpoint anyway.
-			"offline_access",
 		},
 		ClaimsSupported: []string{
 			"aud",

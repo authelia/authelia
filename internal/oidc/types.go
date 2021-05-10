@@ -36,6 +36,7 @@ type WellKnownConfiguration struct {
 	ResponseModesSupported             []string `json:"response_modes_supported"`
 	ScopesSupported                    []string `json:"scopes_supported"`
 	ClaimsSupported                    []string `json:"claims_supported"`
+	RequestURIParameterSupported       bool     `json:"request_uri_parameter_supported"`
 	BackChannelLogoutSupported         bool     `json:"backchannel_logout_supported"`
 	BackChannelLogoutSessionSupported  bool     `json:"backchannel_logout_session_supported"`
 	FrontChannelLogoutSupported        bool     `json:"frontchannel_logout_supported"`

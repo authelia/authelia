@@ -70,7 +70,7 @@ func TestIsAuthenticationLevelSufficient(t *testing.T) {
 func TestInternalClient_GetConsentRequestBody(t *testing.T) {
 	c := InternalClient{}
 
-	consentRequestBody := c.GetConsentRequestBody(nil)
+	consentRequestBody := c.GetConsentResponseBody(nil)
 	assert.Equal(t, "", consentRequestBody.ClientID)
 	assert.Equal(t, "", consentRequestBody.ClientDescription)
 	assert.Equal(t, []Scope(nil), consentRequestBody.Scopes)
@@ -91,7 +91,7 @@ func TestInternalClient_GetConsentRequestBody(t *testing.T) {
 		{"https://example.com", "https://example.com"},
 	}
 
-	consentRequestBody = c.GetConsentRequestBody(workflow)
+	consentRequestBody = c.GetConsentResponseBody(workflow)
 	assert.Equal(t, "myclient", consentRequestBody.ClientID)
 	assert.Equal(t, "My Client", consentRequestBody.ClientDescription)
 	assert.Equal(t, expectedScopes, consentRequestBody.Scopes)

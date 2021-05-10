@@ -68,8 +68,8 @@ func (c InternalClient) GetID() string {
 	return c.ID
 }
 
-// GetConsentRequestBody returns the proper consent request body for this session.OIDCWorkflowSession.
-func (c InternalClient) GetConsentRequestBody(session *session.OIDCWorkflowSession) ConsentGetResponseBody {
+// GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
+func (c InternalClient) GetConsentResponseBody(session *session.OIDCWorkflowSession) ConsentGetResponseBody {
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Description,

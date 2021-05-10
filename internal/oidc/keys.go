@@ -15,6 +15,15 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+// KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
+// It additionally allows us to add keys for the purpose of key rotation in the future.
+type KeyManager struct {
+	activeKeyID string
+	keys        map[string]*rsa.PrivateKey
+	keySet      *jose.JSONWebKeySet
+	strategy    *RS256JWTStrategy
+}
+
 // NewKeyManagerWithConfiguration when provided a schema.OpenIDConnectConfiguration creates a new KeyManager and adds an
 // initial key to the manager.
 func NewKeyManagerWithConfiguration(configuration *schema.OpenIDConnectConfiguration) (manager *KeyManager, err error) {
@@ -35,15 +44,6 @@ func NewKeyManager() (manager *KeyManager) {
 	manager.keySet = new(jose.JSONWebKeySet)
 
 	return manager
-}
-
-// KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
-// It additionally allows us to add keys for the purpose of key rotation in the future.
-type KeyManager struct {
-	activeKeyID string
-	keys        map[string]*rsa.PrivateKey
-	keySet      *jose.JSONWebKeySet
-	strategy    *RS256JWTStrategy
 }
 
 // Strategy returns the RS256JWTStrategy.

@@ -34,7 +34,7 @@ func oidcConsent(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err := ctx.SetJSONBody(client.GetConsentRequestBody(userSession.OIDCWorkflowSession)); err != nil {
+	if err := ctx.SetJSONBody(client.GetConsentResponseBody(userSession.OIDCWorkflowSession)); err != nil {
 		ctx.Error(fmt.Errorf("Unable to set JSON body: %v", err), "Operation failed")
 	}
 }

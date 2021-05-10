@@ -618,7 +618,7 @@ notifier:
         # response_types:
         # - code
 
-        ## Response Modes configures which response modes this client supoprts.
+        ## Response Modes configures which response modes this client supports.
         # response_modes:
         # - form_post
         # - query
