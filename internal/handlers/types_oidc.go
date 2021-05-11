@@ -52,6 +52,7 @@ type WellKnownConfigurationJSON struct {
 	RevocationEndpoint                 string   `json:"revocation_endpoint"`
 	JWKSURL                            string   `json:"jwks_uri"`
 	Algorithms                         []string `json:"id_token_signing_alg_values_supported"`
+	SubjectTypesSupported              []string `json:"subject_types_supported"`
 	ResponseTypesSupported             []string `json:"response_types_supported"`
 	ScopesSupported                    []string `json:"scopes_supported"`
 	ClaimsSupported                    []string `json:"claims_supported"`
