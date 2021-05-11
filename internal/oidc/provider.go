@@ -10,9 +10,8 @@ import (
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
-	Fosite    fosite.OAuth2Provider
-	Store     *OpenIDConnectStore
-	WellKnown *WellKnownConfiguration
+	Fosite fosite.OAuth2Provider
+	Store  *OpenIDConnectStore
 }
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
