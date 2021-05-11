@@ -174,9 +174,13 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		userSession.Groups = userDetails.Groups
 		userSession.Emails = userDetails.Emails
 		userSession.AuthenticationLevel = authentication.OneFactor
-		userSession.Authenticated = time.Now().Unix()
 		userSession.LastActivity = time.Now().Unix()
 		userSession.KeepMeLoggedIn = keepMeLoggedIn
+
+		if userSession.FirstFactorAuthn == 0 {
+			userSession.FirstFactorAuthn = time.Now().Unix()
+		}
+
 		refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend)
 
 		if refresh {
@@ -184,7 +188,6 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		}
 
 		err = ctx.SaveSession(userSession)
-
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to save session of user %s", bodyJSON.Username), authenticationFailedMessage)
 			return
@@ -193,7 +196,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		successful = true
 
 		if userSession.OIDCWorkflowSession != nil {
-			HandleOIDCWorkflowResponse(ctx)
+			handleOIDCWorkflowResponse(ctx)
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/duo"
@@ -66,15 +67,18 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		}
 
 		userSession.AuthenticationLevel = authentication.TwoFactor
-		err = ctx.SaveSession(userSession)
+		if userSession.SecondFactorAuthn == 0 {
+			userSession.SecondFactorAuthn = time.Now().Unix()
+		}
 
+		err = ctx.SaveSession(userSession)
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update authentication level with Duo: %s", err), mfaValidationFailedMessage)
 			return
 		}
 
 		if userSession.OIDCWorkflowSession != nil {
-			HandleOIDCWorkflowResponse(ctx)
+			handleOIDCWorkflowResponse(ctx)
 		} else {
 			Handle2FAResponse(ctx, requestBody.TargetURL)
 		}

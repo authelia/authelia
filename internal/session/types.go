@@ -36,7 +36,8 @@ type UserSession struct {
 	KeepMeLoggedIn      bool
 	AuthenticationLevel authentication.Level
 	LastActivity        int64
-	Authenticated       int64
+	FirstFactorAuthn    int64
+	SecondFactorAuthn   int64
 
 	// The challenge generated in first step of U2F registration (after identity verification) or authentication.
 	// This is used reused in the second phase to check that the challenge has been completed.
@@ -53,6 +54,26 @@ type UserSession struct {
 	PasswordResetUsername *string
 
 	RefreshTTL time.Time
+}
+
+// AuthenticatedAt returns the unix timestamp this session authenticated successfully at the given level.
+func (s UserSession) AuthenticatedAt(level authorization.Level) (authenticatedAt time.Time) {
+	switch level {
+	case authorization.OneFactor:
+		return time.Unix(s.FirstFactorAuthn, 0)
+	case authorization.TwoFactor:
+		return time.Unix(s.SecondFactorAuthn, 0)
+	}
+
+	if s.SecondFactorAuthn != 0 {
+		return time.Unix(s.SecondFactorAuthn, 0)
+	}
+
+	if s.FirstFactorAuthn != 0 {
+		return time.Unix(s.FirstFactorAuthn, 0)
+	}
+
+	return time.Now()
 }
 
 // Identity identity of the user who is being verified.

@@ -98,7 +98,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 			Claims: &jwt.IDTokenClaims{
 				Subject:     userSession.Username,
 				Issuer:      issuer,
-				AuthTime:    time.Unix(userSession.Authenticated, 0),
+				AuthTime:    userSession.AuthenticatedAt(client.Policy),
 				RequestedAt: workflowCreated,
 				IssuedAt:    time.Now(),
 				Nonce:       ar.GetRequestForm().Get("nonce"),
