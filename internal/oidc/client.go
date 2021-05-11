@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"github.com/ory/fosite"
-	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
@@ -25,7 +24,6 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Internal
 		ResponseModes: []fosite.ResponseModeType{
 			fosite.ResponseModeDefault,
 		},
-		TokenEndpointAuthMethod: "client_secret_post",
 	}
 
 	for _, mode := range config.ResponseModes {
@@ -49,13 +47,7 @@ type InternalClient struct {
 	Policy        authorization.Level `json:"-"`
 
 	// These are the OpenIDConnect Client props.
-	RequestURIs                       []string                  `json:"request_uris"`
-	ResponseModes                     []fosite.ResponseModeType `json:"response_modes"`
-	JSONWebKeys                       *jose.JSONWebKeySet       `json:"jwks,omitempty"`
-	JSONWebKeysURI                    string                    `json:"jwks_uri,omitempty"`
-	RequestObjectSigningAlgorithm     string                    `json:"request_object_signing_alg,omitempty"`
-	TokenEndpointAuthSigningAlgorithm string                    `json:"token_endpoint_auth_signing_alg,omitempty"`
-	TokenEndpointAuthMethod           string                    `json:"token_endpoint_auth_method,omitempty"`
+	ResponseModes []fosite.ResponseModeType `json:"response_modes"`
 }
 
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
