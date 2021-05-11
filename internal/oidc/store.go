@@ -85,6 +85,11 @@ func (s OpenIDConnectStore) IsValidClientID(id string) (valid bool) {
 	return err == nil
 }
 
+// GetClient decorates fosite's storage.MemoryStore GetClient method.
+func (s *OpenIDConnectStore) GetClient(_ context.Context, id string) (fosite.Client, error) {
+	return s.GetInternalClient(id)
+}
+
 // CreateOpenIDConnectSession decorates fosite's storage.MemoryStore CreateOpenIDConnectSession method.
 func (s *OpenIDConnectStore) CreateOpenIDConnectSession(ctx context.Context, authorizeCode string, requester fosite.Requester) error {
 	return s.memory.CreateOpenIDConnectSession(ctx, authorizeCode, requester)
@@ -98,11 +103,6 @@ func (s *OpenIDConnectStore) GetOpenIDConnectSession(ctx context.Context, author
 // DeleteOpenIDConnectSession decorates fosite's storage.MemoryStore DeleteOpenIDConnectSession method.
 func (s *OpenIDConnectStore) DeleteOpenIDConnectSession(ctx context.Context, authorizeCode string) error {
 	return s.memory.DeleteOpenIDConnectSession(ctx, authorizeCode)
-}
-
-// GetClient decorates fosite's storage.MemoryStore GetClient method.
-func (s *OpenIDConnectStore) GetClient(_ context.Context, id string) (fosite.Client, error) {
-	return s.GetInternalClient(id)
 }
 
 // ClientAssertionJWTValid decorates fosite's storage.MemoryStore ClientAssertionJWTValid method.

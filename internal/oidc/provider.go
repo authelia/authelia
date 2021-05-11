@@ -3,6 +3,7 @@ package oidc
 import (
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
+	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
@@ -10,9 +11,9 @@ import (
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
-	Fosite    fosite.OAuth2Provider
-	Store     *OpenIDConnectStore
-	WellKnown *WellKnownConfiguration
+	Fosite  fosite.OAuth2Provider
+	Store   *OpenIDConnectStore
+	Herodot *herodot.JSONWriter
 }
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
@@ -56,6 +57,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		JWTStrategy: provider.Store.KeyManager.Strategy(),
 	}
 
+	provider.Herodot = herodot.NewJSONWriter(nil)
 	provider.Fosite = compose.Compose(
 		composeConfiguration,
 		provider.Store,

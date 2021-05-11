@@ -26,22 +26,27 @@ type Audience struct {
 //
 // See https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
 type WellKnownConfiguration struct {
-	Issuer                             string   `json:"issuer"`
-	AuthURL                            string   `json:"authorization_endpoint"`
-	TokenURL                           string   `json:"token_endpoint"`
-	RevocationEndpoint                 string   `json:"revocation_endpoint"`
-	JWKSURL                            string   `json:"jwks_uri"`
-	Algorithms                         []string `json:"id_token_signing_alg_values_supported"`
-	SubjectTypesSupported              []string `json:"subject_types_supported"`
-	ResponseTypesSupported             []string `json:"response_types_supported"`
-	ResponseModesSupported             []string `json:"response_modes_supported"`
-	ScopesSupported                    []string `json:"scopes_supported"`
-	ClaimsSupported                    []string `json:"claims_supported"`
-	RequestURIParameterSupported       bool     `json:"request_uri_parameter_supported"`
-	BackChannelLogoutSupported         bool     `json:"backchannel_logout_supported"`
-	BackChannelLogoutSessionSupported  bool     `json:"backchannel_logout_session_supported"`
-	FrontChannelLogoutSupported        bool     `json:"frontchannel_logout_supported"`
-	FrontChannelLogoutSessionSupported bool     `json:"frontchannel_logout_session_supported"`
+	Issuer             string   `json:"issuer"`
+	AuthURL            string   `json:"authorization_endpoint"`
+	TokenURL           string   `json:"token_endpoint"`
+	RevocationURL      string   `json:"revocation_endpoint"`
+	UserinfoURL        string   `json:"userinfo_endpoint"`
+	JWKSURL            string   `json:"jwks_uri"`
+	IDTokenAlgorithms  []string `json:"id_token_signing_alg_values_supported"`
+	UserinfoAlgorithms []string `json:"userinfo_signing_alg_values_supported"`
+	GrantTypes         []string `json:"grant_types_supported"`
+	SubjectTypes       []string `json:"subject_types_supported"`
+	ResponseTypes      []string `json:"response_types_supported"`
+	ResponseModes      []string `json:"response_modes_supported"`
+	Scopes             []string `json:"scopes_supported"`
+	Claims             []string `json:"claims_supported"`
+	//RequireRequestURIRegistration bool     `json:"require_request_uri_registration"`
+	RequestURIParameter       bool `json:"request_uri_parameter_supported"`
+	RequestParameter          bool `json:"request_parameter_supported"`
+	BackChannelLogout         bool `json:"backchannel_logout_supported"`
+	BackChannelLogoutSession  bool `json:"backchannel_logout_session_supported"`
+	FrontChannelLogout        bool `json:"frontchannel_logout_supported"`
+	FrontChannelLogoutSession bool `json:"frontchannel_logout_session_supported"`
 }
 
 // OpenIDSession holds OIDC Session information.

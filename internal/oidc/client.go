@@ -12,14 +12,15 @@ import (
 // NewClient creates a new InternalClient.
 func NewClient(config schema.OpenIDConnectClientConfiguration) (client *InternalClient) {
 	client = &InternalClient{
-		ID:            config.ID,
-		Description:   config.Description,
-		Policy:        authorization.PolicyToLevel(config.Policy),
-		Secret:        []byte(config.Secret),
-		RedirectURIs:  config.RedirectURIs,
-		GrantTypes:    config.GrantTypes,
-		ResponseTypes: config.ResponseTypes,
-		Scopes:        config.Scopes,
+		ID:                config.ID,
+		Description:       config.Description,
+		Policy:            authorization.PolicyToLevel(config.Policy),
+		Secret:            []byte(config.Secret),
+		RedirectURIs:      config.RedirectURIs,
+		GrantTypes:        config.GrantTypes,
+		ResponseTypes:     config.ResponseTypes,
+		Scopes:            config.Scopes,
+		UserinfoAlgorithm: config.UserinfoAlgorithm,
 
 		ResponseModes: []fosite.ResponseModeType{
 			fosite.ResponseModeDefault,
@@ -48,6 +49,8 @@ type InternalClient struct {
 
 	// These are the OpenIDConnect Client props.
 	ResponseModes []fosite.ResponseModeType `json:"response_modes"`
+
+	UserinfoAlgorithm string `json:"userinfo_signed_response_alg,omitempty"`
 }
 
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.

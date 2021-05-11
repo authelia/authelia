@@ -18,6 +18,7 @@ func RegisterOIDC(router *router.Router, middleware middlewares.RequestHandlerBr
 	router.GET(oidcJWKsPath, middleware(oidcJWKs))
 
 	router.GET(oidcAuthorizePath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcAuthorize)))
+	router.POST(oidcAuthorizePath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcAuthorize)))
 
 	// TODO: Add OPTIONS handler.
 	router.POST(oidcTokenPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcToken)))
@@ -26,4 +27,7 @@ func RegisterOIDC(router *router.Router, middleware middlewares.RequestHandlerBr
 
 	// TODO: Add OPTIONS handler.
 	router.POST(oidcRevokePath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcRevoke)))
+
+	router.GET(oidcUserinfoPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcUserinfo)))
+	router.POST(oidcUserinfoPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcUserinfo)))
 }
