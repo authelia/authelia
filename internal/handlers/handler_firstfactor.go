@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/session"
@@ -168,22 +167,9 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		ctx.Logger.Tracef("Details for user %s => groups: %s, emails %s", bodyJSON.Username, userDetails.Groups, userDetails.Emails)
 
-		// And set those information in the new session.
-		userSession.Username = userDetails.Username
-		userSession.DisplayName = userDetails.DisplayName
-		userSession.Groups = userDetails.Groups
-		userSession.Emails = userDetails.Emails
-		userSession.AuthenticationLevel = authentication.OneFactor
-		userSession.LastActivity = time.Now().Unix()
-		userSession.KeepMeLoggedIn = keepMeLoggedIn
+		userSession.SetOneFactor(ctx.Clock.Now(), userDetails, keepMeLoggedIn)
 
-		if userSession.FirstFactorAuthn == 0 {
-			userSession.FirstFactorAuthn = time.Now().Unix()
-		}
-
-		refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend)
-
-		if refresh {
+		if refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend); refresh {
 			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
 		}
 

@@ -56,26 +56,6 @@ type UserSession struct {
 	RefreshTTL time.Time
 }
 
-// AuthenticatedAt returns the unix timestamp this session authenticated successfully at the given level.
-func (s UserSession) AuthenticatedAt(level authorization.Level) (authenticatedAt time.Time) {
-	switch level {
-	case authorization.OneFactor:
-		return time.Unix(s.FirstFactorAuthn, 0)
-	case authorization.TwoFactor:
-		return time.Unix(s.SecondFactorAuthn, 0)
-	}
-
-	if s.SecondFactorAuthn != 0 {
-		return time.Unix(s.SecondFactorAuthn, 0)
-	}
-
-	if s.FirstFactorAuthn != 0 {
-		return time.Unix(s.FirstFactorAuthn, 0)
-	}
-
-	return time.Now()
-}
-
 // Identity identity of the user who is being verified.
 type Identity struct {
 	Username string

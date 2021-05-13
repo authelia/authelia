@@ -2,9 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
@@ -45,10 +43,7 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 			return
 		}
 
-		userSession.AuthenticationLevel = authentication.TwoFactor
-		if userSession.SecondFactorAuthn == 0 {
-			userSession.SecondFactorAuthn = time.Now().Unix()
-		}
+		userSession.SetTwoFactor(ctx.Clock.Now())
 
 		err = ctx.SaveSession(userSession)
 		if err != nil {

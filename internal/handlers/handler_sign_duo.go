@@ -3,9 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/url"
-	"time"
 
-	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/duo"
 	"github.com/authelia/authelia/internal/middlewares"
 )
@@ -66,10 +64,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 			return
 		}
 
-		userSession.AuthenticationLevel = authentication.TwoFactor
-		if userSession.SecondFactorAuthn == 0 {
-			userSession.SecondFactorAuthn = time.Now().Unix()
-		}
+		userSession.SetTwoFactor(ctx.Clock.Now())
 
 		err = ctx.SaveSession(userSession)
 		if err != nil {
