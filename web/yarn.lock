@@ -5571,10 +5571,10 @@ eslint-config-react-app@^6.0.0:
   dependencies:
     confusing-browser-globals "^1.0.10"
 
-eslint-formatter-rdjson@1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/eslint-formatter-rdjson/-/eslint-formatter-rdjson-1.0.4.tgz#9e156a7852907c2a047f545e78dadd9fc6de7e3c"
-  integrity sha512-6ylD4PpXmWc/vzfpapz2MLNchNp+BsWvGOBIehne4fxqvZJy/WWsHFXU7pn+Qx2ZekZRNI4hfBUISyaxpjxUOg==
+eslint-formatter-rdjson@1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/eslint-formatter-rdjson/-/eslint-formatter-rdjson-1.0.5.tgz#d8c384c3d13c497f8596543e6285dec1087fd1ba"
+  integrity sha512-z275VEQgzmAF04yTRvvl1DbEMEczVb9pGUoj31zzydBTn/gYcKLUIxLEXRzpWqh4llOYMuICICAHFbdF/yA28A==
 
 eslint-import-resolver-node@^0.3.4:
   version "0.3.4"
