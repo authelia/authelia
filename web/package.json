@@ -72,6 +72,6 @@
     ]
   },
   "devDependencies": {
-    "eslint-formatter-rdjson": "1.0.4"
+    "eslint-formatter-rdjson": "1.0.5"
   }
 }
