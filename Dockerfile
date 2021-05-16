@@ -1,3 +1,14 @@
+# ========================================
+# ===== Build image for the frontend =====
+# ========================================
+FROM node:16-alpine AS builder-frontend
+
+WORKDIR /node/src/app
+COPY web .
+
+# Install the dependencies and build
+RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn coverage
+
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
@@ -20,7 +31,8 @@ COPY internal internal
 
 # Prepare static files to be embedded in Go binary
 RUN rm -rf internal/server/public_html
-COPY public_html internal/server/public_html
+COPY --from=builder-frontend /node/src/app/build internal/server/public_html
+COPY api internal/server/public_html/api
 
 # Set the build version and time
 RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
