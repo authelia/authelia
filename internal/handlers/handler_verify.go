@@ -428,7 +428,9 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		targetURL, err := ctx.GetOriginalURL()
 
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to parse target URL: %s", err), operationFailedMessage)
+			ctx.Logger.Error(fmt.Errorf("Unable to parse target URL: %s", err))
+			ctx.ReplyUnauthorized()
+
 			return
 		}
 

@@ -14,11 +14,11 @@
     "@types/classnames": "2.3.0",
     "@types/enzyme": "3.10.8",
     "@types/jest": "26.0.23",
-    "@types/node": "15.0.2",
+    "@types/node": "15.3.1",
     "@types/qrcode.react": "1.0.1",
     "@types/query-string": "6.3.0",
-    "@types/react": "17.0.5",
-    "@types/react-dom": "17.0.4",
+    "@types/react": "17.0.6",
+    "@types/react-dom": "17.0.5",
     "@types/react-ga": "2.3.0",
     "@types/react-router-dom": "5.1.7",
     "axios": "0.21.1",
@@ -72,6 +72,6 @@
     ]
   },
   "devDependencies": {
-    "eslint-formatter-rdjson": "1.0.4"
+    "eslint-formatter-rdjson": "1.0.5"
   }
 }
