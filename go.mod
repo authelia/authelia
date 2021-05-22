@@ -18,7 +18,7 @@ require (
 	github.com/golang/mock v1.5.0
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
-	github.com/ory/fosite v0.39.0
+	github.com/ory/fosite v0.40.0
 	github.com/otiai10/copy v1.6.0
 	github.com/pquerna/otp v1.3.0
 	github.com/simia-tech/crypt v0.5.0
