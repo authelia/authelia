@@ -1,4 +1,5 @@
 FROM haproxy:2.4.0-alpine
+USER root
 
 RUN \
 apk add --no-cache \
@@ -7,3 +8,5 @@ apk add --no-cache \
   openssl && \
 openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=AU/ST=Victoria/L=Melbourne/O=Authelia/CN=*.example.com" -keyout haproxy.key -out haproxy.crt && \
 cat haproxy.key haproxy.crt > /usr/local/etc/haproxy/haproxy.pem
+
+USER haproxy
