@@ -11,6 +11,7 @@ type Configuration struct {
 	LogLevel              string `mapstructure:"log_level"`
 	LogFormat             string `mapstructure:"log_format"`
 	LogFilePath           string `mapstructure:"log_file_path"`
+	LogKeepStdout         bool   `mapstructure:"log_keep_stdout"`
 	JWTSecret             string `mapstructure:"jwt_secret"`
 	DefaultRedirectionURL string `mapstructure:"default_redirection_url"`
 

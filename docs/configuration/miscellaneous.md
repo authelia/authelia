@@ -158,6 +158,23 @@ they rotate and/or truncate the logs over time to prevent significant long-term 
 log_file_path: /config/authelia.log
 ```
 
+### log_keep_stdout
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple } 
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Overrides the behaviour to redirect logging only to the `log_file_path`. If set to `true` logs will be written to both
+standard output, and the defined logging location.
+
+```yaml
+log_keep_stdout: true
+```
+
 ## jwt_secret
 <div markdown="1">
 type: string
