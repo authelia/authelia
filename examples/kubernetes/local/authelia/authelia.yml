@@ -33,9 +33,11 @@ spec:
       labels:
         app: authelia
     spec:
+      serviceAccountName: authelia
       containers:
         - name: authelia
-          image: authelia/authelia
+          image: localhost/authelia/authelia:dev
+          imagePullPolicy: Never
           ports:
             - name: web
               containerPort: 9091
@@ -161,3 +163,36 @@ data:
 
     kubernetes:
       trust_access_control_rules: true
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: authelia
+  namespace: auth
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: authelia
+rules:
+  - apiGroups:
+      - authelia.com
+    resources:
+      - accesscontrolrules
+    verbs:
+      - get
+      - list
+      - watch
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: authelia
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: authelia
+subjects:
+  - kind: ServiceAccount
+    name: authelia
+    namespace: auth
