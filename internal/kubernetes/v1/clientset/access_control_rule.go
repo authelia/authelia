@@ -26,6 +26,12 @@ type accessControlRuleClient struct {
 	namespace string
 }
 
+type Informer interface {
+	Start()
+	WaitForSync() error
+	Stop()
+}
+
 type AccessControlRuleInformer struct {
 	stopSignal chan struct{}
 	Store      cache.Store

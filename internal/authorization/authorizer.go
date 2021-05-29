@@ -28,6 +28,10 @@ func NewAuthorizer(configuration schema.AccessControlConfiguration) *Authorizer 
 	}
 }
 
+func (p *Authorizer) SetAccessControlRules(configuration schema.AccessControlConfiguration) {
+	p.rules = NewAccessControlRules(configuration)
+}
+
 // IsSecondFactorEnabled return true if at least one policy is set to second factor.
 func (p *Authorizer) IsSecondFactorEnabled() bool {
 	if p.defaultPolicy == TwoFactor {
