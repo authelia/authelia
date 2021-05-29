@@ -194,6 +194,12 @@ var validKeys = []string{
 
 	// Identity Provider Keys.
 	"identity_providers.oidc.clients",
+
+	// Kubernetes Keys.
+	"kubernetes.trust_access_control_rules",
+	"kubernetes.master_url",
+	"kubernetes.config_file_path",
+	"kubernetes.namespace",
 }
 
 var replacedKeys = map[string]string{

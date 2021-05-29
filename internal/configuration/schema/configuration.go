@@ -24,4 +24,5 @@ type Configuration struct {
 	Storage               StorageConfiguration               `mapstructure:"storage"`
 	Notifier              *NotifierConfiguration             `mapstructure:"notifier"`
 	Server                ServerConfiguration                `mapstructure:"server"`
+	Kubernetes            KubernetesConfiguration            `mapstructure:"kubernetes"`
 }
