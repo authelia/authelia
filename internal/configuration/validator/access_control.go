@@ -69,13 +69,17 @@ func ValidateAccessControl(configuration schema.AccessControlConfiguration, vali
 // ValidateRules validates an ACL Rule configuration.
 func ValidateRules(configuration schema.AccessControlConfiguration, validator *schema.StructValidator) {
 	if configuration.Rules == nil || len(configuration.Rules) == 0 {
-		if configuration.DefaultPolicy != oneFactorPolicy && configuration.DefaultPolicy != twoFactorPolicy {
-			validator.Push(fmt.Errorf("Default Policy [%s] is invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'", configuration.DefaultPolicy))
+		// TODO: Disabled as it will block the ability to handle rules run-time
+		// if configuration.DefaultPolicy != oneFactorPolicy && configuration.DefaultPolicy != twoFactorPolicy {
+		// 	validator.Push(fmt.Errorf("Default Policy [%s] is invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'", configuration.DefaultPolicy))
 
-			return
-		}
+		// 	return
+		// }
 
-		validator.PushWarning(fmt.Errorf("No access control rules have been defined so the default policy %s will be applied to all requests", configuration.DefaultPolicy))
+		// TODO: Disabled as this may no longer be true when adding rules at run time
+		// Isn't it more sensible to have this validation step on the AccessControlRule set or even Authorizor?
+		// That way it's can easily handle future run-time needs
+		// validator.PushWarning(fmt.Errorf("No access control rules have been defined so the default policy %s will be applied to all requests", configuration.DefaultPolicy))
 
 		return
 	}
