@@ -21,10 +21,28 @@ spec:
             spec:
               type: object
               properties:
-                domain:
-                  type: string
+                domains:
+                  type: array
+                  items:
+                    type: string
                 policy:
                   type: string
-                subject:
-                  type: string
+                subjects:
+                  type: array
+                  items:
+                    type: array
+                    items:
+                      type: string
+                networks:
+                  type: array
+                  items:
+                    type: string
+                resources:
+                  type: array
+                  items:
+                    type: string
+                methods:
+                  type: array
+                  items:
+                    type: string
 ---

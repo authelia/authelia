@@ -5,6 +5,8 @@ metadata:
   name: only-allow-admins
   namespace: default
 spec:
-  domain: whoami.example.org
+  domains:
+    - whoami.example.org
   policy: one_factor
-  subject: group:admins
+  subjects:
+    - [group:admins]
