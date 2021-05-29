@@ -21,6 +21,7 @@ var ValidateConfigCmd = &cobra.Command{
 		}
 
 		// TODO: Actually use the configuration to validate some providers like Notifier
+		// TODO: Validate connection to Kubernetes, if configured?
 		_, errs := configuration.Read(configPath)
 		if len(errs) != 0 {
 			str := "Errors"
