@@ -1,0 +1,143 @@
+# Based on https://github.com/ubuntu/microk8s/blob/c9d10eaa89c014cd3a159f1829a65f5125ee754c/microk8s-resources/actions/traefik.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: traefik
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: traefik-ingress-controller
+  namespace: traefik
+---
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: traefik-ingress-controller
+  namespace: traefik
+  labels:
+    k8s-app: traefik-ingress-lb
+spec:
+  selector:
+    matchLabels:
+      k8s-app: traefik-ingress-lb
+      name: traefik-ingress-lb
+  template:
+    metadata:
+      labels:
+        k8s-app: traefik-ingress-lb
+        name: traefik-ingress-lb
+    spec:
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+      serviceAccountName: traefik-ingress-controller
+      terminationGracePeriodSeconds: 60
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - image: traefik:2.4.8
+          name: traefik-ingress-lb
+          ports:
+            - name: https
+              containerPort: 443
+              hostPort: 443
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - NET_BIND_SERVICE
+          args:
+            # Use both Kubernetes APIs
+            - --providers.kubernetesingress=true
+            - --providers.kubernetescrd
+            # you need to manually set this IP to the incoming public IP
+            # that your ingress resources would use. Note it only affects
+            # status and kubectl UI, and doesn't really do anything
+            # It could even be left out https://github.com/containous/traefik/issues/6303
+            - --providers.kubernetesingress.ingressendpoint.ip=127.0.0.1
+            # Logging
+            - --log=true
+            - --log.level=DEBUG
+            - --accesslog=true
+            - --accesslog.filepath=/dev/stdout
+            - --accesslog.format=json
+            - --accesslog.fields.defaultmode=keep
+            - --accesslog.fields.headers.defaultmode=keep
+            # Entrypoints
+            - --entrypoints.https.address=:443
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-ingress-service
+  namespace: traefik
+spec:
+  ports:
+    - protocol: TCP
+      name: https
+      port: 443
+  selector:
+    k8s-app: traefik-ingress-lb
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: traefik-ingress-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - services
+      - endpoints
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+      - networking.k8s.io
+    resources:
+      - ingresses
+      - ingressclasses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses/status
+    verbs:
+      - update
+  - apiGroups:
+      - traefik.containo.us
+    resources:
+      - middlewares
+      - ingressroutes
+      - traefikservices
+      - ingressroutetcps
+      - ingressrouteudps
+      - tlsoptions
+      - tlsstores
+      - serverstransports
+    verbs:
+      - get
+      - list
+      - watch
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: traefik-ingress-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traefik-ingress-controller
+subjects:
+  - kind: ServiceAccount
+    name: traefik-ingress-controller
+    namespace: traefik

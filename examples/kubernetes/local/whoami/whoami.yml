@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami
+  namespace: default
+spec:
+  ports:
+    - protocol: TCP
+      name: web
+      port: 80
+  selector:
+    app: whoami
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: whoami
+  labels:
+    app: whoami
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+        - name: whoami
+          image: traefik/whoami
+          ports:
+            - name: web
+              containerPort: 80
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: whoami
+  namespace: default
+spec:
+  entryPoints:
+    - https
+  routes:
+  - match: Host(`whoami.example.org`)
+    kind: Rule
+    services:
+    - name: whoami
+      namespace: default
+      port: 80
+    middlewares:
+    - name: auth
+      namespace: auth
+  tls: {}

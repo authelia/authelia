@@ -1,0 +1,163 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: auth
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authelia
+  namespace: auth
+spec:
+  ports:
+    - protocol: TCP
+      name: web
+      port: 9091
+  selector:
+    app: authelia
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: auth
+  name: authelia
+  labels:
+    app: authelia
+spec:
+  selector:
+    matchLabels:
+      app: authelia
+  template:
+    metadata:
+      labels:
+        app: authelia
+    spec:
+      containers:
+        - name: authelia
+          image: authelia/authelia
+          ports:
+            - name: web
+              containerPort: 9091
+          volumeMounts:
+            - mountPath: /config/configuration.yml
+              subPath: configuration.yml
+              name: config
+              readOnly: true
+            - mountPath: /config/users.yml
+              subPath: users.yml
+              name: users
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: authelia-config
+        - name: users
+          configMap:
+            name: authelia-users
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: authelia
+  namespace: auth
+spec:
+  entryPoints:
+    - https
+  routes:
+  - match: Host(`auth.example.org`)
+    kind: Rule
+    services:
+    - name: authelia
+      namespace: auth
+      port: 9091
+  tls: {}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: auth
+  namespace: auth
+spec:
+  forwardAuth:
+    address: http://authelia.auth.svc.cluster.local:9091/api/verify?rd=https://auth.example.org/
+    trustForwardHeader: true
+    authResponseHeaders:
+      - Remote-User
+      - Remote-Groups
+      - Remote-Name
+      - Remote-Email
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authelia-users
+  namespace: auth
+data:
+  users.yml: |
+    users:
+      admin:
+        displayname: Admin User
+        # The password is "admin"
+        password: $argon2id$v=19$m=65536,t=1,p=8$M1UxOTRZWVZsaEwwd1g0VA$4Dx355q/BZXLuVHIwodudpI/drNu1movZbJv6QFMp94
+        email: admin@authelia.com
+        groups:
+          - admins
+      authelia:
+        displayname: Authelia User
+        # The password is "authelia"
+        password: $argon2id$v=19$m=65536,t=1,p=8$RnNzek8yalI4S05QV29raw$1w7LFUMToPbimRv8MAD1aw1I6XmSXbHpkFhyV1nscaQ  # yamllint disable-line rule:line-length
+        email: authelia@authelia.com
+        groups:
+          - users
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authelia-config
+  namespace: auth
+data:
+  configuration.yml: |
+    host: 0.0.0.0
+    port: 9091
+
+    log_level: debug
+    log_format: json
+
+    jwt_secret: a_very_important_secret
+
+    totp:
+      issuer: example.org
+
+    authentication_backend:
+      disable_reset_password: true
+      file:
+        path: /config/users.yml
+
+    access_control:
+      default_policy: deny
+
+    session:
+      name: _auth
+      secret: a_very_important_secret
+      domain: example.org
+      same_site: lax
+      expiration: 1h
+      inactivity: 5m
+      remember_me_duration: 1w
+
+    regulation:
+      max_retries: 3
+      find_time: 2m
+      ban_time: 5m
+
+    storage:
+      local:
+        path: /config/database.sqlite3
+
+    notifier:
+      filesystem:
+        filename: /dev/null
+
+    kubernetes:
+      trust_access_control_rules: true
