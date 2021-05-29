@@ -32,6 +32,8 @@ require (
 	golang.org/x/text v0.3.6
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v2 v2.4.0
+	k8s.io/apimachinery v0.21.1 // indirect
+	k8s.io/client-go v0.21.1
 )
 
 replace github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.7

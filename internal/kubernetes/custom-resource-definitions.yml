@@ -1,0 +1,30 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: accesscontrolrules.authelia.com
+spec:
+  group: authelia.com
+  names:
+    kind: AccessControlRule
+    plural: accesscontrolrules
+    singular: accesscontrolrule
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                domain:
+                  type: string
+                policy:
+                  type: string
+                subject:
+                  type: string
+---
