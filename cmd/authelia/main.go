@@ -6,11 +6,16 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/commands"
 	"github.com/authelia/authelia/internal/configuration"
+	"github.com/authelia/authelia/internal/kubernetes/v1/clientset"
+	"github.com/authelia/authelia/internal/kubernetes/v1/types"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/notification"
@@ -122,6 +127,69 @@ func startServer() {
 
 	if err != nil {
 		logger.Fatalf("Error initializing OpenID Connect Provider: %+v", err)
+	}
+
+	if config.Kubernetes.IsEnabled() {
+		logger.Debug("Creating Kubernetes client")
+		var kubernetesConfig *rest.Config
+		if config.Kubernetes.UseFlags() {
+			kubernetesConfig, err = clientcmd.BuildConfigFromFlags(config.Kubernetes.MasterURL, config.Kubernetes.ConfigFilePath)
+		} else {
+			kubernetesConfig, err = rest.InClusterConfig()
+		}
+		if err != nil {
+			logger.Fatalf("Unable to configure Kubernetes client: %+v", err)
+		}
+
+		types.AddToScheme(scheme.Scheme)
+
+		kubernetesClient, err := clientset.NewClient(kubernetesConfig)
+		if err != nil {
+			logger.Fatalf("Unable to create Kubernetes client: %+v", err)
+		}
+
+		if config.Kubernetes.TrustAccessControlRules {
+			logger.Debug("Enabling Kubernetes AccessControlRule watcher")
+			informer := kubernetesClient.AccessControlRules().Namespace(config.Kubernetes.Namespace).CreateInformer()
+			informer.AddFunc = func(rule *types.AccessControlRule) {
+				logger.Println("=== Rule Added ===")
+				logger.Println(rule.Spec.Domain)
+				logger.Println(rule.Spec.Policy)
+				logger.Println(rule.Spec.Subject)
+				logger.Println(rule.ResourceVersion)
+				logger.Println("==================")
+			}
+			informer.UpdateFunc = func(oldRule *types.AccessControlRule, newRule *types.AccessControlRule) {
+				logger.Println("=== Rule Updated ===")
+				logger.Println("Old:")
+				logger.Println(oldRule.Spec.Domain)
+				logger.Println(oldRule.Spec.Policy)
+				logger.Println(oldRule.Spec.Subject)
+				logger.Println(oldRule.ResourceVersion)
+				logger.Println("New:")
+				logger.Println(newRule.Spec.Domain)
+				logger.Println(newRule.Spec.Policy)
+				logger.Println(newRule.Spec.Subject)
+				logger.Println(newRule.ResourceVersion)
+				logger.Println("====================")
+			}
+			informer.DeleteFunc = func(rule *types.AccessControlRule) {
+				logger.Println("=== Rule Deleted ===")
+				logger.Println(rule.Spec.Domain)
+				logger.Println(rule.Spec.Policy)
+				logger.Println(rule.Spec.Subject)
+				logger.Println(rule.ResourceVersion)
+				logger.Println("====================")
+			}
+
+			informer.Start()
+
+			logger.Debug("Waiting for initial Kubernetes sync")
+			err = informer.WaitForSync()
+			if err != nil {
+				logger.Fatalf("Unable to perform initial Kubernetes synchronization")
+			}
+		}
 	}
 
 	providers := middlewares.Providers{
