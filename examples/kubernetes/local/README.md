@@ -53,6 +53,20 @@ This example uses minikube in VirtualBox and deploys Traefik, Authelia and Traef
 2. Navigate to `whoami.example.org` and see that the `authelia` user is no longer allowed
 3. Logout at `auth.example.org` and try again with the `admin` user, which works
 
+# Deploy a local build of Authelia
+
+1. Build the Authelia frontend
+  * `cd web`
+  * `npm install` or `yarn install`
+  * `npm run build` or `yarn build`
+2. Move or copy the `web/build` directory to the root project directory and change its name to `public_html`
+  * `cp -r web/build public_html`
+3. Build the Authelia image
+  * `docker build . -t authelia/authelia:dev`
+4. Send the image to minikube
+  * `minikube image load authelia/authelia:dev`
+5. You may now use `localhost/authelia/authelia:dev`. Don't forget to add `imagePullPolicy: Never` whenever the image is used.
+
 # Troubleshooting
 
 If you're having issues with minikube and DNS, you may want to change the DNS provider used. To do so, run `kubectl -n kube-system edit configmap/coredns` to change the configuration of CoreDNS using vim. Then, remove the forward block and change it to your provider of choice. The `forward` line should look like follows: `forward: . 1.1.1.1`. Symptoms of this issue are pods being unable to access the internet, update packages etc.
