@@ -53,6 +53,17 @@ This example uses minikube in VirtualBox and deploys Traefik, Authelia and Traef
 2. Navigate to `whoami.example.org` and see that the `authelia` user is no longer allowed
 3. Logout at `auth.example.org` and try again with the `admin` user, which works
 
+You may also try to remove a rule set and update it.
+
+1. Remove the rule set
+  * `kubectl delete accesscontrolrule only-allow-admins`
+2. Navigate to `whoami.example.org` and see that no user is allowed
+3. Deploy the rule set again
+  * `kubectl apply -f examples/kubernetes/local/whoami/access-control.yml`
+4. Update the rule set by changing the `access-control.yml` to allow the `authelia` user as well and deploy it
+  * Add `- [group:users]` under `subjects`
+  * `kubectl apply -f examples/kubernetes/local/whoami/access-control.yml`
+
 # Deploy a local build of Authelia
 
 1. Build the Authelia frontend
