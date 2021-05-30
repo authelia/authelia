@@ -37,6 +37,8 @@ function Theme() {
             return themes.Dark;
         case "grey":
             return themes.Grey;
+        case "auto":
+            return window.matchMedia("(prefers-color-scheme: dark)").matches ? themes.Dark : themes.Light;
         default:
             return themes.Light;
     }
@@ -44,9 +46,14 @@ function Theme() {
 
 const App: React.FC = () => {
     const [notification, setNotification] = useState(null as Notification | null);
-
+    const [theme, setTheme] = useState(Theme());
+    if (getTheme() === "auto") {
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+            setTheme(e.matches ? themes.Dark : themes.Light);
+        });
+    }
     return (
-        <ThemeProvider theme={Theme()}>
+        <ThemeProvider theme={theme}>
             <CssBaseline />
             <NotificationsContext.Provider value={{ notification, setNotification }}>
                 <Router basename={getBasePath()}>

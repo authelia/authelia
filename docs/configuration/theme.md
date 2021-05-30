@@ -31,3 +31,5 @@ There are currently 3 available themes for Authelia:
 * light (default)
 * dark
 * grey
+
+To enable automatic switching between the light and dark theme you can set the theme to `auto`.
