@@ -36,8 +36,10 @@ spec:
       serviceAccountName: authelia
       containers:
         - name: authelia
-          image: localhost/authelia/authelia:dev
-          imagePullPolicy: Never
+          # Local development image
+          # image: localhost/authelia/authelia:dev
+          # Latest release
+          image: authelia/authelia
           ports:
             - name: web
               containerPort: 9091

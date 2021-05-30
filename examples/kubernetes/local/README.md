@@ -58,20 +58,24 @@ This example uses minikube in VirtualBox and deploys Traefik, Authelia and Traef
 1. Build the Authelia frontend
   * `cd web`
   * `npm install` or `yarn install`
-  * `npm run build` or `yarn build`
+  * `INLINE_RUNTIME_CHUNK=false npm run build` or `INLINE_RUNTIME_CHUNK=false yarn build`
 2. Move or copy the `web/build` directory to the root project directory and change its name to `public_html`
   * `cp -r web/build public_html`
-3. Build the Authelia image
+3. Copy the `api` directory to the `public_html` directory
+  * `cp -r api public_html/api`
+4. Build the Authelia image
   * `docker build . -t authelia/authelia:dev`
-4. Send the image to minikube
+5. Send the image to minikube
   * `minikube image load authelia/authelia:dev`
-5. You may now use `localhost/authelia/authelia:dev`. Don't forget to add `imagePullPolicy: Never` whenever the image is used.
+6. You may now use `localhost/authelia/authelia:dev`
 
 # Troubleshooting
 
 If you're having issues with minikube and DNS, you may want to change the DNS provider used. To do so, run `kubectl -n kube-system edit configmap/coredns` to change the configuration of CoreDNS using vim. Then, remove the forward block and change it to your provider of choice. The `forward` line should look like follows: `forward: . 1.1.1.1`. Symptoms of this issue are pods being unable to access the internet, update packages etc.
 
 To access the Kubernets API to perform requests on the API, proxy it using `kubectl` like so: `kubectl proxy kubernetes`.
+
+If you are having issues that an image deployed to minikube doesn't seem to change, try to change the tag to `dev1`, `dev2` and so on. It doesn't seem to respect updated images, despite specifying the `Always` pull policy and replacing the image on minikube.
 
 # Disclaimer
 
