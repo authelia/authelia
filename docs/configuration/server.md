@@ -2,7 +2,7 @@
 layout: default
 title: Server
 parent: Configuration
-nav_order: 7
+nav_order: 9
 ---
 
 # Server
@@ -16,6 +16,8 @@ server:
   read_buffer_size: 4096
   write_buffer_size: 4096
   path: ""
+  enable_pprof: false
+  enable_expvars: false
 ```
 
 ## Options
@@ -71,6 +73,31 @@ Example: https://auth.example.com/authelia/, https://example.com/authelia/
 server:
   path: authelia
 ```
+
+### enable_pprof
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple } 
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Enables the go pprof endpoints.
+
+### enable_expvars
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple } 
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Enables the go expvars endpoints.
+
 
 ## Additional Notes
 

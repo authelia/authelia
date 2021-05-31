@@ -1,11 +1,16 @@
 package validator
 
 const (
+	errFmtDeprecatedConfigurationKey = "[DEPRECATED] The %s configuration option is deprecated and will be " +
+		"removed in %s, please use %s instead"
+	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
+
+	errFmtLoggingLevelInvalid = "the log level '%s' is invalid, must be one of: %s"
+
 	errFmtSessionSecretRedisProvider      = "The session secret must be set when using the %s session provider"
 	errFmtSessionRedisPortRange           = "The port must be between 1 and 65535 for the %s session provider"
 	errFmtSessionRedisHostRequired        = "The host must be provided when using the %s session provider"
 	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
-	errFmtReplacedConfigurationKey        = "invalid configuration key '%s' was replaced by '%s'"
 
 	errOAuthOIDCServerClientRedirectURIFmt               = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
 	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "OIDC Client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
@@ -43,6 +48,7 @@ const (
 		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 )
 
+var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
 var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 
 // SecretNames contains a map of secret names.
@@ -66,19 +72,28 @@ var validKeys = []string{
 	// Root Keys.
 	"host",
 	"port",
-	"log_level",
-	"log_format",
-	"log_file_path",
 	"default_redirection_url",
 	"theme",
 	"tls_key",
 	"tls_cert",
 	"certificates_directory",
 
+	// Logging keys.
+	"log_level",
+	"log_format",
+	"log_file_path",
+
+	"logging.level",
+	"logging.format",
+	"logging.file_path",
+	"logging.keep_stdout",
+
 	// Server Keys.
 	"server.read_buffer_size",
 	"server.write_buffer_size",
 	"server.path",
+	"server.enable_pprof",
+	"server.enable_expvars",
 
 	// TOTP Keys.
 	"totp.issuer",
@@ -200,8 +215,8 @@ var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",
 	"authentication_backend.ldap.minimum_tls_version": "authentication_backend.ldap.tls.minimum_version",
 	"notifier.smtp.disable_verify_cert":               "notifier.smtp.tls.skip_verify",
-	"logs_file_path":                                  "log_file",
-	"logs_level":                                      "log_level",
+	"logs_file_path":                                  "logging.file_path",
+	"logs_level":                                      "logging.level",
 }
 
 var specificErrorKeys = map[string]string{

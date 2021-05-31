@@ -34,17 +34,24 @@ server:
   ## Must be alphanumeric chars and should not contain any slashes.
   path: ""
 
+  ## Enables the pprof endpoint.
+  enable_pprof: false
+
+  ## Enables the expvars endpoint.
+  enable_expvars: false
+
 ## Level of verbosity for logs: info, debug, trace.
-log_level: debug
+logging:
+  level: debug
 
-## Format the logs are written as: json, text.
-# log_format: json
+  ## Format the logs are written as: json, text.
+  # format: json
 
-## File path where the logs will be written. If not set logs are written to stdout.
-# log_file_path: /config/authelia.log
+  ## File path where the logs will be written. If not set logs are written to stdout.
+  # file_path: /config/authelia.log
 
-## Whether to also log to stdout when a log_file_path is defined.
-# log_keep_stdout: false
+  ## Whether to also log to stdout when a log_file_path is defined.
+  # keep_stdout: false
 
 ## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
 ## set using a secret: https://www.authelia.com/docs/configuration/secrets.html
