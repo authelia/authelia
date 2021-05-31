@@ -127,8 +127,12 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		ctx.Logger.Debugf("Credentials validation of user %s is ok", bodyJSON.Username)
 
-		// Reset all values from previous session before regenerating the cookie.
-		err = ctx.SaveSession(session.NewDefaultUserSession())
+		userSession := ctx.GetSession()
+		newSession := session.NewDefaultUserSession()
+		newSession.OIDCWorkflowSession = userSession.OIDCWorkflowSession
+
+		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
+		err = ctx.SaveSession(newSession)
 
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
@@ -165,7 +169,6 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		ctx.Logger.Tracef("Details for user %s => groups: %s, emails %s", bodyJSON.Username, userDetails.Groups, userDetails.Emails)
 
 		// And set those information in the new session.
-		userSession := ctx.GetSession()
 		userSession.Username = userDetails.Username
 		userSession.DisplayName = userDetails.DisplayName
 		userSession.Groups = userDetails.Groups
@@ -188,6 +191,10 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		successful = true
 
-		Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
+		if userSession.OIDCWorkflowSession != nil {
+			HandleOIDCWorkflowResponse(ctx)
+		} else {
+			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
+		}
 	}
 }

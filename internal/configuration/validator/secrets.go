@@ -58,6 +58,11 @@ func ValidateSecrets(configuration *schema.Configuration, validator *schema.Stru
 	if configuration.Storage.PostgreSQL != nil {
 		configuration.Storage.PostgreSQL.Password = getSecretValue(SecretNames["PostgreSQLPassword"], validator, viper)
 	}
+
+	if configuration.IdentityProviders.OIDC != nil {
+		configuration.IdentityProviders.OIDC.HMACSecret = getSecretValue(SecretNames["OpenIDConnectHMACSecret"], validator, viper)
+		configuration.IdentityProviders.OIDC.IssuerPrivateKey = getSecretValue(SecretNames["OpenIDConnectIssuerPrivateKey"], validator, viper)
+	}
 }
 
 func getSecretValue(name string, validator *schema.StructValidator, viper *viper.Viper) string {
@@ -75,7 +80,8 @@ func getSecretValue(name string, validator *schema.StructValidator, viper *viper
 		if err != nil {
 			validator.Push(fmt.Errorf("error loading secret file (%s): %s", name, err))
 		} else {
-			return strings.ReplaceAll(string(content), "\n", "")
+			// TODO: Test this functionality.
+			return strings.TrimRight(string(content), "\n")
 		}
 	}
 

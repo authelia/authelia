@@ -42,8 +42,8 @@ Any line of the commit message cannot be longer than 100 characters.
   │       │             └─⫸ Summary in present tense. Not capitalized. No period at the end.
   │       │
   │       └─⫸ Commit Scope: api|authentication|authorization|cmd|commands|configuration|duo|
-  │                          handlers|logging|middlewares|mocks|models|notification|regulation|
-  │                          server|session|storage|suites|templates|utils|web
+  │                          handlers|logging|middlewares|mocks|models|notification|oidc|
+  │                          regulation|server|session|storage|suites|templates|utils|web
   │
   └─⫸ Commit Type: build|ci|docs|feat|fix|perf|refactor|release|test
 ```
@@ -80,6 +80,7 @@ The scope should be the name of the package affected
 * mocks
 * models
 * notification
+* oidc
 * regulation
 * server
 * session

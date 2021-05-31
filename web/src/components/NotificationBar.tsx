@@ -18,7 +18,7 @@ const NotificationBar = function (props: Props) {
         if (notification && notification !== null) {
             setTmpNotification(notification);
         }
-    }, [notification]);
+    }, [notification, setTmpNotification]);
 
     const shouldSnackbarBeOpen = notification !== undefined && notification !== null;
 

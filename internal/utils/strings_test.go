@@ -7,6 +7,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestShouldDetectAlphaNumericString(t *testing.T) {
+	assert.True(t, IsStringAlphaNumeric("abc"))
+	assert.True(t, IsStringAlphaNumeric("abc123"))
+	assert.False(t, IsStringAlphaNumeric("abc123@"))
+}
+
 func TestShouldSplitIntoEvenStringsOfFour(t *testing.T) {
 	input := testStringInput
 
@@ -70,6 +76,12 @@ func TestShouldFindSliceDifferences(t *testing.T) {
 	b := []string{"abc", "xyz"}
 
 	assert.True(t, IsStringSlicesDifferent(a, b))
+	assert.True(t, IsStringSlicesDifferentFold(a, b))
+
+	c := []string{"Abc", "xyz"}
+
+	assert.True(t, IsStringSlicesDifferent(b, c))
+	assert.False(t, IsStringSlicesDifferentFold(b, c))
 }
 
 func TestShouldNotFindSliceDifferences(t *testing.T) {
@@ -77,6 +89,7 @@ func TestShouldNotFindSliceDifferences(t *testing.T) {
 	b := []string{"abc", "onetwothree"}
 
 	assert.False(t, IsStringSlicesDifferent(a, b))
+	assert.False(t, IsStringSlicesDifferentFold(a, b))
 }
 
 func TestShouldFindSliceDifferenceWhenDifferentLength(t *testing.T) {
@@ -84,6 +97,7 @@ func TestShouldFindSliceDifferenceWhenDifferentLength(t *testing.T) {
 	b := []string{"abc", "onetwothree", "more"}
 
 	assert.True(t, IsStringSlicesDifferent(a, b))
+	assert.True(t, IsStringSlicesDifferentFold(a, b))
 }
 
 func TestShouldFindStringInSliceContains(t *testing.T) {
