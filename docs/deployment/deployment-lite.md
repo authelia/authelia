@@ -38,7 +38,7 @@ setup can easily be adapted to utilise said [service](../configuration/storage/i
 
 ## Reverse Proxy
 
-The [Lite bundle](https://github.com/authelia/authelia/blob/master/compose/lite/docker-compose.yml)
+The [Lite bundle](https://github.com/authelia/authelia/blob/master/examples/compose/lite/docker-compose.yml)
 provides pre-made examples with [Traefik2.x](./supported-proxies/traefik2.x.md), you can swap this
 out for any of the [supported proxies](./supported-proxies/index.md).
 
