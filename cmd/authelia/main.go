@@ -66,6 +66,12 @@ func startServer() {
 	case "trace":
 		logger.Info("Logging severity set to trace")
 		logging.SetLevel(logrus.TraceLevel)
+	case "error":
+		logger.Info("Logging severity set to error")
+		logging.SetLevel(logrus.ErrorLevel)
+	case "warn":
+		logger.Info("Logging severity set to warning")
+		logging.SetLevel(logrus.WarnLevel)
 	}
 
 	if os.Getenv("ENVIRONMENT") == "dev" {
