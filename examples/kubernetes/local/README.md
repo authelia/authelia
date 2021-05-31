@@ -91,3 +91,7 @@ If you are having issues that an image deployed to minikube doesn't seem to chan
 # Disclaimer
 
 This is an _example_ not a production-ready deployment. For example, the TLS certificates are self-signed. Furthermore, the user database is not mounted into `/var/run/` nor stored as a secret instead of a `ConfigMap`. The deployment is not highly available nor stateful. Lastly, all of the secrets such as the JWT secret are stored in the config instead of in actual secrets.
+
+The Traefik CRDs are taken from here: https://doc.traefik.io/traefik/reference/dynamic-configuration/kubernetes-crd/#definitions.
+
+The Traefik configuration is based on the one deployed with mikrok8s: https://github.com/ubuntu/microk8s/blob/c9d10eaa89c014cd3a159f1829a65f5125ee754c/microk8s-resources/actions/traefik.yaml.

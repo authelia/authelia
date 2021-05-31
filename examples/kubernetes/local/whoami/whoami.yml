@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -10,6 +11,7 @@ spec:
       port: 80
   selector:
     app: whoami
+...
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -34,6 +36,7 @@ spec:
           ports:
             - name: web
               containerPort: 80
+...
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
@@ -44,13 +47,14 @@ spec:
   entryPoints:
     - https
   routes:
-  - match: Host(`whoami.example.org`)
-    kind: Rule
-    services:
-    - name: whoami
-      namespace: default
-      port: 80
-    middlewares:
-    - name: auth
-      namespace: auth
+    - match: Host(`whoami.example.org`)
+      kind: Rule
+      services:
+        - name: whoami
+          namespace: default
+          port: 80
+      middlewares:
+        - name: auth
+          namespace: auth
   tls: {}
+...

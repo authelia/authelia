@@ -1,4 +1,4 @@
-# From: https://doc.traefik.io/traefik/reference/dynamic-configuration/kubernetes-crd/#definitions
+---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
@@ -12,7 +12,7 @@ spec:
     plural: ingressroutes
     singular: ingressroute
   scope: Namespaced
-
+...
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -27,7 +27,7 @@ spec:
     plural: middlewares
     singular: middleware
   scope: Namespaced
-
+...
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -42,7 +42,7 @@ spec:
     plural: ingressroutetcps
     singular: ingressroutetcp
   scope: Namespaced
-
+...
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -57,7 +57,7 @@ spec:
     plural: ingressrouteudps
     singular: ingressrouteudp
   scope: Namespaced
-
+...
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -72,7 +72,7 @@ spec:
     plural: tlsoptions
     singular: tlsoption
   scope: Namespaced
-
+...
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -87,7 +87,7 @@ spec:
     plural: tlsstores
     singular: tlsstore
   scope: Namespaced
-
+...
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -102,7 +102,7 @@ spec:
     plural: traefikservices
     singular: traefikservice
   scope: Namespaced
-
+...
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -117,3 +117,4 @@ spec:
     plural: serverstransports
     singular: serverstransport
   scope: Namespaced
+...

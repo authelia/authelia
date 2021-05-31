@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: auth
+...
 ---
 apiVersion: v1
 kind: Service
@@ -16,6 +17,7 @@ spec:
       port: 9091
   selector:
     app: authelia
+...
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -59,6 +61,7 @@ spec:
         - name: users
           configMap:
             name: authelia-users
+...
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
@@ -69,13 +72,14 @@ spec:
   entryPoints:
     - https
   routes:
-  - match: Host(`auth.example.org`)
-    kind: Rule
-    services:
-    - name: authelia
-      namespace: auth
-      port: 9091
+    - match: Host(`auth.example.org`)
+      kind: Rule
+      services:
+        - name: authelia
+          namespace: auth
+          port: 9091
   tls: {}
+...
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
@@ -91,6 +95,7 @@ spec:
       - Remote-Groups
       - Remote-Name
       - Remote-Email
+...
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -99,21 +104,22 @@ metadata:
   namespace: auth
 data:
   users.yml: |
-    users:
-      admin:
-        displayname: Admin User
-        # The password is "admin"
-        password: $argon2id$v=19$m=65536,t=1,p=8$M1UxOTRZWVZsaEwwd1g0VA$4Dx355q/BZXLuVHIwodudpI/drNu1movZbJv6QFMp94
-        email: admin@authelia.com
-        groups:
-          - admins
-      authelia:
-        displayname: Authelia User
-        # The password is "authelia"
-        password: $argon2id$v=19$m=65536,t=1,p=8$RnNzek8yalI4S05QV29raw$1w7LFUMToPbimRv8MAD1aw1I6XmSXbHpkFhyV1nscaQ  # yamllint disable-line rule:line-length
-        email: authelia@authelia.com
-        groups:
-          - users
+  users:
+    admin:
+      displayname: Admin User
+      # The password is "admin"
+      password: $argon2id$v=19$m=65536,t=1,p=8$M1UxOTRZWVZsaEwwd1g0VA$4Dx355q/BZXLuVHIwodudpI/drNu1movZbJv6QFMp94
+      email: admin@authelia.com
+      groups:
+        - admins
+    authelia:
+      displayname: Authelia User
+      # The password is "authelia"
+      password: $argon2id$v=19$m=65536,t=1,p=8$RnNzek8yalI4S05QV29raw$1w7LFUMToPbimRv8MAD1aw1I6XmSXbHpkFhyV1nscaQ  # yamllint disable-line rule:line-length
+      email: authelia@authelia.com
+      groups:
+        - users
+...
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -122,55 +128,57 @@ metadata:
   namespace: auth
 data:
   configuration.yml: |
-    host: 0.0.0.0
-    port: 9091
+  host: 0.0.0.0
+  port: 9091
 
-    log_level: debug
-    log_format: json
+  log_level: debug
+  log_format: json
 
-    jwt_secret: a_very_important_secret
+  jwt_secret: a_very_important_secret
 
-    totp:
-      issuer: example.org
+  totp:
+    issuer: example.org
 
-    authentication_backend:
-      disable_reset_password: true
-      file:
-        path: /config/users.yml
+  authentication_backend:
+    disable_reset_password: true
+    file:
+      path: /config/users.yml
 
-    access_control:
-      default_policy: deny
+  access_control:
+    default_policy: deny
 
-    session:
-      name: _auth
-      secret: a_very_important_secret
-      domain: example.org
-      same_site: lax
-      expiration: 1h
-      inactivity: 5m
-      remember_me_duration: 1w
+  session:
+    name: _auth
+    secret: a_very_important_secret
+    domain: example.org
+    same_site: lax
+    expiration: 1h
+    inactivity: 5m
+    remember_me_duration: 1w
 
-    regulation:
-      max_retries: 3
-      find_time: 2m
-      ban_time: 5m
+  regulation:
+    max_retries: 3
+    find_time: 2m
+    ban_time: 5m
 
-    storage:
-      local:
-        path: /config/database.sqlite3
+  storage:
+    local:
+      path: /config/database.sqlite3
 
-    notifier:
-      filesystem:
-        filename: /dev/null
+  notifier:
+    filesystem:
+      filename: /dev/null
 
-    kubernetes:
-      trust_access_control_rules: true
+  kubernetes:
+    trust_access_control_rules: true
+...
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: authelia
   namespace: auth
+...
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -185,6 +193,7 @@ rules:
       - get
       - list
       - watch
+...
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -198,3 +207,4 @@ subjects:
   - kind: ServiceAccount
     name: authelia
     namespace: auth
+...

@@ -10,3 +10,4 @@ spec:
   policy: one_factor
   subjects:
     - [group:admins]
+...

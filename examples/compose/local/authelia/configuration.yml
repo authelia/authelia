@@ -14,6 +14,13 @@ totp:
 authentication_backend:
   file:
     path: /config/users_database.yml
+    password:
+      algorithm: sha512
+      iterations: 2000
+      key_length: 32
+      salt_length: 16
+      memory: 1024
+      parallelism: 8
 
 access_control:
   default_policy: deny
