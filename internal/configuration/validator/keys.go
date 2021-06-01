@@ -3,7 +3,6 @@ package validator
 import (
 	"errors"
 	"fmt"
-
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
 )
@@ -13,11 +12,15 @@ func ValidateKeys(validator *schema.StructValidator, keys []string) {
 	var errStrings []string
 
 	for _, key := range keys {
-		if utils.IsStringInSlice(key, validKeys) {
+		if utils.IsStringInSlice(key, ignoredKeys) {
 			continue
 		}
 
-		if isSecretKey(key) {
+		if utils.IsStringInSlice(key, ValidKeys) {
+			continue
+		}
+
+		if IsSecretKey(key) {
 			continue
 		}
 

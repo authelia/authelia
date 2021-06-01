@@ -69,7 +69,7 @@ func TestShouldErrorNoConfigPath(t *testing.T) {
 }
 
 func TestShouldErrorSecretNotExist(t *testing.T) {
-	dir := "/path/not/exist"
+	dir := "/path/not/exist/"
 
 	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", dir+"jwt"))
 	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY_FILE", dir+"duo"))
@@ -83,26 +83,26 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 
 	_, errors := Read("./test_resources/config.yml")
 
-	require.Len(t, errors, 12)
+	require.Len(t, errors, 14)
 
 	if runtime.GOOS == windows {
-		assert.EqualError(t, errors[0], "error loading secret file (jwt_secret): open /path/not/existjwt: The system cannot find the path specified.")
-		assert.EqualError(t, errors[1], "error loading secret file (session.secret): open /path/not/existsession: The system cannot find the path specified.")
-		assert.EqualError(t, errors[2], "error loading secret file (duo_api.secret_key): open /path/not/existduo: The system cannot find the path specified.")
-		assert.EqualError(t, errors[3], "error loading secret file (session.redis.password): open /path/not/existredis: The system cannot find the path specified.")
-		assert.EqualError(t, errors[4], "error loading secret file (session.redis.high_availability.sentinel_password): open /path/not/existredis-sentinel: The system cannot find the path specified.")
-		assert.EqualError(t, errors[5], "error loading secret file (authentication_backend.ldap.password): open /path/not/existauthentication: The system cannot find the path specified.")
-		assert.EqualError(t, errors[6], "error loading secret file (notifier.smtp.password): open /path/not/existnotifier: The system cannot find the path specified.")
-		assert.EqualError(t, errors[7], "error loading secret file (storage.mysql.password): open /path/not/existmysql: The system cannot find the path specified.")
+		assert.EqualError(t, errors[0], "error loading secret file (jwt_secret): open /path/not/exist/jwt: The system cannot find the path specified.")
+		assert.EqualError(t, errors[1], "error loading secret file (session.secret): open /path/not/exist/session: The system cannot find the path specified.")
+		assert.EqualError(t, errors[2], "error loading secret file (duo_api.secret_key): open /path/not/exist/duo: The system cannot find the path specified.")
+		assert.EqualError(t, errors[3], "error loading secret file (session.redis.password): open /path/not/exist/redis: The system cannot find the path specified.")
+		assert.EqualError(t, errors[4], "error loading secret file (session.redis.high_availability.sentinel_password): open /path/not/exist/redis-sentinel: The system cannot find the path specified.")
+		assert.EqualError(t, errors[5], "error loading secret file (authentication_backend.ldap.password): open /path/not/exist/authentication: The system cannot find the path specified.")
+		assert.EqualError(t, errors[6], "error loading secret file (notifier.smtp.password): open /path/not/exist/notifier: The system cannot find the path specified.")
+		assert.EqualError(t, errors[7], "error loading secret file (storage.mysql.password): open /path/not/exist/mysql: The system cannot find the path specified.")
 	} else {
-		assert.EqualError(t, errors[0], "error loading secret file (jwt_secret): open /path/not/existjwt: no such file or directory")
-		assert.EqualError(t, errors[1], "error loading secret file (session.secret): open /path/not/existsession: no such file or directory")
-		assert.EqualError(t, errors[2], "error loading secret file (duo_api.secret_key): open /path/not/existduo: no such file or directory")
-		assert.EqualError(t, errors[3], "error loading secret file (session.redis.password): open /path/not/existredis: no such file or directory")
-		assert.EqualError(t, errors[4], "error loading secret file (session.redis.high_availability.sentinel_password): open /path/not/existredis-sentinel: no such file or directory")
-		assert.EqualError(t, errors[5], "error loading secret file (authentication_backend.ldap.password): open /path/not/existauthentication: no such file or directory")
-		assert.EqualError(t, errors[6], "error loading secret file (notifier.smtp.password): open /path/not/existnotifier: no such file or directory")
-		assert.EqualError(t, errors[7], "error loading secret file (storage.mysql.password): open /path/not/existmysql: no such file or directory")
+		assert.EqualError(t, errors[0], "error loading secret file (jwt_secret): open /path/not/exist/jwt: no such file or directory")
+		assert.EqualError(t, errors[1], "error loading secret file (session.secret): open /path/not/exist/session: no such file or directory")
+		assert.EqualError(t, errors[2], "error loading secret file (duo_api.secret_key): open /path/not/exist/duo: no such file or directory")
+		assert.EqualError(t, errors[3], "error loading secret file (session.redis.password): open /path/not/exist/redis: no such file or directory")
+		assert.EqualError(t, errors[4], "error loading secret file (session.redis.high_availability.sentinel_password): open /path/not/exist/redis-sentinel: no such file or directory")
+		assert.EqualError(t, errors[5], "error loading secret file (authentication_backend.ldap.password): open /path/not/exist/authentication: no such file or directory")
+		assert.EqualError(t, errors[6], "error loading secret file (notifier.smtp.password): open /path/not/exist/notifier: no such file or directory")
+		assert.EqualError(t, errors[7], "error loading secret file (storage.mysql.password): open /path/not/exist/mysql: no such file or directory")
 	}
 
 	assert.EqualError(t, errors[8], "Provide a JWT secret using \"jwt_secret\" key")
@@ -164,7 +164,7 @@ func TestShouldErrorParseBadConfigFile(t *testing.T) {
 
 	require.Len(t, errors, 1)
 
-	require.EqualError(t, errors[0], "Error malformed yaml: line 25: did not find expected alphabetic or numeric character")
+	require.EqualError(t, errors[0], "yaml: line 25: did not find expected alphabetic or numeric character")
 }
 
 func TestShouldParseConfigFile(t *testing.T) {

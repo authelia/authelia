@@ -6,84 +6,92 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
-	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/file"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/configuration/validator"
 	"github.com/authelia/authelia/internal/logging"
 )
 
-// Read a YAML configuration and create a Configuration object out of it.
-func Read(configPath string) (*schema.Configuration, []error) {
-	logger := logging.Logger()
+func ensureConfigFileExists(path string) (errs []error) {
+	if _, err := os.Stat(path); err != nil {
+		errs = []error{
+			fmt.Errorf("Unable to find config file: %s", path),
+			fmt.Errorf("Generating config file: %s", path),
+		}
 
+		if err := generateConfigFromTemplate(path); err != nil {
+			errs = append(errs, err)
+		} else {
+			errs = append(errs, fmt.Errorf("Generated configuration at: %v", path))
+		}
+
+		return errs
+	}
+
+	if _, err := ioutil.ReadFile(path); err != nil {
+		errs = append(errs, fmt.Errorf("Failed to read file: %+v", err))
+		return errs
+	}
+
+	return errs
+}
+
+// Read a YAML configuration and create a Configuration object out of it.
+func Read(configPath string) (configuration *schema.Configuration, errs []error) {
 	if configPath == "" {
 		return nil, []error{errors.New("No config file path provided")}
 	}
 
-	_, err := os.Stat(configPath)
-	if err != nil {
-		errs := []error{
-			fmt.Errorf("Unable to find config file: %v", configPath),
-			fmt.Errorf("Generating config file: %v", configPath),
-		}
-
-		err = generateConfigFromTemplate(configPath)
-		if err != nil {
-			errs = append(errs, err)
-		} else {
-			errs = append(errs, fmt.Errorf("Generated configuration at: %v", configPath))
-		}
-
+	errs = ensureConfigFileExists(configPath)
+	if len(errs) != 0 {
 		return nil, errs
 	}
 
-	file, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		return nil, []error{fmt.Errorf("Failed to %v", err)}
+	konfig := koanf.NewWithConf(koanf.Conf{
+		Delim:       ".",
+		StrictMerge: false,
+	})
+
+	if err := konfig.Load(file.Provider(configPath), yaml.Parser()); err != nil {
+		errs = append(errs, err)
 	}
 
-	var data interface{}
-
-	err = yaml.Unmarshal(file, &data)
-	if err != nil {
-		return nil, []error{fmt.Errorf("Error malformed %v", err)}
+	if err := konfig.Load(env.ProviderWithValue("AUTHELIA_", ".", koanfSecretEnvParser()), nil); err != nil {
+		errs = append(errs, err)
 	}
 
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	configuration = &schema.Configuration{}
 
-	// Dynamically load the secret env names from the SecretNames map.
-	for _, secretName := range validator.SecretNames {
-		_ = viper.BindEnv(validator.SecretNameToEnvName(secretName))
+	if err := konfig.UnmarshalWithConf("", configuration, unmarshallConfig(configuration)); err != nil {
+		errs = append(errs, err)
 	}
 
-	viper.SetConfigFile(configPath)
-
-	_ = viper.ReadInConfig()
-
-	var configuration schema.Configuration
-
-	viper.Unmarshal(&configuration) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	if len(errs) != 0 {
+		return nil, errs
+	}
 
 	val := schema.NewStructValidator()
-	validator.ValidateSecrets(&configuration, val, viper.GetViper())
-	validator.ValidateConfiguration(&configuration, val)
-	validator.ValidateKeys(val, viper.AllKeys())
+	validator.ValidateSecrets(configuration, val, konfig)
+	validator.ValidateConfiguration(configuration, val)
+	validator.ValidateKeys(val, konfig.Keys())
 
 	if val.HasErrors() {
 		return nil, val.Errors()
 	}
 
 	if val.HasWarnings() {
+		logger := logging.Logger()
 		for _, warn := range val.Warnings() {
 			logger.Warnf(warn.Error())
 		}
 	}
 
-	return &configuration, nil
+	return configuration, nil
 }
 
 //go:embed config.template.yml

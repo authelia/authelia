@@ -2,28 +2,28 @@ package schema
 
 // IdentityProvidersConfiguration represents the IdentityProviders 2.0 configuration for Authelia.
 type IdentityProvidersConfiguration struct {
-	OIDC *OpenIDConnectConfiguration `mapstructure:"oidc"`
+	OIDC *OpenIDConnectConfiguration `koanf:"oidc"`
 }
 
 // OpenIDConnectConfiguration configuration for OpenID Connect.
 type OpenIDConnectConfiguration struct {
 	// This secret must be 32 bytes long
-	HMACSecret       string `mapstructure:"hmac_secret"`
-	IssuerPrivateKey string `mapstructure:"issuer_private_key"`
+	HMACSecret       string `koanf:"hmac_secret"`
+	IssuerPrivateKey string `koanf:"issuer_private_key"`
 
-	Clients []OpenIDConnectClientConfiguration `mapstructure:"clients"`
+	Clients []OpenIDConnectClientConfiguration `koanf:"clients"`
 }
 
 // OpenIDConnectClientConfiguration configuration for an OpenID Connect client.
 type OpenIDConnectClientConfiguration struct {
-	ID            string   `mapstructure:"id"`
-	Description   string   `mapstructure:"description"`
-	Secret        string   `mapstructure:"secret"`
-	RedirectURIs  []string `mapstructure:"redirect_uris"`
-	Policy        string   `mapstructure:"authorization_policy"`
-	Scopes        []string `mapstructure:"scopes"`
-	GrantTypes    []string `mapstructure:"grant_types"`
-	ResponseTypes []string `mapstructure:"response_types"`
+	ID            string   `koanf:"id"`
+	Description   string   `koanf:"description"`
+	Secret        string   `koanf:"secret"`
+	RedirectURIs  []string `koanf:"redirect_uris"`
+	Policy        string   `koanf:"authorization_policy"`
+	Scopes        []string `koanf:"scopes"`
+	GrantTypes    []string `koanf:"grant_types"`
+	ResponseTypes []string `koanf:"response_types"`
 }
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC AutheliaClients.

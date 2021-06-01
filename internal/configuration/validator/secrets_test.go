@@ -7,9 +7,9 @@ import (
 )
 
 func TestShouldValidateCorrectSecretKeys(t *testing.T) {
-	assert.True(t, isSecretKey("jwt_secret"))
-	assert.True(t, isSecretKey("authelia.jwt_secret.file"))
-	assert.False(t, isSecretKey("totp.issuer"))
+	assert.True(t, IsSecretKey("jwt_secret"))
+	assert.True(t, IsSecretKey("authelia.jwt_secret.file"))
+	assert.False(t, IsSecretKey("totp.issuer"))
 }
 
 func TestShouldCreateCorrectSecretEnvNames(t *testing.T) {

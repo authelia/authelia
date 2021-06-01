@@ -12,7 +12,7 @@ import (
 )
 
 func TestShouldValidateGoodKeys(t *testing.T) {
-	configKeys := validKeys
+	configKeys := ValidKeys
 	val := schema.NewStructValidator()
 	ValidateKeys(val, configKeys)
 
@@ -20,7 +20,7 @@ func TestShouldValidateGoodKeys(t *testing.T) {
 }
 
 func TestShouldNotValidateBadKeys(t *testing.T) {
-	configKeys := validKeys
+	configKeys := ValidKeys
 	configKeys = append(configKeys, "bad_key")
 	configKeys = append(configKeys, "totp.skewy")
 	val := schema.NewStructValidator()

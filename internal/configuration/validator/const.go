@@ -66,9 +66,9 @@ var SecretNames = map[string]string{
 	"OpenIDConnectIssuerPrivateKey": "identity_providers.oidc.issuer_private_key",
 }
 
-// validKeys is a list of valid keys that are not secret names. For the sake of consistency please place any secret in
+// ValidKeys is a list of valid keys that are not secret names. For the sake of consistency please place any secret in
 // the secret names map and reuse it in relevant sections.
-var validKeys = []string{
+var ValidKeys = []string{
 	// Root Keys.
 	"host",
 	"port",
@@ -211,6 +211,10 @@ var validKeys = []string{
 
 	// Identity Provider Keys.
 	"identity_providers.oidc.clients",
+}
+
+var ignoredKeys = []string{
+	"testing.dir",
 }
 
 var replacedKeys = map[string]string{
