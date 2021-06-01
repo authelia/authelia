@@ -52,11 +52,17 @@ func startServer() {
 		}
 	}
 
-	if err := logging.InitializeLogger(config.LogFormat, config.LogFilePath, config.LogKeepStdout); err != nil {
+	if err := logging.InitializeLogger(config.Logging.Format, config.Logging.FilePath, config.Logging.KeepStdout); err != nil {
 		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
 
-	switch config.LogLevel {
+	switch config.Logging.Level {
+	case "error":
+		logger.Info("Logging severity set to error")
+		logging.SetLevel(logrus.ErrorLevel)
+	case "warn":
+		logger.Info("Logging severity set to warn")
+		logging.SetLevel(logrus.WarnLevel)
 	case "info":
 		logger.Info("Logging severity set to info")
 		logging.SetLevel(logrus.InfoLevel)

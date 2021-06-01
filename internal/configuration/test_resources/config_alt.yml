@@ -2,7 +2,8 @@
 host: 127.0.0.1
 port: 9091
 
-log_level: debug
+logging:
+  level: debug
 default_redirection_url: https://home.example.com:8080/
 
 totp:

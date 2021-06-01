@@ -19,9 +19,9 @@ func IsStringAlphaNumeric(input string) bool {
 }
 
 // IsStringInSlice checks if a single string is in a slice of strings.
-func IsStringInSlice(a string, slice []string) (inSlice bool) {
-	for _, b := range slice {
-		if b == a {
+func IsStringInSlice(needle string, haystack []string) (inSlice bool) {
+	for _, b := range haystack {
+		if b == needle {
 			return true
 		}
 	}
@@ -30,9 +30,9 @@ func IsStringInSlice(a string, slice []string) (inSlice bool) {
 }
 
 // IsStringInSliceFold checks if a single string is in a slice of strings but uses strings.EqualFold to compare them.
-func IsStringInSliceFold(a string, slice []string) (inSlice bool) {
-	for _, b := range slice {
-		if strings.EqualFold(b, a) {
+func IsStringInSliceFold(needle string, haystack []string) (inSlice bool) {
+	for _, b := range haystack {
+		if strings.EqualFold(b, needle) {
 			return true
 		}
 	}
@@ -41,9 +41,9 @@ func IsStringInSliceFold(a string, slice []string) (inSlice bool) {
 }
 
 // IsStringInSliceContains checks if a single string is in an array of strings.
-func IsStringInSliceContains(a string, list []string) (inSlice bool) {
-	for _, b := range list {
-		if strings.Contains(a, b) {
+func IsStringInSliceContains(needle string, haystack []string) (inSlice bool) {
+	for _, b := range haystack {
+		if strings.Contains(needle, b) {
 			return true
 		}
 	}
