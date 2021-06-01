@@ -3,6 +3,7 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
@@ -18,6 +19,11 @@ func ValidateKeys(validator *schema.StructValidator, keys []string) {
 		}
 
 		if utils.IsStringInSlice(key, ValidKeys) {
+			continue
+		}
+
+		// Ignore k8s keys.
+		if strings.HasPrefix(key, "service.") {
 			continue
 		}
 
