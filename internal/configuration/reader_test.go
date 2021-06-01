@@ -83,7 +83,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 
 	_, errors := Read("./test_resources/config.yml")
 
-	require.Len(t, errors, 14)
+	require.Len(t, errors, 12)
 
 	if runtime.GOOS == windows {
 		assert.EqualError(t, errors[0], "error loading secret file (jwt_secret): open /path/not/exist/jwt: The system cannot find the path specified.")
