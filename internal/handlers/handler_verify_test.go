@@ -26,49 +26,13 @@ var verifyGetCfg = schema.AuthenticationBackendConfiguration{
 	LDAP:            &schema.LDAPAuthenticationBackendConfiguration{},
 }
 
-// Test getOriginalURL.
-func TestShouldGetOriginalURLFromOriginalURLHeader(t *testing.T) {
-	mock := mocks.NewMockAutheliaCtx(t)
-	defer mock.Close()
-
-	mock.Ctx.Request.Header.Set("X-Original-URL", "https://home.example.com")
-	originalURL, err := getOriginalURL(mock.Ctx)
-	assert.NoError(t, err)
-
-	expectedURL, err := url.ParseRequestURI("https://home.example.com")
-	assert.NoError(t, err)
-	assert.Equal(t, expectedURL, originalURL)
-}
-
-func TestShouldGetOriginalURLFromForwardedHeadersWithoutURI(t *testing.T) {
-	mock := mocks.NewMockAutheliaCtx(t)
-	defer mock.Close()
-	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
-	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
-	originalURL, err := getOriginalURL(mock.Ctx)
-	assert.NoError(t, err)
-
-	expectedURL, err := url.ParseRequestURI("https://home.example.com")
-	assert.NoError(t, err)
-	assert.Equal(t, expectedURL, originalURL)
-}
-
-func TestShouldGetOriginalURLFromForwardedHeadersWithURI(t *testing.T) {
-	mock := mocks.NewMockAutheliaCtx(t)
-	defer mock.Close()
-	mock.Ctx.Request.Header.Set("X-Original-URL", "htt-ps//home?-.example.com")
-	_, err := getOriginalURL(mock.Ctx)
-	assert.Error(t, err)
-	assert.Equal(t, "Unable to parse URL extracted from X-Original-URL header: parse \"htt-ps//home?-.example.com\": invalid URI for request", err.Error())
-}
-
 func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/abc")
-	originalURL, err := getOriginalURL(mock.Ctx)
+	originalURL, err := mock.Ctx.GetOriginalURL()
 	assert.NoError(t, err)
 
 	expectedURL, err := url.ParseRequestURI("https://home.example.com/abc")
@@ -79,7 +43,7 @@ func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
 func TestShouldRaiseWhenNoHeaderProvidedToDetectTargetURL(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
-	_, err := getOriginalURL(mock.Ctx)
+	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
 	assert.Equal(t, "Missing header X-Forwarded-Proto", err.Error())
 }
@@ -89,7 +53,7 @@ func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testi
 	defer mock.Close()
 
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
-	_, err := getOriginalURL(mock.Ctx)
+	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
 	assert.Equal(t, "Missing header X-Forwarded-Host", err.Error())
 }
@@ -101,7 +65,7 @@ func TestShouldRaiseWhenXForwardedProtoIsNotParsable(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "!:;;:,")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
 
-	_, err := getOriginalURL(mock.Ctx)
+	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
 	assert.Equal(t, "Unable to parse URL !:;;:,://myhost.local: parse \"!:;;:,://myhost.local\": invalid URI for request", err.Error())
 }
@@ -114,7 +78,7 @@ func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
 	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "!:;;:,")
 
-	_, err := getOriginalURL(mock.Ctx)
+	_, err := mock.Ctx.GetOriginalURL()
 	require.Error(t, err)
 	assert.Equal(t, "Unable to parse URL https://myhost.local!:;;:,: parse \"https://myhost.local!:;;:,\": invalid port \":,\" after host", err.Error())
 }

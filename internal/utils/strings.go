@@ -19,9 +19,9 @@ func IsStringAlphaNumeric(input string) bool {
 }
 
 // IsStringInSlice checks if a single string is in a slice of strings.
-func IsStringInSlice(a string, slice []string) (inSlice bool) {
-	for _, b := range slice {
-		if b == a {
+func IsStringInSlice(needle string, haystack []string) (inSlice bool) {
+	for _, b := range haystack {
+		if b == needle {
 			return true
 		}
 	}
@@ -30,9 +30,9 @@ func IsStringInSlice(a string, slice []string) (inSlice bool) {
 }
 
 // IsStringInSliceFold checks if a single string is in a slice of strings but uses strings.EqualFold to compare them.
-func IsStringInSliceFold(a string, slice []string) (inSlice bool) {
-	for _, b := range slice {
-		if strings.EqualFold(b, a) {
+func IsStringInSliceFold(needle string, haystack []string) (inSlice bool) {
+	for _, b := range haystack {
+		if strings.EqualFold(b, needle) {
 			return true
 		}
 	}
@@ -41,9 +41,9 @@ func IsStringInSliceFold(a string, slice []string) (inSlice bool) {
 }
 
 // IsStringInSliceContains checks if a single string is in an array of strings.
-func IsStringInSliceContains(a string, list []string) (inSlice bool) {
-	for _, b := range list {
-		if strings.Contains(a, b) {
+func IsStringInSliceContains(needle string, haystack []string) (inSlice bool) {
+	for _, b := range haystack {
+		if strings.Contains(needle, b) {
 			return true
 		}
 	}
@@ -68,20 +68,30 @@ func SliceString(s string, d int) (array []string) {
 	return
 }
 
-// IsStringSlicesDifferent checks two slices of strings and on the first occurrence of a string item not existing in the
-// other slice returns true, otherwise returns false.
-func IsStringSlicesDifferent(a, b []string) (different bool) {
+func isStringSlicesDifferent(a, b []string, method func(s string, b []string) bool) (different bool) {
 	if len(a) != len(b) {
 		return true
 	}
 
 	for _, s := range a {
-		if !IsStringInSlice(s, b) {
+		if !method(s, b) {
 			return true
 		}
 	}
 
 	return false
+}
+
+// IsStringSlicesDifferent checks two slices of strings and on the first occurrence of a string item not existing in the
+// other slice returns true, otherwise returns false.
+func IsStringSlicesDifferent(a, b []string) (different bool) {
+	return isStringSlicesDifferent(a, b, IsStringInSlice)
+}
+
+// IsStringSlicesDifferentFold checks two slices of strings and on the first occurrence of a string item not existing in
+// the other slice (case insensitive) returns true, otherwise returns false.
+func IsStringSlicesDifferentFold(a, b []string) (different bool) {
+	return isStringSlicesDifferent(a, b, IsStringInSliceFold)
 }
 
 // StringSlicesDelta takes a before and after []string and compares them returning a added and removed []string.

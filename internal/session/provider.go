@@ -87,6 +87,7 @@ func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 	// and save it in the store.
 	if !ok {
 		userSession := NewDefaultUserSession()
+
 		store.Set(userSessionStorerKey, userSession)
 
 		return userSession, nil
@@ -130,6 +131,7 @@ func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession
 // RegenerateSession regenerate a session ID.
 func (p *Provider) RegenerateSession(ctx *fasthttp.RequestCtx) error {
 	err := p.sessionHolder.Regenerate(ctx)
+
 	return err
 }
 

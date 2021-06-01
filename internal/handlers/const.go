@@ -25,8 +25,6 @@ const remoteNameHeader = "Remote-Name"
 const remoteEmailHeader = "Remote-Email"
 const remoteGroupsHeader = "Remote-Groups"
 
-var protoHostSeparator = []byte("://")
-
 const (
 	// Forbidden means the user is forbidden the access to a resource.
 	Forbidden authorizationMatching = iota
@@ -57,3 +55,30 @@ const testUsername = "john"
 const movingAverageWindow = 10
 const msMinimumDelay1FA = float64(250)
 const msMaximumRandomDelay = int64(85)
+
+// OIDC constants.
+const (
+	oidcWellKnownPath  = "/.well-known/openid-configuration"
+	oidcJWKsPath       = "/api/oidc/jwks"
+	oidcAuthorizePath  = "/api/oidc/authorize"
+	oidcTokenPath      = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.
+	oidcIntrospectPath = "/api/oidc/introspect"
+	oidcRevokePath     = "/api/oidc/revoke"
+
+	// Note: If you change this const you must also do so in the frontend at web/src/services/Api.ts.
+	oidcConsentPath = "/api/oidc/consent"
+)
+
+const (
+	accept = "accept"
+	reject = "reject"
+)
+
+var scopeDescriptions = map[string]string{
+	"openid":  "Use OpenID to verify your identity",
+	"email":   "Access your email addresses",
+	"profile": "Access your username",
+	"groups":  "Access your group membership",
+}
+
+var audienceDescriptions = map[string]string{}

@@ -14,6 +14,7 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/notification"
+	"github.com/authelia/authelia/internal/oidc"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/server"
 	"github.com/authelia/authelia/internal/session"
@@ -51,11 +52,17 @@ func startServer() {
 		}
 	}
 
-	if err := logging.InitializeLogger(config.LogFormat, config.LogFilePath); err != nil {
+	if err := logging.InitializeLogger(config.Logging.Format, config.Logging.FilePath, config.Logging.KeepStdout); err != nil {
 		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
 
-	switch config.LogLevel {
+	switch config.Logging.Level {
+	case "error":
+		logger.Info("Logging severity set to error")
+		logging.SetLevel(logrus.ErrorLevel)
+	case "warn":
+		logger.Info("Logging severity set to warn")
+		logging.SetLevel(logrus.WarnLevel)
 	case "info":
 		logger.Info("Logging severity set to info")
 		logging.SetLevel(logrus.InfoLevel)
@@ -117,15 +124,22 @@ func startServer() {
 	authorizer := authorization.NewAuthorizer(config.AccessControl)
 	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
+	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
+
+	if err != nil {
+		logger.Fatalf("Error initializing OpenID Connect Provider: %+v", err)
+	}
 
 	providers := middlewares.Providers{
 		Authorizer:      authorizer,
 		UserProvider:    userProvider,
 		Regulator:       regulator,
+		OpenIDConnect:   oidcProvider,
 		StorageProvider: storageProvider,
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
 	}
+
 	server.StartServer(*config, providers)
 }
 
@@ -149,7 +163,8 @@ func main() {
 	}
 
 	rootCmd.AddCommand(versionCmd, commands.HashPasswordCmd,
-		commands.ValidateConfigCmd, commands.CertificatesCmd)
+		commands.ValidateConfigCmd, commands.CertificatesCmd,
+		commands.RSACmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		logger.Fatal(err)

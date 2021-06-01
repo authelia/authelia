@@ -50,7 +50,7 @@ Here is what Authelia's portal looks like
 
 Here is the list of the main available features:
 
-* Several kind of second factor:
+* Several second factor methods:
   * **[Security Key (U2F)](https://www.authelia.com/docs/features/2fa/security-key)** with [Yubikey].
   * **[Time-based One-Time password](https://www.authelia.com/docs/features/2fa/one-time-password)** 
     with [Google Authenticator].
@@ -61,6 +61,7 @@ Here is the list of the main available features:
 * Access restriction after too many authentication attempts.
 * Fine-grained access control per subdomain, user, resource and network.
 * Support of basic authentication for endpoints protected by single factor.
+* Beta support for [OpenID Connect](https://www.authelia.com/docs/configuration/identity-providers/oidc.html).
 * Highly available using a remote database and Redis as a highly available KV store.
 * Compatible with Kubernetes [ingress-nginx](https://github.com/kubernetes/ingress-nginx) controller out of the box.
 
@@ -258,7 +259,12 @@ eyes as we can to detect potential vulnerabilities. <a href="https://opencollect
 
 ### Sponsors
 
-Support Authelia by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/authelia-sponsors#sponsor)]
+Any company can become a sponsor by donating or providing any benefit to the project or the team helping improve
+Authelia.
+For instance, we are actively looking for a sponsor who would be willing to help us organize a security audit of the
+code or a pen test.
+
+Companies contributing to Authelia will have a specical mention below. [[Become a sponsor](https://opencollective.com/authelia-sponsors#sponsor)]
 
 <a href="https://opencollective.com/authelia-sponsors/sponsor/0/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/0/avatar.svg"></a>
 <a href="https://opencollective.com/authelia-sponsors/sponsor/1/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/1/avatar.svg"></a>
@@ -271,7 +277,12 @@ Support Authelia by becoming a sponsor. Your logo will show up here with a link 
 <a href="https://opencollective.com/authelia-sponsors/sponsor/8/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/authelia-sponsors/sponsor/9/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/9/avatar.svg"></a>
 
-### Jetbrains
+#### Digital Ocean
+
+Thank you to [<img src="./docs/images/logos/digitalocean.svg" alt="Digital Ocean" width="32"> DigitalOcean](https://www.digitalocean.com/?from=Authelia) for
+contributing on OpenCollective.
+
+#### Jetbrains
 
 Thank you to [<img src="./docs/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
 for providing us with free licenses to their great tools.

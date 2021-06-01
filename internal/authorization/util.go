@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
@@ -174,4 +175,18 @@ func domainToPrefixSuffix(domain string) (prefix, suffix string) {
 	}
 
 	return parts[0], strings.Join(parts[1:], ".")
+}
+
+// IsAuthLevelSufficient returns true if the current authenticationLevel is above the authorizationLevel.
+func IsAuthLevelSufficient(authenticationLevel authentication.Level, authorizationLevel Level) bool {
+	switch authorizationLevel {
+	case Denied:
+		return false
+	case OneFactor:
+		return authenticationLevel >= authentication.OneFactor
+	case TwoFactor:
+		return authenticationLevel >= authentication.TwoFactor
+	}
+
+	return true
 }

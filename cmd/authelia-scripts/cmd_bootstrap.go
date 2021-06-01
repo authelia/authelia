@@ -59,6 +59,9 @@ var hostEntries = []HostEntry{
 
 	// Kubernetes dashboard.
 	{Domain: "kubernetes.example.com", IP: "192.168.240.110"},
+	// OIDC tester app
+	{Domain: "oidc.example.com", IP: "192.168.240.100"},
+	{Domain: "oidc-public.example.com", IP: "192.168.240.100"},
 }
 
 func runCommand(cmd string, args ...string) {

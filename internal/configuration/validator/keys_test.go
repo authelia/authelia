@@ -106,8 +106,8 @@ func TestReplacedErrors(t *testing.T) {
 	assert.EqualError(t, errs[0], fmt.Sprintf(errFmtReplacedConfigurationKey, "authentication_backend.ldap.skip_verify", "authentication_backend.ldap.tls.skip_verify"))
 	assert.EqualError(t, errs[1], fmt.Sprintf(errFmtReplacedConfigurationKey, "authentication_backend.ldap.minimum_tls_version", "authentication_backend.ldap.tls.minimum_version"))
 	assert.EqualError(t, errs[2], fmt.Sprintf(errFmtReplacedConfigurationKey, "notifier.smtp.disable_verify_cert", "notifier.smtp.tls.skip_verify"))
-	assert.EqualError(t, errs[3], fmt.Sprintf(errFmtReplacedConfigurationKey, "logs_file_path", "log_file"))
-	assert.EqualError(t, errs[4], fmt.Sprintf(errFmtReplacedConfigurationKey, "logs_level", "log_level"))
+	assert.EqualError(t, errs[3], fmt.Sprintf(errFmtReplacedConfigurationKey, "logs_file_path", "logging.file_path"))
+	assert.EqualError(t, errs[4], fmt.Sprintf(errFmtReplacedConfigurationKey, "logs_level", "logging.level"))
 }
 
 func TestSecretKeysDontRaiseErrors(t *testing.T) {

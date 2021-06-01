@@ -1,11 +1,21 @@
 package validator
 
 const (
+	errFmtDeprecatedConfigurationKey = "[DEPRECATED] The %s configuration option is deprecated and will be " +
+		"removed in %s, please use %s instead"
+	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
+
+	errFmtLoggingLevelInvalid = "the log level '%s' is invalid, must be one of: %s"
+
 	errFmtSessionSecretRedisProvider      = "The session secret must be set when using the %s session provider"
 	errFmtSessionRedisPortRange           = "The port must be between 1 and 65535 for the %s session provider"
 	errFmtSessionRedisHostRequired        = "The host must be provided when using the %s session provider"
 	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
-	errFmtReplacedConfigurationKey        = "invalid configuration key '%s' was replaced by '%s'"
+
+	errOAuthOIDCServerClientRedirectURIFmt               = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
+	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "OIDC Client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
+	errIdentityProvidersOIDCServerClientInvalidPolicyFmt = "OIDC Client with ID '%s' has an invalid policy '%s', should be either 'one_factor' or 'two_factor'"
+	errIdentityProvidersOIDCServerClientInvalidSecFmt    = "OIDC Client with ID '%s' has an empty secret"
 
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
@@ -38,19 +48,22 @@ const (
 		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 )
 
+var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
 var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 
 // SecretNames contains a map of secret names.
 var SecretNames = map[string]string{
-	"JWTSecret":             "jwt_secret",
-	"SessionSecret":         "session.secret",
-	"DUOSecretKey":          "duo_api.secret_key",
-	"RedisPassword":         "session.redis.password",
-	"RedisSentinelPassword": "session.redis.high_availability.sentinel_password",
-	"LDAPPassword":          "authentication_backend.ldap.password",
-	"SMTPPassword":          "notifier.smtp.password",
-	"MySQLPassword":         "storage.mysql.password",
-	"PostgreSQLPassword":    "storage.postgres.password",
+	"JWTSecret":                     "jwt_secret",
+	"SessionSecret":                 "session.secret",
+	"DUOSecretKey":                  "duo_api.secret_key",
+	"RedisPassword":                 "session.redis.password",
+	"RedisSentinelPassword":         "session.redis.high_availability.sentinel_password",
+	"LDAPPassword":                  "authentication_backend.ldap.password",
+	"SMTPPassword":                  "notifier.smtp.password",
+	"MySQLPassword":                 "storage.mysql.password",
+	"PostgreSQLPassword":            "storage.postgres.password",
+	"OpenIDConnectHMACSecret":       "identity_providers.oidc.hmac_secret",
+	"OpenIDConnectIssuerPrivateKey": "identity_providers.oidc.issuer_private_key",
 }
 
 // validKeys is a list of valid keys that are not secret names. For the sake of consistency please place any secret in
@@ -59,19 +72,30 @@ var validKeys = []string{
 	// Root Keys.
 	"host",
 	"port",
-	"log_level",
-	"log_format",
-	"log_file_path",
 	"default_redirection_url",
 	"theme",
 	"tls_key",
 	"tls_cert",
 	"certificates_directory",
 
+	// Logging keys.
+	"logging.level",
+	"logging.format",
+	"logging.file_path",
+	"logging.keep_stdout",
+
+	// TODO: DEPRECATED START. Remove in 4.33.0.
+	"log_level",
+	"log_format",
+	"log_file_path",
+	// TODO: DEPRECATED END. Remove in 4.33.0.
+
 	// Server Keys.
 	"server.read_buffer_size",
 	"server.write_buffer_size",
 	"server.path",
+	"server.enable_pprof",
+	"server.enable_expvars",
 
 	// TOTP Keys.
 	"totp.issuer",
@@ -184,14 +208,17 @@ var validKeys = []string{
 	"authentication_backend.file.password.salt_length",
 	"authentication_backend.file.password.memory",
 	"authentication_backend.file.password.parallelism",
+
+	// Identity Provider Keys.
+	"identity_providers.oidc.clients",
 }
 
 var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",
 	"authentication_backend.ldap.minimum_tls_version": "authentication_backend.ldap.tls.minimum_version",
 	"notifier.smtp.disable_verify_cert":               "notifier.smtp.tls.skip_verify",
-	"logs_file_path":                                  "log_file",
-	"logs_level":                                      "log_level",
+	"logs_file_path":                                  "logging.file_path",
+	"logs_level":                                      "logging.level",
 }
 
 var specificErrorKeys = map[string]string{

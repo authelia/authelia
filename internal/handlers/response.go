@@ -11,6 +11,42 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+// HandleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
+func HandleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
+	userSession := ctx.GetSession()
+
+	if !authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
+		ctx.Logger.Warn("OIDC requires 2FA, cannot be redirected yet")
+		ctx.ReplyOK()
+
+		return
+	}
+
+	uri, err := ctx.ForwardedProtoHost()
+	if err != nil {
+		ctx.Logger.Errorf("%v", err)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to get forward facing URI"), authenticationFailedMessage)
+
+		return
+	}
+
+	if isConsentMissing(
+		userSession.OIDCWorkflowSession,
+		userSession.OIDCWorkflowSession.RequestedScopes,
+		userSession.OIDCWorkflowSession.RequestedAudience) {
+		err := ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", uri)})
+
+		if err != nil {
+			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+		}
+	} else {
+		err := ctx.SetJSONBody(redirectResponse{Redirect: userSession.OIDCWorkflowSession.AuthURI})
+		if err != nil {
+			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+		}
+	}
+}
+
 // Handle1FAResponse handle the redirection upon 1FA authentication.
 func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod string, username string, groups []string) {
 	if targetURI == "" {

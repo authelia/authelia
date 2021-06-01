@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"io"
 	"os"
 
 	logrus_stack "github.com/Gurpartap/logrus-stack"
@@ -18,7 +19,7 @@ func SetLevel(level logrus.Level) {
 }
 
 // InitializeLogger initialize logger.
-func InitializeLogger(format, filename string) error {
+func InitializeLogger(format, filename string, stdout bool) error {
 	callerLevels := []logrus.Level{}
 	stackLevels := []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
 	logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
@@ -43,7 +44,12 @@ func InitializeLogger(format, filename string) error {
 			})
 		}
 
-		logrus.SetOutput(f)
+		if stdout {
+			logLocations := io.MultiWriter(os.Stdout, f)
+			logrus.SetOutput(logLocations)
+		} else {
+			logrus.SetOutput(f)
+		}
 	}
 
 	return nil

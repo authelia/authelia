@@ -8,10 +8,11 @@ services:
       - 'traefik.frontend.rule=Host:login.example.com;PathPrefix:/api'
       - 'traefik.protocol=https'
       # Traefik 2.x
-      - 'traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) && PathPrefix(`/api`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/api/`)'  # yamllint disable-line rule:line-length
+      - 'traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) && PathPrefix(`/.well-known/openid-configuration`) || Host(`login.example.com`) && PathPrefix(`/api`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/api/`)'  # yamllint disable-line rule:line-length
       - 'traefik.http.routers.authelia_backend.entrypoints=https'
       - 'traefik.http.routers.authelia_backend.tls=true'
       - 'traefik.http.services.authelia_backend.loadbalancer.server.scheme=https'
+      - 'traefik.http.services.authelia_backend.passHostHeader=true'
     volumes:
       - '../..:/authelia'
     environment:

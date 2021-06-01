@@ -34,14 +34,24 @@ server:
   ## Must be alphanumeric chars and should not contain any slashes.
   path: ""
 
+  ## Enables the pprof endpoint.
+  enable_pprof: false
+
+  ## Enables the expvars endpoint.
+  enable_expvars: false
+
 ## Level of verbosity for logs: info, debug, trace.
-log_level: debug
+logging:
+  level: debug
 
-## Format the logs are written as: json, text.
-# log_format: json
+  ## Format the logs are written as: json, text.
+  # format: json
 
-## File path where the logs will be written. If not set logs are written to stdout.
-# log_file_path: /config/authelia.log
+  ## File path where the logs will be written. If not set logs are written to stdout.
+  # file_path: /config/authelia.log
+
+  ## Whether to also log to stdout when a log_file_path is defined.
+  # keep_stdout: false
 
 ## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
 ## set using a secret: https://www.authelia.com/docs/configuration/secrets.html
@@ -553,4 +563,62 @@ notifier:
   #   sender: admin@example.com
   #   host: smtp.gmail.com
   #   port: 587
+
+##
+## Identity Providers
+##
+# identity_providers:
+
+  ##
+  ## OpenID Connect (Identity Provider)
+  ##
+  ## It's recommended you read the documentation before configuration of this section:
+  ## https://www.authelia.com/docs/configuration/identity-providers/oidc.html
+  # oidc:
+    ## The hmac_secret is used to sign OAuth2 tokens (authorization code, access tokens and refresh tokens).
+    ## HMAC Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+    # hmac_secret: this_is_a_secret_abc123abc123abc
+
+    ## The issuer_private_key is used to sign the JWT forged by OpenID Connect.
+    ## Issuer Private Key can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    # issuer_private_key: |
+    #   --- KEY START
+    #   --- KEY END
+
+    ## Clients is a list of known clients and their configuration.
+    # clients:
+      # -
+        ## The ID is the OpenID Connect ClientID which is used to link an application to a configuration.
+        # id: myapp
+
+        ## The description to show to users when they end up on the consent screen. Defaults to the ID above.
+        # description: My Application
+
+        ## The client secret is a shared secret between Authelia and the consumer of this client.
+        # secret: this_is_a_secret
+
+        ## The policy to require for this client; one_factor or two_factor.
+        # authorization_policy: two_factor
+
+        ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
+        # redirect_uris:
+        #   - https://oidc.example.com:8080/oauth2/callback
+
+        ## Scopes defines the valid scopes this client can request
+        # scopes:
+        # - openid
+        # - groups
+        # - email
+        # - profile
+
+        ## Grant Types configures which grants this client can obtain.
+        ## It's not recommended to define this unless you know what you're doing.
+        # grant_types:
+        # - refresh_token
+        # - "authorization_code
+
+        ## Response Types configures which responses this client can be sent.
+        ## It's not recommended to define this unless you know what you're doing.
+        # response_types:
+        # - code
 ...

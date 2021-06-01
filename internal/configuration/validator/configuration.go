@@ -9,7 +9,6 @@ import (
 )
 
 var defaultPort = 9091
-var defaultLogLevel = "info"
 
 // ValidateConfiguration and adapt the configuration read from file.
 //nolint:gocyclo // This function is likely to always have lots of if/else statements, as long as we keep the flow clean it should be understandable.
@@ -37,10 +36,6 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		}
 	}
 
-	if configuration.LogLevel == "" {
-		configuration.LogLevel = defaultLogLevel
-	}
-
 	if configuration.JWTSecret == "" {
 		validator.Push(fmt.Errorf("Provide a JWT secret using \"jwt_secret\" key"))
 	}
@@ -52,25 +47,19 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		}
 	}
 
-	if configuration.Theme == "" {
-		configuration.Theme = "light"
-	}
-
 	ValidateTheme(configuration, validator)
 
 	if configuration.TOTP == nil {
 		configuration.TOTP = &schema.DefaultTOTPConfiguration
 	}
 
+	ValidateLogging(configuration, validator)
+
 	ValidateTOTP(configuration.TOTP, validator)
 
 	ValidateAuthenticationBackend(&configuration.AuthenticationBackend, validator)
 
-	if configuration.AccessControl.DefaultPolicy == "" {
-		configuration.AccessControl.DefaultPolicy = denyPolicy
-	}
-
-	ValidateAccessControl(configuration.AccessControl, validator)
+	ValidateAccessControl(&configuration.AccessControl, validator)
 
 	ValidateRules(configuration.AccessControl, validator)
 
@@ -91,4 +80,6 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	} else {
 		ValidateNotifier(configuration.Notifier, validator)
 	}
+
+	ValidateIdentityProviders(&configuration.IdentityProviders, validator)
 }
