@@ -37,6 +37,9 @@ func Read(configPath string) (configuration *schema.Configuration, errs []error)
 		errs = append(errs, err)
 	}
 
+	val := schema.NewStructValidator()
+	validator.ValidateKeys(val, konfig.Keys())
+
 	if err := konfig.Load(env.ProviderWithValue("AUTHELIA_", ".", koanfSecretEnvParser()), nil); err != nil {
 		errs = append(errs, err)
 	}
@@ -51,10 +54,8 @@ func Read(configPath string) (configuration *schema.Configuration, errs []error)
 		return nil, errs
 	}
 
-	val := schema.NewStructValidator()
 	validator.ValidateSecrets(configuration, val, konfig)
 	validator.ValidateConfiguration(configuration, val)
-	validator.ValidateKeys(val, konfig.Keys())
 
 	if val.HasErrors() {
 		return nil, val.Errors()

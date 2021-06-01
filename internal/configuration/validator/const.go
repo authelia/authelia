@@ -213,10 +213,6 @@ var ValidKeys = []string{
 	"identity_providers.oidc.clients",
 }
 
-var ignoredKeys = []string{
-	"testing.dir",
-}
-
 var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",
 	"authentication_backend.ldap.minimum_tls_version": "authentication_backend.ldap.tls.minimum_version",
