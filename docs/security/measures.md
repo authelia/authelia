@@ -43,8 +43,9 @@ configured.
 
 The cost of this is low since in the instance of a user not existing it just stops processing the request to delay the
 login. Lastly the absolute minimum time authentication can take is 250 milliseconds. Both of these measures also have 
-the added effect of creating an additional delay for all authentication attempts reducing the likelihood a password can 
-be brute-forced even if regulation settings are too permissive.
+the added effect of creating an additional delay for all authentication attempts increasing the time that a brute-force
+attack will take, this combined with regulation greatly delays brute-force attacks and the effectiveness of them in
+general.
 
 ## Protections against password cracking (File authentication provider)
 
