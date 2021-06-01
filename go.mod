@@ -11,7 +11,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/duosecurity/duo_api_golang v0.0.0-20201112143038-0e07e9f869e3
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
-	github.com/fasthttp/router v1.3.12
+	github.com/fasthttp/router v1.3.14
 	github.com/fasthttp/session/v2 v2.3.2
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/go-ldap/ldap/v3 v3.3.0
