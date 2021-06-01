@@ -8,6 +8,7 @@ import (
 
 func koanfSecretEnvParser() func(key string, value string) (string, interface{}) {
 	keyReplacements := map[string]string{}
+
 	for _, key := range validator.ValidKeys {
 		if strings.Contains(key, "_") {
 			keyReplacements[strings.ReplaceAll(key, "_", ".")] = key
@@ -29,7 +30,7 @@ func koanfSecretEnvParser() func(key string, value string) (string, interface{})
 		}
 
 		if validator.IsSecretKey(formattedKey) {
-			return validator.SecretEnvNameReplacer(formattedKey), value
+			return validator.KoanfEnvSecretKeyReplacer(formattedKey), value
 		}
 
 		return strings.TrimPrefix(formattedKey, "authelia."), value

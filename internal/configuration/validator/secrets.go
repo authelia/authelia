@@ -10,12 +10,13 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
-func SecretEnvNameReplacer(name string) (result string) {
-	for _, secretKey := range SecretNames {
-		badKey := strings.ReplaceAll(secretKey, "_", ".")
+// KoanfEnvSecretKeyReplacer replaces a koanf secret key with the expected one.
+func KoanfEnvSecretKeyReplacer(name string) (result string) {
+	for _, key := range SecretNames {
+		badKey := strings.ReplaceAll(key, "_", ".")
 
 		if name == badKey {
-			return secretKey
+			return key
 		}
 	}
 

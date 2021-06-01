@@ -17,30 +17,6 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 )
 
-func ensureConfigFileExists(path string) (errs []error) {
-	if _, err := os.Stat(path); err != nil {
-		errs = []error{
-			fmt.Errorf("Unable to find config file: %s", path),
-			fmt.Errorf("Generating config file: %s", path),
-		}
-
-		if err := generateConfigFromTemplate(path); err != nil {
-			errs = append(errs, err)
-		} else {
-			errs = append(errs, fmt.Errorf("Generated configuration at: %v", path))
-		}
-
-		return errs
-	}
-
-	if _, err := ioutil.ReadFile(path); err != nil {
-		errs = append(errs, fmt.Errorf("Failed to read file: %+v", err))
-		return errs
-	}
-
-	return errs
-}
-
 // Read a YAML configuration and create a Configuration object out of it.
 func Read(configPath string) (configuration *schema.Configuration, errs []error) {
 	if configPath == "" {
@@ -104,4 +80,28 @@ func generateConfigFromTemplate(configPath string) error {
 	}
 
 	return nil
+}
+
+func ensureConfigFileExists(path string) (errs []error) {
+	if _, err := os.Stat(path); err != nil {
+		errs = []error{
+			fmt.Errorf("Unable to find config file: %s", path),
+			fmt.Errorf("Generating config file: %s", path),
+		}
+
+		if err := generateConfigFromTemplate(path); err != nil {
+			errs = append(errs, err)
+		} else {
+			errs = append(errs, fmt.Errorf("Generated configuration at: %v", path))
+		}
+
+		return errs
+	}
+
+	if _, err := ioutil.ReadFile(path); err != nil {
+		errs = append(errs, fmt.Errorf("Failed to read file: %+v", err))
+		return errs
+	}
+
+	return errs
 }

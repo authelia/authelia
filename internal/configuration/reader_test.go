@@ -155,7 +155,7 @@ func TestShouldErrorPermissionsConfigFile(t *testing.T) {
 	} else {
 		require.Len(t, errors, 1)
 
-		assert.EqualError(t, errors[0], "Failed to open /tmp/authelia/permissions.yml: permission denied")
+		assert.EqualError(t, errors[0], "Failed to read file: open /tmp/authelia/permissions.yml: permission denied")
 	}
 }
 
