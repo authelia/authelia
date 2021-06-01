@@ -52,7 +52,7 @@ func startServer() {
 		}
 	}
 
-	if err := logging.InitializeLogger(config.LogFormat, config.LogFilePath); err != nil {
+	if err := logging.InitializeLogger(config.LogFormat, config.LogFilePath, config.LogKeepStdout); err != nil {
 		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
 

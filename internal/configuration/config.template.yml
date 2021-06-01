@@ -43,6 +43,9 @@ log_level: debug
 ## File path where the logs will be written. If not set logs are written to stdout.
 # log_file_path: /config/authelia.log
 
+## Whether to also log to stdout when a log_file_path is defined.
+# log_keep_stdout: false
+
 ## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
 ## set using a secret: https://www.authelia.com/docs/configuration/secrets.html
 jwt_secret: a_very_important_secret
