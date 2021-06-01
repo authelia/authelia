@@ -31,24 +31,6 @@ func TestShouldSetDefaultLoggingValues(t *testing.T) {
 	assert.Equal(t, "", config.Logging.FilePath)
 }
 
-func TestShouldSetKeepStdoutToFalseWhenFileNotConfigured(t *testing.T) {
-	config := &schema.Configuration{
-		Logging: schema.LoggingConfiguration{
-			Level:      "info",
-			KeepStdout: true,
-		},
-	}
-
-	validator := schema.NewStructValidator()
-
-	ValidateLogging(config, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	assert.Len(t, validator.Errors(), 0)
-
-	assert.False(t, config.Logging.KeepStdout)
-}
-
 func TestShouldRaiseErrorOnInvalidLoggingLevel(t *testing.T) {
 	config := &schema.Configuration{
 		Logging: schema.LoggingConfiguration{
@@ -66,6 +48,7 @@ func TestShouldRaiseErrorOnInvalidLoggingLevel(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "the log level 'TRACE' is invalid, must be one of: trace, debug, info, warn, error")
 }
 
+// TODO: DEPRECATED TEST. Remove in 4.33.0.
 func TestShouldMigrateDeprecatedLoggingConfig(t *testing.T) {
 	config := &schema.Configuration{
 		LogLevel:    "trace",

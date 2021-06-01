@@ -79,14 +79,16 @@ var validKeys = []string{
 	"certificates_directory",
 
 	// Logging keys.
-	"log_level",
-	"log_format",
-	"log_file_path",
-
 	"logging.level",
 	"logging.format",
 	"logging.file_path",
 	"logging.keep_stdout",
+
+	// TODO: DEPRECATED START. Remove in 4.33.0.
+	"log_level",
+	"log_format",
+	"log_file_path",
+	// TODO: DEPRECATED END. Remove in 4.33.0.
 
 	// Server Keys.
 	"server.read_buffer_size",

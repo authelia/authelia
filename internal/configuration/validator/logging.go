@@ -10,7 +10,7 @@ import (
 
 // ValidateLogging validates the logging configuration.
 func ValidateLogging(configuration *schema.Configuration, validator *schema.StructValidator) {
-	applyDeprecatedLoggingConfiguration(configuration, validator)
+	applyDeprecatedLoggingConfiguration(configuration, validator) // TODO: DEPRECATED LINE. Remove in 4.33.0.
 
 	if configuration.Logging.Level == "" {
 		configuration.Logging.Level = schema.DefaultLoggingConfiguration.Level
@@ -20,15 +20,12 @@ func ValidateLogging(configuration *schema.Configuration, validator *schema.Stru
 		configuration.Logging.Format = schema.DefaultLoggingConfiguration.Format
 	}
 
-	if configuration.Logging.FilePath == "" && configuration.Logging.KeepStdout {
-		configuration.Logging.KeepStdout = false
-	}
-
 	if !utils.IsStringInSlice(configuration.Logging.Level, validLoggingLevels) {
 		validator.Push(fmt.Errorf(errFmtLoggingLevelInvalid, configuration.Logging.Level, strings.Join(validLoggingLevels, ", ")))
 	}
 }
 
+// TODO: DEPRECATED FUNCTION. Remove in 4.33.0.
 func applyDeprecatedLoggingConfiguration(configuration *schema.Configuration, validator *schema.StructValidator) {
 	if configuration.LogLevel != "" {
 		validator.PushWarning(fmt.Errorf(errFmtDeprecatedConfigurationKey, "log_level", "4.33.0", "logging.level"))
