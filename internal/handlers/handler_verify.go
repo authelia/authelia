@@ -339,7 +339,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 		}
 	} else {
 		ctx.Logger.Debugf("Updated profile detected for %s.", userSession.Username)
-		if ctx.Configuration.LogLevel == "trace" {
+		if ctx.Configuration.Logging.Level == "trace" {
 			generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
 		}
 		userSession.Emails = details.Emails
