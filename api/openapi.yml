@@ -322,6 +322,31 @@ paths:
           description: Forbidden
       security:
         - authelia_auth: []
+  /api/user/password:
+    post:
+      tags:
+        - Password Update
+      summary: Password Update
+      description: >
+        This endpoint permits the update of the user's password.
+
+        It verifies the user's old password and then updates it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.updatePasswordRequestBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+
   /api/secondfactor/totp/identity/start:
     post:
       tags:
@@ -737,6 +762,18 @@ components:
           type: string
           enum: [totp, u2f, mobile_push]
           example: totp
+    handlers.updatePasswordRequestBody:
+      required:
+        - old_password
+        - password
+      type: object
+      properties:
+        old_password:
+          type: string
+          example: oldPassword
+        password:
+          type: string
+          example: password
     middlewares.ErrorResponse:
       type: object
       properties:
