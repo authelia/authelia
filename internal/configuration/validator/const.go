@@ -26,6 +26,11 @@ const (
 	twoFactorPolicy = "two_factor"
 	denyPolicy      = "deny"
 
+	darwin  = "darwin"
+	linux   = "linux"
+	windows = "windows"
+	freebsd = "freebsd"
+
 	argon2id = "argon2id"
 	sha512   = "sha512"
 

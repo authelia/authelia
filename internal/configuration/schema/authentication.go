@@ -2,21 +2,21 @@ package schema
 
 // LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server.
 type LDAPAuthenticationBackendConfiguration struct {
-	Implementation       string     `mapstructure:"implementation"`
-	URL                  string     `mapstructure:"url"`
-	BaseDN               string     `mapstructure:"base_dn"`
-	AdditionalUsersDN    string     `mapstructure:"additional_users_dn"`
-	UsersFilter          string     `mapstructure:"users_filter"`
-	AdditionalGroupsDN   string     `mapstructure:"additional_groups_dn"`
-	GroupsFilter         string     `mapstructure:"groups_filter"`
-	GroupNameAttribute   string     `mapstructure:"group_name_attribute"`
-	UsernameAttribute    string     `mapstructure:"username_attribute"`
-	MailAttribute        string     `mapstructure:"mail_attribute"`
-	DisplayNameAttribute string     `mapstructure:"display_name_attribute"`
-	User                 string     `mapstructure:"user"`
-	Password             string     `mapstructure:"password"`
-	StartTLS             bool       `mapstructure:"start_tls"`
-	TLS                  *TLSConfig `mapstructure:"tls"`
+	Implementation       string            `mapstructure:"implementation"`
+	URL                  string            `mapstructure:"url"`
+	BaseDN               string            `mapstructure:"base_dn"`
+	AdditionalUsersDN    string            `mapstructure:"additional_users_dn"`
+	UsersFilter          string            `mapstructure:"users_filter"`
+	AdditionalGroupsDN   string            `mapstructure:"additional_groups_dn"`
+	GroupsFilter         string            `mapstructure:"groups_filter"`
+	GroupNameAttribute   string            `mapstructure:"group_name_attribute"`
+	UsernameAttribute    string            `mapstructure:"username_attribute"`
+	MailAttribute        string            `mapstructure:"mail_attribute"`
+	DisplayNameAttribute string            `mapstructure:"display_name_attribute"`
+	User                 string            `mapstructure:"user"`
+	Password             string            `mapstructure:"password"`
+	StartTLS             bool              `mapstructure:"start_tls"`
+	TLS                  *TLSConfiguration `mapstructure:"tls"`
 }
 
 // FileAuthenticationBackendConfiguration represents the configuration related to file-based backend.
@@ -41,6 +41,7 @@ type AuthenticationBackendConfiguration struct {
 	RefreshInterval      string                                  `mapstructure:"refresh_interval"`
 	LDAP                 *LDAPAuthenticationBackendConfiguration `mapstructure:"ldap"`
 	File                 *FileAuthenticationBackendConfiguration `mapstructure:"file"`
+	Plugin               *PluginConfiguration                    `mapstructure:"plugin"`
 }
 
 // DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing.
@@ -77,7 +78,7 @@ var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendCon
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayname",
 	GroupNameAttribute:   "cn",
-	TLS: &TLSConfig{
+	TLS: &TLSConfiguration{
 		MinimumVersion: "TLS1.2",
 	},
 }

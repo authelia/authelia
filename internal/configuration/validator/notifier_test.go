@@ -1,8 +1,11 @@
 package validator
 
 import (
+	"runtime"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -40,7 +43,7 @@ func (suite *NotifierSuite) TestShouldEnsureAtLeastSMTPOrFilesystemIsProvided() 
 
 	suite.Assert().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Notifier should be either `smtp` or `filesystem`")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Please configure one of the `notifier` providers (`smtp`, `filesystem`, or `plugin`)")
 }
 
 func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
@@ -59,7 +62,7 @@ func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 
 	suite.Assert().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Notifier should be either `smtp` or `filesystem`")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Please do not configure more than one of the `notifer` providers (`smtp`, `filesystem`, or `plugin`)")
 }
 
 func (suite *NotifierSuite) TestShouldEnsureFilenameOfFilesystemNotifierIsProvided() {
@@ -129,4 +132,20 @@ func (suite *NotifierSuite) TestShouldEnsureSenderOfSMTPNotifierAreProvided() {
 
 func TestNotifierSuite(t *testing.T) {
 	suite.Run(t, new(NotifierSuite))
+}
+
+func TestShouldRaiseErrorWhenNotifierPluginConfiguredOnInvalidOS(t *testing.T) {
+	validator := schema.NewStructValidator()
+	notifierConfig := schema.NotifierConfiguration{}
+	notifierConfig.Plugin = &schema.PluginConfiguration{}
+
+	ValidateNotifier(&notifierConfig, validator)
+
+	if runtime.GOOS == linux || runtime.GOOS == freebsd || runtime.GOOS == darwin {
+		require.Len(t, validator.Errors(), 1)
+		assert.EqualError(t, validator.Errors()[0], "The `notifier` plugin provider name must be set")
+	} else {
+		require.Len(t, validator.Errors(), 1)
+		assert.EqualError(t, validator.Errors()[0], "The `notifier` plugin provider is only available on linux, freebsd, and darwin operating systems")
+	}
 }

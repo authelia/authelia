@@ -40,7 +40,7 @@ func TestShouldCreateRedisSessionProviderTLS(t *testing.T) {
 		Host:     "redis.example.com",
 		Port:     6379,
 		Password: "pass",
-		TLS: &schema.TLSConfig{
+		TLS: &schema.TLSConfiguration{
 			ServerName:     "redis.fqdn.example.com",
 			MinimumVersion: "TLS1.3",
 		},

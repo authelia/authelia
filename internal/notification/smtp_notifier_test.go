@@ -16,7 +16,7 @@ func TestShouldConfigureSMTPNotifierWithTLS11AndDefaultHostname(t *testing.T) {
 		SMTP: &schema.SMTPNotifierConfiguration{
 			Host: "smtp.example.com",
 			Port: 25,
-			TLS: &schema.TLSConfig{
+			TLS: &schema.TLSConfiguration{
 				MinimumVersion: "TLS1.1",
 			},
 		},
@@ -39,7 +39,7 @@ func TestShouldConfigureSMTPNotifierWithServerNameOverrideAndDefaultTLS12(t *tes
 		SMTP: &schema.SMTPNotifierConfiguration{
 			Host: "smtp.example.com",
 			Port: 25,
-			TLS: &schema.TLSConfig{
+			TLS: &schema.TLSConfiguration{
 				ServerName: "smtp.golang.org",
 			},
 		},

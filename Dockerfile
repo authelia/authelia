@@ -45,7 +45,7 @@ COPY entrypoint.sh healthcheck.sh /usr/local/bin/
 
 EXPOSE 9091
 
-VOLUME /config
+VOLUME /config /plugins
 
 # Set environment variables
 ENV PATH="/app:${PATH}" \

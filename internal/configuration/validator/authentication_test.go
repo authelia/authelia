@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,7 +23,23 @@ func TestShouldRaiseErrorWhenBothBackendsProvided(t *testing.T) {
 	ValidateAuthenticationBackend(&backendConfig, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "You cannot provide both `ldap` and `file` objects in `authentication_backend`")
+	assert.EqualError(t, validator.Errors()[0], "Please do not configure more than one of the `authentication_backend` providers (`ldap`, `file`, or `plugin`)")
+}
+
+func TestShouldRaiseErrorWhenAuthBackendPluginConfiguredOnInvalidOS(t *testing.T) {
+	validator := schema.NewStructValidator()
+	backendConfig := schema.AuthenticationBackendConfiguration{}
+	backendConfig.Plugin = &schema.PluginConfiguration{}
+
+	ValidateAuthenticationBackend(&backendConfig, validator)
+
+	if runtime.GOOS == linux || runtime.GOOS == freebsd || runtime.GOOS == darwin {
+		require.Len(t, validator.Errors(), 1)
+		assert.EqualError(t, validator.Errors()[0], "The `authentication_backend` plugin provider name must be set")
+	} else {
+		require.Len(t, validator.Errors(), 1)
+		assert.EqualError(t, validator.Errors()[0], "The `authentication_backend` plugin provider is only available on linux, freebsd, and darwin operating systems")
+	}
 }
 
 func TestShouldRaiseErrorWhenNoBackendProvided(t *testing.T) {
@@ -32,7 +49,7 @@ func TestShouldRaiseErrorWhenNoBackendProvided(t *testing.T) {
 	ValidateAuthenticationBackend(&backendConfig, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "Please provide `ldap` or `file` object in `authentication_backend`")
+	assert.EqualError(t, validator.Errors()[0], "Please configure one of the `authentication_backend` providers (`ldap`, `file`, or `plugin`)")
 }
 
 type FileBasedAuthenticationBackend struct {
@@ -466,7 +483,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultTLSMinimumVersion() {
-	suite.configuration.LDAP.TLS = &schema.TLSConfig{MinimumVersion: ""}
+	suite.configuration.LDAP.TLS = &schema.TLSConfiguration{MinimumVersion: ""}
 
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
@@ -477,7 +494,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultTLSMinimumVersi
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue() {
-	suite.configuration.LDAP.TLS = &schema.TLSConfig{
+	suite.configuration.LDAP.TLS = &schema.TLSConfiguration{
 		MinimumVersion: "SSL2.0",
 	}
 

@@ -57,7 +57,7 @@ COPY healthcheck.sh /usr/local/bin/
 
 EXPOSE 9091
 
-VOLUME /config
+VOLUME /config /plugins
 
 ENV PATH="/app:${PATH}"
 

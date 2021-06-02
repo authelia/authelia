@@ -12,7 +12,7 @@ import (
 )
 
 func TestShouldSetupDefaultTLSMinVersionOnErr(t *testing.T) {
-	schemaTLSConfig := &schema.TLSConfig{
+	schemaTLSConfig := &schema.TLSConfiguration{
 		MinimumVersion: "NotAVersion",
 		ServerName:     "golang.org",
 		SkipVerify:     true,
@@ -115,7 +115,7 @@ func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
 	assert.NotNil(t, pool)
 	require.Len(t, errs, 1)
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == windows {
 		require.Len(t, nonFatalErrs, 1)
 		assert.EqualError(t, nonFatalErrs[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
 	} else {

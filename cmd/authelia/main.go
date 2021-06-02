@@ -1,8 +1,11 @@
 package main
 
 import (
+	"crypto/x509"
+	"errors"
 	"fmt"
 	"os"
+	"plugin"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -11,6 +14,7 @@ import (
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/commands"
 	"github.com/authelia/authelia/internal/configuration"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/notification"
@@ -24,7 +28,6 @@ import (
 
 var configPathFlag string
 
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func startServer() {
 	logger := logging.Logger()
 	config, errs := configuration.Read(configPathFlag)
@@ -37,7 +40,7 @@ func startServer() {
 		os.Exit(1)
 	}
 
-	autheliaCertPool, errs, nonFatalErrs := utils.NewX509CertPool(config.CertificatesDirectory)
+	providers, nonFatalErrs, errs := configureProviders(config)
 	if len(errs) > 0 {
 		for _, err := range errs {
 			logger.Error(err)
@@ -78,68 +81,6 @@ func startServer() {
 		logger.Info("===> Authelia is running in development mode. <===")
 	}
 
-	var storageProvider storage.Provider
-
-	switch {
-	case config.Storage.PostgreSQL != nil:
-		storageProvider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL)
-	case config.Storage.MySQL != nil:
-		storageProvider = storage.NewMySQLProvider(*config.Storage.MySQL)
-	case config.Storage.Local != nil:
-		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
-	default:
-		logger.Fatalf("Unrecognized storage backend")
-	}
-
-	var userProvider authentication.UserProvider
-
-	switch {
-	case config.AuthenticationBackend.File != nil:
-		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
-	case config.AuthenticationBackend.LDAP != nil:
-		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, autheliaCertPool)
-	default:
-		logger.Fatalf("Unrecognized authentication backend")
-	}
-
-	var notifier notification.Notifier
-
-	switch {
-	case config.Notifier.SMTP != nil:
-		notifier = notification.NewSMTPNotifier(*config.Notifier.SMTP, autheliaCertPool)
-	case config.Notifier.FileSystem != nil:
-		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
-	default:
-		logger.Fatalf("Unrecognized notifier")
-	}
-
-	if !config.Notifier.DisableStartupCheck {
-		_, err := notifier.StartupCheck()
-		if err != nil {
-			logger.Fatalf("Error during notifier startup check: %s", err)
-		}
-	}
-
-	clock := utils.RealClock{}
-	authorizer := authorization.NewAuthorizer(config.AccessControl)
-	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
-	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
-	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
-
-	if err != nil {
-		logger.Fatalf("Error initializing OpenID Connect Provider: %+v", err)
-	}
-
-	providers := middlewares.Providers{
-		Authorizer:      authorizer,
-		UserProvider:    userProvider,
-		Regulator:       regulator,
-		OpenIDConnect:   oidcProvider,
-		StorageProvider: storageProvider,
-		Notifier:        notifier,
-		SessionProvider: sessionProvider,
-	}
-
 	server.StartServer(*config, providers)
 }
 
@@ -169,4 +110,127 @@ func main() {
 	if err := rootCmd.Execute(); err != nil {
 		logger.Fatal(err)
 	}
+}
+
+func configureProviders(config *schema.Configuration) (providers middlewares.Providers, nonFatalErrs, errs []error) {
+	certPool, errs, nonFatalErrs := utils.NewX509CertPool(config.CertificatesDirectory)
+
+	if len(errs) != 0 {
+		return providers, nonFatalErrs, errs
+	}
+
+	storageProvider, err := configureStorageProvider(&config.Storage)
+	if err != nil {
+		return providers, nonFatalErrs, append(errs, err)
+	}
+
+	userProvider, err := configureUserProvider(config, certPool)
+	if err != nil {
+		return providers, nonFatalErrs, append(errs, err)
+	}
+
+	notifier, err := configureNotifier(config, certPool)
+	if err != nil {
+		return providers, nonFatalErrs, append(errs, err)
+	}
+
+	clock := utils.RealClock{}
+	authorizer := authorization.NewAuthorizer(config.AccessControl)
+	sessionProvider := session.NewProvider(config.Session, certPool)
+	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
+	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
+
+	if err != nil {
+		return providers, nonFatalErrs, append(errs, fmt.Errorf("Error initializing OpenID Connect Provider: %+v", err))
+	}
+
+	return middlewares.Providers{
+		Authorizer:      authorizer,
+		UserProvider:    userProvider,
+		Regulator:       regulator,
+		OpenIDConnect:   oidcProvider,
+		StorageProvider: storageProvider,
+		Notifier:        notifier,
+		SessionProvider: sessionProvider,
+	}, nonFatalErrs, errs
+}
+
+func configureStorageProvider(config *schema.StorageConfiguration) (provider storage.Provider, err error) {
+	switch {
+	case config.PostgreSQL != nil:
+		provider = storage.NewPostgreSQLProvider(*config.PostgreSQL)
+	case config.MySQL != nil:
+		provider = storage.NewMySQLProvider(*config.MySQL)
+	case config.Local != nil:
+		provider = storage.NewSQLiteProvider(config.Local.Path)
+	default:
+		return provider, errors.New("Unrecognized storage provider")
+	}
+
+	return provider, nil
+}
+
+func configureUserProvider(config *schema.Configuration, certPool *x509.CertPool) (provider authentication.UserProvider, err error) {
+	switch {
+	case config.AuthenticationBackend.File != nil:
+		provider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
+	case config.AuthenticationBackend.LDAP != nil:
+		provider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, certPool)
+	case config.AuthenticationBackend.Plugin != nil:
+		authenticationPlugin, err := plugin.Open(fmt.Sprintf("%s/%s.user_provider.authelia.com.so", config.PluginsDirectory, config.AuthenticationBackend.Plugin.Name))
+		if err != nil {
+			return provider, fmt.Errorf("Error opening authentication provider plugin: %+v", err)
+		}
+
+		up, err := authenticationPlugin.Lookup("UserProvider")
+		if err != nil {
+			return provider, fmt.Errorf("Error during authentication provider plugin lookup: %+v", err)
+		}
+
+		if p, ok := up.(authentication.UserProvider); !ok {
+			return provider, errors.New("Error during authentication provider plugin setup: the plugin doesn't implement the interface (is it out of date)")
+		} else {
+			provider = p
+		}
+	default:
+		return provider, errors.New("Unrecognized authentication provider")
+	}
+
+	return provider, nil
+}
+
+func configureNotifier(config *schema.Configuration, certPool *x509.CertPool) (provider notification.Notifier, err error) {
+	switch {
+	case config.Notifier.SMTP != nil:
+		provider = notification.NewSMTPNotifier(*config.Notifier.SMTP, certPool)
+	case config.Notifier.FileSystem != nil:
+		provider = notification.NewFileNotifier(*config.Notifier.FileSystem)
+	case config.Notifier.Plugin != nil:
+		notifierPlugin, err := plugin.Open(fmt.Sprintf("%s/%s.notifier.authelia.com.so", config.PluginsDirectory, config.Notifier.Plugin.Name))
+		if err != nil {
+			return provider, fmt.Errorf("Error opening notifier provider plugin: %+v", err)
+		}
+
+		up, err := notifierPlugin.Lookup("Notifier")
+		if err != nil {
+			return provider, fmt.Errorf("Error during notifier provider plugin lookup: %+v", err)
+		}
+
+		if p, ok := up.(notification.Notifier); !ok {
+			return provider, errors.New("Error during notifier provider plugin setup: the plugin doesn't implement the interface (is it out of date)")
+		} else {
+			provider = p
+		}
+	default:
+		return provider, errors.New("Unrecognized notifier provider")
+	}
+
+	if !config.Notifier.DisableStartupCheck {
+		_, err := provider.StartupCheck()
+		if err != nil {
+			return provider, fmt.Errorf("Error during notifier startup check: %s", err)
+		}
+	}
+
+	return provider, nil
 }

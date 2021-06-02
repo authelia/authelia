@@ -12,8 +12,8 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 )
 
-// NewTLSConfig generates a tls.Config from a schema.TLSConfig and a x509.CertPool.
-func NewTLSConfig(config *schema.TLSConfig, defaultMinVersion uint16, certPool *x509.CertPool) (tlsConfig *tls.Config) {
+// NewTLSConfig generates a tls.Config from a schema.TLSConfiguration and a x509.CertPool.
+func NewTLSConfig(config *schema.TLSConfiguration, defaultMinVersion uint16, certPool *x509.CertPool) (tlsConfig *tls.Config) {
 	minVersion, err := TLSStringToTLSConfigVersion(config.MinimumVersion)
 	if err != nil {
 		minVersion = defaultMinVersion

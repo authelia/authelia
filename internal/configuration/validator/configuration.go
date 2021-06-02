@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
@@ -34,6 +35,12 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 		} else if !info.IsDir() {
 			validator.Push(fmt.Errorf("The path %s specified for certificate_directory is not a directory", configuration.CertificatesDirectory))
 		}
+	}
+
+	if configuration.PluginsDirectory == "" {
+		configuration.PluginsDirectory = "/plugins"
+	} else {
+		configuration.PluginsDirectory = strings.TrimSuffix(configuration.PluginsDirectory, "/")
 	}
 
 	if configuration.JWTSecret == "" {

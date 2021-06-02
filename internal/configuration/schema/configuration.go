@@ -7,6 +7,7 @@ type Configuration struct {
 	Theme                 string `mapstructure:"theme"`
 	TLSCert               string `mapstructure:"tls_cert"`
 	TLSKey                string `mapstructure:"tls_key"`
+	PluginsDirectory      string `mapstructure:"plugins_directory"`
 	CertificatesDirectory string `mapstructure:"certificates_directory"`
 	JWTSecret             string `mapstructure:"jwt_secret"`
 	DefaultRedirectionURL string `mapstructure:"default_redirection_url"`

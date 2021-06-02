@@ -748,7 +748,7 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 			StartTLS:             true,
-			TLS: &schema.TLSConfig{
+			TLS: &schema.TLSConfiguration{
 				SkipVerify: true,
 			},
 		},
@@ -826,7 +826,7 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 			StartTLS:             true,
-			TLS: &schema.TLSConfig{
+			TLS: &schema.TLSConfiguration{
 				SkipVerify: true,
 			},
 		},

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"runtime"
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -12,17 +13,31 @@ import (
 
 // ValidateAuthenticationBackend validates and update authentication backend configuration.
 func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
-	if configuration.LDAP == nil && configuration.File == nil {
-		validator.Push(errors.New("Please provide `ldap` or `file` object in `authentication_backend`"))
+	providers := utils.CountNil(configuration.LDAP, configuration.File, configuration.Plugin)
+
+	if providers == 0 {
+		validator.Push(errors.New("Please configure one of the `authentication_backend` providers (`ldap`, `file`, or `plugin`)"))
+		return
 	}
 
-	if configuration.LDAP != nil && configuration.File != nil {
-		validator.Push(errors.New("You cannot provide both `ldap` and `file` objects in `authentication_backend`"))
+	if providers > 1 {
+		validator.Push(errors.New("Please do not configure more than one of the `authentication_backend` providers (`ldap`, `file`, or `plugin`)"))
+		return
 	}
 
-	if configuration.File != nil {
+	switch {
+	case configuration.Plugin != nil:
+		if runtime.GOOS != linux && runtime.GOOS != freebsd && runtime.GOOS != darwin {
+			validator.Push(errors.New("The `authentication_backend` plugin provider is only available on linux, freebsd, and darwin operating systems"))
+			return
+		}
+
+		if configuration.Plugin.Name == "" {
+			validator.Push(errors.New("The `authentication_backend` plugin provider name must be set"))
+		}
+	case configuration.File != nil:
 		validateFileAuthenticationBackend(configuration.File, validator)
-	} else if configuration.LDAP != nil {
+	case configuration.LDAP != nil:
 		validateLDAPAuthenticationBackend(configuration.LDAP, validator)
 	}
 

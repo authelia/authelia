@@ -24,7 +24,7 @@ type RedisSessionConfiguration struct {
 	DatabaseIndex            int                                 `mapstructure:"database_index"`
 	MaximumActiveConnections int                                 `mapstructure:"maximum_active_connections"`
 	MinimumIdleConnections   int                                 `mapstructure:"minimum_idle_connections"`
-	TLS                      *TLSConfig                          `mapstructure:"tls"`
+	TLS                      *TLSConfiguration                   `mapstructure:"tls"`
 	HighAvailability         *RedisHighAvailabilityConfiguration `mapstructure:"high_availability"`
 }
 
