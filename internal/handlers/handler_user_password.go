@@ -8,7 +8,8 @@ import (
 )
 
 type updatePasswordRequestBody struct {
-	Password string `json:"password"`
+	OldPassword string `json:"old_password"`
+	Password    string `json:"password"`
 }
 
 // UserPasswordPost handler for resetting passwords.
@@ -19,9 +20,16 @@ func UserPasswordPost(ctx *middlewares.AutheliaCtx) {
 	err := ctx.ParseBody(&requestBody)
 
 	if err != nil {
-		ctx.Error(err, unableToResetPasswordMessage)
+		ctx.Error(err, unableToUpdatePasswordMessage)
 		return
 	}
+
+	ok, err := ctx.Providers.UserProvider.CheckUserPassword(userSession.Username, requestBody.OldPassword)
+	if !ok || err != nil {
+		ctx.Error(err, unableToUpdatePasswordMessage)
+		return
+	}
+
 	err = ctx.Providers.UserProvider.UpdatePassword(userSession.Username, requestBody.Password)
 
 	if err != nil {
@@ -31,7 +39,7 @@ func UserPasswordPost(ctx *middlewares.AutheliaCtx) {
 		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
 			ctx.Error(fmt.Errorf("%s", err), ldapPasswordComplexityCode)
 		default:
-			ctx.Error(fmt.Errorf("%s", err), unableToResetPasswordMessage)
+			ctx.Error(fmt.Errorf("%s", err), unableToUpdatePasswordMessage)
 		}
 
 		return

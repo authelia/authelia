@@ -40,6 +40,7 @@ const userBannedMessage = "Please retry in a few minutes."
 const unableToRegisterOneTimePasswordMessage = "Unable to set up one-time passwords." //nolint:gosec
 const unableToRegisterSecurityKeyMessage = "Unable to register your security key."
 const unableToResetPasswordMessage = "Unable to reset your password."
+const unableToUpdatePasswordMessage = "Unable to update your password."
 const mfaValidationFailedMessage = "Authentication failed, please retry later."
 
 const ldapPasswordComplexityCode = "0000052D."
