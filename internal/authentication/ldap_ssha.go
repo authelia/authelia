@@ -55,5 +55,6 @@ func makeSSHA256Hash(passphrase, salt []byte) []byte {
 	sha.Write(salt)
 
 	h := sha.Sum(nil)
+
 	return append(h, salt...)
 }
