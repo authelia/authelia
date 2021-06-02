@@ -3,23 +3,23 @@ package authentication
 import (
 	"bytes"
 	"crypto/rand"
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 )
 
-// SSHA type is used for ldap password storage.
-type SSHA []byte
+// SSHA256 type is used for ldap password storage.
+type SSHA256 []byte
 
 // Encode encodes the []byte of raw password.
-func (pass SSHA) Encode() ([]byte, error) {
-	hash := makeSSHAHash(pass, makeSalt())
+func (pass SSHA256) Encode() ([]byte, error) {
+	hash := makeSSHA256Hash(pass, makeSalt())
 	b64 := base64.StdEncoding.EncodeToString(hash)
-	return []byte(fmt.Sprintf("{SSHA}%s", b64)), nil
+	return []byte(fmt.Sprintf("{SSHA256}%s", b64)), nil
 }
 
 // Matches matches the encoded password and the raw password.
-func (pass SSHA) Matches(encodedPassPhrase []byte) bool {
+func (pass SSHA256) Matches(encodedPassPhrase []byte) bool {
 	// strip the {SSHA}.
 	eppS := string(encodedPassPhrase)[6:]
 	hash, err := base64.StdEncoding.DecodeString(eppS)
@@ -28,7 +28,7 @@ func (pass SSHA) Matches(encodedPassPhrase []byte) bool {
 	}
 	salt := hash[len(hash)-4:]
 
-	sha := sha1.New()
+	sha := sha256.New()
 	sha.Write(pass)
 	sha.Write(salt)
 	sum := sha.Sum(nil)
@@ -46,9 +46,9 @@ func makeSalt() []byte {
 	return sbytes
 }
 
-// makeSSHAHash make hasing using SHA-1 with salt. This is not the final output though. You need to append {SSHA} string with base64 of this hash.
-func makeSSHAHash(passphrase, salt []byte) []byte {
-	sha := sha1.New()
+// makeSSHA256Hash make hasing using SHA-256 with salt. This is not the final output though. You need to append {SSHA} string with base64 of this hash.
+func makeSSHA256Hash(passphrase, salt []byte) []byte {
+	sha := sha256.New()
 	sha.Write(passphrase)
 	sha.Write(salt)
 

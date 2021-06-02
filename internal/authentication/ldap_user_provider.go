@@ -290,7 +290,7 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 	}
 
 	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
-	newPassBytes, err := SSHA([]byte(newPassword)).Encode()
+	newPassBytes, err := SSHA256([]byte(newPassword)).Encode()
 	if err != nil {
 		return fmt.Errorf("Unable to convert to SSHA: %s", err)
 	}
