@@ -8,18 +8,19 @@ import (
 	"fmt"
 )
 
+// SSHA type is used for ldap password storage.
 type SSHA []byte
 
-// Encode encodes the []byte of raw password
+// Encode encodes the []byte of raw password.
 func (pass SSHA) Encode() ([]byte, error) {
 	hash := makeSSHAHash(pass, makeSalt())
 	b64 := base64.StdEncoding.EncodeToString(hash)
 	return []byte(fmt.Sprintf("{SSHA}%s", b64)), nil
 }
 
-// Matches matches the encoded password and the raw password
+// Matches matches the encoded password and the raw password.
 func (pass SSHA) Matches(encodedPassPhrase []byte) bool {
-	//strip the {SSHA}
+	// strip the {SSHA}.
 	eppS := string(encodedPassPhrase)[6:]
 	hash, err := base64.StdEncoding.DecodeString(eppS)
 	if err != nil {
@@ -39,7 +40,7 @@ func (pass SSHA) Matches(encodedPassPhrase []byte) bool {
 func makeSalt() []byte {
 	sbytes := make([]byte, 4)
 	if _, err := rand.Read(sbytes); err != nil {
-		// this should never happen
+		// this should never happen.
 		return []byte("salt")
 	}
 	return sbytes
