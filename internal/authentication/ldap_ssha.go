@@ -32,13 +32,16 @@ func (pass SSHA) Matches(encodedPassPhrase []byte) bool {
 	sha.Write(salt)
 	sum := sha.Sum(nil)
 
-	return bytes.Compare(sum, hash[:len(hash)-4]) == 0
+	return bytes.Equal(sum, hash[:len(hash)-4])
 }
 
 // makeSalt make a 4 byte array containing random bytes.
 func makeSalt() []byte {
 	sbytes := make([]byte, 4)
-	rand.Read(sbytes)
+	if _, err := rand.Read(sbytes); err != nil {
+		// this should never happen
+		return []byte("salt")
+	}
 	return sbytes
 }
 
