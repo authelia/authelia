@@ -289,11 +289,12 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 		return fmt.Errorf("Unable to update password. Cause: %s", err)
 	}
 
-	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
 	newPassBytes, err := SSHA256([]byte(newPassword)).Encode()
 	if err != nil {
 		return fmt.Errorf("Unable to convert to SSHA: %s", err)
 	}
+
+	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
 	switch p.configuration.Implementation {
 	case schema.LDAPImplementationActiveDirectory:
 		utf16 := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)

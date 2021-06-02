@@ -15,14 +15,14 @@ type SSHA256 []byte
 func (pass SSHA256) Encode() ([]byte, error) {
 	hash := makeSSHA256Hash(pass, makeSalt())
 	b64 := base64.StdEncoding.EncodeToString(hash)
-	return []byte(fmt.Sprintf("{SSHA256}%s", b64)), nil
+	ret := []byte(fmt.Sprintf("{SSHA256}%s", b64))
+	return ret, nil
 }
 
 // Matches matches the encoded password and the raw password.
 func (pass SSHA256) Matches(encodedPassPhrase []byte) bool {
 	// strip the {SSHA}.
-	eppS := string(encodedPassPhrase)[6:]
-	hash, err := base64.StdEncoding.DecodeString(eppS)
+	hash, err := base64.StdEncoding.DecodeString(string(encodedPassPhrase)[6:])
 	if err != nil {
 		return false
 	}
@@ -33,7 +33,9 @@ func (pass SSHA256) Matches(encodedPassPhrase []byte) bool {
 	sha.Write(salt)
 	sum := sha.Sum(nil)
 
-	return bytes.Equal(sum, hash[:len(hash)-4])
+	ok := bytes.Equal(sum, hash[:len(hash)-4])
+
+	return ok
 }
 
 // makeSalt make a 4 byte array containing random bytes.
