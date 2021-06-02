@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4"
 )
 
 // LDAPUserProvider is a provider using a LDAP or AD as a user database.
@@ -227,7 +228,7 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 }
 
 // GetDetails retrieve the groups a user belongs to.
-func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error) {
+func (p *LDAPUserProvider) GetDetails(inputUsername string) (details *authelia.UserDetails, err error) {
 	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
 		return nil, err
@@ -267,7 +268,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 		groups = append(groups, res.Attributes[0].Values...)
 	}
 
-	return &UserDetails{
+	return &authelia.UserDetails{
 		Username:    profile.Username,
 		DisplayName: profile.DisplayName,
 		Emails:      profile.Emails,

@@ -19,6 +19,7 @@ import (
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4"
 )
 
 var verifyGetCfg = schema.AuthenticationBackendConfiguration{
@@ -224,7 +225,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyDefaultPolicy() {
 
 	mock.UserProviderMock.EXPECT().
 		GetDetails(gomock.Eq("john")).
-		Return(&authentication.UserDetails{
+		Return(&authelia.UserDetails{
 			Emails: []string{"john@example.com"},
 			Groups: []string{"dev", "admins"},
 		}, nil)
@@ -247,7 +248,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfBypassDomain() {
 
 	mock.UserProviderMock.EXPECT().
 		GetDetails(gomock.Eq("john")).
-		Return(&authentication.UserDetails{
+		Return(&authelia.UserDetails{
 			Emails: []string{"john@example.com"},
 			Groups: []string{"dev", "admins"},
 		}, nil)
@@ -270,7 +271,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 
 	mock.UserProviderMock.EXPECT().
 		GetDetails(gomock.Eq("john")).
-		Return(&authentication.UserDetails{
+		Return(&authelia.UserDetails{
 			Emails: []string{"john@example.com"},
 			Groups: []string{"dev", "admins"},
 		}, nil)
@@ -293,7 +294,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 
 	mock.UserProviderMock.EXPECT().
 		GetDetails(gomock.Eq("john")).
-		Return(&authentication.UserDetails{
+		Return(&authelia.UserDetails{
 			Emails: []string{"john@example.com"},
 			Groups: []string{"dev", "admins"},
 		}, nil)
@@ -316,7 +317,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfDenyDomain() {
 
 	mock.UserProviderMock.EXPECT().
 		GetDetails(gomock.Eq("john")).
-		Return(&authentication.UserDetails{
+		Return(&authelia.UserDetails{
 			Emails: []string{"john@example.com"},
 			Groups: []string{"dev", "admins"},
 		}, nil)
@@ -340,7 +341,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgOk() {
 
 	mock.UserProviderMock.EXPECT().
 		GetDetails(gomock.Eq("john")).
-		Return(&authentication.UserDetails{
+		Return(&authelia.UserDetails{
 			Emails: []string{"john@example.com"},
 			Groups: []string{"dev", "admins"},
 		}, nil)
@@ -858,7 +859,7 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 	defer mock.Close()
 
 	// Setup pointer to john so we can adjust it during the test.
-	user := &authentication.UserDetails{
+	user := &authelia.UserDetails{
 		Username: "john",
 		Groups: []string{
 			"admin",
@@ -922,7 +923,7 @@ func TestShouldNotRefreshUserGroupsFromBackendWhenDisabled(t *testing.T) {
 	defer mock.Close()
 
 	// Setup user john.
-	user := &authentication.UserDetails{
+	user := &authelia.UserDetails{
 		Username: "john",
 		Groups: []string{
 			"admin",
@@ -968,7 +969,7 @@ func TestShouldDestroySessionWhenUserNotExist(t *testing.T) {
 	defer mock.Close()
 
 	// Setup user john.
-	user := &authentication.UserDetails{
+	user := &authelia.UserDetails{
 		Username: "john",
 		Groups: []string{
 			"admin",
@@ -1027,7 +1028,7 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 	defer mock.Close()
 
 	// Setup pointer to john so we can adjust it during the test.
-	user := &authentication.UserDetails{
+	user := &authelia.UserDetails{
 		Username: "john",
 		Groups: []string{
 			"admin",
@@ -1096,7 +1097,7 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 
 	// Setup pointer to john so we can adjust it during the test.
-	user := &authentication.UserDetails{
+	user := &authelia.UserDetails{
 		Username: "john",
 		Groups: []string{
 			"admin",

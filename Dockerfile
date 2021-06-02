@@ -17,6 +17,7 @@ RUN go mod download
 
 COPY cmd cmd
 COPY internal internal
+COPY v4 v4
 
 # Prepare static files to be embedded in Go binary
 RUN rm -rf internal/server/public_html

@@ -15,6 +15,7 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/mocks"
 	"github.com/authelia/authelia/internal/models"
+	"github.com/authelia/authelia/v4"
 )
 
 type FirstFactorSuite struct {
@@ -156,7 +157,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	s.mock.UserProviderMock.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
-		Return(&authentication.UserDetails{
+		Return(&authelia.UserDetails{
 			Username: "test",
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},
@@ -196,7 +197,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	s.mock.UserProviderMock.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
-		Return(&authentication.UserDetails{
+		Return(&authelia.UserDetails{
 			Username: "test",
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},
@@ -237,7 +238,7 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 	s.mock.UserProviderMock.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
-		Return(&authentication.UserDetails{
+		Return(&authelia.UserDetails{
 			// This is the name in authentication backend, in some setups the binding is
 			// case insensitive but the user ID in session must match the user in LDAP
 			// for the other modules of Authelia to be coherent.
@@ -299,7 +300,7 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 	s.mock.UserProviderMock.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
-		Return(&authentication.UserDetails{
+		Return(&authelia.UserDetails{
 			Username: "test",
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},

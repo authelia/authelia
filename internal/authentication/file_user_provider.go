@@ -13,6 +13,7 @@ import (
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
+	"github.com/authelia/authelia/v4"
 )
 
 // FileUserProvider is a provider reading details from a file.
@@ -155,9 +156,9 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 }
 
 // GetDetails retrieve the groups a user belongs to.
-func (p *FileUserProvider) GetDetails(username string) (*UserDetails, error) {
+func (p *FileUserProvider) GetDetails(username string) (*authelia.UserDetails, error) {
 	if details, ok := p.database.Users[username]; ok {
-		return &UserDetails{
+		return &authelia.UserDetails{
 			Username:    username,
 			DisplayName: details.DisplayName,
 			Groups:      details.Groups,
