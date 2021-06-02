@@ -1,5 +1,6 @@
 export const FirstFactorRoute: string = "/";
 export const AuthenticatedRoute: string = "/authenticated";
+export const UpdatePasswordRoute: string = "/password";
 export const ConsentRoute: string = "/consent";
 
 export const SecondFactorRoute: string = "/2fa";

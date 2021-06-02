@@ -17,12 +17,14 @@ import {
     SecondFactorPushRoute,
     SecondFactorU2FRoute,
     AuthenticatedRoute,
+    UpdatePasswordRoute,
 } from "../../Routes";
 import { AuthenticationLevel } from "../../services/State";
 import LoadingPage from "../LoadingPage/LoadingPage";
 import AuthenticatedView from "./AuthenticatedView/AuthenticatedView";
 import FirstFactorForm from "./FirstFactor/FirstFactorForm";
 import SecondFactorForm from "./SecondFactor/SecondFactorForm";
+import UpdatePasswordView from "./UpdatePasswordView/UpdatePasswordView";
 
 export interface Props {
     rememberMe: boolean;
@@ -153,6 +155,9 @@ const LoginPortal = function (props: Props) {
             </Route>
             <Route path={AuthenticatedRoute} exact>
                 {userInfo ? <AuthenticatedView name={userInfo.display_name} /> : null}
+            </Route>
+            <Route path={UpdatePasswordRoute} exact>
+                {userInfo ? <UpdatePasswordView /> : null}
             </Route>
             {/* By default we route to first factor page */}
             <Route path="/">

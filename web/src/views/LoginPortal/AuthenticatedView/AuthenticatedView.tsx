@@ -4,7 +4,7 @@ import { Grid, makeStyles, Button } from "@material-ui/core";
 import { useHistory } from "react-router";
 
 import LoginLayout from "../../../layouts/LoginLayout";
-import { LogoutRoute as SignOutRoute } from "../../../Routes";
+import { LogoutRoute as SignOutRoute, UpdatePasswordRoute } from "../../../Routes";
 import Authenticated from "../Authenticated";
 
 export interface Props {
@@ -18,6 +18,9 @@ const AuthenticatedView = function (props: Props) {
     const handleLogoutClick = () => {
         history.push(SignOutRoute);
     };
+    const handleUpdatePasswordClick = () => {
+        history.push(UpdatePasswordRoute);
+    };
 
     return (
         <LoginLayout id="authenticated-stage" title={`Hi ${props.name}`} showBrand>
@@ -25,6 +28,9 @@ const AuthenticatedView = function (props: Props) {
                 <Grid item xs={12}>
                     <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
                         Logout
+                    </Button>
+                    <Button color="secondary" onClick={handleUpdatePasswordClick} id="update-password-button">
+                        Update Password
                     </Button>
                 </Grid>
                 <Grid item xs={12} className={style.mainContainer}>
