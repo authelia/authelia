@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"github.com/authelia/authelia/v4"
+	authelia2 "github.com/authelia/authelia"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -33,9 +33,9 @@ type Providers struct {
 	Regulator       *regulation.Regulator
 	OpenIDConnect   oidc.OpenIDConnectProvider
 
-	UserProvider         authelia.UserProvider
+	UserProvider         authelia2.UserProvider
 	StorageProvider      storage.Provider
-	NotificationProvider authelia.NotificationProvider
+	NotificationProvider authelia2.NotificationProvider
 }
 
 // RequestHandler represents an Authelia request handler.

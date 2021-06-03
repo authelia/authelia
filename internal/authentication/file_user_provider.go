@@ -3,6 +3,7 @@ package authentication
 import (
 	_ "embed" // Embed users_database.template.yml.
 	"fmt"
+	authelia2 "github.com/authelia/authelia"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
-	"github.com/authelia/authelia/v4"
 )
 
 // FileUserProvider is a provider reading details from a file.
@@ -156,9 +156,9 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 }
 
 // GetDetails retrieve the groups a user belongs to.
-func (p *FileUserProvider) GetDetails(username string) (*authelia.UserDetails, error) {
+func (p *FileUserProvider) GetDetails(username string) (*authelia2.UserDetails, error) {
 	if details, ok := p.database.Users[username]; ok {
-		return &authelia.UserDetails{
+		return &authelia2.UserDetails{
 			Username:    username,
 			DisplayName: details.DisplayName,
 			Groups:      details.Groups,

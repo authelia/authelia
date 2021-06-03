@@ -12,3 +12,11 @@ type NotificationProvider interface {
 	Send(recipient, subject, body, htmlBody string) (err error)
 	StartupCheck() (success bool, err error)
 }
+
+// UserDetails represent the details retrieved for a given user.
+type UserDetails struct {
+	Username    string
+	DisplayName string
+	Emails      []string
+	Groups      []string
+}
