@@ -21,7 +21,7 @@ mv public_html internal/server/public_html && \
 echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
 sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
 sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go && \
-GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc CGO_LDFLAGS=-fuse-ld=bfd go build -tags netgo -ldflags '-s -w -linkmode external -extldflags -static' -trimpath -o authelia cmd/authelia
+GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc CGO_LDFLAGS=-fuse-ld=bfd go build -tags netgo -ldflags '-s -w -linkmode external -extldflags -static' -trimpath -o authelia ./cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====
