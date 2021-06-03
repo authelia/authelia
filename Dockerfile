@@ -12,11 +12,11 @@ COPY / ./
 # CGO_ENABLED=1 is required for building go-sqlite3
 RUN \
 mv public_html internal/server/public_html && \
-echo ":star: Downloading required apk's..." && \
+echo ">> Downloading required apk's..." && \
 apk --no-cache add gcc musl-dev && \
-echo ":package: Downloading go modules..." && \
+echo ">> Downloading go modules..." && \
 go mod download && \
-echo ":go: Starting go build..." && \
+echo ">> Starting go build..." && \
 GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo \
 -ldflags "-s -w -linkmode external ${LDFLAGS_EXTRA} -extldflags -static" -trimpath -o authelia ./cmd/authelia
 
