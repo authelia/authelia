@@ -25,11 +25,13 @@ COPY --from=builder-frontend /node/src/app/build internal/server/public_html
 
 # gcc and musl-dev are required for building go-sqlite3
 RUN \
-apk --no-cache add gcc musl-dev && \
-go mod download && \
 mv api internal/server/public_html/api && \
+echo ":star: Downloading required apk's..." && \
+apk --no-cache add gcc musl-dev && \
+echo ":package: Downloading go modules..." && \
+go mod download && \
 cd cmd/authelia && \
-echo "Starting go build (coverage via go test)..." && \
+echo ":go: Starting go build (coverage via go test)..." && \
 go test -c --tags coverage -covermode=atomic -ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
 
 # ===================================

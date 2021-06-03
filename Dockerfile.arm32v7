@@ -12,12 +12,15 @@ COPY / ./
 
 # CGO_ENABLED=1 and gcc cross-compiler is required for building go-sqlite3
 RUN \
+mv public_html internal/server/public_html && \
+echo ":star: Downloading required apk's..." && \
 apk --no-cache add curl && \
+echo ":toolbox: Downloading cross-compiler..." && \
 curl -Lfs -o /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz "https://github.com/just-containers/musl-cross-make/releases/download/${CC_VERSION}/gcc-9.2.0-arm-linux-musleabihf.tar.xz" && \
 tar xf /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz -C / && \
+echo ":package: Downloading go modules..." && \
 go mod download && \
-mv public_html internal/server/public_html && \
-echo "Starting go build..." && \
+echo ":go: Starting go build..." && \
 GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc CGO_LDFLAGS=-fuse-ld=bfd go build -tags netgo \
 -ldflags "-s -w -linkmode external ${LDFLAGS_EXTRA} -extldflags -static" -trimpath -o authelia ./cmd/authelia
 
