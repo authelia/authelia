@@ -17,30 +17,22 @@ FROM golang:1.16.4-alpine AS builder-backend
 ARG BUILD_TAG
 ARG BUILD_COMMIT
 
-# gcc and musl-dev are required for building go-sqlite3
-RUN apk --no-cache add gcc musl-dev
-
 WORKDIR /go/src/app
 
-COPY go.mod go.sum config.template.yml ./
-
-RUN go mod download
-
-COPY cmd cmd
-COPY internal internal
+COPY / ./
 
 # Prepare static files to be embedded in Go binary
-RUN rm -rf internal/server/public_html
 COPY --from=builder-frontend /node/src/app/build internal/server/public_html
-COPY api internal/server/public_html/api
 
-# Set the build version and time
-RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
-    sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
-    sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go
-
-# Build binary for collecting integration test coverage
-RUN cd cmd/authelia && \
+# gcc and musl-dev are required for building go-sqlite3
+RUN \
+apk --no-cache add gcc musl-dev && \
+go mod download && \
+mv api internal/server/public_html/api && \
+echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
+sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
+sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go && \
+cd cmd/authelia && \
 go test -c --tags coverage -covermode=atomic -o authelia -coverpkg github.com/authelia/authelia/...
 
 # ===================================
