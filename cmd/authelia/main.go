@@ -22,11 +22,12 @@ func main() {
 		Short: fmt.Sprintf("authelia %s", utils.VersionShort()),
 		Long: fmt.Sprintf(`authelia %s
 
-		Authelia is an open-source authentication and authorization server providing 2-factor authentication and single sign-on (SSO) for your applications via a web portal. 
-		It acts as a companion of reverse proxies like nginx, Traefik or HAProxy to let them know whether queries should pass through.
-		Unauthenticated users are redirected to Authelia Sign-in portal instead.
+Authelia is an open-source authentication and authorization server providing 2-factor authentication and 
+single sign-on (SSO) for your applications via a web portal. It acts as a companion of reverse proxies like 
+nginx, Traefik or HAProxy to let them know whether queries should pass through.Unauthenticated users are 
+redirected to Authelia Sign-in portal instead.
 
-		Documentation is available at https://www.authelia.com/docs.`, utils.VersionLong()),
+Documentation is available at https://www.authelia.com/docs.`, utils.VersionLong()),
 	}
 
 	rootCmd.Flags().StringVar(&configPathFlag, "config", "", "Configuration file")

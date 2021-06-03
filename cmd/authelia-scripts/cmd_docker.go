@@ -82,7 +82,7 @@ func dockerBuildOfficialImage(arch string) error {
 		}
 	}
 
-	gitBranch, _, err := utils.RunCommandAndReturnOutput("git branch --show-current")
+	gitBranch, _, err := utils.RunCommandAndReturnOutput("git rev-parse --abbrev-ref HEAD")
 	if err != nil {
 		log.Fatal(err)
 	}
