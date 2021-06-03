@@ -20,6 +20,12 @@ var BuildCommit = "unknown"
 // BuildBranch is replaced by LDFLAGS at build time with the current branch.
 var BuildBranch = ""
 
+// BuildNumber is replaced by LDFLAGS at build time with the CI build number.
+var BuildNumber = ""
+
+// BuildArch is replaced by LDFLAGS at build time with the CI build arch.
+var BuildArch = ""
+
 var versionLong = ""
 var versionShort = ""
 

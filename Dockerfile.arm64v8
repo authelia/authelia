@@ -3,12 +3,7 @@
 # =======================================
 FROM golang:1.16.4-alpine AS builder-backend
 
-ARG BUILD_BRANCH
-ARG BUILD_TAG
-ARG BUILD_COMMIT
-ARG BUILD_DATE
-ARG BUILD_STATE_TAG
-ARG BUILD_STATE_EXTRA
+ARG LDFLAGS_EXTRA
 ARG CC_VERSION="v15"
 
 WORKDIR /go/src/app
@@ -23,7 +18,7 @@ tar xf /tmp/gcc-9.2.0-aarch64-linux-musl.tar.xz -C / && \
 go mod download && \
 mv public_html internal/server/public_html && \
 GOOS=linux GOARCH=arm64 CGO_ENABLED=1 CC=aarch64-linux-musl-gcc CGO_LDFLAGS=-fuse-ld=bfd go build -tags netgo -ldflags \
-"-s -w -linkmode external -extldflags -static -X 'github.com/authelia/authelia/internal/utils.BuildBranch=${BUILD_BRANCH}' -X 'github.com/authelia/authelia/internal/utils.BuildTag=${BUILD_TAG}' -X 'github.com/authelia/authelia/internal/utils.BuildCommit=${BUILD_COMMIT}' -X 'github.com/authelia/authelia/internal/utils.BuildDate=${BUILD_DATE}' -X 'github.com/authelia/authelia/internal/utils.BuildStateTag=${BUILD_STATE_TAG}' -X 'github.com/authelia/authelia/internal/utils.BuildStateExtra=${BUILD_STATE_EXTRA}'" \
+"-s -w -linkmode external ${LDFLAGS_EXTRA} -extldflags -static" \
 -trimpath -o authelia ./cmd/authelia
 
 # ===================================

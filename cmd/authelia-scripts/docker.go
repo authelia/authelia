@@ -1,6 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"strings"
+	"time"
+
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -8,15 +12,19 @@ import (
 type Docker struct{}
 
 // Build build a docker image.
-func (d *Docker) Build(tag, dockerfile, target, gitBranch, gitTag, gitCommit, buildDate, stateTag, stateExtra string) error {
+func (d *Docker) Build(tag, dockerfile, target, gitBranch, gitTag, gitCommit, stateTag, stateExtra, build, arch string) error {
+	ldflags := fmt.Sprintf(fmtLDFLAGSX, "BuildBranch", gitBranch)
+	ldflags += fmt.Sprintf(fmtLDFLAGSX, "BuildTag", gitTag)
+	ldflags += fmt.Sprintf(fmtLDFLAGSX, "BuildCommit", gitCommit)
+	ldflags += fmt.Sprintf(fmtLDFLAGSX, "BuildDate", time.Now().Format("Mon, 02 Jan 2006 15:04:05 -0700"))
+	ldflags += fmt.Sprintf(fmtLDFLAGSX, "BuildStateTag", stateTag)
+	ldflags += fmt.Sprintf(fmtLDFLAGSX, "BuildStateExtra", stateExtra)
+	ldflags += fmt.Sprintf(fmtLDFLAGSX, "BuildNumber", build)
+	ldflags += fmt.Sprintf(fmtLDFLAGSX, "BuildArch", arch)
+
 	return utils.CommandWithStdout(
 		"docker", "build", "-t", tag, "-f", dockerfile,
-		"--build-arg", "BUILD_BRANCH="+gitBranch,
-		"--build-arg", "BUILD_TAG="+gitTag,
-		"--build-arg", "BUILD_COMMIT="+gitCommit,
-		"--build-arg", "BUILD_DATE="+buildDate,
-		"--build-arg", "BUILD_STATE_TAG="+stateTag,
-		"--build-arg", "BUILD_STATE_EXTRA="+stateExtra,
+		"--build-arg", "LDFLAGS_EXTRA="+strings.TrimSuffix(ldflags, " "),
 		target).Run()
 }
 

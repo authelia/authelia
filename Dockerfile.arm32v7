@@ -3,12 +3,7 @@
 # =======================================
 FROM golang:1.16.4-alpine AS builder-backend
 
-ARG BUILD_BRANCH
-ARG BUILD_TAG
-ARG BUILD_COMMIT
-ARG BUILD_DATE
-ARG BUILD_STATE_TAG
-ARG BUILD_STATE_EXTRA
+ARG LDFLAGS_EXTRA
 ARG CC_VERSION="v15"
 
 WORKDIR /go/src/app
@@ -22,9 +17,8 @@ curl -Lfs -o /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz "https://github.com/just
 tar xf /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz -C / && \
 go mod download && \
 mv public_html internal/server/public_html && \
-GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc CGO_LDFLAGS=-fuse-ld=bfd go build -tags netgo -ldflags \
-"-s -w -linkmode external -extldflags -static -X 'github.com/authelia/authelia/internal/utils.BuildBranch=${BUILD_BRANCH}' -X 'github.com/authelia/authelia/internal/utils.BuildTag=${BUILD_TAG}' -X 'github.com/authelia/authelia/internal/utils.BuildCommit=${BUILD_COMMIT}' -X 'github.com/authelia/authelia/internal/utils.BuildDate=${BUILD_DATE}' -X 'github.com/authelia/authelia/internal/utils.BuildStateTag=${BUILD_STATE_TAG}' -X 'github.com/authelia/authelia/internal/utils.BuildStateExtra=${BUILD_STATE_EXTRA}'" \
--trimpath -o authelia ./cmd/authelia
+GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc CGO_LDFLAGS=-fuse-ld=bfd go build -tags netgo \
+-ldflags "-s -w -linkmode external ${LDFLAGS_EXTRA} -extldflags -static" -trimpath -o authelia ./cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====

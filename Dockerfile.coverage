@@ -14,8 +14,7 @@ RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn coverage
 # =======================================
 FROM golang:1.16.4-alpine AS builder-backend
 
-ARG BUILD_TAG
-ARG BUILD_COMMIT
+ARG LDFLAGS_EXTRA
 
 WORKDIR /go/src/app
 
@@ -30,9 +29,7 @@ apk --no-cache add gcc musl-dev && \
 go mod download && \
 mv api internal/server/public_html/api && \
 cd cmd/authelia && \
-go test -c --tags coverage -covermode=atomic -ldflags \
-"-s -w -linkmode external -extldflags -static -X 'github.com/authelia/authelia/internal/utils.BuildBranch=${BUILD_BRANCH}' -X 'github.com/authelia/authelia/internal/utils.BuildTag=${BUILD_TAG}' -X 'github.com/authelia/authelia/internal/utils.BuildCommit=${BUILD_COMMIT}' -X 'github.com/authelia/authelia/internal/utils.BuildDate=${BUILD_DATE}' -X 'github.com/authelia/authelia/internal/utils.BuildStateTag=${BUILD_STATE_TAG}' -X 'github.com/authelia/authelia/internal/utils.BuildStateExtra=${BUILD_STATE_EXTRA}'" \
--o authelia -coverpkg github.com/authelia/authelia/...
+go test -c --tags coverage -covermode=atomic -ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
 
 # ===================================
 # ===== Authelia official image =====

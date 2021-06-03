@@ -20,14 +20,7 @@ func main() {
 			startServer()
 		},
 		Short: fmt.Sprintf("authelia %s", utils.VersionShort()),
-		Long: fmt.Sprintf(`authelia %s
-
-Authelia is an open-source authentication and authorization server providing 2-factor authentication and 
-single sign-on (SSO) for your applications via a web portal. It acts as a companion of reverse proxies like 
-nginx, Traefik or HAProxy to let them know whether queries should pass through.Unauthenticated users are 
-redirected to Authelia Sign-in portal instead.
-
-Documentation is available at https://www.authelia.com/docs.`, utils.VersionLong()),
+		Long:  fmt.Sprintf(fmtAutheliaLong, utils.VersionLong()),
 	}
 
 	rootCmd.Flags().StringVar(&configPathFlag, "config", "", "Configuration file")
@@ -57,8 +50,8 @@ Documentation is available at https://www.authelia.com/docs.`, utils.VersionLong
 		Use:   "all",
 		Short: "Show all version information",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Branch: %s\nLast Tag: %s\nCommit: %s\nBuild Date: %s\nState Tag: %s\nState Extra: %s\n",
-				utils.BuildBranch, utils.BuildTag, utils.BuildCommit, utils.BuildDate, utils.BuildStateTag, utils.BuildStateExtra)
+			fmt.Printf(fmtAutheliaVersionAll, utils.BuildBranch, utils.BuildTag, utils.BuildCommit, utils.BuildNumber,
+				utils.BuildNumber, utils.BuildDate, utils.BuildStateTag, utils.BuildStateExtra)
 		},
 	}
 

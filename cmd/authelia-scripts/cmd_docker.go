@@ -82,13 +82,18 @@ func dockerBuildOfficialImage(arch string) error {
 		}
 	}
 
-	gitBranch, _, err := utils.RunCommandAndReturnOutput("git rev-parse --abbrev-ref HEAD")
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	gitBranch := ciBranch
 	if gitBranch == "" {
-		gitBranch = "master"
+		out, _, err := utils.RunCommandAndReturnOutput("git rev-parse --abbrev-ref HEAD")
+		if err != nil {
+			log.Fatal(err)
+		}
+		switch out {
+		case "":
+			gitBranch = "master"
+		default:
+			gitBranch = out
+		}
 	}
 
 	gitTagCommit, _, err := utils.RunCommandAndReturnOutput("git rev-list --tags --max-count=1")
@@ -106,6 +111,11 @@ func dockerBuildOfficialImage(arch string) error {
 		log.Fatal(err)
 	}
 
+	build := os.Getenv("BUILDKITE_BUILD_NUMBER")
+	if build == "" {
+		build = "manual"
+	}
+
 	stateTag := "untagged"
 	if gitTagCommit == gitCommit {
 		stateTag = "tagged"
@@ -119,7 +129,7 @@ func dockerBuildOfficialImage(arch string) error {
 	}
 
 	return docker.Build(IntermediateDockerImageName, dockerfile, ".",
-		gitBranch, gitTag, gitCommit, time.Now().Format("Mon, 02 Jan 2006 15:04:05 -0700"), stateTag, stateExtra)
+		gitBranch, gitTag, gitCommit, stateTag, stateExtra, build, arch)
 }
 
 // DockerBuildCmd Command for building docker image of Authelia.
