@@ -14,6 +14,7 @@ RUN \
 apk --no-cache add gcc musl-dev && \
 go mod download && \
 mv public_html internal/server/public_html && \
+echo "Starting go build..." && \
 GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo \
 -ldflags "-s -w -linkmode external ${LDFLAGS_EXTRA} -extldflags -static" -trimpath -o authelia ./cmd/authelia
 

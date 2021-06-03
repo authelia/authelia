@@ -17,6 +17,7 @@ curl -Lfs -o /tmp/gcc-9.2.0-aarch64-linux-musl.tar.xz "https://github.com/just-c
 tar xf /tmp/gcc-9.2.0-aarch64-linux-musl.tar.xz -C / && \
 go mod download && \
 mv public_html internal/server/public_html && \
+echo "Starting go build..." && \
 GOOS=linux GOARCH=arm64 CGO_ENABLED=1 CC=aarch64-linux-musl-gcc CGO_LDFLAGS=-fuse-ld=bfd go build -tags netgo -ldflags \
 "-s -w -linkmode external ${LDFLAGS_EXTRA} -extldflags -static" \
 -trimpath -o authelia ./cmd/authelia

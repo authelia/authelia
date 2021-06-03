@@ -17,6 +17,7 @@ curl -Lfs -o /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz "https://github.com/just
 tar xf /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz -C / && \
 go mod download && \
 mv public_html internal/server/public_html && \
+echo "Starting go build..." && \
 GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc CGO_LDFLAGS=-fuse-ld=bfd go build -tags netgo \
 -ldflags "-s -w -linkmode external ${LDFLAGS_EXTRA} -extldflags -static" -trimpath -o authelia ./cmd/authelia
 

@@ -51,7 +51,7 @@ func main() {
 		Short: "Show all version information",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Printf(fmtAutheliaVersionAll, utils.BuildBranch, utils.BuildTag, utils.BuildCommit, utils.BuildNumber,
-				utils.BuildNumber, utils.BuildDate, utils.BuildStateTag, utils.BuildStateExtra)
+				utils.BuildArch, utils.BuildDate, utils.BuildStateTag, utils.BuildStateExtra)
 		},
 	}
 
