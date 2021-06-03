@@ -4,13 +4,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	authelia2 "github.com/authelia/authelia"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/text/encoding/unicode"
 
+	"github.com/authelia/authelia"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
@@ -228,7 +228,7 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 }
 
 // GetDetails retrieve the groups a user belongs to.
-func (p *LDAPUserProvider) GetDetails(inputUsername string) (details *authelia2.UserDetails, err error) {
+func (p *LDAPUserProvider) GetDetails(inputUsername string) (details *authelia.UserDetails, err error) {
 	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
 		return nil, err
@@ -268,7 +268,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (details *authelia2.
 		groups = append(groups, res.Attributes[0].Values...)
 	}
 
-	return &authelia2.UserDetails{
+	return &authelia.UserDetails{
 		Username:    profile.Username,
 		DisplayName: profile.DisplayName,
 		Emails:      profile.Emails,

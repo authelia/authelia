@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	authelia2 "github.com/authelia/authelia"
 	"sync"
 	"testing"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/authelia/authelia"
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -157,7 +157,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	s.mock.UserProviderMock.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
-		Return(&authelia2.UserDetails{
+		Return(&authelia.UserDetails{
 			Username: "test",
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},
@@ -197,7 +197,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	s.mock.UserProviderMock.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
-		Return(&authelia2.UserDetails{
+		Return(&authelia.UserDetails{
 			Username: "test",
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},
@@ -238,7 +238,7 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 	s.mock.UserProviderMock.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
-		Return(&authelia2.UserDetails{
+		Return(&authelia.UserDetails{
 			// This is the name in authentication backend, in some setups the binding is
 			// case insensitive but the user ID in session must match the user in LDAP
 			// for the other modules of Authelia to be coherent.
@@ -300,7 +300,7 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 	s.mock.UserProviderMock.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
-		Return(&authelia2.UserDetails{
+		Return(&authelia.UserDetails{
 			Username: "test",
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},

@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	authelia2 "github.com/authelia/authelia"
+	"github.com/authelia/authelia"
 )
 
 // MockUserProvider is a mock of UserProvider interface.
@@ -49,10 +49,10 @@ func (mr *MockUserProviderMockRecorder) CheckUserPassword(arg0, arg1 interface{}
 }
 
 // GetDetails mocks base method.
-func (m *MockUserProvider) GetDetails(arg0 string) (*authelia2.UserDetails, error) {
+func (m *MockUserProvider) GetDetails(arg0 string) (*authelia.UserDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDetails", arg0)
-	ret0, _ := ret[0].(*authelia2.UserDetails)
+	ret0, _ := ret[0].(*authelia.UserDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

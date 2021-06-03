@@ -4,13 +4,13 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	authelia2 "github.com/authelia/authelia"
 	"os"
 	"plugin"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/authelia/authelia"
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/commands"
@@ -171,7 +171,7 @@ func configureStorageProvider(config *schema.StorageConfiguration) (provider sto
 	return provider, nil
 }
 
-func configureUserProvider(config *schema.Configuration, certPool *x509.CertPool) (provider authelia2.UserProvider, err error) {
+func configureUserProvider(config *schema.Configuration, certPool *x509.CertPool) (provider authelia.UserProvider, err error) {
 	switch {
 	case config.AuthenticationBackend.File != nil:
 		provider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
@@ -188,7 +188,7 @@ func configureUserProvider(config *schema.Configuration, certPool *x509.CertPool
 			return provider, fmt.Errorf("Error during authentication provider plugin lookup: %+v", err)
 		}
 
-		if p, ok := up.(authelia2.UserProvider); !ok {
+		if p, ok := up.(authelia.UserProvider); !ok {
 			return provider, errors.New("Error during authentication provider plugin setup: the plugin doesn't implement the interface (is it out of date)")
 		} else {
 			provider = p
@@ -200,7 +200,7 @@ func configureUserProvider(config *schema.Configuration, certPool *x509.CertPool
 	return provider, nil
 }
 
-func configureNotificationProvider(config *schema.Configuration, certPool *x509.CertPool) (provider authelia2.NotificationProvider, err error) {
+func configureNotificationProvider(config *schema.Configuration, certPool *x509.CertPool) (provider authelia.NotificationProvider, err error) {
 	switch {
 	case config.Notifier.SMTP != nil:
 		provider = notification.NewSMTPNotifier(*config.Notifier.SMTP, certPool)
@@ -217,7 +217,7 @@ func configureNotificationProvider(config *schema.Configuration, certPool *x509.
 			return provider, fmt.Errorf("Error during notifier provider plugin lookup: %+v", err)
 		}
 
-		if p, ok := up.(authelia2.NotificationProvider); !ok {
+		if p, ok := up.(authelia.NotificationProvider); !ok {
 			return provider, errors.New("Error during notifier provider plugin setup: the plugin doesn't implement the interface (is it out of date)")
 		} else {
 			provider = p

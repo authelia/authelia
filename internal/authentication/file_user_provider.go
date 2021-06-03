@@ -3,7 +3,6 @@ package authentication
 import (
 	_ "embed" // Embed users_database.template.yml.
 	"fmt"
-	authelia2 "github.com/authelia/authelia"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"gopkg.in/yaml.v2"
 
+	"github.com/authelia/authelia"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 )
@@ -156,9 +156,9 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 }
 
 // GetDetails retrieve the groups a user belongs to.
-func (p *FileUserProvider) GetDetails(username string) (*authelia2.UserDetails, error) {
+func (p *FileUserProvider) GetDetails(username string) (*authelia.UserDetails, error) {
 	if details, ok := p.database.Users[username]; ok {
-		return &authelia2.UserDetails{
+		return &authelia.UserDetails{
 			Username:    username,
 			DisplayName: details.DisplayName,
 			Groups:      details.Groups,
