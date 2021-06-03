@@ -31,7 +31,7 @@ type MockAutheliaCtx struct {
 	// Providers.
 	UserProviderMock    *MockUserProvider
 	StorageProviderMock *storage.MockProvider
-	NotifierMock        *MockNotifier
+	NotifierMock        *MockNotificationProvider
 
 	UserSession *session.UserSession
 
@@ -101,8 +101,8 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia.StorageProviderMock = storage.NewMockProvider(mockAuthelia.Ctrl)
 	providers.StorageProvider = mockAuthelia.StorageProviderMock
 
-	mockAuthelia.NotifierMock = NewMockNotifier(mockAuthelia.Ctrl)
-	providers.Notifier = mockAuthelia.NotifierMock
+	mockAuthelia.NotifierMock = NewMockNotificationProvider(mockAuthelia.Ctrl)
+	providers.NotificationProvider = mockAuthelia.NotifierMock
 
 	providers.Authorizer = authorization.NewAuthorizer(
 		configuration.AccessControl)

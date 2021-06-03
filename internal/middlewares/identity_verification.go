@@ -96,7 +96,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		err = ctx.Providers.Notifier.Send(identity.Email, args.MailTitle, bufText.String(), bufHTML.String())
+		err = ctx.Providers.NotificationProvider.Send(identity.Email, args.MailTitle, bufText.String(), bufHTML.String())
 
 		if err != nil {
 			ctx.Error(err, operationFailedMessage)

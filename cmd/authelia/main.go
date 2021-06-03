@@ -24,6 +24,7 @@ import (
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/storage"
 	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4"
 )
 
 var configPathFlag string
@@ -129,7 +130,7 @@ func configureProviders(config *schema.Configuration) (providers middlewares.Pro
 		return providers, nonFatalErrs, append(errs, err)
 	}
 
-	notifier, err := configureNotifier(config, certPool)
+	notificationProvider, err := configureNotificationProvider(config, certPool)
 	if err != nil {
 		return providers, nonFatalErrs, append(errs, err)
 	}
@@ -145,13 +146,13 @@ func configureProviders(config *schema.Configuration) (providers middlewares.Pro
 	}
 
 	return middlewares.Providers{
-		Authorizer:      authorizer,
-		UserProvider:    userProvider,
-		Regulator:       regulator,
-		OpenIDConnect:   oidcProvider,
-		StorageProvider: storageProvider,
-		Notifier:        notifier,
-		SessionProvider: sessionProvider,
+		Authorizer:           authorizer,
+		UserProvider:         userProvider,
+		Regulator:            regulator,
+		OpenIDConnect:        oidcProvider,
+		StorageProvider:      storageProvider,
+		NotificationProvider: notificationProvider,
+		SessionProvider:      sessionProvider,
 	}, nonFatalErrs, errs
 }
 
@@ -170,7 +171,7 @@ func configureStorageProvider(config *schema.StorageConfiguration) (provider sto
 	return provider, nil
 }
 
-func configureUserProvider(config *schema.Configuration, certPool *x509.CertPool) (provider authentication.UserProvider, err error) {
+func configureUserProvider(config *schema.Configuration, certPool *x509.CertPool) (provider authelia.UserProvider, err error) {
 	switch {
 	case config.AuthenticationBackend.File != nil:
 		provider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
@@ -187,7 +188,7 @@ func configureUserProvider(config *schema.Configuration, certPool *x509.CertPool
 			return provider, fmt.Errorf("Error during authentication provider plugin lookup: %+v", err)
 		}
 
-		if p, ok := up.(authentication.UserProvider); !ok {
+		if p, ok := up.(authelia.UserProvider); !ok {
 			return provider, errors.New("Error during authentication provider plugin setup: the plugin doesn't implement the interface (is it out of date)")
 		} else {
 			provider = p
@@ -199,7 +200,7 @@ func configureUserProvider(config *schema.Configuration, certPool *x509.CertPool
 	return provider, nil
 }
 
-func configureNotifier(config *schema.Configuration, certPool *x509.CertPool) (provider notification.Notifier, err error) {
+func configureNotificationProvider(config *schema.Configuration, certPool *x509.CertPool) (provider authelia.NotificationProvider, err error) {
 	switch {
 	case config.Notifier.SMTP != nil:
 		provider = notification.NewSMTPNotifier(*config.Notifier.SMTP, certPool)
@@ -211,12 +212,12 @@ func configureNotifier(config *schema.Configuration, certPool *x509.CertPool) (p
 			return provider, fmt.Errorf("Error opening notifier provider plugin: %+v", err)
 		}
 
-		up, err := notifierPlugin.Lookup("Notifier")
+		up, err := notifierPlugin.Lookup("NotificationProvider")
 		if err != nil {
 			return provider, fmt.Errorf("Error during notifier provider plugin lookup: %+v", err)
 		}
 
-		if p, ok := up.(notification.Notifier); !ok {
+		if p, ok := up.(authelia.NotificationProvider); !ok {
 			return provider, errors.New("Error during notifier provider plugin setup: the plugin doesn't implement the interface (is it out of date)")
 		} else {
 			provider = p
