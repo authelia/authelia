@@ -6,31 +6,19 @@ FROM golang:1.16.4-alpine AS builder-backend
 ARG BUILD_TAG
 ARG BUILD_COMMIT
 
-# gcc and musl-dev are required for building go-sqlite3
-RUN apk --no-cache add gcc musl-dev
-
 WORKDIR /go/src/app
 
-COPY go.mod go.sum config.template.yml ./
+COPY / ./
 
-RUN go mod download
-
-COPY cmd cmd
-COPY internal internal
-COPY v4 v4
-
-# Prepare static files to be embedded in Go binary
-RUN rm -rf internal/server/public_html
-COPY public_html internal/server/public_html
-
-# Set the build version and time
-RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
-    sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
-    sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go
-
-# CGO_ENABLED=1 is mandatory for building go-sqlite3
-RUN cd cmd/authelia && \
-GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-s -w -linkmode external -extldflags -static' -trimpath -o authelia
+# CGO_ENABLED=1 is required for building go-sqlite3
+RUN \
+apk --no-cache add gcc musl-dev && \
+go mod download && \
+mv public_html internal/server/public_html && \
+echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
+sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
+sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go && \
+GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-s -w -linkmode external -extldflags -static' -trimpath -o authelia cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====
@@ -41,7 +29,7 @@ WORKDIR /app
 
 RUN apk --no-cache add ca-certificates su-exec tzdata
 
-COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
+COPY --from=builder-backend /go/src/app/authelia ./
 COPY entrypoint.sh healthcheck.sh /usr/local/bin/
 
 EXPOSE 9091

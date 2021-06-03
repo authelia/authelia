@@ -7,33 +7,21 @@ ARG BUILD_TAG
 ARG BUILD_COMMIT
 ARG CC_VERSION="v15"
 
-# gcc cross-compiler is required for building go-sqlite3
-RUN apk --no-cache add curl && \
-    curl -Lfs -o /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz "https://github.com/just-containers/musl-cross-make/releases/download/${CC_VERSION}/gcc-9.2.0-arm-linux-musleabihf.tar.xz" && \
-    tar xf /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz -C /
-
 WORKDIR /go/src/app
 
-COPY go.mod go.sum config.template.yml ./
+COPY / ./
 
-RUN go mod download
-
-COPY cmd cmd
-COPY internal internal
-COPY v4 v4
-
-# Prepare static files to be embedded in Go binary
-RUN rm -rf internal/server/public_html
-COPY public_html internal/server/public_html
-
-# Set the build version and time
-RUN echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
-    sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
-    sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go
-
-# CGO_ENABLED=1 is mandatory for building go-sqlite3
-RUN cd cmd/authelia && \
-GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc CGO_LDFLAGS=-fuse-ld=bfd go build -tags netgo -ldflags '-s -w -linkmode external -extldflags -static' -trimpath -o authelia
+# CGO_ENABLED=1 and gcc cross-compiler is required for building go-sqlite3
+RUN \
+apk --no-cache add curl && \
+curl -Lfs -o /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz "https://github.com/just-containers/musl-cross-make/releases/download/${CC_VERSION}/gcc-9.2.0-arm-linux-musleabihf.tar.xz" && \
+tar xf /tmp/gcc-9.2.0-arm-linux-musleabihf.tar.xz -C / && \
+go mod download && \
+mv public_html internal/server/public_html && \
+echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
+sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
+sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go && \
+GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc CGO_LDFLAGS=-fuse-ld=bfd go build -tags netgo -ldflags '-s -w -linkmode external -extldflags -static' -trimpath -o authelia cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====
@@ -47,7 +35,7 @@ COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 RUN apk --no-cache add ca-certificates su-exec tzdata && \
     rm /usr/bin/qemu-arm-static
 
-COPY --from=builder-backend /go/src/app/cmd/authelia/authelia ./
+COPY --from=builder-backend /go/src/app/authelia ./
 COPY entrypoint.sh healthcheck.sh /usr/local/bin/
 
 EXPOSE 9091

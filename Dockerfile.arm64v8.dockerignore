@@ -1,0 +1,7 @@
+*
+!v4
+!cmd
+!internal
+!go.mod
+!go.sum
+internal/server/public_html
