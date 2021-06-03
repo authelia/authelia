@@ -3,8 +3,12 @@
 # =======================================
 FROM golang:1.16.4-alpine AS builder-backend
 
+ARG BUILD_BRANCH
 ARG BUILD_TAG
 ARG BUILD_COMMIT
+ARG BUILD_DATE
+ARG BUILD_STATE_TAG
+ARG BUILD_STATE_EXTRA
 
 WORKDIR /go/src/app
 
@@ -15,10 +19,9 @@ RUN \
 apk --no-cache add gcc musl-dev && \
 go mod download && \
 mv public_html internal/server/public_html && \
-echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
-sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
-sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go && \
-GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-s -w -linkmode external -extldflags -static' -trimpath -o authelia ./cmd/authelia
+GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags \
+    "-s -w -linkmode external -extldflags -static -X 'github.com/authelia/authelia/internal/utils.BuildBranch=${BUILD_BRANCH}' -X 'github.com/authelia/authelia/internal/utils.BuildTag=${BUILD_TAG}' -X 'github.com/authelia/authelia/internal/utils.BuildCommit=${BUILD_COMMIT}' -X 'github.com/authelia/authelia/internal/utils.BuildDate=${BUILD_DATE}' -X 'github.com/authelia/authelia/internal/utils.BuildStateTag=${BUILD_STATE_TAg}' -X 'github.com/authelia/authelia/internal/utils.BuildStateExtra=${BUILD_STATE_EXTRA}'" \
+    -trimpath -o authelia ./cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====

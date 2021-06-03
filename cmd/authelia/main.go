@@ -2,146 +2,15 @@ package main
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/commands"
-	"github.com/authelia/authelia/internal/configuration"
 	"github.com/authelia/authelia/internal/logging"
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/notification"
-	"github.com/authelia/authelia/internal/oidc"
-	"github.com/authelia/authelia/internal/regulation"
-	"github.com/authelia/authelia/internal/server"
-	"github.com/authelia/authelia/internal/session"
-	"github.com/authelia/authelia/internal/storage"
 	"github.com/authelia/authelia/internal/utils"
 )
 
 var configPathFlag string
-
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
-func startServer() {
-	logger := logging.Logger()
-	config, errs := configuration.Read(configPathFlag)
-
-	if len(errs) > 0 {
-		for _, err := range errs {
-			logger.Error(err)
-		}
-
-		os.Exit(1)
-	}
-
-	autheliaCertPool, errs, nonFatalErrs := utils.NewX509CertPool(config.CertificatesDirectory)
-	if len(errs) > 0 {
-		for _, err := range errs {
-			logger.Error(err)
-		}
-
-		os.Exit(2)
-	}
-
-	if len(nonFatalErrs) > 0 {
-		for _, err := range nonFatalErrs {
-			logger.Warn(err)
-		}
-	}
-
-	if err := logging.InitializeLogger(config.Logging.Format, config.Logging.FilePath, config.Logging.KeepStdout); err != nil {
-		logger.Fatalf("Cannot initialize logger: %v", err)
-	}
-
-	switch config.Logging.Level {
-	case "error":
-		logger.Info("Logging severity set to error")
-		logging.SetLevel(logrus.ErrorLevel)
-	case "warn":
-		logger.Info("Logging severity set to warn")
-		logging.SetLevel(logrus.WarnLevel)
-	case "info":
-		logger.Info("Logging severity set to info")
-		logging.SetLevel(logrus.InfoLevel)
-	case "debug":
-		logger.Info("Logging severity set to debug")
-		logging.SetLevel(logrus.DebugLevel)
-	case "trace":
-		logger.Info("Logging severity set to trace")
-		logging.SetLevel(logrus.TraceLevel)
-	}
-
-	if os.Getenv("ENVIRONMENT") == "dev" {
-		logger.Info("===> Authelia is running in development mode. <===")
-	}
-
-	var storageProvider storage.Provider
-
-	switch {
-	case config.Storage.PostgreSQL != nil:
-		storageProvider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL)
-	case config.Storage.MySQL != nil:
-		storageProvider = storage.NewMySQLProvider(*config.Storage.MySQL)
-	case config.Storage.Local != nil:
-		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
-	default:
-		logger.Fatalf("Unrecognized storage backend")
-	}
-
-	var userProvider authentication.UserProvider
-
-	switch {
-	case config.AuthenticationBackend.File != nil:
-		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
-	case config.AuthenticationBackend.LDAP != nil:
-		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, autheliaCertPool)
-	default:
-		logger.Fatalf("Unrecognized authentication backend")
-	}
-
-	var notifier notification.Notifier
-
-	switch {
-	case config.Notifier.SMTP != nil:
-		notifier = notification.NewSMTPNotifier(*config.Notifier.SMTP, autheliaCertPool)
-	case config.Notifier.FileSystem != nil:
-		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
-	default:
-		logger.Fatalf("Unrecognized notifier")
-	}
-
-	if !config.Notifier.DisableStartupCheck {
-		_, err := notifier.StartupCheck()
-		if err != nil {
-			logger.Fatalf("Error during notifier startup check: %s", err)
-		}
-	}
-
-	clock := utils.RealClock{}
-	authorizer := authorization.NewAuthorizer(config.AccessControl)
-	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
-	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
-	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
-
-	if err != nil {
-		logger.Fatalf("Error initializing OpenID Connect Provider: %+v", err)
-	}
-
-	providers := middlewares.Providers{
-		Authorizer:      authorizer,
-		UserProvider:    userProvider,
-		Regulator:       regulator,
-		OpenIDConnect:   oidcProvider,
-		StorageProvider: storageProvider,
-		Notifier:        notifier,
-		SessionProvider: sessionProvider,
-	}
-
-	server.StartServer(*config, providers)
-}
 
 func main() {
 	logger := logging.Logger()
@@ -150,6 +19,14 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			startServer()
 		},
+		Short: fmt.Sprintf("authelia %s", utils.VersionShort()),
+		Long: fmt.Sprintf(`authelia %s
+
+		Authelia is an open-source authentication and authorization server providing 2-factor authentication and single sign-on (SSO) for your applications via a web portal. 
+		It acts as a companion of reverse proxies like nginx, Traefik or HAProxy to let them know whether queries should pass through.
+		Unauthenticated users are redirected to Authelia Sign-in portal instead.
+
+		Documentation is available at https://www.authelia.com/docs.`, utils.VersionLong()),
 	}
 
 	rootCmd.Flags().StringVar(&configPathFlag, "config", "", "Configuration file")
@@ -158,9 +35,33 @@ func main() {
 		Use:   "version",
 		Short: "Show the version of Authelia",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Authelia version %s, build %s\n", BuildTag, BuildCommit)
+			long, err := cmd.Flags().GetBool("long")
+			if err != nil {
+				logger.Fatal(fmt.Errorf("Error parsing flag: %w", err))
+			}
+
+			if long {
+				fmt.Printf("Authelia version %s\n", utils.VersionLong())
+
+				return
+			}
+
+			fmt.Printf("Authelia version %s, build %s\n", utils.VersionShort(), utils.BuildCommit)
 		},
 	}
+
+	versionCmd.Flags().Bool("long", false, "Toggles the long version output")
+
+	versionAllCmd := &cobra.Command{
+		Use:   "all",
+		Short: "Show all version information",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("Branch: %s\nLast Tag: %s\nCommit: %s\nBuild Date: %s\nState Tag: %s\nState Extra: %s\n",
+				utils.BuildBranch, utils.BuildTag, utils.BuildCommit, utils.BuildDate, utils.BuildStateTag, utils.BuildStateExtra)
+		},
+	}
+
+	versionCmd.AddCommand(versionAllCmd)
 
 	rootCmd.AddCommand(versionCmd, commands.HashPasswordCmd,
 		commands.ValidateConfigCmd, commands.CertificatesCmd,

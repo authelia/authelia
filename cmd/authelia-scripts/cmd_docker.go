@@ -82,24 +82,44 @@ func dockerBuildOfficialImage(arch string) error {
 		}
 	}
 
-	gitTag := ciTag
-	if gitTag == "" {
-		// If commit is not tagged, mark the build has having master tag.
-		gitTag = masterTag
-	}
-
-	cmd := utils.Shell("git rev-parse HEAD")
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	commitBytes, err := cmd.Output()
-
+	gitBranch, _, err := utils.RunCommandAndReturnOutput("git branch --show-current")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	commitHash := strings.Trim(string(commitBytes), "\n")
+	if gitBranch == "" {
+		gitBranch = "master"
+	}
 
-	return docker.Build(IntermediateDockerImageName, dockerfile, ".", gitTag, commitHash)
+	gitTagCommit, _, err := utils.RunCommandAndReturnOutput("git rev-list --tags --max-count=1")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gitTag, _, err := utils.RunCommandAndReturnOutput("git describe --tags --abbrev=0 " + gitTagCommit)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gitCommit, _, err := utils.RunCommandAndReturnOutput("git rev-parse HEAD")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	stateTag := "untagged"
+	if gitTagCommit == gitCommit {
+		stateTag = "tagged"
+	}
+
+	stateExtra := ""
+	if _, exitCode, err := utils.RunCommandAndReturnOutput("git status --porcelain"); err != nil {
+		log.Fatal(err)
+	} else if exitCode != 0 {
+		stateExtra = "dirty"
+	}
+
+	return docker.Build(IntermediateDockerImageName, dockerfile, ".",
+		gitBranch, gitTag, gitCommit, time.Now().Format("Mon, 02 Jan 2006 15:04:05 -0700"), stateTag, stateExtra)
 }
 
 // DockerBuildCmd Command for building docker image of Authelia.

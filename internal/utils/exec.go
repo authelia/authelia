@@ -44,6 +44,19 @@ func Shell(command string) *exec.Cmd {
 	return CommandWithStdout("bash", "-c", command)
 }
 
+func RunCommandAndReturnOutput(command string) (output string, exitCode int, err error) {
+	cmd := Shell(command)
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+
+	outputBytes, err := cmd.Output()
+	if err != nil {
+		return "", cmd.ProcessState.ExitCode(), err
+	}
+
+	return strings.Trim(string(outputBytes), "\n"), cmd.ProcessState.ExitCode(), nil
+}
+
 // RunCommandUntilCtrlC run a command until ctrl-c is hit.
 func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 	mutex := sync.Mutex{}

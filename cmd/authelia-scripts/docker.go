@@ -8,10 +8,16 @@ import (
 type Docker struct{}
 
 // Build build a docker image.
-func (d *Docker) Build(tag, dockerfile, target, gitTag, gitCommit string) error {
+func (d *Docker) Build(tag, dockerfile, target, gitBranch, gitTag, gitCommit, buildDate, stateTag, stateExtra string) error {
 	return utils.CommandWithStdout(
-		"docker", "build", "-t", tag, "-f", dockerfile, "--build-arg",
-		"BUILD_TAG="+gitTag, "--build-arg", "BUILD_COMMIT="+gitCommit, target).Run()
+		"docker", "build", "-t", tag, "-f", dockerfile,
+		"--build-arg", "BUILD_BRANCH="+gitBranch,
+		"--build-arg", "BUILD_TAG="+gitTag,
+		"--build-arg", "BUILD_COMMIT="+gitCommit,
+		"--build-arg", "BUILD_DATE="+buildDate,
+		"--build-arg", "BUILD_STATE_TAG="+stateTag,
+		"--build-arg", "BUILD_STATE_EXTRA="+stateExtra,
+		target).Run()
 }
 
 // Tag tag a docker image.
