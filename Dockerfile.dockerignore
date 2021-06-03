@@ -1,7 +1,11 @@
 *
 !v4
+!api
 !cmd
 !internal
+!public_html
 !go.mod
 !go.sum
+!entrypoint.sh
+!healthcheck.sh
 internal/server/public_html
