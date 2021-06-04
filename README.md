@@ -15,14 +15,14 @@
   [![Discord](https://img.shields.io/discord/707844280412012608?label=discord&logo=discord&style=flat-square&color=blue)](https://discord.authelia.com)
   [![Matrix](https://img.shields.io/matrix/authelia:matrix.org?label=matrix&logo=matrix&style=flat-square&color=blue)](https://riot.im/app/#/room/#authelia:matrix.org)
 
-**Authelia** is an open-source authentication and authorization server providing 2-factor authentication and single 
-sign-on (SSO) for your applications via a web portal. It acts as a companion of reverse proxies like [nginx], [Traefik] 
-or [HAProxy] to let them know whether queries should pass through. Unauthenticated users are redirected to Authelia 
-Sign-in portal instead.
+**Authelia** is an open-source authentication and authorization server providing two-factor authentication and single 
+sign-on (SSO) for your applications via a web portal. It acts as a companion for reverse proxies like [nginx], [Traefik] 
+or [HAProxy] to let them know whether requests should either be allowed or redirected to Authelia's portal for
+authentication.
 
 Documentation is available at https://www.authelia.com/docs.
 
-The architecture is shown in the diagram below.
+The following is a simple diagram of the architecture:
 
 <p align="center" style="margin:50px">
   <img src="./docs/images/archi.png"/>
@@ -30,16 +30,17 @@ The architecture is shown in the diagram below.
 
 **Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/), 
 [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a 
-[Static binary](https://github.com/authelia/authelia/releases/latest), [Docker] or [Kubernetes] leveraging ingress 
-controllers and ingress configurations. Assistance to publish a 
-[Debian package](https://github.com/authelia/authelia/issues/573) would be greatly appreciated.
+[Static binary](https://github.com/authelia/authelia/releases/latest), [Docker] or [Kubernetes] either manually or via
+the Helm [Chart](https://charts.authelia.com) (beta) leveraging ingress controllers and ingress configurations. 
 
 <p align="center">
-  <img src="./docs/images/logos/kubernetes.logo.png" height="100"/>
+  <img src="./docs/images/logos/kubernetes.png" height="100"/>
   <img src="./docs/images/logos/docker.logo.png" width="100">
 </p>
 
-Here is what Authelia's portal looks like
+***Help Wanted:*** Assistance to publish a [Debian package](https://github.com/authelia/authelia/issues/573) would be greatly appreciated.
+
+Here is what Authelia's portal looks like:
 
 <p align="center">
   <img src="./docs/images/1FA.png" width="400" />
@@ -48,7 +49,7 @@ Here is what Authelia's portal looks like
 
 ## Features summary
 
-Here is the list of the main available features:
+This is a list of the key features of Authelia:
 
 * Several second factor methods:
   * **[Security Key (U2F)](https://www.authelia.com/docs/features/2fa/security-key)** with [Yubikey].
@@ -57,13 +58,24 @@ Here is the list of the main available features:
   * **[Mobile Push Notifications](https://www.authelia.com/docs/features/2fa/push-notifications)** 
     with [Duo](https://duo.com/).
 * Password reset with identity verification using email confirmation.
-* Single-factor only authentication method available.
-* Access restriction after too many authentication attempts.
-* Fine-grained access control per subdomain, user, resource and network.
-* Support of basic authentication for endpoints protected by single factor.
-* Beta support for [OpenID Connect](https://www.authelia.com/docs/configuration/identity-providers/oidc.html).
+* Access restriction after too many invalid authentication attempts.
+* Fine-grained access control using rules which match criteria like subdomain, user, user group membership, request uri, 
+ request method, and network.
+* Choice between one-factor and two-factor policies per-rule.
+* Support of basic authentication for endpoints protected by the one-factor policy.
 * Highly available using a remote database and Redis as a highly available KV store.
-* Compatible with Kubernetes [ingress-nginx](https://github.com/kubernetes/ingress-nginx) controller out of the box.
+* Compatible with [Traefik](https://doc.traefik.io/traefik) out of the box using the
+  [ForwardAuth](https://doc.traefik.io/traefik/middlewares/forwardauth/) middleware.
+* Curated configuration from [LinuxServer](https://www.linuxserver.io/) via their 
+  [Swag](https://docs.linuxserver.io/general/swag) container as well as a 
+  [guide](https://blog.linuxserver.io/2020/08/26/setting-up-authelia/).
+* Kubernetes Support:
+  * Compatible with the [ingress-nginx](https://github.com/kubernetes/ingress-nginx), the 
+    [Traefik Kubernetes CRD](https://doc.traefik.io/traefik/providers/kubernetes-crd/), and the 
+    [Traefik Kubernetes Ingress](https://doc.traefik.io/traefik/providers/kubernetes-crd/) Kubernetes ingress
+    controllers out of the box.
+  * Beta support for installing via Helm using our [Charts](https://charts.authelia.com).
+* Beta support for [OpenID Connect](https://www.authelia.com/docs/configuration/identity-providers/oidc.html).
 
 For more details about the features, follow [Features](https://www.authelia.com/docs/features/).
 
@@ -75,15 +87,26 @@ Authelia works in combination with [nginx], [Traefik] or [HAProxy]. It can be de
 Docker or on top of [Kubernetes].
 
 <p align="center">
-  <img src="./docs/images/logos/nginx.logo.png" height="50"/>
-  <img src="./docs/images/logos/traefik.logo.png" height="50"/>
-  <img src="./docs/images/logos/haproxy.logo.png" height="50"/>  
-  <img src="./docs/images/logos/kubernetes.logo.png" height="50"/> 
+  <img src="./docs/images/logos/nginx.png" height="50"/>
+  <img src="./docs/images/logos/traefik.png" height="50"/>
+  <img src="./docs/images/logos/haproxy.png" height="50"/>  
+  <img src="./docs/images/logos/kubernetes.png" height="50"/> 
+</p>
+
+***Help Wanted:*** Assistance would be appreciated in getting Authelia working with
+[Caddy](https://caddyserver.com/) and [Envoy](https://www.envoyproxy.io/).
+
+<p align="center">
+  <img src="./docs/images/logos/caddy.png" height="50"/>
+  <img src="./docs/images/logos/envoy.png" height="50"/>
 </p>
 
 ## Getting Started
 
-You can start utilising Authelia with the provided `docker-compose` bundles:
+### docker-compose
+
+The `docker-compose` bundles act as a starting point for anyone wanting to see Authelia in action. You will have to
+customize them to your needs as they come with self-signed certificates.
 
 #### [Local](https://www.authelia.com/docs/getting-started)
 The Local compose bundle is intended to test Authelia without worrying about configuration.
@@ -111,37 +134,34 @@ This guide will show you how to deploy it on bare metal as well as on
 
 ## Security
 
-Authelia takes security very seriously. We follow the rule of
-[responsible disclosure](https://en.wikipedia.org/wiki/Responsible_disclosure), and we
-encourage the community to as well.
+Authelia takes security very seriously. If you discover a vulnerability in Authelia, please see our 
+[Security Policy](https://github.com/authelia/authelia/security/policy). 
 
-If you discover a vulnerability in Authelia, please first contact one of the maintainers privately
-either via [Matrix](#matrix) or [email](#email) as described in the [contact options](#contact-options) below.
+For more information about [security](https://www.authelia.com/docs/security/) related matters, please read
+[the documentation](https://www.authelia.com/docs/security/).
 
-For details about security measures implemented in Authelia, please follow
-this [link](https://www.authelia.com/docs/security/measures.html) and for reading about 
-the threat model follow this [link](https://www.authelia.com/docs/security/threat-model.html).
+## Contact Options
 
-### Contact Options
+Several contact options exist for our community, the primary one being [Matrix](#matrix).
 
-#### Matrix
+### Matrix
 
-Join the [Matrix Room](https://riot.im/app/#/room/#authelia:matrix.org) and locate one of the maintainers.
-You can identify them as they are the room administrators. Alternatively you can just ask for one of the
-maintainers. Once you've made contact we ask you privately message the maintainer to communicate the vulnerability.
+You can join the [Matrix Space](https://app.element.io/#/room/!qcxpPdXBiGBSTbFAJE:matrix.org?via=matrix.org) which 
+includes both the [Support Room](https://riot.im/app/#/room/#authelia:matrix.org) and the 
+[Contributing Room](https://riot.im/app/#/room/#authelia-contributing:matrix.org). The core team members are identified
+as administrators in the Rooms and Space.
 
-#### Discord
+### Discord
 
-Join the [Discord Server](https://discord.authelia.com) and message the
-[#support](https://discord.com/channels/707844280412012608/707844280412012612) chat which links to [Matrix](#matrix) 
-and contact a maintainer. 
+You can join the [Discord Server](https://discord.authelia.com) where the
+[#support](https://discord.com/channels/707844280412012608/707844280412012612) and 
+[#contributing](https://discord.com/channels/707844280412012608/804943261265297408) channels link to [Matrix](#matrix).
 
-#### Email
+### Email
 
-You can contact any of the maintainers for security vulnerability related issues by emailing 
-[security@authelia.com](mailto:security@authelia.com). This email is strictly reserved for security and vulnerability
-disclosure related matters. If you need to contact us for another reason please use [Matrix](#matrix) or
-[team@authelia.com](mailto:team@authelia.com).
+You can contact the core team by email via [team@authelia.com](mailto:team@authelia.com). Please note the  
+[security@authelia.com](mailto:security@authelia.com) is also available but is strictly reserved for security related 
+matters.
 
 ## Breaking changes
 
@@ -253,16 +273,18 @@ Contributions of any kind welcome!
 
 ### Backers
 
-Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/authelia-sponsors/contribute)] and help us 
+Thank you to all our backers! 🙏 [Become a backer](https://opencollective.com/authelia-sponsors/contribute) and help us 
 sustain our community. The money we currently receive is dedicated to bootstrap a bug bounty program to give us as many
-eyes as we can to detect potential vulnerabilities. <a href="https://opencollective.com/authelia-sponsors#backers"><img src="https://opencollective.com/authelia-sponsors/backers.svg?width=890"></a>
+eyes as we can to detect potential vulnerabilities. 
+<a href="https://opencollective.com/authelia-sponsors#backers"><img src="https://opencollective.com/authelia-sponsors/backers.svg?width=890"></a>
 
 ### Sponsors
 
 Any company can become a sponsor by donating or providing any benefit to the project or the team helping improve
 Authelia.
-For instance, we are actively looking for a sponsor who would be willing to help us organize a security audit of the
-code or a pen test.
+
+***Help Wanted:*** We are actively looking for sponsorship to obtain either a code security audit, penetration testing,
+or other audits related to improving the security of Authelia.
 
 Companies contributing to Authelia will have a specical mention below. [[Become a sponsor](https://opencollective.com/authelia-sponsors#sponsor)]
 
@@ -282,7 +304,7 @@ Companies contributing to Authelia will have a specical mention below. [[Become 
 Thank you to [<img src="./docs/images/logos/digitalocean.svg" alt="Digital Ocean" width="32"> DigitalOcean](https://www.digitalocean.com/?from=Authelia) for
 contributing on OpenCollective.
 
-#### Jetbrains
+#### JetBrains
 
 Thank you to [<img src="./docs/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
 for providing us with free licenses to their great tools.
@@ -293,8 +315,8 @@ for providing us with free licenses to their great tools.
 
 ## License
 
-**Authelia** is **licensed** under the **[Apache 2.0]** license. The terms of the license are detailed 
-in [LICENSE](./LICENSE).
+**Authelia** is **licensed** under the **[Apache 2.0]** license. The terms of the license are detailed in 
+[LICENSE](./LICENSE).
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia?ref=badge_large)
 
