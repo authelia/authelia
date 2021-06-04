@@ -82,54 +82,13 @@ func dockerBuildOfficialImage(arch string) error {
 		}
 	}
 
-	gitBranch := ciBranch
-	if gitBranch == "" {
-		out, _, err := utils.RunCommandAndReturnOutput("git rev-parse --abbrev-ref HEAD")
-		if err != nil {
-			log.Fatal(err)
-		}
-		switch out {
-		case "":
-			gitBranch = "master"
-		default:
-			gitBranch = out
-		}
-	}
-
-	gitTagCommit, _, err := utils.RunCommandAndReturnOutput("git rev-list --tags --max-count=1")
+	flags, err := getXFlags(arch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	gitTag, _, err := utils.RunCommandAndReturnOutput("git describe --tags --abbrev=0 " + gitTagCommit)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	gitCommit, _, err := utils.RunCommandAndReturnOutput("git rev-parse HEAD")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	build := os.Getenv("BUILDKITE_BUILD_NUMBER")
-	if build == "" {
-		build = "manual"
-	}
-
-	stateTag := "untagged"
-	if gitTagCommit == gitCommit {
-		stateTag = "tagged"
-	}
-
-	stateExtra := ""
-	if _, exitCode, err := utils.RunCommandAndReturnOutput("git status --porcelain"); err != nil {
-		log.Fatal(err)
-	} else if exitCode != 0 {
-		stateExtra = "dirty"
 	}
 
 	return docker.Build(IntermediateDockerImageName, dockerfile, ".",
-		gitBranch, gitTag, gitCommit, stateTag, stateExtra, build, arch)
+		strings.Join(flags, " "))
 }
 
 // DockerBuildCmd Command for building docker image of Authelia.

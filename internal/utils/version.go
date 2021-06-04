@@ -6,7 +6,7 @@ import "strings"
 var BuildTag = ""
 
 // BuildStateTag is replaced by LDFLAGS at build time with `tagged` or `untagged` depending on if the commit is tagged.
-var BuildStateTag = ""
+var BuildStateTag = "tagged"
 
 // BuildStateExtra is replaced by LDFLAGS at build time with a blank string or `dirty` if the working tree is dirty.
 var BuildStateExtra = ""
@@ -18,16 +18,18 @@ var BuildDate = ""
 var BuildCommit = "unknown"
 
 // BuildBranch is replaced by LDFLAGS at build time with the current branch.
-var BuildBranch = ""
+var BuildBranch = "master"
 
 // BuildNumber is replaced by LDFLAGS at build time with the CI build number.
-var BuildNumber = ""
+var BuildNumber = "0"
 
 // BuildArch is replaced by LDFLAGS at build time with the CI build arch.
 var BuildArch = ""
 
-var versionLong = ""
-var versionShort = ""
+const (
+	tagged  = "tagged"
+	unknown = "unknown"
+)
 
 // VersionShort returns the short version.
 //
@@ -36,22 +38,20 @@ var versionShort = ""
 // communicate if the working tree is dirty. Though it can be used by ports to include the port name.
 //
 func VersionShort() (version string) {
-	if versionShort != "" {
-		return versionShort
-	}
-
 	b := strings.Builder{}
 
 	b.WriteString(BuildTag)
 
-	if BuildStateTag != "tagged" {
+	if BuildStateTag != tagged {
 		b.WriteRune('-')
+
 		switch BuildCommit {
-		case "uknown":
-			b.WriteString("unknown")
+		case unknown:
+			b.WriteString(unknown)
 		default:
 			for i, r := range BuildCommit {
 				b.WriteRune(r)
+
 				if i >= 6 {
 					break
 				}
@@ -64,9 +64,7 @@ func VersionShort() (version string) {
 		b.WriteString(BuildStateExtra)
 	}
 
-	versionShort = b.String()
-
-	return versionShort
+	return b.String()
 }
 
 // VersionLong returns the long version.
@@ -78,15 +76,11 @@ func VersionShort() (version string) {
 // build started.
 //
 func VersionLong() (version string) {
-	if versionLong != "" {
-		return versionLong
-	}
-
 	b := strings.Builder{}
 
-	b.WriteString(BuildTag)
+	b.WriteString(VersionShort())
 
-	if BuildStateTag != "tagged" {
+	if BuildStateTag != tagged {
 		b.WriteString("-untagged")
 	}
 
@@ -103,7 +97,5 @@ func VersionLong() (version string) {
 	b.WriteString(BuildDate)
 	b.WriteString(")")
 
-	versionLong = b.String()
-
-	return versionLong
+	return b.String()
 }

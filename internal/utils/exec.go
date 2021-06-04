@@ -44,6 +44,7 @@ func Shell(command string) *exec.Cmd {
 	return CommandWithStdout("bash", "-c", command)
 }
 
+// RunCommandAndReturnOutput runs a shell command then returns the stdout and the exit code.
 func RunCommandAndReturnOutput(command string) (output string, exitCode int, err error) {
 	cmd := Shell(command)
 	cmd.Stdout = nil
