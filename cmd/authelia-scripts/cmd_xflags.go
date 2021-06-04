@@ -35,7 +35,7 @@ func xflagsRun(cobraCmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	flags, err := getXFlags(arch, build, extra)
+	flags, err := getXFlags(arch, "", build, extra)
 	if err != nil {
 		log.Fatal(err)
 	}

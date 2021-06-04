@@ -7,14 +7,18 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-func getXFlags(arch, build, extra string) (flags []string, err error) {
-	branch, _, err := utils.RunCommandAndReturnOutput("git rev-parse --abbrev-ref HEAD")
-	if err != nil {
-		return flags, err
-	}
-
+func getXFlags(arch, branch, build, extra string) (flags []string, err error) {
 	if branch == "" {
-		branch = "master"
+		out, _, err := utils.RunCommandAndReturnOutput("git rev-parse --abbrev-ref HEAD")
+		if err != nil {
+			return flags, err
+		}
+
+		if out == "" {
+			branch = "master"
+		} else {
+			branch = out
+		}
 	}
 
 	gitTagCommit, _, err := utils.RunCommandAndReturnOutput("git rev-list --tags --max-count=1")

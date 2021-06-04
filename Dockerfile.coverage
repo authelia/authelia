@@ -32,7 +32,7 @@ echo ">> Downloading go modules..." && \
 go mod download && \
 cd cmd/authelia && \
 echo ">> Starting go build (coverage via go test)..." && \
-echo ">> Using LDFLAGS: ${LDFLAGS_EXTRA}" && \
+echo ">> Using LDFLAGS_EXTRA: ${LDFLAGS_EXTRA}" && \
 go test -c --tags coverage -covermode=atomic -ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
 
 # ===================================
