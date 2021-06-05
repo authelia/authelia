@@ -31,7 +31,7 @@ require (
 	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.26.0
 	golang.org/x/text v0.3.6
-	gopkg.in/square/go-jose.v2 v2.5.1
+	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
