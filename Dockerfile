@@ -1,7 +1,7 @@
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.16.4-alpine AS builder-backend
+FROM golang:1.16.5-alpine AS builder-backend
 
 ARG LDFLAGS_EXTRA
 
