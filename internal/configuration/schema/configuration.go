@@ -17,7 +17,7 @@ type Configuration struct {
 	LogFilePath string `mapstructure:"log_file_path"`
 	// TODO: DEPRECATED END. Remove in 4.33.0.
 
-	Logging               LoggingConfiguration               `mapstructure:"logging"`
+	Logging               LogConfiguration                   `mapstructure:"log"`
 	IdentityProviders     IdentityProvidersConfiguration     `mapstructure:"identity_providers"`
 	AuthenticationBackend AuthenticationBackendConfiguration `mapstructure:"authentication_backend"`
 	Session               SessionConfiguration               `mapstructure:"session"`

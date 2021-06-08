@@ -28,7 +28,7 @@ func ValidateLogging(configuration *schema.Configuration, validator *schema.Stru
 // TODO: DEPRECATED FUNCTION. Remove in 4.33.0.
 func applyDeprecatedLoggingConfiguration(configuration *schema.Configuration, validator *schema.StructValidator) {
 	if configuration.LogLevel != "" {
-		validator.PushWarning(fmt.Errorf(errFmtDeprecatedConfigurationKey, "log_level", "4.33.0", "logging.level"))
+		validator.PushWarning(fmt.Errorf(errFmtDeprecatedConfigurationKey, "log_level", "4.33.0", "log.level"))
 
 		if configuration.Logging.Level == "" {
 			configuration.Logging.Level = configuration.LogLevel
@@ -36,7 +36,7 @@ func applyDeprecatedLoggingConfiguration(configuration *schema.Configuration, va
 	}
 
 	if configuration.LogFormat != "" {
-		validator.PushWarning(fmt.Errorf(errFmtDeprecatedConfigurationKey, "log_format", "4.33.0", "logging.format"))
+		validator.PushWarning(fmt.Errorf(errFmtDeprecatedConfigurationKey, "log_format", "4.33.0", "log.format"))
 
 		if configuration.Logging.Format == "" {
 			configuration.Logging.Format = configuration.LogFormat
@@ -44,7 +44,7 @@ func applyDeprecatedLoggingConfiguration(configuration *schema.Configuration, va
 	}
 
 	if configuration.LogFilePath != "" {
-		validator.PushWarning(fmt.Errorf(errFmtDeprecatedConfigurationKey, "log_file_path", "4.33.0", "logging.file_path"))
+		validator.PushWarning(fmt.Errorf(errFmtDeprecatedConfigurationKey, "log_file_path", "4.33.0", "log.file_path"))
 
 		if configuration.Logging.FilePath == "" {
 			configuration.Logging.FilePath = configuration.LogFilePath

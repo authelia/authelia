@@ -41,7 +41,7 @@ server:
   enable_expvars: false
 
 ## Level of verbosity for logs: info, debug, trace.
-logging:
+log:
   level: debug
 
   ## Format the logs are written as: json, text.
