@@ -164,7 +164,7 @@ func TestShouldErrorParseBadConfigFile(t *testing.T) {
 
 	require.Len(t, errors, 1)
 
-	require.EqualError(t, errors[0], "Error malformed yaml: line 25: did not find expected alphabetic or numeric character")
+	require.EqualError(t, errors[0], "Error malformed yaml: line 26: did not find expected alphabetic or numeric character")
 }
 
 func TestShouldParseConfigFile(t *testing.T) {
