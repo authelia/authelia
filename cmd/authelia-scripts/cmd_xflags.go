@@ -15,6 +15,7 @@ func init() {
 }
 
 var xflagsCmd = &cobra.Command{
+	Use:   "xflags",
 	Run:   xflagsRun,
 	Short: "Generate X LDFlags for building Authelia",
 }
