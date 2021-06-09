@@ -37,10 +37,21 @@ func (s *CLISuite) SetupTest() {
 	s.coverageArg = coverageArg
 }
 
-func (s *CLISuite) TestShouldPrintVersion() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "version"})
+func (s *CLISuite) TestShouldPrintBuildInformation() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "build"})
 	s.Assert().Nil(err)
-	s.Assert().Contains(output, "Authelia version")
+	s.Assert().Contains(output, "Last Tag: ")
+	s.Assert().Contains(output, "State Tag: ")
+	s.Assert().Contains(output, "Branch: ")
+	s.Assert().Contains(output, "Build Number: ")
+	s.Assert().Contains(output, "Build Arch: ")
+	s.Assert().Contains(output, "Build Date: ")
+}
+
+func (s *CLISuite) TestShouldPrintVersion() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "--version"})
+	s.Assert().Nil(err)
+	s.Assert().Contains(output, "authelia version")
 }
 
 func (s *CLISuite) TestShouldValidateConfig() {
