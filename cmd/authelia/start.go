@@ -51,7 +51,7 @@ func startServer() {
 		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
 
-	logger.Infof("Authelia %s is starting", utils.VersionShort())
+	logger.Infof("Authelia %s is starting", utils.Version())
 
 	switch config.Logging.Level {
 	case "error":

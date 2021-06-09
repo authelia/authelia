@@ -16,11 +16,11 @@ func init() {
 
 var xflagsCmd = &cobra.Command{
 	Use:   "xflags",
-	Run:   xflagsRun,
+	Run:   runXFlags,
 	Short: "Generate X LDFlags for building Authelia",
 }
 
-func xflagsRun(cobraCmd *cobra.Command, args []string) {
+func runXFlags(cobraCmd *cobra.Command, _ []string) {
 	arch, err := cobraCmd.Flags().GetString("arch")
 	if err != nil {
 		log.Fatal(err)

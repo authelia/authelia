@@ -1,6 +1,9 @@
 package utils
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // BuildTag is replaced by LDFLAGS at build time with the latest tag at or before the current commit.
 var BuildTag = ""
@@ -26,76 +29,47 @@ var BuildNumber = "0"
 // BuildArch is replaced by LDFLAGS at build time with the CI build arch.
 var BuildArch = ""
 
-const (
-	tagged  = "tagged"
-	unknown = "unknown"
-)
-
-// VersionShort returns the short version.
-//
-// The format of the string is `<latest tag>-<short commit>-<extra>`. Where short commit and the hyphen are only present
-// when the commit is not tagged, and the extra is only present if the extra is not blank. Extra is usually used to
-// communicate if the working tree is dirty. Though it can be used by ports to include the port name.
-//
-func VersionShort() (version string) {
-	b := strings.Builder{}
-
-	b.WriteString(BuildTag)
-
-	if BuildStateTag != tagged {
-		b.WriteRune('-')
-
-		switch BuildCommit {
-		case unknown:
-			b.WriteString(unknown)
-		default:
-			for i, r := range BuildCommit {
-				b.WriteRune(r)
-
-				if i >= 6 {
-					break
-				}
-			}
-		}
+// CommitShort loops through the BuildCommit chars and safely writes the first 7 to a string builder and returns it.
+func CommitShort() (commit string) {
+	if BuildCommit == "" {
+		return unknown
 	}
 
-	if BuildStateExtra != "" {
-		b.WriteRune('-')
-		b.WriteString(BuildStateExtra)
+	b := strings.Builder{}
+
+	for i, r := range BuildCommit {
+		b.WriteRune(r)
+
+		if i >= 6 {
+			break
+		}
 	}
 
 	return b.String()
 }
 
-// VersionLong returns the long version.
+// Version returns the short version.
 //
-// The format of the string is `<latest tag>-untagged-<extra> (<branch>, <commit>, <date>)`. Where untagged and the
-// hyphen are only present when the commit is not tagged, and the extra is only present if the extra is not blank. Extra
-// is usually used to communicate if the working tree is dirty. Though it can be used by ports to include the port name.
-// Branch is the name of the branch it was built from, commit is the long commit hash, and date is the time when the
-// build started.
+// The format of the string is `<latest tag>-<short commit>-<extra>`. Where short commit and the hyphen are only present
+// when the commit is not tagged, and the extra is only present if the extra is not blank. Extra is usually used to
+// communicate if the working tree is dirty. Though it can be used by ports to include the port name.
 //
-func VersionLong() (version string) {
+func Version() (version string) {
+	if BuildStateTag == tagged {
+		return BuildTag
+	}
+
 	b := strings.Builder{}
 
-	b.WriteString(VersionShort())
-
-	if BuildStateTag != tagged {
-		b.WriteString("-untagged")
-	}
+	b.WriteString("untagged-")
+	b.WriteString(BuildTag)
 
 	if BuildStateExtra != "" {
 		b.WriteRune('-')
 		b.WriteString(BuildStateExtra)
 	}
 
-	b.WriteString(" (")
-	b.WriteString(BuildBranch)
-	b.WriteString(", ")
-	b.WriteString(BuildCommit)
-	b.WriteString(", ")
-	b.WriteString(BuildDate)
-	b.WriteString(")")
+	b.WriteString(fmt.Sprintf(" (%s, %s)", BuildBranch, CommitShort()))
 
 	return b.String()
 }
