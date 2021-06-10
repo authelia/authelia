@@ -12,7 +12,6 @@ import (
 
 var kubernetesSuiteName = "Kubernetes"
 
-//nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
 func init() {
 	kind := Kind{}
 	kubectl := Kubectl{}
@@ -85,11 +84,9 @@ func init() {
 
 		log.Debug("Starting proxy...")
 
-		if err := kubectl.StartProxy(); err != nil {
-			return err
-		}
+		err = kubectl.StartProxy()
 
-		return nil
+		return err
 	}
 
 	teardown := func(suitePath string) error {
