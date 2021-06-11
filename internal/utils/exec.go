@@ -48,7 +48,7 @@ func Shell(command string) *exec.Cmd {
 func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 	mutex := sync.Mutex{}
 	cond := sync.NewCond(&mutex)
-	signalChannel := make(chan os.Signal)
+	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 
 	mutex.Lock()
@@ -84,7 +84,7 @@ func RunFuncUntilCtrlC(fn func() error) error {
 	mutex := sync.Mutex{}
 	cond := sync.NewCond(&mutex)
 	errorChannel := make(chan error)
-	signalChannel := make(chan os.Signal)
+	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 
 	mutex.Lock()
