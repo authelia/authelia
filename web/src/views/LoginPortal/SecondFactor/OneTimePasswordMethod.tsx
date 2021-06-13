@@ -38,7 +38,7 @@ const OneTimePasswordMethod = function (props: Props) {
     /* eslint-enable react-hooks/exhaustive-deps */
 
     const signInFunc = useCallback(async () => {
-        if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
+        if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {
             return;
         }
 

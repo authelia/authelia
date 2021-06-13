@@ -1,6 +1,6 @@
-import React, { useEffect, Fragment, ReactNode, useState, useCallback } from "react";
+import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
-import { Switch, Route, Redirect, useHistory, useLocation } from "react-router";
+import { Redirect, Route, Switch, useHistory, useLocation } from "react-router";
 
 import { useConfiguration } from "../../hooks/Configuration";
 import { useNotifications } from "../../hooks/NotificationsContext";
@@ -11,13 +11,14 @@ import { useAutheliaState } from "../../hooks/State";
 import { useUserPreferences as userUserInfo } from "../../hooks/UserInfo";
 import { SecondFactorMethod } from "../../models/Methods";
 import {
+    AuthenticatedRoute,
     FirstFactorRoute,
+    SecondFactorPushRoute,
     SecondFactorRoute,
     SecondFactorTOTPRoute,
-    SecondFactorPushRoute,
     SecondFactorU2FRoute,
-    AuthenticatedRoute,
 } from "../../Routes";
+import { checkSafeRedirection } from "../../services/SafeRedirection";
 import { AuthenticationLevel } from "../../services/State";
 import LoadingPage from "../LoadingPage/LoadingPage";
 import AuthenticatedView from "./AuthenticatedView/AuthenticatedView";
@@ -87,28 +88,41 @@ const LoginPortal = function (props: Props) {
 
     // Redirect to the correct stage if not enough authenticated
     useEffect(() => {
-        if (state) {
-            const redirectionSuffix = redirectionURL
-                ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}`
-                : "";
+        (async function () {
+            if (state) {
+                const redirectionSuffix = redirectionURL
+                    ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}`
+                    : "";
 
-            if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
-                setFirstFactorDisabled(false);
-                redirect(`${FirstFactorRoute}${redirectionSuffix}`);
-            } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
-                if (!configuration.second_factor_enabled) {
-                    redirect(AuthenticatedRoute);
-                } else {
-                    if (userInfo.method === SecondFactorMethod.U2F) {
-                        redirect(`${SecondFactorU2FRoute}${redirectionSuffix}`);
-                    } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                        redirect(`${SecondFactorPushRoute}${redirectionSuffix}`);
+                if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
+                    setFirstFactorDisabled(false);
+                    redirect(`${FirstFactorRoute}${redirectionSuffix}`);
+                } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
+                    if (!configuration.second_factor_enabled) {
+                        redirect(AuthenticatedRoute);
                     } else {
-                        redirect(`${SecondFactorTOTPRoute}${redirectionSuffix}`);
+                        if (state.authentication_level === AuthenticationLevel.TwoFactor && redirectionURL) {
+                            try {
+                                const res = await checkSafeRedirection(redirectionURL);
+                                if (res && res.ok) {
+                                    redirector(redirectionURL);
+                                }
+                            } catch (err) {
+                                createErrorNotification(
+                                    "There was an issue redirecting the user. Check that the redirection URI matches the domain",
+                                );
+                            }
+                        } else if (userInfo.method === SecondFactorMethod.U2F) {
+                            redirect(`${SecondFactorU2FRoute}${redirectionSuffix}`);
+                        } else if (userInfo.method === SecondFactorMethod.MobilePush) {
+                            redirect(`${SecondFactorPushRoute}${redirectionSuffix}`);
+                        } else {
+                            redirect(`${SecondFactorTOTPRoute}${redirectionSuffix}`);
+                        }
                     }
                 }
             }
-        }
+        })();
     }, [state, redirectionURL, requestMethod, redirect, userInfo, setFirstFactorDisabled, configuration]);
 
     const handleAuthSuccess = async (redirectionURL: string | undefined) => {
