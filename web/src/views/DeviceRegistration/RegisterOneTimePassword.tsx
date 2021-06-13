@@ -2,7 +2,15 @@ import React, { useEffect, useCallback, useState } from "react";
 
 import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { makeStyles, Typography, Button, IconButton, Link, CircularProgress, TextField } from "@material-ui/core";
+import {
+    makeStyles,
+    Typography,
+    Button,
+    IconButton,
+    Link,
+    CircularProgress,
+    TextField,
+} from "@material-ui/core";
 import { red } from "@material-ui/core/colors";
 import classnames from "classnames";
 import QRCode from "qrcode.react";
@@ -20,7 +28,6 @@ const RegisterOneTimePassword = function () {
     const style = useStyles();
     const history = useHistory();
     const location = useLocation();
-
     // The secret retrieved from the API is all is ok.
     const [secretURL, setSecretURL] = useState("empty");
     const [secretBase32, setSecretBase32] = useState(undefined as string | undefined);
@@ -86,9 +93,9 @@ const RegisterOneTimePassword = function () {
                         appleStoreLink={GoogleAuthenticator.appleStore}
                     />
                 </div>
-                <div className={style.qrcodeContainer}>
+                <div className={classnames(qrcodeFuzzyStyle, style.qrcodeContainer)}>
                     <Link href={secretURL}>
-                        <QRCode value={secretURL} className={classnames(qrcodeFuzzyStyle, style.qrcode)} size={256} />
+                        <QRCode value={secretURL} className={style.qrcode} size={256} />
                         {!hasErrored && isLoading ? <CircularProgress className={style.loader} size={128} /> : null}
                         {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
                     </Link>
@@ -132,6 +139,8 @@ const useStyles = makeStyles((theme) => ({
     qrcode: {
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
+        padding: theme.spacing(),
+        backgroundColor: "white",
     },
     fuzzy: {
         filter: "blur(10px)",
