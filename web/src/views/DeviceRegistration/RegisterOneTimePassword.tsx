@@ -2,15 +2,7 @@ import React, { useEffect, useCallback, useState } from "react";
 
 import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-    makeStyles,
-    Typography,
-    Button,
-    IconButton,
-    Link,
-    CircularProgress,
-    TextField,
-} from "@material-ui/core";
+import { makeStyles, Typography, Button, IconButton, Link, CircularProgress, TextField } from "@material-ui/core";
 import { red } from "@material-ui/core/colors";
 import classnames from "classnames";
 import QRCode from "qrcode.react";
