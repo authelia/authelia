@@ -65,8 +65,8 @@ func loadUserProviderPlugin(name, directory string) (provider authelia.UserProvi
 	if !ok {
 		return provider, errors.New("Error during user plugin discovery: plugin information is malformed or missing (maybe it is out of date)")
 	} else {
-		if info.Type != authelia.AuthenticationPlugin {
-			return provider, fmt.Errorf("Error during user plugin check: plugin should be type 'Authentication' but it's type %s", info.Type)
+		if info.Type != authelia.UserPlugin {
+			return provider, fmt.Errorf("Error during user plugin check: plugin should be type 'User' but it's type %s", info.Type)
 		}
 	}
 
