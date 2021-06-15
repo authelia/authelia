@@ -36,11 +36,9 @@ func (k Kind) CreateCluster() error {
 	// In that case /etc/resolv.conf use 127.0.0.11 as DNS and CoreDNS thinks it is talking to itself which is wrong.
 	// This IP is the docker internal DNS so it is safe to disable the loop check.
 	cmd = kindCommand("sh -c 'kubectl -n kube-system get configmap/coredns -o yaml | grep -v loop | kubectl replace -f -'")
-	if err := cmd.Run(); err != nil {
-		return err
-	}
+	err := cmd.Run()
 
-	return nil
+	return err
 }
 
 // DeleteCluster delete a Kubernetes cluster.
@@ -90,11 +88,9 @@ func (k Kubectl) StartDashboard() error {
 		return err
 	}
 
-	if err := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml up -d kube-dashboard").Run(); err != nil {
-		return err
-	}
+	err := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml up -d kube-dashboard").Run()
 
-	return nil
+	return err
 }
 
 // StopDashboard stop kube dashboard.

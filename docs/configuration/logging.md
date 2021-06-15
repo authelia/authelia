@@ -12,7 +12,7 @@ The logging section tunes the logging settings.
 ## Configuration
 
 ```yaml
-logging:
+log:
   level: info
   format: text
   file_path: ""
@@ -36,7 +36,7 @@ setting level to `trace`, you will generate a large amount of log entries and ex
 `/debug/pprof/` endpoints which should not be enabled in production.
 
 ```yaml
-logging:
+log:
   level: debug
 ```
 
@@ -53,7 +53,7 @@ required: no
 Defines the format of the logs written by Authelia. This format can be set to `json` or `text`.
 
 ```yaml
-logging:
+log:
   format: json
 ```
 
@@ -83,7 +83,7 @@ level to `debug` or `trace` this will generate large amount of log entries. Admi
 they rotate and/or truncate the logs over time to prevent significant long-term disk usage.
 
 ```yaml
-logging:
+log:
   file_path: /config/authelia.log
 ```
 
@@ -101,6 +101,6 @@ Overrides the behaviour to redirect logging only to the `file_path`. If set to `
 standard output, and the defined logging location.
 
 ```yaml
-logging:
+log:
   keep_stdout: true
 ```

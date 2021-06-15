@@ -3,6 +3,8 @@
 .cache
 .buildkite
 .github
+coverage.txt
+Dockerfile*
 
 # Node Modules Directories
 **/node_modules

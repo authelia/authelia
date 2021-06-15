@@ -33,7 +33,7 @@ func TestShouldSetDefaultLoggingValues(t *testing.T) {
 
 func TestShouldRaiseErrorOnInvalidLoggingLevel(t *testing.T) {
 	config := &schema.Configuration{
-		Logging: schema.LoggingConfiguration{
+		Logging: schema.LogConfiguration{
 			Level: "TRACE",
 		},
 	}
@@ -73,14 +73,14 @@ func TestShouldMigrateDeprecatedLoggingConfig(t *testing.T) {
 	assert.Equal(t, "json", config.Logging.Format)
 	assert.Equal(t, "/a/b/c", config.Logging.FilePath)
 
-	assert.EqualError(t, validator.Warnings()[0], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_level", "4.33.0", "logging.level"))
-	assert.EqualError(t, validator.Warnings()[1], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_format", "4.33.0", "logging.format"))
-	assert.EqualError(t, validator.Warnings()[2], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_file_path", "4.33.0", "logging.file_path"))
+	assert.EqualError(t, validator.Warnings()[0], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_level", "4.33.0", "log.level"))
+	assert.EqualError(t, validator.Warnings()[1], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_format", "4.33.0", "log.format"))
+	assert.EqualError(t, validator.Warnings()[2], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_file_path", "4.33.0", "log.file_path"))
 }
 
 func TestShouldRaiseErrorsAndNotOverwriteConfigurationWhenUsingDeprecatedLoggingConfig(t *testing.T) {
 	config := &schema.Configuration{
-		Logging: schema.LoggingConfiguration{
+		Logging: schema.LogConfiguration{
 			Level:      "info",
 			Format:     "text",
 			FilePath:   "/x/y/z",
@@ -105,7 +105,7 @@ func TestShouldRaiseErrorsAndNotOverwriteConfigurationWhenUsingDeprecatedLogging
 	assert.Len(t, validator.Errors(), 0)
 	require.Len(t, validator.Warnings(), 3)
 
-	assert.EqualError(t, validator.Warnings()[0], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_level", "4.33.0", "logging.level"))
-	assert.EqualError(t, validator.Warnings()[1], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_format", "4.33.0", "logging.format"))
-	assert.EqualError(t, validator.Warnings()[2], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_file_path", "4.33.0", "logging.file_path"))
+	assert.EqualError(t, validator.Warnings()[0], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_level", "4.33.0", "log.level"))
+	assert.EqualError(t, validator.Warnings()[1], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_format", "4.33.0", "log.format"))
+	assert.EqualError(t, validator.Warnings()[2], fmt.Sprintf(errFmtDeprecatedConfigurationKey, "log_file_path", "4.33.0", "log.file_path"))
 }
