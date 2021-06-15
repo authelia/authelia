@@ -39,7 +39,7 @@ COPY --from=builder-backend /go/src/app/authelia /go/src/app/LICENSE /go/src/app
 
 EXPOSE 9091
 
-VOLUME /config
+VOLUME /config /plugins
 
 # Set environment variables
 ENV PATH="/app:${PATH}" \
