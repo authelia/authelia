@@ -11,9 +11,9 @@ import (
 	"github.com/asaskevich/govalidator"
 	"gopkg.in/yaml.v2"
 
-	"github.com/authelia/authelia"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
+	"github.com/authelia/authelia/v4"
 )
 
 // FileUserProvider is a provider reading details from a file.

@@ -5,9 +5,8 @@ package mocks
 import (
 	"reflect"
 
+	"github.com/authelia/authelia/v4"
 	"github.com/golang/mock/gomock"
-
-	"github.com/authelia/authelia"
 )
 
 // MockUserProvider is a mock of UserProvider interface.

@@ -11,13 +11,13 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia"
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4"
 )
 
 func isURLUnderProtectedDomain(url *url.URL, domain string) bool {

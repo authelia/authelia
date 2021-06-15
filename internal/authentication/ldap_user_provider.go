@@ -10,10 +10,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/text/encoding/unicode"
 
-	"github.com/authelia/authelia"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4"
 )
 
 // LDAPUserProvider is a provider using a LDAP or AD as a user database.
