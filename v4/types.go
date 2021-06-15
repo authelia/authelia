@@ -20,3 +20,11 @@ type UserDetails struct {
 	Emails      []string
 	Groups      []string
 }
+
+// PluginInformation provides information about plugins.
+type PluginInformation struct {
+	Type    PluginType
+	Name    string
+	Version string
+	Author  string
+}
