@@ -11,25 +11,27 @@ import (
 type Authorizer struct {
 	defaultPolicy Level
 	rules         []*AccessControlRule
+	configuration *schema.Configuration
 }
 
 // NewAuthorizer create an instance of authorizer with a given access control configuration.
-func NewAuthorizer(configuration schema.AccessControlConfiguration) *Authorizer {
+func NewAuthorizer(configuration *schema.Configuration) *Authorizer {
 	if logging.Logger().IsLevelEnabled(logrus.TraceLevel) {
 		return &Authorizer{
-			defaultPolicy: PolicyToLevel(configuration.DefaultPolicy),
-			rules:         NewAccessControlRules(configuration),
+			defaultPolicy: PolicyToLevel(configuration.AccessControl.DefaultPolicy),
+			rules:         NewAccessControlRules(configuration.AccessControl),
 		}
 	}
 
 	return &Authorizer{
-		defaultPolicy: PolicyToLevel(configuration.DefaultPolicy),
-		rules:         NewAccessControlRules(configuration),
+		defaultPolicy: PolicyToLevel(configuration.AccessControl.DefaultPolicy),
+		rules:         NewAccessControlRules(configuration.AccessControl),
+		configuration: configuration,
 	}
 }
 
 // IsSecondFactorEnabled return true if at least one policy is set to second factor.
-func (p *Authorizer) IsSecondFactorEnabled() bool {
+func (p Authorizer) IsSecondFactorEnabled() bool {
 	if p.defaultPolicy == TwoFactor {
 		return true
 	}
@@ -40,6 +42,13 @@ func (p *Authorizer) IsSecondFactorEnabled() bool {
 		}
 	}
 
+	if p.configuration.IdentityProviders.OIDC != nil {
+		for _, client := range p.configuration.IdentityProviders.OIDC.Clients {
+			if client.Policy == "two_factor" {
+				return true
+			}
+		}
+	}
 	return false
 }
 
