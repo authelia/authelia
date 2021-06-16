@@ -5,6 +5,7 @@ FROM golang:1.16.5-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
+# CGO_ENABLED=1 and gcc cross-compiler is required for building go-sqlite3
 ARG CC_VERSION="v15"
 RUN \
 echo ">> Downloading required apk's..." && \
@@ -22,7 +23,6 @@ go mod download
 COPY / ./
 
 ARG LDFLAGS_EXTRA
-# CGO_ENABLED=1 and gcc cross-compiler is required for building go-sqlite3
 RUN \
 mv public_html internal/server/public_html && \
 echo ">> Starting go build..." && \
@@ -38,8 +38,9 @@ WORKDIR /app
 
 COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 
-RUN apk --no-cache add ca-certificates su-exec tzdata && \
-    rm /usr/bin/qemu-arm-static
+RUN \
+apk --no-cache add ca-certificates su-exec tzdata && \
+rm /usr/bin/qemu-arm-static
 
 COPY --from=builder-backend /go/src/app/authelia /go/src/app/LICENSE /go/src/app/entrypoint.sh /go/src/app/healthcheck.sh ./
 
