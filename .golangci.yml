@@ -22,11 +22,11 @@ linters:
     - godot
     - gofmt
     - goimports
-    - golint
     - gosec
     - misspell
     - nolintlint
     - prealloc
+    - revive
     - unconvert
     - unparam
     - whitespace

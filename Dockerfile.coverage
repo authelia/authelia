@@ -43,7 +43,7 @@ go test -c --tags coverage -covermode=atomic -ldflags "${LDFLAGS_EXTRA}" -o auth
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.13.5
+FROM alpine:3.14.0
 
 RUN apk --no-cache add ca-certificates tzdata
 

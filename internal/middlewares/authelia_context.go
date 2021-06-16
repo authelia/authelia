@@ -234,7 +234,8 @@ func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 
 	var requestURI string
 
-	scheme := append(forwardedProto, protoHostSeparator...)
+	scheme := forwardedProto
+	scheme = append(scheme, protoHostSeparator...)
 	requestURI = string(append(scheme,
 		append(forwardedHost, forwardedURI...)...))
 

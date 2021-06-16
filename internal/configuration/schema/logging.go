@@ -1,7 +1,7 @@
 package schema
 
-// LoggingConfiguration represents the logging configuration.
-type LoggingConfiguration struct {
+// LogConfiguration represents the logging configuration.
+type LogConfiguration struct {
 	Level      string `mapstructure:"level"`
 	Format     string `mapstructure:"format"`
 	FilePath   string `mapstructure:"file_path"`
@@ -9,7 +9,7 @@ type LoggingConfiguration struct {
 }
 
 // DefaultLoggingConfiguration is the default logging configuration.
-var DefaultLoggingConfiguration = LoggingConfiguration{
+var DefaultLoggingConfiguration = LogConfiguration{
 	Level:  "info",
 	Format: "text",
 }
