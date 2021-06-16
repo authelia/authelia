@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
 import { CssBaseline, ThemeProvider } from "@material-ui/core";
@@ -47,11 +47,17 @@ function Theme() {
 const App: React.FC = () => {
     const [notification, setNotification] = useState(null as Notification | null);
     const [theme, setTheme] = useState(Theme());
-    if (getTheme() === "auto") {
-        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-            setTheme(e.matches ? themes.Dark : themes.Light);
-        });
-    }
+    useEffect(() => {
+        if (getTheme() === "auto") {
+            const query = window.matchMedia("(prefers-color-scheme: dark)");
+            // MediaQueryLists does not inherit from EventTarget in Internet Explorer
+            if (query.addEventListener) {
+                query.addEventListener("change", (e) => {
+                    setTheme(e.matches ? themes.Dark : themes.Light);
+                });
+            }
+        }
+    }, []);
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
