@@ -26,7 +26,7 @@ GOOS=linux GOARCH=arm64 CGO_ENABLED=1 CC=aarch64-linux-musl-gcc CGO_LDFLAGS=-fus
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM arm64v8/alpine:3.13.5
+FROM arm64v8/alpine:3.14.0
 
 WORKDIR /app
 
