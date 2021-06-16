@@ -3,21 +3,30 @@
 # =======================================
 FROM golang:1.16.5-alpine AS builder-backend
 
-ARG LDFLAGS_EXTRA
-ARG CC_VERSION="v15"
-
 WORKDIR /go/src/app
+
+ARG CC_VERSION="v15"
+RUN \
+echo ">> Downloading required apk's..." && \
+apk --no-cache add curl
+echo ">> Downloading cross-compiler..." && \
+curl -Lfs -o /tmp/gcc-9.2.0-aarch64-linux-musl.tar.xz "https://github.com/just-containers/musl-cross-make/releases/download/${CC_VERSION}/gcc-9.2.0-aarch64-linux-musl.tar.xz" && \
+tar xf /tmp/gcc-9.2.0-aarch64-linux-musl.tar.xz -C /
+
+COPY go.mod go.sum ./
+
+RUN \
+echo ">> Downloading go modules..." && \
+go mod download
 
 COPY / ./
 
+ARG LDFLAGS_EXTRA
 # CGO_ENABLED=1 and gcc cross-compiler is required for building go-sqlite3
 RUN \
 mv public_html internal/server/public_html && \
 echo ">> Downloading required apk's..." && \
 apk --no-cache add curl && \
-echo ">> Downloading cross-compiler..." && \
-curl -Lfs -o /tmp/gcc-9.2.0-aarch64-linux-musl.tar.xz "https://github.com/just-containers/musl-cross-make/releases/download/${CC_VERSION}/gcc-9.2.0-aarch64-linux-musl.tar.xz" && \
-tar xf /tmp/gcc-9.2.0-aarch64-linux-musl.tar.xz -C / && \
 echo ">> Downloading go modules..." && \
 go mod download && \
 echo ">> Starting go build..." && \
