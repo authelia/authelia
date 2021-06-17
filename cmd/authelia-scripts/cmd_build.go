@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -9,8 +11,9 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-func buildAutheliaBinary() {
-	cmd := utils.CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia")
+func buildAutheliaBinary(xflags []string) {
+	ldflags := fmt.Sprintf("\"%s\"", strings.Join(xflags, " "))
+	cmd := utils.CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia", "-ldflags", ldflags)
 	cmd.Dir = "cmd/authelia"
 
 	cmd.Env = append(os.Environ(),
@@ -109,8 +112,13 @@ func Build(cobraCmd *cobra.Command, args []string) {
 
 	Clean(cobraCmd, args)
 
+	xflags, err := getXFlags("amd64", "", "0", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	log.Debug("Creating `" + OutputDir + "` directory")
-	err := os.MkdirAll(OutputDir, os.ModePerm)
+	err = os.MkdirAll(OutputDir, os.ModePerm)
 
 	if err != nil {
 		log.Fatal(err)
@@ -123,6 +131,6 @@ func Build(cobraCmd *cobra.Command, args []string) {
 	buildSwagger()
 
 	log.Debug("Building Authelia Go binary...")
-	buildAutheliaBinary()
+	buildAutheliaBinary(xflags)
 	cleanAssets()
 }
