@@ -110,7 +110,7 @@ func Build(cobraCmd *cobra.Command, args []string) {
 
 	Clean(cobraCmd, args)
 
-	xflags, err := getXFlags("amd64", "", "0", "")
+	xflags, err := getXFlags("", "0", "")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -82,7 +82,7 @@ func dockerBuildOfficialImage(arch string) error {
 		}
 	}
 
-	flags, err := getXFlags(arch, ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
+	flags, err := getXFlags(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
 	}

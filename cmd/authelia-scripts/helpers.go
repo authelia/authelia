@@ -8,7 +8,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-func getXFlags(arch, branch, build, extra string) (flags []string, err error) {
+func getXFlags(branch, build, extra string) (flags []string, err error) {
 	if branch == "" {
 		out, _, err := utils.RunCommandAndReturnOutput("git rev-parse --abbrev-ref HEAD")
 		if err != nil {
@@ -63,6 +63,5 @@ func getXFlags(arch, branch, build, extra string) (flags []string, err error) {
 		fmt.Sprintf(fmtLDFLAGSX, "BuildState", strings.Join(states, " ")),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildExtra", extra),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildNumber", build),
-		fmt.Sprintf(fmtLDFLAGSX, "BuildArch", arch),
 	}, nil
 }

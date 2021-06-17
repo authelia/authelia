@@ -14,6 +14,7 @@ State: %s
 Branch: %s
 Commit: %s
 Build Number: %s
+Build OS: %s
 Build Arch: %s
 Build Date: %s
 Extra: %s

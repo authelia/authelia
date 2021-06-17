@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/spf13/cobra"
 
@@ -34,7 +35,7 @@ func main() {
 		Short: "Show the build of Authelia",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Printf(fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
-				utils.BuildNumber, utils.BuildArch, utils.BuildDate, utils.BuildExtra)
+				utils.BuildNumber, runtime.GOOS, runtime.GOARCH, utils.BuildDate, utils.BuildExtra)
 		},
 	}
 

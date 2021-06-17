@@ -29,9 +29,6 @@ var BuildBranch = "master"
 // BuildNumber is replaced by LDFLAGS at build time with the CI build number.
 var BuildNumber = "0"
 
-// BuildArch is replaced by LDFLAGS at build time with the CI build arch.
-var BuildArch = ""
-
 // CommitShort loops through the BuildCommit chars and safely writes the first 7 to a string builder and returns it.
 func CommitShort() (commit string) {
 	if BuildCommit == "" {

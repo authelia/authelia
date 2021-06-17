@@ -9,9 +9,8 @@ import (
 )
 
 func init() {
-	xflagsCmd.Flags().StringP("arch", "a", "", "Sets the BuildArch flag value")
 	xflagsCmd.Flags().StringP("build", "b", "0", "Sets the BuildNumber flag value")
-	xflagsCmd.Flags().StringP("extra", "e", "", "Sets the BuildStateExtra flag value")
+	xflagsCmd.Flags().StringP("extra", "e", "", "Sets the BuildExtra flag value")
 }
 
 var xflagsCmd = &cobra.Command{
@@ -21,11 +20,6 @@ var xflagsCmd = &cobra.Command{
 }
 
 func runXFlags(cobraCmd *cobra.Command, _ []string) {
-	arch, err := cobraCmd.Flags().GetString("arch")
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	build, err := cobraCmd.Flags().GetString("build")
 	if err != nil {
 		log.Fatal(err)
@@ -36,7 +30,7 @@ func runXFlags(cobraCmd *cobra.Command, _ []string) {
 		log.Fatal(err)
 	}
 
-	flags, err := getXFlags(arch, "", build, extra)
+	flags, err := getXFlags("", build, extra)
 	if err != nil {
 		log.Fatal(err)
 	}

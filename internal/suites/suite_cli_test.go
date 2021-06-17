@@ -2,6 +2,7 @@ package suites
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -41,11 +42,15 @@ func (s *CLISuite) TestShouldPrintBuildInformation() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "build"})
 	s.Assert().Nil(err)
 	s.Assert().Contains(output, "Last Tag: ")
-	s.Assert().Contains(output, "State Tag: ")
+	s.Assert().Contains(output, "State: ")
 	s.Assert().Contains(output, "Branch: ")
 	s.Assert().Contains(output, "Build Number: ")
+	s.Assert().Contains(output, "Build OS: ")
 	s.Assert().Contains(output, "Build Arch: ")
 	s.Assert().Contains(output, "Build Date: ")
+
+	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nExtra: \n$`)
+	s.Assert().Regexp(r, output)
 }
 
 func (s *CLISuite) TestShouldPrintVersion() {
