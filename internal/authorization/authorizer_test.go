@@ -532,7 +532,7 @@ func TestNewAuthorizer(t *testing.T) {
 	assert.Equal(t, "admins", group.Name)
 }
 
-func TestAuthorizer_IsSecondFactorEnabled_RuleWithNoOIDC(t *testing.T) {
+func TestAuthorizerIsSecondFactorEnabledRuleWithNoOIDC(t *testing.T) {
 	config := &schema.Configuration{
 		AccessControl: schema.AccessControlConfiguration{
 			DefaultPolicy: deny,
@@ -552,7 +552,7 @@ func TestAuthorizer_IsSecondFactorEnabled_RuleWithNoOIDC(t *testing.T) {
 	assert.True(t, authorizer.IsSecondFactorEnabled())
 }
 
-func TestAuthorizer_IsSecondFactorEnabled_RuleWithOIDC(t *testing.T) {
+func TestAuthorizerIsSecondFactorEnabledRuleWithOIDC(t *testing.T) {
 	config := &schema.Configuration{
 		AccessControl: schema.AccessControlConfiguration{
 			DefaultPolicy: deny,
