@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -494,4 +495,104 @@ func (s *AuthorizerSuite) TestPolicyToLevel() {
 func TestRunSuite(t *testing.T) {
 	s := AuthorizerSuite{}
 	suite.Run(t, &s)
+}
+
+func TestNewAuthorizer(t *testing.T) {
+	config := &schema.Configuration{
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: deny,
+			Rules: []schema.ACLRule{
+				{
+					Domains: []string{"example.com"},
+					Policy:  twoFactor,
+					Subjects: [][]string{
+						{
+							"user:admin",
+						},
+						{
+							"group:admins",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	authorizer := NewAuthorizer(config)
+
+	assert.Equal(t, Denied, authorizer.defaultPolicy)
+	assert.Equal(t, TwoFactor, authorizer.rules[0].Policy)
+
+	user, ok := authorizer.rules[0].Subjects[0].Subjects[0].(AccessControlUser)
+	require.True(t, ok)
+	assert.Equal(t, "admin", user.Name)
+
+	group, ok := authorizer.rules[0].Subjects[1].Subjects[0].(AccessControlGroup)
+	require.True(t, ok)
+	assert.Equal(t, "admins", group.Name)
+}
+
+func TestAuthorizer_IsSecondFactorEnabled_RuleWithNoOIDC(t *testing.T) {
+	config := &schema.Configuration{
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: deny,
+			Rules: []schema.ACLRule{
+				{
+					Domains: []string{"example.com"},
+					Policy:  oneFactor,
+				},
+			},
+		},
+	}
+
+	authorizer := NewAuthorizer(config)
+	assert.False(t, authorizer.IsSecondFactorEnabled())
+
+	authorizer.rules[0].Policy = TwoFactor
+	assert.True(t, authorizer.IsSecondFactorEnabled())
+}
+
+func TestAuthorizer_IsSecondFactorEnabled_RuleWithOIDC(t *testing.T) {
+	config := &schema.Configuration{
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: deny,
+			Rules: []schema.ACLRule{
+				{
+					Domains: []string{"example.com"},
+					Policy:  oneFactor,
+				},
+			},
+		},
+		IdentityProviders: schema.IdentityProvidersConfiguration{
+			OIDC: &schema.OpenIDConnectConfiguration{
+				Clients: []schema.OpenIDConnectClientConfiguration{
+					{
+						Policy: oneFactor,
+					},
+				},
+			},
+		},
+	}
+
+	authorizer := NewAuthorizer(config)
+	assert.False(t, authorizer.IsSecondFactorEnabled())
+
+	authorizer.rules[0].Policy = TwoFactor
+	assert.True(t, authorizer.IsSecondFactorEnabled())
+
+	authorizer.rules[0].Policy = OneFactor
+	assert.False(t, authorizer.IsSecondFactorEnabled())
+
+	config.IdentityProviders.OIDC.Clients[0].Policy = twoFactor
+
+	assert.True(t, authorizer.IsSecondFactorEnabled())
+
+	authorizer.rules[0].Policy = OneFactor
+	config.IdentityProviders.OIDC.Clients[0].Policy = oneFactor
+
+	assert.False(t, authorizer.IsSecondFactorEnabled())
+
+	authorizer.defaultPolicy = TwoFactor
+
+	assert.True(t, authorizer.IsSecondFactorEnabled())
 }

@@ -1,8 +1,6 @@
 package authorization
 
 import (
-	"github.com/sirupsen/logrus"
-
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 )
@@ -16,13 +14,6 @@ type Authorizer struct {
 
 // NewAuthorizer create an instance of authorizer with a given access control configuration.
 func NewAuthorizer(configuration *schema.Configuration) *Authorizer {
-	if logging.Logger().IsLevelEnabled(logrus.TraceLevel) {
-		return &Authorizer{
-			defaultPolicy: PolicyToLevel(configuration.AccessControl.DefaultPolicy),
-			rules:         NewAccessControlRules(configuration.AccessControl),
-		}
-	}
-
 	return &Authorizer{
 		defaultPolicy: PolicyToLevel(configuration.AccessControl.DefaultPolicy),
 		rules:         NewAccessControlRules(configuration.AccessControl),
