@@ -44,11 +44,12 @@ func (p Authorizer) IsSecondFactorEnabled() bool {
 
 	if p.configuration.IdentityProviders.OIDC != nil {
 		for _, client := range p.configuration.IdentityProviders.OIDC.Clients {
-			if client.Policy == "two_factor" {
+			if client.Policy == twoFactor {
 				return true
 			}
 		}
 	}
+
 	return false
 }
 
