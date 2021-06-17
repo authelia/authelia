@@ -66,7 +66,9 @@ func (s *RedirectionCheckScenario) TestShouldRedirectOnLoginOnlyWhenDomainIsSafe
 	for url, redirected := range redirectionAuthorizations {
 		s.T().Run(url, func(t *testing.T) {
 			s.doLoginTwoFactor(ctx, t, "john", "password", false, secret, url)
-			time.Sleep(500 * time.Millisecond)
+
+			// TODO: Remove this if it's not necessary.
+			// time.Sleep(1000 * time.Millisecond)
 
 			if redirected {
 				s.verifySecretAuthorized(ctx, t)
