@@ -8,11 +8,14 @@ import (
 // BuildTag is replaced by LDFLAGS at build time with the latest tag at or before the current commit.
 var BuildTag = ""
 
-// BuildStateTag is replaced by LDFLAGS at build time with `tagged` or `untagged` depending on if the commit is tagged.
-var BuildStateTag = "tagged"
+// BuildState is replaced by LDFLAGS at build time with `tagged` or `untagged` depending on if the commit is tagged, and
+// `clean` or `dirty` depending on the working tree state. For example if the commit was tagged and the working tree
+// was dirty it would be "tagged dirty". This is used to determine the version string output mode.
+var BuildState = "untagged dirty"
 
-// BuildStateExtra is replaced by LDFLAGS at build time with a blank string or `dirty` if the working tree is dirty.
-var BuildStateExtra = ""
+// BuildExtra is replaced by LDFLAGS at build time with a blank string by default. People porting Authelia can use this
+// to add a suffix to their versions.
+var BuildExtra = ""
 
 // BuildDate is replaced by LDFLAGS at build time with the date the build started.
 var BuildDate = ""
@@ -48,25 +51,41 @@ func CommitShort() (commit string) {
 	return b.String()
 }
 
-// Version returns the short version.
+// Version returns the Authelia version.
 //
-// The format of the string is `<latest tag>-<short commit>-<extra>`. Where short commit and the hyphen are only present
-// when the commit is not tagged, and the extra is only present if the extra is not blank. Extra is usually used to
-// communicate if the working tree is dirty. Though it can be used by ports to include the port name.
+// The format of the string is dependent on the values in BuildState. If untagged or dirty are not present it returns
+// the BuildTag i.e. v1.0.0. If this is not true the following is the format:
+// untagged-<BuildTag>-dirty-<BuildExtra> (<BuildBranch>, <BuildCommit>).
 //
 func Version() (version string) {
-	if BuildStateTag == tagged {
-		return BuildTag
-	}
-
 	b := strings.Builder{}
 
-	b.WriteString("untagged-")
+	states := strings.Split(BuildState, " ")
+
+	if IsStringInSlice(clean, states) && IsStringInSlice(tagged, states) {
+		b.WriteString(BuildTag)
+
+		if BuildExtra != "" {
+			b.WriteRune('-')
+			b.WriteString(BuildExtra)
+		}
+
+		return b.String()
+	}
+
+	if IsStringInSlice(untagged, states) {
+		b.WriteString("untagged-")
+	}
+
 	b.WriteString(BuildTag)
 
-	if BuildStateExtra != "" {
+	if IsStringInSlice(dirty, states) {
+		b.WriteString("-dirty")
+	}
+
+	if BuildExtra != "" {
 		b.WriteRune('-')
-		b.WriteString(BuildStateExtra)
+		b.WriteString(BuildExtra)
 	}
 
 	b.WriteString(fmt.Sprintf(" (%s, %s)", BuildBranch, CommitShort()))

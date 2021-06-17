@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/authelia/authelia/internal/utils"
@@ -36,17 +37,18 @@ func getXFlags(arch, branch, build, extra string) (flags []string, err error) {
 		return flags, err
 	}
 
-	stateTag := "untagged"
+	var states []string
+
 	if gitTagCommit == commit {
-		stateTag = "tagged"
+		states = append(states, "tagged")
+	} else {
+		states = append(states, "untagged")
 	}
 
-	if extra == "" {
-		if _, exitCode, err := utils.RunCommandAndReturnOutput("git diff --quiet"); err != nil {
-			return flags, err
-		} else if exitCode != 0 {
-			extra = "dirty"
-		}
+	if _, exitCode, _ := utils.RunCommandAndReturnOutput("git diff --quiet"); exitCode != 0 {
+		states = append(states, "dirty")
+	} else {
+		states = append(states, "clean")
 	}
 
 	if build == "" {
@@ -58,8 +60,8 @@ func getXFlags(arch, branch, build, extra string) (flags []string, err error) {
 		fmt.Sprintf(fmtLDFLAGSX, "BuildTag", tag),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildCommit", commit),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildDate", time.Now().Format("Mon, 02 Jan 2006 15:04:05 -0700")),
-		fmt.Sprintf(fmtLDFLAGSX, "BuildStateTag", stateTag),
-		fmt.Sprintf(fmtLDFLAGSX, "BuildStateExtra", extra),
+		fmt.Sprintf(fmtLDFLAGSX, "BuildState", strings.Join(states, " ")),
+		fmt.Sprintf(fmtLDFLAGSX, "BuildExtra", extra),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildNumber", build),
 		fmt.Sprintf(fmtLDFLAGSX, "BuildArch", arch),
 	}, nil

@@ -33,8 +33,8 @@ func main() {
 		Use:   "build",
 		Short: "Show the build of Authelia",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf(fmtAutheliaBuild, utils.BuildTag, utils.BuildStateTag, utils.BuildBranch, utils.BuildCommit,
-				utils.BuildNumber, utils.BuildArch, utils.BuildDate, utils.BuildStateExtra)
+			fmt.Printf(fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
+				utils.BuildNumber, utils.BuildArch, utils.BuildDate, utils.BuildExtra)
 		},
 	}
 

@@ -10,11 +10,11 @@ Documentation is available at: https://www.authelia.com/docs
 `
 
 const fmtAutheliaBuild = `Last Tag: %s
-State Tag: %s
+State: %s
 Branch: %s
 Commit: %s
 Build Number: %s
 Build Arch: %s
 Build Date: %s
-State Extra: %s
+Extra: %s
 `

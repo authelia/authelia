@@ -40,8 +40,11 @@ const (
 	// Month is an int based representation of the time unit.
 	Month = Year / 12
 
-	tagged  = "tagged"
-	unknown = "unknown"
+	clean    = "clean"
+	dirty    = "dirty"
+	tagged   = "tagged"
+	untagged = "untagged"
+	unknown  = "unknown"
 )
 
 // ErrTimeoutReached error thrown when a timeout is reached.
