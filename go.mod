@@ -14,7 +14,7 @@ require (
 	github.com/fasthttp/session/v2 v2.3.2
 	github.com/go-ldap/ldap/v3 v3.3.0
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/golang-jwt/jwt v3.2.0+incompatible
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/mock v1.6.0
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
@@ -34,7 +34,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-replace (
-	github.com/golang-jwt/jwt => github.com/golang-jwt/jwt v3.2.1+incompatible
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.7
-)
+replace github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.7
