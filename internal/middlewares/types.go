@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
