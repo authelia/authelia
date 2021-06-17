@@ -182,7 +182,7 @@ func runOnError(suite string) error {
 func setupSuite(suiteName string) error {
 	log.Infof("Setup environment for suite %s...", suiteName)
 
-	signalChannel := make(chan os.Signal)
+	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 
 	interrupted := false

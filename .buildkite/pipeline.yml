@@ -40,4 +40,8 @@ steps:
   - label: ":rocket: Setup Deployment"
     command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
     if: build.pull_request.repository.fork == true
+
+notify:
+  - webhook: "<REDACTED WEBHOOK_URL>"
+    if: build.state == "blocked"
 ...
