@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -12,8 +11,7 @@ import (
 )
 
 func buildAutheliaBinary(xflags []string) {
-	ldflags := fmt.Sprintf("\"%s\"", strings.Join(xflags, " "))
-	cmd := utils.CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia", "-ldflags", ldflags)
+	cmd := utils.CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia", "-ldflags", strings.Join(xflags, " "))
 	cmd.Dir = "cmd/authelia"
 
 	cmd.Env = append(os.Environ(),

@@ -42,7 +42,7 @@ func getXFlags(arch, branch, build, extra string) (flags []string, err error) {
 	}
 
 	if extra == "" {
-		if _, exitCode, err := utils.RunCommandAndReturnOutput("git status --porcelain"); err != nil {
+		if _, exitCode, err := utils.RunCommandAndReturnOutput("git diff --quiet"); err != nil {
 			return flags, err
 		} else if exitCode != 0 {
 			extra = "dirty"
