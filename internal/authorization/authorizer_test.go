@@ -20,7 +20,6 @@ type AuthorizerTester struct {
 }
 
 func NewAuthorizerTester(config schema.AccessControlConfiguration) *AuthorizerTester {
-
 	fullConfig := &schema.Configuration{
 		AccessControl: config,
 	}
