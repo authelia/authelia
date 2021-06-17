@@ -260,6 +260,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   </tr>
   <tr>
     <td align="center"><a href="http://jonbayl"><img src="https://avatars.githubusercontent.com/u/30201351?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jon B. </b></sub></a><br /><a href="#security-jonbayl" title="Security">🛡️</a></td>
+    <td align="center"><a href="https://github.com/AlexGustafsson"><img src="https://avatars.githubusercontent.com/u/14974112?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alex Gustafsson</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=AlexGustafsson" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=AlexGustafsson" title="Documentation">📖</a></td>
   </tr>
 </table>
 
