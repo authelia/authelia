@@ -53,16 +53,19 @@ func CommitShort() (commit string) {
 
 // Version returns the Authelia version.
 //
-// The format of the string is dependent on the values in BuildState. If untagged or dirty are not present it returns
-// the BuildTag i.e. v1.0.0. If this is not true the following is the format:
-// untagged-<BuildTag>-dirty-<BuildExtra> (<BuildBranch>, <BuildCommit>).
+// The format of the string is dependent on the values in BuildState. If tagged and clean are present it returns the
+// BuildTag i.e. v1.0.0. If dirty and tagged are present it returns <BuildTag>-dirty. Otherwise the following is the
+// format: untagged-<BuildTag>-dirty-<BuildExtra> (<BuildBranch>, <BuildCommit>).
 //
 func Version() (version string) {
 	b := strings.Builder{}
 
 	states := strings.Split(BuildState, " ")
 
-	if IsStringInSlice(clean, states) && IsStringInSlice(tagged, states) {
+	isClean := IsStringInSlice(clean, states)
+	isTagged := IsStringInSlice(tagged, states)
+
+	if isClean && isTagged {
 		b.WriteString(BuildTag)
 
 		if BuildExtra != "" {
@@ -73,13 +76,20 @@ func Version() (version string) {
 		return b.String()
 	}
 
-	if IsStringInSlice(untagged, states) {
+	if isTagged && !isClean {
+		b.WriteString(BuildTag)
+		b.WriteString("-dirty")
+
+		return b.String()
+	}
+
+	if !isTagged {
 		b.WriteString("untagged-")
 	}
 
 	b.WriteString(BuildTag)
 
-	if IsStringInSlice(dirty, states) {
+	if !isClean {
 		b.WriteString("-dirty")
 	}
 
