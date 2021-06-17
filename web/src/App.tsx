@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
 import { CssBaseline, ThemeProvider } from "@material-ui/core";
@@ -37,6 +37,8 @@ function Theme() {
             return themes.Dark;
         case "grey":
             return themes.Grey;
+        case "auto":
+            return window.matchMedia("(prefers-color-scheme: dark)").matches ? themes.Dark : themes.Light;
         default:
             return themes.Light;
     }
@@ -44,9 +46,20 @@ function Theme() {
 
 const App: React.FC = () => {
     const [notification, setNotification] = useState(null as Notification | null);
-
+    const [theme, setTheme] = useState(Theme());
+    useEffect(() => {
+        if (getTheme() === "auto") {
+            const query = window.matchMedia("(prefers-color-scheme: dark)");
+            // MediaQueryLists does not inherit from EventTarget in Internet Explorer
+            if (query.addEventListener) {
+                query.addEventListener("change", (e) => {
+                    setTheme(e.matches ? themes.Dark : themes.Light);
+                });
+            }
+        }
+    }, []);
     return (
-        <ThemeProvider theme={Theme()}>
+        <ThemeProvider theme={theme}>
             <CssBaseline />
             <NotificationsContext.Provider value={{ notification, setNotification }}>
                 <Router basename={getBasePath()}>
