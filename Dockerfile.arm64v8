@@ -11,7 +11,7 @@ RUN \
 echo ">> Downloading required apk's..." && \
 apk --no-cache add curl && \
 echo ">> Downloading cross-compiler..." && \
-curl -Lfs "https://github.com/just-containers/musl-cross-make/releases/download/${CC_VERSION}/gcc-9.2.0-aarch64-linux-musl.tar.xz" | tar x -C /
+curl -Lfs "https://github.com/just-containers/musl-cross-make/releases/download/${CC_VERSION}/gcc-9.2.0-aarch64-linux-musl.tar.xz" | tar -xJ --directory /
 
 COPY go.mod go.sum ./
 
