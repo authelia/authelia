@@ -9,7 +9,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"fmt"
 	"log"
 	"math/big"
 	"net"
@@ -18,6 +17,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/internal/logging"
 )
 
 // NewCertificatesCmd returns a new Certificates Cmd.
@@ -43,7 +44,7 @@ func newCertificatesGenerateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "generate",
 		Short: "Generate a self-signed certificate",
-		RunE:  cmdCertificatesGenerateRunE,
+		Run:   cmdCertificatesGenerateRun,
 	}
 
 	cmd.Flags().String("start-date", "", "Creation date formatted as Jan 1 15:04:05 2011")
@@ -57,23 +58,25 @@ func newCertificatesGenerateCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
-func cmdCertificatesGenerateRunE(cmd *cobra.Command, _ []string) (err error) {
+func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 	// implementation retrieved from https://golang.org/src/crypto/tls/generate_cert.go
 	var priv interface{}
 
+	logger := logging.Logger()
+
 	ecdsaCurve, err := cmd.Flags().GetString("ecdsa-curve")
 	if err != nil {
-		return err
+		logger.Fatal(err)
 	}
 
 	ed25519Key, err := cmd.Flags().GetBool("ed25519")
 	if err != nil {
-		return err
+		logger.Fatal(err)
 	}
 
 	rsaBits, err := cmd.Flags().GetInt("rsa-bits")
 	if err != nil {
-		return err
+		logger.Fatal(err)
 	}
 
 	switch ecdsaCurve {
@@ -92,16 +95,16 @@ func cmdCertificatesGenerateRunE(cmd *cobra.Command, _ []string) (err error) {
 	case "P521":
 		priv, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	default:
-		return fmt.Errorf("Unrecognized elliptic curve: %q", ecdsaCurve)
+		logger.Fatalf("Unrecognized elliptic curve: %q", ecdsaCurve)
 	}
 
 	if err != nil {
-		return fmt.Errorf("Failed to generate private key: %w", err)
+		logger.Fatalf("Failed to generate private key: %w", err)
 	}
 
 	validFrom, err := cmd.Flags().GetString("start-date")
 	if err != nil {
-		return err
+		logger.Fatal(err)
 	}
 
 	var notBefore time.Time
@@ -110,13 +113,13 @@ func cmdCertificatesGenerateRunE(cmd *cobra.Command, _ []string) (err error) {
 	} else {
 		notBefore, err = time.Parse("Jan 2 15:04:05 2006", validFrom)
 		if err != nil {
-			return fmt.Errorf("Failed to parse creation date: %w", err)
+			logger.Fatalf("Failed to parse creation date: %w", err)
 		}
 	}
 
 	validFor, err := cmd.Flags().GetDuration("duration")
 	if err != nil {
-		return err
+		logger.Fatal(err)
 	}
 
 	notAfter := notBefore.Add(validFor)
@@ -143,7 +146,7 @@ func cmdCertificatesGenerateRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	hosts, err := cmd.PersistentFlags().GetStringSlice("host")
 	if err != nil {
-		return err
+		logger.Fatal(err)
 	}
 
 	for _, h := range hosts {
@@ -156,7 +159,7 @@ func cmdCertificatesGenerateRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	isCA, err := cmd.Flags().GetBool("ca")
 	if err != nil {
-		return err
+		logger.Fatal(err)
 	}
 
 	if isCA {
@@ -166,27 +169,27 @@ func cmdCertificatesGenerateRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey(priv), priv)
 	if err != nil {
-		return fmt.Errorf("Failed to create certificate: %w", err)
+		logger.Fatalf("Failed to create certificate: %w", err)
 	}
 
 	certificateTargetDirectory, err := cmd.Flags().GetString("dir")
 	if err != nil {
-		return err
+		logger.Fatal(err)
 	}
 
 	certPath := path.Join(certificateTargetDirectory, "cert.pem")
 	certOut, err := os.Create(certPath)
 
 	if err != nil {
-		return fmt.Errorf("Failed to open %s for writing: %w", certPath, err)
+		logger.Fatalf("Failed to open %s for writing: %w", certPath, err)
 	}
 
 	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes}); err != nil {
-		return fmt.Errorf("Failed to write data to cert.pem: %w", err)
+		logger.Fatalf("Failed to write data to cert.pem: %w", err)
 	}
 
 	if err := certOut.Close(); err != nil {
-		return fmt.Errorf("Error closing %s: %w", certPath, err)
+		logger.Fatalf("Error closing %s: %w", certPath, err)
 	}
 
 	log.Printf("wrote %s\n", certPath)
@@ -195,25 +198,23 @@ func cmdCertificatesGenerateRunE(cmd *cobra.Command, _ []string) (err error) {
 	keyOut, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 
 	if err != nil {
-		return fmt.Errorf("Failed to open %s for writing: %w", keyPath, err)
+		logger.Fatalf("Failed to open %s for writing: %w", keyPath, err)
 	}
 
 	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
 	if err != nil {
-		return fmt.Errorf("Unable to marshal private key: %w", err)
+		logger.Fatalf("Unable to marshal private key: %w", err)
 	}
 
 	if err := pem.Encode(keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}); err != nil {
-		return fmt.Errorf("Failed to write data to %s: %w", keyPath, err)
+		logger.Fatalf("Failed to write data to %s: %w", keyPath, err)
 	}
 
 	if err := keyOut.Close(); err != nil {
-		return fmt.Errorf("Error closing %s: %w", keyPath, err)
+		logger.Fatalf("Error closing %s: %w", keyPath, err)
 	}
 
 	log.Printf("Certificate Key Written to %s\n", keyPath)
-
-	return nil
 }
 
 func publicKey(priv interface{}) interface{} {

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/internal/configuration"
+	"github.com/authelia/authelia/internal/logging"
 )
 
 func newValidateConfigCmd() (cmd *cobra.Command) {
@@ -15,16 +16,18 @@ func newValidateConfigCmd() (cmd *cobra.Command) {
 		Use:   "validate-config [yaml]",
 		Short: "Check a configuration against the internal configuration validation mechanisms",
 		Args:  cobra.MinimumNArgs(1),
-		RunE:  cmdValidateConfigRunE,
+		Run:   cmdValidateConfigRun,
 	}
 
 	return cmd
 }
 
-func cmdValidateConfigRunE(_ *cobra.Command, args []string) (err error) {
+func cmdValidateConfigRun(_ *cobra.Command, args []string) {
+	logger := logging.Logger()
+
 	configPath := args[0]
 	if _, err := os.Stat(configPath); err != nil {
-		return fmt.Errorf("Error Loading Configuration: %w\n", err)
+		logger.Fatalf("Error Loading Configuration: %v\n", err)
 	}
 
 	// TODO: Actually use the configuration to validate some providers like Notifier
@@ -40,10 +43,8 @@ func cmdValidateConfigRunE(_ *cobra.Command, args []string) (err error) {
 			errors += fmt.Sprintf("\t%s\n", err.Error())
 		}
 
-		return fmt.Errorf("%s occurred parsing configuration:\n%s", str, errors)
+		logger.Fatalf("%s occurred parsing configuration:\n%s", str, errors)
 	}
 
 	log.Println("Configuration parsed successfully without errors.")
-
-	return nil
 }

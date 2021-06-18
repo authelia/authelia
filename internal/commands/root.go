@@ -1,10 +1,8 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -33,8 +31,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Short:   fmt.Sprintf("authelia %s", version),
 		Long:    fmt.Sprintf(fmtAutheliaLong, version),
 		Version: version,
-		PreRunE: cmdWithConfigPreRunE,
-		RunE:    cmdRootRunE,
+		PreRun:  cmdWithConfigPreRun,
+		Run:     cmdRootRun,
 	}
 
 	cmdWithConfigFlags(cmd)
@@ -51,7 +49,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
-func cmdRootRunE(_ *cobra.Command, _ []string) (err error) {
+func cmdRootRun(_ *cobra.Command, _ []string) {
 	logger := logging.Logger()
 
 	config := configuration.GetProvider().Configuration
@@ -72,7 +70,7 @@ func cmdRootRunE(_ *cobra.Command, _ []string) (err error) {
 	}
 
 	if err := logging.InitializeLogger(config.Logging.Format, config.Logging.FilePath, config.Logging.KeepStdout); err != nil {
-		return fmt.Errorf("Cannot initialize logger: %w", err)
+		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
 
 	logger.Infof("Authelia %s is starting", utils.Version())
@@ -162,8 +160,6 @@ func cmdRootRunE(_ *cobra.Command, _ []string) (err error) {
 	}
 
 	server.StartServer(*config, providers)
-
-	return nil
 }
 
 // cmdWithConfigFlags is used for commands which require access to the configuration to add the flag to the command.
@@ -171,34 +167,36 @@ func cmdWithConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringSliceP("config", "c", []string{}, "Configuration files")
 }
 
-// cmdWithConfigPreRunE is used for commands which require access to the configuration to load the configuration in the PreRun.
-func cmdWithConfigPreRunE(cmd *cobra.Command, _ []string) (err error) {
+// cmdWithConfigPreRun is used for commands which require access to the configuration to load the configuration in the PreRun.
+func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 	if cmd.Name() == "help" {
-		return nil
+		return
 	}
+
+	logger := logging.Logger()
 
 	configs, err := cmd.Root().PersistentFlags().GetStringSlice("config")
 	if err != nil {
-		return err
+		logger.Fatalf("Error reading flags: %v", err)
 	}
 
 	provider := configuration.GetProvider()
 
 	err = provider.LoadFile(configs)
 	if err != nil {
-		return err
+		logger.Fatalf("Error loading file configuration: %v", err)
 	}
 
 	err = provider.LoadEnvironment()
 	if err != nil {
-		return err
+		logger.Fatalf("Error loading environment configuration: %v", err)
 	}
 
 	// If running the root command we need to load Command Line Arguments.
 	if cmd == cmd.Root() {
-		err = provider.LoadCommandLineArguments(cmd.Flags())
+		err = provider.LoadCommandLineFlags(cmd.Flags())
 		if err != nil {
-			return err
+			logger.Fatalf("Error loading flags configuration: %v", err)
 		}
 	}
 
@@ -206,23 +204,21 @@ func cmdWithConfigPreRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	warns := provider.StructValidator.Warnings()
 	if len(warns) != 0 {
+		logger.Warnf("Warnings occurred while validating configuration:")
+
 		for _, warn := range warns {
-			logrus.Warnf(warn.Error())
+			logger.Warnf("\t%v", warn)
 		}
 	}
 
 	errs := provider.StructValidator.Errors()
 	if len(errs) != 0 {
-		s := strings.Builder{}
-
-		s.WriteString("Errors during configuration validation:\n")
+		logger.Errorf("Errors occurred while validating configuration:")
 
 		for _, err := range errs {
-			s.WriteString(fmt.Sprintf("  %s\n", err.Error()))
+			logger.Errorf("\t%v", err)
 		}
 
-		return errors.New(s.String())
+		logger.Fatalf("Exiting due to configuration validation errors above.")
 	}
-
-	return nil
 }

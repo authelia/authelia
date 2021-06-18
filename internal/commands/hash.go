@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/authelia/authelia/internal/logging"
 
 	"github.com/simia-tech/crypt"
 	"github.com/spf13/cobra"
@@ -16,7 +17,7 @@ func NewHashPasswordCmd() (cmd *cobra.Command) {
 		Use:   "hash-password [password]",
 		Short: "Hash a password to be used in file-based users database. Default algorithm is argon2id.",
 		Args:  cobra.MinimumNArgs(1),
-		RunE:  cmdHashPasswordRunE,
+		Run:   cmdHashPasswordRun,
 	}
 
 	cmd.Flags().BoolP("sha512", "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordSHA512Configuration.Iterations))
@@ -30,7 +31,7 @@ func NewHashPasswordCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
-func cmdHashPasswordRunE(cmd *cobra.Command, args []string) (err error) {
+func cmdHashPasswordRun(cmd *cobra.Command, args []string) {
 	sha512, _ := cmd.Flags().GetBool("sha512")
 	iterations, _ := cmd.Flags().GetInt("iterations")
 	salt, _ := cmd.Flags().GetString("salt")
@@ -57,12 +58,10 @@ func cmdHashPasswordRunE(cmd *cobra.Command, args []string) (err error) {
 		salt = crypt.Base64Encoding.EncodeToString([]byte(salt))
 	}
 
-	hash, err = authentication.HashPassword(args[0], salt, algorithm, iterations, memory*1024, parallelism, keyLength, saltLength)
+	hash, err := authentication.HashPassword(args[0], salt, algorithm, iterations, memory*1024, parallelism, keyLength, saltLength)
 	if err != nil {
-		return fmt.Errorf("Error occurred during hashing: %w\n", err)
+		logging.Logger().Fatalf("Error occurred during hashing: %v\n", err)
 	}
 
 	fmt.Printf("Password hash: %s\n", hash)
-
-	return nil
 }

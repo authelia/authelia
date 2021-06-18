@@ -79,8 +79,8 @@ func (p *Provider) LoadEnvironment() (err error) {
 	return p.Load(env.ProviderWithValue("AUTHELIA_", ".", koanfEnvCallback()), nil)
 }
 
-// LoadCommandLineArguments loads the CLI args to the configuration.
-func (p *Provider) LoadCommandLineArguments(flags *pflag.FlagSet) (err error) {
+// LoadCommandLineFlags loads the CLI args to the configuration.
+func (p *Provider) LoadCommandLineFlags(flags *pflag.FlagSet) (err error) {
 	if flags != nil {
 		if err := p.Load(posflag.ProviderWithValue(flags, ".", p.Koanf, koanfPosFlagCallbackFunc), nil); err != nil {
 			return err

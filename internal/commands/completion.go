@@ -1,10 +1,11 @@
 package commands
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/internal/logging"
 )
 
 func newCompletionCmd() (cmd *cobra.Command) {
@@ -53,23 +54,29 @@ PowerShell:
 		Args:                  cobra.ExactValidArgs(1),
 		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
 		DisableFlagsInUseLine: true,
-		RunE:                  cmdCompletionRunE,
+		Run:                   cmdCompletionRun,
 	}
 
 	return cmd
 }
 
-func cmdCompletionRunE(cmd *cobra.Command, args []string) (err error) {
+func cmdCompletionRun(cmd *cobra.Command, args []string) {
+	var err error
+
 	switch args[0] {
 	case "bash":
-		return cmd.Root().GenBashCompletion(os.Stdout)
+		err = cmd.Root().GenBashCompletion(os.Stdout)
 	case "zsh":
-		return cmd.Root().GenZshCompletion(os.Stdout)
+		err = cmd.Root().GenZshCompletion(os.Stdout)
 	case "fish":
-		return cmd.Root().GenFishCompletion(os.Stdout, true)
+		err = cmd.Root().GenFishCompletion(os.Stdout, true)
 	case "powershell":
-		return cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+		err = cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+	default:
+		logging.Logger().Fatalf("Invalid shell provided for completion command: %s", args[0])
 	}
 
-	return fmt.Errorf("Invalid shell provided for completion command")
+	if err != nil {
+		logging.Logger().Fatalf("Error generating completion: %v", err)
+	}
 }
