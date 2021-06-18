@@ -1,4 +1,4 @@
-package main
+package commands
 
 const cmdAutheliaExample = `authelia --config /etc/authelia/config.yml --config /etc/authelia/access-control.yml
 authelia --config /etc/authelia/config.yml,/etc/authelia/access-control.yml
@@ -13,7 +13,6 @@ applications via a web portal.
 
 Documentation is available at: https://www.authelia.com/docs
 `
-
 
 const fmtAutheliaBuild = `Last Tag: %s
 State: %s

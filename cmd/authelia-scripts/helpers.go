@@ -27,7 +27,7 @@ func getXFlags(branch, build, extra string) (flags []string, err error) {
 		return flags, err
 	}
 
-	tag, _, err := utils.RunCommandAndReturnOutput("git describe --tags --abbrev=0 " + gitTagCommit)
+	tag, _, err := utils.RunCommandAndReturnOutput("git describe --tags --abbrev=0" + gitTagCommit)
 	if err != nil {
 		return flags, err
 	}

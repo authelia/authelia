@@ -10,31 +10,41 @@ import (
 	"github.com/authelia/authelia/internal/configuration"
 )
 
-// ValidateConfigCmd uses the internal configuration reader to validate the configuration.
-var ValidateConfigCmd = &cobra.Command{
-	Use:   "validate-config [yaml]",
-	Short: "Check a configuration against the internal configuration validation mechanisms.",
-	Run: func(cobraCmd *cobra.Command, args []string) {
-		configPath := args[0]
-		if _, err := os.Stat(configPath); err != nil {
-			log.Fatalf("Error Loading Configuration: %s\n", err)
+func newValidateConfigCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "validate-config [yaml]",
+		Short:             "Check a configuration against the internal configuration validation mechanisms",
+		Args:              cobra.MinimumNArgs(1),
+		RunE:              cmdValidateConfigRunE,
+		PersistentPreRunE: nil,
+	}
+
+	return cmd
+}
+
+func cmdValidateConfigRunE(_ *cobra.Command, args []string) (err error) {
+	configPath := args[0]
+	if _, err := os.Stat(configPath); err != nil {
+		return fmt.Errorf("Error Loading Configuration: %w\n", err)
+	}
+
+	// TODO: Actually use the configuration to validate some providers like Notifier
+	_, errs := configuration.Read(configPath)
+	if len(errs) != 0 {
+		str := "Errors"
+		if len(errs) == 1 {
+			str = "Error"
 		}
 
-		// TODO: Actually use the configuration to validate some providers like Notifier
-		_, errs := configuration.Read(configPath)
-		if len(errs) != 0 {
-			str := "Errors"
-			if len(errs) == 1 {
-				str = "Error"
-			}
-			errors := ""
-			for _, err := range errs {
-				errors += fmt.Sprintf("\t%s\n", err.Error())
-			}
-			log.Fatalf("%s occurred parsing configuration:\n%s", str, errors)
-		} else {
-			log.Println("Configuration parsed successfully without errors.")
+		errors := ""
+		for _, err := range errs {
+			errors += fmt.Sprintf("\t%s\n", err.Error())
 		}
-	},
-	Args: cobra.MinimumNArgs(1),
+
+		return fmt.Errorf("%s occurred parsing configuration:\n%s", str, errors)
+	}
+
+	log.Println("Configuration parsed successfully without errors.")
+
+	return nil
 }

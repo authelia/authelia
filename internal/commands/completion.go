@@ -1,15 +1,17 @@
-package main
+package commands
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-var completionCmd = &cobra.Command{
-	Use:   "completion [bash|zsh|fish|powershell]",
-	Short: "Generate completion script",
-	Long: `To load completions:
+func newCompletionCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "completion [bash|zsh|fish|powershell]",
+		Short: "Generate completion script",
+		Long: `To load completions:
 
 Bash:
 
@@ -48,19 +50,27 @@ PowerShell:
   PS> authelia completion powershell > authelia.ps1
   # and source this file from your PowerShell profile.
 `,
-	DisableFlagsInUseLine: true,
-	ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
-	Args:                  cobra.ExactValidArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		switch args[0] {
-		case "bash":
-			cmd.Root().GenBashCompletion(os.Stdout)
-		case "zsh":
-			cmd.Root().GenZshCompletion(os.Stdout)
-		case "fish":
-			cmd.Root().GenFishCompletion(os.Stdout, true)
-		case "powershell":
-			cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
-		}
-	},
+		Args:                  cobra.ExactValidArgs(1),
+		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
+		DisableFlagsInUseLine: true,
+		RunE:                  cmdCompletionRunE,
+		PersistentPreRunE:     nil,
+	}
+
+	return cmd
+}
+
+func cmdCompletionRunE(cmd *cobra.Command, args []string) (err error) {
+	switch args[0] {
+	case "bash":
+		return cmd.Root().GenBashCompletion(os.Stdout)
+	case "zsh":
+		return cmd.Root().GenZshCompletion(os.Stdout)
+	case "fish":
+		return cmd.Root().GenFishCompletion(os.Stdout, true)
+	case "powershell":
+		return cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+	}
+
+	return fmt.Errorf("Invalid shell provided for completion command")
 }

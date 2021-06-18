@@ -18,7 +18,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/jackc/pgx/v4 v4.11.0
-	github.com/knadh/koanf v0.14.1-0.20201201075439-e0853799f9ec
+	github.com/knadh/koanf v1.1.0
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.4.1
