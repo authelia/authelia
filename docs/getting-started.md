@@ -10,12 +10,12 @@ nav_order: 2
 
 ### Steps
 
-These commands are intended to be run sequentially:
+These commands are to be run sequentially:
 
 - `git clone https://github.com/authelia/authelia.git`
 - `cd authelia/examples/compose/local`
 - ``git checkout $(git describe --tags `git rev-list --tags --max-count=1`)``
-- `sudo ./setup.sh` *sudo is required to modify the `/etc/hosts` file*
+- `./setup.sh` *sudo is required to modify the `/etc/hosts` file, the user will be prompted for access if not run as root*
 
 You can now visit the following locations; replace example.com with the domain you specified in the setup script:
 - https://public.example.com - Bypasses Authelia
