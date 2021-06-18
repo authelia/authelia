@@ -6,7 +6,7 @@ import (
 )
 
 // BuildTag is replaced by LDFLAGS at build time with the latest tag at or before the current commit.
-var BuildTag = ""
+var BuildTag = "unknown"
 
 // BuildState is replaced by LDFLAGS at build time with `tagged` or `untagged` depending on if the commit is tagged, and
 // `clean` or `dirty` depending on the working tree state. For example if the commit was tagged and the working tree
@@ -29,52 +29,37 @@ var BuildBranch = "master"
 // BuildNumber is replaced by LDFLAGS at build time with the CI build number.
 var BuildNumber = "0"
 
-// CommitShort loops through the BuildCommit chars and safely writes the first 7 to a string builder and returns it.
-func CommitShort() (commit string) {
-	if BuildCommit == "" {
-		return unknown
-	}
-
-	b := strings.Builder{}
-
-	for i, r := range BuildCommit {
-		b.WriteRune(r)
-
-		if i >= 6 {
-			break
-		}
-	}
-
-	return b.String()
-}
-
 // Version returns the Authelia version.
 //
 // The format of the string is dependent on the values in BuildState. If tagged and clean are present it returns the
 // BuildTag i.e. v1.0.0. If dirty and tagged are present it returns <BuildTag>-dirty. Otherwise the following is the
 // format: untagged-<BuildTag>-dirty-<BuildExtra> (<BuildBranch>, <BuildCommit>).
 //
-func Version() (version string) {
+func Version() (versionString string) {
+	return version(BuildTag, BuildState, BuildCommit, BuildBranch, BuildExtra)
+}
+
+func version(tag, state, commit, branch, extra string) (version string) {
 	b := strings.Builder{}
 
-	states := strings.Split(BuildState, " ")
+	states := strings.Split(state, " ")
 
 	isClean := IsStringInSlice(clean, states)
 	isTagged := IsStringInSlice(tagged, states)
 
 	if isClean && isTagged {
-		b.WriteString(BuildTag)
+		b.WriteString(tag)
 
-		if BuildExtra != "" {
+		if extra != "" {
 			b.WriteRune('-')
-			b.WriteString(BuildExtra)
+			b.WriteString(extra)
 		}
 
 		return b.String()
 	}
 
 	if isTagged && !isClean {
-		b.WriteString(BuildTag)
+		b.WriteString(tag)
 		b.WriteString("-dirty")
 
 		return b.String()
@@ -84,18 +69,36 @@ func Version() (version string) {
 		b.WriteString("untagged-")
 	}
 
-	b.WriteString(BuildTag)
+	b.WriteString(tag)
 
 	if !isClean {
 		b.WriteString("-dirty")
 	}
 
-	if BuildExtra != "" {
+	if extra != "" {
 		b.WriteRune('-')
-		b.WriteString(BuildExtra)
+		b.WriteString(extra)
 	}
 
-	b.WriteString(fmt.Sprintf(" (%s, %s)", BuildBranch, CommitShort()))
+	b.WriteString(fmt.Sprintf(" (%s, %s)", branch, commitShort(commit)))
+
+	return b.String()
+}
+
+func commitShort(commitLong string) (commit string) {
+	if commitLong == "" {
+		return unknown
+	}
+
+	b := strings.Builder{}
+
+	for i, r := range commitLong {
+		b.WriteRune(r)
+
+		if i >= 6 {
+			break
+		}
+	}
 
 	return b.String()
 }
