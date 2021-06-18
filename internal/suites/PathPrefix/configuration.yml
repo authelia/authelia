@@ -10,7 +10,7 @@ tls_key: /config/ssl/key.pem
 server:
   path: auth
 
-logging:
+log:
   level: debug
 
 jwt_secret: unsecure_secret

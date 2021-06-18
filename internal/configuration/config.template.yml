@@ -17,7 +17,7 @@ port: 9091
 ## They should be in base64 format, and have one of the following extensions: *.cer, *.crt, *.pem.
 # certificates_directory: /config/certificates
 
-## The theme to display: light, dark, grey.
+## The theme to display: light, dark, grey, auto.
 theme: light
 
 ##
@@ -30,6 +30,7 @@ server:
   ## Write buffer size does the same for outgoing responses.
   read_buffer_size: 4096
   write_buffer_size: 4096
+
   ## Set the single level path Authelia listens on.
   ## Must be alphanumeric chars and should not contain any slashes.
   path: ""
@@ -40,8 +41,8 @@ server:
   ## Enables the expvars endpoint.
   enable_expvars: false
 
-## Level of verbosity for logs: info, debug, trace.
-logging:
+log:
+  ## Level of verbosity for logs: info, debug, trace.
   level: debug
 
   ## Format the logs are written as: json, text.
