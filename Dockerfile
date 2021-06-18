@@ -3,22 +3,27 @@
 # =======================================
 FROM golang:1.16.5-alpine AS builder-backend
 
-ARG BUILD_TAG
-ARG BUILD_COMMIT
-
 WORKDIR /go/src/app
+
+RUN \
+echo ">> Downloading required apk's..." && \
+apk --no-cache add gcc musl-dev
+
+COPY go.mod go.sum ./
+
+RUN \
+echo ">> Downloading go modules..." && \
+go mod download
 
 COPY / ./
 
+ARG LDFLAGS_EXTRA
 # CGO_ENABLED=1 is required for building go-sqlite3
 RUN \
-apk --no-cache add gcc musl-dev && \
-go mod download && \
 mv public_html internal/server/public_html && \
-echo "Write tag ${BUILD_TAG} and commit ${BUILD_COMMIT} in binary." && \
-sed -i "s/__BUILD_TAG__/${BUILD_TAG}/" cmd/authelia/constants.go && \
-sed -i "s/__BUILD_COMMIT__/${BUILD_COMMIT}/" cmd/authelia/constants.go && \
-GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo -ldflags '-s -w -linkmode external -extldflags -static' -trimpath -o authelia ./cmd/authelia
+echo ">> Starting go build..." && \
+GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo \
+-ldflags "-s -w -linkmode external ${LDFLAGS_EXTRA} -extldflags -static" -trimpath -o authelia ./cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====
