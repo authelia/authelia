@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -24,8 +26,40 @@ import (
 
 var configPathFlag string
 
+func main() {
+	logger := logging.Logger()
+	rootCmd := &cobra.Command{
+		Use:               "authelia",
+		Example:           cmdAutheliaExample,
+		Long:              cmdAutheliaLong,
+		RunE:              startServer,
+		PersistentPreRunE: preRun,
+		Version:           fmt.Sprintf("%s, build %s", BuildTag, BuildCommit),
+	}
+
+	rootCmd.PersistentFlags().StringSliceP("config", "c", []string{}, "Configuration files")
+
+	// TODO: Add configuration flags here.
+
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Show the version of Authelia",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("Authelia version %s, build %s\n", BuildTag, BuildCommit)
+		},
+	}
+
+	rootCmd.AddCommand(versionCmd, completionCmd, commands.HashPasswordCmd,
+		commands.ValidateConfigCmd, commands.CertificatesCmd,
+		commands.RSACmd)
+
+	if err := rootCmd.Execute(); err != nil {
+		logger.Fatal(err)
+	}
+}
+
 //nolint:gocyclo // TODO: Consider refactoring/simplifying, time permitting.
-func startServer() {
+func startServer(cmd *cobra.Command, args []string) error {
 	logger := logging.Logger()
 	config, errs := configuration.Read(configPathFlag)
 
@@ -34,7 +68,7 @@ func startServer() {
 			logger.Error(err)
 		}
 
-		os.Exit(1)
+		return errors.New("error occurred during config validation")
 	}
 
 	autheliaCertPool, errs, nonFatalErrs := utils.NewX509CertPool(config.CertificatesDirectory)
@@ -141,32 +175,57 @@ func startServer() {
 	}
 
 	server.StartServer(*config, providers)
+
+	return nil
 }
 
-func main() {
-	logger := logging.Logger()
-	rootCmd := &cobra.Command{
-		Use: "authelia",
-		Run: func(cmd *cobra.Command, args []string) {
-			startServer()
-		},
+func preRun(cmd *cobra.Command, args []string) (err error) {
+
+	configs, err := cmd.PersistentFlags().GetStringSlice("config")
+	if err != nil {
+		return err
 	}
 
-	rootCmd.Flags().StringVar(&configPathFlag, "config", "", "Configuration file")
+	provider := configuration.GetProvider()
 
-	versionCmd := &cobra.Command{
-		Use:   "version",
-		Short: "Show the version of Authelia",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Authelia version %s, build %s\n", BuildTag, BuildCommit)
-		},
+	err = provider.LoadFile(configs)
+	if err != nil {
+		return err
 	}
 
-	rootCmd.AddCommand(versionCmd, commands.HashPasswordCmd,
-		commands.ValidateConfigCmd, commands.CertificatesCmd,
-		commands.RSACmd)
-
-	if err := rootCmd.Execute(); err != nil {
-		logger.Fatal(err)
+	err = provider.LoadEnvironment()
+	if err != nil {
+		return err
 	}
+
+	// If running the root command we need to load Command Line Arguments.
+	if cmd == cmd.Root() {
+		err = provider.LoadCommandLineArguments(cmd.Flags())
+		if err != nil {
+			return err
+		}
+	}
+
+	provider.Validate()
+
+	warns := provider.StructValidator.Warnings()
+	if len(warns) != 0 {
+		for _, warn := range warns {
+			logrus.Warnf(warn.Error())
+		}
+	}
+
+	errs := provider.StructValidator.Errors()
+	if len(errs) != 0 {
+		s := strings.Builder{}
+
+		s.WriteString("Errors during configuration validation:\n")
+		for _, err := range errs {
+			s.WriteString(fmt.Sprintf("  %s\n", err.Error()))
+		}
+
+		return errors.New(s.String())
+	}
+
+	return nil
 }
