@@ -10,7 +10,8 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-func newRSACmd() (cmd *cobra.Command) {
+// NewRSACmd returns a new RSA Cmd.
+func NewRSACmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:               "rsa",
 		Short:             "Commands related to rsa keypair generation",

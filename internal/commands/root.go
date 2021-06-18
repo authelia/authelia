@@ -23,6 +23,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+// NewRootCmd returns a new Root Cmd.
 func NewRootCmd() (cmd *cobra.Command) {
 	version := utils.Version()
 
@@ -40,10 +41,10 @@ func NewRootCmd() (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		newBuildCmd(),
-		newCertificatesCmd(),
+		NewCertificatesCmd(),
 		newCompletionCmd(),
-		newHashPasswordCmd(),
-		newRSACmd(),
+		NewHashPasswordCmd(),
+		NewRSACmd(),
 		newValidateConfigCmd(),
 	)
 
@@ -90,6 +91,7 @@ func cmdRootPersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 		s := strings.Builder{}
 
 		s.WriteString("Errors during configuration validation:\n")
+
 		for _, err := range errs {
 			s.WriteString(fmt.Sprintf("  %s\n", err.Error()))
 		}

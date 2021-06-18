@@ -4,95 +4,18 @@ import (
 	_ "embed" // Embed config.template.yml.
 	"errors"
 	"fmt"
-	"github.com/knadh/koanf/providers/posflag"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
-	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/configuration/validator"
 	"github.com/authelia/authelia/internal/logging"
 )
-
-var config *schema.Configuration
-var konfiguration *koanf.Koanf
-
-// GetKoanf returns the Configuration provider.
-func GetKoanf() *koanf.Koanf {
-	if konfiguration == nil {
-		konfiguration = koanf.NewWithConf(koanf.Conf{
-			Delim:       ".",
-			StrictMerge: true,
-		})
-	}
-
-	return konfiguration
-}
-
-func GetConfiguration(fallback *schema.Configuration) *schema.Configuration {
-	if config == nil {
-		if fallback == nil {
-			config = &schema.Configuration{}
-		} else {
-			config = fallback
-		}
-	}
-
-	return config
-}
-
-func Load(paths []string, flags *pflag.FlagSet) (configuration *schema.Configuration, err error) {
-	konfig := GetKoanf()
-
-	configuration = GetConfiguration(nil)
-
-	val := schema.NewStructValidator()
-	if len(paths) != 0 {
-		validator.ValidateKeys(val, konfig.Keys())
-	}
-
-	if err := konfig.Load(env.ProviderWithValue("AUTHELIA_", ".", koanfEnvCallback()), nil); err != nil {
-		return configuration, err
-	}
-
-	if flags != nil {
-		if err := konfig.Load(posflag.ProviderWithValue(flags, ".", konfig, koanfPosFlagCallbackFunc), nil); err != nil {
-			return configuration, err
-		}
-	}
-
-	if err := konfig.UnmarshalWithConf("", configuration, unmarshallConfig(configuration)); err != nil {
-		return configuration, err
-	}
-
-	validator.ValidateSecrets(configuration, val, konfig)
-	validator.ValidateConfiguration(configuration, val)
-
-	if val.HasErrors() {
-		s := strings.Builder{}
-		s.WriteString("Errors during Configuration validation: \n")
-		for _, err := range val.Errors() {
-			s.WriteString(err.Error())
-		}
-
-		return configuration, errors.New(s.String())
-	}
-
-	if val.HasWarnings() {
-		logger := logging.Logger()
-		for _, warn := range val.Warnings() {
-			logger.Warnf(warn.Error())
-		}
-	}
-
-	return configuration, nil
-}
 
 // Read a YAML configuration and create a Configuration object out of it.
 func Read(configPath string) (configuration *schema.Configuration, errs []error) {

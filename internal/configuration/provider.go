@@ -28,6 +28,7 @@ type Provider struct {
 	fileKeys      []string
 }
 
+// LoadFile loads the provided paths into the configuration.
 func (p *Provider) LoadFile(paths []string) (err error) {
 	for _, path := range paths {
 		if strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml") {
@@ -45,6 +46,7 @@ func (p *Provider) LoadFile(paths []string) (err error) {
 			}
 
 			noConfigs := true
+
 			for _, f := range files {
 				if f.IsDir() {
 					continue
@@ -56,6 +58,7 @@ func (p *Provider) LoadFile(paths []string) (err error) {
 					if err := p.Load(file.Provider(name), yaml.Parser()); err != nil {
 						return err
 					}
+
 					noConfigs = false
 				}
 			}
@@ -71,16 +74,13 @@ func (p *Provider) LoadFile(paths []string) (err error) {
 	return nil
 }
 
+// LoadEnvironment loads the environment variables to the configuration.
 func (p *Provider) LoadEnvironment() (err error) {
-	if err := p.Load(env.ProviderWithValue("AUTHELIA_", ".", koanfEnvCallback()), nil); err != nil {
-		return err
-	}
-
-	return nil
+	return p.Load(env.ProviderWithValue("AUTHELIA_", ".", koanfEnvCallback()), nil)
 }
 
+// LoadCommandLineArguments loads the CLI args to the configuration.
 func (p *Provider) LoadCommandLineArguments(flags *pflag.FlagSet) (err error) {
-
 	if flags != nil {
 		if err := p.Load(posflag.ProviderWithValue(flags, ".", p.Koanf, koanfPosFlagCallbackFunc), nil); err != nil {
 			return err
@@ -90,6 +90,7 @@ func (p *Provider) LoadCommandLineArguments(flags *pflag.FlagSet) (err error) {
 	return nil
 }
 
+// Validate runs all of the configuration validation tasks.
 func (p *Provider) Validate() {
 	validator.ValidateKeys(p.StructValidator, p.fileKeys)
 	validator.ValidateAccessControlRuleKeys(p.StructValidator, p.Slices("access_control.rules"))
@@ -100,6 +101,7 @@ func (p *Provider) Validate() {
 	p.fileKeys = nil
 }
 
+// UnmarshalToStruct unmarshalls the configuration to the struct.
 func (p *Provider) UnmarshalToStruct() (err error) {
 	conf := koanf.UnmarshalConf{
 		DecoderConfig: &mapstructure.DecoderConfig{
@@ -113,11 +115,7 @@ func (p *Provider) UnmarshalToStruct() (err error) {
 		},
 	}
 
-	if err := p.UnmarshalWithConf("", p.Configuration, conf); err != nil {
-		return err
-	}
-
-	return nil
+	return p.UnmarshalWithConf("", p.Configuration, conf)
 }
 
 // GetProvider returns the Configuration provider and the Configuration.

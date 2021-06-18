@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+
 	"github.com/simia-tech/crypt"
 	"github.com/spf13/cobra"
 
@@ -9,7 +10,8 @@ import (
 	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
-func newHashPasswordCmd() (cmd *cobra.Command) {
+// NewHashPasswordCmd returns a new Hash Password Cmd.
+func NewHashPasswordCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "hash-password [password]",
 		Short: "Hash a password to be used in file-based users database. Default algorithm is argon2id.",
@@ -38,16 +40,19 @@ func cmdHashPasswordRunE(cmd *cobra.Command, args []string) (err error) {
 	parallelism, _ := cmd.Flags().GetInt("parallelism")
 
 	var hash string
+
 	var algorithm authentication.CryptAlgo
 
 	if sha512 {
 		if iterations == schema.DefaultPasswordConfiguration.Iterations {
 			iterations = schema.DefaultPasswordSHA512Configuration.Iterations
 		}
+
 		algorithm = authentication.HashingAlgorithmSHA512
 	} else {
 		algorithm = authentication.HashingAlgorithmArgon2id
 	}
+
 	if salt != "" {
 		salt = crypt.Base64Encoding.EncodeToString([]byte(salt))
 	}

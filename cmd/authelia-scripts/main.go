@@ -135,7 +135,7 @@ func main() {
 		cobraCommands = append(cobraCommands, command)
 	}
 
-	cobraCommands = append(cobraCommands, commands.HashPasswordCmd, commands.CertificatesCmd, commands.RSACmd, xflagsCmd)
+	cobraCommands = append(cobraCommands, commands.NewHashPasswordCmd(), commands.NewCertificatesCmd(), commands.NewRSACmd(), xflagsCmd)
 
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Set the log level for the command")
 	rootCmd.AddCommand(cobraCommands...)

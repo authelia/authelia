@@ -20,7 +20,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newCertificatesCmd() (cmd *cobra.Command) {
+// NewCertificatesCmd returns a new Certificates Cmd.
+func NewCertificatesCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:               "certificates",
 		Short:             "Commands related to certificate generation",
@@ -197,7 +198,6 @@ func cmdCertificatesGenerateRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	if err != nil {
 		return fmt.Errorf("Failed to open %s for writing: %w", keyPath, err)
-		return
 	}
 
 	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
