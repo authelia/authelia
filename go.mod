@@ -17,7 +17,6 @@ require (
 	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/mock v1.6.0
 	github.com/jackc/pgx/v4 v4.11.0
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/ory/fosite v0.40.2
 	github.com/otiai10/copy v1.6.0
 	github.com/pquerna/otp v1.3.0
@@ -32,6 +31,5 @@ require (
 	golang.org/x/text v0.3.6
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v2 v2.4.0
+	modernc.org/sqlite v1.10.8
 )
-
-replace github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.7

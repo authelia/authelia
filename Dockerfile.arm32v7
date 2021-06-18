@@ -5,14 +5,6 @@ FROM golang:1.16.5-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
-# CGO_ENABLED=1 and gcc cross-compiler is required for building go-sqlite3
-ARG CC_VERSION="v15"
-RUN \
-echo ">> Downloading required apk's..." && \
-apk --no-cache add curl && \
-echo ">> Downloading cross-compiler..." && \
-curl -Lfs "https://github.com/just-containers/musl-cross-make/releases/download/${CC_VERSION}/gcc-9.2.0-arm-linux-musleabihf.tar.xz" | tar -xJ --directory /
-
 COPY go.mod go.sum ./
 
 RUN \
@@ -22,11 +14,12 @@ go mod download
 COPY / ./
 
 ARG LDFLAGS_EXTRA
+
 RUN \
 mv public_html internal/server/public_html && \
 echo ">> Starting go build..." && \
-GOOS=linux GOARCH=arm CGO_ENABLED=1 CC=arm-linux-musleabihf-gcc CGO_LDFLAGS=-fuse-ld=bfd go build -tags netgo \
--ldflags "-s -w -linkmode external ${LDFLAGS_EXTRA} -extldflags -static" -trimpath -o authelia ./cmd/authelia
+GOOS=linux GOARCH=arm CGO_ENABLED=0 go build -tags netgo \
+-ldflags "-s -w ${LDFLAGS_EXTRA}" -trimpath -o authelia ./cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====
