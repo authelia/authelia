@@ -17,4 +17,9 @@ const (
 const userPrefix = "user:"
 const groupPrefix = "group:"
 
+const bypass = "bypass"
+const oneFactor = "one_factor"
+const twoFactor = "two_factor"
+const deny = "deny"
+
 const traceFmtACLHitMiss = "ACL %s Position %d for subject %s and object %s (Method %s)"
