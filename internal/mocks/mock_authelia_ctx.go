@@ -105,7 +105,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.Notifier = mockAuthelia.NotifierMock
 
 	providers.Authorizer = authorization.NewAuthorizer(
-		configuration.AccessControl)
+		&configuration)
 
 	providers.SessionProvider = session.NewProvider(
 		configuration.Session, nil)

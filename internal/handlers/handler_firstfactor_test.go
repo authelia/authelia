@@ -288,8 +288,7 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 			Policy:  "one_factor",
 		},
 	}
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(
-		s.mock.Ctx.Configuration.AccessControl)
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
 	s.mock.UserProviderMock.
 		EXPECT().
@@ -360,8 +359,10 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 // Then:
 //   the user should receive 200 without redirection URL.
 func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedAndTwoFactorEnabled() {
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
-		DefaultPolicy: "two_factor",
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: "two_factor",
+		},
 	})
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
@@ -381,19 +382,20 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 // Then:
 //   the user should receive 200 without redirection URL.
 func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvidedAndTwoFactorEnabled() {
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
-		DefaultPolicy: "one_factor",
-		Rules: []schema.ACLRule{
-			{
-				Domains: []string{"test.example.com"},
-				Policy:  "one_factor",
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: "one_factor",
+			Rules: []schema.ACLRule{
+				{
+					Domains: []string{"test.example.com"},
+					Policy:  "one_factor",
+				},
+				{
+					Domains: []string{"example.com"},
+					Policy:  "two_factor",
+				},
 			},
-			{
-				Domains: []string{"example.com"},
-				Policy:  "two_factor",
-			},
-		},
-	})
+		}})
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
