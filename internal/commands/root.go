@@ -37,7 +37,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 		RunE:    cmdRootRunE,
 	}
 
-	cmd.PersistentFlags().StringSliceP("config", "c", []string{}, "Configuration files")
+	cmdWithConfigFlags(cmd)
 
 	cmd.AddCommand(
 		newBuildCmd(),
@@ -49,61 +49,6 @@ func NewRootCmd() (cmd *cobra.Command) {
 	)
 
 	return cmd
-}
-
-func cmdWithConfigPreRunE(cmd *cobra.Command, _ []string) (err error) {
-	if cmd.Name() == "help" {
-		return nil
-	}
-
-	configs, err := cmd.Root().PersistentFlags().GetStringSlice("config")
-	if err != nil {
-		return err
-	}
-
-	provider := configuration.GetProvider()
-
-	err = provider.LoadFile(configs)
-	if err != nil {
-		return err
-	}
-
-	err = provider.LoadEnvironment()
-	if err != nil {
-		return err
-	}
-
-	// If running the root command we need to load Command Line Arguments.
-	if cmd == cmd.Root() {
-		err = provider.LoadCommandLineArguments(cmd.Flags())
-		if err != nil {
-			return err
-		}
-	}
-
-	provider.Validate()
-
-	warns := provider.StructValidator.Warnings()
-	if len(warns) != 0 {
-		for _, warn := range warns {
-			logrus.Warnf(warn.Error())
-		}
-	}
-
-	errs := provider.StructValidator.Errors()
-	if len(errs) != 0 {
-		s := strings.Builder{}
-
-		s.WriteString("Errors during configuration validation:\n")
-
-		for _, err := range errs {
-			s.WriteString(fmt.Sprintf("  %s\n", err.Error()))
-		}
-
-		return errors.New(s.String())
-	}
-
-	return nil
 }
 
 func cmdRootRunE(_ *cobra.Command, _ []string) (err error) {
@@ -217,6 +162,67 @@ func cmdRootRunE(_ *cobra.Command, _ []string) (err error) {
 	}
 
 	server.StartServer(*config, providers)
+
+	return nil
+}
+
+// cmdWithConfigFlags is used for commands which require access to the configuration to add the flag to the command.
+func cmdWithConfigFlags(cmd *cobra.Command) {
+	cmd.Flags().StringSliceP("config", "c", []string{}, "Configuration files")
+}
+
+// cmdWithConfigPreRunE is used for commands which require access to the configuration to load the configuration in the PreRun.
+func cmdWithConfigPreRunE(cmd *cobra.Command, _ []string) (err error) {
+	if cmd.Name() == "help" {
+		return nil
+	}
+
+	configs, err := cmd.Root().PersistentFlags().GetStringSlice("config")
+	if err != nil {
+		return err
+	}
+
+	provider := configuration.GetProvider()
+
+	err = provider.LoadFile(configs)
+	if err != nil {
+		return err
+	}
+
+	err = provider.LoadEnvironment()
+	if err != nil {
+		return err
+	}
+
+	// If running the root command we need to load Command Line Arguments.
+	if cmd == cmd.Root() {
+		err = provider.LoadCommandLineArguments(cmd.Flags())
+		if err != nil {
+			return err
+		}
+	}
+
+	provider.Validate()
+
+	warns := provider.StructValidator.Warnings()
+	if len(warns) != 0 {
+		for _, warn := range warns {
+			logrus.Warnf(warn.Error())
+		}
+	}
+
+	errs := provider.StructValidator.Errors()
+	if len(errs) != 0 {
+		s := strings.Builder{}
+
+		s.WriteString("Errors during configuration validation:\n")
+
+		for _, err := range errs {
+			s.WriteString(fmt.Sprintf("  %s\n", err.Error()))
+		}
+
+		return errors.New(s.String())
+	}
 
 	return nil
 }
