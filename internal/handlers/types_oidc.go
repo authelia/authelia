@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
