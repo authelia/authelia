@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+writehosts(){
+  echo "\
+127.0.0.1  authelia.$DOMAIN
+127.0.0.1  public.$DOMAIN
+127.0.0.1  traefik.$DOMAIN
+127.0.0.1  secure.$DOMAIN" | sudo tee -a /etc/hosts > /dev/null
+}
+
 username(){
   read -ep "Enter your username for Authelia: " USERNAME
 }
@@ -27,6 +35,18 @@ fi
 echo "Pulling Authelia docker image for setup"
 docker pull authelia/authelia > /dev/null
 
+if [[ $(id -u)  != 0 ]]; then
+  echo "The script requires root access to perform some functions such as modifying your /etc/hosts file"
+  read -rp "Would you like to elevate access with sudo? [y/N] " confirmsudo
+  if ! [[ "$confirmsudo" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    echo "Sudo elevation denied, exiting"
+    exit
+  fi
+fi
+
+echo "Resetting docker-compose.yml, configuration.yml and users_database.yml"
+sudo git checkout -- docker-compose.yml authelia/configuration.yml authelia/users_database.yml
+
 read -ep "What root domain would you like to protect? (default/no selection is example.com): " DOMAIN
 
 if [[ $DOMAIN == "" ]]; then
@@ -36,11 +56,7 @@ fi
 MODIFIED=$(cat /etc/hosts | grep $DOMAIN && echo true || echo false)
 
 if [[ $MODIFIED == "false" ]]; then
-echo "\
-127.0.0.1  authelia.$DOMAIN
-127.0.0.1  public.$DOMAIN
-127.0.0.1  traefik.$DOMAIN
-127.0.0.1  secure.$DOMAIN" >> /etc/hosts
+  writehosts
 fi
 
 echo "Generating SSL certificate for *.$DOMAIN"
@@ -48,9 +64,9 @@ docker run -a stdout -v $PWD/traefik/certs:/tmp/certs authelia/authelia authelia
 
 if [[ $DOMAIN != "example.com" ]]; then
   if [[ $(uname) == "Darwin" ]]; then
-    sed -i '' "s/example.com/$DOMAIN/g" {docker-compose.yml,authelia/configuration.yml}
+    sudo sed -i '' "s/example.com/$DOMAIN/g" {docker-compose.yml,authelia/configuration.yml}
   else
-    sed -i "s/example.com/$DOMAIN/g" {docker-compose.yml,authelia/configuration.yml}
+    sudo sed -i "s/example.com/$DOMAIN/g" {docker-compose.yml,authelia/configuration.yml}
   fi
 fi
 
@@ -58,9 +74,9 @@ username
 
 if [[ $USERNAME != "" ]]; then
   if [[ $(uname) == "Darwin" ]]; then
-    sed -i '' "s/<USERNAME>/$USERNAME/g" authelia/users_database.yml
+    sudo sed -i '' "s/<USERNAME>/$USERNAME/g" authelia/users_database.yml
   else
-    sed -i "s/<USERNAME>/$USERNAME/g" authelia/users_database.yml
+    sudo sed -i "s/<USERNAME>/$USERNAME/g" authelia/users_database.yml
   fi
 else
   echo "Username cannot be empty"
@@ -71,9 +87,9 @@ displayname
 
 if [[ $DISPLAYNAME != "" ]]; then
   if [[ $(uname) == "Darwin" ]]; then
-    sed -i '' "s/<DISPLAYNAME>/$DISPLAYNAME/g" authelia/users_database.yml
+    sudo sed -i '' "s/<DISPLAYNAME>/$DISPLAYNAME/g" authelia/users_database.yml
   else
-    sed -i "s/<DISPLAYNAME>/$DISPLAYNAME/g" authelia/users_database.yml
+    sudo sed -i "s/<DISPLAYNAME>/$DISPLAYNAME/g" authelia/users_database.yml
   fi
 else
   echo "Display name cannot be empty"
@@ -85,9 +101,9 @@ password
 if [[ $PASSWORD != "" ]]; then
   PASSWORD=$(docker run authelia/authelia authelia hash-password $PASSWORD | sed 's/Password hash: //g')
   if [[ $(uname) == "Darwin" ]]; then
-    sed -i '' "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" authelia/users_database.yml
+    sudo sed -i '' "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" authelia/users_database.yml
   else
-    sed -i "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" authelia/users_database.yml
+    sudo sed -i "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" authelia/users_database.yml
   fi
 else
   echo "Password cannot be empty"
