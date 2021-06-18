@@ -8,14 +8,13 @@ require (
 	github.com/Workiva/go-datastructures v1.0.53
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
 	github.com/deckarep/golang-set v1.7.1
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/duosecurity/duo_api_golang v0.0.0-20201112143038-0e07e9f869e3
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fasthttp/router v1.3.14
 	github.com/fasthttp/session/v2 v2.3.2
-	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/go-ldap/ldap/v3 v3.3.0
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/mock v1.6.0
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
@@ -35,7 +34,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-replace (
-	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.1+incompatible
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.7
-)
+replace github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.7
