@@ -28,13 +28,13 @@ func NewRootCmd() (cmd *cobra.Command) {
 	version := utils.Version()
 
 	cmd = &cobra.Command{
-		Use:               "authelia",
-		Example:           cmdAutheliaExample,
-		Short:             fmt.Sprintf("authelia %s", version),
-		Long:              fmt.Sprintf(fmtAutheliaLong, version),
-		Version:           version,
-		RunE:              cmdRootRunE,
-		PersistentPreRunE: cmdRootPersistentPreRunE,
+		Use:     "authelia",
+		Example: cmdAutheliaExample,
+		Short:   fmt.Sprintf("authelia %s", version),
+		Long:    fmt.Sprintf(fmtAutheliaLong, version),
+		Version: version,
+		PreRunE: cmdWithConfigPreRunE,
+		RunE:    cmdRootRunE,
 	}
 
 	cmd.PersistentFlags().StringSliceP("config", "c", []string{}, "Configuration files")
@@ -51,8 +51,12 @@ func NewRootCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
-func cmdRootPersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
-	configs, err := cmd.PersistentFlags().GetStringSlice("config")
+func cmdWithConfigPreRunE(cmd *cobra.Command, _ []string) (err error) {
+	if cmd.Name() == "help" {
+		return nil
+	}
+
+	configs, err := cmd.Root().PersistentFlags().GetStringSlice("config")
 	if err != nil {
 		return err
 	}

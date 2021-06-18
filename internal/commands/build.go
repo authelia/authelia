@@ -11,16 +11,15 @@ import (
 
 func newBuildCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "build",
-		Short:             "Show the build information of Authelia",
-		RunE:              runBuildCmdE,
-		PersistentPreRunE: nil,
+		Use:   "build",
+		Short: "Show the build information of Authelia",
+		RunE:  cmdBuildRunE,
 	}
 
 	return cmd
 }
 
-func runBuildCmdE(_ *cobra.Command, _ []string) (err error) {
+func cmdBuildRunE(_ *cobra.Command, _ []string) (err error) {
 	_, err = fmt.Printf(fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
 		utils.BuildNumber, runtime.GOOS, runtime.GOARCH, utils.BuildDate, utils.BuildExtra)
 

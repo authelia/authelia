@@ -23,9 +23,8 @@ import (
 // NewCertificatesCmd returns a new Certificates Cmd.
 func NewCertificatesCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "certificates",
-		Short:             "Commands related to certificate generation",
-		PersistentPreRunE: nil,
+		Use:   "certificates",
+		Short: "Commands related to certificate generation",
 	}
 
 	cmd.PersistentFlags().StringSlice("host", []string{}, "Comma-separated hostnames and IPs to generate a certificate for")
@@ -42,10 +41,9 @@ func NewCertificatesCmd() (cmd *cobra.Command) {
 
 func newCertificatesGenerateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "generate",
-		Short:             "Generate a self-signed certificate",
-		RunE:              cmdCertificatesGenerateRunE,
-		PersistentPreRunE: nil,
+		Use:   "generate",
+		Short: "Generate a self-signed certificate",
+		RunE:  cmdCertificatesGenerateRunE,
 	}
 
 	cmd.Flags().String("start-date", "", "Creation date formatted as Jan 1 15:04:05 2011")

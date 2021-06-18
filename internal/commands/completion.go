@@ -54,7 +54,6 @@ PowerShell:
 		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
 		DisableFlagsInUseLine: true,
 		RunE:                  cmdCompletionRunE,
-		PersistentPreRunE:     nil,
 	}
 
 	return cmd

@@ -12,11 +12,10 @@ import (
 
 func newValidateConfigCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "validate-config [yaml]",
-		Short:             "Check a configuration against the internal configuration validation mechanisms",
-		Args:              cobra.MinimumNArgs(1),
-		RunE:              cmdValidateConfigRunE,
-		PersistentPreRunE: nil,
+		Use:   "validate-config [yaml]",
+		Short: "Check a configuration against the internal configuration validation mechanisms",
+		Args:  cobra.MinimumNArgs(1),
+		RunE:  cmdValidateConfigRunE,
 	}
 
 	return cmd
