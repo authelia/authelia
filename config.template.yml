@@ -30,6 +30,7 @@ server:
   ## Write buffer size does the same for outgoing responses.
   read_buffer_size: 4096
   write_buffer_size: 4096
+
   ## Set the single level path Authelia listens on.
   ## Must be alphanumeric chars and should not contain any slashes.
   path: ""
@@ -40,8 +41,8 @@ server:
   ## Enables the expvars endpoint.
   enable_expvars: false
 
-## Level of verbosity for logs: info, debug, trace.
-logging:
+log:
+  ## Level of verbosity for logs: info, debug, trace.
   level: debug
 
   ## Format the logs are written as: json, text.

@@ -28,28 +28,23 @@ var configPathFlag string
 
 func main() {
 	logger := logging.Logger()
+	version := utils.Version()
+
 	rootCmd := &cobra.Command{
 		Use:               "authelia",
 		Example:           cmdAutheliaExample,
-		Long:              cmdAutheliaLong,
+		Short:             fmt.Sprintf("authelia %s", version),
+		Long:              fmt.Sprintf(fmtAutheliaLong, version),
+		Version:           version,
 		RunE:              startServer,
 		PersistentPreRunE: preRun,
-		Version:           fmt.Sprintf("%s, build %s", BuildTag, BuildCommit),
 	}
 
 	rootCmd.PersistentFlags().StringSliceP("config", "c", []string{}, "Configuration files")
 
 	// TODO: Add configuration flags here.
 
-	versionCmd := &cobra.Command{
-		Use:   "version",
-		Short: "Show the version of Authelia",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Authelia version %s, build %s\n", BuildTag, BuildCommit)
-		},
-	}
-
-	rootCmd.AddCommand(versionCmd, completionCmd, commands.HashPasswordCmd,
+	rootCmd.AddCommand(buildCmd, completionCmd, commands.HashPasswordCmd,
 		commands.ValidateConfigCmd, commands.CertificatesCmd,
 		commands.RSACmd)
 
@@ -89,6 +84,8 @@ func startServer(cmd *cobra.Command, args []string) error {
 	if err := logging.InitializeLogger(config.Logging.Format, config.Logging.FilePath, config.Logging.KeepStdout); err != nil {
 		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
+
+	logger.Infof("Authelia %s is starting", utils.Version())
 
 	switch config.Logging.Level {
 	case "error":
@@ -155,7 +152,7 @@ func startServer(cmd *cobra.Command, args []string) error {
 	}
 
 	clock := utils.RealClock{}
-	authorizer := authorization.NewAuthorizer(config.AccessControl)
+	authorizer := authorization.NewAuthorizer(config)
 	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
 	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)

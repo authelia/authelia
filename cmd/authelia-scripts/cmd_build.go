@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -9,8 +10,8 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-func buildAutheliaBinary() {
-	cmd := utils.CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia")
+func buildAutheliaBinary(xflags []string) {
+	cmd := utils.CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia", "-ldflags", strings.Join(xflags, " "))
 	cmd.Dir = "cmd/authelia"
 
 	cmd.Env = append(os.Environ(),
@@ -55,7 +56,7 @@ func buildFrontend() {
 }
 
 func buildSwagger() {
-	swaggerVer := "3.48.0"
+	swaggerVer := "3.50.0"
 	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+swaggerVer+".tar.gz -O ./v"+swaggerVer+".tar.gz")
 
 	err := cmd.Run()
@@ -109,8 +110,13 @@ func Build(cobraCmd *cobra.Command, args []string) {
 
 	Clean(cobraCmd, args)
 
+	xflags, err := getXFlags("", "0", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	log.Debug("Creating `" + OutputDir + "` directory")
-	err := os.MkdirAll(OutputDir, os.ModePerm)
+	err = os.MkdirAll(OutputDir, os.ModePerm)
 
 	if err != nil {
 		log.Fatal(err)
@@ -123,6 +129,6 @@ func Build(cobraCmd *cobra.Command, args []string) {
 	buildSwagger()
 
 	log.Debug("Building Authelia Go binary...")
-	buildAutheliaBinary()
+	buildAutheliaBinary(xflags)
 	cleanAssets()
 }

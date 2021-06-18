@@ -6,6 +6,10 @@ on('pull_request.opened')
     )
     .filter(
         context =>
+            context.payload.pull_request.head.ref.slice(0, 17) !== 'all-contributors/'
+    )
+    .filter(
+        context =>
             context.payload.pull_request.head.ref.slice(0, 11) !== 'dependabot/'
     )
     .filter(
