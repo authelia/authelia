@@ -71,8 +71,8 @@
     ]
   },
   "devDependencies": {
-    "@craco/craco": "^6.1.2",
-    "craco-alias": "^3.0.1",
+    "@craco/craco": "6.1.2",
+    "craco-alias": "3.0.1",
     "eslint-formatter-rdjson": "1.0.5"
   }
 }
