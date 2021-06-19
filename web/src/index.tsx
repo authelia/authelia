@@ -1,4 +1,4 @@
-import "./utils/AssetPath";
+import "@utils/AssetPath";
 
 import React from "react";
 

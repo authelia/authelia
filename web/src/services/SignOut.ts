@@ -1,5 +1,5 @@
-import { LogoutPath } from "./Api";
-import { PostWithOptionalResponse } from "./Client";
+import { LogoutPath } from "@services/Api";
+import { PostWithOptionalResponse } from "@services/Client";
 
 export type SignOutResponse = { safeTargetURL: boolean } | undefined;
 

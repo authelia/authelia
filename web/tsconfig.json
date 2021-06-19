@@ -1,5 +1,18 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@assets/*": ["src/assets/*"],
+      "@components/*": ["src/components/*"],
+      "@constants/*": ["src/constants/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@models/*": ["src/models/*"],
+      "@services/*": ["src/services/*"],
+      "@themes/*": ["src/themes/*"],
+      "@utils/*": ["src/utils/*"],
+      "@views/*": ["src/views/*"]
+    },
     "target": "es5",
     "lib": [
       "dom",

@@ -4,12 +4,12 @@ import { Button, Grid, List, ListItem, ListItemIcon, ListItemText, Tooltip, make
 import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
 import { useHistory } from "react-router-dom";
 
-import { useRequestedScopes } from "../../../hooks/Consent";
-import { useNotifications } from "../../../hooks/NotificationsContext";
-import { useRedirector } from "../../../hooks/Redirector";
-import LoginLayout from "../../../layouts/LoginLayout";
-import { acceptConsent, rejectConsent } from "../../../services/Consent";
-import LoadingPage from "../../LoadingPage/LoadingPage";
+import { useRequestedScopes } from "@hooks/Consent";
+import { useNotifications } from "@hooks/NotificationsContext";
+import { useRedirector } from "@hooks/Redirector";
+import LoginLayout from "@layouts/LoginLayout";
+import { acceptConsent, rejectConsent } from "@services/Consent";
+import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 export interface Props {}
 

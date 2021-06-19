@@ -4,9 +4,7 @@ import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
 import { CssBaseline, ThemeProvider } from "@material-ui/core";
 import { BrowserRouter as Router, Route, Switch, Redirect } from "react-router-dom";
 
-import NotificationBar from "./components/NotificationBar";
-import NotificationsContext from "./hooks/NotificationsContext";
-import { Notification } from "./models/Notifications";
+import NotificationBar from "@components/NotificationBar";
 import {
     FirstFactorRoute,
     ResetPasswordStep2Route,
@@ -15,17 +13,19 @@ import {
     RegisterOneTimePasswordRoute,
     LogoutRoute,
     ConsentRoute,
-} from "./Routes";
-import * as themes from "./themes";
-import { getBasePath } from "./utils/BasePath";
-import { getRememberMe, getResetPassword, getTheme } from "./utils/Configuration";
-import RegisterOneTimePassword from "./views/DeviceRegistration/RegisterOneTimePassword";
-import RegisterSecurityKey from "./views/DeviceRegistration/RegisterSecurityKey";
-import ConsentView from "./views/LoginPortal/ConsentView/ConsentView";
-import LoginPortal from "./views/LoginPortal/LoginPortal";
-import SignOut from "./views/LoginPortal/SignOut/SignOut";
-import ResetPasswordStep1 from "./views/ResetPassword/ResetPasswordStep1";
-import ResetPasswordStep2 from "./views/ResetPassword/ResetPasswordStep2";
+} from "@constants/Routes";
+import NotificationsContext from "@hooks/NotificationsContext";
+import { Notification } from "@models/Notifications";
+import * as themes from "@themes/index";
+import { getBasePath } from "@utils/BasePath";
+import { getRememberMe, getResetPassword, getTheme } from "@utils/Configuration";
+import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
+import RegisterSecurityKey from "@views/DeviceRegistration/RegisterSecurityKey";
+import ConsentView from "@views/LoginPortal/ConsentView/ConsentView";
+import LoginPortal from "@views/LoginPortal/LoginPortal";
+import SignOut from "@views/LoginPortal/SignOut/SignOut";
+import ResetPasswordStep1 from "@views/ResetPassword/ResetPasswordStep1";
+import ResetPasswordStep2 from "@views/ResetPassword/ResetPasswordStep2";
 
 import "@fortawesome/fontawesome-svg-core/styles.css";
 

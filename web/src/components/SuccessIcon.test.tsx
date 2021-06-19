@@ -2,7 +2,7 @@ import React from "react";
 
 import { mount } from "enzyme";
 
-import SuccessIcon from "./SuccessIcon";
+import SuccessIcon from "@components/SuccessIcon";
 
 it("renders without crashing", () => {
     mount(<SuccessIcon />);

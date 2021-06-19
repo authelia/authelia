@@ -3,11 +3,11 @@ import React, { useState } from "react";
 import { Grid, Button, makeStyles } from "@material-ui/core";
 import { useHistory } from "react-router";
 
-import FixedTextField from "../../components/FixedTextField";
-import { useNotifications } from "../../hooks/NotificationsContext";
-import LoginLayout from "../../layouts/LoginLayout";
-import { FirstFactorRoute } from "../../Routes";
-import { initiateResetPasswordProcess } from "../../services/ResetPassword";
+import FixedTextField from "@components/FixedTextField";
+import { FirstFactorRoute } from "@constants/Routes";
+import { useNotifications } from "@hooks/NotificationsContext";
+import LoginLayout from "@layouts/LoginLayout";
+import { initiateResetPasswordProcess } from "@services/ResetPassword";
 
 const ResetPasswordStep1 = function () {
     const style = useStyles();
