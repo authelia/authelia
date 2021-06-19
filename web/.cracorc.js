@@ -1,5 +1,18 @@
+const isCoverage = process.env.COVERAGE === 'true'
+const babelPlugins = isCoverage ? [ "babel-plugin-istanbul" ] : []
+
 module.exports = {
     babel: {
-        plugins: [ "babel-plugin-istanbul" ]
-    }
+        plugins: babelPlugins,
+    },
+    plugins: [
+        {
+            plugin: require("craco-alias"),
+            options: {
+                source: "tsconfig",
+                baseUrl: "./src",
+                tsConfigPath: "./tsconfig.extend.json",
+            }
+        }
+    ]
 };

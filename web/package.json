@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@craco/craco": "6.1.2",
     "@fortawesome/fontawesome-svg-core": "1.2.35",
     "@fortawesome/free-regular-svg-icons": "5.15.3",
     "@fortawesome/free-solid-svg-icons": "5.15.3",
@@ -46,10 +45,10 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "react-scripts build",
+    "build": "craco build",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix",
-    "coverage": "craco build",
-    "test": "react-scripts test --coverage --no-cache",
+    "coverage": "COVERAGE=true craco build",
+    "test": "craco test --coverage --no-cache",
     "report": "nyc report -r clover -r json -r lcov -r text",
     "eject": "react-scripts eject"
   },
@@ -72,6 +71,8 @@
     ]
   },
   "devDependencies": {
+    "@craco/craco": "^6.1.2",
+    "craco-alias": "^3.0.1",
     "eslint-formatter-rdjson": "1.0.5"
   }
 }
