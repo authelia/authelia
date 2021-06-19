@@ -3,8 +3,8 @@ import React, { ReactNode, Fragment } from "react";
 import { makeStyles, Typography, Link, useTheme } from "@material-ui/core";
 import classnames from "classnames";
 
-import InformationIcon from "../../../components/InformationIcon";
-import Authenticated from "../Authenticated";
+import InformationIcon from "@components/InformationIcon";
+import Authenticated from "@views/LoginPortal/Authenticated";
 
 export enum State {
     ALREADY_AUTHENTICATED = 1,

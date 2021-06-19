@@ -1,4 +1,4 @@
-import { Level } from "../components/ColoredSnackbarContent";
+import { Level } from "@components/ColoredSnackbarContent";
 
 export interface Notification {
     message: string;

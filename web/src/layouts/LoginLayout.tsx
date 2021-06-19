@@ -3,7 +3,7 @@ import React, { ReactNode } from "react";
 import { Grid, makeStyles, Container, Typography, Link } from "@material-ui/core";
 import { grey } from "@material-ui/core/colors";
 
-import { ReactComponent as UserSvg } from "../assets/images/user.svg";
+import { ReactComponent as UserSvg } from "@assets/images/user.svg";
 
 export interface Props {
     id?: string;

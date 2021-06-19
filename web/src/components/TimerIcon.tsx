@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import PieChartIcon from "./PieChartIcon";
+import PieChartIcon from "@components/PieChartIcon";
 
 export interface Props {
     width: number;
