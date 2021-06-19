@@ -4,9 +4,9 @@ import React from "react";
 
 import ReactDOM from "react-dom";
 
-import "./index.css";
-import App from "./App";
-import * as serviceWorker from "./serviceWorker";
+import "@root/index.css";
+import App from "@root/App";
+import * as serviceWorker from "@root/serviceWorker";
 
 ReactDOM.render(<App />, document.getElementById("root"));
 

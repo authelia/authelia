@@ -3,6 +3,7 @@
     "baseUrl": "./src",
     "jsx": "preserve",
     "paths": {
+      "@root/*": ["./*"],
       "@assets/*": ["assets/*"],
       "@components/*": ["components/*"],
       "@constants/*": ["constants/*"],
