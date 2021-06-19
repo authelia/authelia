@@ -89,49 +89,49 @@ const LoginPortal = function (props: Props) {
     // Redirect to the correct stage if not enough authenticated
     useEffect(() => {
         (async function () {
-            if (state) {
-                const redirectionSuffix = redirectionURL
-                    ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}`
-                    : "";
+            if (!state) {
+                return;
+            }
+            console.log("coucou");
 
-                if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
-                    setFirstFactorDisabled(false);
-                    redirect(`${FirstFactorRoute}${redirectionSuffix}`);
-                } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
-                    if (!configuration.second_factor_enabled) {
-                        if (redirectionURL) {
-                            try {
-                                const res = await checkSafeRedirection(redirectionURL);
-                                if (res && res.ok) {
-                                    redirector(redirectionURL);
-                                }
-                            } catch (err) {
-                                createErrorNotification(
-                                    "There was an issue redirecting the user. Check that the redirection URI matches the domain",
-                                );
-                            }
-                        } else {
-                            redirect(AuthenticatedRoute);
-                        }
+            if (
+                redirectionURL &&
+                ((configuration &&
+                    !configuration.second_factor_enabled &&
+                    state.authentication_level >= AuthenticationLevel.OneFactor) ||
+                    state.authentication_level === AuthenticationLevel.TwoFactor)
+            ) {
+                try {
+                    const res = await checkSafeRedirection(redirectionURL);
+                    if (res && res.ok) {
+                        redirector(redirectionURL);
+                        return;
+                    }
+                } catch (err) {
+                    createErrorNotification(
+                        "There was an issue redirecting the user. Check that the redirection URI matches the domain",
+                    );
+                    return;
+                }
+            }
+
+            const redirectionSuffix = redirectionURL
+                ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}`
+                : "";
+
+            if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
+                setFirstFactorDisabled(false);
+                redirect(`${FirstFactorRoute}${redirectionSuffix}`);
+            } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
+                if (!configuration.second_factor_enabled) {
+                    redirect(AuthenticatedRoute);
+                } else {
+                    if (userInfo.method === SecondFactorMethod.U2F) {
+                        redirect(`${SecondFactorU2FRoute}${redirectionSuffix}`);
+                    } else if (userInfo.method === SecondFactorMethod.MobilePush) {
+                        redirect(`${SecondFactorPushRoute}${redirectionSuffix}`);
                     } else {
-                        if (state.authentication_level === AuthenticationLevel.TwoFactor && redirectionURL) {
-                            try {
-                                const res = await checkSafeRedirection(redirectionURL);
-                                if (res && res.ok) {
-                                    redirector(redirectionURL);
-                                }
-                            } catch (err) {
-                                createErrorNotification(
-                                    "There was an issue redirecting the user. Check that the redirection URI matches the domain",
-                                );
-                            }
-                        } else if (userInfo.method === SecondFactorMethod.U2F) {
-                            redirect(`${SecondFactorU2FRoute}${redirectionSuffix}`);
-                        } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                            redirect(`${SecondFactorPushRoute}${redirectionSuffix}`);
-                        } else {
-                            redirect(`${SecondFactorTOTPRoute}${redirectionSuffix}`);
-                        }
+                        redirect(`${SecondFactorTOTPRoute}${redirectionSuffix}`);
                     }
                 }
             }
