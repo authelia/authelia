@@ -59,7 +59,14 @@ const OneTimePasswordMethod = function (props: Props) {
             setState(State.Failure);
         }
         setPasscode("");
-    }, [passcode, onSignInErrorCallback, onSignInSuccessCallback, redirectionURL, props.authenticationLevel]);
+    }, [
+        passcode,
+        onSignInErrorCallback,
+        onSignInSuccessCallback,
+        redirectionURL,
+        props.authenticationLevel,
+        props.registered,
+    ]);
 
     // Set successful state if user is already authenticated.
     useEffect(() => {

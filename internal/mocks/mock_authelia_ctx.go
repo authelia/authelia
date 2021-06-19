@@ -132,6 +132,7 @@ func NewMockAutheliaCtxWithUserSession(t *testing.T, userSession session.UserSes
 	mock := NewMockAutheliaCtx(t)
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
+
 	return mock
 }
 

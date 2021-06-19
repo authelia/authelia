@@ -1,4 +1,4 @@
-import { ChecksSafeRedirectionPath, CompleteResetPasswordPath, ResetPasswordPath } from "./Api";
+import { ChecksSafeRedirectionPath } from "./Api";
 import { PostWithOptionalResponse } from "./Client";
 
 interface SafeRedirectionResponse {

@@ -99,7 +99,20 @@ const LoginPortal = function (props: Props) {
                     redirect(`${FirstFactorRoute}${redirectionSuffix}`);
                 } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
                     if (!configuration.second_factor_enabled) {
-                        redirect(AuthenticatedRoute);
+                        if (redirectionURL) {
+                            try {
+                                const res = await checkSafeRedirection(redirectionURL);
+                                if (res && res.ok) {
+                                    redirector(redirectionURL);
+                                }
+                            } catch (err) {
+                                createErrorNotification(
+                                    "There was an issue redirecting the user. Check that the redirection URI matches the domain",
+                                );
+                            }
+                        } else {
+                            redirect(AuthenticatedRoute);
+                        }
                     } else {
                         if (state.authentication_level === AuthenticationLevel.TwoFactor && redirectionURL) {
                             try {
@@ -123,7 +136,17 @@ const LoginPortal = function (props: Props) {
                 }
             }
         })();
-    }, [state, redirectionURL, requestMethod, redirect, userInfo, setFirstFactorDisabled, configuration]);
+    }, [
+        state,
+        redirectionURL,
+        requestMethod,
+        redirect,
+        userInfo,
+        setFirstFactorDisabled,
+        configuration,
+        createErrorNotification,
+        redirector,
+    ]);
 
     const handleAuthSuccess = async (redirectionURL: string | undefined) => {
         if (redirectionURL) {
