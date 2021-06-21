@@ -33,7 +33,8 @@ RUN \
 mv api internal/server/public_html/api && \
 cd cmd/authelia && \
 echo ">> Starting go build (coverage via go test)..." && \
-CGO_ENABLED=0 go test -c --tags coverage -covermode=atomic -ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
+CGO_ENABLED=0 go test -c --tags coverage -covermode=atomic \
+-ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
 
 # ===================================
 # ===== Authelia official image =====
