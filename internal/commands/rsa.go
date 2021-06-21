@@ -54,28 +54,28 @@ func cmdRSAGenerateRun(cmd *cobra.Command, _ []string) {
 	keyOut, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 
 	if err != nil {
-		logger.Fatalf("Failed to open %s for writing: %w", keyPath, err)
+		logger.Fatalf("Failed to open %s for writing: %v", keyPath, err)
 	}
 
 	_, err = keyOut.WriteString(utils.ExportRsaPrivateKeyAsPemStr(privateKey))
 	if err != nil {
-		logger.Fatalf("Unable to write private key: %w", err)
+		logger.Fatalf("Unable to write private key: %v", err)
 	}
 
 	if err := keyOut.Close(); err != nil {
-		logger.Fatalf("Unable to close private key file: %w", err)
+		logger.Fatalf("Unable to close private key file: %v", err)
 	}
 
 	keyPath = path.Join(rsaTargetDirectory, "key.pub")
 	keyOut, err = os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 
 	if err != nil {
-		logger.Fatalf("Failed to open %s for writing: %w", keyPath, err)
+		logger.Fatalf("Failed to open %s for writing: %v", keyPath, err)
 	}
 
 	publicPem, err := utils.ExportRsaPublicKeyAsPemStr(publicKey)
 	if err != nil {
-		logger.Fatalf("Unable to marshal public key: %w", err)
+		logger.Fatalf("Unable to marshal public key: %v", err)
 	}
 
 	_, err = keyOut.WriteString(publicPem)
@@ -84,6 +84,6 @@ func cmdRSAGenerateRun(cmd *cobra.Command, _ []string) {
 	}
 
 	if err := keyOut.Close(); err != nil {
-		logger.Fatalf("Unable to close public key file: %w", err)
+		logger.Fatalf("Unable to close public key file: %v", err)
 	}
 }
