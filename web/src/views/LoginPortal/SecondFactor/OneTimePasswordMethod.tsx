@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { useRedirectionURL } from "../../../hooks/RedirectionURL";
-import { completeTOTPSignIn } from "../../../services/OneTimePassword";
-import { AuthenticationLevel } from "../../../services/State";
-import MethodContainer, { State as MethodContainerState } from "./MethodContainer";
-import OTPDial from "./OTPDial";
+import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { completeTOTPSignIn } from "@services/OneTimePassword";
+import { AuthenticationLevel } from "@services/State";
+import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
+import OTPDial from "@views/LoginPortal/SecondFactor/OTPDial";
 
 export enum State {
     Idle = 1,

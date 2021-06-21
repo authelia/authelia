@@ -1,4 +1,4 @@
-import { SecondFactorMethod } from "./Methods";
+import { SecondFactorMethod } from "@models/Methods";
 
 export interface UserInfo {
     display_name: string;

@@ -3,13 +3,13 @@ import React, { useEffect, useCallback, useState } from "react";
 import { Typography, makeStyles } from "@material-ui/core";
 import { Redirect } from "react-router";
 
-import { useIsMountedRef } from "../../../hooks/Mounted";
-import { useNotifications } from "../../../hooks/NotificationsContext";
-import { useRedirectionURL } from "../../../hooks/RedirectionURL";
-import { useRedirector } from "../../../hooks/Redirector";
-import LoginLayout from "../../../layouts/LoginLayout";
-import { FirstFactorRoute } from "../../../Routes";
-import { signOut } from "../../../services/SignOut";
+import { FirstFactorRoute } from "@constants/Routes";
+import { useIsMountedRef } from "@hooks/Mounted";
+import { useNotifications } from "@hooks/NotificationsContext";
+import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useRedirector } from "@hooks/Redirector";
+import LoginLayout from "@layouts/LoginLayout";
+import { signOut } from "@services/SignOut";
 
 export interface Props {}
 

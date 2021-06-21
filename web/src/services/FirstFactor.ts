@@ -1,6 +1,6 @@
-import { FirstFactorPath } from "./Api";
-import { PostWithOptionalResponse } from "./Client";
-import { SignInResponse } from "./SignIn";
+import { FirstFactorPath } from "@services/Api";
+import { PostWithOptionalResponse } from "@services/Client";
+import { SignInResponse } from "@services/SignIn";
 
 interface PostFirstFactorBody {
     username: string;

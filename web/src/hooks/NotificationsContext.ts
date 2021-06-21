@@ -1,7 +1,7 @@
 import { useCallback, createContext, useContext } from "react";
 
-import { Level } from "../components/ColoredSnackbarContent";
-import { Notification } from "../models/Notifications";
+import { Level } from "@components/ColoredSnackbarContent";
+import { Notification } from "@models/Notifications";
 
 const defaultOptions = {
     timeout: 5,

@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { mount, shallow } from "enzyme";
 import ReactDOM from "react-dom";
 
-import ColoredSnackbarContent from "./ColoredSnackbarContent";
+import ColoredSnackbarContent from "@components/ColoredSnackbarContent";
 
 it("renders without crashing", () => {
     const div = document.createElement("div");

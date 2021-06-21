@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 
 import { Snackbar } from "@material-ui/core";
 
-import { useNotifications } from "../hooks/NotificationsContext";
-import { Notification } from "../models/Notifications";
-import ColoredSnackbarContent from "./ColoredSnackbarContent";
+import ColoredSnackbarContent from "@components/ColoredSnackbarContent";
+import { useNotifications } from "@hooks/NotificationsContext";
+import { Notification } from "@models/Notifications";
 
 export interface Props {
     onClose: () => void;

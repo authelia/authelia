@@ -1,8 +1,8 @@
 import u2fApi from "u2f-api";
 
-import { InitiateU2FSignInPath, CompleteU2FSignInPath } from "./Api";
-import { Post, PostWithOptionalResponse } from "./Client";
-import { SignInResponse } from "./SignIn";
+import { InitiateU2FSignInPath, CompleteU2FSignInPath } from "@services/Api";
+import { Post, PostWithOptionalResponse } from "@services/Client";
+import { SignInResponse } from "@services/SignIn";
 
 interface InitiateU2FSigninResponse {
     appId: string;

@@ -11,10 +11,10 @@ import {
     useTheme,
 } from "@material-ui/core";
 
-import FingerTouchIcon from "../../../components/FingerTouchIcon";
-import PushNotificationIcon from "../../../components/PushNotificationIcon";
-import TimerIcon from "../../../components/TimerIcon";
-import { SecondFactorMethod } from "../../../models/Methods";
+import FingerTouchIcon from "@components/FingerTouchIcon";
+import PushNotificationIcon from "@components/PushNotificationIcon";
+import TimerIcon from "@components/TimerIcon";
+import { SecondFactorMethod } from "@models/Methods";
 
 export interface Props {
     open: boolean;

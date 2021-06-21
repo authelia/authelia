@@ -3,9 +3,9 @@ import React from "react";
 import { Grid, makeStyles, Button } from "@material-ui/core";
 import { useHistory } from "react-router";
 
-import LoginLayout from "../../../layouts/LoginLayout";
-import { LogoutRoute as SignOutRoute } from "../../../Routes";
-import Authenticated from "../Authenticated";
+import { LogoutRoute as SignOutRoute } from "@constants/Routes";
+import LoginLayout from "@layouts/LoginLayout";
+import Authenticated from "@views/LoginPortal/Authenticated";
 
 export interface Props {
     name: string;
