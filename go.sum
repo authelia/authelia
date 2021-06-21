@@ -207,8 +207,8 @@ github.com/envoyproxy/go-control-plane v0.9.9-0.20210217033140-668b12f5399d/go.m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojtoVVWjGfOF9635RETekkoH6Cc9SX0A=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
-github.com/fasthttp/router v1.3.14 h1:Pyii7A6dipkgMQjl2EJ4tV+9ZiqaCXyNoKBY4fYwcUQ=
-github.com/fasthttp/router v1.3.14/go.mod h1:pZyneNm2U+H+yixWetyr9YSmeQYW/evX4lG8bJ+Guzc=
+github.com/fasthttp/router v1.4.0 h1:sWMk0q7M6Qj73eLIolh/934mKTNZIWDrEPDhZUF1pAg=
+github.com/fasthttp/router v1.4.0/go.mod h1:uTM3xaLINfEk/uqId8rv8tzwr47+HZuxopzUWfwD4qg=
 github.com/fasthttp/session/v2 v2.3.2 h1:QtGPJGqcNriXN+dqz20z0yp3Kg9H28emODZ1ILcSQpE=
 github.com/fasthttp/session/v2 v2.3.2/go.mod h1:Fb8sNPFfYLBFHZWZbj1wjODHwe7/PNeuXsmTIkHAomQ=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
@@ -1083,8 +1083,8 @@ github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdh
 github.com/savsgio/dictpool v0.0.0-20210404150759-6de1ea7c0e13 h1:GHosyqopD9q+RnHRd4HsqhT1873lF5necC/vB2oMcDI=
 github.com/savsgio/dictpool v0.0.0-20210404150759-6de1ea7c0e13/go.mod h1:jYioskm8OBnvGMa37NVB/Ndy/ZiyCZouiEZlRl3T+wY=
 github.com/savsgio/gotils v0.0.0-20210316171653-c54912823645/go.mod h1:CN0/b5o0sSBi9K8fZTUamBG5NZXO0I64vTh9L3Mzhn0=
-github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a h1:qqVWOiLdFpxFLRYQARGO71XanQ+9nYNCl5S/FLOnLP0=
-github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a/go.mod h1:dmPawKuiAeG/aFYVs2i+Dyosoo7FNcm+Pi8iK6ZUrX8=
+github.com/savsgio/gotils v0.0.0-20210617111740-97865ed5a873 h1:N3Af8f13ooDKcIhsmFT7Z05CStZWu4C7Md0uDEy4q6o=
+github.com/savsgio/gotils v0.0.0-20210617111740-97865ed5a873/go.mod h1:dmPawKuiAeG/aFYVs2i+Dyosoo7FNcm+Pi8iK6ZUrX8=
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
 github.com/seatgeek/logrus-gelf-formatter v0.0.0-20210219220335-367fa274be2c/go.mod h1:/THDZYi7F/BsVEcYzYPqdcWFQ+1C2InkawTKfLOAnzg=
 github.com/segmentio/analytics-go v3.0.1+incompatible/go.mod h1:C7CYBtQWk4vRk2RyLu0qOcbHJ18E3F1HV2C/8JvKN48=
@@ -1222,7 +1222,6 @@ github.com/urfave/negroni v1.0.0/go.mod h1:Meg73S6kFm/4PpbYdq35yYWoCZ9mS/YSx+lKn
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.24.0/go.mod h1:0mw2RjXGOzxf4NL2jni3gUQ7LfjjUSiG5sskOUUSEpU=
-github.com/valyala/fasthttp v1.26.0/go.mod h1:cmWIqlu99AO/RKcp1HWaViTqc57FswJOfYYdPJBl8BA=
 github.com/valyala/fasthttp v1.27.0 h1:gDefRDL9aqSiwXV6aRW8aSBPs82y4KizSzHrBLf4NDI=
 github.com/valyala/fasthttp v1.27.0/go.mod h1:cmWIqlu99AO/RKcp1HWaViTqc57FswJOfYYdPJBl8BA=
 github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a/go.mod h1:v3UYOV9WzVtRmSR+PDvWpU/qWl4Wa5LApYYX4ZtKbio=
