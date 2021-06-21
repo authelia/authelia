@@ -99,7 +99,7 @@ func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 	}
 
 	if err != nil {
-		logger.Fatalf("Failed to generate private key: %w", err)
+		logger.Fatalf("Failed to generate private key: %v", err)
 	}
 
 	validFrom, err := cmd.Flags().GetString("start-date")
@@ -113,7 +113,7 @@ func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 	} else {
 		notBefore, err = time.Parse("Jan 2 15:04:05 2006", validFrom)
 		if err != nil {
-			logger.Fatalf("Failed to parse creation date: %w", err)
+			logger.Fatalf("Failed to parse creation date: %v", err)
 		}
 	}
 
@@ -169,7 +169,7 @@ func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey(priv), priv)
 	if err != nil {
-		logger.Fatalf("Failed to create certificate: %w", err)
+		logger.Fatalf("Failed to create certificate: %v", err)
 	}
 
 	certificateTargetDirectory, err := cmd.Flags().GetString("dir")
@@ -181,15 +181,15 @@ func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 	certOut, err := os.Create(certPath)
 
 	if err != nil {
-		logger.Fatalf("Failed to open %s for writing: %w", certPath, err)
+		logger.Fatalf("Failed to open %s for writing: %v", certPath, err)
 	}
 
 	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes}); err != nil {
-		logger.Fatalf("Failed to write data to cert.pem: %w", err)
+		logger.Fatalf("Failed to write data to cert.pem: %v", err)
 	}
 
 	if err := certOut.Close(); err != nil {
-		logger.Fatalf("Error closing %s: %w", certPath, err)
+		logger.Fatalf("Error closing %s: %v", certPath, err)
 	}
 
 	log.Printf("wrote %s\n", certPath)
@@ -198,20 +198,20 @@ func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 	keyOut, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 
 	if err != nil {
-		logger.Fatalf("Failed to open %s for writing: %w", keyPath, err)
+		logger.Fatalf("Failed to open %s for writing: %v", keyPath, err)
 	}
 
 	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
 	if err != nil {
-		logger.Fatalf("Unable to marshal private key: %w", err)
+		logger.Fatalf("Unable to marshal private key: %v", err)
 	}
 
 	if err := pem.Encode(keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}); err != nil {
-		logger.Fatalf("Failed to write data to %s: %w", keyPath, err)
+		logger.Fatalf("Failed to write data to %s: %v", keyPath, err)
 	}
 
 	if err := keyOut.Close(); err != nil {
-		logger.Fatalf("Error closing %s: %w", keyPath, err)
+		logger.Fatalf("Error closing %s: %v", keyPath, err)
 	}
 
 	log.Printf("Certificate Key Written to %s\n", keyPath)
