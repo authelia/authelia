@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/internal/authentication"
@@ -69,29 +68,12 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 		}
 	}
 
-	if err := logging.InitializeLogger(config.Logging.Format, config.Logging.FilePath, config.Logging.KeepStdout); err != nil {
+	if err := logging.InitializeLogger(config.Log.Format, config.Log.FilePath, config.Log.KeepStdout); err != nil {
 		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
 
 	logger.Infof("Authelia %s is starting", utils.Version())
-
-	switch config.Logging.Level {
-	case "error":
-		logger.Info("Logging severity set to error")
-		logging.SetLevel(logrus.ErrorLevel)
-	case "warn":
-		logger.Info("Logging severity set to warn")
-		logging.SetLevel(logrus.WarnLevel)
-	case "info":
-		logger.Info("Logging severity set to info")
-		logging.SetLevel(logrus.InfoLevel)
-	case "debug":
-		logger.Info("Logging severity set to debug")
-		logging.SetLevel(logrus.DebugLevel)
-	case "trace":
-		logger.Info("Logging severity set to trace")
-		logging.SetLevel(logrus.TraceLevel)
-	}
+	logging.SetLevelStr(config.Log.Level)
 
 	if os.Getenv("ENVIRONMENT") == "dev" {
 		logger.Info("===> Authelia is running in development mode. <===")
@@ -182,7 +164,7 @@ func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 
 	provider := configuration.GetProvider()
 
-	err = provider.LoadFile(configs)
+	err = provider.LoadPaths(configs)
 	if err != nil {
 		logger.Fatalf("Error loading file configuration: %v", err)
 	}
@@ -192,17 +174,23 @@ func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 		logger.Fatalf("Error loading environment configuration: %v", err)
 	}
 
-	// If running the root command we need to load Command Line Arguments.
-	if cmd == cmd.Root() {
-		err = provider.LoadCommandLineFlags(cmd.Flags())
-		if err != nil {
-			logger.Fatalf("Error loading flags configuration: %v", err)
+	err = provider.LoadSecrets()
+	if err != nil {
+		for _, err := range provider.Errors() {
+			logger.Errorf("\t%+v", err)
 		}
+
+		logger.Fatalf("Errors loading secrets configuration: %v", err)
 	}
 
-	provider.Validate()
+	err = provider.UnmarshalToStruct()
+	if err != nil {
+		logger.Fatalf("Error unmarshalling configuration: %v", err)
+	}
 
-	warns := provider.StructValidator.Warnings()
+	provider.ValidateConfiguration()
+
+	warns := provider.Warnings()
 	if len(warns) != 0 {
 		logger.Warnf("Warnings occurred while validating configuration:")
 
@@ -211,7 +199,7 @@ func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 		}
 	}
 
-	errs := provider.StructValidator.Errors()
+	errs := provider.Errors()
 	if len(errs) != 0 {
 		logger.Errorf("Errors occurred while validating configuration:")
 

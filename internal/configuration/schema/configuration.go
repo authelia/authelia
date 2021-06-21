@@ -17,7 +17,7 @@ type Configuration struct {
 	LogFilePath string `koanf:"log_file_path"`
 	// TODO: DEPRECATED END. Remove in 4.33.0.
 
-	Logging               LogConfiguration                   `koanf:"log"`
+	Log                   LogConfiguration                   `koanf:"log"`
 	IdentityProviders     IdentityProvidersConfiguration     `koanf:"identity_providers"`
 	AuthenticationBackend AuthenticationBackendConfiguration `koanf:"authentication_backend"`
 	Session               SessionConfiguration               `koanf:"session"`

@@ -53,11 +53,12 @@ var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELET
 
 // SecretNames contains a map of secret names.
 var SecretNames = map[string]string{
-	"JWTSecret":                     "jwt_secret",
-	"SessionSecret":                 "session.secret",
-	"DUOSecretKey":                  "duo_api.secret_key",
-	"RedisPassword":                 "session.redis.password",
-	"RedisSentinelPassword":         "session.redis.high_availability.sentinel_password",
+	"JWTSecret":             "jwt_secret",
+	"SessionSecret":         "session.secret",
+	"DUOSecretKey":          "duo_api.secret_key",
+	"RedisPassword":         "session.redis.password",
+	"RedisSentinelPassword": "session.redis.high_availability.sentinel_password",
+
 	"LDAPPassword":                  "authentication_backend.ldap.password",
 	"SMTPPassword":                  "notifier.smtp.password",
 	"MySQLPassword":                 "storage.mysql.password",
@@ -73,6 +74,7 @@ var ValidKeys = []string{
 	"host",
 	"port",
 	"default_redirection_url",
+	"jwt_secret",
 	"theme",
 	"tls_key",
 	"tls_cert",
@@ -102,6 +104,11 @@ var ValidKeys = []string{
 	"totp.period",
 	"totp.skew",
 
+	// DUO API Keys.
+	"duo_api.hostname",
+	"duo_api.secret_key",
+	"duo_api.integration_key",
+
 	// Access Control Keys.
 	"access_control.rules",
 	"access_control.default_policy",
@@ -110,6 +117,7 @@ var ValidKeys = []string{
 	// Session Keys.
 	"session.name",
 	"session.domain",
+	"session.secret",
 	"session.same_site",
 	"session.expiration",
 	"session.inactivity",
@@ -119,6 +127,7 @@ var ValidKeys = []string{
 	"session.redis.host",
 	"session.redis.port",
 	"session.redis.username",
+	"session.redis.password",
 	"session.redis.database_index",
 	"session.redis.maximum_active_connections",
 	"session.redis.minimum_idle_connections",
@@ -126,6 +135,7 @@ var ValidKeys = []string{
 	"session.redis.tls.skip_verify",
 	"session.redis.tls.server_name",
 	"session.redis.high_availability.sentinel_name",
+	"session.redis.high_availability.sentinel_password",
 	"session.redis.high_availability.nodes",
 	"session.redis.high_availability.route_by_latency",
 	"session.redis.high_availability.route_randomly",
@@ -143,12 +153,14 @@ var ValidKeys = []string{
 	"storage.mysql.port",
 	"storage.mysql.database",
 	"storage.mysql.username",
+	"storage.mysql.password",
 
 	// PostgreSQL Storage Keys.
 	"storage.postgres.host",
 	"storage.postgres.port",
 	"storage.postgres.database",
 	"storage.postgres.username",
+	"storage.postgres.password",
 	"storage.postgres.sslmode",
 
 	// FileSystem Notifier Keys.
@@ -156,9 +168,10 @@ var ValidKeys = []string{
 	"notifier.disable_startup_check",
 
 	// SMTP Notifier Keys.
-	"notifier.smtp.username",
 	"notifier.smtp.host",
 	"notifier.smtp.port",
+	"notifier.smtp.username",
+	"notifier.smtp.password",
 	"notifier.smtp.identifier",
 	"notifier.smtp.sender",
 	"notifier.smtp.subject",
@@ -173,10 +186,6 @@ var ValidKeys = []string{
 	"regulation.max_retries",
 	"regulation.find_time",
 	"regulation.ban_time",
-
-	// DUO API Keys.
-	"duo_api.hostname",
-	"duo_api.integration_key",
 
 	// Authentication Backend Keys.
 	"authentication_backend.disable_reset_password",
@@ -195,6 +204,7 @@ var ValidKeys = []string{
 	"authentication_backend.ldap.mail_attribute",
 	"authentication_backend.ldap.display_name_attribute",
 	"authentication_backend.ldap.user",
+	"authentication_backend.ldap.password",
 	"authentication_backend.ldap.start_tls",
 	"authentication_backend.ldap.tls.minimum_version",
 	"authentication_backend.ldap.tls.skip_verify",
@@ -210,8 +220,13 @@ var ValidKeys = []string{
 	"authentication_backend.file.password.parallelism",
 
 	// Identity Provider Keys.
+	"identity_providers.oidc.hmac_secret",
+	"identity_providers.oidc.issuer_private_key",
 	"identity_providers.oidc.clients",
 }
+
+var validACLKeys = []string{"domain", "methods", "networks", "subject", "policy", "resources"}
+var validOpenIDConnectClientKeys = []string{"id", "description", "secret", "redirect_uris", "authorization_policy", "scopes", "grant_types", "response_types"}
 
 var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",

@@ -8,17 +8,33 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Logger return the standard logrus logger.
+// Logger returns the standard logrus logger.
 func Logger() *logrus.Logger {
 	return logrus.StandardLogger()
 }
 
-// SetLevel set the level of the logger.
-func SetLevel(level logrus.Level) {
-	logrus.SetLevel(level)
+// SetLevelStr sets the logrus.Level of the default logger when provided a valid string.
+func SetLevelStr(level string) {
+	switch level {
+	case "error":
+		logrus.Info("Log severity set to error")
+		logrus.SetLevel(logrus.ErrorLevel)
+	case "warn":
+		logrus.Info("Log severity set to warn")
+		logrus.SetLevel(logrus.WarnLevel)
+	case "info":
+		logrus.Info("Log severity set to info")
+		logrus.SetLevel(logrus.InfoLevel)
+	case "debug":
+		logrus.Info("Log severity set to debug")
+		logrus.SetLevel(logrus.DebugLevel)
+	case "trace":
+		logrus.Info("Log severity set to trace")
+		logrus.SetLevel(logrus.TraceLevel)
+	}
 }
 
-// InitializeLogger initialize logger.
+// InitializeLogger configures the default loggers stack levels, formatting, and the output destinations.
 func InitializeLogger(format, filename string, stdout bool) error {
 	callerLevels := []logrus.Level{}
 	stackLevels := []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}

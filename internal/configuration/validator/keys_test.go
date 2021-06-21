@@ -114,7 +114,7 @@ func TestSecretKeysDontRaiseErrors(t *testing.T) {
 	configKeys := []string{}
 
 	for _, key := range SecretNames {
-		configKeys = append(configKeys, SecretNameToEnvName(key))
+		configKeys = append(configKeys, fmt.Sprintf("secret.%s", key))
 		configKeys = append(configKeys, key)
 	}
 

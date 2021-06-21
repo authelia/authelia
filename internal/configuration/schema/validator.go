@@ -51,7 +51,7 @@ func (v *Validator) validateOne(item QueueItem, q *queue.Queue) error { //nolint
 	} else if item.value.Kind() == reflect.Struct {
 		numFields := item.value.Type().NumField()
 
-		validateFn := item.value.Addr().MethodByName("Validate")
+		validateFn := item.value.Addr().MethodByName("ValidateConfiguration")
 
 		if validateFn.IsValid() {
 			structValidator := NewStructValidator()

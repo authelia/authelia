@@ -1,24 +1,19 @@
 package configuration
 
 import (
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
-	"github.com/knadh/koanf/providers/posflag"
 	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/configuration/validator"
 )
-
-var provider *Provider
 
 // Provider holds the koanf.Koanf instance and the schema.Configuration.
 type Provider struct {
@@ -28,77 +23,92 @@ type Provider struct {
 	fileKeys      []string
 }
 
-// LoadFile loads the provided paths into the configuration.
-func (p *Provider) LoadFile(paths []string) (err error) {
+func (p *Provider) loadFile(path string) (err error) {
+	if err := p.Load(file.Provider(path), yaml.Parser()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// LoadPaths loads the provided paths into the configuration.
+func (p *Provider) LoadPaths(paths []string) (err error) {
+	errs := false
+
 	for _, path := range paths {
-		if strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml") {
-			if err := p.Load(file.Provider(path), yaml.Parser()); err != nil {
-				return err
+		if info, err := os.Stat(path); err == nil {
+			if info.IsDir() {
+				p.Push(fmt.Errorf("error loading path '%s': is not a file", path))
+				errs = true
+				continue
 			}
 
-			continue
-		}
-
-		if info, err := os.Stat(path); err == nil && info.IsDir() {
-			files, err := ioutil.ReadDir(path)
+			err = p.loadFile(path)
 			if err != nil {
-				return err
+				p.Push(err)
+				errs = true
+				continue
 			}
-
-			noConfigs := true
-
-			for _, f := range files {
-				if f.IsDir() {
+		} else if os.IsNotExist(err) {
+			switch len(paths) {
+			case 1:
+				err = generateConfigFromTemplate(path)
+				if err != nil {
+					p.Push(fmt.Errorf("configuration file could not be generated at %s: %v", path, err))
+					errs = true
 					continue
 				}
-
-				name := f.Name()
-
-				if strings.HasSuffix(name, ".yml") || strings.HasSuffix(name, ".yaml") {
-					if err := p.Load(file.Provider(name), yaml.Parser()); err != nil {
-						return err
-					}
-
-					noConfigs = false
-				}
+			default:
+				p.Push(fmt.Errorf("configuration file does not exist at %s", path))
+				errs = true
+				continue
 			}
 
-			if noConfigs {
-				return fmt.Errorf("path does not contain Configuration files: %s", path)
-			}
+			errs = true
+			p.Push(fmt.Errorf("configuration file did not exist a default one has been generated at %s", path))
 		}
 	}
 
-	copy(p.fileKeys, p.Keys())
+	p.fileKeys = p.Keys()
+
+	if errs {
+		return errors.New("one or more errors occurred while loading configuration files")
+	}
 
 	return nil
 }
 
 // LoadEnvironment loads the environment variables to the configuration.
 func (p *Provider) LoadEnvironment() (err error) {
-	return p.Load(env.ProviderWithValue("AUTHELIA_", ".", koanfEnvCallback()), nil)
+	return p.Load(env.ProviderWithValue("AUTHELIA_", ".", koanfKeyCallbackBuilder("_", ".", "AUTHELIA_")), nil)
 }
 
-// LoadCommandLineFlags loads the CLI args to the configuration.
-func (p *Provider) LoadCommandLineFlags(flags *pflag.FlagSet) (err error) {
-	if flags != nil {
-		if err := p.Load(posflag.ProviderWithValue(flags, ".", p.Koanf, koanfPosFlagCallbackFunc), nil); err != nil {
-			return err
-		}
+// LoadSecrets loads the secrets into the struct from the path values.
+func (p *Provider) LoadSecrets() (err error) {
+	err = p.Load(NewSecretsProvider(".", p), nil)
+
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-// Validate runs all of the configuration validation tasks.
-func (p *Provider) Validate() {
+// ValidateConfiguration runs the configuration validation tasks.
+func (p *Provider) ValidateConfiguration() {
+	validator.ValidateConfiguration(p.Configuration, p.StructValidator)
+}
+
+// ValidateFileAuthenticationBackend runs the configuration validation tasks on specifically the file authentication backend.
+func (p *Provider) ValidateFileAuthenticationBackend() {
+	validator.ValidateFileAuthenticationBackend(p.Configuration.AuthenticationBackend.File, p.StructValidator)
+}
+
+// ValidateKeys runs key validation tasks.
+func (p *Provider) ValidateKeys() {
 	validator.ValidateKeys(p.StructValidator, p.fileKeys)
 	validator.ValidateAccessControlRuleKeys(p.StructValidator, p.Slices("access_control.rules"))
 	validator.ValidateOpenIDConnectClientKeys(p.StructValidator, p.Slices("identity_providers.oidc.clients"))
-
-	validator.ValidateSecrets(p.Configuration, p.StructValidator, p.Koanf)
-	validator.ValidateConfiguration(p.Configuration, p.StructValidator)
-	p.fileKeys = nil
 }
 
 // UnmarshalToStruct unmarshalls the configuration to the struct.
@@ -118,18 +128,25 @@ func (p *Provider) UnmarshalToStruct() (err error) {
 	return p.UnmarshalWithConf("", p.Configuration, conf)
 }
 
-// GetProvider returns the Configuration provider and the Configuration.
+var confProvider *Provider
+
+// GetProvider returns the global Configuration provider.
 func GetProvider() *Provider {
-	if provider == nil {
-		provider = &Provider{
-			Koanf: koanf.NewWithConf(koanf.Conf{
-				Delim:       ".",
-				StrictMerge: true,
-			}),
-			StructValidator: schema.NewStructValidator(),
-			Configuration:   &schema.Configuration{},
-		}
+	if confProvider == nil {
+		confProvider = NewProvider()
 	}
 
-	return provider
+	return confProvider
+}
+
+// NewProvider creates a new Configuration provider.
+func NewProvider() (p *Provider) {
+	return &Provider{
+		Koanf: koanf.NewWithConf(koanf.Conf{
+			Delim:       ".",
+			StrictMerge: false,
+		}),
+		StructValidator: schema.NewStructValidator(),
+		Configuration:   &schema.Configuration{},
+	}
 }

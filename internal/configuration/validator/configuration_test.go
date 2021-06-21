@@ -14,8 +14,8 @@ func newDefaultConfig() schema.Configuration {
 	config := schema.Configuration{}
 	config.Host = "127.0.0.1"
 	config.Port = 9090
-	config.Logging.Level = "info"
-	config.Logging.Format = "text"
+	config.Log.Level = "info"
+	config.Log.Format = "text"
 	config.JWTSecret = testJWTSecret
 	config.AuthenticationBackend.File = &schema.FileAuthenticationBackendConfiguration{
 		Path: "/a/path",
@@ -48,7 +48,7 @@ func TestShouldNotUpdateConfig(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, 9090, config.Port)
-	assert.Equal(t, "info", config.Logging.Level)
+	assert.Equal(t, "info", config.Log.Level)
 }
 
 func TestShouldValidateAndUpdatePort(t *testing.T) {
