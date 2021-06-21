@@ -157,7 +157,7 @@ func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 
 	logger := logging.Logger()
 
-	configs, err := cmd.Root().PersistentFlags().GetStringSlice("config")
+	configs, err := cmd.Root().Flags().GetStringSlice("config")
 	if err != nil {
 		logger.Fatalf("Error reading flags: %v", err)
 	}
