@@ -6,8 +6,8 @@ import {
     InitiateU2FRegistrationPath,
     CompleteU2FRegistrationStep1Path,
     CompleteU2FRegistrationStep2Path,
-} from "./Api";
-import { Post, PostWithOptionalResponse } from "./Client";
+} from "@services/Api";
+import { Post, PostWithOptionalResponse } from "@services/Client";
 
 export async function initiateTOTPRegistrationProcess() {
     await PostWithOptionalResponse(InitiateTOTPRegistrationPath);

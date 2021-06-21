@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.aliases.json",
   "compilerOptions": {
     "target": "es5",
     "lib": [
@@ -24,5 +25,10 @@
     ".*.js",
     "src",
     "types"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "coverage"
   ]
 }

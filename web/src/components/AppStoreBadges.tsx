@@ -2,8 +2,8 @@ import React from "react";
 
 import { Link } from "@material-ui/core";
 
-import AppleStore from "../assets/images/applestore-badge.svg";
-import GooglePlay from "../assets/images/googleplay-badge.svg";
+import AppleStore from "@assets/images/applestore-badge.svg";
+import GooglePlay from "@assets/images/googleplay-badge.svg";
 
 export interface Props {
     iconSize: number;

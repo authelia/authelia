@@ -30,11 +30,10 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cobra v1.1.3
-	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
-	github.com/valyala/fasthttp v1.26.0
+	github.com/valyala/fasthttp v1.27.0
 	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602 // indirect
 	golang.org/x/text v0.3.6
 	golang.org/x/tools v0.1.2 // indirect

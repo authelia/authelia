@@ -4,25 +4,25 @@ import { Grid, makeStyles, Button } from "@material-ui/core";
 import { useHistory, Switch, Route, Redirect } from "react-router";
 import u2fApi from "u2f-api";
 
-import { useNotifications } from "../../../hooks/NotificationsContext";
-import LoginLayout from "../../../layouts/LoginLayout";
-import { Configuration } from "../../../models/Configuration";
-import { SecondFactorMethod } from "../../../models/Methods";
-import { UserInfo } from "../../../models/UserInfo";
 import {
     LogoutRoute as SignOutRoute,
     SecondFactorTOTPRoute,
     SecondFactorPushRoute,
     SecondFactorU2FRoute,
     SecondFactorRoute,
-} from "../../../Routes";
-import { initiateTOTPRegistrationProcess, initiateU2FRegistrationProcess } from "../../../services/RegisterDevice";
-import { AuthenticationLevel } from "../../../services/State";
-import { setPreferred2FAMethod } from "../../../services/UserPreferences";
-import MethodSelectionDialog from "./MethodSelectionDialog";
-import OneTimePasswordMethod from "./OneTimePasswordMethod";
-import PushNotificationMethod from "./PushNotificationMethod";
-import SecurityKeyMethod from "./SecurityKeyMethod";
+} from "@constants/Routes";
+import { useNotifications } from "@hooks/NotificationsContext";
+import LoginLayout from "@layouts/LoginLayout";
+import { Configuration } from "@models/Configuration";
+import { SecondFactorMethod } from "@models/Methods";
+import { UserInfo } from "@models/UserInfo";
+import { initiateTOTPRegistrationProcess, initiateU2FRegistrationProcess } from "@services/RegisterDevice";
+import { AuthenticationLevel } from "@services/State";
+import { setPreferred2FAMethod } from "@services/UserPreferences";
+import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
+import OneTimePasswordMethod from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
+import PushNotificationMethod from "@views/LoginPortal/SecondFactor/PushNotificationMethod";
+import SecurityKeyMethod from "@views/LoginPortal/SecondFactor/SecurityKeyMethod";
 
 const EMAIL_SENT_NOTIFICATION = "An email has been sent to your address to complete the process.";
 
