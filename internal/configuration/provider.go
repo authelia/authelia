@@ -24,11 +24,7 @@ type Provider struct {
 }
 
 func (p *Provider) loadFile(path string) (err error) {
-	if err := p.Load(file.Provider(path), yaml.Parser()); err != nil {
-		return err
-	}
-
-	return nil
+	return p.Load(file.Provider(path), yaml.Parser())
 }
 
 // LoadPaths loads the provided paths into the configuration.
@@ -39,14 +35,18 @@ func (p *Provider) LoadPaths(paths []string) (err error) {
 		if info, err := os.Stat(path); err == nil {
 			if info.IsDir() {
 				p.Push(fmt.Errorf("error loading path '%s': is not a file", path))
+
 				errs = true
+
 				continue
 			}
 
 			err = p.loadFile(path)
 			if err != nil {
 				p.Push(err)
+
 				errs = true
+
 				continue
 			}
 		} else if os.IsNotExist(err) {
@@ -55,7 +55,9 @@ func (p *Provider) LoadPaths(paths []string) (err error) {
 				err = generateConfigFromTemplate(path)
 				if err != nil {
 					p.Push(fmt.Errorf("configuration file could not be generated at %s: %v", path, err))
+
 					errs = true
+
 					continue
 				}
 			default:

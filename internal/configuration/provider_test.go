@@ -187,7 +187,6 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	p.ValidateConfiguration()
 	errs := p.Errors()
 	assert.Len(t, errs, 0)
-
 }
 
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {

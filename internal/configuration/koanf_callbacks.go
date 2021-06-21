@@ -25,7 +25,6 @@ func koanfKeyCallbackBuilder(old, new, prefix string) func(key, value string) (f
 
 		if strings.HasSuffix(key, "password") || strings.HasSuffix(key, "secret") ||
 			strings.HasSuffix(key, "key") || strings.HasSuffix(key, "token") {
-
 			secretName := strings.ReplaceAll(key, old, new) + ".file"
 			secretMap[secretName] = "secret." + key
 		}

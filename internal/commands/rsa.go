@@ -1,12 +1,12 @@
 package commands
 
 import (
-	"github.com/authelia/authelia/internal/logging"
 	"os"
 	"path"
 
 	"github.com/spf13/cobra"
 
+	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
 )
 

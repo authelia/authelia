@@ -3,16 +3,14 @@ package configuration
 import (
 	"errors"
 	"fmt"
-	"github.com/knadh/koanf/maps"
 	"io/ioutil"
 	"sort"
 	"strings"
+
+	"github.com/knadh/koanf/maps"
 )
 
-func NewSecretsProvider(delim string, p *Provider) *SecretsProvider {
-	return &SecretsProvider{delim, p}
-}
-
+// SecretsProvider implements the koanf.Provider interface.
 type SecretsProvider struct {
 	delim string
 	conf  *Provider
@@ -31,7 +29,6 @@ func (p *SecretsProvider) Read() (k map[string]interface{}, err error) {
 	sort.Strings(sortedKeys)
 
 	for _, k := range sortedKeys {
-
 		if expectedKey := strings.TrimPrefix(k, "secret."); expectedKey != k {
 			currentValue, ok := p.conf.Get(expectedKey).(string)
 			if ok && currentValue != "" {
@@ -63,7 +60,7 @@ func (p *SecretsProvider) Read() (k map[string]interface{}, err error) {
 	return maps.Unflatten(keys, p.delim), nil
 }
 
-// Watch is not supported by this provider.
-func (p *SecretsProvider) Watch(_ func(event interface{}, err error)) error {
-	return errors.New("provider does not support this method")
+// NewSecretsProvider returns a new SecretsProvider.
+func NewSecretsProvider(delim string, p *Provider) *SecretsProvider {
+	return &SecretsProvider{delim, p}
 }
