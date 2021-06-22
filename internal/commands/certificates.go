@@ -95,7 +95,7 @@ func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 	case "P521":
 		priv, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	default:
-		logger.Fatalf("Unrecognized elliptic curve: %q", ecdsaCurve)
+		logger.Fatalf("Unrecognized elliptic curve: %s", ecdsaCurve)
 	}
 
 	if err != nil {
@@ -144,7 +144,7 @@ func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 		BasicConstraintsValid: true,
 	}
 
-	hosts, err := cmd.PersistentFlags().GetStringSlice("host")
+	hosts, err := cmd.Flags().GetStringSlice("host")
 	if err != nil {
 		logger.Fatal(err)
 	}
