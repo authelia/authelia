@@ -58,7 +58,7 @@ var redirectionAuthorizations = map[string]bool{
 }
 
 func (s *RedirectionCheckScenario) TestShouldRedirectOnLoginOnlyWhenDomainIsSafe() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 35*time.Second)
 	defer cancel()
 
 	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
@@ -66,12 +66,13 @@ func (s *RedirectionCheckScenario) TestShouldRedirectOnLoginOnlyWhenDomainIsSafe
 	for url, redirected := range redirectionAuthorizations {
 		s.T().Run(url, func(t *testing.T) {
 			s.doLoginTwoFactor(ctx, t, "john", "password", false, secret, url)
-			time.Sleep(1 * time.Second)
+
 			if redirected {
 				s.verifySecretAuthorized(ctx, t)
 			} else {
 				s.verifyIsAuthenticatedPage(ctx, t)
 			}
+
 			s.doLogout(ctx, t)
 		})
 	}

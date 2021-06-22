@@ -50,7 +50,11 @@ func IsNetworkValid(network string) (isValid bool) {
 }
 
 // ValidateAccessControl validates access control configuration.
-func ValidateAccessControl(configuration schema.AccessControlConfiguration, validator *schema.StructValidator) {
+func ValidateAccessControl(configuration *schema.AccessControlConfiguration, validator *schema.StructValidator) {
+	if configuration.DefaultPolicy == "" {
+		configuration.DefaultPolicy = denyPolicy
+	}
+
 	if !IsPolicyValid(configuration.DefaultPolicy) {
 		validator.Push(fmt.Errorf("'default_policy' must either be 'deny', 'two_factor', 'one_factor' or 'bypass'"))
 	}

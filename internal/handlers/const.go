@@ -44,8 +44,13 @@ const mfaValidationFailedMessage = "Authentication failed, please retry later."
 
 const ldapPasswordComplexityCode = "0000052D."
 
-var ldapPasswordComplexityCodes = []string{"0000052D"}
-var ldapPasswordComplexityErrors = []string{"LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy"}
+var ldapPasswordComplexityCodes = []string{
+	"0000052D", "SynoNumber", "SynoMixedCase", "SynoExcludeNameDesc", "SynoSpecialChar",
+}
+var ldapPasswordComplexityErrors = []string{
+	"LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy",
+	"LDAP Result Code 19 \"Constraint Violation\": Password is too young to change",
+}
 
 const testInactivity = "10"
 const testRedirectionURL = "http://redirection.local"

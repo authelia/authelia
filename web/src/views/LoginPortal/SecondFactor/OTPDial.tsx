@@ -4,10 +4,10 @@ import { makeStyles } from "@material-ui/core";
 import classnames from "classnames";
 import OtpInput from "react-otp-input";
 
-import SuccessIcon from "../../../components/SuccessIcon";
-import TimerIcon from "../../../components/TimerIcon";
-import IconWithContext from "./IconWithContext";
-import { State } from "./OneTimePasswordMethod";
+import SuccessIcon from "@components/SuccessIcon";
+import TimerIcon from "@components/TimerIcon";
+import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
+import { State } from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
 
 export interface Props {
     passcode: string;

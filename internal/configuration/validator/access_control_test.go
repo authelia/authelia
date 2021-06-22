@@ -24,7 +24,7 @@ func (suite *AccessControl) SetupTest() {
 }
 
 func (suite *AccessControl) TestShouldValidateCompleteConfiguration() {
-	ValidateAccessControl(suite.configuration, suite.validator)
+	ValidateAccessControl(&suite.configuration, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
@@ -33,7 +33,7 @@ func (suite *AccessControl) TestShouldValidateCompleteConfiguration() {
 func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
 	suite.configuration.DefaultPolicy = testInvalidPolicy
 
-	ValidateAccessControl(suite.configuration, suite.validator)
+	ValidateAccessControl(&suite.configuration, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
@@ -49,7 +49,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
 		},
 	}
 
-	ValidateAccessControl(suite.configuration, suite.validator)
+	ValidateAccessControl(&suite.configuration, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)

@@ -82,24 +82,13 @@ func dockerBuildOfficialImage(arch string) error {
 		}
 	}
 
-	gitTag := ciTag
-	if gitTag == "" {
-		// If commit is not tagged, mark the build has having master tag.
-		gitTag = masterTag
-	}
-
-	cmd := utils.Shell("git rev-parse HEAD")
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	commitBytes, err := cmd.Output()
-
+	flags, err := getXFlags(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	commitHash := strings.Trim(string(commitBytes), "\n")
-
-	return docker.Build(IntermediateDockerImageName, dockerfile, ".", gitTag, commitHash)
+	return docker.Build(IntermediateDockerImageName, dockerfile, ".",
+		strings.Join(flags, " "))
 }
 
 // DockerBuildCmd Command for building docker image of Authelia.

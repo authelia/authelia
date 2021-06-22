@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { ServiceResponse, hasServiceError, toData } from "./Api";
+import { ServiceResponse, hasServiceError, toData } from "@services/Api";
 
 export async function PostWithOptionalResponse<T = undefined>(path: string, body?: any): Promise<T | undefined> {
     const res = await axios.post<ServiceResponse<T>>(path, body);

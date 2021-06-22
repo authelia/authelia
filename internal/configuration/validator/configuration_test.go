@@ -14,8 +14,8 @@ func newDefaultConfig() schema.Configuration {
 	config := schema.Configuration{}
 	config.Host = "127.0.0.1"
 	config.Port = 9090
-	config.LogLevel = "info"
-	config.LogFormat = "text"
+	config.Logging.Level = "info"
+	config.Logging.Format = "text"
 	config.JWTSecret = testJWTSecret
 	config.AuthenticationBackend.File = &schema.FileAuthenticationBackendConfiguration{
 		Path: "/a/path",
@@ -48,7 +48,7 @@ func TestShouldNotUpdateConfig(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, 9090, config.Port)
-	assert.Equal(t, "info", config.LogLevel)
+	assert.Equal(t, "info", config.Logging.Level)
 }
 
 func TestShouldValidateAndUpdatePort(t *testing.T) {
@@ -71,17 +71,6 @@ func TestShouldValidateAndUpdateHost(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, "0.0.0.0", config.Host)
-}
-
-func TestShouldValidateAndUpdateLogsLevel(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.LogLevel = ""
-
-	ValidateConfiguration(&config, validator)
-
-	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, "info", config.LogLevel)
 }
 
 func TestShouldEnsureNotifierConfigIsProvided(t *testing.T) {

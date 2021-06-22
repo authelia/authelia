@@ -1,7 +1,7 @@
 import React from "react";
 
-import { useIntermittentClass } from "../hooks/IntermittentClass";
-import style from "./PushNotificationIcon.module.css";
+import style from "@components/PushNotificationIcon.module.css";
+import { useIntermittentClass } from "@hooks/IntermittentClass";
 
 export interface Props {
     width: number;

@@ -164,7 +164,7 @@ func TestShouldErrorParseBadConfigFile(t *testing.T) {
 
 	require.Len(t, errors, 1)
 
-	require.EqualError(t, errors[0], "Error malformed yaml: line 24: did not find expected alphabetic or numeric character")
+	require.EqualError(t, errors[0], "Error malformed yaml: line 26: did not find expected alphabetic or numeric character")
 }
 
 func TestShouldParseConfigFile(t *testing.T) {
@@ -185,7 +185,7 @@ func TestShouldParseConfigFile(t *testing.T) {
 	require.Len(t, errors, 0)
 
 	assert.Equal(t, 9091, config.Port)
-	assert.Equal(t, "debug", config.LogLevel)
+	assert.Equal(t, "debug", config.Logging.Level)
 	assert.Equal(t, "https://home.example.com:8080/", config.DefaultRedirectionURL)
 	assert.Equal(t, "authelia.com", config.TOTP.Issuer)
 	assert.Equal(t, "secret_from_env", config.JWTSecret)
@@ -221,7 +221,7 @@ func TestShouldParseAltConfigFile(t *testing.T) {
 	require.Len(t, errors, 0)
 
 	assert.Equal(t, 9091, config.Port)
-	assert.Equal(t, "debug", config.LogLevel)
+	assert.Equal(t, "debug", config.Logging.Level)
 	assert.Equal(t, "https://home.example.com:8080/", config.DefaultRedirectionURL)
 	assert.Equal(t, "authelia.com", config.TOTP.Issuer)
 	assert.Equal(t, "secret_from_env", config.JWTSecret)
@@ -253,7 +253,7 @@ func TestShouldNotParseConfigFileWithOldOrUnexpectedKeys(t *testing.T) {
 		return errors[i].Error() < errors[j].Error()
 	})
 	assert.EqualError(t, errors[0], "config key not expected: loggy_file")
-	assert.EqualError(t, errors[1], "invalid configuration key 'logs_level' was replaced by 'log_level'")
+	assert.EqualError(t, errors[1], "invalid configuration key 'logs_level' was replaced by 'log.level'")
 }
 
 func TestShouldValidateConfigurationTemplate(t *testing.T) {

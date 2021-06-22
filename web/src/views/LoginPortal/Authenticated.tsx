@@ -2,7 +2,7 @@ import React from "react";
 
 import { Typography, makeStyles } from "@material-ui/core";
 
-import SuccessIcon from "../../components/SuccessIcon";
+import SuccessIcon from "@components/SuccessIcon";
 
 const Authenticated = function () {
     const classes = useStyles();

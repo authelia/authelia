@@ -1,7 +1,7 @@
-import { SecondFactorMethod } from "../models/Methods";
-import { UserInfo } from "../models/UserInfo";
-import { UserInfoPath, UserInfo2FAMethodPath } from "./Api";
-import { Get, PostWithOptionalResponse } from "./Client";
+import { SecondFactorMethod } from "@models/Methods";
+import { UserInfo } from "@models/UserInfo";
+import { UserInfoPath, UserInfo2FAMethodPath } from "@services/Api";
+import { Get, PostWithOptionalResponse } from "@services/Client";
 
 export type Method2FA = "u2f" | "totp" | "mobile_push";
 

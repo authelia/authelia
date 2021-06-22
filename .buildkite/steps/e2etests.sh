@@ -13,6 +13,11 @@ cat << EOF
     agents:
       suite: "activedirectory"
 EOF
+elif [[ "${SUITE_NAME}" = "HighAvailability" ]]; then
+cat << EOF
+    agents:
+      suite: "highavailability"
+EOF
 elif [[ "${SUITE_NAME}" = "Kubernetes" ]]; then
 cat << EOF
     agents:

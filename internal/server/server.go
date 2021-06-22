@@ -127,9 +127,11 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 			middlewares.RequireFirstFactor(handlers.SecondFactorDuoPost(duoAPI))))
 	}
 
-	// If trace is set, enable pprofhandler and expvarhandler.
-	if configuration.LogLevel == "trace" {
+	if configuration.Server.EnablePprof {
 		r.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
+	}
+
+	if configuration.Server.EnableExpvars {
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
