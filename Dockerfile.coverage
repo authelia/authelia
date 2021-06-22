@@ -17,11 +17,6 @@ FROM golang:1.16.5-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
-# gcc and musl-dev are required for building go-sqlite3
-RUN \
-echo ">> Downloading required apk's..." && \
-apk --no-cache add gcc musl-dev
-
 COPY go.mod go.sum ./
 
 RUN \
@@ -38,7 +33,8 @@ RUN \
 mv api internal/server/public_html/api && \
 cd cmd/authelia && \
 echo ">> Starting go build (coverage via go test)..." && \
-go test -c --tags coverage -covermode=atomic -ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
+CGO_ENABLED=0 go test -c --tags coverage -covermode=atomic \
+-ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
 
 # ===================================
 # ===== Authelia official image =====
