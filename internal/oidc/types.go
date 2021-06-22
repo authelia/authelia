@@ -40,7 +40,7 @@ type WellKnownConfiguration struct {
 	ResponseModes      []string `json:"response_modes_supported"`
 	Scopes             []string `json:"scopes_supported"`
 	Claims             []string `json:"claims_supported"`
-	//RequireRequestURIRegistration bool     `json:"require_request_uri_registration"`
+	// RequireRequestURIRegistration bool     `json:"require_request_uri_registration"`
 	RequestURIParameter       bool `json:"request_uri_parameter_supported"`
 	RequestParameter          bool `json:"request_parameter_supported"`
 	BackChannelLogout         bool `json:"backchannel_logout_supported"`

@@ -1,5 +1,5 @@
-import { StatePath } from "./Api";
-import { Get } from "./Client";
+import { StatePath } from "@services/Api";
+import { Get } from "@services/Client";
 
 export enum AuthenticationLevel {
     Unauthenticated = 0,

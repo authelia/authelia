@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -52,11 +53,19 @@ func startServer() {
 		}
 	}
 
-	if err := logging.InitializeLogger(config.LogFormat, config.LogFilePath); err != nil {
+	if err := logging.InitializeLogger(config.Logging.Format, config.Logging.FilePath, config.Logging.KeepStdout); err != nil {
 		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
 
-	switch config.LogLevel {
+	logger.Infof("Authelia %s is starting", utils.Version())
+
+	switch config.Logging.Level {
+	case "error":
+		logger.Info("Logging severity set to error")
+		logging.SetLevel(logrus.ErrorLevel)
+	case "warn":
+		logger.Info("Logging severity set to warn")
+		logging.SetLevel(logrus.WarnLevel)
 	case "info":
 		logger.Info("Logging severity set to info")
 		logging.SetLevel(logrus.InfoLevel)
@@ -115,7 +124,7 @@ func startServer() {
 	}
 
 	clock := utils.RealClock{}
-	authorizer := authorization.NewAuthorizer(config.AccessControl)
+	authorizer := authorization.NewAuthorizer(config)
 	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
 
@@ -139,24 +148,31 @@ func startServer() {
 
 func main() {
 	logger := logging.Logger()
+
+	version := utils.Version()
+
 	rootCmd := &cobra.Command{
 		Use: "authelia",
 		Run: func(cmd *cobra.Command, args []string) {
 			startServer()
 		},
+		Version: version,
+		Short:   fmt.Sprintf("authelia %s", version),
+		Long:    fmt.Sprintf(fmtAutheliaLong, version),
 	}
 
 	rootCmd.Flags().StringVar(&configPathFlag, "config", "", "Configuration file")
 
-	versionCmd := &cobra.Command{
-		Use:   "version",
-		Short: "Show the version of Authelia",
+	buildCmd := &cobra.Command{
+		Use:   "build",
+		Short: "Show the build of Authelia",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Authelia version %s, build %s\n", BuildTag, BuildCommit)
+			fmt.Printf(fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
+				utils.BuildNumber, runtime.GOOS, runtime.GOARCH, utils.BuildDate, utils.BuildExtra)
 		},
 	}
 
-	rootCmd.AddCommand(versionCmd, commands.HashPasswordCmd,
+	rootCmd.AddCommand(buildCmd, commands.HashPasswordCmd,
 		commands.ValidateConfigCmd, commands.CertificatesCmd,
 		commands.RSACmd)
 

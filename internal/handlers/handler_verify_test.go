@@ -147,13 +147,14 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 	url, _ := url.ParseRequestURI("https://test.example.com")
 
 	for _, rule := range rules {
-		authorizer := authorization.NewAuthorizer(schema.AccessControlConfiguration{
-			DefaultPolicy: "deny",
-			Rules: []schema.ACLRule{{
-				Domains: []string{"test.example.com"},
-				Policy:  rule.Policy,
-			}},
-		})
+		authorizer := authorization.NewAuthorizer(&schema.Configuration{
+			AccessControl: schema.AccessControlConfiguration{
+				DefaultPolicy: "deny",
+				Rules: []schema.ACLRule{{
+					Domains: []string{"test.example.com"},
+					Policy:  rule.Policy,
+				}},
+			}})
 
 		username := ""
 		if rule.AuthLevel > authentication.NotAuthenticated {
@@ -179,16 +180,6 @@ func TestShouldVerifyWrongCredentials(t *testing.T) {
 	_, _, _, _, _, err := verifyBasicAuth(ProxyAuthorizationHeader, []byte("Basic am9objpwYXNzd29yZA=="), *url, mock.Ctx)
 
 	assert.Error(t, err)
-}
-
-type TestCase struct {
-	URL                string
-	Authorization      string
-	ExpectedStatusCode int
-}
-
-func (tc TestCase) String() string {
-	return fmt.Sprintf("url=%s, auth=%s, exp_status=%d", tc.URL, tc.Authorization, tc.ExpectedStatusCode)
 }
 
 type BasicAuthorizationSuite struct {

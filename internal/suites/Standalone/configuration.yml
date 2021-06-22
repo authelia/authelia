@@ -7,7 +7,10 @@ port: 9091
 tls_cert: /config/ssl/cert.pem
 tls_key: /config/ssl/key.pem
 
-log_level: debug
+theme: auto
+
+log:
+  level: debug
 
 authentication_backend:
   file:

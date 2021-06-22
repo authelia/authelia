@@ -1,4 +1,4 @@
-import { getBasePath } from "./BasePath";
+import { getBasePath } from "@utils/BasePath";
 
 __webpack_public_path__ = "/";
 

@@ -20,7 +20,30 @@ func TestShouldWriteLogsToFile(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	path := fmt.Sprintf("%s/authelia.log", dir)
-	err = InitializeLogger("text", path)
+	err = InitializeLogger("text", path, false)
+	require.NoError(t, err)
+
+	Logger().Info("This is a test")
+
+	f, err := os.OpenFile(path, os.O_RDONLY, 0)
+	require.NoError(t, err)
+
+	b, err := ioutil.ReadAll(f)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(b), "level=info msg=\"This is a test\"\n")
+}
+
+func TestShouldWriteLogsToFileAndStdout(t *testing.T) {
+	dir, err := ioutil.TempDir("/tmp", "logs-dir")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.RemoveAll(dir)
+
+	path := fmt.Sprintf("%s/authelia.log", dir)
+	err = InitializeLogger("text", path, true)
 	require.NoError(t, err)
 
 	Logger().Info("This is a test")
@@ -43,7 +66,7 @@ func TestShouldFormatLogsAsJSON(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	path := fmt.Sprintf("%s/authelia.log", dir)
-	err = InitializeLogger("json", path)
+	err = InitializeLogger("json", path, false)
 	require.NoError(t, err)
 
 	Logger().Info("This is a test")

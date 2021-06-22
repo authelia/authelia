@@ -8,8 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
-	fositejwt "github.com/ory/fosite/token/jwt"
+	"github.com/ory/fosite/token/jwt"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -144,7 +143,7 @@ func (m *KeyManager) AddActiveKey(key *rsa.PrivateKey) (webKey *jose.JSONWebKey,
 // NewRS256JWTStrategy returns a new RS256JWTStrategy.
 func NewRS256JWTStrategy(id string, key *rsa.PrivateKey) (strategy *RS256JWTStrategy, err error) {
 	strategy = new(RS256JWTStrategy)
-	strategy.JWTStrategy = new(fositejwt.RS256JWTStrategy)
+	strategy.JWTStrategy = new(jwt.RS256JWTStrategy)
 
 	strategy.SetKey(id, key)
 
@@ -153,7 +152,7 @@ func NewRS256JWTStrategy(id string, key *rsa.PrivateKey) (strategy *RS256JWTStra
 
 // RS256JWTStrategy is a decorator struct for the fosite RS256JWTStrategy.
 type RS256JWTStrategy struct {
-	JWTStrategy *fositejwt.RS256JWTStrategy
+	JWTStrategy *jwt.RS256JWTStrategy
 
 	keyID string
 }
@@ -185,7 +184,7 @@ func (s *RS256JWTStrategy) GetSignature(ctx context.Context, token string) (stri
 }
 
 // Generate is a decorator func for the underlying fosite RS256JWTStrategy.
-func (s *RS256JWTStrategy) Generate(ctx context.Context, claims jwt.Claims, header fositejwt.Mapper) (string, string, error) {
+func (s *RS256JWTStrategy) Generate(ctx context.Context, claims jwt.MapClaims, header jwt.Mapper) (string, string, error) {
 	return s.JWTStrategy.Generate(ctx, claims, header)
 }
 

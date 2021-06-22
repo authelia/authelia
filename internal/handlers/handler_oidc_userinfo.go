@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	fositejwt "github.com/ory/fosite/token/jwt"
@@ -57,7 +56,8 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 		claims["aud"] = []string{client.GetID()}
 	}
 
-	if client.UserinfoAlgorithm == "RS256" {
+	switch client.UserinfoAlgorithm {
+	case "RS256":
 		claims["jti"] = uuid.New()
 		claims["iat"] = time.Now().Unix()
 
@@ -68,7 +68,7 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 			return
 		}
 
-		token, _, err := ctx.Providers.OpenIDConnect.Store.KeyManager.Strategy().Generate(req.Context(), jwt.MapClaims(claims),
+		token, _, err := ctx.Providers.OpenIDConnect.Store.KeyManager.Strategy().Generate(req.Context(), claims,
 			&fositejwt.Headers{
 				Extra: map[string]interface{}{"kid": keyID},
 			})
@@ -80,9 +80,9 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 
 		rw.Header().Set("Content-Type", "application/jwt")
 		_, _ = rw.Write([]byte(token))
-	} else if client.UserinfoAlgorithm == "" || client.UserinfoAlgorithm == "none" {
+	case "none", "":
 		ctx.Providers.OpenIDConnect.Herodot.Write(rw, req, claims)
-	} else {
+	default:
 		ctx.Providers.OpenIDConnect.Herodot.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHintf("Unsupported userinfo signing algorithm '%s'.", client.UserinfoAlgorithm)))
 	}
 }

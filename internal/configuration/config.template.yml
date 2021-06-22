@@ -17,7 +17,7 @@ port: 9091
 ## They should be in base64 format, and have one of the following extensions: *.cer, *.crt, *.pem.
 # certificates_directory: /config/certificates
 
-## The theme to display: light, dark, grey.
+## The theme to display: light, dark, grey, auto.
 theme: light
 
 ##
@@ -30,18 +30,29 @@ server:
   ## Write buffer size does the same for outgoing responses.
   read_buffer_size: 4096
   write_buffer_size: 4096
+
   ## Set the single level path Authelia listens on.
   ## Must be alphanumeric chars and should not contain any slashes.
   path: ""
 
-## Level of verbosity for logs: info, debug, trace.
-log_level: debug
+  ## Enables the pprof endpoint.
+  enable_pprof: false
 
-## Format the logs are written as: json, text.
-# log_format: json
+  ## Enables the expvars endpoint.
+  enable_expvars: false
 
-## File path where the logs will be written. If not set logs are written to stdout.
-# log_file_path: /config/authelia.log
+log:
+  ## Level of verbosity for logs: info, debug, trace.
+  level: debug
+
+  ## Format the logs are written as: json, text.
+  # format: json
+
+  ## File path where the logs will be written. If not set logs are written to stdout.
+  # file_path: /config/authelia.log
+
+  ## Whether to also log to stdout when a log_file_path is defined.
+  # keep_stdout: false
 
 ## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
 ## set using a secret: https://www.authelia.com/docs/configuration/secrets.html
