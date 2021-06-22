@@ -21,6 +21,7 @@ func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDe
 	if s.FirstFactorAuthn == 0 {
 		s.FirstFactorAuthn = now.Unix()
 	}
+
 	s.LastActivity = now.Unix()
 	s.AuthenticationLevel = authentication.OneFactor
 
