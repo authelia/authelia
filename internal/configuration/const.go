@@ -11,3 +11,4 @@ var errSecretOneOrMoreErrors = errors.New("one or more errors occurred during lo
 
 // AUTHELIA_PORT_ and AUTHELIA_SERVICE_ are added to k8s pods in some situations.
 var ignoredEnvPrefixes = []string{"AUTHELIA_PORT_", "AUTHELIA_SERVICE_"}
+var ignoredKeys = []string{"AUTHELIA_PORT"}

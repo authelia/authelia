@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/validator"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // koanfKeyCallbackBuilder builds a koanf key callback function that creates a map of replacements which
@@ -31,6 +32,10 @@ func koanfKeyCallbackBuilder(old, new, prefix string) func(key, value string) (f
 	}
 
 	return func(key, value string) (finalKey string, finalValue interface{}) {
+		if utils.IsStringInSlice(key, ignoredKeys) {
+			return "", nil
+		}
+
 		for _, prefix := range ignoredEnvPrefixes {
 			if strings.HasPrefix(key, prefix) {
 				return "", nil

@@ -211,4 +211,6 @@ func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 
 		logger.Fatalf("Exiting due to configuration validation errors above.")
 	}
+
+	provider.Reset()
 }

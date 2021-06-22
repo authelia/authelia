@@ -19,8 +19,10 @@ import (
 type Provider struct {
 	*koanf.Koanf
 	*schema.StructValidator
+
+	fileKeys []string
+
 	Configuration *schema.Configuration
-	fileKeys      []string
 }
 
 func (p *Provider) loadFile(path string) (err error) {
@@ -109,6 +111,12 @@ func (p *Provider) ValidateFileAuthenticationBackend() {
 // ValidateKeys runs key validation tasks.
 func (p *Provider) ValidateKeys() {
 	validator.ValidateKeys(p.StructValidator, p.fileKeys)
+}
+
+// Reset removes all of the values not needed after validation.
+func (p *Provider) Reset() {
+	p.StructValidator.Clear()
+	p.fileKeys = nil
 }
 
 // UnmarshalToStruct unmarshalls the configuration to the struct.
