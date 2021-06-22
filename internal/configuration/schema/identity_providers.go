@@ -38,7 +38,7 @@ type OpenIDConnectClientConfiguration struct {
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
 var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
 	AccessTokenLifespan:   time.Hour,
-	AuthorizeCodeLifespan: time.Hour,
+	AuthorizeCodeLifespan: time.Minute,
 	IDTokenLifespan:       time.Hour,
 	RefreshTokenLifespan:  time.Hour * 24 * 30,
 }

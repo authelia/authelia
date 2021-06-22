@@ -1,6 +1,61 @@
 package oidc
 
-import "github.com/ory/fosite/handler/openid"
+import (
+	"crypto/rsa"
+
+	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/openid"
+	"github.com/ory/fosite/storage"
+	"gopkg.in/square/go-jose.v2"
+
+	"github.com/authelia/authelia/internal/authorization"
+)
+
+// OpenIDConnectProvider for OpenID Connect.
+type OpenIDConnectProvider struct {
+	Fosite     fosite.OAuth2Provider
+	Store      *OpenIDConnectStore
+	KeyManager *KeyManager
+}
+
+// OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface.
+//
+//	Currently it is mostly just implementing a decorator pattern other then GetInternalClient.
+//	The long term plan is to have these methods interact with the Authelia storage and
+//	session providers where applicable.
+type OpenIDConnectStore struct {
+	clients map[string]*InternalClient
+	memory  *storage.MemoryStore
+}
+
+// InternalClient represents the client internally.
+type InternalClient struct {
+	ID            string              `json:"id"`
+	Description   string              `json:"-"`
+	Secret        []byte              `json:"client_secret,omitempty"`
+	RedirectURIs  []string            `json:"redirect_uris"`
+	GrantTypes    []string            `json:"grant_types"`
+	ResponseTypes []string            `json:"response_types"`
+	Scopes        []string            `json:"scopes"`
+	Audience      []string            `json:"audience"`
+	Public        bool                `json:"public"`
+	Policy        authorization.Level `json:"-"`
+
+	// These are the OpenIDConnect Client props.
+	ResponseModes []fosite.ResponseModeType `json:"response_modes"`
+}
+
+// KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
+// It additionally allows us to add keys for the purpose of key rotation in the future.
+type KeyManager struct {
+	activeKeyID string
+	keys        map[string]*rsa.PrivateKey
+	keySet      *jose.JSONWebKeySet
+	strategy    *RS256JWTStrategy
+}
+
+// AutheliaHasher implements the fosite.Hasher interface without an actual hashing algo.
+type AutheliaHasher struct{}
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {

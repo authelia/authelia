@@ -106,7 +106,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 				Extra:       extraClaims,
 			},
 			Headers: &jwt.Headers{Extra: map[string]interface{}{
-				"kid": ctx.Providers.OpenIDConnect.Store.KeyManager.GetActiveKeyID(),
+				"kid": ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
 			}},
 			Subject: userSession.Username,
 		},

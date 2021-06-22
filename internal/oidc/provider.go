@@ -1,18 +1,11 @@
 package oidc
 
 import (
-	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
 )
-
-// OpenIDConnectProvider for OpenID Connect.
-type OpenIDConnectProvider struct {
-	Fosite fosite.OAuth2Provider
-	Store  *OpenIDConnectStore
-}
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
 func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) (provider OpenIDConnectProvider, err error) {
@@ -37,7 +30,14 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		SendDebugMessagesToClients: configuration.EnableClientDebugMessages,
 	}
 
-	key, err := provider.Store.KeyManager.GetActivePrivateKey()
+	keyManager, err := NewKeyManagerWithConfiguration(configuration)
+	if err != nil {
+		return provider, err
+	}
+
+	provider.KeyManager = keyManager
+
+	key, err := provider.KeyManager.GetActivePrivateKey()
 	if err != nil {
 		return provider, err
 	}
@@ -52,7 +52,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 			composeConfiguration,
 			key,
 		),
-		JWTStrategy: provider.Store.KeyManager.Strategy(),
+		JWTStrategy: provider.KeyManager.Strategy(),
 	}
 
 	provider.Fosite = compose.Compose(

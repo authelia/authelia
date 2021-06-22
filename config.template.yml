@@ -588,9 +588,12 @@ notifier:
 
     ## The lifespans configure the expiration for these token types.
     # access_token_lifespan: 1h
-    # authorize_code_lifespan: 1h
+    # authorize_code_lifespan: 1m
     # id_token_lifespan: 1h
     # refresh_token_lifespan: 720h
+
+    ## Enables additional debug messages.
+    # enable_client_debug_messages: false
 
     ## Clients is a list of known clients and their configuration.
     # clients:

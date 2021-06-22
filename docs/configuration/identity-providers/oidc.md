@@ -102,6 +102,11 @@ identity_providers:
     issuer_private_key: |
       --- KEY START
       --- KEY END
+    access_token_lifespan: 1h
+    authorize_code_lifespan: 1m
+    id_token_lifespan: 1h
+    refresh_token_lifespan: 720h
+    enable_client_debug_messages: false
     clients:
       - id: myapp
         description: My Application
@@ -119,11 +124,21 @@ identity_providers:
           - authorization_code
         response_types:
           - code
+        response_modes:
+          - form_post
+          - query
+          - fragment
 ```
 
 ## Options
 
 ### hmac_secret
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The HMAC secret used to sign the [OpenID Connect] JWT's. The provided string is hashed to a SHA256 byte string for
 the purpose of meeting the required format.
@@ -131,28 +146,74 @@ the purpose of meeting the required format.
 Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
 ### issuer_private_key
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's.
 
 Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
 ### access_token_lifespan
+<div markdown="1">
+type: duration
+{: .label .label-config .label-purple } 
+default: 1h
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The maximum lifetime of an access token.
 
 ### authorize_code_lifespan
+<div markdown="1">
+type: duration
+{: .label .label-config .label-purple } 
+default: 1m
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The maximum lifetime of an authorize code.
 
 ### id_token_lifespan
+<div markdown="1">
+type: duration
+{: .label .label-config .label-purple } 
+default: 1h
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The maximum lifetime of an ID token.
 
 ### refresh_token_lifespan
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: 30d
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The maximum lifetime of a refresh token.
 
 ### enable_client_debug_messages
+<div markdown="1">
+type: bool
+{: .label .label-config .label-purple } 
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 Allows additional debug messages to be sent to the clients.
 
@@ -161,47 +222,109 @@ Allows additional debug messages to be sent to the clients.
 A list of clients to configure. The options for each client are described below.
 
 #### id
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The Client ID for this client. Must be configured in the application consuming this client.
 
 #### description
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: *same as id*
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 A friendly description for this client shown in the UI. This defaults to the same as the ID.
 
 #### secret
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The shared secret between Authelia and the application consuming this client. Currently this is stored in plain text.
 
 #### authorization_policy
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: two_factor
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The authorization policy for this client. Either `one_factor` or `two_factor`.
 
 #### redirect_uris
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 A list of valid callback URL's this client will redirect to. All other callbacks will be considered unsafe. The URL's
 are case-sensitive.
 
-#### request_uris
-
-TODO: Document
-
 #### scopes
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+default: openid, groups, profile, email
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 A list of scopes to allow this client to consume. See [scope definitions](#scope-definitions) for more information.
 
 #### grant_types
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+default: refresh_token, authorization_code
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 A list of grant types this client can return. It is recommended that this isn't configured at this time unless you know
 what you're doing. Valid options are: `implicit`, `refresh_token`, `authorization_code`, `password`, 
 `client_credentials`.
 
 #### response_types
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+default: code
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 A list of response types this client can return. It is recommended that this isn't configured at this time unless you 
 know what you're doing. Valid options are: `code`, `code id_token`, `id_token`, `token id_token`, `token`, 
 `token id_token code`.
 
 #### response_modes
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+default: form_post, query, fragment
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 A list of response modes this client can return. It is recommended that this isn't configured at this time unless you
 know what you're doing. Potential values are `form_post`, `query`, and `fragment`.

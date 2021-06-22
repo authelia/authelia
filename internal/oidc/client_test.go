@@ -67,7 +67,7 @@ func TestIsAuthenticationLevelSufficient(t *testing.T) {
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor))
 }
 
-func TestInternalClient_GetConsentRequestBody(t *testing.T) {
+func TestInternalClient_GetConsentResponseBody(t *testing.T) {
 	c := InternalClient{}
 
 	consentRequestBody := c.GetConsentResponseBody(nil)

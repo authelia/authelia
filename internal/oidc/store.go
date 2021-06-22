@@ -37,25 +37,7 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (st
 		store.clients[client.ID] = NewClient(client)
 	}
 
-	keyManager, err := NewKeyManagerWithConfiguration(configuration)
-	if err != nil {
-		return nil, err
-	}
-
-	store.KeyManager = keyManager
-
 	return store, nil
-}
-
-// OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface.
-//
-//	Currently it is mostly just implementing a decorator pattern other then GetInternalClient.
-//	The long term plan is to have these methods interact with the Authelia storage and
-//	session providers where applicable.
-type OpenIDConnectStore struct {
-	clients    map[string]*InternalClient
-	memory     *storage.MemoryStore
-	KeyManager *KeyManager
 }
 
 // GetClientPolicy retrieves the policy from the client with the matching provided id.
