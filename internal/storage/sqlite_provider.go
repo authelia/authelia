@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/mattn/go-sqlite3" // Load the SQLite Driver used in the connection string.
+	_ "modernc.org/sqlite" // Load the SQLite Driver used in the connection string.
 )
 
 // SQLiteProvider is a SQLite3 provider.
@@ -45,7 +45,7 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 		},
 	}
 
-	db, err := sql.Open("sqlite3", path)
+	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		provider.log.Fatalf("Unable to create SQL database %s: %s", path, err)
 	}

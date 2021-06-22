@@ -8,13 +8,13 @@ import classnames from "classnames";
 import QRCode from "qrcode.react";
 import { useHistory, useLocation } from "react-router";
 
-import AppStoreBadges from "../../components/AppStoreBadges";
-import { GoogleAuthenticator } from "../../constants";
-import { useNotifications } from "../../hooks/NotificationsContext";
-import LoginLayout from "../../layouts/LoginLayout";
-import { FirstFactorRoute } from "../../Routes";
-import { completeTOTPRegistrationProcess } from "../../services/RegisterDevice";
-import { extractIdentityToken } from "../../utils/IdentityToken";
+import AppStoreBadges from "@components/AppStoreBadges";
+import { GoogleAuthenticator } from "@constants/constants";
+import { FirstFactorRoute } from "@constants/Routes";
+import { useNotifications } from "@hooks/NotificationsContext";
+import LoginLayout from "@layouts/LoginLayout";
+import { completeTOTPRegistrationProcess } from "@services/RegisterDevice";
+import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterOneTimePassword = function () {
     const style = useStyles();

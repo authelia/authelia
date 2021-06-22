@@ -1,6 +1,6 @@
-import { CompletePushNotificationSignInPath } from "./Api";
-import { PostWithOptionalResponse } from "./Client";
-import { SignInResponse } from "./SignIn";
+import { CompletePushNotificationSignInPath } from "@services/Api";
+import { PostWithOptionalResponse } from "@services/Client";
+import { SignInResponse } from "@services/SignIn";
 
 interface CompleteU2FSigninBody {
     targetURL?: string;

@@ -2,7 +2,7 @@ import React from "react";
 
 import ReactDOM from "react-dom";
 
-import AppStoreBadges from "./AppStoreBadges";
+import AppStoreBadges from "@components/AppStoreBadges";
 
 it("renders without crashing", () => {
     const div = document.createElement("div");
