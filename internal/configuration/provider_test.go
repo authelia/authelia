@@ -5,11 +5,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/internal/utils"
 )
 
 func resetTestEnv() {
@@ -37,27 +38,6 @@ func resetTestEnv() {
 	_ = os.Unsetenv("AUTHELIA_TLS_KEY")
 	_ = os.Unsetenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY")
 	_ = os.Unsetenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET")
-}
-
-func getExpectedErrTxt(err string) string {
-	switch err {
-	case "pathnotfound":
-		switch runtime.GOOS {
-		case windows:
-			return "open %s: The system cannot find the path specified."
-		default:
-			return errFmtLinuxNotFound
-		}
-	case "filenotfound":
-		switch runtime.GOOS {
-		case windows:
-			return "open %s: The system cannot find the file specified."
-		default:
-			return errFmtLinuxNotFound
-		}
-	}
-
-	return ""
 }
 
 func TestShouldErrorSecretNotExist(t *testing.T) {
@@ -93,7 +73,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 
 	require.Len(t, errs, 12)
 
-	errFmt := getExpectedErrTxt("filenotfound")
+	errFmt := utils.GetExpectedErrTxt("filenotfound")
 
 	assert.EqualError(t, errs[0], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "authentication"), "authentication_backend.ldap.password", fmt.Sprintf(errFmt, filepath.Join(dir, "authentication"))))
 	assert.EqualError(t, errs[1], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "duo"), "duo_api.secret_key", fmt.Sprintf(errFmt, filepath.Join(dir, "duo"))))
@@ -300,7 +280,7 @@ func TestShouldNotGenerateConfiguration(t *testing.T) {
 	assert.EqualError(t, err, "one or more errors occurred while loading configuration files")
 
 	require.Len(t, p.Errors(), 1)
-	assert.EqualError(t, p.Errors()[0], fmt.Sprintf("configuration file could not be generated at %s: %s", cfg, fmt.Sprintf(getExpectedErrTxt("pathnotfound"), cfg)))
+	assert.EqualError(t, p.Errors()[0], fmt.Sprintf("configuration file could not be generated at %s: %s", cfg, fmt.Sprintf(utils.GetExpectedErrTxt("pathnotfound"), cfg)))
 }
 
 func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
