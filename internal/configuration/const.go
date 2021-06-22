@@ -8,3 +8,6 @@ const (
 )
 
 var errSecretOneOrMoreErrors = errors.New("one or more errors occurred during loading secrets")
+
+// AUTHELIA_PORT_ and AUTHELIA_SERVICE_ are added to k8s pods in some situations.
+var ignoredEnvPrefixes = []string{"AUTHELIA_PORT_", "AUTHELIA_SERVICE_"}

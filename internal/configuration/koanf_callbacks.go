@@ -31,6 +31,12 @@ func koanfKeyCallbackBuilder(old, new, prefix string) func(key, value string) (f
 	}
 
 	return func(key, value string) (finalKey string, finalValue interface{}) {
+		for _, prefix := range ignoredEnvPrefixes {
+			if strings.HasPrefix(key, prefix) {
+				return "", nil
+			}
+		}
+
 		formattedKey := strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(key, prefix)), "_", ".")
 
 		if k, ok := secretMap[formattedKey]; ok {
