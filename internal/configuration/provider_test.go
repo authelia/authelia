@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,27 +39,49 @@ func resetTestEnv() {
 	_ = os.Unsetenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET")
 }
 
+func getExpectedErrTxt(err string) string {
+	switch err {
+	case "pathnotfound":
+		switch runtime.GOOS {
+		case windows:
+			return "open %s: The system cannot find the path specified."
+		default:
+			return errFmtLinuxNotFound
+		}
+	case "filenotfound":
+		switch runtime.GOOS {
+		case windows:
+			return "open %s: The system cannot find the file specified."
+		default:
+			return errFmtLinuxNotFound
+		}
+	}
+
+	return ""
+}
+
 func TestShouldErrorSecretNotExist(t *testing.T) {
 	resetTestEnv()
 
 	p := NewProvider()
 
-	dir := "/path/not/exist/"
+	dir, err := ioutil.TempDir("", "authelia-test-secret-not-exist")
+	assert.NoError(t, err)
 
-	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", dir+"jwt"))
-	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY_FILE", dir+"duo"))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET_FILE", dir+"session"))
-	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", dir+"authentication"))
-	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE", dir+"notifier"))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD_FILE", dir+"redis"))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE", dir+"redis-sentinel"))
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE", dir+"mysql"))
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE", dir+"postgres"))
-	require.NoError(t, os.Setenv("AUTHELIA_TLS_KEY_FILE", dir+"tls"))
-	require.NoError(t, os.Setenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE", dir+"oidc-key"))
-	require.NoError(t, os.Setenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", dir+"oidc-hmac"))
+	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", filepath.Join(dir, "jwt")))
+	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY_FILE", filepath.Join(dir, "duo")))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET_FILE", filepath.Join(dir, "session")))
+	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", filepath.Join(dir, "authentication")))
+	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE", filepath.Join(dir, "notifier")))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD_FILE", filepath.Join(dir, "redis")))
+	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE", filepath.Join(dir, "redis-sentinel")))
+	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE", filepath.Join(dir, "mysql")))
+	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE", filepath.Join(dir, "postgres")))
+	require.NoError(t, os.Setenv("AUTHELIA_TLS_KEY_FILE", filepath.Join(dir, "tls")))
+	require.NoError(t, os.Setenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE", filepath.Join(dir, "oidc-key")))
+	require.NoError(t, os.Setenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", filepath.Join(dir, "oidc-hmac")))
 
-	err := p.LoadEnvironment()
+	err = p.LoadEnvironment()
 
 	assert.NoError(t, err)
 
@@ -70,20 +93,20 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 
 	require.Len(t, errs, 12)
 
-	errFmt := "open /path/not/exist/%s: The system cannot find the path specified."
+	errFmt := getExpectedErrTxt("filenotfound")
 
-	assert.EqualError(t, errs[0], fmt.Sprintf(errFmtSecretIOIssue, dir+"authentication", "authentication_backend.ldap.password", fmt.Sprintf(errFmt, "authentication")))
-	assert.EqualError(t, errs[1], fmt.Sprintf(errFmtSecretIOIssue, dir+"duo", "duo_api.secret_key", fmt.Sprintf(errFmt, "duo")))
-	assert.EqualError(t, errs[2], fmt.Sprintf(errFmtSecretIOIssue, dir+"oidc-hmac", "identity_providers.oidc.hmac_secret", fmt.Sprintf(errFmt, "oidc-hmac")))
-	assert.EqualError(t, errs[3], fmt.Sprintf(errFmtSecretIOIssue, dir+"oidc-key", "identity_providers.oidc.issuer_private_key", fmt.Sprintf(errFmt, "oidc-key")))
-	assert.EqualError(t, errs[4], fmt.Sprintf(errFmtSecretIOIssue, dir+"jwt", "jwt_secret", fmt.Sprintf(errFmt, "jwt")))
-	assert.EqualError(t, errs[5], fmt.Sprintf(errFmtSecretIOIssue, dir+"notifier", "notifier.smtp.password", fmt.Sprintf(errFmt, "notifier")))
-	assert.EqualError(t, errs[6], fmt.Sprintf(errFmtSecretIOIssue, dir+"redis-sentinel", "session.redis.high_availability.sentinel_password", fmt.Sprintf(errFmt, "redis-sentinel")))
-	assert.EqualError(t, errs[7], fmt.Sprintf(errFmtSecretIOIssue, dir+"redis", "session.redis.password", fmt.Sprintf(errFmt, "redis")))
-	assert.EqualError(t, errs[8], fmt.Sprintf(errFmtSecretIOIssue, dir+"session", "session.secret", fmt.Sprintf(errFmt, "session")))
-	assert.EqualError(t, errs[9], fmt.Sprintf(errFmtSecretIOIssue, dir+"mysql", "storage.mysql.password", fmt.Sprintf(errFmt, "mysql")))
-	assert.EqualError(t, errs[10], fmt.Sprintf(errFmtSecretIOIssue, dir+"postgres", "storage.postgres.password", fmt.Sprintf(errFmt, "postgres")))
-	assert.EqualError(t, errs[11], fmt.Sprintf(errFmtSecretIOIssue, dir+"tls", "tls_key", fmt.Sprintf(errFmt, "tls")))
+	assert.EqualError(t, errs[0], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "authentication"), "authentication_backend.ldap.password", fmt.Sprintf(errFmt, filepath.Join(dir, "authentication"))))
+	assert.EqualError(t, errs[1], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "duo"), "duo_api.secret_key", fmt.Sprintf(errFmt, filepath.Join(dir, "duo"))))
+	assert.EqualError(t, errs[2], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "oidc-hmac"), "identity_providers.oidc.hmac_secret", fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-hmac"))))
+	assert.EqualError(t, errs[3], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "oidc-key"), "identity_providers.oidc.issuer_private_key", fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-key"))))
+	assert.EqualError(t, errs[4], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "jwt"), "jwt_secret", fmt.Sprintf(errFmt, filepath.Join(dir, "jwt"))))
+	assert.EqualError(t, errs[5], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "notifier"), "notifier.smtp.password", fmt.Sprintf(errFmt, filepath.Join(dir, "notifier"))))
+	assert.EqualError(t, errs[6], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis-sentinel"), "session.redis.high_availability.sentinel_password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis-sentinel"))))
+	assert.EqualError(t, errs[7], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis"), "session.redis.password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis"))))
+	assert.EqualError(t, errs[8], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "session"), "session.secret", fmt.Sprintf(errFmt, filepath.Join(dir, "session"))))
+	assert.EqualError(t, errs[9], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "mysql"), "storage.mysql.password", fmt.Sprintf(errFmt, filepath.Join(dir, "mysql"))))
+	assert.EqualError(t, errs[10], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "postgres"), "storage.postgres.password", fmt.Sprintf(errFmt, filepath.Join(dir, "postgres"))))
+	assert.EqualError(t, errs[11], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "tls"), "tls_key", fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))))
 }
 
 func TestShouldValidateConfigurationWithEnv(t *testing.T) {
@@ -277,7 +300,7 @@ func TestShouldNotGenerateConfiguration(t *testing.T) {
 	assert.EqualError(t, err, "one or more errors occurred while loading configuration files")
 
 	require.Len(t, p.Errors(), 1)
-	assert.EqualError(t, p.Errors()[0], fmt.Sprintf("configuration file could not be generated at %s: open %s: The system cannot find the path specified.", cfg, cfg))
+	assert.EqualError(t, p.Errors()[0], fmt.Sprintf("configuration file could not be generated at %s: %s", cfg, fmt.Sprintf(getExpectedErrTxt("pathnotfound"), cfg)))
 }
 
 func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {

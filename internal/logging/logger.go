@@ -36,6 +36,10 @@ func SetLevelStr(level string) {
 
 // InitializeLogger configures the default loggers stack levels, formatting, and the output destinations.
 func InitializeLogger(format, filename string, stdout bool) error {
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		logrus.Info("===> Authelia is running in development mode. <===")
+	}
+
 	callerLevels := []logrus.Level{}
 	stackLevels := []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
 	logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))

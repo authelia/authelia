@@ -2,13 +2,13 @@ package commands
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/notification"
@@ -53,21 +53,6 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 
 	config := configuration.GetProvider().Configuration
 
-	autheliaCertPool, errs, nonFatalErrs := utils.NewX509CertPool(config.CertificatesDirectory)
-	if len(errs) > 0 {
-		for _, err := range errs {
-			logger.Error(err)
-		}
-
-		os.Exit(2)
-	}
-
-	if len(nonFatalErrs) > 0 {
-		for _, err := range nonFatalErrs {
-			logger.Warn(err)
-		}
-	}
-
 	if err := logging.InitializeLogger(config.Log.Format, config.Log.FilePath, config.Log.KeepStdout); err != nil {
 		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
@@ -75,8 +60,28 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	logger.Infof("Authelia %s is starting", utils.Version())
 	logging.SetLevelStr(config.Log.Level)
 
-	if os.Getenv("ENVIRONMENT") == "dev" {
-		logger.Info("===> Authelia is running in development mode. <===")
+	providers, nonFatalErrs, errs := getProviders(config)
+	if len(nonFatalErrs) != 0 {
+		for _, err := range nonFatalErrs {
+			logger.Warn(err)
+		}
+	}
+
+	if len(errs) != 0 {
+		for _, err := range nonFatalErrs {
+			logger.Error(err)
+		}
+
+		logger.Fatalf("Errors occurred provisioning providers.")
+	}
+
+	server.StartServer(*config, providers)
+}
+
+func getProviders(config *schema.Configuration) (providers middlewares.Providers, nonFatalErrs []error, errs []error) {
+	autheliaCertPool, errs, nonFatalErrs := utils.NewX509CertPool(config.CertificatesDirectory)
+	if len(errs) != 0 || len(nonFatalErrs) != 0 {
+		return providers, nonFatalErrs, errs
 	}
 
 	var storageProvider storage.Provider
@@ -89,7 +94,7 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	case config.Storage.Local != nil:
 		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
 	default:
-		logger.Fatalf("Unrecognized storage backend")
+		errs = append(errs, fmt.Errorf("unrecognized storage provider"))
 	}
 
 	var userProvider authentication.UserProvider
@@ -100,7 +105,7 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	case config.AuthenticationBackend.LDAP != nil:
 		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, autheliaCertPool)
 	default:
-		logger.Fatalf("Unrecognized authentication backend")
+		errs = append(errs, fmt.Errorf("unrecognized user provider"))
 	}
 
 	var notifier notification.Notifier
@@ -111,14 +116,7 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	case config.Notifier.FileSystem != nil:
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	default:
-		logger.Fatalf("Unrecognized notifier")
-	}
-
-	if !config.Notifier.DisableStartupCheck {
-		_, err := notifier.StartupCheck()
-		if err != nil {
-			logger.Fatalf("Error during notifier startup check: %s", err)
-		}
+		errs = append(errs, fmt.Errorf("unrecognized notifier provider"))
 	}
 
 	clock := utils.RealClock{}
@@ -126,12 +124,11 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
 	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
-
 	if err != nil {
-		logger.Fatalf("Error initializing OpenID Connect Provider: %+v", err)
+		errs = append(errs, err)
 	}
 
-	providers := middlewares.Providers{
+	return middlewares.Providers{
 		Authorizer:      authorizer,
 		UserProvider:    userProvider,
 		Regulator:       regulator,
@@ -139,9 +136,7 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 		StorageProvider: storageProvider,
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
-	}
-
-	server.StartServer(*config, providers)
+	}, nonFatalErrs, errs
 }
 
 // cmdWithConfigFlags is used for commands which require access to the configuration to add the flag to the command.
