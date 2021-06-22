@@ -53,12 +53,11 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 
 	config := configuration.GetProvider().Configuration
 
-	if err := logging.InitializeLogger(config.Log.Format, config.Log.FilePath, config.Log.KeepStdout); err != nil {
+	logger.Infof("Authelia %s is starting", utils.Version())
+
+	if err := logging.InitializeLogger(config.Log, true); err != nil {
 		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
-
-	logger.Infof("Authelia %s is starting", utils.Version())
-	logging.SetLevelStr(config.Log.Level)
 
 	providers, nonFatalErrs, errs := getProviders(config)
 	if len(nonFatalErrs) != 0 {
