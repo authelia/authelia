@@ -72,7 +72,7 @@ This section has two options, `name` and `networks`. Where the `networks` sectio
 notation and where `name` is a friendly name to label the collection of networks for reuse in the [networks](#networks) 
 section of the [rules](#rules) section below.
 
-This configuration option *does nothing* by itself, it's only useful if you use theese aliases in the [rules](#networks)
+This configuration option *does nothing* by itself, it's only useful if you use these aliases in the [rules](#networks)
 section below.
 
 ### rules
@@ -281,11 +281,11 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-This criteria is a list of network address ranges in CIDR notation or an alias from the [global](#networks-global)
-section. It matches against the first address in the `X-Forwarded-For` header, or if there are none it will fall back to
-the IP address of the packet TCP source IP address. For this reason it's important for you to configure the proxy server
-correctly in order to accurately match requests with this criteria. ***Note:** you may combine CIDR networks with the
-alias rules as you please.*
+This criteria is a list of values which can be an IP Address, network address range in CIDR notation, or an alias from 
+the [global](#networks-global) section. It matches against the first address in the `X-Forwarded-For` header, or if there 
+are none it will fall back to the IP address of the packet TCP source IP address. For this reason it's important for you
+to configure the proxy server correctly in order to accurately match requests with this criteria. ***Note:** you may 
+combine CIDR networks with the alias rules as you please.*
 
 The main use case for this criteria is adjust the security requirements of a resource based on the location of a user.
 You can theoretically consider a specific network to be one of the factors involved in authentiation, you can deny
