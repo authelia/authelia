@@ -2,13 +2,13 @@ package commands
 
 import (
 	"fmt"
-	"github.com/authelia/authelia/internal/logging"
 
 	"github.com/simia-tech/crypt"
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/logging"
 )
 
 // NewHashPasswordCmd returns a new Hash Password Cmd.

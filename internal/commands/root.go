@@ -122,6 +122,7 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 	authorizer := authorization.NewAuthorizer(config)
 	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
+
 	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
 	if err != nil {
 		errs = append(errs, err)
