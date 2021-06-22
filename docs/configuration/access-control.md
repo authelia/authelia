@@ -40,6 +40,14 @@ access_control:
 ## Options
 
 ### default_policy
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: deny
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The default [policy](#policies) defines the policy applied if no [rules](#rules) section apply to the information known
 about the request. It is recommended that this is configured to [deny](#deny) for security reasons. Sites which you do
@@ -49,19 +57,31 @@ Authelia at all for performance reasons.
 See [Policies](#policies) for more information.
 
 ### networks (global)
+<div markdown="1">
+type: list
+{: .label .label-config .label-purple } 
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The main/global networks section contains a list of networks with a name label that can be reused in the 
 [rules](#networks) section instead of redefining the same networks over and over again. This additionally makes 
 complicated network related configuration a lot cleaner and easier to read.
 
 This section has two options, `name` and `networks`. Where the `networks` section is a list of IP addresses in CIDR
-notation and where `name` is a friendly name to label the collection of networks for reuse in the [rules](#networks) 
-below.
+notation and where `name` is a friendly name to label the collection of networks for reuse in the [networks](#networks) 
+section of the [rules](#rules) section below.
 
 This configuration option *does nothing* by itself, it's only useful if you use theese aliases in the [rules](#networks)
 section below.
 
 ### rules
+<div markdown="1">
+type: list
+{: .label .label-config .label-purple } 
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The rules have many configuration options. A rule matches when all criteria of the rule match the request excluding the
 `policy` which is the [policy](#policies) applied to the request.
@@ -80,18 +100,30 @@ The criteria is broken into several parts:
 * [networks](#networks): the network addresses, ranges (CIDR notation) or groups from where the request originates.
 * [methods](#methods): the http methods used in the request.
 
-A rule is matched when all criteria of the rule match. Rules are evaluated in sequential order, and this is
-particularly **important** for bypass rules. Bypass rules should generally appear near the top of the rules list.
-However you need to carefully evaluate your rule list **in order** to see which rule matches a particular scenario. A
-comprehensive understanding of how rules apply is also recommended. ***Note:** we could theoretically devise a tool that
-policy output given input of a users request and a rule list in the future.* 
+A rule is matched when all criteria of the rule match. Rules are evaluated in sequential order, and the first rule that
+is a match for a given request is the rule applied; subsequent rules have *no effect*. This is particularly 
+**important** for bypass rules. Bypass rules should generally appear near the top of the rules list. However you need to 
+carefully evaluate your rule list **in order** to see which rule matches a particular scenario. A comprehensive 
+understanding of how rules apply is also recommended.
 
 #### policy
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The specific [policy](#policies) to apply to the selected rule. This is not criteria for a match, this is the action to
 take when a match is made.
 
 #### domain
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of 
 strings. When it's a list of strings the rule matches when **any** of the domains in the list match the request domain.
@@ -108,14 +140,12 @@ Rules may start with a few different wildcards:
   
 * The group wildcard is `{group}.`, which when in front of a domain dynamically matches if the logged in user has the
   group in that location. For example `{group}.example.com` would match `admins.example.com` if the user logged in was
-  in the following groups `admins,users,people` because `admins` is in the list. ***Note:** we're considering 
-  refactoring this to just be regex which would likely allow many additional possibilities.*
+  in the following groups `admins,users,people` because `admins` is in the list.
 
 Domains in this section must be the domain configured in the [session](./session/index.md#domain) configuration or
 subdomains of that domain. This is because a website can only write cookies for a domain it is part of. It is
 theoretically possible for us to do this with multiple domains however we would have to be security conscious in our
 implementation, and it is not currently a priority.
-
 
 Examples:
 
@@ -147,6 +177,12 @@ access_control:
 ```
 
 ### subject
+<div markdown="1">
+type: list(list(string))
+{: .label .label-config .label-purple } 
+required: no
+{: .label .label-config .label-green }
+</div>
 
 ***Note:** this rule criteria **may not** be used for the `bypass` policy the minimum required authentication level to
 identify the subject is `one_factor`. We have taken an opinionated stance on preventing this configuration as it could 
@@ -206,6 +242,12 @@ access_control:
 ```
 
 ### methods
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+required: no
+{: .label .label-config .label-green }
+</div>
 
 This criteria matches the HTTP request method. This is primarily useful when trying to bypass authentication for specific
 request types when those requests would prevent essential or public operation of the website. An example is when you
@@ -232,6 +274,12 @@ The valid request methods are: OPTIONS, HEAD, GET, POST, PUT, PATCH, DELETE, TRA
 about HTTP request methods can be found on the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods).
 
 ### networks
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+required: no
+{: .label .label-config .label-green }
+</div>
 
 This criteria is a list of network address ranges in CIDR notation or an alias from the [global](#networks-global)
 section. It matches against the first address in the `X-Forwarded-For` header, or if there are none it will fall back to
@@ -283,6 +331,12 @@ access_control:
 ```
 
 ### resources
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+required: no
+{: .label .label-config .label-green }
+</div>
 
 This criteria matches the path and query of the request using regular expressions. The rule is expressed as a list of
 strings. If any one of the regular expressions in the list matches the request it's considered a match. A useful tool
