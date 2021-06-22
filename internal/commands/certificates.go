@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"log"
 	"math/big"
 	"net"
@@ -62,6 +63,7 @@ func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 	// implementation retrieved from https://golang.org/src/crypto/tls/generate_cert.go
 	var priv interface{}
 
+	_ = logging.InitializeLogger(schema.LogConfiguration{Format: "text"}, false)
 	logger := logging.Logger()
 
 	ecdsaCurve, err := cmd.Flags().GetString("ecdsa-curve")
@@ -192,7 +194,7 @@ func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 		logger.Fatalf("Error closing %s: %v", certPath, err)
 	}
 
-	log.Printf("wrote %s\n", certPath)
+	log.Printf("Certificate Public Key written to %s\n", certPath)
 
 	keyPath := path.Join(certificateTargetDirectory, "key.pem")
 	keyOut, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
@@ -214,7 +216,7 @@ func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 		logger.Fatalf("Error closing %s: %v", keyPath, err)
 	}
 
-	log.Printf("Certificate Key Written to %s\n", keyPath)
+	log.Printf("Certificate Private Key written to %s\n", keyPath)
 }
 
 func publicKey(priv interface{}) interface{} {

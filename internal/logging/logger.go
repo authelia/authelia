@@ -17,10 +17,6 @@ func Logger() *logrus.Logger {
 
 // InitializeLogger configures the default loggers stack levels, formatting, and the output destinations.
 func InitializeLogger(config schema.LogConfiguration, log bool) error {
-	if os.Getenv("ENVIRONMENT") == "dev" {
-		logrus.Info("===> Authelia is running in development mode. <===")
-	}
-
 	setLevelStr(config.Level, log)
 
 	callerLevels := []logrus.Level{}

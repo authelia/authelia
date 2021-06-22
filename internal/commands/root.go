@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -54,6 +55,10 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	config := configuration.GetProvider().Configuration
 
 	logger.Infof("Authelia %s is starting", utils.Version())
+
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		logger.Info("===> Authelia is running in development mode. <===")
+	}
 
 	if err := logging.InitializeLogger(config.Log, true); err != nil {
 		logger.Fatalf("Cannot initialize logger: %v", err)
