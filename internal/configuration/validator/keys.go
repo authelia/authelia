@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/knadh/koanf"
-
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
 )
@@ -31,7 +29,8 @@ func ValidateKeys(validator *schema.StructValidator, keys []string) {
 			continue
 		}
 
-		if err, ok := specificErrorKeys[key]; ok {
+		replacedKey := reKeyReplacer.ReplaceAllString(key, "[]")
+		if err, ok := specificErrorKeys[replacedKey]; ok {
 			if !utils.IsStringInSlice(err, errStrings) {
 				errStrings = append(errStrings, err)
 			}
@@ -42,31 +41,5 @@ func ValidateKeys(validator *schema.StructValidator, keys []string) {
 
 	for _, err := range errStrings {
 		validator.Push(errors.New(err))
-	}
-}
-
-// ValidateAccessControlRuleKeys determines if a provided keys are valid for an access control rule.
-func ValidateAccessControlRuleKeys(validator *schema.StructValidator, koanfs []*koanf.Koanf) {
-	for i, k := range koanfs {
-		for _, key := range k.Keys() {
-			if utils.IsStringInSlice(key, validACLKeys) {
-				continue
-			}
-
-			validator.Push(fmt.Errorf("config key not expected: access_control.rules[%d].%s", i, key))
-		}
-	}
-}
-
-// ValidateOpenIDConnectClientKeys determines if a provided keys are valid for an OpenID Connect client.
-func ValidateOpenIDConnectClientKeys(validator *schema.StructValidator, koanfs []*koanf.Koanf) {
-	for i, k := range koanfs {
-		for _, key := range k.Keys() {
-			if utils.IsStringInSlice(key, validOpenIDConnectClientKeys) {
-				continue
-			}
-
-			validator.Push(fmt.Errorf("config key not expected: identity_providers.oidc.clients[%d].%s", i, key))
-		}
 	}
 }

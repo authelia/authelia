@@ -109,8 +109,6 @@ func (p *Provider) ValidateFileAuthenticationBackend() {
 // ValidateKeys runs key validation tasks.
 func (p *Provider) ValidateKeys() {
 	validator.ValidateKeys(p.StructValidator, p.fileKeys)
-	validator.ValidateAccessControlRuleKeys(p.StructValidator, p.Slices("access_control.rules"))
-	validator.ValidateOpenIDConnectClientKeys(p.StructValidator, p.Slices("identity_providers.oidc.clients"))
 }
 
 // UnmarshalToStruct unmarshalls the configuration to the struct.

@@ -177,7 +177,7 @@ func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 	err = provider.LoadSecrets()
 	if err != nil {
 		for _, err := range provider.Errors() {
-			logger.Errorf("\t%+v", err)
+			logger.Errorf("%+v", err)
 		}
 
 		logger.Fatalf("Errors loading secrets configuration: %v", err)
@@ -197,7 +197,7 @@ func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 		logger.Warnf("Warnings occurred while validating configuration:")
 
 		for _, warn := range warns {
-			logger.Warnf("\t%v", warn)
+			logger.Warnf("  %v", warn)
 		}
 	}
 
@@ -206,7 +206,7 @@ func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 		logger.Errorf("Errors occurred while validating configuration:")
 
 		for _, err := range errs {
-			logger.Errorf("\t%v", err)
+			logger.Errorf("  %v", err)
 		}
 
 		logger.Fatalf("Exiting due to configuration validation errors above.")

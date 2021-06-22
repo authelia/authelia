@@ -1,5 +1,7 @@
 package validator
 
+import "regexp"
+
 const (
 	bypassPolicy    = "bypass"
 	oneFactorPolicy = "one_factor"
@@ -70,6 +72,8 @@ var SecretNames = map[string]string{
 	"OpenIDConnectIssuerPrivateKey": "identity_providers.oidc.issuer_private_key",
 }
 
+var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
+
 // ValidKeys is a list of valid keys that are not secret names. For the sake of consistency please place any secret in
 // the secret names map and reuse it in relevant sections.
 var ValidKeys = []string{
@@ -113,9 +117,15 @@ var ValidKeys = []string{
 	"duo_api.integration_key",
 
 	// Access Control Keys.
-	"access_control.rules",
 	"access_control.default_policy",
 	"access_control.networks",
+	"access_control.rules",
+	"access_control.rules[].domain",
+	"access_control.rules[].methods",
+	"access_control.rules[].networks",
+	"access_control.rules[].subject",
+	"access_control.rules[].policy",
+	"access_control.rules[].resources",
 
 	// Session Keys.
 	"session.name",
@@ -226,10 +236,15 @@ var ValidKeys = []string{
 	"identity_providers.oidc.hmac_secret",
 	"identity_providers.oidc.issuer_private_key",
 	"identity_providers.oidc.clients",
+	"identity_providers.oidc.clients[].id",
+	"identity_providers.oidc.clients[].description",
+	"identity_providers.oidc.clients[].secret",
+	"identity_providers.oidc.clients[].redirect_uris",
+	"identity_providers.oidc.clients[].authorization_policy",
+	"identity_providers.oidc.clients[].scopes",
+	"identity_providers.oidc.clients[].grant_types",
+	"identity_providers.oidc.clients[].response_types",
 }
-
-var validACLKeys = []string{"domain", "methods", "networks", "subject", "policy", "resources"}
-var validOpenIDConnectClientKeys = []string{"id", "description", "secret", "redirect_uris", "authorization_policy", "scopes", "grant_types", "response_types"}
 
 var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",
