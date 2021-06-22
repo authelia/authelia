@@ -9,7 +9,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"log"
 	"math/big"
 	"net"
@@ -19,6 +18,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 )
 

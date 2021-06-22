@@ -42,6 +42,7 @@ func cmdValidateConfigRun(_ *cobra.Command, args []string) {
 		logger.Fatalf("Error unmarshalling configuration: %v", err)
 	}
 
+	provider.ValidateKeys()
 	provider.ValidateConfiguration()
 
 	// TODO: Actually use the configuration to validate some providers like Notifier

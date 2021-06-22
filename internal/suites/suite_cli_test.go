@@ -87,21 +87,21 @@ func (s *CLISuite) TestShouldGenerateCertificateRSA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/"})
 	s.Assert().Nil(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key Written: /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithIPAddress() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "127.0.0.1", "--dir", "/tmp/"})
 	s.Assert().Nil(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key Written: /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithStartDate() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--start-date", "'Jan 1 15:04:05 2011'"})
 	s.Assert().Nil(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key Written: /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateRSAWithStartDate() {
@@ -114,14 +114,14 @@ func (s *CLISuite) TestShouldGenerateCertificateCA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ca"})
 	s.Assert().Nil(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key Written: /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ed25519"})
 	s.Assert().Nil(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key Written: /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
@@ -134,28 +134,28 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP224() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P224"})
 	s.Assert().Nil(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key Written: /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP256() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P256"})
 	s.Assert().Nil(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key Written: /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP384() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P384"})
 	s.Assert().Nil(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key Written: /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P521"})
 	s.Assert().Nil(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key Written: /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func TestCLISuite(t *testing.T) {
