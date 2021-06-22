@@ -78,13 +78,9 @@ var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
 // the secret names map and reuse it in relevant sections.
 var ValidKeys = []string{
 	// Root Keys.
-	"host",
-	"port",
 	"default_redirection_url",
 	"jwt_secret",
 	"theme",
-	"tls_key",
-	"tls_cert",
 	"certificates_directory",
 
 	// Log keys.
@@ -94,12 +90,20 @@ var ValidKeys = []string{
 	"log.keep_stdout",
 
 	// TODO: DEPRECATED START. Remove in 4.33.0.
+	"host",
+	"port",
+	"tls_key",
+	"tls_cert",
 	"log_level",
 	"log_format",
 	"log_file_path",
 	// TODO: DEPRECATED END. Remove in 4.33.0.
 
 	// Server Keys.
+	"server.host",
+	"server.port",
+	"server.tls_cert",
+	"server.tls_key",
 	"server.read_buffer_size",
 	"server.write_buffer_size",
 	"server.path",

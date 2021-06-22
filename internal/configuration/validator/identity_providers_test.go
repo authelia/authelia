@@ -93,7 +93,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 	assert.Equal(t, schema.DefaultOpenIDConnectClientConfiguration.Policy, config.OIDC.Clients[0].Policy)
 	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errIdentityProvidersOIDCServerClientInvalidSecFmt, ""))
-	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errOAuthOIDCServerClientRedirectURIFmt, "a-client", "tcp://google.com", "tcp"))
+	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errOAuthOIDCServerClientRedirectURIFmt, "", "tcp://google.com", "tcp"))
 	assert.EqualError(t, validator.Errors()[2], fmt.Sprintf(errIdentityProvidersOIDCServerClientInvalidPolicyFmt, "a-client", "a-policy"))
 	assert.EqualError(t, validator.Errors()[3], fmt.Sprintf(errIdentityProvidersOIDCServerClientInvalidPolicyFmt, "a-client", "a-policy"))
 	assert.EqualError(t, validator.Errors()[4], fmt.Sprintf(errOAuthOIDCServerClientRedirectURICantBeParsedFmt, "client-check-uri-parse", "http://abc@%two", errors.New("parse \"http://abc@%two\": invalid URL escape \"%tw\"")))

@@ -22,9 +22,9 @@ func TestShouldSetDefaultLoggingValues(t *testing.T) {
 
 	require.NotNil(t, config.Log.KeepStdout)
 
-	assert.Equal(t, "", config.LogLevel)
-	assert.Equal(t, "", config.LogFormat)
-	assert.Equal(t, "", config.LogFilePath)
+	assert.Equal(t, "", config.LogLevel)    // TODO: DEPRECATED TEST. Remove in 4.33.0.
+	assert.Equal(t, "", config.LogFormat)   // TODO: DEPRECATED TEST. Remove in 4.33.0.
+	assert.Equal(t, "", config.LogFilePath) // TODO: DEPRECATED TEST. Remove in 4.33.0.
 
 	assert.Equal(t, "info", config.Log.Level)
 	assert.Equal(t, "text", config.Log.Format)

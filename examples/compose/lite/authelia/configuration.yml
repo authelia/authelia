@@ -2,9 +2,9 @@
 ###############################################################
 #                   Authelia configuration                    #
 ###############################################################
-
-host: 0.0.0.0
-port: 9091
+server:
+  host: 0.0.0.0
+  port: 9091
 log:
   level: debug
 # This secret can also be set using the env variables AUTHELIA_JWT_SECRET_FILE
