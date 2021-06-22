@@ -16,13 +16,13 @@ func ValidateIdentityProviders(configuration *schema.IdentityProvidersConfigurat
 func validateOIDC(configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	if configuration != nil {
 		if configuration.IssuerPrivateKey == "" {
-			validator.Push(fmt.Errorf("OIDC Server issuer private key must be provided"))
+			validator.Push(fmt.Errorf("openid connect provider issuer private key must be provided"))
 		}
 
 		validateOIDCClients(configuration, validator)
 
 		if len(configuration.Clients) == 0 {
-			validator.Push(fmt.Errorf("OIDC Server has no clients defined"))
+			validator.Push(fmt.Errorf("openid connect provider has no clients defined"))
 		}
 	}
 }
@@ -74,11 +74,11 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 	}
 
 	if invalidID {
-		validator.Push(fmt.Errorf("OIDC Server has one or more clients with an empty ID"))
+		validator.Push(fmt.Errorf("openid connect provider has one or more clients with an empty ID"))
 	}
 
 	if duplicateIDs {
-		validator.Push(fmt.Errorf("OIDC Server has clients with duplicate ID's"))
+		validator.Push(fmt.Errorf("openid connect provider has clients with duplicate ID's"))
 	}
 }
 
@@ -92,7 +92,7 @@ func validateOIDCClientRedirectURIs(client schema.OpenIDConnectClientConfigurati
 		}
 
 		if parsedURI.Scheme != "https" && parsedURI.Scheme != "http" {
-			validator.Push(fmt.Errorf(errOAuthOIDCServerClientRedirectURIFmt, redirectURI, parsedURI.Scheme))
+			validator.Push(fmt.Errorf(errOAuthOIDCServerClientRedirectURIFmt, client.ID, redirectURI, parsedURI.Scheme))
 		}
 	}
 }

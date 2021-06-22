@@ -24,8 +24,8 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 2)
 
-	assert.EqualError(t, validator.Errors()[0], "OIDC Server issuer private key must be provided")
-	assert.EqualError(t, validator.Errors()[1], "OIDC Server has no clients defined")
+	assert.EqualError(t, validator.Errors()[0], "openid connect provider issuer private key must be provided")
+	assert.EqualError(t, validator.Errors()[1], "openid connect provider has no clients defined")
 }
 
 func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T) {
@@ -41,7 +41,7 @@ func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T)
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "OIDC Server has no clients defined")
+	assert.EqualError(t, validator.Errors()[0], "openid connect provider has no clients defined")
 }
 
 func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
@@ -93,12 +93,12 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 	assert.Equal(t, schema.DefaultOpenIDConnectClientConfiguration.Policy, config.OIDC.Clients[0].Policy)
 	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errIdentityProvidersOIDCServerClientInvalidSecFmt, ""))
-	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errOAuthOIDCServerClientRedirectURIFmt, "tcp://google.com", "tcp"))
+	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errOAuthOIDCServerClientRedirectURIFmt, "a-client", "tcp://google.com", "tcp"))
 	assert.EqualError(t, validator.Errors()[2], fmt.Sprintf(errIdentityProvidersOIDCServerClientInvalidPolicyFmt, "a-client", "a-policy"))
 	assert.EqualError(t, validator.Errors()[3], fmt.Sprintf(errIdentityProvidersOIDCServerClientInvalidPolicyFmt, "a-client", "a-policy"))
 	assert.EqualError(t, validator.Errors()[4], fmt.Sprintf(errOAuthOIDCServerClientRedirectURICantBeParsedFmt, "client-check-uri-parse", "http://abc@%two", errors.New("parse \"http://abc@%two\": invalid URL escape \"%tw\"")))
-	assert.EqualError(t, validator.Errors()[5], "OIDC Server has one or more clients with an empty ID")
-	assert.EqualError(t, validator.Errors()[6], "OIDC Server has clients with duplicate ID's")
+	assert.EqualError(t, validator.Errors()[5], "openid connect provider has one or more clients with an empty ID")
+	assert.EqualError(t, validator.Errors()[6], "openid connect provider has clients with duplicate ID's")
 }
 
 func TestShouldNotRaiseErrorWhenOIDCServerConfiguredCorrectly(t *testing.T) {

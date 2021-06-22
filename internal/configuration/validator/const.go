@@ -1,26 +1,6 @@
 package validator
 
 const (
-	errFmtDeprecatedConfigurationKey = "[DEPRECATED] The %s configuration option is deprecated and will be " +
-		"removed in %s, please use %s instead"
-	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
-
-	errFmtLoggingLevelInvalid = "the log level '%s' is invalid, must be one of: %s"
-
-	errFmtSessionSecretRedisProvider      = "The session secret must be set when using the %s session provider"
-	errFmtSessionRedisPortRange           = "The port must be between 1 and 65535 for the %s session provider"
-	errFmtSessionRedisHostRequired        = "The host must be provided when using the %s session provider"
-	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
-
-	errOAuthOIDCServerClientRedirectURIFmt               = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
-	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "OIDC Client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
-	errIdentityProvidersOIDCServerClientInvalidPolicyFmt = "OIDC Client with ID '%s' has an invalid policy '%s', should be either 'one_factor' or 'two_factor'"
-	errIdentityProvidersOIDCServerClientInvalidSecFmt    = "OIDC Client with ID '%s' has an empty secret"
-
-	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
-	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
-	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
-
 	bypassPolicy    = "bypass"
 	oneFactorPolicy = "one_factor"
 	twoFactorPolicy = "two_factor"
@@ -42,8 +22,31 @@ const (
 	testModeDisabled  = "disable"
 	testTLSCert       = "/tmp/cert.pem"
 	testTLSKey        = "/tmp/key.pem"
+)
 
-	errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for rule #%d domain %s with subjects %s is invalid. It is " +
+// Error constants.
+const (
+	errFmtDeprecatedConfigurationKey = "deprecated: the %s configuration option is deprecated and will be " +
+		"removed in %s, please use %s instead"
+	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
+
+	errFmtLoggingLevelInvalid = "the log level '%s' is invalid, must be one of: %s"
+
+	errFmtSessionSecretRedisProvider      = "the session secret must be set when using the %s session provider"
+	errFmtSessionRedisPortRange           = "the port must be between 1 and 65535 for the %s session provider"
+	errFmtSessionRedisHostRequired        = "the host must be provided when using the %s session provider"
+	errFmtSessionRedisHostOrNodesRequired = "either the host or a node must be provided when using the %s session provider"
+
+	errOAuthOIDCServerClientRedirectURIFmt               = "openid connect provider: client with ID '%s' redirect URI %s has an invalid scheme %s, should be http or https"
+	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "openid connect provider: client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
+	errIdentityProvidersOIDCServerClientInvalidPolicyFmt = "openid connect provider: client with ID '%s' has an invalid policy '%s', should be either 'one_factor' or 'two_factor'"
+	errIdentityProvidersOIDCServerClientInvalidSecFmt    = "openid connect provider: client with ID '%s' has an empty secret"
+
+	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
+	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
+	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
+
+	errAccessControlInvalidPolicyWithSubjects = "policy [bypass] for rule #%d domain %s with subjects %s is invalid. It is " +
 		"not supported to configure both policy bypass and subjects. For more information see: " +
 		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 )
