@@ -5,10 +5,6 @@ FROM golang:1.16.5-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
-RUN \
-echo ">> Downloading required apk's..." && \
-apk --no-cache add gcc musl-dev
-
 COPY go.mod go.sum ./
 
 RUN \
@@ -18,12 +14,12 @@ go mod download
 COPY / ./
 
 ARG LDFLAGS_EXTRA
-# CGO_ENABLED=1 is required for building go-sqlite3
+
 RUN \
 mv public_html internal/server/public_html && \
 echo ">> Starting go build..." && \
-GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -tags netgo \
--ldflags "-s -w -linkmode external ${LDFLAGS_EXTRA} -extldflags -static" -trimpath -o authelia ./cmd/authelia
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -tags netgo \
+-ldflags "-s -w ${LDFLAGS_EXTRA}" -trimpath -o authelia ./cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====
