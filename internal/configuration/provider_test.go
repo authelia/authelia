@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -36,6 +37,8 @@ func resetTestEnv() {
 	_ = os.Unsetenv("AUTHELIA_STORAGE_MYSQL_PASSWORD")
 	_ = os.Unsetenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD")
 	_ = os.Unsetenv("AUTHELIA_TLS_KEY")
+	_ = os.Unsetenv("AUTHELIA_PORT")
+	_ = os.Unsetenv("AUTHELIA_PORT_K8S_EXAMPLE")
 	_ = os.Unsetenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY")
 	_ = os.Unsetenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET")
 }
@@ -43,31 +46,26 @@ func resetTestEnv() {
 func TestShouldErrorSecretNotExist(t *testing.T) {
 	resetTestEnv()
 
-	p := NewProvider()
-
 	dir, err := ioutil.TempDir("", "authelia-test-secret-not-exist")
 	assert.NoError(t, err)
 
-	require.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", filepath.Join(dir, "jwt")))
-	require.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY_FILE", filepath.Join(dir, "duo")))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET_FILE", filepath.Join(dir, "session")))
-	require.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", filepath.Join(dir, "authentication")))
-	require.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE", filepath.Join(dir, "notifier")))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD_FILE", filepath.Join(dir, "redis")))
-	require.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE", filepath.Join(dir, "redis-sentinel")))
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE", filepath.Join(dir, "mysql")))
-	require.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE", filepath.Join(dir, "postgres")))
-	require.NoError(t, os.Setenv("AUTHELIA_TLS_KEY_FILE", filepath.Join(dir, "tls")))
-	require.NoError(t, os.Setenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE", filepath.Join(dir, "oidc-key")))
-	require.NoError(t, os.Setenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", filepath.Join(dir, "oidc-hmac")))
+	assert.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", filepath.Join(dir, "jwt")))
+	assert.NoError(t, os.Setenv("AUTHELIA_DUO_API_SECRET_KEY_FILE", filepath.Join(dir, "duo")))
+	assert.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET_FILE", filepath.Join(dir, "session")))
+	assert.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", filepath.Join(dir, "authentication")))
+	assert.NoError(t, os.Setenv("AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE", filepath.Join(dir, "notifier")))
+	assert.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_PASSWORD_FILE", filepath.Join(dir, "redis")))
+	assert.NoError(t, os.Setenv("AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE", filepath.Join(dir, "redis-sentinel")))
+	assert.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE", filepath.Join(dir, "mysql")))
+	assert.NoError(t, os.Setenv("AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE", filepath.Join(dir, "postgres")))
+	assert.NoError(t, os.Setenv("AUTHELIA_TLS_KEY_FILE", filepath.Join(dir, "tls")))
+	assert.NoError(t, os.Setenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE", filepath.Join(dir, "oidc-key")))
+	assert.NoError(t, os.Setenv("AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", filepath.Join(dir, "oidc-hmac")))
 
-	err = p.LoadEnvironment()
+	p := NewProvider()
 
-	assert.NoError(t, err)
-
-	err = p.LoadSecrets()
-
-	assert.Error(t, err, "one or more errors occurred during loading secrets")
+	assert.NoError(t, p.LoadEnvironment())
+	assert.Error(t, p.LoadSecrets(), "one or more errors occurred during loading secrets")
 
 	errs := p.Errors()
 
@@ -92,32 +90,41 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 	resetTestEnv()
 
-	p := NewProvider()
-
-	err := p.LoadPaths([]string{"./test_resources/config.yml"})
-	assert.NoError(t, err)
-
 	assert.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET", "abc"))
 	assert.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD", "abc"))
 	assert.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET", "abc"))
 	assert.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc"))
 
-	err = p.LoadEnvironment()
-	assert.NoError(t, err)
+	p := NewProvider()
 
-	err = p.LoadSecrets()
-	assert.NoError(t, err)
+	assert.NoError(t, p.LoadPaths([]string{"./test_resources/config.yml"}))
+	assert.NoError(t, p.LoadEnvironment())
+	assert.NoError(t, p.LoadSecrets())
 
-	err = p.UnmarshalToStruct()
-	assert.NoError(t, err)
+	assert.NoError(t, p.UnmarshalToStruct())
 	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
 
 	p.ValidateKeys()
 	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
 
 	p.ValidateConfiguration()
-	errs := p.Errors()
-	assert.Len(t, errs, 0)
+	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
+}
+
+func TestShouldNotLoadIgnoredKeys(t *testing.T) {
+	resetTestEnv()
+
+	assert.NoError(t, os.Setenv("AUTHELIA_PORT", "abc"))
+	assert.NoError(t, os.Setenv("AUTHELIA_PORT_K8S_EXAMPLE", "abc"))
+
+	p := NewProvider()
+
+	assert.NoError(t, p.LoadEnvironment())
+	assert.NoError(t, p.UnmarshalToStruct())
+	assert.Len(t, p.Keys(), 0)
 }
 
 func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T) {
@@ -125,8 +132,7 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 
 	p := NewProvider()
 
-	err := p.LoadPaths([]string{"./test_resources/config.yml"})
-	assert.NoError(t, err)
+	assert.NoError(t, p.LoadPaths([]string{"./test_resources/config.yml"}))
 
 	assert.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET", "abc"))
 	assert.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET_FILE", "./test_resources/example_secret"))
@@ -134,26 +140,45 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 	assert.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET", "abc"))
 	assert.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc"))
 
-	err = p.LoadEnvironment()
-	assert.NoError(t, err)
+	assert.NoError(t, p.LoadEnvironment())
+	assert.EqualError(t, p.LoadSecrets(), "one or more errors occurred during loading secrets")
 
-	err = p.LoadSecrets()
-	assert.EqualError(t, err, "one or more errors occurred during loading secrets")
 	require.Len(t, p.Errors(), 1)
+	assert.Len(t, p.Warnings(), 0)
 	assert.EqualError(t, p.Errors()[0], "error loading secret into key 'session.secret': it's already defined in the config file")
 
 	p.Clear()
 
-	err = p.UnmarshalToStruct()
-	assert.NoError(t, err)
+	assert.NoError(t, p.UnmarshalToStruct())
 	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
 
 	p.ValidateKeys()
 	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
 
 	p.ValidateConfiguration()
-	errs := p.Errors()
-	assert.Len(t, errs, 0)
+	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
+}
+
+func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
+	if runtime.GOOS == windows {
+		t.Skip("skipping test due to being on windows")
+	}
+
+	dir, err := ioutil.TempDir("", "authelia-conf")
+	assert.NoError(t, err)
+
+	assert.NoError(t, os.WriteFile(filepath.Join(dir, "myconf.yml"), []byte("server:\n  port: 9091\n"), 0000))
+
+	p := NewProvider()
+
+	assert.EqualError(t, p.LoadPaths([]string{filepath.Join(dir, "myconf.yml")}), "one or more errors occurred while loading configuration files")
+
+	require.Len(t, p.Errors(), 1)
+	assert.Len(t, p.Warnings(), 0)
+	assert.EqualError(t, p.Errors()[0], fmt.Sprintf("open %s: permission denied", filepath.Join(dir, "myconf.yml")))
 }
 
 func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
@@ -161,23 +186,18 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 
 	p := NewProvider()
 
-	err := p.LoadPaths([]string{"./test_resources/config.yml"})
-	assert.NoError(t, err)
+	assert.NoError(t, p.LoadPaths([]string{"./test_resources/config.yml"}))
 
 	assert.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET_FILE", "./test_resources/example_secret"))
 	assert.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE", "./test_resources/example_secret"))
 	assert.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET_FILE", "./test_resources/example_secret"))
 	assert.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", "./test_resources/example_secret"))
 
-	err = p.LoadEnvironment()
-	assert.NoError(t, err)
-
-	err = p.LoadSecrets()
-	assert.NoError(t, err)
-
-	err = p.UnmarshalToStruct()
-	assert.NoError(t, err)
+	assert.NoError(t, p.LoadEnvironment())
+	assert.NoError(t, p.LoadSecrets())
+	assert.NoError(t, p.UnmarshalToStruct())
 	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
 
 	assert.Equal(t, "example_secret value", p.Configuration.JWTSecret)
 	assert.Equal(t, "example_secret value", p.Configuration.Session.Secret)
@@ -186,10 +206,11 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 
 	p.ValidateKeys()
 	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
 
 	p.ValidateConfiguration()
-	errs := p.Errors()
-	assert.Len(t, errs, 0)
+	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
 }
 
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
@@ -197,34 +218,32 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 
 	p := NewProvider()
 
-	err := p.LoadPaths([]string{"./test_resources/config_bad_keys.yml"})
-	assert.NoError(t, err)
-
+	assert.NoError(t, p.LoadPaths([]string{"./test_resources/config_bad_keys.yml"}))
 	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
 
 	assert.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET", "abc"))
 	assert.NoError(t, os.Setenv("AUTHELIA_STORAGE_MYSQL_PASSWORD", "abc"))
 	assert.NoError(t, os.Setenv("AUTHELIA_JWT_SECRET", "abc"))
 	assert.NoError(t, os.Setenv("AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc"))
 
-	err = p.LoadEnvironment()
-	assert.NoError(t, err)
+	assert.NoError(t, p.LoadEnvironment())
+	assert.NoError(t, p.LoadSecrets())
+	assert.NoError(t, p.UnmarshalToStruct())
 
-	err = p.LoadSecrets()
-	assert.NoError(t, err)
-
-	err = p.UnmarshalToStruct()
-	assert.NoError(t, err)
 	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
 
 	p.ValidateKeys()
 	require.Len(t, p.Errors(), 2)
+	assert.Len(t, p.Warnings(), 0)
 
 	assert.EqualError(t, p.Errors()[0], "config key not expected: loggy_file")
 	assert.EqualError(t, p.Errors()[1], "invalid configuration key 'logs_level' was replaced by 'log.level'")
 
 	p.ValidateConfiguration()
 	assert.Len(t, p.Errors(), 2)
+	assert.Len(t, p.Warnings(), 0)
 }
 
 func TestShouldGenerateConfiguration(t *testing.T) {
@@ -244,6 +263,7 @@ func TestShouldGenerateConfiguration(t *testing.T) {
 	assert.NoError(t, err)
 
 	require.Len(t, p.Errors(), 1)
+	assert.Len(t, p.Warnings(), 0)
 	assert.EqualError(t, p.Errors()[0], fmt.Sprintf("configuration file did not exist a default one has been generated at %s", cfg))
 }
 
@@ -262,6 +282,7 @@ func TestShouldNotGenerateMultipleConfigurations(t *testing.T) {
 	assert.EqualError(t, err, "one or more errors occurred while loading configuration files")
 
 	require.Len(t, p.Errors(), 2)
+	assert.Len(t, p.Warnings(), 0)
 	assert.EqualError(t, p.Errors()[0], fmt.Sprintf("configuration file does not exist at %s", cfgOne))
 	assert.EqualError(t, p.Errors()[1], fmt.Sprintf("configuration file does not exist at %s", cfgTwo))
 }
@@ -280,6 +301,7 @@ func TestShouldNotGenerateConfiguration(t *testing.T) {
 	assert.EqualError(t, err, "one or more errors occurred while loading configuration files")
 
 	require.Len(t, p.Errors(), 1)
+	assert.Len(t, p.Warnings(), 0)
 	assert.EqualError(t, p.Errors()[0], fmt.Sprintf("configuration file could not be generated at %s: %s", cfg, fmt.Sprintf(utils.GetExpectedErrTxt("pathnotfound"), cfg)))
 }
 
@@ -295,6 +317,7 @@ func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
 	assert.EqualError(t, err, "one or more errors occurred while loading configuration files")
 
 	require.Len(t, p.Errors(), 2)
+	assert.Len(t, p.Warnings(), 0)
 	assert.EqualError(t, p.Errors()[0], fmt.Sprintf("error loading path '%s': is not a file", dir))
 	assert.EqualError(t, p.Errors()[1], fmt.Sprintf("error loading path '%s': is not a file", dir))
 }
@@ -306,11 +329,13 @@ func TestShouldRetrieveGlobalConfiguration(t *testing.T) {
 
 	assert.NoError(t, os.Setenv("AUTHELIA_SESSION_SECRET", "xyz"))
 
-	err := p.LoadEnvironment()
-	assert.NoError(t, err)
+	assert.NoError(t, p.LoadEnvironment())
+	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
 
-	err = p.UnmarshalToStruct()
-	assert.NoError(t, err)
+	assert.NoError(t, p.UnmarshalToStruct())
+	assert.Len(t, p.Errors(), 0)
+	assert.Len(t, p.Warnings(), 0)
 
 	assert.Equal(t, "xyz", p.Configuration.Session.Secret)
 
