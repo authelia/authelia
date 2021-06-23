@@ -18,31 +18,32 @@ A secret value can be loaded by Authelia when the configuration key ends with on
 If you take the expected environment variable for the configuration option with the `_FILE` suffix at the end. As long
 as the value of this environment variable is the path of a file, Authelia will load the contents, trim any newlines at
 the end of the file, and set the configuration to this value. The file must be readable by the user running the Authelia
-process. 
+process. In addition for backwards compatibility reasons both the standard prefix `AUTHELIA__` and the old prefix 
+`AUTHELIA_` work specifically for file-based secrets.
 
 For instance the LDAP password can be defined in the configuration
 at the path **authentication_backend.ldap.password**, so this password
 could alternatively be set using the environment variable called
-**AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE**.
+**AUTHELIA__AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE**.
 
 Here is the list of the environment variables which are considered secrets and can be defined. Please note that only
 secrets can be loaded into the configuration if the end with one of the suffixes above, you can set the value of any
 other configuration using the environment but instead of loading a file the value of the environment variable is used.
 
-|Configuration Key                                |Environment Variable                                    |
-|:-----------------------------------------------:|:------------------------------------------------------:|
-|tls_key                                          |AUTHELIA_TLS_KEY_FILE                                   |
-|jwt_secret                                       |AUTHELIA_JWT_SECRET_FILE                                |
-|duo_api.secret_key                               |AUTHELIA_DUO_API_SECRET_KEY_FILE                        |
-|session.secret                                   |AUTHELIA_SESSION_SECRET_FILE                            |
-|session.redis.password                           |AUTHELIA_SESSION_REDIS_PASSWORD_FILE                    |
-|session.redis.high_availability.sentinel_password|AUTHELIA_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE |
-|storage.mysql.password                           |AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE                    |
-|storage.postgres.password                        |AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE                 |
-|notifier.smtp.password                           |AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE                    |
-|authentication_backend.ldap.password             |AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE      |
-|identity_providers.oidc.issuer_private_key       |AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE|
-|identity_providers.oidc.hmac_secret              |AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE       |
+|Configuration Key                                |Environment Variable                                     |
+|:-----------------------------------------------:|:-------------------------------------------------------:|
+|tls_key                                          |AUTHELIA__TLS_KEY_FILE                                   |
+|jwt_secret                                       |AUTHELIA__JWT_SECRET_FILE                                |
+|duo_api.secret_key                               |AUTHELIA__DUO_API_SECRET_KEY_FILE                        |
+|session.secret                                   |AUTHELIA__SESSION_SECRET_FILE                            |
+|session.redis.password                           |AUTHELIA__SESSION_REDIS_PASSWORD_FILE                    |
+|session.redis.high_availability.sentinel_password|AUTHELIA__REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE |
+|storage.mysql.password                           |AUTHELIA__STORAGE_MYSQL_PASSWORD_FILE                    |
+|storage.postgres.password                        |AUTHELIA__STORAGE_POSTGRES_PASSWORD_FILE                 |
+|notifier.smtp.password                           |AUTHELIA__NOTIFIER_SMTP_PASSWORD_FILE                    |
+|authentication_backend.ldap.password             |AUTHELIA__AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE      |
+|identity_providers.oidc.issuer_private_key       |AUTHELIA__IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE|
+|identity_providers.oidc.hmac_secret              |AUTHELIA__IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE       |
 
 ## Secrets in configuration file
 
@@ -52,13 +53,15 @@ this file. Generally the UNIX permissions that are appropriate are 0600.
 
 ## Secrets exposed in an environment variable
 
-**DEPRECATION NOTICE:** This backwards compatibility feature **has been removed** in 4.18.0. It was reintroduced in 
-4.30.0+, however we strongly urge people not to use this option and instead use the files above.
+It in all versions 4.30.0+ you can technically set secrets using the environment variables without the `_FILE` suffix by
+setting the value to the value you wish to set in configuration, however we strongly urge people not to use this option
+and instead use the file-based secrets above.
 
 Prior to implementing file secrets the only way you were able to define secret values was either via configuration or
-via environment variables in plain text. See
-[this article](https://diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/)
-for reasons why setting them via the file counterparts is highly encouraged.
+via environment variables in plain text. 
+
+See [this article](https://diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/) for reasons 
+why setting them via the file counterparts is highly encouraged.
 
 ## Docker
 

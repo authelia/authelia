@@ -30,7 +30,7 @@ $ authelia --config config.yml,config-acl.yml,config-other.yml
 
 You may also provide the configuration by using environment variables. Environment variables are applied after the 
 configuration file meaning anything specified as part of the environment overrides the configuration files. The 
-environment variables must be prefixed with `AUTHELIA_`. Everything in the configuration can be specified as an
+environment variables must be prefixed with `AUTHELIA__`. Everything in the configuration can be specified as an
 environment variable as long as it's not in a list, this means ACL rules are excluded as well as things like OIDC
 clients.
 
@@ -38,8 +38,8 @@ Underscores replace indented configuration sections or subkeys. For example the 
 the configuration snippet that follows it:
 
 ```
-AUTHELIA_LOG_LEVEL=info
-AUTHELIA_SERVER_READ_BUFFER_SIZE=4096
+AUTHELIA__LOG_LEVEL=info
+AUTHELIA__SERVER_READ_BUFFER_SIZE=4096
 ```
 
 ```yaml
@@ -136,7 +136,8 @@ required: no
 </div>
 
 The key `skip_verify` completely negates validating the certificate of the backend service. This is not recommended,
-instead you should tweak the `server_name` option, and the global option [certificates_directory](./miscellaneous.md#certificates-directory).
+instead you should tweak the `server_name` option, and the global option 
+[certificates_directory](./miscellaneous.md#certificates_directory).
 
 ## Minimum Version
 <div markdown="1">

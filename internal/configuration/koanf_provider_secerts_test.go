@@ -7,7 +7,7 @@ import (
 )
 
 func TestShouldReturnErrOnReadBytes(t *testing.T) {
-	p := NewSecretsProvider(".", NewProvider())
+	p := NewSecretsProvider(NewProvider())
 
 	_, err := p.ReadBytes()
 

@@ -12,8 +12,7 @@ import (
 
 // SecretsProvider implements the koanf.Provider interface.
 type SecretsProvider struct {
-	delim string
-	conf  *Provider
+	conf *Provider
 }
 
 // ReadBytes is not supported by this provider.
@@ -28,15 +27,15 @@ func (p *SecretsProvider) Read() (k map[string]interface{}, err error) {
 	sortedKeys := p.conf.Keys()
 	sort.Strings(sortedKeys)
 
-	for _, k := range sortedKeys {
-		if expectedKey := strings.TrimPrefix(k, "secret."); expectedKey != k {
+	for _, key := range sortedKeys {
+		if expectedKey := strings.TrimPrefix(key, secretPrefix); expectedKey != key {
 			currentValue, ok := p.conf.Get(expectedKey).(string)
 			if ok && currentValue != "" {
 				p.conf.Push(fmt.Errorf(errFmtSecretAlreadyDefined, expectedKey))
 				continue
 			}
 
-			fileName, ok := p.conf.Get(k).(string)
+			fileName, ok := p.conf.Get(key).(string)
 			if !ok {
 				continue
 			}
@@ -53,14 +52,10 @@ func (p *SecretsProvider) Read() (k map[string]interface{}, err error) {
 		}
 	}
 
-	if p.conf.HasErrors() {
-		return maps.Unflatten(keys, p.delim), errSecretOneOrMoreErrors
-	}
-
-	return maps.Unflatten(keys, p.delim), nil
+	return maps.Unflatten(keys, delimiter), nil
 }
 
 // NewSecretsProvider returns a new SecretsProvider.
-func NewSecretsProvider(delim string, p *Provider) *SecretsProvider {
-	return &SecretsProvider{delim, p}
+func NewSecretsProvider(p *Provider) *SecretsProvider {
+	return &SecretsProvider{p}
 }

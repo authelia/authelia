@@ -20,8 +20,6 @@ type Provider struct {
 	*koanf.Koanf
 	*schema.StructValidator
 
-	fileKeys []string
-
 	Configuration *schema.Configuration
 }
 
@@ -34,7 +32,10 @@ func (p *Provider) LoadPaths(paths []string) (err error) {
 	errs := false
 
 	for _, path := range paths {
-		if info, err := os.Stat(path); err == nil {
+		info, osErr := os.Stat(path)
+
+		switch {
+		case osErr == nil:
 			if info.IsDir() {
 				p.Push(fmt.Errorf("error loading path '%s': is not a file", path))
 
@@ -45,35 +46,40 @@ func (p *Provider) LoadPaths(paths []string) (err error) {
 
 			err = p.loadFile(path)
 			if err != nil {
-				p.Push(err)
+				p.Push(fmt.Errorf("configuration file could not be loaded due to an error: %v", err))
 
 				errs = true
 
 				continue
 			}
-		} else if os.IsNotExist(err) {
+		case os.IsNotExist(osErr):
 			switch len(paths) {
 			case 1:
+				errs = true
+
 				err = generateConfigFromTemplate(path)
 				if err != nil {
 					p.Push(fmt.Errorf("configuration file could not be generated at %s: %v", path, err))
 
-					errs = true
-
 					continue
 				}
+
+				p.Push(fmt.Errorf("configuration file did not exist at %s and generated with defaults but you will need to configure it", path))
 			default:
 				p.Push(fmt.Errorf("configuration file does not exist at %s", path))
+
 				errs = true
+
 				continue
 			}
+		default:
+			p.Push(fmt.Errorf("configuration file could not be loaded due to an error: %v", osErr))
 
 			errs = true
-			p.Push(fmt.Errorf("configuration file did not exist a default one has been generated at %s", path))
+
+			continue
 		}
 	}
-
-	p.fileKeys = p.Keys()
 
 	if errs {
 		return errors.New("one or more errors occurred while loading configuration files")
@@ -84,39 +90,18 @@ func (p *Provider) LoadPaths(paths []string) (err error) {
 
 // LoadEnvironment loads the environment variables to the configuration.
 func (p *Provider) LoadEnvironment() (err error) {
-	return p.Load(env.ProviderWithValue("AUTHELIA_", ".", koanfKeyCallbackBuilder("_", ".", "AUTHELIA_")), nil)
+	return p.Load(env.ProviderWithValue(envPrefixAlt, delimiter, koanfKeyCallbackBuilder()), nil)
 }
 
 // LoadSecrets loads the secrets into the struct from the path values.
 func (p *Provider) LoadSecrets() (err error) {
-	err = p.Load(NewSecretsProvider(".", p), nil)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return p.Load(NewSecretsProvider(p), nil)
 }
 
 // ValidateConfiguration runs the configuration validation tasks.
 func (p *Provider) ValidateConfiguration() {
+	validator.ValidateKeys(p.StructValidator, p.Keys())
 	validator.ValidateConfiguration(p.Configuration, p.StructValidator)
-}
-
-// ValidateFileAuthenticationBackend runs the configuration validation tasks on specifically the file authentication backend.
-func (p *Provider) ValidateFileAuthenticationBackend() {
-	validator.ValidateFileAuthenticationBackend(p.Configuration.AuthenticationBackend.File, p.StructValidator)
-}
-
-// ValidateKeys runs key validation tasks.
-func (p *Provider) ValidateKeys() {
-	validator.ValidateKeys(p.StructValidator, p.fileKeys)
-}
-
-// Reset removes all of the values not needed after validation.
-func (p *Provider) Reset() {
-	p.StructValidator.Clear()
-	p.fileKeys = nil
 }
 
 // UnmarshalToStruct unmarshalls the configuration to the struct.
@@ -151,7 +136,7 @@ func GetProvider() *Provider {
 func NewProvider() (p *Provider) {
 	return &Provider{
 		Koanf: koanf.NewWithConf(koanf.Conf{
-			Delim:       ".",
+			Delim:       delimiter,
 			StrictMerge: false,
 		}),
 		StructValidator: schema.NewStructValidator(),

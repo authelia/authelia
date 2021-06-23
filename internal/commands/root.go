@@ -188,8 +188,6 @@ func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 		logger.Fatalf("Error unmarshalling configuration: %v", err)
 	}
 
-	provider.ValidateKeys()
-
 	provider.ValidateConfiguration()
 
 	warns := provider.Warnings()
@@ -212,5 +210,5 @@ func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 		logger.Fatalf("Exiting due to configuration validation errors above.")
 	}
 
-	provider.Reset()
+	provider.Clear()
 }
