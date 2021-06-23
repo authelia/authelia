@@ -107,7 +107,7 @@ func (s *CLISuite) TestShouldGenerateCertificateRSAWithStartDate() {
 func (s *CLISuite) TestShouldFailGenerateCertificateRSAWithStartDate() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--start-date", "Jan"})
 	s.Assert().NotNil(err)
-	s.Assert().Contains(output, "Failed to parse creation date: parsing time \"Jan\" as \"Jan 2 15:04:05 2006\": cannot parse \"\" as \"2\"")
+	s.Assert().Contains(output, "Failed to parse start date: parsing time \"Jan\" as \"Jan 2 15:04:05 2006\": cannot parse \"\" as \"2\"")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateCA() {
@@ -127,7 +127,7 @@ func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
 func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "invalid"})
 	s.Assert().NotNil(err)
-	s.Assert().Contains(output, "Unrecognized elliptic curve: \"invalid\"")
+	s.Assert().Contains(output, "Failed to generate private key: unrecognized elliptic curve: \"invalid\"")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP224() {

@@ -209,7 +209,7 @@ func getPrivateKey(ecdsaCurve string, ed25519Key bool, rsaBits int) (priv interf
 	case "P521":
 		priv, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	default:
-		err = fmt.Errorf("unrecognized elliptic curve: %s", ecdsaCurve)
+		err = fmt.Errorf("unrecognized elliptic curve: %q", ecdsaCurve)
 	}
 
 	return priv, err
