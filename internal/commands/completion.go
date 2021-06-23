@@ -1,11 +1,10 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
-
-	"github.com/authelia/authelia/internal/logging"
 )
 
 func newCompletionCmd() (cmd *cobra.Command) {
@@ -73,10 +72,12 @@ func cmdCompletionRun(cmd *cobra.Command, args []string) {
 	case "powershell":
 		err = cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
 	default:
-		logging.Logger().Fatalf("Invalid shell provided for completion command: %s", args[0])
+		fmt.Printf("Invalid shell provided for completion command: %s\n", args[0])
+		os.Exit(1)
 	}
 
 	if err != nil {
-		logging.Logger().Fatalf("Error generating completion: %v", err)
+		fmt.Printf("Error generating completion: %v\n", err)
+		os.Exit(1)
 	}
 }

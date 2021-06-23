@@ -1,12 +1,12 @@
 package commands
 
 import (
+	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
-	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/utils"
 )
 
@@ -36,54 +36,69 @@ func newRSAGenerateCmd() (cmd *cobra.Command) {
 }
 
 func cmdRSAGenerateRun(cmd *cobra.Command, _ []string) {
-	logger := logging.Logger()
-
 	bits, err := cmd.Flags().GetInt("key-size")
 	if err != nil {
-		logger.Fatal(err)
+		fmt.Printf("Failed to parse key-size flag: %v\n", err)
+		return
 	}
 
 	privateKey, publicKey := utils.GenerateRsaKeyPair(bits)
 
 	rsaTargetDirectory, err := cmd.Flags().GetString("dir")
 	if err != nil {
-		logger.Fatal(err)
+		fmt.Printf("Failed to parse dir flag: %v\n", err)
+		return
 	}
 
-	keyPath := path.Join(rsaTargetDirectory, "key.pem")
+	keyPath := filepath.Join(rsaTargetDirectory, "key.pem")
+
 	keyOut, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-
 	if err != nil {
-		logger.Fatalf("Failed to open %s for writing: %v", keyPath, err)
+		fmt.Printf("Failed to open %s for writing: %v\n", keyPath, err)
+		return
 	}
+
+	defer func() {
+		if err := keyOut.Close(); err != nil {
+			fmt.Printf("Unable to close private key file: %v\n", err)
+			os.Exit(1)
+		}
+	}()
 
 	_, err = keyOut.WriteString(utils.ExportRsaPrivateKeyAsPemStr(privateKey))
 	if err != nil {
-		logger.Fatalf("Unable to write private key: %v", err)
+		fmt.Printf("Failed to write private key: %v\n", err)
+		return
 	}
 
-	if err := keyOut.Close(); err != nil {
-		logger.Fatalf("Unable to close private key file: %v", err)
-	}
+	fmt.Printf("RSA Private Key written to %s\n", keyPath)
 
-	keyPath = path.Join(rsaTargetDirectory, "key.pub")
+	keyPath = filepath.Join(rsaTargetDirectory, "key.pub")
+
 	keyOut, err = os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-
 	if err != nil {
-		logger.Fatalf("Failed to open %s for writing: %v", keyPath, err)
+		fmt.Printf("Failed to open %s for writing: %v\n", keyPath, err)
+		return
 	}
+
+	defer func() {
+		if err := keyOut.Close(); err != nil {
+			fmt.Printf("Failed to close public key file: %v\n", err)
+			os.Exit(1)
+		}
+	}()
 
 	publicPem, err := utils.ExportRsaPublicKeyAsPemStr(publicKey)
 	if err != nil {
-		logger.Fatalf("Unable to marshal public key: %v", err)
+		fmt.Printf("Failed to marshal public key: %v\n", err)
+		return
 	}
 
 	_, err = keyOut.WriteString(publicPem)
 	if err != nil {
-		logger.Fatalf("Unable to write private key: %v", err)
+		fmt.Printf("Failed to write private key: %v\n", err)
+		return
 	}
 
-	if err := keyOut.Close(); err != nil {
-		logger.Fatalf("Unable to close public key file: %v", err)
-	}
+	fmt.Printf("RSA Public Key written to %s\n", keyPath)
 }
