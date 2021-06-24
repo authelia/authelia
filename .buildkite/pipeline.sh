@@ -64,6 +64,10 @@ steps:
     command: "echo End of concurrency gate"
     concurrency: 3
     concurrency_group: "builds"
+    depends_on:
+      - "build-docker-linux-amd64"
+      - "build-docker-linux-arm32v7"
+      - "build-docker-linux-arm64v8"
     if: build.env("CI_BYPASS") != "true"
 
   - wait:
