@@ -53,7 +53,7 @@ steps:
     if: build.env("CI_BYPASS") != "true"
 
   - label: ":debian: Package Builds"
-    command: "debpackages.sh"
+    command: ".buildkite/steps/debpackages.sh | buildkite-agent pipeline upload"
     if: build.env("CI_BYPASS") != "true"
 
   - wait:
