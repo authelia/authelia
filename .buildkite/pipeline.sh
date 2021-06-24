@@ -68,6 +68,7 @@ steps:
       - "build-docker-linux-amd64"
       - "build-docker-linux-arm32v7"
       - "build-docker-linux-arm64v8"
+      - "build-docker-linux-coverage"
     if: build.env("CI_BYPASS") != "true"
 
   - wait:
