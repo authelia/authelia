@@ -17,7 +17,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/mock v1.6.0
 	github.com/jackc/pgx/v4 v4.11.0
-	github.com/knadh/koanf v1.1.0
+	github.com/knadh/koanf v1.1.1
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/ory/fosite v0.40.2
 	github.com/otiai10/copy v1.6.0
