@@ -32,5 +32,5 @@ if [[ "${BUILDKITE_LABEL}" =~ ":debian: Build Package" ]]; then
     VERSION=$(git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g')
     for f in *.deb; do mv "$f" "$(echo "$f" | sed s/${VERSION}-1_//)"; done
   fi
-  sha256sum "authelia_${PACKAGE}" > "authelia_${PACKAGE}.sha256"
+  sha256sum "authelia_${PACKAGE}.deb" > "authelia_${PACKAGE}.deb.sha256"
 fi
