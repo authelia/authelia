@@ -4,35 +4,35 @@ set +u
 
 DOCKER_IMAGE=authelia/authelia
 
-if [[ $BUILDKITE_LABEL == ":hammer_and_wrench: Unit Test" ]]; then
+if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
   tar -czf authelia-public_html.tar.gz -C dist public_html
   sha256sum authelia-public_html.tar.gz > authelia-public_html.tar.gz.sha256
 fi
 
-if [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]]; then
+if [[ "${BUILDKITE_LABEL}" =~ ":docker: Build Image" ]]; then
   echo "--- :docker: Saving artifacts for :buildkite: :docker: :github: releases"
   # Save binary for buildkite and github artifacts
   if [[ "${ARCH}" != "coverage" ]]; then
-    docker create --name authelia-binary ${DOCKER_IMAGE}:latest
-    docker cp authelia-binary:/app/authelia ./authelia-"${OS}"-"${ARCH}"
+    docker create --name authelia-binary "${DOCKER_IMAGE}:latest"
+    docker cp authelia-binary:/app/authelia "./authelia-${OS}-${ARCH}"
     docker rm -f authelia-binary
-    tar -czf authelia-"${OS}"-"${ARCH}".tar.gz authelia-"${OS}"-"${ARCH}" authelia.service config.template.yml
-    sha256sum authelia-"${OS}"-"${ARCH}".tar.gz > authelia-"${OS}"-"${ARCH}".tar.gz.sha256
+    tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia.service config.template.yml
+    sha256sum "authelia-${OS}-${ARCH}.tar.gz" > "authelia-${OS}-${ARCH}.tar.gz.sha256"
   fi
   # Saving image for push to docker hub
-  docker save ${DOCKER_IMAGE} | zstdmt -T0 -12 > authelia-image-"${ARCH}".tar.zst
+  docker save "${DOCKER_IMAGE}" | zstdmt -T0 -12 > "authelia-image-${ARCH}.tar.zst"
 fi
 
-if [[ $BUILDKITE_LABEL =~ ":debian: Package Builds" ]]; then
-  if [[ ${BUILDKITE_TAG} != "" ]]; then
+if [[ "${BUILDKITE_LABEL}" =~ ":debian: Build Package" ]]; then
+  if [[ "${BUILDKITE_TAG}" != "" ]]; then
     echo "--- :debian: Saving artifacts for :github: release"
     for f in *.deb; do mv "$f" "$(echo "$f" | sed s/${BUILDKITE_TAG//v}-1_//)"; done
   else
     echo "--- :debian: Saving artifacts for :buildkite: release"
     VERSION=$(git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g')
-    for f in *.deb; do mv "$f" "$(echo "$f" | sed s/$VERSION-1_//)"; done
+    for f in *.deb; do mv "$f" "$(echo "$f" | sed s/${VERSION}-1_//)"; done
   fi
   for DEB_PACKAGE in authelia_amd64.deb authelia_arm64.deb authelia_armhf.deb; do
-    sha256sum ${DEB_PACKAGE} > ${DEB_PACKAGE}.sha256
+    sha256sum "${DEB_PACKAGE}" > "${DEB_PACKAGE}.sha256"
   done
 fi

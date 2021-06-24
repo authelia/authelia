@@ -6,7 +6,7 @@ echo "--- :linux: Deploy AUR package: ${PACKAGE}"
 git clone ssh://aur@aur.archlinux.org/"${PACKAGE}".git
 cd "${PACKAGE}" || exit
 
-if [[ $PACKAGE != "authelia-git" ]]; then
+if [[ "${PACKAGE}" != "authelia-git" ]]; then
   sed -i -e "/pkgver=/c pkgver=${BUILDKITE_TAG//v/}" \
   -e '/pkgrel=/c pkgrel=1' PKGBUILD && \
   docker run --rm -v $PWD:/build authelia/aurpackager bash -c "cd /build && updpkgsums"
@@ -17,7 +17,7 @@ fi
 
 docker run --rm -v $PWD:/build authelia/aurpackager bash -c "cd /build && makepkg --printsrcinfo >| .SRCINFO" && \
 git add . && \
-if [[ $PACKAGE != "authelia-git" ]]; then
+if [[ "${PACKAGE}" != "authelia-git" ]]; then
   git commit -m "Update to ${BUILDKITE_TAG}"
 else
   git commit -m "Update to GIT version: ${GITTAG}"

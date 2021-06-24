@@ -3,9 +3,9 @@ set -u
 
 DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
 
-if [[ $DIVERGED == 0 ]]; then
-  if [[ $BUILDKITE_TAG == "" ]]; then
-    if [[ $BUILDKITE_BRANCH == "master" ]]; then
+if [[ "${DIVERGED}" == 0 ]]; then
+  if [[ "${BUILDKITE_TAG}" == "" ]]; then
+    if [[ "${BUILDKITE_BRANCH}" == "master" ]]; then
       CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(CONTRIBUTING.md|README.md|SECURITY.md|\.all-contributorsrc|\.github\/.*|docs\/.*)/!{q1}' && echo true || echo false)
     else
       CI_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^(CONTRIBUTING.md|README.md|SECURITY.md|\.all-contributorsrc|\.github\/.*|docs\/.*)/!{q1}' && echo true || echo false)
@@ -54,14 +54,6 @@ steps:
 
   - label: ":debian: Package Builds"
     command: "debpackages.sh"
-    artifact_paths:
-      - "*.deb"
-      - "*.deb.sha256"
-    depends_on:
-      - "build-docker-linux-amd64"
-      - "build-docker-linux-arm32v7"
-      - "build-docker-linux-arm64v8"
-    key: "build-deb-packages"
     if: build.env("CI_BYPASS") != "true"
 
   - wait:
