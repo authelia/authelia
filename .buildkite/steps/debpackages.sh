@@ -9,7 +9,7 @@ else
 fi
 
 wget https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=authelia-bin -O PKGBUILD && \
-sed -i -e '/^pkgname=/c\pkgname=authelia' -e "/pkgver=/c\pkgver=$VERSION" -e '10,14d' \
+sed -i -e '/^pkgname=/c pkgname=authelia' -e "/pkgver=/c $VERSION" -e '10,14d' \
 -e 's/source_x86_64.*/source_x86_64=("authelia-linux-amd64.tar.gz")/' \
 -e 's/source_aarch64.*/source_aarch64=("authelia-linux-arm64v8.tar.gz")/' \
 -e 's/source_armv7h.*/source_armv7h=("authelia-linux-arm32v7.tar.gz")/' \
