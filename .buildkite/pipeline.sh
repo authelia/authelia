@@ -52,6 +52,27 @@ steps:
     depends_on: ~
     if: build.env("CI_BYPASS") != "true"
 
+  - label: ":debian: Package Builds"
+    command: "debpackages.sh"
+    artifact_paths:
+      - "*.deb"
+      - "*.deb.sha256"
+    depends_on:
+      - "build-docker-linux-amd64"
+      - "build-docker-linux-arm32v7"
+      - "build-docker-linux-arm64v8"
+    key: "build-deb-packages"
+    if: build.env("CI_BYPASS") != "true"
+
+  - wait:
+    if: build.env("CI_BYPASS") != "true"
+
+  - label: ":vertical_traffic_light: Build Concurrency Gate"
+    command: "echo End of concurrency gate"
+    concurrency: 3
+    concurrency_group: "builds"
+    if: build.env("CI_BYPASS") != "true"
+
   - wait:
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
 
@@ -62,4 +83,13 @@ steps:
     depends_on:
       - "build-docker-linux-coverage"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
+
+  - wait:
+    if: build.env("CI_BYPASS") != "true"
+
+  - label: ":vertical_traffic_light: Test Concurrency Gate"
+    command: "echo End of concurrency gate"
+    concurrency: 3
+    concurrency_group: "tests"
+    if: build.env("CI_BYPASS") != "true"
 EOF
