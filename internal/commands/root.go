@@ -52,7 +52,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 func cmdRootRun(_ *cobra.Command, _ []string) {
 	logger := logging.Logger()
 
-	config := configuration.GetProvider().Configuration
+	config := configuration.GetProvider().Configuration()
 
 	logger.Infof("Authelia %s is starting", utils.Version())
 
@@ -183,12 +183,12 @@ func cmdWithConfigPreRun(cmd *cobra.Command, _ []string) {
 		logger.Fatalf("Errors loading secrets configuration: %v", err)
 	}
 
-	err = provider.UnmarshalToStruct()
+	err = provider.UnmarshalToConfiguration()
 	if err != nil {
 		logger.Fatalf("Error unmarshalling configuration: %v", err)
 	}
 
-	provider.ValidateConfiguration()
+	provider.Validate()
 
 	warns := provider.Warnings()
 	if len(warns) != 0 {

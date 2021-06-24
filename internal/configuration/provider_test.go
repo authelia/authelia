@@ -15,7 +15,7 @@ import (
 )
 
 func TestShouldErrorSecretNotExist(t *testing.T) {
-	testResetEnv()
+	testReset()
 
 	dir, err := ioutil.TempDir("", "authelia-test-secret-not-exist")
 	assert.NoError(t, err)
@@ -33,7 +33,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	assert.NoError(t, os.Setenv(envPrefix+"IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE", filepath.Join(dir, "oidc-key")))
 	assert.NoError(t, os.Setenv(envPrefix+"IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", filepath.Join(dir, "oidc-hmac")))
 
-	p := NewProvider()
+	p := GetProvider()
 
 	assert.NoError(t, p.LoadEnvironment())
 	assert.NoError(t, p.LoadSecrets())
@@ -58,33 +58,53 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	assert.EqualError(t, errs[11], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "tls"), "tls_key", fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))))
 }
 
-func TestShouldValidateConfigurationWithEnv(t *testing.T) {
-	testResetEnv()
+func TestShouldHaveNotifier(t *testing.T) {
+	testReset()
 
 	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET", "abc"))
 	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL_PASSWORD", "abc"))
 	assert.NoError(t, os.Setenv(envPrefix+"JWT_SECRET", "abc"))
 	assert.NoError(t, os.Setenv(envPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc"))
 
-	p := NewProvider()
+	p := GetProvider()
+
+	assert.NoError(t, p.LoadAll([]string{"./test_resources/config.yml"}))
+
+	err := p.UnmarshalToConfiguration()
+	assert.NoError(t, err)
+
+	assert.NotNil(t, GetProvider().Configuration().Notifier)
+}
+
+func TestShouldValidateConfigurationWithEnv(t *testing.T) {
+	testReset()
+
+	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET", "abc"))
+	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL_PASSWORD", "abc"))
+	assert.NoError(t, os.Setenv(envPrefix+"JWT_SECRET", "abc"))
+	assert.NoError(t, os.Setenv(envPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc"))
+
+	p := GetProvider()
 
 	assert.NoError(t, p.LoadPaths([]string{"./test_resources/config.yml"}))
 	assert.NoError(t, p.LoadEnvironment())
 	assert.NoError(t, p.LoadSecrets())
 
-	assert.NoError(t, p.UnmarshalToStruct())
+	err := p.UnmarshalToConfiguration()
+	assert.NoError(t, err)
+
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 
-	p.ValidateConfiguration()
+	p.Validate()
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 }
 
 func TestShouldIgnoreInvalidEnvs(t *testing.T) {
-	testResetEnv()
+	testReset()
 
-	p := NewProvider()
+	p := GetProvider()
 
 	assert.NoError(t, p.LoadPaths([]string{"./test_resources/config.yml"}))
 
@@ -97,18 +117,20 @@ func TestShouldIgnoreInvalidEnvs(t *testing.T) {
 
 	require.NoError(t, p.LoadEnvironment())
 	require.NoError(t, p.LoadSecrets())
-	require.NoError(t, p.UnmarshalToStruct())
 
-	p.ValidateConfiguration()
+	err := p.UnmarshalToConfiguration()
+	assert.NoError(t, err)
+
+	p.Validate()
 
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 }
 
 func TestShouldIgnoreSingleUnderscoreNonSecretEnvs(t *testing.T) {
-	testResetEnv()
+	testReset()
 
-	p := NewProvider()
+	p := GetProvider()
 
 	assert.NoError(t, p.LoadPaths([]string{"./test_resources/config.yml"}))
 
@@ -120,22 +142,24 @@ func TestShouldIgnoreSingleUnderscoreNonSecretEnvs(t *testing.T) {
 
 	require.NoError(t, p.LoadEnvironment())
 	require.NoError(t, p.LoadSecrets())
-	require.NoError(t, p.UnmarshalToStruct())
 
-	p.ValidateConfiguration()
+	err := p.UnmarshalToConfiguration()
+	assert.NoError(t, err)
+
+	p.Validate()
 
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 
-	assert.Equal(t, "an env jwt secret", p.Configuration.JWTSecret)
-	assert.Equal(t, "an env session secret", p.Configuration.Session.Secret)
-	assert.Equal(t, "an env storage mysql password", p.Configuration.Storage.MySQL.Password)
-	assert.Equal(t, "an env authentication backend ldap password", p.Configuration.AuthenticationBackend.LDAP.Password)
-	assert.Equal(t, "ldap://127.0.0.1", p.Configuration.AuthenticationBackend.LDAP.URL)
+	assert.Equal(t, "an env jwt secret", p.Configuration().JWTSecret)
+	assert.Equal(t, "an env session secret", p.Configuration().Session.Secret)
+	assert.Equal(t, "an env storage mysql password", p.Configuration().Storage.MySQL.Password)
+	assert.Equal(t, "an env authentication backend ldap password", p.Configuration().AuthenticationBackend.LDAP.Password)
+	assert.Equal(t, "ldap://127.0.0.1", p.Configuration().AuthenticationBackend.LDAP.URL)
 }
 
 func TestShouldAllowBothLegacyEnvSecretFilesAndNewOnes(t *testing.T) {
-	testResetEnv()
+	testReset()
 
 	dir, err := ioutil.TempDir("", "authelia-test-secrets")
 	assert.NoError(t, err)
@@ -150,7 +174,7 @@ func TestShouldAllowBothLegacyEnvSecretFilesAndNewOnes(t *testing.T) {
 	assert.NoError(t, testCreateFile(ldapSecret, "a secret authentication_backend.ldap.password value", 0600))
 	assert.NoError(t, testCreateFile(storageSecret, "a secret storage.mysql.password value", 0600))
 
-	p := NewProvider()
+	p := GetProvider()
 
 	assert.NoError(t, p.LoadPaths([]string{"./test_resources/config.yml"}))
 
@@ -165,24 +189,26 @@ func TestShouldAllowBothLegacyEnvSecretFilesAndNewOnes(t *testing.T) {
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 
-	assert.NoError(t, p.UnmarshalToStruct())
+	err = p.UnmarshalToConfiguration()
+	assert.NoError(t, err)
+
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 
-	p.ValidateConfiguration()
+	p.Validate()
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 
-	assert.Equal(t, "a secret jwt_secret value", p.Configuration.JWTSecret)
-	assert.Equal(t, "a secret session.secret value", p.Configuration.Session.Secret)
-	assert.Equal(t, "a secret storage.mysql.password value", p.Configuration.Storage.MySQL.Password)
-	assert.Equal(t, "a secret authentication_backend.ldap.password value", p.Configuration.AuthenticationBackend.LDAP.Password)
+	assert.Equal(t, "a secret jwt_secret value", p.Configuration().JWTSecret)
+	assert.Equal(t, "a secret session.secret value", p.Configuration().Session.Secret)
+	assert.Equal(t, "a secret storage.mysql.password value", p.Configuration().Storage.MySQL.Password)
+	assert.Equal(t, "a secret authentication_backend.ldap.password value", p.Configuration().AuthenticationBackend.LDAP.Password)
 }
 
 func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T) {
-	testResetEnv()
+	testReset()
 
-	p := NewProvider()
+	p := GetProvider()
 
 	assert.NoError(t, p.LoadPaths([]string{"./test_resources/config.yml"}))
 
@@ -201,18 +227,20 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 
 	p.Clear()
 
-	assert.NoError(t, p.UnmarshalToStruct())
+	err := p.UnmarshalToConfiguration()
+	assert.NoError(t, err)
+
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 
-	p.ValidateConfiguration()
+	p.Validate()
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 
-	assert.Equal(t, "example_secret value", p.Configuration.JWTSecret)
-	assert.Equal(t, "an env session secret", p.Configuration.Session.Secret)
-	assert.Equal(t, "an env storage mysql password", p.Configuration.Storage.MySQL.Password)
-	assert.Equal(t, "an env authentication backend ldap password", p.Configuration.AuthenticationBackend.LDAP.Password)
+	assert.Equal(t, "example_secret value", p.Configuration().JWTSecret)
+	assert.Equal(t, "an env session secret", p.Configuration().Session.Secret)
+	assert.Equal(t, "an env storage mysql password", p.Configuration().Storage.MySQL.Password)
+	assert.Equal(t, "an env authentication backend ldap password", p.Configuration().AuthenticationBackend.LDAP.Password)
 }
 
 func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
@@ -220,12 +248,14 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 		t.Skip("skipping test due to being on windows")
 	}
 
+	testReset()
+
 	dir, err := ioutil.TempDir("", "authelia-conf")
 	assert.NoError(t, err)
 
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, "myconf.yml"), []byte("server:\n  port: 9091\n"), 0000))
 
-	p := NewProvider()
+	p := GetProvider()
 
 	assert.EqualError(t, p.LoadPaths([]string{filepath.Join(dir, "myconf.yml")}), "one or more errors occurred while loading configuration files")
 
@@ -235,9 +265,9 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 }
 
 func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
-	testResetEnv()
+	testReset()
 
-	p := NewProvider()
+	p := GetProvider()
 
 	assert.NoError(t, p.LoadPaths([]string{"./test_resources/config.yml"}))
 
@@ -248,24 +278,27 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 
 	assert.NoError(t, p.LoadEnvironment())
 	assert.NoError(t, p.LoadSecrets())
-	assert.NoError(t, p.UnmarshalToStruct())
+
+	err := p.UnmarshalToConfiguration()
+	assert.NoError(t, err)
+
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 
-	assert.Equal(t, "example_secret value", p.Configuration.JWTSecret)
-	assert.Equal(t, "example_secret value", p.Configuration.Session.Secret)
-	assert.Equal(t, "example_secret value", p.Configuration.AuthenticationBackend.LDAP.Password)
-	assert.Equal(t, "example_secret value", p.Configuration.Storage.MySQL.Password)
+	assert.Equal(t, "example_secret value", p.Configuration().JWTSecret)
+	assert.Equal(t, "example_secret value", p.Configuration().Session.Secret)
+	assert.Equal(t, "example_secret value", p.Configuration().AuthenticationBackend.LDAP.Password)
+	assert.Equal(t, "example_secret value", p.Configuration().Storage.MySQL.Password)
 
-	p.ValidateConfiguration()
+	p.Validate()
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 }
 
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
-	testResetEnv()
+	testReset()
 
-	p := NewProvider()
+	p := GetProvider()
 
 	assert.NoError(t, p.LoadPaths([]string{"./test_resources/config_bad_keys.yml"}))
 	assert.Len(t, p.Errors(), 0)
@@ -278,12 +311,14 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 
 	assert.NoError(t, p.LoadEnvironment())
 	assert.NoError(t, p.LoadSecrets())
-	assert.NoError(t, p.UnmarshalToStruct())
+
+	err := p.UnmarshalToConfiguration()
+	assert.NoError(t, err)
 
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 
-	p.ValidateConfiguration()
+	p.Validate()
 	assert.Len(t, p.Errors(), 2)
 	assert.Len(t, p.Warnings(), 0)
 
@@ -292,9 +327,9 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 }
 
 func TestShouldGenerateConfiguration(t *testing.T) {
-	testResetEnv()
+	testReset()
 
-	p := NewProvider()
+	p := GetProvider()
 
 	dir, err := ioutil.TempDir("", "authelia-config")
 	assert.NoError(t, err)
@@ -317,9 +352,9 @@ func TestShouldNotGenerateConfigurationOnFSAccessDenied(t *testing.T) {
 		t.Skip("skipping test due to being on windows")
 	}
 
-	testResetEnv()
+	testReset()
 
-	p := NewProvider()
+	p := GetProvider()
 
 	dir, err := ioutil.TempDir("", "authelia-config")
 	assert.NoError(t, err)
@@ -344,9 +379,9 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 		t.Skip("skipping test due to being on windows")
 	}
 
-	testResetEnv()
+	testReset()
 
-	p := NewProvider()
+	p := GetProvider()
 
 	dir, err := ioutil.TempDir("", "authelia-config")
 	assert.NoError(t, err)
@@ -364,9 +399,9 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 }
 
 func TestShouldNotGenerateMultipleConfigurations(t *testing.T) {
-	testResetEnv()
+	testReset()
 
-	p := NewProvider()
+	p := GetProvider()
 
 	dir, err := ioutil.TempDir("", "authelia-config")
 	assert.NoError(t, err)
@@ -384,9 +419,9 @@ func TestShouldNotGenerateMultipleConfigurations(t *testing.T) {
 }
 
 func TestShouldNotGenerateConfiguration(t *testing.T) {
-	testResetEnv()
+	testReset()
 
-	p := NewProvider()
+	p := GetProvider()
 
 	dir, err := ioutil.TempDir("", "authelia-config")
 	assert.NoError(t, err)
@@ -402,9 +437,9 @@ func TestShouldNotGenerateConfiguration(t *testing.T) {
 }
 
 func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
-	testResetEnv()
+	testReset()
 
-	p := NewProvider()
+	p := GetProvider()
 
 	dir, err := ioutil.TempDir("", "authelia-config")
 	assert.NoError(t, err)
@@ -419,7 +454,7 @@ func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
 }
 
 func TestShouldRetrieveGlobalConfiguration(t *testing.T) {
-	testResetEnv()
+	testReset()
 
 	p := GetProvider()
 
@@ -429,17 +464,21 @@ func TestShouldRetrieveGlobalConfiguration(t *testing.T) {
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 
-	assert.NoError(t, p.UnmarshalToStruct())
+	err := p.UnmarshalToConfiguration()
+	assert.NoError(t, err)
+
 	assert.Len(t, p.Errors(), 0)
 	assert.Len(t, p.Warnings(), 0)
 
-	assert.Equal(t, "xyz", p.Configuration.Session.Secret)
+	assert.Equal(t, "xyz", p.Configuration().Session.Secret)
 
 	q := GetProvider()
-	assert.Equal(t, "xyz", q.Configuration.Session.Secret)
+	assert.Equal(t, "xyz", q.Configuration().Session.Secret)
 }
 
-func testResetEnv() {
+func testReset() {
+	provider = nil
+
 	_ = os.Unsetenv(envPrefixAlt + "JWT_SECRET_FILE")
 	_ = os.Unsetenv(envPrefixAlt + "JWT_SECRET")
 	_ = os.Unsetenv(envPrefix + "JWT_SECRET_FILE")

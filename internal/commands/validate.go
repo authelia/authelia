@@ -30,19 +30,19 @@ func cmdValidateConfigRun(_ *cobra.Command, args []string) {
 		logger.Fatalf("Error Loading Configuration: %v\n", err)
 	}
 
-	provider := configuration.GetProvider()
+	provider := configuration.NewProvider()
 
 	err := provider.LoadPaths([]string{configPath})
 	if err != nil {
 		logger.Fatalf("Error loading file configuration: %v", err)
 	}
 
-	err = provider.UnmarshalToStruct()
+	err = provider.UnmarshalToConfiguration()
 	if err != nil {
 		logger.Fatalf("Error unmarshalling configuration: %v", err)
 	}
 
-	provider.ValidateConfiguration()
+	provider.Validate()
 
 	// TODO: Actually use the configuration to validate some providers like Notifier
 	errs := provider.Errors()

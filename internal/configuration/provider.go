@@ -20,11 +20,69 @@ type Provider struct {
 	*koanf.Koanf
 	*schema.StructValidator
 
-	Configuration *schema.Configuration
+	configuration *schema.Configuration
 }
 
-func (p *Provider) loadFile(path string) (err error) {
-	return p.Load(file.Provider(path), yaml.Parser())
+// Configuration returns the configuration.
+func (p *Provider) Configuration() (configuration *schema.Configuration) {
+	return p.configuration
+}
+
+// Validate runs the validation tasks.
+func (p *Provider) Validate() {
+	validator.ValidateKeys(p.StructValidator, p.Keys())
+	validator.ValidateConfiguration(p.configuration, p.StructValidator)
+}
+
+// UnmarshalToConfiguration unmarshalls the koanf.Koanf to the global configuration struct ptr.
+func (p *Provider) UnmarshalToConfiguration() (err error) {
+	return p.unmarshal("", p.configuration)
+}
+
+func (p *Provider) unmarshal(path string, o interface{}) (err error) {
+	c := koanf.UnmarshalConf{
+		DecoderConfig: &mapstructure.DecoderConfig{
+			DecodeHook: mapstructure.ComposeDecodeHookFunc(
+				mapstructure.StringToTimeDurationHookFunc(),
+				mapstructure.StringToSliceHookFunc(","),
+			),
+			Metadata:         nil,
+			Result:           o,
+			WeaklyTypedInput: true,
+		},
+	}
+
+	return p.UnmarshalWithConf(path, o, c)
+}
+
+// LoadAll loads all of the configuration sources.
+func (p *Provider) LoadAll(paths []string) (err error) {
+	err = p.LoadPaths(paths)
+	if err != nil {
+		return err
+	}
+
+	err = p.LoadEnvironment()
+	if err != nil {
+		return err
+	}
+
+	err = p.LoadSecrets()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// LoadEnvironment loads the environment variables to the configuration.
+func (p *Provider) LoadEnvironment() (err error) {
+	return p.Load(env.ProviderWithValue(envPrefixAlt, delimiter, koanfKeyCallbackBuilder()), nil)
+}
+
+// LoadSecrets loads the secrets into the struct from the path values.
+func (p *Provider) LoadSecrets() (err error) {
+	return p.Load(NewSecretsProvider(p), nil)
 }
 
 // LoadPaths loads the provided paths into the configuration.
@@ -88,51 +146,23 @@ func (p *Provider) LoadPaths(paths []string) (err error) {
 	return nil
 }
 
-// LoadEnvironment loads the environment variables to the configuration.
-func (p *Provider) LoadEnvironment() (err error) {
-	return p.Load(env.ProviderWithValue(envPrefixAlt, delimiter, koanfKeyCallbackBuilder()), nil)
+func (p *Provider) loadFile(path string) (err error) {
+	return p.Load(file.Provider(path), yaml.Parser())
 }
 
-// LoadSecrets loads the secrets into the struct from the path values.
-func (p *Provider) LoadSecrets() (err error) {
-	return p.Load(NewSecretsProvider(p), nil)
-}
+var provider *Provider
 
-// ValidateConfiguration runs the configuration validation tasks.
-func (p *Provider) ValidateConfiguration() {
-	validator.ValidateKeys(p.StructValidator, p.Keys())
-	validator.ValidateConfiguration(p.Configuration, p.StructValidator)
-}
-
-// UnmarshalToStruct unmarshalls the configuration to the struct.
-func (p *Provider) UnmarshalToStruct() (err error) {
-	conf := koanf.UnmarshalConf{
-		DecoderConfig: &mapstructure.DecoderConfig{
-			DecodeHook: mapstructure.ComposeDecodeHookFunc(
-				mapstructure.StringToTimeDurationHookFunc(),
-				mapstructure.StringToSliceHookFunc(","),
-			),
-			Metadata:         nil,
-			Result:           p.Configuration,
-			WeaklyTypedInput: true,
-		},
-	}
-
-	return p.UnmarshalWithConf("", p.Configuration, conf)
-}
-
-var confProvider *Provider
-
-// GetProvider returns the global Configuration provider.
+// GetProvider returns the global provider.
 func GetProvider() *Provider {
-	if confProvider == nil {
-		confProvider = NewProvider()
+	if provider == nil {
+		provider = NewProvider()
 	}
 
-	return confProvider
+	return provider
 }
 
-// NewProvider creates a new Configuration provider.
+// NewProvider creates a new Configuration provider. This is *not* the global configuration provider and generally
+// should not be used for anything other than just validating configurations.
 func NewProvider() (p *Provider) {
 	return &Provider{
 		Koanf: koanf.NewWithConf(koanf.Conf{
@@ -140,6 +170,6 @@ func NewProvider() (p *Provider) {
 			StrictMerge: false,
 		}),
 		StructValidator: schema.NewStructValidator(),
-		Configuration:   &schema.Configuration{},
+		configuration:   &schema.Configuration{},
 	}
 }
