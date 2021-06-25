@@ -52,14 +52,7 @@ func dockerBuildOfficialImage(arch string) error {
 		dockerfile = fmt.Sprintf("%s.%s", dockerfile, arch)
 	}
 
-	if arch == "arm32v7" {
-		if buildkiteQEMU != stringTrue {
-			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-	} else if arch == "arm64v8" {
+	if arch == "arm32v7" || arch == "arm64v8" {
 		if buildkiteQEMU != stringTrue {
 			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
 			if err != nil {
