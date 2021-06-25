@@ -11,8 +11,15 @@ import (
 func RunCI(cmd *cobra.Command, args []string) {
 	log.Info("=====> Build stage <=====")
 
-	if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "build").Run(); err != nil {
-		log.Fatal(err)
+	buildkite, _ := cmd.Flags().GetBool("buildkite")
+	if buildkite {
+		if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "--buildkite", "build").Run(); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "build").Run(); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	log.Info("=====> Unit testing stage <=====")
