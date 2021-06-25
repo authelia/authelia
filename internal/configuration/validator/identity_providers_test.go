@@ -212,7 +212,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 		"'bad_responsemode', must be one of: 'form_post', 'query', 'fragment'")
 }
 
-func TestValidateIdentityProviders_ShouldSetDefaultValues(t *testing.T) {
+func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
@@ -309,7 +309,7 @@ func TestValidateIdentityProviders_ShouldSetDefaultValues(t *testing.T) {
 
 	assert.Equal(t, false, config.OIDC.EnableClientDebugMessages)
 	assert.Equal(t, time.Hour, config.OIDC.AccessTokenLifespan)
-	assert.Equal(t, time.Hour, config.OIDC.AuthorizeCodeLifespan)
+	assert.Equal(t, time.Minute, config.OIDC.AuthorizeCodeLifespan)
 	assert.Equal(t, time.Hour, config.OIDC.IDTokenLifespan)
 	assert.Equal(t, time.Hour*24*30, config.OIDC.RefreshTokenLifespan)
 }
