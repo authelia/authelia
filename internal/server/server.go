@@ -149,8 +149,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	return handler
 }
 
-// StartServer start Authelia server with the given configuration and providers.
-func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
+// Start Authelia's internal webserver with the given configuration and providers.
+func Start(configuration schema.Configuration, providers middlewares.Providers) {
 	logger := logging.Logger()
 
 	handler := registerRoutes(configuration, providers)

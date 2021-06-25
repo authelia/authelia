@@ -15,6 +15,7 @@ func NewRSACmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "rsa",
 		Short: "Commands related to rsa keypair generation",
+		Args:  cobra.NoArgs,
 	}
 
 	cmd.AddCommand(newRSAGenerateCmd())
@@ -26,6 +27,7 @@ func newRSAGenerateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "generate",
 		Short: "Generate a RSA keypair",
+		Args:  cobra.NoArgs,
 		Run:   cmdRSAGenerateRun,
 	}
 
@@ -73,16 +75,16 @@ func cmdRSAGenerateRun(cmd *cobra.Command, _ []string) {
 
 	fmt.Printf("RSA Private Key written to %s\n", keyPath)
 
-	keyPath = filepath.Join(rsaTargetDirectory, "key.pub")
+	certPath := filepath.Join(rsaTargetDirectory, "key.pub")
 
-	keyOut, err = os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	certOut, err := os.OpenFile(certPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		fmt.Printf("Failed to open %s for writing: %v\n", keyPath, err)
 		return
 	}
 
 	defer func() {
-		if err := keyOut.Close(); err != nil {
+		if err := certOut.Close(); err != nil {
 			fmt.Printf("Failed to close public key file: %v\n", err)
 			os.Exit(1)
 		}
@@ -94,11 +96,11 @@ func cmdRSAGenerateRun(cmd *cobra.Command, _ []string) {
 		return
 	}
 
-	_, err = keyOut.WriteString(publicPem)
+	_, err = certOut.WriteString(publicPem)
 	if err != nil {
 		fmt.Printf("Failed to write private key: %v\n", err)
 		return
 	}
 
-	fmt.Printf("RSA Public Key written to %s\n", keyPath)
+	fmt.Printf("RSA Public Key written to %s\n", certPath)
 }

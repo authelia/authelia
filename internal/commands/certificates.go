@@ -25,6 +25,7 @@ func NewCertificatesCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "certificates",
 		Short: "Commands related to certificate generation",
+		Args:  cobra.NoArgs,
 	}
 
 	cmd.PersistentFlags().StringSlice("host", []string{}, "Comma-separated hostnames and IPs to generate a certificate for")
@@ -43,6 +44,7 @@ func newCertificatesGenerateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "generate",
 		Short: "Generate a self-signed certificate",
+		Args:  cobra.NoArgs,
 		Run:   cmdCertificatesGenerateRun,
 	}
 

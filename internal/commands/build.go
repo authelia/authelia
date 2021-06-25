@@ -13,7 +13,9 @@ func newBuildCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "build",
 		Short: "Show the build information of Authelia",
+		Long:  buildLong,
 		RunE:  cmdBuildRunE,
+		Args:  cobra.NoArgs,
 	}
 
 	return cmd
