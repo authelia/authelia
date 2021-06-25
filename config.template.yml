@@ -590,7 +590,7 @@ notifier:
     # access_token_lifespan: 1h
     # authorize_code_lifespan: 1m
     # id_token_lifespan: 1h
-    # refresh_token_lifespan: 150m
+    # refresh_token_lifespan: 90m
 
     ## Enables additional debug messages.
     # enable_client_debug_messages: false

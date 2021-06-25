@@ -311,5 +311,5 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	assert.Equal(t, time.Hour, config.OIDC.AccessTokenLifespan)
 	assert.Equal(t, time.Minute, config.OIDC.AuthorizeCodeLifespan)
 	assert.Equal(t, time.Hour, config.OIDC.IDTokenLifespan)
-	assert.Equal(t, time.Minute*150, config.OIDC.RefreshTokenLifespan)
+	assert.Equal(t, time.Minute*90, config.OIDC.RefreshTokenLifespan)
 }
