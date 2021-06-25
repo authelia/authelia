@@ -40,7 +40,7 @@ var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
 	AccessTokenLifespan:   time.Hour,
 	AuthorizeCodeLifespan: time.Minute,
 	IDTokenLifespan:       time.Hour,
-	RefreshTokenLifespan:  time.Hour * 24 * 30,
+	RefreshTokenLifespan:  time.Minute * 150,
 }
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
