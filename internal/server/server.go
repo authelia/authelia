@@ -188,10 +188,10 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 	}
 
 	if configuration.Server.TLSCert != "" && configuration.Server.TLSKey != "" {
-		logger.Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		logger.Infof("Listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
 		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLSCert, configuration.Server.TLSKey))
 	} else {
-		logger.Infof("Authelia is listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		logger.Infof("Listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
 		logger.Fatal(server.Serve(listener))
 	}
 }
