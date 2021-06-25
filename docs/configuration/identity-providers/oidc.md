@@ -167,7 +167,8 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-The maximum lifetime of an access token.
+The maximum lifetime of an access token. It's generally recommended keeping this short similar to the default.
+For more information read these docs about [token lifespan].
 
 ### authorize_code_lifespan
 <div markdown="1">
@@ -179,7 +180,8 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-The maximum lifetime of an authorize code.
+The maximum lifetime of an authorize code. This can be rather short, as the authorize code should only be needed to
+obtain the other token types. For more information read these docs about [token lifespan].
 
 ### id_token_lifespan
 <div markdown="1">
@@ -191,7 +193,7 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-The maximum lifetime of an ID token.
+The maximum lifetime of an ID token. For more information read these docs about [token lifespan].
 
 ### refresh_token_lifespan
 <div markdown="1">
@@ -203,7 +205,9 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-The maximum lifetime of a refresh token.
+The maximum lifetime of a refresh token. This should typically be slightly more the other token lifespans. This is 
+becasese the refresh token can be used to obtain new refresh tokens as well as access tokens or id tokens with an 
+up-to-date expiration. For more information read these docs about [token lifespan].
 
 ### enable_client_debug_messages
 <div markdown="1">
@@ -378,3 +382,4 @@ This scope includes the profile information the authentication backend reports a
 
 
 [OpenID Connect]: https://openid.net/connect/
+[token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
