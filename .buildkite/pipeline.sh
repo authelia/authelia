@@ -3,9 +3,9 @@ set -u
 
 DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
 
-if [[ $DIVERGED == 0 ]]; then
-  if [[ $BUILDKITE_TAG == "" ]]; then
-    if [[ $BUILDKITE_BRANCH == "master" ]]; then
+if [[ "${DIVERGED}" == 0 ]]; then
+  if [[ "${BUILDKITE_TAG}" == "" ]]; then
+    if [[ "${BUILDKITE_BRANCH}" == "master" ]]; then
       CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(CONTRIBUTING.md|README.md|SECURITY.md|\.all-contributorsrc|\.github\/.*|docs\/.*)/!{q1}' && echo true || echo false)
     else
       CI_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^(CONTRIBUTING.md|README.md|SECURITY.md|\.all-contributorsrc|\.github\/.*|docs\/.*)/!{q1}' && echo true || echo false)
@@ -52,6 +52,20 @@ steps:
     depends_on: ~
     if: build.env("CI_BYPASS") != "true"
 
+  - label: ":debian: Package Builds"
+    command: ".buildkite/steps/debpackages.sh | buildkite-agent pipeline upload"
+    depends_on: ~
+    if: build.env("CI_BYPASS") != "true"
+
+  - wait:
+    if: build.env("CI_BYPASS") != "true"
+
+  - label: ":vertical_traffic_light: Build Concurrency Gate"
+    command: "echo End of concurrency gate"
+    concurrency: 3
+    concurrency_group: "builds"
+    if: build.env("CI_BYPASS") != "true"
+
   - wait:
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
 
@@ -62,4 +76,13 @@ steps:
     depends_on:
       - "build-docker-linux-coverage"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
+
+  - wait:
+    if: build.env("CI_BYPASS") != "true"
+
+  - label: ":vertical_traffic_light: Test Concurrency Gate"
+    command: "echo End of concurrency gate"
+    concurrency: 3
+    concurrency_group: "tests"
+    if: build.env("CI_BYPASS") != "true"
 EOF
