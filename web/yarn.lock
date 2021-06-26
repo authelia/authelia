@@ -10554,10 +10554,10 @@ react-loading@2.0.3:
   resolved "https://registry.yarnpkg.com/react-loading/-/react-loading-2.0.3.tgz#e8138fb0c3e4674e481b320802ac7048ae14ffb9"
   integrity sha512-Vdqy79zq+bpeWJqC+xjltUjuGApyoItPgL0vgVfcJHhqwU7bAMKzysfGW/ADu6i0z0JiOCRJjo+IkFNkRNbA3A==
 
-react-otp-input@2.3.1:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/react-otp-input/-/react-otp-input-2.3.1.tgz#85d85c01e5d51b0a43c3dc03927292a54d15ed98"
-  integrity sha512-ka14XemxkVh+nl1ykD9HutTyx5ailf4smOZ9gqciQ7GODbepWcjfh1pqsoEB2Mib/sFf1I6OjaPnct5d27+SFA==
+react-otp-input@2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/react-otp-input/-/react-otp-input-2.4.0.tgz#0f0a3de1d8c8d564e2e4fbe5d6b7b56e29e3a6e6"
+  integrity sha512-AIgl7u4sS9BTNCxX1xlaS5fPWay/Zml8Ho5LszXZKXrH1C/TiFsTQGmtl13UecQYO3mSF3HUzG2rrDf0sjEFmg==
 
 react-refresh@^0.8.3:
   version "0.8.3"

@@ -33,7 +33,7 @@ steps:
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/
 
   - label: ":hammer_and_wrench: Unit Test"
-    command: "authelia-scripts --log-level debug ci"
+    command: "authelia-scripts --log-level debug ci --buildkite"
     agents:
       build: "unit-test"
     artifact_paths:

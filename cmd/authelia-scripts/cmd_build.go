@@ -41,22 +41,10 @@ func buildFrontend() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	cmd = utils.CommandWithStdout("rm", "-rf", "internal/server/public_html")
-
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = os.Rename("web/build", "internal/server/public_html")
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func buildSwagger() {
-	swaggerVer := "3.50.0"
+	swaggerVer := "3.51.0"
 	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+swaggerVer+".tar.gz -O ./v"+swaggerVer+".tar.gz")
 
 	err := cmd.Run()
@@ -128,7 +116,13 @@ func Build(cobraCmd *cobra.Command, args []string) {
 	log.Debug("Building swagger-ui frontend...")
 	buildSwagger()
 
-	log.Debug("Building Authelia Go binary...")
-	buildAutheliaBinary(xflags)
+	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
+	if buildkite {
+		log.Debug("Buildkite job detected, skipping Authelia Go binary build")
+	} else {
+		log.Debug("Building Authelia Go binary...")
+		buildAutheliaBinary(xflags)
+	}
+
 	cleanAssets()
 }
