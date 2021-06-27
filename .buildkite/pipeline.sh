@@ -55,7 +55,7 @@ steps:
   - label: ":debian: Package Builds"
     command: ".buildkite/steps/debpackages.sh | buildkite-agent pipeline upload"
     depends_on: ~
-    if: build.branch !~ /^(dependabot|renovate)\/.*/ || build.env("CI_BYPASS") != "true"
+    if: build.branch !~ /^(dependabot|renovate)\/.*/ && build.env("CI_BYPASS") != "true"
 
   - wait:
     if: build.env("CI_BYPASS") != "true"
