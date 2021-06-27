@@ -21,7 +21,7 @@ func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendCo
 	}
 
 	if configuration.File != nil {
-		ValidateFileAuthenticationBackend(configuration.File, validator)
+		validateFileAuthenticationBackend(configuration.File, validator)
 	} else if configuration.LDAP != nil {
 		validateLDAPAuthenticationBackend(configuration.LDAP, validator)
 	}
@@ -36,8 +36,8 @@ func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendCo
 	}
 }
 
-// ValidateFileAuthenticationBackend validates and updates the file authentication backend configuration.
-func ValidateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+// validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
+func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if configuration.Path == "" {
 		validator.Push(errors.New("Please provide a `path` for the users database in `authentication_backend`"))
 	}

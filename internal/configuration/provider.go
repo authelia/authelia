@@ -2,25 +2,27 @@ package configuration
 
 import (
 	"errors"
-	"fmt"
-	"os"
 
 	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/parsers/yaml"
-	"github.com/knadh/koanf/providers/env"
-	"github.com/knadh/koanf/providers/file"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/configuration/validator"
 )
 
-// Provider holds the koanf.Koanf instance and the schema.Configuration.
-type Provider struct {
-	*koanf.Koanf
-	*schema.StructValidator
+// LoadSources is a variadic function that takes Source structs.
+func (p *Provider) LoadSources(sources ...Source) (err error) {
+	for _, source := range sources {
+		if err = p.Load(source.Provider, source.Parser); err != nil {
+			return err
+		}
+	}
 
-	configuration *schema.Configuration
+	if p.HasErrors() {
+		return errors.New("errors occurred during loading configuration sources")
+	}
+
+	return nil
 }
 
 // Configuration returns the configuration.
@@ -55,6 +57,7 @@ func (p *Provider) unmarshal(path string, o interface{}) (err error) {
 	return p.UnmarshalWithConf(path, o, c)
 }
 
+/*
 // LoadAll loads all of the configuration sources.
 func (p *Provider) LoadAll(paths []string) (err error) {
 	err = p.LoadPaths(paths)
@@ -77,12 +80,16 @@ func (p *Provider) LoadAll(paths []string) (err error) {
 
 // LoadEnvironment loads the environment variables to the configuration.
 func (p *Provider) LoadEnvironment() (err error) {
-	return p.Load(env.ProviderWithValue(envPrefixAlt, delimiter, koanfKeyCallbackBuilder()), nil)
+	keyMap := getEnvConfigMap(validator.ValidKeys)
+
+	return p.Load(env.ProviderWithValue(envPrefix, delimiter, koanfEnvironmentCallback(keyMap)), nil)
 }
 
 // LoadSecrets loads the secrets into the struct from the path values.
 func (p *Provider) LoadSecrets() (err error) {
-	return p.Load(NewSecretsProvider(p), nil)
+	keyMap := getSecretConfigMap(validator.ValidKeys)
+
+	return p.Load(env.ProviderWithValue(envPrefixAlt, delimiter, koanfEnvironmentSecretsCallback(keyMap)), nil)
 }
 
 // LoadPaths loads the provided paths into the configuration.
@@ -148,7 +155,9 @@ func (p *Provider) LoadPaths(paths []string) (err error) {
 
 func (p *Provider) loadFile(path string) (err error) {
 	return p.Load(file.Provider(path), yaml.Parser())
-}
+}.
+
+*/
 
 var provider *Provider
 

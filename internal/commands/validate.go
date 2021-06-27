@@ -32,7 +32,7 @@ func cmdValidateConfigRun(_ *cobra.Command, args []string) {
 
 	provider := configuration.NewProvider()
 
-	err := provider.LoadPaths([]string{configPath})
+	err := provider.LoadSources(configuration.NewYAMLFileSource(configPath))
 	if err != nil {
 		logger.Fatalf("Error loading file configuration: %v", err)
 	}

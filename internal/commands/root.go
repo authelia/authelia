@@ -32,7 +32,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Long:    fmt.Sprintf(fmtAutheliaLong, version),
 		Version: version,
 		Args:    cobra.NoArgs,
-		PreRun:  cmdWithConfigPreRun,
+		PreRun:  newCmdWithConfigPreRun(true),
 		Run:     cmdRootRun,
 	}
 

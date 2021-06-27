@@ -32,7 +32,11 @@ You may also provide the configuration by using environment variables. Environme
 configuration file meaning anything specified as part of the environment overrides the configuration files. The 
 environment variables must be prefixed with `AUTHELIA__`. Everything in the configuration can be specified as an
 environment variable as long as it's not in a list, this means ACL rules are excluded as well as things like OIDC
-clients.
+clients. 
+
+**Note:** Using two underscores after `AUTHELIA` was done to reduce conflicts with certain systems which add
+environment variables automatically, for example Kubernetes will add several environment variables for every service
+definition in the same namespace as the current pod.
 
 Underscores replace indented configuration sections or subkeys. For example the following environment variables replace
 the configuration snippet that follows it:

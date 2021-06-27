@@ -19,6 +19,13 @@ func GetExpectedErrTxt(err string) string {
 		default:
 			return errFmtLinuxNotFound
 		}
+	case "yamlisdir":
+		switch runtime.GOOS {
+		case windows:
+			return "read %s: The handle is invalid."
+		default:
+			return "read %s: is a directory"
+		}
 	}
 
 	return ""

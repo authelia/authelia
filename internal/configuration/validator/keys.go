@@ -14,28 +14,27 @@ func ValidateKeys(validator *schema.StructValidator, keys []string) {
 	var errStrings []string
 
 	for _, key := range keys {
-		if utils.IsStringInSlice(key, ValidKeys) {
+		expectedKey := reKeyReplacer.ReplaceAllString(key, "[]")
+
+		if utils.IsStringInSlice(expectedKey, ValidKeys) {
 			continue
 		}
 
-		if expectedKey := strings.TrimPrefix(key, "secret."); expectedKey != key {
-			if utils.IsStringInSlice(expectedKey, ValidKeys) {
-				continue
-			}
-		}
-
-		if newKey, ok := replacedKeys[key]; ok {
+		if newKey, ok := replacedKeys[expectedKey]; ok {
 			validator.Push(fmt.Errorf(errFmtReplacedConfigurationKey, key, newKey))
 			continue
 		}
 
-		replacedKey := reKeyReplacer.ReplaceAllString(key, "[]")
-		if err, ok := specificErrorKeys[replacedKey]; ok {
+		if err, ok := specificErrorKeys[expectedKey]; ok {
 			if !utils.IsStringInSlice(err, errStrings) {
 				errStrings = append(errStrings, err)
 			}
 		} else {
-			validator.Push(fmt.Errorf("config key not expected: %s", key))
+			if strings.HasPrefix(key, "AUTHELIA_") {
+				validator.Push(fmt.Errorf("configuration environment variable not expected: %s", key))
+			} else {
+				validator.Push(fmt.Errorf("configuration key not expected: %s", key))
+			}
 		}
 	}
 

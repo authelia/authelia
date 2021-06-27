@@ -15,10 +15,10 @@ standard environment variables, the recommended way to set secrets is to use env
 A secret value can be loaded by Authelia when the configuration key ends with one of the following words: `key`, 
 `secret`, `password`, or `token`. 
 
-If you take the expected environment variable for the configuration option with the `_FILE` suffix at the end. As long
-as the value of this environment variable is the path of a file, Authelia will load the contents, trim any newlines at
-the end of the file, and set the configuration to this value. The file must be readable by the user running the Authelia
-process. In addition for backwards compatibility reasons both the standard prefix `AUTHELIA__` and the old prefix 
+If you take the expected environment variable for the configuration option with the `_FILE` suffix at the end. The value
+of these environment variables must be the path of a file that is readable by the Authelia process, if they are not,
+Authelia will fail to load. Authelia will automatically remove the newlines from the end of the files contents.
+In addition for backwards compatibility reasons both the standard prefix `AUTHELIA__` and the old prefix 
 `AUTHELIA_` work specifically for file-based secrets.
 
 For instance the LDAP password can be defined in the configuration
@@ -27,7 +27,7 @@ could alternatively be set using the environment variable called
 **AUTHELIA__AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE**.
 
 Here is the list of the environment variables which are considered secrets and can be defined. Please note that only
-secrets can be loaded into the configuration if the end with one of the suffixes above, you can set the value of any
+secrets can be loaded into the configuration if they end with one of the suffixes above, you can set the value of any
 other configuration using the environment but instead of loading a file the value of the environment variable is used.
 
 |Configuration Key                                |Environment Variable                                     |
@@ -53,7 +53,7 @@ this file. Generally the UNIX permissions that are appropriate are 0600.
 
 ## Secrets exposed in an environment variable
 
-It in all versions 4.30.0+ you can technically set secrets using the environment variables without the `_FILE` suffix by
+In all versions 4.30.0+ you can technically set secrets using the environment variables without the `_FILE` suffix by
 setting the value to the value you wish to set in configuration, however we strongly urge people not to use this option
 and instead use the file-based secrets above.
 
