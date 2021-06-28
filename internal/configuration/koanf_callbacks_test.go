@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/knadh/koanf/providers/confmap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -67,9 +66,9 @@ func TestKoanfSecretCallbackWithValidSecrets(t *testing.T) {
 	assert.NoError(t, testCreateFile(secretTwo, "value two", 0600))
 
 	p := GetProvider()
-	p.Clear()
+	p.Validator.Clear()
 
-	callback := koanfEnvironmentSecretsCallback(keyMap, p)
+	callback := koanfEnvironmentSecretsCallback(keyMap, p.Validator)
 
 	key, value = callback("AUTHELIA_FAKE_KEY", secretOne)
 	assert.Equal(t, "fake_key", key)
@@ -87,43 +86,16 @@ func TestKoanfSecretCallbackShouldIgnoreUndetectedSecrets(t *testing.T) {
 	}
 
 	p := GetProvider()
-	p.Clear()
+	p.Validator.Clear()
 
-	callback := koanfEnvironmentSecretsCallback(keyMap, p)
+	callback := koanfEnvironmentSecretsCallback(keyMap, p.Validator)
 
-	key, value := callback("AUTHELIA__SESSION_DOMAIN", "/tmp/not-a-file")
+	key, value := callback("AUTHELIA__SESSION_DOMAIN", "/tmp/not-a-path")
 	assert.Equal(t, "", key)
 	assert.Nil(t, value)
 
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
-}
-
-func TestKoanfSecretCallbackShouldErrorOnExistingValues(t *testing.T) {
-	keyMap := map[string]string{
-		"AUTHELIA__JWT_SECRET": "jwt_secret",
-		"AUTHELIA_JWT_SECRET":  "jwt_secret",
-	}
-
-	existingValues := map[string]interface{}{
-		"jwt_secret": "apple",
-	}
-
-	p := GetProvider()
-	p.Clear()
-
-	assert.NoError(t, p.Load(confmap.Provider(existingValues, "."), nil))
-
-	callback := koanfEnvironmentSecretsCallback(keyMap, p)
-
-	key, value := callback("AUTHELIA_JWT_SECRET", "/tmp/not-a-file")
-	assert.Equal(t, "", key)
-	assert.Nil(t, value)
-
-	require.Len(t, p.Errors(), 1)
-	assert.Len(t, p.Warnings(), 0)
-
-	assert.EqualError(t, p.Errors()[0], "error loading secret into key 'jwt_secret': it's already defined in the config files")
+	assert.Len(t, p.Validator.Errors(), 0)
+	assert.Len(t, p.Validator.Warnings(), 0)
 }
 
 func TestKoanfSecretCallbackShouldErrorOnFSError(t *testing.T) {
@@ -144,15 +116,15 @@ func TestKoanfSecretCallbackShouldErrorOnFSError(t *testing.T) {
 	assert.NoError(t, testCreateFile(secret, "secret", 0000))
 
 	p := GetProvider()
-	p.Clear()
+	p.Validator.Clear()
 
-	callback := koanfEnvironmentSecretsCallback(keyMap, p)
+	callback := koanfEnvironmentSecretsCallback(keyMap, p.Validator)
 
 	key, value := callback("AUTHELIA_THEME", secret)
-	assert.Equal(t, "", key)
-	assert.Nil(t, value)
+	assert.Equal(t, "theme", key)
+	assert.Equal(t, "", value)
 
-	require.Len(t, p.Errors(), 1)
-	assert.Len(t, p.Warnings(), 0)
-	assert.EqualError(t, p.Errors()[0], fmt.Sprintf(errFmtSecretIOIssue, secret, "theme", fmt.Sprintf("open %s: permission denied", secret)))
+	require.Len(t, p.Validator.Errors(), 1)
+	assert.Len(t, p.Validator.Warnings(), 0)
+	assert.EqualError(t, p.Validator.Errors()[0], fmt.Sprintf(errFmtSecretIOIssue, secret, "theme", fmt.Sprintf("open %s: permission denied", secret)))
 }

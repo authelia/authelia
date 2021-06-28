@@ -4,8 +4,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/internal/configuration"
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/configuration/validator"
 	"github.com/authelia/authelia/internal/logging"
 )
 
@@ -36,25 +34,20 @@ func newCmdWithConfigPreRun(ensureConfigExists bool) func(cmd *cobra.Command, ar
 
 		provider := configuration.GetProvider()
 
-		err = provider.LoadSources(configuration.NewDefaultSources(configs, provider)...)
-		if err != nil {
-			logger.Errorf("Error loading configuration sources: %v", err)
+		errs := provider.LoadSources(configuration.NewDefaultSources(configs)...)
 
-			for _, err := range provider.Errors() {
-				logger.Errorf("%+v", err)
+		if len(errs) != 0 {
+			logger.Error("Error loading configuration sources:")
+
+			for _, err := range errs {
+				logger.Errorf("  %+v", err)
 			}
+
+			logger.Fatalf("Can't continue due to the errors loading the configuration sources")
 		}
 
-		err = provider.UnmarshalToConfiguration()
-		if err != nil {
-			logger.Fatalf("Error unmarshalling configuration: %v", err)
-		}
+		warns, errs := provider.Unmarshal()
 
-		s := schema.NewStructValidator()
-		validator.ValidateKeys(s, provider.Keys())
-		validator.ValidateConfiguration(provider.Configuration(), s)
-
-		warns := s.Warnings()
 		if len(warns) != 0 {
 			logger.Warnf("Warnings occurred while validating configuration:")
 
@@ -63,7 +56,6 @@ func newCmdWithConfigPreRun(ensureConfigExists bool) func(cmd *cobra.Command, ar
 			}
 		}
 
-		errs := s.Errors()
 		if len(errs) != 0 {
 			logger.Errorf("Errors occurred while validating configuration:")
 
@@ -74,6 +66,6 @@ func newCmdWithConfigPreRun(ensureConfigExists bool) func(cmd *cobra.Command, ar
 			logger.Fatalf("Exiting due to configuration validation errors above.")
 		}
 
-		provider.Clear()
+		provider.Validator.Clear()
 	}
 }

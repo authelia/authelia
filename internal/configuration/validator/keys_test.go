@@ -14,7 +14,7 @@ import (
 func TestShouldValidateGoodKeys(t *testing.T) {
 	configKeys := ValidKeys
 	val := schema.NewStructValidator()
-	ValidateKeys(val, configKeys)
+	ValidateKeys(configKeys, val)
 
 	require.Len(t, val.Errors(), 0)
 }
@@ -24,7 +24,7 @@ func TestShouldNotValidateBadKeys(t *testing.T) {
 	configKeys = append(configKeys, "bad_key")
 	configKeys = append(configKeys, "totp.skewy")
 	val := schema.NewStructValidator()
-	ValidateKeys(val, configKeys)
+	ValidateKeys(configKeys, val)
 
 	errs := val.Errors()
 	require.Len(t, errs, 2)
@@ -38,7 +38,7 @@ func TestShouldNotValidateBadEnvKeys(t *testing.T) {
 	configKeys = append(configKeys, "AUTHELIA__BAD_ENV_KEY")
 	configKeys = append(configKeys, "AUTHELIA_BAD_ENV_KEY")
 	val := schema.NewStructValidator()
-	ValidateKeys(val, configKeys)
+	ValidateKeys(configKeys, val)
 
 	errs := val.Errors()
 	require.Len(t, errs, 2)
@@ -62,7 +62,7 @@ func TestAllSpecificErrorKeys(t *testing.T) {
 	}
 
 	val := schema.NewStructValidator()
-	ValidateKeys(val, configKeys)
+	ValidateKeys(configKeys, val)
 
 	errs := val.Errors()
 
@@ -86,7 +86,7 @@ func TestSpecificErrorKeys(t *testing.T) {
 	}
 
 	val := schema.NewStructValidator()
-	ValidateKeys(val, configKeys)
+	ValidateKeys(configKeys, val)
 
 	errs := val.Errors()
 
@@ -109,7 +109,7 @@ func TestReplacedErrors(t *testing.T) {
 	}
 
 	val := schema.NewStructValidator()
-	ValidateKeys(val, configKeys)
+	ValidateKeys(configKeys, val)
 
 	warns := val.Warnings()
 	errs := val.Errors()

@@ -36,13 +36,13 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 
 	p := GetProvider()
 
-	err = p.LoadSources(NewEnvironmentSource(), NewSecretsSource(p))
-	assert.EqualError(t, err, "errors occurred during loading configuration sources")
+	loadErrs := p.LoadSources(NewEnvironmentSource(), NewSecretsSource())
 
-	require.Len(t, p.Errors(), 12)
+	require.Len(t, loadErrs, 12)
 
 	errs := make([]string, 0, 12)
-	for _, err := range p.Errors() {
+
+	for _, err := range loadErrs {
 		errs = append(errs, err.Error())
 	}
 
@@ -50,18 +50,18 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 
 	errFmt := utils.GetExpectedErrTxt("filenotfound")
 
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "authentication"), "authentication_backend.ldap.password", fmt.Sprintf(errFmt, filepath.Join(dir, "authentication"))), errs[0])
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "duo"), "duo_api.secret_key", fmt.Sprintf(errFmt, filepath.Join(dir, "duo"))), errs[1])
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "jwt"), "jwt_secret", fmt.Sprintf(errFmt, filepath.Join(dir, "jwt"))), errs[2])
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "mysql"), "storage.mysql.password", fmt.Sprintf(errFmt, filepath.Join(dir, "mysql"))), errs[3])
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "notifier"), "notifier.smtp.password", fmt.Sprintf(errFmt, filepath.Join(dir, "notifier"))), errs[4])
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "oidc-hmac"), "identity_providers.oidc.hmac_secret", fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-hmac"))), errs[5])
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "oidc-key"), "identity_providers.oidc.issuer_private_key", fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-key"))), errs[6])
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "postgres"), "storage.postgres.password", fmt.Sprintf(errFmt, filepath.Join(dir, "postgres"))), errs[7])
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis"), "session.redis.password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis"))), errs[8])
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis-sentinel"), "session.redis.high_availability.sentinel_password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis-sentinel"))), errs[9])
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "session"), "session.secret", fmt.Sprintf(errFmt, filepath.Join(dir, "session"))), errs[10])
-	assert.Equal(t, fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "tls"), "tls_key", fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))), errs[11])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "authentication"), "authentication_backend.ldap.password", fmt.Sprintf(errFmt, filepath.Join(dir, "authentication"))), errs[0])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "duo"), "duo_api.secret_key", fmt.Sprintf(errFmt, filepath.Join(dir, "duo"))), errs[1])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "jwt"), "jwt_secret", fmt.Sprintf(errFmt, filepath.Join(dir, "jwt"))), errs[2])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "mysql"), "storage.mysql.password", fmt.Sprintf(errFmt, filepath.Join(dir, "mysql"))), errs[3])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "notifier"), "notifier.smtp.password", fmt.Sprintf(errFmt, filepath.Join(dir, "notifier"))), errs[4])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "oidc-hmac"), "identity_providers.oidc.hmac_secret", fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-hmac"))), errs[5])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "oidc-key"), "identity_providers.oidc.issuer_private_key", fmt.Sprintf(errFmt, filepath.Join(dir, "oidc-key"))), errs[6])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "postgres"), "storage.postgres.password", fmt.Sprintf(errFmt, filepath.Join(dir, "postgres"))), errs[7])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis"), "session.redis.password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis"))), errs[8])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis-sentinel"), "session.redis.high_availability.sentinel_password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis-sentinel"))), errs[9])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "session"), "session.secret", fmt.Sprintf(errFmt, filepath.Join(dir, "session"))), errs[10])
+	assert.Equal(t, "secrets: "+fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "tls"), "tls_key", fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))), errs[11])
 }
 
 func TestShouldHaveNotifier(t *testing.T) {
@@ -74,12 +74,13 @@ func TestShouldHaveNotifier(t *testing.T) {
 
 	p := GetProvider()
 
-	assert.NoError(t, p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"}, p)...))
+	errs := p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"})...)
 
-	err := p.UnmarshalToConfiguration()
-	assert.NoError(t, err)
+	assert.Len(t, errs, 0)
 
-	assert.NotNil(t, GetProvider().Configuration().Notifier)
+	_, _ = p.Unmarshal()
+
+	assert.NotNil(t, GetProvider().Configuration.Notifier)
 }
 
 func TestShouldValidateConfigurationWithEnv(t *testing.T) {
@@ -92,17 +93,13 @@ func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 
 	p := GetProvider()
 
-	assert.NoError(t, p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"}, p)...))
+	errs := p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"})...)
+	assert.Len(t, errs, 0)
 
-	err := p.UnmarshalToConfiguration()
-	assert.NoError(t, err)
+	warns, errs := p.Unmarshal()
 
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
-
-	p.Validate()
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
+	assert.Len(t, warns, 0)
+	assert.Len(t, errs, 0)
 }
 
 func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
@@ -117,17 +114,15 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 
 	p := GetProvider()
 
-	assert.NoError(t, p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"}, p)...))
+	errs := p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"})...)
+	assert.Len(t, errs, 0)
 
-	err := p.UnmarshalToConfiguration()
-	assert.NoError(t, err)
+	warns, errs := p.Unmarshal()
 
-	p.Validate()
+	assert.Len(t, warns, 0)
+	require.Len(t, errs, 1)
 
-	assert.Len(t, p.Warnings(), 0)
-	require.Len(t, p.Errors(), 1)
-
-	assert.EqualError(t, p.Errors()[0], "configuration environment variable not expected: AUTHELIA__STORAGE_MYSQL")
+	assert.EqualError(t, p.Validator.Errors()[0], "configuration environment variable not expected: AUTHELIA__STORAGE_MYSQL")
 }
 
 func TestShouldIgnoreSingleUnderscoreNonSecretEnvs(t *testing.T) {
@@ -141,21 +136,19 @@ func TestShouldIgnoreSingleUnderscoreNonSecretEnvs(t *testing.T) {
 
 	p := GetProvider()
 
-	assert.NoError(t, p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"}, p)...))
+	errs := p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"})...)
+	assert.Len(t, errs, 0)
 
-	err := p.UnmarshalToConfiguration()
-	assert.NoError(t, err)
+	warns, errs := p.Unmarshal()
 
-	p.Validate()
+	assert.Len(t, errs, 0)
+	assert.Len(t, warns, 0)
 
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
-
-	assert.Equal(t, "an env jwt secret", p.Configuration().JWTSecret)
-	assert.Equal(t, "an env session secret", p.Configuration().Session.Secret)
-	assert.Equal(t, "an env storage mysql password", p.Configuration().Storage.MySQL.Password)
-	assert.Equal(t, "an env authentication backend ldap password", p.Configuration().AuthenticationBackend.LDAP.Password)
-	assert.Equal(t, "ldap://127.0.0.1", p.Configuration().AuthenticationBackend.LDAP.URL)
+	assert.Equal(t, "an env jwt secret", p.Configuration.JWTSecret)
+	assert.Equal(t, "an env session secret", p.Configuration.Session.Secret)
+	assert.Equal(t, "an env storage mysql password", p.Configuration.Storage.MySQL.Password)
+	assert.Equal(t, "an env authentication backend ldap password", p.Configuration.AuthenticationBackend.LDAP.Password)
+	assert.Equal(t, "ldap://127.0.0.1", p.Configuration.AuthenticationBackend.LDAP.URL)
 }
 
 func TestShouldAllowBothLegacyEnvSecretFilesAndNewOnes(t *testing.T) {
@@ -181,25 +174,21 @@ func TestShouldAllowBothLegacyEnvSecretFilesAndNewOnes(t *testing.T) {
 
 	p := GetProvider()
 
-	assert.NoError(t, p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"}, p)...))
+	errs := p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"})...)
+	assert.Len(t, errs, 0)
 
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
+	assert.Len(t, p.Validator.Errors(), 0)
+	assert.Len(t, p.Validator.Warnings(), 0)
 
-	err = p.UnmarshalToConfiguration()
-	assert.NoError(t, err)
+	warns, errs := p.Unmarshal()
 
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
+	assert.Len(t, errs, 0)
+	assert.Len(t, warns, 0)
 
-	p.Validate()
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
-
-	assert.Equal(t, "a secret jwt_secret value", p.Configuration().JWTSecret)
-	assert.Equal(t, "a secret session.secret value", p.Configuration().Session.Secret)
-	assert.Equal(t, "a secret storage.mysql.password value", p.Configuration().Storage.MySQL.Password)
-	assert.Equal(t, "a secret authentication_backend.ldap.password value", p.Configuration().AuthenticationBackend.LDAP.Password)
+	assert.Equal(t, "a secret jwt_secret value", p.Configuration.JWTSecret)
+	assert.Equal(t, "a secret session.secret value", p.Configuration.Session.Secret)
+	assert.Equal(t, "a secret storage.mysql.password value", p.Configuration.Storage.MySQL.Password)
+	assert.Equal(t, "a secret authentication_backend.ldap.password value", p.Configuration.AuthenticationBackend.LDAP.Password)
 }
 
 func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T) {
@@ -213,28 +202,23 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 
 	p := GetProvider()
 
-	assert.EqualError(t, p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"}, p)...), "errors occurred during loading configuration sources")
+	errs := p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"})...)
 
-	require.Len(t, p.Errors(), 1)
-	assert.Len(t, p.Warnings(), 0)
-	assert.EqualError(t, p.Errors()[0], "error loading secret into key 'session.secret': it's already defined in the config files")
+	require.Len(t, errs, 1)
+	assert.Len(t, p.Validator.Warnings(), 0)
+	assert.EqualError(t, p.Validator.Errors()[0], "secrets: error loading secret into key 'session.secret': it's already defined in other configuration sources")
 
-	p.Clear()
+	p.Validator.Clear()
 
-	err := p.UnmarshalToConfiguration()
-	assert.NoError(t, err)
+	warns, errs := p.Unmarshal()
 
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
+	assert.Len(t, errs, 0)
+	assert.Len(t, warns, 0)
 
-	p.Validate()
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
-
-	assert.Equal(t, "example_secret value", p.Configuration().JWTSecret)
-	assert.Equal(t, "an env session secret", p.Configuration().Session.Secret)
-	assert.Equal(t, "an env storage mysql password", p.Configuration().Storage.MySQL.Password)
-	assert.Equal(t, "an env authentication backend ldap password", p.Configuration().AuthenticationBackend.LDAP.Password)
+	assert.Equal(t, "example_secret value", p.Configuration.JWTSecret)
+	assert.Equal(t, "example_secret value", p.Configuration.Session.Secret)
+	assert.Equal(t, "an env storage mysql password", p.Configuration.Storage.MySQL.Password)
+	assert.Equal(t, "an env authentication backend ldap password", p.Configuration.AuthenticationBackend.LDAP.Password)
 }
 
 func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
@@ -252,7 +236,12 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 	p := GetProvider()
 
 	cfg := filepath.Join(dir, "myconf.yml")
-	assert.EqualError(t, p.LoadSources(NewYAMLFileSource(cfg)), fmt.Sprintf("open %s: permission denied", cfg))
+
+	errs := p.LoadSources(NewYAMLFileSource(cfg))
+
+	require.Len(t, errs, 1)
+
+	assert.EqualError(t, errs[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: open %s: permission denied", cfg, cfg))
 }
 
 func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
@@ -265,22 +254,18 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 
 	p := GetProvider()
 
-	assert.NoError(t, p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"}, p)...))
+	errs := p.LoadSources(NewDefaultSources([]string{"./test_resources/config.yml"})...)
+	assert.Len(t, errs, 0)
 
-	err := p.UnmarshalToConfiguration()
-	assert.NoError(t, err)
+	warns, errs := p.Unmarshal()
 
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
+	assert.Len(t, warns, 0)
+	assert.Len(t, errs, 0)
 
-	assert.Equal(t, "example_secret value", p.Configuration().JWTSecret)
-	assert.Equal(t, "example_secret value", p.Configuration().Session.Secret)
-	assert.Equal(t, "example_secret value", p.Configuration().AuthenticationBackend.LDAP.Password)
-	assert.Equal(t, "example_secret value", p.Configuration().Storage.MySQL.Password)
-
-	p.Validate()
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
+	assert.Equal(t, "example_secret value", p.Configuration.JWTSecret)
+	assert.Equal(t, "example_secret value", p.Configuration.Session.Secret)
+	assert.Equal(t, "example_secret value", p.Configuration.AuthenticationBackend.LDAP.Password)
+	assert.Equal(t, "example_secret value", p.Configuration.Storage.MySQL.Password)
 }
 
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
@@ -293,20 +278,17 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 
 	p := GetProvider()
 
-	assert.NoError(t, p.LoadSources(NewDefaultSources([]string{"./test_resources/config_bad_keys.yml"}, p)...))
+	errs := p.LoadSources(NewDefaultSources([]string{"./test_resources/config_bad_keys.yml"})...)
 
-	err := p.UnmarshalToConfiguration()
-	assert.NoError(t, err)
+	require.Len(t, errs, 0)
 
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
+	warns, errs := p.Unmarshal()
 
-	p.Validate()
-	assert.Len(t, p.Errors(), 2)
-	assert.Len(t, p.Warnings(), 0)
+	require.Len(t, errs, 2)
+	assert.Len(t, warns, 0)
 
-	assert.EqualError(t, p.Errors()[0], "configuration key not expected: loggy_file")
-	assert.EqualError(t, p.Errors()[1], "invalid configuration key 'logs_level' was replaced by 'log.level'")
+	assert.EqualError(t, p.Validator.Errors()[0], "configuration key not expected: loggy_file")
+	assert.EqualError(t, p.Validator.Errors()[1], "invalid configuration key 'logs_level' was replaced by 'log.level'")
 }
 
 func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
@@ -325,7 +307,11 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 
 	cfg := filepath.Join(dir, "config.yml")
 
-	assert.EqualError(t, p.LoadSources(NewYAMLFileSource(cfg)), fmt.Sprintf("open %s: permission denied", cfg))
+	errs := p.LoadSources(NewYAMLFileSource(cfg))
+
+	require.Len(t, errs, 1)
+
+	assert.EqualError(t, errs[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: open %s: permission denied", cfg, cfg))
 }
 
 func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
@@ -336,8 +322,11 @@ func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
 	dir, err := ioutil.TempDir("", "authelia-config")
 	assert.NoError(t, err)
 
+	errs := p.LoadSources(NewYAMLFileSource(dir))
+	require.Len(t, errs, 1)
+
 	expectedErr := fmt.Sprintf(utils.GetExpectedErrTxt("yamlisdir"), dir)
-	assert.EqualError(t, p.LoadSources(NewYAMLFileSource(dir)), expectedErr)
+	assert.EqualError(t, errs[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: %s", dir, expectedErr))
 }
 
 func TestShouldRetrieveGlobalConfiguration(t *testing.T) {
@@ -347,20 +336,20 @@ func TestShouldRetrieveGlobalConfiguration(t *testing.T) {
 
 	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET", "xyz"))
 
-	assert.NoError(t, p.LoadSources(NewEnvironmentSource()))
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
+	errs := p.LoadSources(NewEnvironmentSource())
+	assert.Len(t, errs, 0)
 
-	err := p.UnmarshalToConfiguration()
-	assert.NoError(t, err)
+	assert.Len(t, p.Validator.Errors(), 0)
+	assert.Len(t, p.Validator.Warnings(), 0)
 
-	assert.Len(t, p.Errors(), 0)
-	assert.Len(t, p.Warnings(), 0)
+	_, _ = p.Unmarshal()
 
-	assert.Equal(t, "xyz", p.Configuration().Session.Secret)
+	assert.Equal(t, "xyz", p.Configuration.Session.Secret)
 
 	q := GetProvider()
-	assert.Equal(t, "xyz", q.Configuration().Session.Secret)
+	assert.Equal(t, "xyz", q.Configuration.Session.Secret)
+
+	assert.Equal(t, p, q)
 }
 
 func testReset() {

@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/configuration/validator"
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// koanfEnvironmentCallback returns a koanf callback to map the environment vars to configuration keys.
+// koanfEnvironmentCallback returns a koanf callback to map the environment vars to Configuration keys.
 func koanfEnvironmentCallback(keyMap map[string]string, ignoredKeys []string) func(key, value string) (finalKey string, finalValue interface{}) {
 	return func(key, value string) (finalKey string, finalValue interface{}) {
 		if k, ok := keyMap[key]; ok {
@@ -30,8 +31,8 @@ func koanfEnvironmentCallback(keyMap map[string]string, ignoredKeys []string) fu
 	}
 }
 
-// koanfEnvironmentSecretsCallback returns a koanf callback to map the environment vars to configuration keys.
-func koanfEnvironmentSecretsCallback(keyMap map[string]string, provider *Provider) func(key, value string) (finalKey string, finalValue interface{}) {
+// koanfEnvironmentSecretsCallback returns a koanf callback to map the environment vars to Configuration keys.
+func koanfEnvironmentSecretsCallback(keyMap map[string]string, validator *schema.StructValidator) func(key, value string) (finalKey string, finalValue interface{}) {
 	return func(key, value string) (finalKey string, finalValue interface{}) {
 		k, ok := keyMap[key]
 
@@ -39,15 +40,10 @@ func koanfEnvironmentSecretsCallback(keyMap map[string]string, provider *Provide
 			return "", nil
 		}
 
-		if v, ok := provider.Get(k).(string); ok && v != "" {
-			provider.Push(fmt.Errorf(errFmtSecretAlreadyDefined, k))
-			return "", nil
-		}
-
 		v, err := loadSecret(value)
 		if err != nil {
-			provider.Push(fmt.Errorf(errFmtSecretIOIssue, value, k, err))
-			return "", nil
+			validator.Push(fmt.Errorf(errFmtSecretIOIssue, value, k, err))
+			return k, ""
 		}
 
 		return k, v

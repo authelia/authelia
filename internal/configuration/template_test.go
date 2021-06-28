@@ -40,7 +40,7 @@ func TestShouldNotGenerateConfigurationOnFSAccessDenied(t *testing.T) {
 	cfg := filepath.Join(dir, "zero", "config.yml")
 
 	created, err := EnsureConfigurationExists([]string{cfg})
-	assert.EqualError(t, err, fmt.Sprintf("error occurred generating configuration: stat %s: permission denied", cfg))
+	assert.EqualError(t, err, fmt.Sprintf("error occurred generating Configuration: stat %s: permission denied", cfg))
 	assert.False(t, created)
 }
 

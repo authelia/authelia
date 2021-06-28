@@ -39,7 +39,7 @@ func (s *CLISuite) SetupTest() {
 }
 
 func (s *CLISuite) TestShouldPrintBuildInformation() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "build"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "build-info"})
 	s.Assert().Nil(err)
 	s.Assert().Contains(output, "Last Tag: ")
 	s.Assert().Contains(output, "State: ")

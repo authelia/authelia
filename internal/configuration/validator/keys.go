@@ -10,7 +10,7 @@ import (
 )
 
 // ValidateKeys determines if all provided keys are valid.
-func ValidateKeys(validator *schema.StructValidator, keys []string) {
+func ValidateKeys(keys []string, validator *schema.StructValidator) {
 	var errStrings []string
 
 	for _, key := range keys {

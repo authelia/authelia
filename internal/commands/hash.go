@@ -40,9 +40,10 @@ func cmdHashPasswordRun(cmd *cobra.Command, args []string) {
 	memory, _ := cmd.Flags().GetInt("memory")
 	parallelism, _ := cmd.Flags().GetInt("parallelism")
 
-	var hash string
-
-	var algorithm authentication.CryptAlgo
+	var (
+		hash      string
+		algorithm authentication.CryptAlgo
+	)
 
 	if sha512 {
 		if iterations == schema.DefaultPasswordConfiguration.Iterations {

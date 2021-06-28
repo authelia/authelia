@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -32,32 +31,35 @@ func cmdValidateConfigRun(_ *cobra.Command, args []string) {
 
 	provider := configuration.NewProvider()
 
-	err := provider.LoadSources(configuration.NewYAMLFileSource(configPath))
-	if err != nil {
-		logger.Fatalf("Error loading file configuration: %v", err)
-	}
-
-	err = provider.UnmarshalToConfiguration()
-	if err != nil {
-		logger.Fatalf("Error unmarshalling configuration: %v", err)
-	}
-
-	provider.Validate()
-
-	// TODO: Actually use the configuration to validate some providers like Notifier
-	errs := provider.Errors()
+	errs := provider.LoadSources(configuration.NewYAMLFileSource(configPath))
 	if len(errs) != 0 {
-		str := "Errors"
-		if len(errs) == 1 {
-			str = "Error"
-		}
+		logger.Error("Error loading configuration sources:")
 
-		errors := ""
 		for _, err := range errs {
-			errors += fmt.Sprintf("\t%s\n", err.Error())
+			logger.Errorf("  %+v", err)
 		}
 
-		logger.Fatalf("%s occurred parsing configuration:\n%s", str, errors)
+		logger.Fatalf("Can't continue due to the errors loading the configuration sources")
+	}
+
+	warns, errs := provider.Unmarshal()
+
+	if len(warns) != 0 {
+		logger.Warn("Warnings occurred while loading the configuration:")
+
+		for _, warn := range warns {
+			logger.Warnf("  %+v", warn)
+		}
+	}
+
+	if len(errs) != 0 {
+		logger.Error("Errors occurred while loading the configuration:")
+
+		for _, err := range errs {
+			logger.Errorf("  %+v", err)
+		}
+
+		logger.Fatal("Can't continue due to errors")
 	}
 
 	log.Println("Configuration parsed successfully without errors.")

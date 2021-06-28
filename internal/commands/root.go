@@ -39,7 +39,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 	cmdWithConfigFlags(cmd)
 
 	cmd.AddCommand(
-		newBuildCmd(),
+		newBuildInfoCmd(),
 		NewCertificatesCmd(),
 		newCompletionCmd(),
 		NewHashPasswordCmd(),
@@ -53,7 +53,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 func cmdRootRun(_ *cobra.Command, _ []string) {
 	logger := logging.Logger()
 
-	config := configuration.GetProvider().Configuration()
+	config := configuration.GetProvider().Configuration
 
 	logger.Infof("Authelia %s is starting", utils.Version())
 
