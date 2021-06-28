@@ -95,6 +95,7 @@ const FirstFactorForm = function (props: Props) {
                         onChange={(v) => setUsername(v.target.value)}
                         onFocus={() => setUsernameError(false)}
                         autoCapitalize="none"
+                        autoComplete="username"
                         onKeyPress={(ev) => {
                             if (ev.key === "Enter") {
                                 if (!username.length) {
@@ -124,6 +125,7 @@ const FirstFactorForm = function (props: Props) {
                         onChange={(v) => setPassword(v.target.value)}
                         onFocus={() => setPasswordError(false)}
                         type="password"
+                        autoComplete="current-password"
                         onKeyPress={(ev) => {
                             if (ev.key === "Enter") {
                                 if (!username.length) {
