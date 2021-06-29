@@ -49,7 +49,7 @@ func (lc *LDAPConnectionImpl) Modify(modifyRequest *ldap.ModifyRequest) error {
 	return lc.conn.Modify(modifyRequest)
 }
 
-// PasswordModify modifies an ldap objects password
+// PasswordModify modifies an ldap objects password.
 func (lc *LDAPConnectionImpl) PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) error {
 	_, err := lc.conn.PasswordModify(pwdModifyRequest)
 	return err
