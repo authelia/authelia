@@ -443,8 +443,11 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 		nil,
 		mockFactory)
 
-	modifyRequest := ldap.NewModifyRequest("uid=test,dc=example,dc=com", nil)
-	modifyRequest.Replace("userPassword", []string{"password"})
+	pwdModifyRequest := ldap.NewPasswordModifyRequest(
+		"uid=test,dc=example,dc=com",
+		"",
+		"password",
+	)
 
 	gomock.InOrder(
 		mockFactory.EXPECT().
@@ -477,7 +480,7 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 				},
 			}, nil),
 		mockConn.EXPECT().
-			Modify(modifyRequest).
+			PasswordModify(pwdModifyRequest).
 			Return(nil),
 		mockConn.EXPECT().
 			Close(),
