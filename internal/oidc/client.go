@@ -21,6 +21,8 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Internal
 		ResponseTypes: config.ResponseTypes,
 		Scopes:        config.Scopes,
 
+		UserinfoAlgorithm: config.UserinfoAlgorithm,
+
 		ResponseModes: []fosite.ResponseModeType{
 			fosite.ResponseModeDefault,
 		},
