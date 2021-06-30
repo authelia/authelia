@@ -59,7 +59,7 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 
 	timeOneFactor := time.Unix(1625048140, 0)
 	timeTwoFactor := time.Unix(1625048150, 0)
-	timeFalseFactor := time.Unix(1625048160, 0)
+	timeZeroFactor := time.Unix(0, 0)
 
 	configuration.Domain = testDomain
 	configuration.Name = testName
@@ -76,34 +76,24 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	session, err = provider.GetSession(ctx)
 	require.NoError(t, err)
 
-	assert.Equal(t, timeOneFactor, session.AuthenticatedAt(authorization.OneFactor))
-	assert.Equal(t, time.Unix(0, 0), session.AuthenticatedAt(authorization.TwoFactor))
-	assert.Equal(t, timeOneFactor, session.AuthenticatedAt(authorization.Denied))
+	authAt, err := session.AuthenticatedTime(authorization.OneFactor)
+	assert.NoError(t, err)
+	assert.Equal(t, timeOneFactor, authAt)
+
+	authAt, err = session.AuthenticatedTime(authorization.TwoFactor)
+	assert.NoError(t, err)
+	assert.Equal(t, timeZeroFactor, authAt)
+
+	authAt, err = session.AuthenticatedTime(authorization.Denied)
+	assert.EqualError(t, err, "invalid authorization level")
+	assert.Equal(t, timeZeroFactor, authAt)
 
 	assert.Equal(t, UserSession{
-		Username:            testUsername,
-		AuthenticationLevel: authentication.OneFactor,
-		LastActivity:        timeOneFactor.Unix(),
-		FirstFactorAuthn:    timeOneFactor.Unix(),
+		Username:                  testUsername,
+		AuthenticationLevel:       authentication.OneFactor,
+		LastActivity:              timeOneFactor.Unix(),
+		FirstFactorAuthnTimestamp: timeOneFactor.Unix(),
 	}, session)
-
-	session.SetOneFactor(timeTwoFactor, &authentication.UserDetails{Username: testUsername}, false)
-
-	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
-
-	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
-
-	assert.Equal(t, UserSession{
-		Username:            testUsername,
-		AuthenticationLevel: authentication.OneFactor,
-		LastActivity:        timeTwoFactor.Unix(),
-		FirstFactorAuthn:    timeOneFactor.Unix(),
-	}, session)
-
-	assert.Equal(t, timeOneFactor, session.AuthenticatedAt(authorization.OneFactor))
-	assert.Equal(t, time.Unix(0, 0), session.AuthenticatedAt(authorization.TwoFactor))
 
 	session.SetTwoFactor(timeTwoFactor)
 
@@ -114,35 +104,24 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, UserSession{
-		Username:            testUsername,
-		AuthenticationLevel: authentication.TwoFactor,
-		LastActivity:        timeTwoFactor.Unix(),
-		FirstFactorAuthn:    timeOneFactor.Unix(),
-		SecondFactorAuthn:   timeTwoFactor.Unix(),
+		Username:                   testUsername,
+		AuthenticationLevel:        authentication.TwoFactor,
+		LastActivity:               timeTwoFactor.Unix(),
+		FirstFactorAuthnTimestamp:  timeOneFactor.Unix(),
+		SecondFactorAuthnTimestamp: timeTwoFactor.Unix(),
 	}, session)
 
-	assert.Equal(t, timeOneFactor, session.AuthenticatedAt(authorization.OneFactor))
-	assert.Equal(t, timeTwoFactor, session.AuthenticatedAt(authorization.TwoFactor))
-	assert.Equal(t, timeTwoFactor, session.AuthenticatedAt(authorization.Denied))
+	authAt, err = session.AuthenticatedTime(authorization.OneFactor)
+	assert.NoError(t, err)
+	assert.Equal(t, timeOneFactor, authAt)
 
-	session.SetTwoFactor(timeFalseFactor)
+	authAt, err = session.AuthenticatedTime(authorization.TwoFactor)
+	assert.NoError(t, err)
+	assert.Equal(t, timeTwoFactor, authAt)
 
-	err = provider.SaveSession(ctx, session)
-	require.NoError(t, err)
-
-	session, err = provider.GetSession(ctx)
-	require.NoError(t, err)
-
-	assert.Equal(t, UserSession{
-		Username:            testUsername,
-		AuthenticationLevel: authentication.TwoFactor,
-		LastActivity:        timeFalseFactor.Unix(),
-		FirstFactorAuthn:    timeOneFactor.Unix(),
-		SecondFactorAuthn:   timeTwoFactor.Unix(),
-	}, session)
-
-	assert.Equal(t, timeOneFactor, session.AuthenticatedAt(authorization.OneFactor))
-	assert.Equal(t, timeTwoFactor, session.AuthenticatedAt(authorization.TwoFactor))
+	authAt, err = session.AuthenticatedTime(authorization.Denied)
+	assert.EqualError(t, err, "invalid authorization level")
+	assert.Equal(t, timeZeroFactor, authAt)
 }
 
 func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {

@@ -25,8 +25,6 @@ const (
 		"must be one of: '%s'"
 	errFmtOIDCServerClientInvalidResponseMode = "OIDC Client with ID '%s' has an invalid response mode '%s', " +
 		"must be one of: '%s'"
-	errFmtOIDCServerClientInvalidResponseType = "OIDC Client with ID '%s' has an invalid response type '%s', " +
-		"must be one of: '%s'"
 
 	errFileHashing = "config key incorrect: authentication_backend.file.hashing should be " +
 		"authentication_backend.file.password"
@@ -67,9 +65,6 @@ const (
 var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
 var validScopes = []string{"openid", "email", "profile", "groups", "offline_access"}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
-var validOIDCResponseTypes = []string{
-	"code", "code id_token", "id_token", "token id_token", "token", "token id_token code",
-}
 var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
 
 var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}

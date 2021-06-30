@@ -1,6 +1,7 @@
 package session
 
 import (
+	"errors"
 	"time"
 
 	"github.com/authelia/authelia/internal/authentication"
@@ -18,10 +19,7 @@ func NewDefaultUserSession() UserSession {
 
 // SetOneFactor sets the expected property values for one factor authentication.
 func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
-	if s.FirstFactorAuthn == 0 {
-		s.FirstFactorAuthn = now.Unix()
-	}
-
+	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
 	s.AuthenticationLevel = authentication.OneFactor
 
@@ -35,30 +33,19 @@ func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDe
 
 // SetTwoFactor sets the expected property values for two factor authentication.
 func (s *UserSession) SetTwoFactor(now time.Time) {
-	if s.SecondFactorAuthn == 0 {
-		s.SecondFactorAuthn = now.Unix()
-	}
-
+	s.SecondFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
 	s.AuthenticationLevel = authentication.TwoFactor
 }
 
-// AuthenticatedAt returns the unix timestamp this session authenticated successfully at the given level.
-func (s UserSession) AuthenticatedAt(level authorization.Level) (authenticatedAt time.Time) {
+// AuthenticatedTime returns the unix timestamp this session authenticated successfully at the given level.
+func (s UserSession) AuthenticatedTime(level authorization.Level) (authenticatedTime time.Time, err error) {
 	switch level {
 	case authorization.OneFactor:
-		return time.Unix(s.FirstFactorAuthn, 0)
+		return time.Unix(s.FirstFactorAuthnTimestamp, 0), nil
 	case authorization.TwoFactor:
-		return time.Unix(s.SecondFactorAuthn, 0)
+		return time.Unix(s.SecondFactorAuthnTimestamp, 0), nil
+	default:
+		return time.Unix(0, 0), errors.New("invalid authorization level")
 	}
-
-	if s.SecondFactorAuthn != 0 {
-		return time.Unix(s.SecondFactorAuthn, 0)
-	}
-
-	if s.FirstFactorAuthn != 0 {
-		return time.Unix(s.FirstFactorAuthn, 0)
-	}
-
-	return time.Now()
 }

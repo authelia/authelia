@@ -15,7 +15,7 @@ func TestKeyManager_AddActiveKeyData(t *testing.T) {
 	assert.Nil(t, manager.strategy)
 	assert.Nil(t, manager.Strategy())
 
-	key, wk, err := manager.AddActiveKeyData(exampleIssuerPrivateKey)
+	key, wk, err := manager.AddActivePrivateKeyData(exampleIssuerPrivateKey)
 	require.NoError(t, err)
 	require.NotNil(t, key)
 	require.NotNil(t, wk)

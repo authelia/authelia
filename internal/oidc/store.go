@@ -17,7 +17,7 @@ import (
 func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (store *OpenIDConnectStore, err error) {
 	store = &OpenIDConnectStore{
 		memory: &storage.MemoryStore{
-			IDSessions:             make(map[string]fosite.Requester),
+			IDSessions:             map[string]fosite.Requester{},
 			Users:                  map[string]storage.MemoryUserRelation{},
 			AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
 			AccessTokens:           map[string]fosite.Requester{},

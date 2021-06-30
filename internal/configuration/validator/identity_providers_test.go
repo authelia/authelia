@@ -157,34 +157,6 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 		"'password', 'client_credentials'")
 }
 
-func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseTypes(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
-			Clients: []schema.OpenIDConnectClientConfiguration{
-				{
-					ID:            "good_id",
-					Secret:        "good_secret",
-					Policy:        "two_factor",
-					ResponseTypes: []string{"bad_response_type"},
-					RedirectURIs: []string{
-						"https://google.com/callback",
-					},
-				},
-			},
-		},
-	}
-
-	ValidateIdentityProviders(config, validator)
-
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' has an invalid response type "+
-		"'bad_response_type', must be one of: 'code', 'code id_token', 'id_token', 'token id_token', 'token', "+
-		"'token id_token code'")
-}
-
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{

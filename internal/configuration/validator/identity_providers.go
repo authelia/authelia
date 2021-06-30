@@ -125,18 +125,10 @@ func validateOIDCClientGrantTypes(c int, configuration *schema.OpenIDConnectConf
 	}
 }
 
-func validateOIDCClientResponseTypes(c int, configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+func validateOIDCClientResponseTypes(c int, configuration *schema.OpenIDConnectConfiguration, _ *schema.StructValidator) {
 	if len(configuration.Clients[c].ResponseTypes) == 0 {
 		configuration.Clients[c].ResponseTypes = schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes
 		return
-	}
-
-	for _, responseType := range configuration.Clients[c].ResponseTypes {
-		if !utils.IsStringInSlice(responseType, validOIDCResponseTypes) {
-			validator.Push(fmt.Errorf(
-				errFmtOIDCServerClientInvalidResponseType,
-				configuration.Clients[c].ID, responseType, strings.Join(validOIDCResponseTypes, "', '")))
-		}
 	}
 }
 

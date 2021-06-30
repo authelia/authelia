@@ -20,7 +20,7 @@ import (
 func NewKeyManagerWithConfiguration(configuration *schema.OpenIDConnectConfiguration) (manager *KeyManager, err error) {
 	manager = NewKeyManager()
 
-	_, _, err = manager.AddActiveKeyData(configuration.IssuerPrivateKey)
+	_, _, err = manager.AddActivePrivateKeyData(configuration.IssuerPrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -84,20 +84,20 @@ func (m KeyManager) GetActivePrivateKey() (key *rsa.PrivateKey, err error) {
 	return nil, errors.New("failed to retrieve active private key")
 }
 
-// AddActiveKeyData adds a rsa.PublicKey given the key in the PEM string format, then sets it to the active key.
-func (m *KeyManager) AddActiveKeyData(data string) (key *rsa.PrivateKey, webKey *jose.JSONWebKey, err error) {
+// AddActivePrivateKeyData adds a rsa.PublicKey given the key in the PEM string format, then sets it to the active key.
+func (m *KeyManager) AddActivePrivateKeyData(data string) (key *rsa.PrivateKey, webKey *jose.JSONWebKey, err error) {
 	key, err = utils.ParseRsaPrivateKeyFromPemStr(data)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	webKey, err = m.AddActiveKey(key)
+	webKey, err = m.AddActivePrivateKey(key)
 
 	return key, webKey, err
 }
 
-// AddActiveKey adds a rsa.PublicKey, then sets it to the active key.
-func (m *KeyManager) AddActiveKey(key *rsa.PrivateKey) (webKey *jose.JSONWebKey, err error) {
+// AddActivePrivateKey adds a rsa.PublicKey, then sets it to the active key.
+func (m *KeyManager) AddActivePrivateKey(key *rsa.PrivateKey) (webKey *jose.JSONWebKey, err error) {
 	wk := jose.JSONWebKey{
 		Key:       &key.PublicKey,
 		Algorithm: "RS256",
@@ -109,7 +109,11 @@ func (m *KeyManager) AddActiveKey(key *rsa.PrivateKey) (webKey *jose.JSONWebKey,
 		return nil, err
 	}
 
-	strKeyID := strings.ToLower(fmt.Sprintf("%x", keyID)[0:6])
+	strKeyID := strings.ToLower(fmt.Sprintf("%x", keyID))
+	if len(strKeyID) >= 7 {
+		// Shorten the key if it's greater than 7 to a length of exactly 7.
+		strKeyID = strKeyID[0:6]
+	}
 
 	if _, ok := m.keys[strKeyID]; ok {
 		return nil, fmt.Errorf("key id %s already exists", strKeyID)
@@ -121,11 +125,9 @@ func (m *KeyManager) AddActiveKey(key *rsa.PrivateKey) (webKey *jose.JSONWebKey,
 	m.keys[strKeyID] = key
 	m.activeKeyID = strKeyID
 
-	if m.strategy == nil {
-		m.strategy, err = NewRS256JWTStrategy(wk.KeyID, key)
-		if err != nil {
-			return &wk, err
-		}
+	m.strategy, err = NewRS256JWTStrategy(wk.KeyID, key)
+	if err != nil {
+		return &wk, err
 	}
 
 	return &wk, nil

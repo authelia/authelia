@@ -16,6 +16,7 @@ import (
 	"github.com/authelia/authelia/internal/session"
 )
 
+//nolint: gocyclo  // TODO: Consider refactoring time permitting.
 func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	ar, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r)
 	if err != nil {
@@ -75,7 +76,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		ar.GrantAudience(a)
 	}
 
-	workflowCreated := time.Unix(userSession.OIDCWorkflowSession.Created, 0)
+	workflowCreated := time.Unix(userSession.OIDCWorkflowSession.CreatedTimestamp, 0)
 
 	userSession.OIDCWorkflowSession = nil
 	if err := ctx.SaveSession(userSession); err != nil {
@@ -93,12 +94,20 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		return
 	}
 
+	authTime, err := userSession.AuthenticatedTime(client.Policy)
+	if err != nil {
+		ctx.Logger.Errorf("Error occurred obtaining authentication timestamp: %+v", err)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
+
+		return
+	}
+
 	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &oidc.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
 				Subject:     userSession.Username,
 				Issuer:      issuer,
-				AuthTime:    userSession.AuthenticatedAt(client.Policy),
+				AuthTime:    authTime,
 				RequestedAt: workflowCreated,
 				IssuedAt:    time.Now(),
 				Nonce:       ar.GetRequestForm().Get("nonce"),
@@ -146,7 +155,7 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 		AuthURI:                    redirectURL,
 		TargetURI:                  ar.GetRedirectURI().String(),
 		RequiredAuthorizationLevel: client.Policy,
-		Created:                    time.Now().Unix(),
+		CreatedTimestamp:           time.Now().Unix(),
 	}
 
 	if err := ctx.SaveSession(userSession); err != nil {
