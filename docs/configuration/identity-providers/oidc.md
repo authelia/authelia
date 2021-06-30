@@ -153,7 +153,12 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
-The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's.
+The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's. This can easily be
+generated using the Authelia binary using the following syntax:
+
+```console
+authelia rsa generate --dir /config
+```
 
 Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
@@ -206,7 +211,7 @@ required: no
 </div>
 
 The maximum lifetime of a refresh token. This should typically be slightly more the other token lifespans. This is 
-becasese the refresh token can be used to obtain new refresh tokens as well as access tokens or id tokens with an 
+because the refresh token can be used to obtain new refresh tokens as well as access tokens or id tokens with an 
 up-to-date expiration. For more information read these docs about [token lifespan].
 
 ### enable_client_debug_messages

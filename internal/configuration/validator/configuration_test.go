@@ -154,7 +154,7 @@ func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "Value for \"default_redirection_url\" is invalid: url 'bad_default_redirection_url' is not absolute")
+	assert.EqualError(t, validator.Errors()[0], "Value for \"default_redirection_url\" is invalid: url 'bad_default_redirection_url' is not absolute because it doesn't start with a scheme like 'http://' or 'https://'")
 }
 
 func TestShouldNotOverrideCertificatesDirectoryAndShouldPassWhenBlank(t *testing.T) {

@@ -93,7 +93,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	require.Len(t, validator.Errors(), 7)
 
 	assert.Equal(t, schema.DefaultOpenIDConnectClientConfiguration.Policy, config.OIDC.Clients[0].Policy)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtOIDCServerClientInvalidSec, ""))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtOIDCServerClientInvalidSecret, ""))
 	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errFmtOIDCServerClientRedirectURI, "", "tcp://google.com", "tcp"))
 	assert.EqualError(t, validator.Errors()[2], fmt.Sprintf(errFmtOIDCServerClientInvalidPolicy, "a-client", "a-policy"))
 	assert.EqualError(t, validator.Errors()[3], fmt.Sprintf(errFmtOIDCServerClientInvalidPolicy, "a-client", "a-policy"))

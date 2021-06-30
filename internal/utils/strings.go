@@ -18,7 +18,7 @@ func IsStringAbsURL(input string) (err error) {
 	}
 
 	if !parsedURL.IsAbs() {
-		return fmt.Errorf("url '%s' is not absolute", input)
+		return fmt.Errorf("the url '%s' is not absolute because it doesn't start with a scheme like 'http://' or 'https://'", input)
 	}
 
 	return nil

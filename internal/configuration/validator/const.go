@@ -18,8 +18,8 @@ const (
 		"could not be parsed: %v"
 	errFmtOIDCServerClientInvalidPolicy = "OIDC Client with ID '%s' has an invalid policy '%s', " +
 		"should be either 'one_factor' or 'two_factor'"
-	errFmtOIDCServerClientInvalidSec   = "OIDC Client with ID '%s' has an empty secret"
-	errFmtOIDCServerClientInvalidScope = "OIDC Client with ID '%s' has an invalid scope '%s', " +
+	errFmtOIDCServerClientInvalidSecret = "OIDC Client with ID '%s' has an empty secret" //nolint:gosec
+	errFmtOIDCServerClientInvalidScope  = "OIDC Client with ID '%s' has an invalid scope '%s', " +
 		"must be one of: '%s'"
 	errFmtOIDCServerClientInvalidGrantType = "OIDC Client with ID '%s' has an invalid grant type '%s', " +
 		"must be one of: '%s'"

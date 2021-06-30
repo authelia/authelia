@@ -65,7 +65,7 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 		}
 
 		if client.Secret == "" {
-			validator.Push(fmt.Errorf(errFmtOIDCServerClientInvalidSec, client.ID))
+			validator.Push(fmt.Errorf(errFmtOIDCServerClientInvalidSecret, client.ID))
 		}
 
 		if client.Policy == "" {
