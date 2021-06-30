@@ -99,6 +99,7 @@ const ResetPasswordStep2 = function () {
                         onChange={(e) => setPassword1(e.target.value)}
                         error={errorPassword1}
                         className={classnames(style.fullWidth)}
+                        autoComplete="new-password"
                     />
                 </Grid>
                 <Grid item xs={12}>
@@ -118,6 +119,7 @@ const ResetPasswordStep2 = function () {
                             }
                         }}
                         className={classnames(style.fullWidth)}
+                        autoComplete="new-password"
                     />
                 </Grid>
                 <Grid item xs={6}>
