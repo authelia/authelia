@@ -21,13 +21,33 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 	}
 
 	wellKnown := oidc.WellKnownConfiguration{
-		Issuer:                       issuer,
-		AuthURL:                      fmt.Sprintf("%s%s", issuer, oidcAuthorizePath),
-		TokenURL:                     fmt.Sprintf("%s%s", issuer, oidcTokenPath),
-		RevocationEndpoint:           fmt.Sprintf("%s%s", issuer, oidcRevokePath),
-		JWKSURL:                      fmt.Sprintf("%s%s", issuer, oidcJWKsPath),
-		Algorithms:                   []string{"RS256"},
-		RequestURIParameterSupported: false,
+		Issuer:  issuer,
+		JWKSURI: fmt.Sprintf("%s%s", issuer, oidcJWKsPath),
+
+		AuthorizationEndpoint: fmt.Sprintf("%s%s", issuer, oidcAuthorizePath),
+		TokenEndpoint:         fmt.Sprintf("%s%s", issuer, oidcTokenPath),
+		RevocationEndpoint:    fmt.Sprintf("%s%s", issuer, oidcRevokePath),
+
+		Algorithms: []string{"RS256"},
+
+		SubjectTypesSupported: []string{
+			"public",
+		},
+		ResponseTypesSupported: []string{
+			"code",
+			"token",
+			"id_token",
+			"code token",
+			"code id_token",
+			"token id_token",
+			"code token id_token",
+			"none",
+		},
+		ResponseModesSupported: []string{
+			"form_post",
+			"query",
+			"fragment",
+		},
 		ScopesSupported: []string{
 			"openid",
 			"offline_access",
@@ -51,24 +71,12 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 			"groups",
 			"name",
 		},
-		SubjectTypesSupported: []string{
-			"public",
-		},
-		ResponseTypesSupported: []string{
-			"code",
-			"token",
-			"id_token",
-			"code token",
-			"code id_token",
-			"token id_token",
-			"code token id_token",
-			"none",
-		},
-		ResponseModesSupported: []string{
-			"form_post",
-			"query",
-			"fragment",
-		},
+
+		RequestURIParameterSupported:       false,
+		BackChannelLogoutSupported:         false,
+		FrontChannelLogoutSupported:        false,
+		BackChannelLogoutSessionSupported:  false,
+		FrontChannelLogoutSessionSupported: false,
 	}
 
 	ctx.SetContentType("application/json")
