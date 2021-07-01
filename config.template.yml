@@ -595,7 +595,7 @@ notifier:
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
 
-    ## SECURITY NOTICE: It's not recommended to change this option, and highly discouraged to have it above 8 for
+    ## SECURITY NOTICE: It's not recommended to change this option, and highly discouraged to have it below 8 for
     ## security reasons.
     # minimum_parameter_entropy: 8
 
