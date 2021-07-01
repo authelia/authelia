@@ -186,14 +186,14 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 		Return(nil)
 
 	mockConn.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionsAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
 					DN: "",
 					Attributes: []*ldap.EntryAttribute{
 						{
-							Name:   ldapSupportedExtensionsAttribute,
+							Name:   ldapSupportedExtensionAttribute,
 							Values: []string{ldapOIDPasswdModifyExtension},
 						},
 					},
@@ -238,14 +238,14 @@ func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
 		Return(nil)
 
 	mockConn.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionsAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
 					DN: "",
 					Attributes: []*ldap.EntryAttribute{
 						{
-							Name:   ldapSupportedExtensionsAttribute,
+							Name:   ldapSupportedExtensionAttribute,
 							Values: []string{},
 						},
 					},
@@ -322,7 +322,7 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 		Return(nil)
 
 	mockConn.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionsAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
 		Return(nil, errors.New("could not perform the search"))
 
 	err := ldapClient.checkServer()
