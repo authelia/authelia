@@ -129,7 +129,6 @@ func (p *LDAPUserProvider) checkServer() (err error) {
 			for _, oid := range attr.Values {
 				if oid == ldapOIDPasswdModifyExtension {
 					p.supportExtensionPasswdModify = true
-
 					break
 				}
 			}
