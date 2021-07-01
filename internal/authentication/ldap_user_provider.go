@@ -30,7 +30,7 @@ type LDAPUserProvider struct {
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
 func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider, err error) {
-	provider = newLDAPUserProvider(configuration, certPool, NewLDAPConnectionFactoryImpl())
+	provider = newLDAPUserProvider(configuration, certPool, nil)
 
 	err = provider.checkServer()
 	if err != nil {
@@ -46,13 +46,6 @@ func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 	return provider, nil
 }
 
-// NewLDAPUserProviderWithFactory creates a new instance of LDAPUserProvider with existing factory.
-func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool, connectionFactory LDAPConnectionFactory) *LDAPUserProvider {
-	provider := newLDAPUserProvider(configuration, certPool, connectionFactory)
-
-	return provider
-}
-
 func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool, factory LDAPConnectionFactory) (provider *LDAPUserProvider) {
 	if configuration.TLS == nil {
 		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
@@ -64,6 +57,10 @@ func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 
 	if tlsConfig != nil {
 		dialOpts = ldap.DialWithTLSConfig(tlsConfig)
+	}
+
+	if factory == nil {
+		factory = NewLDAPConnectionFactoryImpl()
 	}
 
 	provider = &LDAPUserProvider{
