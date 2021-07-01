@@ -25,6 +25,8 @@ const (
 		"must be one of: '%s'"
 	errFmtOIDCServerClientInvalidResponseMode = "OIDC Client with ID '%s' has an invalid response mode '%s', " +
 		"must be one of: '%s'"
+	errFmtOIDCServerInsecureParameterEntropy = "SECURITY ISSUE: OIDC minimum parameter entropy is configured to an " +
+		"unsafe value, it should be above 8 but it's configured to %d."
 
 	errFileHashing = "config key incorrect: authentication_backend.file.hashing should be " +
 		"authentication_backend.file.password"

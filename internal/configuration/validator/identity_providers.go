@@ -37,6 +37,10 @@ func validateOIDC(configuration *schema.OpenIDConnectConfiguration, validator *s
 			configuration.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
 		}
 
+		if configuration.MinimumParameterEntropy != 0 && configuration.MinimumParameterEntropy < 8 {
+			validator.PushWarning(fmt.Errorf(errFmtOIDCServerInsecureParameterEntropy, configuration.MinimumParameterEntropy))
+		}
+
 		validateOIDCClients(configuration, validator)
 
 		if len(configuration.Clients) == 0 {

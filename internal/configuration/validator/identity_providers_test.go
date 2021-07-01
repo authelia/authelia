@@ -184,6 +184,34 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 		"'bad_responsemode', must be one of: 'form_post', 'query', 'fragment'")
 }
 
+func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:              "abc",
+			IssuerPrivateKey:        "abc",
+			MinimumParameterEntropy: 1,
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "good_id",
+					Secret: "good_secret",
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Warnings(), 1)
+
+	assert.EqualError(t, validator.Warnings()[0], "SECURITY ISSUE: OIDC minimum parameter entropy is configured to an unsafe value, it should be above 8 but it's configured to 1.")
+}
+
 func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{

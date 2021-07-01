@@ -28,6 +28,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		IDTokenLifespan:            configuration.IDTokenLifespan,
 		RefreshTokenLifespan:       configuration.RefreshTokenLifespan,
 		SendDebugMessagesToClients: configuration.EnableClientDebugMessages,
+		MinParameterEntropy:        configuration.MinimumParameterEntropy,
 	}
 
 	keyManager, err := NewKeyManagerWithConfiguration(configuration)

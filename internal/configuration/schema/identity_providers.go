@@ -18,6 +18,7 @@ type OpenIDConnectConfiguration struct {
 	IDTokenLifespan           time.Duration `mapstructure:"id_token_lifespan"`
 	RefreshTokenLifespan      time.Duration `mapstructure:"refresh_token_lifespan"`
 	EnableClientDebugMessages bool          `mapstructure:"enable_client_debug_messages"`
+	MinimumParameterEntropy   int           `mapstructure:"minimum_parameter_entropy"`
 
 	Clients []OpenIDConnectClientConfiguration `mapstructure:"clients"`
 }
