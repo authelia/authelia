@@ -8,7 +8,7 @@ nav_order: 2
 
 # OpenID Connect
 
-**Authelia** currently supports the [OpenID Connect] OP role as a [beta](#beta) feature. The OP role is the 
+**Authelia** currently supports the [OpenID Connect] OP role as a [**beta**](#beta) feature. The OP role is the 
 [OpenID Connect] Provider role, not the Relaying Party or RP role. This means other applications that implement the 
 [OpenID Connect] RP role can use Authelia as an authentication and authorization backend similar to how you may use 
 social media or development platforms for login.
@@ -16,10 +16,10 @@ social media or development platforms for login.
 The Relaying Party role is the role which allows an application to use GitHub, Google, or other [OpenID Connect]
 providers for authentication and authorization. We do not intend to support this functionality at this moment in time.
 
-## Beta
+## Roadmap
 
 We have decided to implement [OpenID Connect] as a beta feature, it's suggested you only utilize it for testing and
-providing feedback, and should take caution in relying on it in production. [OpenID Connect] and it's related endpoints
+providing feedback, and should take caution in relying on it in production as of now. [OpenID Connect] and it's related endpoints
 are not enabled by default unless you specifically configure the [OpenID Connect] section.
 
 The beta will be broken up into stages. Each stage will bring additional features. The following table is a *rough* plan
@@ -89,91 +89,103 @@ for which stage will have each feature, and may evolve over time:
     </tbody>
 </table>
 
-*<sup>1</sup> this stage has not been implemented as of yet*
+¹ _This stage has not been implemented as of yet_.
 
-*<sup>2</sup> this individual feature has not been implemented as of yet*
+² _This individual feature has not been implemented as of yet_.
 
 ## Configuration
+
+The following snippet provides a sample-configuration for the OIDC identity provider explaining each field in detail.
 
 ```yaml
 identity_providers:
   oidc:
-    hmac_secret: this_is_a_secret_abc123abc123abc
-    issuer_private_key: |
+    hmac_secret: this_is_a_secret_abc123abc123abc              # [1]
+    issuer_private_key: |                                      # [2]
       --- KEY START
       --- KEY END
+    
     clients:
-      - id: myapp
-        description: My Application
-        secret: this_is_a_secret
-        authorization_policy: two_factor
-        redirect_uris:
+      - id: myapp                                              # [3]
+        description: My Application                            # [4]
+        secret: this_is_a_secret                               # [5]
+        authorization_policy: two_factor                       # [6]
+        redirect_uris:                                         # [7]
           - https://oidc.example.com:8080/oauth2/callback
-        scopes:
+        scopes:                                                # [8]
           - openid
           - groups
           - email
           - profile
-        grant_types:
+        grant_types:                                           # [9]
           - refresh_token
           - authorization_code
-        response_types:
+        response_types:                                        # [10]
           - code
 ```
 
-## Options
+### Options
 
-### hmac_secret
+#### [1] hmac_secret
 
-The HMAC secret used to sign the [OpenID Connect] JWT's. The provided string is hashed to a SHA256 byte string for
-the purpose of meeting the required format.
+The HMAC secret used to sign the [OpenID Connect] JWT's. The provided string is hashed to a SHA256 byte string for the purpose of meeting the required format. It can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
-Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
+You must generate this option yourself. To generate a random string of sufficient length, you can use `openssl rand -base64 32`. If you are deploying this as a Kubernetes secret, you must encode it with base64 again, i.e. `openssl rand -base64 32 | base64`. Using secrets is always recommended.
 
-### issuer_private_key
+#### [2] issuer_private_key
 
-The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's.
+The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's. Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments. The reason for using only the private key here is that one is able to calculate the public key easily from the private key in this format (`openssl rsa -in rsa.key -pubout > rsa.pem`).
 
-Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
+You must generate this option yourself. To create it, use `docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys docker.io/authelia/authelia:latest authelia rsa generate --dir /keys` to generate both the private and public key in the current directory. You can then paste the private key into your configuration. When using Kubernetes, remember to base64-encode the private key first when using a secret. Using secrets is always recommended.
 
-### clients
+#### clients
 
 A list of clients to configure. The options for each client are described below.
 
-#### id
+##### [3] id
 
-The Client ID for this client. Must be configured in the application consuming this client.
+The Client ID for this client. Must be configured in the application consuming this client as well and must match with the entry in this configuration.
 
-#### description
+##### [4] description
 
 A friendly description for this client shown in the UI. This defaults to the same as the ID.
 
-#### secret
+##### [5] secret
 
-The shared secret between Authelia and the application consuming this client. Currently this is stored in plain text.
+The shared secret between Authelia and the application consuming this client. Currently this is stored in plain text. This secret must be configured in the application consuming this client as well and must match with the entry in this configuration.
 
-#### authorization_policy
+You must generate this option yourself. To generate a random string of sufficient length, you can use `openssl rand -base64 32`. If you are deploying this as a Kubernetes secret, you must encode it with base64 again, i.e. `openssl rand -base64 32 | base64`. Using secrets is always recommended.
 
-The authorization policy for this client. Either `one_factor` or `two_factor`.
+##### [6] authorization_policy
 
-#### redirect_uris
+The authorization policy for this client: either `one_factor` or `two_factor`.
 
-A list of valid callback URL's this client will redirect to. All other callbacks will be considered unsafe. The URL's
-are case-sensitive.
+##### [7] redirect_uris
 
-#### scopes
+A list of valid callback URL´s this client will redirect to. All other callbacks will be considered unsafe. The URL's are case-sensitive. This differs from application to application - we have provided a list of URL´s for common applications below. If you do not find the application in the list below, you will need to search for yourself - and maybe come back to open a PR to add your application to this list so others won't have to search for them.
 
-A list of scopes to allow this client to consume. See [scope definitions](#scope-definitions) for more information.
+`<DOMAIN>` needs to be substituted with the your domain and subdomain the application runs on. If GitLab, as an example, was reachable under `https://gitlab.example.com`, `<DOMAIN>` would be `gitlab.example.com`.
 
-#### grant_types
+| Application | Version              | Callback URL                                             |
+| :---------: | :------------------: | :------------------------------------------------------: |
+| GitLab      | `14.0.1`             | `https://<DOMAIN>/users/auth/openid_connect/callback`    |
+| MinIO       | `RELEASE.2021-06-17` | `https://<DOMAIN>/minio/login/openid`                    |
 
-A list of grant types this client can return. It is recommended that this isn't configured at this time unless you know
-what you're doing. 
+##### [8] scopes
 
-#### response_types
+A list of scopes to allow this client to consume. See [scope definitions](#scope-definitions) for more information. The documentation for the application you want to use with Authelia will most-likely provide you with the scopes to grant.
 
-A list of response types this client can return. It is recommended that this isn't configured at this time unless you 
-know what you're doing.
+##### [9] grant_types
+
+A list of grant types this client can return. _It is recommended that this isn't configured at this time unless you know what you're doing_.
+
+##### [10] response_types
+
+A list of response types this client can return. _It is recommended that this isn't configured at this time unless you  know what you're doing._
+
+## Currently Tested Applications
+
+At the moment, GitLab and MinIO are two applications tested with Authelia. With GitLab, the userinfo endpoint was missing in an early implementation but is now in peer review. With MinIO, there are problems with the `state` option, which is not supplied by MinIO, see [minio/minio#11398].
 
 ## Scope Definitions
 
@@ -221,5 +233,7 @@ This scope includes the profile information the authentication backend reports a
 |:-------:|:------:|:----------------:|:--------------------:|
 |name     |string  | display_name     |The users display name|
 
+[//]: # (Links)
 
+[minio/minio#11398]: https://github.com/minio/minio/issues/11398
 [OpenID Connect]: https://openid.net/connect/
