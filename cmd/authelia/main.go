@@ -103,7 +103,7 @@ func startServer() {
 	case config.AuthenticationBackend.File != nil:
 		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	case config.AuthenticationBackend.LDAP != nil:
-		userProvider, err = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, autheliaCertPool)
+		userProvider, err = authentication.NewLDAPUserProvider(config.AuthenticationBackend, autheliaCertPool)
 		if err != nil {
 			logger.Fatalf("Failed to Check LDAP Authentication Backend: %v", err)
 		}

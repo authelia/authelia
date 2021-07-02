@@ -29,18 +29,19 @@ type LDAPUserProvider struct {
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
-func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider, err error) {
-	provider = newLDAPUserProvider(configuration, certPool, nil)
+func NewLDAPUserProvider(configuration schema.AuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider, err error) {
+	provider = newLDAPUserProvider(*configuration.LDAP, certPool, nil)
 
 	err = provider.checkServer()
 	if err != nil {
 		return provider, err
 	}
 
-	if provider.supportExtensionPasswdModify {
-		provider.logger.Trace("LDAP Server does support passwdModifyOID Extension")
-	} else {
-		provider.logger.Trace("LDAP Server does not support passwdModifyOID Extension")
+	if !provider.supportExtensionPasswdModify && !configuration.DisableResetPassword &&
+		provider.configuration.Implementation != schema.LDAPImplementationActiveDirectory {
+		provider.logger.Warnf("Your LDAP server implementation may not support a method for password hashing " +
+			"known to Authelia, it's strongly recommended you ensure your directory server hashes the password " +
+			"attribute when users reset their password via Authelia.")
 	}
 
 	return provider, nil
