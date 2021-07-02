@@ -216,7 +216,7 @@ up-to-date expiration. For more information read these docs about [token lifespa
 
 ### enable_client_debug_messages
 <div markdown="1">
-type: bool
+type: boolean
 {: .label .label-config .label-purple } 
 default: false
 {: .label .label-config .label-blue }
@@ -225,6 +225,22 @@ required: no
 </div>
 
 Allows additional debug messages to be sent to the clients.
+
+### minimum_parameter_entropy
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple } 
+default: 8
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+This controls the minimum length of the `nonce` and `state` parameters.
+
+***Security Notice:*** Changing this value is generally discouraged, reducing it from the default can theoretically make
+certain scenarios less secure. It highly encouraged that if your OpenID Connect RP does not send these parameters or
+sends parameters with a lower length than the default that they implement a change rather than changing this value.
 
 ### clients
 
