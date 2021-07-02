@@ -94,13 +94,19 @@ func startServer() {
 		logger.Fatalf("Unrecognized storage backend")
 	}
 
-	var userProvider authentication.UserProvider
+	var (
+		userProvider authentication.UserProvider
+		err          error
+	)
 
 	switch {
 	case config.AuthenticationBackend.File != nil:
 		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	case config.AuthenticationBackend.LDAP != nil:
-		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, autheliaCertPool)
+		userProvider, err = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, autheliaCertPool)
+		if err != nil {
+			logger.Fatalf("Failed to Check LDAP Authentication Backend: %v", err)
+		}
 	default:
 		logger.Fatalf("Unrecognized authentication backend")
 	}
@@ -117,7 +123,7 @@ func startServer() {
 	}
 
 	if !config.Notifier.DisableStartupCheck {
-		_, err := notifier.StartupCheck()
+		_, err = notifier.StartupCheck()
 		if err != nil {
 			logger.Fatalf("Error during notifier startup check: %s", err)
 		}

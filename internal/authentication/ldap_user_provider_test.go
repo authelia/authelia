@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/go-ldap/ldap/v3"
@@ -10,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
@@ -19,7 +21,7 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL: "ldap://127.0.0.1:389",
 		},
@@ -46,7 +48,7 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL: "ldaps://127.0.0.1:389",
 		},
@@ -72,7 +74,7 @@ func TestEscapeSpecialCharsFromUserInput(t *testing.T) {
 
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL: "ldaps://127.0.0.1:389",
 		},
@@ -103,7 +105,7 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:          "ldaps://127.0.0.1:389",
 			GroupsFilter: "(|(member={dn})(uid={username})(uid={input}))",
@@ -123,6 +125,210 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 
 	filter, _ = ldapClient.resolveGroupsFilter("john#=(abc,def)", &profile)
 	assert.Equal(t, "(|(member=cn=john \\28external\\29,dc=example,dc=com)(uid=john)(uid=john\\#\\=\\28abc\\,def\\29))", filter)
+}
+
+type ExtendedSearchRequestMatcher struct {
+	filter       string
+	baseDN       string
+	scope        int
+	derefAliases int
+	typesOnly    bool
+	attributes   []string
+}
+
+func NewExtendedSearchRequestMatcher(filter, base string, scope, derefAliases int, typesOnly bool, attributes []string) *ExtendedSearchRequestMatcher {
+	return &ExtendedSearchRequestMatcher{filter, base, scope, derefAliases, typesOnly, attributes}
+}
+
+func (e *ExtendedSearchRequestMatcher) Matches(x interface{}) bool {
+	sr := x.(*ldap.SearchRequest)
+
+	if e.filter != sr.Filter || e.baseDN != sr.BaseDN || e.scope != sr.Scope || e.derefAliases != sr.DerefAliases ||
+		e.typesOnly != sr.TypesOnly || utils.IsStringSlicesDifferent(e.attributes, sr.Attributes) {
+		return false
+	}
+
+	return true
+}
+
+func (e *ExtendedSearchRequestMatcher) String() string {
+	return fmt.Sprintf("baseDN: %s, filter %s", e.baseDN, e.filter)
+}
+
+func TestShouldCheckLDAPServerExtensions(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			Password:             "password",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
+
+	mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	mockConn.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDPasswdModifyExtension},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	err := ldapClient.checkServer()
+	assert.NoError(t, err)
+
+	assert.True(t, ldapClient.supportExtensionPasswdModify)
+}
+
+func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			Password:             "password",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
+
+	mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	mockConn.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	err := ldapClient.checkServer()
+	assert.NoError(t, err)
+
+	assert.False(t, ldapClient.supportExtensionPasswdModify)
+}
+
+func TestShouldReturnCheckServerConnectError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			Password:             "password",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
+
+	mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, errors.New("could not connect"))
+
+	err := ldapClient.checkServer()
+	assert.EqualError(t, err, "could not connect")
+
+	assert.False(t, ldapClient.supportExtensionPasswdModify)
+}
+
+func TestShouldReturnCheckServerSearchError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayname",
+			Password:             "password",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
+
+	mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	mockConn.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Return(nil, errors.New("could not perform the search"))
+
+	err := ldapClient.checkServer()
+	assert.EqualError(t, err, "could not perform the search")
+
+	assert.False(t, ldapClient.supportExtensionPasswdModify)
 }
 
 type SearchRequestMatcher struct {
@@ -149,7 +355,7 @@ func TestShouldEscapeUserInput(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
@@ -181,7 +387,7 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
@@ -226,7 +432,7 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
@@ -297,7 +503,7 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:               "ldap://127.0.0.1:389",
 			User:              "cn=admin,dc=example,dc=com",
@@ -357,7 +563,7 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
@@ -428,7 +634,7 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
@@ -495,7 +701,7 @@ func TestShouldCheckValidUserPassword(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
@@ -563,7 +769,7 @@ func TestShouldCheckInvalidUserPassword(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
@@ -631,7 +837,7 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
@@ -705,7 +911,7 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
@@ -736,7 +942,7 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
@@ -814,7 +1020,7 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 	mockFactory := NewMockLDAPConnectionFactory(ctrl)
 	mockConn := NewMockLDAPConnection(ctrl)
 
-	ldapClient := NewLDAPUserProviderWithFactory(
+	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL:                  "ldaps://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
