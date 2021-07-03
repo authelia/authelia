@@ -142,6 +142,7 @@ func (m *MockAutheliaCtx) Close() {
 	m.Ctrl.Finish()
 }
 
+// SetRequestBody set the request body from a struct with json tags
 func (m *MockAutheliaCtx) SetRequestBody(t *testing.T, body interface{}) {
 	bodyBytes, err := json.Marshal(body)
 	require.NoError(t, err)
