@@ -83,8 +83,8 @@ func (s *OneFactorOnlyWebSuite) TestShouldRedirectAlreadyAuthenticatedUser() {
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "https://secure.example.com:8080/")
 	s.verifyURLIs(ctx, s.T(), HomeBaseURL+"/")
 
-	s.doVisit(s.T(), fmt.Sprintf("%s?rd=https://myunsafe.domain", GetLoginBaseURL()))
-	s.verifyURLIs(ctx, s.T(), "https://secure.example.com:8080/")
+	s.doVisit(s.T(), fmt.Sprintf("%s?rd=https://singlefactor.example.com:8080/secret.html", GetLoginBaseURL()))
+	s.verifyURLIs(ctx, s.T(), "https://singlefactor.example.com:8080/secret.html")
 }
 
 func (s *OneFactorOnlyWebSuite) TestShouldNotRedirectAlreadyAuthenticatedUserToUnsafeURL() {
