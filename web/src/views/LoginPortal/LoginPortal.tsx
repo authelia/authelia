@@ -30,6 +30,9 @@ export interface Props {
     resetPassword: boolean;
 }
 
+const RedirectionErrorMessage =
+    "There was an issue redirecting the user. Check that the redirection URI matches the domain.";
+
 const LoginPortal = function (props: Props) {
     const history = useHistory();
     const location = useLocation();
@@ -92,7 +95,6 @@ const LoginPortal = function (props: Props) {
             if (!state) {
                 return;
             }
-            console.log("coucou");
 
             if (
                 redirectionURL &&
@@ -105,14 +107,13 @@ const LoginPortal = function (props: Props) {
                     const res = await checkSafeRedirection(redirectionURL);
                     if (res && res.ok) {
                         redirector(redirectionURL);
-                        return;
+                    } else {
+                        createErrorNotification(RedirectionErrorMessage);
                     }
                 } catch (err) {
-                    createErrorNotification(
-                        "There was an issue redirecting the user. Check that the redirection URI matches the domain",
-                    );
-                    return;
+                    createErrorNotification(RedirectionErrorMessage);
                 }
+                return;
             }
 
             const redirectionSuffix = redirectionURL
