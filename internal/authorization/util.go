@@ -12,13 +12,13 @@ import (
 // PolicyToLevel converts a string policy to int authorization level.
 func PolicyToLevel(policy string) Level {
 	switch policy {
-	case "bypass":
+	case bypass:
 		return Bypass
-	case "one_factor":
+	case oneFactor:
 		return OneFactor
-	case "two_factor":
+	case twoFactor:
 		return TwoFactor
-	case "deny":
+	case deny:
 		return Denied
 	}
 	// By default the deny policy applies.

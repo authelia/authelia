@@ -2,14 +2,6 @@ import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "re
 
 import { Redirect, Route, Switch, useHistory, useLocation } from "react-router";
 
-import { useConfiguration } from "../../hooks/Configuration";
-import { useNotifications } from "../../hooks/NotificationsContext";
-import { useRedirectionURL } from "../../hooks/RedirectionURL";
-import { useRedirector } from "../../hooks/Redirector";
-import { useRequestMethod } from "../../hooks/RequestMethod";
-import { useAutheliaState } from "../../hooks/State";
-import { useUserPreferences as userUserInfo } from "../../hooks/UserInfo";
-import { SecondFactorMethod } from "../../models/Methods";
 import {
     AuthenticatedRoute,
     FirstFactorRoute,
@@ -17,13 +9,21 @@ import {
     SecondFactorRoute,
     SecondFactorTOTPRoute,
     SecondFactorU2FRoute,
-} from "../../Routes";
-import { checkSafeRedirection } from "../../services/SafeRedirection";
-import { AuthenticationLevel } from "../../services/State";
-import LoadingPage from "../LoadingPage/LoadingPage";
-import AuthenticatedView from "./AuthenticatedView/AuthenticatedView";
-import FirstFactorForm from "./FirstFactor/FirstFactorForm";
-import SecondFactorForm from "./SecondFactor/SecondFactorForm";
+} from "@constants/Routes";
+import { useConfiguration } from "@hooks/Configuration";
+import { useNotifications } from "@hooks/NotificationsContext";
+import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useRedirector } from "@hooks/Redirector";
+import { useRequestMethod } from "@hooks/RequestMethod";
+import { useAutheliaState } from "@hooks/State";
+import { useUserPreferences as userUserInfo } from "@hooks/UserInfo";
+import { SecondFactorMethod } from "@models/Methods";
+import { checkSafeRedirection } from "@services/SafeRedirection";
+import { AuthenticationLevel } from "@services/State";
+import LoadingPage from "@views/LoadingPage/LoadingPage";
+import AuthenticatedView from "@views/LoginPortal/AuthenticatedView/AuthenticatedView";
+import FirstFactorForm from "@views/LoginPortal/FirstFactor/FirstFactorForm";
+import SecondFactorForm from "@views/LoginPortal/SecondFactor/SecondFactorForm";
 
 export interface Props {
     rememberMe: boolean;

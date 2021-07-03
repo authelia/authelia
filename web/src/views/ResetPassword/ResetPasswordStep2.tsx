@@ -4,12 +4,12 @@ import { Grid, Button, makeStyles } from "@material-ui/core";
 import classnames from "classnames";
 import { useHistory, useLocation } from "react-router";
 
-import FixedTextField from "../../components/FixedTextField";
-import { useNotifications } from "../../hooks/NotificationsContext";
-import LoginLayout from "../../layouts/LoginLayout";
-import { FirstFactorRoute } from "../../Routes";
-import { completeResetPasswordProcess, resetPassword } from "../../services/ResetPassword";
-import { extractIdentityToken } from "../../utils/IdentityToken";
+import FixedTextField from "@components/FixedTextField";
+import { FirstFactorRoute } from "@constants/Routes";
+import { useNotifications } from "@hooks/NotificationsContext";
+import LoginLayout from "@layouts/LoginLayout";
+import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
+import { extractIdentityToken } from "@utils/IdentityToken";
 
 const ResetPasswordStep2 = function () {
     const style = useStyles();
@@ -99,6 +99,7 @@ const ResetPasswordStep2 = function () {
                         onChange={(e) => setPassword1(e.target.value)}
                         error={errorPassword1}
                         className={classnames(style.fullWidth)}
+                        autoComplete="new-password"
                     />
                 </Grid>
                 <Grid item xs={12}>
@@ -118,6 +119,7 @@ const ResetPasswordStep2 = function () {
                             }
                         }}
                         className={classnames(style.fullWidth)}
+                        autoComplete="new-password"
                     />
                 </Grid>
                 <Grid item xs={6}>

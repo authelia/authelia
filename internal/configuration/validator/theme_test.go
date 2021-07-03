@@ -36,7 +36,7 @@ func (suite *Theme) TestShouldRaiseErrorWhenInvalidThemeProvided() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Theme: invalid is not valid, valid themes are: \"light\", \"dark\" or \"grey\"")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Theme: invalid is not valid, valid themes are: \"light\", \"dark\", \"grey\" or \"auto\"")
 }
 
 func TestThemes(t *testing.T) {

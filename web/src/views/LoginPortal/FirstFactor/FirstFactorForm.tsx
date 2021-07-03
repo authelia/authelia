@@ -4,13 +4,13 @@ import { makeStyles, Grid, Button, FormControlLabel, Checkbox, Link } from "@mat
 import classnames from "classnames";
 import { useHistory } from "react-router";
 
-import FixedTextField from "../../../components/FixedTextField";
-import { useNotifications } from "../../../hooks/NotificationsContext";
-import { useRedirectionURL } from "../../../hooks/RedirectionURL";
-import { useRequestMethod } from "../../../hooks/RequestMethod";
-import LoginLayout from "../../../layouts/LoginLayout";
-import { ResetPasswordStep1Route } from "../../../Routes";
-import { postFirstFactor } from "../../../services/FirstFactor";
+import FixedTextField from "@components/FixedTextField";
+import { ResetPasswordStep1Route } from "@constants/Routes";
+import { useNotifications } from "@hooks/NotificationsContext";
+import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useRequestMethod } from "@hooks/RequestMethod";
+import LoginLayout from "@layouts/LoginLayout";
+import { postFirstFactor } from "@services/FirstFactor";
 
 export interface Props {
     disabled: boolean;
@@ -95,6 +95,7 @@ const FirstFactorForm = function (props: Props) {
                         onChange={(v) => setUsername(v.target.value)}
                         onFocus={() => setUsernameError(false)}
                         autoCapitalize="none"
+                        autoComplete="username"
                         onKeyPress={(ev) => {
                             if (ev.key === "Enter") {
                                 if (!username.length) {
@@ -124,6 +125,7 @@ const FirstFactorForm = function (props: Props) {
                         onChange={(v) => setPassword(v.target.value)}
                         onFocus={() => setPasswordError(false)}
                         type="password"
+                        autoComplete="current-password"
                         onKeyPress={(ev) => {
                             if (ev.key === "Enter") {
                                 if (!username.length) {

@@ -2,14 +2,14 @@ import React, { useEffect, useCallback, useState, ReactNode } from "react";
 
 import { Button, makeStyles } from "@material-ui/core";
 
-import FailureIcon from "../../../components/FailureIcon";
-import PushNotificationIcon from "../../../components/PushNotificationIcon";
-import SuccessIcon from "../../../components/SuccessIcon";
-import { useIsMountedRef } from "../../../hooks/Mounted";
-import { useRedirectionURL } from "../../../hooks/RedirectionURL";
-import { completePushNotificationSignIn } from "../../../services/PushNotification";
-import { AuthenticationLevel } from "../../../services/State";
-import MethodContainer, { State as MethodContainerState } from "./MethodContainer";
+import FailureIcon from "@components/FailureIcon";
+import PushNotificationIcon from "@components/PushNotificationIcon";
+import SuccessIcon from "@components/SuccessIcon";
+import { useIsMountedRef } from "@hooks/Mounted";
+import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { completePushNotificationSignIn } from "@services/PushNotification";
+import { AuthenticationLevel } from "@services/State";
+import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
 export enum State {
     SignInInProgress = 1,

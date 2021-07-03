@@ -30,15 +30,14 @@ The following is a simple diagram of the architecture:
 
 **Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/), 
 [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a 
-[Static binary](https://github.com/authelia/authelia/releases/latest), [Docker] or [Kubernetes] either manually or via
+[Static binary](https://github.com/authelia/authelia/releases/latest), 
+[.deb package]((https://github.com/authelia/authelia/releases/latest)), [Docker] or [Kubernetes] either manually or via
 the Helm [Chart](https://charts.authelia.com) (beta) leveraging ingress controllers and ingress configurations. 
 
 <p align="center">
   <img src="./docs/images/logos/kubernetes.png" height="100"/>
   <img src="./docs/images/logos/docker.logo.png" width="100">
 </p>
-
-***Help Wanted:*** Assistance to publish a [Debian package](https://github.com/authelia/authelia/issues/573) would be greatly appreciated.
 
 Here is what Authelia's portal looks like:
 
@@ -260,6 +259,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   </tr>
   <tr>
     <td align="center"><a href="http://jonbayl"><img src="https://avatars.githubusercontent.com/u/30201351?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jon B. </b></sub></a><br /><a href="#security-jonbayl" title="Security">🛡️</a></td>
+    <td align="center"><a href="https://github.com/AlexGustafsson"><img src="https://avatars.githubusercontent.com/u/14974112?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alex Gustafsson</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=AlexGustafsson" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=AlexGustafsson" title="Documentation">📖</a></td>
   </tr>
 </table>
 

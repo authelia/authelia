@@ -17,10 +17,11 @@ type SecondFactorAvailableMethodsFixture struct {
 
 func (s *SecondFactorAvailableMethodsFixture) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
-		DefaultPolicy: "deny",
-		Rules:         []schema.ACLRule{},
-	})
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: "deny",
+			Rules:         []schema.ACLRule{},
+		}})
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TearDownTest() {
@@ -66,23 +67,25 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisab
 			Period: schema.DefaultTOTPConfiguration.Period,
 		},
 	}
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
-		DefaultPolicy: "bypass",
-		Rules: []schema.ACLRule{
-			{
-				Domains: []string{"example.com"},
-				Policy:  "deny",
-			},
-			{
-				Domains: []string{"abc.example.com"},
-				Policy:  "single_factor",
-			},
-			{
-				Domains: []string{"def.example.com"},
-				Policy:  "bypass",
-			},
-		},
-	})
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(
+		&schema.Configuration{
+			AccessControl: schema.AccessControlConfiguration{
+				DefaultPolicy: "bypass",
+				Rules: []schema.ACLRule{
+					{
+						Domains: []string{"example.com"},
+						Policy:  "deny",
+					},
+					{
+						Domains: []string{"abc.example.com"},
+						Policy:  "single_factor",
+					},
+					{
+						Domains: []string{"def.example.com"},
+						Policy:  "bypass",
+					},
+				},
+			}})
 	ConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), ConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
@@ -97,23 +100,24 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 			Period: schema.DefaultTOTPConfiguration.Period,
 		},
 	}
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
-		DefaultPolicy: "two_factor",
-		Rules: []schema.ACLRule{
-			{
-				Domains: []string{"example.com"},
-				Policy:  "deny",
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: "two_factor",
+			Rules: []schema.ACLRule{
+				{
+					Domains: []string{"example.com"},
+					Policy:  "deny",
+				},
+				{
+					Domains: []string{"abc.example.com"},
+					Policy:  "single_factor",
+				},
+				{
+					Domains: []string{"def.example.com"},
+					Policy:  "bypass",
+				},
 			},
-			{
-				Domains: []string{"abc.example.com"},
-				Policy:  "single_factor",
-			},
-			{
-				Domains: []string{"def.example.com"},
-				Policy:  "bypass",
-			},
-		},
-	})
+		}})
 	ConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), ConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
@@ -128,23 +132,25 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 			Period: schema.DefaultTOTPConfiguration.Period,
 		},
 	}
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(schema.AccessControlConfiguration{
-		DefaultPolicy: "bypass",
-		Rules: []schema.ACLRule{
-			{
-				Domains: []string{"example.com"},
-				Policy:  "deny",
-			},
-			{
-				Domains: []string{"abc.example.com"},
-				Policy:  "two_factor",
-			},
-			{
-				Domains: []string{"def.example.com"},
-				Policy:  "bypass",
-			},
-		},
-	})
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(
+		&schema.Configuration{
+			AccessControl: schema.AccessControlConfiguration{
+				DefaultPolicy: "bypass",
+				Rules: []schema.ACLRule{
+					{
+						Domains: []string{"example.com"},
+						Policy:  "deny",
+					},
+					{
+						Domains: []string{"abc.example.com"},
+						Policy:  "two_factor",
+					},
+					{
+						Domains: []string{"def.example.com"},
+						Policy:  "bypass",
+					},
+				},
+			}})
 	ConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), ConfigurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},

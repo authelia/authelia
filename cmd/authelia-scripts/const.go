@@ -18,3 +18,5 @@ const masterTag = "master"
 const stringFalse = "false"
 const stringTrue = "true"
 const webDirectory = "web"
+
+const fmtLDFLAGSX = "-X 'github.com/authelia/authelia/internal/utils.%s=%s'"

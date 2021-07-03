@@ -46,60 +46,28 @@ func dockerBuildOfficialImage(arch string) error {
 	docker := &Docker{}
 	// Set default Architecture Dockerfile to amd64.
 	dockerfile := "Dockerfile"
-	// Set version of QEMU.
-	qemuversion := "v5.2.0-2"
 
 	// If not the default value.
 	if arch != defaultArch {
 		dockerfile = fmt.Sprintf("%s.%s", dockerfile, arch)
 	}
 
-	if arch == "arm32v7" {
+	if arch == "arm32v7" || arch == "arm64v8" {
 		if buildkiteQEMU != stringTrue {
 			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
-
-		err := utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-arm-static -O ./qemu-arm-static && chmod +x ./qemu-arm-static").Run()
-
-		if err != nil {
-			log.Fatal(err)
-		}
-	} else if arch == "arm64v8" {
-		if buildkiteQEMU != stringTrue {
-			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-
-		err := utils.CommandWithStdout("bash", "-c", "wget https://github.com/multiarch/qemu-user-static/releases/download/"+qemuversion+"/qemu-aarch64-static -O ./qemu-aarch64-static && chmod +x ./qemu-aarch64-static").Run()
-
-		if err != nil {
-			log.Fatal(err)
-		}
 	}
 
-	gitTag := ciTag
-	if gitTag == "" {
-		// If commit is not tagged, mark the build has having master tag.
-		gitTag = masterTag
-	}
-
-	cmd := utils.Shell("git rev-parse HEAD")
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	commitBytes, err := cmd.Output()
-
+	flags, err := getXFlags(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	commitHash := strings.Trim(string(commitBytes), "\n")
-
-	return docker.Build(IntermediateDockerImageName, dockerfile, ".", gitTag, commitHash)
+	return docker.Build(IntermediateDockerImageName, dockerfile, ".",
+		strings.Join(flags, " "))
 }
 
 // DockerBuildCmd Command for building docker image of Authelia.

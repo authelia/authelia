@@ -4,15 +4,12 @@ import { makeStyles, Typography, Button } from "@material-ui/core";
 import { useHistory, useLocation } from "react-router";
 import u2fApi from "u2f-api";
 
-import FingerTouchIcon from "../../components/FingerTouchIcon";
-import { useNotifications } from "../../hooks/NotificationsContext";
-import LoginLayout from "../../layouts/LoginLayout";
-import { FirstFactorPath } from "../../services/Api";
-import {
-    completeU2FRegistrationProcessStep1,
-    completeU2FRegistrationProcessStep2,
-} from "../../services/RegisterDevice";
-import { extractIdentityToken } from "../../utils/IdentityToken";
+import FingerTouchIcon from "@components/FingerTouchIcon";
+import { useNotifications } from "@hooks/NotificationsContext";
+import LoginLayout from "@layouts/LoginLayout";
+import { FirstFactorPath } from "@services/Api";
+import { completeU2FRegistrationProcessStep1, completeU2FRegistrationProcessStep2 } from "@services/RegisterDevice";
+import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterSecurityKey = function () {
     const style = useStyles();

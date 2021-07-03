@@ -4,16 +4,16 @@ import { makeStyles, Button, useTheme } from "@material-ui/core";
 import { CSSProperties } from "@material-ui/styles";
 import u2fApi from "u2f-api";
 
-import FailureIcon from "../../../components/FailureIcon";
-import FingerTouchIcon from "../../../components/FingerTouchIcon";
-import LinearProgressBar from "../../../components/LinearProgressBar";
-import { useIsMountedRef } from "../../../hooks/Mounted";
-import { useRedirectionURL } from "../../../hooks/RedirectionURL";
-import { useTimer } from "../../../hooks/Timer";
-import { initiateU2FSignin, completeU2FSignin } from "../../../services/SecurityKey";
-import { AuthenticationLevel } from "../../../services/State";
-import IconWithContext from "./IconWithContext";
-import MethodContainer, { State as MethodContainerState } from "./MethodContainer";
+import FailureIcon from "@components/FailureIcon";
+import FingerTouchIcon from "@components/FingerTouchIcon";
+import LinearProgressBar from "@components/LinearProgressBar";
+import { useIsMountedRef } from "@hooks/Mounted";
+import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useTimer } from "@hooks/Timer";
+import { initiateU2FSignin, completeU2FSignin } from "@services/SecurityKey";
+import { AuthenticationLevel } from "@services/State";
+import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
+import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
 export enum State {
     WaitTouch = 1,

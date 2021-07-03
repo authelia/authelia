@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -9,12 +10,12 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-func buildAutheliaBinary() {
-	cmd := utils.CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia")
+func buildAutheliaBinary(xflags []string) {
+	cmd := utils.CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia", "-ldflags", strings.Join(xflags, " "))
 	cmd.Dir = "cmd/authelia"
 
 	cmd.Env = append(os.Environ(),
-		"GOOS=linux", "GOARCH=amd64", "CGO_ENABLED=1")
+		"GOOS=linux", "GOARCH=amd64", "CGO_ENABLED=0")
 
 	err := cmd.Run()
 	if err != nil {
@@ -40,22 +41,10 @@ func buildFrontend() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	cmd = utils.CommandWithStdout("rm", "-rf", "internal/server/public_html")
-
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = os.Rename("web/build", "internal/server/public_html")
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func buildSwagger() {
-	swaggerVer := "3.50.0"
+	swaggerVer := "3.51.1"
 	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+swaggerVer+".tar.gz -O ./v"+swaggerVer+".tar.gz")
 
 	err := cmd.Run()
@@ -109,8 +98,13 @@ func Build(cobraCmd *cobra.Command, args []string) {
 
 	Clean(cobraCmd, args)
 
+	xflags, err := getXFlags("", "0", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	log.Debug("Creating `" + OutputDir + "` directory")
-	err := os.MkdirAll(OutputDir, os.ModePerm)
+	err = os.MkdirAll(OutputDir, os.ModePerm)
 
 	if err != nil {
 		log.Fatal(err)
@@ -122,7 +116,13 @@ func Build(cobraCmd *cobra.Command, args []string) {
 	log.Debug("Building swagger-ui frontend...")
 	buildSwagger()
 
-	log.Debug("Building Authelia Go binary...")
-	buildAutheliaBinary()
+	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
+	if buildkite {
+		log.Debug("Buildkite job detected, skipping Authelia Go binary build")
+	} else {
+		log.Debug("Building Authelia Go binary...")
+		buildAutheliaBinary(xflags)
+	}
+
 	cleanAssets()
 }

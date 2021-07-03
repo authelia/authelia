@@ -491,6 +491,16 @@
       "contributions": [
         "security"
       ]
+    },
+    {
+      "login": "AlexGustafsson",
+      "name": "Alex Gustafsson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14974112?v=4",
+      "profile": "https://github.com/AlexGustafsson",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7

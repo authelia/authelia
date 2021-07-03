@@ -2,28 +2,28 @@
 
 set +u
 
-if [[ $BUILDKITE_PULL_REQUEST != "false" ]]; then
-  if [[ $BUILDKITE_LABEL == ":service_dog: Linting" ]]; then
+if [[ "${BUILDKITE_PULL_REQUEST}" != "false" ]]; then
+  if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
     echo "--- :go::service_dog: Provide in-line commentary for pull request"
     reviewdog -reporter=github-pr-review
   fi
 fi
 
-if [[ ! $BUILDKITE_BRANCH =~ ^(v.*) ]] && [[ $BUILDKITE_COMMAND_EXIT_STATUS == 0 ]]; then
-  if [[ $BUILDKITE_LABEL == ":hammer_and_wrench: Unit Test" ]] || [[ $BUILDKITE_LABEL =~ ":selenium:" ]]; then
+if [[ ! "${BUILDKITE_BRANCH}" =~ ^(v.*) ]] && [[ "${BUILDKITE_COMMAND_EXIT_STATUS}" == 0 ]]; then
+  if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]] || [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
     echo "--- :codecov: Upload coverage reports"
-    if [[ $BUILDKITE_AGENT_META_DATA_CODECOV == "verbose" ]]; then
+    if [[ "${BUILDKITE_AGENT_META_DATA_CODECOV}" == "verbose" ]]; then
       BUILDKITE_AGENT_META_DATA_CODECOV="-v"
     fi
-    bash <(curl -s --connect-timeout 10 --retry 10 --retry-max-time 0 https://codecov.io/bash) -Z -c -s 'coverage*.txt' -F backend ${BUILDKITE_AGENT_META_DATA_CODECOV}
-    if [[ $BUILDKITE_LABEL =~ ":selenium:" ]]; then
+    bash <(curl -s --connect-timeout 10 --retry 10 --retry-max-time 0 https://codecov.io/bash) -Z -c -s 'coverage*.txt' -F backend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
+    if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
       cd web && yarn report
     fi
-    bash <(curl -s --connect-timeout 10 --retry 10 --retry-max-time 0 https://codecov.io/bash) -Z -c -f '!*.go' -f '!*.zst' -F frontend ${BUILDKITE_AGENT_META_DATA_CODECOV}
+    bash <(curl -s --connect-timeout 10 --retry 10 --retry-max-time 0 https://codecov.io/bash) -Z -c -f '!*.go' -f '!*.zst' -F frontend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
   fi
 fi
 
-if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Build Image" ]]; then
+if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]] || [[ "${BUILDKITE_LABEL}" =~ ":docker: Build Image" ]]; then
   CONTAINERS=$(docker ps -a -q)
   if [[ ${CONTAINERS} != "" ]]; then
     echo "--- :docker: Remove lingering containers"
@@ -31,16 +31,16 @@ if [[ $BUILDKITE_LABEL =~ ":selenium:" ]] || [[ $BUILDKITE_LABEL =~ ":docker: Bu
   fi
 fi
 
-if [[ $BUILDKITE_LABEL == ":docker: Image Deployments" ]]; then
+if [[ "${BUILDKITE_LABEL}" == ":docker: Image Deployments" ]]; then
   cat .buildkite/annotations/artifacts | buildkite-agent annotate --style "success" --context "ctx-success"
 fi
 
-if [[ $BUILDKITE_LABEL =~ ":docker: Deploy" ]]; then
+if [[ "${BUILDKITE_LABEL}" =~ ":docker: Deploy" ]]; then
   docker logout
   docker logout ghcr.io
 fi
 
-if [[ $BUILDKITE_LABEL == ":docker: Deploy Manifests" ]] && [[ $BUILDKITE_BRANCH == "master" ]] && [[ $BUILDKITE_PULL_REQUEST == "false" ]]; then
+if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifests" ]] && [[ "${BUILDKITE_BRANCH}" == "master" ]] && [[ "${BUILDKITE_PULL_REQUEST}" == "false" ]]; then
   echo "--- :docker: Removing tags for deleted branches"
   anontoken=$(curl -fsL --retry 3 'https://auth.docker.io/token?service=registry.docker.io&scope=repository:authelia/authelia:pull' | jq -r .token)
   authtoken=$(curl -fs --retry 3 -H "Content-Type: application/json" -X "POST" -d '{"username": "'${DOCKER_USERNAME}'", "password": "'${DOCKER_PASSWORD}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)

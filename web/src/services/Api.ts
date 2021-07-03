@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
 
-import { getBasePath } from "../utils/BasePath";
+import { getBasePath } from "@utils/BasePath";
 
 const basePath = getBasePath();
 
