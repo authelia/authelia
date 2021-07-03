@@ -99,7 +99,7 @@ func TestKoanfSecretCallbackShouldIgnoreUndetectedSecrets(t *testing.T) {
 }
 
 func TestKoanfSecretCallbackShouldErrorOnFSError(t *testing.T) {
-	if runtime.GOOS == windows {
+	if runtime.GOOS == constWindows {
 		t.Skip("skipping test due to being on windows")
 	}
 

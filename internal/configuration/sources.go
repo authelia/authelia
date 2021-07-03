@@ -78,7 +78,7 @@ func (s *EnvironmentSource) Merge(ko *koanf.Koanf) (err error) {
 func (s *EnvironmentSource) Load() (err error) {
 	keyMap, ignoredKeys := getEnvConfigMap(validator.ValidKeys)
 
-	return s.koanf.Load(env.ProviderWithValue(envPrefix, delimiter, koanfEnvironmentCallback(keyMap, ignoredKeys)), nil)
+	return s.koanf.Load(env.ProviderWithValue(constEnvPrefix, constDelimiter, koanfEnvironmentCallback(keyMap, ignoredKeys)), nil)
 }
 
 // Validator returns the validator.
@@ -120,7 +120,7 @@ func (s *SecretsSource) Merge(ko *koanf.Koanf) (err error) {
 func (s *SecretsSource) Load() (err error) {
 	keyMap := getSecretConfigMap(validator.ValidKeys)
 
-	return s.koanf.Load(env.ProviderWithValue(envPrefixAlt, delimiter, koanfEnvironmentSecretsCallback(keyMap, s.validator)), nil)
+	return s.koanf.Load(env.ProviderWithValue(constEnvPrefixAlt, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, s.validator)), nil)
 }
 
 // Validator returns the validator.

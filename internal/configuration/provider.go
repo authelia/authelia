@@ -94,7 +94,7 @@ func GetProvider() *Provider {
 func NewProvider() (p *Provider) {
 	return &Provider{
 		Koanf: koanf.NewWithConf(koanf.Conf{
-			Delim:       delimiter,
+			Delim:       constDelimiter,
 			StrictMerge: false,
 		}),
 		Validator:  schema.NewStructValidator(),

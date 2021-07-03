@@ -21,18 +21,18 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	dir, err := ioutil.TempDir("", "authelia-test-secret-not-exist")
 	assert.NoError(t, err)
 
-	assert.NoError(t, os.Setenv(envPrefix+"JWT_SECRET_FILE", filepath.Join(dir, "jwt")))
-	assert.NoError(t, os.Setenv(envPrefix+"DUO_API_SECRET_KEY_FILE", filepath.Join(dir, "duo")))
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET_FILE", filepath.Join(dir, "session")))
-	assert.NoError(t, os.Setenv(envPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", filepath.Join(dir, "authentication")))
-	assert.NoError(t, os.Setenv(envPrefix+"NOTIFIER_SMTP_PASSWORD_FILE", filepath.Join(dir, "notifier")))
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_REDIS_PASSWORD_FILE", filepath.Join(dir, "redis")))
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE", filepath.Join(dir, "redis-sentinel")))
-	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL_PASSWORD_FILE", filepath.Join(dir, "mysql")))
-	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_POSTGRES_PASSWORD_FILE", filepath.Join(dir, "postgres")))
-	assert.NoError(t, os.Setenv(envPrefix+"TLS_KEY_FILE", filepath.Join(dir, "tls")))
-	assert.NoError(t, os.Setenv(envPrefix+"IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE", filepath.Join(dir, "oidc-key")))
-	assert.NoError(t, os.Setenv(envPrefix+"IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", filepath.Join(dir, "oidc-hmac")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"JWT_SECRET_FILE", filepath.Join(dir, "jwt")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"DUO_API_SECRET_KEY_FILE", filepath.Join(dir, "duo")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_SECRET_FILE", filepath.Join(dir, "session")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", filepath.Join(dir, "authentication")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"NOTIFIER_SMTP_PASSWORD_FILE", filepath.Join(dir, "notifier")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_REDIS_PASSWORD_FILE", filepath.Join(dir, "redis")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE", filepath.Join(dir, "redis-sentinel")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"STORAGE_MYSQL_PASSWORD_FILE", filepath.Join(dir, "mysql")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"STORAGE_POSTGRES_PASSWORD_FILE", filepath.Join(dir, "postgres")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"TLS_KEY_FILE", filepath.Join(dir, "tls")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE", filepath.Join(dir, "oidc-key")))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", filepath.Join(dir, "oidc-hmac")))
 
 	p := GetProvider()
 
@@ -67,10 +67,10 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 func TestShouldHaveNotifier(t *testing.T) {
 	testReset()
 
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET", "abc"))
-	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL_PASSWORD", "abc"))
-	assert.NoError(t, os.Setenv(envPrefix+"JWT_SECRET", "abc"))
-	assert.NoError(t, os.Setenv(envPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_SECRET", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"STORAGE_MYSQL_PASSWORD", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"JWT_SECRET", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc"))
 
 	p := GetProvider()
 
@@ -86,10 +86,10 @@ func TestShouldHaveNotifier(t *testing.T) {
 func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 	testReset()
 
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET", "abc"))
-	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL_PASSWORD", "abc"))
-	assert.NoError(t, os.Setenv(envPrefix+"JWT_SECRET", "abc"))
-	assert.NoError(t, os.Setenv(envPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_SECRET", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"STORAGE_MYSQL_PASSWORD", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"JWT_SECRET", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc"))
 
 	p := GetProvider()
 
@@ -105,12 +105,12 @@ func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	testReset()
 
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET", "an env session secret"))
-	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL_PASSWORD", "an env storage mysql password"))
-	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL", "a bad env"))
-	assert.NoError(t, os.Setenv(envPrefix+"JWT_SECRET", "an env jwt secret"))
-	assert.NoError(t, os.Setenv(envPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password"))
-	assert.NoError(t, os.Setenv(envPrefixAlt+"AUTHENTICATION_BACKEND_LDAP_URL", "an env authentication backend ldap password"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_SECRET", "an env session secret"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"STORAGE_MYSQL_PASSWORD", "an env storage mysql password"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"STORAGE_MYSQL", "a bad env"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"JWT_SECRET", "an env jwt secret"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password"))
+	assert.NoError(t, os.Setenv(constEnvPrefixAlt+"AUTHENTICATION_BACKEND_LDAP_URL", "an env authentication backend ldap password"))
 
 	p := GetProvider()
 
@@ -128,11 +128,11 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 func TestShouldIgnoreSingleUnderscoreNonSecretEnvs(t *testing.T) {
 	testReset()
 
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET", "an env session secret"))
-	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL_PASSWORD", "an env storage mysql password"))
-	assert.NoError(t, os.Setenv(envPrefix+"JWT_SECRET", "an env jwt secret"))
-	assert.NoError(t, os.Setenv(envPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password"))
-	assert.NoError(t, os.Setenv(envPrefixAlt+"AUTHENTICATION_BACKEND_LDAP_URL", "an env authentication backend ldap password"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_SECRET", "an env session secret"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"STORAGE_MYSQL_PASSWORD", "an env storage mysql password"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"JWT_SECRET", "an env jwt secret"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password"))
+	assert.NoError(t, os.Setenv(constEnvPrefixAlt+"AUTHENTICATION_BACKEND_LDAP_URL", "an env authentication backend ldap password"))
 
 	p := GetProvider()
 
@@ -167,10 +167,10 @@ func TestShouldAllowBothLegacyEnvSecretFilesAndNewOnes(t *testing.T) {
 	assert.NoError(t, testCreateFile(ldapSecret, "a secret authentication_backend.ldap.password value", 0600))
 	assert.NoError(t, testCreateFile(storageSecret, "a secret storage.mysql.password value", 0600))
 
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET_FILE", sessionSecret))
-	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL_PASSWORD_FILE", storageSecret))
-	assert.NoError(t, os.Setenv(envPrefixAlt+"JWT_SECRET_FILE", jwtSecret))
-	assert.NoError(t, os.Setenv(envPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", ldapSecret))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_SECRET_FILE", sessionSecret))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"STORAGE_MYSQL_PASSWORD_FILE", storageSecret))
+	assert.NoError(t, os.Setenv(constEnvPrefixAlt+"JWT_SECRET_FILE", jwtSecret))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", ldapSecret))
 
 	p := GetProvider()
 
@@ -194,11 +194,11 @@ func TestShouldAllowBothLegacyEnvSecretFilesAndNewOnes(t *testing.T) {
 func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T) {
 	testReset()
 
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET", "an env session secret"))
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET_FILE", "./test_resources/example_secret"))
-	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL_PASSWORD", "an env storage mysql password"))
-	assert.NoError(t, os.Setenv(envPrefixAlt+"JWT_SECRET_FILE", "./test_resources/example_secret"))
-	assert.NoError(t, os.Setenv(envPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_SECRET", "an env session secret"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_SECRET_FILE", "./test_resources/example_secret"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"STORAGE_MYSQL_PASSWORD", "an env storage mysql password"))
+	assert.NoError(t, os.Setenv(constEnvPrefixAlt+"JWT_SECRET_FILE", "./test_resources/example_secret"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password"))
 
 	p := GetProvider()
 
@@ -222,7 +222,7 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 }
 
 func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
-	if runtime.GOOS == windows {
+	if runtime.GOOS == constWindows {
 		t.Skip("skipping test due to being on windows")
 	}
 
@@ -247,10 +247,10 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	testReset()
 
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET_FILE", "./test_resources/example_secret"))
-	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL_PASSWORD_FILE", "./test_resources/example_secret"))
-	assert.NoError(t, os.Setenv(envPrefix+"JWT_SECRET_FILE", "./test_resources/example_secret"))
-	assert.NoError(t, os.Setenv(envPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", "./test_resources/example_secret"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_SECRET_FILE", "./test_resources/example_secret"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"STORAGE_MYSQL_PASSWORD_FILE", "./test_resources/example_secret"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"JWT_SECRET_FILE", "./test_resources/example_secret"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", "./test_resources/example_secret"))
 
 	p := GetProvider()
 
@@ -271,10 +271,10 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 	testReset()
 
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET", "abc"))
-	assert.NoError(t, os.Setenv(envPrefix+"STORAGE_MYSQL_PASSWORD", "abc"))
-	assert.NoError(t, os.Setenv(envPrefix+"JWT_SECRET", "abc"))
-	assert.NoError(t, os.Setenv(envPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_SECRET", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"STORAGE_MYSQL_PASSWORD", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"JWT_SECRET", "abc"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc"))
 
 	p := GetProvider()
 
@@ -292,7 +292,7 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 }
 
 func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
-	if runtime.GOOS == windows {
+	if runtime.GOOS == constWindows {
 		t.Skip("skipping test due to being on windows")
 	}
 
@@ -334,7 +334,7 @@ func TestShouldRetrieveGlobalConfiguration(t *testing.T) {
 
 	p := GetProvider()
 
-	assert.NoError(t, os.Setenv(envPrefix+"SESSION_SECRET", "xyz"))
+	assert.NoError(t, os.Setenv(constEnvPrefix+"SESSION_SECRET", "xyz"))
 
 	errs := p.LoadSources(NewEnvironmentSource())
 	assert.Len(t, errs, 0)
@@ -355,35 +355,35 @@ func TestShouldRetrieveGlobalConfiguration(t *testing.T) {
 func testReset() {
 	provider = nil
 
-	_ = os.Unsetenv(envPrefix + "STORAGE_MYSQL")
-	_ = os.Unsetenv(envPrefixAlt + "JWT_SECRET_FILE")
-	_ = os.Unsetenv(envPrefixAlt + "JWT_SECRET")
-	_ = os.Unsetenv(envPrefix + "JWT_SECRET_FILE")
-	_ = os.Unsetenv(envPrefix + "DUO_API_SECRET_KEY_FILE")
-	_ = os.Unsetenv(envPrefix + "SESSION_SECRET_FILE")
-	_ = os.Unsetenv(envPrefix + "AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE")
-	_ = os.Unsetenv(envPrefix + "NOTIFIER_SMTP_PASSWORD_FILE")
-	_ = os.Unsetenv(envPrefix + "SESSION_REDIS_PASSWORD_FILE")
-	_ = os.Unsetenv(envPrefix + "SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE")
-	_ = os.Unsetenv(envPrefix + "STORAGE_MYSQL_PASSWORD_FILE")
-	_ = os.Unsetenv(envPrefix + "STORAGE_POSTGRES_PASSWORD_FILE")
-	_ = os.Unsetenv(envPrefix + "TLS_KEY_FILE")
-	_ = os.Unsetenv(envPrefix + "IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE")
-	_ = os.Unsetenv(envPrefix + "IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE")
-	_ = os.Unsetenv(envPrefix + "JWT_SECRET")
-	_ = os.Unsetenv(envPrefix + "DUO_API_SECRET_KEY")
-	_ = os.Unsetenv(envPrefix + "SESSION_SECRET")
-	_ = os.Unsetenv(envPrefix + "AUTHENTICATION_BACKEND_LDAP_PASSWORD")
-	_ = os.Unsetenv(envPrefix + "NOTIFIER_SMTP_PASSWORD")
-	_ = os.Unsetenv(envPrefix + "SESSION_REDIS_PASSWORD")
-	_ = os.Unsetenv(envPrefix + "SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD")
-	_ = os.Unsetenv(envPrefix + "STORAGE_MYSQL_PASSWORD")
-	_ = os.Unsetenv(envPrefix + "STORAGE_POSTGRES_PASSWORD")
-	_ = os.Unsetenv(envPrefix + "TLS_KEY")
-	_ = os.Unsetenv(envPrefix + "PORT")
-	_ = os.Unsetenv(envPrefix + "PORT_K8S_EXAMPLE")
-	_ = os.Unsetenv(envPrefix + "IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY")
-	_ = os.Unsetenv(envPrefix + "IDENTITY_PROVIDERS_OIDC_HMAC_SECRET")
+	_ = os.Unsetenv(constEnvPrefix + "STORAGE_MYSQL")
+	_ = os.Unsetenv(constEnvPrefixAlt + "JWT_SECRET_FILE")
+	_ = os.Unsetenv(constEnvPrefixAlt + "JWT_SECRET")
+	_ = os.Unsetenv(constEnvPrefix + "JWT_SECRET_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "DUO_API_SECRET_KEY_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "SESSION_SECRET_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "NOTIFIER_SMTP_PASSWORD_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "SESSION_REDIS_PASSWORD_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "STORAGE_MYSQL_PASSWORD_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "STORAGE_POSTGRES_PASSWORD_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "TLS_KEY_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE")
+	_ = os.Unsetenv(constEnvPrefix + "JWT_SECRET")
+	_ = os.Unsetenv(constEnvPrefix + "DUO_API_SECRET_KEY")
+	_ = os.Unsetenv(constEnvPrefix + "SESSION_SECRET")
+	_ = os.Unsetenv(constEnvPrefix + "AUTHENTICATION_BACKEND_LDAP_PASSWORD")
+	_ = os.Unsetenv(constEnvPrefix + "NOTIFIER_SMTP_PASSWORD")
+	_ = os.Unsetenv(constEnvPrefix + "SESSION_REDIS_PASSWORD")
+	_ = os.Unsetenv(constEnvPrefix + "SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD")
+	_ = os.Unsetenv(constEnvPrefix + "STORAGE_MYSQL_PASSWORD")
+	_ = os.Unsetenv(constEnvPrefix + "STORAGE_POSTGRES_PASSWORD")
+	_ = os.Unsetenv(constEnvPrefix + "TLS_KEY")
+	_ = os.Unsetenv(constEnvPrefix + "PORT")
+	_ = os.Unsetenv(constEnvPrefix + "PORT_K8S_EXAMPLE")
+	_ = os.Unsetenv(constEnvPrefix + "IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY")
+	_ = os.Unsetenv(constEnvPrefix + "IDENTITY_PROVIDERS_OIDC_HMAC_SECRET")
 }
 
 func testCreateFile(path, value string, perm os.FileMode) (err error) {

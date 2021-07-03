@@ -11,17 +11,17 @@ func getEnvConfigMap(keys []string) (keyMap map[string]string, ignoredKeys []str
 	keyMap = make(map[string]string)
 
 	for _, key := range keys {
-		if strings.Contains(key, delimiterEnv) {
-			originalKey := envPrefix + strings.ToUpper(strings.ReplaceAll(key, delimiter, delimiterEnv))
+		if strings.Contains(key, constDelimiterEnv) {
+			originalKey := constEnvPrefix + strings.ToUpper(strings.ReplaceAll(key, constDelimiter, constDelimiterEnv))
 			keyMap[originalKey] = key
 		}
 
 		// Secret envs should be ignored by the env parser.
 		if isSecretKey(key) {
-			originalKey := strings.ToUpper(strings.ReplaceAll(key, delimiter, delimiterEnv)) + secretSuffix
+			originalKey := strings.ToUpper(strings.ReplaceAll(key, constDelimiter, constDelimiterEnv)) + constSecretSuffix
 
-			ignoredKeys = append(ignoredKeys, envPrefix+originalKey)
-			ignoredKeys = append(ignoredKeys, envPrefixAlt+originalKey)
+			ignoredKeys = append(ignoredKeys, constEnvPrefix+originalKey)
+			ignoredKeys = append(ignoredKeys, constEnvPrefixAlt+originalKey)
 		}
 	}
 
@@ -33,10 +33,10 @@ func getSecretConfigMap(keys []string) (keyMap map[string]string) {
 
 	for _, key := range keys {
 		if isSecretKey(key) {
-			originalKey := strings.ToUpper(strings.ReplaceAll(key, delimiter, delimiterEnv)) + secretSuffix
+			originalKey := strings.ToUpper(strings.ReplaceAll(key, constDelimiter, constDelimiterEnv)) + constSecretSuffix
 
-			keyMap[envPrefix+originalKey] = key
-			keyMap[envPrefixAlt+originalKey] = key
+			keyMap[constEnvPrefix+originalKey] = key
+			keyMap[constEnvPrefixAlt+originalKey] = key
 		}
 	}
 
@@ -47,16 +47,16 @@ func getEnvSecretPrefix(key string) (prefix string, err error) {
 	var doubleUnderscore bool
 
 	switch {
-	case strings.HasPrefix(key, envPrefix):
+	case strings.HasPrefix(key, constEnvPrefix):
 		doubleUnderscore = true
-		prefix = envPrefix
-	case strings.HasPrefix(key, envPrefixAlt):
-		prefix = envPrefixAlt
+		prefix = constEnvPrefix
+	case strings.HasPrefix(key, constEnvPrefixAlt):
+		prefix = constEnvPrefixAlt
 	default:
 		prefix = ""
 	}
 
-	if prefix == "" || !doubleUnderscore && strings.HasPrefix(key, prefix) && !strings.HasSuffix(key, secretSuffix) {
+	if prefix == "" || !doubleUnderscore && strings.HasPrefix(key, prefix) && !strings.HasSuffix(key, constSecretSuffix) {
 		err = errInvalidPrefix
 	}
 

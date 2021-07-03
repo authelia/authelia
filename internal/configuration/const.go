@@ -5,14 +5,14 @@ import (
 )
 
 const (
-	windows = "windows"
+	constWindows = "windows"
 
-	envPrefixAlt = "AUTHELIA_"
-	envPrefix    = "AUTHELIA__"
-	secretSuffix = "_FILE"
+	constEnvPrefix    = "AUTHELIA__"
+	constEnvPrefixAlt = "AUTHELIA_"
+	constSecretSuffix = "_FILE"
 
-	delimiter    = "."
-	delimiterEnv = "_"
+	constDelimiter    = "."
+	constDelimiterEnv = "_"
 )
 
 const (

@@ -20,8 +20,8 @@ func koanfEnvironmentCallback(keyMap map[string]string, ignoredKeys []string) fu
 			return "", nil
 		}
 
-		formattedKey := strings.TrimPrefix(key, envPrefix)
-		formattedKey = strings.ReplaceAll(strings.ToLower(formattedKey), delimiterEnv, delimiter)
+		formattedKey := strings.TrimPrefix(key, constEnvPrefix)
+		formattedKey = strings.ReplaceAll(strings.ToLower(formattedKey), constDelimiterEnv, constDelimiter)
 
 		if utils.IsStringInSlice(formattedKey, validator.ValidKeys) {
 			return formattedKey, value
