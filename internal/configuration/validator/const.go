@@ -12,14 +12,28 @@ const (
 	errFmtSessionRedisHostRequired        = "The host must be provided when using the %s session provider"
 	errFmtSessionRedisHostOrNodesRequired = "Either the host or a node must be provided when using the %s session provider"
 
-	errOAuthOIDCServerClientRedirectURIFmt               = "OIDC Server Client redirect URI %s has an invalid scheme %s, should be http or https"
-	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "OIDC Client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
-	errIdentityProvidersOIDCServerClientInvalidPolicyFmt = "OIDC Client with ID '%s' has an invalid policy '%s', should be either 'one_factor' or 'two_factor'"
-	errIdentityProvidersOIDCServerClientInvalidSecFmt    = "OIDC Client with ID '%s' has an empty secret"
+	errFmtOIDCServerClientRedirectURI = "OIDC Client with ID '%s' redirect URI %s has an invalid scheme '%s', " +
+		"should be http or https"
+	errFmtOIDCServerClientRedirectURICantBeParsed = "OIDC Client with ID '%s' has an invalid redirect URI '%s' " +
+		"could not be parsed: %v"
+	errFmtOIDCServerClientInvalidPolicy = "OIDC Client with ID '%s' has an invalid policy '%s', " +
+		"should be either 'one_factor' or 'two_factor'"
+	errFmtOIDCServerClientInvalidSecret = "OIDC Client with ID '%s' has an empty secret" //nolint:gosec
+	errFmtOIDCServerClientInvalidScope  = "OIDC Client with ID '%s' has an invalid scope '%s', " +
+		"must be one of: '%s'"
+	errFmtOIDCServerClientInvalidGrantType = "OIDC Client with ID '%s' has an invalid grant type '%s', " +
+		"must be one of: '%s'"
+	errFmtOIDCServerClientInvalidResponseMode = "OIDC Client with ID '%s' has an invalid response mode '%s', " +
+		"must be one of: '%s'"
+	errFmtOIDCServerInsecureParameterEntropy = "SECURITY ISSUE: OIDC minimum parameter entropy is configured to an " +
+		"unsafe value, it should be above 8 but it's configured to %d."
 
-	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
-	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
-	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
+	errFileHashing = "config key incorrect: authentication_backend.file.hashing should be " +
+		"authentication_backend.file.password"
+	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be " +
+		"authentication_backend.file.password"
+	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be " +
+		"authentication_backend.file.password"
 
 	bypassPolicy    = "bypass"
 	oneFactorPolicy = "one_factor"
@@ -31,6 +45,8 @@ const (
 
 	schemeLDAP  = "ldap"
 	schemeLDAPS = "ldaps"
+	schemeHTTP  = "http"
+	schemeHTTPS = "https"
 
 	testBadTimer      = "-1"
 	testInvalidPolicy = "invalid"
@@ -43,12 +59,16 @@ const (
 	testTLSCert       = "/tmp/cert.pem"
 	testTLSKey        = "/tmp/key.pem"
 
-	errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for rule #%d domain %s with subjects %s is invalid. It is " +
-		"not supported to configure both policy bypass and subjects. For more information see: " +
+	errAccessControlInvalidPolicyWithSubjects = "Policy [bypass] for rule #%d domain %s with subjects %s is invalid. " +
+		"It is not supported to configure both policy bypass and subjects. For more information see: " +
 		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 )
 
 var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
+var validScopes = []string{"openid", "email", "profile", "groups", "offline_access"}
+var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
+var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
+
 var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 
 // SecretNames contains a map of secret names.
@@ -211,6 +231,11 @@ var validKeys = []string{
 
 	// Identity Provider Keys.
 	"identity_providers.oidc.clients",
+	"identity_providers.oidc.id_token_lifespan",
+	"identity_providers.oidc.access_token_lifespan",
+	"identity_providers.oidc.refresh_token_lifespan",
+	"identity_providers.oidc.authorize_code_lifespan",
+	"identity_providers.oidc.enable_client_debug_messages",
 }
 
 var replacedKeys = map[string]string{

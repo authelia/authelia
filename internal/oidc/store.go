@@ -14,51 +14,30 @@ import (
 )
 
 // NewOpenIDConnectStore returns a new OpenIDConnectStore using the provided schema.OpenIDConnectConfiguration.
-func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (store *OpenIDConnectStore) {
-	store = &OpenIDConnectStore{}
+func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (store *OpenIDConnectStore, err error) {
+	store = &OpenIDConnectStore{
+		memory: &storage.MemoryStore{
+			IDSessions:             map[string]fosite.Requester{},
+			Users:                  map[string]storage.MemoryUserRelation{},
+			AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
+			AccessTokens:           map[string]fosite.Requester{},
+			RefreshTokens:          map[string]storage.StoreRefreshToken{},
+			PKCES:                  map[string]fosite.Requester{},
+			AccessTokenRequestIDs:  map[string]string{},
+			RefreshTokenRequestIDs: map[string]string{},
+		},
+	}
 
 	store.clients = make(map[string]*InternalClient)
 
-	for _, clientConf := range configuration.Clients {
-		policy := authorization.PolicyToLevel(clientConf.Policy)
-		logging.Logger().Debugf("Registering client %s with policy %s (%v)", clientConf.ID, clientConf.Policy, policy)
+	for _, client := range configuration.Clients {
+		policy := authorization.PolicyToLevel(client.Policy)
+		logging.Logger().Debugf("Registering client %s with policy %s (%v)", client.ID, client.Policy, policy)
 
-		client := &InternalClient{
-			ID:            clientConf.ID,
-			Description:   clientConf.Description,
-			Policy:        authorization.PolicyToLevel(clientConf.Policy),
-			Secret:        []byte(clientConf.Secret),
-			RedirectURIs:  clientConf.RedirectURIs,
-			GrantTypes:    clientConf.GrantTypes,
-			ResponseTypes: clientConf.ResponseTypes,
-			Scopes:        clientConf.Scopes,
-		}
-
-		store.clients[client.ID] = client
+		store.clients[client.ID] = NewClient(client)
 	}
 
-	store.memory = &storage.MemoryStore{
-		IDSessions:             make(map[string]fosite.Requester),
-		Users:                  map[string]storage.MemoryUserRelation{},
-		AuthorizeCodes:         map[string]storage.StoreAuthorizeCode{},
-		AccessTokens:           map[string]fosite.Requester{},
-		RefreshTokens:          map[string]storage.StoreRefreshToken{},
-		PKCES:                  map[string]fosite.Requester{},
-		AccessTokenRequestIDs:  map[string]string{},
-		RefreshTokenRequestIDs: map[string]string{},
-	}
-
-	return store
-}
-
-// OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface.
-//
-//	Currently it is mostly just implementing a decorator pattern other then GetInternalClient.
-//	The long term plan is to have these methods interact with the Authelia storage and
-//	session providers where applicable.
-type OpenIDConnectStore struct {
-	clients map[string]*InternalClient
-	memory  *storage.MemoryStore
+	return store, nil
 }
 
 // GetClientPolicy retrieves the policy from the client with the matching provided id.

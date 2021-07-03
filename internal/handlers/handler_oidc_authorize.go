@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/openid"
+	"github.com/ory/fosite/token/jwt"
 
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
@@ -13,6 +16,7 @@ import (
 	"github.com/authelia/authelia/internal/session"
 )
 
+//nolint: gocyclo  // TODO: Consider refactoring time permitting.
 func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	ar, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r)
 	if err != nil {
@@ -46,13 +50,33 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		return
 	}
 
+	extraClaims := map[string]interface{}{}
+
 	for _, scope := range requestedScopes {
 		ar.GrantScope(scope)
+
+		switch scope {
+		case "groups":
+			extraClaims["groups"] = userSession.Groups
+		case "profile":
+			extraClaims["name"] = userSession.DisplayName
+		case "email":
+			if len(userSession.Emails) != 0 {
+				extraClaims["email"] = userSession.Emails[0]
+				if len(userSession.Emails) > 1 {
+					extraClaims["alt_emails"] = userSession.Emails[1:]
+				}
+				// TODO (james-d-elliott): actually verify emails and record that information.
+				extraClaims["email_verified"] = true
+			}
+		}
 	}
 
 	for _, a := range requestedAudience {
 		ar.GrantAudience(a)
 	}
+
+	workflowCreated := time.Unix(userSession.OIDCWorkflowSession.CreatedTimestamp, 0)
 
 	userSession.OIDCWorkflowSession = nil
 	if err := ctx.SaveSession(userSession); err != nil {
@@ -62,15 +86,41 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		return
 	}
 
-	oauthSession, err := newOIDCSession(ctx, ar)
+	issuer, err := ctx.ForwardedProtoHost()
 	if err != nil {
-		ctx.Logger.Errorf("Error occurred in NewOIDCSession: %+v", err)
+		ctx.Logger.Errorf("Error occurred obtaining issuer: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
 		return
 	}
 
-	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, oauthSession)
+	authTime, err := userSession.AuthenticatedTime(client.Policy)
+	if err != nil {
+		ctx.Logger.Errorf("Error occurred obtaining authentication timestamp: %+v", err)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
+
+		return
+	}
+
+	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &oidc.OpenIDSession{
+		DefaultSession: &openid.DefaultSession{
+			Claims: &jwt.IDTokenClaims{
+				Subject:     userSession.Username,
+				Issuer:      issuer,
+				AuthTime:    authTime,
+				RequestedAt: workflowCreated,
+				IssuedAt:    time.Now(),
+				Nonce:       ar.GetRequestForm().Get("nonce"),
+				Audience:    []string{ar.GetClient().GetID()},
+				Extra:       extraClaims,
+			},
+			Headers: &jwt.Headers{Extra: map[string]interface{}{
+				"kid": ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
+			}},
+			Subject: userSession.Username,
+		},
+		ClientID: clientID,
+	})
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred in NewAuthorizeResponse: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
@@ -98,13 +148,15 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	ctx.Logger.Debugf("User %s must consent with scopes %s",
 		userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))
 
-	userSession.OIDCWorkflowSession = new(session.OIDCWorkflowSession)
-	userSession.OIDCWorkflowSession.ClientID = client.ID
-	userSession.OIDCWorkflowSession.RequestedScopes = ar.GetRequestedScopes()
-	userSession.OIDCWorkflowSession.RequestedAudience = ar.GetRequestedAudience()
-	userSession.OIDCWorkflowSession.AuthURI = redirectURL
-	userSession.OIDCWorkflowSession.TargetURI = ar.GetRedirectURI().String()
-	userSession.OIDCWorkflowSession.RequiredAuthorizationLevel = client.Policy
+	userSession.OIDCWorkflowSession = &session.OIDCWorkflowSession{
+		ClientID:                   client.ID,
+		RequestedScopes:            ar.GetRequestedScopes(),
+		RequestedAudience:          ar.GetRequestedAudience(),
+		AuthURI:                    redirectURL,
+		TargetURI:                  ar.GetRedirectURI().String(),
+		RequiredAuthorizationLevel: client.Policy,
+		CreatedTimestamp:           time.Now().Unix(),
+	}
 
 	if err := ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf("%v", err)
