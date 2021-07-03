@@ -179,5 +179,5 @@ func RunFuncWithRetry(attempts int, sleep time.Duration, f func() error) (err er
 		log.Printf("Retrying after error: %s", err)
 	}
 
-	return fmt.Errorf("Failed after %d attempts, last error: %s", attempts, err)
+	return fmt.Errorf("failed after %d attempts, last error: %s", attempts, err)
 }

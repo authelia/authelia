@@ -24,10 +24,29 @@ type LDAPUserProvider struct {
 	connectionFactory LDAPConnectionFactory
 	usersBaseDN       string
 	groupsBaseDN      string
+
+	supportExtensionPasswdModify bool
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
-func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool) *LDAPUserProvider {
+func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider, err error) {
+	provider = newLDAPUserProvider(configuration, certPool, nil)
+
+	err = provider.checkServer()
+	if err != nil {
+		return provider, err
+	}
+
+	if provider.supportExtensionPasswdModify {
+		provider.logger.Trace("LDAP Server does support passwdModifyOID Extension")
+	} else {
+		provider.logger.Trace("LDAP Server does not support passwdModifyOID Extension")
+	}
+
+	return provider, nil
+}
+
+func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool, factory LDAPConnectionFactory) (provider *LDAPUserProvider) {
 	if configuration.TLS == nil {
 		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 	}
@@ -40,23 +59,19 @@ func NewLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 		dialOpts = ldap.DialWithTLSConfig(tlsConfig)
 	}
 
-	provider := &LDAPUserProvider{
+	if factory == nil {
+		factory = NewLDAPConnectionFactoryImpl()
+	}
+
+	provider = &LDAPUserProvider{
 		configuration:     configuration,
 		tlsConfig:         tlsConfig,
 		dialOpts:          dialOpts,
 		logger:            logging.Logger(),
-		connectionFactory: NewLDAPConnectionFactoryImpl(),
+		connectionFactory: factory,
 	}
 
 	provider.parseDynamicConfiguration()
-
-	return provider
-}
-
-// NewLDAPUserProviderWithFactory creates a new instance of LDAPUserProvider with existing factory.
-func NewLDAPUserProviderWithFactory(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool, connectionFactory LDAPConnectionFactory) *LDAPUserProvider {
-	provider := NewLDAPUserProvider(configuration, certPool)
-	provider.connectionFactory = connectionFactory
 
 	return provider
 }
@@ -83,6 +98,43 @@ func (p *LDAPUserProvider) parseDynamicConfiguration() {
 	}
 
 	p.logger.Tracef("Dynamically generated groups BaseDN is %s", p.groupsBaseDN)
+}
+
+func (p *LDAPUserProvider) checkServer() (err error) {
+	conn, err := p.connect(p.configuration.User, p.configuration.Password)
+	if err != nil {
+		return err
+	}
+
+	searchRequest := ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
+		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute}, nil)
+
+	sr, err := conn.Search(searchRequest)
+	if err != nil {
+		return err
+	}
+
+	if len(sr.Entries) != 1 {
+		return nil
+	}
+
+	// Iterate the attribute values to see what the server supports.
+	for _, attr := range sr.Entries[0].Attributes {
+		if attr.Name == ldapSupportedExtensionAttribute {
+			p.logger.Tracef("LDAP Supported Extension OIDs: %s", strings.Join(attr.Values, ", "))
+
+			for _, oid := range attr.Values {
+				if oid == ldapOIDPasswdModifyExtension {
+					p.supportExtensionPasswdModify = true
+					break
+				}
+			}
+
+			break
+		}
+	}
+
+	return nil
 }
 
 func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
