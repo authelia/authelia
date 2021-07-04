@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
@@ -47,16 +46,16 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 			return
 		}
 
-		userSession.AuthenticationLevel = authentication.TwoFactor
-		err = ctx.SaveSession(userSession)
+		userSession.SetTwoFactor(ctx.Clock.Now())
 
+		err = ctx.SaveSession(userSession)
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update authentication level with U2F: %s", err), mfaValidationFailedMessage)
 			return
 		}
 
 		if userSession.OIDCWorkflowSession != nil {
-			HandleOIDCWorkflowResponse(ctx)
+			handleOIDCWorkflowResponse(ctx)
 		} else {
 			Handle2FAResponse(ctx, requestBody.TargetURL)
 		}

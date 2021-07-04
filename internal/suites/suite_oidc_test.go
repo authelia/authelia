@@ -19,5 +19,9 @@ func (s *OIDCSuite) TestOIDCScenario() {
 }
 
 func TestOIDCSuite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
 	suite.Run(t, NewOIDCSuite())
 }
