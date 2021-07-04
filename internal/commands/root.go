@@ -102,13 +102,19 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		errs = append(errs, fmt.Errorf("unrecognized storage provider"))
 	}
 
-	var userProvider authentication.UserProvider
+	var (
+		userProvider authentication.UserProvider
+		err          error
+	)
 
 	switch {
 	case config.AuthenticationBackend.File != nil:
 		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	case config.AuthenticationBackend.LDAP != nil:
-		userProvider = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, autheliaCertPool)
+		userProvider, err = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, autheliaCertPool)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("failed to check LDAP authentication backend: %w", err))
+		}
 	default:
 		errs = append(errs, fmt.Errorf("unrecognized user provider"))
 	}
@@ -122,6 +128,12 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	default:
 		errs = append(errs, fmt.Errorf("unrecognized notifier provider"))
+	}
+
+	if notifier != nil {
+		if _, err := notifier.StartupCheck(); err != nil {
+			errs = append(errs, fmt.Errorf("failed to check notification provider: %w", err))
+		}
 	}
 
 	clock := utils.RealClock{}

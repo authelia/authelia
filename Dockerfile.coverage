@@ -26,7 +26,7 @@ go mod download
 COPY / ./
 
 # Prepare static files to be embedded in Go binary
-COPY --from=builder-frontend /node/src/app/build internal/server/public_html
+COPY --from=builder-frontend /node/src/internal/server/public_html internal/server/public_html
 
 ARG LDFLAGS_EXTRA
 RUN \

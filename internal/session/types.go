@@ -37,6 +37,9 @@ type UserSession struct {
 	AuthenticationLevel authentication.Level
 	LastActivity        int64
 
+	FirstFactorAuthnTimestamp  int64
+	SecondFactorAuthnTimestamp int64
+
 	// The challenge generated in first step of U2F registration (after identity verification) or authentication.
 	// This is used reused in the second phase to check that the challenge has been completed.
 	U2FChallenge *u2f.Challenge
@@ -70,4 +73,5 @@ type OIDCWorkflowSession struct {
 	TargetURI                  string
 	AuthURI                    string
 	RequiredAuthorizationLevel authorization.Level
+	CreatedTimestamp           int64
 }

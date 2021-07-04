@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
+var buildkite bool
 var logLevel string
 
 // AutheliaCommandDefinition is the definition of one authelia-scripts command.
@@ -137,6 +138,7 @@ func main() {
 
 	cobraCommands = append(cobraCommands, commands.NewHashPasswordCmd(), commands.NewCertificatesCmd(), commands.NewRSACmd(), xflagsCmd)
 
+	rootCmd.PersistentFlags().BoolVar(&buildkite, "buildkite", false, "Set CI flag for Buildkite")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Set the log level for the command")
 	rootCmd.AddCommand(cobraCommands...)
 	cobra.OnInitialize(initConfig)

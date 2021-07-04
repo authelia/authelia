@@ -57,9 +57,9 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 		case "":
 			configuration.Password.Algorithm = schema.DefaultPasswordConfiguration.Algorithm
 			fallthrough
-		case argon2id:
+		case hashArgon2id:
 			validateFileAuthenticationBackendArgon2id(configuration, validator)
-		case sha512:
+		case hashSHA512:
 			validateFileAuthenticationBackendSHA512(configuration)
 		default:
 			validator.Push(fmt.Errorf("Unknown hashing algorithm supplied, valid values are argon2id and sha512, you configured '%s'", configuration.Password.Algorithm))

@@ -63,7 +63,6 @@ const msMaximumRandomDelay = int64(85)
 
 // OIDC constants.
 const (
-	oidcWellKnownPath  = "/.well-known/openid-configuration"
 	oidcJWKsPath       = "/api/oidc/jwks"
 	oidcAuthorizePath  = "/api/oidc/authorize"
 	oidcTokenPath      = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.
@@ -78,12 +77,3 @@ const (
 	accept = "accept"
 	reject = "reject"
 )
-
-var scopeDescriptions = map[string]string{
-	"openid":  "Use OpenID to verify your identity",
-	"email":   "Access your email addresses",
-	"profile": "Access your username",
-	"groups":  "Access your group membership",
-}
-
-var audienceDescriptions = map[string]string{}

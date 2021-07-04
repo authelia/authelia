@@ -28,11 +28,8 @@ FROM arm64v8/alpine:3.14.0
 
 WORKDIR /app
 
-COPY ./qemu-aarch64-static /usr/bin/qemu-aarch64-static
-
 RUN \
-apk --no-cache add ca-certificates su-exec tzdata && \
-rm /usr/bin/qemu-aarch64-static
+apk --no-cache add ca-certificates su-exec tzdata
 
 COPY --from=builder-backend /go/src/app/authelia /go/src/app/LICENSE /go/src/app/entrypoint.sh /go/src/app/healthcheck.sh ./
 

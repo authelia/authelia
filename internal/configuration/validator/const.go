@@ -2,18 +2,30 @@ package validator
 
 import "regexp"
 
+// Policy constants.
 const (
-	bypassPolicy    = "bypass"
-	oneFactorPolicy = "one_factor"
-	twoFactorPolicy = "two_factor"
-	denyPolicy      = "deny"
+	policyBypass    = "bypass"
+	policyOneFactor = "one_factor"
+	policyTwoFactor = "two_factor"
+	policyDeny      = "deny"
+)
 
-	argon2id = "argon2id"
-	sha512   = "sha512"
+// Hashing constants.
+const (
+	hashArgon2id = "argon2id"
+	hashSHA512   = "sha512"
+)
 
+// Scheme constants.
+const (
 	schemeLDAP  = "ldap"
 	schemeLDAPS = "ldaps"
+	schemeHTTP  = "http"
+	schemeHTTPS = "https"
+)
 
+// Test constants.
+const (
 	testBadTimer      = "-1"
 	testInvalidPolicy = "invalid"
 	testJWTSecret     = "a_secret"
@@ -39,10 +51,22 @@ const (
 	errFmtSessionRedisHostRequired        = "the host must be provided when using the %s session provider"
 	errFmtSessionRedisHostOrNodesRequired = "either the host or a node must be provided when using the %s session provider"
 
-	errOAuthOIDCServerClientRedirectURIFmt               = "openid connect provider: client with ID '%s' redirect URI %s has an invalid scheme %s, should be http or https"
-	errOAuthOIDCServerClientRedirectURICantBeParsedFmt   = "openid connect provider: client with ID '%s' has an invalid redirect URI '%s' could not be parsed: %v"
-	errIdentityProvidersOIDCServerClientInvalidPolicyFmt = "openid connect provider: client with ID '%s' has an invalid policy '%s', should be either 'one_factor' or 'two_factor'"
-	errIdentityProvidersOIDCServerClientInvalidSecFmt    = "openid connect provider: client with ID '%s' has an empty secret"
+	errFmtOIDCClientInvalidSecret = "openid connect provider: client with ID '%s' has an empty secret"
+
+	errFmtOIDCClientRedirectURI = "openid connect provider: client with ID '%s' redirect URI %s has an " +
+		"invalid scheme %s, should be http or https"
+	errFmtOIDCClientRedirectURICantBeParsed = "openid connect provider: client with ID '%s' has an invalid redirect " +
+		"URI '%s' could not be parsed: %v"
+	errFmtOIDCClientInvalidPolicy = "openid connect provider: client with ID '%s' has an invalid policy " +
+		"'%s', should be either 'one_factor' or 'two_factor'"
+	errFmtOIDCClientInvalidScope = "openid connect provider: client with ID '%s' has an invalid scope " +
+		"'%s', must be one of: '%s'"
+	errFmtOIDCClientInvalidGrantType = "openid connect provider: client with ID '%s' has an invalid grant type " +
+		"'%s', must be one of: '%s'"
+	errFmtOIDCClientInvalidResponseMode = "openid connect provider: client with ID '%s' has an invalid response mode " +
+		"'%s', must be one of: '%s'"
+	errFmtOIDCServerInsecureParameterEntropy = "SECURITY ISSUE: openid connect provider minimum parameter entropy is " +
+		"configured to an unsafe value, it should be above 8 but it's configured to %d."
 
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
@@ -54,23 +78,11 @@ const (
 )
 
 var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
+var validScopes = []string{"openid", "email", "profile", "groups", "offline_access"}
+var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
+var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
+
 var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
-
-// SecretNames contains a map of secret names.
-var SecretNames = map[string]string{
-	"JWTSecret":             "jwt_secret",
-	"SessionSecret":         "session.secret",
-	"DUOSecretKey":          "duo_api.secret_key",
-	"RedisPassword":         "session.redis.password",
-	"RedisSentinelPassword": "session.redis.high_availability.sentinel_password",
-
-	"LDAPPassword":                  "authentication_backend.ldap.password",
-	"SMTPPassword":                  "notifier.smtp.password",
-	"MySQLPassword":                 "storage.mysql.password",
-	"PostgreSQLPassword":            "storage.postgres.password",
-	"OpenIDConnectHMACSecret":       "identity_providers.oidc.hmac_secret",
-	"OpenIDConnectIssuerPrivateKey": "identity_providers.oidc.issuer_private_key",
-}
 
 var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
 
@@ -239,6 +251,11 @@ var ValidKeys = []string{
 	// Identity Provider Keys.
 	"identity_providers.oidc.hmac_secret",
 	"identity_providers.oidc.issuer_private_key",
+	"identity_providers.oidc.id_token_lifespan",
+	"identity_providers.oidc.access_token_lifespan",
+	"identity_providers.oidc.refresh_token_lifespan",
+	"identity_providers.oidc.authorize_code_lifespan",
+	"identity_providers.oidc.enable_client_debug_messages",
 	"identity_providers.oidc.clients",
 	"identity_providers.oidc.clients[].id",
 	"identity_providers.oidc.clients[].description",

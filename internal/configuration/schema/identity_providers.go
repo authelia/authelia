@@ -1,5 +1,7 @@
 package schema
 
+import "time"
+
 // IdentityProvidersConfiguration represents the IdentityProviders 2.0 configuration for Authelia.
 type IdentityProvidersConfiguration struct {
 	OIDC *OpenIDConnectConfiguration `koanf:"oidc"`
@@ -10,6 +12,14 @@ type OpenIDConnectConfiguration struct {
 	// This secret must be 32 bytes long
 	HMACSecret       string `koanf:"hmac_secret"`
 	IssuerPrivateKey string `koanf:"issuer_private_key"`
+
+	AccessTokenLifespan   time.Duration `koanf:"access_token_lifespan"`
+	AuthorizeCodeLifespan time.Duration `koanf:"authorize_code_lifespan"`
+	IDTokenLifespan       time.Duration `koanf:"id_token_lifespan"`
+	RefreshTokenLifespan  time.Duration `koanf:"refresh_token_lifespan"`
+
+	EnableClientDebugMessages bool `koanf:"enable_client_debug_messages"`
+	MinimumParameterEntropy   int  `koanf:"minimum_parameter_entropy"`
 
 	Clients []OpenIDConnectClientConfiguration `koanf:"clients"`
 }
@@ -24,12 +34,22 @@ type OpenIDConnectClientConfiguration struct {
 	Scopes        []string `koanf:"scopes"`
 	GrantTypes    []string `koanf:"grant_types"`
 	ResponseTypes []string `koanf:"response_types"`
+	ResponseModes []string `koanf:"response_modes"`
 }
 
-// DefaultOpenIDConnectClientConfiguration contains defaults for OIDC AutheliaClients.
+// DefaultOpenIDConnectConfiguration contains defaults for OIDC.
+var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
+	AccessTokenLifespan:   time.Hour,
+	AuthorizeCodeLifespan: time.Minute,
+	IDTokenLifespan:       time.Hour,
+	RefreshTokenLifespan:  time.Minute * 90,
+}
+
+// DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
-	Scopes:        []string{"openid", "groups", "profile", "email"},
-	ResponseTypes: []string{"code"},
-	GrantTypes:    []string{"refresh_token", "authorization_code"},
 	Policy:        "two_factor",
+	Scopes:        []string{"openid", "groups", "profile", "email"},
+	GrantTypes:    []string{"refresh_token", "authorization_code"},
+	ResponseTypes: []string{"code"},
+	ResponseModes: []string{"form_post", "query", "fragment"},
 }

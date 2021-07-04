@@ -127,14 +127,14 @@ func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
 func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.DefaultRedirectionURL = "abc"
+	config.DefaultRedirectionURL = "bad_default_redirection_url"
 
 	ValidateConfiguration(&config, validator)
 
 	require.Len(t, validator.Errors(), 1)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "Unable to parse default redirection url")
+	assert.EqualError(t, validator.Errors()[0], "Value for \"default_redirection_url\" is invalid: the url 'bad_default_redirection_url' is not absolute because it doesn't start with a scheme like 'http://' or 'https://'")
 	assert.EqualError(t, validator.Warnings()[0], "No access control rules have been defined so the default policy two_factor will be applied to all requests")
 }
 
