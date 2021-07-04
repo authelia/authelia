@@ -71,7 +71,7 @@ var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
 var validOIDCScopes = []string{"openid", "email", "profile", "groups", "offline_access"}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
 var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
-var validOIDCUserinfoAlgorithms = []string{"", "none", "RS256"}
+var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
 var validOIDCRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 
 // SecretNames contains a map of secret names.

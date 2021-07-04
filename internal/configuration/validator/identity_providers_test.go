@@ -184,6 +184,33 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 		"'bad_responsemode', must be one of: 'form_post', 'query', 'fragment'")
 }
 
+func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: "key-material",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:                       "good_id",
+					Secret:                   "good_secret",
+					Policy:                   "two_factor",
+					UserinfoSigningAlgorithm: "rs256",
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' has an invalid userinfo "+
+		"signing algorithm 'rs256', must be one of: 'none, RS256'")
+}
+
 func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
@@ -227,10 +254,11 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 					},
 				},
 				{
-					ID:          "b-client",
-					Description: "Normal Description",
-					Secret:      "b-client-secret",
-					Policy:      oneFactorPolicy,
+					ID:                       "b-client",
+					Description:              "Normal Description",
+					Secret:                   "b-client-secret",
+					Policy:                   oneFactorPolicy,
+					UserinfoSigningAlgorithm: "none",
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -261,6 +289,9 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	// Assert Clients[0] Policy is set to the default, and the default doesn't override Clients[1]'s Policy.
 	assert.Equal(t, config.OIDC.Clients[0].Policy, twoFactorPolicy)
 	assert.Equal(t, config.OIDC.Clients[1].Policy, oneFactorPolicy)
+
+	assert.Equal(t, config.OIDC.Clients[0].UserinfoSigningAlgorithm, "RS256")
+	assert.Equal(t, config.OIDC.Clients[1].UserinfoSigningAlgorithm, "none")
 
 	// Assert Clients[0] Description is set to the Clients[0] ID, and Clients[1]'s Description is not overridden.
 	assert.Equal(t, config.OIDC.Clients[0].ID, config.OIDC.Clients[0].Description)
