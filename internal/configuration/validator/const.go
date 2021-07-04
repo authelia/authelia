@@ -25,6 +25,8 @@ const (
 		"must be one of: '%s'"
 	errFmtOIDCServerClientInvalidResponseMode = "OIDC Client with ID '%s' has an invalid response mode '%s', " +
 		"must be one of: '%s'"
+	errFmtOIDCServerClientInvalidUserinfoAlgorithm = "OIDC Client with ID '%s' has an invalid userinfo signing " +
+		"algorithm '%s', must be one of: '%s'"
 	errFmtOIDCServerInsecureParameterEntropy = "SECURITY ISSUE: OIDC minimum parameter entropy is configured to an " +
 		"unsafe value, it should be above 8 but it's configured to %d."
 
@@ -65,11 +67,12 @@ const (
 )
 
 var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
-var validScopes = []string{"openid", "email", "profile", "groups", "offline_access"}
+
+var validOIDCScopes = []string{"openid", "email", "profile", "groups", "offline_access"}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
 var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
-
-var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validOIDCUserinfoAlgorithms = []string{"", "none", "RS256"}
+var validOIDCRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 
 // SecretNames contains a map of secret names.
 var SecretNames = map[string]string{

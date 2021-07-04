@@ -1,7 +1,10 @@
 package oidc
 
 import (
+	"net/http"
+
 	"github.com/ory/fosite/compose"
+	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
@@ -85,5 +88,22 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		// compose.OAuth2PKCEFactory,
 	)
 
+	provider.herodot = herodot.NewJSONWriter(nil)
+
 	return provider, nil
+}
+
+// Write writes data with herodot.JSONWriter.
+func (p OpenIDConnectProvider) Write(w http.ResponseWriter, r *http.Request, e interface{}, opts ...herodot.EncoderOptions) {
+	p.herodot.Write(w, r, e, opts...)
+}
+
+// WriteError writes an error with herodot.JSONWriter.
+func (p OpenIDConnectProvider) WriteError(w http.ResponseWriter, r *http.Request, err error, opts ...herodot.Option) {
+	p.herodot.WriteError(w, r, err, opts...)
+}
+
+// WriteErrorCode writes an error with an error code with herodot.JSONWriter.
+func (p OpenIDConnectProvider) WriteErrorCode(w http.ResponseWriter, r *http.Request, code int, err error, opts ...herodot.Option) {
+	p.herodot.WriteErrorCode(w, r, code, err, opts...)
 }
