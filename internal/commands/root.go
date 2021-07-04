@@ -111,7 +111,7 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 	case config.AuthenticationBackend.File != nil:
 		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	case config.AuthenticationBackend.LDAP != nil:
-		userProvider, err = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, autheliaCertPool)
+		userProvider, err = authentication.NewLDAPUserProvider(config.AuthenticationBackend, autheliaCertPool)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("failed to check LDAP authentication backend: %w", err))
 		}
