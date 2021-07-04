@@ -12,13 +12,7 @@ var template []byte
 
 // EnsureConfigurationExists is an auxilery function to the main Configuration tools that ensures the Configuration
 // template is created if it doesn't already exist.
-func EnsureConfigurationExists(paths []string) (created bool, err error) {
-	if len(paths) != 1 {
-		return false, nil
-	}
-
-	path := paths[0]
-
+func EnsureConfigurationExists(path string) (created bool, err error) {
 	_, err = os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {

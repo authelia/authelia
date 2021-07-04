@@ -21,8 +21,8 @@ func newCmdWithConfigPreRun(ensureConfigExists bool) func(cmd *cobra.Command, ar
 			logger.Fatalf("Error reading flags: %v", err)
 		}
 
-		if ensureConfigExists {
-			created, err := configuration.EnsureConfigurationExists(configs)
+		if ensureConfigExists && len(configs) == 1 {
+			created, err := configuration.EnsureConfigurationExists(configs[0])
 			if err != nil {
 				logger.Fatal(err)
 			}

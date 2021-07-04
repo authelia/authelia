@@ -19,7 +19,7 @@ func TestShouldGenerateConfiguration(t *testing.T) {
 
 	cfg := filepath.Join(dir, "config.yml")
 
-	created, err := EnsureConfigurationExists([]string{cfg})
+	created, err := EnsureConfigurationExists(cfg)
 	assert.NoError(t, err)
 	assert.True(t, created)
 
@@ -39,27 +39,9 @@ func TestShouldNotGenerateConfigurationOnFSAccessDenied(t *testing.T) {
 
 	cfg := filepath.Join(dir, "zero", "config.yml")
 
-	created, err := EnsureConfigurationExists([]string{cfg})
+	created, err := EnsureConfigurationExists(cfg)
 	assert.EqualError(t, err, fmt.Sprintf("error occurred generating Configuration: stat %s: permission denied", cfg))
 	assert.False(t, created)
-}
-
-func TestShouldNotGenerateMultipleConfigurations(t *testing.T) {
-	dir, err := ioutil.TempDir("", "authelia-config")
-	assert.NoError(t, err)
-
-	cfgOne := filepath.Join(dir, "config.yml")
-	cfgTwo := filepath.Join(dir, "config-acl.yml")
-
-	created, err := EnsureConfigurationExists([]string{cfgOne, cfgTwo})
-	assert.NoError(t, err)
-	assert.False(t, created)
-
-	_, err = os.Stat(cfgOne)
-	assert.True(t, os.IsNotExist(err))
-
-	_, err = os.Stat(cfgTwo)
-	assert.True(t, os.IsNotExist(err))
 }
 
 func TestShouldNotGenerateConfiguration(t *testing.T) {
@@ -68,7 +50,7 @@ func TestShouldNotGenerateConfiguration(t *testing.T) {
 
 	cfg := filepath.Join(dir, "..", "not-a-dir", "config.yml")
 
-	created, err := EnsureConfigurationExists([]string{cfg})
+	created, err := EnsureConfigurationExists(cfg)
 
 	expectedErr := fmt.Sprintf(utils.GetExpectedErrTxt("pathnotfound"), cfg)
 
