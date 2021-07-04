@@ -342,8 +342,16 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 		return fmt.Errorf("Unable to update password. Cause: %s", err)
 	}
 
-	switch p.configuration.Implementation {
-	case schema.LDAPImplementationActiveDirectory:
+	switch {
+	case p.supportExtensionPasswdModify:
+		modifyRequest := ldap.NewPasswordModifyRequest(
+			profile.DN,
+			"",
+			newPassword,
+		)
+
+		err = conn.PasswordModify(modifyRequest)
+	case p.configuration.Implementation == schema.LDAPImplementationActiveDirectory:
 		modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
 		utf16 := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
 		// The password needs to be enclosed in quotes
@@ -353,13 +361,10 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 
 		err = conn.Modify(modifyRequest)
 	default:
-		modifyRequest := ldap.NewPasswordModifyRequest(
-			profile.DN,
-			"",
-			newPassword,
-		)
+		modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
+		modifyRequest.Replace("userPassword", []string{newPassword})
 
-		err = conn.PasswordModify(modifyRequest)
+		err = conn.Modify(modifyRequest)
 	}
 
 	if err != nil {
