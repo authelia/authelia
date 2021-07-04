@@ -3,6 +3,8 @@ package validator
 import (
 	"fmt"
 	"net/url"
+	"strings"
+	"time"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
@@ -17,6 +19,26 @@ func validateOIDC(configuration *schema.OpenIDConnectConfiguration, validator *s
 	if configuration != nil {
 		if configuration.IssuerPrivateKey == "" {
 			validator.Push(fmt.Errorf("OIDC Server issuer private key must be provided"))
+		}
+
+		if configuration.AccessTokenLifespan == time.Duration(0) {
+			configuration.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
+		}
+
+		if configuration.AuthorizeCodeLifespan == time.Duration(0) {
+			configuration.AuthorizeCodeLifespan = schema.DefaultOpenIDConnectConfiguration.AuthorizeCodeLifespan
+		}
+
+		if configuration.IDTokenLifespan == time.Duration(0) {
+			configuration.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
+		}
+
+		if configuration.RefreshTokenLifespan == time.Duration(0) {
+			configuration.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
+		}
+
+		if configuration.MinimumParameterEntropy != 0 && configuration.MinimumParameterEntropy < 8 {
+			validator.PushWarning(fmt.Errorf(errFmtOIDCServerInsecureParameterEntropy, configuration.MinimumParameterEntropy))
 		}
 
 		validateOIDCClients(configuration, validator)
@@ -47,28 +69,19 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 		}
 
 		if client.Secret == "" {
-			validator.Push(fmt.Errorf(errIdentityProvidersOIDCServerClientInvalidSecFmt, client.ID))
+			validator.Push(fmt.Errorf(errFmtOIDCServerClientInvalidSecret, client.ID))
 		}
 
 		if client.Policy == "" {
 			configuration.Clients[c].Policy = schema.DefaultOpenIDConnectClientConfiguration.Policy
 		} else if client.Policy != oneFactorPolicy && client.Policy != twoFactorPolicy {
-			validator.Push(fmt.Errorf(errIdentityProvidersOIDCServerClientInvalidPolicyFmt, client.ID, client.Policy))
+			validator.Push(fmt.Errorf(errFmtOIDCServerClientInvalidPolicy, client.ID, client.Policy))
 		}
 
-		if len(client.Scopes) == 0 {
-			configuration.Clients[c].Scopes = schema.DefaultOpenIDConnectClientConfiguration.Scopes
-		} else if !utils.IsStringInSlice("openid", client.Scopes) {
-			configuration.Clients[c].Scopes = append(configuration.Clients[c].Scopes, "openid")
-		}
-
-		if len(client.GrantTypes) == 0 {
-			configuration.Clients[c].GrantTypes = schema.DefaultOpenIDConnectClientConfiguration.GrantTypes
-		}
-
-		if len(client.ResponseTypes) == 0 {
-			configuration.Clients[c].ResponseTypes = schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes
-		}
+		validateOIDCClientScopes(c, configuration, validator)
+		validateOIDCClientGrantTypes(c, configuration, validator)
+		validateOIDCClientResponseTypes(c, configuration, validator)
+		validateOIDCClientResponseModes(c, configuration, validator)
 
 		validateOIDCClientRedirectURIs(client, validator)
 	}
@@ -82,17 +95,73 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 	}
 }
 
+func validateOIDCClientScopes(c int, configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+	if len(configuration.Clients[c].Scopes) == 0 {
+		configuration.Clients[c].Scopes = schema.DefaultOpenIDConnectClientConfiguration.Scopes
+		return
+	}
+
+	if !utils.IsStringInSlice("openid", configuration.Clients[c].Scopes) {
+		configuration.Clients[c].Scopes = append(configuration.Clients[c].Scopes, "openid")
+	}
+
+	for _, scope := range configuration.Clients[c].Scopes {
+		if !utils.IsStringInSlice(scope, validScopes) {
+			validator.Push(fmt.Errorf(
+				errFmtOIDCServerClientInvalidScope,
+				configuration.Clients[c].ID, scope, strings.Join(validScopes, "', '")))
+		}
+	}
+}
+
+func validateOIDCClientGrantTypes(c int, configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+	if len(configuration.Clients[c].GrantTypes) == 0 {
+		configuration.Clients[c].GrantTypes = schema.DefaultOpenIDConnectClientConfiguration.GrantTypes
+		return
+	}
+
+	for _, grantType := range configuration.Clients[c].GrantTypes {
+		if !utils.IsStringInSlice(grantType, validOIDCGrantTypes) {
+			validator.Push(fmt.Errorf(
+				errFmtOIDCServerClientInvalidGrantType,
+				configuration.Clients[c].ID, grantType, strings.Join(validOIDCGrantTypes, "', '")))
+		}
+	}
+}
+
+func validateOIDCClientResponseTypes(c int, configuration *schema.OpenIDConnectConfiguration, _ *schema.StructValidator) {
+	if len(configuration.Clients[c].ResponseTypes) == 0 {
+		configuration.Clients[c].ResponseTypes = schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes
+		return
+	}
+}
+
+func validateOIDCClientResponseModes(c int, configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+	if len(configuration.Clients[c].ResponseModes) == 0 {
+		configuration.Clients[c].ResponseModes = schema.DefaultOpenIDConnectClientConfiguration.ResponseModes
+		return
+	}
+
+	for _, responseMode := range configuration.Clients[c].ResponseModes {
+		if !utils.IsStringInSlice(responseMode, validOIDCResponseModes) {
+			validator.Push(fmt.Errorf(
+				errFmtOIDCServerClientInvalidResponseMode,
+				configuration.Clients[c].ID, responseMode, strings.Join(validOIDCResponseModes, "', '")))
+		}
+	}
+}
+
 func validateOIDCClientRedirectURIs(client schema.OpenIDConnectClientConfiguration, validator *schema.StructValidator) {
 	for _, redirectURI := range client.RedirectURIs {
 		parsedURI, err := url.Parse(redirectURI)
 
 		if err != nil {
-			validator.Push(fmt.Errorf(errOAuthOIDCServerClientRedirectURICantBeParsedFmt, client.ID, redirectURI, err))
+			validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURICantBeParsed, client.ID, redirectURI, err))
 			break
 		}
 
-		if parsedURI.Scheme != "https" && parsedURI.Scheme != "http" {
-			validator.Push(fmt.Errorf(errOAuthOIDCServerClientRedirectURIFmt, redirectURI, parsedURI.Scheme))
+		if parsedURI.Scheme != schemeHTTPS && parsedURI.Scheme != schemeHTTP {
+			validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURI, client.ID, redirectURI, parsedURI.Scheme))
 		}
 	}
 }

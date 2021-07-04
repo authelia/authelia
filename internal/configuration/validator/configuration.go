@@ -2,10 +2,10 @@ package validator
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 var defaultPort = 9091
@@ -41,9 +41,9 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	}
 
 	if configuration.DefaultRedirectionURL != "" {
-		_, err := url.ParseRequestURI(configuration.DefaultRedirectionURL)
+		err := utils.IsStringAbsURL(configuration.DefaultRedirectionURL)
 		if err != nil {
-			validator.Push(fmt.Errorf("Unable to parse default redirection url"))
+			validator.Push(fmt.Errorf("Value for \"default_redirection_url\" is invalid: %+v", err))
 		}
 	}
 
