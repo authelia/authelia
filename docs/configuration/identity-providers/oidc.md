@@ -128,15 +128,13 @@ identity_providers:
 
 #### [1] hmac_secret
 
-The HMAC secret used to sign the [OpenID Connect] JWT's. The provided string is hashed to a SHA256 byte string for the purpose of meeting the required format. It can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
-
-You must generate this option yourself. To generate a random string of sufficient length, you can use `openssl rand -base64 32`. If you are deploying this as a Kubernetes secret, you must encode it with base64 again, i.e. `openssl rand -base64 32 | base64`. Using secrets is always recommended.
+The HMAC secret used to sign the [OpenID Connect] JWT's. The provided string is hashed to a SHA256 byte string for the purpose of meeting the required format. It can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments. You must [generate this option yourself](#generating-options-yourself).
 
 #### [2] issuer_private_key
 
 The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's. Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments. The reason for using only the private key here is that one is able to calculate the public key easily from the private key in this format (`openssl rsa -in rsa.key -pubout > rsa.pem`).
 
-You must generate this option yourself. To create it, use `docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys docker.io/authelia/authelia:latest authelia rsa generate --dir /keys` to generate both the private and public key in the current directory. You can then paste the private key into your configuration. When using Kubernetes, remember to base64-encode the private key first when using a secret. Using secrets is always recommended.
+You must [generate this option yourself](#generating-options-yourself). To create this option, use `docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys docker.io/authelia/authelia:latest authelia rsa generate --dir /keys` to generate both the private and public key in the current directory. You can then paste the private key into your configuration.
 
 #### clients
 
@@ -152,9 +150,7 @@ A friendly description for this client shown in the UI. This defaults to the sam
 
 ##### [5] secret
 
-The shared secret between Authelia and the application consuming this client. This secret must match the secret configured in the application. Currently this is stored in plain text.
-
-You must generate this option yourself. To generate a random string of sufficient length, you can use `openssl rand -base64 32`. If you are deploying this as a Kubernetes secret, you must encode it with base64 again, i.e. `openssl rand -base64 32 | base64`. Using secrets is always recommended.
+The shared secret between Authelia and the application consuming this client. This secret must match the secret configured in the application. Currently this is stored in plain text. You must [generate this option yourself](#generating-options-yourself).
 
 ##### [6] authorization_policy
 
@@ -162,14 +158,7 @@ The authorization policy for this client: either `one_factor` or `two_factor`.
 
 ##### [7] redirect_uris
 
-A list of valid callback URL´s this client will redirect to. All other callbacks will be considered unsafe. The URL's are case-sensitive. This differs from application to application - we have provided a list of URL´s for common applications below. If you do not find the application in the list below, you will need to search for yourself - and maybe come back to open a PR to add your application to this list so others won't have to search for them.
-
-`<DOMAIN>` needs to be substituted with the your domain and subdomain the application runs on. If GitLab, as an example, was reachable under `https://gitlab.example.com`, `<DOMAIN>` would be `gitlab.example.com`.
-
-| Application | Version              | Callback URL                                             |
-| :---------: | :------------------: | :------------------------------------------------------: |
-| GitLab      | `14.0.1`             | `https://<DOMAIN>/users/auth/openid_connect/callback`    |
-| MinIO       | `RELEASE.2021-06-17` | `https://<DOMAIN>/minio/login/openid`                    |
+A list of valid callback URL´s this client will redirect to. All other callbacks will be considered unsafe. The URL's are case-sensitive and they differ from application to application - we have provided [a list of URL´s for common applications](../../community/oidc-integrations.md).
 
 ##### [8] scopes
 
@@ -183,9 +172,9 @@ A list of grant types this client can return. _It is recommended that this isn't
 
 A list of response types this client can return. _It is recommended that this isn't configured at this time unless you  know what you're doing._
 
-## Currently Tested Applications
+### Generating Options Yourself
 
-At the moment, GitLab and MinIO are two applications tested with Authelia. With GitLab, the userinfo endpoint was missing in an early implementation but is now in peer review. With MinIO, there are problems with the `state` option, which is not supplied by MinIO, see [minio/minio#11398].
+If you must generate an option yourself, you can use a random string of sufficient length. The command `openssl rand -base64 32` provides such a random string with base64-conform characters. For Kubernetes, see [this section too](../secrets.md#Kubernetes).
 
 ## Scope Definitions
 
@@ -235,5 +224,4 @@ This scope includes the profile information the authentication backend reports a
 
 [//]: # (Links)
 
-[minio/minio#11398]: https://github.com/minio/minio/issues/11398
 [OpenID Connect]: https://openid.net/connect/
