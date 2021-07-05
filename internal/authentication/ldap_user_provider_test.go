@@ -710,8 +710,9 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 	)
 
 	err := ldapClient.checkServer()
-	err := ldapClient.UpdatePassword("john", "password")
+	require.NoError(t, err)
 
+	err = ldapClient.UpdatePassword("john", "password")
 	require.NoError(t, err)
 }
 
