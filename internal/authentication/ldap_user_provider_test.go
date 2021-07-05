@@ -678,8 +678,8 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 				},
 			},
 		}, nil),
-		mockConn.EXPECT()
-			.Close(),
+		mockConn.EXPECT().
+			Close(),
 
 		mockFactory.EXPECT().
 			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
