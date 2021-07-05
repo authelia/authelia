@@ -5,8 +5,6 @@ parent: Configuration
 nav_order: 4
 ---
 
-# Logging
-
 The logging section tunes the logging settings.
 
 ## Configuration
@@ -22,9 +20,10 @@ log:
 ## Options
 
 ### level
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: info
 {: .label .label-config .label-blue }
 required: no
@@ -41,9 +40,10 @@ log:
 ```
 
 ### format
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: text
 {: .label .label-config .label-blue }
 required: no
@@ -58,20 +58,24 @@ log:
 ```
 
 #### JSON format
-```
+
+```text
 {"level":"info","msg":"Logging severity set to info","time":"2020-01-01T00:00:00+11:00"}
 {"level":"info","msg":"Authelia is listening for non-TLS connections on 0.0.0.0:9091","time":"2020-01-01T00:00:00+11:00"}
 ```
+
 #### Text format
-```
+
+```text
 time="2020-01-01T00:00:00+11:00" level=info msg="Logging severity set to info"
 time="2020-01-01T00:00:00+11:00" level=info msg="Authelia is listening for non-TLS connections on 0.0.0.0:9091"
 ```
 
 ### file_path
+
 <div markdown="1">
 type: string (path)
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: ""
 {: .label .label-config .label-blue }
 required: no
@@ -88,9 +92,10 @@ log:
 ```
 
 ### keep_stdout
+
 <div markdown="1">
 type: boolean
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: false
 {: .label .label-config .label-blue }
 required: no

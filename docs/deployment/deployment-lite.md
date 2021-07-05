@@ -5,8 +5,6 @@ parent: Deployment
 nav_order: 1
 ---
 
-# Lite Deployment
-
 **Authelia** can be deployed as a lite setup with minimal external dependencies.
 The setup is called lite because it reduces the number of components in the architecture
 to a reverse proxy such as Nginx, Traefik or HAProxy, Authelia and Redis.
@@ -23,9 +21,9 @@ Traefik publishes the respective services with LetsEncrypt provided certificates
 The provided examples protect the Traefik dashboard with Authelia's one-factor auth
 (traefik.example.com) and two instances of the
 [whoami container](https://hub.docker.com/r/traefik/whoami) with Authelia being
-bypassed (public.example.com) and another with it's two-factor auth (secure.example.com). 
+bypassed (public.example.com) and another with it's two-factor auth (secure.example.com).
 
-If you happen to already have an external SQL instance (MariaDB, MySQL or Postgres) this 
+If you happen to already have an external SQL instance (MariaDB, MySQL or Postgres) this
 setup can easily be adapted to utilise said [service](../configuration/storage/index.md).
 
 ## Steps

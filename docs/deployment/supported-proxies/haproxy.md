@@ -6,55 +6,60 @@ grand_parent: Deployment
 nav_order: 1
 ---
 
-# HAProxy
-
 [HAProxy] is a reverse proxy supported by **Authelia**.
 
 ## Requirements
 
 You need the following to run Authelia with HAProxy:
 
-* HAProxy 1.8.4+ (2.2.0+ recommended)
-  * `USE_LUA=1` set at compile time
-  * [haproxy-lua-http](https://github.com/haproxytech/haproxy-lua-http) must be available within the Lua path
-    * A `json` library within the Lua path (dependency of haproxy-lua-http, usually found as OS package `lua-json`)
-    * With HAProxy 2.1.3+ you can use the [`lua-prepend-path`] configuration option to specify the search path.
-  * [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
-
+-   HAProxy 1.8.4+ (2.2.0+ recommended)
+    -   `USE_LUA=1` set at compile time
+    -   [haproxy-lua-http](https://github.com/haproxytech/haproxy-lua-http) must be available within the Lua path
+        - A `json` library within the Lua path (dependency of haproxy-lua-http, usually found as OS package `lua-json`)
+        - With HAProxy 2.1.3+ you can use the [`lua-prepend-path`] configuration option to specify the search path.
+    -   [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
 
 ## Configuration
 
 Below you will find commented examples of the following configuration:
 
-* Authelia portal
-* Protected endpoint (Nextcloud)
-* Protected endpoint with `Authorization` header for basic authentication (Heimdall)
-* [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
+- Authelia portal
+- Protected endpoint (Nextcloud)
+- Protected endpoint with `Authorization` header for basic authentication (Heimdall)
+- [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
 
 With this configuration you can protect your virtual hosts with Authelia, by following the steps below:
-1. Add host(s) to the `protected-frontends` or `protected-frontends-basic` ACLs to support protection with Authelia.
+
+1.  Add host(s) to the `protected-frontends` or `protected-frontends-basic` ACLs to support protection with Authelia.
 You can separate each subdomain with a `|` in the regex, for example:
-    ```
+
+    ```text
     acl protected-frontends hdr(host) -m reg -i ^(?i)(jenkins|nextcloud|phpmyadmin)\.example\.com
     acl protected-frontends-basic hdr(host) -m reg -i ^(?i)(heimdall)\.example\.com
     ```
-2. Add host ACL(s) in the form of `host-service`, this will be utilised to route to the correct
+
+2.  Add host ACL(s) in the form of `host-service`, this will be utilised to route to the correct
 backend upon successful authentication, for example:
-    ```
+
+    ```text
     acl host-jenkins hdr(host) -i jenkins.example.com
     acl host-nextcloud hdr(host) -i nextcloud.example.com
     acl host-phpmyadmin hdr(host) -i phpmyadmin.example.com
     acl host-heimdall hdr(host) -i heimdall.example.com
     ```
-3. Add backend route for your service(s), for example:
-    ```
+
+3.  Add backend route for your service(s), for example:
+
+    ```text
     use_backend be_jenkins if host-jenkins
     use_backend be_nextcloud if host-nextcloud
     use_backend be_phpmyadmin if host-phpmyadmin
     use_backend be_heimdall if host-heimdall
     ```
-4. Add backend definitions for your service(s), for example:
-    ```
+
+4.  Add backend definitions for your service(s), for example:
+
+    ```text
     backend be_jenkins
         server jenkins jenkins:8080
     backend be_nextcloud
@@ -62,19 +67,22 @@ backend upon successful authentication, for example:
     backend be_phpmyadmin
         server phpmyadmin phpmyadmin:80
     backend be_heimdall
-            server heimdall heimdall:443 ssl verify none
+        server heimdall heimdall:443 ssl verify none
     ```
 
 ### Secure Authelia with TLS
-There is a [known limitation](https://github.com/TimWolla/haproxy-auth-request/issues/12) with haproxy-auth-request with regard to TLS-enabled backends.
-If you want to run Authelia TLS enabled the recommended workaround utilises HAProxy itself to proxy the requests.
-This comes at a cost of two additional TCP connections, but allows the full HAProxy configuration flexibility with regard
-to TLS verification as well as header rewriting. An example of this configuration is also be provided below.
 
-#### Configuration
+There is a [known limitation](https://github.com/TimWolla/haproxy-auth-request/issues/12) with haproxy-auth-request with
+regard to TLS-enabled backends. If you want to run Authelia TLS enabled the recommended workaround utilises HAProxy
+itself to proxy the requests. This comes at a cost of two additional TCP connections, but allows the full HAProxy
+configuration flexibility with regard to TLS verification as well as header rewriting. An example of this configuration
+is also be provided below.
+
+#### Examples
 
 ##### haproxy.cfg
-```
+
+```text
 global
     # Path to haproxy-lua-http, below example assumes /usr/local/etc/haproxy/haproxy-lua-http/http.lua
     lua-prepend-path /usr/local/etc/haproxy/?/http.lua
@@ -173,7 +181,8 @@ backend be_heimdall
 ```
 
 ##### haproxy.cfg (TLS enabled Authelia)
-```
+
+```text
 global
     # Path to haproxy-lua-http, below example assumes /usr/local/etc/haproxy/haproxy-lua-http/http.lua
     lua-prepend-path /usr/local/etc/haproxy/?/http.lua

@@ -6,8 +6,6 @@ nav_order: 8
 has_children: true
 ---
 
-# Notifier
-
 **Authelia** sometimes needs to send messages to users in order to
 verify their identity.
 
@@ -23,6 +21,7 @@ notifier:
 ## Options
 
 ### disable_startup_check
+
 <div markdown="1">
 type: boolean
 {: .label .label-config .label-purple }

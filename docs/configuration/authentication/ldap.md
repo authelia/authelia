@@ -6,8 +6,6 @@ grand_parent: Configuration
 nav_order: 2
 ---
 
-# LDAP
-
 **Authelia** supports using a LDAP server as the users database.
 
 ## Configuration
@@ -40,9 +38,10 @@ authentication_backend:
 ## Options
 
 ### implementation
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: custom
 {: .label .label-config .label-blue }
 required: no
@@ -54,6 +53,7 @@ Configures the LDAP implementation used by Authelia.
 See the [Implementation Guide](#implementation-guide) for information.
 
 ### url
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -71,9 +71,10 @@ url: ldap://[fd00:1111:2222:3333::1]
 ```
 
 ### start_tls
+
 <div markdown="1">
 type: boolean
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: false
 {: .label .label-config .label-blue }
 required: no
@@ -84,26 +85,27 @@ Enables use of the LDAP StartTLS process which is not commonly used. You should 
 it. The initial connection will be over plain text, and Authelia will try to upgrade it with the LDAP server. LDAPS
 URL's are slightly more secure.
 
-
 ### tls
 
 Controls the TLS connection validation process. You can see how to configure the tls
 section [here](../index.md#tls-configuration).
 
 ### base_dn
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: yes
 {: .label .label-config .label-red }
 </div>
 
-Sets the base distinguished name container for all LDAP queries. If your LDAP domain is example.com this is usually 
+Sets the base distinguished name container for all LDAP queries. If your LDAP domain is example.com this is usually
 `dc=example,dc=com`, however you can fine tune this to be more specific for example to only include objects inside the
 authelia OU: `ou=authelia,dc=example,dc=com`. This is prefixed with the [additional_users_dn](#additional_users_dn) for
 user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
 
 ### username_attribute
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -114,8 +116,8 @@ required: no
 The LDAP attribute that maps to the username in Authelia. The default value is dependent on the [implementation](#implementation),
 refer to the [attribute defaults](#attribute-defaults) for more information.
 
-
 ### additional_users_dn
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -126,11 +128,11 @@ required: no
 Additional LDAP path to append to the [base_dn](#base_dn) when searching for users. Useful if you want to restrict
 exactly which OU to get users from for either security or performance reasons. For example setting it to
 `ou=users,ou=people` with a base_dn set to `dc=example,dc=com` will mean user searches will occur in
-`ou=users,ou=people,dc=example,dc=com`. The default value is dependent on the [implementation](#implementation), refer 
+`ou=users,ou=people,dc=example,dc=com`. The default value is dependent on the [implementation](#implementation), refer
 to the [attribute defaults](#attribute-defaults) for more information.
 
-
 ### users_filter
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -187,6 +189,7 @@ intention of this is to have logical defaults for various RFC implementations of
 The below tables describes the current attribute defaults for each implementation.
 
 #### Attribute defaults
+
 This table describes the attribute defaults for each implementation. i.e. the username_attribute is
 described by the Username column.
 
@@ -207,7 +210,6 @@ makes sure that value is not 0 which means the password requires changing at the
 |:-------------:|:------------:|:-----------:|
 |custom         |n/a           |n/a       |
 |activedirectory|(&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))|(&(member={dn})(objectClass=group)(objectCategory=group))|
-
 
 ## Refresh Interval
 
@@ -233,7 +235,7 @@ Users must be uniquely identified by an attribute, this attribute must obviously
 be guaranteed by the administrator to be unique. If multiple users have the same value, Authelia will simply
 fail authenticating the user and display an error message in the logs.
 
-In order to avoid such problems, we highly recommended you follow https://www.ietf.org/rfc/rfc2307.txt by using
+In order to avoid such problems, we highly recommended you follow <https://www.ietf.org/rfc/rfc2307.txt> by using
 `sAMAccountName` for Active Directory and `uid` for other implementations as the attribute holding the
 unique identifier for your users.
 

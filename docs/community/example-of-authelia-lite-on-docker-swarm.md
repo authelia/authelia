@@ -7,15 +7,15 @@ nav_order: 4
 
 The overlay network for docker swarm can be initialized with:
 
-```
-$ docker swarm init
-$ docker swarm init && docker network create --driver=overlay traefik-public
-$ mkdir ./redis ./letsencrypt
+```shell
+docker swarm init
+docker swarm init && docker network create --driver=overlay traefik-public
+mkdir ./redis ./letsencrypt
 ```
 
 The structure of the folder should be like this:
 
-```
+```text
 ├── authelia/
 │   ├── configuration.yml
 │   └── users_database.yml
@@ -25,9 +25,11 @@ The structure of the folder should be like this:
 └── traefik-compose.yml
 ```
 
-The following configuration allows you to deploy authelia to docker swarm with traefik 2.x. Please replace the **example.com** and **your@email.com** with your domain and email respectively.  Then save it as **traefik-compose.yml**.
+The following configuration allows you to deploy authelia to docker swarm with traefik 2.x. Please replace the
+**example.com** and **your@email.com** with your domain and email respectively.  Then save it as
+**traefik-compose.yml**.
 
-```
+```yaml
 version: '3.3'
 
 services:
@@ -160,13 +162,13 @@ networks:
 
 Finally, the stack is ready to be deployed.
 
-```
-$ docker stack deploy -c traefik-compose.yml traefik
+```shell
+docker stack deploy -c traefik-compose.yml traefik
 ```
 
-Full configuration files can be found here https://github.com/wuhanstudio/authelia-docker-swarm
+Full configuration files can be found here <https://github.com/wuhanstudio/authelia-docker-swarm>
 
-```
+```shell
 $ docker swarm init && docker network create --driver=overlay traefik-public
 
 $ git clone https://github.com/wuhanstudio/authelia-docker-swarm && cd authelia-docker-swarm

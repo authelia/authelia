@@ -5,8 +5,6 @@ parent: Configuration
 nav_order: 7
 ---
 
-# Regulation
-
 **Authelia** can temporarily ban accounts when there are too many
 authentication attempts. This helps prevent brute-force attacks.
 
@@ -22,9 +20,10 @@ regulation:
 ## Options
 
 ### max_retries
+
 <div markdown="1">
-type: integer 
-{: .label .label-config .label-purple } 
+type: integer
+{: .label .label-config .label-purple }
 default: 3
 {: .label .label-config .label-blue }
 required: no
@@ -34,9 +33,10 @@ required: no
 The number of failed login attempts before a user may be banned. Setting this option to 0 disables regulation entirely.
 
 ### find_time
+
 <div markdown="1">
-type: string (duration) 
-{: .label .label-config .label-purple } 
+type: string (duration)
+{: .label .label-config .label-purple }
 default: 2m
 {: .label .label-config .label-blue }
 required: no
@@ -48,9 +48,10 @@ example if you set `max_retries` to 3 and `find_time` to `2m` this means the use
 2 minutes.
 
 ### ban_time
+
 <div markdown="1">
-type: string (duration) 
-{: .label .label-config .label-purple } 
+type: string (duration)
+{: .label .label-config .label-purple }
 default: 5m
 {: .label .label-config .label-blue }
 required: no

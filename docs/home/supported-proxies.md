@@ -7,9 +7,9 @@ nav_order: 2
 
 The following reverse proxies are currently supported:
 
-* NGINX
-* Traefik
-* HAProxy
+- NGINX
+- Traefik
+- HAProxy
 
 Those proxies are also supported on Kubernetes using their related ingress controller.
 

@@ -5,7 +5,7 @@ nav_order: 10
 has_children: true
 ---
 
-# Community documentation
+## Community documentation
 
 This section is meant to advertise and organize documentation produced
 by the community. This documentation is considered non-official and we

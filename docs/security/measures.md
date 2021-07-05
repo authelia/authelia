@@ -5,21 +5,23 @@ parent: Security
 nav_order: 1
 ---
 
-# Security Measures
+The Authelia team takes security seriously. As such there are several measures we take to ensure the security of the
+users who utilize Authelia are protected.
 
 ## Protection against cookie theft
 
 Authelia sets several key cookie attributes to prevent cookie theft:
+
 1. `HttpOnly` is set forbidding client-side code like javascript from access to the cookie.
 2. `Secure` is set forbidding the browser from sending the cookie to sites which do not use the https scheme.
 3. `SameSite` is by default set to `Lax` which prevents it being sent over cross-origin requests.
 
-Read about these attributes in detail on the 
+Read about these attributes in detail on the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie).
 
 ## Protection against multi-domain cookie attacks
 
-Since Authelia uses multi-domain cookies to perform single sign-on, an attacker who poisoned a user's DNS cache can 
+Since Authelia uses multi-domain cookies to perform single sign-on, an attacker who poisoned a user's DNS cache can
 easily retrieve the user's cookies by making the user send a request to one of the attacker's IPs.
 
 This is technically mitigated by the `Secure` attribute set in cookies by Authelia, however it's still advisable to
@@ -34,7 +36,7 @@ Note that using [HSTS] has consequences. That's why you should read the blog pos
 
 Authelia adaptively delays authentication attempts based on the mean (average) of the previous 10 successful attempts
 in addition to a small random interval of time. The result of this delay is that it makes it incredibly difficult to
-determine if the unsuccessful login was the result of a bad password, a bad username, or both. The random interval of 
+determine if the unsuccessful login was the result of a bad password, a bad username, or both. The random interval of
 time is anything between 0 milliseconds and 85 milliseconds.
 
 When Authelia first starts it assumes the last 10 attempts took 1000 milliseconds each. As users login successfully it
@@ -42,26 +44,26 @@ quickly adjusts to the actual time the login attempts take. This process is inde
 configured.
 
 The cost of this is low since in the instance of a user not existing it just stops processing the request to delay the
-login. Lastly the absolute minimum time authentication can take is 250 milliseconds. Both of these measures also have 
+login. Lastly the absolute minimum time authentication can take is 250 milliseconds. Both of these measures also have
 the added effect of creating an additional delay for all authentication attempts increasing the time that a brute-force
 attack will take, this combined with regulation greatly delays brute-force attacks and the effectiveness of them in
 general.
 
 ## Protections against password cracking (File authentication provider)
 
-Authelia implements a variety of measures to prevent an attacker cracking passwords if they somehow obtain the file used 
+Authelia implements a variety of measures to prevent an attacker cracking passwords if they somehow obtain the file used
 by the file authentication provider, this is unrelated to LDAP auth.
 
-First and foremost Authelia only uses very secure hashing algorithms with sane and secure defaults. The first and 
-default hashing algorithm we use is Argon2id which is currently considered the most secure hashing algorithm. We also 
+First and foremost Authelia only uses very secure hashing algorithms with sane and secure defaults. The first and
+default hashing algorithm we use is Argon2id which is currently considered the most secure hashing algorithm. We also
 support SHA512, which previously was the default.
 
-Secondly Authelia uses salting with all hashing algorithms. These salts are generated with a random string generator, 
-which is seeded every time it's used by a cryptographically secure 1024bit prime number. This ensures that even if an 
+Secondly Authelia uses salting with all hashing algorithms. These salts are generated with a random string generator,
+which is seeded every time it's used by a cryptographically secure 1024bit prime number. This ensures that even if an
 attacker obtains the file, each password has to be brute forced individually.
 
-Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the key length, salt used, iterations 
-(time), parallelism, and memory usage. To read more about this please read how to 
+Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the key length, salt used, iterations
+(time), parallelism, and memory usage. To read more about this please read how to
 [configure](../configuration/authentication/file.md) file authentication.
 
 ## User profile and group membership always kept up-to-date (LDAP authentication provider)
@@ -72,13 +74,13 @@ Authelia by default refreshes the user's profile and membership every 5 minutes.
 groups in LDAP that their new groups are obtained relatively quickly in order to adjust their access level for
 applications secured by Authelia.
 
-Additionally, it will invalidate any session where the user could not be retrieved from LDAP based on the user filter, 
-for example if they were deleted or disabled provided the user filter is set correctly. These updates occur when a user 
+Additionally, it will invalidate any session where the user could not be retrieved from LDAP based on the user filter,
+for example if they were deleted or disabled provided the user filter is set correctly. These updates occur when a user
 accesses a resource protected by Authelia. This means you should ensure disabled users or users with expired passwords
-are not obtainable using the LDAP filter, the default filter for Active Directory implements this behaviour. 
+are not obtainable using the LDAP filter, the default filter for Active Directory implements this behaviour.
 LDAP implementations vary, so please ask if you need some assistance in configuring this.
 
-These protections can be [tuned](../configuration/authentication/ldap.md#refresh-interval) according to your security 
+These protections can be [tuned](../configuration/authentication/ldap.md#refresh-interval) according to your security
 policy by changing refresh_interval, however we believe that 5 minutes is a fairly safe interval.
 
 ## Notifier security measures (SMTP)
@@ -88,18 +90,18 @@ values.
 
 As such all SMTP connections require the following:
 
-1. TLS Connection (STARTTLS or SMTPS) has been negotiated before authentication or sending emails (unauthenticated
+1.  TLS Connection (STARTTLS or SMTPS) has been negotiated before authentication or sending emails (unauthenticated
 connections require it as well)
-2. Valid X509 Certificate presented to the client during the TLS handshake
+2.  Valid X509 Certificate presented to the client during the TLS handshake
 
 There is an option to disable both of these security measures however they are **not recommended**.
 
-The following configuration options exist to configure the security level in order of most preferable to least 
+The following configuration options exist to configure the security level in order of most preferable to least
 preferable:
 
 ### Configuration Option: certificates_directory
 
-You can [configure a directory](../configuration/miscellaneous.md#certificates_directory) of certificates for Authelia 
+You can [configure a directory](../configuration/miscellaneous.md#certificates_directory) of certificates for Authelia
 to trust. These certificates can either be CA's or individual public certificates that should be trusted. These
 are added in addition to the environments PKI trusted certificates if available. This is useful for trusting a
 certificate that is self-signed without drastically reducing security. This is the most recommended workaround to not
@@ -112,7 +114,7 @@ Read more in the [documentation](../configuration/miscellaneous.md#certificates_
 
 The [tls.skip_verify](../configuration/notifier/smtp.md#tls) option allows you to skip verifying the certificate
 entirely which is why [certificates_directory](#configuration-option-certificates_directory) is preferred over this.
-This will effectively mean you cannot be sure the certificate is valid which means an attacker via DNS poisoning or MITM 
+This will effectively mean you cannot be sure the certificate is valid which means an attacker via DNS poisoning or MITM
 attacks could intercept emails from Authelia compromising a user's security without their knowledge.
 
 ### Configuration Option: disable_require_tls
@@ -124,13 +126,13 @@ of SMTP certificates and removes the encryption offered by the STARTTLS/SMTPS co
 
 This means not only can the vulnerabilities of the [skip_verify](#configuration-option-tlsskip_verify) option be
 exploited, but any router or switch along the route of the email which receives the packets could be used to silently
-exploit the plain text nature of the email. This is only usable currently with authentication disabled (comment out the 
+exploit the plain text nature of the email. This is only usable currently with authentication disabled (comment out the
 password) and as such is only an option for SMTP servers that allow unauthenticated relay (bad practice).
 
 ### SMTPS vs STARTTLS
 
 All connections start as plain text and are upgraded via STARTTLS. SMTPS is an exception to this rule where the
-connection is over TLS. As SMTPS is deprecated, the only way to configure this is to set the SMTP 
+connection is over TLS. As SMTPS is deprecated, the only way to configure this is to set the SMTP
 [port](../configuration/notifier/smtp.md#port) to the officially recognized SMTPS port of 465 which will cause Authelia
 to automatically consider it to be a SMTPS connection. As such your SMTP server, if not offering SMTPS, should not be
 listening on port 465 which is bad practice anyway.
@@ -140,7 +142,7 @@ listening on port 465 which is bad practice anyway.
 ### Reset Password
 
 It's possible to disable the reset password functionality and is an optional adjustment to consider for anyone wanting
-to increase security. See the [configuration](../configuration/authentication/index.md#disable_reset_password) for more 
+to increase security. See the [configuration](../configuration/authentication/index.md#disable_reset_password) for more
 information.
 
 ### Session security
@@ -159,12 +161,12 @@ session would be destroyed.
 
 ### Additional proxy protection measures
 
-You can also apply the following headers to your proxy configuration for improving security. Please read the 
+You can also apply the following headers to your proxy configuration for improving security. Please read the
 relevant documentation for these headers before applying them blindly.
 
 #### nginx
 
-```
+```text
 # We don't want any credentials / TOTP secret key / QR code to be cached by
 # the client
 add_header Cache-Control "no-store";
@@ -179,7 +181,6 @@ add_header X-Frame-Options "SAMEORIGIN";
 # Block pages from loading when they detect reflected XSS attacks.
 add_header X-XSS-Protection "1; mode=block";
 ```
-
 
 #### Traefik 2.x - Kubernetes CRD
 
@@ -231,15 +232,15 @@ services:
 
 ### More protections measures with fail2ban
 
-If you are running fail2ban, adding a filter and jail for Authelia can reduce load on the application / web server. 
-Fail2ban will ban IPs exceeding a threshold of repeated failed logins at the firewall level of your host. If you are 
-using Docker, the Authelia log file location has to be mounted from the host system to the container for 
+If you are running fail2ban, adding a filter and jail for Authelia can reduce load on the application / web server.
+Fail2ban will ban IPs exceeding a threshold of repeated failed logins at the firewall level of your host. If you are
+using Docker, the Authelia log file location has to be mounted from the host system to the container for
 fail2ban to access it.
 
-Create a configuration file in the `filter.d` folder with the content below. In Debian-based systems the folder is 
+Create a configuration file in the `filter.d` folder with the content below. In Debian-based systems the folder is
 typically located at `/etc/fail2ban/filter.d`.
 
-```
+```text
 # Fail2Ban filter for Authelia
 
 # Make sure that the HTTP header "X-Forwarded-For" received by Authelia's backend
@@ -259,11 +260,11 @@ ignoreregex = ^.*level=debug.*
               ^.*level=warning.*
 ```
 
-Modify the `jail.local` file. In Debian-based systems the folder is typically located at `/etc/fail2ban/`. If the file 
-does not exist, create it by copying the jail.conf `cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local`. Add an 
+Modify the `jail.local` file. In Debian-based systems the folder is typically located at `/etc/fail2ban/`. If the file
+does not exist, create it by copying the jail.conf `cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local`. Add an
 Authelia entry to the "Jails" section of the file:
 
-```
+```text
 [authelia]
 enabled = true
 port = http,https,9091
@@ -280,10 +281,10 @@ changes to take effect.
 
 ## Container privilege de-escalation
 
-Authelia will run as the root user and group by default, there are two options available to run as a non-root user and 
-group. 
+Authelia will run as the root user and group by default, there are two options available to run as a non-root user and
+group.
 
-It is recommended which ever approach you take that to secure the sensitive files Authelia requires access to that you 
+It is recommended which ever approach you take that to secure the sensitive files Authelia requires access to that you
 make sure the chmod of the files does not inadvertently allow read access to the files by users who do not need access
 to them.
 
@@ -324,7 +325,7 @@ docker run --user 8000:9000 -v /authelia:/config authelia/authelia:latest
 
 Example for docker-compose:
 
-```
+```yaml
 version: '3.8'
 services:
   authelia:
@@ -341,8 +342,8 @@ PGID environment variables below, so if you use it then changing the PUID and PG
 
 ### PUID/PGID environment variables using the entrypoint
 
-The second option is to use the `PUID` and `PGID` environment variables. When the container entrypoint is executed 
-as root, the entrypoint automatically runs the Authelia process as this user. An added benefit of using the environment 
+The second option is to use the `PUID` and `PGID` environment variables. When the container entrypoint is executed
+as root, the entrypoint automatically runs the Authelia process as this user. An added benefit of using the environment
 variables is the mounted volumes ownership will automatically be changed for you. It is still recommended that
 you run the find chmod examples above in order to secure the files even further especially on servers multiple people
 have access to.
@@ -357,7 +358,7 @@ docker run -e PUID=1000 -e PGID=1000 -v /authelia:/config authelia/authelia:late
 
 Example for docker-compose:
 
-```
+```yaml
 version: '3.8'
 services:
   authelia:

@@ -6,10 +6,7 @@ grand_parent: Configuration
 nav_order: 1
 ---
 
-# File
-
 **Authelia** supports a file as a users database.
-
 
 ## Configuration
 
@@ -28,7 +25,6 @@ authentication_backend:
       parallelism: 8
       memory: 64
 ```
-
 
 ## Format
 
@@ -63,24 +59,24 @@ users:
 This file should be set with read/write permissions as it could be updated by users
 resetting their passwords.
 
-
 ## Options
 
 ### path
+
 <div markdown="1">
 type: string (path)
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: yes
 {: .label .label-config .label-red }
 </div>
 
-
 ### password
 
 #### algorithm
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: argon2id
 {: .label .label-config .label-blue }
 required: no
@@ -89,8 +85,8 @@ required: no
 
 Controls the hashing algorithm used for hashing new passwords. Value must be one of `argon2id` or `sha512.
 
-
 #### iterations
+
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
@@ -104,11 +100,11 @@ When using `argon2id` the minimum is 1, which is also the recommended value.
 
 When using `sha512` the minimum is 1000, and 50000 is the recommended value.
 
-
 #### salt_length
+
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: 16
 {: .label .label-config .label-blue }
 required: no
@@ -118,11 +114,11 @@ required: no
 Controls the length of the random salt added to each password before hashing. It's recommended this value is set to 16,
 and there is no documented reason why you'd set it to anything other than this, however the minimum is 8.
 
-
 #### parallelism
+
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: 8
 {: .label .label-config .label-blue }
 required: no
@@ -132,14 +128,12 @@ required: no
 This setting is specific to `argon2id` and unused with `sha512`. Sets the number of threads used when hashing passwords,
 which affects the effective cost of hashing.
 
-
 #### memory
 
 This setting is specific to `argon2id` and unused with `sha512`. Sets the amount of memory allocated to a single
 password hashing action. This memory is released by go after the hashing process completes, however the operating system
 may not reclaim it until it needs the memory which may make Authelia appear to be using more memory than it technically
 is.
-
 
 ## Passwords
 
@@ -155,12 +149,14 @@ always be valid for base64 decoding (characters a through z, A through Z, 0 thro
 Passwords passed to `hash-password` should be single quoted if using special characters to prevent parameter substitution.
 For instance to generate a hash with the docker image just run:
 
-    $ docker run authelia/authelia:latest authelia hash-password 'yourpassword'
-    Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
+```shell
+$ docker run authelia/authelia:latest authelia hash-password 'yourpassword'
+Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
+```
 
 Full CLI Help Documentation:
 
-```
+```text
 Hash a password to be used in file-based users database. Default algorithm is argon2id.
 
 Usage:
@@ -200,13 +196,15 @@ the memory allocation, it keeps it allocated even though it's technically unused
 pressure the unused allocated memory will be reclaimed by the operating system, you can test
 this on linux with:
 
-    $ stress-ng --vm-bytes $(awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo)k --vm-keep -m 1
+```shell
+stress-ng --vm-bytes $(awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo)k --vm-keep -m 1
+```
 
 If this is not desirable we recommend investigating the following options in order of most to least secure:
+
 1. using the [LDAP authentication provider](./ldap.md)
 2. adjusting the [memory](#memory) parameter
 3. changing the [algorithm](#algorithm)
-
 
 ### Password hash algorithm tuning
 
@@ -217,7 +215,6 @@ key called `password`. We have set what are considered as sane and recommended d
 to cater for a reasonable system, if you're unsure about which settings to tune, please see the
 parameters below, or for a more in depth understanding see the referenced documentation in
 [Argon2 links](./file.md#argon2-links).
-
 
 #### Examples for specific systems
 
@@ -232,7 +229,6 @@ linked documents in [Argon2 links](./file.md#argon2-links).
 |Raspberry Pi 3 |    1     |     8     |   128 |
 |Raspberry Pi 4 |    1     |     8     |   128 |
 |Intel G5 i5 NUC|    1     |     8     |  1024 |
-
 
 ## Argon2 Links
 

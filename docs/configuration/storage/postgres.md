@@ -6,8 +6,6 @@ grand_parent: Configuration
 nav_order: 3
 ---
 
-# PostgreSQL
-
 The PostgreSQL storage provider.
 
 ## Configuration
@@ -26,9 +24,10 @@ storage:
 ## Options
 
 ### host
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: localhost
 {: .label .label-config .label-blue }
 required: no
@@ -38,14 +37,16 @@ required: no
 The database server host.
 
 If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
+
 ```yaml
 host: "[fd00:1111:2222:3333::1]"
 ```
 
 ### port
+
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: 5432
 {: .label .label-config .label-blue }
 required: no
@@ -60,6 +61,7 @@ The database name on the database server that the assigned [user](#username) has
 **Authelia**.
 
 ### username
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -70,6 +72,7 @@ required: yes
 The username paired with the password used to connect to the database.
 
 ### password
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -81,6 +84,7 @@ The password paired with the username used to connect to the database. Can also 
 [secret](../secrets.md) which is also the recommended way when running as a container.
 
 ### sslmode
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }

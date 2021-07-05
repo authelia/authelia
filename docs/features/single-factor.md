@@ -5,8 +5,6 @@ parent: Features
 nav_order: 3
 ---
 
-# Single Factor
-
 **Authelia** supports single factor authentication to let applications
 send authenticated requests to other applications.
 
@@ -19,7 +17,6 @@ resources matching `app1.example.com/admin` with two factors.
 
 To know more about the configuration of the feature, please visit the
 documentation about the [configuration](../configuration/access-control.md).
-
 
 ## HTTP Basic Auth
 
@@ -41,7 +38,6 @@ When authentication fails and `auth=basic` was set, Authelia's response will inc
 the `WWW-Authenticate` header. This will cause browsers to prompt for authentication,
 and users will not land on the HTML login page.
 
-
 ## Session-Username header
 
 Authelia by default only verifies the cookie and the associated user with that cookie can
@@ -62,11 +58,11 @@ You will need to adjust the FORWARDED_HOST and VERIFY_URL vars to achieve a func
 
 #### PAM Rule
 
-`auth    [success=1 default=ignore]      pam_exec.so expose_authtok /usr/bin/pam-authelia `
+`auth    [success=1 default=ignore]      pam_exec.so expose_authtok /usr/bin/pam-authelia`
 
 #### PAM Script
 
-```bash
+```shell
 #!/bin/bash
 # The password from stdin
 PAM_PASSWORD=$(cat -)
@@ -87,4 +83,3 @@ else
   exit 1
 fi
 ```
-

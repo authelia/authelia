@@ -5,25 +5,24 @@ nav_order: 7
 has_children: true
 ---
 
-# Contributing
-
 ## Development workflow
 
 **Authelia** and its development workflow can be tested with Docker and docker-compose on Linux.
 
-In order to deploy the current version of Authelia locally, run the following command and follow the instructions of 
+In order to deploy the current version of Authelia locally, run the following command and follow the instructions of
 bootstrap.sh:
 
-```console
-$ source bootstrap.sh
+```shell
+source bootstrap.sh
 ```
 
 Then, start the *Standalone* [suite].
-```console
-$ authelia-scripts suites setup Standalone
+
+```shell
+authelia-scripts suites setup Standalone
 ```
 
-A [suite] is kind of a virtual environment for running Authelia in a complete ecosystem. If you want more details please 
+A [suite] is kind of a virtual environment for running Authelia in a complete ecosystem. If you want more details please
 read the related [documentation](./suites.md).
 
 ## FAQ
@@ -32,7 +31,7 @@ read the related [documentation](./suites.md).
 
 Here are the versions used for testing in Buildkite:
 
-```console
+```shell
 $ docker --version
 Docker version 19.03.5, build 633a0ea838
 
@@ -42,10 +41,10 @@ docker-compose version 1.24.1, build unknown
 
 ### How can I serve my application under example.com?
 
-Don't worry, you don't need to own the domain *example.com* to test Authelia. Copy the following lines in 
+Don't worry, you don't need to own the domain *example.com* to test Authelia. Copy the following lines in
 your `/etc/hosts`.
 
-```
+```text
 192.168.240.100 home.example.com
 192.168.240.100 login.example.com
 192.168.240.100 singlefactor.example.com
@@ -55,7 +54,7 @@ your `/etc/hosts`.
 192.168.240.100 mx1.mail.example.com
 ```
 
-`192.168.240.100` is the IP attributed by Docker to the reverse proxy. Once added you can access the listed sub-domains 
+`192.168.240.100` is the IP attributed by Docker to the reverse proxy. Once added you can access the listed sub-domains
 from your browser, and they will target the reverse proxy.
 
 [suite]: ./suites.md

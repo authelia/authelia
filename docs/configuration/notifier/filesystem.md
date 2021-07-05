@@ -6,8 +6,6 @@ grand_parent: Configuration
 nav_order: 1
 ---
 
-# Filesystem
-
 With this configuration, the message will be sent to a file. This option should only be used for testing purposes.
 This method will use the plain text email template for readability purposes.
 
@@ -23,6 +21,7 @@ notifier:
 ## Options
 
 ### filename
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }

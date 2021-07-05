@@ -5,8 +5,6 @@ parent: Deployment
 nav_order: 2
 ---
 
-# Highly-Available Deployment
-
 **Authelia** can be deployed on bare metal or on Kubernetes with two
 different kind of artifacts: the distributable version (binary and public_html)
 or a Docker image.
@@ -16,7 +14,7 @@ or a Docker image.
 
 ## On Bare Metal
 
-**Authelia** has been designed to be a proxy companion handling the 
+**Authelia** has been designed to be a proxy companion handling the
 authentication and authorization requests for your entire infrastructure.
 
 As **Authelia** will be key to your architecture, it requires several
@@ -27,7 +25,7 @@ persist user configurations and one or more nginx reverse proxies configured to
 be used with Authelia. With such a setup **Authelia** can easily be scaled to
 multiple instances to evenly handle the traffic.
 
-Here are the available steps to deploy **Authelia** given 
+Here are the available steps to deploy **Authelia** given
 the configuration file is **/path/to/your/configuration.yml**. Note that you can
 create your own configuration file from [config.template.yml] located at
 the root of the repo.
@@ -44,7 +42,7 @@ pay attention to the permissions of the configuration file. See
 
 ### Deploy With Docker
 
-    $ docker run -v /path/to/your/configuration.yml:/config/configuration.yml -e TZ=Europe/Paris authelia/authelia
+    docker run -v /path/to/your/configuration.yml:/config/configuration.yml -e TZ=Europe/Paris authelia/authelia
 
 ## FAQ
 
@@ -53,9 +51,6 @@ pay attention to the permissions of the configuration file. See
 Ansible would be a very good candidate to automate the installation of such
 an infrastructure on bare metal. We would be more than happy to review any PR on that matter.
 
-
-
 [config.template.yml]: https://github.com/authelia/authelia/blob/master/config.template.yml
 [Getting Started]: ../getting-started.md
-[Deployment for Devs]: ./deployment-dev.md
 [Kubernetes]: https://kubernetes.io/

@@ -6,8 +6,6 @@ grand_parent: Configuration
 nav_order: 1
 ---
 
-# Redis
-
 This is a session provider. By default Authelia uses an in-memory provider. Not configuring redis leaves Authelia
 [stateful](../../features/statelessness.md). It's important in highly available scenarios to configure this option and
 we highly recommend it in production environments. It requires you setup [redis] as well.
@@ -43,6 +41,7 @@ session:
 ## Options
 
 ### host
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -52,11 +51,13 @@ required: yes
 
 The [redis] host or unix socket path. If utilising an IPv6 literal address it must be enclosed by square brackets and
 quoted:
+
 ```yaml
 host: "[fd00:1111:2222:3333::1]"
 ```
 
 ### port
+
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
@@ -69,6 +70,7 @@ required: no
 The port [redis] is listening on.
 
 ### username
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -81,6 +83,7 @@ currently offers backwards compatibility with password-only auth. You probably d
 through the process of setting up [redis ACLs](https://redis.io/topics/acl).
 
 ### password
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -91,6 +94,7 @@ required: no
 The password for [redis authentication](https://redis.io/commands/auth).
 
 ### database_index
+
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
@@ -103,6 +107,7 @@ required: no
 The index number of the [redis] database, the same value as specified with the redis SELECT command.
 
 ### maximum_active_connections
+
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
@@ -115,6 +120,7 @@ required: no
 The maximum connections open to [redis] at the same time.
 
 ### minimum_idle_connections
+
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
@@ -138,6 +144,7 @@ When defining this session it enables [redis sentinel] connections. It's possibl
 the future we may add [redis cluster](https://redis.io/topics/cluster-tutorial).
 
 #### sentinel_name
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -149,6 +156,7 @@ The [redis sentinel] master name. This is defined in your [redis sentinel] confi
 must be defined currently for a high availability configuration.
 
 #### sentinel_password
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -173,6 +181,7 @@ Each node has a host and port configuration. Example:
 ```
 
 ##### host
+
 <div markdown="1">
 type: boolean
 {: .label .label-config .label-purple }
@@ -185,6 +194,7 @@ required: no
 The host of this [redis sentinel] node.
 
 ##### port
+
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
@@ -197,6 +207,7 @@ required: no
 The port of this [redis sentinel] node.
 
 #### route_by_latency
+
 <div markdown="1">
 type: boolean
 {: .label .label-config .label-purple }
@@ -209,6 +220,7 @@ required: no
 Prioritizes low latency [redis sentinel] nodes when set to true.
 
 #### route_randomly
+
 <div markdown="1">
 type: boolean
 {: .label .label-config .label-purple }

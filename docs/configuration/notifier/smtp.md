@@ -6,7 +6,6 @@ grand_parent: Configuration
 nav_order: 2
 ---
 
-# SMTP
 **Authelia** can send emails to users through an SMTP server.
 It can be configured as described below.
 
@@ -35,6 +34,7 @@ notifier:
 ## Options
 
 ### username
+
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -45,9 +45,10 @@ required: no
 The username sent for authentication with the SMTP server. Paired with the password.
 
 ### password
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -56,9 +57,10 @@ The password sent for authentication with the SMTP server. Paired with the usern
 [secret](../secrets.md) which is the recommended for containerized deployments.
 
 ### host
+
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: yes
 {: .label .label-config .label-red }
 </div>
@@ -75,7 +77,7 @@ host: "[fd00:1111:2222:3333::1]"
 
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: yes
 {: .label .label-config .label-red }
 </div>
@@ -83,9 +85,10 @@ required: yes
 The port the SMTP service is listening on.
 
 ### sender
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -94,9 +97,10 @@ The address sent in the FROM header for the email. Basically who the email appea
 that some SMTP servers require the username provided to have access to send from the specific address listed here.
 
 ### identifer
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: localhost
 {: .label .label-config .label-blue }
 required: no
@@ -107,9 +111,10 @@ The name to send to the SMTP server as the identifier with the HELO/EHLO command
 reject the message if it's localhost.
 
 ### subject
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: [Authelia] {title}
 {: .label .label-config .label-blue }
 required: no
@@ -120,9 +125,10 @@ This is the subject Authelia will use in the email, it has a single placeholder 
 be included in all emails as it is the internal descriptor for the contents of the email.
 
 ### startup_check_address
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: test@authelia.com
 {: .label .label-config .label-blue }
 required: no
@@ -134,9 +140,10 @@ send an email from us to a specific address, this is that address. No email is a
 to leave this as is, but you can customize it if you have issues or you desire to.
 
 ### disable_require_tls
+
 <div markdown="1">
 type: boolean
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: false
 {: .label .label-config .label-blue }
 required: no
@@ -147,9 +154,10 @@ For security reasons the default settings for Authelia require the SMTP connecti
 for more information. This option disables this measure (not recommended).
 
 ### disable_html_emails
+
 <div markdown="1">
 type: boolean
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: false
 {: .label .label-config .label-blue }
 required: no
@@ -164,8 +172,8 @@ mixed emails which contain both HTML and text so this option is rarely necessary
 Controls the TLS connection validation process. You can see how to configure the tls section
 [here](../index.md#tls-configuration).
 
-
 ## Using Gmail
+
 You need to generate an app password in order to use Gmail SMTP servers. The process is
 described [here](https://support.google.com/accounts/answer/185833?hl=en)
 

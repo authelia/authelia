@@ -1,10 +1,8 @@
 ---
 layout: default
-title: FAQ
+title: Frequently Asked Questions
 nav_order: 8
 ---
-
-# Frequently asked questions
 
 ## How can the backend be aware of the authenticated users?
 

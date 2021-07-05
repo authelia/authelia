@@ -6,12 +6,10 @@ nav_order: 1
 has_children: true
 ---
 
-# Authentication Backends
-
 There are two ways to store the users along with their password:
 
-* LDAP: users are stored in remote servers like OpenLDAP, OpenAM or Microsoft Active Directory.
-* File: users are stored in YAML file with a hashed version of their password.
+- LDAP: users are stored in remote servers like OpenLDAP, OpenAM or Microsoft Active Directory.
+- File: users are stored in YAML file with a hashed version of their password.
 
 ## Configuration
 
@@ -25,9 +23,10 @@ authentication_backend:
 ## Options
 
 ### disable_reset_password
+
 <div markdown="1">
 type: boolean
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: false
 {: .label .label-config .label-blue }
 required: no

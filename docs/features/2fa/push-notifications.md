@@ -6,16 +6,13 @@ nav_order: 3
 grand_parent: Features
 ---
 
-# Mobile Push Notification
-
 Mobile push notifications is the new trendy second factor method. When second factor is requested
 by Authelia, a notification is sent on your phone that you can either accept or deny.
 
 <p align="center">
-  <img src="../../images/duo-push-1.jpg" width="200">
-  <img src="../../images/duo-push-2.png" width="200">
+  <img alt="Duo Push Notification View" src="../../images/duo-push-1.jpg" width="200">
+  <img alt="Duo App Confirmation View" src="../../images/duo-push-2.png" width="200">
 </p>
-
 
 Authelia leverages [Duo] third party to provide this feature.
 
@@ -27,27 +24,28 @@ Then, in Duo interface, click on *Applications* and *Protect an Application*. Se
 set the name of the application to **Authelia** and then you must add the generated information
 to Authelia [configuration](../../deployment/index.md) as shown below:
 
-    duo_api:
-      hostname: api-123456789.example.com
-      integration_key: ABCDEF
-      secret_key: 1234567890abcdefghifjkl
+```yaml
+duo_api:
+  hostname: api-123456789.example.com
+  integration_key: ABCDEF
+  secret_key: 1234567890abcdefghifjkl
+```
+
 
 Now that Authelia is configured, pass the first factor and select the Push notification
 option.
 
 <p align="center">
-  <img src="../../images/2FA-PUSH.png" width="400">
+  <img alt="Duo Second Factor View" src="../../images/2FA-PUSH.png" width="400">
 </p>
 
 You should now receive a notification on your mobile phone with all the details
 about the authentication request.
 
-
 ## Limitation
 
 Users must be enrolled via the Duo Admin panel, they cannot enroll a device from
 **Authelia** yet.
-
 
 ## FAQ
 

@@ -5,8 +5,6 @@ parent: Configuration
 nav_order: 9
 ---
 
-# Server
-
 The server section configures and tunes the http server module Authelia uses.
 
 ## Configuration
@@ -23,9 +21,10 @@ server:
 ## Options
 
 ### read_buffer_size
+
 <div markdown="1">
-type: integer 
-{: .label .label-config .label-purple } 
+type: integer
+{: .label .label-config .label-purple }
 default: 4096
 {: .label .label-config .label-blue }
 required: no
@@ -35,9 +34,10 @@ required: no
 Configures the maximum request size. The default of 4096 is generally sufficient for most use cases.
 
 ### write_buffer_size
+
 <div markdown="1">
-type: integer 
-{: .label .label-config .label-purple } 
+type: integer
+{: .label .label-config .label-purple }
 default: 4096
 {: .label .label-config .label-blue }
 required: no
@@ -47,9 +47,10 @@ required: no
 Configures the maximum response size. The default of 4096 is generally sufficient for most use cases.
 
 ### path
+
 <div markdown="1">
-type: string 
-{: .label .label-config .label-purple } 
+type: string
+{: .label .label-config .label-purple }
 default: ""
 {: .label .label-config .label-blue }
 required: no
@@ -62,22 +63,25 @@ Modifying this setting will allow you to serve Authelia out from a specified bas
 that currently only a single level path is supported meaning slashes are not allowed, and only
 alphanumeric characters are supported.
 
-Example: https://auth.example.com/, https://example.com/
+Example: <https://auth.example.com/>, <https://example.com/>
+
 ```yaml
 server:
   path: ""
 ```
 
-Example: https://auth.example.com/authelia/, https://example.com/authelia/
+Example: <https://auth.example.com/authelia/>, <https://example.com/authelia/>
+
 ```yaml
 server:
   path: authelia
 ```
 
 ### enable_pprof
+
 <div markdown="1">
 type: boolean
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: false
 {: .label .label-config .label-blue }
 required: no
@@ -87,9 +91,10 @@ required: no
 Enables the go pprof endpoints.
 
 ### enable_expvars
+
 <div markdown="1">
 type: boolean
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: false
 {: .label .label-config .label-blue }
 required: no
@@ -97,7 +102,6 @@ required: no
 </div>
 
 Enables the go expvars endpoints.
-
 
 ## Additional Notes
 

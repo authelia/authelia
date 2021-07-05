@@ -5,8 +5,6 @@ parent: Configuration
 nav_order: 2
 ---
 
-# Duo Push Notifications
-
 Authelia supports mobile push notifications relying on [Duo].
 
 Follow the instructions in the dedicated [documentation](../features/2fa/push-notifications.md)
@@ -19,6 +17,7 @@ section of the configuration.
 ## Configuration
 
 The configuration is as follows:
+
 ```yaml
 duo_api:
   hostname: api-123456789.example.com
@@ -32,9 +31,10 @@ variable as described [here](./secrets.md).
 ## Options
 
 ### hostname
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: ""
 {: .label .label-config .label-blue }
 required: yes
@@ -44,9 +44,10 @@ required: yes
 The [Duo] API hostname supplied by [Duo].
 
 ### integration_key
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: ""
 {: .label .label-config .label-blue }
 required: yes
@@ -56,9 +57,10 @@ required: yes
 The non-secret [Duo] integration key. Similar to a client identifier.
 
 ### secret_key
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: ""
 {: .label .label-config .label-blue }
 required: yes

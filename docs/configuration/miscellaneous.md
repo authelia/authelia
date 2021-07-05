@@ -5,8 +5,6 @@ parent: Configuration
 nav_order: 5
 ---
 
-# Miscellaneous
-
 Here are the main customizable options in Authelia.
 
 ## Host & Port
@@ -17,9 +15,10 @@ port: 9091
 ```
 
 ### host
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: 0.0.0.0
 {: .label .label-config .label-blue }
 required: no
@@ -36,9 +35,10 @@ host: "[fd00:1111:2222:3333::1]"
 ```
 
 ### port
+
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: 9091
 {: .label .label-config .label-blue }
 required: no
@@ -59,9 +59,10 @@ tls_cert: /config/ssl/cert.pem
 ```
 
 ### tls_key
+
 <div markdown="1">
 type: string (path)
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: ""
 {: .label .label-config .label-blue }
 required: situational
@@ -71,9 +72,10 @@ required: situational
 The path to the private key for TLS connections. Must be in DER base64/PEM format.
 
 ### tls_cert
+
 <div markdown="1">
 type: string (path)
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: ""
 {: .label .label-config .label-blue }
 required: situational
@@ -94,9 +96,10 @@ certificates_directory: /config/certs/
 ```
 
 ## jwt_secret
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: ""
 {: .label .label-config .label-blue }
 required: yes
@@ -111,9 +114,10 @@ jwt_secret: v3ry_important_s3cr3t
 ```
 
 ## default_redirection_url
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: ""
 {: .label .label-config .label-blue }
 required: no

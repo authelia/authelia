@@ -6,25 +6,23 @@ grand_parent: Deployment
 nav_order: 2
 ---
 
-# Nginx
-
 [nginx] is a reverse proxy supported by **Authelia**.
 
 ## Configuration
 
 Below you will find commented examples of the following configuration:
 
-* Authelia portal
-* Protected endpoint (Nextcloud)
-* Supplementary config
+- Authelia portal
+- Protected endpoint (Nextcloud)
+- Supplementary config
 
 With the below configuration you can add `authelia.conf` to virtual hosts to support protection with Authelia.
 `auth.conf` is utilised to enable the protection either at the root location or a more specific location/route.
 `proxy.conf` is included just for completeness.
 
-#### Supplementary config
+### Supplementary config
 
-##### authelia.conf
+#### authelia.conf
 
 ```nginx
 set $upstream_authelia http://authelia:9091/api/verify;
@@ -69,7 +67,7 @@ location /authelia {
 }
 ```
 
-##### auth.conf
+#### auth.conf
 
 ```nginx
 # Basic Authelia Config
@@ -97,7 +95,7 @@ proxy_set_header Remote-Email $email;
 error_page 401 =302 https://auth.example.com/?rd=$target_url;
 ```
 
-##### proxy.conf
+#### proxy.conf
 
 ```nginx
 client_body_buffer_size 128k;
@@ -135,7 +133,7 @@ real_ip_header X-Forwarded-For;
 real_ip_recursive on;
 ```
 
-#### Authelia Portal
+### Authelia Portal
 
 ```nginx
 server {
@@ -157,7 +155,7 @@ server {
 }
 ```
 
-#### Protected Endpoint
+### Protected Endpoint
 
 ```nginx
 server {
@@ -175,17 +173,17 @@ server {
     location / {
         set $upstream_nextcloud https://nextcloud;
         proxy_pass $upstream_nextcloud;
-        include /config/nginx/auth.conf; # Activates Authelia for specified route/location, please ensure you have setup the domain in your configuration.yml
+        include /config/nginx/auth.conf;  # Activates Authelia for specified route/location
         include /config/nginx/proxy.conf; # Reverse proxy configuration
     }
 }
 ```
 
-### Basic Auth Example
+## Basic Auth Example
 
 Here's an example for using HTTP basic auth on a specific endpoint. It is based on the full example above.
 
-##### authelia-basic.conf
+### authelia-basic.conf
 
 ```nginx
 # Notice we added the auth=basic query arg here
@@ -230,9 +228,10 @@ location /authelia {
 }
 ```
 
-##### auth-basic.conf
+### auth-basic.conf
 
-Same as `auth.conf` but without the `error_page` directive. We want nginx to proxy the 401 back to the client, not to return a 301.
+Same as `auth.conf` but without the `error_page` directive. We want nginx to proxy the 401 back to the client, not to
+return a 301.
 
 ```nginx
 # Basic Authelia Config
@@ -258,7 +257,7 @@ proxy_set_header Remote-Email $email;
 # If it returns 200, then the request pass through to the backend.
 ```
 
-#### Protected Endpoint
+### Protected Endpoint
 
 ```nginx
 server {
@@ -282,12 +281,11 @@ server {
 }
 ```
 
-
-### Basic auth for specific client
+## Basic auth for specific client
 
 If you'd like to force basic auth for some requests, you can use the following template:
 
-##### authelia-detect.conf
+### authelia-detect.conf
 
 ```nginx
 set $is_basic_auth ""; # false value
@@ -321,7 +319,7 @@ location = /authelia-redirect {
 }
 ```
 
-##### auth.conf
+### auth.conf
 
 Here we replace `error_page` directive to determine if basic auth should be utilised or not.
 

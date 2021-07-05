@@ -5,8 +5,6 @@ parent: Features
 nav_order: 5
 ---
 
-# Access Control
-
 **Authelia** allows to define a fine-grained rule-based access control policy in
 configuration. This list of rules is tested against any requests protected by
 Authelia and defines the level of authentication the user must pass to get access

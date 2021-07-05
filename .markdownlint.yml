@@ -22,11 +22,11 @@ MD007:
 # MD013/line-length - Line length
 MD013:
   # Number of characters
-  line_length: 80
+  line_length: 120
   # Number of characters for headings
-  heading_line_length: 80
+  heading_line_length: 120
   # Number of characters for code blocks
-  code_block_line_length: 80
+  code_block_line_length: 120
   # Include code blocks
   code_blocks: true
   # Include tables

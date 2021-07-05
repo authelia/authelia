@@ -6,29 +6,31 @@ grand_parent: Deployment
 nav_order: 3
 ---
 
-# Traefik
-
 [Traefik 1.x] is a reverse proxy supported by **Authelia**.
 
 ## Configuration
 
 Below you will find commented examples of the following configuration:
 
-* Traefik 1.x
-* Authelia portal
-* Protected endpoint (Nextcloud)
-* Protected endpoint with `Authorization` header for basic authentication (Heimdall)
+- Traefik 1.x
+- Authelia portal
+- Protected endpoint (Nextcloud)
+- Protected endpoint with `Authorization` header for basic authentication (Heimdall)
 
-The below configuration looks to provide examples of running Traefik 1.x with labels to protect your endpoint (Nextcloud in this case).
+The below configuration looks to provide examples of running Traefik 1.x with labels to protect your endpoint (Nextcloud
+in this case).
 
-Please ensure that you also setup the respective [ACME configuration](https://docs.traefik.io/v1.7/configuration/acme/) for your Traefik setup as this is not covered in the example below.
+Please ensure that you also setup the respective [ACME configuration](https://docs.traefik.io/v1.7/configuration/acme/)
+for your Traefik setup as this is not covered in the example below.
 
 ### Basic Authentication
 
 Authelia provides the means to be able to authenticate your first factor via the `Proxy-Authorization` header.
-Given that this is not compatible with Traefik 1.x you can call Authelia's `/api/verify` endpoint with the `auth=basic` query parameter to force a switch to the `Authentication` header.
+Given that this is not compatible with Traefik 1.x you can call Authelia's `/api/verify` endpoint with the `auth=basic`
+query parameter to force a switch to the `Authentication` header.
 
-##### docker-compose.yml
+#### docker-compose.yml
+
 ```yml
 version: '3'
 
@@ -110,7 +112,7 @@ services:
       - net
     labels:
       - 'traefik.frontend.rule=Host:heimdall.example.com'
-      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?auth=basic
+      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?auth=basic'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
       - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
     expose:

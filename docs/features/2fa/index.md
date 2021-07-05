@@ -6,18 +6,17 @@ nav_order: 2
 has_children: true
 ---
 
-# Second Factor
+## Second Factor
 
 There are multiple supported options for the second factor.
 
-* Time-based One-Time passwords with [Google Authenticator]
-* Security Keys with tokens like [Yubikey].
-* Push notifications on your mobile using [Duo].
+- Time-based One-Time passwords with [Google Authenticator]
+- Security Keys with tokens like [Yubikey].
+- Push notifications on your mobile using [Duo].
 
 <p align="center">
-  <img src="../../images/2FA-METHODS.png" width="400">
+  <img alt="Second Factor Methods View" src="../../images/2FA-METHODS.png" width="400">
 </p>
-
 
 [Duo]: https://duo.com/
 [Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/

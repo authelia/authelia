@@ -5,8 +5,6 @@ parent: Configuration
 nav_order: 8
 ---
 
-# Secrets
-
 Configuration of Authelia requires some secrets and passwords.
 Even if they can be set in the configuration file, the recommended
 way to set secrets is to use environment variables as described
@@ -15,8 +13,8 @@ below.
 ## Environment variables
 
 A secret can be configured using an environment variable with the
-prefix AUTHELIA_ followed by the path of the option capitalized
-and with dots replaced by underscores followed by the suffix _FILE.
+prefix AUTHELIA_followed by the path of the option capitalized
+and with dots replaced by underscores followed by the suffix_FILE.
 
 The contents of the environment variable must be a path to a file
 containing the secret data. This file must be readable by the
@@ -67,7 +65,6 @@ for reasons why this was removed.
 
 Secrets can be provided in a `docker-compose.yml` either with Docker secrets or
 bind mounted secret files, examples of these are provided below.
-
 
 ### Compose with Docker secrets
 
@@ -162,17 +159,15 @@ services:
       - TZ=Australia/Melbourne
 ```
 
-
 ## Kubernetes
 
 Secrets can be mounted as files using the following sample manifests.
 
-
 ### Kustomization
 
-- **Filename:** ./kustomization.yaml
-- **Command:** kubectl apply -k
-- **Notes:** this kustomization expects the Authelia configuration.yml in
+-   **Filename:** ./kustomization.yaml
+-   **Command:** kubectl apply -k
+-   **Notes:** this kustomization expects the Authelia configuration.yml in
   the same directory. You will need to edit the kustomization.yaml with your
   desired secrets after the equal signs. If you change the value before the
   equal sign you'll have to adjust the volumes section of the daemonset
@@ -206,6 +201,7 @@ secretGenerator:
 - **Filename:** ./daemonset.yaml
 - **Command:** kubectl apply -f ./daemonset.yaml
 - **Notes:** assumes Kubernetes API 1.16 or greater
+
 ```yaml
 #filename: daemonset.yaml
 #command: kubectl apply -f daemonset.yaml

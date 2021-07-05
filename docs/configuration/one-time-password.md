@@ -5,13 +5,12 @@ parent: Configuration
 nav_order: 6
 ---
 
-# Time-based One-Time Password
-
 Authelia uses time based one-time passwords as the OTP method. You have
 the option to tune the settings of the TOTP generation, and you can see a
 full example of TOTP configuration below, as well as sections describing them.
 
 ## Configuration
+
 ```yaml
 totp:
   issuer: authelia.com
@@ -22,9 +21,10 @@ totp:
 ## Options
 
 ### issuer
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: Authelia
 {: .label .label-config .label-blue }
 required: no
@@ -48,11 +48,11 @@ password is valid for. The formula to calculate the effective validity period is
 `period + (period * skew * 2)`. For example period 30 and skew 1 would result in 90
 seconds of validity, and period 30 and skew 2 would result in 150 seconds of validity.
 
-
 ### period
+
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: 30
 {: .label .label-config .label-blue }
 required: no
@@ -65,9 +65,10 @@ to note that changing this value will require your users to register their appli
 It is recommended to keep this value set to 30, the minimum is 1.
 
 ### skew
+
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: 1
 {: .label .label-config .label-blue }
 required: no

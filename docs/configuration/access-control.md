@@ -5,9 +5,7 @@ parent: Configuration
 nav_order: 1
 ---
 
-# Access Control
 {: .no_toc }
-
 
 ## Configuration
 
@@ -40,9 +38,10 @@ access_control:
 ## Options
 
 ### default_policy
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: deny
 {: .label .label-config .label-blue }
 required: no
@@ -57,28 +56,30 @@ Authelia at all for performance reasons.
 See [Policies](#policies) for more information.
 
 ### networks (global)
+
 <div markdown="1">
 type: list
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
 
-The main/global networks section contains a list of networks with a name label that can be reused in the 
-[rules](#networks) section instead of redefining the same networks over and over again. This additionally makes 
+The main/global networks section contains a list of networks with a name label that can be reused in the
+[rules](#networks) section instead of redefining the same networks over and over again. This additionally makes
 complicated network related configuration a lot cleaner and easier to read.
 
 This section has two options, `name` and `networks`. Where the `networks` section is a list of IP addresses in CIDR
-notation and where `name` is a friendly name to label the collection of networks for reuse in the [networks](#networks) 
+notation and where `name` is a friendly name to label the collection of networks for reuse in the [networks](#networks)
 section of the [rules](#rules) section below.
 
 This configuration option *does nothing* by itself, it's only useful if you use these aliases in the [rules](#networks)
 section below.
 
 ### rules
+
 <div markdown="1">
 type: list
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -88,28 +89,29 @@ The rules have many configuration options. A rule matches when all criteria of t
 
 A rule defines two primary things:
 
-* the policy applied when all criteria match.
+-   the policy applied when all criteria match.
   
-* the matching criteria of the request presented to the reverse proxy
+-   the matching criteria of the request presented to the reverse proxy
   
 The criteria is broken into several parts:
 
-* [domain](#domain): domain or list of domains targeted by the request.
-* [resources](#resources): pattern or list of patterns that the path should match.
-* [subject](#subject): the user or group of users to define the policy for.
-* [networks](#networks): the network addresses, ranges (CIDR notation) or groups from where the request originates.
-* [methods](#methods): the http methods used in the request.
+- [domain](#domain): domain or list of domains targeted by the request.
+- [resources](#resources): pattern or list of patterns that the path should match.
+- [subject](#subject): the user or group of users to define the policy for.
+- [networks](#networks): the network addresses, ranges (CIDR notation) or groups from where the request originates.
+- [methods](#methods): the http methods used in the request.
 
 A rule is matched when all criteria of the rule match. Rules are evaluated in sequential order, and the first rule that
-is a match for a given request is the rule applied; subsequent rules have *no effect*. This is particularly 
-**important** for bypass rules. Bypass rules should generally appear near the top of the rules list. However you need to 
-carefully evaluate your rule list **in order** to see which rule matches a particular scenario. A comprehensive 
+is a match for a given request is the rule applied; subsequent rules have *no effect*. This is particularly
+**important** for bypass rules. Bypass rules should generally appear near the top of the rules list. However you need to
+carefully evaluate your rule list **in order** to see which rule matches a particular scenario. A comprehensive
 understanding of how rules apply is also recommended.
 
 #### policy
+
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: yes
 {: .label .label-config .label-red }
 </div>
@@ -118,27 +120,28 @@ The specific [policy](#policies) to apply to the selected rule. This is not crit
 take when a match is made.
 
 #### domain
+
 <div markdown="1">
 type: list(string)
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: yes
 {: .label .label-config .label-red }
 </div>
 
-This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of 
+This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of
 strings. When it's a list of strings the rule matches when **any** of the domains in the list match the request domain.
 
 Rules may start with a few different wildcards:
 
-* The standard wildcard is `*.`, which when in front of a domain means that any subdomain is effectively a match. For 
+-   The standard wildcard is `*.`, which when in front of a domain means that any subdomain is effectively a match. For
   example `*.example.com` would match `abc.example.com` and `secure.example.com`. When using a wildcard like this the
   string **must** be quoted like `"*.example.com"`.
-    
-* The user wildcard is `{user}.`, which when in front of a domain dynamically matches the username of the user. For
+
+-   The user wildcard is `{user}.`, which when in front of a domain dynamically matches the username of the user. For
   example `{user}.example.com` would match `fred.example.com` if the user logged in was named `fred`. ***Note:** we're
   considering refactoring this to just be regex which would likely allow many additional possibilities.*
   
-* The group wildcard is `{group}.`, which when in front of a domain dynamically matches if the logged in user has the
+-   The group wildcard is `{group}.`, which when in front of a domain dynamically matches if the logged in user has the
   group in that location. For example `{group}.example.com` would match `admins.example.com` if the user logged in was
   in the following groups `admins,users,people` because `admins` is in the list.
 
@@ -177,22 +180,23 @@ access_control:
 ```
 
 ### subject
+
 <div markdown="1">
 type: list(list(string))
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
 
 ***Note:** this rule criteria **may not** be used for the `bypass` policy the minimum required authentication level to
-identify the subject is `one_factor`. We have taken an opinionated stance on preventing this configuration as it could 
-result in problematic security scenarios with badly thought out configurations and cannot see a likely configuration 
-scenario that would require users to do this. If you have a scenario in mind please open an 
+identify the subject is `one_factor`. We have taken an opinionated stance on preventing this configuration as it could
+result in problematic security scenarios with badly thought out configurations and cannot see a likely configuration
+scenario that would require users to do this. If you have a scenario in mind please open an
 [issue](https://github.com/authelia/authelia/issues/new) on GitHub.*
 
-This criteria matches identifying characteristics about the subject. Currently this is either user or groups the user 
-belongs to. This allows you to effectively control exactly what each user is authorized to access or to specifically 
-require two-factor authentication to specific users. Subjects are prefixed with either `user:` or `group:` to identify 
+This criteria matches identifying characteristics about the subject. Currently this is either user or groups the user
+belongs to. This allows you to effectively control exactly what each user is authorized to access or to specifically
+require two-factor authentication to specific users. Subjects are prefixed with either `user:` or `group:` to identify
 which part of the identity to check.
 
 The format of this rule is unique in as much as it is a list of lists. The logic behind this format is to allow for both
@@ -242,9 +246,10 @@ access_control:
 ```
 
 ### methods
+
 <div markdown="1">
 type: list(string)
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -270,21 +275,22 @@ access_control:
     - OPTIONS
 ```
 
-The valid request methods are: OPTIONS, HEAD, GET, POST, PUT, PATCH, DELETE, TRACE, CONNECT. Additional information 
+The valid request methods are: OPTIONS, HEAD, GET, POST, PUT, PATCH, DELETE, TRACE, CONNECT. Additional information
 about HTTP request methods can be found on the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods).
 
 ### networks
+
 <div markdown="1">
 type: list(string)
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
 
-This criteria is a list of values which can be an IP Address, network address range in CIDR notation, or an alias from 
-the [global](#networks-global) section. It matches against the first address in the `X-Forwarded-For` header, or if there 
+This criteria is a list of values which can be an IP Address, network address range in CIDR notation, or an alias from
+the [global](#networks-global) section. It matches against the first address in the `X-Forwarded-For` header, or if there
 are none it will fall back to the IP address of the packet TCP source IP address. For this reason it's important for you
-to configure the proxy server correctly in order to accurately match requests with this criteria. ***Note:** you may 
+to configure the proxy server correctly in order to accurately match requests with this criteria. ***Note:** you may
 combine CIDR networks with the alias rules as you please.*
 
 The main use case for this criteria is adjust the security requirements of a resource based on the location of a user.
@@ -301,7 +307,7 @@ for administrators to tune the security to their specific needs if desired.
 
 Examples:
 
-*Require [two_factor](#two_factor) for all clients other than internal clients and `112.134.145.167`. The first two 
+*Require [two_factor](#two_factor) for all clients other than internal clients and `112.134.145.167`. The first two
 rules in this list are effectively the same rule just expressed in different ways.*
 
 ```yaml
@@ -331,9 +337,10 @@ access_control:
 ```
 
 ### resources
+
 <div markdown="1">
 type: list(string)
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -342,8 +349,8 @@ This criteria matches the path and query of the request using regular expression
 strings. If any one of the regular expressions in the list matches the request it's considered a match. A useful tool
 for debugging these regular expressions is called [Rego](https://regoio.herokuapp.com/).
 
-***Note:** Prior to 4.27.0 the regular expressions only matched the path excluding the query parameters. After 4.27.0 
-they match the entire path including the query parameters. When upgrading you may be required to alter some of your 
+***Note:** Prior to 4.27.0 the regular expressions only matched the path excluding the query parameters. After 4.27.0
+they match the entire path including the query parameters. When upgrading you may be required to alter some of your
 resource rules to get them to operate as they previously did.*
 
 It's important when configuring resource rules that you enclose them in quotes otherwise you may run into some issues
@@ -375,18 +382,18 @@ no rule matches the resource a customizable default policy is applied.
 ### deny
 
 This is the policy applied by default, and is what we recommend as the default policy for all installs. Its effect
-is literally to deny the user access to the resource. Additionally you can use this policy to conditionally deny 
+is literally to deny the user access to the resource. Additionally you can use this policy to conditionally deny
 access in desired situations. Examples include denying access to an API that has no authentication mechanism built in.
 
 ### bypass
 
 This policy skips all authentication and allows anyone to use the resource. This policy is not available with a rule
-that includes a [subject](#Subjects) restriction because the minimum authentication level required to obtain information 
+that includes a [subject](#subject) restriction because the minimum authentication level required to obtain information
 about the subject is [one_factor](#one_factor).
 
 ### one_factor
 
-This policy requires the user at minimum complete 1FA successfully (username and password). This means if they have 
+This policy requires the user at minimum complete 1FA successfully (username and password). This means if they have
 performed 2FA then they will be allowed to access the resource.
 
 ### two_factor
