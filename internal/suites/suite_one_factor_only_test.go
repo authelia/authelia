@@ -80,7 +80,7 @@ func (s *OneFactorOnlyWebSuite) TestShouldRedirectAlreadyAuthenticatedUser() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "https://secure.example.com:8080/")
+	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
 	s.verifyURLIs(ctx, s.T(), HomeBaseURL+"/")
 
 	s.doVisit(s.T(), fmt.Sprintf("%s?rd=https://singlefactor.example.com:8080/secret.html", GetLoginBaseURL()))
