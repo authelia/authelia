@@ -677,7 +677,7 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 					},
 				},
 			},
-		}, nil)
+		}, nil),
 
 		mockConn.EXPECT().
 			Search(gomock.Any()).
