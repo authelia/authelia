@@ -100,81 +100,291 @@ The following snippet provides a sample-configuration for the OIDC identity prov
 ```yaml
 identity_providers:
   oidc:
-    hmac_secret: this_is_a_secret_abc123abc123abc              # [1]
-    issuer_private_key: |                                      # [2]
+    hmac_secret: this_is_a_secret_abc123abc123abc
+    issuer_private_key: |
       --- KEY START
       --- KEY END
-    
+    access_token_lifespan: 1h
+    authorize_code_lifespan: 1m
+    id_token_lifespan: 1h
+    refresh_token_lifespan: 720h
+    enable_client_debug_messages: false
     clients:
-      - id: myapp                                              # [3]
-        description: My Application                            # [4]
-        secret: this_is_a_secret                               # [5]
-        authorization_policy: two_factor                       # [6]
-        redirect_uris:                                         # [7]
+      - id: myapp
+        description: My Application
+        secret: this_is_a_secret
+        authorization_policy: two_factor
+        redirect_uris:
           - https://oidc.example.com:8080/oauth2/callback
-        scopes:                                                # [8]
+        scopes:
           - openid
           - groups
           - email
           - profile
-        grant_types:                                           # [9]
+        grant_types:
           - refresh_token
           - authorization_code
-        response_types:                                        # [10]
+        response_types:
           - code
+        response_modes:
+          - form_post
+          - query
+          - fragment
 ```
 
-### Options
+## Options
 
-#### [1] hmac_secret
+### hmac_secret
 
-The HMAC secret used to sign the [OpenID Connect] JWT's. The provided string is hashed to a SHA256 byte string for the purpose of meeting the required format. It can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments. You must [generate this option yourself](#generating-options-yourself).
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
 
-#### [2] issuer_private_key
+The HMAC secret used to sign the [OpenID Connect] JWT's. The provided string is hashed to a SHA256
+byte string for the purpose of meeting the required format. It can also be defined using a
+[secret](../secrets.md) which is the recommended for containerized deployments. You must
+[generate this option yourself](#generating-options-yourself).
 
-The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's. Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments. The reason for using only the private key here is that one is able to calculate the public key easily from the private key in this format (`openssl rsa -in rsa.key -pubout > rsa.pem`).
+### issuer_private_key
 
-You must [generate this option yourself](#generating-options-yourself). To create this option, use `docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys docker.io/authelia/authelia:latest authelia rsa generate --dir /keys` to generate both the private and public key in the current directory. You can then paste the private key into your configuration.
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
-#### clients
+The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's. Can also be
+defined using a [secret](../secrets.md) which is the recommended for containerized deployments. The reason
+for using only the private key here is that one is able to calculate the public key easily from the private
+key in this format (`openssl rsa -in rsa.key -pubout > rsa.pem`).
+
+You must [generate this option yourself](#generating-options-yourself). To create this option, use
+`docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia rsa generate --dir /keys`
+to generate both the private and public key in the current directory. You can then paste the
+private key into your configuration.
+
+### access_token_lifespan
+
+<div markdown="1">
+type: duration
+{: .label .label-config .label-purple }
+default: 1h
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The maximum lifetime of an access token. It's generally recommended keeping this short similar to the default.
+For more information read these docs about [token lifespan].
+
+### authorize_code_lifespan
+
+<div markdown="1">
+type: duration
+{: .label .label-config .label-purple }
+default: 1m
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The maximum lifetime of an authorize code. This can be rather short, as the authorize code should only be needed to
+obtain the other token types. For more information read these docs about [token lifespan].
+
+### id_token_lifespan
+
+<div markdown="1">
+type: duration
+{: .label .label-config .label-purple }
+default: 1h
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The maximum lifetime of an ID token. For more information read these docs about [token lifespan].
+
+### refresh_token_lifespan
+
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+default: 30d
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The maximum lifetime of a refresh token. This should typically be slightly more the other token lifespans. This is
+because the refresh token can be used to obtain new refresh tokens as well as access tokens or id tokens with an
+up-to-date expiration. For more information read these docs about [token lifespan].
+
+### enable_client_debug_messages
+
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Allows additional debug messages to be sent to the clients.
+
+### minimum_parameter_entropy
+
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple }
+default: 8
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+This controls the minimum length of the `nonce` and `state` parameters.
+
+***Security Notice:*** Changing this value is generally discouraged, reducing it from the default can theoretically
+make certain scenarios less secure. It highly encouraged that if your OpenID Connect RP does not send these parameters
+or sends parameters with a lower length than the default that they implement a change rather than changing this value.
+
+### clients
 
 A list of clients to configure. The options for each client are described below.
 
-##### [3] id
+#### id
 
-The Client ID for this client. It must exactly match the Client ID configured in the application consuming this client.
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
 
-##### [4] description
+The Client ID for this client. It must exactly match the Client ID configured in the application
+consuming this client.
+
+#### description
+
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: *same as id*
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 A friendly description for this client shown in the UI. This defaults to the same as the ID.
 
-##### [5] secret
+#### secret
 
-The shared secret between Authelia and the application consuming this client. This secret must match the secret configured in the application. Currently this is stored in plain text. You must [generate this option yourself](#generating-options-yourself).
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
-##### [6] authorization_policy
+The shared secret between Authelia and the application consuming this client. This secret must
+match the secret configured in the application. Currently this is stored in plain text.
+You must [generate this option yourself](#generating-options-yourself).
+
+#### authorization_policy
+
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: two_factor
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The authorization policy for this client: either `one_factor` or `two_factor`.
 
-##### [7] redirect_uris
+#### redirect_uris
 
-A list of valid callback URL´s this client will redirect to. All other callbacks will be considered unsafe. The URL's are case-sensitive and they differ from application to application - we have provided [a list of URL´s for common applications](../../community/oidc-integrations.md).
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
-##### [8] scopes
+A list of valid callback URL´s this client will redirect to. All other callbacks will be considered
+unsafe. The URL's are case-sensitive and they differ from application to application - we have
+provided [a list of URL´s for common applications](../../community/oidc-integrations.md).
 
-A list of scopes to allow this client to consume. See [scope definitions](#scope-definitions) for more information. The documentation for the application you want to use with Authelia will most-likely provide you with the scopes to grant.
+#### scopes
 
-##### [9] grant_types
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple }
+default: openid, groups, profile, email
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-A list of grant types this client can return. _It is recommended that this isn't configured at this time unless you know what you're doing_.
+A list of scopes to allow this client to consume. See [scope definitions](#scope-definitions) for more
+information. The documentation for the application you want to use with Authelia will most-likely provide
+you with the scopes to grant.
 
-##### [10] response_types
+#### grant_types
 
-A list of response types this client can return. _It is recommended that this isn't configured at this time unless you  know what you're doing._
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+default: refresh_token, authorization_code
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
-### Generating Options Yourself
+A list of grant types this client can return. _It is recommended that this isn't configured at this time unless you
+know what you're doing_. Valid options are: `implicit`, `refresh_token`, `authorization_code`, `password`,
+`client_credentials`.
 
-If you must generate an option yourself, you can use a random string of sufficient length. The command `openssl rand -base64 32` provides such a random string with base64-conform characters. For Kubernetes, see [this section too](../secrets.md#Kubernetes).
+#### response_types
+
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+default: code
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+A list of response types this client can return. _It is recommended that this isn't configured at this time unless you 
+know what you're doing_. Valid options are: `code`, `code id_token`, `id_token`, `token id_token`, `token`,
+`token id_token code`.
+
+#### response_modes
+
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+default: form_post, query, fragment
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+A list of response modes this client can return. It is recommended that this isn't configured at this time unless you
+know what you're doing. Potential values are `form_post`, `query`, and `fragment`.
+
+## Generating Options Yourself
+
+If you must generate an option yourself, you can use a random string of sufficient length. The command
+`openssl rand -base64 32` provides such a random string with base64-conform characters. For Kubernetes,
+see [this section too](../secrets.md#Kubernetes).
 
 ## Scope Definitions
 
@@ -183,19 +393,19 @@ If you must generate an option yourself, you can use a random string of sufficie
 This is the default scope for openid. This field is forced on every client by the configuration
 validation that Authelia does.
 
-|JWT Field|JWT Type     |Authelia Attribute|Description                             |
-|:-------:|:-----------:|:----------------:|:--------------------------------------:|
-|sub      |string       |Username          |The username the user used to login with|
-|scope    |string       |scopes            |Granted scopes (space delimited)        |
-|scp      |array[string]|scopes            |Granted scopes                          |
-|iss      |string       |hostname          |The issuer name, determined by URL      |
-|at_hash  |string       |_N/A_             |Access Token Hash                       |
-|auth_time|number       |_N/A_             |Authorize Time                          |
-|aud      |array[string]|_N/A_             |Audience                                |
-|exp      |number       |_N/A_             |Expires                                 |
-|iat      |number       |_N/A_             |Issued At                               |
-|rat      |number       |_N/A_             |Requested At                            |
-|jti      |string(uuid) |_N/A_             |JWT Identifier                          |
+|JWT Field|JWT Type     |Authelia Attribute|Description                                  |
+|:-------:|:-----------:|:----------------:|:-------------------------------------------:|
+|sub      |string       |Username          |The username the user used to login with     |
+|scope    |string       |scopes            |Granted scopes (space delimited)             |
+|scp      |array[string]|scopes            |Granted scopes                               |
+|iss      |string       |hostname          |The issuer name, determined by URL           |
+|at_hash  |string       |_N/A_             |Access Token Hash                            |
+|aud      |array[string]|_N/A_             |Audience                                     |
+|exp      |number       |_N/A_             |Expires                                      |
+|auth_time|number       |_N/A_             |The time the user authenticated with Authelia|
+|rat      |number       |_N/A_             |The time when the token was requested        |
+|iat      |number       |_N/A_             |The time when the token was issued           |
+|jti      |string(uuid) |_N/A_             |JWT Identifier                               |
 
 ### groups
 
@@ -209,10 +419,11 @@ This scope includes the groups the authentication backend reports the user is a 
 
 This scope includes the email information the authentication backend reports about the user in the token.
 
-|JWT Field     |JWT Type|Authelia Attribute|Description                                              |
-|:------------:|:------:|:----------------:|:-------------------------------------------------------:|
-|email         |string  |email[0]          |The first email in the list of emails                    |
-|email_verified|bool    |_N/A_             |If the email is verified, assumed true for the time being|
+|JWT Field     |JWT Type     |Authelia Attribute|Description                                              |
+|:------------:|:-----------:|:----------------:|:-------------------------------------------------------:|
+|email         |string       |email[0]          |The first email address in the list of emails            |
+|email_verified|bool         |_N/A_             |If the email is verified, assumed true for the time being|
+|alt_emails    |array[string]|email[1:]         |All email addresses that are not in the email JWT field  |
 
 ### profile
 
@@ -225,3 +436,4 @@ This scope includes the profile information the authentication backend reports a
 [//]: # (Links)
 
 [OpenID Connect]: https://openid.net/connect/
+[token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration

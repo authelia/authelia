@@ -79,5 +79,5 @@ func ParseRsaPublicKeyFromPemStr(pubPEM string) (*rsa.PublicKey, error) {
 		break // fall through
 	}
 
-	return nil, errors.New("Key type is not RSA")
+	return nil, errors.New("key type is not RSA")
 }

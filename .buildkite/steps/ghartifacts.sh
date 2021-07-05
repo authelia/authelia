@@ -10,7 +10,7 @@ for FILE in \
   authelia-public_html.tar.gz authelia-public_html.tar.gz.sha256;
 do
   # Add the version to the artifact name
-  mv $FILE ${FILE/authelia-/authelia-${BUILDKITE_TAG}-}
+  mv ${FILE} ${FILE/authelia-/authelia-${BUILDKITE_TAG}-}
   artifacts+=(-a "${FILE/authelia-/authelia-${BUILDKITE_TAG}-}")
 done
 
@@ -20,7 +20,7 @@ for FILE in \
   authelia_armhf.deb authelia_armhf.deb.sha256;
 do
   # Add the version to the artifact name
-  mv $FILE ${FILE/authelia_/authelia_${BUILDKITE_TAG}_}
+  mv ${FILE} ${FILE/authelia_/authelia_${BUILDKITE_TAG}_}
   artifacts+=(-a "${FILE/authelia_/authelia_${BUILDKITE_TAG}_}")
 done
 

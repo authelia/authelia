@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/session"
@@ -168,22 +167,13 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		ctx.Logger.Tracef("Details for user %s => groups: %s, emails %s", bodyJSON.Username, userDetails.Groups, userDetails.Emails)
 
-		// And set those information in the new session.
-		userSession.Username = userDetails.Username
-		userSession.DisplayName = userDetails.DisplayName
-		userSession.Groups = userDetails.Groups
-		userSession.Emails = userDetails.Emails
-		userSession.AuthenticationLevel = authentication.OneFactor
-		userSession.LastActivity = time.Now().Unix()
-		userSession.KeepMeLoggedIn = keepMeLoggedIn
-		refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend)
+		userSession.SetOneFactor(ctx.Clock.Now(), userDetails, keepMeLoggedIn)
 
-		if refresh {
+		if refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend); refresh {
 			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
 		}
 
 		err = ctx.SaveSession(userSession)
-
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to save session of user %s", bodyJSON.Username), authenticationFailedMessage)
 			return
@@ -192,7 +182,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		successful = true
 
 		if userSession.OIDCWorkflowSession != nil {
-			HandleOIDCWorkflowResponse(ctx)
+			handleOIDCWorkflowResponse(ctx)
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}
