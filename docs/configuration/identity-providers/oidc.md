@@ -152,7 +152,7 @@ A friendly description for this client shown in the UI. This defaults to the sam
 
 ##### [5] secret
 
-The shared secret between Authelia and the application consuming this client. Currently this is stored in plain text. This secret must be configured in the application consuming this client as well and must match with the entry in this configuration.
+The shared secret between Authelia and the application consuming this client. This secret must match the secret configured in the application. Currently this is stored in plain text.
 
 You must generate this option yourself. To generate a random string of sufficient length, you can use `openssl rand -base64 32`. If you are deploying this as a Kubernetes secret, you must encode it with base64 again, i.e. `openssl rand -base64 32 | base64`. Using secrets is always recommended.
 
