@@ -662,6 +662,23 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 		mockConn.EXPECT().
 			Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 			Return(nil),
+
+		mockConn.EXPECT().
+			Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDPasswdModifyExtension},
+						},
+					},
+				},
+			},
+		}, nil)
+
 		mockConn.EXPECT().
 			Search(gomock.Any()).
 			Return(&ldap.SearchResult{
@@ -692,6 +709,7 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 			Close(),
 	)
 
+	err := ldapClient.checkServer()
 	err := ldapClient.UpdatePassword("john", "password")
 
 	require.NoError(t, err)
