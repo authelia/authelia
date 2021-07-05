@@ -102,7 +102,6 @@ func (mr *MockLDAPConnectionMockRecorder) PasswordModify(pwdModifyRequest interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PasswordModify", reflect.TypeOf((*MockLDAPConnection)(nil).Modify), pwdModifyRequest)
 }
 
-
 // StartTLS mocks base method
 func (m *MockLDAPConnection) StartTLS(config *tls.Config) error {
 	m.ctrl.T.Helper()

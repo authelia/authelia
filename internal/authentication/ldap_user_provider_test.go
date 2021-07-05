@@ -665,19 +665,19 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 
 		mockConn.EXPECT().
 			Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
-		Return(&ldap.SearchResult{
-			Entries: []*ldap.Entry{
-				{
-					DN: "",
-					Attributes: []*ldap.EntryAttribute{
-						{
-							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDPasswdModifyExtension},
+			Return(&ldap.SearchResult{
+				Entries: []*ldap.Entry{
+					{
+						DN: "",
+						Attributes: []*ldap.EntryAttribute{
+							{
+								Name:   ldapSupportedExtensionAttribute,
+								Values: []string{ldapOIDPasswdModifyExtension},
+							},
 						},
 					},
 				},
-			},
-		}, nil),
+			}, nil),
 
 		mockFactory.EXPECT().
 			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
