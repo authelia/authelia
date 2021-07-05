@@ -144,7 +144,7 @@ A list of clients to configure. The options for each client are described below.
 
 ##### [3] id
 
-The Client ID for this client. Must be configured in the application consuming this client as well and must match with the entry in this configuration.
+The Client ID for this client. It must exactly match the Client ID configured in the application consuming this client.
 
 ##### [4] description
 
