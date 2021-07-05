@@ -678,7 +678,15 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 				},
 			},
 		}, nil),
+		mockConn.EXPECT()
+			.Close(),
 
+		mockFactory.EXPECT().
+			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+			Return(mockConn, nil),
+		mockConn.EXPECT().
+			Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+			Return(nil),
 		mockConn.EXPECT().
 			Search(gomock.Any()).
 			Return(&ldap.SearchResult{
