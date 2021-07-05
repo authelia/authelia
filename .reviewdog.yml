@@ -16,4 +16,10 @@ runner:
     errorformat:
       - '%f:%l:%c: %m'
     level: warning
+  markdownlint:
+    cmd: markdownlint --config .markdownlint.yml .
+    errorformat:
+      - '%f:%l:%c %m'
+      - '%f:%l %m'
+    level: error
 ...
