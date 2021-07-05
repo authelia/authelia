@@ -11,8 +11,8 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// HandleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
-func HandleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
+// handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
+func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if !authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {

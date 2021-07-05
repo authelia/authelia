@@ -103,7 +103,7 @@ func startServer() {
 	case config.AuthenticationBackend.File != nil:
 		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	case config.AuthenticationBackend.LDAP != nil:
-		userProvider, err = authentication.NewLDAPUserProvider(*config.AuthenticationBackend.LDAP, autheliaCertPool)
+		userProvider, err = authentication.NewLDAPUserProvider(config.AuthenticationBackend, autheliaCertPool)
 		if err != nil {
 			logger.Fatalf("Failed to Check LDAP Authentication Backend: %v", err)
 		}
@@ -133,8 +133,8 @@ func startServer() {
 	authorizer := authorization.NewAuthorizer(config)
 	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
-	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
 
+	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
 	if err != nil {
 		logger.Fatalf("Error initializing OpenID Connect Provider: %+v", err)
 	}

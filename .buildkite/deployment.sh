@@ -58,6 +58,16 @@ steps:
     depends_on: ~
     if: build.tag != null || build.branch == "master" && build.env("CI_BYPASS") != "true"
 
+  - label: ":debian: :fedora: :ubuntu: Deploy APT"
+    command: "aptdeploy.sh"
+    depends_on:
+      - "build-deb-package-amd64"
+      - "build-deb-package-arm64"
+      - "build-deb-package-armhf"
+    agents:
+      upload: "fast"
+    if: build.tag != null
+
   - label: ":book: Deploy Documentation"
     command: "syncdoc.sh"
     depends_on: ~

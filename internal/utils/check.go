@@ -19,7 +19,7 @@ func CheckUntil(interval time.Duration, timeout time.Duration, predicate func() 
 				return err
 			}
 		case <-time.After(timeout):
-			return fmt.Errorf("Timeout of %ds reached", int64(timeout/time.Second))
+			return fmt.Errorf("timeout of %ds reached", int64(timeout/time.Second))
 		}
 	}
 }
