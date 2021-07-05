@@ -23,3 +23,4 @@ const (
 
 var secretSuffixes = []string{"key", "secret", "password", "token"}
 var errInvalidPrefix = errors.New("invalid prefix")
+var errNoSources = errors.New("no sources provided")

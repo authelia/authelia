@@ -39,22 +39,17 @@ func (s YAMLFileSource) Name() (name string) {
 }
 
 // Merge the YAMLFileSource koanf.Koanf into the provided one.
-func (s *YAMLFileSource) Merge(ko *koanf.Koanf) (err error) {
+func (s *YAMLFileSource) Merge(ko *koanf.Koanf, _ *schema.StructValidator) (err error) {
 	return ko.Merge(s.koanf)
 }
 
 // Load the Source into the YAMLFileSource koanf.Koanf.
-func (s *YAMLFileSource) Load() (err error) {
+func (s *YAMLFileSource) Load(_ *schema.StructValidator) (err error) {
 	if s.path == "" {
 		return errors.New("invalid yaml path source configuration")
 	}
 
 	return s.koanf.Load(file.Provider(s.path), yaml.Parser())
-}
-
-// Validator returns the validator.
-func (s *YAMLFileSource) Validator() (validator *schema.StructValidator) {
-	return nil
 }
 
 // NewEnvironmentSource returns a Source configured to load from environment variables.
@@ -70,27 +65,21 @@ func (s EnvironmentSource) Name() (name string) {
 }
 
 // Merge the EnvironmentSource koanf.Koanf into the provided one.
-func (s *EnvironmentSource) Merge(ko *koanf.Koanf) (err error) {
+func (s *EnvironmentSource) Merge(ko *koanf.Koanf, _ *schema.StructValidator) (err error) {
 	return ko.Merge(s.koanf)
 }
 
 // Load the Source into the EnvironmentSource koanf.Koanf.
-func (s *EnvironmentSource) Load() (err error) {
+func (s *EnvironmentSource) Load(_ *schema.StructValidator) (err error) {
 	keyMap, ignoredKeys := getEnvConfigMap(validator.ValidKeys)
 
 	return s.koanf.Load(env.ProviderWithValue(constEnvPrefix, constDelimiter, koanfEnvironmentCallback(keyMap, ignoredKeys)), nil)
 }
 
-// Validator returns the validator.
-func (s *EnvironmentSource) Validator() (validator *schema.StructValidator) {
-	return nil
-}
-
 // NewSecretsSource returns a Source configured to load from secrets.
 func NewSecretsSource() (source *SecretsSource) {
 	return &SecretsSource{
-		koanf:     koanf.New("."),
-		validator: schema.NewStructValidator(),
+		koanf: koanf.New("."),
 	}
 }
 
@@ -100,32 +89,23 @@ func (s SecretsSource) Name() (name string) {
 }
 
 // Merge the SecretsSource koanf.Koanf into the provided one.
-func (s *SecretsSource) Merge(ko *koanf.Koanf) (err error) {
+func (s *SecretsSource) Merge(ko *koanf.Koanf, val *schema.StructValidator) (err error) {
 	for _, key := range s.koanf.Keys() {
 		value, ok := ko.Get(key).(string)
 
 		if ok && value != "" {
-			s.validator.Push(fmt.Errorf(errFmtSecretAlreadyDefined, key))
+			val.Push(fmt.Errorf(errFmtSecretAlreadyDefined, key))
 		}
-	}
-
-	if !s.validator.HasErrors() {
-		s.validator = nil
 	}
 
 	return ko.Merge(s.koanf)
 }
 
 // Load the Source into the SecretsSource koanf.Koanf.
-func (s *SecretsSource) Load() (err error) {
+func (s *SecretsSource) Load(val *schema.StructValidator) (err error) {
 	keyMap := getSecretConfigMap(validator.ValidKeys)
 
-	return s.koanf.Load(env.ProviderWithValue(constEnvPrefixAlt, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, s.validator)), nil)
-}
-
-// Validator returns the validator.
-func (s *SecretsSource) Validator() (validator *schema.StructValidator) {
-	return s.validator
+	return s.koanf.Load(env.ProviderWithValue(constEnvPrefixAlt, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, val)), nil)
 }
 
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.

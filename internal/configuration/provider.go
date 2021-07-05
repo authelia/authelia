@@ -10,6 +10,85 @@ import (
 	"github.com/authelia/authelia/internal/configuration/validator"
 )
 
+// Load the configuration given the provided options and sources.
+func Load(validate, validateKeys bool, sources ...Source) (configuration *schema.Configuration, errs []error) {
+	ko := koanf.NewWithConf(koanf.Conf{
+		Delim:       constDelimiter,
+		StrictMerge: false,
+	})
+
+	val := schema.NewStructValidator()
+
+	loadSources(ko, val, sources...)
+	if val.HasErrors() {
+		return nil, val.Errors()
+	}
+
+	if validateKeys {
+		validator.ValidateKeys(ko.Keys(), val)
+	}
+
+	configuration = &schema.Configuration{}
+
+	unmarshal(ko, val, "", configuration)
+	if val.HasErrors() {
+		return configuration, val.Errors()
+	}
+
+	if validate {
+		validator.ValidateConfiguration(configuration, val)
+	}
+
+	if val.HasErrors() {
+		return configuration, val.Errors()
+	}
+
+	return configuration, nil
+}
+
+func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o interface{}) {
+	c := koanf.UnmarshalConf{
+		DecoderConfig: &mapstructure.DecoderConfig{
+			DecodeHook: mapstructure.ComposeDecodeHookFunc(
+				mapstructure.StringToTimeDurationHookFunc(),
+				mapstructure.StringToSliceHookFunc(","),
+			),
+			Metadata:         nil,
+			Result:           o,
+			WeaklyTypedInput: true,
+		},
+	}
+
+	if err := ko.UnmarshalWithConf(path, o, c); err != nil {
+		val.Push(fmt.Errorf("error occurred during unmarshalling configuration: %w", err))
+	}
+}
+
+func loadSources(ko *koanf.Koanf, val *schema.StructValidator, sources ...Source) {
+	if len(sources) == 0 {
+		val.Push(errNoSources)
+		return
+	}
+
+	for _, source := range sources {
+		err := source.Load(val)
+		if err != nil {
+			val.Push(fmt.Errorf("failed to load configuration from %s source: %+v", source.Name(), err))
+
+			continue
+		}
+
+		err = source.Merge(ko, val)
+		if err != nil {
+			val.Push(fmt.Errorf("failed to merge configuration from %s source: %+v", source.Name(), err))
+
+			continue
+		}
+	}
+}
+
+/*
+
 // LoadSources is a variadic function that takes types that implement the Source interface.
 func (p *Provider) LoadSources(sources ...Source) (errs []error) {
 	for _, source := range sources {
@@ -27,7 +106,7 @@ func (p *Provider) LoadSources(sources ...Source) (errs []error) {
 			continue
 		}
 
-		val := source.Validator()
+		val := source.UseValidator()
 
 		if val != nil {
 			for _, err := range val.Errors() {
@@ -101,3 +180,4 @@ func NewProvider() (p *Provider) {
 		validation: true,
 	}
 }
+*/
