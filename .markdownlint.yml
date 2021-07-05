@@ -1,3 +1,4 @@
+---
 # Example markdownlint YAML configuration with all properties set to their default value
 
 # Default state for all rules
@@ -220,3 +221,4 @@ MD047: true
 MD048:
   # Code fence syle
   style: "consistent"
+...
