@@ -383,8 +383,14 @@ know what you're doing. Potential values are `form_post`, `query`, and `fragment
 ## Generating Options Yourself
 
 If you must generate an option yourself, you can use a random string of sufficient length. The command
-`openssl rand -base64 32` provides such a random string with base64-conform characters. For Kubernetes,
-see [this section too](../secrets.md#Kubernetes).
+
+```sh
+LENGHT=64
+tr -cd '[:alnum:]' < /dev/urandom | fold -w "${LENGTH}" | head -n 1 | tr -d '\n' ; echo
+```
+
+prints such a string with a length in characters of `${LENGTH}` on `stdout`. The string will only contain alphanumeric
+characters. For Kubernetes, see [this section too](../secrets.md#Kubernetes).
 
 ## Scope Definitions
 
