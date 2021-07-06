@@ -88,6 +88,20 @@ func (mr *MockLDAPConnectionMockRecorder) Modify(modifyRequest interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Modify", reflect.TypeOf((*MockLDAPConnection)(nil).Modify), modifyRequest)
 }
 
+// PasswordModify mocks base method
+func (m *MockLDAPConnection) PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PasswordModify", pwdModifyRequest)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PasswordModify indicates an expected call of PasswordModify
+func (mr *MockLDAPConnectionMockRecorder) PasswordModify(pwdModifyRequest interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PasswordModify", reflect.TypeOf((*MockLDAPConnection)(nil).Modify), pwdModifyRequest)
+}
+
 // StartTLS mocks base method
 func (m *MockLDAPConnection) StartTLS(config *tls.Config) error {
 	m.ctrl.T.Helper()

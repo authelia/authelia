@@ -649,10 +649,36 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 		nil,
 		mockFactory)
 
-	modifyRequest := ldap.NewModifyRequest("uid=test,dc=example,dc=com", nil)
-	modifyRequest.Replace("userPassword", []string{"password"})
+	pwdModifyRequest := ldap.NewPasswordModifyRequest(
+		"uid=test,dc=example,dc=com",
+		"",
+		"password",
+	)
 
 	gomock.InOrder(
+		mockFactory.EXPECT().
+			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+			Return(mockConn, nil),
+		mockConn.EXPECT().
+			Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+			Return(nil),
+
+		mockConn.EXPECT().
+			Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+			Return(&ldap.SearchResult{
+				Entries: []*ldap.Entry{
+					{
+						DN: "",
+						Attributes: []*ldap.EntryAttribute{
+							{
+								Name:   ldapSupportedExtensionAttribute,
+								Values: []string{ldapOIDPasswdModifyExtension},
+							},
+						},
+					},
+				},
+			}, nil),
+
 		mockFactory.EXPECT().
 			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 			Return(mockConn, nil),
@@ -683,14 +709,16 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 				},
 			}, nil),
 		mockConn.EXPECT().
-			Modify(modifyRequest).
+			PasswordModify(pwdModifyRequest).
 			Return(nil),
 		mockConn.EXPECT().
 			Close(),
 	)
 
-	err := ldapClient.UpdatePassword("john", "password")
+	err := ldapClient.checkServer()
+	require.NoError(t, err)
 
+	err = ldapClient.UpdatePassword("john", "password")
 	require.NoError(t, err)
 }
 
