@@ -521,6 +521,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "davama",
+      "name": "Dave",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5359152?v=4",
+      "profile": "https://github.com/davama",
+      "contributions": [
+        "userTesting"
+      ]
     }
   ],
   "contributorsPerLine": 7
