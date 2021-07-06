@@ -501,6 +501,35 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "ArsenArsen",
+      "name": "Arsenović Arsen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7805050?v=4",
+      "profile": "https://www.aarsen.me/",
+      "contributions": [
+        "code",
+        "test",
+        "security"
+      ]
+    },
+    {
+      "login": "dakriy",
+      "name": "dakriy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13756065?v=4",
+      "profile": "https://github.com/dakriy",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "davama",
+      "name": "Dave",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5359152?v=4",
+      "profile": "https://github.com/davama",
+      "contributions": [
+        "userTesting"
+      ]
     }
   ],
   "contributorsPerLine": 7

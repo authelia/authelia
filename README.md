@@ -29,6 +29,7 @@ The following is a simple diagram of the architecture:
 </p>
 
 **Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/), 
+[APT](https://apt.authelia.com/stable/debian/packages/authelia/),
 [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a 
 [Static binary](https://github.com/authelia/authelia/releases/latest), 
 [.deb package]((https://github.com/authelia/authelia/releases/latest)), [Docker] or [Kubernetes] either manually or via
@@ -260,6 +261,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="http://jonbayl"><img src="https://avatars.githubusercontent.com/u/30201351?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jon B. </b></sub></a><br /><a href="#security-jonbayl" title="Security">🛡️</a></td>
     <td align="center"><a href="https://github.com/AlexGustafsson"><img src="https://avatars.githubusercontent.com/u/14974112?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alex Gustafsson</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=AlexGustafsson" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=AlexGustafsson" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://www.aarsen.me/"><img src="https://avatars.githubusercontent.com/u/7805050?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Arsenović Arsen</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=ArsenArsen" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=ArsenArsen" title="Tests">⚠️</a> <a href="#security-ArsenArsen" title="Security">🛡️</a></td>
+    <td align="center"><a href="https://github.com/dakriy"><img src="https://avatars.githubusercontent.com/u/13756065?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dakriy</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=dakriy" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/davama"><img src="https://avatars.githubusercontent.com/u/5359152?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dave</b></sub></a><br /><a href="#userTesting-davama" title="User Testing">📓</a></td>
   </tr>
 </table>
 
@@ -298,6 +302,11 @@ Companies contributing to Authelia will have a specical mention below. [[Become 
 <a href="https://opencollective.com/authelia-sponsors/sponsor/7/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/7/avatar.svg"></a>
 <a href="https://opencollective.com/authelia-sponsors/sponsor/8/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/authelia-sponsors/sponsor/9/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/9/avatar.svg"></a>
+
+#### Balto
+
+Thank you to [<img src="./docs/images/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/) for
+hosting our apt repository.
 
 #### Digital Ocean
 

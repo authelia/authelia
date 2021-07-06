@@ -60,7 +60,7 @@
     ]
   },
   "devDependencies": {
-    "@craco/craco": "6.1.2",
+    "@craco/craco": "6.2.0",
     "@types/chai": "4.2.19",
     "@types/enzyme": "3.10.8",
     "@types/jest": "26.0.23",
