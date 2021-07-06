@@ -512,6 +512,15 @@
         "test",
         "security"
       ]
+    },
+    {
+      "login": "dakriy",
+      "name": "dakriy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13756065?v=4",
+      "profile": "https://github.com/dakriy",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7
