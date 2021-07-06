@@ -501,6 +501,17 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "ArsenArsen",
+      "name": "Arsenović Arsen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7805050?v=4",
+      "profile": "https://www.aarsen.me/",
+      "contributions": [
+        "code",
+        "test",
+        "security"
+      ]
     }
   ],
   "contributorsPerLine": 7
