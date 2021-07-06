@@ -1,13 +1,13 @@
 package commands
 
 import (
-	"github.com/authelia/authelia/internal/configuration/validator"
 	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/internal/configuration"
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/validator"
 	"github.com/authelia/authelia/internal/logging"
 )
 

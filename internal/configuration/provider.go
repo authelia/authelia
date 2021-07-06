@@ -18,8 +18,6 @@ func Load(val *schema.StructValidator, sources ...Source) (keys []string, config
 
 	loadSources(ko, val, sources...)
 
-	//validator.ValidateKeys(ko.Keys(), val)
-
 	configuration = &schema.Configuration{}
 
 	unmarshal(ko, val, "", configuration)

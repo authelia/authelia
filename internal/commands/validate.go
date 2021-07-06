@@ -39,6 +39,7 @@ func cmdValidateConfigRun(_ *cobra.Command, args []string) {
 
 	errs := val.Errors()
 	warns := val.Warnings()
+
 	if len(warns) != 0 {
 		logger.Warn("Warnings occurred while loading the configuration:")
 
