@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
 func TestKoanfEnvironmentCallback(t *testing.T) {
@@ -65,10 +67,9 @@ func TestKoanfSecretCallbackWithValidSecrets(t *testing.T) {
 	assert.NoError(t, testCreateFile(secretOne, "value one", 0600))
 	assert.NoError(t, testCreateFile(secretTwo, "value two", 0600))
 
-	p := GetProvider()
-	p.Validator.Clear()
+	val := schema.NewStructValidator()
 
-	callback := koanfEnvironmentSecretsCallback(keyMap, p.Validator)
+	callback := koanfEnvironmentSecretsCallback(keyMap, val)
 
 	key, value = callback("AUTHELIA_FAKE_KEY", secretOne)
 	assert.Equal(t, "fake_key", key)
@@ -85,17 +86,16 @@ func TestKoanfSecretCallbackShouldIgnoreUndetectedSecrets(t *testing.T) {
 		"AUTHELIA_JWT_SECRET":  "jwt_secret",
 	}
 
-	p := GetProvider()
-	p.Validator.Clear()
+	val := schema.NewStructValidator()
 
-	callback := koanfEnvironmentSecretsCallback(keyMap, p.Validator)
+	callback := koanfEnvironmentSecretsCallback(keyMap, val)
 
 	key, value := callback("AUTHELIA__SESSION_DOMAIN", "/tmp/not-a-path")
 	assert.Equal(t, "", key)
 	assert.Nil(t, value)
 
-	assert.Len(t, p.Validator.Errors(), 0)
-	assert.Len(t, p.Validator.Warnings(), 0)
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
 }
 
 func TestKoanfSecretCallbackShouldErrorOnFSError(t *testing.T) {
@@ -115,16 +115,15 @@ func TestKoanfSecretCallbackShouldErrorOnFSError(t *testing.T) {
 
 	assert.NoError(t, testCreateFile(secret, "secret", 0000))
 
-	p := GetProvider()
-	p.Validator.Clear()
+	val := schema.NewStructValidator()
 
-	callback := koanfEnvironmentSecretsCallback(keyMap, p.Validator)
+	callback := koanfEnvironmentSecretsCallback(keyMap, val)
 
 	key, value := callback("AUTHELIA_THEME", secret)
 	assert.Equal(t, "theme", key)
 	assert.Equal(t, "", value)
 
-	require.Len(t, p.Validator.Errors(), 1)
-	assert.Len(t, p.Validator.Warnings(), 0)
-	assert.EqualError(t, p.Validator.Errors()[0], fmt.Sprintf(errFmtSecretIOIssue, secret, "theme", fmt.Sprintf("open %s: permission denied", secret)))
+	require.Len(t, val.Errors(), 1)
+	assert.Len(t, val.Warnings(), 0)
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf(errFmtSecretIOIssue, secret, "theme", fmt.Sprintf("open %s: permission denied", secret)))
 }

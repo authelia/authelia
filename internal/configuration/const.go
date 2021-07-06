@@ -16,8 +16,9 @@ const (
 )
 
 const (
-	errFmtSecretAlreadyDefined  = "error loading secret into key '%s': it's already defined in other configuration sources" //nolint:gosec
-	errFmtSecretIOIssue         = "error loading secret path %s into key '%s': %v"                                          //nolint:gosec
+	errFmtSecretAlreadyDefined = "secrets: error loading secret into key '%s': it's already defined in other " +
+		"configuration sources"
+	errFmtSecretIOIssue         = "secrets: error loading secret path %s into key '%s': %v"
 	errFmtGenerateConfiguration = "error occurred generating Configuration: %+v"
 )
 

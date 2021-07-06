@@ -8,7 +8,6 @@ import (
 
 	"github.com/authelia/authelia/internal/authentication"
 	"github.com/authelia/authelia/internal/authorization"
-	"github.com/authelia/authelia/internal/configuration"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
@@ -32,7 +31,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Long:    fmt.Sprintf(fmtAutheliaLong, version),
 		Version: version,
 		Args:    cobra.NoArgs,
-		PreRun:  newCmdWithConfigPreRun(true),
+		PreRun:  newCmdWithConfigPreRun(true, true, true),
 		Run:     cmdRootRun,
 	}
 
@@ -52,8 +51,6 @@ func NewRootCmd() (cmd *cobra.Command) {
 
 func cmdRootRun(_ *cobra.Command, _ []string) {
 	logger := logging.Logger()
-
-	config := configuration.GetProvider().Configuration
 
 	logger.Infof("Authelia %s is starting", utils.Version())
 

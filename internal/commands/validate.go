@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/internal/configuration"
+	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/internal/configuration/validator"
 	"github.com/authelia/authelia/internal/logging"
 )
 
@@ -29,21 +31,14 @@ func cmdValidateConfigRun(_ *cobra.Command, args []string) {
 		logger.Fatalf("Error Loading Configuration: %v\n", err)
 	}
 
-	provider := configuration.NewProvider()
+	val := schema.NewStructValidator()
+	keys, conf := configuration.Load(val, configuration.NewYAMLFileSource(configPath))
 
-	errs := provider.LoadSources(configuration.NewYAMLFileSource(configPath))
-	if len(errs) != 0 {
-		logger.Error("Error loading configuration sources:")
+	validator.ValidateKeys(keys, val)
+	validator.ValidateConfiguration(conf, val)
 
-		for _, err := range errs {
-			logger.Errorf("  %+v", err)
-		}
-
-		logger.Fatalf("Can't continue due to the errors loading the configuration sources")
-	}
-
-	warns, errs := provider.Unmarshal()
-
+	errs := val.Errors()
+	warns := val.Warnings()
 	if len(warns) != 0 {
 		logger.Warn("Warnings occurred while loading the configuration:")
 
