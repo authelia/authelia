@@ -63,7 +63,7 @@
     "@craco/craco": "6.2.0",
     "@types/chai": "4.2.20",
     "@types/enzyme": "3.10.9",
-    "@types/jest": "26.0.23",
+    "@types/jest": "26.0.24",
     "chai": "4.3.4",
     "craco-alias": "3.0.1",
     "enzyme": "3.11.0",
