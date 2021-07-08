@@ -2657,10 +2657,10 @@
   resolved "https://registry.yarnpkg.com/@types/q/-/q-1.5.4.tgz#15925414e0ad2cd765bfef58842f7e26a7accb24"
   integrity sha512-1HcDas8SEj4z1Wc696tH56G8OlRaH/sqZOynNNB+HF0WOeXPaxTtbYzJY2oEfiUxjSKjhCKr+MvR7dCHcEelug==
 
-"@types/qrcode.react@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@types/qrcode.react/-/qrcode.react-1.0.1.tgz#0904e7a075a6274a5258f19567b4f64013c159d8"
-  integrity sha512-PcVCjpsiT2KFKfJibOgTQtkt0QQT/6GbQUp1Np/hMPhwUzMJ2DRUkR9j7tXN9Q8X06qukw+RbaJ8lJ22SBod+Q==
+"@types/qrcode.react@1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@types/qrcode.react/-/qrcode.react-1.0.2.tgz#f892432cc41b5dac52e3ca8873b717c8bfea6002"
+  integrity sha512-I9Oq5Cjlkgy3Tw7krCnCXLw2/zMhizkTere49OOcta23tkvH0xBTP0yInimTh0gstLRtb8Ki9NZVujE5UI6ffQ==
   dependencies:
     "@types/react" "*"
 
