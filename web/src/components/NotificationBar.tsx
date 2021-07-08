@@ -28,7 +28,9 @@ const NotificationBar = function (props: Props) {
             anchorOrigin={{ vertical: "top", horizontal: "right" }}
             autoHideDuration={tmpNotification ? tmpNotification.timeout * 1000 : 10000}
             onClose={props.onClose}
-            onExited={() => setTmpNotification(null)}
+            TransitionProps={{
+                onExited: () => setTmpNotification(null),
+            }}
         >
             <ColoredSnackbarContent
                 className="notification"
