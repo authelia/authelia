@@ -125,7 +125,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' has an invalid scope "+
+	assert.EqualError(t, validator.Errors()[0], "OIDC client with ID 'good_id' has an invalid scope "+
 		"'bad_scope', must be one of: 'openid', 'email', 'profile', 'groups', 'offline_access'")
 }
 
@@ -152,7 +152,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' has an invalid grant type "+
+	assert.EqualError(t, validator.Errors()[0], "OIDC client with ID 'good_id' has an invalid grant type "+
 		"'bad_grant_type', must be one of: 'implicit', 'refresh_token', 'authorization_code', "+
 		"'password', 'client_credentials'")
 }
@@ -180,7 +180,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' has an invalid response mode "+
+	assert.EqualError(t, validator.Errors()[0], "OIDC client with ID 'good_id' has an invalid response mode "+
 		"'bad_responsemode', must be one of: 'form_post', 'query', 'fragment'")
 }
 
@@ -207,7 +207,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T
 	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "OIDC Client with ID 'good_id' has an invalid userinfo "+
+	assert.EqualError(t, validator.Errors()[0], "OIDC client with ID 'good_id' has an invalid userinfo "+
 		"signing algorithm 'rs256', must be one of: 'none, RS256'")
 }
 
