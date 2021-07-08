@@ -261,6 +261,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="http://jonbayl"><img src="https://avatars.githubusercontent.com/u/30201351?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jon B. </b></sub></a><br /><a href="#security-jonbayl" title="Security">🛡️</a></td>
     <td align="center"><a href="https://github.com/AlexGustafsson"><img src="https://avatars.githubusercontent.com/u/14974112?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alex Gustafsson</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=AlexGustafsson" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=AlexGustafsson" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://www.aarsen.me/"><img src="https://avatars.githubusercontent.com/u/7805050?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Arsenović Arsen</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=ArsenArsen" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=ArsenArsen" title="Tests">⚠️</a> <a href="#security-ArsenArsen" title="Security">🛡️</a></td>
+    <td align="center"><a href="https://github.com/dakriy"><img src="https://avatars.githubusercontent.com/u/13756065?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dakriy</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=dakriy" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/davama"><img src="https://avatars.githubusercontent.com/u/5359152?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dave</b></sub></a><br /><a href="#userTesting-davama" title="User Testing">📓</a></td>
   </tr>
 </table>
 
