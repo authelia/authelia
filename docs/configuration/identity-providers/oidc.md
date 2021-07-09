@@ -132,7 +132,7 @@ identity_providers:
           - form_post
           - query
           - fragment
-        userinfo_signing_algorithm: RS256
+        userinfo_signing_algorithm: none
 ```
 
 ## Options
@@ -363,7 +363,7 @@ know what you're doing. Potential values are `form_post`, `query`, and `fragment
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
-default: RS256
+default: none
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }

@@ -54,5 +54,5 @@ var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	ResponseTypes: []string{"code"},
 	ResponseModes: []string{"form_post", "query", "fragment"},
 
-	UserinfoSigningAlgorithm: "RS256",
+	UserinfoSigningAlgorithm: "none",
 }

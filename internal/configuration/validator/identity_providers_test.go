@@ -258,7 +258,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 					Description:              "Normal Description",
 					Secret:                   "b-client-secret",
 					Policy:                   oneFactorPolicy,
-					UserinfoSigningAlgorithm: "none",
+					UserinfoSigningAlgorithm: "RS256",
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -290,8 +290,8 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	assert.Equal(t, config.OIDC.Clients[0].Policy, twoFactorPolicy)
 	assert.Equal(t, config.OIDC.Clients[1].Policy, oneFactorPolicy)
 
-	assert.Equal(t, config.OIDC.Clients[0].UserinfoSigningAlgorithm, "RS256")
-	assert.Equal(t, config.OIDC.Clients[1].UserinfoSigningAlgorithm, "none")
+	assert.Equal(t, config.OIDC.Clients[0].UserinfoSigningAlgorithm, "none")
+	assert.Equal(t, config.OIDC.Clients[1].UserinfoSigningAlgorithm, "RS256")
 
 	// Assert Clients[0] Description is set to the Clients[0] ID, and Clients[1]'s Description is not overridden.
 	assert.Equal(t, config.OIDC.Clients[0].ID, config.OIDC.Clients[0].Description)

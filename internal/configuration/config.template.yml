@@ -643,5 +643,5 @@ notifier:
         # - fragment
 
         ## The algorithm used to sign userinfo endpoint responses for this client, either none or RS256.
-        # userinfo_signing_algorithm: RS256
+        # userinfo_signing_algorithm: none
 ...
