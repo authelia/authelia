@@ -14,9 +14,9 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/oidc"
 	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/internal/utils"
 )
 
-//nolint: gocyclo  // TODO: Consider refactoring time permitting.
 func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	ar, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r)
 	if err != nil {
@@ -50,31 +50,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 		return
 	}
 
-	extraClaims := map[string]interface{}{}
-
-	for _, scope := range requestedScopes {
-		ar.GrantScope(scope)
-
-		switch scope {
-		case "groups":
-			extraClaims["groups"] = userSession.Groups
-		case "profile":
-			extraClaims["name"] = userSession.DisplayName
-		case "email":
-			if len(userSession.Emails) != 0 {
-				extraClaims["email"] = userSession.Emails[0]
-				if len(userSession.Emails) > 1 {
-					extraClaims["alt_emails"] = userSession.Emails[1:]
-				}
-				// TODO (james-d-elliott): actually verify emails and record that information.
-				extraClaims["email_verified"] = true
-			}
-		}
-	}
-
-	for _, a := range requestedAudience {
-		ar.GrantAudience(a)
-	}
+	extraClaims := oidcGrantRequests(ar, requestedScopes, requestedAudience, &userSession)
 
 	workflowCreated := time.Unix(userSession.OIDCWorkflowSession.CreatedTimestamp, 0)
 
@@ -111,7 +87,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 				RequestedAt: workflowCreated,
 				IssuedAt:    time.Now(),
 				Nonce:       ar.GetRequestForm().Get("nonce"),
-				Audience:    []string{ar.GetClient().GetID()},
+				Audience:    ar.GetGrantedAudience(),
 				Extra:       extraClaims,
 			},
 			Headers: &jwt.Headers{Extra: map[string]interface{}{
@@ -129,6 +105,40 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 	}
 
 	ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeResponse(rw, ar, response)
+}
+
+func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string, userSession *session.UserSession) (extraClaims map[string]interface{}) {
+	extraClaims = map[string]interface{}{}
+
+	for _, scope := range scopes {
+		ar.GrantScope(scope)
+
+		switch scope {
+		case "groups":
+			extraClaims["groups"] = userSession.Groups
+		case "profile":
+			extraClaims["name"] = userSession.DisplayName
+		case "email":
+			if len(userSession.Emails) != 0 {
+				extraClaims["email"] = userSession.Emails[0]
+				if len(userSession.Emails) > 1 {
+					extraClaims["alt_emails"] = userSession.Emails[1:]
+				}
+				// TODO (james-d-elliott): actually verify emails and record that information.
+				extraClaims["email_verified"] = true
+			}
+		}
+	}
+
+	for _, audience := range audiences {
+		ar.GrantAudience(audience)
+	}
+
+	if !utils.IsStringInSlice(ar.GetClient().GetID(), ar.GetGrantedAudience()) {
+		ar.GrantAudience(ar.GetClient().GetID())
+	}
+
+	return extraClaims
 }
 
 func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(

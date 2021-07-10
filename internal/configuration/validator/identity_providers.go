@@ -82,6 +82,7 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 		validateOIDCClientGrantTypes(c, configuration, validator)
 		validateOIDCClientResponseTypes(c, configuration, validator)
 		validateOIDCClientResponseModes(c, configuration, validator)
+		validateOIDDClientUserinfoAlgorithm(c, configuration, validator)
 
 		validateOIDCClientRedirectURIs(client, validator)
 	}
@@ -106,10 +107,10 @@ func validateOIDCClientScopes(c int, configuration *schema.OpenIDConnectConfigur
 	}
 
 	for _, scope := range configuration.Clients[c].Scopes {
-		if !utils.IsStringInSlice(scope, validScopes) {
+		if !utils.IsStringInSlice(scope, validOIDCScopes) {
 			validator.Push(fmt.Errorf(
 				errFmtOIDCServerClientInvalidScope,
-				configuration.Clients[c].ID, scope, strings.Join(validScopes, "', '")))
+				configuration.Clients[c].ID, scope, strings.Join(validOIDCScopes, "', '")))
 		}
 	}
 }
@@ -148,6 +149,15 @@ func validateOIDCClientResponseModes(c int, configuration *schema.OpenIDConnectC
 				errFmtOIDCServerClientInvalidResponseMode,
 				configuration.Clients[c].ID, responseMode, strings.Join(validOIDCResponseModes, "', '")))
 		}
+	}
+}
+
+func validateOIDDClientUserinfoAlgorithm(c int, configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+	if configuration.Clients[c].UserinfoSigningAlgorithm == "" {
+		configuration.Clients[c].UserinfoSigningAlgorithm = schema.DefaultOpenIDConnectClientConfiguration.UserinfoSigningAlgorithm
+	} else if !utils.IsStringInSlice(configuration.Clients[c].UserinfoSigningAlgorithm, validOIDCUserinfoAlgorithms) {
+		validator.Push(fmt.Errorf(errFmtOIDCServerClientInvalidUserinfoAlgorithm,
+			configuration.Clients[c].ID, configuration.Clients[c].UserinfoSigningAlgorithm, strings.Join(validOIDCUserinfoAlgorithms, ", ")))
 	}
 }
 
