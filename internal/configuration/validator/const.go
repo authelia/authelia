@@ -65,7 +65,9 @@ const (
 		"'%s', must be one of: '%s'"
 	errFmtOIDCClientInvalidResponseMode = "openid connect provider: client with ID '%s' has an invalid response mode " +
 		"'%s', must be one of: '%s'"
-	errFmtOIDCServerInsecureParameterEntropy = "SECURITY ISSUE: openid connect provider minimum parameter entropy is " +
+	errFmtOIDCClientInvalidUserinfoAlgorithm = "openid connect provider: client with ID '%s' has an invalid userinfo signing " +
+		"algorithm '%s', must be one of: '%s'"
+	errFmtOIDCServerInsecureParameterEntropy = "SECURITY ISSUE: openid connect provider: minimum parameter entropy is " +
 		"configured to an unsafe value, it should be above 8 but it's configured to %d."
 
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
@@ -78,11 +80,12 @@ const (
 )
 
 var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
-var validScopes = []string{"openid", "email", "profile", "groups", "offline_access"}
+var validHTTPRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+
+var validOIDCScopes = []string{"openid", "email", "profile", "groups", "offline_access"}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
 var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
-
-var validRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
 
 var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
 

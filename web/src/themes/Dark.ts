@@ -1,6 +1,6 @@
-import { createMuiTheme } from "@material-ui/core/styles";
+import { createTheme } from "@material-ui/core/styles";
 
-const Dark = createMuiTheme({
+const Dark = createTheme({
     custom: {
         icon: "#fff",
         loadingBar: "#fff",

@@ -184,6 +184,33 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 		"'bad_responsemode', must be one of: 'form_post', 'query', 'fragment'")
 }
 
+func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: "key-material",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:                       "good_id",
+					Secret:                   "good_secret",
+					Policy:                   "two_factor",
+					UserinfoSigningAlgorithm: "rs256",
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "openid connect provider: client with ID 'good_id' has an invalid userinfo "+
+		"signing algorithm 'rs256', must be one of: 'none, RS256'")
+}
+
 func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
@@ -209,7 +236,7 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T
 	assert.Len(t, validator.Errors(), 0)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Warnings()[0], "SECURITY ISSUE: openid connect provider minimum parameter entropy is configured to an unsafe value, it should be above 8 but it's configured to 1.")
+	assert.EqualError(t, validator.Warnings()[0], "SECURITY ISSUE: openid connect provider: minimum parameter entropy is configured to an unsafe value, it should be above 8 but it's configured to 1.")
 }
 
 func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
@@ -227,10 +254,11 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 					},
 				},
 				{
-					ID:          "b-client",
-					Description: "Normal Description",
-					Secret:      "b-client-secret",
-					Policy:      policyOneFactor,
+					ID:                       "b-client",
+					Description:              "Normal Description",
+					Secret:                   "b-client-secret",
+					Policy:                   policyOneFactor,
+					UserinfoSigningAlgorithm: "RS256",
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -259,8 +287,11 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 
 	// Assert Clients[0] Policy is set to the default, and the default doesn't override Clients[1]'s Policy.
-	assert.Equal(t, config.OIDC.Clients[0].Policy, policyTwoFactor)
-	assert.Equal(t, config.OIDC.Clients[1].Policy, policyOneFactor)
+	assert.Equal(t, policyTwoFactor, config.OIDC.Clients[0].Policy)
+	assert.Equal(t, policyOneFactor, config.OIDC.Clients[1].Policy)
+
+	assert.Equal(t, "none", config.OIDC.Clients[0].UserinfoSigningAlgorithm)
+	assert.Equal(t, "RS256", config.OIDC.Clients[1].UserinfoSigningAlgorithm)
 
 	// Assert Clients[0] Description is set to the Clients[0] ID, and Clients[1]'s Description is not overridden.
 	assert.Equal(t, config.OIDC.Clients[0].ID, config.OIDC.Clients[0].Description)

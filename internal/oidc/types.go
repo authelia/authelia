@@ -6,6 +6,7 @@ import (
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/storage"
+	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/internal/authorization"
@@ -16,6 +17,8 @@ type OpenIDConnectProvider struct {
 	Fosite     fosite.OAuth2Provider
 	Store      *OpenIDConnectStore
 	KeyManager *KeyManager
+
+	herodot *herodot.JSONWriter
 }
 
 // OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface.
@@ -30,19 +33,21 @@ type OpenIDConnectStore struct {
 
 // InternalClient represents the client internally.
 type InternalClient struct {
-	ID            string              `json:"id"`
-	Description   string              `json:"-"`
-	Secret        []byte              `json:"client_secret,omitempty"`
-	RedirectURIs  []string            `json:"redirect_uris"`
-	GrantTypes    []string            `json:"grant_types"`
-	ResponseTypes []string            `json:"response_types"`
-	Scopes        []string            `json:"scopes"`
-	Audience      []string            `json:"audience"`
-	Public        bool                `json:"public"`
-	Policy        authorization.Level `json:"-"`
+	ID            string   `json:"id"`
+	Description   string   `json:"-"`
+	Secret        []byte   `json:"client_secret,omitempty"`
+	RedirectURIs  []string `json:"redirect_uris"`
+	GrantTypes    []string `json:"grant_types"`
+	ResponseTypes []string `json:"response_types"`
+	Scopes        []string `json:"scopes"`
+	Audience      []string `json:"audience"`
+	Public        bool     `json:"public"`
 
-	// These are the OpenIDConnect Client props.
 	ResponseModes []fosite.ResponseModeType `json:"response_modes"`
+
+	UserinfoSigningAlgorithm string `json:"userinfo_signed_response_alg,omitempty"`
+
+	Policy authorization.Level `json:"-"`
 }
 
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
@@ -87,8 +92,10 @@ type WellKnownConfiguration struct {
 	AuthorizationEndpoint string `json:"authorization_endpoint"`
 	TokenEndpoint         string `json:"token_endpoint"`
 	RevocationEndpoint    string `json:"revocation_endpoint"`
+	UserinfoEndpoint      string `json:"userinfo_endpoint"`
 
-	Algorithms []string `json:"id_token_signing_alg_values_supported"`
+	Algorithms         []string `json:"id_token_signing_alg_values_supported"`
+	UserinfoAlgorithms []string `json:"userinfo_signing_alg_values_supported"`
 
 	SubjectTypesSupported  []string `json:"subject_types_supported"`
 	ResponseTypesSupported []string `json:"response_types_supported"`

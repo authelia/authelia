@@ -35,6 +35,8 @@ type OpenIDConnectClientConfiguration struct {
 	GrantTypes    []string `koanf:"grant_types"`
 	ResponseTypes []string `koanf:"response_types"`
 	ResponseModes []string `koanf:"response_modes"`
+
+	UserinfoSigningAlgorithm string `koanf:"userinfo_signing_algorithm"`
 }
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
@@ -52,4 +54,6 @@ var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	GrantTypes:    []string{"refresh_token", "authorization_code"},
 	ResponseTypes: []string{"code"},
 	ResponseModes: []string{"form_post", "query", "fragment"},
+
+	UserinfoSigningAlgorithm: "none",
 }
