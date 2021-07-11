@@ -34,6 +34,8 @@ type OpenIDConnectClientConfiguration struct {
 	GrantTypes    []string `mapstructure:"grant_types"`
 	ResponseTypes []string `mapstructure:"response_types"`
 	ResponseModes []string `mapstructure:"response_modes"`
+
+	UserinfoSigningAlgorithm string `mapstructure:"userinfo_signing_algorithm"`
 }
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
@@ -51,4 +53,6 @@ var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	GrantTypes:    []string{"refresh_token", "authorization_code"},
 	ResponseTypes: []string{"code"},
 	ResponseModes: []string{"form_post", "query", "fragment"},
+
+	UserinfoSigningAlgorithm: "none",
 }

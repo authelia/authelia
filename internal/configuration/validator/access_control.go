@@ -139,8 +139,8 @@ func validateSubjects(rulePosition int, rule schema.ACLRule, validator *schema.S
 
 func validateMethods(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
 	for _, method := range rule.Methods {
-		if !utils.IsStringInSliceFold(method, validRequestMethods) {
-			validator.Push(fmt.Errorf("Method %s for rule #%d domain: %s is invalid, must be one of the following methods: %s", method, rulePosition, rule.Domains, strings.Join(validRequestMethods, ", ")))
+		if !utils.IsStringInSliceFold(method, validHTTPRequestMethods) {
+			validator.Push(fmt.Errorf("Method %s for rule #%d domain: %s is invalid, must be one of the following methods: %s", method, rulePosition, rule.Domains, strings.Join(validHTTPRequestMethods, ", ")))
 		}
 	}
 }
