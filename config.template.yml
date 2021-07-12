@@ -611,19 +611,25 @@ notifier:
         ## The client secret is a shared secret between Authelia and the consumer of this client.
         # secret: this_is_a_secret
 
+        ## Sets the client to public. Useful for SPA's or mobile native applications.
+        # public: false
+
         ## The policy to require for this client; one_factor or two_factor.
         # authorization_policy: two_factor
 
-        ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
-        # redirect_uris:
-        # - https://oidc.example.com:8080/oauth2/callback
+        ## Audience defines the audience this client can request.
+        # audience: []
 
-        ## Scopes defines the valid scopes this client can request
+        ## Scopes defines the scopes this client can request.
         # scopes:
         # - openid
         # - groups
         # - email
         # - profile
+
+        ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
+        # redirect_uris:
+        # - https://oidc.example.com:8080/oauth2/callback
 
         ## Grant Types configures which grants this client can obtain.
         ## It's not recommended to define this unless you know what you're doing.

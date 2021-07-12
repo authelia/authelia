@@ -68,8 +68,14 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 			ids = append(ids, client.ID)
 		}
 
-		if client.Secret == "" {
-			validator.Push(fmt.Errorf(errFmtOIDCServerClientInvalidSecret, client.ID))
+		if client.Public {
+			if client.Secret != "" {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, client.ID))
+			}
+		} else {
+			if client.Secret == "" {
+				validator.Push(fmt.Errorf(errFmtOIDCServerClientInvalidSecret, client.ID))
+			}
 		}
 
 		if client.Policy == "" {
@@ -164,10 +170,38 @@ func validateOIDDClientUserinfoAlgorithm(c int, configuration *schema.OpenIDConn
 func validateOIDCClientRedirectURIs(client schema.OpenIDConnectClientConfiguration, validator *schema.StructValidator) {
 	for _, redirectURI := range client.RedirectURIs {
 		parsedURI, err := url.Parse(redirectURI)
-
 		if err != nil {
 			validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURICantBeParsed, client.ID, redirectURI, err))
-			break
+			continue
+		}
+
+		if client.Public {
+			if parsedURI.String() == oauth2InstalledApp {
+				continue
+			} else if !parsedURI.IsAbs() {
+				validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, client.ID, redirectURI))
+				continue
+			}
+
+			host := strings.SplitN(parsedURI.Host, ":", 2)
+			if host[0] != localhost && host[0] != loopback {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIHost, client.ID, redirectURI))
+			}
+
+			if parsedURI.Path != "" || parsedURI.RawPath != "" {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIPath, client.ID, redirectURI))
+			}
+
+			if parsedURI.RawQuery != "" {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIQuery, client.ID, redirectURI))
+			}
+
+			if parsedURI.Fragment != "" || parsedURI.RawFragment != "" {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIFragment, client.ID, redirectURI))
+			}
+		} else if !parsedURI.IsAbs() {
+			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, client.ID, redirectURI))
+			continue
 		}
 
 		if parsedURI.Scheme != schemeHTTPS && parsedURI.Scheme != schemeHTTP {
