@@ -56,14 +56,18 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage">Per Client List of Valid Redirection URI's</td>
       </tr>
       <tr>
-        <td rowspan="2" class="tbl-header tbl-beta-stage">beta2 <sup>1</sup></td>
+        <td rowspan="1" class="tbl-header tbl-beta-stage">beta2 <sup>1</sup></td>
+        <td class="tbl-beta-stage"><a href="https://openid.net/specs/openid-connect-core-1_0.html#UserInfo" target="_blank" rel="noopener noreferrer">Userinfo Endpoint</a> (missed in beta1)</td>
+      </tr>
+      <tr>
+        <td rowspan="2" class="tbl-header tbl-beta-stage">beta3 <sup>1</sup></td>
         <td>Token Storage</td>
       </tr>
       <tr>
         <td class="tbl-beta-stage">Audit Storage</td>
       </tr>
       <tr>
-        <td rowspan="4" class="tbl-header tbl-beta-stage">beta3 <sup>1</sup></td>
+        <td rowspan="4" class="tbl-header tbl-beta-stage">beta4 <sup>1</sup></td>
         <td><a href="https://openid.net/specs/openid-connect-backchannel-1_0.html" target="_blank" rel="noopener noreferrer">Back-Channel Logout</a></td>
       </tr>
       <tr>
@@ -128,6 +132,7 @@ identity_providers:
           - form_post
           - query
           - fragment
+        userinfo_signing_algorithm: none
 ```
 
 ## Options
@@ -354,6 +359,18 @@ required: no
 A list of response modes this client can return. It is recommended that this isn't configured at this time unless you
 know what you're doing. Potential values are `form_post`, `query`, and `fragment`.
 
+#### userinfo_signing_algorithm
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: none
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The algorithm used to sign the userinfo endpoint responses. This can either be `none` or `RS256`. 
+
 ## Scope Definitions
 
 ### openid
@@ -400,6 +417,23 @@ This scope includes the profile information the authentication backend reports a
 |JWT Field|JWT Type|Authelia Attribute|Description           |
 |:-------:|:------:|:----------------:|:--------------------:|
 |name     |string  | display_name     |The users display name|
+
+## Endpoint Implementations
+
+This is a table of the endpoints we currently support and their paths. This can be requrired information for some RP's,
+particularly those that don't use [discovery](https://openid.net/specs/openid-connect-discovery-1_0.html). The paths are
+appended to the end of the primary URL used to access Authelia. For example in the Discovery example provided you access
+Authelia via https://auth.example.com, the discovery URL is https://auth.example.com/.well-known/openid-configuration.
+
+|Endpoint     |Path                            |
+|:-----------:|:------------------------------:|
+|Discovery    |.well-known/openid-configuration|
+|JWKS         |api/oidc/jwks                   |
+|Authorization|api/oidc/authorize              |
+|Token        |api/oidc/token                  |
+|Introspection|api/oidc/introspect             |
+|Revoke       |api/oidc/revoke                 |
+|Userinfo     |api/oidc/userinfo               |
 
 
 [OpenID Connect]: https://openid.net/connect/
