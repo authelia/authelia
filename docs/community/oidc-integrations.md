@@ -20,7 +20,7 @@ nav_order: 4
 
 If you do not find the application in the list below, you will need to search for yourself - and maybe come back to open a PR to add your application to this list so others won't have to search for them.
 
-`<DOMAIN>` needs to be substituted with the protocol specifier (`https://`), domain and subdomain on which the application runs on. If GitLab, as an example, was reachable under `https://gitlab.example.com`, `<DOMAIN>` would be exactly the same.
+`<DOMAIN>` needs to be substituted with the full URL on which the application runs on. If GitLab, as an example, was reachable under `https://gitlab.example.com`, `<DOMAIN>` would be exactly the same.
 
 | Application | Version              | Callback URL                                             |
 | :---------: | :------------------: | :------------------------------------------------------: |
