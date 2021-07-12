@@ -169,22 +169,22 @@ func validateOIDDClientUserinfoAlgorithm(c int, configuration *schema.OpenIDConn
 
 func validateOIDCClientRedirectURIs(client schema.OpenIDConnectClientConfiguration, validator *schema.StructValidator) {
 	for _, redirectURI := range client.RedirectURIs {
+		parsedURL, err := url.Parse(redirectURI)
+		if err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURICantBeParsed, client.ID, redirectURI, err))
+			continue
+		}
+
 		if client.Public {
-			validateOIDCPublicClientRedirectURI(client.ID, redirectURI, validator)
+			validateOIDCPublicClientRedirectURI(client.ID, redirectURI, parsedURL, validator)
 		} else {
-			validateOIDCClientRedirectURI(client.ID, redirectURI, validator)
+			validateOIDCClientRedirectURI(client.ID, redirectURI, parsedURL, validator)
 		}
 	}
 }
 
-func validateOIDCPublicClientRedirectURI(id, redirectURI string, validator *schema.StructValidator) {
+func validateOIDCPublicClientRedirectURI(id, redirectURI string, parsedURL *url.URL, validator *schema.StructValidator) {
 	if redirectURI == oauth2InstalledApp {
-		return
-	}
-
-	parsedURL, err := url.Parse(redirectURI)
-	if err != nil {
-		validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURICantBeParsed, id, redirectURI, err))
 		return
 	}
 
@@ -215,13 +215,7 @@ func validateOIDCPublicClientRedirectURI(id, redirectURI string, validator *sche
 	}
 }
 
-func validateOIDCClientRedirectURI(id, redirectURI string, validator *schema.StructValidator) {
-	parsedURL, err := url.Parse(redirectURI)
-	if err != nil {
-		validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURICantBeParsed, id, redirectURI, err))
-		return
-	}
-
+func validateOIDCClientRedirectURI(id, redirectURI string, parsedURL *url.URL, validator *schema.StructValidator) {
 	if !parsedURL.IsAbs() {
 		validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, id, redirectURI))
 		return
