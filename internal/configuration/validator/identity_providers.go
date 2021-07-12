@@ -169,43 +169,65 @@ func validateOIDDClientUserinfoAlgorithm(c int, configuration *schema.OpenIDConn
 
 func validateOIDCClientRedirectURIs(client schema.OpenIDConnectClientConfiguration, validator *schema.StructValidator) {
 	for _, redirectURI := range client.RedirectURIs {
-		parsedURI, err := url.Parse(redirectURI)
-		if err != nil {
-			validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURICantBeParsed, client.ID, redirectURI, err))
-			continue
-		}
-
 		if client.Public {
-			if parsedURI.String() == oauth2InstalledApp {
-				continue
-			} else if !parsedURI.IsAbs() {
-				validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, client.ID, redirectURI))
-				continue
-			}
-
-			host := strings.SplitN(parsedURI.Host, ":", 2)
-			if host[0] != localhost && host[0] != loopback {
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIHost, client.ID, redirectURI))
-			}
-
-			if parsedURI.Path != "" || parsedURI.RawPath != "" {
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIPath, client.ID, redirectURI))
-			}
-
-			if parsedURI.RawQuery != "" {
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIQuery, client.ID, redirectURI))
-			}
-
-			if parsedURI.Fragment != "" || parsedURI.RawFragment != "" {
-				validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIFragment, client.ID, redirectURI))
-			}
-		} else if !parsedURI.IsAbs() {
-			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, client.ID, redirectURI))
-			continue
+			validateOIDCPublicClientRedirectURI(client.ID, redirectURI, validator)
+		} else {
+			validateOIDCClientRedirectURI(client.ID, redirectURI, validator)
 		}
+	}
+}
 
-		if parsedURI.Scheme != schemeHTTPS && parsedURI.Scheme != schemeHTTP {
-			validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURI, client.ID, redirectURI, parsedURI.Scheme))
-		}
+func validateOIDCPublicClientRedirectURI(id, redirectURI string, validator *schema.StructValidator) {
+	if redirectURI == oauth2InstalledApp {
+		return
+	}
+
+	parsedURL, err := url.Parse(redirectURI)
+	if err != nil {
+		validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURICantBeParsed, id, redirectURI, err))
+		return
+	}
+
+	host := strings.SplitN(parsedURL.Host, ":", 2)
+	if host[0] != "" && host[0] != localhost && host[0] != loopback {
+		validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIHost, id, redirectURI))
+	}
+
+	if host[0] != "" && parsedURL.Path != "" || parsedURL.RawPath != "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIPath, id, redirectURI))
+	}
+
+	if parsedURL.RawQuery != "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIQuery, id, redirectURI))
+	}
+
+	if parsedURL.Fragment != "" || parsedURL.RawFragment != "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientPublicRedirectURIFragment, id, redirectURI))
+	}
+
+	if !parsedURL.IsAbs() {
+		validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, id, redirectURI))
+		return
+	}
+
+	if parsedURL.Scheme != schemeHTTPS && parsedURL.Scheme != schemeHTTP {
+		validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURI, id, redirectURI, parsedURL.Scheme))
+	}
+}
+
+func validateOIDCClientRedirectURI(id, redirectURI string, validator *schema.StructValidator) {
+	parsedURL, err := url.Parse(redirectURI)
+	if err != nil {
+		validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURICantBeParsed, id, redirectURI, err))
+		return
+	}
+
+	if !parsedURL.IsAbs() {
+		validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, id, redirectURI))
+		return
+	}
+
+	if parsedURL.Scheme != schemeHTTPS && parsedURL.Scheme != schemeHTTP {
+		validator.Push(fmt.Errorf(errFmtOIDCServerClientRedirectURI, id, redirectURI, parsedURL.Scheme))
 	}
 }
