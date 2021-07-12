@@ -403,7 +403,7 @@ The algorithm used to sign the userinfo endpoint responses. This can either be `
 If you must generate an option yourself, you can use a random string of sufficient length. The command
 
 ```sh
-LENGHT=64
+LENGTH=64
 tr -cd '[:alnum:]' < /dev/urandom | fold -w "${LENGTH}" | head -n 1 | tr -d '\n' ; echo
 ```
 
