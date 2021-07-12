@@ -187,7 +187,7 @@ paths:
         - Authentication
       summary: Check whether URI is safe to redirect to.
       description: >
-        End users usually needs to be redirected to a target website after authentication. This endpoints aim to check
+        End users usually needs to be redirected to a target website after authentication. This endpoint aims to check
         if target URL is safe to redirect to. This prevents open redirect attacks.
       requestBody:
         content:
