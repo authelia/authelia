@@ -27,8 +27,10 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 		AuthorizationEndpoint: fmt.Sprintf("%s%s", issuer, oidcAuthorizePath),
 		TokenEndpoint:         fmt.Sprintf("%s%s", issuer, oidcTokenPath),
 		RevocationEndpoint:    fmt.Sprintf("%s%s", issuer, oidcRevokePath),
+		UserinfoEndpoint:      fmt.Sprintf("%s%s", issuer, oidcUserinfoPath),
 
-		Algorithms: []string{"RS256"},
+		Algorithms:         []string{"RS256"},
+		UserinfoAlgorithms: []string{"none", "RS256"},
 
 		SubjectTypesSupported: []string{
 			"public",
