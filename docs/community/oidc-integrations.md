@@ -11,7 +11,8 @@ nav_order: 4
 
 ## Currently Tested Applications
 
-- GitLab (userinfo endpoint missing in an early implementation; now in peer review)
+- GitLab (>= 13.0.0)
+- Grafana (8.0.5)
 - MinIO (problems with the `state` option which is not supplied by MinIO, see [minio/minio#11398])
 
 [minio/minio#11398]: https://github.com/minio/minio/issues/11398

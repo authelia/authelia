@@ -149,9 +149,9 @@ required: yes
 </div>
 
 The HMAC secret used to sign the [OpenID Connect] JWT's. The provided string is hashed to a SHA256
-byte string for the purpose of meeting the required format. It can also be defined using a
-[secret](../secrets.md) which is the recommended for containerized deployments. You must
-[generate this option yourself](#generating-options-yourself).
+byte string for the purpose of meeting the required format. You must [generate this option yourself](#generating-options-yourself).
+
+Should be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
 ### issuer_private_key
 
@@ -162,15 +162,13 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
-The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's. Can also be
-defined using a [secret](../secrets.md) which is the recommended for containerized deployments. The reason
-for using only the private key here is that one is able to calculate the public key easily from the private
-key in this format (`openssl rsa -in rsa.key -pubout > rsa.pem`).
-
+The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's.[¹](../../faq.md#why_only_use_a_private_issue_key_with_oidc)
 You must [generate this option yourself](#generating-options-yourself). To create this option, use
 `docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia rsa generate --dir /keys`
 to generate both the private and public key in the current directory. You can then paste the
 private key into your configuration.
+
+Should be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
 ### access_token_lifespan
 
