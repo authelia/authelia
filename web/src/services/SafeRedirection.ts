@@ -1,4 +1,4 @@
-import { ChecksSafeRedirectionPath } from "./Api";
+import { ChecksSafeRedirectionPath } from "@services/Api";
 import { PostWithOptionalResponse } from "./Client";
 
 interface SafeRedirectionResponse {
