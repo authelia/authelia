@@ -48,7 +48,7 @@ This includes but is not limited to the following file types:
 Error messages should follow the standard go format. This format can be found in the [golang code review comments](https://github.com/golang/go/wiki/CodeReviewComments#error-strings)
 however the key points are:
 
-- errors should not start with capitol letters (excluding proper nouns, acronyms, or initialism)
+- errors should not start with capital letters (excluding proper nouns, acronyms, or initialism)
 - errors should not end with punctuation
 - these restrictions do not apply to logging, only the error type itself
 
@@ -63,7 +63,7 @@ The first thing in the configuration documentation should be a description of th
 configuration heading (h2 / indent 2) which has an example full configuration.
 
 Under the configuration example each option in the configuration needs to be documented with its own heading 
-(h3 / indent 3). Immidiately following the heading is a div with some stylized icons. 
+(h3 / indent 3). Immediately following the heading is a div with some stylized icons. 
 
 The body of the section is to contain paragraphs describing the usage and information specific to that value.
 
