@@ -16,7 +16,7 @@ nav_order: 4
 
 [minio/minio#11398]: https://github.com/minio/minio/issues/11398
 
-## Compatibility
+## Known Callback URLs
 
 If you do not find the application in the list below, you will need to search for yourself - and maybe come back to open a PR to add your application to this list so others won't have to search for them.
 
@@ -26,4 +26,3 @@ If you do not find the application in the list below, you will need to search fo
 | :---------: | :------------------: | :------------------------------------------------------: |
 | GitLab      | `14.0.1`             | `<DOMAIN>/users/auth/openid_connect/callback`    |
 | MinIO       | `RELEASE.2021-06-17` | `<DOMAIN>/minio/login/openid`                    |
-
