@@ -191,7 +191,7 @@ where `UXE1WmM4S0pldnl6eHRwQ3psTGpDbFplOXFueUVyWEZhYjE0Z01IRHN0RT0K` is Base64 e
 `Qq5Zc8KJevyzxtpCzlLjClZe9qnyErXFab14gMHDstE`, the actual content of the secret. You can generate these contents with
 
 ```sh
-LENGHT=64
+LENGTH=64
 tr -cd '[:alnum:]' < /dev/urandom \
   | fold -w "${LENGTH}"           \
   | head -n 1                     \
