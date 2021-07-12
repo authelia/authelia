@@ -24,17 +24,13 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Internal
 		RedirectURIs:  config.RedirectURIs,
 		GrantTypes:    config.GrantTypes,
 		ResponseTypes: config.ResponseTypes,
-		ResponseModes: []fosite.ResponseModeType{},
+		ResponseModes: []fosite.ResponseModeType{fosite.ResponseModeDefault},
 
 		UserinfoSigningAlgorithm: config.UserinfoSigningAlgorithm,
 	}
 
 	for _, mode := range config.ResponseModes {
 		client.ResponseModes = append(client.ResponseModes, fosite.ResponseModeType(mode))
-	}
-
-	if len(client.ResponseModes) == 0 {
-		client.ResponseModes = append(client.ResponseModes, fosite.ResponseModeDefault)
 	}
 
 	return client
