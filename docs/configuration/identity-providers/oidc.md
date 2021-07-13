@@ -222,7 +222,7 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-The maximum lifetime of a refresh token. This should typically be slightly more the other token lifespans. This is
+The maximum lifetime of a refresh token. The
 because the refresh token can be used to obtain new refresh tokens as well as access tokens or id tokens with an
 up-to-date expiration. For more information read these docs about [token lifespan].
 
