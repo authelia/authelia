@@ -9,6 +9,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/text/encoding/unicode"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
@@ -28,13 +29,15 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 		nil,
 		mockFactory)
 
-	mockFactory.EXPECT().
+	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
-	mockConn.EXPECT().
+	connBind := mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
+
+	gomock.InOrder(dialURL, connBind)
 
 	_, err := ldapClient.connect("cn=admin,dc=example,dc=com", "password")
 
@@ -55,13 +58,15 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 		nil,
 		mockFactory)
 
-	mockFactory.EXPECT().
+	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldaps://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
-	mockConn.EXPECT().
+	connBind := mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
+
+	gomock.InOrder(dialURL, connBind)
 
 	_, err := ldapClient.connect("cn=admin,dc=example,dc=com", "password")
 
@@ -177,15 +182,15 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 		nil,
 		mockFactory)
 
-	mockFactory.EXPECT().
+	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
-	mockConn.EXPECT().
+	connBind := mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	mockConn.EXPECT().
+	searchOIDs := mockConn.EXPECT().
 		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
@@ -201,7 +206,9 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 			},
 		}, nil)
 
-	mockConn.EXPECT().Close()
+	connClose := mockConn.EXPECT().Close()
+
+	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
 
 	err := ldapClient.checkServer()
 	assert.NoError(t, err)
@@ -231,15 +238,15 @@ func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
 		nil,
 		mockFactory)
 
-	mockFactory.EXPECT().
+	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
-	mockConn.EXPECT().
+	connBind := mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	mockConn.EXPECT().
+	searchOIDs := mockConn.EXPECT().
 		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
@@ -255,7 +262,9 @@ func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
 			},
 		}, nil)
 
-	mockConn.EXPECT().Close()
+	connClose := mockConn.EXPECT().Close()
+
+	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
 
 	err := ldapClient.checkServer()
 	assert.NoError(t, err)
@@ -317,19 +326,21 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 		nil,
 		mockFactory)
 
-	mockFactory.EXPECT().
+	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
-	mockConn.EXPECT().
+	connBind := mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	mockConn.EXPECT().
+	searchOIDs := mockConn.EXPECT().
 		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
 		Return(nil, errors.New("could not perform the search"))
 
-	mockConn.EXPECT().Close()
+	connClose := mockConn.EXPECT().Close()
+
+	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
 
 	err := ldapClient.checkServer()
 	assert.EqualError(t, err, "could not perform the search")
@@ -453,19 +464,20 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 		nil,
 		mockFactory)
 
-	mockFactory.EXPECT().
+	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
-	mockConn.EXPECT().
+	connBind := mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	mockConn.EXPECT().Close()
+	connClose := mockConn.EXPECT().Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(createSearchResultWithAttributes(), nil)
+
 	searchProfile := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
@@ -490,7 +502,7 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 			},
 		}, nil)
 
-	gomock.InOrder(searchProfile, searchGroups)
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroups, connClose)
 
 	details, err := ldapClient.GetDetails("john")
 	require.NoError(t, err)
@@ -521,19 +533,20 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 		nil,
 		mockFactory)
 
-	mockFactory.EXPECT().
+	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
-	mockConn.EXPECT().
+	connBind := mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	mockConn.EXPECT().Close()
+	connClose := mockConn.EXPECT().Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(createSearchResultWithAttributeValues("group1", "group2"), nil)
+
 	searchProfile := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
@@ -550,7 +563,7 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 			},
 		}, nil)
 
-	gomock.InOrder(searchProfile, searchGroups)
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroups, connClose)
 
 	details, err := ldapClient.GetDetails("john")
 	require.NoError(t, err)
@@ -631,7 +644,7 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 	assert.Equal(t, details.Username, "John")
 }
 
-func TestShouldUpdateUserPassword(t *testing.T) {
+func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -659,64 +672,280 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 		"password",
 	)
 
-	gomock.InOrder(
-		mockFactory.EXPECT().
-			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
-			Return(mockConn, nil),
-		mockConn.EXPECT().
-			Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
-			Return(nil),
+	dialURLOIDs := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
 
-		mockConn.EXPECT().
-			Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
-			Return(&ldap.SearchResult{
-				Entries: []*ldap.Entry{
-					{
-						DN: "",
-						Attributes: []*ldap.EntryAttribute{
-							{
-								Name:   ldapSupportedExtensionAttribute,
-								Values: []string{ldapOIDPasswdModifyExtension},
-							},
+	connBindOIDs := mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	searchOIDs := mockConn.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDPasswdModifyExtension},
 						},
 					},
 				},
-			}, nil),
-		mockConn.EXPECT().Close(),
-		mockFactory.EXPECT().
-			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
-			Return(mockConn, nil),
-		mockConn.EXPECT().
-			Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
-			Return(nil),
-		mockConn.EXPECT().
-			Search(gomock.Any()).
-			Return(&ldap.SearchResult{
-				Entries: []*ldap.Entry{
-					{
-						DN: "uid=test,dc=example,dc=com",
-						Attributes: []*ldap.EntryAttribute{
-							{
-								Name:   "displayname",
-								Values: []string{"John Doe"},
-							},
-							{
-								Name:   "mail",
-								Values: []string{"test@example.com"},
-							},
-							{
-								Name:   "uid",
-								Values: []string{"John"},
-							},
+			},
+		}, nil)
+
+	connCloseOIDs := mockConn.EXPECT().Close()
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	connBind := mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockConn.EXPECT().Close()
+
+	searchProfile := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayname",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
 						},
 					},
 				},
-			}, nil),
-		mockConn.EXPECT().
-			PasswordModify(pwdModifyRequest).
-			Return(nil),
-		mockConn.EXPECT().Close(),
+			},
+		}, nil)
+
+	passwdModify := mockConn.EXPECT().
+		PasswordModify(pwdModifyRequest).
+		Return(nil)
+
+	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
+
+	err := ldapClient.checkServer()
+	require.NoError(t, err)
+
+	err = ldapClient.UpdatePassword("john", "password")
+	require.NoError(t, err)
+}
+
+func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			Implementation:       "activedirectory",
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "sAMAccountName",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "cn={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
+
+	utf16 := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
+	pwdEncoded, _ := utf16.NewEncoder().String("\"password\"")
+
+	modifyRequest := ldap.NewModifyRequest(
+		"cn=test,dc=example,dc=com",
+		nil,
 	)
+
+	modifyRequest.Replace("unicodePwd", []string{pwdEncoded})
+
+	dialURLOIDs := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	connBindOIDs := mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	searchOIDs := mockConn.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	connCloseOIDs := mockConn.EXPECT().Close()
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	connBind := mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockConn.EXPECT().Close()
+
+	searchProfile := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "cn=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayname",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	passwdModify := mockConn.EXPECT().
+		Modify(modifyRequest).
+		Return(nil)
+
+	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
+
+	err := ldapClient.checkServer()
+	require.NoError(t, err)
+
+	err = ldapClient.UpdatePassword("john", "password")
+	require.NoError(t, err)
+}
+
+func TestShouldUpdateUserPasswordBasic(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			Implementation:       "custom",
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "uid=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		nil,
+		mockFactory)
+
+	modifyRequest := ldap.NewModifyRequest(
+		"uid=test,dc=example,dc=com",
+		nil,
+	)
+
+	modifyRequest.Replace("userPassword", []string{"password"})
+
+	dialURLOIDs := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	connBindOIDs := mockConn.EXPECT().
+		Bind(gomock.Eq("uid=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	searchOIDs := mockConn.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	connCloseOIDs := mockConn.EXPECT().Close()
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	connBind := mockConn.EXPECT().
+		Bind(gomock.Eq("uid=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockConn.EXPECT().Close()
+
+	searchProfile := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	passwdModify := mockConn.EXPECT().
+		Modify(modifyRequest).
+		Return(nil)
+
+	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
 
 	err := ldapClient.checkServer()
 	require.NoError(t, err)
@@ -882,22 +1111,23 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 		nil,
 		mockFactory)
 
-	mockFactory.EXPECT().
+	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
-	mockConn.EXPECT().
+	connBind := mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	mockConn.EXPECT().
+	connStartTLS := mockConn.EXPECT().
 		StartTLS(ldapClient.tlsConfig)
 
-	mockConn.EXPECT().Close()
+	connClose := mockConn.EXPECT().Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(createSearchResultWithAttributes(), nil)
+
 	searchProfile := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
@@ -922,7 +1152,7 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 			},
 		}, nil)
 
-	gomock.InOrder(searchProfile, searchGroups)
+	gomock.InOrder(dialURL, connStartTLS, connBind, searchProfile, searchGroups, connClose)
 
 	details, err := ldapClient.GetDetails("john")
 	require.NoError(t, err)
@@ -989,22 +1219,23 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 		nil,
 		mockFactory)
 
-	mockFactory.EXPECT().
+	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
-	mockConn.EXPECT().
+	connBind := mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	mockConn.EXPECT().
+	connStartTLS := mockConn.EXPECT().
 		StartTLS(ldapClient.tlsConfig)
 
-	mockConn.EXPECT().Close()
+	connClose := mockConn.EXPECT().Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(createSearchResultWithAttributes(), nil)
+
 	searchProfile := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
@@ -1029,7 +1260,7 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 			},
 		}, nil)
 
-	gomock.InOrder(searchProfile, searchGroups)
+	gomock.InOrder(dialURL, connStartTLS, connBind, searchProfile, searchGroups, connClose)
 
 	details, err := ldapClient.GetDetails("john")
 	require.NoError(t, err)
@@ -1066,13 +1297,15 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 		nil,
 		mockFactory)
 
-	mockFactory.EXPECT().
+	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldaps://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
-	mockConn.EXPECT().
+	connStartTLS := mockConn.EXPECT().
 		StartTLS(ldapClient.tlsConfig).
 		Return(errors.New("LDAP Result Code 200 \"Network Error\": ldap: already encrypted"))
+
+	gomock.InOrder(dialURL, connStartTLS)
 
 	_, err := ldapClient.GetDetails("john")
 	assert.EqualError(t, err, "LDAP Result Code 200 \"Network Error\": ldap: already encrypted")
