@@ -321,7 +321,7 @@ required: yes
 </div>
 
 A list of valid callback URL´s this client will redirect to. All other callbacks will be considered
-unsafe. The URL's are case-sensitive and they differ from application to application - we have
+unsafe. The URL's are case-sensitive and they differ from application to application - the community has
 provided [a list of URL´s for common applications](../../community/oidc-integrations.md).
 
 #### scopes
