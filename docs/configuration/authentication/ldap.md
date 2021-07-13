@@ -29,11 +29,12 @@ authentication_backend:
     additional_users_dn: ou=users
     users_filter: (&({username_attribute}={input})(objectClass=person))
     additional_groups_dn: ou=groups
-    groups_filter: (&(member={dn})(objectclass=groupOfNames))
+    groups_filter: (&(member={dn})(objectClass=groupOfNames))
     group_name_attribute: cn
     mail_attribute: mail
+    display_name_attribute: displayName
+    distinguished_name_attribute: dn
     groups_attribute: ""
-    display_name_attribute: displayname
     user: cn=admin,dc=example,dc=com
     password: password
 ```
@@ -144,10 +145,22 @@ The default value is dependent on the [implementation](#implementation), refer t
 [attribute defaults](#attribute-defaults) for more information.
 
 ### additional_groups_dn
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 Similar to [additional_users_dn](#additional_users_dn) but it applies to group searches.
 
 ### groups_filter
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the memeber is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
@@ -156,6 +169,12 @@ using the following filter which is currently only tested against Microsoft Acti
 `(&(member:1.2.840.113556.1.4.1941:={dn})(objectClass=group)(objectCategory=group))`
 
 ### mail_attribute
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The attribute to retrieve which contains the users email addresses. This is important for the device registration and
 password reset processes.
@@ -164,10 +183,33 @@ identity verification when a user attempts to reset their password or
 register a second factor device.
 
 ### display_name_attribute
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 The attribute to retrieve which is shown on the Web UI to the user when they log in.
 
+### distinguished_name_attribute
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+This attribute is used to define the distinguished name attribute when used in sub searches that require it. The only
+current example of this is when the [groups attribute](#groups_attribute) is configured.
+
 ### groups_attribute
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 This is a special attribute on user objects that contains a list of the distinguishedNames of the groups they are a
 member of. This cannot be set at the same time as the [groups filter](#groups_filter). Both [base dn](#base_dn) and
@@ -198,11 +240,23 @@ The below tables describes the current attribute defaults for each implementatio
 This table describes the attribute defaults for each implementation. i.e. the username_attribute is
 described by the Username column.
 
-|Implementation |Username      |Display Name|Mail|Group Name|Groups  |
-|:-------------:|:------------:|:----------:|:--:|:--------:|:------:|
-|custom         |n/a           |displayname |mail|cn        |N/A     |
-|activedirectory|sAMAccountName|displayName |mail|cn        |N/A     |
-|freeipa        |uid           |displayName |mail|cn        |memberOf|
+**Common:** 
+
+|Implementation |Username      |Display Name|Mail |Group Name|
+|:-------------:|:------------:|:----------:|:---:|:--------:|
+|custom         |N/A           |displayName |mail |cn        |
+|activedirectory|sAMAccountName|displayName |mail |cn        |
+|freeipa        |uid           |displayName |mail |cn        |
+
+
+**Uncommon:**
+
+|Implementation |Groups  |Distinguished Name|
+|:-------------:|:------:|:----------------:|
+|custom         |N/A     |dn                |
+|activedirectory|N/A     |distinguishedName |
+|freeipa        |memberOf|dn                |
+
 
 #### Filter defaults
 
@@ -214,15 +268,15 @@ makes sure that value is not 0 which means the password requires changing at the
 
 |Implementation |Users Filter  |Groups Filter|
 |:-------------:|:------------:|:-----------:|
-|custom         |n/a           |n/a       |
+|custom         |N/A           |N/A          |
 |activedirectory|(&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))|(&(member={dn})(objectClass=group)(objectCategory=group))|
-|freeipa        |(&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=inetorgperson))|N/A|
+|freeipa        |(&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=inetOrgPerson))|N/A|
 
 ## Refresh Interval
 
 This setting takes a [duration notation](../index.md#duration-notation-format) that sets the max frequency
 for how often Authelia contacts the backend to verify the user still exists and that the groups stored
-in the session are up to date. This allows us to destroy sessions when the user no longer matches the
+in the session are up-to-date. This allows us to destroy sessions when the user no longer matches the
 user_filter, or deny access to resources as they are removed from groups.
 
 In addition to the duration notation, you may provide the value `always` or `disable`. Setting to `always`

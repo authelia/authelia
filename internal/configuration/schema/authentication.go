@@ -77,7 +77,7 @@ var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendCon
 	Implementation:             LDAPImplementationCustom,
 	UsernameAttribute:          "uid",
 	MailAttribute:              "mail",
-	DisplayNameAttribute:       "displayname",
+	DisplayNameAttribute:       "displayName",
 	DistinguishedNameAttribute: "dn",
 	GroupNameAttribute:         "cn",
 	TLS: &TLSConfig{
@@ -98,7 +98,7 @@ var DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration =
 
 // DefaultLDAPAuthenticationBackendImplementationFreeIPAConfiguration represents the default LDAP config for the MSAD Implementation.
 var DefaultLDAPAuthenticationBackendImplementationFreeIPAConfiguration = LDAPAuthenticationBackendConfiguration{
-	UsersFilter:                "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=inetorgperson))",
+	UsersFilter:                "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=inetOrgPerson))",
 	UsernameAttribute:          "uid",
 	MailAttribute:              "mail",
 	DisplayNameAttribute:       "displayName",
