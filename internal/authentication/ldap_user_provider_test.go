@@ -201,6 +201,8 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 			},
 		}, nil)
 
+	mockConn.EXPECT().Close()
+
 	err := ldapClient.checkServer()
 	assert.NoError(t, err)
 
@@ -252,6 +254,8 @@ func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
 				},
 			},
 		}, nil)
+
+	mockConn.EXPECT().Close()
 
 	err := ldapClient.checkServer()
 	assert.NoError(t, err)
@@ -324,6 +328,8 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 	mockConn.EXPECT().
 		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
 		Return(nil, errors.New("could not perform the search"))
+
+	mockConn.EXPECT().Close()
 
 	err := ldapClient.checkServer()
 	assert.EqualError(t, err, "could not perform the search")
@@ -455,8 +461,7 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	mockConn.EXPECT().
-		Close()
+	mockConn.EXPECT().Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
@@ -524,8 +529,7 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	mockConn.EXPECT().
-		Close()
+	mockConn.EXPECT().Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
@@ -578,20 +582,20 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 		nil,
 		mockFactory)
 
-	mockFactory.EXPECT().
+	dialURL := mockFactory.EXPECT().
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, nil)
 
-	mockConn.EXPECT().
+	connBind := mockConn.EXPECT().
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	mockConn.EXPECT().
-		Close()
+	connClose := mockConn.EXPECT().Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(createSearchResultWithAttributeValues("group1", "group2"), nil)
+
 	searchProfile := mockConn.EXPECT().
 		Search(gomock.Any()).
 		Return(&ldap.SearchResult{
@@ -616,7 +620,7 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 			},
 		}, nil)
 
-	gomock.InOrder(searchProfile, searchGroups)
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroups, connClose)
 
 	details, err := ldapClient.GetDetails("john")
 	require.NoError(t, err)
@@ -678,7 +682,7 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 					},
 				},
 			}, nil),
-
+		mockConn.EXPECT().Close(),
 		mockFactory.EXPECT().
 			DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 			Return(mockConn, nil),
@@ -711,8 +715,7 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 		mockConn.EXPECT().
 			PasswordModify(pwdModifyRequest).
 			Return(nil),
-		mockConn.EXPECT().
-			Close(),
+		mockConn.EXPECT().Close(),
 	)
 
 	err := ldapClient.checkServer()
@@ -780,8 +783,7 @@ func TestShouldCheckValidUserPassword(t *testing.T) {
 		mockConn.EXPECT().
 			Bind(gomock.Eq("uid=test,dc=example,dc=com"), gomock.Eq("password")).
 			Return(nil),
-		mockConn.EXPECT().
-			Close().Times(2),
+		mockConn.EXPECT().Close().Times(2),
 	)
 
 	valid, err := ldapClient.CheckUserPassword("john", "password")
@@ -848,8 +850,7 @@ func TestShouldCheckInvalidUserPassword(t *testing.T) {
 		mockConn.EXPECT().
 			Bind(gomock.Eq("uid=test,dc=example,dc=com"), gomock.Eq("password")).
 			Return(errors.New("Invalid username or password")),
-		mockConn.EXPECT().
-			Close(),
+		mockConn.EXPECT().Close(),
 	)
 
 	valid, err := ldapClient.CheckUserPassword("john", "password")
@@ -892,8 +893,7 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 	mockConn.EXPECT().
 		StartTLS(ldapClient.tlsConfig)
 
-	mockConn.EXPECT().
-		Close()
+	mockConn.EXPECT().Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
@@ -1000,8 +1000,7 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 	mockConn.EXPECT().
 		StartTLS(ldapClient.tlsConfig)
 
-	mockConn.EXPECT().
-		Close()
+	mockConn.EXPECT().Close()
 
 	searchGroups := mockConn.EXPECT().
 		Search(gomock.Any()).
