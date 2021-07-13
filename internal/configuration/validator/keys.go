@@ -10,7 +10,7 @@ import (
 )
 
 // ValidateKeys determines if all provided keys are valid.
-func ValidateKeys(keys []string, validator *schema.StructValidator) {
+func ValidateKeys(keys []string, prefix string, validator *schema.StructValidator) {
 	var errStrings []string
 
 	for _, key := range keys {
@@ -30,7 +30,7 @@ func ValidateKeys(keys []string, validator *schema.StructValidator) {
 				errStrings = append(errStrings, err)
 			}
 		} else {
-			if strings.HasPrefix(key, "AUTHELIA_") {
+			if strings.HasPrefix(key, prefix) {
 				validator.Push(fmt.Errorf("configuration environment variable not expected: %s", key))
 			} else {
 				validator.Push(fmt.Errorf("configuration key not expected: %s", key))

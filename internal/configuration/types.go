@@ -21,10 +21,14 @@ type YAMLFileSource struct {
 
 // EnvironmentSource is a configuration Source which loads values from the environment.
 type EnvironmentSource struct {
-	koanf *koanf.Koanf
+	koanf     *koanf.Koanf
+	prefix    string
+	delimiter string
 }
 
 // SecretsSource loads environment variables that have a value pointing to a file.
 type SecretsSource struct {
-	koanf *koanf.Koanf
+	koanf     *koanf.Koanf
+	prefix    string
+	delimiter string
 }

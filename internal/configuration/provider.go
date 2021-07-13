@@ -10,19 +10,26 @@ import (
 )
 
 // Load the configuration given the provided options and sources.
-func Load(val *schema.StructValidator, sources ...Source) (keys []string, configuration *schema.Configuration) {
+func Load(val *schema.StructValidator, sources ...Source) (keys []string, configuration *schema.Configuration, err error) {
+	if val == nil {
+		return keys, configuration, errNoValidator
+	}
+
 	ko := koanf.NewWithConf(koanf.Conf{
 		Delim:       constDelimiter,
 		StrictMerge: false,
 	})
 
-	loadSources(ko, val, sources...)
+	err = loadSources(ko, val, sources...)
+	if err != nil {
+		return ko.Keys(), configuration, err
+	}
 
 	configuration = &schema.Configuration{}
 
 	unmarshal(ko, val, "", configuration)
 
-	return ko.Keys(), configuration
+	return ko.Keys(), configuration, nil
 }
 
 func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o interface{}) {
@@ -43,10 +50,9 @@ func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o inte
 	}
 }
 
-func loadSources(ko *koanf.Koanf, val *schema.StructValidator, sources ...Source) {
+func loadSources(ko *koanf.Koanf, val *schema.StructValidator, sources ...Source) (err error) {
 	if len(sources) == 0 {
-		val.Push(errNoSources)
-		return
+		return errNoSources
 	}
 
 	for _, source := range sources {
@@ -64,4 +70,6 @@ func loadSources(ko *koanf.Koanf, val *schema.StructValidator, sources ...Source
 			continue
 		}
 	}
+
+	return nil
 }

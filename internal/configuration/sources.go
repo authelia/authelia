@@ -17,7 +17,7 @@ import (
 // path it also returns an error.
 func NewYAMLFileSource(path string) (source *YAMLFileSource) {
 	return &YAMLFileSource{
-		koanf: koanf.New("."),
+		koanf: koanf.New(constDelimiter),
 		path:  path,
 	}
 }
@@ -53,9 +53,11 @@ func (s *YAMLFileSource) Load(_ *schema.StructValidator) (err error) {
 }
 
 // NewEnvironmentSource returns a Source configured to load from environment variables.
-func NewEnvironmentSource() (source *EnvironmentSource) {
+func NewEnvironmentSource(prefix, delimiter string) (source *EnvironmentSource) {
 	return &EnvironmentSource{
-		koanf: koanf.New("."),
+		koanf:     koanf.New(constDelimiter),
+		prefix:    prefix,
+		delimiter: delimiter,
 	}
 }
 
@@ -71,15 +73,17 @@ func (s *EnvironmentSource) Merge(ko *koanf.Koanf, _ *schema.StructValidator) (e
 
 // Load the Source into the EnvironmentSource koanf.Koanf.
 func (s *EnvironmentSource) Load(_ *schema.StructValidator) (err error) {
-	keyMap, ignoredKeys := getEnvConfigMap(validator.ValidKeys)
+	keyMap, ignoredKeys := getEnvConfigMap(validator.ValidKeys, s.prefix, s.delimiter)
 
-	return s.koanf.Load(env.ProviderWithValue(constEnvPrefix, constDelimiter, koanfEnvironmentCallback(keyMap, ignoredKeys)), nil)
+	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentCallback(keyMap, ignoredKeys, s.prefix, s.delimiter)), nil)
 }
 
 // NewSecretsSource returns a Source configured to load from secrets.
-func NewSecretsSource() (source *SecretsSource) {
+func NewSecretsSource(prefix, delimiter string) (source *SecretsSource) {
 	return &SecretsSource{
-		koanf: koanf.New("."),
+		koanf:     koanf.New(constDelimiter),
+		prefix:    prefix,
+		delimiter: delimiter,
 	}
 }
 
@@ -103,20 +107,20 @@ func (s *SecretsSource) Merge(ko *koanf.Koanf, val *schema.StructValidator) (err
 
 // Load the Source into the SecretsSource koanf.Koanf.
 func (s *SecretsSource) Load(val *schema.StructValidator) (err error) {
-	keyMap := getSecretConfigMap(validator.ValidKeys)
+	keyMap := getSecretConfigMap(validator.ValidKeys, s.prefix, s.delimiter)
 
-	return s.koanf.Load(env.ProviderWithValue(constEnvPrefixAlt, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, val)), nil)
+	return s.koanf.Load(env.ProviderWithValue(constSecretEnvLegacyPrefix, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, val)), nil)
 }
 
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.
-func NewDefaultSources(filePaths []string) (sources []Source) {
+func NewDefaultSources(filePaths []string, prefix, delimiter string) (sources []Source) {
 	fileSources := NewYAMLFileSources(filePaths)
 	for _, source := range fileSources {
 		sources = append(sources, source)
 	}
 
-	sources = append(sources, NewEnvironmentSource())
-	sources = append(sources, NewSecretsSource())
+	sources = append(sources, NewEnvironmentSource(prefix, delimiter))
+	sources = append(sources, NewSecretsSource(prefix, delimiter))
 
 	return sources
 }

@@ -20,25 +20,25 @@ func TestKoanfEnvironmentCallback(t *testing.T) {
 	)
 
 	keyMap := map[string]string{
-		"AUTHELIA__KEY_EXAMPLE_UNDERSCORE": "key.example_underscore",
+		DefaultEnvPrefix + "KEY_EXAMPLE_UNDERSCORE": "key.example_underscore",
 	}
-	ignoredKeys := []string{"AUTHELIA_SOME_SECRET"}
+	ignoredKeys := []string{constSecretEnvLegacyPrefix + "SOME_SECRET"}
 
-	callback := koanfEnvironmentCallback(keyMap, ignoredKeys)
+	callback := koanfEnvironmentCallback(keyMap, ignoredKeys, DefaultEnvPrefix, DefaultEnvDelimiter)
 
-	key, value = callback("AUTHELIA__KEY_EXAMPLE_UNDERSCORE", "value")
+	key, value = callback(DefaultEnvPrefix+"KEY_EXAMPLE_UNDERSCORE", "value")
 	assert.Equal(t, "key.example_underscore", key)
 	assert.Equal(t, "value", value)
 
-	key, value = callback("AUTHELIA__KEY_EXAMPLE", "value")
-	assert.Equal(t, "AUTHELIA__KEY_EXAMPLE", key)
+	key, value = callback(DefaultEnvPrefix+"KEY_EXAMPLE", "value")
+	assert.Equal(t, DefaultEnvPrefix+"KEY_EXAMPLE", key)
 	assert.Equal(t, "value", value)
 
-	key, value = callback("AUTHELIA__THEME", "value")
+	key, value = callback(DefaultEnvPrefix+"THEME", "value")
 	assert.Equal(t, "theme", key)
 	assert.Equal(t, "value", value)
 
-	key, value = callback("AUTHELIA_SOME_SECRET", "value")
+	key, value = callback(constSecretEnvLegacyPrefix+"SOME_SECRET", "value")
 	assert.Equal(t, "", key)
 	assert.Nil(t, value)
 }

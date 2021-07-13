@@ -32,9 +32,13 @@ func cmdValidateConfigRun(_ *cobra.Command, args []string) {
 	}
 
 	val := schema.NewStructValidator()
-	keys, conf := configuration.Load(val, configuration.NewYAMLFileSource(configPath))
 
-	validator.ValidateKeys(keys, val)
+	keys, conf, err := configuration.Load(val, configuration.NewYAMLFileSource(configPath))
+	if err != nil {
+		logger.Fatalf("Error occurred loading configuration: %v", err)
+	}
+
+	validator.ValidateKeys(keys, configuration.DefaultEnvPrefix, val)
 	validator.ValidateConfiguration(conf, val)
 
 	errs := val.Errors()
