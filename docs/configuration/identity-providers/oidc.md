@@ -253,7 +253,7 @@ required: no
 This controls the minimum length of the `nonce` and `state` parameters.
 
 ***Security Notice:*** Changing this value is generally discouraged, reducing it from the default can theoretically
-make certain scenarios less secure. It highly encouraged that if your OpenID Connect RP does not send these parameters
+make certain scenarios less secure. It is highly encouraged that if your OpenID Connect RP does not send these parameters
 or sends parameters with a lower length than the default that they implement a change rather than changing this value.
 
 ### clients
