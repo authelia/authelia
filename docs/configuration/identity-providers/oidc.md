@@ -398,7 +398,7 @@ The algorithm used to sign the userinfo endpoint responses. This can either be `
 
 ## Generating a random secret
 
-If you must generate an option yourself, you can use a random string of sufficient length. The command
+If you must provide a random secret in configuration, you can generate a random string of sufficient length. The command
 
 ```sh
 LENGTH=64
