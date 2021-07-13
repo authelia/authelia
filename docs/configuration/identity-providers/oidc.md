@@ -396,7 +396,7 @@ required: no
 
 The algorithm used to sign the userinfo endpoint responses. This can either be `none` or `RS256`. 
 
-## Generating Options Yourself
+## Generating a random secret
 
 If you must generate an option yourself, you can use a random string of sufficient length. The command
 
