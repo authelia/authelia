@@ -337,7 +337,7 @@ required: no
 
 A list of scopes to allow this client to consume. See [scope definitions](#scope-definitions) for more
 information. The documentation for the application you want to use with Authelia will most-likely provide
-you with the scopes to grant.
+you with the scopes to allow.
 
 #### grant_types
 
