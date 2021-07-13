@@ -149,7 +149,7 @@ required: yes
 </div>
 
 The HMAC secret used to sign the [OpenID Connect] JWT's. The provided string is hashed to a SHA256
-byte string for the purpose of meeting the required format. You must [generate this option yourself](#generating-options-yourself).
+byte string for the purpose of meeting the required format. You must [generate this option yourself](#generating-a-random-secret).
 
 Should be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
@@ -163,7 +163,7 @@ required: yes
 </div>
 
 The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's.[¹](../../faq.md#why_only_use_a_private_issue_key_with_oidc)
-You must [generate this option yourself](#generating-options-yourself). To create this option, use
+You must [generate this option yourself](#generating-a-random-secret). To create this option, use
 `docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia rsa generate --dir /keys`
 to generate both the private and public key in the current directory. You can then paste the
 private key into your configuration.
@@ -296,7 +296,7 @@ required: yes
 
 The shared secret between Authelia and the application consuming this client. This secret must
 match the secret configured in the application. Currently this is stored in plain text.
-You must [generate this option yourself](#generating-options-yourself).
+You must [generate this option yourself](#generating-a-random-secret).
 
 #### authorization_policy
 
