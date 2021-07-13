@@ -37,7 +37,7 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 			}
 
 			if created {
-				logger.Warnf("configuration did not exist so a default one has been generated at %s, you will need to configure this", configs[0])
+				logger.Warnf("Configuration did not exist so a default one has been generated at %s, you will need to configure this", configs[0])
 				os.Exit(0)
 			}
 		}
@@ -62,17 +62,17 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 		warnings := val.Warnings()
 		if len(warnings) != 0 {
 			for _, warning := range warnings {
-				logger.Warnf("configuration: %+v", warning)
+				logger.Warnf("Configuration: %+v", warning)
 			}
 		}
 
 		errs := val.Errors()
 		if len(errs) != 0 {
 			for _, err := range errs {
-				logger.Errorf("configuration: %+v", err)
+				logger.Errorf("Configuration: %+v", err)
 			}
 
-			logger.Fatalf("can't continue due to the errors loading the configuration")
+			logger.Fatalf("Can't continue due to the errors loading the configuration")
 		}
 	}
 }

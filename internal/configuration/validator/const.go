@@ -40,7 +40,7 @@ const (
 
 // Error constants.
 const (
-	errFmtDeprecatedConfigurationKey = "deprecated: the %s configuration option is deprecated and will be " +
+	errFmtDeprecatedConfigurationKey = "the %s configuration option is deprecated and will be " +
 		"removed in %s, please use %s instead"
 	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
 
