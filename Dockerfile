@@ -1,7 +1,7 @@
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.16.5-alpine AS builder-backend
+FROM golang:1.16.6-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
