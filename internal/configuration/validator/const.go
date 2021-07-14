@@ -1,7 +1,6 @@
 package validator
 
 const (
-	localhost          = "localhost"
 	loopback           = "127.0.0.1"
 	oauth2InstalledApp = "urn:ietf:wg:oauth:2.0:oob"
 )
@@ -20,14 +19,8 @@ const (
 
 	errFmtOIDCServerClientRedirectURI = "OIDC client with ID '%s' redirect URI %s has an invalid scheme '%s', " +
 		"should be http or https"
-	errFmtOIDCClientPublicRedirectURIHost = "openid connect provider: client with ID '%s' redirect URI '%s' is " +
-		"invalid for a public client, must redirect to localhost, 127.0.0.1, or urn:ietf:wg:oauth:2.0:oob"
-	errFmtOIDCClientPublicRedirectURIPath = "openid connect provider: client with ID '%s' redirect URI '%s' is " +
-		"invalid for a public client, must not have a path"
-	errFmtOIDCClientPublicRedirectURIQuery = "openid connect provider: client with ID '%s' redirect URI '%s' is " +
-		"invalid for a public client, must not have a query parameter"
-	errFmtOIDCClientPublicRedirectURIFragment = "openid connect provider: client with ID '%s' redirect URI '%s' is " +
-		"invalid for a public client, must not have a fragment"
+	errFmtOIDCClientRedirectURIPublic = "openid connect provider: client with ID '%s' redirect URI '%s' is " +
+		"only valid for the public client type, not the confidential client type"
 	errFmtOIDCClientRedirectURIAbsolute = "openid connect provider: client with ID '%s' redirect URI '%s' is invalid " +
 		"because it has no scheme when it should be http or https"
 	errFmtOIDCServerClientRedirectURICantBeParsed = "OIDC client with ID '%s' has an invalid redirect URI '%s' " +

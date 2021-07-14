@@ -248,7 +248,7 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T
 	assert.EqualError(t, validator.Warnings()[0], "SECURITY ISSUE: OIDC minimum parameter entropy is configured to an unsafe value, it should be above 8 but it's configured to 1.")
 }
 
-func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidPublicClients(t *testing.T) {
+func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
@@ -265,51 +265,12 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidPublicClients(t *tes
 					},
 				},
 				{
-					ID:     "client-with-invalid-redirect-path",
-					Public: true,
+					ID:     "client-with-bad-redirect-uri",
+					Secret: "a-secret",
+					Public: false,
 					Policy: "two_factor",
 					RedirectURIs: []string{
-						"https://localhost/callback",
-					},
-				},
-				{
-					ID:     "client-with-invalid-redirect-queryparams",
-					Public: true,
-					Policy: "two_factor",
-					RedirectURIs: []string{
-						"https://localhost?api=x",
-					},
-				},
-				{
-					ID:     "client-with-invalid-redirect-scheme",
-					Public: true,
-					Policy: "two_factor",
-					RedirectURIs: []string{
-						"ftp://localhost",
-					},
-				},
-				{
-					ID:     "client-with-invalid-redirect-noscheme",
-					Public: true,
-					Policy: "two_factor",
-					RedirectURIs: []string{
-						localhost,
-					},
-				},
-				{
-					ID:     "client-with-invalid-redirect-host",
-					Public: true,
-					Policy: "two_factor",
-					RedirectURIs: []string{
-						"https://google.com",
-					},
-				},
-				{
-					ID:     "client-with-invalid-redirect-fragment",
-					Public: true,
-					Policy: "two_factor",
-					RedirectURIs: []string{
-						"https://localhost#fragment",
+						oauth2InstalledApp,
 					},
 				},
 			},
@@ -318,16 +279,11 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidPublicClients(t *tes
 
 	ValidateIdentityProviders(config, validator)
 
-	require.Len(t, validator.Errors(), 7)
+	require.Len(t, validator.Errors(), 2)
 	assert.Len(t, validator.Warnings(), 0)
 
 	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtOIDCClientPublicInvalidSecret, "client-with-invalid-secret"))
-	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errFmtOIDCClientPublicRedirectURIPath, "client-with-invalid-redirect-path", "https://localhost/callback"))
-	assert.EqualError(t, validator.Errors()[2], fmt.Sprintf(errFmtOIDCClientPublicRedirectURIQuery, "client-with-invalid-redirect-queryparams", "https://localhost?api=x"))
-	assert.EqualError(t, validator.Errors()[3], fmt.Sprintf(errFmtOIDCServerClientRedirectURI, "client-with-invalid-redirect-scheme", "ftp://localhost", "ftp"))
-	assert.EqualError(t, validator.Errors()[4], fmt.Sprintf(errFmtOIDCClientRedirectURIAbsolute, "client-with-invalid-redirect-noscheme", "localhost"))
-	assert.EqualError(t, validator.Errors()[5], fmt.Sprintf(errFmtOIDCClientPublicRedirectURIHost, "client-with-invalid-redirect-host", "https://google.com"))
-	assert.EqualError(t, validator.Errors()[6], fmt.Sprintf(errFmtOIDCClientPublicRedirectURIFragment, "client-with-invalid-redirect-fragment", "https://localhost#fragment"))
+	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errFmtOIDCClientRedirectURIPublic, "client-with-bad-redirect-uri", oauth2InstalledApp))
 }
 
 func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidPublicClients(t *testing.T) {

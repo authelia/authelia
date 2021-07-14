@@ -294,11 +294,15 @@ A friendly description for this client shown in the UI. This defaults to the sam
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
-required: yes
-{: .label .label-config .label-red }
+required: situational
+{: .label .label-config .label-yellow }
 </div>
 
-The shared secret between Authelia and the application consuming this client. Currently this is stored in plain text.
+The shared secret between Authelia and the application consuming this client. This is stored in plain text at this stage
+in the beta.
+
+This must be provided when the client is a confidential client type, and must be blank when using the public client
+type. To set the client type to public see the [public](#public) configuration option.
 
 #### public
 <div markdown="1">
@@ -311,11 +315,9 @@ required: no
 </div>
 
 The public option enables a client where the end user or a malicious application could reasonably obtain the [client id](#id)
-and [client secret](#secret). This is particularly useful for SPA's and CLI tools. This option requires (and allows)
-setting the [client secret](#secret) to a blank string.
-
-In addition to the standard redirect URI requirements, the host must be `localhost` or `127.0.0.1`. Alternatively a
-redirect URI of exactly `urn:ietf:wg:oauth:2.0:oob` is valid.
+and [client secret](#secret), you can read more about client types in [RFC6749](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1).
+This is particularly useful for SPA's and CLI tools. This option requires setting the [client secret](#secret) to a 
+blank string.
 
 #### authorization_policy
 <div markdown="1">
@@ -359,8 +361,13 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
-A list of valid callback URL's this client will redirect to. All other callbacks will be considered unsafe. The URL's
-are case-sensitive. The URI must include a scheme and that scheme must be one of `http` or `https`.
+A list of valid callback URL's this client will redirect to. Some restrictions that have been placed on clients and
+their redirect URIs are as follows:
+
+1. If a client attempts to authorize with Authelia and its redirect URI is not listed in the client configuration the
+   attempt to authorize wil fail and an error will be generated.
+2. The redirect URIs are case-sensitive. 
+3. The URI must include a scheme and that scheme must be one of `http` or `https`.
 
 #### grant_types
 <div markdown="1">
