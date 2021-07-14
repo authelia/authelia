@@ -220,6 +220,7 @@ var validKeys = []string{
 	"authentication_backend.ldap.group_name_attribute",
 	"authentication_backend.ldap.mail_attribute",
 	"authentication_backend.ldap.display_name_attribute",
+	"authentication_backend.ldap.distinguished_name_attribute",
 	"authentication_backend.ldap.groups_attribute",
 	"authentication_backend.ldap.user",
 	"authentication_backend.ldap.start_tls",
