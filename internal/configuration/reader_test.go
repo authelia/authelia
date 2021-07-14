@@ -146,12 +146,13 @@ func TestShouldErrorPermissionsConfigFile(t *testing.T) {
 	_, errors := Read("/tmp/authelia/permissions.yml")
 
 	if runtime.GOOS == windows {
-		require.Len(t, errors, 5)
+		require.Len(t, errors, 6)
 		assert.EqualError(t, errors[0], "Provide a JWT secret using \"jwt_secret\" key")
 		assert.EqualError(t, errors[1], "Please provide `ldap` or `file` object in `authentication_backend`")
-		assert.EqualError(t, errors[2], "Set domain of the session object")
-		assert.EqualError(t, errors[3], "A storage configuration must be provided. It could be 'local', 'mysql' or 'postgres'")
-		assert.EqualError(t, errors[4], "A notifier configuration must be provided")
+		assert.EqualError(t, errors[2], "Default Policy [deny] is invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'")
+		assert.EqualError(t, errors[3], "Set domain of the session object")
+		assert.EqualError(t, errors[4], "A storage configuration must be provided. It could be 'local', 'mysql' or 'postgres'")
+		assert.EqualError(t, errors[5], "A notifier configuration must be provided")
 	} else {
 		require.Len(t, errors, 1)
 

@@ -194,8 +194,8 @@ authentication_backend:
     ## - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
     ##
     ## If your groups use the `groupOfUniqueNames` structure use this instead:
-    ##    (&(uniquemember={dn})(objectclass=groupOfUniqueNames))
-    groups_filter: (&(member={dn})(objectclass=groupOfNames))
+    ##    (&(uniqueMember={dn})(objectClass=groupOfUniqueNames))
+    groups_filter: (&(member={dn})(objectClass=groupOfNames))
 
     ## The attribute holding the name of the group.
     # group_name_attribute: cn
@@ -205,7 +205,7 @@ authentication_backend:
     # mail_attribute: mail
 
     ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
-    # display_name_attribute: displayname
+    # display_name_attribute: displayName
 
     ## The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
@@ -593,7 +593,7 @@ notifier:
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
 
-    ## SECURITY NOTICE: It's not recommended to change this option, and highly discouraged to have it below 8 for
+    ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it below 8 for
     ## security reasons.
     # minimum_parameter_entropy: 8
 

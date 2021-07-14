@@ -387,7 +387,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultDisplayNameAttr
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.Assert().Equal("displayname", suite.configuration.LDAP.DisplayNameAttribute)
+	suite.Assert().Equal("displayName", suite.configuration.LDAP.DisplayNameAttribute)
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultRefreshInterval() {
