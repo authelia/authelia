@@ -126,7 +126,7 @@ identity_providers:
     access_token_lifespan: 1h
     authorize_code_lifespan: 1m
     id_token_lifespan: 1h
-    refresh_token_lifespan: 720h
+    refresh_token_lifespan: 90m
     enable_client_debug_messages: false
     clients:
       - id: myapp
@@ -233,7 +233,7 @@ The maximum lifetime of an ID token. For more information read these docs about 
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
-default: 30d
+default: 90m
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
@@ -242,6 +242,11 @@ required: no
 The maximum lifetime of a refresh token. The
 refresh token can be used to obtain new refresh tokens as well as access tokens or id tokens with an
 up-to-date expiration. For more information read these docs about [token lifespan].
+
+A good starting point is 50% more or 30 minutes more (which ever is less) time than the highest lifespan out of the 
+[access token lifespan](#access_token_lifespan), the [authorize code lifespan](#authorize_code_lifespan), and the
+[id token lifespan](#id_token_lifespan). For instance the default for all of these is 60 minutes, so the default refresh
+token lifespan is 90 minutes.
 
 ### enable_client_debug_messages
 
