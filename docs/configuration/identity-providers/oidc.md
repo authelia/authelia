@@ -329,8 +329,8 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-The public option enables a client where the end user or a malicious application could reasonably obtain the [client id](#id)
-and [client secret](#secret), you can read more about client types in [RFC6749](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1).
+This enables the public client type for this client. This is for clients that are not capable of maintaining 
+confidentiality of credentials, you can read more about client types in [RFC6749](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1).
 This is particularly useful for SPA's and CLI tools. This option requires setting the [client secret](#secret) to a 
 blank string.
 
