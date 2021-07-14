@@ -186,12 +186,9 @@ authentication_backend:
     ## i.e. with this set to OU=Groups and base_dn set to DC=a,DC=com; OU=Groups,DC=a,DC=com is searched for groups.
     additional_groups_dn: ou=groups
 
-    ## The groups filter used in search queries to find the groups of the user.
-    ## - {input} is a placeholder replaced by what the user inputs in the login form.
-    ## - {username} is a placeholder replace by the username stored in LDAP (based on `username_attribute`).
-    ## - {dn} is a matcher replaced by the user distinguished name, aka, user DN.
-    ## - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
-    ## - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
+    ## The groups filter used in search queries to find the groups based on relevant authenticated user.
+    ## Various placeholders are available in the groups filter which you can read about in the documentation which can
+    ## be found at: https://www.authelia.com/docs/configuration/authentication/ldap.html#groups-filter-replacements
     ##
     ## If your groups use the `groupOfUniqueNames` structure use this instead:
     ##    (&(uniqueMember={dn})(objectClass=groupOfUniqueNames))
