@@ -278,6 +278,8 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 	if p.configuration.GroupsAttribute != "" {
 		filter = ldapBuildGroupsFilterFromGroupsAttribute(profile.Groups, p.configuration.DistinguishedNameAttribute)
 
+		p.logger.Tracef("Computed groups filter is %s", filter)
+
 		if filter == "" {
 			return filter, errEmptyGroupsFilter
 		}
@@ -288,16 +290,16 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 	inputUsername = p.ldapEscape(inputUsername)
 
 	// The {input} placeholder is replaced by the users username input.
-	groupFilter := strings.ReplaceAll(p.configuration.GroupsFilter, "{input}", inputUsername)
+	filter = strings.ReplaceAll(p.configuration.GroupsFilter, "{input}", inputUsername)
 
 	if profile != nil {
-		groupFilter = strings.ReplaceAll(groupFilter, "{username}", ldap.EscapeFilter(profile.Username))
-		groupFilter = strings.ReplaceAll(groupFilter, "{dn}", ldap.EscapeFilter(profile.DN))
+		filter = strings.ReplaceAll(filter, "{username}", ldap.EscapeFilter(profile.Username))
+		filter = strings.ReplaceAll(filter, "{dn}", ldap.EscapeFilter(profile.DN))
 	}
 
-	p.logger.Tracef("Computed groups filter is %s", groupFilter)
+	p.logger.Tracef("Computed groups filter is %s", filter)
 
-	return groupFilter, nil
+	return filter, nil
 }
 
 // GetDetails retrieve the groups a user belongs to.
