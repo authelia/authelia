@@ -23,13 +23,19 @@ type LDAPUserProvider struct {
 	dialOpts          ldap.DialOpt
 	logger            *logrus.Logger
 	connectionFactory LDAPConnectionFactory
-	usersBaseDN       string
-	groupsBaseDN      string
+
+	// Dynamically generated values.
+	usersBaseDN  string
+	groupsBaseDN string
 
 	supportExtensionPasswdModify bool
 
 	usersFilterReplacementInput      bool
 	usersFilterReplacementEpochWin32 bool
+
+	groupsFilterReplacementInput    bool
+	groupsFilterReplacementUsername bool
+	groupsFilterReplacementDN       bool
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
@@ -113,6 +119,20 @@ func (p *LDAPUserProvider) parseDynamicConfiguration() {
 	}
 
 	p.logger.Tracef("Detected user filter replacements that need to be resolved per lookup are: input=%v, epoch:win32=%v", p.usersFilterReplacementInput, p.usersFilterReplacementEpochWin32)
+
+	if strings.Contains(p.configuration.GroupsFilter, "{input}") {
+		p.groupsFilterReplacementInput = true
+	}
+
+	if strings.Contains(p.configuration.GroupsFilter, "{username}") {
+		p.groupsFilterReplacementUsername = true
+	}
+
+	if strings.Contains(p.configuration.GroupsFilter, "{dn}") {
+		p.groupsFilterReplacementDN = true
+	}
+
+	p.logger.Tracef("Detected group filter replacements that need to be resolved per lookup are: input=%v, username=%v, dn=%v", p.groupsFilterReplacementInput, p.groupsFilterReplacementUsername, p.groupsFilterReplacementDN)
 }
 
 func (p *LDAPUserProvider) checkServer() (err error) {
@@ -211,12 +231,12 @@ type ldapUserProfile struct {
 	Username    string
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, inputUsername string) string {
-	inputUsername = p.ldapEscape(inputUsername)
+func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (userFilter string) {
+	userFilter = p.configuration.UsersFilter
 
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
-		userFilter = strings.ReplaceAll(userFilter, "{input}", inputUsername)
+		userFilter = strings.ReplaceAll(userFilter, "{input}", p.ldapEscape(inputUsername))
 	}
 
 	if p.usersFilterReplacementEpochWin32 {
@@ -229,7 +249,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, inputUsername s
 }
 
 func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername string) (*ldapUserProfile, error) {
-	userFilter := p.resolveUsersFilter(p.configuration.UsersFilter, inputUsername)
+	userFilter := p.resolveUsersFilter(inputUsername)
 
 	attributes := []string{"dn",
 		p.configuration.DisplayNameAttribute,
@@ -285,15 +305,22 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	return &userProfile, nil
 }
 
-func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (string, error) { //nolint:unparam
-	inputUsername = p.ldapEscape(inputUsername)
+func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (groupFilter string, err error) { //nolint:unparam
+	groupFilter = p.configuration.GroupsFilter
 
-	// The {input} placeholder is replaced by the users username input.
-	groupFilter := strings.ReplaceAll(p.configuration.GroupsFilter, "{input}", inputUsername)
+	if p.groupsFilterReplacementInput {
+		// The {input} placeholder is replaced by the users username input.
+		groupFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{input}", p.ldapEscape(inputUsername))
+	}
 
 	if profile != nil {
-		groupFilter = strings.ReplaceAll(groupFilter, "{username}", ldap.EscapeFilter(profile.Username))
-		groupFilter = strings.ReplaceAll(groupFilter, "{dn}", ldap.EscapeFilter(profile.DN))
+		if p.groupsFilterReplacementUsername {
+			groupFilter = strings.ReplaceAll(groupFilter, "{username}", ldap.EscapeFilter(profile.Username))
+		}
+
+		if p.groupsFilterReplacementDN {
+			groupFilter = strings.ReplaceAll(groupFilter, "{dn}", ldap.EscapeFilter(profile.DN))
+		}
 	}
 
 	p.logger.Tracef("Computed groups filter is %s", groupFilter)
@@ -338,6 +365,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 			p.logger.Warningf("No groups retrieved from LDAP for user %s", inputUsername)
 			break
 		}
+
 		// Append all values of the document. Normally there should be only one per document.
 		groups = append(groups, res.Attributes[0].Values...)
 	}
