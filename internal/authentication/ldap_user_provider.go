@@ -16,7 +16,7 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// LDAPUserProvider is a provider using a LDAP or AD as a user database.
+// LDAPUserProvider is a UserProvider that connects to LDAP servers like ActiveDirectory, OpenLDAP, OpenDJ, FreeIPA, etc.
 type LDAPUserProvider struct {
 	configuration     schema.LDAPAuthenticationBackendConfiguration
 	tlsConfig         *tls.Config
@@ -24,15 +24,18 @@ type LDAPUserProvider struct {
 	logger            *logrus.Logger
 	connectionFactory LDAPConnectionFactory
 
-	// Dynamically generated values.
-	usersBaseDN  string
-	groupsBaseDN string
-
+	// Automatically detected ldap features.
 	supportExtensionPasswdModify bool
 
+	// Dynamically generated users values.
+	usersBaseDN                      string
+	usersAttributes                  []string
 	usersFilterReplacementInput      bool
 	usersFilterReplacementEpochWin32 bool
 
+	// Dynamically generated groups values.
+	groupsBaseDN                    string
+	groupsAttributes                []string
 	groupsFilterReplacementInput    bool
 	groupsFilterReplacementUsername bool
 	groupsFilterReplacementDN       bool
@@ -82,96 +85,10 @@ func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 		connectionFactory: factory,
 	}
 
-	provider.parseDynamicConfiguration()
+	provider.parseDynamicUsersConfiguration()
+	provider.parseDynamicGroupsConfiguration()
 
 	return provider
-}
-
-func (p *LDAPUserProvider) parseDynamicConfiguration() {
-	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{username_attribute}", p.configuration.UsernameAttribute)
-	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{mail_attribute}", p.configuration.MailAttribute)
-	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{display_name_attribute}", p.configuration.DisplayNameAttribute)
-
-	p.logger.Tracef("Dynamically generated users filter is %s", p.configuration.UsersFilter)
-
-	if p.configuration.AdditionalUsersDN != "" {
-		p.usersBaseDN = p.configuration.AdditionalUsersDN + "," + p.configuration.BaseDN
-	} else {
-		p.usersBaseDN = p.configuration.BaseDN
-	}
-
-	p.logger.Tracef("Dynamically generated users BaseDN is %s", p.usersBaseDN)
-
-	if p.configuration.AdditionalGroupsDN != "" {
-		p.groupsBaseDN = ldap.EscapeFilter(p.configuration.AdditionalGroupsDN + "," + p.configuration.BaseDN)
-	} else {
-		p.groupsBaseDN = p.configuration.BaseDN
-	}
-
-	p.logger.Tracef("Dynamically generated groups BaseDN is %s", p.groupsBaseDN)
-
-	if strings.Contains(p.configuration.UsersFilter, "{input}") {
-		p.usersFilterReplacementInput = true
-	}
-
-	if strings.Contains(p.configuration.UsersFilter, "{epoch:win32}") {
-		p.usersFilterReplacementEpochWin32 = true
-	}
-
-	p.logger.Tracef("Detected user filter replacements that need to be resolved per lookup are: input=%v, epoch:win32=%v", p.usersFilterReplacementInput, p.usersFilterReplacementEpochWin32)
-
-	if strings.Contains(p.configuration.GroupsFilter, "{input}") {
-		p.groupsFilterReplacementInput = true
-	}
-
-	if strings.Contains(p.configuration.GroupsFilter, "{username}") {
-		p.groupsFilterReplacementUsername = true
-	}
-
-	if strings.Contains(p.configuration.GroupsFilter, "{dn}") {
-		p.groupsFilterReplacementDN = true
-	}
-
-	p.logger.Tracef("Detected group filter replacements that need to be resolved per lookup are: input=%v, username=%v, dn=%v", p.groupsFilterReplacementInput, p.groupsFilterReplacementUsername, p.groupsFilterReplacementDN)
-}
-
-func (p *LDAPUserProvider) checkServer() (err error) {
-	conn, err := p.connect(p.configuration.User, p.configuration.Password)
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	searchRequest := ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute}, nil)
-
-	sr, err := conn.Search(searchRequest)
-	if err != nil {
-		return err
-	}
-
-	if len(sr.Entries) != 1 {
-		return nil
-	}
-
-	// Iterate the attribute values to see what the server supports.
-	for _, attr := range sr.Entries[0].Attributes {
-		if attr.Name == ldapSupportedExtensionAttribute {
-			p.logger.Tracef("LDAP Supported Extension OIDs: %s", strings.Join(attr.Values, ", "))
-
-			for _, oid := range attr.Values {
-				if oid == ldapOIDPasswdModifyExtension {
-					p.supportExtensionPasswdModify = true
-					break
-				}
-			}
-
-			break
-		}
-	}
-
-	return nil
 }
 
 func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
@@ -231,35 +148,30 @@ type ldapUserProfile struct {
 	Username    string
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (userFilter string) {
-	userFilter = p.configuration.UsersFilter
+func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter string) {
+	filter = p.configuration.UsersFilter
 
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
-		userFilter = strings.ReplaceAll(userFilter, "{input}", p.ldapEscape(inputUsername))
+		filter = strings.ReplaceAll(filter, "{input}", p.ldapEscape(inputUsername))
 	}
 
 	if p.usersFilterReplacementEpochWin32 {
-		userFilter = strings.ReplaceAll(userFilter, "{epoch:win32}", strconv.FormatUint(utils.Win32EpochNow(), 10))
+		filter = strings.ReplaceAll(filter, "{epoch:win32}", strconv.FormatUint(utils.Win32EpochNow(), 10))
 	}
 
-	p.logger.Tracef("Computed user filter is %s", userFilter)
+	p.logger.Tracef("Computed user filter is %s", filter)
 
-	return userFilter
+	return filter
 }
 
 func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername string) (*ldapUserProfile, error) {
 	userFilter := p.resolveUsersFilter(inputUsername)
 
-	attributes := []string{"dn",
-		p.configuration.DisplayNameAttribute,
-		p.configuration.MailAttribute,
-		p.configuration.UsernameAttribute}
-
 	// Search for the given username.
 	searchRequest := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, userFilter, attributes, nil,
+		1, 0, false, userFilter, p.usersAttributes, nil,
 	)
 
 	sr, err := conn.Search(searchRequest)
@@ -305,27 +217,27 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	return &userProfile, nil
 }
 
-func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (groupFilter string, err error) { //nolint:unparam
-	groupFilter = p.configuration.GroupsFilter
+func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (filter string, err error) { //nolint:unparam
+	filter = p.configuration.GroupsFilter
 
 	if p.groupsFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
-		groupFilter = strings.ReplaceAll(p.configuration.GroupsFilter, "{input}", p.ldapEscape(inputUsername))
+		filter = strings.ReplaceAll(p.configuration.GroupsFilter, "{input}", p.ldapEscape(inputUsername))
 	}
 
 	if profile != nil {
 		if p.groupsFilterReplacementUsername {
-			groupFilter = strings.ReplaceAll(groupFilter, "{username}", ldap.EscapeFilter(profile.Username))
+			filter = strings.ReplaceAll(filter, "{username}", ldap.EscapeFilter(profile.Username))
 		}
 
 		if p.groupsFilterReplacementDN {
-			groupFilter = strings.ReplaceAll(groupFilter, "{dn}", ldap.EscapeFilter(profile.DN))
+			filter = strings.ReplaceAll(filter, "{dn}", ldap.EscapeFilter(profile.DN))
 		}
 	}
 
-	p.logger.Tracef("Computed groups filter is %s", groupFilter)
+	p.logger.Tracef("Computed groups filter is %s", filter)
 
-	return groupFilter, nil
+	return filter, nil
 }
 
 // GetDetails retrieve the groups a user belongs to.
@@ -349,7 +261,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 	// Search for the given username.
 	searchGroupRequest := ldap.NewSearchRequest(
 		p.groupsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		0, 0, false, groupsFilter, []string{p.configuration.GroupNameAttribute}, nil,
+		0, 0, false, groupsFilter, p.groupsAttributes, nil,
 	)
 
 	sr, err := conn.Search(searchGroupRequest)
