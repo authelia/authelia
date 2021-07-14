@@ -16,7 +16,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/mock v1.6.0
-	github.com/google/uuid v1.2.0
+	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.12.0
 	github.com/ory/fosite v0.40.2
 	github.com/ory/herodot v0.9.7
