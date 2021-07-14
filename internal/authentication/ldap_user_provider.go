@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
@@ -26,6 +27,9 @@ type LDAPUserProvider struct {
 	groupsBaseDN      string
 
 	supportExtensionPasswdModify bool
+
+	usersFilterReplacementInput      bool
+	usersFilterReplacementEpochWin32 bool
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
@@ -99,6 +103,16 @@ func (p *LDAPUserProvider) parseDynamicConfiguration() {
 	}
 
 	p.logger.Tracef("Dynamically generated groups BaseDN is %s", p.groupsBaseDN)
+
+	if strings.Contains(p.configuration.UsersFilter, "{input}") {
+		p.usersFilterReplacementInput = true
+	}
+
+	if strings.Contains(p.configuration.UsersFilter, "{epoch:win32}") {
+		p.usersFilterReplacementEpochWin32 = true
+	}
+
+	p.logger.Tracef("Detected user filter replacements that need to be resolved per lookup are: input=%v, epoch:win32=%v", p.usersFilterReplacementInput, p.usersFilterReplacementEpochWin32)
 }
 
 func (p *LDAPUserProvider) checkServer() (err error) {
@@ -200,8 +214,14 @@ type ldapUserProfile struct {
 func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, inputUsername string) string {
 	inputUsername = p.ldapEscape(inputUsername)
 
-	// The {input} placeholder is replaced by the users username input.
-	userFilter = strings.ReplaceAll(userFilter, "{input}", inputUsername)
+	if p.usersFilterReplacementInput {
+		// The {input} placeholder is replaced by the users username input.
+		userFilter = strings.ReplaceAll(userFilter, "{input}", inputUsername)
+	}
+
+	if p.usersFilterReplacementEpochWin32 {
+		userFilter = strings.ReplaceAll(userFilter, "{epoch:win32}", strconv.FormatUint(utils.Win32EpochNow(), 10))
+	}
 
 	p.logger.Tracef("Computed user filter is %s", userFilter)
 

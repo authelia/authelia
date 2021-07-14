@@ -76,3 +76,27 @@ func TestShouldTimeIntervalsMakeSense(t *testing.T) {
 	assert.Equal(t, Year, Day*365)
 	assert.Equal(t, Month, Year/12)
 }
+
+func TestShouldConvertKnownUnixNanoTimeToKnownWin32Epoch(t *testing.T) {
+	exampleNanoTime := int64(1626234411 * 1000000000)
+	win32Epoch := uint64(132707080110000000)
+
+	assert.Equal(t, win32Epoch, UnixNanoTimeToWin32Epoch(exampleNanoTime))
+	assert.Equal(t, unixEpochAsWin32Epoch, UnixNanoTimeToWin32Epoch(0))
+}
+
+func TestShouldConvertKnownWin32EpochToTime(t *testing.T) {
+	win32Epoch := uint64(132707080110000000)
+	native := time.Unix(1626234411, 0)
+
+	result, err := Win32EpochToTime(win32Epoch)
+
+	assert.NoError(t, err)
+	assert.Equal(t, native, result)
+}
+
+func TestShouldReturnErrOnWin32EpochTimeTooLow(t *testing.T) {
+	_, err := Win32EpochToTime(0)
+
+	assert.EqualError(t, err, "can't convert that epoch to native time as it is before the unix epoch")
+}

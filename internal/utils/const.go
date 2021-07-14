@@ -25,6 +25,12 @@ const (
 	// TLS10 is the textual representation of TLS 1.0.
 	TLS10 = "1.0"
 
+	clean   = "clean"
+	tagged  = "tagged"
+	unknown = "unknown"
+)
+
+const (
 	// Hour is an int based representation of the time unit.
 	Hour = time.Minute * 60
 
@@ -40,9 +46,9 @@ const (
 	// Month is an int based representation of the time unit.
 	Month = Year / 12
 
-	clean   = "clean"
-	tagged  = "tagged"
-	unknown = "unknown"
+	// unixEpochAsWin32Epoch represents the unix epoch as a w32 epoch.
+	// The w32 epoch is ticks since Jan 1, 1601 (1 tick is 100ns).
+	unixEpochAsWin32Epoch uint64 = 116444736000000000
 )
 
 // ErrTimeoutReached error thrown when a timeout is reached.
