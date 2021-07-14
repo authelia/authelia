@@ -123,7 +123,7 @@ func validateLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationB
 	case schema.LDAPImplementationFreeIPA:
 		setDefaultImplementationFreeIPALDAPAuthenticationBackend(configuration)
 	default:
-		validator.Push(fmt.Errorf("authentication backend ldap implementation must be blank or one of the following values `%s`, `%s`", schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory))
+		validator.Push(fmt.Errorf("authentication backend ldap implementation must be blank or one of the following values '%s', '%s', '%s'", schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory, schema.LDAPImplementationFreeIPA))
 	}
 
 	if strings.Contains(configuration.UsersFilter, "{0}") {

@@ -35,6 +35,19 @@ func TestShouldRaiseErrorWhenNoBackendProvided(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "Please provide `ldap` or `file` object in `authentication_backend`")
 }
 
+func TestShouldSetFreeIPADefaults(t *testing.T) {
+	validator := schema.NewStructValidator()
+	backendConfig := &schema.AuthenticationBackendConfiguration{
+		LDAP: &schema.LDAPAuthenticationBackendConfiguration{
+			Implementation: schema.LDAPImplementationFreeIPA,
+		},
+	}
+
+	ValidateAuthenticationBackend(backendConfig, validator)
+
+	assert.Equal(t, "dn", backendConfig.LDAP.DistinguishedNameAttribute)
+}
+
 type FileBasedAuthenticationBackend struct {
 	suite.Suite
 	configuration schema.AuthenticationBackendConfiguration
@@ -249,7 +262,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenImplementat
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication backend ldap implementation must be blank or one of the following values `custom`, `activedirectory`")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication backend ldap implementation must be blank or one of the following values 'custom', 'activedirectory', 'freeipa'")
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenURLNotProvided() {
