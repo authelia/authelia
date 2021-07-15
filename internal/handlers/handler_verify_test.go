@@ -730,6 +730,31 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	assert.Equal(t, clock.Now().Unix(), newUserSession.LastActivity)
 }
 
+func TestShouldRedirectWithCorrectStatusCodeBasedOnRequestMethod(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(t, "Found. Redirecting to https://login.example.com?rd=https%3A%2F%2Ftwo-factor.example.com&rm=GET",
+		string(mock.Ctx.Response.Body()))
+	assert.Equal(t, 302, mock.Ctx.Response.StatusCode())
+
+	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "POST")
+
+	VerifyGet(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(t, "See Other. Redirecting to https://login.example.com?rd=https%3A%2F%2Ftwo-factor.example.com&rm=POST",
+		string(mock.Ctx.Response.Body()))
+	assert.Equal(t, 303, mock.Ctx.Response.StatusCode())
+}
+
 func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
