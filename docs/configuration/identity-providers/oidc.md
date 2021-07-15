@@ -8,7 +8,7 @@ nav_order: 2
 
 # OpenID Connect
 
-**Authelia** currently supports the [OpenID Connect] OP role as a [**beta**](#beta) feature. The OP role is the 
+**Authelia** currently supports the [OpenID Connect] OP role as a [**beta**](#roadmap) feature. The OP role is the 
 [OpenID Connect] Provider role, not the Relaying Party or RP role. This means other applications that implement the 
 [OpenID Connect] RP role can use Authelia as an authentication and authorization backend similar to how you may use 
 social media or development platforms for login.
@@ -84,11 +84,17 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage">General Availability after previous stages are vetted for bug fixes</td>
       </tr>
       <tr>
-        <td rowspan="2" class="tbl-header">misc</td>
+        <td rowspan="4" class="tbl-header">misc</td>
         <td>List of other features that may be implemented</td>
       </tr>
       <tr>
         <td class="tbl-beta-stage"><a href="https://openid.net/specs/openid-connect-frontchannel-1_0.html" target="_blank" rel="noopener noreferrer">Front-Channel Logout</a> <sup>2</sup></td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage"><a href="https://datatracker.ietf.org/doc/html/rfc8414" target="_blank" rel="noopener noreferrer">OAuth 2.0 Authorization Server Metadata</a> <sup>2</sup></td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage"><a href="https://openid.net/specs/openid-connect-session-1_0-17.html" target="_blank" rel="noopener noreferrer">OpenID Connect Session Management</a> <sup>2</sup></td>
       </tr>
     </tbody>
 </table>
@@ -162,7 +168,7 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
-The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's.[¹](../../faq.md#why_only_use_a_private_issue_key_with_oidc)
+The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's.[¹](../../faq.md#why-only-use-a-private-issuer-key-and-no-public-key-with-oidc)
 You must [generate this option yourself](#generating-a-random-secret). To create this option, use
 `docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia rsa generate --dir /keys`
 to generate both the private and public key in the current directory. You can then paste the
@@ -469,10 +475,8 @@ Authelia via https://auth.example.com, the discovery URL is https://auth.example
 |Authorization|api/oidc/authorize              |
 |Token        |api/oidc/token                  |
 |Introspection|api/oidc/introspect             |
-|Revoke       |api/oidc/revoke                 |
+|Revocation   |api/oidc/revoke                 |
 |Userinfo     |api/oidc/userinfo               |
-
-[//]: # (Links)
 
 [OpenID Connect]: https://openid.net/connect/
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration

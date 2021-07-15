@@ -381,7 +381,7 @@ access in desired situations. Examples include denying access to an API that has
 ### bypass
 
 This policy skips all authentication and allows anyone to use the resource. This policy is not available with a rule
-that includes a [subject](#Subjects) restriction because the minimum authentication level required to obtain information 
+that includes a [subject](#subject) restriction because the minimum authentication level required to obtain information 
 about the subject is [one_factor](#one_factor).
 
 ### one_factor
