@@ -12,7 +12,7 @@ If you don't have a SQL server, you can use [SQLite](https://en.wikipedia.org/wi
 However please note that this setup will prevent you from running multiple
 instances of Authelia since the database will be a local file.
 
-Use of this storage provider leaves Authelia [stateful](../features/statelessness.md). It's important in highly
+Use of this storage provider leaves Authelia [stateful](../../features/statelessness.md). It's important in highly
 available scenarios to use one of the other providers, and we highly recommend it in production environments, but this
 requires you setup an external database.
 
