@@ -339,6 +339,8 @@ confidentiality of credentials, you can read more about client types in [RFC6749
 This is particularly useful for SPA's and CLI tools. This option requires setting the [client secret](#secret) to a 
 blank string.
 
+In addition to the standard rules for redirect URIs, public clients can use the `urn:ietf:wg:oauth:2.0:oob` redirect URI.
+
 #### authorization_policy
 
 <div markdown="1">
@@ -396,6 +398,7 @@ their redirect URIs are as follows:
    attempt to authorize wil fail and an error will be generated.
 2. The redirect URIs are case-sensitive. 
 3. The URI must include a scheme and that scheme must be one of `http` or `https`.
+4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client.
 
 #### grant_types
 
