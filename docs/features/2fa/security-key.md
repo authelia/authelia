@@ -9,7 +9,7 @@ grand_parent: Features
 # Security Keys
 
 **Authelia** supports hardware-based second factors leveraging security keys like
-[Yubikeys](Yubikey).
+[YubiKey]'s.
 
 Security keys are among the most secure second factor. This method is already
 supported by many major applications and platforms like Google, Facebook, Github,
@@ -60,4 +60,4 @@ and might even be enabled on some of them. Please be sure your browser
 supports U2F and that the feature is enabled to make the option
 available in **Authelia**.
 
-[Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
+[YubiKey]: https://www.yubico.com/products/yubikey-5-overview/
