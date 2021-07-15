@@ -8,7 +8,7 @@ nav_order: 2
 
 # OpenID Connect
 
-**Authelia** currently supports the [OpenID Connect] OP role as a [**beta**](#beta) feature. The OP role is the 
+**Authelia** currently supports the [OpenID Connect] OP role as a [**beta**](#roadmap) feature. The OP role is the 
 [OpenID Connect] Provider role, not the Relaying Party or RP role. This means other applications that implement the 
 [OpenID Connect] RP role can use Authelia as an authentication and authorization backend similar to how you may use 
 social media or development platforms for login.
@@ -34,7 +34,7 @@ for which stage will have each feature, and may evolve over time:
     </thead>
     <tbody>
       <tr>
-        <td rowspan="7" class="tbl-header tbl-beta-stage">beta1</td>
+        <td rowspan="8" class="tbl-header tbl-beta-stage">beta1 (4.29.0)</td>
         <td><a href="https://openid.net/specs/openid-connect-core-1_0.html#Consent" target="_blank" rel="noopener noreferrer">User Consent</a></td>
       </tr>
       <tr>
@@ -56,8 +56,26 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage">Per Client List of Valid Redirection URI's</td>
       </tr>
       <tr>
-        <td rowspan="1" class="tbl-header tbl-beta-stage">beta2 <sup>1</sup></td>
+        <td class="tbl-beta-stage"><a href="https://datatracker.ietf.org/doc/html/rfc6749#section-2.1" target="_blank"rel="noopener noreferrer">Confidential Client Type</a></td>
+      </tr>
+      <tr>
+        <td rowspan="6" class="tbl-header tbl-beta-stage">beta2 (4.30.0) <sup>1</sup></td>
         <td class="tbl-beta-stage"><a href="https://openid.net/specs/openid-connect-core-1_0.html#UserInfo" target="_blank" rel="noopener noreferrer">Userinfo Endpoint</a> (missed in beta1)</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Parameter Entropy Configuration</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Token/Code Lifespan Configuration</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Client Debug Messages</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Client Audience</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage"><a href="https://datatracker.ietf.org/doc/html/rfc6749#section-2.1" target="_blank"rel="noopener noreferrer">Public Client Type</a></td>
       </tr>
       <tr>
         <td rowspan="2" class="tbl-header tbl-beta-stage">beta3 <sup>1</sup></td>
@@ -84,11 +102,17 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage">General Availability after previous stages are vetted for bug fixes</td>
       </tr>
       <tr>
-        <td rowspan="2" class="tbl-header">misc</td>
+        <td rowspan="4" class="tbl-header">misc</td>
         <td>List of other features that may be implemented</td>
       </tr>
       <tr>
         <td class="tbl-beta-stage"><a href="https://openid.net/specs/openid-connect-frontchannel-1_0.html" target="_blank" rel="noopener noreferrer">Front-Channel Logout</a> <sup>2</sup></td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage"><a href="https://datatracker.ietf.org/doc/html/rfc8414" target="_blank" rel="noopener noreferrer">OAuth 2.0 Authorization Server Metadata</a> <sup>2</sup></td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage"><a href="https://openid.net/specs/openid-connect-session-1_0-17.html" target="_blank" rel="noopener noreferrer">OpenID Connect Session Management</a> <sup>2</sup></td>
       </tr>
     </tbody>
 </table>
@@ -111,20 +135,22 @@ identity_providers:
     access_token_lifespan: 1h
     authorize_code_lifespan: 1m
     id_token_lifespan: 1h
-    refresh_token_lifespan: 720h
+    refresh_token_lifespan: 90m
     enable_client_debug_messages: false
     clients:
       - id: myapp
         description: My Application
         secret: this_is_a_secret
+        public: false
         authorization_policy: two_factor
-        redirect_uris:
-          - https://oidc.example.com:8080/oauth2/callback
+        audience: []
         scopes:
           - openid
           - groups
           - email
           - profile
+        redirect_uris:
+          - https://oidc.example.com:8080/oauth2/callback
         grant_types:
           - refresh_token
           - authorization_code
@@ -162,7 +188,7 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
-The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's.[¹](../../faq.md#why_only_use_a_private_issue_key_with_oidc)
+The private key in DER base64 encoded PEM format used to encrypt the [OpenID Connect] JWT's.[¹](../../faq.md#why-only-use-a-private-issuer-key-and-no-public-key-with-oidc)
 You must [generate this option yourself](#generating-a-random-secret). To create this option, use
 `docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia rsa generate --dir /keys`
 to generate both the private and public key in the current directory. You can then paste the
@@ -216,7 +242,7 @@ The maximum lifetime of an ID token. For more information read these docs about 
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
-default: 30d
+default: 90m
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
@@ -225,6 +251,11 @@ required: no
 The maximum lifetime of a refresh token. The
 refresh token can be used to obtain new refresh tokens as well as access tokens or id tokens with an
 up-to-date expiration. For more information read these docs about [token lifespan].
+
+A good starting point is 50% more or 30 minutes more (which ever is less) time than the highest lifespan out of the 
+[access token lifespan](#access_token_lifespan), the [authorize code lifespan](#authorize_code_lifespan), and the
+[id token lifespan](#id_token_lifespan). For instance the default for all of these is 60 minutes, so the default refresh
+token lifespan is 90 minutes.
 
 ### enable_client_debug_messages
 
@@ -290,13 +321,34 @@ A friendly description for this client shown in the UI. This defaults to the sam
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
-required: yes
-{: .label .label-config .label-red }
+required: situational
+{: .label .label-config .label-yellow }
 </div>
 
 The shared secret between Authelia and the application consuming this client. This secret must
 match the secret configured in the application. Currently this is stored in plain text.
 You must [generate this option yourself](#generating-a-random-secret).
+
+This must be provided when the client is a confidential client type, and must be blank when using the public client
+type. To set the client type to public see the [public](#public) configuration option.
+
+#### public
+
+<div markdown="1">
+type: bool
+{: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+This enables the public client type for this client. This is for clients that are not capable of maintaining 
+confidentiality of credentials, you can read more about client types in [RFC6749](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1).
+This is particularly useful for SPA's and CLI tools. This option requires setting the [client secret](#secret) to a 
+blank string.
+
+In addition to the standard rules for redirect URIs, public clients can use the `urn:ietf:wg:oauth:2.0:oob` redirect URI.
 
 #### authorization_policy
 
@@ -311,18 +363,16 @@ required: no
 
 The authorization policy for this client: either `one_factor` or `two_factor`.
 
-#### redirect_uris
+#### audience
 
 <div markdown="1">
 type: list(string)
-{: .label .label-config .label-purple }
-required: yes
-{: .label .label-config .label-red }
+{: .label .label-config .label-purple } 
+required: no
+{: .label .label-config .label-green }
 </div>
 
-A list of valid callback URL´s this client will redirect to. All other callbacks will be considered
-unsafe. The URL's are case-sensitive and they differ from application to application - the community has
-provided [a list of URL´s for common applications](../../community/oidc-integrations.md).
+A list of audiences this client is allowed to request.
 
 #### scopes
 
@@ -338,6 +388,28 @@ required: no
 A list of scopes to allow this client to consume. See [scope definitions](#scope-definitions) for more
 information. The documentation for the application you want to use with Authelia will most-likely provide
 you with the scopes to allow.
+
+#### redirect_uris
+
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+A list of valid callback URIs this client will redirect to. All other callbacks will be considered
+unsafe. The URIs are case-sensitive and they differ from application to application - the community has
+provided [a list of URL´s for common applications](../../community/oidc-integrations.md).
+
+Some restrictions that have been placed on clients and
+their redirect URIs are as follows:
+
+1. If a client attempts to authorize with Authelia and its redirect URI is not listed in the client configuration the
+   attempt to authorize wil fail and an error will be generated.
+2. The redirect URIs are case-sensitive. 
+3. The URI must include a scheme and that scheme must be one of `http` or `https`.
+4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client type.
 
 #### grant_types
 
@@ -469,10 +541,8 @@ Authelia via https://auth.example.com, the discovery URL is https://auth.example
 |Authorization|api/oidc/authorize              |
 |Token        |api/oidc/token                  |
 |Introspection|api/oidc/introspect             |
-|Revoke       |api/oidc/revoke                 |
+|Revocation   |api/oidc/revoke                 |
 |Userinfo     |api/oidc/userinfo               |
-
-[//]: # (Links)
 
 [OpenID Connect]: https://openid.net/connect/
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
