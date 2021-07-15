@@ -364,6 +364,7 @@ required: no
 The authorization policy for this client: either `one_factor` or `two_factor`.
 
 #### audience
+
 <div markdown="1">
 type: list(string)
 {: .label .label-config .label-purple } 
@@ -389,6 +390,7 @@ information. The documentation for the application you want to use with Authelia
 you with the scopes to allow.
 
 #### redirect_uris
+
 <div markdown="1">
 type: list(string)
 {: .label .label-config .label-purple }
