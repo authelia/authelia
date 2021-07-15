@@ -407,7 +407,7 @@ their redirect URIs are as follows:
    attempt to authorize wil fail and an error will be generated.
 2. The redirect URIs are case-sensitive. 
 3. The URI must include a scheme and that scheme must be one of `http` or `https`.
-4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client.
+4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client type.
 
 #### grant_types
 
