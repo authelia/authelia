@@ -128,6 +128,36 @@ func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
 	s.Assert().Equal(res.StatusCode, 200)
 }
 
+func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify?rd=%s", AutheliaBaseURL, GetLoginBaseURL()), nil)
+	s.Assert().NoError(err)
+	req.Header.Set("X-Forwarded-Method", "GET")
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Host", fmt.Sprintf("secure.%s", BaseDomain))
+	req.Header.Set("X-Forwarded-URI", "/")
+
+	client := NewHTTPClient()
+	res, err := client.Do(req)
+	s.Assert().NoError(err)
+	s.Assert().Equal(res.StatusCode, 302)
+	body, err := ioutil.ReadAll(res.Body)
+	s.Assert().NoError(err)
+
+	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
+	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s&rm=GET", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
+
+	req.Header.Set("X-Forwarded-Method", "POST")
+
+	res, err = client.Do(req)
+	s.Assert().NoError(err)
+	s.Assert().Equal(res.StatusCode, 303)
+	body, err = ioutil.ReadAll(res.Body)
+	s.Assert().NoError(err)
+
+	urlEncodedAdminURL = url.QueryEscape(SecureBaseURL + "/")
+	s.Assert().Equal(fmt.Sprintf("See Other. Redirecting to %s?rd=%s&rm=POST", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
+}
+
 // Standard case using nginx.
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorize() {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify", AutheliaBaseURL), nil)

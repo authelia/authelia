@@ -228,8 +228,15 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		}
 
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, redirecting to %s", targetURL.String(), friendlyMethod, friendlyUsername, redirectionURL)
-		ctx.Redirect(redirectionURL, 302)
-		ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
+
+		switch rm {
+		case fasthttp.MethodGet, fasthttp.MethodHead, "":
+			ctx.Redirect(redirectionURL, 302)
+			ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
+		default:
+			ctx.Redirect(redirectionURL, 303)
+			ctx.SetBodyString(fmt.Sprintf("See Other. Redirecting to %s", redirectionURL))
+		}
 	} else {
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, sending 401 response", targetURL.String(), friendlyMethod, friendlyUsername)
 		ctx.ReplyUnauthorized()
