@@ -15,7 +15,7 @@ nav_order: 4
 - Grafana (>= 8.0.5)
 - MinIO (missing JWT claims / policies, see [minio/minio#12722])
 
-[minio/minio#11398]: https://github.com/minio/minio/issues/11398
+[minio/minio#12722]: https://github.com/minio/minio/issues/12722
 
 ## Known Callback URLs
 
