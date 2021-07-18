@@ -274,26 +274,11 @@ func (c AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
 // SpecialRedirect performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes body
 // content in the form of a link to the location.
 func (c *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
-	var statusCodeText string
-
-	switch statusCode {
-	case fasthttp.StatusMovedPermanently:
-		statusCodeText = statusTextMovedPermanently
-	case fasthttp.StatusFound:
-		statusCodeText = statusTextFound
-	case fasthttp.StatusSeeOther:
-		statusCodeText = statusTextSeeOther
-	case fasthttp.StatusTemporaryRedirect:
-		statusCodeText = statusTextTemporaryRedirect
-	case fasthttp.StatusPermanentRedirect:
-		statusCodeText = statusTextPermanentRedirect
-	case fasthttp.StatusUnauthorized:
-		statusCodeText = statusTextUnauthorized
-	default:
-		statusCodeText = statusTextFound
+	if statusCode < fasthttp.StatusMovedPermanently || (statusCode > fasthttp.StatusSeeOther && statusCode != fasthttp.StatusTemporaryRedirect && statusCode != fasthttp.StatusPermanentRedirect && statusCode != fasthttp.StatusUnauthorized) {
 		statusCode = fasthttp.StatusFound
 	}
 
+	c.SetContentType(contentTypeTextHTML)
 	c.SetStatusCode(statusCode)
 
 	u := fasthttp.AcquireURI()
@@ -302,10 +287,8 @@ func (c *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 	u.Update(uri)
 
 	c.Response.Header.SetBytesV("Location", u.FullURI())
-	c.SetContentType(contentTypeTextHTML)
-	c.SetStatusCode(statusCode)
 
-	c.SetBodyString(fmt.Sprintf("<a href=\"%s\">%s</a>", utils.StringHTMLEscape(string(u.FullURI())), statusCodeText))
+	c.SetBodyString(fmt.Sprintf("<a href=\"%s\">%s</a>", utils.StringHTMLEscape(string(u.FullURI())), fasthttp.StatusMessage(statusCode)))
 
 	fasthttp.ReleaseURI(u)
 }

@@ -16,15 +16,6 @@ const (
 )
 
 const (
-	statusTextMovedPermanently  = "Moved Permanently"
-	statusTextFound             = "Found"
-	statusTextSeeOther          = "See Other"
-	statusTextTemporaryRedirect = "Temporary Redirect"
-	statusTextPermanentRedirect = "Permanent Redirect"
-	statusTextUnauthorized      = "Unauthorized"
-)
-
-const (
 	contentTypeApplicationJSON = "application/json"
 	contentTypeTextHTML        = "text/html"
 )
