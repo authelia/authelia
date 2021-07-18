@@ -38,7 +38,7 @@ var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewar
 	MailTitle:             "Reset your password",
 	MailButtonContent:     "Reset",
 	TargetEndpoint:        "/reset-password/step2",
-	ActionClaim:           ResetPasswordAction,
+	ActionClaim:           ActionResetPassword,
 	IdentityRetrieverFunc: identityRetrieverFromStorage,
 })
 
@@ -57,4 +57,4 @@ func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) 
 
 // ResetPasswordIdentityFinish the handler for finishing the identity validation.
 var ResetPasswordIdentityFinish = middlewares.IdentityVerificationFinish(
-	middlewares.IdentityVerificationFinishArgs{ActionClaim: ResetPasswordAction}, resetPasswordIdentityFinish)
+	middlewares.IdentityVerificationFinishArgs{ActionClaim: ActionResetPassword}, resetPasswordIdentityFinish)

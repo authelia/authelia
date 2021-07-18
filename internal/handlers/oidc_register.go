@@ -11,22 +11,22 @@ func RegisterOIDC(router *router.Router, middleware middlewares.RequestHandlerBr
 	// TODO: Add OPTIONS handler.
 	router.GET("/.well-known/openid-configuration", middleware(oidcWellKnown))
 
-	router.GET(oidcConsentPath, middleware(oidcConsent))
+	router.GET(pathOpenIDConnectConsent, middleware(oidcConsent))
 
-	router.POST(oidcConsentPath, middleware(oidcConsentPOST))
+	router.POST(pathOpenIDConnectConsent, middleware(oidcConsentPOST))
 
-	router.GET(oidcJWKsPath, middleware(oidcJWKs))
+	router.GET(pathOpenIDConnectJWKs, middleware(oidcJWKs))
 
-	router.GET(oidcAuthorizePath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcAuthorize)))
-
-	// TODO: Add OPTIONS handler.
-	router.POST(oidcTokenPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcToken)))
-
-	router.POST(oidcIntrospectPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcIntrospect)))
-
-	router.GET(oidcUserinfoPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcUserinfo)))
-	router.POST(oidcUserinfoPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcUserinfo)))
+	router.GET(pathOpenIDConnectAuthorization, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcAuthorize)))
 
 	// TODO: Add OPTIONS handler.
-	router.POST(oidcRevokePath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcRevoke)))
+	router.POST(pathOpenIDConnectToken, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcToken)))
+
+	router.POST(pathOpenIDConnectIntrospection, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcIntrospect)))
+
+	router.GET(pathOpenIDConnectUserinfo, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcUserinfo)))
+	router.POST(pathOpenIDConnectUserinfo, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcUserinfo)))
+
+	// TODO: Add OPTIONS handler.
+	router.POST(pathOpenIDConnectRevocation, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcRevoke)))
 }

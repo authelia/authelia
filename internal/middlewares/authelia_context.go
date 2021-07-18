@@ -43,7 +43,7 @@ func AutheliaMiddleware(configuration schema.Configuration, providers Providers)
 		return func(ctx *fasthttp.RequestCtx) {
 			autheliaCtx, err := NewAutheliaCtx(ctx, configuration, providers)
 			if err != nil {
-				autheliaCtx.Error(err, operationFailedMessage)
+				autheliaCtx.Error(err, messageOperationFailed)
 				return
 			}
 
@@ -60,7 +60,7 @@ func (c *AutheliaCtx) Error(err error, message string) {
 		c.Logger.Error(marshalErr)
 	}
 
-	c.SetContentType("application/json")
+	c.SetContentType(contentTypeApplicationJSON)
 	c.SetBody(b)
 	c.Logger.Error(err)
 }
@@ -73,7 +73,7 @@ func (c *AutheliaCtx) ReplyError(err error, message string) {
 		c.Logger.Error(marshalErr)
 	}
 
-	c.SetContentType("application/json")
+	c.SetContentType(contentTypeApplicationJSON)
 	c.SetBody(b)
 	c.Logger.Debug(err)
 }
@@ -95,22 +95,22 @@ func (c *AutheliaCtx) ReplyBadRequest() {
 
 // XForwardedProto return the content of the X-Forwarded-Proto header.
 func (c *AutheliaCtx) XForwardedProto() []byte {
-	return c.RequestCtx.Request.Header.Peek(xForwardedProtoHeader)
+	return c.RequestCtx.Request.Header.Peek(headerXForwardedProto)
 }
 
 // XForwardedMethod return the content of the X-Forwarded-Method header.
 func (c *AutheliaCtx) XForwardedMethod() []byte {
-	return c.RequestCtx.Request.Header.Peek(xForwardedMethodHeader)
+	return c.RequestCtx.Request.Header.Peek(headerXForwardedMethod)
 }
 
 // XForwardedHost return the content of the X-Forwarded-Host header.
 func (c *AutheliaCtx) XForwardedHost() []byte {
-	return c.RequestCtx.Request.Header.Peek(xForwardedHostHeader)
+	return c.RequestCtx.Request.Header.Peek(headerXForwardedHost)
 }
 
 // XForwardedURI return the content of the X-Forwarded-URI header.
 func (c *AutheliaCtx) XForwardedURI() []byte {
-	return c.RequestCtx.Request.Header.Peek(xForwardedURIHeader)
+	return c.RequestCtx.Request.Header.Peek(headerXForwardedURI)
 }
 
 // ForwardedProtoHost gets the X-Forwarded-Proto and X-Forwarded-Host headers and forms them into a URL.
@@ -133,7 +133,7 @@ func (c AutheliaCtx) ForwardedProtoHost() (string, error) {
 
 // XOriginalURL return the content of the X-Original-URL header.
 func (c *AutheliaCtx) XOriginalURL() []byte {
-	return c.RequestCtx.Request.Header.Peek(xOriginalURLHeader)
+	return c.RequestCtx.Request.Header.Peek(headerXOriginalURL)
 }
 
 // GetSession return the user session. Any update will be saved in cache.
@@ -154,7 +154,7 @@ func (c *AutheliaCtx) SaveSession(userSession session.UserSession) error {
 
 // ReplyOK is a helper method to reply ok.
 func (c *AutheliaCtx) ReplyOK() {
-	c.SetContentType(applicationJSONContentType)
+	c.SetContentType(contentTypeApplicationJSON)
 	c.SetBody(okMessageBytes)
 }
 
@@ -186,7 +186,7 @@ func (c *AutheliaCtx) SetJSONBody(value interface{}) error {
 		return fmt.Errorf("Unable to marshal JSON body")
 	}
 
-	c.SetContentType("application/json")
+	c.SetContentType(contentTypeApplicationJSON)
 	c.SetBody(b)
 
 	return nil
@@ -248,4 +248,64 @@ func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 		"to construct targeted site URL")
 
 	return parsedURL, nil
+}
+
+// IsXHR returns true if the request is a XMLHttpRequest.
+func (c AutheliaCtx) IsXHR() (xhr bool) {
+	requestedWith := c.Request.Header.Peek(headerXRequestedWith)
+
+	return requestedWith != nil && string(requestedWith) == headerValueXRequestedWithXHR
+}
+
+// AcceptsMIME takes a mime type and returns true if the request accepts that type or the wildcard type.
+func (c AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
+	accepts := strings.Split(string(c.Request.Header.Peek("Accept")), ",")
+
+	for i, accept := range accepts {
+		mimeType := strings.Trim(strings.SplitN(accept, ";", 2)[0], " ")
+		if mimeType == mime || (i == 0 && mimeType == "*/*") {
+			return true
+		}
+	}
+
+	return false
+}
+
+// SpecialRedirect performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes body
+// content in the form of a link to the location.
+func (c *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
+	var statusCodeText string
+
+	switch statusCode {
+	case fasthttp.StatusMovedPermanently:
+		statusCodeText = statusTextMovedPermanently
+	case fasthttp.StatusFound:
+		statusCodeText = statusTextFound
+	case fasthttp.StatusSeeOther:
+		statusCodeText = statusTextSeeOther
+	case fasthttp.StatusTemporaryRedirect:
+		statusCodeText = statusTextTemporaryRedirect
+	case fasthttp.StatusPermanentRedirect:
+		statusCodeText = statusTextPermanentRedirect
+	case fasthttp.StatusUnauthorized:
+		statusCodeText = statusTextUnauthorized
+	default:
+		statusCodeText = statusTextFound
+		statusCode = fasthttp.StatusFound
+	}
+
+	c.SetStatusCode(statusCode)
+
+	u := fasthttp.AcquireURI()
+
+	c.URI().CopyTo(u)
+	u.Update(uri)
+
+	c.Response.Header.SetBytesV("Location", u.FullURI())
+	c.SetContentType(contentTypeTextHTML)
+	c.SetStatusCode(statusCode)
+
+	c.SetBodyString(fmt.Sprintf("<a href=\"%s\">%s</a>", utils.StringHTMLEscape(string(u.FullURI())), statusCodeText))
+
+	fasthttp.ReleaseURI(u)
 }

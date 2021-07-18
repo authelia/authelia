@@ -2,19 +2,39 @@ package middlewares
 
 const jwtIssuer = "Authelia"
 
-const xForwardedProtoHeader = "X-Forwarded-Proto"
-const xForwardedMethodHeader = "X-Forwarded-Method"
-const xForwardedHostHeader = "X-Forwarded-Host"
-const xForwardedURIHeader = "X-Forwarded-URI"
+const (
+	headerXForwardedProto  = "X-Forwarded-Proto"
+	headerXForwardedMethod = "X-Forwarded-Method"
+	headerXForwardedHost   = "X-Forwarded-Host"
+	headerXForwardedURI    = "X-Forwarded-URI"
+	headerXOriginalURL     = "X-Original-URL"
+	headerXRequestedWith   = "X-Requested-With"
+)
 
-const xOriginalURLHeader = "X-Original-URL"
+const (
+	headerValueXRequestedWithXHR = "XMLHttpRequest"
+)
 
-const applicationJSONContentType = "application/json"
+const (
+	statusTextMovedPermanently  = "Moved Permanently"
+	statusTextFound             = "Found"
+	statusTextSeeOther          = "See Other"
+	statusTextTemporaryRedirect = "Temporary Redirect"
+	statusTextPermanentRedirect = "Permanent Redirect"
+	statusTextUnauthorized      = "Unauthorized"
+)
+
+const (
+	contentTypeApplicationJSON = "application/json"
+	contentTypeTextHTML        = "text/html"
+)
 
 var okMessageBytes = []byte("{\"status\":\"OK\"}")
 
-const operationFailedMessage = "Operation failed"
-const identityVerificationTokenAlreadyUsedMessage = "The identity verification token has already been used"
-const identityVerificationTokenHasExpiredMessage = "The identity verification token has expired"
+const (
+	messageOperationFailed                      = "Operation failed"
+	messageIdentityVerificationTokenAlreadyUsed = "The identity verification token has already been used"
+	messageIdentityVerificationTokenHasExpired  = "The identity verification token has expired"
+)
 
 var protoHostSeparator = []byte("://")

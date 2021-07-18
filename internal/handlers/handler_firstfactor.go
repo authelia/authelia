@@ -16,7 +16,7 @@ func movingAverageIteration(value time.Duration, successful bool, movingAverageC
 	mutex.Lock()
 	if successful {
 		(*execDurationMovingAverage)[*movingAverageCursor] = value
-		*movingAverageCursor = (*movingAverageCursor + 1) % movingAverageWindow
+		*movingAverageCursor = (*movingAverageCursor + 1) % loginDelayMovingAverageWindow
 	}
 
 	var sum int64
@@ -26,12 +26,12 @@ func movingAverageIteration(value time.Duration, successful bool, movingAverageC
 	}
 	mutex.Unlock()
 
-	return float64(sum / movingAverageWindow)
+	return float64(sum / loginDelayMovingAverageWindow)
 }
 
 func calculateActualDelay(ctx *middlewares.AutheliaCtx, execDuration time.Duration, avgExecDurationMs float64, successful *bool) float64 {
-	randomDelayMs := float64(rand.Int63n(msMaximumRandomDelay)) //nolint:gosec // TODO: Consider use of crypto/rand, this should be benchmarked and measured first.
-	totalDelayMs := math.Max(avgExecDurationMs, msMinimumDelay1FA) + randomDelayMs
+	randomDelayMs := float64(rand.Int63n(loginDelayMaximumRandomDelayMilliseconds)) //nolint:gosec // TODO: Consider use of crypto/rand, this should be benchmarked and measured first.
+	totalDelayMs := math.Max(avgExecDurationMs, loginDelayMinimumDelayMilliseconds) + randomDelayMs
 	actualDelayMs := math.Max(totalDelayMs-float64(execDuration.Milliseconds()), 1.0)
 	ctx.Logger.Tracef("attempt successful: %t, exec duration: %d, avg execution duration: %d, random delay ms: %d, total delay ms: %d, actual delay ms: %d", *successful, execDuration.Milliseconds(), int64(avgExecDurationMs), int64(randomDelayMs), int64(totalDelayMs), int64(actualDelayMs))
 
@@ -48,7 +48,7 @@ func delayToPreventTimingAttacks(ctx *middlewares.AutheliaCtx, requestTime time.
 // FirstFactorPost is the handler performing the first factory.
 //nolint:gocyclo // TODO: Consider refactoring time permitting.
 func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middlewares.RequestHandler {
-	var execDurationMovingAverage = make([]time.Duration, movingAverageWindow)
+	var execDurationMovingAverage = make([]time.Duration, loginDelayMovingAverageWindow)
 
 	var movingAverageCursor = 0
 
@@ -73,7 +73,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		err := ctx.ParseBody(&bodyJSON)
 
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, err, authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, err, messageAuthenticationFailed)
 			return
 		}
 
@@ -81,11 +81,11 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		if err != nil {
 			if err == regulation.ErrUserIsBanned {
-				handleAuthenticationUnauthorized(ctx, fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), userBannedMessage)
+				handleAuthenticationUnauthorized(ctx, fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), messageUserBanned)
 				return
 			}
 
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regulate authentication: %s", err.Error()), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regulate authentication: %s", err.Error()), messageAuthenticationFailed)
 
 			return
 		}
@@ -99,7 +99,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 				ctx.Logger.Errorf("Unable to mark authentication: %s", err.Error())
 			}
 
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error while checking password for user %s: %s", bodyJSON.Username, err.Error()), messageAuthenticationFailed)
 
 			return
 		}
@@ -111,7 +111,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 				ctx.Logger.Errorf("Unable to mark authentication: %s", err.Error())
 			}
 
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Credentials are wrong for user %s", bodyJSON.Username), messageAuthenticationFailed)
 
 			return
 		}
@@ -120,7 +120,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		err = ctx.Providers.Regulator.Mark(bodyJSON.Username, true)
 
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to mark authentication: %s", err.Error()), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to mark authentication: %s", err.Error()), messageAuthenticationFailed)
 			return
 		}
 
@@ -134,14 +134,14 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		err = ctx.SaveSession(newSession)
 
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to reset the session for user %s: %s", bodyJSON.Username, err.Error()), messageAuthenticationFailed)
 			return
 		}
 
 		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", bodyJSON.Username, err.Error()), messageAuthenticationFailed)
 			return
 		}
 
@@ -152,7 +152,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		if keepMeLoggedIn {
 			err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, ctx.Providers.SessionProvider.RememberMe)
 			if err != nil {
-				handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+				handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update expiration timer for user %s: %s", bodyJSON.Username, err.Error()), messageAuthenticationFailed)
 				return
 			}
 		}
@@ -161,7 +161,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		userDetails, err := ctx.Providers.UserProvider.GetDetails(bodyJSON.Username)
 
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error while retrieving details from user %s: %s", bodyJSON.Username, err.Error()), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error while retrieving details from user %s: %s", bodyJSON.Username, err.Error()), messageAuthenticationFailed)
 			return
 		}
 
@@ -175,7 +175,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		err = ctx.SaveSession(userSession)
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to save session of user %s", bodyJSON.Username), authenticationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to save session of user %s", bodyJSON.Username), messageAuthenticationFailed)
 			return
 		}
 
