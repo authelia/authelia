@@ -763,13 +763,13 @@
   },"127": {
     "doc": "Community-Tested OIDC Integrations",
     "title": "Currently Tested Applications",
-    "content": ". | GitLab (&gt;= 13.0.0) | Grafana (&gt;= 8.0.5) | MinIO (missing JWT claims / policies, see minio/minio#12722) | . ",
+    "content": "| Application | Minimal Version | Notes | . | GitLab | 13.0.0 |   | . | Grafana | 8.0.5 |   | . | MinIO | RELEASE.2021-07-12T02-44-53Z | must set MINIO_IDENTITY_OPENID_CLAIM_NAME: groups in MinIO and set MinIO policies as groups in Authelia | . ",
     "url": "/docs/community/oidc-integrations.html#currently-tested-applications",
     "relUrl": "/community/oidc-integrations.html#currently-tested-applications"
   },"128": {
     "doc": "Community-Tested OIDC Integrations",
     "title": "Known Callback URLs",
-    "content": "If you do not find the application in the list below, you will need to search for yourself - and maybe come back to open a PR to add your application to this list so others won’t have to search for them. &lt;DOMAIN&gt; needs to be substituted with the full URL on which the application runs on. If GitLab, as an example, was reachable under https://gitlab.example.com, &lt;DOMAIN&gt; would be exactly the same. | Application | Version | Callback URL | . | GitLab | 14.0.1 | &lt;DOMAIN&gt;/users/auth/openid_connect/callback | . | MinIO | RELEASE.2021-07-12T02-44-53Z | &lt;DOMAIN&gt;/oauth_callback | . | MinIO | RELEASE.2021-06-17 | &lt;DOMAIN&gt;/minio/login/openid | . ",
+    "content": "If you do not find the application in the list below, you will need to search for yourself - and maybe come back to open a PR to add your application to this list so others won’t have to search for them. &lt;DOMAIN&gt; needs to be substituted with the full URL on which the application runs on. If GitLab, as an example, was reachable under https://gitlab.example.com, &lt;DOMAIN&gt; would be exactly the same. | Application | Version | Callback URL | . | GitLab | 14.0.1 | &lt;DOMAIN&gt;/users/auth/openid_connect/callback | . | MinIO | RELEASE.2021-07-12T02-44-53Z | &lt;DOMAIN&gt;/oauth_callback | . ",
     "url": "/docs/community/oidc-integrations.html#known-callback-urls",
     "relUrl": "/community/oidc-integrations.html#known-callback-urls"
   },"129": {
