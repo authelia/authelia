@@ -11,11 +11,13 @@ nav_order: 4
 
 ## Currently Tested Applications
 
-- GitLab (>= 13.0.0)
-- Grafana (>= 8.0.5)
-- MinIO (missing JWT claims / policies, see [minio/minio#12722])
+| Application | Minimal Version                | Notes   |
+| :---------: | :----------------------------: | :-----: |
+| GitLab      | `13.0.0`                       | |
+| Grafana     | `8.0.5`                        | |
+| MinIO       | `RELEASE.2021-07-12T02-44-53Z` | must set `MINIO_IDENTITY_OPENID_CLAIM_NAME: groups` in MinIO and set [MinIO policies] as groups in Authelia |
 
-[minio/minio#12722]: https://github.com/minio/minio/issues/12722
+[MinIO policies]: https://docs.min.io/minio/baremetal/security/minio-identity-management/policy-based-access-control.html#minio-policy
 
 ## Known Callback URLs
 
@@ -27,4 +29,3 @@ If you do not find the application in the list below, you will need to search fo
 | :---------: | :----------------------------: | :------------------------------------------------------: |
 | GitLab      | `14.0.1`                       | `<DOMAIN>/users/auth/openid_connect/callback`            |
 | MinIO       | `RELEASE.2021-07-12T02-44-53Z` | `<DOMAIN>/oauth_callback`                                |
-| MinIO       | `RELEASE.2021-06-17`           | `<DOMAIN>/minio/login/openid`                            |
