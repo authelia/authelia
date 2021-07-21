@@ -253,20 +253,8 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode, redirectionURL)
 		ctx.SpecialRedirect(redirectionURL, statusCode)
 	} else {
-		valueXAutheliaRedirectStatus := "303"
-
-		switch {
-		case ctx.IsXHR() || !ctx.AcceptsMIME("text/html"):
-			valueXAutheliaRedirectStatus = "401"
-		case rm == fasthttp.MethodGet, rm == fasthttp.MethodOptions, rm == "":
-			valueXAutheliaRedirectStatus = "302"
-		}
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d and header code %s", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode, valueXAutheliaRedirectStatus)
-
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode)
 		ctx.ReplyUnauthorized()
-		ctx.Response.Header.Set("X-Authelia-Redirect-Status", valueXAutheliaRedirectStatus)
-
-		ctx.Logger.Debugf("Header Set X-Authelia-Redirect-Status: %s", string(ctx.Response.Header.Peek("X-Authelia-Redirect-Status")))
 	}
 }
 
