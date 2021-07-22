@@ -13,11 +13,21 @@ type ServerConfiguration struct {
 
 // CORSConfiguration represents the configuration of the http server CORS configuration.
 type CORSConfiguration struct {
-	Disable bool `mapstructure:"disable"`
+	Enable           bool     `mapstructure:"enable"`
+	IncludeProtected bool     `mapstructure:"include_protected"`
+	Origins          []string `mapstructure:"origins,weak"`
+	Headers          []string `mapstructure:"headers,weak"`
+	Methods          []string `mapstructure:"methods,weak"`
+	Vary             []string `mapstructure:"vary,weak"`
+	MaxAge           int      `mapstructure:"max_age,weak"`
 }
 
 // DefaultServerConfiguration represents the default values of the ServerConfiguration.
 var DefaultServerConfiguration = ServerConfiguration{
 	ReadBufferSize:  4096,
 	WriteBufferSize: 4096,
+	CORS: CORSConfiguration{
+		Vary:   []string{"Accept-Encoding", "Origin"},
+		MaxAge: 100,
+	},
 }

@@ -21,6 +21,7 @@ const (
 	headerAccessControlAllowHeaders     = "Access-Control-Allow-Headers"
 	headerAccessControlAllowMethods     = "Access-Control-Allow-Methods"
 	headerAccessControlAllowCredentials = "Access-Control-Allow-Credentials"
+	headerAccessControlMaxAge           = "Access-Control-Max-Age"
 )
 
 const (

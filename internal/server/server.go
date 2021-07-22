@@ -30,6 +30,8 @@ var assets embed.FS
 
 func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
+	middlewareCORS := middlewares.CORS(&configuration.Server.CORS)
+
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
@@ -43,12 +45,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	r := router.New()
 
-	if configuration.Server.CORS.Disable {
-		r.GET("/", serveIndexHandler)
-	} else {
-		r.GET("/", autheliaMiddleware(middlewares.AutomaticCORSMiddleware(middlewares.AutheliaFastHTTPRequestHandlerMiddleware(serveIndexHandler))))
-		r.OPTIONS("/", autheliaMiddleware(middlewares.AutomaticCORSMiddleware(handleOPTIONS)))
-	}
+	r.GET("/", autheliaMiddleware(middlewareCORS(middlewares.AutheliaFastHTTPRequestHandlerMiddleware(serveIndexHandler))))
+	r.OPTIONS("/", autheliaMiddleware(middlewareCORS(handleOPTIONS)))
 
 	r.OPTIONS("/", autheliaMiddleware(handleOPTIONS))
 

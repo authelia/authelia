@@ -44,8 +44,26 @@ server:
   ## Cross-Origin Resource Sharing configuration options.
   cors:
 
-    ## Disable the automatic CORS middleware.
-    disable: false
+    ## Enable the CORS middleware.
+    enable: false
+
+    ## When overriding the origins, when this is set to true it will consider protected domains valid in addition to those above.
+    include_protected: false
+
+    ## Override the automatic origin checking.
+    origins: []
+
+    ## If empty the allowed headers are automatically configured based on the request headers if the origin is valid.
+    headers: []
+
+    ## If empty the allowed methods are automatically configured based on the request headers if the origin is valid.
+    methods: []
+
+    ## If empty the Vary header will be set to Accept-Encoding, Origin.
+    vary: []
+
+    ## Sets the Access-Control-Max-Age header value. Disable with -1.
+    max_age: 100
 
 log:
   ## Level of verbosity for logs: info, debug, trace.

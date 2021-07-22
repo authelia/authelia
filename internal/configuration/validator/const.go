@@ -6,6 +6,13 @@ const (
 )
 
 const (
+	errFmtServerCORSOriginParse  = "server: failed to parse CORS origin %s: %w"
+	errFmtServerCORSOriginScheme = "server: invalid CORS origin %s, scheme must be https"
+	errFmtServerCORSOriginPath   = "server: invalid CORS origin %s, must not have a path"
+	errFmtServerCORSMethods      = "server: invalid CORS method %s, must be one of %s"
+)
+
+const (
 	errFmtDeprecatedConfigurationKey = "[DEPRECATED] The %s configuration option is deprecated and will be " +
 		"removed in %s, please use %s instead"
 	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
@@ -129,7 +136,15 @@ var validKeys = []string{
 	"server.path",
 	"server.enable_pprof",
 	"server.enable_expvars",
-	"server.cors.disable",
+
+	// Server CORS Keys.
+	"server.cors.enable",
+	"server.cors.origins",
+	"server.cors.include_protected",
+	"server.cors.headers",
+	"server.cors.methods",
+	"server.cors.vary",
+	"server.cors.max_age",
 
 	// TOTP Keys.
 	"totp.issuer",

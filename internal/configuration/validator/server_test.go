@@ -14,8 +14,10 @@ func TestShouldSetDefaultConfig(t *testing.T) {
 	config := schema.ServerConfiguration{}
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, defaultReadBufferSize, config.ReadBufferSize)
-	assert.Equal(t, defaultWriteBufferSize, config.WriteBufferSize)
+	assert.Equal(t, schema.DefaultServerConfiguration.ReadBufferSize, config.ReadBufferSize)
+	assert.Equal(t, schema.DefaultServerConfiguration.WriteBufferSize, config.WriteBufferSize)
+	assert.Equal(t, schema.DefaultServerConfiguration.CORS.MaxAge, config.CORS.MaxAge)
+	assert.Equal(t, schema.DefaultServerConfiguration.CORS.Vary, config.CORS.Vary)
 }
 
 func TestShouldParsePathCorrectly(t *testing.T) {
