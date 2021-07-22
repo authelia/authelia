@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/internal/storage"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 type StandaloneWebDriverSuite struct {
@@ -110,6 +111,7 @@ func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
 	req.Header.Set("X-Forwarded-Proto", "https")
 	req.Header.Set("X-Forwarded-Host", fmt.Sprintf("secure.%s", BaseDomain))
 	req.Header.Set("X-Forwarded-URI", "/")
+	req.Header.Set("Accept", "text/html; charset=utf8")
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
@@ -119,7 +121,7 @@ func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
-	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s&rm=GET", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(), urlEncodedAdminURL))), string(body))
 
 	req.Header.Set("X-Forwarded-Method", "OPTIONS")
 
@@ -135,6 +137,7 @@ func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
 	req.Header.Set("X-Forwarded-Proto", "https")
 	req.Header.Set("X-Forwarded-Host", fmt.Sprintf("secure.%s", BaseDomain))
 	req.Header.Set("X-Forwarded-URI", "/")
+	req.Header.Set("Accept", "text/html; charset=utf8")
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
@@ -144,7 +147,7 @@ func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
-	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s&rm=GET", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=GET", GetLoginBaseURL(), urlEncodedAdminURL))), string(body))
 
 	req.Header.Set("X-Forwarded-Method", "POST")
 
@@ -155,15 +158,16 @@ func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL = url.QueryEscape(SecureBaseURL + "/")
-	s.Assert().Equal(fmt.Sprintf("See Other. Redirecting to %s?rd=%s&rm=POST", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">See Other</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s&rm=POST", GetLoginBaseURL(), urlEncodedAdminURL))), string(body))
 }
 
 // Standard case using nginx.
-func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorize() {
+func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorized() {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/verify", AutheliaBaseURL), nil)
 	s.Assert().NoError(err)
 	req.Header.Set("X-Forwarded-Proto", "https")
 	req.Header.Set("X-Original-URL", AdminBaseURL)
+	req.Header.Set("Accept", "text/html; charset=utf8")
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
@@ -171,7 +175,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorize() {
 	s.Assert().Equal(res.StatusCode, 401)
 	body, err := ioutil.ReadAll(res.Body)
 	s.Assert().NoError(err)
-	s.Assert().Equal(string(body), "Unauthorized")
+	s.Assert().Equal("Unauthorized", string(body))
 }
 
 // Standard case using Kubernetes.
@@ -180,6 +184,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 	s.Assert().NoError(err)
 	req.Header.Set("X-Forwarded-Proto", "https")
 	req.Header.Set("X-Original-URL", AdminBaseURL)
+	req.Header.Set("Accept", "text/html; charset=utf8")
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
@@ -189,7 +194,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(AdminBaseURL)
-	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s", GetLoginBaseURL(), urlEncodedAdminURL))), string(body))
 }
 
 func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI() {
@@ -198,6 +203,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 	req.Header.Set("X-Forwarded-Proto", "https")
 	req.Header.Set("X-Forwarded-Host", "secure.example.com:8080")
 	req.Header.Set("X-Forwarded-URI", "/")
+	req.Header.Set("Accept", "text/html; charset=utf8")
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
@@ -207,7 +213,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
-	s.Assert().Equal(fmt.Sprintf("Found. Redirecting to %s?rd=%s", GetLoginBaseURL(), urlEncodedAdminURL), string(body))
+	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s", GetLoginBaseURL(), urlEncodedAdminURL))), string(body))
 }
 
 func (s *StandaloneSuite) TestStandaloneWebDriverScenario() {

@@ -139,3 +139,8 @@ func RandomString(n int, characters []rune) (randomString string) {
 
 	return string(b)
 }
+
+// StringHTMLEscape escapes chars for a HTML body.
+func StringHTMLEscape(input string) (output string) {
+	return htmlEscaper.Replace(input)
+}

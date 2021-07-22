@@ -13,18 +13,18 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 		err := ctx.ParseBody(&requestBody)
 
 		if err != nil {
-			ctx.Error(err, mfaValidationFailedMessage)
+			ctx.Error(err, messageMFAValidationFailed)
 			return
 		}
 
 		userSession := ctx.GetSession()
 		if userSession.U2FChallenge == nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("U2F signing has not been initiated yet (no challenge)"), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("U2F signing has not been initiated yet (no challenge)"), messageMFAValidationFailed)
 			return
 		}
 
 		if userSession.U2FRegistration == nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("U2F signing has not been initiated yet (no registration)"), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("U2F signing has not been initiated yet (no registration)"), messageMFAValidationFailed)
 			return
 		}
 
@@ -35,14 +35,14 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 			*userSession.U2FChallenge)
 
 		if err != nil {
-			ctx.Error(err, mfaValidationFailedMessage)
+			ctx.Error(err, messageMFAValidationFailed)
 			return
 		}
 
 		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
 			return
 		}
 
@@ -50,7 +50,7 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 
 		err = ctx.SaveSession(userSession)
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update authentication level with U2F: %s", err), mfaValidationFailedMessage)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update authentication level with U2F: %s", err), messageMFAValidationFailed)
 			return
 		}
 
