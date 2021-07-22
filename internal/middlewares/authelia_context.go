@@ -37,6 +37,13 @@ func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration
 	return autheliaCtx, nil
 }
 
+// AutheliaFastHTTPRequestHandlerMiddleware allows wrapping a fasthttp.RequestHandler in an AutheliaCtx.
+func AutheliaFastHTTPRequestHandlerMiddleware(next fasthttp.RequestHandler) RequestHandler {
+	return func(ctx *AutheliaCtx) {
+		next(ctx.RequestCtx)
+	}
+}
+
 // AutheliaMiddleware is wrapping the RequestCtx into an AutheliaCtx providing Authelia related objects.
 func AutheliaMiddleware(configuration schema.Configuration, providers Providers) RequestHandlerBridge {
 	return func(next RequestHandler) fasthttp.RequestHandler {

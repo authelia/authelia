@@ -129,6 +129,7 @@ var validKeys = []string{
 	"server.path",
 	"server.enable_pprof",
 	"server.enable_expvars",
+	"server.cors.disable",
 
 	// TOTP Keys.
 	"totp.issuer",

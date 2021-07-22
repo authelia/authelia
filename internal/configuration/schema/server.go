@@ -7,6 +7,13 @@ type ServerConfiguration struct {
 	WriteBufferSize int    `mapstructure:"write_buffer_size"`
 	EnablePprof     bool   `mapstructure:"enable_endpoint_pprof"`
 	EnableExpvars   bool   `mapstructure:"enable_endpoint_expvars"`
+
+	CORS CORSConfiguration `mapstructure:"cors"`
+}
+
+// CORSConfiguration represents the configuration of the http server CORS configuration.
+type CORSConfiguration struct {
+	Disable bool `mapstructure:"disable"`
 }
 
 // DefaultServerConfiguration represents the default values of the ServerConfiguration.

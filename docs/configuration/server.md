@@ -18,6 +18,8 @@ server:
   path: ""
   enable_pprof: false
   enable_expvars: false
+  cors:
+    disable: false
 ```
 
 ## Options

@@ -41,6 +41,12 @@ server:
   ## Enables the expvars endpoint.
   enable_expvars: false
 
+  ## Cross-Origin Resource Sharing configuration options.
+  cors:
+
+    ## Disable the automatic CORS middleware.
+    disable: false
+
 log:
   ## Level of verbosity for logs: info, debug, trace.
   level: debug
