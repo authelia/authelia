@@ -47,7 +47,8 @@ server:
     ## Enable the CORS middleware.
     enable: false
 
-    ## When overriding the origins, when this is set to true it will consider protected domains valid in addition to those above.
+    ## Includes configured protected domain in the session settings and subdomains of that domain automatically.
+    ## This is assumed true if the origins list below does not have any values.
     include_protected: false
 
     ## Override the automatic origin checking.
