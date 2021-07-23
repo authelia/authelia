@@ -15,11 +15,11 @@ services:
       - net
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.authelia.rule=Host(`auth.example.com`)'
+      - 'traefik.http.routers.authelia.rule=Host(`authelia.example.com`)'
       - 'traefik.http.routers.authelia.entrypoints=https'
       - 'traefik.http.routers.authelia.tls=true'
       - 'traefik.http.routers.authelia.tls.certresolver=letsencrypt'
-      - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://auth.example.com'  # yamllint disable-line rule:line-length
+      - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://authelia.example.com'  # yamllint disable-line rule:line-length
       - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
       - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'  # yamllint disable-line rule:line-length
     expose:
@@ -47,7 +47,7 @@ services:
     image: traefik:2.4
     container_name: traefik
     volumes:
-      - ./traefik/acme.json:/acme.json
+      - ./traefik:/etc/traefik
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - net
@@ -73,7 +73,7 @@ services:
       - '--entrypoints.https=true'
       - '--entrypoints.https.address=:443'
       - '--certificatesResolvers.letsencrypt.acme.email=your-email@your-domain.com'
-      - '--certificatesResolvers.letsencrypt.acme.storage=acme.json'
+      - '--certificatesResolvers.letsencrypt.acme.storage=/etc/traefik/acme.json'
       - '--certificatesResolvers.letsencrypt.acme.httpChallenge.entryPoint=http'
       - '--log=true'
       - '--log.level=DEBUG'
