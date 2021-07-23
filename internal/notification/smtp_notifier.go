@@ -193,7 +193,7 @@ func (n *SMTPNotifier) dial() error {
 	logger.Debugf("Notifier SMTP client attempting connection to %s", n.address)
 
 	if n.port == 465 {
-		logger.Infof("Notifier SMTP client using submissions port 465. Make sure the mail server you are connecting to is configured to submissions and not SMTPS.")
+		logger.Infof("Notifier SMTP client using submissions port 465. Make sure the mail server you are connecting to is configured for submissions and not SMTPS.")
 
 		conn, err := tls.Dial("tcp", n.address, n.tlsConfig)
 		if err != nil {
