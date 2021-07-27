@@ -30,20 +30,19 @@ $ authelia --config config.yml,config-acl.yml,config-other.yml
 
 You may also provide the configuration by using environment variables. Environment variables are applied after the 
 configuration file meaning anything specified as part of the environment overrides the configuration files. The 
-environment variables must be prefixed with `AUTHELIA__`. Everything in the configuration can be specified as an
-environment variable as long as it's not in a list, this means ACL rules are excluded as well as things like OIDC
-clients. 
+environment variables must be prefixed with `AUTHELIA_`. Everything in the configuration can be specified as an
+environment variable with the exception of the OIDC clients section and the ACL rules section (as they are lists of 
+objects).
 
-**Note:** Using two underscores after `AUTHELIA` was done to reduce conflicts with certain systems which add
-environment variables automatically, for example Kubernetes will add several environment variables for every service
-definition in the same namespace as the current pod.
+**Note:** There are compatability issues with Kubernetes and this particular configuration option. You must ensure you
+have the `enableServiceLinks: false` setting in your pod spec.
 
 Underscores replace indented configuration sections or subkeys. For example the following environment variables replace
 the configuration snippet that follows it:
 
 ```
-AUTHELIA__LOG_LEVEL=info
-AUTHELIA__SERVER_READ_BUFFER_SIZE=4096
+AUTHELIA_LOG_LEVEL=info
+AUTHELIA_SERVER_READ_BUFFER_SIZE=4096
 ```
 
 ```yaml

@@ -21,7 +21,6 @@ func getEnvConfigMap(keys []string, prefix, delimiter string) (keyMap map[string
 			originalKey := strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter)) + constSecretSuffix
 
 			ignoredKeys = append(ignoredKeys, prefix+originalKey)
-			ignoredKeys = append(ignoredKeys, constSecretEnvLegacyPrefix+originalKey)
 		}
 	}
 
@@ -36,7 +35,6 @@ func getSecretConfigMap(keys []string, prefix, delimiter string) (keyMap map[str
 			originalKey := strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter)) + constSecretSuffix
 
 			keyMap[prefix+originalKey] = key
-			keyMap[constSecretEnvLegacyPrefix+originalKey] = key
 		}
 	}
 

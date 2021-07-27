@@ -18,8 +18,6 @@ A secret value can be loaded by Authelia when the configuration key ends with on
 If you take the expected environment variable for the configuration option with the `_FILE` suffix at the end. The value
 of these environment variables must be the path of a file that is readable by the Authelia process, if they are not,
 Authelia will fail to load. Authelia will automatically remove the newlines from the end of the files contents.
-In addition for backwards compatibility reasons both the standard prefix `AUTHELIA__` and the old prefix 
-`AUTHELIA_` work specifically for file-based secrets.
 
 For instance the LDAP password can be defined in the configuration
 at the path **authentication_backend.ldap.password**, so this password
@@ -30,20 +28,20 @@ Here is the list of the environment variables which are considered secrets and c
 secrets can be loaded into the configuration if they end with one of the suffixes above, you can set the value of any
 other configuration using the environment but instead of loading a file the value of the environment variable is used.
 
-|Configuration Key                                |Environment Variable                                     |
-|:-----------------------------------------------:|:-------------------------------------------------------:|
-|tls_key                                          |AUTHELIA__TLS_KEY_FILE                                   |
-|jwt_secret                                       |AUTHELIA__JWT_SECRET_FILE                                |
-|duo_api.secret_key                               |AUTHELIA__DUO_API_SECRET_KEY_FILE                        |
-|session.secret                                   |AUTHELIA__SESSION_SECRET_FILE                            |
-|session.redis.password                           |AUTHELIA__SESSION_REDIS_PASSWORD_FILE                    |
-|session.redis.high_availability.sentinel_password|AUTHELIA__REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE |
-|storage.mysql.password                           |AUTHELIA__STORAGE_MYSQL_PASSWORD_FILE                    |
-|storage.postgres.password                        |AUTHELIA__STORAGE_POSTGRES_PASSWORD_FILE                 |
-|notifier.smtp.password                           |AUTHELIA__NOTIFIER_SMTP_PASSWORD_FILE                    |
-|authentication_backend.ldap.password             |AUTHELIA__AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE      |
-|identity_providers.oidc.issuer_private_key       |AUTHELIA__IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE|
-|identity_providers.oidc.hmac_secret              |AUTHELIA__IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE       |
+|Configuration Key                                |Environment Variable                                    |
+|:-----------------------------------------------:|:------------------------------------------------------:|
+|tls_key                                          |AUTHELIA_TLS_KEY_FILE                                   |
+|jwt_secret                                       |AUTHELIA_JWT_SECRET_FILE                                |
+|duo_api.secret_key                               |AUTHELIA_DUO_API_SECRET_KEY_FILE                        |
+|session.secret                                   |AUTHELIA_SESSION_SECRET_FILE                            |
+|session.redis.password                           |AUTHELIA_SESSION_REDIS_PASSWORD_FILE                    |
+|session.redis.high_availability.sentinel_password|AUTHELIA_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE |
+|storage.mysql.password                           |AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE                    |
+|storage.postgres.password                        |AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE                 |
+|notifier.smtp.password                           |AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE                    |
+|authentication_backend.ldap.password             |AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE      |
+|identity_providers.oidc.issuer_private_key       |AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE|
+|identity_providers.oidc.hmac_secret              |AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE       |
 
 ## Secrets in configuration file
 

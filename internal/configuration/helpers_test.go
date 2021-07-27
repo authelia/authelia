@@ -46,13 +46,10 @@ func TestGetEnvConfigMaps(t *testing.T) {
 	assert.False(t, ok)
 	assert.Equal(t, key, "")
 
-	assert.Len(t, ignoredKeys, 6)
+	assert.Len(t, ignoredKeys, 3)
 	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+"MYOTHER_CONFIGKEY_FILE")
-	assert.Contains(t, ignoredKeys, constSecretEnvLegacyPrefix+"MYOTHER_CONFIGKEY_FILE")
 	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+"MYSECRET_PASSWORD_FILE")
-	assert.Contains(t, ignoredKeys, constSecretEnvLegacyPrefix+"MYSECRET_PASSWORD_FILE")
 	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+"MYSECRET_USER_PASSWORD_FILE")
-	assert.Contains(t, ignoredKeys, constSecretEnvLegacyPrefix+"MYSECRET_USER_PASSWORD_FILE")
 }
 
 func TestGetSecretConfigMap(t *testing.T) {
@@ -69,22 +66,6 @@ func TestGetSecretConfigMap(t *testing.T) {
 	}
 
 	keys := getSecretConfigMap(input, DefaultEnvPrefix, DefaultEnvDelimiter)
-
-	key, ok = keys[constSecretEnvLegacyPrefix+"MY_NON_SECRET_CONFIG_ITEM_FILE"]
-	assert.False(t, ok)
-	assert.Equal(t, key, "")
-
-	key, ok = keys[constSecretEnvLegacyPrefix+"MYOTHER_CONFIGKEY_FILE"]
-	assert.True(t, ok)
-	assert.Equal(t, key, "myother.configkey")
-
-	key, ok = keys[constSecretEnvLegacyPrefix+"MYSECRET_PASSWORD_FILE"]
-	assert.True(t, ok)
-	assert.Equal(t, key, "mysecret.password")
-
-	key, ok = keys[constSecretEnvLegacyPrefix+"MYSECRET_USER_PASSWORD_FILE"]
-	assert.True(t, ok)
-	assert.Equal(t, key, "mysecret.user_password")
 
 	key, ok = keys[DefaultEnvPrefix+"MY_NON_SECRET_CONFIG_ITEM_FILE"]
 	assert.False(t, ok)

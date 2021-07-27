@@ -115,7 +115,7 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_MYSQL", "a bad env"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"JWT_SECRET", "an env jwt secret"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password"))
-	assert.NoError(t, os.Setenv(constSecretEnvLegacyPrefix+"AUTHENTICATION_BACKEND_LDAP_URL", "an env authentication backend ldap password"))
+	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_URL", "an env authentication backend ldap password"))
 
 	val := schema.NewStructValidator()
 	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -124,67 +124,10 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 
 	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
 
-	assert.Len(t, val.Warnings(), 0)
-	require.Len(t, val.Errors(), 1)
-
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("configuration environment variable not expected: %sSTORAGE_MYSQL", DefaultEnvPrefix))
-}
-
-func TestShouldIgnoreSingleUnderscoreNonSecretEnvs(t *testing.T) {
-	testReset()
-
-	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"SESSION_SECRET", "an env session secret"))
-	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_MYSQL_PASSWORD", "an env storage mysql password"))
-	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"JWT_SECRET", "an env jwt secret"))
-	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password"))
-	assert.NoError(t, os.Setenv(constSecretEnvLegacyPrefix+"AUTHENTICATION_BACKEND_LDAP_URL", "an env authentication backend ldap password"))
-
-	val := schema.NewStructValidator()
-	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
-
-	assert.NoError(t, err)
+	require.Len(t, val.Warnings(), 1)
 	assert.Len(t, val.Errors(), 0)
-	assert.Len(t, val.Warnings(), 0)
 
-	assert.Equal(t, "an env jwt secret", config.JWTSecret)
-	assert.Equal(t, "an env session secret", config.Session.Secret)
-	assert.Equal(t, "an env storage mysql password", config.Storage.MySQL.Password)
-	assert.Equal(t, "an env authentication backend ldap password", config.AuthenticationBackend.LDAP.Password)
-	assert.Equal(t, "ldap://127.0.0.1", config.AuthenticationBackend.LDAP.URL)
-}
-
-func TestShouldAllowBothLegacyEnvSecretFilesAndNewOnes(t *testing.T) {
-	testReset()
-
-	dir, err := ioutil.TempDir("", "authelia-test-secrets")
-	assert.NoError(t, err)
-
-	sessionSecret := filepath.Join(dir, "session")
-	jwtSecret := filepath.Join(dir, "jwt")
-	ldapSecret := filepath.Join(dir, "ldap")
-	storageSecret := filepath.Join(dir, "storage")
-
-	assert.NoError(t, testCreateFile(sessionSecret, "a secret session.secret value", 0600))
-	assert.NoError(t, testCreateFile(jwtSecret, "a secret jwt_secret value", 0600))
-	assert.NoError(t, testCreateFile(ldapSecret, "a secret authentication_backend.ldap.password value", 0600))
-	assert.NoError(t, testCreateFile(storageSecret, "a secret storage.mysql.password value", 0600))
-
-	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"SESSION_SECRET_FILE", sessionSecret))
-	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_MYSQL_PASSWORD_FILE", storageSecret))
-	assert.NoError(t, os.Setenv(constSecretEnvLegacyPrefix+"JWT_SECRET_FILE", jwtSecret))
-	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", ldapSecret))
-
-	val := schema.NewStructValidator()
-	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
-
-	assert.NoError(t, err)
-	assert.Len(t, val.Errors(), 0)
-	assert.Len(t, val.Warnings(), 0)
-
-	assert.Equal(t, "a secret jwt_secret value", config.JWTSecret)
-	assert.Equal(t, "a secret session.secret value", config.Session.Secret)
-	assert.Equal(t, "a secret storage.mysql.password value", config.Storage.MySQL.Password)
-	assert.Equal(t, "a secret authentication_backend.ldap.password value", config.AuthenticationBackend.LDAP.Password)
+	assert.EqualError(t, val.Warnings()[0], fmt.Sprintf("configuration environment variable not expected: %sSTORAGE_MYSQL", DefaultEnvPrefix))
 }
 
 func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T) {
@@ -193,7 +136,7 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"SESSION_SECRET", "an env session secret"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"SESSION_SECRET_FILE", "./test_resources/example_secret"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_MYSQL_PASSWORD", "an env storage mysql password"))
-	assert.NoError(t, os.Setenv(constSecretEnvLegacyPrefix+"JWT_SECRET_FILE", "./test_resources/example_secret"))
+	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"JWT_SECRET_FILE", "./test_resources/example_secret"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password"))
 
 	val := schema.NewStructValidator()
@@ -339,9 +282,7 @@ func testReset() {
 
 func testUnsetEnvName(name string) {
 	_ = os.Unsetenv(DefaultEnvPrefix + name)
-	_ = os.Unsetenv(constSecretEnvLegacyPrefix + name)
 	_ = os.Unsetenv(DefaultEnvPrefix + name + constSecretSuffix)
-	_ = os.Unsetenv(constSecretEnvLegacyPrefix + name + constSecretSuffix)
 }
 
 func testCreateFile(path, value string, perm os.FileMode) (err error) {

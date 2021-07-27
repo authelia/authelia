@@ -37,14 +37,16 @@ func TestShouldNotValidateBadEnvKeys(t *testing.T) {
 	configKeys := ValidKeys
 	configKeys = append(configKeys, "AUTHELIA__BAD_ENV_KEY")
 	configKeys = append(configKeys, "AUTHELIA_BAD_ENV_KEY")
+
 	val := schema.NewStructValidator()
 	ValidateKeys(configKeys, "AUTHELIA_", val)
 
-	errs := val.Errors()
-	require.Len(t, errs, 2)
+	warns := val.Warnings()
+	assert.Len(t, val.Errors(), 0)
+	require.Len(t, warns, 2)
 
-	assert.EqualError(t, errs[0], "configuration environment variable not expected: AUTHELIA__BAD_ENV_KEY")
-	assert.EqualError(t, errs[1], "configuration environment variable not expected: AUTHELIA_BAD_ENV_KEY")
+	assert.EqualError(t, warns[0], "configuration environment variable not expected: AUTHELIA__BAD_ENV_KEY")
+	assert.EqualError(t, warns[1], "configuration environment variable not expected: AUTHELIA_BAD_ENV_KEY")
 }
 
 func TestAllSpecificErrorKeys(t *testing.T) {

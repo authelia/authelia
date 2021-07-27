@@ -5,14 +5,12 @@ import (
 )
 
 // DefaultEnvPrefix is the default environment prefix.
-const DefaultEnvPrefix = "AUTHELIA__"
+const DefaultEnvPrefix = "AUTHELIA_"
 
 // DefaultEnvDelimiter is the default environment delimiter.
 const DefaultEnvDelimiter = "_"
 
 const (
-	constSecretEnvLegacyPrefix = "AUTHELIA_"
-
 	constSecretSuffix = "_FILE"
 
 	constDelimiter = "."

@@ -14,7 +14,6 @@ import (
 // cmdWithConfigFlags is used for commands which require access to the configuration to add the flag to the command.
 func cmdWithConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringSliceP("config", "c", []string{}, "Configuration files")
-	cmd.Flags().String("env.prefix", configuration.DefaultEnvPrefix, "Sets the env prefix for configuration")
 }
 
 var config *schema.Configuration
@@ -22,8 +21,6 @@ var config *schema.Configuration
 func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfiguration bool) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, _ []string) {
 		logger := logging.Logger()
-
-		prefix, _ := cmd.Flags().GetString("env.prefix")
 
 		configs, err := cmd.Root().Flags().GetStringSlice("config")
 		if err != nil {
@@ -46,13 +43,13 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 
 		val := schema.NewStructValidator()
 
-		keys, config, err = configuration.Load(val, configuration.NewDefaultSources(configs, prefix, configuration.DefaultEnvDelimiter)...)
+		keys, config, err = configuration.Load(val, configuration.NewDefaultSources(configs, configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter)...)
 		if err != nil {
 			logger.Fatalf("Error occurred loading configuration: %v", err)
 		}
 
 		if validateKeys {
-			validator.ValidateKeys(keys, prefix, val)
+			validator.ValidateKeys(keys, configuration.DefaultEnvPrefix, val)
 		}
 
 		if validateConfiguration {

@@ -109,7 +109,7 @@ func (s *SecretsSource) Merge(ko *koanf.Koanf, val *schema.StructValidator) (err
 func (s *SecretsSource) Load(val *schema.StructValidator) (err error) {
 	keyMap := getSecretConfigMap(validator.ValidKeys, s.prefix, s.delimiter)
 
-	return s.koanf.Load(env.ProviderWithValue(constSecretEnvLegacyPrefix, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, val)), nil)
+	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, val)), nil)
 }
 
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.

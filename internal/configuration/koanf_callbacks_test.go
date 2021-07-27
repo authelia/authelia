@@ -22,7 +22,7 @@ func TestKoanfEnvironmentCallback(t *testing.T) {
 	keyMap := map[string]string{
 		DefaultEnvPrefix + "KEY_EXAMPLE_UNDERSCORE": "key.example_underscore",
 	}
-	ignoredKeys := []string{constSecretEnvLegacyPrefix + "SOME_SECRET"}
+	ignoredKeys := []string{DefaultEnvPrefix + "SOME_SECRET"}
 
 	callback := koanfEnvironmentCallback(keyMap, ignoredKeys, DefaultEnvPrefix, DefaultEnvDelimiter)
 
@@ -38,7 +38,7 @@ func TestKoanfEnvironmentCallback(t *testing.T) {
 	assert.Equal(t, "theme", key)
 	assert.Equal(t, "value", value)
 
-	key, value = callback(constSecretEnvLegacyPrefix+"SOME_SECRET", "value")
+	key, value = callback(DefaultEnvPrefix+"SOME_SECRET", "value")
 	assert.Equal(t, "", key)
 	assert.Nil(t, value)
 }
