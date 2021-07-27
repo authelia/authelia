@@ -2,6 +2,11 @@ package validator
 
 import "regexp"
 
+const (
+	loopback           = "127.0.0.1"
+	oauth2InstalledApp = "urn:ietf:wg:oauth:2.0:oob"
+)
+
 // Policy constants.
 const (
 	policyBypass    = "bypass"
@@ -38,6 +43,37 @@ const (
 	testTLSKey        = "/tmp/key.pem"
 )
 
+// OpenID Error constants.
+const (
+	errFmtOIDCClientsDuplicateID        = "openid connect provider: one or more clients have the same ID"
+	errFmtOIDCClientsWithEmptyID        = "openid connect provider: one or more clients have been configured with an empty ID"
+	errFmtOIDCNoClientsConfigured       = "openid connect provider: no clients are configured"
+	errFmtOIDCNoPrivateKey              = "openid connect provider: issuer private key must be provided"
+	errFmtOIDCClientInvalidSecret       = "openid connect provider: client with ID '%s' has an empty secret"
+	errFmtOIDCClientPublicInvalidSecret = "openid connect provider: client with ID '%s' is public but does not have " +
+		"an empty secret"
+	errFmtOIDCClientRedirectURI = "openid connect provider: client with ID '%s' redirect URI %s has an " +
+		"invalid scheme %s, should be http or https"
+	errFmtOIDCClientRedirectURICantBeParsed = "openid connect provider: client with ID '%s' has an invalid redirect " +
+		"URI '%s' could not be parsed: %v"
+	errFmtOIDCClientRedirectURIPublic = "openid connect provider: client with ID '%s' redirect URI '%s' is " +
+		"only valid for the public client type, not the confidential client type"
+	errFmtOIDCClientRedirectURIAbsolute = "openid connect provider: client with ID '%s' redirect URI '%s' is invalid " +
+		"because it has no scheme when it should be http or https"
+	errFmtOIDCClientInvalidPolicy = "openid connect provider: client with ID '%s' has an invalid policy " +
+		"'%s', should be either 'one_factor' or 'two_factor'"
+	errFmtOIDCClientInvalidScope = "openid connect provider: client with ID '%s' has an invalid scope " +
+		"'%s', must be one of: '%s'"
+	errFmtOIDCClientInvalidGrantType = "openid connect provider: client with ID '%s' has an invalid grant type " +
+		"'%s', must be one of: '%s'"
+	errFmtOIDCClientInvalidResponseMode = "openid connect provider: client with ID '%s' has an invalid response mode " +
+		"'%s', must be one of: '%s'"
+	errFmtOIDCClientInvalidUserinfoAlgorithm = "openid connect provider: client with ID '%s' has an invalid userinfo signing " +
+		"algorithm '%s', must be one of: '%s'"
+	errFmtOIDCServerInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
+		"configured to an unsafe value, it should be above 8 but it's configured to %d"
+)
+
 // Error constants.
 const (
 	errFmtDeprecatedConfigurationKey = "the %s configuration option is deprecated and will be " +
@@ -50,25 +86,6 @@ const (
 	errFmtSessionRedisPortRange           = "the port must be between 1 and 65535 for the %s session provider"
 	errFmtSessionRedisHostRequired        = "the host must be provided when using the %s session provider"
 	errFmtSessionRedisHostOrNodesRequired = "either the host or a node must be provided when using the %s session provider"
-
-	errFmtOIDCClientInvalidSecret = "openid connect provider: client with ID '%s' has an empty secret"
-
-	errFmtOIDCClientRedirectURI = "openid connect provider: client with ID '%s' redirect URI %s has an " +
-		"invalid scheme %s, should be http or https"
-	errFmtOIDCClientRedirectURICantBeParsed = "openid connect provider: client with ID '%s' has an invalid redirect " +
-		"URI '%s' could not be parsed: %v"
-	errFmtOIDCClientInvalidPolicy = "openid connect provider: client with ID '%s' has an invalid policy " +
-		"'%s', should be either 'one_factor' or 'two_factor'"
-	errFmtOIDCClientInvalidScope = "openid connect provider: client with ID '%s' has an invalid scope " +
-		"'%s', must be one of: '%s'"
-	errFmtOIDCClientInvalidGrantType = "openid connect provider: client with ID '%s' has an invalid grant type " +
-		"'%s', must be one of: '%s'"
-	errFmtOIDCClientInvalidResponseMode = "openid connect provider: client with ID '%s' has an invalid response mode " +
-		"'%s', must be one of: '%s'"
-	errFmtOIDCClientInvalidUserinfoAlgorithm = "openid connect provider: client with ID '%s' has an invalid userinfo signing " +
-		"algorithm '%s', must be one of: '%s'"
-	errFmtOIDCServerInsecureParameterEntropy = "SECURITY ISSUE: openid connect provider: minimum parameter entropy is " +
-		"configured to an unsafe value, it should be above 8 but it's configured to %d."
 
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
@@ -280,8 +297,8 @@ var replacedKeys = map[string]string{
 
 var specificErrorKeys = map[string]string{
 	"google_analytics": "config key removed: google_analytics - this functionality has been deprecated",
-	"notifier.smtp.trusted_cert": "invalid configuration key `notifier.smtp.trusted_cert` it has been removed, " +
-		"option has been replaced by the global option `certificates_directory`",
+	"notifier.smtp.trusted_cert": "invalid configuration key 'notifier.smtp.trusted_cert' it has been removed, " +
+		"option has been replaced by the global option 'certificates_directory'",
 
 	"authentication_backend.file.password_options.algorithm":   errFilePOptions,
 	"authentication_backend.file.password_options.iterations":  errFilePOptions,

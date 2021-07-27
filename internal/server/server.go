@@ -43,6 +43,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	r := router.New()
 	r.GET("/", serveIndexHandler)
+	r.OPTIONS("/", autheliaMiddleware(handleOPTIONS))
+
 	r.GET("/api/", serveSwaggerHandler)
 	r.GET("/api/"+apiFile, serveSwaggerAPIHandler)
 

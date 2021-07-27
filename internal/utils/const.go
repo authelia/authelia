@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -56,3 +57,11 @@ var AlphaNumericCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
 
 // ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
 var ErrTLSVersionNotSupported = errors.New("supplied TLS version isn't supported")
+
+var htmlEscaper = strings.NewReplacer(
+	"&", "&amp;",
+	"<", "&lt;",
+	">", "&gt;",
+	`"`, "&#34;",
+	"'", "&#39;",
+)

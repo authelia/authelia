@@ -84,7 +84,7 @@ var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendCon
 
 // DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration represents the default LDAP config for the MSAD Implementation.
 var DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration = LDAPAuthenticationBackendConfiguration{
-	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))",
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)))",
 	UsernameAttribute:    "sAMAccountName",
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayName",

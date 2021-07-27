@@ -116,14 +116,14 @@ func verifyBasicAuth(header string, auth []byte, targetURL url.URL, ctx *middlew
 // setForwardedHeaders set the forwarded User, Groups, Name and Email headers.
 func setForwardedHeaders(headers *fasthttp.ResponseHeader, username, name string, groups, emails []string) {
 	if username != "" {
-		headers.Set(remoteUserHeader, username)
-		headers.Set(remoteGroupsHeader, strings.Join(groups, ","))
-		headers.Set(remoteNameHeader, name)
+		headers.Set(headerRemoteUser, username)
+		headers.Set(headerRemoteGroups, strings.Join(groups, ","))
+		headers.Set(headerRemoteName, name)
 
 		if emails != nil {
-			headers.Set(remoteEmailHeader, emails[0])
+			headers.Set(headerRemoteEmail, emails[0])
 		} else {
-			headers.Set(remoteEmailHeader, "")
+			headers.Set(headerRemoteEmail, "")
 		}
 	}
 }
@@ -193,8 +193,17 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 }
 
 func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string, method []byte) {
-	friendlyUsername := "<anonymous>"
-	if username != "" {
+	var (
+		statusCode            int
+		redirectionURL        string
+		friendlyUsername      string
+		friendlyRequestMethod string
+	)
+
+	switch username {
+	case "":
+		friendlyUsername = "<anonymous>"
+	default:
 		friendlyUsername = username
 	}
 
@@ -212,26 +221,39 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	rd := string(ctx.QueryArgs().Peek("rd"))
 	rm := string(method)
 
-	friendlyMethod := "unknown"
-
-	if rm != "" {
-		friendlyMethod = rm
+	switch rm {
+	case "":
+		friendlyRequestMethod = "unknown"
+	default:
+		friendlyRequestMethod = rm
 	}
 
 	if rd != "" {
-		redirectionURL := ""
-
-		if rm != "" {
-			redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), rm)
-		} else {
+		switch rm {
+		case "":
 			redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
+		default:
+			redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), rm)
 		}
+	}
 
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, redirecting to %s", targetURL.String(), friendlyMethod, friendlyUsername, redirectionURL)
-		ctx.Redirect(redirectionURL, 302)
-		ctx.SetBodyString(fmt.Sprintf("Found. Redirecting to %s", redirectionURL))
+	switch {
+	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || rd == "":
+		statusCode = fasthttp.StatusUnauthorized
+	default:
+		switch rm {
+		case fasthttp.MethodGet, fasthttp.MethodOptions, "":
+			statusCode = fasthttp.StatusFound
+		default:
+			statusCode = fasthttp.StatusSeeOther
+		}
+	}
+
+	if redirectionURL != "" {
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode, redirectionURL)
+		ctx.SpecialRedirect(redirectionURL, statusCode)
 	} else {
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, sending 401 response", targetURL.String(), friendlyMethod, friendlyUsername)
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode)
 		ctx.ReplyUnauthorized()
 	}
 }
@@ -379,9 +401,9 @@ func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (r
 }
 
 func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile bool, refreshProfileInterval time.Duration) (isBasicAuth bool, username, name string, groups, emails []string, authLevel authentication.Level, err error) {
-	authHeader := ProxyAuthorizationHeader
+	authHeader := HeaderProxyAuthorization
 	if bytes.Equal(ctx.QueryArgs().Peek("auth"), []byte("basic")) {
-		authHeader = AuthorizationHeader
+		authHeader = HeaderAuthorization
 		isBasicAuth = true
 	}
 
@@ -401,7 +423,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	userSession := ctx.GetSession()
 	username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval)
 
-	sessionUsername := ctx.Request.Header.Peek(SessionUsernameHeader)
+	sessionUsername := ctx.Request.Header.Peek(HeaderSessionUsername)
 	if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
 		ctx.Logger.Warnf("Possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
 
@@ -410,10 +432,10 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 			ctx.Logger.Error(
 				fmt.Errorf(
 					"Unable to destroy user session after handler could not match them to their %s header: %s",
-					SessionUsernameHeader, err))
+					HeaderSessionUsername, err))
 		}
 
-		err = fmt.Errorf("Could not match user %s to their %s header with a value of %s when visiting %s", username, SessionUsernameHeader, sessionUsername, targetURL.String())
+		err = fmt.Errorf("Could not match user %s to their %s header with a value of %s when visiting %s", username, HeaderSessionUsername, sessionUsername, targetURL.String())
 	}
 
 	return
@@ -458,7 +480,7 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			ctx.Logger.Error(fmt.Sprintf("Error caught when verifying user authorization: %s", err))
 
 			if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
-				ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
+				ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), messageOperationFailed)
 				return
 			}
 
@@ -481,7 +503,7 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		}
 
 		if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
-			ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), operationFailedMessage)
+			ctx.Error(fmt.Errorf("Unable to update last activity: %s", err), messageOperationFailed)
 		}
 	}
 }

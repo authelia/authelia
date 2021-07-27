@@ -29,9 +29,13 @@ type OpenIDConnectClientConfiguration struct {
 	ID            string   `koanf:"id"`
 	Description   string   `koanf:"description"`
 	Secret        string   `koanf:"secret"`
-	RedirectURIs  []string `koanf:"redirect_uris"`
+	Public        bool     `koanf:"public"`
+
 	Policy        string   `koanf:"authorization_policy"`
+
+	Audience      []string `koanf:"audience"`
 	Scopes        []string `koanf:"scopes"`
+	RedirectURIs  []string `koanf:"redirect_uris"`
 	GrantTypes    []string `koanf:"grant_types"`
 	ResponseTypes []string `koanf:"response_types"`
 	ResponseModes []string `koanf:"response_modes"`

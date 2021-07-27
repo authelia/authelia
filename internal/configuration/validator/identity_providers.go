@@ -18,7 +18,7 @@ func ValidateIdentityProviders(configuration *schema.IdentityProvidersConfigurat
 func validateOIDC(configuration *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	if configuration != nil {
 		if configuration.IssuerPrivateKey == "" {
-			validator.Push(fmt.Errorf("openid connect provider issuer private key must be provided"))
+			validator.Push(fmt.Errorf(errFmtOIDCNoPrivateKey))
 		}
 
 		if configuration.AccessTokenLifespan == time.Duration(0) {
@@ -44,7 +44,7 @@ func validateOIDC(configuration *schema.OpenIDConnectConfiguration, validator *s
 		validateOIDCClients(configuration, validator)
 
 		if len(configuration.Clients) == 0 {
-			validator.Push(fmt.Errorf("openid connect provider has no clients defined"))
+			validator.Push(fmt.Errorf(errFmtOIDCNoClientsConfigured))
 		}
 	}
 }
@@ -68,8 +68,14 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 			ids = append(ids, client.ID)
 		}
 
-		if client.Secret == "" {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, client.ID))
+		if client.Public {
+			if client.Secret != "" {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, client.ID))
+			}
+		} else {
+			if client.Secret == "" {
+				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, client.ID))
+			}
 		}
 
 		if client.Policy == "" {
@@ -88,11 +94,11 @@ func validateOIDCClients(configuration *schema.OpenIDConnectConfiguration, valid
 	}
 
 	if invalidID {
-		validator.Push(fmt.Errorf("openid connect provider has one or more clients with an empty ID"))
+		validator.Push(fmt.Errorf(errFmtOIDCClientsWithEmptyID))
 	}
 
 	if duplicateIDs {
-		validator.Push(fmt.Errorf("openid connect provider has clients with duplicate ID's"))
+		validator.Push(fmt.Errorf(errFmtOIDCClientsDuplicateID))
 	}
 }
 
@@ -163,15 +169,29 @@ func validateOIDDClientUserinfoAlgorithm(c int, configuration *schema.OpenIDConn
 
 func validateOIDCClientRedirectURIs(client schema.OpenIDConnectClientConfiguration, validator *schema.StructValidator) {
 	for _, redirectURI := range client.RedirectURIs {
-		parsedURI, err := url.Parse(redirectURI)
+		if redirectURI == oauth2InstalledApp {
+			if client.Public {
+				continue
+			}
 
-		if err != nil {
-			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURICantBeParsed, client.ID, redirectURI, err))
-			break
+			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIPublic, client.ID, redirectURI))
+
+			continue
 		}
 
-		if parsedURI.Scheme != schemeHTTPS && parsedURI.Scheme != schemeHTTP {
-			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURI, client.ID, redirectURI, parsedURI.Scheme))
+		parsedURL, err := url.Parse(redirectURI)
+		if err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURICantBeParsed, client.ID, redirectURI, err))
+			continue
+		}
+
+		if !parsedURL.IsAbs() {
+			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, client.ID, redirectURI))
+			return
+		}
+
+		if parsedURL.Scheme != schemeHTTPS && parsedURL.Scheme != schemeHTTP {
+			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURI, client.ID, redirectURI, parsedURL.Scheme))
 		}
 	}
 }

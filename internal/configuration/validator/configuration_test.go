@@ -12,7 +12,7 @@ import (
 
 func newDefaultConfig() schema.Configuration {
 	config := schema.Configuration{}
-	config.Server.Host = "127.0.0.1"
+	config.Server.Host = loopback
 	config.Server.Port = 9090
 	config.Log.Level = "info"
 	config.Log.Format = "text"
@@ -77,7 +77,7 @@ func TestShouldAddDefaultAccessControl(t *testing.T) {
 func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.TLSCert = testTLSCert
+	config.Server.TLSCert = testTLSCert
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
