@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 
 	"github.com/authelia/authelia/internal/templates"
+	"github.com/authelia/authelia/internal/utils"
 )
 
 // IdentityVerificationStart the handler for initiating the identity validation process.
@@ -57,7 +59,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		link := fmt.Sprintf("%s%s%s?token=%s", uri, ctx.Configuration.Server.Path, args.TargetEndpoint, ss)
+		link := utils.StringHTMLEscape(fmt.Sprintf("%s%s%s?token=%s", uri, ctx.Configuration.Server.Path, args.TargetEndpoint, url.QueryEscape(ss)))
 
 		bufHTML := new(bytes.Buffer)
 
