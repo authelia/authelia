@@ -46,15 +46,13 @@ const (
 	unknown = "unknown"
 )
 
-// ErrTimeoutReached error thrown when a timeout is reached.
-var ErrTimeoutReached = errors.New("timeout reached")
-var parseDurationRegexp = regexp.MustCompile(`^(?P<Duration>[1-9]\d*?)(?P<Unit>[smhdwMy])?$`)
+var (
+	reDuration        = regexp.MustCompile(`^(?P<Duration>[1-9]\d*?)(?P<Unit>[smhdwMy])?$`)
+	reSemanticVersion = regexp.MustCompile(`^v?(?P<Major>\d+)\.(?P<Minor>\d+)\.(?P<Patch>\d+)(\-(?P<PreRelease>[a-zA-Z0-9-]+))?(\+(?P<Metadata>[a-zA-Z0-9-.]+))?$`)
+)
 
 // AlphaNumericCharacters are literally just valid alphanumeric chars.
 var AlphaNumericCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-
-// ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
-var ErrTLSVersionNotSupported = errors.New("supplied TLS version isn't supported")
 
 var htmlEscaper = strings.NewReplacer(
 	"&", "&amp;",
@@ -63,3 +61,9 @@ var htmlEscaper = strings.NewReplacer(
 	`"`, "&#34;",
 	"'", "&#39;",
 )
+
+// ErrTimeoutReached error thrown when a timeout is reached.
+var ErrTimeoutReached = errors.New("timeout reached")
+
+// ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
+var ErrTLSVersionNotSupported = errors.New("supplied TLS version isn't supported")

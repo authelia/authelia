@@ -12,8 +12,8 @@ import (
 
 func newDefaultConfig() schema.Configuration {
 	config := schema.Configuration{}
-	config.Host = loopback
-	config.Port = 9090
+	config.Server.Host = loopback
+	config.Server.Port = 9090
 	config.Logging.Level = "info"
 	config.Logging.Format = "text"
 	config.JWTSecret = testJWTSecret
@@ -38,39 +38,6 @@ func newDefaultConfig() schema.Configuration {
 	}
 
 	return config
-}
-
-func TestShouldNotUpdateConfig(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-
-	ValidateConfiguration(&config, validator)
-
-	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, 9090, config.Port)
-	assert.Equal(t, "info", config.Logging.Level)
-}
-
-func TestShouldValidateAndUpdatePort(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.Port = 0
-
-	ValidateConfiguration(&config, validator)
-
-	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, 9091, config.Port)
-}
-
-func TestShouldValidateAndUpdateHost(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.Host = ""
-
-	ValidateConfiguration(&config, validator)
-
-	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, "0.0.0.0", config.Host)
 }
 
 func TestShouldEnsureNotifierConfigIsProvided(t *testing.T) {
@@ -105,36 +72,6 @@ func TestShouldAddDefaultAccessControl(t *testing.T) {
 	require.Len(t, validator.Errors(), 0)
 	assert.NotNil(t, config.AccessControl)
 	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
-}
-
-func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.TLSCert = testTLSCert
-
-	ValidateConfiguration(&config, validator)
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "No TLS key provided, please check the \"tls_key\" which has been configured")
-}
-
-func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.TLSKey = testTLSKey
-
-	ValidateConfiguration(&config, validator)
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "No TLS certificate provided, please check the \"tls_cert\" which has been configured")
-}
-
-func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.TLSCert = testTLSCert
-	config.TLSKey = testTLSKey
-
-	ValidateConfiguration(&config, validator)
-	require.Len(t, validator.Errors(), 0)
 }
 
 func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
