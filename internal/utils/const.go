@@ -47,8 +47,7 @@ const (
 )
 
 var (
-	reDuration        = regexp.MustCompile(`^(?P<Duration>[1-9]\d*?)(?P<Unit>[smhdwMy])?$`)
-	reSemanticVersion = regexp.MustCompile(`^v?(?P<Major>\d+)\.(?P<Minor>\d+)\.(?P<Patch>\d+)(\-(?P<PreRelease>[a-zA-Z0-9-]+))?(\+(?P<Metadata>[a-zA-Z0-9-.]+))?$`)
+	reDuration = regexp.MustCompile(`^(?P<Duration>[1-9]\d*?)(?P<Unit>[smhdwMy])?$`)
 )
 
 // AlphaNumericCharacters are literally just valid alphanumeric chars.

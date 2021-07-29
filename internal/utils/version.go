@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -102,80 +101,4 @@ func commitShort(commitLong string) (commit string) {
 	}
 
 	return b.String()
-}
-
-// SemanticVersion represents a semantic 2.0 version.
-type SemanticVersion struct {
-	Major      int
-	Minor      int
-	Patch      int
-	PreRelease string
-	Metadata   []string
-}
-
-// String is a function to provide a nice representation of a SemanticVersion.
-func (v SemanticVersion) String() (value string) {
-	builder := strings.Builder{}
-
-	builder.WriteString(fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch))
-
-	if v.PreRelease != "" {
-		builder.WriteString("-")
-		builder.WriteString(v.PreRelease)
-	}
-
-	if len(v.Metadata) != 0 {
-		builder.WriteString("+")
-		builder.WriteString(strings.Join(v.Metadata, "."))
-	}
-
-	return builder.String()
-}
-
-// Equals returns true if this SemanticVersion is equal to the provided SemanticVersion.
-func (v SemanticVersion) Equals(version SemanticVersion) (equals bool) {
-	return v.Major == version.Major && v.Minor == version.Minor && v.Patch == version.Patch && v.PreRelease == version.PreRelease
-}
-
-// Greater returns true if this SemanticVersion is greater than the provided SemanticVersion.
-func (v SemanticVersion) Greater(version SemanticVersion) (greater bool) {
-	if v.Major > version.Major || v.Minor > version.Minor || v.Patch > version.Patch {
-		return true
-	}
-
-	if v.PreRelease == "" && version.PreRelease != "" {
-		return true
-	}
-
-	if v.PreRelease != "" && version.PreRelease != "" {
-		if strings.Compare(v.PreRelease, version.PreRelease) == 1 {
-			return true
-		}
-	}
-
-	return false
-}
-
-// NewSemanticVersion creates a SemanticVersion from a string.
-func NewSemanticVersion(input string) (version SemanticVersion) {
-	submatch := reSemanticVersion.FindStringSubmatch(input)
-
-	for i, name := range reSemanticVersion.SubexpNames() {
-		switch name {
-		case "Major":
-			version.Major, _ = strconv.Atoi(submatch[i])
-		case "Minor":
-			version.Minor, _ = strconv.Atoi(submatch[i])
-		case "Patch":
-			version.Patch, _ = strconv.Atoi(submatch[i])
-		case "PreRelease":
-			version.PreRelease = submatch[i]
-		case "Metadata":
-			if submatch[i] != "" {
-				version.Metadata = strings.Split(submatch[i], ".")
-			}
-		}
-	}
-
-	return version
 }
