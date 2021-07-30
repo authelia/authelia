@@ -1,6 +1,8 @@
 # Contributing
 
-Anybody willing to contribute to the project either with code, documentation, security reviews or whatever, are very welcome to create or review pull requests and take part to discussions in our public chatroom on [Matrix](https://riot.im/app/#/room/#authelia:matrix.org).
+Anybody willing to contribute to the project either with code, documentation, security reviews or whatever, are very 
+welcome to create or review pull requests and take part in discussions in any of our public 
+[chat rooms](./README.md#contact-options).
 
 It's also possible to contribute financially in order to support the community.
 
@@ -35,20 +37,7 @@ Read more about this in the [GitHub docs, Re-requesting a review](https://docs.g
 
 ## Collaboration with maintainers
 
-Sometimes the codebase can be a challenge to navigate, especially for a first-time contributor.
-We don't want you spending an hour trying to work out something that would take us only a minute to explain.
+Sometimes the codebase can be a challenge to navigate, especially for a first-time contributor. We don't want you 
+spending an hour trying to work out something that would take us only a minute to explain.
 
-For that reason, we have [Matrix](#matrix) and [Discord](#discord) channels dedicated to helping anyone who's working on Pull Requests for Authelia.
-
-## Contact Options
-
-### Matrix
-
-Join the [Matrix Room](https://riot.im/app/#/room/#authelia:matrix.org) and locate one of the maintainers.
-You can identify them as they are the room administrators. Alternatively you can just ask for one of the
-maintainers.
-
-### Discord
-
-Join the [Discord Server](https://discord.authelia.com) and message the
-[#contributing](https://discord.com/channels/707844280412012608/804943261265297408) chat and contact a maintainer.
+If you'd like some help getting started we have several [contact options](./README.md#contact-options) available.
