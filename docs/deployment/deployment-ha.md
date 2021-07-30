@@ -57,5 +57,4 @@ an infrastructure on bare metal. We would be more than happy to review any PR on
 
 [config.template.yml]: https://github.com/authelia/authelia/blob/master/config.template.yml
 [Getting Started]: ../getting-started.md
-[Deployment for Devs]: ./deployment-dev.md
 [Kubernetes]: https://kubernetes.io/

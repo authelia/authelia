@@ -1,6 +1,11 @@
 package validator
 
 const (
+	loopback           = "127.0.0.1"
+	oauth2InstalledApp = "urn:ietf:wg:oauth:2.0:oob"
+)
+
+const (
 	errFmtDeprecatedConfigurationKey = "[DEPRECATED] The %s configuration option is deprecated and will be " +
 		"removed in %s, please use %s instead"
 	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
@@ -14,11 +19,16 @@ const (
 
 	errFmtOIDCServerClientRedirectURI = "OIDC client with ID '%s' redirect URI %s has an invalid scheme '%s', " +
 		"should be http or https"
+	errFmtOIDCClientRedirectURIPublic = "openid connect provider: client with ID '%s' redirect URI '%s' is " +
+		"only valid for the public client type, not the confidential client type"
+	errFmtOIDCClientRedirectURIAbsolute = "openid connect provider: client with ID '%s' redirect URI '%s' is invalid " +
+		"because it has no scheme when it should be http or https"
 	errFmtOIDCServerClientRedirectURICantBeParsed = "OIDC client with ID '%s' has an invalid redirect URI '%s' " +
 		"could not be parsed: %v"
 	errFmtOIDCServerClientInvalidPolicy = "OIDC client with ID '%s' has an invalid policy '%s', " +
 		"should be either 'one_factor' or 'two_factor'"
-	errFmtOIDCServerClientInvalidSecret = "OIDC client with ID '%s' has an empty secret" //nolint:gosec
+	errFmtOIDCServerClientInvalidSecret = "OIDC client with ID '%s' has an empty secret"                                             //nolint:gosec
+	errFmtOIDCClientPublicInvalidSecret = "openid connect provider: client with ID '%s' is public but does not have an empty secret" //nolint:gosec
 	errFmtOIDCServerClientInvalidScope  = "OIDC client with ID '%s' has an invalid scope '%s', " +
 		"must be one of: '%s'"
 	errFmtOIDCServerClientInvalidGrantType = "OIDC client with ID '%s' has an invalid grant type '%s', " +
