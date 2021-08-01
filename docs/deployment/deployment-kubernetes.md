@@ -19,8 +19,7 @@ The following areas are actively being worked on for Kubernetes:
 3. Kustomize Deployment
 4. Manifest Examples
 
-Users are welcome to reach out directly on our [Matrix Room](https://riot.im/app/#/room/#authelia:matrix.org) or 
-[Discord Server](https://discord.authelia.com) if they are looking for help setting up on Kubernetes in the meantime. 
+Users are welcome to reach out directly by using any of our various [contact options](../about-us.md#contact-options). 
 
 ## FAQ
 

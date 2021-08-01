@@ -15,7 +15,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	// otherwise PasswordReset would not be set to true. We can improve the security of this check by making the
 	// request expire at some point because here it only expires when the cookie expires.
 	if userSession.PasswordResetUsername == nil {
-		ctx.Error(fmt.Errorf("No identity verification process has been initiated"), unableToResetPasswordMessage)
+		ctx.Error(fmt.Errorf("No identity verification process has been initiated"), messageUnableToResetPassword)
 		return
 	}
 
@@ -23,7 +23,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	err := ctx.ParseBody(&requestBody)
 
 	if err != nil {
-		ctx.Error(err, unableToResetPasswordMessage)
+		ctx.Error(err, messageUnableToResetPassword)
 		return
 	}
 
@@ -35,7 +35,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 			utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
 			ctx.Error(fmt.Errorf("%s", err), ldapPasswordComplexityCode)
 		default:
-			ctx.Error(fmt.Errorf("%s", err), unableToResetPasswordMessage)
+			ctx.Error(fmt.Errorf("%s", err), messageUnableToResetPassword)
 		}
 
 		return
@@ -48,7 +48,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to update password reset state: %s", err), operationFailedMessage)
+		ctx.Error(fmt.Errorf("Unable to update password reset state: %s", err), messageOperationFailed)
 		return
 	}
 

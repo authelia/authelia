@@ -10,14 +10,14 @@ require (
 	github.com/deckarep/golang-set v1.7.1
 	github.com/duosecurity/duo_api_golang v0.0.0-20201112143038-0e07e9f869e3
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
-	github.com/fasthttp/router v1.4.0
-	github.com/fasthttp/session/v2 v2.4.0
+	github.com/fasthttp/router v1.4.1
+	github.com/fasthttp/session/v2 v2.4.1
 	github.com/go-ldap/ldap/v3 v3.3.0
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/golang-jwt/jwt v3.2.1+incompatible
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
-	github.com/jackc/pgx/v4 v4.12.0
+	github.com/jackc/pgx/v4 v4.13.0
 	github.com/ory/fosite v0.40.2
 	github.com/ory/herodot v0.9.7
 	github.com/otiai10/copy v1.6.0

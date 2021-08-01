@@ -41,19 +41,19 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 		ss, err := token.SignedString([]byte(ctx.Configuration.JWTSecret))
 
 		if err != nil {
-			ctx.Error(err, operationFailedMessage)
+			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
 		err = ctx.Providers.StorageProvider.SaveIdentityVerificationToken(ss)
 		if err != nil {
-			ctx.Error(err, operationFailedMessage)
+			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
 		uri, err := ctx.ForwardedProtoHost()
 		if err != nil {
-			ctx.Error(err, operationFailedMessage)
+			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
@@ -76,7 +76,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			err = templates.HTMLEmailTemplate.Execute(bufHTML, htmlParams)
 
 			if err != nil {
-				ctx.Error(err, operationFailedMessage)
+				ctx.Error(err, messageOperationFailed)
 				return
 			}
 		}
@@ -89,7 +89,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 		err = templates.PlainTextEmailTemplate.Execute(bufText, textParams)
 
 		if err != nil {
-			ctx.Error(err, operationFailedMessage)
+			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
@@ -99,7 +99,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 		err = ctx.Providers.Notifier.Send(identity.Email, args.MailTitle, bufText.String(), bufHTML.String())
 
 		if err != nil {
-			ctx.Error(err, operationFailedMessage)
+			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
@@ -117,25 +117,25 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 		err := json.Unmarshal(b, &finishBody)
 
 		if err != nil {
-			ctx.Error(err, operationFailedMessage)
+			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
 		if finishBody.Token == "" {
-			ctx.Error(fmt.Errorf("No token provided"), operationFailedMessage)
+			ctx.Error(fmt.Errorf("No token provided"), messageOperationFailed)
 			return
 		}
 
 		found, err := ctx.Providers.StorageProvider.FindIdentityVerificationToken(finishBody.Token)
 
 		if err != nil {
-			ctx.Error(err, operationFailedMessage)
+			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
 		if !found {
 			ctx.Error(fmt.Errorf("Token is not in DB, it might have already been used"),
-				identityVerificationTokenAlreadyUsedMessage)
+				messageIdentityVerificationTokenAlreadyUsed)
 			return
 		}
 
@@ -148,44 +148,44 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			if ve, ok := err.(*jwt.ValidationError); ok {
 				switch {
 				case ve.Errors&jwt.ValidationErrorMalformed != 0:
-					ctx.Error(fmt.Errorf("Cannot parse token"), operationFailedMessage)
+					ctx.Error(fmt.Errorf("Cannot parse token"), messageOperationFailed)
 					return
 				case ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0:
 					// Token is either expired or not active yet
-					ctx.Error(fmt.Errorf("Token expired"), identityVerificationTokenHasExpiredMessage)
+					ctx.Error(fmt.Errorf("Token expired"), messageIdentityVerificationTokenHasExpired)
 					return
 				default:
-					ctx.Error(fmt.Errorf("Cannot handle this token: %s", ve), operationFailedMessage)
+					ctx.Error(fmt.Errorf("Cannot handle this token: %s", ve), messageOperationFailed)
 					return
 				}
 			}
 
-			ctx.Error(err, operationFailedMessage)
+			ctx.Error(err, messageOperationFailed)
 
 			return
 		}
 
 		claims, ok := token.Claims.(*IdentityVerificationClaim)
 		if !ok {
-			ctx.Error(fmt.Errorf("Wrong type of claims (%T != *middlewares.IdentityVerificationClaim)", claims), operationFailedMessage)
+			ctx.Error(fmt.Errorf("Wrong type of claims (%T != *middlewares.IdentityVerificationClaim)", claims), messageOperationFailed)
 			return
 		}
 
 		// Verify that the action claim in the token is the one expected for the given endpoint.
 		if claims.Action != args.ActionClaim {
-			ctx.Error(fmt.Errorf("This token has not been generated for this kind of action"), operationFailedMessage)
+			ctx.Error(fmt.Errorf("This token has not been generated for this kind of action"), messageOperationFailed)
 			return
 		}
 
 		if args.IsTokenUserValidFunc != nil && !args.IsTokenUserValidFunc(ctx, claims.Username) {
-			ctx.Error(fmt.Errorf("This token has not been generated for this user"), operationFailedMessage)
+			ctx.Error(fmt.Errorf("This token has not been generated for this user"), messageOperationFailed)
 			return
 		}
 
 		// TODO(c.michaud): find a way to garbage collect unused tokens.
 		err = ctx.Providers.StorageProvider.RemoveIdentityVerificationToken(finishBody.Token)
 		if err != nil {
-			ctx.Error(err, operationFailedMessage)
+			ctx.Error(err, messageOperationFailed)
 			return
 		}
 

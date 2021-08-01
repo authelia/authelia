@@ -454,16 +454,16 @@ func TestFirstFactorDelayCalculations(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		delay := calculateActualDelay(mock.Ctx, execDuration, avgExecDurationMs, &successful)
 		assert.True(t, delay >= expectedMinimumDelayMs)
-		assert.True(t, delay <= expectedMinimumDelayMs+float64(msMaximumRandomDelay))
+		assert.True(t, delay <= expectedMinimumDelayMs+float64(loginDelayMaximumRandomDelayMilliseconds))
 	}
 
 	execDuration = 5 * time.Millisecond
 	avgExecDurationMs = 5.0
-	expectedMinimumDelayMs = msMinimumDelay1FA - float64(execDuration.Milliseconds())
+	expectedMinimumDelayMs = loginDelayMinimumDelayMilliseconds - float64(execDuration.Milliseconds())
 
 	for i := 0; i < 100; i++ {
 		delay := calculateActualDelay(mock.Ctx, execDuration, avgExecDurationMs, &successful)
 		assert.True(t, delay >= expectedMinimumDelayMs)
-		assert.True(t, delay <= expectedMinimumDelayMs+float64(msMaximumRandomDelay))
+		assert.True(t, delay <= expectedMinimumDelayMs+float64(loginDelayMaximumRandomDelayMilliseconds))
 	}
 }

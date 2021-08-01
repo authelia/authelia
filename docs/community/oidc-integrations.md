@@ -11,11 +11,13 @@ nav_order: 4
 
 ## Currently Tested Applications
 
-- GitLab (>= 13.0.0)
-- Grafana (8.0.5)
-- MinIO (problems with the `state` option which is not supplied by MinIO, see [minio/minio#11398])
+| Application | Minimal Version                | Notes   |
+| :---------: | :----------------------------: | :-----: |
+| GitLab      | `13.0.0`                       | |
+| Grafana     | `8.0.5`                        | |
+| MinIO       | `RELEASE.2021-07-12T02-44-53Z` | must set `MINIO_IDENTITY_OPENID_CLAIM_NAME: groups` in MinIO and set [MinIO policies] as groups in Authelia |
 
-[minio/minio#11398]: https://github.com/minio/minio/issues/11398
+[MinIO policies]: https://docs.min.io/minio/baremetal/security/minio-identity-management/policy-based-access-control.html#minio-policy
 
 ## Known Callback URLs
 
@@ -23,7 +25,7 @@ If you do not find the application in the list below, you will need to search fo
 
 `<DOMAIN>` needs to be substituted with the full URL on which the application runs on. If GitLab, as an example, was reachable under `https://gitlab.example.com`, `<DOMAIN>` would be exactly the same.
 
-| Application | Version              | Callback URL                                             |
-| :---------: | :------------------: | :------------------------------------------------------: |
-| GitLab      | `14.0.1`             | `<DOMAIN>/users/auth/openid_connect/callback`    |
-| MinIO       | `RELEASE.2021-06-17` | `<DOMAIN>/minio/login/openid`                    |
+| Application | Version                        | Callback URL                                             |
+| :---------: | :----------------------------: | :------------------------------------------------------: |
+| GitLab      | `14.0.1`                       | `<DOMAIN>/users/auth/openid_connect/callback`            |
+| MinIO       | `RELEASE.2021-07-12T02-44-53Z` | `<DOMAIN>/oauth_callback`                                |

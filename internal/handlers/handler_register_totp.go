@@ -32,7 +32,7 @@ var SecondFactorTOTPIdentityStart = middlewares.IdentityVerificationStart(middle
 	MailTitle:             "Register your mobile",
 	MailButtonContent:     "Register",
 	TargetEndpoint:        "/one-time-password/register",
-	ActionClaim:           TOTPRegistrationAction,
+	ActionClaim:           ActionTOTPRegistration,
 	IdentityRetrieverFunc: identityRetrieverFromSession,
 })
 
@@ -45,13 +45,13 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 	})
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to generate TOTP key: %s", err), unableToRegisterOneTimePasswordMessage)
+		ctx.Error(fmt.Errorf("Unable to generate TOTP key: %s", err), messageUnableToRegisterOneTimePassword)
 		return
 	}
 
 	err = ctx.Providers.StorageProvider.SaveTOTPSecret(username, key.Secret())
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to save TOTP secret in DB: %s", err), unableToRegisterOneTimePasswordMessage)
+		ctx.Error(fmt.Errorf("Unable to save TOTP secret in DB: %s", err), messageUnableToRegisterOneTimePassword)
 		return
 	}
 
@@ -69,6 +69,6 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 // SecondFactorTOTPIdentityFinish the handler for finishing the identity validation.
 var SecondFactorTOTPIdentityFinish = middlewares.IdentityVerificationFinish(
 	middlewares.IdentityVerificationFinishArgs{
-		ActionClaim:          TOTPRegistrationAction,
+		ActionClaim:          ActionTOTPRegistration,
 		IsTokenUserValidFunc: isTokenUserValidFor2FARegistration,
 	}, secondFactorTOTPIdentityFinish)
