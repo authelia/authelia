@@ -139,52 +139,32 @@ const FirstFactorForm = function (props: Props) {
                         }}
                     />
                 </Grid>
-                {props.rememberMe || props.resetPassword ? (
-                    <Grid
-                        item
-                        xs={12}
-                        className={
-                            props.rememberMe
-                                ? classnames(style.leftAlign, style.actionRow)
-                                : classnames(style.leftAlign, style.flexEnd, style.actionRow)
-                        }
-                    >
-                        {props.rememberMe ? (
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        id="remember-checkbox"
-                                        disabled={disabled}
-                                        checked={rememberMe}
-                                        onChange={handleRememberMeChange}
-                                        onKeyPress={(ev) => {
-                                            if (ev.key === "Enter") {
-                                                if (!username.length) {
-                                                    usernameRef.current.focus();
-                                                } else if (!password.length) {
-                                                    passwordRef.current.focus();
-                                                }
-                                                handleSignIn();
+                {props.rememberMe ? (
+                    <Grid item xs={12} className={classnames(style.actionRow)}>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    id="remember-checkbox"
+                                    disabled={disabled}
+                                    checked={rememberMe}
+                                    onChange={handleRememberMeChange}
+                                    onKeyPress={(ev) => {
+                                        if (ev.key === "Enter") {
+                                            if (!username.length) {
+                                                usernameRef.current.focus();
+                                            } else if (!password.length) {
+                                                passwordRef.current.focus();
                                             }
-                                        }}
-                                        value="rememberMe"
-                                        color="primary"
-                                    />
-                                }
-                                className={style.rememberMe}
-                                label="Remember me"
-                            />
-                        ) : null}
-                        {props.resetPassword ? (
-                            <Link
-                                id="reset-password-button"
-                                component="button"
-                                onClick={handleResetPasswordClick}
-                                className={style.resetLink}
-                            >
-                                Reset password?
-                            </Link>
-                        ) : null}
+                                            handleSignIn();
+                                        }
+                                    }}
+                                    value="rememberMe"
+                                    color="primary"
+                                />
+                            }
+                            className={style.rememberMe}
+                            label="Remember me"
+                        />
                     </Grid>
                 ) : null}
                 <Grid item xs={12}>
@@ -199,6 +179,18 @@ const FirstFactorForm = function (props: Props) {
                         Sign in
                     </Button>
                 </Grid>
+                {props.resetPassword ? (
+                    <Grid item xs={12} className={classnames(style.actionRow, style.flexEnd)}>
+                        <Link
+                            id="reset-password-button"
+                            component="button"
+                            onClick={handleResetPasswordClick}
+                            className={style.resetLink}
+                        >
+                            Reset password?
+                        </Link>
+                    </Grid>
+                ) : null}
             </Grid>
         </LoginLayout>
     );
@@ -223,12 +215,5 @@ const useStyles = makeStyles((theme) => ({
     },
     flexEnd: {
         justifyContent: "flex-end",
-    },
-    leftAlign: {
-        textAlign: "left",
-    },
-    rightAlign: {
-        textAlign: "right",
-        verticalAlign: "bottom",
     },
 }));
