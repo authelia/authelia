@@ -103,7 +103,7 @@ required: no
 </div>
 
 The key `skip_verify` completely negates validating the certificate of the backend service. This is not recommended,
-instead you should tweak the `server_name` option, and the global option [certificates_directory](./miscellaneous.md#certificates-directory).
+instead you should tweak the `server_name` option, and the global option [certificates_directory](./miscellaneous.md#certificates_directory).
 
 ### Minimum Version
 <div markdown="1">

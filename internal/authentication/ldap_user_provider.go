@@ -107,6 +107,8 @@ func (p *LDAPUserProvider) checkServer() (err error) {
 		return err
 	}
 
+	defer conn.Close()
+
 	searchRequest := ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
 		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute}, nil)
 

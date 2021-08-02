@@ -16,13 +16,13 @@ func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 	err := ctx.ParseBody(&responseBody)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to parse response body: %v", err), unableToRegisterSecurityKeyMessage)
+		ctx.Error(fmt.Errorf("Unable to parse response body: %v", err), messageUnableToRegisterSecurityKey)
 	}
 
 	userSession := ctx.GetSession()
 
 	if userSession.U2FChallenge == nil {
-		ctx.Error(fmt.Errorf("U2F registration has not been initiated yet"), unableToRegisterSecurityKeyMessage)
+		ctx.Error(fmt.Errorf("U2F registration has not been initiated yet"), messageUnableToRegisterSecurityKey)
 		return
 	}
 	// Ensure the challenge is cleared if anything goes wrong.
@@ -38,7 +38,7 @@ func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 	registration, err := u2f.Register(responseBody, *userSession.U2FChallenge, u2fConfig)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to verify U2F registration: %v", err), unableToRegisterSecurityKeyMessage)
+		ctx.Error(fmt.Errorf("Unable to verify U2F registration: %v", err), messageUnableToRegisterSecurityKey)
 		return
 	}
 
@@ -48,7 +48,7 @@ func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 	err = ctx.Providers.StorageProvider.SaveU2FDeviceHandle(userSession.Username, registration.KeyHandle, publicKey)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to register U2F device for user %s: %v", userSession.Username, err), unableToRegisterSecurityKeyMessage)
+		ctx.Error(fmt.Errorf("Unable to register U2F device for user %s: %v", userSession.Username, err), messageUnableToRegisterSecurityKey)
 		return
 	}
 
