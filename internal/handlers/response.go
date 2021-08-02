@@ -123,14 +123,14 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		return
 	}
 
-	valid, err := utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.Domain)
+	safe, err := utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.Domain)
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("Unable to check target URL: %s", err), messageMFAValidationFailed)
 		return
 	}
 
-	if valid {
+	if safe {
 		ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
 		err := ctx.SetJSONBody(redirectResponse{Redirect: targetURI})
 
