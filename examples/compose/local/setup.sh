@@ -113,7 +113,6 @@ fi
 sudo docker-compose up -d
 
 if [[ $? != 0 ]]; then
-  echo "docker-compose encountered an error"
   exit 1
 fi
 
