@@ -31,7 +31,7 @@ export interface Props {
 }
 
 const RedirectionErrorMessage =
-    "There was an issue redirecting the user. Check that the redirection URI matches the domain.";
+    "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.";
 
 const LoginPortal = function (props: Props) {
     const history = useHistory();
