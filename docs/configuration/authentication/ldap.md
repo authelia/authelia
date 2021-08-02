@@ -197,13 +197,28 @@ search.
 |{input}                 |search |The input into the username field                               |
 |{epoch:win32}           |search |The current time in win32 epoch format                          |
 
+##### epoch:win32
+
+The win32 epoch format is the number of 100ns increments since Jan 1 1601 UTC, 
+[epoch converter](https://www.epochconverter.com/ldap) has a tool to convert them for you if required. The format is
+primarily used with Active Directory, and is the format of all time fields in Active Directory. You can utilize this
+with the default Active Directory filter to filter out expired accounts like this:
+
+```
+(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)(|(accountExpires=0)(accountExpires=9223372036854775807)(accountExpires>={epoch:win32}))
+```
+
+_**Please Note:** this exludes accounts with known never expires values 0 and 9223372036854775807 as per the 
+[TechNet wiki]. The filter above will exclude all accounts that are disabled, require a password change, or are 
+expired._
+
 #### Groups filter replacements
 
-|Placeholder             |Phase  |Replacement                                                                                     |
-|:----------------------:|:-----:|:----------------------------------------------------------------------------------------------:|
-|{input}                 |search |The input into the username field                                                               |
-|{username}              |search |The username from the profile lookup obtained from the [username attribute](#username_attribute)|
-|{dn}                    |search |The distinguished name from the profile lookup                                                  |
+|Placeholder             |Phase  |Replacement                                                                |
+|:----------------------:|:-----:|:-------------------------------------------------------------------------:|
+|{input}                 |search |The input into the username field                                          |
+|{username}              |search |The username from the profile lookup obtained from the [username attribute]|
+|{dn}                    |search |The distinguished name from the profile lookup                             |
 
 ### Defaults
 
@@ -268,3 +283,6 @@ As of versions > `4.24.0` the `users_filter` must include the `username_attribut
 result in Authelia throwing an error.
 In versions <= `4.24.0` not including the `username_attribute` placeholder will cause issues with the session refresh
 and will result in session resets when the refresh interval has expired, default of 5 minutes.
+
+[username attribute]: #username_attribute
+[TechNet wiki]: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
