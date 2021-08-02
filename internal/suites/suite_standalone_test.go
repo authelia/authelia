@@ -94,7 +94,7 @@ func (s *StandaloneWebDriverSuite) TestShouldNotRedirectAlreadyAuthenticatedUser
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL()))
-	s.verifyNotificationDisplayed(ctx, s.T(), "There was an issue redirecting the user. Check that the redirection URI matches the domain.")
+	s.verifyNotificationDisplayed(ctx, s.T(), "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.")
 }
 
 func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() {
