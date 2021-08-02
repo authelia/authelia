@@ -30,6 +30,18 @@ const (
 	ldapOIDPasswdModifyExtension    = "1.3.6.1.4.1.4203.1.11.1" // http://oidref.com/1.3.6.1.4.1.4203.1.11.1
 )
 
+const (
+	ldapPlaceholderInput               = "{input}"
+	ldapPlaceholderDateTimeWin32       = "{datetime:win32}"
+	ldapPlaceholderDateTimeGeneralized = "{datetime:generalized}"
+	ldapPlaceholderDistinguishedName   = "{dn}"
+	ldapPlaceholderUsername            = "{username}"
+)
+
+const (
+	ldapGeneralizedTimeDateTimeFormat = "20060102150405Z"
+)
+
 // PossibleMethods is the set of all possible 2FA methods.
 var PossibleMethods = []string{TOTP, U2F, Push}
 

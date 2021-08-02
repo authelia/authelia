@@ -195,7 +195,8 @@ search.
 |{mail_attribute}        |startup|The [mail attribute](#mail_attribute) configured                |
 |{display_name_attribute}|startup|The [display name attribute](#display_name_attribute) configured|
 |{input}                 |search |The input into the username field                               |
-|{epoch:win32}           |search |The current time in win32 epoch format                          |
+|{datetime:win32}        |search |The current time in win32 epoch format                          |
+|{datetime:generalized}  |search |The current time in [LDAP GeneralizedTime] format               |
 
 ##### epoch:win32
 
@@ -205,7 +206,7 @@ primarily used with Active Directory, and is the format of most time fields in A
 with the default Active Directory filter to filter out expired accounts like this:
 
 ```
-(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)(|(accountExpires=0)(accountExpires=9223372036854775807)(accountExpires>={epoch:win32}))
+(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)(|(accountExpires=0)(accountExpires=9223372036854775807)(accountExpires>={datetime:win32}))
 ```
 
 _**Please Note:** this exludes accounts with known never expires values 0 and 9223372036854775807 as per the 
@@ -284,5 +285,6 @@ result in Authelia throwing an error.
 In versions <= `4.24.0` not including the `username_attribute` placeholder will cause issues with the session refresh
 and will result in session resets when the refresh interval has expired, default of 5 minutes.
 
+[LDAP GeneralizedTime]: https://ldapwiki.com/wiki/GeneralizedTime
 [username attribute]: #username_attribute
 [TechNet wiki]: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx

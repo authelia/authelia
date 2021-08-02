@@ -29,10 +29,11 @@ type LDAPUserProvider struct {
 	supportExtensionPasswdModify bool
 
 	// Dynamically generated users values.
-	usersBaseDN                      string
-	usersAttributes                  []string
-	usersFilterReplacementInput      bool
-	usersFilterReplacementEpochWin32 bool
+	usersBaseDN                               string
+	usersAttributes                           []string
+	usersFilterReplacementInput               bool
+	usersFilterReplacementDateTimeWin32       bool
+	usersFilterReplacementDateTimeGeneralized bool
 
 	// Dynamically generated groups values.
 	groupsBaseDN                    string
@@ -154,11 +155,15 @@ func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter stri
 
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
-		filter = strings.ReplaceAll(filter, "{input}", p.ldapEscape(inputUsername))
+		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, p.ldapEscape(inputUsername))
 	}
 
-	if p.usersFilterReplacementEpochWin32 {
-		filter = strings.ReplaceAll(filter, "{epoch:win32}", strconv.FormatUint(utils.UnixNanoTimeToWin32Epoch(time.Now().UnixNano()), 10))
+	if p.usersFilterReplacementDateTimeWin32 {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeWin32, strconv.FormatUint(utils.UnixNanoTimeToWin32Epoch(time.Now().UnixNano()), 10))
+	}
+
+	if p.usersFilterReplacementDateTimeGeneralized {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeGeneralized, time.Now().UTC().Format(ldapGeneralizedTimeDateTimeFormat))
 	}
 
 	p.logger.Tracef("Computed user filter is %s", filter)
@@ -223,16 +228,16 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 
 	if p.groupsFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
-		filter = strings.ReplaceAll(p.configuration.GroupsFilter, "{input}", p.ldapEscape(inputUsername))
+		filter = strings.ReplaceAll(p.configuration.GroupsFilter, ldapPlaceholderInput, p.ldapEscape(inputUsername))
 	}
 
 	if profile != nil {
 		if p.groupsFilterReplacementUsername {
-			filter = strings.ReplaceAll(filter, "{username}", ldap.EscapeFilter(profile.Username))
+			filter = strings.ReplaceAll(filter, ldapPlaceholderUsername, ldap.EscapeFilter(profile.Username))
 		}
 
 		if p.groupsFilterReplacementDN {
-			filter = strings.ReplaceAll(filter, "{dn}", ldap.EscapeFilter(profile.DN))
+			filter = strings.ReplaceAll(filter, ldapPlaceholderDistinguishedName, ldap.EscapeFilter(profile.DN))
 		}
 	}
 

@@ -66,15 +66,21 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 
 	p.logger.Tracef("Dynamically generated users BaseDN is %s", p.usersBaseDN)
 
-	if strings.Contains(p.configuration.UsersFilter, "{input}") {
+	if strings.Contains(p.configuration.UsersFilter, ldapPlaceholderInput) {
 		p.usersFilterReplacementInput = true
 	}
 
-	if strings.Contains(p.configuration.UsersFilter, "{epoch:win32}") {
-		p.usersFilterReplacementEpochWin32 = true
+	if strings.Contains(p.configuration.UsersFilter, ldapPlaceholderDateTimeWin32) {
+		p.usersFilterReplacementDateTimeWin32 = true
 	}
 
-	p.logger.Tracef("Detected user filter replacements that need to be resolved per lookup are: input=%v, epoch:win32=%v", p.usersFilterReplacementInput, p.usersFilterReplacementEpochWin32)
+	if strings.Contains(p.configuration.UsersFilter, ldapPlaceholderDateTimeGeneralized) {
+		p.usersFilterReplacementDateTimeGeneralized = true
+	}
+
+	p.logger.Tracef("Detected user filter replacements that need to be resolved per lookup are: %s=%v, %s=%v",
+		ldapPlaceholderInput, p.usersFilterReplacementInput,
+		ldapPlaceholderDateTimeGeneralized, p.usersFilterReplacementDateTimeGeneralized)
 }
 
 func (p *LDAPUserProvider) parseDynamicGroupsConfiguration() {
@@ -90,15 +96,15 @@ func (p *LDAPUserProvider) parseDynamicGroupsConfiguration() {
 
 	p.logger.Tracef("Dynamically generated groups BaseDN is %s", p.groupsBaseDN)
 
-	if strings.Contains(p.configuration.GroupsFilter, "{input}") {
+	if strings.Contains(p.configuration.GroupsFilter, ldapPlaceholderInput) {
 		p.groupsFilterReplacementInput = true
 	}
 
-	if strings.Contains(p.configuration.GroupsFilter, "{username}") {
+	if strings.Contains(p.configuration.GroupsFilter, ldapPlaceholderUsername) {
 		p.groupsFilterReplacementUsername = true
 	}
 
-	if strings.Contains(p.configuration.GroupsFilter, "{dn}") {
+	if strings.Contains(p.configuration.GroupsFilter, ldapPlaceholderDistinguishedName) {
 		p.groupsFilterReplacementDN = true
 	}
 
