@@ -70,7 +70,7 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	}
 
 	if len(errs) != 0 {
-		for _, err := range nonFatalErrs {
+		for _, err := range errs {
 			logger.Error(err)
 		}
 

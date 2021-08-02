@@ -26,12 +26,12 @@ type OpenIDConnectConfiguration struct {
 
 // OpenIDConnectClientConfiguration configuration for an OpenID Connect client.
 type OpenIDConnectClientConfiguration struct {
-	ID            string   `koanf:"id"`
-	Description   string   `koanf:"description"`
-	Secret        string   `koanf:"secret"`
-	Public        bool     `koanf:"public"`
+	ID          string `koanf:"id"`
+	Description string `koanf:"description"`
+	Secret      string `koanf:"secret"`
+	Public      bool   `koanf:"public"`
 
-	Policy        string   `koanf:"authorization_policy"`
+	Policy string `koanf:"authorization_policy"`
 
 	Audience      []string `koanf:"audience"`
 	Scopes        []string `koanf:"scopes"`
