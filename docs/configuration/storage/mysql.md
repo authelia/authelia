@@ -1,7 +1,7 @@
 ---
 layout: default
 title: MySQL
-parent: Storage backends
+parent: Storage Backends
 grand_parent: Configuration
 nav_order: 2
 ---
