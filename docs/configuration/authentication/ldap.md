@@ -201,7 +201,7 @@ search.
 
 The win32 epoch format is the number of 100ns increments since Jan 1 1601 UTC, 
 [epoch converter](https://www.epochconverter.com/ldap) has a tool to convert them for you if required. The format is
-primarily used with Active Directory, and is the format of all time fields in Active Directory. You can utilize this
+primarily used with Active Directory, and is the format of most time fields in Active Directory. You can utilize this
 with the default Active Directory filter to filter out expired accounts like this:
 
 ```
