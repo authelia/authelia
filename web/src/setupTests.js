@@ -1,7 +1,6 @@
-import { configure } from "enzyme";
-import Adapter from "enzyme-adapter-react-16";
+import "@testing-library/jest-dom";
+
 document.body.setAttribute("data-basepath", "");
 document.body.setAttribute("data-rememberme", "true");
 document.body.setAttribute("data-resetpassword", "true");
 document.body.setAttribute("data-theme", "light");
-configure({ adapter: new Adapter() });
