@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Storage backends
+title: Storage Backends
 parent: Configuration
-nav_order: 12
+nav_order: 13
 has_children: true
 ---
 
