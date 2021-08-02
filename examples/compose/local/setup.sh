@@ -32,17 +32,17 @@ if [[ ! -x "$(command -v docker-compose)" ]]; then
   exit 1
 fi
 
-echo "Pulling Authelia docker image for setup"
-docker pull authelia/authelia > /dev/null
-
 if [[ $(id -u)  != 0 ]]; then
   echo "The script requires root access to perform some functions such as modifying your /etc/hosts file"
   read -rp "Would you like to elevate access with sudo? [y/N] " confirmsudo
   if ! [[ "$confirmsudo" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     echo "Sudo elevation denied, exiting"
-    exit
+    exit 1
   fi
 fi
+
+echo "Pulling Authelia docker image for setup"
+sudo docker pull authelia/authelia > /dev/null
 
 echo "Resetting docker-compose.yml, configuration.yml and users_database.yml"
 sudo git checkout -- docker-compose.yml authelia/configuration.yml authelia/users_database.yml
@@ -60,7 +60,7 @@ if [[ $MODIFIED == "false" ]]; then
 fi
 
 echo "Generating SSL certificate for *.$DOMAIN"
-docker run -a stdout -v $PWD/traefik/certs:/tmp/certs authelia/authelia authelia certificates generate --host *.$DOMAIN --dir /tmp/certs/ > /dev/null
+sudo docker run -a stdout -v $PWD/traefik/certs:/tmp/certs authelia/authelia authelia certificates generate --host *.$DOMAIN --dir /tmp/certs/ > /dev/null
 
 if [[ $DOMAIN != "example.com" ]]; then
   if [[ $(uname) == "Darwin" ]]; then
@@ -99,7 +99,7 @@ fi
 password
 
 if [[ $PASSWORD != "" ]]; then
-  PASSWORD=$(docker run authelia/authelia authelia hash-password $PASSWORD | sed 's/Password hash: //g')
+  PASSWORD=$(sudo docker run authelia/authelia authelia hash-password $PASSWORD | sed 's/Password hash: //g')
   if [[ $(uname) == "Darwin" ]]; then
     sudo sed -i '' "s/<PASSWORD>/$(echo $PASSWORD | sed -e 's/[\/&]/\\&/g')/g" authelia/users_database.yml
   else
@@ -110,7 +110,11 @@ else
   password
 fi
 
-docker-compose up -d
+sudo docker-compose up -d
+
+if [[ $? != 0 ]]; then
+  exit 1
+fi
 
 cat << EOF
 Setup completed successfully.
