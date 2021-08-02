@@ -95,6 +95,18 @@ func TestShouldConvertKnownWin32EpochToTime(t *testing.T) {
 	assert.Equal(t, native, result)
 }
 
+func TestShouldReturnExpectedWin32EpochTimesInBothDirections(t *testing.T) {
+	now := time.Now()
+
+	win32Epoch := UnixNanoTimeToWin32Epoch(now.UnixNano())
+
+	nowFromEpoch, err := Win32EpochToTime(win32Epoch)
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, now.Unix(), nowFromEpoch.Unix())
+}
+
 func TestShouldReturnErrOnWin32EpochTimeTooLow(t *testing.T) {
 	_, err := Win32EpochToTime(0)
 

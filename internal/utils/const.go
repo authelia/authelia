@@ -47,8 +47,8 @@ const (
 	// Month is an int based representation of the time unit.
 	Month = Year / 12
 
-	// unixEpochAsWin32Epoch represents the unix epoch as a w32 epoch.
-	// The w32 epoch is ticks since Jan 1, 1601 (1 tick is 100ns).
+	// unixEpochAsWin32Epoch represents the unix epoch as a win32 epoch.
+	// The win32 epoch is ticks since Jan 1, 1601 (1 tick is 100ns).
 	unixEpochAsWin32Epoch uint64 = 116444736000000000
 )
 
