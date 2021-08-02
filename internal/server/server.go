@@ -64,6 +64,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
 	r.HEAD("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
 
+	r.POST("/api/checks/safe-redirection", autheliaMiddleware(handlers.CheckSafeRedirection))
+
 	r.POST("/api/firstfactor", autheliaMiddleware(handlers.FirstFactorPost(1000, true)))
 	r.POST("/api/logout", autheliaMiddleware(handlers.LogoutPost))
 
@@ -189,9 +191,9 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 		}
 	}
 
-	if configuration.Server.TLSCert != "" && configuration.Server.TLSKey != "" {
+	if configuration.Server.TLS.Certificate != "" && configuration.Server.TLS.Key != "" {
 		logger.Infof("Listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
-		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLSCert, configuration.Server.TLSKey))
+		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLS.Certificate, configuration.Server.TLS.Key))
 	} else {
 		logger.Infof("Listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
 		logger.Fatal(server.Serve(listener))

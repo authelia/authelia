@@ -4,13 +4,19 @@ package schema
 type ServerConfiguration struct {
 	Host            string `koanf:"host"`
 	Port            int    `koanf:"port"`
-	TLSCert         string `koanf:"tls_cert"`
-	TLSKey          string `koanf:"tls_key"`
 	Path            string `koanf:"path"`
 	ReadBufferSize  int    `koanf:"read_buffer_size"`
 	WriteBufferSize int    `koanf:"write_buffer_size"`
 	EnablePprof     bool   `koanf:"enable_endpoint_pprof"`
 	EnableExpvars   bool   `koanf:"enable_endpoint_expvars"`
+
+	TLS ServerTLSConfiguration `koanf:"tls"`
+}
+
+// ServerTLSConfiguration represents the configuration of the http servers TLS options.
+type ServerTLSConfiguration struct {
+	Certificate string `koanf:"certificate"`
+	Key         string `koanf:"key"`
 }
 
 // DefaultServerConfiguration represents the default values of the ServerConfiguration.

@@ -12,6 +12,19 @@
 ## The theme to display: light, dark, grey, auto.
 theme: light
 
+## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
+## set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+jwt_secret: a_very_important_secret
+
+## Default redirection URL
+##
+## If user tries to authenticate without any referer, Authelia does not know where to redirect the user to at the end
+## of the authentication process. This parameter allows you to specify the default redirection URL Authelia will use
+## in such a case.
+##
+## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
+default_redirection_url: https://home.example.com/
+
 ##
 ## Server Configuration
 ##
@@ -23,9 +36,15 @@ server:
   ## The port to listen on.
   port: 9091
 
-  ## The TLS key and cert used with Authelia.
-  # tls_key: /config/ssl/key.pem
-  # tls_cert: /config/ssl/cert.pem
+  ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behaviour.
+  tls:
+    ## The path to the DER base64/PEM format private key.
+    key: ""
+    # key: /config/ssl/key.pem
+
+    ## The path to the DER base64/PEM format public certificate.
+    certificate: ""
+    # certificate: /config/ssl/cert.pem
 
   ## Buffers usually should be configured to be the same value.
   ## Explanation at https://www.authelia.com/docs/configuration/server.html
@@ -56,19 +75,6 @@ log:
 
   ## Whether to also log to stdout when a log_file_path is defined.
   # keep_stdout: false
-
-## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
-## set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-jwt_secret: a_very_important_secret
-
-## Default redirection URL
-##
-## If user tries to authenticate without any referer, Authelia does not know where to redirect the user to at the end
-## of the authentication process. This parameter allows you to specify the default redirection URL Authelia will use
-## in such a case.
-##
-## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
-default_redirection_url: https://home.example.com/
 
 ##
 ## TOTP Configuration

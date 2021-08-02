@@ -74,43 +74,6 @@ func TestShouldAddDefaultAccessControl(t *testing.T) {
 	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
 }
 
-func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.Server.TLSCert = testTLSCert
-
-	ValidateConfiguration(&config, validator)
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "No TLS key provided, please check the \"tls_key\" which has been configured")
-}
-
-func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.Server.TLSKey = testTLSKey
-
-	ValidateConfiguration(&config, validator)
-	require.Len(t, validator.Errors(), 1)
-	assert.Len(t, validator.Warnings(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "No TLS certificate provided, please check the \"tls_cert\" which has been configured")
-	assert.EqualError(t, validator.Warnings()[0], "No access control rules have been defined so the default policy two_factor will be applied to all requests")
-}
-
-func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.Server.TLSCert = testTLSCert
-	config.Server.TLSKey = testTLSKey
-
-	ValidateConfiguration(&config, validator)
-
-	assert.Len(t, validator.Errors(), 0)
-	require.Len(t, validator.Warnings(), 1)
-
-	assert.EqualError(t, validator.Warnings()[0], "No access control rules have been defined so the default policy two_factor will be applied to all requests")
-}
-
 func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
@@ -130,7 +93,6 @@ func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 	config.DefaultRedirectionURL = "bad_default_redirection_url"
 
 	ValidateConfiguration(&config, validator)
-
 	require.Len(t, validator.Errors(), 1)
 	require.Len(t, validator.Warnings(), 1)
 

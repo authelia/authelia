@@ -110,10 +110,10 @@ var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
 // the secret names map and reuse it in relevant sections.
 var ValidKeys = []string{
 	// Root Keys.
+	"certificates_directory",
+	"theme",
 	"default_redirection_url",
 	"jwt_secret",
-	"theme",
-	"certificates_directory",
 
 	// Log keys.
 	"log.level",
@@ -134,13 +134,13 @@ var ValidKeys = []string{
 	// Server Keys.
 	"server.host",
 	"server.port",
-	"server.tls_cert",
-	"server.tls_key",
 	"server.read_buffer_size",
 	"server.write_buffer_size",
 	"server.path",
 	"server.enable_pprof",
 	"server.enable_expvars",
+	"server.tls.key",
+	"server.tls.certificate",
 
 	// TOTP Keys.
 	"totp.issuer",

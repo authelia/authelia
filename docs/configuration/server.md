@@ -2,7 +2,7 @@
 layout: default
 title: Server
 parent: Configuration
-nav_order: 9
+nav_order: 11
 ---
 
 # Server
@@ -15,18 +15,19 @@ The server section configures and tunes the http server module Authelia uses.
 server:
   host: 0.0.0.0
   port: 9091
-  tls_key: ""
-  tls_cert: ""
   read_buffer_size: 4096
   write_buffer_size: 4096
   path: ""
   enable_pprof: false
   enable_expvars: false
+  tls:
+    key: ""
+    certificate: ""
 ```
 
 ## Options
 
-### host
+## host
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
@@ -56,38 +57,6 @@ required: no
 </div>
 
 Defines the port to listen on. See also [host](#host).
-
-### tls_key
-<div markdown="1">
-type: string (path)
-{: .label .label-config .label-purple } 
-default: ""
-{: .label .label-config .label-blue }
-required: situational
-{: .label .label-config .label-yellow }
-</div>
-
-The path to the private key for TLS connections. Must be in DER base64/PEM format.
-
-Authelia's typically listens for plain unencrypted connections. This is by design as most environments allow to
-security on lower areas of the OSI model. However it required, if you specify both of this option and the 
-[tls_cert](#tls_cert) options, Authelia will listen for TLS connections.
-
-### tls_cert
-<div markdown="1">
-type: string (path)
-{: .label .label-config .label-purple } 
-default: ""
-{: .label .label-config .label-blue }
-required: situational
-{: .label .label-config .label-yellow }
-</div>
-
-The path to the public certificate for TLS connections. Must be in DER base64/PEM format.
-
-Authelia's typically listens for plain unencrypted connections. This is by design as most environments allow to
-security on lower areas of the OSI model. However it required, if you specify both of this option and the
-[tls_key](#tls_key) options, Authelia will listen for TLS connections.
 
 ### read_buffer_size
 <div markdown="1">
@@ -165,6 +134,35 @@ required: no
 
 Enables the go expvars endpoints.
 
+### tls
+
+Authelia typically listens for plain unencrypted connections. This is by design as most environments allow to
+security on lower areas of the OSI model. However it required, if you specify both the [tls key](#key) and 
+[tls certificate](#certificate) options, Authelia will listen for TLS connections.
+
+#### key
+<div markdown="1">
+type: string (path)
+{: .label .label-config .label-purple } 
+default: ""
+{: .label .label-config .label-blue }
+required: situational
+{: .label .label-config .label-yellow }
+</div>
+
+The path to the private key for TLS connections. Must be in DER base64/PEM format.
+
+#### certificate
+<div markdown="1">
+type: string (path)
+{: .label .label-config .label-purple } 
+default: ""
+{: .label .label-config .label-blue }
+required: situational
+{: .label .label-config .label-yellow }
+</div>
+
+The path to the public certificate for TLS connections. Must be in DER base64/PEM format.
 
 ## Additional Notes
 

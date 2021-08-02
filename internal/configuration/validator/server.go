@@ -21,10 +21,10 @@ func ValidateServer(configuration *schema.Configuration, validator *schema.Struc
 		configuration.Server.Port = schema.DefaultServerConfiguration.Port
 	}
 
-	if configuration.Server.TLSKey != "" && configuration.Server.TLSCert == "" {
-		validator.Push(fmt.Errorf("No TLS certificate provided, please check the \"tls_cert\" which has been configured"))
-	} else if configuration.Server.TLSKey == "" && configuration.Server.TLSCert != "" {
-		validator.Push(fmt.Errorf("No TLS key provided, please check the \"tls_key\" which has been configured"))
+	if configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate == "" {
+		validator.Push(fmt.Errorf("server: no TLS certificate provided to accompany the TLS key, please configure the 'server.tls.certificate' option"))
+	} else if configuration.Server.TLS.Key == "" && configuration.Server.TLS.Certificate != "" {
+		validator.Push(fmt.Errorf("server: no TLS key provided to accompany the TLS certificate, please configure the 'server.tls.key' option"))
 	}
 
 	switch {
@@ -70,16 +70,16 @@ func applyDeprecatedServerConfiguration(configuration *schema.Configuration, val
 	if configuration.TLSCert != "" {
 		validator.PushWarning(fmt.Errorf(errFmtDeprecatedConfigurationKey, "tls_cert", "4.33.0", "server.tls_cert"))
 
-		if configuration.Server.TLSCert == "" {
-			configuration.Server.TLSCert = configuration.TLSCert
+		if configuration.Server.TLS.Certificate == "" {
+			configuration.Server.TLS.Certificate = configuration.TLSCert
 		}
 	}
 
 	if configuration.TLSKey != "" {
 		validator.PushWarning(fmt.Errorf(errFmtDeprecatedConfigurationKey, "tls_key", "4.33.0", "server.tls_key"))
 
-		if configuration.Server.TLSKey == "" {
-			configuration.Server.TLSKey = configuration.TLSKey
+		if configuration.Server.TLS.Key == "" {
+			configuration.Server.TLS.Key = configuration.TLSKey
 		}
 	}
 }

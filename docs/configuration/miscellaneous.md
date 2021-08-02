@@ -2,12 +2,12 @@
 layout: default
 title: Miscellaneous
 parent: Configuration
-nav_order: 5
+nav_order: 7
 ---
 
 # Miscellaneous
 
-Here are the main customizable options in Authelia.
+Here are the main customizable options in Authelia that don't fit into their own sections.
 
 ## certificates_directory
 
