@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
@@ -157,7 +158,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter stri
 	}
 
 	if p.usersFilterReplacementEpochWin32 {
-		filter = strings.ReplaceAll(filter, "{epoch:win32}", strconv.FormatUint(utils.Win32EpochNow(), 10))
+		filter = strings.ReplaceAll(filter, "{epoch:win32}", strconv.FormatUint(utils.UnixNanoTimeToWin32Epoch(time.Now().UnixNano()), 10))
 	}
 
 	p.logger.Tracef("Computed user filter is %s", filter)

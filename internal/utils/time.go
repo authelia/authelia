@@ -51,11 +51,6 @@ func ParseDurationString(input string) (time.Duration, error) {
 	return duration, nil
 }
 
-// Win32EpochNow returns the current time in the win32 epoch format.
-func Win32EpochNow() (now uint64) {
-	return UnixNanoTimeToWin32Epoch(time.Now().UnixNano())
-}
-
 // UnixNanoTimeToWin32Epoch converts a unix timestamp in nanosecond format to win32 epoch format.
 func UnixNanoTimeToWin32Epoch(nano int64) (t uint64) {
 	return uint64(nano/100) + unixEpochAsWin32Epoch
