@@ -398,7 +398,7 @@ func TestShouldEscapeUserInput(t *testing.T) {
 	assert.EqualError(t, err, "user not found")
 }
 
-func TestShouldReplaceWin32Epoch(t *testing.T) {
+func TestShouldReplaceDateTimeWin32(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -409,7 +409,7 @@ func TestShouldReplaceWin32Epoch(t *testing.T) {
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
 			UsernameAttribute:    "sAMAccountName",
-			UsersFilter:          "(&({username_attribute}={input})(sAMAccountType=805306368)(|(accountExpires=0)(accountExpires=9223372036854775807)(accountExpires>={epoch:win32}))))",
+			UsersFilter:          "(&({username_attribute}={input})(sAMAccountType=805306368)(|(accountExpires=0)(accountExpires=9223372036854775807)(accountExpires>={datetime:win32}))))",
 			Password:             "password",
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
@@ -420,11 +420,42 @@ func TestShouldReplaceWin32Epoch(t *testing.T) {
 		mockFactory)
 
 	assert.True(t, ldapClient.usersFilterReplacementInput)
-	assert.True(t, ldapClient.usersFilterReplacementEpochWin32)
+	assert.False(t, ldapClient.usersFilterReplacementDateTimeGeneralized)
+	assert.True(t, ldapClient.usersFilterReplacementDateTimeWin32)
 
 	filter := ldapClient.resolveUsersFilter("fred")
 
 	assert.Regexp(t, regexp.MustCompile(`^\(&\(sAMAccountName=john\)\(sAMAccountType=805306368\)\(|\(accountExpires=0\)\(accountExpires=9223372036854775807\)\(accountExpires>=\d+\)\)\)\)$`), filter)
+}
+
+func TestShouldReplaceGeneralizedTime(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			UsernameAttribute:    "uid",
+			UsersFilter:          "(&({username_attribute}={input})(krbPasswordExpiration>={datetime:generalized})))",
+			Password:             "password",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+		},
+		nil,
+		mockFactory)
+
+	assert.True(t, ldapClient.usersFilterReplacementInput)
+	assert.True(t, ldapClient.usersFilterReplacementDateTimeGeneralized)
+	assert.False(t, ldapClient.usersFilterReplacementDateTimeWin32)
+
+	filter := ldapClient.resolveUsersFilter("fred")
+
+	assert.Regexp(t, regexp.MustCompile(`^\(&\(uid=fred\)\(krbPasswordExpiration>=\d{14}Z\)\)\)$`), filter)
 }
 
 func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
@@ -450,7 +481,8 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 		mockFactory)
 
 	assert.True(t, ldapClient.usersFilterReplacementInput)
-	assert.False(t, ldapClient.usersFilterReplacementEpochWin32)
+	assert.False(t, ldapClient.usersFilterReplacementDateTimeGeneralized)
+	assert.False(t, ldapClient.usersFilterReplacementDateTimeWin32)
 
 	mockConn.EXPECT().
 		Search(NewSearchRequestMatcher("(&(uid=john)(&(objectCategory=person)(objectClass=user)))")).
@@ -1225,7 +1257,8 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 	assert.True(t, ldapClient.groupsFilterReplacementDN)
 
 	assert.True(t, ldapClient.usersFilterReplacementInput)
-	assert.False(t, ldapClient.usersFilterReplacementEpochWin32)
+	assert.False(t, ldapClient.usersFilterReplacementDateTimeGeneralized)
+	assert.False(t, ldapClient.usersFilterReplacementDateTimeWin32)
 
 	assert.Equal(t, "(&(|(uid={input})(mail={input})(displayName={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))", ldapClient.configuration.UsersFilter)
 	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", ldapClient.configuration.GroupsFilter)
