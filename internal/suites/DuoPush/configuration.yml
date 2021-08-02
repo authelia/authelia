@@ -29,7 +29,7 @@ session:
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
   local:
-    path: /config/db.sqlite
+    path: /tmp/db.duo.sqlite3
 
 # TOTP Issuer Name
 #

@@ -16,7 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/models"
 )
 
-const currentSchemaMockSchemaVersion = "1"
+const currentSchemaMockSchemaVersion = "2"
 
 func TestSQLInitializeDatabase(t *testing.T) {
 	provider, mock := NewSQLMockProvider()
@@ -48,6 +48,24 @@ func TestSQLInitializeDatabase(t *testing.T) {
 	mock.ExpectExec(
 		fmt.Sprintf("REPLACE INTO %s \\(category, key_name, value\\) VALUES \\(\\?, \\?, \\?\\)", configTableName)).
 		WithArgs("schema", "version", "1").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	keys = make([]string, 0, len(sqlUpgradeCreateTableStatements[2]))
+	for k := range sqlUpgradeCreateTableStatements[2] {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	for _, table := range keys {
+		mock.ExpectExec(
+			fmt.Sprintf("CREATE TABLE %s .*", table)).
+			WillReturnResult(sqlmock.NewResult(0, 0))
+	}
+
+	mock.ExpectExec(
+		fmt.Sprintf("REPLACE INTO %s \\(category, key_name, value\\) VALUES \\(\\?, \\?, \\?\\)", configTableName)).
+		WithArgs("schema", "version", "2").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -83,6 +101,15 @@ func TestSQLUpgradeDatabase(t *testing.T) {
 		WithArgs("schema", "version", "1").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
+	mock.ExpectExec(
+		fmt.Sprintf("CREATE TABLE %s .*", duoDevicesTableName)).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+
+	mock.ExpectExec(
+		fmt.Sprintf("REPLACE INTO %s \\(category, key_name, value\\) VALUES \\(\\?, \\?, \\?\\)", configTableName)).
+		WithArgs("schema", "version", "2").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
 	mock.ExpectCommit()
 
 	err := provider.initialize(provider.db)
@@ -99,6 +126,7 @@ func TestSQLProviderMethodsAuthenticationLogs(t *testing.T) {
 			AddRow(identityVerificationTokensTableName).
 			AddRow(totpSecretsTableName).
 			AddRow(u2fDeviceHandlesTableName).
+			AddRow(duoDevicesTableName).
 			AddRow(authenticationLogsTableName).
 			AddRow(configTableName))
 
@@ -107,7 +135,7 @@ func TestSQLProviderMethodsAuthenticationLogs(t *testing.T) {
 		fmt.Sprintf("SELECT value FROM %s WHERE category=\\? AND key_name=\\?", configTableName)).
 		WithArgs(args...).
 		WillReturnRows(sqlmock.NewRows([]string{"value"}).
-			AddRow("1"))
+			AddRow("2"))
 
 	err := provider.initialize(provider.db)
 	assert.NoError(t, err)
@@ -173,6 +201,7 @@ func TestSQLProviderMethodsPreferred(t *testing.T) {
 			AddRow(identityVerificationTokensTableName).
 			AddRow(totpSecretsTableName).
 			AddRow(u2fDeviceHandlesTableName).
+			AddRow(duoDevicesTableName).
 			AddRow(authenticationLogsTableName).
 			AddRow(configTableName))
 
@@ -224,6 +253,7 @@ func TestSQLProviderMethodsTOTP(t *testing.T) {
 			AddRow(identityVerificationTokensTableName).
 			AddRow(totpSecretsTableName).
 			AddRow(u2fDeviceHandlesTableName).
+			AddRow(duoDevicesTableName).
 			AddRow(authenticationLogsTableName).
 			AddRow(configTableName))
 
@@ -286,6 +316,7 @@ func TestSQLProviderMethodsU2F(t *testing.T) {
 			AddRow(identityVerificationTokensTableName).
 			AddRow(totpSecretsTableName).
 			AddRow(u2fDeviceHandlesTableName).
+			AddRow(duoDevicesTableName).
 			AddRow(authenticationLogsTableName).
 			AddRow(configTableName))
 
@@ -336,6 +367,71 @@ func TestSQLProviderMethodsU2F(t *testing.T) {
 	assert.Equal(t, []byte(nil), keyHandle)
 	assert.Equal(t, []byte(nil), publicKey)
 }
+func TestSQLProviderMethodsDuo(t *testing.T) {
+	provider, mock := NewSQLMockProvider()
+
+	mock.ExpectQuery(
+		"SELECT name FROM sqlite_master WHERE type='table'").
+		WillReturnRows(sqlmock.NewRows([]string{"name"}).
+			AddRow(userPreferencesTableName).
+			AddRow(identityVerificationTokensTableName).
+			AddRow(totpSecretsTableName).
+			AddRow(u2fDeviceHandlesTableName).
+			AddRow(duoDevicesTableName).
+			AddRow(authenticationLogsTableName).
+			AddRow(configTableName))
+
+	args := []driver.Value{"schema", "version"}
+	mock.ExpectQuery(
+		fmt.Sprintf("SELECT value FROM %s WHERE category=\\? AND key_name=\\?", configTableName)).
+		WithArgs(args...).
+		WillReturnRows(sqlmock.NewRows([]string{"value"}).
+			AddRow(currentSchemaMockSchemaVersion))
+
+	err := provider.initialize(provider.db)
+	assert.NoError(t, err)
+
+	pretendDevice := "12345ABCDEFGHIJ67890"
+	pretendMethod := "push"
+	args = []driver.Value{unitTestUser, pretendDevice, pretendMethod}
+	mock.ExpectExec(
+		fmt.Sprintf("REPLACE INTO %s \\(username, device, method\\) VALUES \\(\\?, \\?, \\?\\)", duoDevicesTableName)).
+		WithArgs(args...).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+
+	err = provider.SavePreferredDuoDevice(unitTestUser, pretendDevice, pretendMethod)
+	assert.NoError(t, err)
+
+	args = []driver.Value{unitTestUser}
+	mock.ExpectQuery(
+		fmt.Sprintf("SELECT device, method FROM %s WHERE username=\\?", duoDevicesTableName)).
+		WithArgs(args...).
+		WillReturnRows(sqlmock.NewRows([]string{"device", "method"}).AddRow(pretendDevice, pretendMethod))
+
+	device, method, err := provider.LoadPreferredDuoDevice(unitTestUser)
+	assert.NoError(t, err)
+	assert.Equal(t, pretendDevice, device)
+	assert.Equal(t, pretendMethod, method)
+
+	mock.ExpectExec(
+		fmt.Sprintf("DELETE FROM %s WHERE username=\\?", duoDevicesTableName)).
+		WithArgs(unitTestUser).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+
+	err = provider.DeletePreferredDuoDevice(unitTestUser)
+	assert.NoError(t, err)
+
+	mock.ExpectQuery(
+		fmt.Sprintf("SELECT device, method FROM %s WHERE username=\\?", duoDevicesTableName)).
+		WithArgs(args...).
+		WillReturnRows(sqlmock.NewRows([]string{"device", "method"}))
+
+	// Test Blank Rows
+	device, method, err = provider.LoadPreferredDuoDevice(unitTestUser)
+	assert.EqualError(t, err, "No Duo device and method saved")
+	assert.Equal(t, "", device)
+	assert.Equal(t, "", method)
+}
 
 func TestSQLProviderMethodsIdentityVerificationTokens(t *testing.T) {
 	provider, mock := NewSQLMockProvider()
@@ -347,6 +443,7 @@ func TestSQLProviderMethodsIdentityVerificationTokens(t *testing.T) {
 			AddRow(identityVerificationTokensTableName).
 			AddRow(totpSecretsTableName).
 			AddRow(u2fDeviceHandlesTableName).
+			AddRow(duoDevicesTableName).
 			AddRow(authenticationLogsTableName).
 			AddRow(configTableName))
 

@@ -37,6 +37,10 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 			sqlGetU2FDeviceHandleByUsername: fmt.Sprintf("SELECT keyHandle, publicKey FROM %s WHERE username=?", u2fDeviceHandlesTableName),
 			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("REPLACE INTO %s (username, keyHandle, publicKey) VALUES (?, ?, ?)", u2fDeviceHandlesTableName),
 
+			sqlGetDuoDeviceByUsername: fmt.Sprintf("SELECT device FROM %s WHERE username=?", duoDevicesTableName),
+			sqlUpsertDuoDevice:        fmt.Sprintf("REPLACE INTO %s (username, device, method) VALUES (?, ?, ?)", duoDevicesTableName),
+			sqlDeleteDuoDevice:        fmt.Sprintf("DELETE FROM %s WHERE username=?", duoDevicesTableName),
+
 			sqlInsertAuthenticationLog:     fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
 			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC", authenticationLogsTableName),
 

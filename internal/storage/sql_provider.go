@@ -36,6 +36,10 @@ type SQLProvider struct {
 	sqlGetU2FDeviceHandleByUsername string
 	sqlUpsertU2FDeviceHandle        string
 
+	sqlGetDuoDeviceByUsername string
+	sqlUpsertDuoDevice        string
+	sqlDeleteDuoDevice        string
+
 	sqlInsertAuthenticationLog     string
 	sqlGetLatestAuthenticationLogs string
 
@@ -109,6 +113,13 @@ func (p *SQLProvider) upgrade() error {
 			err := p.upgradeSchemaToVersion001(tx, tables)
 			if err != nil {
 				return p.handleUpgradeFailure(tx, 1, err)
+			}
+
+			fallthrough
+		case 1:
+			err := p.upgradeSchemaToVersion002(tx, tables)
+			if err != nil {
+				return p.handleUpgradeFailure(tx, 2, err)
 			}
 
 			fallthrough
@@ -247,6 +258,35 @@ func (p *SQLProvider) LoadU2FDeviceHandle(username string) ([]byte, []byte, erro
 	}
 
 	return keyHandle, publicKey, nil
+}
+
+// SavePreferredDuoDevice save a Duo device and method of a given user.
+func (p *SQLProvider) SavePreferredDuoDevice(username string, device string, method string) error {
+	_, err := p.db.Exec(p.sqlUpsertDuoDevice, username, device, method)
+	return err
+}
+
+// LoadPreferredDuoDevice load a Duo device and method given a username.
+func (p *SQLProvider) LoadPreferredDuoDevice(username string) (string, string, error) {
+	var device string
+
+	var method string
+
+	if err := p.db.QueryRow(p.sqlGetDuoDeviceByUsername, username).Scan(&device, &method); err != nil {
+		if err == sql.ErrNoRows {
+			return "", "", ErrNoDuoDevice
+		}
+
+		return "", "", err
+	}
+
+	return device, method, nil
+}
+
+// DeletePreferredDuoDevice delete a Duo device and method of a given user.
+func (p *SQLProvider) DeletePreferredDuoDevice(username string) error {
+	_, err := p.db.Exec(p.sqlDeleteDuoDevice, username)
+	return err
 }
 
 // AppendAuthenticationLog append a mark to the authentication log.

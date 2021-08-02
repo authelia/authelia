@@ -58,6 +58,14 @@ const (
 	loginDelayMaximumRandomDelayMilliseconds = int64(85)
 )
 
+// Duo constants.
+const (
+	allow  = "allow"
+	deny   = "deny"
+	enroll = "enroll"
+	auth   = "auth"
+)
+
 // OIDC constants.
 const (
 	pathOpenIDConnectWellKnown = "/.well-known/openid-configuration"
