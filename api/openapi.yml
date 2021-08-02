@@ -197,13 +197,6 @@ paths:
       responses:
         "200":
           description: Successful Operation
-          headers:
-            Set-Cookie:
-              style: simple
-              explode: false
-              schema:
-                type: string
-                example: authelia_session=kTTCSLupEUirZVfLeZTijezewFQnNOgs; Path=/
           content:
             application/json:
               schema:
