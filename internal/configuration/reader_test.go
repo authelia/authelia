@@ -164,7 +164,7 @@ func TestShouldErrorParseBadConfigFile(t *testing.T) {
 
 	require.Len(t, errors, 1)
 
-	require.EqualError(t, errors[0], "Error malformed yaml: line 26: did not find expected alphabetic or numeric character")
+	require.EqualError(t, errors[0], "Error malformed yaml: line 27: did not find expected alphabetic or numeric character")
 }
 
 func TestShouldParseConfigFile(t *testing.T) {
@@ -184,7 +184,7 @@ func TestShouldParseConfigFile(t *testing.T) {
 
 	require.Len(t, errors, 0)
 
-	assert.Equal(t, 9091, config.Port)
+	assert.Equal(t, 9091, config.Server.Port)
 	assert.Equal(t, "debug", config.Logging.Level)
 	assert.Equal(t, "https://home.example.com:8080/", config.DefaultRedirectionURL)
 	assert.Equal(t, "authelia.com", config.TOTP.Issuer)
@@ -220,7 +220,7 @@ func TestShouldParseAltConfigFile(t *testing.T) {
 	config, errors := Read("./test_resources/config_alt.yml")
 	require.Len(t, errors, 0)
 
-	assert.Equal(t, 9091, config.Port)
+	assert.Equal(t, 9091, config.Server.Port)
 	assert.Equal(t, "debug", config.Logging.Level)
 	assert.Equal(t, "https://home.example.com:8080/", config.DefaultRedirectionURL)
 	assert.Equal(t, "authelia.com", config.TOTP.Issuer)
