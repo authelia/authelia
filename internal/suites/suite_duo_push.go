@@ -54,7 +54,7 @@ func init() {
 
 	teardown := func(suitePath string) error {
 		err := dockerEnvironment.Down()
-		_ = os.Remove("/tmp/db.duo.sqlite3")
+		_ = os.Remove("/tmp/db.sqlite3")
 
 		return err
 	}
@@ -64,7 +64,7 @@ func init() {
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
-		TestTimeout:     6 * time.Minute,
+		TestTimeout:     3 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 

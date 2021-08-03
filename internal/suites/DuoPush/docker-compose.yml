@@ -1,11 +1,11 @@
 ---
-version: "3"
+version: '3'
 services:
   authelia-backend:
     volumes:
-      - "./DuoPush/configuration.yml:/config/configuration.yml:ro"
-      - "./DuoPush/users.yml:/config/users.yml"
-      - "./common/ssl:/config/ssl:ro"
-      - "/tmp:/tmp"
+      - './DuoPush/configuration.yml:/config/configuration.yml:ro'
+      - './DuoPush/users.yml:/config/users.yml'
+      - './common/ssl:/config/ssl:ro'
+      - '/tmp:/tmp'
     user: ${USER_ID}:${GROUP_ID}
 ...

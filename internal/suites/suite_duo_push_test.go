@@ -65,13 +65,10 @@ func (s *DuoPushWebDriverSuite) TearDownTest() {
 	s.doChangeMethod(s.T(), s.Context(ctx), "one-time-password")
 	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "one-time-password-method")
 	s.doLogout(ctx, s.T())
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
-	s.verifyIsSecondFactorPage(ctx, s.T())
-	s.doChangeMethod(ctx, s.T(), "one-time-password")
-	s.WaitElementLocatedByID(ctx, s.T(), "one-time-password-method")
 
-	// Clean up any Duo device already in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.duo.sqlite3")
+	// Set default 2FA preference and clean up any Duo device already in DB.
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
+	require.NoError(s.T(), provider.SavePreferred2FAMethod("john", "totp"))
 	require.NoError(s.T(), provider.DeletePreferredDuoDevice("john"))
 }
 
@@ -206,7 +203,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectNewDeviceAfterSavedDeviceMethodI
 	ConfigureDuo(s.T(), Allow)
 
 	// Setup unsupported Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.duo.sqlite3")
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 	require.NoError(s.T(), provider.SavePreferredDuoDevice("john", "12345ABCDEFGHIJ67890", "sms"))
 
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
@@ -230,7 +227,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypasse
 	ConfigureDuo(s.T(), Deny)
 
 	// Setup unsupported Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.duo.sqlite3")
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 	require.NoError(s.T(), provider.SavePreferredDuoDevice("john", "12345ABCDEFGHIJ67890", "push"))
 
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
@@ -252,7 +249,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied(
 	ConfigureDuo(s.T(), Deny)
 
 	// Setup unsupported Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.duo.sqlite3")
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 	require.NoError(s.T(), provider.SavePreferredDuoDevice("john", "12345ABCDEFGHIJ67890", "push"))
 
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
@@ -271,7 +268,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSucceedAuthentication() {
 
 	//TODO: MERGE CONFLICT
 	// Setup Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.duo.sqlite3")
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 	require.NoError(s.T(), provider.SavePreferredDuoDevice("john", "12345ABCDEFGHIJ67890", "push"))
 	//TODO: MERGE CONFLICT
 	ConfigureDuo(s.T(), Allow)
@@ -292,7 +289,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailAuthentication() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	// Setup Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.duo.sqlite3")
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 	require.NoError(s.T(), provider.SavePreferredDuoDevice("john", "12345ABCDEFGHIJ67890", "push"))
 	//TODO: MERGE CONFLICT
 	ConfigureDuo(s.T(), Deny)
@@ -344,7 +341,7 @@ func (s *DuoPushDefaultRedirectionSuite) TestUserIsRedirectedToDefaultURL() {
 	defer cancel()
 
 	// Setup Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.duo.sqlite3")
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 	require.NoError(s.T(), provider.SavePreferredDuoDevice("john", "12345ABCDEFGHIJ67890", "push"))
 	ConfigureDuo(s.T(), Allow)
 
@@ -392,7 +389,7 @@ func (s *DuoPushSuite) TestAvailableMethodsScenario() {
 
 func (s *DuoPushSuite) TestUserPreferencesScenario() {
 	// Setup Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.duo.sqlite3")
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 	require.NoError(s.T(), provider.SavePreferredDuoDevice("john", "12345ABCDEFGHIJ67890", "push"))
 	ConfigureDuo(s.T(), Allow)
 
