@@ -1,7 +1,7 @@
 ---
 layout: default
 title: PostgreSQL
-parent: Storage backends
+parent: Storage Backends
 grand_parent: Configuration
 nav_order: 3
 ---
