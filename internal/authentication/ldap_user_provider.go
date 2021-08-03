@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -32,7 +31,6 @@ type LDAPUserProvider struct {
 	usersBaseDN                               string
 	usersAttributes                           []string
 	usersFilterReplacementInput               bool
-	usersFilterReplacementDateTimeWin32       bool
 	usersFilterReplacementDateTimeGeneralized bool
 
 	// Dynamically generated groups values.
@@ -156,10 +154,6 @@ func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter stri
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
 		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, p.ldapEscape(inputUsername))
-	}
-
-	if p.usersFilterReplacementDateTimeWin32 {
-		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeWin32, strconv.FormatUint(utils.UnixNanoTimeToWin32Epoch(time.Now().UnixNano()), 10))
 	}
 
 	if p.usersFilterReplacementDateTimeGeneralized {

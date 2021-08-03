@@ -70,10 +70,6 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 		p.usersFilterReplacementInput = true
 	}
 
-	if strings.Contains(p.configuration.UsersFilter, ldapPlaceholderDateTimeWin32) {
-		p.usersFilterReplacementDateTimeWin32 = true
-	}
-
 	if strings.Contains(p.configuration.UsersFilter, ldapPlaceholderDateTimeGeneralized) {
 		p.usersFilterReplacementDateTimeGeneralized = true
 	}

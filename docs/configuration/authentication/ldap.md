@@ -196,27 +196,11 @@ search.
 |{display_name_attribute}|startup|The [display name attribute](#display_name_attribute) configured|
 |{input}                 |search |The input into the username field                               |
 |{datetime:generalized}  |search |The current time in [LDAP GeneralizedTime] format               |
-|{datetime:win32}        |search |The current time in win32 epoch format                          |
 
 ##### datetime:generalized
 
 The [LDAP GeneralizedTime] format is common accross many LDAP implementations. You can utilize this for example with
 FreeIPA to filter users out who have exceeded their `krbPasswordExpiration` attribute's limit.
-
-##### datetime:win32
-
-The win32 datetime format is the number of 100ns increments since Jan 1 1601 UTC, 
-[epoch converter](https://www.epochconverter.com/ldap) has a tool to convert them for you if required. The format is
-primarily used with Active Directory, and is the format of most time fields in Active Directory. You can utilize this
-with the default Active Directory users filter in order to ensure expired accounts are completely excluded from matches:
-
-```
-(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)(|(accountExpires=0)(accountExpires=9223372036854775807)(accountExpires>={datetime:win32}))
-```
-
-_**Please Note:** this excludes accounts with known never expires values 0 and 9223372036854775807 as per the 
-[TechNet wiki]. The filter above will exclude all accounts that are disabled, require a password change, or are 
-expired._
 
 #### Groups filter replacements
 

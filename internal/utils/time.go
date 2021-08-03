@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -49,22 +48,4 @@ func ParseDurationString(input string) (time.Duration, error) {
 	}
 
 	return duration, nil
-}
-
-// UnixNanoTimeToWin32Epoch converts a unix timestamp in nanosecond format to win32 epoch format.
-func UnixNanoTimeToWin32Epoch(nano int64) (t uint64) {
-	return uint64(nano/100) + unixEpochAsWin32Epoch
-}
-
-// Win32EpochToTime returns the relevant time.Time for a given win32 epoch time.
-func Win32EpochToTime(epoch uint64) (result time.Time, err error) {
-	if epoch < unixEpochAsWin32Epoch {
-		return result, errors.New("can't convert that epoch to native time as it is before the unix epoch")
-	}
-
-	offset := epoch - unixEpochAsWin32Epoch
-	seconds := offset / 10000000
-	remainder := offset % 10000000
-
-	return time.Unix(int64(seconds), int64(remainder)), nil
 }

@@ -32,7 +32,6 @@ const (
 
 const (
 	ldapPlaceholderInput               = "{input}"
-	ldapPlaceholderDateTimeWin32       = "{datetime:win32}"
 	ldapPlaceholderDateTimeGeneralized = "{datetime:generalized}"
 	ldapPlaceholderDistinguishedName   = "{dn}"
 	ldapPlaceholderUsername            = "{username}"
