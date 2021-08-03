@@ -34,8 +34,8 @@ type SessionConfiguration struct {
 	Domain             string                     `koanf:"domain"`
 	SameSite           string                     `koanf:"same_site"`
 	Secret             string                     `koanf:"secret"`
-	Expiration         string                     `koanf:"expiration"`
-	Inactivity         string                     `koanf:"inactivity"`
+	Expiration         string                     `koanf:"expiration,weak"`
+	Inactivity         string                     `koanf:"inactivity,weak"`
 	RememberMeDuration string                     `koanf:"remember_me_duration"`
 	Redis              *RedisSessionConfiguration `koanf:"redis"`
 }

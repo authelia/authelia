@@ -15,9 +15,9 @@ type ACLNetwork struct {
 
 // ACLRule represents one ACL rule entry; "weak" coerces a single value into slice.
 type ACLRule struct {
-	Domains   []string   `koanf:"domain"`
+	Domains   []string   `koanf:"domain,weak"`
 	Policy    string     `koanf:"policy"`
-	Subjects  [][]string `koanf:"subject"`
+	Subjects  [][]string `koanf:"subject,weak"`
 	Networks  []string   `koanf:"networks"`
 	Resources []string   `koanf:"resources"`
 	Methods   []string   `koanf:"methods"`
