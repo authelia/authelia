@@ -41,7 +41,7 @@ func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o inte
 			),
 			Metadata:         nil,
 			Result:           o,
-			WeaklyTypedInput: false,
+			WeaklyTypedInput: true,
 		},
 	}
 
