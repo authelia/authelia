@@ -77,50 +77,50 @@ func TestShouldReturnZeroAndErrorOnInvalidTLSVersions(t *testing.T) {
 }
 
 func TestShouldReturnErrWhenX509DirectoryNotExist(t *testing.T) {
-	pool, errs, nonFatalErrs := NewX509CertPool("/tmp/asdfzyxabc123/not/a/real/dir")
+	pool, warnings, errors := NewX509CertPool("/tmp/asdfzyxabc123/not/a/real/dir")
 	assert.NotNil(t, pool)
 
 	if runtime.GOOS == windows {
-		require.Len(t, nonFatalErrs, 1)
-		assert.EqualError(t, nonFatalErrs[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
+		require.Len(t, warnings, 1)
+		assert.EqualError(t, warnings[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
 	} else {
-		assert.Len(t, nonFatalErrs, 0)
+		assert.Len(t, warnings, 0)
 	}
 
-	require.Len(t, errs, 1)
+	require.Len(t, errors, 1)
 
 	if runtime.GOOS == windows {
-		assert.EqualError(t, errs[0], "could not read certificates from directory open /tmp/asdfzyxabc123/not/a/real/dir: The system cannot find the path specified.")
+		assert.EqualError(t, errors[0], "could not read certificates from directory open /tmp/asdfzyxabc123/not/a/real/dir: The system cannot find the path specified.")
 	} else {
-		assert.EqualError(t, errs[0], "could not read certificates from directory open /tmp/asdfzyxabc123/not/a/real/dir: no such file or directory")
+		assert.EqualError(t, errors[0], "could not read certificates from directory open /tmp/asdfzyxabc123/not/a/real/dir: no such file or directory")
 	}
 }
 
 func TestShouldNotReturnErrWhenX509DirectoryExist(t *testing.T) {
-	pool, errs, nonFatalErrs := NewX509CertPool("/tmp")
+	pool, warnings, errors := NewX509CertPool("/tmp")
 	assert.NotNil(t, pool)
 
 	if runtime.GOOS == windows {
-		require.Len(t, nonFatalErrs, 1)
-		assert.EqualError(t, nonFatalErrs[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
+		require.Len(t, warnings, 1)
+		assert.EqualError(t, warnings[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
 	} else {
-		assert.Len(t, nonFatalErrs, 0)
+		assert.Len(t, warnings, 0)
 	}
 
-	assert.Len(t, errs, 0)
+	assert.Len(t, errors, 0)
 }
 
 func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
-	pool, errs, nonFatalErrs := NewX509CertPool("../suites/common/ssl/")
+	pool, warnings, errors := NewX509CertPool("../suites/common/ssl/")
 	assert.NotNil(t, pool)
-	require.Len(t, errs, 1)
+	require.Len(t, errors, 1)
 
 	if runtime.GOOS == "windows" {
-		require.Len(t, nonFatalErrs, 1)
-		assert.EqualError(t, nonFatalErrs[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
+		require.Len(t, warnings, 1)
+		assert.EqualError(t, warnings[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
 	} else {
-		assert.Len(t, nonFatalErrs, 0)
+		assert.Len(t, warnings, 0)
 	}
 
-	assert.EqualError(t, errs[0], "could not import certificate key.pem")
+	assert.EqualError(t, errors[0], "could not import certificate key.pem")
 }

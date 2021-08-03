@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -28,10 +28,10 @@ func NewTLSConfig(config *schema.TLSConfig, defaultMinVersion uint16, certPool *
 }
 
 // NewX509CertPool generates a x509.CertPool from the system PKI and the directory specified.
-func NewX509CertPool(directory string) (certPool *x509.CertPool, errors []error, nonFatalErrors []error) {
+func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []error, errors []error) {
 	certPool, err := x509.SystemCertPool()
 	if err != nil {
-		nonFatalErrors = append(nonFatalErrors, fmt.Errorf("could not load system certificate pool which may result in untrusted certificate issues: %v", err))
+		warnings = append(warnings, fmt.Errorf("could not load system certificate pool which may result in untrusted certificate issues: %v", err))
 		certPool = x509.NewCertPool()
 	}
 
@@ -48,7 +48,7 @@ func NewX509CertPool(directory string) (certPool *x509.CertPool, errors []error,
 				nameLower := strings.ToLower(certFileInfo.Name())
 
 				if !certFileInfo.IsDir() && (strings.HasSuffix(nameLower, ".cer") || strings.HasSuffix(nameLower, ".crt") || strings.HasSuffix(nameLower, ".pem")) {
-					certPath := path.Join(directory, certFileInfo.Name())
+					certPath := filepath.Join(directory, certFileInfo.Name())
 
 					logger.Tracef("Found possible cert %s, attempting to add it to the pool", certPath)
 
@@ -65,7 +65,7 @@ func NewX509CertPool(directory string) (certPool *x509.CertPool, errors []error,
 
 	logger.Tracef("Finished scan of directory %s for certificates", directory)
 
-	return certPool, errors, nonFatalErrors
+	return certPool, warnings, errors
 }
 
 // TLSStringToTLSConfigVersion returns a go crypto/tls version for a tls.Config based on string input.

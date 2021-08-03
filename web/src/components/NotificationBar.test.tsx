@@ -1,9 +1,9 @@
 import React from "react";
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/react";
 
 import NotificationBar from "@components/NotificationBar";
 
 it("renders without crashing", () => {
-    mount(<NotificationBar onClose={() => {}} />);
+    render(<NotificationBar onClose={() => {}} />);
 });

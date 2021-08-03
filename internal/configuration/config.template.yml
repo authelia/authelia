@@ -4,14 +4,6 @@
 #                           Authelia Configuration                            #
 ###############################################################################
 
-## The host and port to listen on.
-host: 0.0.0.0
-port: 9091
-
-## The TLS key and cert used with Authelia.
-# tls_key: /config/ssl/key.pem
-# tls_cert: /config/ssl/cert.pem
-
 ## Certificates directory specifies where Authelia will load trusted certificates (public portion) from in addition to
 ## the system certificates store.
 ## They should be in base64 format, and have one of the following extensions: *.cer, *.crt, *.pem.
@@ -19,40 +11,6 @@ port: 9091
 
 ## The theme to display: light, dark, grey, auto.
 theme: light
-
-##
-## Server Configuration
-##
-server:
-  ## Buffers usually should be configured to be the same value.
-  ## Explanation at https://www.authelia.com/docs/configuration/server.html
-  ## Read buffer size adjusts the server's max incoming request size in bytes.
-  ## Write buffer size does the same for outgoing responses.
-  read_buffer_size: 4096
-  write_buffer_size: 4096
-
-  ## Set the single level path Authelia listens on.
-  ## Must be alphanumeric chars and should not contain any slashes.
-  path: ""
-
-  ## Enables the pprof endpoint.
-  enable_pprof: false
-
-  ## Enables the expvars endpoint.
-  enable_expvars: false
-
-log:
-  ## Level of verbosity for logs: info, debug, trace.
-  level: debug
-
-  ## Format the logs are written as: json, text.
-  # format: json
-
-  ## File path where the logs will be written. If not set logs are written to stdout.
-  # file_path: /config/authelia.log
-
-  ## Whether to also log to stdout when a log_file_path is defined.
-  # keep_stdout: false
 
 ## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
 ## set using a secret: https://www.authelia.com/docs/configuration/secrets.html
@@ -66,6 +24,58 @@ jwt_secret: a_very_important_secret
 ##
 ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
 default_redirection_url: https://home.example.com/
+
+##
+## Server Configuration
+##
+server:
+
+  ## The address to listen on.
+  host: 0.0.0.0
+
+  ## The port to listen on.
+  port: 9091
+
+  ## Set the single level path Authelia listens on.
+  ## Must be alphanumeric chars and should not contain any slashes.
+  path: ""
+
+  ## Buffers usually should be configured to be the same value.
+  ## Explanation at https://www.authelia.com/docs/configuration/server.html
+  ## Read buffer size adjusts the server's max incoming request size in bytes.
+  ## Write buffer size does the same for outgoing responses.
+  read_buffer_size: 4096
+  write_buffer_size: 4096
+
+  ## Enables the pprof endpoint.
+  enable_pprof: false
+
+  ## Enables the expvars endpoint.
+  enable_expvars: false
+
+  ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behaviour.
+  tls:
+    ## The path to the DER base64/PEM format private key.
+    key: ""
+
+    ## The path to the DER base64/PEM format public certificate.
+    certificate: ""
+
+##
+## Log Configuration
+##
+log:
+  ## Level of verbosity for logs: info, debug, trace.
+  level: debug
+
+  ## Format the logs are written as: json, text.
+  # format: json
+
+  ## File path where the logs will be written. If not set logs are written to stdout.
+  # file_path: /config/authelia.log
+
+  ## Whether to also log to stdout when a log_file_path is defined.
+  # keep_stdout: false
 
 ##
 ## TOTP Configuration
@@ -595,7 +605,7 @@ notifier:
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
 
-    ## SECURITY NOTICE: It's not recommended to change this option, and highly discouraged to have it below 8 for
+    ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it below 8 for
     ## security reasons.
     # minimum_parameter_entropy: 8
 
@@ -611,36 +621,42 @@ notifier:
         ## The client secret is a shared secret between Authelia and the consumer of this client.
         # secret: this_is_a_secret
 
+        ## Sets the client to public. This should typically not be set, please see the documentation for usage.
+        # public: false
+
         ## The policy to require for this client; one_factor or two_factor.
         # authorization_policy: two_factor
+
+        ## Audience this client is allowed to request.
+        # audience: []
+
+        ## Scopes this client is allowed to request.
+        # scopes:
+          # - openid
+          # - groups
+          # - email
+          # - profile
 
         ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
         # redirect_uris:
         # - https://oidc.example.com:8080/oauth2/callback
 
-        ## Scopes defines the valid scopes this client can request
-        # scopes:
-        # - openid
-        # - groups
-        # - email
-        # - profile
-
         ## Grant Types configures which grants this client can obtain.
         ## It's not recommended to define this unless you know what you're doing.
         # grant_types:
-        # - refresh_token
-        # - authorization_code
+          # - refresh_token
+          # - authorization_code
 
         ## Response Types configures which responses this client can be sent.
         ## It's not recommended to define this unless you know what you're doing.
         # response_types:
-        # - code
+          # - code
 
         ## Response Modes configures which response modes this client supports.
         # response_modes:
-        # - form_post
-        # - query
-        # - fragment
+          # - form_post
+          # - query
+          # - fragment
 
         ## The algorithm used to sign userinfo endpoint responses for this client, either none or RS256.
         # userinfo_signing_algorithm: none

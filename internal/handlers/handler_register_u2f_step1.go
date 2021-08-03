@@ -19,18 +19,18 @@ var SecondFactorU2FIdentityStart = middlewares.IdentityVerificationStart(middlew
 	MailTitle:             "Register your key",
 	MailButtonContent:     "Register",
 	TargetEndpoint:        "/security-key/register",
-	ActionClaim:           U2FRegistrationAction,
+	ActionClaim:           ActionU2FRegistration,
 	IdentityRetrieverFunc: identityRetrieverFromSession,
 })
 
 func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 	if ctx.XForwardedProto() == nil {
-		ctx.Error(errMissingXForwardedProto, operationFailedMessage)
+		ctx.Error(errMissingXForwardedProto, messageOperationFailed)
 		return
 	}
 
 	if ctx.XForwardedHost() == nil {
-		ctx.Error(errMissingXForwardedHost, operationFailedMessage)
+		ctx.Error(errMissingXForwardedHost, messageOperationFailed)
 		return
 	}
 
@@ -42,7 +42,7 @@ func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string
 	challenge, err := u2f.NewChallenge(appID, trustedFacets)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to generate new U2F challenge for registration: %s", err), operationFailedMessage)
+		ctx.Error(fmt.Errorf("Unable to generate new U2F challenge for registration: %s", err), messageOperationFailed)
 		return
 	}
 
@@ -52,7 +52,7 @@ func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to save U2F challenge in session: %s", err), operationFailedMessage)
+		ctx.Error(fmt.Errorf("Unable to save U2F challenge in session: %s", err), messageOperationFailed)
 		return
 	}
 
@@ -65,6 +65,6 @@ func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string
 // SecondFactorU2FIdentityFinish the handler for finishing the identity validation.
 var SecondFactorU2FIdentityFinish = middlewares.IdentityVerificationFinish(
 	middlewares.IdentityVerificationFinishArgs{
-		ActionClaim:          U2FRegistrationAction,
+		ActionClaim:          ActionU2FRegistration,
 		IsTokenUserValidFunc: isTokenUserValidFor2FARegistration,
 	}, secondFactorU2FIdentityFinish)

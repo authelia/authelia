@@ -25,14 +25,14 @@ func LogoutPost(ctx *middlewares.AutheliaCtx) {
 
 	err := ctx.ParseBody(&body)
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to parse body during logout: %s", err), operationFailedMessage)
+		ctx.Error(fmt.Errorf("Unable to parse body during logout: %s", err), messageOperationFailed)
 	}
 
 	ctx.Logger.Tracef("Attempting to destroy session")
 
 	err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to destroy session during logout: %s", err), operationFailedMessage)
+		ctx.Error(fmt.Errorf("Unable to destroy session during logout: %s", err), messageOperationFailed)
 	}
 
 	redirectionURL, err := url.Parse(body.TargetURL)
@@ -46,6 +46,6 @@ func LogoutPost(ctx *middlewares.AutheliaCtx) {
 
 	err = ctx.SetJSONBody(responseBody)
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to set body during logout: %s", err), operationFailedMessage)
+		ctx.Error(fmt.Errorf("Unable to set body during logout: %s", err), messageOperationFailed)
 	}
 }
