@@ -199,7 +199,7 @@
   },"33": {
     "doc": "Deployment - Lite",
     "title": "Steps",
-    "content": ". | git clone https://github.com/authelia/authelia.git | cd authelia/examples/compose/lite | Modify the users_database.yml the default username and password is authelia | Modify the configuration.yml and docker-compose.yml with your respective domains and secrets | docker-compose up -d | . ",
+    "content": ". | git clone https://github.com/authelia/authelia.git | cd authelia/examples/compose/lite | git checkout $(git describe --tags `git rev-list --tags --max-count=1`) | Modify the users_database.yml the default username and password is authelia | Modify the configuration.yml and docker-compose.yml with your respective domains and secrets | docker-compose up -d | . ",
     "url": "/docs/deployment/deployment-lite.html#steps",
     "relUrl": "/deployment/deployment-lite.html#steps"
   },"34": {
