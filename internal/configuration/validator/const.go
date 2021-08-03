@@ -103,13 +103,9 @@ var SecretNames = map[string]string{
 // the secret names map and reuse it in relevant sections.
 var validKeys = []string{
 	// Root Keys.
-	"host",
-	"port",
-	"default_redirection_url",
-	"theme",
-	"tls_key",
-	"tls_cert",
 	"certificates_directory",
+	"theme",
+	"default_redirection_url",
 
 	// Log keys.
 	"log.level",
@@ -118,17 +114,25 @@ var validKeys = []string{
 	"log.keep_stdout",
 
 	// TODO: DEPRECATED START. Remove in 4.33.0.
+	"host",
+	"port",
+	"tls_key",
+	"tls_cert",
 	"log_level",
 	"log_format",
 	"log_file_path",
 	// TODO: DEPRECATED END. Remove in 4.33.0.
 
 	// Server Keys.
+	"server.host",
+	"server.port",
 	"server.read_buffer_size",
 	"server.write_buffer_size",
 	"server.path",
 	"server.enable_pprof",
 	"server.enable_expvars",
+	"server.tls.key",
+	"server.tls.certificate",
 
 	// TOTP Keys.
 	"totp.issuer",

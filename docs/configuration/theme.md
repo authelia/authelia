@@ -2,7 +2,7 @@
 layout: default
 title: Theme
 parent: Configuration
-nav_order: 13
+nav_order: 14
 ---
 
 # Theme
