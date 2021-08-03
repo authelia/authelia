@@ -2,21 +2,21 @@ package schema
 
 // ServerConfiguration represents the configuration of the http server.
 type ServerConfiguration struct {
-	Host            string `mapstructure:"host"`
-	Port            int    `mapstructure:"port"`
-	Path            string `mapstructure:"path"`
-	ReadBufferSize  int    `mapstructure:"read_buffer_size"`
-	WriteBufferSize int    `mapstructure:"write_buffer_size"`
-	EnablePprof     bool   `mapstructure:"enable_endpoint_pprof"`
-	EnableExpvars   bool   `mapstructure:"enable_endpoint_expvars"`
+	Host            string `koanf:"host"`
+	Port            int    `koanf:"port"`
+	Path            string `koanf:"path"`
+	ReadBufferSize  int    `koanf:"read_buffer_size"`
+	WriteBufferSize int    `koanf:"write_buffer_size"`
+	EnablePprof     bool   `koanf:"enable_endpoint_pprof"`
+	EnableExpvars   bool   `koanf:"enable_endpoint_expvars"`
 
-	TLS ServerTLSConfiguration `mapstructure:"tls"`
+	TLS ServerTLSConfiguration `koanf:"tls"`
 }
 
 // ServerTLSConfiguration represents the configuration of the http servers TLS options.
 type ServerTLSConfiguration struct {
-	Certificate string `mapstructure:"certificate"`
-	Key         string `mapstructure:"key"`
+	Certificate string `koanf:"certificate"`
+	Key         string `koanf:"key"`
 }
 
 // DefaultServerConfiguration represents the default values of the ServerConfiguration.

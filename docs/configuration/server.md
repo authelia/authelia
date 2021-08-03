@@ -15,9 +15,9 @@ The server section configures and tunes the http server module Authelia uses.
 server:
   host: 0.0.0.0
   port: 9091
+  path: ""
   read_buffer_size: 4096
   write_buffer_size: 4096
-  path: ""
   enable_pprof: false
   enable_expvars: false
   tls:
@@ -58,30 +58,6 @@ required: no
 
 Defines the port to listen on. See also [host](#host).
 
-### read_buffer_size
-<div markdown="1">
-type: integer 
-{: .label .label-config .label-purple } 
-default: 4096
-{: .label .label-config .label-blue }
-required: no
-{: .label .label-config .label-green }
-</div>
-
-Configures the maximum request size. The default of 4096 is generally sufficient for most use cases.
-
-### write_buffer_size
-<div markdown="1">
-type: integer 
-{: .label .label-config .label-purple } 
-default: 4096
-{: .label .label-config .label-blue }
-required: no
-{: .label .label-config .label-green }
-</div>
-
-Configures the maximum response size. The default of 4096 is generally sufficient for most use cases.
-
 ### path
 <div markdown="1">
 type: string 
@@ -109,6 +85,30 @@ Example: https://auth.example.com/authelia/, https://example.com/authelia/
 server:
   path: authelia
 ```
+
+### read_buffer_size
+<div markdown="1">
+type: integer 
+{: .label .label-config .label-purple } 
+default: 4096
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Configures the maximum request size. The default of 4096 is generally sufficient for most use cases.
+
+### write_buffer_size
+<div markdown="1">
+type: integer 
+{: .label .label-config .label-purple } 
+default: 4096
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Configures the maximum response size. The default of 4096 is generally sufficient for most use cases.
 
 ### enable_pprof
 <div markdown="1">
