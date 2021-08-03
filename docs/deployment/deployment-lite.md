@@ -32,6 +32,7 @@ setup can easily be adapted to utilise said [service](../configuration/storage/i
 
 - `git clone https://github.com/authelia/authelia.git`
 - `cd authelia/examples/compose/lite`
+- ``git checkout $(git describe --tags `git rev-list --tags --max-count=1`)``
 - Modify the `users_database.yml` the default username and password is `authelia`
 - Modify the `configuration.yml` and `docker-compose.yml` with your respective domains and secrets
 - `docker-compose up -d`
