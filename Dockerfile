@@ -17,7 +17,7 @@ ARG LDFLAGS_EXTRA
 
 RUN \
 mv public_html internal/server/public_html && \
-chmod 0666 /go/src/app/.heathcheck.env && \
+chmod 0666 /go/src/app/.healthcheck.env && \
 echo ">> Starting go build..." && \
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -tags netgo \
 -ldflags "-s -w ${LDFLAGS_EXTRA}" -trimpath -o authelia ./cmd/authelia
@@ -31,7 +31,7 @@ WORKDIR /app
 
 RUN apk --no-cache add ca-certificates su-exec tzdata
 
-COPY --from=builder-backend /go/src/app/authelia /go/src/app/LICENSE /go/src/app/entrypoint.sh /go/src/app/healthcheck.sh /go/src/app/.heathcheck.env ./
+COPY --from=builder-backend /go/src/app/authelia /go/src/app/LICENSE /go/src/app/entrypoint.sh /go/src/app/healthcheck.sh /go/src/app/.healthcheck.env ./
 
 EXPOSE 9091
 

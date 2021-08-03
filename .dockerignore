@@ -23,4 +23,4 @@ authelia.service
 bootstrap.sh
 
 # Overrides
-!/.healthcheck.env
+!.healthcheck.env
