@@ -6,9 +6,9 @@ DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
 if [[ "${DIVERGED}" == 0 ]]; then
   if [[ "${BUILDKITE_TAG}" == "" ]]; then
     if [[ "${BUILDKITE_BRANCH}" == "master" ]]; then
-      CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(CONTRIBUTING.md|README.md|SECURITY.md|\.all-contributorsrc|\.github\/.*|docs\/.*)/!{q1}' && echo true || echo false)
+      CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(CODE_OF_CONDUCT.md|CONTRIBUTING.md|README.md|SECURITY.md|\.all-contributorsrc|\.github\/.*|docs\/.*|examples\/.*)/!{q1}' && echo true || echo false)
     else
-      CI_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^(CONTRIBUTING.md|README.md|SECURITY.md|\.all-contributorsrc|\.github\/.*|docs\/.*)/!{q1}' && echo true || echo false)
+      CI_BYPASS=$(git diff --name-only `git merge-base --fork-point origin/master` | sed -rn '/^(CODE_OF_CONDUCT.md|CONTRIBUTING.md|README.md|SECURITY.md|\.all-contributorsrc|\.github\/.*|docs\/.*|examples\/.*)/!{q1}' && echo true || echo false)
     fi
   else
     CI_BYPASS="false"
@@ -57,6 +57,16 @@ steps:
     command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
     depends_on: ~
     if: build.tag != null || build.branch == "master" && build.env("CI_BYPASS") != "true"
+
+  - label: ":debian: :fedora: :ubuntu: Deploy APT"
+    command: "aptdeploy.sh"
+    depends_on:
+      - "build-deb-package-amd64"
+      - "build-deb-package-arm64"
+      - "build-deb-package-armhf"
+    agents:
+      upload: "fast"
+    if: build.tag != null
 
   - label: ":book: Deploy Documentation"
     command: "syncdoc.sh"

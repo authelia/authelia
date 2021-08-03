@@ -22,13 +22,15 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 
 	wellKnown := oidc.WellKnownConfiguration{
 		Issuer:  issuer,
-		JWKSURI: fmt.Sprintf("%s%s", issuer, oidcJWKsPath),
+		JWKSURI: fmt.Sprintf("%s%s", issuer, pathOpenIDConnectJWKs),
 
-		AuthorizationEndpoint: fmt.Sprintf("%s%s", issuer, oidcAuthorizePath),
-		TokenEndpoint:         fmt.Sprintf("%s%s", issuer, oidcTokenPath),
-		RevocationEndpoint:    fmt.Sprintf("%s%s", issuer, oidcRevokePath),
+		AuthorizationEndpoint: fmt.Sprintf("%s%s", issuer, pathOpenIDConnectAuthorization),
+		TokenEndpoint:         fmt.Sprintf("%s%s", issuer, pathOpenIDConnectToken),
+		RevocationEndpoint:    fmt.Sprintf("%s%s", issuer, pathOpenIDConnectRevocation),
+		UserinfoEndpoint:      fmt.Sprintf("%s%s", issuer, pathOpenIDConnectUserinfo),
 
-		Algorithms: []string{"RS256"},
+		Algorithms:         []string{"RS256"},
+		UserinfoAlgorithms: []string{"none", "RS256"},
 
 		SubjectTypesSupported: []string{
 			"public",

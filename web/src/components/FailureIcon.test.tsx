@@ -1,9 +1,9 @@
 import React from "react";
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/react";
 
 import FailureIcon from "@components/FailureIcon";
 
 it("renders without crashing", () => {
-    mount(<FailureIcon />);
+    render(<FailureIcon />);
 });

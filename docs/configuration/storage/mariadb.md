@@ -1,7 +1,7 @@
 ---
 layout: default
 title: MariaDB
-parent: Storage backends
+parent: Storage Backends
 grand_parent: Configuration
 nav_order: 1
 ---

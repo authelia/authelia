@@ -13,7 +13,7 @@ import (
 func ParseDurationString(input string) (time.Duration, error) {
 	var duration time.Duration
 
-	matches := parseDurationRegexp.FindStringSubmatch(input)
+	matches := reDuration.FindStringSubmatch(input)
 
 	switch {
 	case len(matches) == 3 && matches[2] != "":

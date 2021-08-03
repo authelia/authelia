@@ -13,7 +13,7 @@
   [![License](https://img.shields.io/github/license/authelia/authelia?logo=apache&style=flat-square&color=blue)][Apache 2.0]
   [![Sponsor](https://img.shields.io/opencollective/all/authelia-sponsors?logo=Open%20Collective&label=financial%20contributors&style=flat-square&color=blue)](https://opencollective.com/authelia-sponsors)
   [![Discord](https://img.shields.io/discord/707844280412012608?label=discord&logo=discord&style=flat-square&color=blue)](https://discord.authelia.com)
-  [![Matrix](https://img.shields.io/matrix/authelia:matrix.org?label=matrix&logo=matrix&style=flat-square&color=blue)](https://riot.im/app/#/room/#authelia:matrix.org)
+  [![Matrix](https://img.shields.io/matrix/authelia-support:matrix.org?label=matrix&logo=matrix&style=flat-square&color=blue)](https://matrix.to/#/#authelia-support:matrix.org)
 
 **Authelia** is an open-source authentication and authorization server providing two-factor authentication and single 
 sign-on (SSO) for your applications via a web portal. It acts as a companion for reverse proxies like [nginx], [Traefik] 
@@ -29,6 +29,7 @@ The following is a simple diagram of the architecture:
 </p>
 
 **Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/), 
+[APT](https://apt.authelia.com/stable/debian/packages/authelia/),
 [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a 
 [Static binary](https://github.com/authelia/authelia/releases/latest), 
 [.deb package]((https://github.com/authelia/authelia/releases/latest)), [Docker] or [Kubernetes] either manually or via
@@ -141,25 +142,28 @@ For more information about [security](https://www.authelia.com/docs/security/) r
 
 ## Contact Options
 
-Several contact options exist for our community, the primary one being [Matrix](#matrix).
+Several contact options exist for our community, the primary one being [Matrix](#matrix). These are in addition to
+[GitHub issues](https://github.com/authelia/authelia/issues) for creating a [new issue](https://github.com/authelia/authelia/issues/new/choose).
 
 ### Matrix
 
-You can join the [Matrix Space](https://app.element.io/#/room/!qcxpPdXBiGBSTbFAJE:matrix.org?via=matrix.org) which 
-includes both the [Support Room](https://riot.im/app/#/room/#authelia:matrix.org) and the 
-[Contributing Room](https://riot.im/app/#/room/#authelia-contributing:matrix.org). The core team members are identified
-as administrators in the Rooms and Space.
+Community members are invited to join the [Matrix Space](https://matrix.to/#/#authelia:matrix.org) which includes both
+the [Support Room](https://matrix.to/#/#authelia-support:matrix.org) and the [Contributing Room](https://matrix.to/#/#authelia-contributing:matrix.org).
+
+- The core team members are identified as administrators in the Space and individual Rooms.
+- All channels are linked to [Discord](#discord).
 
 ### Discord
 
-You can join the [Discord Server](https://discord.authelia.com) where the
-[#support](https://discord.com/channels/707844280412012608/707844280412012612) and 
-[#contributing](https://discord.com/channels/707844280412012608/804943261265297408) channels link to [Matrix](#matrix).
+Community members are invited to join the [Discord Server](https://discord.authelia.com).
+
+- The core team members are identified by the <span style="color:#BA55D3;">**CORE TEAM**</span> role in Discord.
+- The [#support] and [#contributing] channels are linked to [Matrix](#matrix).
 
 ### Email
 
 You can contact the core team by email via [team@authelia.com](mailto:team@authelia.com). Please note the  
-[security@authelia.com](mailto:security@authelia.com) is also available but is strictly reserved for security related 
+[security@authelia.com](mailto:security@authelia.com) is also available but is strictly reserved for [security] related
 matters.
 
 ## Breaking changes
@@ -260,6 +264,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="http://jonbayl"><img src="https://avatars.githubusercontent.com/u/30201351?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jon B. </b></sub></a><br /><a href="#security-jonbayl" title="Security">🛡️</a></td>
     <td align="center"><a href="https://github.com/AlexGustafsson"><img src="https://avatars.githubusercontent.com/u/14974112?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alex Gustafsson</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=AlexGustafsson" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=AlexGustafsson" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://www.aarsen.me/"><img src="https://avatars.githubusercontent.com/u/7805050?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Arsenović Arsen</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=ArsenArsen" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=ArsenArsen" title="Tests">⚠️</a> <a href="#security-ArsenArsen" title="Security">🛡️</a></td>
+    <td align="center"><a href="https://github.com/dakriy"><img src="https://avatars.githubusercontent.com/u/13756065?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dakriy</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=dakriy" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/davama"><img src="https://avatars.githubusercontent.com/u/5359152?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dave</b></sub></a><br /><a href="#userTesting-davama" title="User Testing">📓</a></td>
   </tr>
 </table>
 
@@ -299,6 +306,11 @@ Companies contributing to Authelia will have a specical mention below. [[Become 
 <a href="https://opencollective.com/authelia-sponsors/sponsor/8/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/authelia-sponsors/sponsor/9/website"><img src="https://opencollective.com/authelia-sponsors/sponsor/9/avatar.svg"></a>
 
+#### Balto
+
+Thank you to [<img src="./docs/images/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/) for
+hosting our apt repository.
+
 #### Digital Ocean
 
 Thank you to [<img src="./docs/images/logos/digitalocean.svg" alt="Digital Ocean" width="32"> DigitalOcean](https://www.digitalocean.com/?from=Authelia) for
@@ -333,3 +345,6 @@ for providing us with free licenses to their great tools.
 [HAProxy]: https://www.haproxy.org/
 [Docker]: https://docker.com/
 [Kubernetes]: https://kubernetes.io/
+[security]: https://github.com/authelia/authelia/security/policy
+[#support]: https://discord.com/channels/707844280412012608/707844280412012612
+[#contributing]: https://discord.com/channels/707844280412012608/804943261265297408

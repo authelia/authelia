@@ -15,6 +15,8 @@ import (
 
 // NewOpenIDConnectStore returns a new OpenIDConnectStore using the provided schema.OpenIDConnectConfiguration.
 func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (store *OpenIDConnectStore, err error) {
+	logger := logging.Logger()
+
 	store = &OpenIDConnectStore{
 		memory: &storage.MemoryStore{
 			IDSessions:             map[string]fosite.Requester{},
@@ -32,7 +34,7 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (st
 
 	for _, client := range configuration.Clients {
 		policy := authorization.PolicyToLevel(client.Policy)
-		logging.Logger().Debugf("Registering client %s with policy %s (%v)", client.ID, client.Policy, policy)
+		logger.Debugf("Registering client %s with policy %s (%v)", client.ID, client.Policy, policy)
 
 		store.clients[client.ID] = NewClient(client)
 	}

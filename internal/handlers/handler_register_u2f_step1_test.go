@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,7 +50,7 @@ func createToken(secret string, username string, action string, expiresAt time.T
 }
 
 func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissing() {
-	token := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", U2FRegistrationAction,
+	token := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", ActionU2FRegistration,
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
@@ -70,7 +70,7 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissi
 
 func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissing() {
 	s.mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
-	token := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", U2FRegistrationAction,
+	token := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", ActionU2FRegistration,
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 

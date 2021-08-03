@@ -2,37 +2,35 @@
 layout: default
 title: Secrets
 parent: Configuration
-nav_order: 8
+nav_order: 10
 ---
 
 # Secrets
 
-Configuration of Authelia requires some secrets and passwords.
-Even if they can be set in the configuration file, the recommended
-way to set secrets is to use environment variables as described
-below.
+Configuration of Authelia requires some secrets and passwords. Even if they can be set in the configuration file or 
+standard environment variables, the recommended way to set secrets is to use environment variables as described below.
 
 ## Environment variables
 
-A secret can be configured using an environment variable with the
-prefix AUTHELIA_ followed by the path of the option capitalized
-and with dots replaced by underscores followed by the suffix _FILE.
+A secret value can be loaded by Authelia when the configuration key ends with one of the following words: `key`, 
+`secret`, `password`, or `token`. 
 
-The contents of the environment variable must be a path to a file
-containing the secret data. This file must be readable by the
-user the Authelia daemon is running as.
+If you take the expected environment variable for the configuration option with the `_FILE` suffix at the end. The value
+of these environment variables must be the path of a file that is readable by the Authelia process, if they are not,
+Authelia will fail to load. Authelia will automatically remove the newlines from the end of the files contents.
 
 For instance the LDAP password can be defined in the configuration
 at the path **authentication_backend.ldap.password**, so this password
 could alternatively be set using the environment variable called
-**AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE**.
+**AUTHELIA__AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE**.
 
-Here is the list of the environment variables which are considered
-secrets and can be defined. Any other option defined using an
-environment variable will not be replaced.
+Here is the list of the environment variables which are considered secrets and can be defined. Please note that only
+secrets can be loaded into the configuration if they end with one of the suffixes above, you can set the value of any
+other configuration using the environment but instead of loading a file the value of the environment variable is used.
 
 |Configuration Key                                |Environment Variable                                    |
 |:-----------------------------------------------:|:------------------------------------------------------:|
+|tls_key                                          |AUTHELIA_TLS_KEY_FILE                                   |
 |jwt_secret                                       |AUTHELIA_JWT_SECRET_FILE                                |
 |duo_api.secret_key                               |AUTHELIA_DUO_API_SECRET_KEY_FILE                        |
 |session.secret                                   |AUTHELIA_SESSION_SECRET_FILE                            |
@@ -47,21 +45,21 @@ environment variable will not be replaced.
 
 ## Secrets in configuration file
 
-If for some reason you prefer keeping the secrets in the configuration
-file, be sure to apply the right permissions to the file in order to
-prevent secret leaks if an another application gets compromised on your
-server. The UNIX permissions should probably be something like 600.
+If for some reason you decide on keeping the secrets in the configuration file, it is strongly recommended that you
+ensure the permissions of the configuration file are appropriately set so that other users or processes cannot access
+this file. Generally the UNIX permissions that are appropriate are 0600. 
 
 ## Secrets exposed in an environment variable
 
-**DEPRECATION NOTICE:** This backwards compatibility feature **has been removed** in 4.18.0+.
+In all versions 4.30.0+ you can technically set secrets using the environment variables without the `_FILE` suffix by
+setting the value to the value you wish to set in configuration, however we strongly urge people not to use this option
+and instead use the file-based secrets above.
 
-Prior to implementing file secrets you were able to define the
-values of secrets in the environment variables themselves
-in plain text instead of referencing a file. **This is no longer available
-as an option**, please see the table above for the file based replacements. See
-[this article](https://diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/)
-for reasons why this was removed.
+Prior to implementing file secrets the only way you were able to define secret values was either via configuration or
+via environment variables in plain text. 
+
+See [this article](https://diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/) for reasons 
+why setting them via the file counterparts is highly encouraged.
 
 ## Docker
 
@@ -162,11 +160,46 @@ services:
       - TZ=Australia/Melbourne
 ```
 
-
 ## Kubernetes
 
 Secrets can be mounted as files using the following sample manifests.
 
+To create a secret, the following manifest can be used
+
+```yaml
+---
+kind: Secret
+apiVersion: v1
+
+metadata:
+  name: a-nice-name
+  namespace: your-authelia-namespace
+
+data:
+  duo_key: >-
+    UXE1WmM4S0pldnl6eHRwQ3psTGpDbFplOXFueUVyWEZhYjE0Z01IRHN0RT0K
+  
+  jwt_secret: >-
+    anotherBase64EncodedSecret
+
+...
+```
+
+where `UXE1WmM4S0pldnl6eHRwQ3psTGpDbFplOXFueUVyWEZhYjE0Z01IRHN0RT0K` is Base64 encoded for
+`Qq5Zc8KJevyzxtpCzlLjClZe9qnyErXFab14gMHDstE`, the actual content of the secret. You can generate these contents with
+
+```sh
+LENGTH=64
+tr -cd '[:alnum:]' < /dev/urandom \
+  | fold -w "${LENGTH}"           \
+  | head -n 1                     \
+  | tr -d '\n'                    \
+  | tee actualSecretContent.txt   \
+  | base64 --wrap 0               \
+  ; echo
+```
+
+which writes the secret's content to the `actualSecretContent.txt` file and print the Base64 encoded version on `stdout`. `${LENGTH}` is the length in characters of the secret content generated by this pipe. If you don't want the contents to be written to `actualSecretContent.txt`, just delete the line with the `tee` command.
 
 ### Kustomization
 

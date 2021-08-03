@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -43,14 +44,27 @@ const (
 	clean   = "clean"
 	tagged  = "tagged"
 	unknown = "unknown"
+
+	errFmtLinuxNotFound = "open %s: no such file or directory"
+)
+
+var (
+	reDuration = regexp.MustCompile(`^(?P<Duration>[1-9]\d*?)(?P<Unit>[smhdwMy])?$`)
+)
+
+// AlphaNumericCharacters are literally just valid alphanumeric chars.
+var AlphaNumericCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+var htmlEscaper = strings.NewReplacer(
+	"&", "&amp;",
+	"<", "&lt;",
+	">", "&gt;",
+	`"`, "&#34;",
+	"'", "&#39;",
 )
 
 // ErrTimeoutReached error thrown when a timeout is reached.
 var ErrTimeoutReached = errors.New("timeout reached")
-var parseDurationRegexp = regexp.MustCompile(`^(?P<Duration>[1-9]\d*?)(?P<Unit>[smhdwMy])?$`)
-
-// AlphaNumericCharacters are literally just valid alphanumeric chars.
-var AlphaNumericCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
 // ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
 var ErrTLSVersionNotSupported = errors.New("supplied TLS version isn't supported")

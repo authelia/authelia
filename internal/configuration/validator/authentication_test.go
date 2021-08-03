@@ -97,7 +97,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWh
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal(schema.DefaultPasswordConfiguration.KeyLength, suite.configuration.File.Password.KeyLength)
 	suite.Assert().Equal(schema.DefaultPasswordConfiguration.Iterations, suite.configuration.File.Password.Iterations)
@@ -115,7 +115,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWh
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal(schema.DefaultPasswordSHA512Configuration.KeyLength, suite.configuration.File.Password.KeyLength)
 	suite.Assert().Equal(schema.DefaultPasswordSHA512Configuration.Iterations, suite.configuration.File.Password.Iterations)
@@ -443,7 +443,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlacehol
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldAdaptLDAPURL() {
-	suite.Assert().Equal("", validateLDAPURLSimple("127.0.0.1", suite.validator))
+	suite.Assert().Equal("", validateLDAPURLSimple(loopback, suite.validator))
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)

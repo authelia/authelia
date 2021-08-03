@@ -25,7 +25,7 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 	uri, err := ctx.ForwardedProtoHost()
 	if err != nil {
 		ctx.Logger.Errorf("%v", err)
-		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to get forward facing URI"), authenticationFailedMessage)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to get forward facing URI"), messageAuthenticationFailed)
 
 		return
 	}
@@ -64,7 +64,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 
 	targetURL, err := url.ParseRequestURI(targetURI)
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to parse target URL %s: %s", targetURI, err), authenticationFailedMessage)
+		ctx.Error(fmt.Errorf("Unable to parse target URL %s: %s", targetURI, err), messageAuthenticationFailed)
 		return
 	}
 
@@ -101,10 +101,8 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 	}
 
 	ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
+	err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI})
 
-	response := redirectResponse{Redirect: targetURI}
-
-	err = ctx.SetJSONBody(response)
 	if err != nil {
 		ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
 	}
@@ -125,15 +123,17 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		return
 	}
 
-	targetURL, err := url.ParseRequestURI(targetURI)
+	safe, err := utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.Domain)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to parse target URL: %s", err), mfaValidationFailedMessage)
+		ctx.Error(fmt.Errorf("Unable to check target URL: %s", err), messageMFAValidationFailed)
 		return
 	}
 
-	if targetURL != nil && utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain) {
+	if safe {
+		ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
 		err := ctx.SetJSONBody(redirectResponse{Redirect: targetURI})
+
 		if err != nil {
 			ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
 		}
