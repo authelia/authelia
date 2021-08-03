@@ -32,15 +32,15 @@ in version 4.30.0, it will remain as a warning for 4.30.x, 4.31.x, and 4.32.x; t
 
 The following changes occurred in 4.30.0:
 
-|Previous Key|New Key               |
-|:----------:|:--------------------:|
-|host        |server.host           |
-|port        |server.port           |
-|tls_key     |server.tls.key        |
-|tls_cert    |server.tls.certificate|
-|log_level   |log.level             |
-|log_file    |log.file              |
-|log_format  |log.format            |
+|Previous Key |New Key               |
+|:-----------:|:--------------------:|
+|host         |server.host           |
+|port         |server.port           |
+|tls_key      |server.tls.key        |
+|tls_cert     |server.tls.certificate|
+|log_level    |log.level             |
+|log_file_path|log.file_path         |
+|log_format   |log.format            |
 
 ### 4.25.0
 
