@@ -1,9 +1,9 @@
 import React from "react";
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/react";
 
 import SuccessIcon from "@components/SuccessIcon";
 
 it("renders without crashing", () => {
-    mount(<SuccessIcon />);
+    render(<SuccessIcon />);
 });
