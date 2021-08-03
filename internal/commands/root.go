@@ -62,15 +62,15 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 		logger.Fatalf("Cannot initialize logger: %v", err)
 	}
 
-	providers, nonFatalErrs, errs := getProviders(config)
-	if len(nonFatalErrs) != 0 {
-		for _, err := range nonFatalErrs {
+	providers, warnings, errors := getProviders(config)
+	if len(warnings) != 0 {
+		for _, err := range warnings {
 			logger.Warn(err)
 		}
 	}
 
-	if len(errs) != 0 {
-		for _, err := range errs {
+	if len(errors) != 0 {
+		for _, err := range errors {
 			logger.Error(err)
 		}
 
@@ -80,10 +80,10 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	server.Start(*config, providers)
 }
 
-func getProviders(config *schema.Configuration) (providers middlewares.Providers, nonFatalErrs []error, errs []error) {
-	autheliaCertPool, errs, nonFatalErrs := utils.NewX509CertPool(config.CertificatesDirectory)
-	if len(errs) != 0 || len(nonFatalErrs) != 0 {
-		return providers, nonFatalErrs, errs
+func getProviders(config *schema.Configuration) (providers middlewares.Providers, warnings []error, errors []error) {
+	autheliaCertPool, warnings, errors := utils.NewX509CertPool(config.CertificatesDirectory)
+	if len(warnings) != 0 || len(errors) != 0 {
+		return providers, warnings, errors
 	}
 
 	var storageProvider storage.Provider
@@ -96,7 +96,7 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 	case config.Storage.Local != nil:
 		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
 	default:
-		errs = append(errs, fmt.Errorf("unrecognized storage provider"))
+		errors = append(errors, fmt.Errorf("unrecognized storage provider"))
 	}
 
 	var (
@@ -110,10 +110,10 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 	case config.AuthenticationBackend.LDAP != nil:
 		userProvider, err = authentication.NewLDAPUserProvider(config.AuthenticationBackend, autheliaCertPool)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("failed to check LDAP authentication backend: %w", err))
+			errors = append(errors, fmt.Errorf("failed to check LDAP authentication backend: %w", err))
 		}
 	default:
-		errs = append(errs, fmt.Errorf("unrecognized user provider"))
+		errors = append(errors, fmt.Errorf("unrecognized user provider"))
 	}
 
 	var notifier notification.Notifier
@@ -124,12 +124,12 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 	case config.Notifier.FileSystem != nil:
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	default:
-		errs = append(errs, fmt.Errorf("unrecognized notifier provider"))
+		errors = append(errors, fmt.Errorf("unrecognized notifier provider"))
 	}
 
 	if notifier != nil {
 		if _, err := notifier.StartupCheck(); err != nil {
-			errs = append(errs, fmt.Errorf("failed to check notification provider: %w", err))
+			errors = append(errors, fmt.Errorf("failed to check notification provider: %w", err))
 		}
 	}
 
@@ -140,7 +140,7 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 
 	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
 	if err != nil {
-		errs = append(errs, err)
+		errors = append(errors, err)
 	}
 
 	return middlewares.Providers{
@@ -151,5 +151,5 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		StorageProvider: storageProvider,
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
-	}, nonFatalErrs, errs
+	}, warnings, errors
 }

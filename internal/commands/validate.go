@@ -41,21 +41,21 @@ func cmdValidateConfigRun(_ *cobra.Command, args []string) {
 	validator.ValidateKeys(keys, configuration.DefaultEnvPrefix, val)
 	validator.ValidateConfiguration(conf, val)
 
-	errs := val.Errors()
-	warns := val.Warnings()
+	warnings := val.Warnings()
+	errors := val.Errors()
 
-	if len(warns) != 0 {
+	if len(warnings) != 0 {
 		logger.Warn("Warnings occurred while loading the configuration:")
 
-		for _, warn := range warns {
+		for _, warn := range warnings {
 			logger.Warnf("  %+v", warn)
 		}
 	}
 
-	if len(errs) != 0 {
+	if len(errors) != 0 {
 		logger.Error("Errors occurred while loading the configuration:")
 
-		for _, err := range errs {
+		for _, err := range errors {
 			logger.Errorf("  %+v", err)
 		}
 
