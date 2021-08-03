@@ -6,7 +6,7 @@ if [ -z "${HEALTHCHECK_SCHEME}" ]; then
   HEALTHCHECK_SCHEME=http
 fi
 
-if [ -z "${HEALTHCHECK_HOST}" ] || [ "${HEALTHCHECK_HOST}" = "0.0.0.0" ]; then
+if [ -z "${HEALTHCHECK_HOST}" ]; then
   HEALTHCHECK_HOST=localhost
 fi
 

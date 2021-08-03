@@ -88,6 +88,10 @@ func writeHealthCheckEnv(scheme, host, path string, port int) (err error) {
 		_ = file.Close()
 	}()
 
+	if host == "0.0.0.0" {
+		host = "localhost"
+	}
+
 	_, err = file.WriteString(fmt.Sprintf(healthCheckEnv, scheme, host, port, path))
 
 	return err

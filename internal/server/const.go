@@ -7,7 +7,7 @@ const indexFile = "index.html"
 
 const dev = "dev"
 
-const healthCheckEnv = `#Written by Authelia Process
+const healthCheckEnv = `# Written by Authelia Process
 HEALTHCHECK_SCHEME=%s
 HEALTHCHECK_HOST=%s
 HEALTHCHECK_PORT=%d
