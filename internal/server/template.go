@@ -64,3 +64,31 @@ func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, sessio
 		}
 	}
 }
+
+func writeHeathCheckEnv(scheme, host, path string, port int) (err error) {
+	// TODO: Remove this.
+	fmt.Printf(heathCheckEnv, scheme, host, port, path)
+
+	_, err = os.Stat("/app/heathcheck.sh")
+	if err != nil {
+		return nil
+	}
+
+	_, err = os.Stat("/app/.heathcheck.env")
+	if err != nil {
+		return nil
+	}
+
+	file, err := os.OpenFile("/app/.heathcheck.env", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = file.Close()
+	}()
+
+	_, err = file.WriteString(fmt.Sprintf(heathCheckEnv, scheme, host, port, path))
+
+	return err
+}
