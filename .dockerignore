@@ -21,3 +21,6 @@ examples
 internal/server/public_html
 authelia.service
 bootstrap.sh
+
+# Overrides
+!/.healthcheck.env
