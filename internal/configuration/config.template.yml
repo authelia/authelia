@@ -56,11 +56,9 @@ server:
   ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behaviour.
   tls:
     ## The path to the DER base64/PEM format private key.
-    key: ""
     # key: /config/tls/key.pem
 
     ## The path to the DER base64/PEM format public certificate.
-    certificate: ""
     # certificate: /config/tls/cert.pem
 
 log:
