@@ -2,16 +2,16 @@
 
 source /app/.healthcheck.env
 
-if [ -z "${HEATHCHECK_SCHEME}" ]; then
-  HEATHCHECK_SCHEME=http
+if [ -z "${HEALTHCHECK_SCHEME}" ]; then
+  HEALTHCHECK_SCHEME=http
 fi
 
-if [ -z "${HEATHCHECK_HOST}" ] || [ "${HEATHCHECK_HOST}" = "0.0.0.0" ]; then
-  HEATHCHECK_HOST=localhost
+if [ -z "${HEALTHCHECK_HOST}" ] || [ "${HEALTHCHECK_HOST}" = "0.0.0.0" ]; then
+  HEALTHCHECK_HOST=localhost
 fi
 
-if [ -z "${HEATHCHECK_PORT}" ]; then
-  HEATHCHECK_PORT=9091
+if [ -z "${HEALTHCHECK_PORT}" ]; then
+  HEALTHCHECK_PORT=9091
 fi
 
-wget --quiet --no-check-certificate --tries=1 --spider "${HEATHCHECK_SCHEME}://${HEATHCHECK_HOST}:${HEATHCHECK_PORT}${HEATHCHECK_PATH}/api/health" || exit 1
+wget --quiet --no-check-certificate --tries=1 --spider "${HEALTHCHECK_SCHEME}://${HEALTHCHECK_HOST}:${HEALTHCHECK_PORT}${HEALTHCHECK_PATH}/api/health" || exit 1
