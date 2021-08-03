@@ -6,12 +6,17 @@ has_children: true
 ---
 
 # Configuration
+Authelia has several methods of configuration available to it. The order of precedence is as follows:
 
-Authelia uses a YAML file as configuration file. A template with all possible options can be
-found [here](https://github.com/authelia/authelia/blob/master/config.template.yml), at the root of the repository.
+1. [Secrets](./secrets.md)
+2. [Environment Variables](#environment)
+3. [Files](#files) (in order of them being specified)
+
+This order of precedence puts higher weight on things higher in the list. This means anything specified in the 
+[files](#files) is overridden by [environment variables](#environment) if specified, and anything specified by 
+[environment variables](#environment) is overridden by [secrets](./secrets.md) if specified.
 
 ## Files
-
 When running **Authelia**, you can specify your configuration by passing the file path as shown below.
 
 ```console
@@ -26,16 +31,19 @@ $ authelia --config config.yml --config config-acl.yml --config config-other.yml
 $ authelia --config config.yml,config-acl.yml,config-other.yml
 ```
 
-## Environment
+Authelia's configuration files use the YAML format. A template with all possible options can be found at the root of the 
+repository [here](https://github.com/authelia/authelia/blob/master/config.template.yml).
 
+## Environment
 You may also provide the configuration by using environment variables. Environment variables are applied after the 
 configuration file meaning anything specified as part of the environment overrides the configuration files. The 
-environment variables must be prefixed with `AUTHELIA_`. Everything in the configuration can be specified as an
-environment variable with the exception of the OIDC clients section and the ACL rules section (as they are lists of 
-objects).
+environment variables must be prefixed with `AUTHELIA_`.
 
-**Note:** There are compatability issues with Kubernetes and this particular configuration option. You must ensure you
-have the `enableServiceLinks: false` setting in your pod spec.
+_**Please Note:** It is not possible to configure_ the _access control rules section or OpenID Connect identity provider
+section using environment variables at this time._
+
+_**Please Note:** There are compatability issues with Kubernetes and this particular configuration option. You must ensure you
+have the `enableServiceLinks: false` setting in your pod spec._
 
 Underscores replace indented configuration sections or subkeys. For example the following environment variables replace
 the configuration snippet that follows it:
