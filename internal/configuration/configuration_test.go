@@ -15,5 +15,5 @@ func TestShouldHaveSameChecksumForBothTemplates(t *testing.T) {
 	sumInternal, err := utils.HashSHA256FromPath("./config.template.yml")
 	assert.NoError(t, err)
 
-	assert.Equal(t, sumRoot, sumInternal)
+	assert.Equal(t, sumRoot, sumInternal, "Ensure both ./config.template.yml and ./internal/configuration/config.template.yml are exactly the same.")
 }
