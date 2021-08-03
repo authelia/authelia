@@ -10,7 +10,7 @@ import (
 //go:embed config.template.yml
 var template []byte
 
-// EnsureConfigurationExists is an auxilery function to the main Configuration tools that ensures the Configuration
+// EnsureConfigurationExists is an auxiliary function to the main Configuration tools that ensures the Configuration
 // template is created if it doesn't already exist.
 func EnsureConfigurationExists(path string) (created bool, err error) {
 	_, err = os.Stat(path)
