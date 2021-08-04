@@ -70,7 +70,7 @@ func writeHealthCheckEnv(scheme, host, path string, port int) (err error) {
 	disable := os.Getenv("X_AUTHELIA_HEALTHCHECK_DISABLE")
 	switch strings.ToLower(disable) {
 	case "1", "true", "yes":
-		return
+		return nil
 	}
 
 	_, err = os.Stat("/app/healthcheck.sh")
