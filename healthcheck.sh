@@ -1,6 +1,7 @@
 #!/bin/sh
 
-if [ -z "${X_AUTHELIA_HEALTHCHECK_DISABLE}" ]; then
+if [ -z "${X_AUTHELIA_HEALTHCHECK}" ]; then
+  echo "exit no check"
   exit 0
 fi
 

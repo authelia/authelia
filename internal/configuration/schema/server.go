@@ -2,13 +2,14 @@ package schema
 
 // ServerConfiguration represents the configuration of the http server.
 type ServerConfiguration struct {
-	Host            string `koanf:"host"`
-	Port            int    `koanf:"port"`
-	Path            string `koanf:"path"`
-	ReadBufferSize  int    `koanf:"read_buffer_size"`
-	WriteBufferSize int    `koanf:"write_buffer_size"`
-	EnablePprof     bool   `koanf:"enable_endpoint_pprof"`
-	EnableExpvars   bool   `koanf:"enable_endpoint_expvars"`
+	Host               string `koanf:"host"`
+	Port               int    `koanf:"port"`
+	Path               string `koanf:"path"`
+	ReadBufferSize     int    `koanf:"read_buffer_size"`
+	WriteBufferSize    int    `koanf:"write_buffer_size"`
+	EnablePprof        bool   `koanf:"enable_endpoint_pprof"`
+	EnableExpvars      bool   `koanf:"enable_endpoint_expvars"`
+	DisableHealthcheck bool   `koanf:"disable_healthcheck"`
 
 	TLS ServerTLSConfiguration `koanf:"tls"`
 }
