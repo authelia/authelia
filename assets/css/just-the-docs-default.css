@@ -2254,3 +2254,9 @@ figure.highlight pre, figure.highlight code { padding: 0; margin: 0; border: 0; 
 .tbl-header { font-weight: bold; text-align: center; }
 
 .tbl-beta-stage { border-bottom-width: 3px !important; }
+
+.material-icons.green { color: #56D364; }
+
+.material-icons.red { color: #F85149; }
+
+.material-icons.orange { color: #E3B341; }
