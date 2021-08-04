@@ -67,7 +67,7 @@ func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, sessio
 }
 
 func writeHealthCheckEnv(scheme, host, path string, port int) (err error) {
-	disable := os.Getenv("HEALTHCHECK_DISABLE")
+	disable := os.Getenv("X_AUTHELIA_HEALTHCHECK_DISABLE")
 	switch strings.ToLower(disable) {
 	case "1", "true", "yes":
 		return
