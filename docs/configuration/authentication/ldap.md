@@ -195,12 +195,6 @@ search.
 |{mail_attribute}        |startup|The [mail attribute](#mail_attribute) configured                |
 |{display_name_attribute}|startup|The [display name attribute](#display_name_attribute) configured|
 |{input}                 |search |The input into the username field                               |
-|{datetime:generalized}  |search |The current time in [LDAP GeneralizedTime] format               |
-
-##### datetime:generalized
-
-The [LDAP GeneralizedTime] format is common accross many LDAP implementations. You can utilize this for example with
-FreeIPA to filter users out who have exceeded their `krbPasswordExpiration` attribute's limit.
 
 #### Groups filter replacements
 

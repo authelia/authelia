@@ -4,12 +4,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/text/encoding/unicode"
+	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
@@ -28,10 +26,9 @@ type LDAPUserProvider struct {
 	supportExtensionPasswdModify bool
 
 	// Dynamically generated users values.
-	usersBaseDN                               string
-	usersAttributes                           []string
-	usersFilterReplacementInput               bool
-	usersFilterReplacementDateTimeGeneralized bool
+	usersBaseDN                 string
+	usersAttributes             []string
+	usersFilterReplacementInput bool
 
 	// Dynamically generated groups values.
 	groupsBaseDN                    string
@@ -154,10 +151,6 @@ func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter stri
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
 		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, p.ldapEscape(inputUsername))
-	}
-
-	if p.usersFilterReplacementDateTimeGeneralized {
-		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeGeneralized, time.Now().UTC().Format(ldapGeneralizedTimeDateTimeFormat))
 	}
 
 	p.logger.Tracef("Computed user filter is %s", filter)

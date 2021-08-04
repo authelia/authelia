@@ -31,14 +31,9 @@ const (
 )
 
 const (
-	ldapPlaceholderInput               = "{input}"
-	ldapPlaceholderDateTimeGeneralized = "{datetime:generalized}"
-	ldapPlaceholderDistinguishedName   = "{dn}"
-	ldapPlaceholderUsername            = "{username}"
-)
-
-const (
-	ldapGeneralizedTimeDateTimeFormat = "20060102150405Z"
+	ldapPlaceholderInput             = "{input}"
+	ldapPlaceholderDistinguishedName = "{dn}"
+	ldapPlaceholderUsername          = "{username}"
 )
 
 // PossibleMethods is the set of all possible 2FA methods.

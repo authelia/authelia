@@ -3,7 +3,6 @@ package authentication
 import (
 	"errors"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/go-ldap/ldap/v3"
@@ -398,35 +397,6 @@ func TestShouldEscapeUserInput(t *testing.T) {
 	assert.EqualError(t, err, "user not found")
 }
 
-func TestShouldReplaceGeneralizedTime(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockFactory := NewMockLDAPConnectionFactory(ctrl)
-
-	ldapClient := newLDAPUserProvider(
-		schema.LDAPAuthenticationBackendConfiguration{
-			URL:                  "ldap://127.0.0.1:389",
-			User:                 "cn=admin,dc=example,dc=com",
-			UsernameAttribute:    "uid",
-			UsersFilter:          "(&({username_attribute}={input})(krbPasswordExpiration>={datetime:generalized})))",
-			Password:             "password",
-			AdditionalUsersDN:    "ou=users",
-			BaseDN:               "dc=example,dc=com",
-			MailAttribute:        "mail",
-			DisplayNameAttribute: "displayName",
-		},
-		nil,
-		mockFactory)
-
-	assert.True(t, ldapClient.usersFilterReplacementInput)
-	assert.True(t, ldapClient.usersFilterReplacementDateTimeGeneralized)
-
-	filter := ldapClient.resolveUsersFilter("fred")
-
-	assert.Regexp(t, regexp.MustCompile(`^\(&\(uid=fred\)\(krbPasswordExpiration>=\d{14}Z\)\)\)$`), filter)
-}
-
 func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -450,7 +420,6 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 		mockFactory)
 
 	assert.True(t, ldapClient.usersFilterReplacementInput)
-	assert.False(t, ldapClient.usersFilterReplacementDateTimeGeneralized)
 
 	mockConn.EXPECT().
 		Search(NewSearchRequestMatcher("(&(uid=john)(&(objectCategory=person)(objectClass=user)))")).
@@ -1225,7 +1194,6 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 	assert.True(t, ldapClient.groupsFilterReplacementDN)
 
 	assert.True(t, ldapClient.usersFilterReplacementInput)
-	assert.False(t, ldapClient.usersFilterReplacementDateTimeGeneralized)
 
 	assert.Equal(t, "(&(|(uid={input})(mail={input})(displayName={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))", ldapClient.configuration.UsersFilter)
 	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", ldapClient.configuration.GroupsFilter)
