@@ -1,17 +1,21 @@
 #!/bin/sh
 
+if [ -z "${X_AUTHELIA_HEALTHCHECK_DISABLE}" ]; then
+  exit 0
+fi
+
 source /app/.healthcheck.env
 
-if [ -z "${HEALTHCHECK_SCHEME}" ]; then
-  HEALTHCHECK_SCHEME=http
+if [ -z "${X_AUTHELIA_HEALTHCHECK_SCHEME}" ]; then
+  X_AUTHELIA_HEALTHCHECK_SCHEME=http
 fi
 
-if [ -z "${HEALTHCHECK_HOST}" ]; then
-  HEALTHCHECK_HOST=localhost
+if [ -z "${X_AUTHELIA_HEALTHCHECK_HOST}" ]; then
+  X_AUTHELIA_HEALTHCHECK_HOST=localhost
 fi
 
-if [ -z "${HEALTHCHECK_PORT}" ]; then
-  HEALTHCHECK_PORT=9091
+if [ -z "${X_AUTHELIA_HEALTHCHECK_PORT}" ]; then
+  X_AUTHELIA_HEALTHCHECK_PORT=9091
 fi
 
-wget --quiet --no-check-certificate --tries=1 --spider "${HEALTHCHECK_SCHEME}://${HEALTHCHECK_HOST}:${HEALTHCHECK_PORT}${HEALTHCHECK_PATH}/api/health" || exit 1
+wget --quiet --no-check-certificate --tries=1 --spider "${X_AUTHELIA_HEALTHCHECK_SCHEME}://${X_AUTHELIA_HEALTHCHECK_HOST}:${X_AUTHELIA_HEALTHCHECK_PORT}${X_AUTHELIA_HEALTHCHECK_PATH}/api/health" || exit 1

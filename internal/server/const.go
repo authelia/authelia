@@ -8,8 +8,8 @@ const indexFile = "index.html"
 const dev = "dev"
 
 const healthCheckEnv = `# Written by Authelia Process
-HEALTHCHECK_SCHEME=%s
-HEALTHCHECK_HOST=%s
-HEALTHCHECK_PORT=%d
-HEALTHCHECK_PATH=%s
+X_AUTHELIA_HEALTHCHECK_SCHEME=%s
+X_AUTHELIA_HEALTHCHECK_HOST=%s
+X_AUTHELIA_HEALTHCHECK_PORT=%d
+X_AUTHELIA_HEALTHCHECK_PATH=%s
 `

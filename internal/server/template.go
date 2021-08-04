@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/valyala/fasthttp"
@@ -66,8 +67,11 @@ func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, sessio
 }
 
 func writeHealthCheckEnv(scheme, host, path string, port int) (err error) {
-	// TODO: Remove this.
-	fmt.Printf(healthCheckEnv, scheme, host, port, path)
+	disable := os.Getenv("HEALTHCHECK_DISABLE")
+	switch strings.ToLower(disable) {
+	case "1", "true", "yes":
+		return
+	}
 
 	_, err = os.Stat("/app/healthcheck.sh")
 	if err != nil {
