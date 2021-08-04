@@ -153,8 +153,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	return handler
 }
 
-// StartServer start Authelia server with the given configuration and providers.
-func StartServer(configuration schema.Configuration, providers middlewares.Providers) {
+// Start Authelia's internal webserver with the given configuration and providers.
+func Start(configuration schema.Configuration, providers middlewares.Providers) {
 	logger := logging.Logger()
 
 	handler := registerRoutes(configuration, providers)
@@ -192,10 +192,10 @@ func StartServer(configuration schema.Configuration, providers middlewares.Provi
 	}
 
 	if configuration.Server.TLS.Certificate != "" && configuration.Server.TLS.Key != "" {
-		logger.Infof("Authelia is listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		logger.Infof("Listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
 		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLS.Certificate, configuration.Server.TLS.Key))
 	} else {
-		logger.Infof("Authelia is listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		logger.Infof("Listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
 		logger.Fatal(server.Serve(listener))
 	}
 }

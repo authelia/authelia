@@ -29,21 +29,16 @@ default_redirection_url: https://home.example.com/
 ## Server Configuration
 ##
 server:
+
   ## The address to listen on.
   host: 0.0.0.0
 
   ## The port to listen on.
   port: 9091
 
-  ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behaviour.
-  tls:
-    ## The path to the DER base64/PEM format private key.
-    key: ""
-    # key: /config/ssl/key.pem
-
-    ## The path to the DER base64/PEM format public certificate.
-    certificate: ""
-    # certificate: /config/ssl/cert.pem
+  ## Set the single level path Authelia listens on.
+  ## Must be alphanumeric chars and should not contain any slashes.
+  path: ""
 
   ## Buffers usually should be configured to be the same value.
   ## Explanation at https://www.authelia.com/docs/configuration/server.html
@@ -52,16 +47,23 @@ server:
   read_buffer_size: 4096
   write_buffer_size: 4096
 
-  ## Set the single level path Authelia listens on.
-  ## Must be alphanumeric chars and should not contain any slashes.
-  path: ""
-
   ## Enables the pprof endpoint.
   enable_pprof: false
 
   ## Enables the expvars endpoint.
   enable_expvars: false
 
+  ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behaviour.
+  tls:
+    ## The path to the DER base64/PEM format private key.
+    key: ""
+
+    ## The path to the DER base64/PEM format public certificate.
+    certificate: ""
+
+##
+## Log Configuration
+##
 log:
   ## Level of verbosity for logs: info, debug, trace.
   level: debug

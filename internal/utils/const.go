@@ -48,6 +48,10 @@ const (
 	Month = Year / 12
 )
 
+const (
+	errFmtLinuxNotFound = "open %s: no such file or directory"
+)
+
 var (
 	reDuration = regexp.MustCompile(`^(?P<Duration>[1-9]\d*?)(?P<Unit>[smhdwMy])?$`)
 )
