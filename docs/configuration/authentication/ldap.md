@@ -1,7 +1,7 @@
 ---
 layout: default
 title: LDAP
-parent: Authentication backends
+parent: Authentication Backends
 grand_parent: Configuration
 nav_order: 2
 ---

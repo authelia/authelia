@@ -81,7 +81,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		if err != nil {
 			if err == regulation.ErrUserIsBanned {
-				handleAuthenticationUnauthorized(ctx, fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), messageUserBanned)
+				handleAuthenticationUnauthorized(ctx, fmt.Errorf("User %s is banned until %s", bodyJSON.Username, bannedUntil), messageAuthenticationFailed)
 				return
 			}
 

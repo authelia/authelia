@@ -1,9 +1,9 @@
 import React from "react";
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/react";
 
 import InformationIcon from "@components/InformationIcon";
 
 it("renders without crashing", () => {
-    mount(<InformationIcon />);
+    render(<InformationIcon />);
 });

@@ -1,9 +1,9 @@
 import React from "react";
 
-import { mount } from "enzyme";
+import { render } from "@testing-library/react";
 
 import TimerIcon from "@components/TimerIcon";
 
 it("renders without crashing", () => {
-    mount(<TimerIcon width={32} height={32} />);
+    render(<TimerIcon width={32} height={32} period={30} />);
 });

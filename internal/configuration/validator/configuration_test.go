@@ -12,10 +12,10 @@ import (
 
 func newDefaultConfig() schema.Configuration {
 	config := schema.Configuration{}
-	config.Host = loopback
-	config.Port = 9090
-	config.Logging.Level = "info"
-	config.Logging.Format = "text"
+	config.Server.Host = loopback
+	config.Server.Port = 9090
+	config.Log.Level = "info"
+	config.Log.Format = "text"
 	config.JWTSecret = testJWTSecret
 	config.AuthenticationBackend.File = &schema.FileAuthenticationBackendConfiguration{
 		Path: "/a/path",
@@ -38,39 +38,6 @@ func newDefaultConfig() schema.Configuration {
 	}
 
 	return config
-}
-
-func TestShouldNotUpdateConfig(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-
-	ValidateConfiguration(&config, validator)
-
-	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, 9090, config.Port)
-	assert.Equal(t, "info", config.Logging.Level)
-}
-
-func TestShouldValidateAndUpdatePort(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.Port = 0
-
-	ValidateConfiguration(&config, validator)
-
-	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, 9091, config.Port)
-}
-
-func TestShouldValidateAndUpdateHost(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.Host = ""
-
-	ValidateConfiguration(&config, validator)
-
-	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, "0.0.0.0", config.Host)
 }
 
 func TestShouldEnsureNotifierConfigIsProvided(t *testing.T) {
@@ -107,36 +74,6 @@ func TestShouldAddDefaultAccessControl(t *testing.T) {
 	assert.Equal(t, "deny", config.AccessControl.DefaultPolicy)
 }
 
-func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.TLSCert = testTLSCert
-
-	ValidateConfiguration(&config, validator)
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "No TLS key provided, please check the \"tls_key\" which has been configured")
-}
-
-func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.TLSKey = testTLSKey
-
-	ValidateConfiguration(&config, validator)
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "No TLS certificate provided, please check the \"tls_cert\" which has been configured")
-}
-
-func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.TLSCert = testTLSCert
-	config.TLSKey = testTLSKey
-
-	ValidateConfiguration(&config, validator)
-	require.Len(t, validator.Errors(), 0)
-}
-
 func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
@@ -144,7 +81,10 @@ func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
+	require.Len(t, validator.Warnings(), 1)
+
 	assert.EqualError(t, validator.Errors()[0], "Provide a JWT secret using \"jwt_secret\" key")
+	assert.EqualError(t, validator.Warnings()[0], "No access control rules have been defined so the default policy two_factor will be applied to all requests")
 }
 
 func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
@@ -154,16 +94,24 @@ func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
+	require.Len(t, validator.Warnings(), 1)
+
 	assert.EqualError(t, validator.Errors()[0], "Value for \"default_redirection_url\" is invalid: the url 'bad_default_redirection_url' is not absolute because it doesn't start with a scheme like 'http://' or 'https://'")
+	assert.EqualError(t, validator.Warnings()[0], "No access control rules have been defined so the default policy two_factor will be applied to all requests")
 }
 
 func TestShouldNotOverrideCertificatesDirectoryAndShouldPassWhenBlank(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
+
 	ValidateConfiguration(&config, validator)
-	require.Len(t, validator.Errors(), 0)
+
+	assert.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Warnings(), 1)
 
 	require.Equal(t, "", config.CertificatesDirectory)
+
+	assert.EqualError(t, validator.Warnings()[0], "No access control rules have been defined so the default policy two_factor will be applied to all requests")
 }
 
 func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
@@ -174,6 +122,7 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	ValidateConfiguration(&config, validator)
 
 	require.Len(t, validator.Errors(), 1)
+	require.Len(t, validator.Warnings(), 1)
 
 	if runtime.GOOS == "windows" {
 		assert.EqualError(t, validator.Errors()[0], "Error checking certificate directory: CreateFile not-a-real-file.go: The system cannot find the file specified.")
@@ -181,12 +130,18 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 		assert.EqualError(t, validator.Errors()[0], "Error checking certificate directory: stat not-a-real-file.go: no such file or directory")
 	}
 
+	assert.EqualError(t, validator.Warnings()[0], "No access control rules have been defined so the default policy two_factor will be applied to all requests")
+
 	validator = schema.NewStructValidator()
 	config.CertificatesDirectory = "const.go"
+
 	ValidateConfiguration(&config, validator)
 
 	require.Len(t, validator.Errors(), 1)
+	require.Len(t, validator.Warnings(), 1)
+
 	assert.EqualError(t, validator.Errors()[0], "The path const.go specified for certificate_directory is not a directory")
+	assert.EqualError(t, validator.Warnings()[0], "No access control rules have been defined so the default policy two_factor will be applied to all requests")
 }
 
 func TestShouldNotRaiseErrorOnValidCertificatesDirectory(t *testing.T) {
@@ -196,5 +151,8 @@ func TestShouldNotRaiseErrorOnValidCertificatesDirectory(t *testing.T) {
 
 	ValidateConfiguration(&config, validator)
 
-	require.Len(t, validator.Errors(), 0)
+	assert.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Warnings(), 1)
+
+	assert.EqualError(t, validator.Warnings()[0], "No access control rules have been defined so the default policy two_factor will be applied to all requests")
 }
