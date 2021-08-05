@@ -278,6 +278,7 @@ var ValidKeys = []string{
 	"identity_providers.oidc.authorize_code_lifespan",
 	"identity_providers.oidc.enable_client_debug_messages",
 	"identity_providers.oidc.minimum_parameter_entropy",
+	"identity_providers.oidc.clients",
 	"identity_providers.oidc.clients[].id",
 	"identity_providers.oidc.clients[].description",
 	"identity_providers.oidc.clients[].secret",
