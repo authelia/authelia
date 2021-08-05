@@ -57,7 +57,7 @@ func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, sessio
 
 		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, CSPNonce, RememberMe, ResetPassword, Session, Theme string }{Base: base, CSPNonce: nonce, RememberMe: rememberMe, ResetPassword: resetPassword, Session: session, Theme: theme})
 		if err != nil {
-			ctx.Error("An error occurred", 503)
+			ctx.Error("an error occurred", 503)
 			logger.Errorf("Unable to execute template: %v", err)
 
 			return

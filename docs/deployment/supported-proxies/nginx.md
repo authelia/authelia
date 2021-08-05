@@ -1,14 +1,14 @@
 ---
 layout: default
-title: Nginx
+title: NGINX
 parent: Proxy Integration
 grand_parent: Deployment
 nav_order: 2
 ---
 
-# Nginx
+# NGINX
 
-[nginx] is a reverse proxy supported by **Authelia**.
+[NGINX] is a reverse proxy supported by **Authelia**.
 
 ## Configuration
 
@@ -352,4 +352,4 @@ error_page 401 /authelia-redirect?rd=$target_url;
 
 This tells nginx to use the virtual endpoint we defined above in case the auth_request failed.
 
-[nginx]: https://www.nginx.com/
+[NGINX]: https://www.nginx.com/
