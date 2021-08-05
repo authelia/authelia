@@ -139,6 +139,7 @@ var ValidKeys = []string{
 	"server.path",
 	"server.enable_pprof",
 	"server.enable_expvars",
+	"server.disable_healthcheck",
 	"server.tls.key",
 	"server.tls.certificate",
 
