@@ -5,6 +5,9 @@ for BUILD_ARCH in amd64 arm32v7 arm64v8; do
 cat << EOF
   - label: ":docker: Deploy Image [${BUILD_ARCH}]"
     command: "authelia-scripts docker push-image --arch=${BUILD_ARCH}"
+    retry:
+      manual:
+        permit_on_passed: true
     depends_on:
 EOF
 if [[ "${BUILD_ARCH}" == "amd64" ]]; then
