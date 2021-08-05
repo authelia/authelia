@@ -9,6 +9,7 @@ import (
 	"github.com/authelia/authelia/internal/authorization"
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/notification"
+	"github.com/authelia/authelia/internal/ntp"
 	"github.com/authelia/authelia/internal/oidc"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/session"
@@ -34,6 +35,7 @@ type Providers struct {
 	Regulator       *regulation.Regulator
 	OpenIDConnect   oidc.OpenIDConnectProvider
 
+	Ntp             *ntp.Provider
 	UserProvider    authentication.UserProvider
 	StorageProvider storage.Provider
 	Notifier        notification.Notifier

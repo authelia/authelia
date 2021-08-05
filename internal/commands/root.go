@@ -15,6 +15,7 @@ import (
 	"github.com/authelia/authelia/internal/oidc"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/server"
+	"github.com/authelia/authelia/internal/ntp"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/storage"
 	"github.com/authelia/authelia/internal/utils"
@@ -81,6 +82,8 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 }
 
 func getProviders(config *schema.Configuration) (providers middlewares.Providers, warnings []error, errors []error) {
+	logger := logging.Logger()
+
 	autheliaCertPool, warnings, errors := utils.NewX509CertPool(config.CertificatesDirectory)
 	if len(warnings) != 0 || len(errors) != 0 {
 		return providers, warnings, errors
@@ -133,6 +136,23 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		}
 	}
 
+	var ntpProvider *ntp.Provider
+	var failed bool
+	if config.Ntp != nil {
+		ntpProvider = ntp.NewProvider(config.Ntp)
+    }
+	if !config.Ntp.DisableStartupCheck {
+		if failed, err = ntpProvider.StartupCheck(); err!= nil {
+			logger.Errorf("Failed to check NTP host-server synchronization: %v",err)
+			} else {
+			if failed == true {
+				logger.Fatalf("Your Host is not synchronized with an NTP server")
+			} else {
+				logger.Info("*==NTP synchronization check terminated with success==*")
+			}
+		}
+	}
+
 	clock := utils.RealClock{}
 	authorizer := authorization.NewAuthorizer(config)
 	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
@@ -149,6 +169,7 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		Regulator:       regulator,
 		OpenIDConnect:   oidcProvider,
 		StorageProvider: storageProvider,
+		Ntp:			 ntpProvider,
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
 	}, warnings, errors

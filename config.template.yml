@@ -29,7 +29,6 @@ default_redirection_url: https://home.example.com/
 ## Server Configuration
 ##
 server:
-
   ## The address to listen on.
   host: 0.0.0.0
 
@@ -419,40 +418,40 @@ session:
 
     ## The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
     # tls:
-      ## Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
-      # server_name: myredis.example.com
+    ## Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
+    # server_name: myredis.example.com
 
-      ## Skip verifying the server certificate (to allow a self-signed certificate).
-      ## In preference to setting this we strongly recommend you add the public portion of the certificate to the
-      ## certificates directory which is defined by the `certificates_directory` option at the top of the config.
-      # skip_verify: false
+    ## Skip verifying the server certificate (to allow a self-signed certificate).
+    ## In preference to setting this we strongly recommend you add the public portion of the certificate to the
+    ## certificates directory which is defined by the `certificates_directory` option at the top of the config.
+    # skip_verify: false
 
-      ## Minimum TLS version for the connection.
-      # minimum_version: TLS1.2
+    ## Minimum TLS version for the connection.
+    # minimum_version: TLS1.2
 
     ## The Redis HA configuration options.
     ## This provides specific options to Redis Sentinel, sentinel_name must be defined (Master Name).
     # high_availability:
-      ## Sentinel Name / Master Name.
-      # sentinel_name: mysentinel
+    ## Sentinel Name / Master Name.
+    # sentinel_name: mysentinel
 
-      ## Specific password for Redis Sentinel. The node username and password is configured above.
-      # sentinel_password: sentinel_specific_pass
+    ## Specific password for Redis Sentinel. The node username and password is configured above.
+    # sentinel_password: sentinel_specific_pass
 
-      ## The additional nodes to pre-seed the redis provider with (for sentinel).
-      ## If the host in the above section is defined, it will be combined with this list to connect to sentinel.
-      ## For high availability to be used you must have either defined; the host above or at least one node below.
-      # nodes:
-      #   - host: sentinel-node1
-      #     port: 6379
-      #   - host: sentinel-node2
-      #     port: 6379
+    ## The additional nodes to pre-seed the redis provider with (for sentinel).
+    ## If the host in the above section is defined, it will be combined with this list to connect to sentinel.
+    ## For high availability to be used you must have either defined; the host above or at least one node below.
+    # nodes:
+    #   - host: sentinel-node1
+    #     port: 6379
+    #   - host: sentinel-node2
+    #     port: 6379
 
-      ## Choose the host with the lowest latency.
-      # route_by_latency: false
+    ## Choose the host with the lowest latency.
+    # route_by_latency: false
 
-      ## Choose the host randomly.
-      # route_randomly: false
+    ## Choose the host randomly.
+    # route_randomly: false
 
 ##
 ## Regulation Configuration
@@ -582,84 +581,101 @@ notifier:
 ##
 # identity_providers:
 
-  ##
-  ## OpenID Connect (Identity Provider)
-  ##
-  ## It's recommended you read the documentation before configuration of this section:
-  ## https://www.authelia.com/docs/configuration/identity-providers/oidc.html
-  # oidc:
-    ## The hmac_secret is used to sign OAuth2 tokens (authorization code, access tokens and refresh tokens).
-    ## HMAC Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-    # hmac_secret: this_is_a_secret_abc123abc123abc
+##
+## OpenID Connect (Identity Provider)
+##
+## It's recommended you read the documentation before configuration of this section:
+## https://www.authelia.com/docs/configuration/identity-providers/oidc.html
+# oidc:
+## The hmac_secret is used to sign OAuth2 tokens (authorization code, access tokens and refresh tokens).
+## HMAC Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+# hmac_secret: this_is_a_secret_abc123abc123abc
 
-    ## The issuer_private_key is used to sign the JWT forged by OpenID Connect.
-    ## Issuer Private Key can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
-    # issuer_private_key: |
-    #   --- KEY START
-    #   --- KEY END
+## The issuer_private_key is used to sign the JWT forged by OpenID Connect.
+## Issuer Private Key can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+# issuer_private_key: |
+#   --- KEY START
+#   --- KEY END
 
-    ## The lifespans configure the expiration for these token types.
-    # access_token_lifespan: 1h
-    # authorize_code_lifespan: 1m
-    # id_token_lifespan: 1h
-    # refresh_token_lifespan: 90m
+## The lifespans configure the expiration for these token types.
+# access_token_lifespan: 1h
+# authorize_code_lifespan: 1m
+# id_token_lifespan: 1h
+# refresh_token_lifespan: 90m
 
-    ## Enables additional debug messages.
-    # enable_client_debug_messages: false
+## Enables additional debug messages.
+# enable_client_debug_messages: false
 
-    ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it below 8 for
-    ## security reasons.
-    # minimum_parameter_entropy: 8
+## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it below 8 for
+## security reasons.
+# minimum_parameter_entropy: 8
 
-    ## Clients is a list of known clients and their configuration.
-    # clients:
-      # -
-        ## The ID is the OpenID Connect ClientID which is used to link an application to a configuration.
-        # id: myapp
+## Clients is a list of known clients and their configuration.
+# clients:
+# -
+## The ID is the OpenID Connect ClientID which is used to link an application to a configuration.
+# id: myapp
 
-        ## The description to show to users when they end up on the consent screen. Defaults to the ID above.
-        # description: My Application
+## The description to show to users when they end up on the consent screen. Defaults to the ID above.
+# description: My Application
 
-        ## The client secret is a shared secret between Authelia and the consumer of this client.
-        # secret: this_is_a_secret
+## The client secret is a shared secret between Authelia and the consumer of this client.
+# secret: this_is_a_secret
 
-        ## Sets the client to public. This should typically not be set, please see the documentation for usage.
-        # public: false
+## Sets the client to public. This should typically not be set, please see the documentation for usage.
+# public: false
 
-        ## The policy to require for this client; one_factor or two_factor.
-        # authorization_policy: two_factor
+## The policy to require for this client; one_factor or two_factor.
+# authorization_policy: two_factor
 
-        ## Audience this client is allowed to request.
-        # audience: []
+## Audience this client is allowed to request.
+# audience: []
 
-        ## Scopes this client is allowed to request.
-        # scopes:
-          # - openid
-          # - groups
-          # - email
-          # - profile
+## Scopes this client is allowed to request.
+# scopes:
+# - openid
+# - groups
+# - email
+# - profile
 
-        ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
-        # redirect_uris:
-        # - https://oidc.example.com:8080/oauth2/callback
+## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
+# redirect_uris:
+# - https://oidc.example.com:8080/oauth2/callback
 
-        ## Grant Types configures which grants this client can obtain.
-        ## It's not recommended to define this unless you know what you're doing.
-        # grant_types:
-          # - refresh_token
-          # - authorization_code
+## Grant Types configures which grants this client can obtain.
+## It's not recommended to define this unless you know what you're doing.
+# grant_types:
+# - refresh_token
+# - authorization_code
 
-        ## Response Types configures which responses this client can be sent.
-        ## It's not recommended to define this unless you know what you're doing.
-        # response_types:
-          # - code
+## Response Types configures which responses this client can be sent.
+## It's not recommended to define this unless you know what you're doing.
+# response_types:
+# - code
 
-        ## Response Modes configures which response modes this client supports.
-        # response_modes:
-          # - form_post
-          # - query
-          # - fragment
+## Response Modes configures which response modes this client supports.
+# response_modes:
+# - form_post
+# - query
+# - fragment
 
-        ## The algorithm used to sign userinfo endpoint responses for this client, either none or RS256.
-        # userinfo_signing_algorithm: none
-...
+## The algorithm used to sign userinfo endpoint responses for this client, either none or RS256.
+# userinfo_signing_algorithm: none
+
+##
+##
+## NTP Provider configuration
+## Usually TOTP authentication issue is related to the non-synchronization between the server and the authenticator
+## to make sure that your host is not out of sync configure NTP checker
+##
+##
+
+ntp:
+  ## NTP server address
+  address: "time.google.com:123"
+  ## ntp version
+  version: 3
+  ## "maximum desynchronization" is the allowed offset time between the host and the ntp server
+  max_desync: 3s
+  ## You can enable or disable the NTP synchronization check on startup
+  disable_startup_check: false
