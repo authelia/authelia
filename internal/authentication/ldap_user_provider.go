@@ -15,17 +15,28 @@ import (
 	"github.com/authelia/authelia/internal/utils"
 )
 
-// LDAPUserProvider is a provider using a LDAP or AD as a user database.
+// LDAPUserProvider is a UserProvider that connects to LDAP servers like ActiveDirectory, OpenLDAP, OpenDJ, FreeIPA, etc.
 type LDAPUserProvider struct {
 	configuration     schema.LDAPAuthenticationBackendConfiguration
 	tlsConfig         *tls.Config
 	dialOpts          ldap.DialOpt
 	logger            *logrus.Logger
 	connectionFactory LDAPConnectionFactory
-	usersBaseDN       string
-	groupsBaseDN      string
 
+	// Automatically detected ldap features.
 	supportExtensionPasswdModify bool
+
+	// Dynamically generated users values.
+	usersBaseDN                 string
+	usersAttributes             []string
+	usersFilterReplacementInput bool
+
+	// Dynamically generated groups values.
+	groupsBaseDN                    string
+	groupsAttributes                []string
+	groupsFilterReplacementInput    bool
+	groupsFilterReplacementUsername bool
+	groupsFilterReplacementDN       bool
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
@@ -72,72 +83,10 @@ func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 		connectionFactory: factory,
 	}
 
-	provider.parseDynamicConfiguration()
+	provider.parseDynamicUsersConfiguration()
+	provider.parseDynamicGroupsConfiguration()
 
 	return provider
-}
-
-func (p *LDAPUserProvider) parseDynamicConfiguration() {
-	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{username_attribute}", p.configuration.UsernameAttribute)
-	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{mail_attribute}", p.configuration.MailAttribute)
-	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{display_name_attribute}", p.configuration.DisplayNameAttribute)
-
-	p.logger.Tracef("Dynamically generated users filter is %s", p.configuration.UsersFilter)
-
-	if p.configuration.AdditionalUsersDN != "" {
-		p.usersBaseDN = p.configuration.AdditionalUsersDN + "," + p.configuration.BaseDN
-	} else {
-		p.usersBaseDN = p.configuration.BaseDN
-	}
-
-	p.logger.Tracef("Dynamically generated users BaseDN is %s", p.usersBaseDN)
-
-	if p.configuration.AdditionalGroupsDN != "" {
-		p.groupsBaseDN = ldap.EscapeFilter(p.configuration.AdditionalGroupsDN + "," + p.configuration.BaseDN)
-	} else {
-		p.groupsBaseDN = p.configuration.BaseDN
-	}
-
-	p.logger.Tracef("Dynamically generated groups BaseDN is %s", p.groupsBaseDN)
-}
-
-func (p *LDAPUserProvider) checkServer() (err error) {
-	conn, err := p.connect(p.configuration.User, p.configuration.Password)
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	searchRequest := ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute}, nil)
-
-	sr, err := conn.Search(searchRequest)
-	if err != nil {
-		return err
-	}
-
-	if len(sr.Entries) != 1 {
-		return nil
-	}
-
-	// Iterate the attribute values to see what the server supports.
-	for _, attr := range sr.Entries[0].Attributes {
-		if attr.Name == ldapSupportedExtensionAttribute {
-			p.logger.Tracef("LDAP Supported Extension OIDs: %s", strings.Join(attr.Values, ", "))
-
-			for _, oid := range attr.Values {
-				if oid == ldapOIDPasswdModifyExtension {
-					p.supportExtensionPasswdModify = true
-					break
-				}
-			}
-
-			break
-		}
-	}
-
-	return nil
 }
 
 func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
@@ -197,34 +146,31 @@ type ldapUserProfile struct {
 	Username    string
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(userFilter string, inputUsername string) string {
-	inputUsername = p.ldapEscape(inputUsername)
+func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter string) {
+	filter = p.configuration.UsersFilter
 
-	// The {input} placeholder is replaced by the users username input.
-	userFilter = strings.ReplaceAll(userFilter, "{input}", inputUsername)
+	if p.usersFilterReplacementInput {
+		// The {input} placeholder is replaced by the users username input.
+		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, p.ldapEscape(inputUsername))
+	}
 
-	p.logger.Tracef("Computed user filter is %s", userFilter)
+	p.logger.Tracef("Computed user filter is %s", filter)
 
-	return userFilter
+	return filter
 }
 
 func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername string) (*ldapUserProfile, error) {
-	userFilter := p.resolveUsersFilter(p.configuration.UsersFilter, inputUsername)
-
-	attributes := []string{"dn",
-		p.configuration.DisplayNameAttribute,
-		p.configuration.MailAttribute,
-		p.configuration.UsernameAttribute}
+	userFilter := p.resolveUsersFilter(inputUsername)
 
 	// Search for the given username.
 	searchRequest := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, userFilter, attributes, nil,
+		1, 0, false, userFilter, p.usersAttributes, nil,
 	)
 
 	sr, err := conn.Search(searchRequest)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot find user DN of user %s. Cause: %s", inputUsername, err)
+		return nil, fmt.Errorf("cannot find user DN of user '%s'. Cause: %w", inputUsername, err)
 	}
 
 	if len(sr.Entries) == 0 {
@@ -232,7 +178,7 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	}
 
 	if len(sr.Entries) > 1 {
-		return nil, fmt.Errorf("Multiple users %s found", inputUsername)
+		return nil, fmt.Errorf("multiple users %s found", inputUsername)
 	}
 
 	userProfile := ldapUserProfile{
@@ -250,7 +196,7 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 
 		if attr.Name == p.configuration.UsernameAttribute {
 			if len(attr.Values) != 1 {
-				return nil, fmt.Errorf("User %s cannot have multiple value for attribute %s",
+				return nil, fmt.Errorf("user '%s' cannot have multiple value for attribute '%s'",
 					inputUsername, p.configuration.UsernameAttribute)
 			}
 
@@ -259,26 +205,33 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	}
 
 	if userProfile.DN == "" {
-		return nil, fmt.Errorf("No DN has been found for user %s", inputUsername)
+		return nil, fmt.Errorf("no DN has been found for user %s", inputUsername)
 	}
 
 	return &userProfile, nil
 }
 
-func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (string, error) { //nolint:unparam
-	inputUsername = p.ldapEscape(inputUsername)
+func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (filter string, err error) { //nolint:unparam
+	filter = p.configuration.GroupsFilter
 
-	// The {input} placeholder is replaced by the users username input.
-	groupFilter := strings.ReplaceAll(p.configuration.GroupsFilter, "{input}", inputUsername)
-
-	if profile != nil {
-		groupFilter = strings.ReplaceAll(groupFilter, "{username}", ldap.EscapeFilter(profile.Username))
-		groupFilter = strings.ReplaceAll(groupFilter, "{dn}", ldap.EscapeFilter(profile.DN))
+	if p.groupsFilterReplacementInput {
+		// The {input} placeholder is replaced by the users username input.
+		filter = strings.ReplaceAll(p.configuration.GroupsFilter, ldapPlaceholderInput, p.ldapEscape(inputUsername))
 	}
 
-	p.logger.Tracef("Computed groups filter is %s", groupFilter)
+	if profile != nil {
+		if p.groupsFilterReplacementUsername {
+			filter = strings.ReplaceAll(filter, ldapPlaceholderUsername, ldap.EscapeFilter(profile.Username))
+		}
 
-	return groupFilter, nil
+		if p.groupsFilterReplacementDN {
+			filter = strings.ReplaceAll(filter, ldapPlaceholderDistinguishedName, ldap.EscapeFilter(profile.DN))
+		}
+	}
+
+	p.logger.Tracef("Computed groups filter is %s", filter)
+
+	return filter, nil
 }
 
 // GetDetails retrieve the groups a user belongs to.
@@ -296,19 +249,19 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 
 	groupsFilter, err := p.resolveGroupsFilter(inputUsername, profile)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to create group filter for user %s. Cause: %s", inputUsername, err)
+		return nil, fmt.Errorf("unable to create group filter for user '%s'. Cause: %w", inputUsername, err)
 	}
 
 	// Search for the given username.
 	searchGroupRequest := ldap.NewSearchRequest(
 		p.groupsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		0, 0, false, groupsFilter, []string{p.configuration.GroupNameAttribute}, nil,
+		0, 0, false, groupsFilter, p.groupsAttributes, nil,
 	)
 
 	sr, err := conn.Search(searchGroupRequest)
 
 	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve groups of user %s. Cause: %s", inputUsername, err)
+		return nil, fmt.Errorf("unable to retrieve groups of user '%s'. Cause: %w", inputUsername, err)
 	}
 
 	groups := make([]string, 0)
@@ -318,6 +271,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 			p.logger.Warningf("No groups retrieved from LDAP for user %s", inputUsername)
 			break
 		}
+
 		// Append all values of the document. Normally there should be only one per document.
 		groups = append(groups, res.Attributes[0].Values...)
 	}
@@ -334,14 +288,14 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword string) error {
 	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
-		return fmt.Errorf("Unable to update password. Cause: %s", err)
+		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 	defer conn.Close()
 
 	profile, err := p.getUserProfile(conn, inputUsername)
 
 	if err != nil {
-		return fmt.Errorf("Unable to update password. Cause: %s", err)
+		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 
 	switch {
@@ -370,7 +324,7 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 	}
 
 	if err != nil {
-		return fmt.Errorf("Unable to update password. Cause: %s", err)
+		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 
 	return nil

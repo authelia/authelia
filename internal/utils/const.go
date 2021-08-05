@@ -26,6 +26,12 @@ const (
 	// TLS10 is the textual representation of TLS 1.0.
 	TLS10 = "1.0"
 
+	clean   = "clean"
+	tagged  = "tagged"
+	unknown = "unknown"
+)
+
+const (
 	// Hour is an int based representation of the time unit.
 	Hour = time.Minute * 60
 
@@ -40,11 +46,9 @@ const (
 
 	// Month is an int based representation of the time unit.
 	Month = Year / 12
+)
 
-	clean   = "clean"
-	tagged  = "tagged"
-	unknown = "unknown"
-
+const (
 	errFmtLinuxNotFound = "open %s: no such file or directory"
 )
 

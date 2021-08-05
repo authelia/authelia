@@ -24,7 +24,7 @@ authentication_backend:
     additional_users_dn: ou=users
     users_filter: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
     additional_groups_dn: ou=groups
-    groups_filter: (&(member={dn})(objectclass=groupOfNames))
+    groups_filter: (&(member={dn})(objectClass=groupOfNames))
     group_name_attribute: cn
     mail_attribute: mail
     user: cn=admin,dc=example,dc=com

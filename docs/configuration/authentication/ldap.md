@@ -29,10 +29,10 @@ authentication_backend:
     additional_users_dn: ou=users
     users_filter: (&({username_attribute}={input})(objectClass=person))
     additional_groups_dn: ou=groups
-    groups_filter: (&(member={dn})(objectclass=groupOfNames))
+    groups_filter: (&(member={dn})(objectClass=groupOfNames))
     group_name_attribute: cn
     mail_attribute: mail
-    display_name_attribute: displayname
+    display_name_attribute: displayName
     user: cn=admin,dc=example,dc=com
     password: password
 ```
@@ -182,6 +182,28 @@ must be used if you wish to allow users to change or reset their password as Act
 uses a custom attribute for this, and an input format other implementations do not use. The long term
 intention of this is to have logical defaults for various RFC implementations of LDAP.
 
+### Filter replacements
+
+Various replacements occur in the user and groups filter. The replacements either occur at startup or upon an LDAP
+search.
+
+#### Users filter replacements
+
+|Placeholder             |Phase  |Replacement                                                     |
+|:----------------------:|:-----:|:--------------------------------------------------------------:|
+|{username_attribute}    |startup|The [username attribute](#username_attribute) configured        |
+|{mail_attribute}        |startup|The [mail attribute](#mail_attribute) configured                |
+|{display_name_attribute}|startup|The [display name attribute](#display_name_attribute) configured|
+|{input}                 |search |The input into the username field                               |
+
+#### Groups filter replacements
+
+|Placeholder             |Phase  |Replacement                                                                |
+|:----------------------:|:-----:|:-------------------------------------------------------------------------:|
+|{input}                 |search |The input into the username field                                          |
+|{username}              |search |The username from the profile lookup obtained from the [username attribute]|
+|{dn}                    |search |The distinguished name from the profile lookup                             |
+
 ### Defaults
 
 The below tables describes the current attribute defaults for each implementation.
@@ -192,8 +214,8 @@ described by the Username column.
 
 |Implementation |Username      |Display Name|Mail|Group Name|
 |:-------------:|:------------:|:----------:|:--:|:--------:|
-|custom         |n/a           |displayname |mail|cn        |
-|activedirectory|sAMAccountName|displayname |mail|cn        |
+|custom         |n/a           |displayName |mail|cn        |
+|activedirectory|sAMAccountName|displayName |mail|cn        |
 
 #### Filter defaults
 
@@ -245,3 +267,7 @@ As of versions > `4.24.0` the `users_filter` must include the `username_attribut
 result in Authelia throwing an error.
 In versions <= `4.24.0` not including the `username_attribute` placeholder will cause issues with the session refresh
 and will result in session resets when the refresh interval has expired, default of 5 minutes.
+
+[LDAP GeneralizedTime]: https://ldapwiki.com/wiki/GeneralizedTime
+[username attribute]: #username_attribute
+[TechNet wiki]: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx

@@ -75,7 +75,7 @@ var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendCon
 	Implementation:       LDAPImplementationCustom,
 	UsernameAttribute:    "uid",
 	MailAttribute:        "mail",
-	DisplayNameAttribute: "displayname",
+	DisplayNameAttribute: "displayName",
 	GroupNameAttribute:   "cn",
 	TLS: &TLSConfig{
 		MinimumVersion: "TLS1.2",

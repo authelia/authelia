@@ -183,10 +183,8 @@ authentication_backend:
     additional_users_dn: ou=users
 
     ## The users filter used in search queries to find the user profile based on input filled in login form.
-    ## Various placeholders are available in the user filter:
-    ## - {input} is a placeholder replaced by what the user inputs in the login form.
-    ## - {username_attribute} is a mandatory placeholder replaced by what is configured in `username_attribute`.
-    ## - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
+    ## Various placeholders are available in the user filter which you can read about in the documentation which can
+    ## be found at: https://www.authelia.com/docs/configuration/authentication/ldap.html#users-filter-replacements
     ##
     ## Recommended settings are as follows:
     ## - Microsoft Active Directory: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
@@ -202,16 +200,13 @@ authentication_backend:
     ## i.e. with this set to OU=Groups and base_dn set to DC=a,DC=com; OU=Groups,DC=a,DC=com is searched for groups.
     additional_groups_dn: ou=groups
 
-    ## The groups filter used in search queries to find the groups of the user.
-    ## - {input} is a placeholder replaced by what the user inputs in the login form.
-    ## - {username} is a placeholder replace by the username stored in LDAP (based on `username_attribute`).
-    ## - {dn} is a matcher replaced by the user distinguished name, aka, user DN.
-    ## - {username_attribute} is a placeholder replaced by what is configured in `username_attribute`.
-    ## - {mail_attribute} is a placeholder replaced by what is configured in `mail_attribute`.
+    ## The groups filter used in search queries to find the groups based on relevant authenticated user.
+    ## Various placeholders are available in the groups filter which you can read about in the documentation which can
+    ## be found at: https://www.authelia.com/docs/configuration/authentication/ldap.html#groups-filter-replacements
     ##
     ## If your groups use the `groupOfUniqueNames` structure use this instead:
-    ##    (&(uniquemember={dn})(objectclass=groupOfUniqueNames))
-    groups_filter: (&(member={dn})(objectclass=groupOfNames))
+    ##    (&(uniqueMember={dn})(objectClass=groupOfUniqueNames))
+    groups_filter: (&(member={dn})(objectClass=groupOfNames))
 
     ## The attribute holding the name of the group.
     # group_name_attribute: cn
@@ -221,7 +216,7 @@ authentication_backend:
     # mail_attribute: mail
 
     ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
-    # display_name_attribute: displayname
+    # display_name_attribute: displayName
 
     ## The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
