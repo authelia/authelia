@@ -127,7 +127,7 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		errors = append(errors, fmt.Errorf("unrecognized notifier provider"))
 	}
 
-	if notifier != nil {
+	if notifier != nil && !config.Notifier.DisableStartupCheck {
 		if _, err := notifier.StartupCheck(); err != nil {
 			errors = append(errors, fmt.Errorf("failed to check notification provider: %w", err))
 		}
