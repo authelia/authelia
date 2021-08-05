@@ -239,7 +239,6 @@ func publishDockerManifest() {
 
 					if registry == dockerhub {
 						publishDockerReadme(docker)
-						updateMicroBadger(docker)
 					}
 				}
 			} else {
@@ -268,13 +267,6 @@ func publishDockerReadme(docker *Docker) {
 	log.Info("Docker pushing README.md to Docker Hub")
 
 	if err := docker.PublishReadme(); err != nil {
-		log.Fatal(err)
-	}
-}
-func updateMicroBadger(docker *Docker) {
-	log.Info("Updating MicroBadger metadata from Docker Hub")
-
-	if err := docker.UpdateMicroBadger(); err != nil {
 		log.Fatal(err)
 	}
 }
