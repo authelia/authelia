@@ -1,10 +1,10 @@
 #!/bin/sh
 
+source /app/.healthcheck.env
+
 if [ -z "${X_AUTHELIA_HEALTHCHECK}" ]; then
   exit 0
 fi
-
-source /app/.healthcheck.env
 
 if [ -z "${X_AUTHELIA_HEALTHCHECK_SCHEME}" ]; then
   X_AUTHELIA_HEALTHCHECK_SCHEME=http
