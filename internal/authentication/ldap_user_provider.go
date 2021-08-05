@@ -4,10 +4,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"strings"
+
 	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/text/encoding/unicode"
-	"strings"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/logging"
