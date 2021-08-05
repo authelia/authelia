@@ -2,6 +2,7 @@ package validator
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -518,26 +519,30 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirec
 	suite.Assert().False(suite.validator.HasErrors())
 
 	suite.Assert().Equal(
-		suite.configuration.LDAP.UsersFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter)
+		schema.DefaultLDAPAuthenticationBackendConfiguration.Timeout,
+		suite.configuration.LDAP.Timeout)
 	suite.Assert().Equal(
-		suite.configuration.LDAP.UsernameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter,
+		suite.configuration.LDAP.UsersFilter)
 	suite.Assert().Equal(
-		suite.configuration.LDAP.DisplayNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute,
+		suite.configuration.LDAP.UsernameAttribute)
 	suite.Assert().Equal(
-		suite.configuration.LDAP.MailAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute,
+		suite.configuration.LDAP.DisplayNameAttribute)
 	suite.Assert().Equal(
-		suite.configuration.LDAP.GroupsFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute,
+		suite.configuration.LDAP.MailAttribute)
 	suite.Assert().Equal(
-		suite.configuration.LDAP.GroupNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter,
+		suite.configuration.LDAP.GroupsFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute,
+		suite.configuration.LDAP.GroupNameAttribute)
 }
 
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
+	suite.configuration.LDAP.Timeout = time.Second * 2
 	suite.configuration.LDAP.UsersFilter = "(&({username_attribute}={input})(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2))"
 	suite.configuration.LDAP.UsernameAttribute = "cn"
 	suite.configuration.LDAP.MailAttribute = "userPrincipalName"
@@ -548,23 +553,26 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefault
 	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
 
 	suite.Assert().NotEqual(
-		suite.configuration.LDAP.UsersFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter)
+		schema.DefaultLDAPAuthenticationBackendConfiguration.Timeout,
+		suite.configuration.LDAP.Timeout)
 	suite.Assert().NotEqual(
-		suite.configuration.LDAP.UsernameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter,
+		suite.configuration.LDAP.UsersFilter)
 	suite.Assert().NotEqual(
-		suite.configuration.LDAP.DisplayNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute,
+		suite.configuration.LDAP.UsernameAttribute)
 	suite.Assert().NotEqual(
-		suite.configuration.LDAP.MailAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute,
+		suite.configuration.LDAP.DisplayNameAttribute)
 	suite.Assert().NotEqual(
-		suite.configuration.LDAP.GroupsFilter,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute,
+		suite.configuration.LDAP.MailAttribute)
 	suite.Assert().NotEqual(
-		suite.configuration.LDAP.GroupNameAttribute,
-		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute)
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter,
+		suite.configuration.LDAP.GroupsFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute,
+		suite.configuration.LDAP.GroupNameAttribute)
 }
 
 func TestActiveDirectoryAuthenticationBackend(t *testing.T) {

@@ -1,22 +1,30 @@
 package schema
 
+import "time"
+
 // LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server.
 type LDAPAuthenticationBackendConfiguration struct {
-	Implementation       string     `koanf:"implementation"`
-	URL                  string     `koanf:"url"`
-	BaseDN               string     `koanf:"base_dn"`
-	AdditionalUsersDN    string     `koanf:"additional_users_dn"`
-	UsersFilter          string     `koanf:"users_filter"`
-	AdditionalGroupsDN   string     `koanf:"additional_groups_dn"`
-	GroupsFilter         string     `koanf:"groups_filter"`
-	GroupNameAttribute   string     `koanf:"group_name_attribute"`
-	UsernameAttribute    string     `koanf:"username_attribute"`
-	MailAttribute        string     `koanf:"mail_attribute"`
-	DisplayNameAttribute string     `koanf:"display_name_attribute"`
-	User                 string     `koanf:"user"`
-	Password             string     `koanf:"password"`
-	StartTLS             bool       `koanf:"start_tls"`
-	TLS                  *TLSConfig `koanf:"tls"`
+	Implementation string        `koanf:"implementation"`
+	URL            string        `koanf:"url"`
+	Timeout        time.Duration `koanf:"timeout"`
+	StartTLS       bool          `koanf:"start_tls"`
+	TLS            *TLSConfig    `koanf:"tls"`
+
+	BaseDN string `koanf:"base_dn"`
+
+	AdditionalUsersDN string `koanf:"additional_users_dn"`
+	UsersFilter       string `koanf:"users_filter"`
+
+	AdditionalGroupsDN string `koanf:"additional_groups_dn"`
+	GroupsFilter       string `koanf:"groups_filter"`
+
+	GroupNameAttribute   string `koanf:"group_name_attribute"`
+	UsernameAttribute    string `koanf:"username_attribute"`
+	MailAttribute        string `koanf:"mail_attribute"`
+	DisplayNameAttribute string `koanf:"display_name_attribute"`
+
+	User     string `koanf:"user"`
+	Password string `koanf:"password"`
 }
 
 // FileAuthenticationBackendConfiguration represents the configuration related to file-based backend.
@@ -77,6 +85,7 @@ var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendCon
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayName",
 	GroupNameAttribute:   "cn",
+	Timeout:              time.Second * 5,
 	TLS: &TLSConfig{
 		MinimumVersion: "TLS1.2",
 	},
