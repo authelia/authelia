@@ -6,3 +6,11 @@ const apiFile = "openapi.yml"
 const indexFile = "index.html"
 
 const dev = "dev"
+
+const healthCheckEnv = `# Written by Authelia Process
+X_AUTHELIA_HEALTHCHECK=1
+X_AUTHELIA_HEALTHCHECK_SCHEME=%s
+X_AUTHELIA_HEALTHCHECK_HOST=%s
+X_AUTHELIA_HEALTHCHECK_PORT=%d
+X_AUTHELIA_HEALTHCHECK_PATH=%s
+`
