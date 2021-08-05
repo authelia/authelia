@@ -78,11 +78,11 @@ steps:
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
 
   - wait:
-    if: build.env("CI_BYPASS") != "true"
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
 
   - label: ":vertical_traffic_light: Test Concurrency Gate"
     command: "echo End of concurrency gate"
     concurrency: 3
     concurrency_group: "tests"
-    if: build.env("CI_BYPASS") != "true"
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
 EOF
