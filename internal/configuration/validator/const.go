@@ -244,6 +244,7 @@ var ValidKeys = []string{
 	// LDAP Authentication Backend Keys.
 	"authentication_backend.ldap.implementation",
 	"authentication_backend.ldap.url",
+	"authentication_backend.ldap.timeout",
 	"authentication_backend.ldap.base_dn",
 	"authentication_backend.ldap.username_attribute",
 	"authentication_backend.ldap.additional_users_dn",
