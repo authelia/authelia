@@ -1,15 +1,14 @@
 package ntp
 
 import (
-	"time"
 	"github.com/authelia/authelia/internal/configuration/schema"
+	"time"
 )
 
-
 type Configuration struct {
-	Address string
-	Version int
-	MaximumDesync time.Duration
+	Address             string
+	Version             int
+	MaximumDesync       time.Duration
 	DisableStartupCheck bool
 }
 

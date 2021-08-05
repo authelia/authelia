@@ -22,7 +22,7 @@ type Configuration struct {
 	TOTP                  *TOTPConfiguration                 `koanf:"totp"`
 	DuoAPI                *DuoAPIConfiguration               `koanf:"duo_api"`
 	AccessControl         AccessControlConfiguration         `koanf:"access_control"`
-	Ntp            		  *NtpConfiguration          		 `koanf:"ntp"`
+	Ntp                   *NtpConfiguration                  `koanf:"ntp"`
 	Regulation            *RegulationConfiguration           `koanf:"regulation"`
 	Storage               StorageConfiguration               `koanf:"storage"`
 	Notifier              *NotifierConfiguration             `koanf:"notifier"`

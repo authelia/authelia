@@ -63,6 +63,3 @@ func TestShouldRaiseErrorOnMaximumDesyncString(t *testing.T) {
 	assert.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "Error occurred parsing ntp max_desync string: could not convert the input string of a second into a duration")
 }
-
-
-

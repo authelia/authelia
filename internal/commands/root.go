@@ -12,10 +12,10 @@ import (
 	"github.com/authelia/authelia/internal/logging"
 	"github.com/authelia/authelia/internal/middlewares"
 	"github.com/authelia/authelia/internal/notification"
+	"github.com/authelia/authelia/internal/ntp"
 	"github.com/authelia/authelia/internal/oidc"
 	"github.com/authelia/authelia/internal/regulation"
 	"github.com/authelia/authelia/internal/server"
-	"github.com/authelia/authelia/internal/ntp"
 	"github.com/authelia/authelia/internal/session"
 	"github.com/authelia/authelia/internal/storage"
 	"github.com/authelia/authelia/internal/utils"
@@ -140,11 +140,11 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 	var failed bool
 	if config.Ntp != nil {
 		ntpProvider = ntp.NewProvider(config.Ntp)
-    }
+	}
 	if !config.Ntp.DisableStartupCheck {
-		if failed, err = ntpProvider.StartupCheck(); err!= nil {
-			logger.Errorf("Failed to check NTP host-server synchronization: %v",err)
-			} else {
+		if failed, err = ntpProvider.StartupCheck(); err != nil {
+			logger.Errorf("Failed to check NTP host-server synchronization: %v", err)
+		} else {
 			if failed == true {
 				logger.Fatalf("Your Host is not synchronized with an NTP server")
 			} else {
@@ -169,7 +169,7 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		Regulator:       regulator,
 		OpenIDConnect:   oidcProvider,
 		StorageProvider: storageProvider,
-		Ntp:			 ntpProvider,
+		Ntp:             ntpProvider,
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
 	}, warnings, errors

@@ -31,8 +31,8 @@ func ntpPacketToTime(packet *ntpPacket) time.Time {
 func ntpIsOffsetTooLarge(maxOffset time.Duration, first, second time.Time) (tooLarge bool) {
 
 	var offset time.Duration
-	
-	if first.After(second) == true{
+
+	if first.After(second) == true {
 		offset = first.Sub(second)
 	} else {
 		offset = second.Sub(first)

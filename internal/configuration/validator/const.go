@@ -287,7 +287,7 @@ var ValidKeys = []string{
 	"identity_providers.oidc.clients[].scopes",
 	"identity_providers.oidc.clients[].grant_types",
 	"identity_providers.oidc.clients[].response_types",
-	
+
 	//NTP keys.
 	"ntp.address",
 	"ntp.version",

@@ -8,7 +8,6 @@ import (
 
 	"github.com/authelia/authelia/internal/configuration/schema"
 	"github.com/authelia/authelia/internal/utils"
-	
 )
 
 func NewProvider(config *schema.NtpConfiguration) *Provider {
@@ -46,9 +45,9 @@ func (p *Provider) StartupCheck() (failed bool, err error) {
 		return false, fmt.Errorf("could not read from the ntp server socket to validate the time desync: %w", err)
 	}
 	maxOffset, err := utils.ParseDurationString(p.config.MaximumDesync)
-		if err != nil {
-			panic(err)
-		}
+	if err != nil {
+		panic(err)
+	}
 
 	ntpTime := ntpPacketToTime(resp)
 	return ntpIsOffsetTooLarge(maxOffset, now, ntpTime), nil
