@@ -7,11 +7,9 @@ nav_order: 2
 ---
 
 # LDAP
-
 **Authelia** supports using a LDAP server as the users database.
 
 ## Configuration
-
 ```yaml
 authentication_backend:
   disable_reset_password: false
@@ -19,12 +17,13 @@ authentication_backend:
   ldap:
     implementation: custom
     url: ldap://127.0.0.1
+    timeout: 5s
     start_tls: false
     tls:
       server_name: ldap.example.com
       skip_verify: false
       minimum_version: TLS1.2
-    base_dn: dc=example,dc=com
+    base_dn: DC=example,DC=com
     username_attribute: uid
     additional_users_dn: ou=users
     users_filter: (&({username_attribute}={input})(objectClass=person))
@@ -33,7 +32,7 @@ authentication_backend:
     group_name_attribute: cn
     mail_attribute: mail
     display_name_attribute: displayName
-    user: cn=admin,dc=example,dc=com
+    user: CN=admin,DC=example,DC=com
     password: password
 ```
 
@@ -70,6 +69,18 @@ If utilising an IPv6 literal address it must be enclosed by square brackets:
 url: ldap://[fd00:1111:2222:3333::1]
 ```
 
+### timeout
+<div markdown="1">
+type: duration
+{: .label .label-config .label-purple }
+default: 5s
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The timeout for dialing an LDAP connection.
+
 ### start_tls
 <div markdown="1">
 type: boolean
@@ -86,7 +97,6 @@ URL's are slightly more secure.
 
 
 ### tls
-
 Controls the TLS connection validation process. You can see how to configure the tls
 section [here](../index.md#tls-configuration).
 
@@ -143,11 +153,9 @@ The default value is dependent on the [implementation](#implementation), refer t
 [attribute defaults](#attribute-defaults) for more information.
 
 ### additional_groups_dn
-
 Similar to [additional_users_dn](#additional_users_dn) but it applies to group searches.
 
 ### groups_filter
-
 Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the memeber is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
 using the following filter which is currently only tested against Microsoft Active Directory:
@@ -155,7 +163,6 @@ using the following filter which is currently only tested against Microsoft Acti
 `(&(member:1.2.840.113556.1.4.1941:={dn})(objectClass=group)(objectCategory=group))`
 
 ### mail_attribute
-
 The attribute to retrieve which contains the users email addresses. This is important for the device registration and
 password reset processes.
 The user must have an email address in order for Authelia to perform
@@ -163,32 +170,26 @@ identity verification when a user attempts to reset their password or
 register a second factor device.
 
 ### display_name_attribute
-
 The attribute to retrieve which is shown on the Web UI to the user when they log in.
 
 ### user
-
 The distinguished name of the user paired with the password to bind with for lookup and password change operations.
 
 ### password
-
 The password of the user paired with the user to bind with for lookup and password change operations.
 Can also be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
 ## Implementation Guide
-
 There are currently two implementations, `custom` and `activedirectory`. The `activedirectory` implementation
 must be used if you wish to allow users to change or reset their password as Active Directory
 uses a custom attribute for this, and an input format other implementations do not use. The long term
 intention of this is to have logical defaults for various RFC implementations of LDAP.
 
 ### Filter replacements
-
 Various replacements occur in the user and groups filter. The replacements either occur at startup or upon an LDAP
 search.
 
 #### Users filter replacements
-
 |Placeholder             |Phase  |Replacement                                                     |
 |:----------------------:|:-----:|:--------------------------------------------------------------:|
 |{username_attribute}    |startup|The [username attribute](#username_attribute) configured        |
@@ -197,7 +198,6 @@ search.
 |{input}                 |search |The input into the username field                               |
 
 #### Groups filter replacements
-
 |Placeholder             |Phase  |Replacement                                                                |
 |:----------------------:|:-----:|:-------------------------------------------------------------------------:|
 |{input}                 |search |The input into the username field                                          |
@@ -205,7 +205,6 @@ search.
 |{dn}                    |search |The distinguished name from the profile lookup                             |
 
 ### Defaults
-
 The below tables describes the current attribute defaults for each implementation.
 
 #### Attribute defaults
@@ -218,7 +217,6 @@ described by the Username column.
 |activedirectory|sAMAccountName|displayName |mail|cn        |
 
 #### Filter defaults
-
 The filters are probably the most important part to get correct when setting up LDAP.
 You want to exclude disabled accounts. The active directory example has two attribute
 filters that accomplish this as an example (more examples would be appreciated). The
@@ -236,7 +234,6 @@ _**Note:**_ The Active Directory filter `(sAMAccountType=805306368)` is exactly 
 and other Active Directory filters on the [TechNet wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx).
 
 ## Refresh Interval
-
 This setting takes a [duration notation](../index.md#duration-notation-format) that sets the max frequency
 for how often Authelia contacts the backend to verify the user still exists and that the groups stored
 in the session are up to date. This allows us to destroy sessions when the user no longer matches the
@@ -254,7 +251,6 @@ on a page loads which could be substantially costly. It's a trade-off between lo
 you should adapt according to your own security policy.
 
 ## Important notes
-
 Users must be uniquely identified by an attribute, this attribute must obviously contain a single value and
 be guaranteed by the administrator to be unique. If multiple users have the same value, Authelia will simply
 fail authenticating the user and display an error message in the logs.

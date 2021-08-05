@@ -106,6 +106,10 @@ func validateFileAuthenticationBackendArgon2id(configuration *schema.FileAuthent
 }
 
 func validateLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if configuration.Timeout == 0 {
+		configuration.Timeout = schema.DefaultLDAPAuthenticationBackendConfiguration.Timeout
+	}
+
 	if configuration.Implementation == "" {
 		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
 	}

@@ -149,6 +149,9 @@ authentication_backend:
     ## Scheme can be ldap or ldaps in the format (port optional).
     url: ldap://127.0.0.1
 
+    ## The dial timeout for LDAP.
+    timeout: 5s
+
     ## Use StartTLS with the LDAP connection.
     start_tls: false
 

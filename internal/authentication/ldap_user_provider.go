@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
@@ -19,7 +20,7 @@ import (
 type LDAPUserProvider struct {
 	configuration     schema.LDAPAuthenticationBackendConfiguration
 	tlsConfig         *tls.Config
-	dialOpts          ldap.DialOpt
+	dialOpts          []ldap.DialOpt
 	logger            *logrus.Logger
 	connectionFactory LDAPConnectionFactory
 
@@ -65,10 +66,12 @@ func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 
 	tlsConfig := utils.NewTLSConfig(configuration.TLS, tls.VersionTLS12, certPool)
 
-	var dialOpts ldap.DialOpt
+	var dialOpts = []ldap.DialOpt{
+		ldap.DialWithDialer(&net.Dialer{Timeout: configuration.Timeout}),
+	}
 
 	if tlsConfig != nil {
-		dialOpts = ldap.DialWithTLSConfig(tlsConfig)
+		dialOpts = append(dialOpts, ldap.DialWithTLSConfig(tlsConfig))
 	}
 
 	if factory == nil {
@@ -90,7 +93,7 @@ func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 }
 
 func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
-	conn, err := p.connectionFactory.DialURL(p.configuration.URL, p.dialOpts)
+	conn, err := p.connectionFactory.DialURL(p.configuration.URL, p.dialOpts...)
 	if err != nil {
 		return nil, err
 	}
