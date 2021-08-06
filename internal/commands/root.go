@@ -81,6 +81,7 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	server.Start(*config, providers)
 }
 
+//nolint:gocyclo // TODO: Consider refactoring time permitting.
 func getProviders(config *schema.Configuration) (providers middlewares.Providers, warnings []error, errors []error) {
 	logger := logging.Logger()
 
