@@ -3,7 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
+	"net/url"
+	"path"
 
 	"github.com/valyala/fasthttp"
 
@@ -12,15 +13,21 @@ import (
 )
 
 func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
-	uri, err := ctx.GetOriginalURL()
-
-	issuer := strings.TrimSuffix(uri.String(), pathOpenIDConnectWellKnown)
-
+	issuer, err := ctx.ForwardedProtoHost()
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred determining OpenID Connect issuer details: %+v", err)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 
 		return
+	}
+
+	if ctx.Configuration.Server.Path != "" {
+		issuerURL, err := url.Parse(issuer)
+		if err == nil {
+			issuerURL.Path = path.Join(issuerURL.Path, ctx.Configuration.Server.Path)
+
+			issuer = issuerURL.String()
+		}
 	}
 
 	wellKnown := oidc.WellKnownConfiguration{
