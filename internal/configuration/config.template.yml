@@ -498,6 +498,7 @@ storage:
     username: authelia
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: mypassword
+    timeout: 5s
 
   ##
   ## PostgreSQL (Storage Provider)
@@ -509,6 +510,7 @@ storage:
   #   username: authelia
   #   ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   #   password: mypassword
+  #   timeout: 5s
   #   sslmode: disable
 
 ##

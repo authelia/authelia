@@ -35,12 +35,14 @@ type StorageConfiguration struct {
 	PostgreSQL *PostgreSQLStorageConfiguration `koanf:"postgres"`
 }
 
+// DefaultPostgreSQLStorageConfiguration represents the default PostgreSQL configuration.
 var DefaultPostgreSQLStorageConfiguration = PostgreSQLStorageConfiguration{
 	SQLStorageConfiguration: SQLStorageConfiguration{
 		Timeout: 5 * time.Second,
 	},
 }
 
+// DefaultMySQLStorageConfiguration represents the default MySQL configuration.
 var DefaultMySQLStorageConfiguration = MySQLStorageConfiguration{
 	SQLStorageConfiguration: SQLStorageConfiguration{
 		Timeout: 5 * time.Second,
