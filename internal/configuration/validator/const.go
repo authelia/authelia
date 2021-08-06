@@ -204,6 +204,7 @@ var ValidKeys = []string{
 	"storage.mysql.database",
 	"storage.mysql.username",
 	"storage.mysql.password",
+	"storage.mysql.timeout",
 
 	// PostgreSQL Storage Keys.
 	"storage.postgres.host",
@@ -211,6 +212,7 @@ var ValidKeys = []string{
 	"storage.postgres.database",
 	"storage.postgres.username",
 	"storage.postgres.password",
+	"storage.postgres.timeout",
 	"storage.postgres.sslmode",
 
 	// FileSystem Notifier Keys.

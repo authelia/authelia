@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql" // Load the MySQL Driver used in the connection string.
 
@@ -67,6 +68,9 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 	if configuration.Database != "" {
 		connectionString += fmt.Sprintf("/%s", configuration.Database)
 	}
+
+	connectionString += "?"
+	connectionString += fmt.Sprintf("timeout=%ds", int32(configuration.Timeout/time.Second))
 
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
