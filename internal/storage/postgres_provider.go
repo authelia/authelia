@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	_ "github.com/jackc/pgx/v4/stdlib" // Load the PostgreSQL Driver used in the connection string.
 
@@ -73,6 +74,7 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 		args = append(args, fmt.Sprintf("sslmode=%s", configuration.SSLMode))
 	}
 
+	args = append(args, fmt.Sprintf("connect_timeout=%d", int32(configuration.Timeout/time.Second)))
 	connectionString := strings.Join(args, " ")
 
 	db, err := sql.Open("pgx", connectionString)
