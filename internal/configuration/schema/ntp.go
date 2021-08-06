@@ -8,8 +8,6 @@ type NtpConfiguration struct {
 	DisableStartupCheck bool   `koanf:"disable_startup_check"`
 }
 
-var DefaultVersion = 4
-
 // DefaultNtpConfiguration represents default configuration parameters for the Ntp server.
 var DefaultNtpConfiguration = NtpConfiguration{
 	Address:             "time.cloudflare.com:123",

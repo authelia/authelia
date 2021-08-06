@@ -69,6 +69,6 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	if configuration.Ntp == nil {
 		configuration.Ntp = &schema.DefaultNtpConfiguration
 	}
-	// maybe usefull for incomming implementations
+	// maybe useful for incomming implementations
 	ValidateNtp(configuration.Ntp, validator)
 }

@@ -1,10 +1,12 @@
 package ntp
 
 import (
-	"github.com/authelia/authelia/internal/configuration/schema"
 	"time"
+
+	"github.com/authelia/authelia/internal/configuration/schema"
 )
 
+// Configuration is the configuration used to create the NTP provider.
 type Configuration struct {
 	Address             string
 	Version             int
@@ -12,6 +14,7 @@ type Configuration struct {
 	DisableStartupCheck bool
 }
 
+// Provider type is the NTP provider.
 type Provider struct {
 	config *schema.NtpConfiguration
 }

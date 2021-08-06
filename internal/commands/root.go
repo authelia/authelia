@@ -137,19 +137,22 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 	}
 
 	var ntpProvider *ntp.Provider
-	var failed bool
 	if config.Ntp != nil {
 		ntpProvider = ntp.NewProvider(config.Ntp)
 	}
+
+	var failed bool
 	if !config.Ntp.DisableStartupCheck {
-		if failed, err = ntpProvider.StartupCheck(); err != nil {
+		failed, err = ntpProvider.StartupCheck()
+
+		if err != nil {
 			logger.Errorf("Failed to check NTP host-server synchronization: %v", err)
+		}
+
+		if failed {
+			logger.Fatalf("Your Host is not synchronized with an NTP server")
 		} else {
-			if failed == true {
-				logger.Fatalf("Your Host is not synchronized with an NTP server")
-			} else {
-				logger.Info("*==NTP synchronization check terminated with success==*")
-			}
+			logger.Info("*==NTP synchronization check terminated with success==*")
 		}
 	}
 
