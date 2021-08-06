@@ -21,6 +21,7 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	// TODO (james-d-elliott): figure out a cleaner way to handle this.
 	if ctx.Configuration.Server.Path != "" {
 		issuerURL, err := url.Parse(issuer)
 		if err == nil {
