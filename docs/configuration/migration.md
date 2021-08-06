@@ -42,6 +42,24 @@ The following changes occurred in 4.30.0:
 |log_file_path|log.file_path         |
 |log_format   |log.format            |
 
+#### Kubernetes 4.30.0
+
+_**Please Note:** if you're using Authelia with Kubernetes and are not using the provided [helm chart](https://charts.authelia.com)
+you will be required to set the following option in your PodSpec. Keeping in mind this example is for a Pod, not for
+a Deployment, StatefulSet, or DaemonSet; you will need to adapt the `enableServiceLinks` option to fit into the relevant
+location depending on your needs._
+
+```yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: authelia
+spec:
+  enableServiceLinks: false
+...
+```
+
 ### 4.25.0
 
 The following changes occurred in 4.25.0:
