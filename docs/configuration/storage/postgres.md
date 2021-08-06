@@ -80,6 +80,18 @@ required: yes
 The password paired with the username used to connect to the database. Can also be defined using a
 [secret](../secrets.md) which is also the recommended way when running as a container.
 
+### timeout
+<div markdown="1">
+type: duration
+{: .label .label-config .label-purple }
+default: 5s
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The SQL connection timeout.
+
 ### sslmode
 <div markdown="1">
 type: string
