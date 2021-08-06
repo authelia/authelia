@@ -3,6 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"path"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 
@@ -11,13 +14,21 @@ import (
 )
 
 func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
-	// TODO (james-d-elliott): append the server.path here for path based installs. Also check other instances in OIDC.
 	issuer, err := ctx.ForwardedProtoHost()
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred in ForwardedProtoHost: %+v", err)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 
 		return
+	}
+
+	if ctx.Configuration.Server.Path != "" && !strings.HasSuffix(issuer, ctx.Configuration.Server.Path) {
+		issuerURL, err := url.Parse(issuer)
+		if err == nil {
+			issuerURL.Path = path.Join(issuerURL.Path, ctx.Configuration.Server.Path)
+
+			issuer = issuerURL.String()
+		}
 	}
 
 	wellKnown := oidc.WellKnownConfiguration{
