@@ -143,7 +143,7 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {
-		handler = middlewares.StripPathMiddleware(handler)
+		handler = middlewares.StripPathMiddleware(configuration.Server.Path, r.Handler)
 	}
 
 	if providers.OpenIDConnect.Fosite != nil {
