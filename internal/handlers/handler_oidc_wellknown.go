@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/valyala/fasthttp"
@@ -12,9 +13,11 @@ import (
 )
 
 func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
-	originalURL, err := ctx.GetOriginalURL()
+	issuerHost, err := ctx.ForwardedProtoHost()
+	issuerPath := string(ctx.Path())
 
-	ctx.Logger.Debugf("Original URL Is: %s", originalURL.String())
+	// TODO: Remove testing log.
+	ctx.Logger.Debugf("host: %s, path: %s", issuerHost, issuerPath)
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred determining OpenID Connect issuer details: %+v", err)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
@@ -22,8 +25,19 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	issuer := strings.TrimSuffix(originalURL.String(), pathOpenIDConnectWellKnown)
+	issuerURL, err := url.Parse(issuerHost)
+	if err != nil {
+		ctx.Logger.Errorf("Error occurred determining OpenID Connect issuer details: %+v", err)
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 
+		return
+	}
+
+	issuerURL.Path = strings.TrimSuffix(issuerPath, pathOpenIDConnectWellKnown)
+
+	issuer := issuerURL.String()
+
+	// TODO: Remove testing log.
 	ctx.Logger.Debugf("Issuer Is: %s", issuer)
 	wellKnown := oidc.WellKnownConfiguration{
 		Issuer:  issuer,
