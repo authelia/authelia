@@ -679,7 +679,7 @@
   },"113": {
     "doc": "MariaDB",
     "title": "Options",
-    "content": "host . type: string . default: localhost . required: no . The database server host. If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . port . type: integer . default: 3306 . required: no . The port the database server is listening on. database . type: string . required: yes . The database name on the database server that the assigned user has access to for the purpose of Authelia. username . type: string . required: yes . The username paired with the password used to connect to the database. password . type: string . required: yes . The password paired with the username used to connect to the database. Can also be defined using a secret which is also the recommended way when running as a container. ",
+    "content": "host . type: string . default: localhost . required: no . The database server host. If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . port . type: integer . default: 3306 . required: no . The port the database server is listening on. database . type: string . required: yes . The database name on the database server that the assigned user has access to for the purpose of Authelia. username . type: string . required: yes . The username paired with the password used to connect to the database. password . type: string . required: yes . The password paired with the username used to connect to the database. Can also be defined using a secret which is also the recommended way when running as a container. timeout . type: duration . default: 5s . required: no . The SQL connection timeout. ",
     "url": "/docs/configuration/storage/mariadb.html#options",
     "relUrl": "/configuration/storage/mariadb.html#options"
   },"114": {
@@ -793,13 +793,13 @@
   },"132": {
     "doc": "MySQL",
     "title": "Configuration",
-    "content": "storage: mysql: host: 127.0.0.1 port: 3306 database: authelia username: authelia password: mypassword . ",
+    "content": "storage: mysql: host: 127.0.0.1 port: 3306 database: authelia username: authelia password: mypassword timeout: 5s . ",
     "url": "/docs/configuration/storage/mysql.html#configuration",
     "relUrl": "/configuration/storage/mysql.html#configuration"
   },"133": {
     "doc": "MySQL",
     "title": "Options",
-    "content": "host . type: string . default: localhost . required: no . The database server host. If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . port . type: integer . default: 3306 . required: no . The port the database server is listening on. database . type: string . required: yes . The database name on the database server that the assigned user has access to for the purpose of Authelia. username . type: string . required: yes . The username paired with the password used to connect to the database. password . type: string . required: yes . The password paired with the username used to connect to the database. Can also be defined using a secret which is also the recommended way when running as a container. ",
+    "content": "host . type: string . default: localhost . required: no . The database server host. If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . port . type: integer . default: 3306 . required: no . The port the database server is listening on. database . type: string . required: yes . The database name on the database server that the assigned user has access to for the purpose of Authelia. username . type: string . required: yes . The username paired with the password used to connect to the database. password . type: string . required: yes . The password paired with the username used to connect to the database. Can also be defined using a secret which is also the recommended way when running as a container. timeout . type: duration . default: 5s . required: no . The SQL connection timeout. ",
     "url": "/docs/configuration/storage/mysql.html#options",
     "relUrl": "/configuration/storage/mysql.html#options"
   },"134": {
@@ -937,7 +937,7 @@
   },"156": {
     "doc": "PostgreSQL",
     "title": "Options",
-    "content": "host . type: string . default: localhost . required: no . The database server host. If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . port . type: integer . default: 5432 . required: no . The port the database server is listening on. database . The database name on the database server that the assigned user has access to for the purpose of Authelia. username . type: string . required: yes . The username paired with the password used to connect to the database. password . type: string . required: yes . The password paired with the username used to connect to the database. Can also be defined using a secret which is also the recommended way when running as a container. sslmode . type: string . default: disable . required: no . SSL mode configures how to handle SSL connections with Postgres. Valid options are ‘disable’, ‘require’, ‘verify-ca’, or ‘verify-full’. See the PostgreSQL Documentation or pgx - PostgreSQL Driver and Toolkit Documentation for more information. ",
+    "content": "host . type: string . default: localhost . required: no . The database server host. If utilising an IPv6 literal address it must be enclosed by square brackets and quoted: . host: \"[fd00:1111:2222:3333::1]\" . port . type: integer . default: 5432 . required: no . The port the database server is listening on. database . The database name on the database server that the assigned user has access to for the purpose of Authelia. username . type: string . required: yes . The username paired with the password used to connect to the database. password . type: string . required: yes . The password paired with the username used to connect to the database. Can also be defined using a secret which is also the recommended way when running as a container. timeout . type: duration . default: 5s . required: no . The SQL connection timeout. sslmode . type: string . default: disable . required: no . SSL mode configures how to handle SSL connections with Postgres. Valid options are ‘disable’, ‘require’, ‘verify-ca’, or ‘verify-full’. See the PostgreSQL Documentation or pgx - PostgreSQL Driver and Toolkit Documentation for more information. ",
     "url": "/docs/configuration/storage/postgres.html#options",
     "relUrl": "/configuration/storage/postgres.html#options"
   },"157": {
