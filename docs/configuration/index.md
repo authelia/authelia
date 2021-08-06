@@ -42,8 +42,9 @@ environment variables must be prefixed with `AUTHELIA_`.
 _**Please Note:** It is not possible to configure_ the _access control rules section or OpenID Connect identity provider
 section using environment variables at this time._
 
-_**Please Note:** There are compatability issues with Kubernetes and this particular configuration option. You must ensure you
-have the `enableServiceLinks: false` setting in your pod spec._
+_**Please Note:** There are compatability issues with Kubernetes and this particular configuration option. You must 
+ensure you have the `enableServiceLinks: false` setting in your pod spec. You can read more about this in the 
+[migration documentation](./migration.md#kubernetes-4300)._
 
 Underscores replace indented configuration sections or subkeys. For example the following environment variables replace
 the configuration snippet that follows it:
