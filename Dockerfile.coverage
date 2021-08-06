@@ -40,7 +40,7 @@ CGO_ENABLED=0 go test -c --tags coverage -covermode=atomic \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.14.0
+FROM alpine:3.14.1
 
 RUN apk --no-cache add ca-certificates tzdata
 
