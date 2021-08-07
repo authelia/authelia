@@ -47,12 +47,12 @@ const (
 	errFmtNotifierMultipleConfigured = "notifier: you can't configure more than one notifier, please ensure " +
 		"only 'smtp' or 'filesystem' is configured"
 	errFmtNotifierMultipleConfiguredSecret = "notifier: you can't configure more than one notifier, please ensure " +
-		"only 'smtp' or 'filesystem' is configured, and it appears you may have the smtp notifier password secret " +
+		"only 'smtp' or 'filesystem' is configured, it appears you may have the smtp notifier 'password' secret " +
 		"configured unintentionally"
 	errFmtNotifierNotConfigured = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
 		"is configured"
-	errFmtNotifierFileSystemFileNameNotConfigured = "filesystem notifier: the filename must be configured"
-	errFmtNotifierSMTPNotConfigured               = "smtp notifier: the %s must be configured"
+	errFmtNotifierFileSystemFileNameNotConfigured = "filesystem notifier: the 'filename' must be configured"
+	errFmtNotifierSMTPNotConfigured               = "smtp notifier: the '%s' must be configured"
 )
 
 // OpenID Error constants.
