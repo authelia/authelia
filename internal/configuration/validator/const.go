@@ -43,6 +43,16 @@ const (
 	testTLSKey        = "/tmp/key.pem"
 )
 
+// Notifier Error constants.
+const (
+	errFmtNotifierMultipleConfigured = "notifier: you can't configure more than one notifier, please ensure " +
+		"only 'smtp' or 'filesystem' is configured"
+	errFmtNotifierNotConfigured = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
+		"is configured"
+	errFmtNotifierFileSystemFileNameNotConfigured = "filesystem notifier: the 'filename' must be configured"
+	errFmtNotifierSMTPNotConfigured               = "smtp notifier: the '%s' must be configured"
+)
+
 // OpenID Error constants.
 const (
 	errFmtOIDCClientsDuplicateID        = "openid connect provider: one or more clients have the same ID"

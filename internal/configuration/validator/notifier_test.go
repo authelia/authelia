@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -40,7 +41,7 @@ func (suite *NotifierSuite) TestShouldEnsureAtLeastSMTPOrFilesystemIsProvided() 
 
 	suite.Assert().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Notifier should be either `smtp` or `filesystem`")
+	suite.Assert().EqualError(suite.validator.Errors()[0], errFmtNotifierNotConfigured)
 }
 
 func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
@@ -59,7 +60,7 @@ func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 
 	suite.Assert().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Notifier should be either `smtp` or `filesystem`")
+	suite.Assert().EqualError(suite.validator.Errors()[0], errFmtNotifierMultipleConfigured)
 }
 
 func (suite *NotifierSuite) TestShouldEnsureFilenameOfFilesystemNotifierIsProvided() {
@@ -81,7 +82,7 @@ func (suite *NotifierSuite) TestShouldEnsureFilenameOfFilesystemNotifierIsProvid
 
 	suite.Assert().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Filename of filesystem notifier must not be empty")
+	suite.Assert().EqualError(suite.validator.Errors()[0], errFmtNotifierFileSystemFileNameNotConfigured)
 }
 
 func (suite *NotifierSuite) TestShouldEnsureHostAndPortOfSMTPNotifierAreProvided() {
@@ -103,8 +104,8 @@ func (suite *NotifierSuite) TestShouldEnsureHostAndPortOfSMTPNotifierAreProvided
 
 	suite.Require().Len(errors, 2)
 
-	suite.Assert().EqualError(errors[0], "Host of SMTP notifier must be provided")
-	suite.Assert().EqualError(errors[1], "Port of SMTP notifier must be provided")
+	suite.Assert().EqualError(errors[0], fmt.Sprintf(errFmtNotifierSMTPNotConfigured, "host"))
+	suite.Assert().EqualError(errors[1], fmt.Sprintf(errFmtNotifierSMTPNotConfigured, "port"))
 }
 
 func (suite *NotifierSuite) TestShouldEnsureSenderOfSMTPNotifierAreProvided() {
@@ -124,7 +125,7 @@ func (suite *NotifierSuite) TestShouldEnsureSenderOfSMTPNotifierAreProvided() {
 
 	suite.Assert().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Sender of SMTP notifier must be provided")
+	suite.Assert().EqualError(suite.validator.Errors()[0], fmt.Sprintf(errFmtNotifierSMTPNotConfigured, "sender"))
 }
 
 func TestNotifierSuite(t *testing.T) {
