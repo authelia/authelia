@@ -30,7 +30,7 @@ steps:
     command: "reviewdog -reporter=github-check -filter-mode=nofilter -fail-on-error"
     retry:
       automatic: true
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 
   - label: ":hammer_and_wrench: Unit Test"
     command: "authelia-scripts --log-level debug ci --buildkite"
@@ -67,7 +67,7 @@ steps:
     if: build.env("CI_BYPASS") != "true"
 
   - wait:
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 
   - label: ":chrome: Integration Tests"
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
@@ -75,14 +75,14 @@ steps:
     concurrency_group: "tests"
     depends_on:
       - "build-docker-linux-coverage"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 
   - wait:
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 
   - label: ":vertical_traffic_light: Test Concurrency Gate"
     command: "echo End of concurrency gate"
     concurrency: 3
     concurrency_group: "tests"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true"
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 EOF
