@@ -29,7 +29,7 @@ cat << EOF
 EOF
 if [[ "${BUILD_ARCH}" == "coverage" ]]; then
 cat << EOF
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 EOF
 else
 cat << EOF
