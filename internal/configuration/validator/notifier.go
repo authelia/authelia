@@ -13,7 +13,6 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 
 		return
 	} else if configuration.SMTP != nil && configuration.FileSystem != nil {
-
 		if configuration.SMTP.Password != "" &&
 			configuration.SMTP.Host == "" && configuration.SMTP.Port == 0 && configuration.SMTP.Sender == "" &&
 			configuration.SMTP.Subject == "" && configuration.SMTP.Identifier == "" && configuration.SMTP.Username == "" {
