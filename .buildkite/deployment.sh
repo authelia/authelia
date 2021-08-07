@@ -31,6 +31,9 @@ steps:
 
   - label: ":docker: Deploy Manifests"
     command: "authelia-scripts docker push-manifest"
+    retry:
+      manual:
+        permit_on_passed: true
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
     agents:
