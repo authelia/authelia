@@ -8,6 +8,9 @@ for BUILD_OS in "${!BUILDS[@]}"; do
 cat << EOF
   - label: ":docker: Build Image [${BUILD_ARCH}]"
     command: "authelia-scripts docker build --arch=${BUILD_ARCH}"
+    retry:
+      manual:
+        permit_on_passed: true
     agents:
       build: "${BUILD_OS}-${BUILD_ARCH}"
     artifact_paths:
