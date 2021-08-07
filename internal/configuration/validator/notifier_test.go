@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/internal/configuration/schema"
@@ -132,24 +130,4 @@ func (suite *NotifierSuite) TestShouldEnsureSenderOfSMTPNotifierAreProvided() {
 
 func TestNotifierSuite(t *testing.T) {
 	suite.Run(t, new(NotifierSuite))
-}
-
-func TestShouldEnsureFilesystemNotifierIsNotConfiguredWithSMTPSecret(t *testing.T) {
-	configuration := &schema.NotifierConfiguration{
-		FileSystem: &schema.FileSystemNotifierConfiguration{
-			Filename: "/tmp/file.txt",
-		},
-		SMTP: &schema.SMTPNotifierConfiguration{
-			Password: "apple",
-		},
-	}
-
-	validator := schema.NewStructValidator()
-
-	ValidateNotifier(configuration, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], errFmtNotifierMultipleConfiguredSecret)
 }

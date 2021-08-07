@@ -43,12 +43,10 @@ const (
 	testTLSKey        = "/tmp/key.pem"
 )
 
+// Notifier Error constants.
 const (
 	errFmtNotifierMultipleConfigured = "notifier: you can't configure more than one notifier, please ensure " +
 		"only 'smtp' or 'filesystem' is configured"
-	errFmtNotifierMultipleConfiguredSecret = "notifier: you can't configure more than one notifier, please ensure " +
-		"only 'smtp' or 'filesystem' is configured, it appears you may have the smtp notifier 'password' secret " +
-		"configured unintentionally"
 	errFmtNotifierNotConfigured = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
 		"is configured"
 	errFmtNotifierFileSystemFileNameNotConfigured = "filesystem notifier: the 'filename' must be configured"
