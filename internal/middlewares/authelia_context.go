@@ -123,8 +123,8 @@ func (c *AutheliaCtx) BasePath() (base string) {
 	return base
 }
 
-// GetExternalRootURL gets the X-Forwarded-Proto, X-Forwarded-Host headers and the BasePath and forms them into a URL.
-func (c *AutheliaCtx) GetExternalRootURL() (string, error) {
+// ExternalRootURL gets the X-Forwarded-Proto, X-Forwarded-Host headers and the BasePath and forms them into a URL.
+func (c *AutheliaCtx) ExternalRootURL() (string, error) {
 	protocol := c.XForwardedProto()
 	if protocol == nil {
 		return "", errMissingXForwardedProto

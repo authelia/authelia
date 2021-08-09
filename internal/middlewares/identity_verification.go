@@ -51,7 +51,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		uri, err := ctx.GetExternalRootURL()
+		uri, err := ctx.ExternalRootURL()
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
