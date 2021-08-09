@@ -1,5 +1,7 @@
 package schema
 
+import "time"
+
 // FileSystemNotifierConfiguration represents the configuration of the notifier writing emails in a file.
 type FileSystemNotifierConfiguration struct {
 	Filename string `koanf:"filename"`
@@ -7,17 +9,18 @@ type FileSystemNotifierConfiguration struct {
 
 // SMTPNotifierConfiguration represents the configuration of the SMTP server to send emails with.
 type SMTPNotifierConfiguration struct {
-	Host                string     `koanf:"host"`
-	Port                int        `koanf:"port"`
-	Username            string     `koanf:"username"`
-	Password            string     `koanf:"password"`
-	Identifier          string     `koanf:"identifier"`
-	Sender              string     `koanf:"sender"`
-	Subject             string     `koanf:"subject"`
-	StartupCheckAddress string     `koanf:"startup_check_address"`
-	DisableRequireTLS   bool       `koanf:"disable_require_tls"`
-	DisableHTMLEmails   bool       `koanf:"disable_html_emails"`
-	TLS                 *TLSConfig `koanf:"tls"`
+	Host                string        `koanf:"host"`
+	Port                int           `koanf:"port"`
+	Timeout             time.Duration `koanf:"timeout"`
+	Username            string        `koanf:"username"`
+	Password            string        `koanf:"password"`
+	Identifier          string        `koanf:"identifier"`
+	Sender              string        `koanf:"sender"`
+	Subject             string        `koanf:"subject"`
+	StartupCheckAddress string        `koanf:"startup_check_address"`
+	DisableRequireTLS   bool          `koanf:"disable_require_tls"`
+	DisableHTMLEmails   bool          `koanf:"disable_html_emails"`
+	TLS                 *TLSConfig    `koanf:"tls"`
 }
 
 // NotifierConfiguration represents the configuration of the notifier to use when sending notifications to users.
@@ -29,6 +32,7 @@ type NotifierConfiguration struct {
 
 // DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.
 var DefaultSMTPNotifierConfiguration = SMTPNotifierConfiguration{
+	Timeout:    time.Second * 5,
 	Subject:    "[Authelia] {title}",
 	Identifier: "localhost",
 	TLS: &TLSConfig{
