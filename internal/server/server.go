@@ -196,14 +196,23 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 			logger.Fatalf("Could not configure healthcheck: %v", err)
 		}
 
-		logger.Infof("Listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		if configuration.Server.Path == "" {
+			logger.Infof("Listening for TLS connections on '%s' path '/'", addrPattern)
+		} else {
+			logger.Infof("Listening for TLS connections on '%s' paths '/' and '%s'", addrPattern, configuration.Server.Path)
+		}
+
 		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLS.Certificate, configuration.Server.TLS.Key))
 	} else {
 		if err = writeHealthCheckEnv(configuration.Server.DisableHealthcheck, "http", configuration.Server.Host, configuration.Server.Path, configuration.Server.Port); err != nil {
 			logger.Fatalf("Could not configure healthcheck: %v", err)
 		}
 
-		logger.Infof("Listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		if configuration.Server.Path == "" {
+			logger.Infof("Listening for non-TLS connections on '%s' path '/'", addrPattern)
+		} else {
+			logger.Infof("Listening for non-TLS connections on '%s' paths '/' and '%s'", addrPattern, configuration.Server.Path)
+		}
 		logger.Fatal(server.Serve(listener))
 	}
 }
