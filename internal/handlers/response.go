@@ -22,7 +22,7 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	uri, err := ctx.ForwardedProtoHost()
+	uri, err := ctx.GetExternalRootURL()
 	if err != nil {
 		ctx.Logger.Errorf("%v", err)
 		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to get forward facing URI"), messageAuthenticationFailed)

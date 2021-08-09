@@ -114,24 +114,6 @@ func (c *AutheliaCtx) XForwardedURI() []byte {
 	return c.RequestCtx.Request.Header.Peek(headerXForwardedURI)
 }
 
-// ForwardedProtoHost gets the X-Forwarded-Proto and X-Forwarded-Host headers and forms them into a URL.
-func (c AutheliaCtx) ForwardedProtoHost() (string, error) {
-	XForwardedProto := c.XForwardedProto()
-
-	if XForwardedProto == nil {
-		return "", errMissingXForwardedProto
-	}
-
-	XForwardedHost := c.XForwardedHost()
-
-	if XForwardedHost == nil {
-		return "", errMissingXForwardedHost
-	}
-
-	return fmt.Sprintf("%s://%s", XForwardedProto,
-		XForwardedHost), nil
-}
-
 // BasePath returns the base_url as per the path visited by the client.
 func (c *AutheliaCtx) BasePath() (base string) {
 	if baseURL := c.UserValue("base_url"); baseURL != nil {
@@ -143,10 +125,17 @@ func (c *AutheliaCtx) BasePath() (base string) {
 
 // GetExternalRootURL gets the X-Forwarded-Proto, X-Forwarded-Host headers and the BasePath and forms them into a URL.
 func (c *AutheliaCtx) GetExternalRootURL() (string, error) {
-	externalRootURL, err := c.ForwardedProtoHost()
-	if err != nil {
-		return "", err
+	protocol := c.XForwardedProto()
+	if protocol == nil {
+		return "", errMissingXForwardedProto
 	}
+
+	host := c.XForwardedHost()
+	if host == nil {
+		return "", errMissingXForwardedHost
+	}
+
+	externalRootURL := fmt.Sprintf("%s://%s", protocol, host)
 
 	if base := c.BasePath(); base != "" {
 		externalBaseURL, err := url.Parse(externalRootURL)
