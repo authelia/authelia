@@ -62,7 +62,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 		return
 	}
 
-	issuer, err := getIssuer(ctx)
+	issuer, err := ctx.GetExternalRootURL()
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred obtaining issuer: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
@@ -145,7 +145,7 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	ctx *middlewares.AutheliaCtx, userSession session.UserSession, client *oidc.InternalClient, isAuthInsufficient bool,
 	rw http.ResponseWriter, r *http.Request,
 	ar fosite.AuthorizeRequester) {
-	issuer, err := getIssuer(ctx)
+	issuer, err := ctx.GetExternalRootURL()
 	if err != nil {
 		ctx.Logger.Errorf("%v", err)
 		http.Error(rw, err.Error(), http.StatusBadRequest)

@@ -11,7 +11,7 @@ import (
 )
 
 func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
-	issuer, err := getIssuer(ctx)
+	issuer, err := ctx.GetExternalRootURL()
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred determining OpenID Connect issuer details: %+v", err)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)

@@ -57,7 +57,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		link := fmt.Sprintf("%s%s%s?token=%s", uri, ctx.Configuration.Server.Path, args.TargetEndpoint, ss)
+		link := fmt.Sprintf("%s%s%s?token=%s", uri, ctx.BasePath(), args.TargetEndpoint, ss)
 
 		bufHTML := new(bytes.Buffer)
 

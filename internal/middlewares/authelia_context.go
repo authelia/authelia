@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"path"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -129,6 +130,36 @@ func (c AutheliaCtx) ForwardedProtoHost() (string, error) {
 
 	return fmt.Sprintf("%s://%s", XForwardedProto,
 		XForwardedHost), nil
+}
+
+// BasePath returns the base_url as per the path visited by the client.
+func (c *AutheliaCtx) BasePath() (base string) {
+	if baseURL := c.UserValue("base_url"); baseURL != nil {
+		return baseURL.(string)
+	}
+
+	return base
+}
+
+// GetExternalRootURL gets the X-Forwarded-Proto, X-Forwarded-Host headers and the BasePath and forms them into a URL.
+func (c *AutheliaCtx) GetExternalRootURL() (string, error) {
+	externalRootURL, err := c.ForwardedProtoHost()
+	if err != nil {
+		return "", err
+	}
+
+	if base := c.BasePath(); base != "" {
+		externalBaseURL, err := url.Parse(externalRootURL)
+		if err != nil {
+			return "", err
+		}
+
+		externalBaseURL.Path = path.Join(externalBaseURL.Path, base)
+
+		return externalBaseURL.String(), nil
+	}
+
+	return externalRootURL, nil
 }
 
 // XOriginalURL return the content of the X-Original-URL header.
