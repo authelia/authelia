@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 
-	"github.com/authelia/authelia/internal/templates"
+	"github.com/authelia/authelia/v4/internal/templates"
 )
 
 // IdentityVerificationStart the handler for initiating the identity validation process.

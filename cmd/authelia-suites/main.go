@@ -11,8 +11,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/authelia/authelia/internal/suites"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/suites"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 var tmpDirectory = "/tmp/authelia/suites/"

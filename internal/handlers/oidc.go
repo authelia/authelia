@@ -4,9 +4,9 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 
-	"github.com/authelia/authelia/internal/oidc"
-	"github.com/authelia/authelia/internal/session"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // isConsentMissing compares the requestedScopes and requestedAudience to the workflows

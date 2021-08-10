@@ -9,7 +9,7 @@ import (
 	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
-	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/authorization"
 )
 
 // OpenIDConnectProvider for OpenID Connect.

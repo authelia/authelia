@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authentication"
 )
 
 // MockUserProvider is a mock of UserProvider interface.

@@ -9,7 +9,7 @@ import (
 
 	"github.com/simia-tech/crypt"
 
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // PasswordHash represents all characteristics of a password hash.
