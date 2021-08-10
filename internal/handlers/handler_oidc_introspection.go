@@ -6,7 +6,7 @@ import (
 	"github.com/authelia/authelia/internal/middlewares"
 )
 
-func oidcIntrospect(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+func oidcIntrospection(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	oidcSession := newOpenIDSession("")
 
 	ir, err := ctx.Providers.OpenIDConnect.Fosite.NewIntrospectionRequest(ctx, req, oidcSession)

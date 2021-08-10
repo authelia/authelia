@@ -120,7 +120,7 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 
 	switch {
 	case config.Notifier.SMTP != nil:
-		notifier = notification.NewSMTPNotifier(*config.Notifier.SMTP, autheliaCertPool)
+		notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, autheliaCertPool)
 	case config.Notifier.FileSystem != nil:
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	default:

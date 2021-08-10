@@ -42,6 +42,10 @@ func validateSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, valid
 		validator.Push(fmt.Errorf(errFmtNotifierSMTPNotConfigured, "port"))
 	}
 
+	if configuration.Timeout == 0 {
+		configuration.Timeout = schema.DefaultSMTPNotifierConfiguration.Timeout
+	}
+
 	if configuration.Sender == "" {
 		validator.Push(fmt.Errorf(errFmtNotifierSMTPNotConfigured, "sender"))
 	}

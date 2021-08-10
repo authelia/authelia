@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"path"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -113,22 +114,41 @@ func (c *AutheliaCtx) XForwardedURI() []byte {
 	return c.RequestCtx.Request.Header.Peek(headerXForwardedURI)
 }
 
-// ForwardedProtoHost gets the X-Forwarded-Proto and X-Forwarded-Host headers and forms them into a URL.
-func (c AutheliaCtx) ForwardedProtoHost() (string, error) {
-	XForwardedProto := c.XForwardedProto()
+// BasePath returns the base_url as per the path visited by the client.
+func (c *AutheliaCtx) BasePath() (base string) {
+	if baseURL := c.UserValue("base_url"); baseURL != nil {
+		return baseURL.(string)
+	}
 
-	if XForwardedProto == nil {
+	return base
+}
+
+// ExternalRootURL gets the X-Forwarded-Proto, X-Forwarded-Host headers and the BasePath and forms them into a URL.
+func (c *AutheliaCtx) ExternalRootURL() (string, error) {
+	protocol := c.XForwardedProto()
+	if protocol == nil {
 		return "", errMissingXForwardedProto
 	}
 
-	XForwardedHost := c.XForwardedHost()
-
-	if XForwardedHost == nil {
+	host := c.XForwardedHost()
+	if host == nil {
 		return "", errMissingXForwardedHost
 	}
 
-	return fmt.Sprintf("%s://%s", XForwardedProto,
-		XForwardedHost), nil
+	externalRootURL := fmt.Sprintf("%s://%s", protocol, host)
+
+	if base := c.BasePath(); base != "" {
+		externalBaseURL, err := url.Parse(externalRootURL)
+		if err != nil {
+			return "", err
+		}
+
+		externalBaseURL.Path = path.Join(externalBaseURL.Path, base)
+
+		return externalBaseURL.String(), nil
+	}
+
+	return externalRootURL, nil
 }
 
 // XOriginalURL return the content of the X-Original-URL header.
