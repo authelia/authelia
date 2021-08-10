@@ -10,7 +10,7 @@ import (
 )
 
 // RunUnitTest run the unit tests.
-func RunUnitTest(_ *cobra.Command, _ []string) {
+func RunUnitTest(cobraCmd *cobra.Command, args []string) {
 	log.SetLevel(log.TraceLevel)
 
 	if err := utils.Shell("go test -coverprofile=coverage.txt -covermode=atomic $(go list ./... | grep -v suites)").Run(); err != nil {

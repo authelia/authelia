@@ -8,7 +8,7 @@ import (
 )
 
 // RunCI run the CI scripts.
-func RunCI(cmd *cobra.Command, _ []string) {
+func RunCI(cmd *cobra.Command, args []string) {
 	log.Info("=====> Build stage <=====")
 
 	buildkite, _ := cmd.Flags().GetBool("buildkite")
