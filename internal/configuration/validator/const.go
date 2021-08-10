@@ -232,6 +232,7 @@ var ValidKeys = []string{
 	// SMTP Notifier Keys.
 	"notifier.smtp.host",
 	"notifier.smtp.port",
+	"notifier.smtp.timeout",
 	"notifier.smtp.username",
 	"notifier.smtp.password",
 	"notifier.smtp.identifier",
