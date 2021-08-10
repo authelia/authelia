@@ -37,9 +37,9 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
-	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
-	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
-	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.Path, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
+	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
+	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
+	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
 
 	r := router.New()
 	r.GET("/", serveIndexHandler)
@@ -143,7 +143,7 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {
-		handler = middlewares.StripPathMiddleware(handler)
+		handler = middlewares.StripPathMiddleware(configuration.Server.Path, handler)
 	}
 
 	if providers.OpenIDConnect.Fosite != nil {
@@ -196,14 +196,23 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 			logger.Fatalf("Could not configure healthcheck: %v", err)
 		}
 
-		logger.Infof("Listening for TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		if configuration.Server.Path == "" {
+			logger.Infof("Listening for TLS connections on '%s' path '/'", addrPattern)
+		} else {
+			logger.Infof("Listening for TLS connections on '%s' paths '/' and '%s'", addrPattern, configuration.Server.Path)
+		}
+
 		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLS.Certificate, configuration.Server.TLS.Key))
 	} else {
 		if err = writeHealthCheckEnv(configuration.Server.DisableHealthcheck, "http", configuration.Server.Host, configuration.Server.Path, configuration.Server.Port); err != nil {
 			logger.Fatalf("Could not configure healthcheck: %v", err)
 		}
 
-		logger.Infof("Listening for non-TLS connections on %s%s", addrPattern, configuration.Server.Path)
+		if configuration.Server.Path == "" {
+			logger.Infof("Listening for non-TLS connections on '%s' path '/'", addrPattern)
+		} else {
+			logger.Infof("Listening for non-TLS connections on '%s' paths '/' and '%s'", addrPattern, configuration.Server.Path)
+		}
 		logger.Fatal(server.Serve(listener))
 	}
 }
