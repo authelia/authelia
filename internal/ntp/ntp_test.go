@@ -10,17 +10,17 @@ import (
 )
 
 func TestShouldCheckNTP(t *testing.T) {
-	config := schema.NtpConfiguration{
+	config := schema.NTPConfiguration{
 		Address:             "time.google.com:123",
 		Version:             4,
 		MaximumDesync:       "3s",
 		DisableStartupCheck: false,
 	}
 	sv := schema.NewStructValidator()
-	validator.ValidateNtp(&config, sv)
+	validator.ValidateNTP(&config, sv)
 
-	Ntp := NewProvider(&config)
+	NTP := NewProvider(&config)
 
-	checkfailed, _ := Ntp.StartupCheck()
+	checkfailed, _ := NTP.StartupCheck()
 	assert.Equal(t, false, checkfailed)
 }

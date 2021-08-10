@@ -28,6 +28,7 @@ func ntpPacketToTime(packet *ntpPacket) time.Time {
 	return time.Unix(int64(seconds), nanoseconds)
 }
 
+// ntpIsOffsetTooLarge return true if there is offset of "offset" between two times.
 func ntpIsOffsetTooLarge(maxOffset time.Duration, first, second time.Time) (tooLarge bool) {
 	var offset time.Duration
 

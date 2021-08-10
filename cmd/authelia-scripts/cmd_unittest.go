@@ -17,7 +17,7 @@ func RunUnitTest(cobraCmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	cmd := utils.Shell("npm test")
+	cmd := utils.Shell("yarn test")
 	cmd.Dir = webDirectory
 
 	cmd.Env = append(os.Environ(), "CI=true")

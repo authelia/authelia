@@ -16,7 +16,7 @@ type Configuration struct {
 
 // Provider type is the NTP provider.
 type Provider struct {
-	config *schema.NtpConfiguration
+	config *schema.NTPConfiguration
 }
 
 type ntpVersion int

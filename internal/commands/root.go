@@ -138,12 +138,12 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 	}
 
 	var ntpProvider *ntp.Provider
-	if config.Ntp != nil {
-		ntpProvider = ntp.NewProvider(config.Ntp)
+	if config.NTP != nil {
+		ntpProvider = ntp.NewProvider(config.NTP)
 	}
 
 	var failed bool
-	if !config.Ntp.DisableStartupCheck {
+	if !config.NTP.DisableStartupCheck {
 		failed, err = ntpProvider.StartupCheck()
 
 		if err != nil {

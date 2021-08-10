@@ -11,7 +11,7 @@ import (
 )
 
 // NewProvider instantiate a ntp provider given a configuration.
-func NewProvider(config *schema.NtpConfiguration) *Provider {
+func NewProvider(config *schema.NTPConfiguration) *Provider {
 	return &Provider{config}
 }
 
