@@ -28,6 +28,6 @@ If you do not find the application in the list below, you will need to search fo
 
 | Application | Version                        | Callback URL                                             | Notes   |
 | :---------: | :----------------------------: | :------------------------------------------------------: |:-----:|
-| Gitea       | `1.14.6`                       | `<DOMAIN>/user/oauth2/authelia/callback`                 |`ROOT_URL` in `[server]`-section of `app.ini` must be configured correctly. Typically it is `<DOMAIN>/`. The string `authelia` in the callback url is the `Authentication Name` of the configured Authentication Source in Gitea (Authentication Type: OAuth2, OAuth2 Provider: OpenID Connect).
+| Gitea       | `1.14.6`                       | `<DOMAIN>/user/oauth2/authelia/callback`                 |`ROOT_URL` in `[server]` section of `app.ini` must be configured correctly. Typically it is `<DOMAIN>/`. The string `authelia` in the callback url is the `Authentication Name` of the configured Authentication Source in Gitea (Authentication Type: OAuth2, OAuth2 Provider: OpenID Connect).
 | GitLab      | `14.0.1`                       | `<DOMAIN>/users/auth/openid_connect/callback`            | |
 | MinIO       | `RELEASE.2021-07-12T02-44-53Z` | `<DOMAIN>/oauth_callback`                                | |
