@@ -9,8 +9,8 @@ import (
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/configuration/validator"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
 // NewYAMLFileSource returns a Source configured to load from a specified YAML path. If there is an issue accessing this

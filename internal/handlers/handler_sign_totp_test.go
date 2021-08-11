@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tstranex/u2f"
 
-	"github.com/authelia/authelia/internal/mocks"
-	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 type HandlerSignTOTPSuite struct {

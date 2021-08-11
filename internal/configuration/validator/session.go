@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ValidateSession validates and update session configuration.

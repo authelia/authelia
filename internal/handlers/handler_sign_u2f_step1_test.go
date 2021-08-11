@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/mocks"
 )
 
 type HandlerSignU2FStep1Suite struct {

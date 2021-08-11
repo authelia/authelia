@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/models"
-	"github.com/authelia/authelia/internal/storage"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewRegulator create a regulator instance.

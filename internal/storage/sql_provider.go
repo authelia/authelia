@@ -8,9 +8,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/authelia/authelia/internal/logging"
-	"github.com/authelia/authelia/internal/models"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // SQLProvider is a storage provider persisting data in a SQL database.

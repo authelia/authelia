@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/mocks"
-	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 const testJWTSecret = "abc"

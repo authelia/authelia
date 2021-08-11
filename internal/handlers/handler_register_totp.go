@@ -5,8 +5,8 @@ import (
 
 	"github.com/pquerna/otp/totp"
 
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // identityRetrieverFromSession retriever computing the identity from the cookie session.

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // FileNotifier a notifier to send emails to SMTP servers.

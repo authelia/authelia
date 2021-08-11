@@ -3,9 +3,9 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // CheckSafeRedirection handler checking whether the redirection to a given URL provided in body is safe.

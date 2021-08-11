@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
 // ConfigurationBody the content returned by the configuration endpoint.

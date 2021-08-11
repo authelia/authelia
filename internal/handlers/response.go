@@ -6,9 +6,9 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/internal/authorization"
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.

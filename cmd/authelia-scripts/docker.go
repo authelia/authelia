@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // Docker a docker object.

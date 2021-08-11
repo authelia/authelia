@@ -6,7 +6,7 @@ import (
 
 	"github.com/fasthttp/session/v2"
 
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // EncryptingSerializer a serializer encrypting the data with AES-GCM with 256-bit keys.

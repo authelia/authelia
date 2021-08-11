@@ -3,7 +3,7 @@ package configuration
 import (
 	"github.com/knadh/koanf"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // Source is an abstract representation of a configuration Source implementation.

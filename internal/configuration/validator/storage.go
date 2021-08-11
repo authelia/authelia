@@ -3,7 +3,7 @@ package validator
 import (
 	"errors"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // ValidateStorage validates storage configuration.
