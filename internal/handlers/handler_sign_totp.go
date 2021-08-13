@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
 // SecondFactorTOTPPost validate the TOTP passcode provided by the user.

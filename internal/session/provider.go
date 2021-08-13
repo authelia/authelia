@@ -10,9 +10,9 @@ import (
 	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/logging"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // Provider a session provider.

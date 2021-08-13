@@ -5,7 +5,7 @@ parent: Community
 nav_order: 4
 ---
 
-# OIDC Integratins
+# OIDC Integrations
 
 **Note** This is community-based content for which the core-maintainers cannot guarantee correctness. The parameters may change over time. If a parameter does not work as documented, please submit a PR to update the list.
 
@@ -13,6 +13,7 @@ nav_order: 4
 
 | Application | Minimal Version                | Notes   |
 | :---------: | :----------------------------: | :-----: |
+| Gitea       | `1.14.6`                       | |
 | GitLab      | `13.0.0`                       | |
 | Grafana     | `8.0.5`                        | |
 | MinIO       | `RELEASE.2021-07-12T02-44-53Z` | must set `MINIO_IDENTITY_OPENID_CLAIM_NAME: groups` in MinIO and set [MinIO policies] as groups in Authelia |
@@ -25,7 +26,8 @@ If you do not find the application in the list below, you will need to search fo
 
 `<DOMAIN>` needs to be substituted with the full URL on which the application runs on. If GitLab, as an example, was reachable under `https://gitlab.example.com`, `<DOMAIN>` would be exactly the same.
 
-| Application | Version                        | Callback URL                                             |
-| :---------: | :----------------------------: | :------------------------------------------------------: |
-| GitLab      | `14.0.1`                       | `<DOMAIN>/users/auth/openid_connect/callback`            |
-| MinIO       | `RELEASE.2021-07-12T02-44-53Z` | `<DOMAIN>/oauth_callback`                                |
+| Application | Version                        | Callback URL                                             | Notes   |
+| :---------: | :----------------------------: | :------------------------------------------------------: |:-----:|
+| Gitea       | `1.14.6`                       | `<DOMAIN>/user/oauth2/authelia/callback`                 |`ROOT_URL` in `[server]` section of `app.ini` must be configured correctly. Typically it is `<DOMAIN>/`. The string `authelia` in the callback url is the `Authentication Name` of the configured Authentication Source in Gitea (Authentication Type: OAuth2, OAuth2 Provider: OpenID Connect).
+| GitLab      | `14.0.1`                       | `<DOMAIN>/users/auth/openid_connect/callback`            | |
+| MinIO       | `RELEASE.2021-07-12T02-44-53Z` | `<DOMAIN>/oauth_callback`                                | |

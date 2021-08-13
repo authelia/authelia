@@ -5,7 +5,7 @@ import (
 
 	"github.com/tstranex/u2f"
 
-	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
 var u2fConfig = &u2f.Config{

@@ -19,4 +19,4 @@ const stringFalse = "false"
 const stringTrue = "true"
 const webDirectory = "web"
 
-const fmtLDFLAGSX = "-X 'github.com/authelia/authelia/internal/utils.%s=%s'"
+const fmtLDFLAGSX = "-X 'github.com/authelia/authelia/v4/internal/utils.%s=%s'"

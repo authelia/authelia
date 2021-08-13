@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/configuration/validator"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/validator"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // koanfEnvironmentCallback returns a koanf callback to map the environment vars to Configuration keys.

@@ -6,7 +6,7 @@ import (
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 
-	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
 // NewDuoAPI create duo API instance.

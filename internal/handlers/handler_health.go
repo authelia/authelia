@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
 // HealthGet can be used by health checks.

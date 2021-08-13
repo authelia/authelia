@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/mocks"
-	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 var exampleDotComDomain = "example.com"

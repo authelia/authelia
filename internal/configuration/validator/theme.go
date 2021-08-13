@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // ValidateTheme validates and update Theme configuration.

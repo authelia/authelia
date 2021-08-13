@@ -5,16 +5,16 @@ import (
 
 	"github.com/ory/fosite"
 
-	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
 func oidcToken(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	oidcSession := newOpenIDSession("")
 
-	accessRequest, accessReqErr := ctx.Providers.OpenIDConnect.Fosite.NewAccessRequest(ctx, req, oidcSession)
-	if accessReqErr != nil {
-		ctx.Logger.Errorf("Error occurred in NewAccessRequest: %+v", accessRequest)
-		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, accessRequest, accessReqErr)
+	accessRequest, err := ctx.Providers.OpenIDConnect.Fosite.NewAccessRequest(ctx, req, oidcSession)
+	if err != nil {
+		ctx.Logger.Errorf("Error occurred in NewAccessRequest: %+v", err)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, accessRequest, err)
 
 		return
 	}

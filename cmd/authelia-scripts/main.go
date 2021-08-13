@@ -7,8 +7,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/authelia/authelia/internal/commands"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/commands"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 var buildkite bool

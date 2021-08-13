@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // AccessControlDomain represents an ACL domain.

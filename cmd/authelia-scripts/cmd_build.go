@@ -7,7 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func buildAutheliaBinary(xflags []string) {
@@ -44,7 +44,7 @@ func buildFrontend() {
 }
 
 func buildSwagger() {
-	swaggerVer := "3.51.2"
+	swaggerVer := "3.52.0"
 	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+swaggerVer+".tar.gz -O ./v"+swaggerVer+".tar.gz")
 
 	err := cmd.Run()

@@ -8,6 +8,9 @@ for BUILD_OS in "${!BUILDS[@]}"; do
 cat << EOF
   - label: ":docker: Build Image [${BUILD_ARCH}]"
     command: "authelia-scripts docker build --arch=${BUILD_ARCH}"
+    retry:
+      manual:
+        permit_on_passed: true
     agents:
       build: "${BUILD_OS}-${BUILD_ARCH}"
     artifact_paths:
@@ -29,7 +32,7 @@ cat << EOF
 EOF
 if [[ "${BUILD_ARCH}" == "coverage" ]]; then
 cat << EOF
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 EOF
 else
 cat << EOF

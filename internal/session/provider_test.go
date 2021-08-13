@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/authorization"
-	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestShouldInitializerSession(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/tstranex/u2f"
 
-	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
 )
 
 // ProviderConfig is the configuration used to create the session provider.

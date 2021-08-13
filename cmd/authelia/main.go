@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/authelia/authelia/internal/commands"
-	"github.com/authelia/authelia/internal/logging"
+	"github.com/authelia/authelia/v4/internal/commands"
+	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 func main() {

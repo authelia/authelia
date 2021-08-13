@@ -6,9 +6,9 @@ import (
 
 	"github.com/tstranex/u2f"
 
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/session"
-	"github.com/authelia/authelia/internal/storage"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 // SecondFactorU2FSignGet handler for initiating a signing request.

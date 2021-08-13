@@ -475,6 +475,7 @@ storage:
     username: authelia
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: mypassword
+    timeout: 5s
 
   ##
   ## PostgreSQL (Storage Provider)
@@ -486,6 +487,7 @@ storage:
   #   username: authelia
   #   ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   #   password: mypassword
+  #   timeout: 5s
   #   sslmode: disable
 
 ##
@@ -516,20 +518,39 @@ notifier:
   ##   - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates
   ##     (configure in tls section)
   smtp:
-    username: test
-    ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-    password: password
+    ## The SMTP host to connect to.
     host: 127.0.0.1
+
+    ## The port to connect to the SMTP host on.
     port: 1025
+
+    ## The connection timeout.
+    timeout: 5s
+
+    ## The username used for SMTP authentication.
+    username: test
+
+    ## The password used for SMTP authentication.
+    ## Can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+    password: password
+
+    ## The address to send the email FROM.
     sender: admin@example.com
+
     ## HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
     identifier: localhost
+
     ## Subject configuration of the emails sent. {title} is replaced by the text from the notifier.
     subject: "[Authelia] {title}"
+
     ## This address is used during the startup check to verify the email configuration is correct.
     ## It's not important what it is except if your email server only allows local delivery.
     startup_check_address: test@authelia.com
+
+    ## By default we require some form of TLS. This disables this check though is not advised.
     disable_require_tls: false
+
+    ## Disables sending HTML formatted emails.
     disable_html_emails: false
 
     tls:
@@ -543,16 +564,6 @@ notifier:
 
       ## Minimum TLS version for either StartTLS or SMTPS.
       minimum_version: TLS1.2
-
-  ## Sending an email using a Gmail account is as simple as the next section.
-  ## You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
-  # smtp:
-  #   username: myaccount@gmail.com
-  #   ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-  #   password: yourapppassword
-  #   sender: admin@example.com
-  #   host: smtp.gmail.com
-  #   port: 587
 
 ##
 ## Identity Providers

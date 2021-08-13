@@ -16,10 +16,11 @@ It can be configured as described below.
 notifier:
   disable_startup_check: false
   smtp:
-    username: test
-    password: password
     host: 127.0.0.1
     port: 1025
+    timeout: 5s
+    username: test
+    password: password
     sender: admin@example.com
     identifier: localhost
     subject: "[Authelia] {title}"
@@ -33,27 +34,6 @@ notifier:
 ```
 
 ## Options
-
-### username
-<div markdown="1">
-type: string
-{: .label .label-config .label-purple }
-required: no
-{: .label .label-config .label-green }
-</div>
-
-The username sent for authentication with the SMTP server. Paired with the password.
-
-### password
-<div markdown="1">
-type: string
-{: .label .label-config .label-purple } 
-required: no
-{: .label .label-config .label-green }
-</div>
-
-The password sent for authentication with the SMTP server. Paired with the username. Can also be defined using a
-[secret](../secrets.md) which is the recommended for containerized deployments.
 
 ### host
 <div markdown="1">
@@ -82,6 +62,39 @@ required: yes
 
 The port the SMTP service is listening on.
 
+### timeout
+<div markdown="1">
+type: duration
+{: .label .label-config .label-purple } 
+default: 5s
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The SMTP connection timeout.
+
+### username
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The username sent for authentication with the SMTP server. Paired with the password.
+
+### password
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The password sent for authentication with the SMTP server. Paired with the username. Can also be defined using a
+[secret](../secrets.md) which is the recommended for containerized deployments.
+
 ### sender
 <div markdown="1">
 type: string
@@ -93,7 +106,7 @@ required: no
 The address sent in the FROM header for the email. Basically who the email appears to come from. It should be noted
 that some SMTP servers require the username provided to have access to send from the specific address listed here.
 
-### identifer
+### identifier
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identity, error) {
