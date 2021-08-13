@@ -4,7 +4,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
-  
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -34,8 +34,7 @@ type Providers struct {
 	SessionProvider *session.Provider
 	Regulator       *regulation.Regulator
 	OpenIDConnect   oidc.OpenIDConnectProvider
-
-	Ntp             *ntp.Provider
+	NTP             *ntp.Provider
 	UserProvider    authentication.UserProvider
 	StorageProvider storage.Provider
 	Notifier        notification.Notifier

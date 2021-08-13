@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestShould(t *testing.T) {

@@ -3,7 +3,7 @@ package ntp
 import (
 	"time"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // Configuration is the configuration used to create the NTP provider.

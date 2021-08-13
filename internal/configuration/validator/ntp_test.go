@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func newDefaultNTPConfig() schema.NTPConfiguration {

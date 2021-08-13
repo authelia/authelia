@@ -173,7 +173,7 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		Regulator:       regulator,
 		OpenIDConnect:   oidcProvider,
 		StorageProvider: storageProvider,
-		Ntp:             ntpProvider,
+		NTP:             ntpProvider,
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
 	}, warnings, errors
