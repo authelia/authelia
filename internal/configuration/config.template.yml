@@ -109,6 +109,23 @@ duo_api:
   secret_key: 1234567890abcdefghifjkl
 
 ##
+## NTP Configuration
+##
+## This is used to validate the servers time is accurate enough to validate TOTP.
+ntp:
+  ## NTP server address.
+  address: "time.cloudflare.com:123"
+
+  ## NTP version.
+  version: 3
+
+  ## Maximum allowed time offset between the host and the NTP server.
+  max_desync: 3s
+
+  ## Disables the NTP check on startup.
+  disable_startup_check: false
+
+##
 ## Authentication Backend Provider Configuration
 ##
 ## Used for verifying user passwords and retrieve information such as email address and groups users belong to.
@@ -673,14 +690,4 @@ notifier:
 
         ## The algorithm used to sign userinfo endpoint responses for this client, either none or RS256.
         # userinfo_signing_algorithm: none
-
-ntp:
-  ## NTP server address
-  address: "time.google.com:123"
-  ## ntp version
-  version: 3
-  ## "maximum desynchronization" is the allowed offset time between the host and the ntp server
-  max_desync: 3s
-  ## You can enable or disable the NTP synchronization check on startup
-  disable_startup_check: false
 ...

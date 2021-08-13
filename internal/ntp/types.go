@@ -1,18 +1,8 @@
 package ntp
 
 import (
-	"time"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
-
-// Configuration is the configuration used to create the NTP provider.
-type Configuration struct {
-	Address             string
-	Version             int
-	MaximumDesync       time.Duration
-	DisableStartupCheck bool
-}
 
 // Provider type is the NTP provider.
 type Provider struct {
