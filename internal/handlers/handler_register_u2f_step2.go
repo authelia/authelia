@@ -16,7 +16,7 @@ func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 	err := ctx.ParseBody(&responseBody)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to parse response body: %v", err), messageUnableToRegisterSecurityKey)
+		ctx.Error(fmt.Errorf("unable to parse response body: %v", err), messageUnableToRegisterSecurityKey)
 	}
 
 	userSession := ctx.GetSession()
@@ -31,24 +31,24 @@ func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 
 		err := ctx.SaveSession(userSession)
 		if err != nil {
-			ctx.Logger.Errorf("Unable to clear U2F challenge in session for user %s: %s", userSession.Username, err)
+			ctx.Logger.Errorf("unable to clear U2F challenge in session for user %s: %s", userSession.Username, err)
 		}
 	}()
 
 	registration, err := u2f.Register(responseBody, *userSession.U2FChallenge, u2fConfig)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to verify U2F registration: %v", err), messageUnableToRegisterSecurityKey)
+		ctx.Error(fmt.Errorf("unable to verify U2F registration: %v", err), messageUnableToRegisterSecurityKey)
 		return
 	}
 
-	ctx.Logger.Debugf("Register U2F device for user %s", userSession.Username)
+	ctx.Logger.Debugf("register U2F device for user %s", userSession.Username)
 
 	publicKey := elliptic.Marshal(elliptic.P256(), registration.PubKey.X, registration.PubKey.Y)
 	err = ctx.Providers.StorageProvider.SaveU2FDeviceHandle(userSession.Username, registration.KeyHandle, publicKey)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to register U2F device for user %s: %v", userSession.Username, err), messageUnableToRegisterSecurityKey)
+		ctx.Error(fmt.Errorf("unable to register U2F device for user %s: %v", userSession.Username, err), messageUnableToRegisterSecurityKey)
 		return
 	}
 

@@ -42,7 +42,7 @@ func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string
 	challenge, err := u2f.NewChallenge(appID, trustedFacets)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to generate new U2F challenge for registration: %s", err), messageOperationFailed)
+		ctx.Error(fmt.Errorf("unable to generate new U2F challenge for registration: %s", err), messageOperationFailed)
 		return
 	}
 
@@ -52,13 +52,13 @@ func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string
 	err = ctx.SaveSession(userSession)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to save U2F challenge in session: %s", err), messageOperationFailed)
+		ctx.Error(fmt.Errorf("unable to save U2F challenge in session: %s", err), messageOperationFailed)
 		return
 	}
 
 	err = ctx.SetJSONBody(u2f.NewWebRegisterRequest(challenge, []u2f.Registration{}))
 	if err != nil {
-		ctx.Logger.Errorf("Unable to create request to enrol new token: %s", err)
+		ctx.Logger.Errorf("unable to create request to enrol new token: %s", err)
 	}
 }
 

@@ -12,7 +12,7 @@ func oidcIntrospection(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req
 	ir, err := ctx.Providers.OpenIDConnect.Fosite.NewIntrospectionRequest(ctx, req, oidcSession)
 
 	if err != nil {
-		ctx.Logger.Errorf("Error occurred in NewIntrospectionRequest: %+v", err)
+		ctx.Logger.Errorf("error occurred in NewIntrospectionRequest: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteIntrospectionError(rw, err)
 
 		return

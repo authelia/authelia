@@ -100,7 +100,7 @@ func TestShouldRaiseWhenCredentialsAreNotInCorrectForm(t *testing.T) {
 	// The decoded format should be user:password.
 	_, _, err := parseBasicAuth(HeaderProxyAuthorization, "Basic am9obiBwYXNzd29yZA==")
 	assert.Error(t, err)
-	assert.Equal(t, "Format of Proxy-Authorization header must be user:password", err.Error())
+	assert.Equal(t, "format of Proxy-Authorization header must be user:password", err.Error())
 }
 
 func TestShouldUseProvidedHeaderName(t *testing.T) {

@@ -20,7 +20,7 @@ import (
 func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	ar, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r)
 	if err != nil {
-		logging.Logger().Errorf("Error occurred in NewAuthorizeRequest: %+v", err)
+		logging.Logger().Errorf("error occurred in NewAuthorizeRequest: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
 		return
@@ -30,7 +30,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 	client, err := ctx.Providers.OpenIDConnect.Store.GetInternalClient(clientID)
 
 	if err != nil {
-		err := fmt.Errorf("Unable to find related client configuration with name '%s': %v", ar.GetID(), err)
+		err := fmt.Errorf("unable to find related client configuration with name '%s': %v", ar.GetID(), err)
 		ctx.Logger.Error(err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
@@ -56,7 +56,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 
 	userSession.OIDCWorkflowSession = nil
 	if err := ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("%v", err)
+		ctx.Logger.Error(err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 
 		return
@@ -64,7 +64,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 
 	issuer, err := ctx.ExternalRootURL()
 	if err != nil {
-		ctx.Logger.Errorf("Error occurred obtaining issuer: %+v", err)
+		ctx.Logger.Errorf("error occurred obtaining issuer: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
 		return
@@ -72,7 +72,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 
 	authTime, err := userSession.AuthenticatedTime(client.Policy)
 	if err != nil {
-		ctx.Logger.Errorf("Error occurred obtaining authentication timestamp: %+v", err)
+		ctx.Logger.Errorf("error occurred obtaining authentication timestamp: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
 		return
@@ -98,7 +98,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 		ClientID: clientID,
 	})
 	if err != nil {
-		ctx.Logger.Errorf("Error occurred in NewAuthorizeResponse: %+v", err)
+		ctx.Logger.Errorf("error occurred in NewAuthorizeResponse: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
 		return
@@ -147,7 +147,7 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	ar fosite.AuthorizeRequester) {
 	issuer, err := ctx.ExternalRootURL()
 	if err != nil {
-		ctx.Logger.Errorf("%v", err)
+		ctx.Logger.Error(err)
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 
 		return
@@ -169,7 +169,7 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	}
 
 	if err := ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("%v", err)
+		ctx.Logger.Errorf("unable to save session: %v", err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 
 		return

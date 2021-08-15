@@ -15,6 +15,6 @@ func StateGet(ctx *middlewares.AutheliaCtx) {
 
 	err := ctx.SetJSONBody(stateResponse)
 	if err != nil {
-		ctx.Logger.Errorf("Unable to set state response in body: %s", err)
+		ctx.Logger.Errorf("unable to set state response in body: %s", err)
 	}
 }

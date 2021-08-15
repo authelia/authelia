@@ -87,7 +87,7 @@ func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 	errors := loadInfo(userSession.Username, ctx.Providers.StorageProvider, &userInfo, ctx.Logger)
 
 	if len(errors) > 0 {
-		ctx.Error(fmt.Errorf("Unable to load user information"), messageOperationFailed)
+		ctx.Error(fmt.Errorf("unable to load user information"), messageOperationFailed)
 		return
 	}
 
@@ -95,7 +95,7 @@ func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 
 	err := ctx.SetJSONBody(userInfo)
 	if err != nil {
-		ctx.Logger.Errorf("Unable to set user info response in body: %s", err)
+		ctx.Logger.Errorf("unable to set user info response in body: %s", err)
 	}
 }
 
@@ -115,7 +115,7 @@ func MethodPreferencePost(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !utils.IsStringInSlice(bodyJSON.Method, authentication.PossibleMethods) {
-		ctx.Error(fmt.Errorf("Unknown method '%s', it should be one of %s", bodyJSON.Method, strings.Join(authentication.PossibleMethods, ", ")), messageOperationFailed)
+		ctx.Error(fmt.Errorf("unknown method '%s', it should be one of %s", bodyJSON.Method, strings.Join(authentication.PossibleMethods, ", ")), messageOperationFailed)
 		return
 	}
 
@@ -124,7 +124,7 @@ func MethodPreferencePost(ctx *middlewares.AutheliaCtx) {
 	err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(userSession.Username, bodyJSON.Method)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to save new preferred 2FA method: %s", err), messageOperationFailed)
+		ctx.Error(fmt.Errorf("unable to save new preferred 2FA method: %s", err), messageOperationFailed)
 		return
 	}
 

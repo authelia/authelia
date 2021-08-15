@@ -23,7 +23,7 @@ func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identi
 	}
 
 	if len(details.Emails) == 0 {
-		return nil, fmt.Errorf("User %s has no email address configured", requestBody.Username)
+		return nil, fmt.Errorf("user %s has no email address configured", requestBody.Username)
 	}
 
 	return &session.Identity{
@@ -49,7 +49,7 @@ func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) 
 
 	err := ctx.SaveSession(userSession)
 	if err != nil {
-		ctx.Logger.Errorf("Unable to clear password reset flag in session for user %s: %s", userSession.Username, err)
+		ctx.Logger.Errorf("unable to clear password reset flag in session for user %s: %s", userSession.Username, err)
 	}
 
 	ctx.ReplyOK()

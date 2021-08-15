@@ -35,7 +35,7 @@ func oidcConsent(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err := ctx.SetJSONBody(client.GetConsentResponseBody(userSession.OIDCWorkflowSession)); err != nil {
-		ctx.Error(fmt.Errorf("Unable to set JSON body: %v", err), "Operation failed")
+		ctx.Error(fmt.Errorf("unable to set JSON body: %v", err), "Operation failed")
 	}
 }
 
@@ -43,7 +43,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {
-		ctx.Logger.Debugf("Cannot consent for user %s when OIDC workflow has not been initiated", userSession.Username)
+		ctx.Logger.Debugf("cannot consent for user %s when OIDC workflow has not been initiated", userSession.Username)
 		ctx.ReplyForbidden()
 
 		return
@@ -69,7 +69,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	err = json.Unmarshal(ctx.Request.Body(), &body)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to unmarshal body: %v", err), "Operation failed")
+		ctx.Error(fmt.Errorf("unable to unmarshal body: %v", err), "Operation failed")
 		return
 	}
 
@@ -96,7 +96,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 		userSession.OIDCWorkflowSession.GrantedAudience = userSession.OIDCWorkflowSession.RequestedAudience
 
 		if err := ctx.SaveSession(userSession); err != nil {
-			ctx.Error(fmt.Errorf("Unable to write session: %v", err), "Operation failed")
+			ctx.Error(fmt.Errorf("unable to write session: %v", err), "Operation failed")
 			return
 		}
 	} else if body.AcceptOrReject == reject {
@@ -105,7 +105,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 		userSession.OIDCWorkflowSession = nil
 
 		if err := ctx.SaveSession(userSession); err != nil {
-			ctx.Error(fmt.Errorf("Unable to write session: %v", err), "Operation failed")
+			ctx.Error(fmt.Errorf("unable to write session: %v", err), "Operation failed")
 			return
 		}
 	}
@@ -113,6 +113,6 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	response := ConsentPostResponseBody{RedirectURI: redirectionURL}
 
 	if err := ctx.SetJSONBody(response); err != nil {
-		ctx.Error(fmt.Errorf("Unable to set JSON body in response"), "Operation failed")
+		ctx.Error(fmt.Errorf("unable to set JSON body in response"), "Operation failed")
 	}
 }
