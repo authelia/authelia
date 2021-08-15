@@ -406,13 +406,14 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	authHeader := HeaderProxyAuthorization
 	if bytes.Equal(ctx.QueryArgs().Peek("auth"), []byte("basic")) {
 		authHeader = HeaderAuthorization
-		isBasicAuth = true
 	}
 
 	authValue := ctx.Request.Header.Peek(authHeader)
-	if authValue != nil && strings.HasPrefix(string(authValue), "Basic") {
-		isBasicAuth = true
-	} else if isBasicAuth {
+	if authValue != nil {
+		if strings.HasPrefix(string(authValue), "Basic") {
+			isBasicAuth = true
+		}
+	} else {
 		return true, "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("basic auth requested via query arg, but no value provided via %s header", authHeader)
 	}
 
