@@ -433,10 +433,9 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 
 		err2 := ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 		if err2 != nil {
-			ctx.Logger.Error(
-				fmt.Errorf(
-					"unable to destroy user session after handler could not match them to their %s header: %s",
-					HeaderSessionUsername, err2))
+			ctx.Logger.Errorf(
+				"unable to destroy user session after handler could not match them to their %s header: %s",
+				HeaderSessionUsername, err2)
 		}
 
 		return isBasicAuth, username, name, groups, emails, authLevel, fmt.Errorf("could not match user %s to their %s header with a value of %s when visiting %s", username, HeaderSessionUsername, sessionUsername, targetURL.String())
