@@ -406,43 +406,41 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	authHeader := HeaderProxyAuthorization
 	if bytes.Equal(ctx.QueryArgs().Peek("auth"), []byte("basic")) {
 		authHeader = HeaderAuthorization
+		isBasicAuth = true
 	}
 
 	authValue := ctx.Request.Header.Peek(authHeader)
 	if authValue != nil {
-		if strings.HasPrefix(string(authValue), "Basic") {
-			isBasicAuth = true
-		}
-	} else {
-		return true, "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("basic auth requested via query arg, but no value provided via %s header", authHeader)
+		isBasicAuth = true
+	} else if isBasicAuth {
+		err = fmt.Errorf("basic auth requested via query arg, but no value provided via %s header", authHeader)
+		return
 	}
 
 	if isBasicAuth {
 		username, name, groups, emails, authLevel, err = verifyBasicAuth(authHeader, authValue, *targetURL, ctx)
-	} else {
-		userSession := ctx.GetSession()
-		username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval)
+		return
 	}
 
-	if err != nil {
-		return isBasicAuth, username, name, groups, emails, authLevel, err
-	}
+	userSession := ctx.GetSession()
+	username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval)
 
 	sessionUsername := ctx.Request.Header.Peek(HeaderSessionUsername)
 	if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
-		ctx.Logger.Warnf("Possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
+		ctx.Logger.Warnf("possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
 
-		err2 := ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
-		if err2 != nil {
-			ctx.Logger.Errorf(
-				"unable to destroy user session after handler could not match them to their %s header: %s",
-				HeaderSessionUsername, err2)
+		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
+		if err != nil {
+			ctx.Logger.Error(
+				fmt.Errorf(
+					"unable to destroy user session after handler could not match them to their %s header: %s",
+					HeaderSessionUsername, err))
 		}
 
-		return isBasicAuth, username, name, groups, emails, authLevel, fmt.Errorf("could not match user %s to their %s header with a value of %s when visiting %s", username, HeaderSessionUsername, sessionUsername, targetURL.String())
+		err = fmt.Errorf("could not match user %s to their %s header with a value of %s when visiting %s", username, HeaderSessionUsername, sessionUsername, targetURL.String())
 	}
 
-	return isBasicAuth, username, name, groups, emails, authLevel, nil
+	return
 }
 
 // VerifyGet returns the handler verifying if a request is allowed to go through.
