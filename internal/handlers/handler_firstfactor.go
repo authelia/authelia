@@ -96,7 +96,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 
 			if err := ctx.Providers.Regulator.Mark(bodyJSON.Username, false); err != nil {
-				ctx.Logger.Errorf("unable to mark authentication: %s", err.Error())
+				ctx.Logger.Errorf("Unable to mark authentication: %s", err.Error())
 			}
 
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("error while checking password for user %s: %s", bodyJSON.Username, err.Error()), messageAuthenticationFailed)
@@ -108,7 +108,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 
 			if err := ctx.Providers.Regulator.Mark(bodyJSON.Username, false); err != nil {
-				ctx.Logger.Errorf("unable to mark authentication: %s", err.Error())
+				ctx.Logger.Errorf("Unable to mark authentication: %s", err.Error())
 			}
 
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("credentials are wrong for user %s", bodyJSON.Username), messageAuthenticationFailed)

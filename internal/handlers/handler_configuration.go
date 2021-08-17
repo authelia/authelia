@@ -29,6 +29,6 @@ func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 
 	err := ctx.SetJSONBody(body)
 	if err != nil {
-		ctx.Logger.Errorf("unable to set configuration response in body: %s", err)
+		ctx.Logger.Errorf("Unable to set configuration response in body: %s", err)
 	}
 }

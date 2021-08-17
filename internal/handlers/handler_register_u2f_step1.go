@@ -58,7 +58,7 @@ func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string
 
 	err = ctx.SetJSONBody(u2f.NewWebRegisterRequest(challenge, []u2f.Registration{}))
 	if err != nil {
-		ctx.Logger.Errorf("unable to create request to enrol new token: %s", err)
+		ctx.Logger.Errorf("Unable to create request to enrol new token: %s", err)
 	}
 }
 

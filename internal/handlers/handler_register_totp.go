@@ -62,7 +62,7 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 
 	err = ctx.SetJSONBody(response)
 	if err != nil {
-		ctx.Logger.Errorf("unable to set TOTP key response in body: %s", err)
+		ctx.Logger.Errorf("Unable to set TOTP key response in body: %s", err)
 	}
 }
 

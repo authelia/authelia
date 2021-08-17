@@ -95,7 +95,7 @@ func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 
 	err := ctx.SetJSONBody(userInfo)
 	if err != nil {
-		ctx.Logger.Errorf("unable to set user info response in body: %s", err)
+		ctx.Logger.Errorf("Unable to set user info response in body: %s", err)
 	}
 }
 

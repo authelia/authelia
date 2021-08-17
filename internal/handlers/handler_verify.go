@@ -186,7 +186,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 			return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, authentication.NotAuthenticated, err
 		}
 
-		ctx.Logger.Errorf("error occurred while attempting to update user details from LDAP: %s", err)
+		ctx.Logger.Errorf("Error occurred while attempting to update user details from LDAP: %s", err)
 
 		return "", "", nil, nil, authentication.NotAuthenticated, err
 	}
@@ -478,7 +478,7 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		isBasicAuth, username, name, groups, emails, authLevel, err := verifyAuth(ctx, targetURL, refreshProfile, refreshProfileInterval)
 
 		if err != nil {
-			ctx.Logger.Errorf("error caught when verifying user authorization: %s", err)
+			ctx.Logger.Errorf("Error caught when verifying user authorization: %s", err)
 
 			if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
 				ctx.Error(fmt.Errorf("unable to update last activity: %s", err), messageOperationFailed)

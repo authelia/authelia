@@ -24,7 +24,7 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 
 	uri, err := ctx.ExternalRootURL()
 	if err != nil {
-		ctx.Logger.Errorf("%v", err)
+		ctx.Logger.Errorf("Unable to extract external root URL: %v", err)
 		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to get forward facing URI"), messageAuthenticationFailed)
 
 		return
@@ -37,12 +37,12 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		err := ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", uri)})
 
 		if err != nil {
-			ctx.Logger.Errorf("unable to set default redirection URL in body: %s", err)
+			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 	} else {
 		err := ctx.SetJSONBody(redirectResponse{Redirect: userSession.OIDCWorkflowSession.AuthURI})
 		if err != nil {
-			ctx.Logger.Errorf("unable to set default redirection URL in body: %s", err)
+			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 	}
 }
@@ -53,7 +53,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
 			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
 			if err != nil {
-				ctx.Logger.Errorf("unable to set default redirection URL in body: %s", err)
+				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 			}
 		} else {
 			ctx.ReplyOK()
@@ -93,7 +93,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
 			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
 			if err != nil {
-				ctx.Logger.Errorf("unable to set default redirection URL in body: %s", err)
+				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 			}
 		} else {
 			ctx.ReplyOK()
@@ -106,7 +106,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 	err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI})
 
 	if err != nil {
-		ctx.Logger.Errorf("unable to set redirection URL in body: %s", err)
+		ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
 	}
 }
 
@@ -116,7 +116,7 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		if ctx.Configuration.DefaultRedirectionURL != "" {
 			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
 			if err != nil {
-				ctx.Logger.Errorf("unable to set default redirection URL in body: %s", err)
+				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 			}
 		} else {
 			ctx.ReplyOK()
@@ -137,7 +137,7 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		err := ctx.SetJSONBody(redirectResponse{Redirect: targetURI})
 
 		if err != nil {
-			ctx.Logger.Errorf("unable to set redirection URL in body: %s", err)
+			ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
 		}
 	} else {
 		ctx.ReplyOK()

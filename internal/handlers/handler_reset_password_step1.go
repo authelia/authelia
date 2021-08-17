@@ -49,7 +49,7 @@ func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) 
 
 	err := ctx.SaveSession(userSession)
 	if err != nil {
-		ctx.Logger.Errorf("unable to clear password reset flag in session for user %s: %s", userSession.Username, err)
+		ctx.Logger.Errorf("Unable to clear password reset flag in session for user %s: %s", userSession.Username, err)
 	}
 
 	ctx.ReplyOK()
