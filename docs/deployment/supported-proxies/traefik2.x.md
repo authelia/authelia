@@ -3,12 +3,15 @@ layout: default
 title: Traefik 2.x
 parent: Proxy Integration
 grand_parent: Deployment
-nav_order: 3
+nav_order: 4
 ---
 
-# Traefik2
-
 [Traefik 2.x] is a reverse proxy supported by **Authelia**.
+
+_**Important:** it is vital that your proxies are configured so that the edge proxy discards X-Forwarded-For header, and
+every other proxy in your chain only accepts that header from other known proxies. If you're using
+[Cloudflare](./cloudflare.md) this requires [additional configuration](./cloudflare.md) which is **not** enabled by
+default._
 
 ## Configuration
 
@@ -48,7 +51,7 @@ services:
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.api.rule=Host(`traefik.example.com`)'
-      - 'traefik.http.routers.api.entrypoints=https'
+      - 'traefik.http.routers.api.entryPoints=https'
       - 'traefik.http.routers.api.service=api@internal'
       - 'traefik.http.routers.api.tls=true'
     ports:
@@ -58,12 +61,17 @@ services:
       - '--api'
       - '--providers.docker=true'
       - '--providers.docker.exposedByDefault=false'
-      - '--entrypoints.http=true'
-      - '--entrypoints.http.address=:80'
-      - '--entrypoints.http.http.redirections.entrypoint.to=https'
-      - '--entrypoints.http.http.redirections.entrypoint.scheme=https'
-      - '--entrypoints.https=true'
-      - '--entrypoints.https.address=:443'
+      - '--entryPoints.http=true'
+      - '--entryPoints.http.address=:80'
+      - '--entryPoints.http.http.redirections.entryPoint.to=https'
+      - '--entryPoints.http.http.redirections.entryPoint.scheme=https'
+      - '--entryPoints.http.forwardedHeaders.insecure=false'
+      - '--entryPoints.http.proxyProtocol.insecure=false'
+      ## Uncomment the following lines to configure a list of trusted upstream proxies for the X-Forwarded-* headers.
+      #- '--entryPoints.http.forwardedHeaders.trustedIPs=x.x.x.x'
+      #- '--entryPoints.http.proxyProtocol.trustedIPs=x.x.x.x'
+      - '--entryPoints.https=true'
+      - '--entryPoints.https.address=:443'
       - '--log=true'
       - '--log.level=DEBUG'
       - '--log.filepath=/var/log/traefik.log'

@@ -6,9 +6,12 @@ grand_parent: Deployment
 nav_order: 2
 ---
 
-# NGINX
-
 [NGINX] is a reverse proxy supported by **Authelia**.
+
+_**Important:** it is vital that your proxies are configured so that the edge proxy discards X-Forwarded-For header, and
+every other proxy in your chain only accepts that header from other known proxies. If you're using
+[Cloudflare](./cloudflare.md) this requires [additional configuration](./cloudflare.md) which is **not** enabled by
+default._
 
 ## Configuration
 

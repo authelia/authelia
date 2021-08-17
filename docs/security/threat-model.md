@@ -81,3 +81,7 @@ It's important to note that Authelia is considered running in a trusted environm
    transmitting those headers with a digital signature which could be verified by the backend however, many backends
    just won't support it. It has therefore been decided to invest in OpenID Connect instead to solve that authentication
    delegation problem.
+3. You should ensure that the edge proxy discards the X-Forwarded-For header from untrusted upstream sources. Our
+   documentation for most proxies has information on trusted proxies. Additionally if you're using a service that proxies
+   requests in the cloud like [Cloudflare](../deployment/supported-proxies/cloudflare.md) you will have to ensure their
+   proxies strip those headers too.

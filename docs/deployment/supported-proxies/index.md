@@ -6,8 +6,6 @@ nav_order: 4
 has_children: true
 ---
 
-# Integration with proxies
-
 **Authelia** works in collaboration with reverse proxies. In the sub-pages you
 can find the documentation of the configuration required for every supported
 proxy.

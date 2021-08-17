@@ -6,9 +6,12 @@ grand_parent: Deployment
 nav_order: 3
 ---
 
-# Traefik
-
 [Traefik 1.x] is a reverse proxy supported by **Authelia**.
+
+_**Important:** it is vital that your proxies are configured so that the edge proxy discards X-Forwarded-For header, and
+every other proxy in your chain only accepts that header from other known proxies. If you're using
+[Cloudflare](./cloudflare.md) this requires [additional configuration](./cloudflare.md) which is **not** enabled by
+default._
 
 ## Configuration
 
@@ -110,7 +113,7 @@ services:
       - net
     labels:
       - 'traefik.frontend.rule=Host:heimdall.example.com'
-      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?auth=basic
+      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?auth=basic'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
       - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
     expose:

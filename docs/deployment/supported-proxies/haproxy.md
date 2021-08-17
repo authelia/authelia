@@ -6,9 +6,12 @@ grand_parent: Deployment
 nav_order: 1
 ---
 
-# HAProxy
-
 [HAProxy] is a reverse proxy supported by **Authelia**.
+
+_**Important:** it is vital that your proxies are configured so that the edge proxy discards X-Forwarded-For header, and
+every other proxy in your chain only accepts that header from other known proxies. If you're using 
+[Cloudflare](./cloudflare.md) this requires [additional configuration](./cloudflare.md) which is **not** enabled by 
+default._
 
 ## Requirements
 
@@ -91,16 +94,29 @@ defaults
 frontend fe_http
     bind *:443 ssl crt /usr/local/etc/haproxy/haproxy.pem
     
-    # Host ACLs
+    ## Host ACLs
     acl protected-frontends hdr(host) -m reg -i ^(?i)(nextcloud)\.example\.com
     acl protected-frontends-basic hdr(host) -m reg -i ^(?i)(heimdall)\.example\.com
     acl host-authelia hdr(host) -i auth.example.com
     acl host-nextcloud hdr(host) -i nextcloud.example.com
     acl host-heimdall hdr(host) -i heimdall.example.com
 
-    # This is required if utilising basic auth with /api/verify?auth=basic
+    ## This is required if utilising basic auth with /api/verify?auth=basic
     http-request set-var(txn.host) hdr(Host)
 
+    ## Trusted Proxies Configuration
+    
+    ## Trusted Proxiees: don't trust proxies.
+    http-request	del-header	X-Forwarded-For
+    
+    ## Trusted Proxies: trust specific proxies. Comment the above directives and uncomment the directives below to 
+    ## configure a list of src addresses to be considered trusted in the file '/etc/haproxy/acl/trusted-proxies.src'. 
+    ## One src address per line, and it can accept both ipv4 and ipv6, as well as both individual IPs and CIDR 
+    ## notation IPs.
+    #acl		trusted-proxies				src -f /etc/haproxy/acl/trusted-proxies.src
+    #http-request	del-header	X-Forwarded-For		if !trusted-proxies
+
+    
     http-request set-var(req.scheme) str(https) if { ssl_fc }
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
     http-request set-var(req.questionmark) str(?) if { query -m found }
