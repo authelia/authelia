@@ -135,8 +135,7 @@ const PushNotificationMethod = function (props: Props) {
                 }, 1500);
                 return;
             }
-            onSignInErrorCallback(new Error("There was an issue completing sign in process"));
-            setState(State.Failure);
+            setState(State.Success);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
