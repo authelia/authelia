@@ -49,7 +49,7 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
     switch (state) {
         case State.DEVICE:
             container = (
-                <Grid container justify="center" spacing={1} id="device-selection">
+                <Grid container justifyContent="center" spacing={1} id="device-selection">
                     {props.devices.map((value, index) => {
                         return (
                             <DeviceItem
@@ -65,7 +65,7 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
             break;
         case State.METHOD:
             container = (
-                <Grid container justify="center" spacing={1} id="method-selection">
+                <Grid container justifyContent="center" spacing={1} id="method-selection">
                     {device.methods.map((value, index) => {
                         return (
                             <MethodItem
