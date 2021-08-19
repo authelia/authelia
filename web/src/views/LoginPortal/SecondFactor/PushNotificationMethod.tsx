@@ -56,12 +56,6 @@ const PushNotificationMethod = function (props: Props) {
             if (!mounted.current) return;
             switch (res.result) {
                 case "auth":
-                    if (!res.devices || res.devices.length < 1) {
-                        onSignInErrorCallback(new Error("No (compatible) device found"));
-                        if (res.enroll_url) setEnrollUrl(res.enroll_url);
-                        setState(State.Enroll);
-                        return;
-                    }
                     var devices_temp = [] as SelectableDevice[];
                     res.devices.forEach((d: { device: any; display_name: any; capabilities: any }) =>
                         devices_temp.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
@@ -70,15 +64,15 @@ const PushNotificationMethod = function (props: Props) {
                     setState(State.Selection);
                     break;
                 case "allow":
-                    onSignInErrorCallback(new Error("Device Selection is being bypassed by Duo Policy"));
+                    onSignInErrorCallback(new Error("Device selection is being bypassed by Duo Policy"));
                     setState(State.Success);
                     break;
                 case "deny":
-                    onSignInErrorCallback(new Error("Device Selection was denied by Duo Policy"));
+                    onSignInErrorCallback(new Error("Device selection was denied by Duo policy"));
                     setState(State.Failure);
                     break;
                 case "enroll":
-                    onSignInErrorCallback(new Error("No (compatible) device found"));
+                    onSignInErrorCallback(new Error("No compatible device found"));
                     if (res.enroll_url) setEnrollUrl(res.enroll_url);
                     setState(State.Enroll);
                     break;
@@ -116,13 +110,13 @@ const PushNotificationMethod = function (props: Props) {
                 return;
             }
             if (res && res.result === "enroll") {
-                onSignInErrorCallback(new Error("No (compatible) device found"));
+                onSignInErrorCallback(new Error("No compatible device found"));
                 if (res.enroll_url) setEnrollUrl(res.enroll_url);
                 setState(State.Enroll);
                 return;
             }
             if (res && res.result === "deny") {
-                onSignInErrorCallback(new Error("Device Selection was denied by Duo Policy"));
+                onSignInErrorCallback(new Error("Device selection was denied by Duo policy"));
                 setState(State.Failure);
                 return;
             }

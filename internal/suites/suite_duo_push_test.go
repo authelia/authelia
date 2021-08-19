@@ -101,7 +101,7 @@ func (s *DuoPushWebDriverSuite) TestShouldDenyDeviceSelection() {
 
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
 	s.doChangeMethod(ctx, s.T(), "push-notification")
-	s.verifyNotificationDisplayed(ctx, s.T(), "Device Selection was denied by Duo Policy")
+	s.verifyNotificationDisplayed(ctx, s.T(), "Device selection was denied by Duo policy")
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldAskUserToRegister() {
@@ -119,7 +119,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAskUserToRegister() {
 	s.doChangeMethod(ctx, s.T(), "push-notification")
 	s.WaitElementLocatedByClassName(ctx, s.T(), "state-not-registered")
 	s.WaitElementLocatedByID(ctx, s.T(), "register-link")
-	s.verifyNotificationDisplayed(ctx, s.T(), "No (compatible) device found")
+	s.verifyNotificationDisplayed(ctx, s.T(), "No compatible device found")
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldAutoSelectDevice() {
@@ -213,7 +213,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailInitialSelectionBecauseOfUnsupport
 	s.doChangeMethod(ctx, s.T(), "push-notification")
 	s.WaitElementLocatedByClassName(ctx, s.T(), "state-not-registered")
 	s.WaitElementLocatedByID(ctx, s.T(), "register-link")
-	s.verifyNotificationDisplayed(ctx, s.T(), "No (compatible) device found")
+	s.verifyNotificationDisplayed(ctx, s.T(), "No compatible device found")
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldSelectNewDeviceAfterSavedDeviceMethodIsNoLongerSupported() {
@@ -260,7 +260,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypasse
 	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
 	s.doChangeMethod(ctx, s.T(), "push-notification")
 	s.doClickButton(ctx, s.T(), "selection-link")
-	s.verifyNotificationDisplayed(ctx, s.T(), "Device Selection is being bypassed by Duo Policy")
+	s.verifyNotificationDisplayed(ctx, s.T(), "Device selection is being bypassed by Duo Policy")
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied() {
@@ -281,7 +281,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied(
 	s.doChangeMethod(ctx, s.T(), "push-notification")
 	err := s.WaitElementLocatedByID(ctx, s.T(), "selection-link").Click()
 	require.NoError(s.T(), err)
-	s.verifyNotificationDisplayed(ctx, s.T(), "Device Selection was denied by Duo Policy")
+	s.verifyNotificationDisplayed(ctx, s.T(), "Device selection was denied by Duo policy")
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldSucceedAuthentication() {

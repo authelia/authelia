@@ -29,7 +29,6 @@ export interface Props {
 }
 const DefaultDeviceSelectionContainer = function (props: Props) {
     const [state, setState] = useState(State.DEVICE);
-    // eslint-disable-next-line prettier/prettier
     const [device, setDevice] = useState([] as unknown as SelectableDevice);
 
     const handleDeviceSelected = (selecteddevice: SelectableDevice) => {
