@@ -92,7 +92,6 @@ const PushNotificationMethod = function (props: Props) {
 
     const signInFunc = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
-            setState(State.Success);
             return;
         }
 
@@ -127,15 +126,12 @@ const PushNotificationMethod = function (props: Props) {
                 setState(State.Failure);
                 return;
             }
-            if (res && !res.result) {
-                setState(State.Success);
-                setTimeout(() => {
-                    if (!mounted.current) return;
-                    onSignInSuccessCallback(res ? res.redirect : undefined);
-                }, 1500);
-                return;
-            }
+
             setState(State.Success);
+            setTimeout(() => {
+                if (!mounted.current) return;
+                onSignInSuccessCallback(res ? res.redirect : undefined);
+            }, 1500);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
@@ -216,7 +212,6 @@ const PushNotificationMethod = function (props: Props) {
     if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
         methodState = MethodContainerState.ALREADY_AUTHENTICATED;
     } else if (state === State.Enroll) {
-        // TODO: add Duo Enrollment
         methodState = MethodContainerState.NOT_REGISTERED;
     } else if (!props.selected) {
         methodState = MethodContainerState.NOT_SELECTED;
@@ -230,7 +225,6 @@ const PushNotificationMethod = function (props: Props) {
             registered={props.selected}
             state={methodState}
             onSelectClick={fetchDuoDevicesFunc}
-            // TODO: add Duo Enrollment
             onRegisterClick={() => window.open(enroll_url, "_blank")}
         >
             <div className={style.icon}>{icon}</div>
