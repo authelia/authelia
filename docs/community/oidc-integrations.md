@@ -18,6 +18,8 @@ nav_order: 4
 | Grafana     | `8.0.5`                        | |
 | MinIO       | `RELEASE.2021-07-12T02-44-53Z` | must set `MINIO_IDENTITY_OPENID_CLAIM_NAME: groups` in MinIO and set [MinIO policies] as groups in Authelia |
 | Nextcloud   | `22.1.0`                       | Tested using the `nextcloud-oidc-login` app - [Link](https://github.com/pulsejet/nextcloud-oidc-login)|
+| Wekan       | `5.41`                         | |
+| Portainer CE| `2.6.1`                        | Settings to use username as ID: set `Scopes` to `openid` and `User Identifier` to `sub` |
 
 [MinIO policies]: https://docs.min.io/minio/baremetal/security/minio-identity-management/policy-based-access-control.html#minio-policy
 
@@ -33,3 +35,5 @@ If you do not find the application in the list below, you will need to search fo
 | GitLab      | `14.0.1`                       | `<DOMAIN>/users/auth/openid_connect/callback`            | |
 | MinIO       | `RELEASE.2021-07-12T02-44-53Z` | `<DOMAIN>/oauth_callback`                                | |
 | Nextcloud   | `22.1.0` + `nextcloud-oidc-login` app | `<DOMAIN>/apps/oidc_login/oidc`                                | |
+| Wekan       | `5.41`                          | `<DOMAIN>/_oauth_oidc`            | |
+| Portainer CE| `2.6.1`                         | `<DOMAIN>`            | |
