@@ -23,7 +23,8 @@ func (s *RegisterDuoDeviceSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = testUsername
-	s.mock.Ctx.SaveSession(userSession) //nolint:errcheck // TODO: Legacy code, consider refactoring time permitting.
+	err := s.mock.Ctx.SaveSession(userSession)
+	s.Assert().NoError(err)
 }
 
 func (s *RegisterDuoDeviceSuite) TearDownTest() {
@@ -45,20 +46,83 @@ func (s *RegisterDuoDeviceSuite) TestShouldCallDuoAPIAndFail() {
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
-func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDummyOnBypass() {
+func (s *RegisterDuoDeviceSuite) TestShouldRespondWithSelection() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: "+123456789****", Device: "1234567890ABCDEFGHIJ", DisplayName: "Test Device 2"},
+		{Capabilities: []string{"auto", "sms", "mobile_otp"}, Number: "+123456789****", Device: "1234567890ABCDEFGHIJ", DisplayName: "Test Device 3"},
+	}
+
+	var apiDevices = []DuoDevice{
+		{Capabilities: []string{"push"}, Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+		{Capabilities: []string{"push"}, Device: "1234567890ABCDEFGHIJ", DisplayName: "Test Device 2"},
+	}
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	response := duo.PreauthResponse{}
+	response.Result = auth
+	response.Devices = duoDevices
+
+	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
+
+	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: auth, Devices: apiDevices})
+}
+
+func (s *RegisterDuoDeviceSuite) TestShouldRespondWithAllowOnBypass() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
 	values := url.Values{}
 	values.Set("username", "john")
 
-	duoresponse := duo.PreauthResponse{}
-	duoresponse.Result = testResultAllow
+	response := duo.PreauthResponse{}
+	response.Result = allow
 
-	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&duoresponse, nil)
+	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
 
 	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
 
-	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: testResultAllow, Devices: nil})
+	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: allow, Devices: nil})
+}
+
+func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnroll() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	var enrollURL = "https://api-example.duosecurity.com/portal?code=1234567890ABCDEF&akey=12345ABCDEFGHIJ67890"
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	response := duo.PreauthResponse{}
+	response.Result = enroll
+	response.EnrollPortalURL = enrollURL
+
+	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
+
+	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: enroll, Devices: nil, EnrollURL: enrollURL})
+}
+
+func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDeny() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	response := duo.PreauthResponse{}
+	response.Result = deny
+
+	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
+
+	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: deny})
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondOK() {
