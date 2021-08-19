@@ -68,7 +68,7 @@ let preauth = {
 
 app.post("/preauth", (req, res) => {
   preauth = req.body;
-  console.log("set result to: %j", preauth);
+  console.log("set result to: %s", preauth);
   res.json(preauth);
 });
 

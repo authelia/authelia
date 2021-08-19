@@ -428,7 +428,7 @@ func TestSQLProviderMethodsDuo(t *testing.T) {
 
 	// Test Blank Rows
 	device, method, err = provider.LoadPreferredDuoDevice(unitTestUser)
-	assert.EqualError(t, err, "No Duo device and method saved")
+	assert.EqualError(t, err, "no Duo device and method saved")
 	assert.Equal(t, "", device)
 	assert.Equal(t, "", method)
 }

@@ -56,6 +56,12 @@ const PushNotificationMethod = function (props: Props) {
             if (!mounted.current) return;
             switch (res.result) {
                 case "auth":
+                    if (!res.devices || res.devices.length < 1) {
+                        onSignInErrorCallback(new Error("No (compatible) device found"));
+                        if (res.enroll_url) setEnrollUrl(res.enroll_url);
+                        setState(State.Enroll);
+                        return;
+                    }
                     var devices_temp = [] as SelectableDevice[];
                     res.devices.forEach((d: { device: any; display_name: any; capabilities: any }) =>
                         devices_temp.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
@@ -144,8 +150,8 @@ const PushNotificationMethod = function (props: Props) {
         props.authenticationLevel,
         redirectionURL,
         mounted,
-        fetchDuoDevicesFunc,
         onSignInErrorCallback,
+        fetchDuoDevicesFunc,
         onSignInSuccessCallback,
         state,
     ]);

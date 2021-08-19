@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/url"
 
-	"github.com/authelia/authelia/internal/duo"
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/duo"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // DuoPreAuth helper function for retrieving supported devices and capabilities from duo api.

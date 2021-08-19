@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/authelia/authelia/internal/duo"
+	"github.com/authelia/authelia/v4/internal/duo"
 )
 
 // DuoPolicy a type of policy.
