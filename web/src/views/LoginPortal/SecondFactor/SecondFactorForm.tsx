@@ -143,7 +143,7 @@ const SecondFactorForm = function (props: Props) {
                                 <PushNotificationMethod
                                     id="push-notification-method"
                                     authenticationLevel={props.authenticationLevel}
-                                    selected={props.userInfo.has_duo}
+                                    registered={props.userInfo.has_duo}
                                     onSelectionClick={props.onMethodChanged}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}

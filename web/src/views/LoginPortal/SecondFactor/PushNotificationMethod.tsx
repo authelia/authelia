@@ -31,7 +31,7 @@ export enum State {
 export interface Props {
     id: string;
     authenticationLevel: AuthenticationLevel;
-    selected: boolean;
+    registered: boolean;
 
     onSignInError: (err: Error) => void;
     onSelectionClick: () => void;
@@ -155,7 +155,7 @@ const PushNotificationMethod = function (props: Props) {
         async function (device: DuoDevicePostRequest) {
             try {
                 await completeDuoDeviceSelectionProcess(device);
-                if (!props.selected) {
+                if (!props.registered) {
                     setState(State.SignInInProgress);
                     props.onSelectionClick();
                 } else {
@@ -213,7 +213,7 @@ const PushNotificationMethod = function (props: Props) {
         methodState = MethodContainerState.ALREADY_AUTHENTICATED;
     } else if (state === State.Enroll) {
         methodState = MethodContainerState.NOT_REGISTERED;
-    } else if (!props.selected) {
+    } else if (!props.registered) {
         methodState = MethodContainerState.NOT_SELECTED;
     }
 
@@ -222,7 +222,7 @@ const PushNotificationMethod = function (props: Props) {
             id={props.id}
             title="Push Notification"
             explanation="A notification has been sent to your smartphone"
-            registered={props.selected}
+            registered={props.registered}
             state={methodState}
             onSelectClick={fetchDuoDevicesFunc}
             onRegisterClick={() => window.open(enroll_url, "_blank")}
