@@ -14,7 +14,7 @@ func TestShouldDetectAlphaNumericString(t *testing.T) {
 }
 
 func TestShouldSplitIntoEvenStringsOfFour(t *testing.T) {
-	input := testStringInput
+	input := testStringAThroughL
 
 	arrayOfStrings := SliceString(input, 4)
 
@@ -25,7 +25,7 @@ func TestShouldSplitIntoEvenStringsOfFour(t *testing.T) {
 }
 
 func TestShouldSplitIntoEvenStringsOfOne(t *testing.T) {
-	input := testStringInput
+	input := testStringAThroughL
 
 	arrayOfStrings := SliceString(input, 1)
 
@@ -38,7 +38,7 @@ func TestShouldSplitIntoEvenStringsOfOne(t *testing.T) {
 }
 
 func TestShouldSplitIntoUnevenStringsOfFour(t *testing.T) {
-	input := testStringInput + "m"
+	input := testStringAThroughL + "m"
 
 	arrayOfStrings := SliceString(input, 4)
 
@@ -141,4 +141,10 @@ func TestIsStringInSliceSuffix(t *testing.T) {
 	assert.True(t, IsStringInSliceSuffix("an.apple", suffixes))
 	assert.False(t, IsStringInSliceSuffix("an.orange", suffixes))
 	assert.False(t, IsStringInSliceSuffix("an.apple.orange", suffixes))
+}
+
+func TestStringToByteSlice(t *testing.T) {
+	output := StringToByteSlice(testStringInput)
+
+	assert.Equal(t, []byte(testStringInput), output)
 }

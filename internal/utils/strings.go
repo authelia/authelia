@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"math/rand"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 	"unicode"
+	"unsafe"
 )
 
 // IsStringAbsURL checks a string can be parsed as a URL and that is IsAbs and if it can't it returns an error
@@ -154,4 +156,19 @@ func RandomString(n int, characters []rune) (randomString string) {
 // StringHTMLEscape escapes chars for a HTML body.
 func StringHTMLEscape(input string) (output string) {
 	return htmlEscaper.Replace(input)
+}
+
+// StringToByteSlice converts a string into a slice of bytes without allocation of memory.
+// LICENSE: Apache-2.0 https://github.com/savsgio/gotils/blob/master/LICENSE
+// SOURCE: https://github.com/savsgio/gotils/blob/97865ed5a873d8bd3299e740aded793b0cfefc3a/strconv/strconv.go#L14-L26
+// REFERENCE: https://groups.google.com/g/Golang-Nuts/c/ENgbUzYvCuU/m/90yGx7GUAgAJ
+// Changes to the original code prior to the first commit were only aesthetic. All other changes are logged via git SCM.
+func StringToByteSlice(input string) (output []byte) {
+	strHeader := (*reflect.StringHeader)(unsafe.Pointer(&input))
+	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&output))
+	sliceHeader.Data = strHeader.Data
+	sliceHeader.Cap = strHeader.Len
+	sliceHeader.Len = strHeader.Len
+
+	return output
 }

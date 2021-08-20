@@ -1,22 +1,25 @@
 package session
 
 import (
+	"context"
 	"time"
 
-	"github.com/fasthttp/session/v2"
-	"github.com/fasthttp/session/v2/providers/redis"
+	"github.com/sirupsen/logrus"
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 )
 
-// ProviderConfig is the configuration used to create the session provider.
-type ProviderConfig struct {
-	config              session.Config
-	redisConfig         *redis.Config
-	redisSentinelConfig *redis.FailoverConfig
-	providerName        string
+// Store interface implements the session.Provider with auxiliary methods.
+type Store interface {
+	Get(id []byte) (data []byte, err error)
+	Save(id, data []byte, expiration time.Duration) (err error)
+	Destroy(id []byte) (err error)
+	Regenerate(id, newID []byte, expiration time.Duration) (err error)
+	Count() (count int)
+	NeedGC() (needsGC bool)
+	GC() (err error)
 }
 
 // U2FRegistration is a serializable version of a U2F registration.
@@ -57,7 +60,7 @@ type UserSession struct {
 	RefreshTTL time.Time
 }
 
-// Identity identity of the user who is being verified.
+// Identity of the user who is being verified.
 type Identity struct {
 	Username string
 	Email    string
@@ -74,4 +77,16 @@ type OIDCWorkflowSession struct {
 	AuthURI                    string
 	RequiredAuthorizationLevel authorization.Level
 	CreatedTimestamp           int64
+}
+
+type redisLogger struct {
+	logger *logrus.Logger
+}
+
+func (r *redisLogger) Printf(_ context.Context, format string, v ...interface{}) {
+	if r.logger == nil {
+		return
+	}
+
+	r.logger.Infof(format, v...)
 }

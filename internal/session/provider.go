@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	fasthttpsession "github.com/fasthttp/session/v2"
-	"github.com/fasthttp/session/v2/providers/memory"
-	"github.com/fasthttp/session/v2/providers/redis"
+	"github.com/fasthttp/session/v2"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -17,17 +15,21 @@ import (
 
 // Provider a session provider.
 type Provider struct {
-	sessionHolder *fasthttpsession.Session
-	RememberMe    time.Duration
-	Inactivity    time.Duration
+	manager *session.Session
+	config  *session.Config
+
+	store Store
+
+	RememberMe time.Duration
+	Inactivity time.Duration
 }
 
 // NewProvider instantiate a session provider given a configuration.
-func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertPool) *Provider {
-	providerConfig := NewProviderConfig(configuration, certPool)
+func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertPool) (provider *Provider) {
+	provider = new(Provider)
 
-	provider := new(Provider)
-	provider.sessionHolder = fasthttpsession.New(providerConfig.config)
+	provider.config = NewSessionConfig(configuration)
+	provider.manager = session.New(*provider.config)
 
 	logger := logging.Logger()
 
@@ -45,27 +47,16 @@ func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertP
 
 	provider.Inactivity = duration
 
-	var providerImpl fasthttpsession.Provider
-
 	switch {
-	case providerConfig.redisConfig != nil:
-		providerImpl, err = redis.New(*providerConfig.redisConfig)
-		if err != nil {
-			logger.Fatal(err)
-		}
-	case providerConfig.redisSentinelConfig != nil:
-		providerImpl, err = redis.NewFailoverCluster(*providerConfig.redisSentinelConfig)
-		if err != nil {
-			logger.Fatal(err)
-		}
+	case configuration.Redis != nil && configuration.Redis.HighAvailability != nil:
+		provider.store = NewRedisFailoverStore(configuration.Redis, certPool, logger)
+	case configuration.Redis != nil:
+		provider.store = NewRedisStandaloneStore(configuration.Redis, certPool, logger)
 	default:
-		providerImpl, err = memory.New(memory.Config{})
-		if err != nil {
-			logger.Fatal(err)
-		}
+		provider.store = NewMemoryStore()
 	}
 
-	err = provider.sessionHolder.SetProvider(providerImpl)
+	err = provider.manager.SetProvider(provider.store)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -75,7 +66,7 @@ func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertP
 
 // GetSession return the user session from a request.
 func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
-	store, err := p.sessionHolder.Get(ctx)
+	store, err := p.manager.Get(ctx)
 
 	if err != nil {
 		return NewDefaultUserSession(), err
@@ -105,7 +96,7 @@ func (p *Provider) GetSession(ctx *fasthttp.RequestCtx) (UserSession, error) {
 
 // SaveSession save the user session.
 func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession) error {
-	store, err := p.sessionHolder.Get(ctx)
+	store, err := p.manager.Get(ctx)
 
 	if err != nil {
 		return err
@@ -119,7 +110,7 @@ func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession
 
 	store.Set(userSessionStorerKey, userSessionJSON)
 
-	err = p.sessionHolder.Save(ctx, store)
+	err = p.manager.Save(ctx, store)
 
 	if err != nil {
 		return err
@@ -130,19 +121,19 @@ func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession
 
 // RegenerateSession regenerate a session ID.
 func (p *Provider) RegenerateSession(ctx *fasthttp.RequestCtx) error {
-	err := p.sessionHolder.Regenerate(ctx)
+	err := p.manager.Regenerate(ctx)
 
 	return err
 }
 
 // DestroySession destroy a session ID and delete the cookie.
 func (p *Provider) DestroySession(ctx *fasthttp.RequestCtx) error {
-	return p.sessionHolder.Destroy(ctx)
+	return p.manager.Destroy(ctx)
 }
 
 // UpdateExpiration update the expiration of the cookie and session.
 func (p *Provider) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Duration) error {
-	store, err := p.sessionHolder.Get(ctx)
+	store, err := p.manager.Get(ctx)
 
 	if err != nil {
 		return err
@@ -154,12 +145,12 @@ func (p *Provider) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Du
 		return err
 	}
 
-	return p.sessionHolder.Save(ctx, store)
+	return p.manager.Save(ctx, store)
 }
 
 // GetExpiration get the expiration of the current session.
 func (p *Provider) GetExpiration(ctx *fasthttp.RequestCtx) (time.Duration, error) {
-	store, err := p.sessionHolder.Get(ctx)
+	store, err := p.manager.Get(ctx)
 
 	if err != nil {
 		return time.Duration(0), err
