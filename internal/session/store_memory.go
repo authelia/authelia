@@ -9,8 +9,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// LICENSE: MIT https://github.com/fasthttp/session/blob/master/LICENSE
 // SOURCE: https://github.com/fasthttp/session/blob/cd9080042fc350c0b630c401f43e7d5ecee77882/providers/memory/provider.go
+// ORIGINAL LICENSE: MIT https://github.com/fasthttp/session/blob/master/LICENSE
+// SUB-LICENCE: All changes are licensed under the Apache-2.0 license https://github.com/authelia/authelia/blob/master/LICENSE
 // Changes to the original code prior to the first commit were only aesthetic. All other changes are logged via git SCM.
 
 // NewMemoryStore returns a new MemoryStore.

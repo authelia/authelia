@@ -49,7 +49,7 @@ func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertP
 
 	switch {
 	case configuration.Redis != nil && configuration.Redis.HighAvailability != nil:
-		provider.store = NewRedisFailoverStore(configuration.Redis, certPool, logger)
+		provider.store = NewRedisSentinelStore(configuration.Redis, certPool, logger)
 	case configuration.Redis != nil:
 		provider.store = NewRedisStandaloneStore(configuration.Redis, certPool, logger)
 	default:

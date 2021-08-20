@@ -16,8 +16,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// LICENSE: MIT https://github.com/fasthttp/session/blob/master/LICENSE
-// SOURCE: https://github.com/fasthttp/session/blob/cd9080042fc350c0b630c401f43e7d5ecee77882/providers/memory/provider.go
+// SOURCE: https://github.com/fasthttp/session/blob/cd9080042fc350c0b630c401f43e7d5ecee77882/providers/redis/provider.go
+// ORIGINAL LICENSE: MIT https://github.com/fasthttp/session/blob/master/LICENSE
+// SUB-LICENCE: All changes are licensed under the Apache-2.0 license https://github.com/authelia/authelia/blob/master/LICENSE
 // Changes to the original code prior to the first commit were only aesthetic. All other changes are logged via git SCM.
 
 // NewRedisStandaloneStore returns a new RedisStore which connects to a redis standalone instance.
@@ -60,8 +61,8 @@ func NewRedisStandaloneStore(config *schema.RedisSessionConfiguration, certPool 
 	}
 }
 
-// NewRedisFailoverStore returns a new RedisStore which connects to a redis failover instance (redis sentinel).
-func NewRedisFailoverStore(config *schema.RedisSessionConfiguration, certPool *x509.CertPool, logger *logrus.Logger) (provider *RedisStore) {
+// NewRedisSentinelStore returns a new RedisStore which connects to a redis sentinel instance.
+func NewRedisSentinelStore(config *schema.RedisSessionConfiguration, certPool *x509.CertPool, logger *logrus.Logger) (provider *RedisStore) {
 	redis.SetLogger(&redisLogger{logger})
 
 	var tlsConfig *tls.Config
