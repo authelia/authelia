@@ -1,0 +1,136 @@
+---
+version: "3.8"
+
+networks:
+  net:
+    driver: bridge
+
+secrets:
+  cloudflare_api_token:
+    file: ${PWD}/.secrets/cloudflare_api_token
+  jwt:
+    file: ${PWD}/.secrets/authelia/jwt
+  smtp:
+    file: ${PWD}/.secrets/authelia/smtp
+  session:
+    file: ${PWD}/.secrets/authelia/session
+
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:v2.5.1
+    restart: unless-stopped
+    depends_on:
+      - authelia
+      - whoami
+    networks:
+      net:
+        aliases: []
+    ports:
+      - 80:80
+      - 443:443
+    secrets: [cloudflare_api_token]
+    environment:
+      TZ: "${TZ}"
+      CF_API_EMAIL: "${CLOUDFLARE_EMAIL}"
+      CF_DNS_API_TOKEN_FILE: "/run/secrets/cloudflare_api_token"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${PWD}/data/traefik/:/config
+    command:
+      - "--api=true"
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
+      - "--api.debug=false"
+      - "--log.level=INFO"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.network=net"
+      - "--providers.file=true"
+      - "--providers.file.directory=/config"
+      - "--providers.file.watch=true"
+      - "--entryPoints.web=true"
+      - "--entryPoints.web.address=:80/tcp"
+      - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entryPoints.web.forwardedHeaders.insecure=false"
+      - "--entryPoints.web.forwardedHeaders.trustedIPs=${TRAEFIK_TRUSTED_PROXIES}"
+      - "--entryPoints.web.proxyProtocol.insecure=false"
+      - "--entryPoints.web.proxyProtocol.trustedIPs=${TRAEFIK_TRUSTED_PROXIES}"
+      - "--entryPoints.websecure=true"
+      - "--entryPoints.websecure.address=:443/tcp"
+      - "--entryPoints.websecure.forwardedHeaders.insecure=false"
+      - "--entryPoints.websecure.forwardedHeaders.trustedIPs=${TRAEFIK_TRUSTED_PROXIES}"
+      - "--entryPoints.websecure.proxyProtocol.insecure=false"
+      - "--entryPoints.websecure.proxyProtocol.trustedIPs=${TRAEFIK_TRUSTED_PROXIES}"
+      - "--certificatesResolvers.${ACME_RESOLVER_NAME:-default}.acme.email=${CLOUDFLARE_EMAIL}"
+      - "--certificatesResolvers.${ACME_RESOLVER_NAME:-default}.acme.storage=/config/acme.json"
+      - "--certificatesResolvers.${ACME_RESOLVER_NAME:-default}.acme.caServer=${ACME_CA_SERVER:-https://acme-v02.api.letsencrypt.org/directory}"
+      - "--certificatesResolvers.${ACME_RESOLVER_NAME:-default}.acme.keytype=${ACME_KEYTYPE:-RSA4096}"
+      - "--certificatesResolvers.${ACME_RESOLVER_NAME:-default}.acme.dnsChallenge=true"
+      - "--certificatesResolvers.${ACME_RESOLVER_NAME:-default}.acme.dnsChallenge.provider=${ACME_DNS_CHALLENGE_PROVIDER:-cloudflare}"
+      - "--certificatesResolvers.${ACME_RESOLVER_NAME:-default}.acme.dnsChallenge.delayBeforeCheck=${ACME_DNS_CHALLENGE_DELAY_BEFORE_CHECK:-0}"
+      - "--certificatesResolvers.${ACME_RESOLVER_NAME:-default}.acme.dnsChallenge.resolvers=${ACME_RESOLVERS:-1.1.1.1:53,8.8.8.8:53}"
+      - "--global.sendAnonymousUsage=${TRAEFIK_SEND_ANONYMOUS_USAGE:-false}"
+      - "--global.checkNewVersion=${TRAEFIK_CHECK_NEW_VERSION:-false}"
+      - "--pilot.dashboard=${TRAEFIK_PILOT_DASHBOARD:-false}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.api.entryPoints=websecure"
+      - "traefik.http.routers.api.tls=true"
+      - "traefik.http.routers.api.tls.certResolver=${ACME_RESOLVER_NAME:-default}"
+      - "traefik.http.routers.api.tls.domains[0].main=${DOMAIN}"
+      - "traefik.http.routers.api.tls.domains[0].sans=*.${DOMAIN}"
+      - "traefik.http.routers.api.tls.options=modern@file"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.middlewares=${AUTHELIA_MIDDLEWARE_NAME:-authelia}@docker"
+      - "traefik.http.middlewares.${AUTHELIA_MIDDLEWARE_NAME:-authelia}.forwardauth.address=http://authelia:9091/api/verify?rd=https://${AUTHELIA_SUBDOMAIN:-auth}.${DOMAIN}"
+      - "traefik.http.middlewares.${AUTHELIA_MIDDLEWARE_NAME:-authelia}.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.${AUTHELIA_MIDDLEWARE_NAME:-authelia}.forwardauth.authResponseHeaders=${AUTHELIA_REMOTE_HEADERS:-Remote-User,Remote-Groups,Remote-Email,Remote-Name}"
+  whoami:
+    container_name: whoami
+    image: traefik/whoami:v1.6.1
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 80
+    environment:
+      TZ: "${TZ}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN}`)"
+      - "traefik.http.routers.whoami.entryPoints=websecure"
+      - "traefik.http.routers.whoami.tls=true"
+      - "traefik.http.routers.whoami.tls.certResolver=${ACME_RESOLVER_NAME:-default}"
+      - "traefik.http.routers.whoami.tls.domains[0].main=${DOMAIN}"
+      - "traefik.http.routers.whoami.tls.domains[0].sans=*.${DOMAIN}"
+      - "traefik.http.routers.whoami.middlewares=${AUTHELIA_MIDDLEWARE_NAME:-authelia}@docker"
+  authelia:
+    container_name: authelia
+    image: authelia/authelia:4.30.4
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 9091
+    secrets: [jwt, session, smtp]
+    environment:
+      TZ: "${TZ}"
+      AUTHELIA_JWT_SECRET_FILE: /run/secrets/jwt
+      AUTHELIA_SESSION_SECRET_FILE: /run/secrets/session
+      AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE: /run/secrets/smtp
+    volumes:
+      - ${PWD}/data/authelia/config:/config
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.authelia.rule=Host(`${AUTHELIA_SUBDOMAIN:-auth}.${DOMAIN}`)"
+      - "traefik.http.routers.authelia.entryPoints=websecure"
+      - "traefik.http.routers.authelia.tls=true"
+      - "traefik.http.routers.authelia.tls.certResolver=${ACME_RESOLVER_NAME:-default}"
+      - "traefik.http.routers.authelia.tls.domains[0].main=${DOMAIN}"
+      - "traefik.http.routers.authelia.tls.domains[0].sans=*.${DOMAIN}"
+...
