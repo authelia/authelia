@@ -65,7 +65,7 @@
     "eslint-config-prettier": "8.3.0",
     "eslint-formatter-rdjson": "1.0.5",
     "eslint-import-resolver-typescript": "2.4.0",
-    "eslint-plugin-prettier": "3.4.0",
+    "eslint-plugin-prettier": "3.4.1",
     "prettier": "2.3.2",
     "react-scripts": "4.0.3",
     "react-test-renderer": "17.0.2",
