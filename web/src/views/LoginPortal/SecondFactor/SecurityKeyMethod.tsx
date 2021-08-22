@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, Fragment } from "react";
+import React, { useCallback, useEffect, useRef, useState, Fragment } from "react";
 
 import { makeStyles, Button, useTheme } from "@material-ui/core";
 import { CSSProperties } from "@material-ui/styles";
@@ -40,10 +40,8 @@ const SecurityKeyMethod = function (props: Props) {
     const [timerPercent, triggerTimer] = useTimer(signInTimeout * 1000 - 500);
 
     const { onSignInSuccess, onSignInError } = props;
-    /* eslint-disable react-hooks/exhaustive-deps */
-    const onSignInErrorCallback = useCallback(onSignInError, []);
-    const onSignInSuccessCallback = useCallback(onSignInSuccess, []);
-    /* eslint-enable react-hooks/exhaustive-deps */
+    const onSignInErrorRef = useRef(onSignInError).current;
+    const onSignInSuccessRef = useRef(onSignInSuccess).current;
 
     const doInitiateSignIn = useCallback(async () => {
         // If user is already authenticated, we don't initiate sign in process.
@@ -72,18 +70,18 @@ const SecurityKeyMethod = function (props: Props) {
 
             setState(State.SigninInProgress);
             const res = await completeU2FSignin(signResponse, redirectionURL);
-            onSignInSuccessCallback(res ? res.redirect : undefined);
+            onSignInSuccessRef(res ? res.redirect : undefined);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             console.error(err);
-            onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
+            onSignInErrorRef(new Error("Failed to initiate security key sign in process"));
             setState(State.Failure);
         }
     }, [
-        onSignInSuccessCallback,
-        onSignInErrorCallback,
+        onSignInErrorRef,
+        onSignInSuccessRef,
         redirectionURL,
         mounted,
         triggerTimer,
@@ -120,7 +118,7 @@ const SecurityKeyMethod = function (props: Props) {
 
 export default SecurityKeyMethod;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     icon: {
         display: "inline-block",
     },

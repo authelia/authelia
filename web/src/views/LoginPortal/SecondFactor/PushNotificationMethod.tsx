@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState, ReactNode } from "react";
+import React, { useCallback, useEffect, useRef, useState, ReactNode } from "react";
 
 import { Button, makeStyles } from "@material-ui/core";
 
@@ -32,10 +32,8 @@ const PushNotificationMethod = function (props: Props) {
     const mounted = useIsMountedRef();
 
     const { onSignInSuccess, onSignInError } = props;
-    /* eslint-disable react-hooks/exhaustive-deps */
-    const onSignInErrorCallback = useCallback(onSignInError, []);
-    const onSignInSuccessCallback = useCallback(onSignInSuccess, []);
-    /* eslint-enable react-hooks/exhaustive-deps */
+    const onSignInErrorRef = useRef(onSignInError).current;
+    const onSignInSuccessRef = useRef(onSignInSuccess).current;
 
     const signInFunc = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -52,7 +50,7 @@ const PushNotificationMethod = function (props: Props) {
             setState(State.Success);
             setTimeout(() => {
                 if (!mounted.current) return;
-                onSignInSuccessCallback(res ? res.redirect : undefined);
+                onSignInSuccessRef(res ? res.redirect : undefined);
             }, 1500);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
@@ -60,10 +58,10 @@ const PushNotificationMethod = function (props: Props) {
             if (!mounted.current) return;
 
             console.error(err);
-            onSignInErrorCallback(new Error("There was an issue completing sign in process"));
+            onSignInErrorRef(new Error("There was an issue completing sign in process"));
             setState(State.Failure);
         }
-    }, [onSignInErrorCallback, onSignInSuccessCallback, setState, redirectionURL, mounted, props.authenticationLevel]);
+    }, [onSignInErrorRef, onSignInSuccessRef, redirectionURL, mounted, props.authenticationLevel]);
 
     useEffect(() => {
         signInFunc();
@@ -113,7 +111,7 @@ const PushNotificationMethod = function (props: Props) {
 
 export default PushNotificationMethod;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     icon: {
         width: "64px",
         height: "64px",

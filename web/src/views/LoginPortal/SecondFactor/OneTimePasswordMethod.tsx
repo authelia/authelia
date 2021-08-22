@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
@@ -32,10 +32,8 @@ const OneTimePasswordMethod = function (props: Props) {
     const redirectionURL = useRedirectionURL();
 
     const { onSignInSuccess, onSignInError } = props;
-    /* eslint-disable react-hooks/exhaustive-deps */
-    const onSignInErrorCallback = useCallback(onSignInError, []);
-    const onSignInSuccessCallback = useCallback(onSignInSuccess, []);
-    /* eslint-enable react-hooks/exhaustive-deps */
+    const onSignInErrorRef = useRef(onSignInError).current;
+    const onSignInSuccessRef = useRef(onSignInSuccess).current;
 
     const signInFunc = useCallback(async () => {
         if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -52,21 +50,14 @@ const OneTimePasswordMethod = function (props: Props) {
             setState(State.InProgress);
             const res = await completeTOTPSignIn(passcodeStr, redirectionURL);
             setState(State.Success);
-            onSignInSuccessCallback(res ? res.redirect : undefined);
+            onSignInSuccessRef(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
-            onSignInErrorCallback(new Error("The one-time password might be wrong"));
+            onSignInErrorRef(new Error("The one-time password might be wrong"));
             setState(State.Failure);
         }
         setPasscode("");
-    }, [
-        passcode,
-        onSignInErrorCallback,
-        onSignInSuccessCallback,
-        redirectionURL,
-        props.authenticationLevel,
-        props.registered,
-    ]);
+    }, [onSignInErrorRef, onSignInSuccessRef, passcode, redirectionURL, props.authenticationLevel, props.registered]);
 
     // Set successful state if user is already authenticated.
     useEffect(() => {
