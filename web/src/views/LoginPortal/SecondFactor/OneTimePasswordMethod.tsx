@@ -32,8 +32,8 @@ const OneTimePasswordMethod = function (props: Props) {
     const redirectionURL = useRedirectionURL();
 
     const { onSignInSuccess, onSignInError } = props;
-    const onSignInErrorRef = useRef(onSignInError).current;
-    const onSignInSuccessRef = useRef(onSignInSuccess).current;
+    const onSignInErrorCallback = useRef(onSignInError).current;
+    const onSignInSuccessCallback = useRef(onSignInSuccess).current;
 
     const signInFunc = useCallback(async () => {
         if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -50,14 +50,14 @@ const OneTimePasswordMethod = function (props: Props) {
             setState(State.InProgress);
             const res = await completeTOTPSignIn(passcodeStr, redirectionURL);
             setState(State.Success);
-            onSignInSuccessRef(res ? res.redirect : undefined);
+            onSignInSuccessCallback(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
-            onSignInErrorRef(new Error("The one-time password might be wrong"));
+            onSignInErrorCallback(new Error("The one-time password might be wrong"));
             setState(State.Failure);
         }
         setPasscode("");
-    }, [onSignInErrorRef, onSignInSuccessRef, passcode, redirectionURL, props.authenticationLevel, props.registered]);
+    }, [onSignInErrorCallback, onSignInSuccessCallback, passcode, redirectionURL, props.authenticationLevel, props.registered]);
 
     // Set successful state if user is already authenticated.
     useEffect(() => {

@@ -32,8 +32,8 @@ const PushNotificationMethod = function (props: Props) {
     const mounted = useIsMountedRef();
 
     const { onSignInSuccess, onSignInError } = props;
-    const onSignInErrorRef = useRef(onSignInError).current;
-    const onSignInSuccessRef = useRef(onSignInSuccess).current;
+    const onSignInErrorCallback = useRef(onSignInError).current;
+    const onSignInSuccessCallback = useRef(onSignInSuccess).current;
 
     const signInFunc = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -50,7 +50,7 @@ const PushNotificationMethod = function (props: Props) {
             setState(State.Success);
             setTimeout(() => {
                 if (!mounted.current) return;
-                onSignInSuccessRef(res ? res.redirect : undefined);
+                onSignInSuccessCallback(res ? res.redirect : undefined);
             }, 1500);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
@@ -58,10 +58,10 @@ const PushNotificationMethod = function (props: Props) {
             if (!mounted.current) return;
 
             console.error(err);
-            onSignInErrorRef(new Error("There was an issue completing sign in process"));
+            onSignInErrorCallback(new Error("There was an issue completing sign in process"));
             setState(State.Failure);
         }
-    }, [onSignInErrorRef, onSignInSuccessRef, redirectionURL, mounted, props.authenticationLevel]);
+    }, [onSignInErrorCallback, onSignInSuccessCallback, redirectionURL, mounted, props.authenticationLevel]);
 
     useEffect(() => {
         signInFunc();

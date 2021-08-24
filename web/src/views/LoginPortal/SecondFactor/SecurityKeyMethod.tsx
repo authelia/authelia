@@ -40,8 +40,8 @@ const SecurityKeyMethod = function (props: Props) {
     const [timerPercent, triggerTimer] = useTimer(signInTimeout * 1000 - 500);
 
     const { onSignInSuccess, onSignInError } = props;
-    const onSignInErrorRef = useRef(onSignInError).current;
-    const onSignInSuccessRef = useRef(onSignInSuccess).current;
+    const onSignInErrorCallback = useRef(onSignInError).current;
+    const onSignInSuccessCallback = useRef(onSignInSuccess).current;
 
     const doInitiateSignIn = useCallback(async () => {
         // If user is already authenticated, we don't initiate sign in process.
@@ -70,18 +70,18 @@ const SecurityKeyMethod = function (props: Props) {
 
             setState(State.SigninInProgress);
             const res = await completeU2FSignin(signResponse, redirectionURL);
-            onSignInSuccessRef(res ? res.redirect : undefined);
+            onSignInSuccessCallback(res ? res.redirect : undefined);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             console.error(err);
-            onSignInErrorRef(new Error("Failed to initiate security key sign in process"));
+            onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
             setState(State.Failure);
         }
     }, [
-        onSignInErrorRef,
-        onSignInSuccessRef,
+        onSignInErrorCallback,
+        onSignInSuccessCallback,
         redirectionURL,
         mounted,
         triggerTimer,
