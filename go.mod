@@ -10,7 +10,7 @@ require (
 	github.com/deckarep/golang-set v1.7.1
 	github.com/duosecurity/duo_api_golang v0.0.0-20201112143038-0e07e9f869e3
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
-	github.com/fasthttp/router v1.4.1
+	github.com/fasthttp/router v1.4.2
 	github.com/fasthttp/session/v2 v2.4.2
 	github.com/go-ldap/ldap/v3 v3.4.1
 	github.com/go-sql-driver/mysql v1.6.0
