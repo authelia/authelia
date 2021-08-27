@@ -92,7 +92,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 				MinIdleConns:     configuration.Redis.MinimumIdleConnections,
 				IdleTimeout:      300,
 				TLSConfig:        tlsConfig,
-				KeyPrefix:        "authelia-session",
+				KeyPrefix:        "{authelia-session}",
 			}
 		} else {
 			providerName = "redis"
@@ -117,7 +117,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 				MinIdleConns: configuration.Redis.MinimumIdleConnections,
 				IdleTimeout:  300,
 				TLSConfig:    tlsConfig,
-				KeyPrefix:    "authelia-session",
+				KeyPrefix:    "{authelia-session}",
 			}
 		}
 
