@@ -18,7 +18,7 @@
     "react-ga": "3.3.0",
     "react-loading": "2.0.3",
     "react-otp-input": "2.4.0",
-    "react-router-dom": "5.2.0",
+    "react-router-dom": "5.2.1",
     "u2f-api": "1.2.1"
   },
   "scripts": {
