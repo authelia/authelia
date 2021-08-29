@@ -96,11 +96,6 @@ const PushNotificationMethod = function (props: Props) {
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             if (res && res.result === "auth") {
-                if (!res.devices || res.devices.length < 1) {
-                    onSignInErrorCallback(new Error("Please select a new compatible device"));
-                    fetchDuoDevicesFunc();
-                    return;
-                }
                 var devices_temp = [] as SelectableDevice[];
                 res.devices.forEach((d) =>
                     devices_temp.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
@@ -135,15 +130,7 @@ const PushNotificationMethod = function (props: Props) {
             onSignInErrorCallback(new Error("There was an issue completing sign in process"));
             setState(State.Failure);
         }
-    }, [
-        props.authenticationLevel,
-        redirectionURL,
-        mounted,
-        onSignInErrorCallback,
-        fetchDuoDevicesFunc,
-        onSignInSuccessCallback,
-        state,
-    ]);
+    }, [props.authenticationLevel, redirectionURL, mounted, onSignInErrorCallback, onSignInSuccessCallback, state]);
 
     const updateDuoDevice = useCallback(
         async function (device: DuoDevicePostRequest) {

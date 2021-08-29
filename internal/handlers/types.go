@@ -95,7 +95,7 @@ type DuoDevice struct {
 // DuoDevicesResponse represents all available user devices and methods as well as an optional enrollment url.
 type DuoDevicesResponse struct {
 	Result    string      `json:"result" valid:"required"`
-	Devices   []DuoDevice `json:"devices"`
+	Devices   []DuoDevice `json:"devices,omitempty"`
 	EnrollURL string      `json:"enroll_url,omitempty"`
 }
 
