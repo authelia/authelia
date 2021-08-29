@@ -48,7 +48,6 @@ const (
 const (
 	testInactivity     = "10"
 	testRedirectionURL = "http://redirection.local"
-	testResultAllow    = "allow"
 	testUsername       = "john"
 )
 

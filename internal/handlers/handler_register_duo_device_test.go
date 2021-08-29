@@ -87,7 +87,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithAllowOnBypass() {
 
 	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
 
-	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: allow, Devices: nil})
+	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: allow})
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnroll() {
@@ -106,7 +106,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnroll() {
 
 	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
 
-	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: enroll, Devices: nil, EnrollURL: enrollURL})
+	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: enroll, EnrollURL: enrollURL})
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDeny() {

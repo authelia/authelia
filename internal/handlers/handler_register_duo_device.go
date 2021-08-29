@@ -29,14 +29,14 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 			if devices == nil {
 				ctx.Logger.Debugf("No applicable device/method available for Duo user %s", userSession.Username)
 
-				if err := ctx.SetJSONBody(DuoDevicesResponse{Result: "enroll"}); err != nil {
+				if err := ctx.SetJSONBody(DuoDevicesResponse{Result: enroll}); err != nil {
 					ctx.Error(fmt.Errorf("Unable to set JSON body in response"), messageMFAValidationFailed)
 				}
 
 				return
 			}
 
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: result, Devices: devices}); err != nil {
+			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: auth, Devices: devices}); err != nil {
 				ctx.Error(fmt.Errorf("Unable to set JSON body in response"), messageMFAValidationFailed)
 			}
 
@@ -46,7 +46,7 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 		if result == allow {
 			ctx.Logger.Debugf("Device selection not possible for user %s, because Duo authentication was bypassed - Defaults to Auto Push", userSession.Username)
 
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: result}); err != nil {
+			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: allow}); err != nil {
 				ctx.Error(fmt.Errorf("Unable to set JSON body in response"), messageMFAValidationFailed)
 			}
 
@@ -56,7 +56,7 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 		if result == enroll {
 			ctx.Logger.Debugf("Duo User not enrolled: %s", userSession.Username)
 
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: result, EnrollURL: enrollURL}); err != nil {
+			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: enroll, EnrollURL: enrollURL}); err != nil {
 				ctx.Error(fmt.Errorf("Unable to set JSON body in response"), messageMFAValidationFailed)
 			}
 
@@ -66,7 +66,7 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 		if result == deny {
 			ctx.Logger.Debugf("Duo User not allowed to authenticate: %s", userSession.Username)
 
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: result}); err != nil {
+			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: deny}); err != nil {
 				ctx.Error(fmt.Errorf("Unable to set JSON body in response"), messageMFAValidationFailed)
 			}
 
