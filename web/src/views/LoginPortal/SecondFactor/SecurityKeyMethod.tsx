@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, Fragment } from "react";
+import React, { useCallback, useEffect, useRef, useState, Fragment } from "react";
 
 import { makeStyles, Button, useTheme } from "@material-ui/core";
 import { CSSProperties } from "@material-ui/styles";
@@ -40,10 +40,8 @@ const SecurityKeyMethod = function (props: Props) {
     const [timerPercent, triggerTimer] = useTimer(signInTimeout * 1000 - 500);
 
     const { onSignInSuccess, onSignInError } = props;
-    /* eslint-disable react-hooks/exhaustive-deps */
-    const onSignInErrorCallback = useCallback(onSignInError, []);
-    const onSignInSuccessCallback = useCallback(onSignInSuccess, []);
-    /* eslint-enable react-hooks/exhaustive-deps */
+    const onSignInErrorCallback = useRef(onSignInError).current;
+    const onSignInSuccessCallback = useRef(onSignInSuccess).current;
 
     const doInitiateSignIn = useCallback(async () => {
         // If user is already authenticated, we don't initiate sign in process.
@@ -82,8 +80,8 @@ const SecurityKeyMethod = function (props: Props) {
             setState(State.Failure);
         }
     }, [
-        onSignInSuccessCallback,
         onSignInErrorCallback,
+        onSignInSuccessCallback,
         redirectionURL,
         mounted,
         triggerTimer,
@@ -120,7 +118,7 @@ const SecurityKeyMethod = function (props: Props) {
 
 export default SecurityKeyMethod;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     icon: {
         display: "inline-block",
     },

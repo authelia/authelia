@@ -25,7 +25,7 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -tags netgo \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.14.1
+FROM alpine:3.14.2
 
 WORKDIR /app
 
