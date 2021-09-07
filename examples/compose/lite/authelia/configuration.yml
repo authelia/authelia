@@ -61,12 +61,15 @@ storage:
   local:
     path: /config/db.sqlite3
 
+
 notifier:
-  smtp:
-    username: test
-    # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-    password: password
-    host: mail.example.com
-    port: 25
-    sender: admin@example.com
+  filesystem:
+    filename: /var/lib/authelia/notification.txt
+#   smtp:
+#     username: test
+#     # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
+#     password: password
+#     host: mail.example.com
+#     port: 25
+#     sender: admin@example.com
 ...
