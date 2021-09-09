@@ -59,7 +59,7 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage"><a href="https://datatracker.ietf.org/doc/html/rfc6749#section-2.1" target="_blank" rel="noopener noreferrer">Confidential Client Type</a></td>
       </tr>
       <tr>
-        <td rowspan="6" class="tbl-header tbl-beta-stage">beta2 (4.30.0) <sup>1</sup></td>
+        <td rowspan="6" class="tbl-header tbl-beta-stage">beta2 (4.30.0)</td>
         <td class="tbl-beta-stage"><a href="https://openid.net/specs/openid-connect-core-1_0.html#UserInfo" target="_blank" rel="noopener noreferrer">Userinfo Endpoint</a> (missed in beta1)</td>
       </tr>
       <tr>
