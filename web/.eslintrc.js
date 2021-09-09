@@ -3,7 +3,7 @@ module.exports = {
     parserOptions: {
         project: "tsconfig.json",
     },
-    ignorePatterns: ["build/*", "coverage/*"],
+    ignorePatterns: ["build/*", "coverage/*", "!.*.js"],
     settings: {
         "import/resolver": {
             typescript: {},

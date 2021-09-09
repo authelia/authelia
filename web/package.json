@@ -22,6 +22,7 @@
     "u2f-api": "1.2.1"
   },
   "scripts": {
+    "prepare": "cd .. && husky install .github",
     "start": "craco start",
     "build": "craco build",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
@@ -49,6 +50,8 @@
     ]
   },
   "devDependencies": {
+    "@commitlint/cli": "^13.1.0",
+    "@commitlint/config-conventional": "^13.1.0",
     "@craco/craco": "6.2.0",
     "@testing-library/jest-dom": "5.14.1",
     "@testing-library/react": "12.0.0",
@@ -66,6 +69,7 @@
     "eslint-formatter-rdjson": "1.0.5",
     "eslint-import-resolver-typescript": "2.4.0",
     "eslint-plugin-prettier": "4.0.0",
+    "husky": "^7.0.2",
     "prettier": "2.3.2",
     "react-scripts": "4.0.3",
     "react-test-renderer": "17.0.2",
