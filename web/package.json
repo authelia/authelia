@@ -50,8 +50,8 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "^13.1.0",
-    "@commitlint/config-conventional": "^13.1.0",
+    "@commitlint/cli": "13.1.0",
+    "@commitlint/config-conventional": "13.1.0",
     "@craco/craco": "6.2.0",
     "@testing-library/jest-dom": "5.14.1",
     "@testing-library/react": "12.0.0",

@@ -1216,7 +1216,7 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@commitlint/cli@^13.1.0":
+"@commitlint/cli@13.1.0":
   version "13.1.0"
   resolved "https://registry.yarnpkg.com/@commitlint/cli/-/cli-13.1.0.tgz#3608bb24dbef41aaa0729ffe65c7f9b57409626a"
   integrity sha512-xN/uNYWtGTva5OMSd+xA6e6/c2jk8av7MUbdd6w2cw89u6z3fAWoyiH87X0ewdSMNYmW/6B3L/2dIVGHRDID5w==
@@ -1231,7 +1231,7 @@
     resolve-global "1.0.0"
     yargs "^17.0.0"
 
-"@commitlint/config-conventional@^13.1.0":
+"@commitlint/config-conventional@13.1.0":
   version "13.1.0"
   resolved "https://registry.yarnpkg.com/@commitlint/config-conventional/-/config-conventional-13.1.0.tgz#f02871d50c73db0a31b777231f49203b964d9d59"
   integrity sha512-zukJXqdr6jtMiVRy3tTHmwgKcUMGfqKDEskRigc5W3k2aYF4gBAtCEjMAJGZgSQE4DMcHeok0pEV2ANmTpb0cw==
