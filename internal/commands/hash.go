@@ -47,6 +47,7 @@ func cmdHashPasswordRun(cmd *cobra.Command, args []string) {
 
 	if len(configs) > 0 {
 		val := schema.NewStructValidator()
+
 		_, config, err := configuration.Load(val, configuration.NewDefaultSources(configs, configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter)...)
 		if err != nil {
 			logger.Fatalf("Error occurred loading configuration: %v", err)
