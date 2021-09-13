@@ -67,7 +67,7 @@
     "craco-alias": "3.0.1",
     "eslint-config-prettier": "8.3.0",
     "eslint-formatter-rdjson": "1.0.5",
-    "eslint-import-resolver-typescript": "2.4.0",
+    "eslint-import-resolver-typescript": "2.5.0",
     "eslint-plugin-prettier": "4.0.0",
     "husky": "7.0.2",
     "prettier": "2.4.0",
