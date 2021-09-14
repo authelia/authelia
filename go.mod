@@ -35,5 +35,5 @@ require (
 	golang.org/x/text v0.3.7
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v2 v2.4.0
-	modernc.org/sqlite v1.10.8
+	modernc.org/sqlite v1.13.0
 )
