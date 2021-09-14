@@ -73,3 +73,8 @@ if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifests" ]] && [[ "${BUILDKITE_
     curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/authelia/packages/container/authelia/versions/${GHCR_VERSION}
   done
 fi
+
+if [[ "${BUILDKITE_LABEL}" == ":github: Deploy Artifacts" ]]; then
+  echo "--- :go: Force module index update"
+  go get github.com/authelia/authelia/v4
+fi
