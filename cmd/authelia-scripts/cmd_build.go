@@ -10,12 +10,18 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func buildAutheliaBinary(xflags []string) {
-	cmd := utils.CommandWithStdout("go", "build", "-o", "../../"+OutputDir+"/authelia", "-ldflags", strings.Join(xflags, " "))
-	cmd.Dir = "cmd/authelia"
+func buildAutheliaBinary(xflags []string, buildkite bool) {
+	cmd := utils.CommandWithStdout("go", "build", "-tags", "netgo", "-trimpath", "-o", OutputDir+"/authelia", "-ldflags", "-s -w "+strings.Join(xflags, " "), "./cmd/authelia/")
 
 	cmd.Env = append(os.Environ(),
-		"GOOS=linux", "GOARCH=amd64", "CGO_ENABLED=0")
+		"CGO_ENABLED=0")
+
+	if buildkite {
+		cmd = utils.CommandWithStdout("gox", "-tags=netgo", "-output={{.Dir}}-{{.OS}}-{{.Arch}}", "-ldflags=-s -w "+strings.Join(xflags, " "), "-osarch=linux/amd64 linux/arm linux/arm64 freebsd/amd64", "./cmd/authelia/")
+
+		cmd.Env = append(os.Environ(),
+			"GOFLAGS=-trimpath", "CGO_ENABLED=0")
+	}
 
 	err := cmd.Run()
 	if err != nil {
@@ -98,7 +104,7 @@ func Build(cobraCmd *cobra.Command, args []string) {
 
 	Clean(cobraCmd, args)
 
-	xflags, err := getXFlags("", "0", "")
+	xflags, err := getXFlags(os.Getenv("BUILDKITE_BRANCH"), os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -118,11 +124,12 @@ func Build(cobraCmd *cobra.Command, args []string) {
 
 	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
 	if buildkite {
-		log.Debug("Buildkite job detected, skipping Authelia Go binary build")
+		log.Debug("Building Authelia Go binaries with gox...")
 	} else {
 		log.Debug("Building Authelia Go binary...")
-		buildAutheliaBinary(xflags)
 	}
+
+	buildAutheliaBinary(xflags, buildkite)
 
 	cleanAssets()
 }

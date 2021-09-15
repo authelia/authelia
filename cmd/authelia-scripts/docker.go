@@ -22,7 +22,7 @@ func (d *Docker) Tag(image, tag string) error {
 
 // Login login to the dockerhub registry.
 func (d *Docker) Login(username, password, registry string) error {
-	return utils.CommandWithStdout("docker", "login", registry, "-u", username, "-p", password).Run()
+	return utils.CommandWithStdout("bash", "-c", `echo `+password+` | docker login `+registry+` --password-stdin -u `+username).Run()
 }
 
 // Push push a docker image to dockerhub.
@@ -31,31 +31,8 @@ func (d *Docker) Push(tag string) error {
 }
 
 // Manifest push a docker manifest to dockerhub.
-func (d *Docker) Manifest(tag, amd64tag, arm32v7tag, arm64v8tag string) error {
-	err := utils.CommandWithStdout("docker", "manifest", "create", tag, amd64tag, arm32v7tag, arm64v8tag).Run()
-
-	if err != nil {
-		panic(err)
-	}
-
-	err = utils.CommandWithStdout("docker", "manifest", "annotate", tag, arm32v7tag, "--os", "linux", "--arch", "arm").Run()
-
-	if err != nil {
-		panic(err)
-	}
-
-	err = utils.CommandWithStdout("docker", "manifest", "annotate", tag, arm64v8tag, "--os", "linux", "--arch", "arm64", "--variant", "v8").Run()
-
-	if err != nil {
-		panic(err)
-	}
-
-	return utils.CommandWithStdout("docker", "manifest", "push", "--purge", tag).Run()
-}
-
-// CleanTag remove a tag from dockerhub.
-func (d *Docker) CleanTag(tag string) error {
-	return utils.CommandWithStdout("bash", "-c", `token=$(curl -fs --retry 3 -H "Content-Type: application/json" -X "POST" -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token) && curl -fs --retry 3 -o /dev/null -L -X "DELETE" -H "Authorization: JWT $token" https://hub.docker.com/v2/repositories/`+DockerImageName+"/tags/"+tag+"/").Run()
+func (d *Docker) Manifest(tag1, tag2 string) error {
+	return utils.CommandWithStdout("docker", "build", "-t", tag1, "-t", tag2, "--platform", "linux/amd64,linux/arm/v7,linux/arm64", "--builder", "buildx", "--push", ".").Run()
 }
 
 // PublishReadme push README.md to dockerhub.

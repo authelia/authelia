@@ -31,7 +31,7 @@ if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]] || [[ "${BUILDKITE_LABEL}" =~ ":do
   fi
 fi
 
-if [[ "${BUILDKITE_LABEL}" == ":docker: Image Deployments" ]]; then
+if [[ "${BUILDKITE_LABEL}" == ":debian: Package Builds" ]]; then
   cat .buildkite/annotations/artifacts | buildkite-agent annotate --style "success" --context "ctx-success"
 fi
 
@@ -40,7 +40,7 @@ if [[ "${BUILDKITE_LABEL}" =~ ":docker: Deploy" ]]; then
   docker logout ghcr.io
 fi
 
-if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifests" ]] && [[ "${BUILDKITE_BRANCH}" == "master" ]] && [[ "${BUILDKITE_PULL_REQUEST}" == "false" ]]; then
+if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]] && [[ "${BUILDKITE_BRANCH}" == "master" ]] && [[ "${BUILDKITE_PULL_REQUEST}" == "false" ]]; then
   echo "--- :docker: Removing tags for deleted branches"
   anontoken=$(curl -fsL --retry 3 'https://auth.docker.io/token?service=registry.docker.io&scope=repository:authelia/authelia:pull' | jq -r .token)
   authtoken=$(curl -fs --retry 3 -H "Content-Type: application/json" -X "POST" -d '{"username": "'${DOCKER_USERNAME}'", "password": "'${DOCKER_PASSWORD}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
