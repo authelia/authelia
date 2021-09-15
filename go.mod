@@ -19,7 +19,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/knadh/koanf v1.2.3
-	github.com/mitchellh/mapstructure v1.4.1
+	github.com/mitchellh/mapstructure v1.4.2
 	github.com/ory/fosite v0.40.2
 	github.com/ory/herodot v0.9.7
 	github.com/otiai10/copy v1.6.0
