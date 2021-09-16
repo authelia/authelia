@@ -27,9 +27,9 @@ func init() {
 	DockerBuildCmd.PersistentFlags().StringVar(&container, "container", defaultContainer, "target container among: "+strings.Join(containers, ", "))
 }
 
-func checkContainerIsSupported(variant string) {
+func checkContainerIsSupported(container string) {
 	for _, v := range containers {
-		if variant == v {
+		if container == v {
 			return
 		}
 	}
