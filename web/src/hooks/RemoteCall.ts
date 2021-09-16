@@ -21,7 +21,7 @@ export function useRemoteCall<Ret>(
                 setData(res);
             } catch (err) {
                 console.error(err);
-                setError(err);
+                setError(err as Error);
             }
         })();
     }, [setInProgress, setError, fnCallback]);

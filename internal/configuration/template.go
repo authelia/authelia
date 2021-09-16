@@ -1,7 +1,7 @@
 package configuration
 
 import (
-	_ "embed"
+	_ "embed" // Embed config.template.yml.
 	"fmt"
 	"io/ioutil"
 	"os"

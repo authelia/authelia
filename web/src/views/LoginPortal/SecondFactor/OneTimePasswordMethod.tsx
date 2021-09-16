@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
@@ -32,10 +32,8 @@ const OneTimePasswordMethod = function (props: Props) {
     const redirectionURL = useRedirectionURL();
 
     const { onSignInSuccess, onSignInError } = props;
-    /* eslint-disable react-hooks/exhaustive-deps */
-    const onSignInErrorCallback = useCallback(onSignInError, []);
-    const onSignInSuccessCallback = useCallback(onSignInSuccess, []);
-    /* eslint-enable react-hooks/exhaustive-deps */
+    const onSignInErrorCallback = useRef(onSignInError).current;
+    const onSignInSuccessCallback = useRef(onSignInSuccess).current;
 
     const signInFunc = useCallback(async () => {
         if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -60,9 +58,9 @@ const OneTimePasswordMethod = function (props: Props) {
         }
         setPasscode("");
     }, [
-        passcode,
         onSignInErrorCallback,
         onSignInSuccessCallback,
+        passcode,
         redirectionURL,
         props.authenticationLevel,
         props.registered,

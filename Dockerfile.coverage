@@ -13,7 +13,7 @@ RUN yarn install --frozen-lockfile && INLINE_RUNTIME_CHUNK=false yarn coverage
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.16.7-alpine AS builder-backend
+FROM golang:1.17.0-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -40,7 +40,7 @@ CGO_ENABLED=0 go test -c --tags coverage -covermode=atomic \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.14.1
+FROM alpine:3.14.2
 
 RUN apk --no-cache add ca-certificates tzdata
 
