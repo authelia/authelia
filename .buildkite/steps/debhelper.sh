@@ -20,7 +20,7 @@ sed -i -e '/^pkgname=/c pkgname=authelia' -e "/pkgver=/c $VERSION" -e '10,14d' \
 if [[ "${PACKAGE}" == "amd64" ]]; then
   docker run --rm -v $PWD:/build authelia/aurpackager bash -c "cd /build && makedeb"
 elif [[ "${PACKAGE}" == "armhf" ]]; then
-  docker run --rm -v $PWD:/build authelia/debpackager:armhf bash -c "cd /build && makedeb"
+  docker run --rm --platform linux/arm/v7 -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb"
 else
-  docker run --rm -v $PWD:/build authelia/debpackager:arm64 bash -c "cd /build && makedeb"
+  docker run --rm --platform linux/arm64 -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb"
 fi
