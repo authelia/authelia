@@ -9,15 +9,12 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-var arch string
+var container string
 
-var supportedArch = []string{"amd64", "arm32v7", "arm64v8", "coverage"}
-var defaultArch = "amd64"
-var buildkiteQEMU = os.Getenv("BUILDKITE_AGENT_META_DATA_QEMU")
+var containers = []string{"dev", "coverage"}
+var defaultContainer = "dev"
 var ciBranch = os.Getenv("BUILDKITE_BRANCH")
 var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
 var ciTag = os.Getenv("BUILDKITE_TAG")
@@ -27,38 +24,23 @@ var publicRepo = regexp.MustCompile(`.*:.*`)
 var tags = dockerTags.FindStringSubmatch(ciTag)
 
 func init() {
-	DockerBuildCmd.PersistentFlags().StringVar(&arch, "arch", defaultArch, "target architecture among: "+strings.Join(supportedArch, ", "))
-	DockerPushCmd.PersistentFlags().StringVar(&arch, "arch", defaultArch, "target architecture among: "+strings.Join(supportedArch, ", "))
+	DockerBuildCmd.PersistentFlags().StringVar(&container, "container", defaultContainer, "target container among: "+strings.Join(containers, ", "))
 }
 
-func checkArchIsSupported(arch string) {
-	for _, a := range supportedArch {
-		if arch == a {
+func checkContainerIsSupported(variant string) {
+	for _, v := range containers {
+		if variant == v {
 			return
 		}
 	}
 
-	log.Fatal("Architecture is not supported. Please select one of " + strings.Join(supportedArch, ", ") + ".")
+	log.Fatal("Container is not supported. Please select one of " + strings.Join(containers, ", ") + ".")
 }
 
 func dockerBuildOfficialImage(arch string) error {
 	docker := &Docker{}
-	// Set default Architecture Dockerfile to amd64.
-	dockerfile := "Dockerfile"
-
-	// If not the default value.
-	if arch != defaultArch {
-		dockerfile = fmt.Sprintf("%s.%s", dockerfile, arch)
-	}
-
-	if arch == "arm32v7" || arch == "arm64v8" {
-		if buildkiteQEMU != stringTrue {
-			err := utils.CommandWithStdout("docker", "run", "--rm", "--privileged", "multiarch/qemu-user-static", "--reset", "-p", "yes").Run()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-	}
+	filename := "Dockerfile"
+	dockerfile := fmt.Sprintf("%s.%s", filename, arch)
 
 	flags, err := getXFlags(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
@@ -75,8 +57,8 @@ var DockerBuildCmd = &cobra.Command{
 	Short: "Build the docker image of Authelia",
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Infof("Building Docker image %s...", DockerImageName)
-		checkArchIsSupported(arch)
-		err := dockerBuildOfficialImage(arch)
+		checkContainerIsSupported(container)
+		err := dockerBuildOfficialImage(container)
 
 		if err != nil {
 			log.Fatal(err)
@@ -88,17 +70,6 @@ var DockerBuildCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-	},
-}
-
-// DockerPushCmd Command for pushing Authelia docker image to DockerHub.
-var DockerPushCmd = &cobra.Command{
-	Use:   "push-image",
-	Short: "Publish Authelia docker image to Docker Hub",
-	Run: func(cmd *cobra.Command, args []string) {
-		log.Infof("Pushing Docker image %s to Docker Hub...", DockerImageName)
-		checkArchIsSupported(arch)
-		publishDockerImage(arch)
 	},
 }
 
@@ -140,20 +111,6 @@ func login(docker *Docker, registry string) {
 	}
 }
 
-func deploy(docker *Docker, tag, registry string) {
-	imageWithTag := registry + "/" + DockerImageName + ":" + tag
-
-	log.Infof("Docker image %s will be deployed on %s", imageWithTag, registry)
-
-	if err := docker.Tag(DockerImageName, imageWithTag); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := docker.Push(imageWithTag); err != nil {
-		log.Fatal(err)
-	}
-}
-
 func deployManifest(docker *Docker, tag string) {
 	log.Infof("Docker manifest %s:%s will be deployed on %s and %s", DockerImageName, tag, dockerhub, ghcr)
 
@@ -162,40 +119,6 @@ func deployManifest(docker *Docker, tag string) {
 
 	if err := docker.Manifest(dockerhub, ghcr); err != nil {
 		log.Fatal(err)
-	}
-}
-
-func publishDockerImage(arch string) {
-	docker := &Docker{}
-
-	for _, registry := range registries {
-		switch {
-		case ciTag != "":
-			if len(tags) == 4 {
-				log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
-				login(docker, registry)
-				deploy(docker, tags[1]+"-"+arch, registry)
-
-				if !ignoredSuffixes.MatchString(ciTag) {
-					deploy(docker, tags[2]+"-"+arch, registry)
-					deploy(docker, tags[3]+"-"+arch, registry)
-					deploy(docker, "latest-"+arch, registry)
-				}
-			} else {
-				log.Fatal("Docker image will not be published, the specified tag does not conform to the standard")
-			}
-		case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
-			login(docker, registry)
-			deploy(docker, ciBranch+"-"+arch, registry)
-		case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
-			login(docker, registry)
-			deploy(docker, "PR"+ciPullRequest+"-"+arch, registry)
-		case ciBranch == masterTag && ciPullRequest == stringFalse:
-			login(docker, registry)
-			deploy(docker, "master-"+arch, registry)
-		default:
-			log.Info("Docker image will not be published")
-		}
 	}
 }
 

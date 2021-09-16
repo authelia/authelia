@@ -46,7 +46,7 @@ steps:
     if: build.env("CI_BYPASS") != "true"
 
   - label: ":docker: Build Image [coverage]"
-    command: "authelia-scripts docker build --arch=coverage"
+    command: "authelia-scripts docker build --container=coverage"
     agents:
       build: "linux-coverage"
     artifact_paths:

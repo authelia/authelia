@@ -25,11 +25,6 @@ func (d *Docker) Login(username, password, registry string) error {
 	return utils.CommandWithStdout("bash", "-c", `echo `+password+` | docker login `+registry+` --password-stdin -u `+username).Run()
 }
 
-// Push push a docker image to dockerhub.
-func (d *Docker) Push(tag string) error {
-	return utils.CommandWithStdout("docker", "push", tag).Run()
-}
-
 // Manifest push a docker manifest to dockerhub.
 func (d *Docker) Manifest(tag1, tag2 string) error {
 	return utils.CommandWithStdout("docker", "build", "-t", tag1, "-t", tag2, "--platform", "linux/amd64,linux/arm/v7,linux/arm64", "--builder", "buildx", "--push", ".").Run()
