@@ -5,8 +5,9 @@ artifacts=()
 
 for FILE in \
   authelia-linux-amd64.tar.gz authelia-linux-amd64.tar.gz.sha256 \
-  authelia-linux-arm32v7.tar.gz authelia-linux-arm32v7.tar.gz.sha256 \
-  authelia-linux-arm64v8.tar.gz authelia-linux-arm64v8.tar.gz.sha256 \
+  authelia-linux-arm.tar.gz authelia-linux-arm.tar.gz.sha256 \
+  authelia-linux-arm64.tar.gz authelia-linux-arm64.tar.gz.sha256 \
+  authelia-freebsd-amd64.tar.gz authelia-freebsd-amd64.tar.gz.sha256 \
   authelia-public_html.tar.gz authelia-public_html.tar.gz.sha256;
 do
   # Add the version to the artifact name
