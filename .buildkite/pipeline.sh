@@ -70,13 +70,4 @@ steps:
     depends_on:
       - "build-docker-linux-coverage"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
-
-  - wait:
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
-
-  - label: ":vertical_traffic_light: Test Concurrency Gate"
-    command: "echo End of concurrency gate"
-    concurrency: 3
-    concurrency_group: "tests"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 EOF
