@@ -71,13 +71,6 @@ if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]] && [[ "${BUILDKITE_B
       done
     done
   done
-  echo "--- :docker: Removing empty tags for old images on GHCR"
-  for i in {1..5}; do
-    for GHCR_VERSION in $(curl -fsL --retry 3 -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/orgs/authelia/packages/container/authelia/versions?page=${i}&per_page=100" | jq '.[] | select((.metadata.container.tags|length) == 0) | .id'); do
-      echo "Removing id ${GHCR_VERSION}"
-      curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/authelia/packages/container/authelia/versions/${GHCR_VERSION}
-    done
-  done
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":github: Deploy Artifacts" ]]; then
