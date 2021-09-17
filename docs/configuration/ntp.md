@@ -43,7 +43,7 @@ required.
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple } 
-default: 3
+default: 4
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
@@ -86,4 +86,6 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-Setting this to true will allow Authelia to start and just log an error instead of exiting.
+Setting this to true will allow Authelia to start and just log an error instead of exiting. The default is that if
+Authelia can contact the NTP server successfully, and the time reported by the server is greater than what is configured
+in [max_desync](#max_desync) that Authelia fails to start and logs a fatal error.

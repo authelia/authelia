@@ -13,8 +13,10 @@ func ValidateNTP(configuration *schema.NTPConfiguration, validator *schema.Struc
 		configuration.Address = schema.DefaultNTPConfiguration.Address // time.cloudflare.com:123
 	}
 
-	if configuration.Version == 0 || configuration.Version > 4 {
+	if configuration.Version == 0 {
 		configuration.Version = schema.DefaultNTPConfiguration.Version // 4
+	} else if configuration.Version < 3 || configuration.Version > 4 {
+		validator.Push(fmt.Errorf("ntp: version must be either 3 or 4"))
 	}
 
 	if configuration.MaximumDesync == "" {
@@ -23,6 +25,6 @@ func ValidateNTP(configuration *schema.NTPConfiguration, validator *schema.Struc
 
 	_, err := utils.ParseDurationString(configuration.MaximumDesync)
 	if err != nil {
-		validator.Push(fmt.Errorf("error occurred parsing NTP max_desync string: %s", err))
+		validator.Push(fmt.Errorf("ntp: error occurred parsing NTP max_desync string: %s", err))
 	}
 }
