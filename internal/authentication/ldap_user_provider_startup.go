@@ -3,10 +3,12 @@ package authentication
 import (
 	"strings"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/go-ldap/ldap/v3"
+	"github.com/sirupsen/logrus"
 )
 
-func (p *LDAPUserProvider) checkServer() (err error) {
+func (p *LDAPUserProvider) StartupCheck(logger *logrus.Logger) (err error) {
 	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
 		return err
@@ -29,7 +31,7 @@ func (p *LDAPUserProvider) checkServer() (err error) {
 	// Iterate the attribute values to see what the server supports.
 	for _, attr := range sr.Entries[0].Attributes {
 		if attr.Name == ldapSupportedExtensionAttribute {
-			p.logger.Tracef("LDAP Supported Extension OIDs: %s", strings.Join(attr.Values, ", "))
+			logger.Tracef("LDAP Supported Extension OIDs: %s", strings.Join(attr.Values, ", "))
 
 			for _, oid := range attr.Values {
 				if oid == ldapOIDPasswdModifyExtension {
@@ -40,6 +42,14 @@ func (p *LDAPUserProvider) checkServer() (err error) {
 
 			break
 		}
+	}
+
+	if !p.supportExtensionPasswdModify && !p.disableResetPassword &&
+		p.configuration.Implementation != schema.LDAPImplementationActiveDirectory {
+
+		logger.Warn("Your LDAP server implementation may not support a method for password hashing " +
+			"known to Authelia, it's strongly recommended you ensure your directory server hashes the password " +
+			"attribute when users reset their password via Authelia.")
 	}
 
 	return nil

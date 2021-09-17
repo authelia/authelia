@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/golang/mock/gomock"
+	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 )
@@ -77,4 +78,18 @@ func (m *MockUserProvider) UpdatePassword(arg0, arg1 string) error {
 func (mr *MockUserProviderMockRecorder) UpdatePassword(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUserProvider)(nil).UpdatePassword), arg0, arg1)
+}
+
+// StartupCheck mocks base method.
+func (m *MockUserProvider) StartupCheck(arg0 *logrus.Logger) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartupCheck", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// StartupCheck indicates an expected call of StartupCheck.
+func (mr *MockUserProviderMockRecorder) StartupCheck(arg0 *logrus.Logger) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockUserProvider)(nil).StartupCheck), arg0)
 }

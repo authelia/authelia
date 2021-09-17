@@ -3,6 +3,7 @@ package ntp
 import (
 	"testing"
 
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -19,8 +20,9 @@ func TestShouldCheckNTP(t *testing.T) {
 	sv := schema.NewStructValidator()
 	validator.ValidateNTP(&config, sv)
 
-	NTP := NewProvider(&config)
+	ntp := NewProvider(&config)
 
-	checkfailed, _ := NTP.StartupCheck()
-	assert.Equal(t, false, checkfailed)
+	err := ntp.StartupCheck(logging.Logger())
+
+	assert.NoError(t, err)
 }

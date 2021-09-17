@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/sirupsen/logrus"
 )
 
 // FileNotifier a notifier to send emails to SMTP servers.
@@ -23,27 +24,27 @@ func NewFileNotifier(configuration schema.FileSystemNotifierConfiguration) *File
 }
 
 // StartupCheck checks the file provider can write to the specified file.
-func (n *FileNotifier) StartupCheck() (bool, error) {
+func (n *FileNotifier) StartupCheck(_ *logrus.Logger) (err error) {
 	dir := filepath.Dir(n.path)
 	if _, err := os.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
 			if err = os.MkdirAll(dir, fileNotifierMode); err != nil {
-				return false, err
+				return err
 			}
 		} else {
-			return false, err
+			return err
 		}
 	} else if _, err = os.Stat(n.path); err != nil {
 		if !os.IsNotExist(err) {
-			return false, err
+			return err
 		}
 	}
 
 	if err := ioutil.WriteFile(n.path, []byte(""), fileNotifierMode); err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }
 
 // Send send a identity verification link to a user.
