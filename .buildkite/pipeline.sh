@@ -65,8 +65,6 @@ steps:
 
   - label: ":chrome: Integration Tests"
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
-    concurrency: 3
-    concurrency_group: "tests"
     depends_on:
       - "build-docker-linux-coverage"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
