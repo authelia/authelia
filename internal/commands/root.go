@@ -142,21 +142,6 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		ntpProvider = ntp.NewProvider(config.NTP)
 	}
 
-	var failed bool
-	if !config.NTP.DisableStartupCheck {
-		failed, err = ntpProvider.StartupCheck()
-
-		if err != nil {
-			logger.Errorf("Failed to check NTP host-server synchronization: %v", err)
-		}
-
-		if failed {
-			logger.Fatalf("Your Host is not synchronized with an NTP server")
-		} else {
-			logger.Info("*==NTP synchronization check terminated with success==*")
-		}
-	}
-
 	clock := utils.RealClock{}
 	authorizer := authorization.NewAuthorizer(config)
 	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
@@ -165,6 +150,25 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
 	if err != nil {
 		errors = append(errors, err)
+	}
+
+	var failed bool
+	if !config.NTP.DisableStartupCheck && authorizer.IsSecondFactorEnabled() {
+		failed, err = ntpProvider.StartupCheck()
+
+		if err != nil {
+			logger.Errorf("Failed to check time against the NTP server: %+v", err)
+		}
+
+		if failed {
+			if config.NTP.DisableFailure {
+				logger.Error("The system time is outside the maximum desynchronization when compared to the time reported by the NTP server, this may cause issues in validating TOTP secrets")
+			} else {
+				logger.Fatal("The system time is outside the maximum desynchronization when compared to the time reported by the NTP server")
+			}
+		} else {
+			logger.Debug("The system time is within the maximum desynchronization when compared to the time reported by the NTP server")
+		}
 	}
 
 	return middlewares.Providers{

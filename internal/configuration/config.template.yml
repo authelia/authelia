@@ -125,6 +125,9 @@ ntp:
   ## Disables the NTP check on startup.
   disable_startup_check: false
 
+  ## Disables the NTP check causing a failure and instead just logs an error.
+  disable_failure: false
+
 ##
 ## Authentication Backend Provider Configuration
 ##

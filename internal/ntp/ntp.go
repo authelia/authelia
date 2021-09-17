@@ -19,13 +19,13 @@ func NewProvider(config *schema.NTPConfiguration) *Provider {
 func (p *Provider) StartupCheck() (failed bool, err error) {
 	conn, err := net.Dial("udp", p.config.Address)
 	if err != nil {
-		return false, fmt.Errorf("could not connect to ntp server to validate the time desync: %w", err)
+		return false, fmt.Errorf("could not connect to NTP server to validate the time desync: %w", err)
 	}
 
 	defer conn.Close()
 
 	if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
-		return false, fmt.Errorf("could not connect to ntp server to validate the time desync: %w", err)
+		return false, fmt.Errorf("could not connect to NTP server to validate the time desync: %w", err)
 	}
 
 	version := ntpV4
@@ -36,7 +36,7 @@ func (p *Provider) StartupCheck() (failed bool, err error) {
 	req := &ntpPacket{LeapVersionMode: ntpLeapVersionClientMode(false, version)}
 
 	if err := binary.Write(conn, binary.BigEndian, req); err != nil {
-		return false, fmt.Errorf("could not write to the ntp server socket to validate the time desync: %w", err)
+		return false, fmt.Errorf("could not write to the NTP server socket to validate the time desync: %w", err)
 	}
 
 	now := time.Now()
@@ -44,13 +44,10 @@ func (p *Provider) StartupCheck() (failed bool, err error) {
 	resp := &ntpPacket{}
 
 	if err := binary.Read(conn, binary.BigEndian, resp); err != nil {
-		return false, fmt.Errorf("could not read from the ntp server socket to validate the time desync: %w", err)
+		return false, fmt.Errorf("could not read from the NTP server socket to validate the time desync: %w", err)
 	}
 
-	maxOffset, err := utils.ParseDurationString(p.config.MaximumDesync)
-	if err != nil {
-		return false, fmt.Errorf("Error ocuured: %w", err)
-	}
+	maxOffset, _ := utils.ParseDurationString(p.config.MaximumDesync)
 
 	ntpTime := ntpPacketToTime(resp)
 

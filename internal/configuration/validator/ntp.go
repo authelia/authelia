@@ -23,6 +23,6 @@ func ValidateNTP(configuration *schema.NTPConfiguration, validator *schema.Struc
 
 	_, err := utils.ParseDurationString(configuration.MaximumDesync)
 	if err != nil {
-		validator.Push(fmt.Errorf("Error occurred parsing NTP max_desync string: %s", err))
+		validator.Push(fmt.Errorf("error occurred parsing NTP max_desync string: %s", err))
 	}
 }
