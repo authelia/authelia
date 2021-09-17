@@ -1,0 +1,22 @@
+# CI/Git Directories
+coverage.txt
+Dockerfile*
+
+# Node Modules Directories
+**/node_modules
+
+# Documentation
+docs
+examples
+
+# Dot Files and Markdown
+.*
+*.md
+
+# Other
+internal/server/public_html
+authelia.service
+bootstrap.sh
+
+# Overrides
+!.healthcheck.env

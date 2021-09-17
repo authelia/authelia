@@ -530,6 +530,24 @@
       "contributions": [
         "userTesting"
       ]
+    },
+    {
+      "login": "nreymundo",
+      "name": "Nicolas Reymundo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5833447?v=4",
+      "profile": "https://github.com/nreymundo",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "polandy",
+      "name": "polandy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3670670?v=4",
+      "profile": "https://github.com/polandy",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7

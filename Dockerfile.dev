@@ -31,28 +31,35 @@ COPY --from=builder-frontend /node/src/internal/server/public_html internal/serv
 ARG LDFLAGS_EXTRA
 RUN \
 mv api internal/server/public_html/api && \
-cd cmd/authelia && \
 chmod 0666 /go/src/app/.healthcheck.env && \
-echo ">> Starting go build (coverage via go test)..." && \
-CGO_ENABLED=0 go test -c --tags coverage -covermode=atomic \
--ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
+echo ">> Starting go build..." && \
+CGO_ENABLED=0 go build -tags netgo \
+-ldflags "-s -w ${LDFLAGS_EXTRA}" -trimpath -o authelia ./cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====
 # ===================================
 FROM alpine:3.14.2
 
-RUN apk --no-cache add ca-certificates tzdata
-
 WORKDIR /app
 
-COPY --from=builder-backend /go/src/app/cmd/authelia/authelia /go/src/app/LICENSE /go/src/app/healthcheck.sh /go/src/app/.healthcheck.env ./
+# Set environment variables
+ENV PATH="/app:${PATH}" \
+    PUID=0 \
+    PGID=0
+
+RUN \
+apk --no-cache add ca-certificates su-exec tzdata
+
+COPY --from=builder-backend /go/src/app/cmd/authelia/authelia /go/src/app/LICENSE /go/src/app/entrypoint.sh /go/src/app/healthcheck.sh /go/src/app/.healthcheck.env ./
+
+RUN \
+chmod 0666 /app/.healthcheck.env
 
 EXPOSE 9091
 
 VOLUME /config
 
-ENV PATH="/app:${PATH}"
-
-CMD ["authelia", "-test.coverprofile=/authelia/coverage.txt", "COVERAGE", "--config", "/config/configuration.yml"]
-HEALTHCHECK --interval=30s --timeout=3s CMD /app/healthcheck.sh
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["--config", "/config/configuration.yml"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=1m CMD /app/healthcheck.sh
