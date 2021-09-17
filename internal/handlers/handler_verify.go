@@ -85,7 +85,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 
 // verifyBasicAuth verify that the provided username and password are correct and
 // that the user is authorized to target the resource.
-func verifyBasicAuth(header string, auth []byte, targetURL url.URL, ctx *middlewares.AutheliaCtx) (username, name string, groups, emails []string, authLevel authentication.Level, err error) { //nolint:unparam
+func verifyBasicAuth(header string, auth []byte, ctx *middlewares.AutheliaCtx) (username, name string, groups, emails []string, authLevel authentication.Level, err error) {
 	username, password, err := parseBasicAuth(header, string(auth))
 
 	if err != nil {
@@ -180,7 +180,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 		if err == authentication.ErrUserNotFound {
 			err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 			if err != nil {
-				ctx.Logger.Error(fmt.Errorf("unable to destroy user session after provider refresh didn't find the user: %s", err))
+				ctx.Logger.Errorf("Unable to destroy user session after provider refresh didn't find the user: %s", err)
 			}
 
 			return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, authentication.NotAuthenticated, err
@@ -418,7 +418,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	}
 
 	if isBasicAuth {
-		username, name, groups, emails, authLevel, err = verifyBasicAuth(authHeader, authValue, *targetURL, ctx)
+		username, name, groups, emails, authLevel, err = verifyBasicAuth(authHeader, authValue, ctx)
 		return
 	}
 
@@ -431,10 +431,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 
 		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 		if err != nil {
-			ctx.Logger.Error(
-				fmt.Errorf(
-					"unable to destroy user session after handler could not match them to their %s header: %s",
-					HeaderSessionUsername, err))
+			ctx.Logger.Errorf("Unable to destroy user session after handler could not match them to their %s header: %s", HeaderSessionUsername, err)
 		}
 
 		err = fmt.Errorf("could not match user %s to their %s header with a value of %s when visiting %s", username, HeaderSessionUsername, sessionUsername, targetURL.String())
@@ -452,23 +449,23 @@ func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		targetURL, err := ctx.GetOriginalURL()
 
 		if err != nil {
-			ctx.Logger.Error(fmt.Errorf("unable to parse target URL: %s", err))
+			ctx.Logger.Errorf("Unable to parse target URL: %s", err)
 			ctx.ReplyUnauthorized()
 
 			return
 		}
 
 		if !isSchemeHTTPS(targetURL) && !isSchemeWSS(targetURL) {
-			ctx.Logger.Error(fmt.Errorf("scheme of target URL %s must be secure since cookies are "+
-				"only transported over a secure connection for security reasons", targetURL.String()))
+			ctx.Logger.Errorf("Scheme of target URL %s must be secure since cookies are "+
+				"only transported over a secure connection for security reasons", targetURL.String())
 			ctx.ReplyUnauthorized()
 
 			return
 		}
 
 		if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domain) {
-			ctx.Logger.Error(fmt.Errorf("target URL %s is not under the protected domain %s",
-				targetURL.String(), ctx.Configuration.Session.Domain))
+			ctx.Logger.Errorf("Target URL %s is not under the protected domain %s",
+				targetURL.String(), ctx.Configuration.Session.Domain)
 			ctx.ReplyUnauthorized()
 
 			return

@@ -144,7 +144,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 		{"deny", authentication.TwoFactor, Forbidden},
 	}
 
-	url, _ := url.ParseRequestURI("https://test.example.com")
+	u, _ := url.ParseRequestURI("https://test.example.com")
 
 	for _, rule := range rules {
 		authorizer := authorization.NewAuthorizer(&schema.Configuration{
@@ -161,7 +161,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 			username = testUsername
 		}
 
-		matching := isTargetURLAuthorized(authorizer, *url, username, []string{}, net.ParseIP("127.0.0.1"), []byte("GET"), rule.AuthLevel)
+		matching := isTargetURLAuthorized(authorizer, *u, username, []string{}, net.ParseIP("127.0.0.1"), []byte("GET"), rule.AuthLevel)
 		assert.Equal(t, rule.ExpectedMatching, matching, "policy=%s, authLevel=%v, expected=%v, actual=%v",
 			rule.Policy, rule.AuthLevel, rule.ExpectedMatching, matching)
 	}
@@ -176,8 +176,7 @@ func TestShouldVerifyWrongCredentials(t *testing.T) {
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(false, nil)
 
-	url, _ := url.ParseRequestURI("https://test.example.com")
-	_, _, _, _, _, err := verifyBasicAuth(HeaderProxyAuthorization, []byte("Basic am9objpwYXNzd29yZA=="), *url, mock.Ctx)
+	_, _, _, _, _, err := verifyBasicAuth(HeaderProxyAuthorization, []byte("Basic am9objpwYXNzd29yZA=="), mock.Ctx)
 
 	assert.Error(t, err)
 }
