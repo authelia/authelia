@@ -2,9 +2,11 @@ package ntp
 
 import (
 	"encoding/binary"
-	"fmt"
+	"errors"
 	"net"
 	"time"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -15,17 +17,21 @@ func NewProvider(config *schema.NTPConfiguration) *Provider {
 	return &Provider{config}
 }
 
-// StartupCheck checks if the system clock is not out of sync.
-func (p *Provider) StartupCheck() (failed bool, err error) {
+// StartupCheck implements the startup check provider interface.
+func (p *Provider) StartupCheck(logger *logrus.Logger) (err error) {
 	conn, err := net.Dial("udp", p.config.Address)
 	if err != nil {
-		return false, fmt.Errorf("could not connect to NTP server to validate the time desync: %w", err)
+		logger.Warnf("Could not connect to NTP server to validate the system time is properly synchronized: %+v", err)
+
+		return nil
 	}
 
 	defer conn.Close()
 
 	if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
-		return false, fmt.Errorf("could not connect to NTP server to validate the time desync: %w", err)
+		logger.Warnf("Could not connect to NTP server to validate the system time is properly synchronized: %+v", err)
+
+		return nil
 	}
 
 	version := ntpV4
@@ -36,7 +42,9 @@ func (p *Provider) StartupCheck() (failed bool, err error) {
 	req := &ntpPacket{LeapVersionMode: ntpLeapVersionClientMode(false, version)}
 
 	if err := binary.Write(conn, binary.BigEndian, req); err != nil {
-		return false, fmt.Errorf("could not write to the NTP server socket to validate the time desync: %w", err)
+		logger.Warnf("Could not write to the NTP server socket to validate the system time is properly synchronized: %+v", err)
+
+		return nil
 	}
 
 	now := time.Now()
@@ -44,12 +52,18 @@ func (p *Provider) StartupCheck() (failed bool, err error) {
 	resp := &ntpPacket{}
 
 	if err := binary.Read(conn, binary.BigEndian, resp); err != nil {
-		return false, fmt.Errorf("could not read from the NTP server socket to validate the time desync: %w", err)
+		logger.Warnf("Could not read from the NTP server socket to validate the system time is properly synchronized: %+v", err)
+
+		return nil
 	}
 
 	maxOffset, _ := utils.ParseDurationString(p.config.MaximumDesync)
 
 	ntpTime := ntpPacketToTime(resp)
 
-	return ntpIsOffsetTooLarge(maxOffset, now, ntpTime), nil
+	if result := ntpIsOffsetTooLarge(maxOffset, now, ntpTime); result {
+		return errors.New("the system clock is not synchronized accurately enough with the configured NTP server")
+	}
+
+	return nil
 }
