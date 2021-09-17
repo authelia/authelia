@@ -21,25 +21,25 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 
 		secret, err := ctx.Providers.StorageProvider.LoadTOTPSecret(userSession.Username)
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to load TOTP secret: %s", err), messageMFAValidationFailed)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to load TOTP secret: %s", err), messageMFAValidationFailed)
 			return
 		}
 
 		isValid, err := totpVerifier.Verify(requestBody.Token, secret)
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Error occurred during OTP validation for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("error occurred during OTP validation for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
 			return
 		}
 
 		if !isValid {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Wrong passcode during TOTP validation for user %s", userSession.Username), messageMFAValidationFailed)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("wrong passcode during TOTP validation for user %s", userSession.Username), messageMFAValidationFailed)
 			return
 		}
 
 		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to regenerate session for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to regenerate session for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
 			return
 		}
 
@@ -47,7 +47,7 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 
 		err = ctx.SaveSession(userSession)
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to update the authentication level with TOTP: %s", err), messageMFAValidationFailed)
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to update the authentication level with TOTP: %s", err), messageMFAValidationFailed)
 			return
 		}
 

@@ -30,7 +30,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 	client, err := ctx.Providers.OpenIDConnect.Store.GetInternalClient(clientID)
 
 	if err != nil {
-		err := fmt.Errorf("Unable to find related client configuration with name '%s': %v", ar.GetID(), err)
+		err := fmt.Errorf("unable to find related client configuration with name '%s': %v", ar.GetID(), err)
 		ctx.Logger.Error(err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
@@ -56,7 +56,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 
 	userSession.OIDCWorkflowSession = nil
 	if err := ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("%v", err)
+		ctx.Logger.Error(err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 
 		return
@@ -147,7 +147,7 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	ar fosite.AuthorizeRequester) {
 	issuer, err := ctx.ExternalRootURL()
 	if err != nil {
-		ctx.Logger.Errorf("%v", err)
+		ctx.Logger.Error(err)
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 
 		return
@@ -169,7 +169,7 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	}
 
 	if err := ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("%v", err)
+		ctx.Logger.Errorf("Unable to save session: %v", err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 
 		return
