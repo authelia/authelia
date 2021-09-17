@@ -20,7 +20,7 @@ import (
 func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	ar, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r)
 	if err != nil {
-		logging.Logger().Errorf("error occurred in NewAuthorizeRequest: %+v", err)
+		logging.Logger().Errorf("Error occurred in NewAuthorizeRequest: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
 		return

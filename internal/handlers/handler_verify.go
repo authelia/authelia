@@ -427,7 +427,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 
 	sessionUsername := ctx.Request.Header.Peek(HeaderSessionUsername)
 	if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
-		ctx.Logger.Warnf("possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
+		ctx.Logger.Warnf("Possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
 
 		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 		if err != nil {

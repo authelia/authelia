@@ -43,7 +43,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {
-		ctx.Logger.Debugf("cannot consent for user %s when OIDC workflow has not been initiated", userSession.Username)
+		ctx.Logger.Debugf("Cannot consent for user %s when OIDC workflow has not been initiated", userSession.Username)
 		ctx.ReplyForbidden()
 
 		return
