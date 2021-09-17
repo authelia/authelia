@@ -109,6 +109,29 @@ duo_api:
   secret_key: 1234567890abcdefghifjkl
 
 ##
+## NTP Configuration
+##
+## This is used to validate the servers time is accurate enough to validate TOTP.
+ntp:
+  ## NTP server address.
+  address: "time.cloudflare.com:123"
+
+  ## NTP version.
+  version: 4
+
+  ## Maximum allowed time offset between the host and the NTP server.
+  max_desync: 3s
+
+  ## Disables the NTP check on startup entirely. This means Authelia will not contact a remote service at all if you
+  ## set this to true, and can operate in a truly offline mode.
+  disable_startup_check: false
+
+  ## The default of false will prevent startup only if we can contact the NTP server and the time is out of sync with
+  ## the NTP server more than the configured max_desync. If you set this to true, an error will be logged but startup
+  ## will continue regardless of results.
+  disable_failure: false
+
+##
 ## Authentication Backend Provider Configuration
 ##
 ## Used for verifying user passwords and retrieve information such as email address and groups users belong to.
