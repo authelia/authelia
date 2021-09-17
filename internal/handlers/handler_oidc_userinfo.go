@@ -30,7 +30,7 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 	}
 
 	if tokenType != fosite.AccessToken {
-		errStr := "Authorization header must contain an OAuth access token."
+		errStr := "authorization header must contain an OAuth access token."
 		rw.Header().Set("WWW-Authenticate", fmt.Sprintf("error_description=\"%s\"", errStr))
 		ctx.Providers.OpenIDConnect.WriteErrorCode(rw, req, http.StatusUnauthorized, errors.New(errStr))
 
