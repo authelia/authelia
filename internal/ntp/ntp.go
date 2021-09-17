@@ -6,9 +6,10 @@ import (
 	"net"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
-	"github.com/sirupsen/logrus"
 )
 
 // NewProvider instantiate a ntp provider given a configuration.
@@ -16,7 +17,7 @@ func NewProvider(config *schema.NTPConfiguration) *Provider {
 	return &Provider{config}
 }
 
-// StartupCheck checks if the system clock is not out of sync.
+// StartupCheck implements the startup check provider interface.
 func (p *Provider) StartupCheck(logger *logrus.Logger) (err error) {
 	conn, err := net.Dial("udp", p.config.Address)
 	if err != nil {

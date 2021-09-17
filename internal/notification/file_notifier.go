@@ -7,8 +7,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // FileNotifier a notifier to send emails to SMTP servers.
@@ -23,7 +24,7 @@ func NewFileNotifier(configuration schema.FileSystemNotifierConfiguration) *File
 	}
 }
 
-// StartupCheck checks the file provider can write to the specified file.
+// StartupCheck implements the startup check provider interface.
 func (n *FileNotifier) StartupCheck(_ *logrus.Logger) (err error) {
 	dir := filepath.Dir(n.path)
 	if _, err := os.Stat(dir); err != nil {

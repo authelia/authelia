@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/go-ldap/ldap/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -13,6 +12,7 @@ import (
 	"golang.org/x/text/encoding/unicode"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 

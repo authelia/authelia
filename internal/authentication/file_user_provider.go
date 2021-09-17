@@ -207,7 +207,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	return err
 }
 
-// StartupCheck handles the startup check for this provider.
+// StartupCheck implements the startup check provider interface.
 func (p *FileUserProvider) StartupCheck(_ *logrus.Logger) (err error) {
 	return nil
 }

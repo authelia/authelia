@@ -162,20 +162,24 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 		err      error
 	)
 
-	if err = doStartupCheck(logger, "user", failures, providers.UserProvider, false); err != nil {
+	if err = doStartupCheck(logger, "user", providers.UserProvider, false); err != nil {
 		logger.Errorf("Failure running the user provider startup check: %+v", err)
+
+		failures = append(failures, "user")
 	}
 
-	if err = doStartupCheck(logger, "notification", failures, providers.Notifier, config.Notifier.DisableStartupCheck); err != nil {
+	if err = doStartupCheck(logger, "notification", providers.Notifier, config.Notifier.DisableStartupCheck); err != nil {
 		logger.Errorf("Failure running the notification provider startup check: %+v", err)
+
+		failures = append(failures, "notification")
 	}
 
 	if !config.NTP.DisableStartupCheck && !providers.Authorizer.IsSecondFactorEnabled() {
 		logger.Debug("The NTP startup check was skipped due to there being no configured 2FA access control rules")
-	} else {
-		if err = doStartupCheck(logger, "ntp", failures, providers.NTP, config.NTP.DisableStartupCheck); err != nil {
-			logger.Errorf("Failure running the user provider startup check: %+v", err)
-		}
+	} else if err = doStartupCheck(logger, "ntp", providers.NTP, config.NTP.DisableStartupCheck); err != nil {
+		logger.Errorf("Failure running the user provider startup check: %+v", err)
+
+		failures = append(failures, "ntp")
 	}
 
 	if len(failures) != 0 {
@@ -183,20 +187,17 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 	}
 }
 
-func doStartupCheck(logger *logrus.Logger, name string, failures []string, provider middlewares.ProviderWithStartupCheck, disabled bool) (err error) {
+func doStartupCheck(logger *logrus.Logger, name string, provider middlewares.ProviderWithStartupCheck, disabled bool) (err error) {
 	if disabled {
 		logger.Debugf("%s provider: startup check skipped as it is disabled", name)
 		return nil
 	}
 
 	if provider == nil {
-		failures = append(failures, name)
 		return fmt.Errorf("unrecognized provider or it is not configured properly")
 	}
 
 	if err = provider.StartupCheck(logger); err != nil {
-		failures = append(failures, name)
-
 		return err
 	}
 

@@ -3,11 +3,13 @@ package authentication
 import (
 	"strings"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+// StartupCheck implements the startup check provider interface.
 func (p *LDAPUserProvider) StartupCheck(logger *logrus.Logger) (err error) {
 	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
@@ -46,7 +48,6 @@ func (p *LDAPUserProvider) StartupCheck(logger *logrus.Logger) (err error) {
 
 	if !p.supportExtensionPasswdModify && !p.disableResetPassword &&
 		p.configuration.Implementation != schema.LDAPImplementationActiveDirectory {
-
 		logger.Warn("Your LDAP server implementation may not support a method for password hashing " +
 			"known to Authelia, it's strongly recommended you ensure your directory server hashes the password " +
 			"attribute when users reset their password via Authelia.")
