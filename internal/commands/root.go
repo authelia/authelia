@@ -12,6 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/notification"
+	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/server"
@@ -80,7 +81,10 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	server.Start(*config, providers)
 }
 
+//nolint:gocyclo // TODO: Consider refactoring time permitting.
 func getProviders(config *schema.Configuration) (providers middlewares.Providers, warnings []error, errors []error) {
+	logger := logging.Logger()
+
 	autheliaCertPool, warnings, errors := utils.NewX509CertPool(config.CertificatesDirectory)
 	if len(warnings) != 0 || len(errors) != 0 {
 		return providers, warnings, errors
@@ -133,6 +137,11 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		}
 	}
 
+	var ntpProvider *ntp.Provider
+	if config.NTP != nil {
+		ntpProvider = ntp.NewProvider(config.NTP)
+	}
+
 	clock := utils.RealClock{}
 	authorizer := authorization.NewAuthorizer(config)
 	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
@@ -143,12 +152,32 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		errors = append(errors, err)
 	}
 
+	var failed bool
+	if !config.NTP.DisableStartupCheck && authorizer.IsSecondFactorEnabled() {
+		failed, err = ntpProvider.StartupCheck()
+
+		if err != nil {
+			logger.Errorf("Failed to check time against the NTP server: %+v", err)
+		}
+
+		if failed {
+			if config.NTP.DisableFailure {
+				logger.Error("The system time is outside the maximum desynchronization when compared to the time reported by the NTP server, this may cause issues in validating TOTP secrets")
+			} else {
+				logger.Fatal("The system time is outside the maximum desynchronization when compared to the time reported by the NTP server")
+			}
+		} else {
+			logger.Debug("The system time is within the maximum desynchronization when compared to the time reported by the NTP server")
+		}
+	}
+
 	return middlewares.Providers{
 		Authorizer:      authorizer,
 		UserProvider:    userProvider,
 		Regulator:       regulator,
 		OpenIDConnect:   oidcProvider,
 		StorageProvider: storageProvider,
+		NTP:             ntpProvider,
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
 	}, warnings, errors
