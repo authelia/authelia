@@ -11,7 +11,7 @@ import (
 
 func TestShouldCheckNTP(t *testing.T) {
 	config := schema.NTPConfiguration{
-		Address:             "time.google.com:123",
+		Address:             "time.cloudflare.com:123",
 		Version:             4,
 		MaximumDesync:       "3s",
 		DisableStartupCheck: false,

@@ -4,7 +4,7 @@ import "time"
 
 // ntpLeapVersionClientMode does the mathematics to configure the leap/version/mode value of an NTP client packet.
 func ntpLeapVersionClientMode(leap bool, version ntpVersion) (lvm uint8) {
-	lvm = ntpClientModeValue // client mode
+	lvm = ntpClientModeValue
 
 	if leap {
 		lvm += ntpLeapEnabledValue
