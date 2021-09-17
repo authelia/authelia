@@ -37,34 +37,28 @@ steps:
     agents:
       build: "unit-test"
     artifact_paths:
-      - "authelia-public_html.tar.gz"
-      - "authelia-public_html.tar.gz.sha256"
+      - "authelia-*.tar.gz"
+      - "authelia-*.tar.gz.sha256"
     key: "unit-test"
     if: build.env("CI_BYPASS") != "true"
 
   - wait:
     if: build.env("CI_BYPASS") != "true"
 
-  - label: ":docker: Image Builds"
-    command: ".buildkite/steps/buildimages.sh | buildkite-agent pipeline upload"
-    concurrency: 3
-    concurrency_group: "builds"
+  - label: ":docker: Build Image [coverage]"
+    command: "authelia-scripts docker build --container=coverage"
+    agents:
+      build: "linux-coverage"
+    artifact_paths:
+      - "authelia-image-coverage.tar.zst"
     depends_on: ~
-    if: build.env("CI_BYPASS") != "true"
+    key: "build-docker-linux-coverage"
+    if: build.env("CI_BYPASS") != "true" && build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 
   - label: ":debian: Package Builds"
     command: ".buildkite/steps/debpackages.sh | buildkite-agent pipeline upload"
     depends_on: ~
     if: build.branch !~ /^(dependabot|renovate)\/.*/ && build.env("CI_BYPASS") != "true"
-
-  - wait:
-    if: build.env("CI_BYPASS") != "true"
-
-  - label: ":vertical_traffic_light: Build Concurrency Gate"
-    command: "echo End of concurrency gate"
-    concurrency: 3
-    concurrency_group: "builds"
-    if: build.env("CI_BYPASS") != "true"
 
   - wait:
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/

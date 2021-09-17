@@ -1,5 +1,5 @@
-const isCoverage = process.env.COVERAGE === 'true'
-const babelPlugins = isCoverage ? [ "babel-plugin-istanbul" ] : []
+const isCoverage = process.env.COVERAGE === "true";
+const babelPlugins = isCoverage ? ["babel-plugin-istanbul"] : [];
 
 module.exports = {
     babel: {
@@ -12,7 +12,7 @@ module.exports = {
                 source: "tsconfig",
                 baseUrl: "./src",
                 tsConfigPath: "./tsconfig.aliases.json",
-            }
-        }
-    ]
+            },
+        },
+    ],
 };
