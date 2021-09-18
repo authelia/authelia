@@ -51,7 +51,7 @@ if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]] && [[ "${BUILDKITE_B
     echo "Removing tag ${BRANCH_TAG} from docker.io"
     curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: JWT ${authtoken}" https://hub.docker.com/v2/repositories/authelia/authelia/tags/${BRANCH_TAG}/
     for i in {1..5}; do
-      for GHCR_VERSION in $(curl -fsL --retry 3 -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/orgs/authelia/packages/container/authelia/versions?page=${i}&per_page=100" | jq --arg tag ${BRANCH_TAG} '.[] | select(.metadata.container.tags[] | contains($tag)) | "\(.metadata.container.tags[]),\(.id)"'); do
+      for GHCR_VERSION in $(curl -fsL --retry 3 -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/orgs/authelia/packages/container/authelia/versions?page=${i}&per_page=100" | jq -j --arg tag ${BRANCH_TAG} '.[] | select(.metadata.container.tags[] | contains($tag)) | .metadata.container.tags[], ",", .id, "\n"'); do
         IFS=','
         read -a TAGID <<< ${GHCR_VERSION}
         echo "Removing tag ${TAGID[0]} with id ${TAGID[1]} from ghcr.io"
@@ -66,7 +66,7 @@ if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]] && [[ "${BUILDKITE_B
     echo "Removing tag ${PR_TAG} from docker.io"
     curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: JWT ${authtoken}" https://hub.docker.com/v2/repositories/authelia/authelia/tags/${PR_TAG}/
     for i in {1..5}; do
-      for GHCR_VERSION in $(curl -fsL --retry 3 -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/orgs/authelia/packages/container/authelia/versions?page=${i}&per_page=100" | jq --arg tag ${PR_TAG} '.[] | select(.metadata.container.tags[] | contains($tag)) | "\(.metadata.container.tags[]),\(.id)"'); do
+      for GHCR_VERSION in $(curl -fsL --retry 3 -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/orgs/authelia/packages/container/authelia/versions?page=${i}&per_page=100" | jq -j --arg tag ${PR_TAG} '.[] | select(.metadata.container.tags[] | contains($tag)) | .metadata.container.tags[], ",", .id, "\n"'); do
         IFS=','
         read -a TAGID <<< ${GHCR_VERSION}
         echo "Removing tag ${TAGID[0]} with id ${TAGID[1]} from ghcr.io"
