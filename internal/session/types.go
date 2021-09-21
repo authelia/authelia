@@ -1,14 +1,17 @@
 package session
 
 import (
+	"context"
 	"time"
 
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/redis"
+	"github.com/sirupsen/logrus"
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 // ProviderConfig is the configuration used to create the session provider.
@@ -74,4 +77,16 @@ type OIDCWorkflowSession struct {
 	AuthURI                    string
 	RequiredAuthorizationLevel authorization.Level
 	CreatedTimestamp           int64
+}
+
+func newRedisLogger() *redisLogger {
+	return &redisLogger{logger: logging.Logger()}
+}
+
+type redisLogger struct {
+	logger *logrus.Logger
+}
+
+func (l *redisLogger) Printf(_ context.Context, format string, v ...interface{}) {
+	l.logger.Tracef(format, v...)
 }

@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -220,39 +222,39 @@ func (n *SMTPNotifier) cleanup() {
 	}
 }
 
-// StartupCheck checks the server is functioning correctly and the configuration is correct.
-func (n *SMTPNotifier) StartupCheck() (bool, error) {
+// StartupCheck implements the startup check provider interface.
+func (n *SMTPNotifier) StartupCheck(_ *logrus.Logger) (err error) {
 	if err := n.dial(); err != nil {
-		return false, err
+		return err
 	}
 
 	defer n.cleanup()
 
 	if err := n.client.Hello(n.configuration.Identifier); err != nil {
-		return false, err
+		return err
 	}
 
 	if err := n.startTLS(); err != nil {
-		return false, err
+		return err
 	}
 
 	if err := n.auth(); err != nil {
-		return false, err
+		return err
 	}
 
 	if err := n.client.Mail(n.configuration.Sender); err != nil {
-		return false, err
+		return err
 	}
 
 	if err := n.client.Rcpt(n.configuration.StartupCheckAddress); err != nil {
-		return false, err
+		return err
 	}
 
 	if err := n.client.Reset(); err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }
 
 // Send is used to send an email to a recipient.

@@ -50,7 +50,7 @@ var Commands = []AutheliaCommandDefinition{
 	{
 		Name:        "docker",
 		Short:       "Commands related to building and publishing docker image",
-		SubCommands: CobraCommands{DockerBuildCmd, DockerPushCmd, DockerManifestCmd},
+		SubCommands: CobraCommands{DockerBuildCmd, DockerManifestCmd},
 	},
 	{
 		Name:  "serve [config]",

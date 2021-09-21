@@ -23,7 +23,7 @@ func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identi
 	}
 
 	if len(details.Emails) == 0 {
-		return nil, fmt.Errorf("User %s has no email address configured", requestBody.Username)
+		return nil, fmt.Errorf("user %s has no email address configured", requestBody.Username)
 	}
 
 	return &session.Identity{

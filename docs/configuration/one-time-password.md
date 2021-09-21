@@ -2,7 +2,7 @@
 layout: default
 title: Time-based One-Time Password
 parent: Configuration
-nav_order: 15
+nav_order: 16
 ---
 
 # Time-based One-Time Password
@@ -80,3 +80,13 @@ For example the default of 1 has a total of 3 keys valid. A value of 2 has 5 one
 valid.
 
 It is recommended to keep this value set to 0 or 1, the minimum is 0.
+
+## System time accuracy
+
+It's important to note that if the system time is not accurate enough then clients will seemingly not generate valid
+passwords for TOTP. Conversely this is the same when the client time is not accurate enough. This is due to the Time-based
+One Time Passwords being time-based.
+
+Authelia by default checks the system time against an [NTP server](./ntp.md#address) on startup. This helps to prevent
+a time synchronization issue on the server being an issue. There is however no effective and reliable way to check the
+clients.

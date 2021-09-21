@@ -24,6 +24,8 @@ type LDAPUserProvider struct {
 	logger            *logrus.Logger
 	connectionFactory LDAPConnectionFactory
 
+	disableResetPassword bool
+
 	// Automatically detected ldap features.
 	supportExtensionPasswdModify bool
 
@@ -41,25 +43,13 @@ type LDAPUserProvider struct {
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
-func NewLDAPUserProvider(configuration schema.AuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider, err error) {
-	provider = newLDAPUserProvider(*configuration.LDAP, certPool, nil)
+func NewLDAPUserProvider(configuration schema.AuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider) {
+	provider = newLDAPUserProvider(*configuration.LDAP, configuration.DisableResetPassword, certPool, nil)
 
-	err = provider.checkServer()
-	if err != nil {
-		return provider, err
-	}
-
-	if !provider.supportExtensionPasswdModify && !configuration.DisableResetPassword &&
-		provider.configuration.Implementation != schema.LDAPImplementationActiveDirectory {
-		provider.logger.Warnf("Your LDAP server implementation may not support a method for password hashing " +
-			"known to Authelia, it's strongly recommended you ensure your directory server hashes the password " +
-			"attribute when users reset their password via Authelia.")
-	}
-
-	return provider, nil
+	return provider
 }
 
-func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool, factory LDAPConnectionFactory) (provider *LDAPUserProvider) {
+func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, disableResetPassword bool, certPool *x509.CertPool, factory LDAPConnectionFactory) (provider *LDAPUserProvider) {
 	if configuration.TLS == nil {
 		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 	}
@@ -79,11 +69,12 @@ func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 	}
 
 	provider = &LDAPUserProvider{
-		configuration:     configuration,
-		tlsConfig:         tlsConfig,
-		dialOpts:          dialOpts,
-		logger:            logging.Logger(),
-		connectionFactory: factory,
+		configuration:        configuration,
+		tlsConfig:            tlsConfig,
+		dialOpts:             dialOpts,
+		logger:               logging.Logger(),
+		connectionFactory:    factory,
+		disableResetPassword: disableResetPassword,
 	}
 
 	provider.parseDynamicUsersConfiguration()
