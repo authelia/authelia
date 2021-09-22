@@ -65,7 +65,7 @@ This is a list of the key features of Authelia:
 * Support of basic authentication for endpoints protected by the one-factor policy.
 * Highly available using a remote database and Redis as a highly available KV store.
 * Compatible with [Traefik](https://doc.traefik.io/traefik) out of the box using the
-  [ForwardAuth](https://doc.traefik.io/traefik/middlewares/forwardauth/) middleware.
+  [ForwardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) middleware.
 * Curated configuration from [LinuxServer](https://www.linuxserver.io/) via their 
   [Swag](https://docs.linuxserver.io/general/swag) container as well as a 
   [guide](https://blog.linuxserver.io/2020/08/26/setting-up-authelia/).
