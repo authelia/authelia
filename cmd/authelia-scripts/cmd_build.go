@@ -138,6 +138,17 @@ func cleanAssets() {
 func Build(cobraCmd *cobra.Command, args []string) {
 	log.Info("Building Authelia...")
 
+	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
+
+	if buildkite {
+		cmd := utils.CommandWithStdout("bash", "-c", "docker pull authelia/crossbuild -q &")
+
+		err := cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	Clean(cobraCmd, args)
 
 	xflags, err := getXFlags(os.Getenv("BUILDKITE_BRANCH"), os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
@@ -158,7 +169,6 @@ func Build(cobraCmd *cobra.Command, args []string) {
 	log.Debug("Building swagger-ui frontend...")
 	buildSwagger()
 
-	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
 	if buildkite {
 		log.Debug("Building Authelia Go binaries with gox...")
 	} else {

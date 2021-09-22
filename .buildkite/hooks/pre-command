@@ -6,10 +6,6 @@ if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
   cd web && yarn install && cd ../
 fi
 
-if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
-  docker pull authelia/crossbuild
-fi
-
 if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
   DEFAULT_ARCH=coverage
   echo "--- :docker: Extract, load and tag build container"
