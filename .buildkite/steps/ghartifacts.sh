@@ -7,6 +7,9 @@ for FILE in \
   authelia-linux-amd64.tar.gz authelia-linux-amd64.tar.gz.sha256 \
   authelia-linux-arm.tar.gz authelia-linux-arm.tar.gz.sha256 \
   authelia-linux-arm64.tar.gz authelia-linux-arm64.tar.gz.sha256 \
+  authelia-linux-amd64-musl.tar.gz authelia-linux-amd64-musl.tar.gz.sha256 \
+  authelia-linux-arm-musl.tar.gz authelia-linux-arm-musl.tar.gz.sha256 \
+  authelia-linux-arm64-musl.tar.gz authelia-linux-arm64-musl.tar.gz.sha256 \
   authelia-freebsd-amd64.tar.gz authelia-freebsd-amd64.tar.gz.sha256 \
   authelia-public_html.tar.gz authelia-public_html.tar.gz.sha256;
 do
