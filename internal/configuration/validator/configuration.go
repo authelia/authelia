@@ -65,4 +65,10 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 	}
 
 	ValidateIdentityProviders(&configuration.IdentityProviders, validator)
+
+	if configuration.NTP == nil {
+		configuration.NTP = &schema.DefaultNTPConfiguration
+	}
+
+	ValidateNTP(configuration.NTP, validator)
 }

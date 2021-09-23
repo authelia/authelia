@@ -3,7 +3,9 @@ package commands
 import (
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -12,6 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/notification"
+	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/server"
@@ -77,10 +80,13 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 		logger.Fatalf("Errors occurred provisioning providers.")
 	}
 
+	doStartupChecks(config, &providers)
+
 	server.Start(*config, providers)
 }
 
 func getProviders(config *schema.Configuration) (providers middlewares.Providers, warnings []error, errors []error) {
+	// TODO: Adjust this so the CertPool can be used like a provider.
 	autheliaCertPool, warnings, errors := utils.NewX509CertPool(config.CertificatesDirectory)
 	if len(warnings) != 0 || len(errors) != 0 {
 		return providers, warnings, errors
@@ -96,6 +102,7 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 	case config.Storage.Local != nil:
 		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
 	default:
+		// TODO: Add storage provider startup check and remove this.
 		errors = append(errors, fmt.Errorf("unrecognized storage provider"))
 	}
 
@@ -108,12 +115,7 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 	case config.AuthenticationBackend.File != nil:
 		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	case config.AuthenticationBackend.LDAP != nil:
-		userProvider, err = authentication.NewLDAPUserProvider(config.AuthenticationBackend, autheliaCertPool)
-		if err != nil {
-			errors = append(errors, fmt.Errorf("failed to check LDAP authentication backend: %w", err))
-		}
-	default:
-		errors = append(errors, fmt.Errorf("unrecognized user provider"))
+		userProvider = authentication.NewLDAPUserProvider(config.AuthenticationBackend, autheliaCertPool)
 	}
 
 	var notifier notification.Notifier
@@ -123,14 +125,11 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, autheliaCertPool)
 	case config.Notifier.FileSystem != nil:
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
-	default:
-		errors = append(errors, fmt.Errorf("unrecognized notifier provider"))
 	}
 
-	if notifier != nil && !config.Notifier.DisableStartupCheck {
-		if _, err := notifier.StartupCheck(); err != nil {
-			errors = append(errors, fmt.Errorf("failed to check notification provider: %w", err))
-		}
+	var ntpProvider *ntp.Provider
+	if config.NTP != nil {
+		ntpProvider = ntp.NewProvider(config.NTP)
 	}
 
 	clock := utils.RealClock{}
@@ -149,7 +148,58 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		Regulator:       regulator,
 		OpenIDConnect:   oidcProvider,
 		StorageProvider: storageProvider,
+		NTP:             ntpProvider,
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
 	}, warnings, errors
+}
+
+func doStartupChecks(config *schema.Configuration, providers *middlewares.Providers) {
+	logger := logging.Logger()
+
+	var (
+		failures []string
+		err      error
+	)
+
+	if err = doStartupCheck(logger, "user", providers.UserProvider, false); err != nil {
+		logger.Errorf("Failure running the user provider startup check: %+v", err)
+
+		failures = append(failures, "user")
+	}
+
+	if err = doStartupCheck(logger, "notification", providers.Notifier, config.Notifier.DisableStartupCheck); err != nil {
+		logger.Errorf("Failure running the notification provider startup check: %+v", err)
+
+		failures = append(failures, "notification")
+	}
+
+	if !config.NTP.DisableStartupCheck && !providers.Authorizer.IsSecondFactorEnabled() {
+		logger.Debug("The NTP startup check was skipped due to there being no configured 2FA access control rules")
+	} else if err = doStartupCheck(logger, "ntp", providers.NTP, config.NTP.DisableStartupCheck); err != nil {
+		logger.Errorf("Failure running the user provider startup check: %+v", err)
+
+		failures = append(failures, "ntp")
+	}
+
+	if len(failures) != 0 {
+		logger.Fatalf("The following providers had fatal failures during startup: %s", strings.Join(failures, ", "))
+	}
+}
+
+func doStartupCheck(logger *logrus.Logger, name string, provider middlewares.ProviderWithStartupCheck, disabled bool) (err error) {
+	if disabled {
+		logger.Debugf("%s provider: startup check skipped as it is disabled", name)
+		return nil
+	}
+
+	if provider == nil {
+		return fmt.Errorf("unrecognized provider or it is not configured properly")
+	}
+
+	if err = provider.StartupCheck(logger); err != nil {
+		return err
+	}
+
+	return nil
 }

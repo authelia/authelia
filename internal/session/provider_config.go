@@ -11,6 +11,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -80,6 +81,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 
 			providerName = "redis-sentinel"
 			redisSentinelConfig = &redis.FailoverConfig{
+				Logger:           &redisLogger{logger: logging.Logger()},
 				MasterName:       configuration.Redis.HighAvailability.SentinelName,
 				SentinelAddrs:    addrs,
 				SentinelPassword: configuration.Redis.HighAvailability.SentinelPassword,
@@ -108,6 +110,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 			}
 
 			redisConfig = &redis.Config{
+				Logger:       newRedisLogger(),
 				Network:      network,
 				Addr:         addr,
 				Username:     configuration.Redis.Username,

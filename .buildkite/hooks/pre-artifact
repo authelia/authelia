@@ -2,25 +2,25 @@
 
 set +u
 
+declare -A BUILDS=(["linux"]="amd64 arm arm64" ["freebsd"]="amd64")
 DOCKER_IMAGE=authelia/authelia
 
 if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
+  echo "--- :docker: Saving artifacts for :buildkite: :docker: :github: releases"
+  for OS in "${!BUILDS[@]}"; do
+    for ARCH in ${BUILDS[$OS]}; do
+      tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia.service config.template.yml
+      sha256sum "authelia-${OS}-${ARCH}.tar.gz" > "authelia-${OS}-${ARCH}.tar.gz.sha256"
+    done
+  done
+
   tar -czf authelia-public_html.tar.gz -C dist public_html
   sha256sum authelia-public_html.tar.gz > authelia-public_html.tar.gz.sha256
 fi
 
-if [[ "${BUILDKITE_LABEL}" =~ ":docker: Build Image" ]]; then
-  echo "--- :docker: Saving artifacts for :buildkite: :docker: :github: releases"
-  # Save binary for buildkite and github artifacts
-  if [[ "${ARCH}" != "coverage" ]]; then
-    docker create --name authelia-binary "${DOCKER_IMAGE}:latest"
-    docker cp authelia-binary:/app/authelia "./authelia-${OS}-${ARCH}"
-    docker rm -f authelia-binary
-    tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia.service config.template.yml
-    sha256sum "authelia-${OS}-${ARCH}.tar.gz" > "authelia-${OS}-${ARCH}.tar.gz.sha256"
-  fi
-  # Saving image for push to docker hub
-  docker save "${DOCKER_IMAGE}" | zstdmt -T0 -12 > "authelia-image-${ARCH}.tar.zst"
+if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
+  # Saving image for docker push
+  docker save "${DOCKER_IMAGE}" | zstdmt -T0 -12 > "authelia-image-coverage.tar.zst"
 fi
 
 if [[ "${BUILDKITE_LABEL}" =~ ":debian: Build Package" ]]; then

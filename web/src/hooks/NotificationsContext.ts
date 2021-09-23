@@ -1,4 +1,4 @@
-import { useCallback, createContext, useContext } from "react";
+import { createContext, useContext, useRef } from "react";
 
 import { Level } from "@components/ColoredSnackbarContent";
 import { Notification } from "@models/Notifications";
@@ -30,12 +30,10 @@ export function useNotifications() {
     };
 
     const resetNotification = () => useNotificationsProps.setNotification(null);
-    /* eslint-disable react-hooks/exhaustive-deps */
-    const createInfoNotification = useCallback(notificationBuilder("info"), []);
-    const createSuccessNotification = useCallback(notificationBuilder("success"), []);
-    const createWarnNotification = useCallback(notificationBuilder("warning"), []);
-    const createErrorNotification = useCallback(notificationBuilder("error"), []);
-    /* eslint-enable react-hooks/exhaustive-deps */
+    const createInfoNotification = useRef(notificationBuilder("info")).current;
+    const createSuccessNotification = useRef(notificationBuilder("success")).current;
+    const createWarnNotification = useRef(notificationBuilder("warning")).current;
+    const createErrorNotification = useRef(notificationBuilder("error")).current;
     const isActive = useNotificationsProps.notification !== null;
 
     return {
