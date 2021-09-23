@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
 // ConfigurationBody the content returned by the configuration endpoint.
@@ -25,7 +25,6 @@ func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	body.SecondFactorEnabled = ctx.Providers.Authorizer.IsSecondFactorEnabled()
 
 	ctx.Logger.Tracef("Second factor enabled: %v", body.SecondFactorEnabled)
-
 	ctx.Logger.Tracef("Available methods are %s", body.AvailableMethods)
 
 	err := ctx.SetJSONBody(body)

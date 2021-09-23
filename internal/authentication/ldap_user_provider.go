@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net"
 	"strings"
 	"time"
 
@@ -11,18 +12,20 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/text/encoding/unicode"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/logging"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // LDAPUserProvider is a UserProvider that connects to LDAP servers like ActiveDirectory, OpenLDAP, OpenDJ, FreeIPA, etc.
 type LDAPUserProvider struct {
 	configuration     schema.LDAPAuthenticationBackendConfiguration
 	tlsConfig         *tls.Config
-	dialOpts          ldap.DialOpt
+	dialOpts          []ldap.DialOpt
 	logger            *logrus.Logger
 	connectionFactory LDAPConnectionFactory
+
+	disableResetPassword bool
 
 	// Automatically detected ldap features.
 	supportExtensionPasswdModify bool
@@ -42,35 +45,25 @@ type LDAPUserProvider struct {
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
-func NewLDAPUserProvider(configuration schema.AuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider, err error) {
-	provider = newLDAPUserProvider(*configuration.LDAP, certPool, nil)
+func NewLDAPUserProvider(configuration schema.AuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider) {
+	provider = newLDAPUserProvider(*configuration.LDAP, configuration.DisableResetPassword, certPool, nil)
 
-	err = provider.checkServer()
-	if err != nil {
-		return provider, err
-	}
-
-	if !provider.supportExtensionPasswdModify && !configuration.DisableResetPassword &&
-		provider.configuration.Implementation != schema.LDAPImplementationActiveDirectory {
-		provider.logger.Warnf("Your LDAP server implementation may not support a method for password hashing " +
-			"known to Authelia, it's strongly recommended you ensure your directory server hashes the password " +
-			"attribute when users reset their password via Authelia.")
-	}
-
-	return provider, nil
+	return provider
 }
 
-func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, certPool *x509.CertPool, factory LDAPConnectionFactory) (provider *LDAPUserProvider) {
+func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, disableResetPassword bool, certPool *x509.CertPool, factory LDAPConnectionFactory) (provider *LDAPUserProvider) {
 	if configuration.TLS == nil {
 		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 	}
 
 	tlsConfig := utils.NewTLSConfig(configuration.TLS, tls.VersionTLS12, certPool)
 
-	var dialOpts ldap.DialOpt
+	var dialOpts = []ldap.DialOpt{
+		ldap.DialWithDialer(&net.Dialer{Timeout: configuration.Timeout}),
+	}
 
 	if tlsConfig != nil {
-		dialOpts = ldap.DialWithTLSConfig(tlsConfig)
+		dialOpts = append(dialOpts, ldap.DialWithTLSConfig(tlsConfig))
 	}
 
 	if factory == nil {
@@ -78,11 +71,12 @@ func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 	}
 
 	provider = &LDAPUserProvider{
-		configuration:     configuration,
-		tlsConfig:         tlsConfig,
-		dialOpts:          dialOpts,
-		logger:            logging.Logger(),
-		connectionFactory: factory,
+		configuration:        configuration,
+		tlsConfig:            tlsConfig,
+		dialOpts:             dialOpts,
+		logger:               logging.Logger(),
+		connectionFactory:    factory,
+		disableResetPassword: disableResetPassword,
 	}
 
 	provider.parseDynamicUsersConfiguration()
@@ -92,7 +86,7 @@ func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 }
 
 func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
-	conn, err := p.connectionFactory.DialURL(p.configuration.URL, p.dialOpts)
+	conn, err := p.connectionFactory.DialURL(p.configuration.URL, p.dialOpts...)
 	if err != nil {
 		return nil, err
 	}

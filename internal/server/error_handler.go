@@ -5,7 +5,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/internal/logging"
+	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 // Replacement for the default error handler in fasthttp.

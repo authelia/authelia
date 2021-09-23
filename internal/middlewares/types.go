@@ -5,15 +5,16 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/internal/authentication"
-	"github.com/authelia/authelia/internal/authorization"
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/notification"
-	"github.com/authelia/authelia/internal/oidc"
-	"github.com/authelia/authelia/internal/regulation"
-	"github.com/authelia/authelia/internal/session"
-	"github.com/authelia/authelia/internal/storage"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/notification"
+	"github.com/authelia/authelia/v4/internal/ntp"
+	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/regulation"
+	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // AutheliaCtx contains all server variables related to Authelia.
@@ -27,13 +28,18 @@ type AutheliaCtx struct {
 	Clock utils.Clock
 }
 
+// ProviderWithStartupCheck represents a provider that has a startup check.
+type ProviderWithStartupCheck interface {
+	StartupCheck(logger *logrus.Logger) (err error)
+}
+
 // Providers contain all provider provided to Authelia.
 type Providers struct {
 	Authorizer      *authorization.Authorizer
 	SessionProvider *session.Provider
 	Regulator       *regulation.Regulator
 	OpenIDConnect   oidc.OpenIDConnectProvider
-
+	NTP             *ntp.Provider
 	UserProvider    authentication.UserProvider
 	StorageProvider storage.Provider
 	Notifier        notification.Notifier

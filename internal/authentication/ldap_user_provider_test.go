@@ -12,8 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/encoding/unicode"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
@@ -27,6 +28,7 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL: "ldap://127.0.0.1:389",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -56,6 +58,7 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL: "ldaps://127.0.0.1:389",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -84,6 +87,7 @@ func TestEscapeSpecialCharsFromUserInput(t *testing.T) {
 		schema.LDAPAuthenticationBackendConfiguration{
 			URL: "ldaps://127.0.0.1:389",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -116,6 +120,7 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 			URL:          "ldaps://127.0.0.1:389",
 			GroupsFilter: "(|(member={dn})(uid={username})(uid={input}))",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -180,6 +185,7 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -211,7 +217,7 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 
 	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
 
-	err := ldapClient.checkServer()
+	err := ldapClient.StartupCheck(logging.Logger())
 	assert.NoError(t, err)
 
 	assert.True(t, ldapClient.supportExtensionPasswdModify)
@@ -236,6 +242,7 @@ func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -267,7 +274,7 @@ func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
 
 	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
 
-	err := ldapClient.checkServer()
+	err := ldapClient.StartupCheck(logging.Logger())
 	assert.NoError(t, err)
 
 	assert.False(t, ldapClient.supportExtensionPasswdModify)
@@ -292,6 +299,7 @@ func TestShouldReturnCheckServerConnectError(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -299,7 +307,7 @@ func TestShouldReturnCheckServerConnectError(t *testing.T) {
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, errors.New("could not connect"))
 
-	err := ldapClient.checkServer()
+	err := ldapClient.StartupCheck(logging.Logger())
 	assert.EqualError(t, err, "could not connect")
 
 	assert.False(t, ldapClient.supportExtensionPasswdModify)
@@ -324,6 +332,7 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -343,7 +352,7 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 
 	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
 
-	err := ldapClient.checkServer()
+	err := ldapClient.StartupCheck(logging.Logger())
 	assert.EqualError(t, err, "could not perform the search")
 
 	assert.False(t, ldapClient.supportExtensionPasswdModify)
@@ -385,6 +394,7 @@ func TestShouldEscapeUserInput(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -416,6 +426,7 @@ func TestShouldReplaceGeneralizedTime(t *testing.T) {
 			MailAttribute:        "mail",
 			DisplayNameAttribute: "displayName",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -446,6 +457,7 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 			MailAttribute:        "mail",
 			DisplayNameAttribute: "displayName",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -494,6 +506,7 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -563,6 +576,7 @@ func TestShouldNotCrashWhenEmailsAreNotRetrievedFromLDAP(t *testing.T) {
 			AdditionalUsersDN: "ou=users",
 			BaseDN:            "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -625,6 +639,7 @@ func TestShouldReturnUsernameFromLDAP(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -696,6 +711,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -771,7 +787,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 
 	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
 
-	err := ldapClient.checkServer()
+	err := ldapClient.StartupCheck(logging.Logger())
 	require.NoError(t, err)
 
 	err = ldapClient.UpdatePassword("john", "password")
@@ -798,6 +814,7 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -877,7 +894,7 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 
 	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
 
-	err := ldapClient.checkServer()
+	err := ldapClient.StartupCheck(logging.Logger())
 	require.NoError(t, err)
 
 	err = ldapClient.UpdatePassword("john", "password")
@@ -904,6 +921,7 @@ func TestShouldUpdateUserPasswordBasic(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -980,7 +998,7 @@ func TestShouldUpdateUserPasswordBasic(t *testing.T) {
 
 	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
 
-	err := ldapClient.checkServer()
+	err := ldapClient.StartupCheck(logging.Logger())
 	require.NoError(t, err)
 
 	err = ldapClient.UpdatePassword("john", "password")
@@ -1006,6 +1024,7 @@ func TestShouldCheckValidUserPassword(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -1073,6 +1092,7 @@ func TestShouldCheckInvalidUserPassword(t *testing.T) {
 			AdditionalUsersDN:    "ou=users",
 			BaseDN:               "dc=example,dc=com",
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -1141,6 +1161,7 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 			BaseDN:               "dc=example,dc=com",
 			StartTLS:             true,
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -1217,6 +1238,7 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 			BaseDN:               "dc=example,dc=com",
 			StartTLS:             true,
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -1225,7 +1247,6 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 	assert.True(t, ldapClient.groupsFilterReplacementDN)
 
 	assert.True(t, ldapClient.usersFilterReplacementInput)
-	assert.False(t, ldapClient.usersFilterReplacementDateTimeGeneralized)
 
 	assert.Equal(t, "(&(|(uid={input})(mail={input})(displayName={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))", ldapClient.configuration.UsersFilter)
 	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", ldapClient.configuration.GroupsFilter)
@@ -1256,6 +1277,7 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 				SkipVerify: true,
 			},
 		},
+		false,
 		nil,
 		mockFactory)
 
@@ -1338,6 +1360,7 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 				SkipVerify: true,
 			},
 		},
+		false,
 		nil,
 		mockFactory)
 

@@ -1,20 +1,21 @@
 package middlewares
 
 import (
-	"bytes"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 )
 
 // StripPathMiddleware strips the first level of a path.
-func StripPathMiddleware(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+func StripPathMiddleware(path string, next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
-		uri := ctx.Request.RequestURI()
-		n := bytes.IndexByte(uri[1:], '/')
+		uri := ctx.RequestURI()
 
-		if n >= 0 {
-			uri = uri[n+1:]
-			ctx.Request.SetRequestURI(string(uri))
+		if strings.HasPrefix(string(uri), path) {
+			ctx.SetUserValue("base_url", path)
+
+			newURI := strings.TrimPrefix(string(uri), path)
+			ctx.Request.SetRequestURI(newURI)
 		}
 
 		next(ctx)

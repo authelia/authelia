@@ -3,7 +3,7 @@ package validator
 import (
 	"fmt"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // ValidateTOTP validates and update TOTP configuration.

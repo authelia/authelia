@@ -10,14 +10,14 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 
-	"github.com/authelia/authelia/internal/logging"
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/oidc"
-	"github.com/authelia/authelia/internal/session"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	ar, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r)
 	if err != nil {
 		logging.Logger().Errorf("Error occurred in NewAuthorizeRequest: %+v", err)
@@ -30,7 +30,7 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 	client, err := ctx.Providers.OpenIDConnect.Store.GetInternalClient(clientID)
 
 	if err != nil {
-		err := fmt.Errorf("Unable to find related client configuration with name '%s': %v", ar.GetID(), err)
+		err := fmt.Errorf("unable to find related client configuration with name '%s': %v", ar.GetID(), err)
 		ctx.Logger.Error(err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
@@ -56,13 +56,13 @@ func oidcAuthorize(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http
 
 	userSession.OIDCWorkflowSession = nil
 	if err := ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("%v", err)
+		ctx.Logger.Error(err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 
 		return
 	}
 
-	issuer, err := ctx.ForwardedProtoHost()
+	issuer, err := ctx.ExternalRootURL()
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred obtaining issuer: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
@@ -145,15 +145,15 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	ctx *middlewares.AutheliaCtx, userSession session.UserSession, client *oidc.InternalClient, isAuthInsufficient bool,
 	rw http.ResponseWriter, r *http.Request,
 	ar fosite.AuthorizeRequester) {
-	forwardedProtoHost, err := ctx.ForwardedProtoHost()
+	issuer, err := ctx.ExternalRootURL()
 	if err != nil {
-		ctx.Logger.Errorf("%v", err)
+		ctx.Logger.Error(err)
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 
 		return
 	}
 
-	redirectURL := fmt.Sprintf("%s%s", forwardedProtoHost, string(ctx.Request.RequestURI()))
+	redirectURL := fmt.Sprintf("%s%s", issuer, string(ctx.Request.RequestURI()))
 
 	ctx.Logger.Debugf("User %s must consent with scopes %s",
 		userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))
@@ -169,23 +169,15 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	}
 
 	if err := ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("%v", err)
+		ctx.Logger.Errorf("Unable to save session: %v", err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 
 		return
 	}
 
-	uri, err := ctx.ForwardedProtoHost()
-	if err != nil {
-		ctx.Logger.Errorf("%v", err)
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-
-		return
-	}
-
 	if isAuthInsufficient {
-		http.Redirect(rw, r, uri, http.StatusFound)
+		http.Redirect(rw, r, issuer, http.StatusFound)
 	} else {
-		http.Redirect(rw, r, fmt.Sprintf("%s/consent", uri), http.StatusFound)
+		http.Redirect(rw, r, fmt.Sprintf("%s/consent", issuer), http.StatusFound)
 	}
 }

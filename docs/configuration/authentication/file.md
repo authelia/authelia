@@ -69,7 +69,7 @@ resetting their passwords.
 ### path
 <div markdown="1">
 type: string (path)
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: yes
 {: .label .label-config .label-red }
 </div>
@@ -80,7 +80,7 @@ required: yes
 #### algorithm
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: argon2id
 {: .label .label-config .label-blue }
 required: no
@@ -108,7 +108,7 @@ When using `sha512` the minimum is 1000, and 50000 is the recommended value.
 #### salt_length
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: 16
 {: .label .label-config .label-blue }
 required: no
@@ -122,7 +122,7 @@ and there is no documented reason why you'd set it to anything other than this, 
 #### parallelism
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: 8
 {: .label .label-config .label-blue }
 required: no
@@ -157,6 +157,8 @@ For instance to generate a hash with the docker image just run:
 
     $ docker run authelia/authelia:latest authelia hash-password 'yourpassword'
     Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
+
+You may also use the `--config` flag to point to your existing configuration. When used, the values defined in the config will be used instead.
 
 Full CLI Help Documentation:
 

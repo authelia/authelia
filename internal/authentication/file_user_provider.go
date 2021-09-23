@@ -9,10 +9,11 @@ import (
 	"sync"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
-	"github.com/authelia/authelia/internal/logging"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 // FileUserProvider is a provider reading details from a file.
@@ -204,4 +205,9 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 	p.lock.Unlock()
 
 	return err
+}
+
+// StartupCheck implements the startup check provider interface.
+func (p *FileUserProvider) StartupCheck(_ *logrus.Logger) (err error) {
+	return nil
 }

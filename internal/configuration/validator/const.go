@@ -43,6 +43,16 @@ const (
 	testTLSKey        = "/tmp/key.pem"
 )
 
+// Notifier Error constants.
+const (
+	errFmtNotifierMultipleConfigured = "notifier: you can't configure more than one notifier, please ensure " +
+		"only 'smtp' or 'filesystem' is configured"
+	errFmtNotifierNotConfigured = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
+		"is configured"
+	errFmtNotifierFileSystemFileNameNotConfigured = "filesystem notifier: the 'filename' must be configured"
+	errFmtNotifierSMTPNotConfigured               = "smtp notifier: the '%s' must be configured"
+)
+
 // OpenID Error constants.
 const (
 	errFmtOIDCClientsDuplicateID        = "openid connect provider: one or more clients have the same ID"
@@ -139,6 +149,7 @@ var ValidKeys = []string{
 	"server.path",
 	"server.enable_pprof",
 	"server.enable_expvars",
+	"server.disable_healthcheck",
 	"server.tls.key",
 	"server.tls.certificate",
 
@@ -203,6 +214,7 @@ var ValidKeys = []string{
 	"storage.mysql.database",
 	"storage.mysql.username",
 	"storage.mysql.password",
+	"storage.mysql.timeout",
 
 	// PostgreSQL Storage Keys.
 	"storage.postgres.host",
@@ -210,6 +222,7 @@ var ValidKeys = []string{
 	"storage.postgres.database",
 	"storage.postgres.username",
 	"storage.postgres.password",
+	"storage.postgres.timeout",
 	"storage.postgres.sslmode",
 
 	// FileSystem Notifier Keys.
@@ -219,6 +232,7 @@ var ValidKeys = []string{
 	// SMTP Notifier Keys.
 	"notifier.smtp.host",
 	"notifier.smtp.port",
+	"notifier.smtp.timeout",
 	"notifier.smtp.username",
 	"notifier.smtp.password",
 	"notifier.smtp.identifier",
@@ -243,6 +257,7 @@ var ValidKeys = []string{
 	// LDAP Authentication Backend Keys.
 	"authentication_backend.ldap.implementation",
 	"authentication_backend.ldap.url",
+	"authentication_backend.ldap.timeout",
 	"authentication_backend.ldap.base_dn",
 	"authentication_backend.ldap.username_attribute",
 	"authentication_backend.ldap.additional_users_dn",
@@ -276,6 +291,7 @@ var ValidKeys = []string{
 	"identity_providers.oidc.refresh_token_lifespan",
 	"identity_providers.oidc.authorize_code_lifespan",
 	"identity_providers.oidc.enable_client_debug_messages",
+	"identity_providers.oidc.minimum_parameter_entropy",
 	"identity_providers.oidc.clients",
 	"identity_providers.oidc.clients[].id",
 	"identity_providers.oidc.clients[].description",
@@ -285,6 +301,13 @@ var ValidKeys = []string{
 	"identity_providers.oidc.clients[].scopes",
 	"identity_providers.oidc.clients[].grant_types",
 	"identity_providers.oidc.clients[].response_types",
+
+	// NTP keys.
+	"ntp.address",
+	"ntp.version",
+	"ntp.max_desync",
+	"ntp.disable_startup_check",
+	"ntp.disable_failure",
 }
 
 var replacedKeys = map[string]string{

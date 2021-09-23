@@ -6,7 +6,7 @@ import (
 	"github.com/knadh/koanf"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // Load the configuration given the provided options and sources.

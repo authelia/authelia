@@ -7,8 +7,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/authelia/authelia/internal/commands"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/commands"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 var buildkite bool
@@ -50,7 +50,7 @@ var Commands = []AutheliaCommandDefinition{
 	{
 		Name:        "docker",
 		Short:       "Commands related to building and publishing docker image",
-		SubCommands: CobraCommands{DockerBuildCmd, DockerPushCmd, DockerManifestCmd},
+		SubCommands: CobraCommands{DockerBuildCmd, DockerManifestCmd},
 	},
 	{
 		Name:  "serve [config]",

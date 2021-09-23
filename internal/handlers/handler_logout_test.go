@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/authelia/authelia/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/mocks"
 )
 
 type LogoutSuite struct {

@@ -10,8 +10,8 @@ import (
 	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
 
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
@@ -30,7 +30,7 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 	}
 
 	if tokenType != fosite.AccessToken {
-		errStr := "Authorization header must contain an OAuth access token."
+		errStr := "authorization header must contain an OAuth access token."
 		rw.Header().Set("WWW-Authenticate", fmt.Sprintf("error_description=\"%s\"", errStr))
 		ctx.Providers.OpenIDConnect.WriteErrorCode(rw, req, http.StatusUnauthorized, errors.New(errStr))
 

@@ -6,9 +6,9 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/internal/authorization"
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
@@ -16,16 +16,16 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if !authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
-		ctx.Logger.Warn("OIDC requires 2FA, cannot be redirected yet")
+		ctx.Logger.Warn("OpenID Connect requires 2FA, cannot be redirected yet")
 		ctx.ReplyOK()
 
 		return
 	}
 
-	uri, err := ctx.ForwardedProtoHost()
+	uri, err := ctx.ExternalRootURL()
 	if err != nil {
-		ctx.Logger.Errorf("%v", err)
-		handleAuthenticationUnauthorized(ctx, fmt.Errorf("Unable to get forward facing URI"), messageAuthenticationFailed)
+		ctx.Logger.Errorf("Unable to extract external root URL: %v", err)
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to get forward facing URI"), messageAuthenticationFailed)
 
 		return
 	}
@@ -64,7 +64,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 
 	targetURL, err := url.ParseRequestURI(targetURI)
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to parse target URL %s: %s", targetURI, err), messageAuthenticationFailed)
+		ctx.Error(fmt.Errorf("unable to parse target URL %s: %s", targetURI, err), messageAuthenticationFailed)
 		return
 	}
 
@@ -88,6 +88,8 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 	safeRedirection := utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain)
 
 	if !safeRedirection {
+		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
+
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
 			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
 			if err != nil {
@@ -126,7 +128,7 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	safe, err := utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.Domain)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to check target URL: %s", err), messageMFAValidationFailed)
+		ctx.Error(fmt.Errorf("unable to check target URL: %s", err), messageMFAValidationFailed)
 		return
 	}
 

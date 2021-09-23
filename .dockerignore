@@ -1,23 +1,9 @@
-# CI/Git Directories
-.git
-.cache
-.buildkite
-.github
-coverage.txt
-Dockerfile*
+# Ignore All
+*
 
-# Node Modules Directories
-**/node_modules
-
-# Documentation
-docs
-examples
-
-# Dot Files and Markdown
-.*
-*.md
-
-# Other
-internal/server/public_html
-authelia.service
-bootstrap.sh
+# Overrides
+!authelia-linux-*
+!LICENSE
+!entrypoint.sh
+!healthcheck.sh
+!.healthcheck.env

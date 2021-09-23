@@ -64,7 +64,7 @@ func (lc *LDAPConnectionImpl) StartTLS(config *tls.Config) error {
 
 // LDAPConnectionFactory an interface of factory of ldap connections.
 type LDAPConnectionFactory interface {
-	DialURL(addr string, opts ldap.DialOpt) (LDAPConnection, error)
+	DialURL(addr string, opts ...ldap.DialOpt) (LDAPConnection, error)
 }
 
 // LDAPConnectionFactoryImpl the production implementation of an ldap connection factory.
@@ -76,8 +76,8 @@ func NewLDAPConnectionFactoryImpl() *LDAPConnectionFactoryImpl {
 }
 
 // DialURL creates a connection from an LDAP URL when successful.
-func (lcf *LDAPConnectionFactoryImpl) DialURL(addr string, opts ldap.DialOpt) (LDAPConnection, error) {
-	conn, err := ldap.DialURL(addr, opts)
+func (lcf *LDAPConnectionFactoryImpl) DialURL(addr string, opts ...ldap.DialOpt) (LDAPConnection, error) {
+	conn, err := ldap.DialURL(addr, opts...)
 	if err != nil {
 		return nil, err
 	}

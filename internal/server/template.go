@@ -9,8 +9,8 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/internal/logging"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -18,7 +18,7 @@ var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
-func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, session, theme string) fasthttp.RequestHandler {
+func ServeTemplatedFile(publicDir, file, rememberMe, resetPassword, session, theme string) fasthttp.RequestHandler {
 	logger := logging.Logger()
 
 	f, err := assets.Open(publicDir + file)
@@ -37,6 +37,11 @@ func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, sessio
 	}
 
 	return func(ctx *fasthttp.RequestCtx) {
+		base := ""
+		if baseURL := ctx.UserValue("base_url"); baseURL != nil {
+			base = baseURL.(string)
+		}
+
 		nonce := utils.RandomString(32, alphaNumericRunes)
 
 		switch extension := filepath.Ext(file); extension {
@@ -63,4 +68,37 @@ func ServeTemplatedFile(publicDir, file, base, rememberMe, resetPassword, sessio
 			return
 		}
 	}
+}
+
+func writeHealthCheckEnv(disabled bool, scheme, host, path string, port int) (err error) {
+	if disabled {
+		return nil
+	}
+
+	_, err = os.Stat("/app/healthcheck.sh")
+	if err != nil {
+		return nil
+	}
+
+	_, err = os.Stat("/app/.healthcheck.env")
+	if err != nil {
+		return nil
+	}
+
+	file, err := os.OpenFile("/app/.healthcheck.env", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = file.Close()
+	}()
+
+	if host == "0.0.0.0" {
+		host = "localhost"
+	}
+
+	_, err = file.WriteString(fmt.Sprintf(healthCheckEnv, scheme, host, port, path))
+
+	return err
 }

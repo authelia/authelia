@@ -570,6 +570,19 @@ components:
         type: string
         enum: ["basic"]
   schemas:
+    handlers.checkURIWithinDomainRequestBody:
+      type: object
+      properties:
+        uri:
+          type: string
+          example: https://secure.example.com
+    handlers.checkURIWithinDomainResponseBody:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+          description: If redirection URL is safe.
     handlers.configuration.ConfigurationBody:
       type: object
       properties:

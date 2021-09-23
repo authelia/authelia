@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/tstranex/u2f"
 
-	"github.com/authelia/authelia/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authentication"
 )
 
 // MethodList is the list of available methods.

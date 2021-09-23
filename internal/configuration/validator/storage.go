@@ -3,7 +3,7 @@ package validator
 import (
 	"errors"
 
-	"github.com/authelia/authelia/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // ValidateStorage validates storage configuration.
@@ -14,7 +14,7 @@ func ValidateStorage(configuration schema.StorageConfiguration, validator *schem
 
 	switch {
 	case configuration.MySQL != nil:
-		validateSQLConfiguration(&configuration.MySQL.SQLStorageConfiguration, validator)
+		validateMySQLConfiguration(&configuration.MySQL.SQLStorageConfiguration, validator)
 	case configuration.PostgreSQL != nil:
 		validatePostgreSQLConfiguration(configuration.PostgreSQL, validator)
 	case configuration.Local != nil:
@@ -22,7 +22,11 @@ func ValidateStorage(configuration schema.StorageConfiguration, validator *schem
 	}
 }
 
-func validateSQLConfiguration(configuration *schema.SQLStorageConfiguration, validator *schema.StructValidator) {
+func validateMySQLConfiguration(configuration *schema.SQLStorageConfiguration, validator *schema.StructValidator) {
+	if configuration.Timeout == 0 {
+		configuration.Timeout = schema.DefaultMySQLStorageConfiguration.Timeout
+	}
+
 	if configuration.Password == "" || configuration.Username == "" {
 		validator.Push(errors.New("the SQL username and password must be provided"))
 	}
@@ -33,7 +37,11 @@ func validateSQLConfiguration(configuration *schema.SQLStorageConfiguration, val
 }
 
 func validatePostgreSQLConfiguration(configuration *schema.PostgreSQLStorageConfiguration, validator *schema.StructValidator) {
-	validateSQLConfiguration(&configuration.SQLStorageConfiguration, validator)
+	validateMySQLConfiguration(&configuration.SQLStorageConfiguration, validator)
+
+	if configuration.Timeout == 0 {
+		configuration.Timeout = schema.DefaultPostgreSQLStorageConfiguration.Timeout
+	}
 
 	if configuration.SSLMode == "" {
 		configuration.SSLMode = testModeDisabled

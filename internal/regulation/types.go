@@ -3,8 +3,8 @@ package regulation
 import (
 	"time"
 
-	"github.com/authelia/authelia/internal/storage"
-	"github.com/authelia/authelia/internal/utils"
+	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // Regulator an authentication regulator preventing attackers to brute force the service.

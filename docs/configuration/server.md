@@ -2,7 +2,7 @@
 layout: default
 title: Server
 parent: Configuration
-nav_order: 11
+nav_order: 12
 ---
 
 # Server
@@ -20,6 +20,7 @@ server:
   write_buffer_size: 4096
   enable_pprof: false
   enable_expvars: false
+  disable_healthcheck: false
   tls:
     key: ""
     certificate: ""
@@ -133,6 +134,23 @@ required: no
 </div>
 
 Enables the go expvars endpoints.
+
+### disable_healthcheck
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple } 
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+On startup Authelia checks for the existence of /app/healthcheck.sh and /app/.healthcheck.env and if both of these exist
+it writes the configuration vars for the healthcheck to the /app/.healthcheck.env file. In instances where this is not
+desirable it's possible to disable these interactions entirely.
+
+An example situation where this is the case is in Kubernetes when set security policies that prevent writing to the
+ephemeral storage of a container or just don't want to enable the internal health check.
 
 ### tls
 

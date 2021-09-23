@@ -60,6 +60,8 @@ const (
 
 // OIDC constants.
 const (
+	pathOpenIDConnectWellKnown = "/.well-known/openid-configuration"
+
 	pathOpenIDConnectJWKs          = "/api/oidc/jwks"
 	pathOpenIDConnectAuthorization = "/api/oidc/authorize"
 	pathOpenIDConnectToken         = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.

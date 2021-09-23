@@ -5,8 +5,8 @@ import (
 
 	"github.com/pquerna/otp/totp"
 
-	"github.com/authelia/authelia/internal/middlewares"
-	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // identityRetrieverFromSession retriever computing the identity from the cookie session.
@@ -14,7 +14,7 @@ func identityRetrieverFromSession(ctx *middlewares.AutheliaCtx) (*session.Identi
 	userSession := ctx.GetSession()
 
 	if len(userSession.Emails) == 0 {
-		return nil, fmt.Errorf("User %s does not have any email address", userSession.Username)
+		return nil, fmt.Errorf("user %s does not have any email address", userSession.Username)
 	}
 
 	return &session.Identity{
@@ -45,13 +45,13 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 	})
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to generate TOTP key: %s", err), messageUnableToRegisterOneTimePassword)
+		ctx.Error(fmt.Errorf("unable to generate TOTP key: %s", err), messageUnableToRegisterOneTimePassword)
 		return
 	}
 
 	err = ctx.Providers.StorageProvider.SaveTOTPSecret(username, key.Secret())
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to save TOTP secret in DB: %s", err), messageUnableToRegisterOneTimePassword)
+		ctx.Error(fmt.Errorf("unable to save TOTP secret in DB: %s", err), messageUnableToRegisterOneTimePassword)
 		return
 	}
 

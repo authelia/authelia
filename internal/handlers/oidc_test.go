@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/authelia/authelia/internal/session"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestShouldDetectIfConsentIsMissing(t *testing.T) {

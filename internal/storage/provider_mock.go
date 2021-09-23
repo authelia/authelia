@@ -10,7 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 
-	models "github.com/authelia/authelia/internal/models"
+	models "github.com/authelia/authelia/v4/internal/models"
 )
 
 // MockProvider is a mock of Provider interface

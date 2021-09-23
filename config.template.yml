@@ -53,6 +53,10 @@ server:
   ## Enables the expvars endpoint.
   enable_expvars: false
 
+  ## Disables writing the health check vars to /app/.healthcheck.env which makes healthcheck.sh return exit code 0.
+  ## This is disabled by default if either /app/.healthcheck.env or /app/healthcheck.sh do not exist.
+  disable_healthcheck: false
+
   ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behaviour.
   tls:
     ## The path to the DER base64/PEM format private key.
@@ -105,6 +109,29 @@ duo_api:
   secret_key: 1234567890abcdefghifjkl
 
 ##
+## NTP Configuration
+##
+## This is used to validate the servers time is accurate enough to validate TOTP.
+ntp:
+  ## NTP server address.
+  address: "time.cloudflare.com:123"
+
+  ## NTP version.
+  version: 4
+
+  ## Maximum allowed time offset between the host and the NTP server.
+  max_desync: 3s
+
+  ## Disables the NTP check on startup entirely. This means Authelia will not contact a remote service at all if you
+  ## set this to true, and can operate in a truly offline mode.
+  disable_startup_check: false
+
+  ## The default of false will prevent startup only if we can contact the NTP server and the time is out of sync with
+  ## the NTP server more than the configured max_desync. If you set this to true, an error will be logged but startup
+  ## will continue regardless of results.
+  disable_failure: false
+
+##
 ## Authentication Backend Provider Configuration
 ##
 ## Used for verifying user passwords and retrieve information such as email address and groups users belong to.
@@ -144,6 +171,9 @@ authentication_backend:
     ## The url to the ldap server. Format: <scheme>://<address>[:<port>].
     ## Scheme can be ldap or ldaps in the format (port optional).
     url: ldap://127.0.0.1
+
+    ## The dial timeout for LDAP.
+    timeout: 5s
 
     ## Use StartTLS with the LDAP connection.
     start_tls: false
@@ -491,6 +521,7 @@ storage:
     username: authelia
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: mypassword
+    timeout: 5s
 
   ##
   ## PostgreSQL (Storage Provider)
@@ -502,6 +533,7 @@ storage:
   #   username: authelia
   #   ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   #   password: mypassword
+  #   timeout: 5s
   #   sslmode: disable
 
 ##
@@ -532,20 +564,39 @@ notifier:
   ##   - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates
   ##     (configure in tls section)
   smtp:
-    username: test
-    ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-    password: password
+    ## The SMTP host to connect to.
     host: 127.0.0.1
+
+    ## The port to connect to the SMTP host on.
     port: 1025
+
+    ## The connection timeout.
+    timeout: 5s
+
+    ## The username used for SMTP authentication.
+    username: test
+
+    ## The password used for SMTP authentication.
+    ## Can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+    password: password
+
+    ## The address to send the email FROM.
     sender: admin@example.com
+
     ## HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
     identifier: localhost
+
     ## Subject configuration of the emails sent. {title} is replaced by the text from the notifier.
     subject: "[Authelia] {title}"
+
     ## This address is used during the startup check to verify the email configuration is correct.
     ## It's not important what it is except if your email server only allows local delivery.
     startup_check_address: test@authelia.com
+
+    ## By default we require some form of TLS. This disables this check though is not advised.
     disable_require_tls: false
+
+    ## Disables sending HTML formatted emails.
     disable_html_emails: false
 
     tls:
@@ -559,16 +610,6 @@ notifier:
 
       ## Minimum TLS version for either StartTLS or SMTPS.
       minimum_version: TLS1.2
-
-  ## Sending an email using a Gmail account is as simple as the next section.
-  ## You need to create an app password by following: https://support.google.com/accounts/answer/185833?hl=en
-  # smtp:
-  #   username: myaccount@gmail.com
-  #   ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-  #   password: yourapppassword
-  #   sender: admin@example.com
-  #   host: smtp.gmail.com
-  #   port: 587
 
 ##
 ## Identity Providers
