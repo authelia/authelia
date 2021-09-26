@@ -18,15 +18,10 @@ if [[ "${BUILDKITE_LABEL}" =~ ":debian: Build Package" ]]; then
   buildkite-agent artifact download "authelia-linux-${ARCH}.tar.gz" .
 fi
 
-if [[ "${BUILDKITE_LABEL}" =~ ":docker: Deploy Image" ]]; then
-  buildkite-agent artifact download "authelia-image-${ARCH}*" .
-  zstdcat "authelia-image-${ARCH}.tar.zst" | docker load
-fi
-
 if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]]; then
   echo "--- :go: :react: :swagger: Extract pre-built binary"
-  buildkite-agent artifact download "authelia-linux-*.tar.gz" .
-  for archive in authelia-linux-*.tar.gz; do tar xzf ${archive} --wildcards "authelia-linux-*"; done
+  buildkite-agent artifact download "authelia-linux-*-musl.tar.gz" .
+  for archive in authelia-linux-*-musl.tar.gz; do tar xzf ${archive} --wildcards "authelia-linux-*"; done
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":github: Deploy Artifacts" ]]; then
