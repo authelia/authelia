@@ -36,9 +36,11 @@ func (s *HandlerRegisterU2FStep1Suite) TearDownTest() {
 
 func createToken(secret string, username string, action string, expiresAt time.Time) string {
 	claims := &middlewares.IdentityVerificationClaim{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expiresAt.Unix(),
-			Issuer:    "Authelia",
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: &jwt.NumericDate{
+				Time: expiresAt,
+			},
+			Issuer: "Authelia",
 		},
 		Action:   action,
 		Username: username,

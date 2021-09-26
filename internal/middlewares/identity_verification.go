@@ -30,12 +30,14 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 
 		// Create the claim with the action to sign it.
 		claims := &IdentityVerificationClaim{
-			jwt.StandardClaims{
-				ExpiresAt: time.Now().Add(5 * time.Minute).Unix(),
-				Issuer:    jwtIssuer,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: &jwt.NumericDate{
+					Time: time.Now().Add(5 * time.Minute),
+				},
+				Issuer: jwtIssuer,
 			},
-			args.ActionClaim,
-			identity.Username,
+			Action:   args.ActionClaim,
+			Username: identity.Username,
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		ss, err := token.SignedString([]byte(ctx.Configuration.JWTSecret))
