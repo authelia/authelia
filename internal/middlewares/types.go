@@ -88,7 +88,7 @@ type IdentityVerificationFinishArgs struct {
 // IdentityVerificationClaim custom claim for specifying the action claim.
 // The action can be to register a TOTP device, a U2F device or reset one's password.
 type IdentityVerificationClaim struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 
 	// The action this token has been crafted for.
 	Action string `json:"action"`
