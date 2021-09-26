@@ -2,7 +2,7 @@
 
 set +u
 
-declare -A BUILDS=(["linux"]="amd64 arm arm64" ["freebsd"]="amd64")
+declare -A BUILDS=(["linux"]="amd64 arm arm64 amd64-musl arm-musl arm64-musl" ["freebsd"]="amd64")
 DOCKER_IMAGE=authelia/authelia
 
 if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
