@@ -8,7 +8,8 @@ WORKDIR /node/src/app
 COPY web ./
 
 # Install the dependencies and build
-RUN yarn install --frozen-lockfile && GENERATE_SOURCEMAP=false INLINE_RUNTIME_CHUNK=false yarn build
+RUN yarn install --frozen-lockfile && yarn build && \
+    sed -i -e 's/{{.[a-zA-Z]*}}/"&"/g' /node/src/internal/server/public_html/index.html
 
 # =======================================
 # ===== Build image for the backend =====

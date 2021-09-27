@@ -36,7 +36,7 @@ const MethodSelectionDialog = function (props: Props) {
     return (
         <Dialog open={props.open} className={style.root} onClose={props.onClose}>
             <DialogContent>
-                <Grid container justify="center" spacing={1} id="methods-dialog">
+                <Grid container justifyContent="center" spacing={1} id="methods-dialog">
                     {props.methods.has(SecondFactorMethod.TOTP) ? (
                         <MethodItem
                             id="one-time-password-option"
@@ -74,7 +74,7 @@ const MethodSelectionDialog = function (props: Props) {
 
 export default MethodSelectionDialog;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     root: {
         textAlign: "center",
     },

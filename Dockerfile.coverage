@@ -10,7 +10,8 @@ COPY web ./
 
 # Install the dependencies and build
 RUN yarn global add pnpm && \
-    pnpm install --shamefully-hoist --frozen-lockfile && GENERATE_SOURCEMAP=false INLINE_RUNTIME_CHUNK=false pnpm coverage
+    pnpm install --frozen-lockfile && pnpm coverage && \
+    sed -i -e 's/{{.[a-zA-Z]*}}/"&"/g' /node/src/internal/server/public_html/index.html
 
 # =======================================
 # ===== Build image for the backend =====

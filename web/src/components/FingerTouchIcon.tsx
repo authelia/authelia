@@ -2,7 +2,7 @@ import React from "react";
 
 import classnames from "classnames";
 
-import style from "@components/FingerTouchIcon.module.css";
+import style from "./FingerTouchIcon.module.css"; // TODO(nightah): change back to named alias
 
 export interface Props {
     size: number;

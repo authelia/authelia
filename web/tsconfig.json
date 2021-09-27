@@ -1,28 +1,43 @@
 {
-  "extends": "./tsconfig.aliases.json",
   "compilerOptions": {
-    "target": "es6",
+    "baseUrl": "./src",
+    "paths": {
+      "@root/*": ["./*"],
+      "@assets/*": ["assets/*"],
+      "@components/*": ["components/*"],
+      "@constants/*": ["constants/*"],
+      "@hooks/*": ["hooks/*"],
+      "@layouts/*": ["layouts/*"],
+      "@models/*": ["models/*"],
+      "@services/*": ["services/*"],
+      "@themes/*": ["themes/*"],
+      "@utils/*": ["utils/*"],
+      "@views/*": ["views/*"]
+    },
+    "target": "esnext",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
+    "types": ["@types/node", "vite/client", "vite-plugin-svgr/client"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
-    "noFallthroughCasesInSwitch": true
+    "jsx": "react-jsx"
   },
   "include": [
     ".*.js",
+    "vite.config.ts",
     "src",
     "types"
   ],
