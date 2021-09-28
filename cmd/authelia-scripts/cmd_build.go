@@ -140,15 +140,6 @@ func Build(cobraCmd *cobra.Command, args []string) {
 
 	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
 
-	if buildkite {
-		cmd := utils.CommandWithStdout("bash", "-c", "docker pull authelia/crossbuild -q &")
-
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
 	Clean(cobraCmd, args)
 
 	xflags, err := getXFlags(os.Getenv("BUILDKITE_BRANCH"), os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
