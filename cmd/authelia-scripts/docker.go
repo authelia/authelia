@@ -11,7 +11,7 @@ type Docker struct{}
 func (d *Docker) Build(tag, dockerfile, target, ldflags string) error {
 	return utils.CommandWithStdout(
 		"docker", "build", "-t", tag, "-f", dockerfile,
-		"--build-arg", "LDFLAGS_EXTRA="+ldflags,
+		"--progress=plain", "--build-arg", "LDFLAGS_EXTRA="+ldflags,
 		target).Run()
 }
 

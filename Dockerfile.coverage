@@ -5,10 +5,12 @@ FROM node:16-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 
+COPY .pnpm-store /root/.pnpm-store
 COPY web ./
 
 # Install the dependencies and build
-RUN yarn install --frozen-lockfile && GENERATE_SOURCEMAP=false INLINE_RUNTIME_CHUNK=false yarn coverage
+RUN yarn global add pnpm && \
+    pnpm install --shamefully-hoist --frozen-lockfile && GENERATE_SOURCEMAP=false INLINE_RUNTIME_CHUNK=false pnpm coverage
 
 # =======================================
 # ===== Build image for the backend =====

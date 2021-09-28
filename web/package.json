@@ -29,7 +29,7 @@
     "coverage": "COVERAGE=true craco build",
     "test": "craco test --coverage --no-cache",
     "report": "nyc report -r clover -r json -r lcov -r text",
-    "eject": "react-scripts eject"
+    "commitlint": "commitlint --edit $1"
   },
   "eslintConfig": {
     "extends": "react-app"

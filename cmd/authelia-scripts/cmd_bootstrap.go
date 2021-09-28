@@ -191,14 +191,16 @@ func readVersion(cmd string, args ...string) {
 func readVersions() {
 	readVersion("go", "version")
 	readVersion("node", "--version")
+	readVersion("pnpm", "--version")
 	readVersion("docker", "--version")
-	readVersion("docker-compose", "--version")
+	readVersion("docker-compose", "version")
 }
 
 // Bootstrap bootstrap authelia dev environment.
 func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	bootstrapPrintln("Checking command installation...")
 	checkCommandExist("node")
+	checkCommandExist("pnpm")
 	checkCommandExist("docker")
 	checkCommandExist("docker-compose")
 

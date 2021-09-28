@@ -66,7 +66,7 @@ func buildAutheliaBinary(xflags []string, buildkite bool) {
 }
 
 func buildFrontend() {
-	cmd := utils.CommandWithStdout("yarn", "install")
+	cmd := utils.CommandWithStdout("pnpm", "install", "--shamefully-hoist")
 	cmd.Dir = webDirectory
 
 	err := cmd.Run()
@@ -74,7 +74,7 @@ func buildFrontend() {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("yarn", "build")
+	cmd = utils.CommandWithStdout("pnpm", "build")
 	cmd.Dir = webDirectory
 
 	cmd.Env = append(os.Environ(), "GENERATE_SOURCEMAP=false", "INLINE_RUNTIME_CHUNK=false")

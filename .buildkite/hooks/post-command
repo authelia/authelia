@@ -17,7 +17,7 @@ if [[ ! "${BUILDKITE_BRANCH}" =~ ^(v.*) ]] && [[ "${BUILDKITE_COMMAND_EXIT_STATU
     fi
     bash <(curl -s --connect-timeout 10 --retry 10 --retry-max-time 0 https://codecov.io/bash) -Z -c -s 'coverage*.txt' -F backend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
     if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
-      cd web && yarn report
+      cd web && pnpm report
     fi
     bash <(curl -s --connect-timeout 10 --retry 10 --retry-max-time 0 https://codecov.io/bash) -Z -c -f '!*.go' -f '!*.zst' -F frontend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
   fi

@@ -8,7 +8,7 @@ WORKDIR /node/src/app
 COPY web ./
 
 # Install the dependencies and build
-RUN yarn install --frozen-lockfile && GENERATE_SOURCEMAP=false INLINE_RUNTIME_CHUNK=false yarn coverage
+RUN yarn install --frozen-lockfile && GENERATE_SOURCEMAP=false INLINE_RUNTIME_CHUNK=false yarn build
 
 # =======================================
 # ===== Build image for the backend =====

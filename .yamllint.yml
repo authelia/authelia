@@ -3,6 +3,7 @@ extends: default
 
 ignore: |
   internal/configuration/test_resources/config_bad_quoting.yml
+  web/pnpm-lock.yaml
   web/node_modules/
 
 rules:
