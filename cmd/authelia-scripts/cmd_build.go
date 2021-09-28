@@ -77,7 +77,7 @@ func buildFrontend() {
 	cmd = utils.CommandWithStdout("yarn", "build")
 	cmd.Dir = webDirectory
 
-	cmd.Env = append(os.Environ(), "INLINE_RUNTIME_CHUNK=false")
+	cmd.Env = append(os.Environ(), "GENERATE_SOURCEMAP=false", "INLINE_RUNTIME_CHUNK=false")
 
 	err = cmd.Run()
 	if err != nil {
