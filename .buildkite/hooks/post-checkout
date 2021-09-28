@@ -7,11 +7,11 @@ git fetch -q
 if [[ ! "${BUILDKITE_COMMAND}" =~ "buildkite-agent pipeline upload" ]] || \
 [[ "${BUILDKITE_COMMAND}" == ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload" ]]; then
   echo "--- :buildkite: Setting up Build environment"
-  source bootstrap.sh
-  if [[ "${BUILDKITE_COMMAND}" == "authelia-scripts --log-level debug ci" ]]; then
-    go mod download
+  if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
+    nohup docker pull authelia/crossbuild -q &
   fi
-  if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
+  source bootstrap.sh
+  if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]] || [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
     go mod download
   fi
 fi

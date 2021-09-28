@@ -77,7 +77,7 @@ func buildFrontend() {
 	cmd = utils.CommandWithStdout("yarn", "build")
 	cmd.Dir = webDirectory
 
-	cmd.Env = append(os.Environ(), "INLINE_RUNTIME_CHUNK=false")
+	cmd.Env = append(os.Environ(), "GENERATE_SOURCEMAP=false", "INLINE_RUNTIME_CHUNK=false")
 
 	err = cmd.Run()
 	if err != nil {
@@ -139,15 +139,6 @@ func Build(cobraCmd *cobra.Command, args []string) {
 	log.Info("Building Authelia...")
 
 	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
-
-	if buildkite {
-		cmd := utils.CommandWithStdout("bash", "-c", "docker pull authelia/crossbuild -q &")
-
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
 
 	Clean(cobraCmd, args)
 
