@@ -16,7 +16,7 @@ specifiers:
   '@types/node': 15.6.0
   '@types/qrcode.react': 1.0.2
   '@types/query-string': 6.3.0
-  '@types/react': 17.0.24
+  '@types/react': 17.0.25
   '@types/react-dom': 17.0.9
   '@types/react-ga': 2.3.0
   '@types/react-router-dom': 5.3.0
@@ -49,8 +49,8 @@ dependencies:
   '@fortawesome/free-regular-svg-icons': 5.15.4
   '@fortawesome/free-solid-svg-icons': 5.15.4
   '@fortawesome/react-fontawesome': 0.1.15_f515edce028694561ceb456e3dba224c
-  '@material-ui/core': 4.12.3_3b7f7b84f013384d046f72a4522eddf8
-  '@material-ui/icons': 4.11.2_99b182b7f537c2ccbccc0c72e51eb03f
+  '@material-ui/core': 4.12.3_505dac708d3a942c21566371ae205bda
+  '@material-ui/icons': 4.11.2_7ef7358f6bc0c74c6287b59858934083
   axios: 0.21.4
   classnames: 2.3.1
   qrcode.react: 1.0.1_react@17.0.2
@@ -73,7 +73,7 @@ devDependencies:
   '@types/node': 15.6.0
   '@types/qrcode.react': 1.0.2
   '@types/query-string': 6.3.0
-  '@types/react': 17.0.24
+  '@types/react': 17.0.25
   '@types/react-dom': 17.0.9
   '@types/react-ga': 2.3.0_react@17.0.2
   '@types/react-router-dom': 5.3.0
@@ -2254,7 +2254,7 @@ packages:
       chalk: 4.1.2
     dev: true
 
-  /@material-ui/core/4.12.3_3b7f7b84f013384d046f72a4522eddf8:
+  /@material-ui/core/4.12.3_505dac708d3a942c21566371ae205bda:
     resolution: {integrity: sha512-sdpgI/PL56QVsEJldwEe4FFaFTLUqN+rd7sSZiRCdx2E/C7z5yK0y/khAWVBH24tXwto7I1hCzNWfJGZIYJKnw==}
     engines: {node: '>=8.0.0'}
     peerDependencies:
@@ -2266,11 +2266,11 @@ packages:
         optional: true
     dependencies:
       '@babel/runtime': 7.15.4
-      '@material-ui/styles': 4.11.4_3b7f7b84f013384d046f72a4522eddf8
-      '@material-ui/system': 4.12.1_3b7f7b84f013384d046f72a4522eddf8
-      '@material-ui/types': 5.1.0_@types+react@17.0.24
+      '@material-ui/styles': 4.11.4_505dac708d3a942c21566371ae205bda
+      '@material-ui/system': 4.12.1_505dac708d3a942c21566371ae205bda
+      '@material-ui/types': 5.1.0_@types+react@17.0.25
       '@material-ui/utils': 4.11.2_react-dom@17.0.2+react@17.0.2
-      '@types/react': 17.0.24
+      '@types/react': 17.0.25
       '@types/react-transition-group': 4.4.3
       clsx: 1.1.1
       hoist-non-react-statics: 3.3.2
@@ -2282,7 +2282,7 @@ packages:
       react-transition-group: 4.4.2_react-dom@17.0.2+react@17.0.2
     dev: false
 
-  /@material-ui/icons/4.11.2_99b182b7f537c2ccbccc0c72e51eb03f:
+  /@material-ui/icons/4.11.2_7ef7358f6bc0c74c6287b59858934083:
     resolution: {integrity: sha512-fQNsKX2TxBmqIGJCSi3tGTO/gZ+eJgWmMJkgDiOfyNaunNaxcklJQFaFogYcFl0qFuaEz1qaXYXboa/bUXVSOQ==}
     engines: {node: '>=8.0.0'}
     peerDependencies:
@@ -2295,13 +2295,13 @@ packages:
         optional: true
     dependencies:
       '@babel/runtime': 7.15.4
-      '@material-ui/core': 4.12.3_3b7f7b84f013384d046f72a4522eddf8
-      '@types/react': 17.0.24
+      '@material-ui/core': 4.12.3_505dac708d3a942c21566371ae205bda
+      '@types/react': 17.0.25
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
     dev: false
 
-  /@material-ui/styles/4.11.4_3b7f7b84f013384d046f72a4522eddf8:
+  /@material-ui/styles/4.11.4_505dac708d3a942c21566371ae205bda:
     resolution: {integrity: sha512-KNTIZcnj/zprG5LW0Sao7zw+yG3O35pviHzejMdcSGCdWbiO8qzRgOYL8JAxAsWBKOKYwVZxXtHWaB5T2Kvxew==}
     engines: {node: '>=8.0.0'}
     peerDependencies:
@@ -2314,9 +2314,9 @@ packages:
     dependencies:
       '@babel/runtime': 7.15.4
       '@emotion/hash': 0.8.0
-      '@material-ui/types': 5.1.0_@types+react@17.0.24
+      '@material-ui/types': 5.1.0_@types+react@17.0.25
       '@material-ui/utils': 4.11.2_react-dom@17.0.2+react@17.0.2
-      '@types/react': 17.0.24
+      '@types/react': 17.0.25
       clsx: 1.1.1
       csstype: 2.6.18
       hoist-non-react-statics: 3.3.2
@@ -2333,7 +2333,7 @@ packages:
       react-dom: 17.0.2_react@17.0.2
     dev: false
 
-  /@material-ui/system/4.12.1_3b7f7b84f013384d046f72a4522eddf8:
+  /@material-ui/system/4.12.1_505dac708d3a942c21566371ae205bda:
     resolution: {integrity: sha512-lUdzs4q9kEXZGhbN7BptyiS1rLNHe6kG9o8Y307HCvF4sQxbCgpL2qi+gUk+yI8a2DNk48gISEQxoxpgph0xIw==}
     engines: {node: '>=8.0.0'}
     peerDependencies:
@@ -2346,14 +2346,14 @@ packages:
     dependencies:
       '@babel/runtime': 7.15.4
       '@material-ui/utils': 4.11.2_react-dom@17.0.2+react@17.0.2
-      '@types/react': 17.0.24
+      '@types/react': 17.0.25
       csstype: 2.6.18
       prop-types: 15.7.2
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
     dev: false
 
-  /@material-ui/types/5.1.0_@types+react@17.0.24:
+  /@material-ui/types/5.1.0_@types+react@17.0.25:
     resolution: {integrity: sha512-7cqRjrY50b8QzRSYyhSpx4WRw2YuO0KKIGQEVk5J8uoz2BanawykgZGoWEqKm7pVIbzFDN0SpPcVV4IhOFkl8A==}
     peerDependencies:
       '@types/react': '*'
@@ -2361,7 +2361,7 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@types/react': 17.0.24
+      '@types/react': 17.0.25
     dev: false
 
   /@material-ui/utils/4.11.2_react-dom@17.0.2+react@17.0.2:
@@ -2855,6 +2855,14 @@ packages:
       '@types/prop-types': 15.7.4
       '@types/scheduler': 0.16.2
       csstype: 3.0.9
+
+  /@types/react/17.0.25:
+    resolution: {integrity: sha512-IXrzSOr3CVbEQgmjEdCWF57J7CVaJ7lL/n4penxHm8h0XIcr0AxqGucogh2zj3qRxgk4M4JImOP/MfomkPOhvQ==}
+    dependencies:
+      '@types/prop-types': 15.7.4
+      '@types/scheduler': 0.16.2
+      csstype: 3.0.9
+    dev: true
 
   /@types/resolve/0.0.8:
     resolution: {integrity: sha512-auApPaJf3NPfe18hSoJkp8EbZzer2ISk7o8mCC3M9he/a04+gbMF97NkpD2S8riMGvm4BMRI59/SZQSaLTKpsQ==}
