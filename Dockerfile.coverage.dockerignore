@@ -20,3 +20,4 @@ bootstrap.sh
 
 # Overrides
 !.healthcheck.env
+!.pnpm-store

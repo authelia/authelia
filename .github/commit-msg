@@ -1,4 +1,5 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
+. "$(dirname "$0")/required-apps"
 
-cd web && yarn run commitlint --edit $1
+cd web && ${PMGR} commitlint
