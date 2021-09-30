@@ -33,8 +33,8 @@ RUN \
 mv api internal/server/public_html/api && \
 chmod 0666 /go/src/app/.healthcheck.env && \
 echo ">> Starting go build..." && \
-CGO_ENABLED=0 go build -tags netgo \
--ldflags "-s -w ${LDFLAGS_EXTRA}" -trimpath -o authelia ./cmd/authelia
+CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go build \
+-ldflags "-linkmode=external -s -w ${LDFLAGS_EXTRA}" -trimpath -buildmode=pie -o authelia ./cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====
