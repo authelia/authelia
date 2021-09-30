@@ -19,6 +19,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/knadh/koanf v1.2.3
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/ory/fosite v0.40.2
 	github.com/ory/herodot v0.9.7
@@ -32,8 +33,10 @@ require (
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.30.0
+	golang.org/x/sys v0.0.0-20210902050250-f475640dd07b // indirect
 	golang.org/x/text v0.3.7
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v2 v2.4.0
-	modernc.org/sqlite v1.13.0
 )
+
+replace github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.8
