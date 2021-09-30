@@ -19,6 +19,10 @@ FROM golang:1.17.1-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
+RUN \
+echo ">> Downloading required apk's..." && \
+apk --no-cache add gcc musl-dev
+
 COPY go.mod go.sum ./
 
 RUN \
