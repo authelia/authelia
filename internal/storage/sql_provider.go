@@ -155,7 +155,7 @@ func (p *SQLProvider) LoadU2FDeviceHandle(ctx context.Context, username string) 
 
 // AppendAuthenticationLog append a mark to the authentication log.
 func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationLog, attempt.Username, attempt.Successful, attempt.Time.Unix())
+	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationLog, attempt.Username, attempt.Successful, attempt.Time)
 	return err
 }
 
@@ -173,6 +173,11 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 
 		err = rows.StructScan(&attempt)
 		if err != nil {
+			closeErr := rows.Close()
+			if closeErr != nil {
+				return nil, fmt.Errorf("%w, error occured closing connection: %+v", err, closeErr)
+			}
+
 			return nil, err
 		}
 

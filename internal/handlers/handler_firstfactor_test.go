@@ -61,7 +61,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
-			Time:       s.mock.Clock.Now(),
+			Time:       models.DBTime{Time: s.mock.Clock.Now()},
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -86,7 +86,7 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
-			Time:       s.mock.Clock.Now(),
+			Time:       models.DBTime{Time: s.mock.Clock.Now()},
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{

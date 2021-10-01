@@ -36,7 +36,7 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("REPLACE INTO %s (username, keyHandle, publicKey) VALUES (?, ?, ?)", u2fDeviceHandlesTableName),
 
 			sqlInsertAuthenticationLog: fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
-			sqlGetAuthenticationLogs:   fmt.Sprintf("SELECT successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC LIMIT ? OFFSET ?", authenticationLogsTableName),
+			sqlGetAuthenticationLogs:   fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC LIMIT ? OFFSET ?", authenticationLogsTableName),
 
 			sqlGetExistingTables: "SELECT name FROM sqlite_master WHERE type='table'",
 
