@@ -49,6 +49,13 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 		},
 	}
 
+	// Replace BLOB with BYTEA for Postgres.
+	for version, tables := range provider.sqlUpgradesCreateTableStatements {
+		for tableName, stmt := range tables {
+			provider.sqlUpgradesCreateTableStatements[version][tableName] = strings.ReplaceAll(stmt, "BLOB", "BYTEA")
+		}
+	}
+
 	args := make([]string, 0)
 	if configuration.Username != "" {
 		args = append(args, fmt.Sprintf("user='%s'", configuration.Username))
