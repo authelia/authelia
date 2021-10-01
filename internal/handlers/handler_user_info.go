@@ -13,7 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func loadInfo(username string, storageProvider storage.Provider, userInfo *UserInfo, logger *logrus.Entry) []error {
+func loadInfo(ctx *middlewares.AutheliaCtx, username string, storageProvider storage.Provider, userInfo *UserInfo, logger *logrus.Entry) []error {
 	var wg sync.WaitGroup
 
 	wg.Add(3)
@@ -23,7 +23,7 @@ func loadInfo(username string, storageProvider storage.Provider, userInfo *UserI
 	go func() {
 		defer wg.Done()
 
-		method, err := storageProvider.LoadPreferred2FAMethod(username)
+		method, err := storageProvider.LoadPreferred2FAMethod(ctx, username)
 		if err != nil {
 			errors = append(errors, err)
 			logger.Error(err)
@@ -41,7 +41,7 @@ func loadInfo(username string, storageProvider storage.Provider, userInfo *UserI
 	go func() {
 		defer wg.Done()
 
-		_, _, err := storageProvider.LoadU2FDeviceHandle(username)
+		_, _, err := storageProvider.LoadU2FDeviceHandle(ctx, username)
 		if err != nil {
 			if err == storage.ErrNoU2FDeviceHandle {
 				return
@@ -59,7 +59,7 @@ func loadInfo(username string, storageProvider storage.Provider, userInfo *UserI
 	go func() {
 		defer wg.Done()
 
-		_, err := storageProvider.LoadTOTPSecret(username)
+		_, err := storageProvider.LoadTOTPSecret(ctx, username)
 		if err != nil {
 			if err == storage.ErrNoTOTPSecret {
 				return
@@ -84,7 +84,7 @@ func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	userInfo := UserInfo{}
-	errors := loadInfo(userSession.Username, ctx.Providers.StorageProvider, &userInfo, ctx.Logger)
+	errors := loadInfo(ctx, userSession.Username, ctx.Providers.StorageProvider, &userInfo, ctx.Logger)
 
 	if len(errors) > 0 {
 		ctx.Error(fmt.Errorf("unable to load user information"), messageOperationFailed)
@@ -121,7 +121,7 @@ func MethodPreferencePost(ctx *middlewares.AutheliaCtx) {
 
 	userSession := ctx.GetSession()
 	ctx.Logger.Debugf("Save new preferred 2FA method of user %s to %s", userSession.Username, bodyJSON.Method)
-	err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(userSession.Username, bodyJSON.Method)
+	err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, bodyJSON.Method)
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to save new preferred 2FA method: %s", err), messageOperationFailed)

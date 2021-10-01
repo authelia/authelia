@@ -19,7 +19,7 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 
 		userSession := ctx.GetSession()
 
-		secret, err := ctx.Providers.StorageProvider.LoadTOTPSecret(userSession.Username)
+		secret, err := ctx.Providers.StorageProvider.LoadTOTPSecret(ctx, userSession.Username)
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to load TOTP secret: %s", err), messageMFAValidationFailed)
 			return

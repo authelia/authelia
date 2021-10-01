@@ -33,35 +33,35 @@ func (s *FetchSuite) TearDownTest() {
 	s.mock.Close()
 }
 
-func setPreferencesExpectations(preferences UserInfo, provider *storage.MockProvider) {
-	provider.
+func setPreferencesExpectations(mock *mocks.MockAutheliaCtx, preferences UserInfo) {
+	mock.StorageProviderMock.
 		EXPECT().
-		LoadPreferred2FAMethod(gomock.Eq("john")).
+		LoadPreferred2FAMethod(mock.Ctx, gomock.Eq("john")).
 		Return(preferences.Method, nil)
 
 	if preferences.HasU2F {
 		u2fData := []byte("abc")
-		provider.
+		mock.StorageProviderMock.
 			EXPECT().
-			LoadU2FDeviceHandle(gomock.Eq("john")).
+			LoadU2FDeviceHandle(mock.Ctx, gomock.Eq("john")).
 			Return(u2fData, u2fData, nil)
 	} else {
-		provider.
+		mock.StorageProviderMock.
 			EXPECT().
-			LoadU2FDeviceHandle(gomock.Eq("john")).
+			LoadU2FDeviceHandle(mock.Ctx, gomock.Eq("john")).
 			Return(nil, nil, storage.ErrNoU2FDeviceHandle)
 	}
 
 	if preferences.HasTOTP {
 		totpSecret := "secret"
-		provider.
+		mock.StorageProviderMock.
 			EXPECT().
-			LoadTOTPSecret(gomock.Eq("john")).
+			LoadTOTPSecret(mock.Ctx, gomock.Eq("john")).
 			Return(totpSecret, nil)
 	} else {
-		provider.
+		mock.StorageProviderMock.
 			EXPECT().
-			LoadTOTPSecret(gomock.Eq("john")).
+			LoadTOTPSecret(mock.Ctx, gomock.Eq("john")).
 			Return("", storage.ErrNoTOTPSecret)
 	}
 }
@@ -97,7 +97,7 @@ func TestMethodSetToU2F(t *testing.T) {
 		err := mock.Ctx.SaveSession(userSession)
 		require.NoError(t, err)
 
-		setPreferencesExpectations(expectedPreferences, mock.StorageProviderMock)
+		setPreferencesExpectations(mock, expectedPreferences)
 		UserInfoGet(mock.Ctx)
 
 		actualPreferences := UserInfo{}
@@ -121,17 +121,17 @@ func TestMethodSetToU2F(t *testing.T) {
 func (s *FetchSuite) TestShouldGetDefaultPreferenceIfNotInDB() {
 	s.mock.StorageProviderMock.
 		EXPECT().
-		LoadPreferred2FAMethod(gomock.Eq("john")).
+		LoadPreferred2FAMethod(s.mock.Ctx, gomock.Eq("john")).
 		Return("", nil)
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		LoadU2FDeviceHandle(gomock.Eq("john")).
+		LoadU2FDeviceHandle(s.mock.Ctx, gomock.Eq("john")).
 		Return(nil, nil, storage.ErrNoU2FDeviceHandle)
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		LoadTOTPSecret(gomock.Eq("john")).
+		LoadTOTPSecret(s.mock.Ctx, gomock.Eq("john")).
 		Return("", storage.ErrNoTOTPSecret)
 
 	UserInfoGet(s.mock.Ctx)
@@ -140,16 +140,16 @@ func (s *FetchSuite) TestShouldGetDefaultPreferenceIfNotInDB() {
 
 func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 	s.mock.StorageProviderMock.EXPECT().
-		LoadPreferred2FAMethod(gomock.Eq("john")).
+		LoadPreferred2FAMethod(s.mock.Ctx, gomock.Eq("john")).
 		Return("", fmt.Errorf("Failure"))
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		LoadU2FDeviceHandle(gomock.Eq("john"))
+		LoadU2FDeviceHandle(s.mock.Ctx, gomock.Eq("john"))
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		LoadTOTPSecret(gomock.Eq("john"))
+		LoadTOTPSecret(s.mock.Ctx, gomock.Eq("john"))
 
 	UserInfoGet(s.mock.Ctx)
 
@@ -220,7 +220,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
 	s.mock.StorageProviderMock.EXPECT().
-		SavePreferred2FAMethod(gomock.Eq("john"), gomock.Eq("u2f")).
+		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("u2f")).
 		Return(fmt.Errorf("Failure"))
 
 	MethodPreferencePost(s.mock.Ctx)
@@ -233,7 +233,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
 	s.mock.StorageProviderMock.EXPECT().
-		SavePreferred2FAMethod(gomock.Eq("john"), gomock.Eq("u2f")).
+		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("u2f")).
 		Return(nil)
 
 	MethodPreferencePost(s.mock.Ctx)

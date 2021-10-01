@@ -57,11 +57,11 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissi
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
 	s.mock.StorageProviderMock.EXPECT().
-		FindIdentityVerificationToken(gomock.Eq(token)).
+		FindIdentityVerificationToken(s.mock.Ctx, gomock.Eq(token)).
 		Return(true, nil)
 
 	s.mock.StorageProviderMock.EXPECT().
-		RemoveIdentityVerificationToken(gomock.Eq(token)).
+		RemoveIdentityVerificationToken(s.mock.Ctx, gomock.Eq(token)).
 		Return(nil)
 
 	SecondFactorU2FIdentityFinish(s.mock.Ctx)
@@ -77,11 +77,11 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissin
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
 	s.mock.StorageProviderMock.EXPECT().
-		FindIdentityVerificationToken(gomock.Eq(token)).
+		FindIdentityVerificationToken(s.mock.Ctx, gomock.Eq(token)).
 		Return(true, nil)
 
 	s.mock.StorageProviderMock.EXPECT().
-		RemoveIdentityVerificationToken(gomock.Eq(token)).
+		RemoveIdentityVerificationToken(s.mock.Ctx, gomock.Eq(token)).
 		Return(nil)
 
 	SecondFactorU2FIdentityFinish(s.mock.Ctx)

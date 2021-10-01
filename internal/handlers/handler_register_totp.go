@@ -49,7 +49,7 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 		return
 	}
 
-	err = ctx.Providers.StorageProvider.SaveTOTPSecret(username, key.Secret())
+	err = ctx.Providers.StorageProvider.SaveTOTPSecret(ctx, username, key.Secret())
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to save TOTP secret in DB: %s", err), messageUnableToRegisterOneTimePassword)
 		return

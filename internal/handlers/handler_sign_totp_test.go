@@ -38,7 +38,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
 
 	s.mock.StorageProviderMock.EXPECT().
-		LoadTOTPSecret(gomock.Any()).
+		LoadTOTPSecret(s.mock.Ctx, gomock.Any()).
 		Return("secret", nil)
 
 	verifier.EXPECT().
@@ -63,7 +63,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
 
 	s.mock.StorageProviderMock.EXPECT().
-		LoadTOTPSecret(gomock.Any()).
+		LoadTOTPSecret(s.mock.Ctx, gomock.Any()).
 		Return("secret", nil)
 
 	verifier.EXPECT().
@@ -84,7 +84,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
 
 	s.mock.StorageProviderMock.EXPECT().
-		LoadTOTPSecret(gomock.Any()).
+		LoadTOTPSecret(s.mock.Ctx, gomock.Any()).
 		Return("secret", nil)
 
 	verifier.EXPECT().
@@ -108,7 +108,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
 
 	s.mock.StorageProviderMock.EXPECT().
-		LoadTOTPSecret(gomock.Any()).
+		LoadTOTPSecret(s.mock.Ctx, gomock.Any()).
 		Return("secret", nil)
 
 	verifier.EXPECT().
@@ -130,7 +130,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
 
 	s.mock.StorageProviderMock.EXPECT().
-		LoadTOTPSecret(gomock.Any()).
+		LoadTOTPSecret(s.mock.Ctx, gomock.Any()).
 		Return("secret", nil)
 
 	verifier.EXPECT().

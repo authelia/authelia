@@ -47,7 +47,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		err = ctx.Providers.StorageProvider.SaveIdentityVerificationToken(ss)
+		err = ctx.Providers.StorageProvider.SaveIdentityVerificationToken(ctx, ss)
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
@@ -128,7 +128,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		found, err := ctx.Providers.StorageProvider.FindIdentityVerificationToken(finishBody.Token)
+		found, err := ctx.Providers.StorageProvider.FindIdentityVerificationToken(ctx, finishBody.Token)
 
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
@@ -185,7 +185,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 		}
 
 		// TODO(c.michaud): find a way to garbage collect unused tokens.
-		err = ctx.Providers.StorageProvider.RemoveIdentityVerificationToken(finishBody.Token)
+		err = ctx.Providers.StorageProvider.RemoveIdentityVerificationToken(ctx, finishBody.Token)
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return

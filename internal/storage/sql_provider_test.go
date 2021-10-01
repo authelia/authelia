@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql/driver"
 	"encoding/base64"
 	"fmt"
@@ -91,6 +92,7 @@ func TestSQLUpgradeDatabase(t *testing.T) {
 
 func TestSQLProviderMethodsAuthenticationLogs(t *testing.T) {
 	provider, mock := NewSQLMockProvider()
+	ctx := context.Background()
 
 	mock.ExpectQuery(
 		"SELECT name FROM sqlite_master WHERE type='table'").
@@ -127,7 +129,7 @@ func TestSQLProviderMethodsAuthenticationLogs(t *testing.T) {
 			WithArgs(args...).
 			WillReturnResult(sqlmock.NewResult(int64(id), 1))
 
-		err := provider.AppendAuthenticationLog(attempt)
+		err := provider.AppendAuthenticationLog(ctx, attempt)
 		assert.NoError(t, err)
 		rows.AddRow(attempt.Successful, attempt.Time.Unix())
 	}
@@ -139,7 +141,7 @@ func TestSQLProviderMethodsAuthenticationLogs(t *testing.T) {
 		WillReturnRows(rows)
 
 	after := time.Unix(1577880000, 0)
-	results, err := provider.LoadLatestAuthenticationLogs(unitTestUser, after)
+	results, err := provider.LoadLatestAuthenticationLogs(ctx, unitTestUser, after)
 	assert.NoError(t, err)
 	require.Len(t, results, 3)
 	assert.Equal(t, unitTestUser, results[0].Username)
@@ -158,13 +160,14 @@ func TestSQLProviderMethodsAuthenticationLogs(t *testing.T) {
 		WithArgs(args...).
 		WillReturnRows(sqlmock.NewRows([]string{"successful", "time"}))
 
-	results, err = provider.LoadLatestAuthenticationLogs(unitTestUser, after)
+	results, err = provider.LoadLatestAuthenticationLogs(ctx, unitTestUser, after)
 	assert.NoError(t, err)
 	assert.Len(t, results, 0)
 }
 
 func TestSQLProviderMethodsPreferred(t *testing.T) {
 	provider, mock := NewSQLMockProvider()
+	ctx := context.Background()
 
 	mock.ExpectQuery(
 		"SELECT name FROM sqlite_master WHERE type='table'").
@@ -191,7 +194,7 @@ func TestSQLProviderMethodsPreferred(t *testing.T) {
 		WithArgs(unitTestUser, authentication.TOTP).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err = provider.SavePreferred2FAMethod(unitTestUser, authentication.TOTP)
+	err = provider.SavePreferred2FAMethod(ctx, unitTestUser, authentication.TOTP)
 	assert.NoError(t, err)
 
 	mock.ExpectQuery(
@@ -199,7 +202,7 @@ func TestSQLProviderMethodsPreferred(t *testing.T) {
 		WithArgs(unitTestUser).
 		WillReturnRows(sqlmock.NewRows([]string{"second_factor_method"}).AddRow(authentication.TOTP))
 
-	method, err := provider.LoadPreferred2FAMethod(unitTestUser)
+	method, err := provider.LoadPreferred2FAMethod(ctx, unitTestUser)
 	assert.NoError(t, err)
 	assert.Equal(t, authentication.TOTP, method)
 
@@ -209,13 +212,14 @@ func TestSQLProviderMethodsPreferred(t *testing.T) {
 		WithArgs(unitTestUser).
 		WillReturnRows(sqlmock.NewRows([]string{"second_factor_method"}))
 
-	method, err = provider.LoadPreferred2FAMethod(unitTestUser)
+	method, err = provider.LoadPreferred2FAMethod(ctx, unitTestUser)
 	assert.NoError(t, err)
 	assert.Equal(t, "", method)
 }
 
 func TestSQLProviderMethodsTOTP(t *testing.T) {
 	provider, mock := NewSQLMockProvider()
+	ctx := context.Background()
 
 	mock.ExpectQuery(
 		"SELECT name FROM sqlite_master WHERE type='table'").
@@ -244,7 +248,7 @@ func TestSQLProviderMethodsTOTP(t *testing.T) {
 		WithArgs(args...).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err = provider.SaveTOTPSecret(unitTestUser, pretendSecret)
+	err = provider.SaveTOTPSecret(ctx, unitTestUser, pretendSecret)
 	assert.NoError(t, err)
 
 	args = []driver.Value{unitTestUser}
@@ -253,7 +257,7 @@ func TestSQLProviderMethodsTOTP(t *testing.T) {
 		WithArgs(args...).
 		WillReturnRows(sqlmock.NewRows([]string{"secret"}).AddRow(pretendSecret))
 
-	secret, err := provider.LoadTOTPSecret(unitTestUser)
+	secret, err := provider.LoadTOTPSecret(ctx, unitTestUser)
 	assert.NoError(t, err)
 	assert.Equal(t, pretendSecret, secret)
 
@@ -262,7 +266,7 @@ func TestSQLProviderMethodsTOTP(t *testing.T) {
 		WithArgs(unitTestUser).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err = provider.DeleteTOTPSecret(unitTestUser)
+	err = provider.DeleteTOTPSecret(ctx, unitTestUser)
 	assert.NoError(t, err)
 
 	mock.ExpectQuery(
@@ -271,13 +275,14 @@ func TestSQLProviderMethodsTOTP(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"secret"}))
 
 	// Test Blank Rows
-	secret, err = provider.LoadTOTPSecret(unitTestUser)
+	secret, err = provider.LoadTOTPSecret(ctx, unitTestUser)
 	assert.EqualError(t, err, "no TOTP secret registered")
 	assert.Equal(t, "", secret)
 }
 
 func TestSQLProviderMethodsU2F(t *testing.T) {
 	provider, mock := NewSQLMockProvider()
+	ctx := context.Background()
 
 	mock.ExpectQuery(
 		"SELECT name FROM sqlite_master WHERE type='table'").
@@ -310,7 +315,7 @@ func TestSQLProviderMethodsU2F(t *testing.T) {
 		WithArgs(args...).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err = provider.SaveU2FDeviceHandle(unitTestUser, pretendKeyHandle, pretendPublicKey)
+	err = provider.SaveU2FDeviceHandle(ctx, unitTestUser, pretendKeyHandle, pretendPublicKey)
 	assert.NoError(t, err)
 
 	args = []driver.Value{unitTestUser}
@@ -320,7 +325,7 @@ func TestSQLProviderMethodsU2F(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"keyHandle", "publicKey"}).
 			AddRow(pretendKeyHandleB64, pretendPublicKeyB64))
 
-	keyHandle, publicKey, err := provider.LoadU2FDeviceHandle(unitTestUser)
+	keyHandle, publicKey, err := provider.LoadU2FDeviceHandle(ctx, unitTestUser)
 	assert.NoError(t, err)
 	assert.Equal(t, pretendKeyHandle, keyHandle)
 	assert.Equal(t, pretendPublicKey, publicKey)
@@ -331,7 +336,7 @@ func TestSQLProviderMethodsU2F(t *testing.T) {
 		WithArgs(args...).
 		WillReturnRows(sqlmock.NewRows([]string{"keyHandle", "publicKey"}))
 
-	keyHandle, publicKey, err = provider.LoadU2FDeviceHandle(unitTestUser)
+	keyHandle, publicKey, err = provider.LoadU2FDeviceHandle(ctx, unitTestUser)
 	assert.EqualError(t, err, "no U2F device handle found")
 	assert.Equal(t, []byte(nil), keyHandle)
 	assert.Equal(t, []byte(nil), publicKey)
@@ -339,6 +344,7 @@ func TestSQLProviderMethodsU2F(t *testing.T) {
 
 func TestSQLProviderMethodsIdentityVerificationTokens(t *testing.T) {
 	provider, mock := NewSQLMockProvider()
+	ctx := context.Background()
 
 	mock.ExpectQuery(
 		"SELECT name FROM sqlite_master WHERE type='table'").
@@ -367,7 +373,7 @@ func TestSQLProviderMethodsIdentityVerificationTokens(t *testing.T) {
 		WithArgs(fakeIdentityVerificationToken).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	err = provider.SaveIdentityVerificationToken(fakeIdentityVerificationToken)
+	err = provider.SaveIdentityVerificationToken(ctx, fakeIdentityVerificationToken)
 	assert.NoError(t, err)
 
 	mock.ExpectQuery(
@@ -376,7 +382,7 @@ func TestSQLProviderMethodsIdentityVerificationTokens(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"EXISTS"}).
 			AddRow(true))
 
-	valid, err := provider.FindIdentityVerificationToken(fakeIdentityVerificationToken)
+	valid, err := provider.FindIdentityVerificationToken(ctx, fakeIdentityVerificationToken)
 	assert.NoError(t, err)
 	assert.True(t, valid)
 
@@ -385,7 +391,7 @@ func TestSQLProviderMethodsIdentityVerificationTokens(t *testing.T) {
 		WithArgs(fakeIdentityVerificationToken).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err = provider.RemoveIdentityVerificationToken(fakeIdentityVerificationToken)
+	err = provider.RemoveIdentityVerificationToken(ctx, fakeIdentityVerificationToken)
 	assert.NoError(t, err)
 
 	mock.ExpectQuery(
@@ -394,7 +400,7 @@ func TestSQLProviderMethodsIdentityVerificationTokens(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"EXISTS"}).
 			AddRow(false))
 
-	valid, err = provider.FindIdentityVerificationToken(fakeIdentityVerificationToken)
+	valid, err = provider.FindIdentityVerificationToken(ctx, fakeIdentityVerificationToken)
 	assert.NoError(t, err)
 	assert.False(t, valid)
 }
