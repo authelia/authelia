@@ -22,7 +22,7 @@ Authelia will fail to load. Authelia will automatically remove the newlines from
 For instance the LDAP password can be defined in the configuration
 at the path **authentication_backend.ldap.password**, so this password
 could alternatively be set using the environment variable called
-**AUTHELIA__AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE**.
+**AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE**.
 
 Here is the list of the environment variables which are considered secrets and can be defined. Please note that only
 secrets can be loaded into the configuration if they end with one of the suffixes above, you can set the value of any
