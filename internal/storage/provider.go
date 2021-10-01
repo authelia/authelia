@@ -29,5 +29,5 @@ type Provider interface {
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.
 type RegulatorProvider interface {
 	AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error)
-	LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error)
+	LoadFailedAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error)
 }

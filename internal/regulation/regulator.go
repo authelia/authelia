@@ -59,11 +59,7 @@ func (r *Regulator) Regulate(ctx context.Context, username string) (time.Time, e
 		return time.Time{}, nil
 	}
 
-	now := r.clock.Now()
-
-	// TODO(c.michaud): make sure FindTime < BanTime.
-	attempts, err := r.storageProvider.LoadAuthenticationLogs(ctx, username, now.Add(-r.banTime), 10, 0)
-
+	attempts, err := r.storageProvider.LoadFailedAuthenticationAttempts(ctx, username, r.clock.Now().Add(-r.banTime), 10, 0)
 	if err != nil {
 		return time.Time{}, nil
 	}

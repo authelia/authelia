@@ -80,9 +80,9 @@ func (mr *MockProviderMockRecorder) FindIdentityVerificationToken(ctx, token int
 }
 
 // LoadAuthenticationLogs mocks base method.
-func (m *MockProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) ([]models.AuthenticationAttempt, error) {
+func (m *MockProvider) LoadFailedAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) ([]models.AuthenticationAttempt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadAuthenticationLogs", ctx, username, fromDate, limit, page)
+	ret := m.ctrl.Call(m, "LoadFailedAuthenticationAttempts", ctx, username, fromDate, limit, page)
 	ret0, _ := ret[0].([]models.AuthenticationAttempt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -91,7 +91,7 @@ func (m *MockProvider) LoadAuthenticationLogs(ctx context.Context, username stri
 // LoadAuthenticationLogs indicates an expected call of LoadAuthenticationLogs.
 func (mr *MockProviderMockRecorder) LoadAuthenticationLogs(ctx, username, fromDate, limit, page interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthenticationLogs", reflect.TypeOf((*MockProvider)(nil).LoadAuthenticationLogs), ctx, username, fromDate, limit, page)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadFailedAuthenticationAttempts", reflect.TypeOf((*MockProvider)(nil).LoadFailedAuthenticationAttempts), ctx, username, fromDate, limit, page)
 }
 
 // LoadPreferred2FAMethod mocks base method.
@@ -247,9 +247,9 @@ func (mr *MockRegulatorProviderMockRecorder) AppendAuthenticationLog(ctx, attemp
 }
 
 // LoadAuthenticationLogs mocks base method.
-func (m *MockRegulatorProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) ([]models.AuthenticationAttempt, error) {
+func (m *MockRegulatorProvider) LoadFailedAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) ([]models.AuthenticationAttempt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadAuthenticationLogs", ctx, username, fromDate, limit, page)
+	ret := m.ctrl.Call(m, "LoadFailedAuthenticationAttempts", ctx, username, fromDate, limit, page)
 	ret0, _ := ret[0].([]models.AuthenticationAttempt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -258,5 +258,5 @@ func (m *MockRegulatorProvider) LoadAuthenticationLogs(ctx context.Context, user
 // LoadAuthenticationLogs indicates an expected call of LoadAuthenticationLogs.
 func (mr *MockRegulatorProviderMockRecorder) LoadAuthenticationLogs(ctx, username, fromDate, limit, page interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthenticationLogs", reflect.TypeOf((*MockRegulatorProvider)(nil).LoadAuthenticationLogs), ctx, username, fromDate, limit, page)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadFailedAuthenticationAttempts", reflect.TypeOf((*MockRegulatorProvider)(nil).LoadFailedAuthenticationAttempts), ctx, username, fromDate, limit, page)
 }

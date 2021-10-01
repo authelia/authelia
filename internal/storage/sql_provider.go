@@ -37,8 +37,8 @@ type SQLProvider struct {
 	sqlGetU2FDeviceHandleByUsername string
 	sqlUpsertU2FDeviceHandle        string
 
-	sqlInsertAuthenticationLog string
-	sqlGetAuthenticationLogs   string
+	sqlInsertAuthenticationLog         string
+	sqlGetFailedAuthenticationAttempts string
 
 	sqlGetExistingTables string
 
@@ -148,15 +148,19 @@ func (p *SQLProvider) LoadU2FDeviceHandle(ctx context.Context, username string) 
 
 // AppendAuthenticationLog append a mark to the authentication log.
 func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
+	p.log.Debugf("DBG: Log Attempt for %s, %v, %d", attempt.Username, attempt.Successful, attempt.Time.Unix())
 	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationLog, attempt.Username, attempt.Successful, attempt.Time)
+	if err != nil {
+		p.log.Debugf("DBG: Log Attempt Err for %s: %v", attempt.Username, err)
+	}
 
 	return err
 }
 
-// LoadAuthenticationLogs retrieve the latest marks from the authentication log.
-func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
-	p.log.Debugf("DBG: Load Logs for %s", username)
-	rows, err := p.db.QueryxContext(ctx, p.sqlGetAuthenticationLogs, fromDate.Unix(), username, 10, limit*page)
+// LoadFailedAuthenticationAttempts retrieve the latest failed authentications from the authentication log.
+func (p *SQLProvider) LoadFailedAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
+	p.log.Debugf("DBG: Load Logs for %s from %d", username, fromDate.Unix())
+	rows, err := p.db.QueryxContext(ctx, p.sqlGetFailedAuthenticationAttempts, fromDate.Unix(), username, limit, limit*page)
 	if err != nil {
 		p.log.Debugf("DBG: Err %s, %v", username, err)
 
@@ -184,6 +188,8 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 		p.log.Debugf("DBG: attempt row loaded for %s: %v %v", username, attempt.Successful, attempt.Time.Time)
 		attempts = append(attempts, attempt)
 	}
+
+	p.log.Debugf("DBG: attempts returned for %s: %d", username, len(attempts))
 
 	return attempts, nil
 }
