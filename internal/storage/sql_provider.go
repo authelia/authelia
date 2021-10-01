@@ -66,6 +66,7 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.
 func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlUpsertSecondFactorPreference, username, method)
+
 	return err
 }
 
@@ -82,18 +83,21 @@ func (p *SQLProvider) FindIdentityVerificationToken(ctx context.Context, token s
 // SaveIdentityVerificationToken save an identity verification token in the database.
 func (p *SQLProvider) SaveIdentityVerificationToken(ctx context.Context, token string) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlInsertIdentityVerificationToken, token)
+
 	return err
 }
 
 // RemoveIdentityVerificationToken remove an identity verification token from the database.
 func (p *SQLProvider) RemoveIdentityVerificationToken(ctx context.Context, token string) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlDeleteIdentityVerificationToken, token)
+
 	return err
 }
 
 // SaveTOTPSecret save a TOTP secret of a given user in the database.
 func (p *SQLProvider) SaveTOTPSecret(ctx context.Context, username string, secret string) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPSecret, username, secret)
+
 	return err
 }
 
@@ -113,6 +117,7 @@ func (p *SQLProvider) LoadTOTPSecret(ctx context.Context, username string) (secr
 // DeleteTOTPSecret delete a TOTP secret from the database given a username.
 func (p *SQLProvider) DeleteTOTPSecret(ctx context.Context, username string) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlDeleteTOTPSecret, username)
+
 	return err
 }
 
@@ -125,6 +130,10 @@ func (p *SQLProvider) SaveU2FDeviceHandle(ctx context.Context, device models.U2F
 
 // LoadU2FDeviceHandle load a U2F device registration blob for a given username.
 func (p *SQLProvider) LoadU2FDeviceHandle(ctx context.Context, username string) (device *models.U2FDevice, err error) {
+	device = &models.U2FDevice{
+		Username: username,
+	}
+
 	err = p.db.GetContext(ctx, device, p.sqlGetU2FDeviceHandleByUsername, username)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -140,6 +149,7 @@ func (p *SQLProvider) LoadU2FDeviceHandle(ctx context.Context, username string) 
 // AppendAuthenticationLog append a mark to the authentication log.
 func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationLog, attempt.Username, attempt.Successful, attempt.Time)
+
 	return err
 }
 
