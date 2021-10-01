@@ -48,17 +48,10 @@ type SQLProvider struct {
 
 // LoadPreferred2FAMethod load the preferred method for 2FA from the database.
 func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error) {
-	rows, err := p.db.QueryContext(ctx, p.sqlGetPreferencesByUsername, username)
+	err = p.db.GetContext(ctx, &method, p.sqlGetPreferencesByUsername, username)
 	if err != nil {
 		return "", err
 	}
-	defer rows.Close()
-
-	if !rows.Next() {
-		return "", nil
-	}
-
-	err = rows.Scan(&method)
 
 	return method, err
 }
@@ -72,7 +65,7 @@ func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username strin
 
 // FindIdentityVerificationToken look for an identity verification token in the database.
 func (p *SQLProvider) FindIdentityVerificationToken(ctx context.Context, token string) (found bool, err error) {
-	err = p.db.QueryRowContext(ctx, p.sqlTestIdentityVerificationTokenExistence, token).Scan(&found)
+	err = p.db.GetContext(ctx, &found, p.sqlTestIdentityVerificationTokenExistence, token)
 	if err != nil {
 		return false, err
 	}
@@ -103,7 +96,8 @@ func (p *SQLProvider) SaveTOTPSecret(ctx context.Context, username string, secre
 
 // LoadTOTPSecret load a TOTP secret given a username from the database.
 func (p *SQLProvider) LoadTOTPSecret(ctx context.Context, username string) (secret string, err error) {
-	if err := p.db.QueryRowContext(ctx, p.sqlGetTOTPSecretByUsername, username).Scan(&secret); err != nil {
+	err = p.db.GetContext(ctx, &secret, p.sqlGetTOTPSecretByUsername, username)
+	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", ErrNoTOTPSecret
 		}
@@ -148,28 +142,20 @@ func (p *SQLProvider) LoadU2FDeviceHandle(ctx context.Context, username string) 
 
 // AppendAuthenticationLog append a mark to the authentication log.
 func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
-	p.log.Debugf("DBG: Log Attempt for %s, %v, %d", attempt.Username, attempt.Successful, attempt.Time.Unix())
 	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationLog, attempt.Username, attempt.Successful, attempt.Time)
-	if err != nil {
-		p.log.Debugf("DBG: Log Attempt Err for %s: %v", attempt.Username, err)
-	}
 
 	return err
 }
 
 // LoadFailedAuthenticationAttempts retrieve the latest failed authentications from the authentication log.
 func (p *SQLProvider) LoadFailedAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
-	p.log.Debugf("DBG: Load Logs for %s from %d", username, fromDate.Unix())
 	rows, err := p.db.QueryxContext(ctx, p.sqlGetFailedAuthenticationAttempts, fromDate.Unix(), username, limit, limit*page)
 	if err != nil {
-		p.log.Debugf("DBG: Err %s, %v", username, err)
-
 		return nil, err
 	}
 
 	attempts = make([]models.AuthenticationAttempt, 0, limit)
 
-	p.log.Debugf("DBG: Reading rows %s", username)
 	for rows.Next() {
 		var attempt models.AuthenticationAttempt
 
@@ -177,19 +163,14 @@ func (p *SQLProvider) LoadFailedAuthenticationAttempts(ctx context.Context, user
 		if err != nil {
 			closeErr := rows.Close()
 			if closeErr != nil {
-				p.log.Debugf("DBG: Err scan/close %s: %v / %v", username, err, closeErr)
 				return nil, fmt.Errorf("%w, error occured closing connection: %+v", err, closeErr)
 			}
 
-			p.log.Debugf("DBG: Err scan %s: %v", username, err)
 			return nil, err
 		}
 
-		p.log.Debugf("DBG: attempt row loaded for %s: %v %v", username, attempt.Successful, attempt.Time.Time)
 		attempts = append(attempts, attempt)
 	}
-
-	p.log.Debugf("DBG: attempts returned for %s: %d", username, len(attempts))
 
 	return attempts, nil
 }
