@@ -41,7 +41,7 @@ func loadInfo(ctx *middlewares.AutheliaCtx, username string, storageProvider sto
 	go func() {
 		defer wg.Done()
 
-		_, _, err := storageProvider.LoadU2FDeviceHandle(ctx, username)
+		_, err := storageProvider.LoadU2FDeviceHandle(ctx, username)
 		if err != nil {
 			if err == storage.ErrNoU2FDeviceHandle {
 				return

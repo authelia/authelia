@@ -23,7 +23,7 @@ var sqlUpgradeCreateTableStatements = map[SchemaVersion]map[string]string{
 		userPreferencesTableName:            "CREATE TABLE %s (username VARCHAR(100) PRIMARY KEY, second_factor_method VARCHAR(11))",
 		identityVerificationTokensTableName: "CREATE TABLE %s (token VARCHAR(512))",
 		totpSecretsTableName:                "CREATE TABLE %s (username VARCHAR(100) PRIMARY KEY, secret VARCHAR(64))",
-		u2fDeviceHandlesTableName:           "CREATE TABLE %s (username VARCHAR(100) PRIMARY KEY, keyHandle TEXT, publicKey TEXT)",
+		u2fDeviceHandlesTableName:           "CREATE TABLE %s (username VARCHAR(100) PRIMARY KEY, keyHandle BLOB, publicKey BLOB)",
 		authenticationLogsTableName:         "CREATE TABLE %s (username VARCHAR(100), successful BOOL, time INTEGER)",
 		configTableName:                     "CREATE TABLE %s (category VARCHAR(32) NOT NULL, key_name VARCHAR(32) NOT NULL, value TEXT, PRIMARY KEY (category, key_name))",
 	},

@@ -6,7 +6,14 @@ import (
 	"time"
 )
 
-// AuthenticationAttempt represent an authentication attempt.
+// U2FDevice represents a users U2F device.
+type U2FDevice struct {
+	Username  string `db:"username"`
+	KeyHandle []byte `db:"keyHandle"`
+	PublicKey []byte `db:"publicKey"`
+}
+
+// AuthenticationAttempt represents an authentication attempt.
 type AuthenticationAttempt struct {
 	Username   string `db:"username"`
 	Successful bool   `db:"successful"`

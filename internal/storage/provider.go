@@ -22,8 +22,8 @@ type Provider interface {
 	LoadTOTPSecret(ctx context.Context, username string) (secret string, err error)
 	DeleteTOTPSecret(ctx context.Context, username string) (err error)
 
-	SaveU2FDeviceHandle(ctx context.Context, username string, keyHandle []byte, publicKey []byte) (err error)
-	LoadU2FDeviceHandle(ctx context.Context, username string) (keyHandle []byte, publicKey []byte, err error)
+	SaveU2FDeviceHandle(ctx context.Context, device models.U2FDevice) (err error)
+	LoadU2FDeviceHandle(ctx context.Context, username string) (device *models.U2FDevice, err error)
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.

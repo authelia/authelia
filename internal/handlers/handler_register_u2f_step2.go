@@ -7,6 +7,7 @@ import (
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/models"
 )
 
 // SecondFactorU2FRegister handler validating the client has successfully validated the challenge
@@ -45,7 +46,11 @@ func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.Debugf("Register U2F device for user %s", userSession.Username)
 
 	publicKey := elliptic.Marshal(elliptic.P256(), registration.PubKey.X, registration.PubKey.Y)
-	err = ctx.Providers.StorageProvider.SaveU2FDeviceHandle(ctx, userSession.Username, registration.KeyHandle, publicKey)
+	err = ctx.Providers.StorageProvider.SaveU2FDeviceHandle(ctx, models.U2FDevice{
+		Username:  userSession.Username,
+		KeyHandle: registration.KeyHandle,
+		PublicKey: publicKey},
+	)
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to register U2F device for user %s: %v", userSession.Username, err), messageUnableToRegisterSecurityKey)

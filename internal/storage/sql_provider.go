@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -118,39 +117,24 @@ func (p *SQLProvider) DeleteTOTPSecret(ctx context.Context, username string) (er
 }
 
 // SaveU2FDeviceHandle save a registered U2F device registration blob.
-func (p *SQLProvider) SaveU2FDeviceHandle(ctx context.Context, username string, keyHandle []byte, publicKey []byte) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlUpsertU2FDeviceHandle,
-		username,
-		base64.StdEncoding.EncodeToString(keyHandle),
-		base64.StdEncoding.EncodeToString(publicKey))
+func (p *SQLProvider) SaveU2FDeviceHandle(ctx context.Context, device models.U2FDevice) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlUpsertU2FDeviceHandle, device.Username, device.KeyHandle, device.PublicKey)
 
 	return err
 }
 
 // LoadU2FDeviceHandle load a U2F device registration blob for a given username.
-func (p *SQLProvider) LoadU2FDeviceHandle(ctx context.Context, username string) (keyHandle []byte, publicKey []byte, err error) {
-	var keyHandleBase64, publicKeyBase64 string
-	if err := p.db.QueryRowContext(ctx, p.sqlGetU2FDeviceHandleByUsername, username).Scan(&keyHandleBase64, &publicKeyBase64); err != nil {
+func (p *SQLProvider) LoadU2FDeviceHandle(ctx context.Context, username string) (device *models.U2FDevice, err error) {
+	err = p.db.GetContext(ctx, device, p.sqlGetU2FDeviceHandleByUsername, username)
+	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil, ErrNoU2FDeviceHandle
+			return nil, ErrNoU2FDeviceHandle
 		}
 
-		return nil, nil, err
+		return nil, err
 	}
 
-	keyHandle, err = base64.StdEncoding.DecodeString(keyHandleBase64)
-
-	if err != nil {
-		return nil, nil, err
-	}
-
-	publicKey, err = base64.StdEncoding.DecodeString(publicKeyBase64)
-
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return keyHandle, publicKey, nil
+	return device, nil
 }
 
 // AppendAuthenticationLog append a mark to the authentication log.

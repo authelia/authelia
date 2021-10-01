@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -44,12 +45,12 @@ func setPreferencesExpectations(mock *mocks.MockAutheliaCtx, preferences UserInf
 		mock.StorageProviderMock.
 			EXPECT().
 			LoadU2FDeviceHandle(mock.Ctx, gomock.Eq("john")).
-			Return(u2fData, u2fData, nil)
+			Return(&models.U2FDevice{Username: "john", KeyHandle: u2fData, PublicKey: u2fData}, nil)
 	} else {
 		mock.StorageProviderMock.
 			EXPECT().
 			LoadU2FDeviceHandle(mock.Ctx, gomock.Eq("john")).
-			Return(nil, nil, storage.ErrNoU2FDeviceHandle)
+			Return(nil, storage.ErrNoU2FDeviceHandle)
 	}
 
 	if preferences.HasTOTP {
@@ -127,7 +128,7 @@ func (s *FetchSuite) TestShouldGetDefaultPreferenceIfNotInDB() {
 	s.mock.StorageProviderMock.
 		EXPECT().
 		LoadU2FDeviceHandle(s.mock.Ctx, gomock.Eq("john")).
-		Return(nil, nil, storage.ErrNoU2FDeviceHandle)
+		Return(nil, storage.ErrNoU2FDeviceHandle)
 
 	s.mock.StorageProviderMock.
 		EXPECT().

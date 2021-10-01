@@ -125,13 +125,12 @@ func (mr *MockProviderMockRecorder) LoadTOTPSecret(ctx, username interface{}) *g
 }
 
 // LoadU2FDeviceHandle mocks base method.
-func (m *MockProvider) LoadU2FDeviceHandle(ctx context.Context, username string) ([]byte, []byte, error) {
+func (m *MockProvider) LoadU2FDeviceHandle(ctx context.Context, username string) (*models.U2FDevice, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadU2FDeviceHandle", ctx, username)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].([]byte)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*models.U2FDevice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // LoadU2FDeviceHandle indicates an expected call of LoadU2FDeviceHandle.
@@ -197,17 +196,17 @@ func (mr *MockProviderMockRecorder) SaveTOTPSecret(ctx, username, secret interfa
 }
 
 // SaveU2FDeviceHandle mocks base method.
-func (m *MockProvider) SaveU2FDeviceHandle(ctx context.Context, username string, keyHandle, publicKey []byte) error {
+func (m *MockProvider) SaveU2FDeviceHandle(ctx context.Context, device models.U2FDevice) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveU2FDeviceHandle", ctx, username, keyHandle, publicKey)
+	ret := m.ctrl.Call(m, "SaveU2FDeviceHandle", ctx, device)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveU2FDeviceHandle indicates an expected call of SaveU2FDeviceHandle.
-func (mr *MockProviderMockRecorder) SaveU2FDeviceHandle(ctx, username, keyHandle, publicKey interface{}) *gomock.Call {
+func (mr *MockProviderMockRecorder) SaveU2FDeviceHandle(ctx, device interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveU2FDeviceHandle", reflect.TypeOf((*MockProvider)(nil).SaveU2FDeviceHandle), ctx, username, keyHandle, publicKey)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveU2FDeviceHandle", reflect.TypeOf((*MockProvider)(nil).SaveU2FDeviceHandle), ctx, device)
 }
 
 // MockRegulatorProvider is a mock of RegulatorProvider interface.
