@@ -155,13 +155,17 @@ func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model
 
 // LoadAuthenticationLogs retrieve the latest marks from the authentication log.
 func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
+	p.log.Debugf("DBG: Load Logs for %s", username)
 	rows, err := p.db.QueryxContext(ctx, p.sqlGetAuthenticationLogs, fromDate.Unix(), username, 10, limit*page)
 	if err != nil {
+		p.log.Debugf("DBG: Err %s, %v", username, err)
+
 		return nil, err
 	}
 
 	attempts = make([]models.AuthenticationAttempt, 0, limit)
 
+	p.log.Debugf("DBG: Reading rows %s", username)
 	for rows.Next() {
 		var attempt models.AuthenticationAttempt
 
@@ -169,12 +173,15 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 		if err != nil {
 			closeErr := rows.Close()
 			if closeErr != nil {
+				p.log.Debugf("DBG: Err scan/close %s: %v / %v", username, err, closeErr)
 				return nil, fmt.Errorf("%w, error occured closing connection: %+v", err, closeErr)
 			}
 
+			p.log.Debugf("DBG: Err scan %s: %v", username, err)
 			return nil, err
 		}
 
+		p.log.Debugf("DBG: attempt row loaded for %s: %v %v", username, attempt.Successful, attempt.Time.Time)
 		attempts = append(attempts, attempt)
 	}
 
