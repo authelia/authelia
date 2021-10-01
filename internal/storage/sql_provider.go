@@ -49,11 +49,15 @@ type SQLProvider struct {
 // LoadPreferred2FAMethod load the preferred method for 2FA from the database.
 func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error) {
 	err = p.db.GetContext(ctx, &method, p.sqlGetPreferencesByUsername, username)
-	if err != nil {
+
+	switch err {
+	case sql.ErrNoRows:
+		return "", nil
+	case nil:
+		return method, err
+	default:
 		return "", err
 	}
-
-	return method, err
 }
 
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.
@@ -163,7 +167,7 @@ func (p *SQLProvider) LoadFailedAuthenticationAttempts(ctx context.Context, user
 		if err != nil {
 			closeErr := rows.Close()
 			if closeErr != nil {
-				return nil, fmt.Errorf("%w, error occured closing connection: %+v", err, closeErr)
+				return nil, fmt.Errorf("%w, error occurred closing connection: %+v", err, closeErr)
 			}
 
 			return nil, err

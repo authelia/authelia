@@ -20,6 +20,7 @@ type AuthenticationAttempt struct {
 	Time       DBTime `db:"time"`
 }
 
+// DBTime allows sqlx's StructScan to Scan the time from int64 and to int64.
 type DBTime struct {
 	time.Time
 }
@@ -29,6 +30,7 @@ func (t DBTime) Value() (value driver.Value, err error) {
 	return driver.Value(t.Time.Unix()), nil
 }
 
+// Scan allows the database/sql driver to scan the int64 into a time.Time.
 func (t *DBTime) Scan(src interface{}) (err error) {
 	var value int64
 
