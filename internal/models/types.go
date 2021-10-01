@@ -32,9 +32,9 @@ func (t DBTime) Value() (value driver.Value, err error) {
 func (t *DBTime) Scan(src interface{}) (err error) {
 	var value int64
 
-	switch src.(type) {
+	switch s := src.(type) {
 	case int64:
-		value = src.(int64)
+		value = s
 	case nil:
 		value = 0
 	default:

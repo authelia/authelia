@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -12,6 +11,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -42,6 +42,7 @@ func setPreferencesExpectations(mock *mocks.MockAutheliaCtx, preferences UserInf
 
 	if preferences.HasU2F {
 		u2fData := []byte("abc")
+
 		mock.StorageProviderMock.
 			EXPECT().
 			LoadU2FDeviceHandle(mock.Ctx, gomock.Eq("john")).
