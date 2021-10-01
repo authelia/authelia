@@ -1,9 +1,9 @@
 package storage
 
 import (
-	"database/sql"
 	"fmt"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3" // Load the SQLite Driver used in the connection string.
 )
 
@@ -35,8 +35,8 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 			sqlGetU2FDeviceHandleByUsername: fmt.Sprintf("SELECT keyHandle, publicKey FROM %s WHERE username=?", u2fDeviceHandlesTableName),
 			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("REPLACE INTO %s (username, keyHandle, publicKey) VALUES (?, ?, ?)", u2fDeviceHandlesTableName),
 
-			sqlInsertAuthenticationLog:     fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
-			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC", authenticationLogsTableName),
+			sqlInsertAuthenticationLog: fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
+			sqlGetAuthenticationLogs:   fmt.Sprintf("SELECT successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC LIMIT ? OFFSET ?", authenticationLogsTableName),
 
 			sqlGetExistingTables: "SELECT name FROM sqlite_master WHERE type='table'",
 
@@ -45,7 +45,7 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 		},
 	}
 
-	db, err := sql.Open("sqlite3", path)
+	db, err := sqlx.Open("sqlite3", path)
 	if err != nil {
 		provider.log.Fatalf("Unable to create SQL database %s: %s", path, err)
 	}

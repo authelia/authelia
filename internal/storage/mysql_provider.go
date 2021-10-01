@@ -1,11 +1,11 @@
 package storage
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql" // Load the MySQL Driver used in the connection string.
+	"github.com/jmoiron/sqlx"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -37,8 +37,8 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 			sqlGetU2FDeviceHandleByUsername: fmt.Sprintf("SELECT keyHandle, publicKey FROM %s WHERE username=?", u2fDeviceHandlesTableName),
 			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("REPLACE INTO %s (username, keyHandle, publicKey) VALUES (?, ?, ?)", u2fDeviceHandlesTableName),
 
-			sqlInsertAuthenticationLog:     fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
-			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC", authenticationLogsTableName),
+			sqlInsertAuthenticationLog: fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
+			sqlGetAuthenticationLogs:   fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC LIMIT ?, ?", authenticationLogsTableName),
 
 			sqlGetExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema=database()",
 
@@ -72,7 +72,7 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 	connectionString += "?"
 	connectionString += fmt.Sprintf("timeout=%ds", int32(configuration.Timeout/time.Second))
 
-	db, err := sql.Open("mysql", connectionString)
+	db, err := sqlx.Open("mysql", connectionString)
 	if err != nil {
 		provider.log.Fatalf("Unable to connect to SQL database: %v", err)
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -16,7 +17,7 @@ import (
 
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
-	db   *sql.DB
+	db   *sqlx.DB
 	log  *logrus.Logger
 	name string
 
@@ -37,8 +38,8 @@ type SQLProvider struct {
 	sqlGetU2FDeviceHandleByUsername string
 	sqlUpsertU2FDeviceHandle        string
 
-	sqlInsertAuthenticationLog     string
-	sqlGetLatestAuthenticationLogs string
+	sqlInsertAuthenticationLog string
+	sqlGetAuthenticationLogs   string
 
 	sqlGetExistingTables string
 
@@ -158,25 +159,19 @@ func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model
 	return err
 }
 
-// LoadLatestAuthenticationLogs retrieve the latest marks from the authentication log.
-func (p *SQLProvider) LoadLatestAuthenticationLogs(ctx context.Context, username string, fromDate time.Time) (attempts []models.AuthenticationAttempt, err error) {
-	var t int64
-
-	rows, err := p.db.QueryContext(ctx, p.sqlGetLatestAuthenticationLogs, fromDate.Unix(), username)
-
+// LoadAuthenticationLogs retrieve the latest marks from the authentication log.
+func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
+	rows, err := p.db.QueryxContext(ctx, p.sqlGetAuthenticationLogs, fromDate.Unix(), username, 10, limit*page)
 	if err != nil {
 		return nil, err
 	}
 
-	attempts = make([]models.AuthenticationAttempt, 0, 10)
+	attempts = make([]models.AuthenticationAttempt, 0, limit)
 
 	for rows.Next() {
-		attempt := models.AuthenticationAttempt{
-			Username: username,
-		}
-		err = rows.Scan(&attempt.Successful, &t)
-		attempt.Time = time.Unix(t, 0)
+		var attempt models.AuthenticationAttempt
 
+		err = rows.StructScan(&attempt)
 		if err != nil {
 			return nil, err
 		}
@@ -187,7 +182,7 @@ func (p *SQLProvider) LoadLatestAuthenticationLogs(ctx context.Context, username
 	return attempts, nil
 }
 
-func (p *SQLProvider) initialize(db *sql.DB) (err error) {
+func (p *SQLProvider) initialize(db *sqlx.DB) (err error) {
 	p.db = db
 	p.log = logging.Logger()
 

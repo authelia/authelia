@@ -35,5 +35,3 @@ var sqlUpgradesCreateTableIndexesStatements = map[SchemaVersion][]string{
 		fmt.Sprintf("CREATE INDEX IF NOT EXISTS usr_time_idx ON %s (username, time)", authenticationLogsTableName),
 	},
 }
-
-const unitTestUser = "john"

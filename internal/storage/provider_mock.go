@@ -79,19 +79,19 @@ func (mr *MockProviderMockRecorder) FindIdentityVerificationToken(ctx, token int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdentityVerificationToken", reflect.TypeOf((*MockProvider)(nil).FindIdentityVerificationToken), ctx, token)
 }
 
-// LoadLatestAuthenticationLogs mocks base method.
-func (m *MockProvider) LoadLatestAuthenticationLogs(ctx context.Context, username string, fromDate time.Time) ([]models.AuthenticationAttempt, error) {
+// LoadAuthenticationLogs mocks base method.
+func (m *MockProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) ([]models.AuthenticationAttempt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadLatestAuthenticationLogs", ctx, username, fromDate)
+	ret := m.ctrl.Call(m, "LoadAuthenticationLogs", ctx, username, fromDate, limit, page)
 	ret0, _ := ret[0].([]models.AuthenticationAttempt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LoadLatestAuthenticationLogs indicates an expected call of LoadLatestAuthenticationLogs.
-func (mr *MockProviderMockRecorder) LoadLatestAuthenticationLogs(ctx, username, fromDate interface{}) *gomock.Call {
+// LoadAuthenticationLogs indicates an expected call of LoadAuthenticationLogs.
+func (mr *MockProviderMockRecorder) LoadAuthenticationLogs(ctx, username, fromDate, limit, page interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadLatestAuthenticationLogs", reflect.TypeOf((*MockProvider)(nil).LoadLatestAuthenticationLogs), ctx, username, fromDate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthenticationLogs", reflect.TypeOf((*MockProvider)(nil).LoadAuthenticationLogs), ctx, username, fromDate, limit, page)
 }
 
 // LoadPreferred2FAMethod mocks base method.
@@ -247,17 +247,17 @@ func (mr *MockRegulatorProviderMockRecorder) AppendAuthenticationLog(ctx, attemp
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendAuthenticationLog", reflect.TypeOf((*MockRegulatorProvider)(nil).AppendAuthenticationLog), ctx, attempt)
 }
 
-// LoadLatestAuthenticationLogs mocks base method.
-func (m *MockRegulatorProvider) LoadLatestAuthenticationLogs(ctx context.Context, username string, fromDate time.Time) ([]models.AuthenticationAttempt, error) {
+// LoadAuthenticationLogs mocks base method.
+func (m *MockRegulatorProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) ([]models.AuthenticationAttempt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadLatestAuthenticationLogs", ctx, username, fromDate)
+	ret := m.ctrl.Call(m, "LoadAuthenticationLogs", ctx, username, fromDate, limit, page)
 	ret0, _ := ret[0].([]models.AuthenticationAttempt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LoadLatestAuthenticationLogs indicates an expected call of LoadLatestAuthenticationLogs.
-func (mr *MockRegulatorProviderMockRecorder) LoadLatestAuthenticationLogs(ctx, username, fromDate interface{}) *gomock.Call {
+// LoadAuthenticationLogs indicates an expected call of LoadAuthenticationLogs.
+func (mr *MockRegulatorProviderMockRecorder) LoadAuthenticationLogs(ctx, username, fromDate, limit, page interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadLatestAuthenticationLogs", reflect.TypeOf((*MockRegulatorProvider)(nil).LoadLatestAuthenticationLogs), ctx, username, fromDate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthenticationLogs", reflect.TypeOf((*MockRegulatorProvider)(nil).LoadAuthenticationLogs), ctx, username, fromDate, limit, page)
 }

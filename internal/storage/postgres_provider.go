@@ -1,12 +1,12 @@
 package storage
 
 import (
-	"database/sql"
 	"fmt"
 	"strings"
 	"time"
 
 	_ "github.com/jackc/pgx/v4/stdlib" // Load the PostgreSQL Driver used in the connection string.
+	"github.com/jmoiron/sqlx"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -39,8 +39,8 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 			sqlGetU2FDeviceHandleByUsername: fmt.Sprintf("SELECT keyHandle, publicKey FROM %s WHERE username=$1", u2fDeviceHandlesTableName),
 			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("INSERT INTO %s (username, keyHandle, publicKey) VALUES ($1, $2, $3) ON CONFLICT (username) DO UPDATE SET keyHandle=$2, publicKey=$3", u2fDeviceHandlesTableName),
 
-			sqlInsertAuthenticationLog:     fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES ($1, $2, $3)", authenticationLogsTableName),
-			sqlGetLatestAuthenticationLogs: fmt.Sprintf("SELECT successful, time FROM %s WHERE time>$1 AND username=$2 ORDER BY time DESC", authenticationLogsTableName),
+			sqlInsertAuthenticationLog: fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES ($1, $2, $3)", authenticationLogsTableName),
+			sqlGetAuthenticationLogs:   fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>$1 AND username=$2 ORDER BY time DESC LIMIT $3 OFFSET $4", authenticationLogsTableName),
 
 			sqlGetExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public'",
 
@@ -77,7 +77,7 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 	args = append(args, fmt.Sprintf("connect_timeout=%d", int32(configuration.Timeout/time.Second)))
 	connectionString := strings.Join(args, " ")
 
-	db, err := sql.Open("pgx", connectionString)
+	db, err := sqlx.Open("pgx", connectionString)
 	if err != nil {
 		provider.log.Fatalf("Unable to connect to SQL database: %v", err)
 	}

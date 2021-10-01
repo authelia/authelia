@@ -14,7 +14,7 @@ type Provider interface {
 	LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error)
 	SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error)
 
-	FindIdentityVerificationToken(ctx context.Context, token string) (exists bool, err error)
+	FindIdentityVerificationToken(ctx context.Context, token string) (found bool, err error)
 	SaveIdentityVerificationToken(ctx context.Context, token string) (err error)
 	RemoveIdentityVerificationToken(ctx context.Context, token string) (err error)
 
@@ -29,5 +29,5 @@ type Provider interface {
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.
 type RegulatorProvider interface {
 	AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error)
-	LoadLatestAuthenticationLogs(ctx context.Context, username string, fromDate time.Time) (attempts []models.AuthenticationAttempt, err error)
+	LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error)
 }
