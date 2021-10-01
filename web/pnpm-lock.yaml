@@ -20,7 +20,7 @@ specifiers:
   '@types/react-dom': 17.0.9
   '@types/react-ga': 2.3.0
   '@types/react-router-dom': 5.3.0
-  axios: 0.21.4
+  axios: 0.22.0
   babel-preset-react-app: 10.0.0
   classnames: 2.3.1
   craco-alias: 3.0.1
@@ -51,7 +51,7 @@ dependencies:
   '@fortawesome/react-fontawesome': 0.1.15_f515edce028694561ceb456e3dba224c
   '@material-ui/core': 4.12.3_c8ea7ae9f1996cb21e9c3967f824a58b
   '@material-ui/icons': 4.11.2_43a7ae695ff27ce3db7e6b52c67c58ed
-  axios: 0.21.4
+  axios: 0.22.0
   classnames: 2.3.1
   qrcode.react: 1.0.1_react@17.0.2
   query-string: 7.0.1
@@ -3618,8 +3618,8 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /axios/0.21.4:
-    resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
+  /axios/0.22.0:
+    resolution: {integrity: sha512-Z0U3uhqQeg1oNcihswf4ZD57O3NrR1+ZXhxaROaWpDmsDTx7T2HNBV2ulBtie2hwJptu8UvgnJoK+BIqdzh/1w==}
     dependencies:
       follow-redirects: 1.14.4
     transitivePeerDependencies:
