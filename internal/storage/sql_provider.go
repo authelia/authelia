@@ -180,7 +180,7 @@ func (p *SQLProvider) LoadU2FDeviceHandle(ctx context.Context, username string) 
 // AppendAuthenticationLog append a mark to the authentication log.
 func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt, attempt.Username, attempt.Successful, attempt.Time)
-	p.log.Debugf("DEBUG TEMP: AppendAuthenticationLog(username: %s, time: %d, successful: %v, err: %v)", attempt.Username, attempt.Time.Unix(), attempt.Successful, err)
+	// p.log.Debugf("DEBUG TEMP: AppendAuthenticationLog(username: %s, time: %d, successful: %v, err: %v)", attempt.Username, attempt.Time.Unix(), attempt.Successful, err)
 
 	return err
 }
@@ -189,7 +189,7 @@ func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model
 func (p *SQLProvider) LoadAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
 	rows, err := p.db.QueryxContext(ctx, p.sqlSelectAuthenticationAttemptsByUsername, fromDate.Unix(), username, limit, limit*page)
 
-	p.log.Debugf("DEBUG TEMP: LoadAuthenticationAttempts(username: %s, fromDate: %d, limit: %d, page: %d, offset: %d, err: %v)", username, fromDate.Unix(), limit, page, limit*page, err)
+	// p.log.Debugf("DEBUG TEMP: LoadAuthenticationAttempts(username: %s, fromDate: %d, limit: %d, page: %d, offset: %d, err: %v)", username, fromDate.Unix(), limit, page, limit*page, err)
 
 	if err != nil {
 		return nil, err
@@ -215,7 +215,7 @@ func (p *SQLProvider) LoadAuthenticationAttempts(ctx context.Context, username s
 		attempts = append(attempts, attempt)
 	}
 
-	p.log.Debugf("DEBUG TEMP: LoadAuthenticationAttempts(username: %s, fromDate: %d, limit: %d, page: %d, offset: %d, attempts: %d)", username, fromDate.Unix(), limit, page, limit*page, len(attempts))
+	// p.log.Debugf("DEBUG TEMP: LoadAuthenticationAttempts(username: %s, fromDate: %d, limit: %d, page: %d, offset: %d, attempts: %d)", username, fromDate.Unix(), limit, page, limit*page, len(attempts))
 
 	return attempts, nil
 }
