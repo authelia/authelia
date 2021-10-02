@@ -18,38 +18,19 @@ type PostgreSQLProvider struct {
 // NewPostgreSQLProvider a PostgreSQL provider.
 func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration) (provider *PostgreSQLProvider) {
 	provider = &PostgreSQLProvider{
-		SQLProvider{
-			name:             "postgres",
-			driverName:       "pgx",
-			connectionString: buildPostgreSQLConnectionString(config),
-
-			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
-			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
-
-			sqlSelectPreferred2FAMethodByUsername: fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=$1", userPreferencesTableName),
-			sqlUpsertPreferred2FAMethod:           fmt.Sprintf("INSERT INTO %s (username, second_factor_method) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET second_factor_method=$2", userPreferencesTableName),
-
-			sqlTestIdentityVerificationTokenExistence: fmt.Sprintf("SELECT EXISTS (SELECT * FROM %s WHERE token=$1)", identityVerificationTokensTableName),
-			sqlInsertIdentityVerificationToken:        fmt.Sprintf("INSERT INTO %s (token) VALUES ($1)", identityVerificationTokensTableName),
-			sqlDeleteIdentityVerificationToken:        fmt.Sprintf("DELETE FROM %s WHERE token=$1", identityVerificationTokensTableName),
-
-			sqlGetTOTPSecretByUsername: fmt.Sprintf("SELECT secret FROM %s WHERE username=$1", totpSecretsTableName),
-			sqlUpsertTOTPSecret:        fmt.Sprintf("INSERT INTO %s (username, secret) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET secret=$2", totpSecretsTableName),
-			sqlDeleteTOTPSecret:        fmt.Sprintf("DELETE FROM %s WHERE username=$1", totpSecretsTableName),
-
-			sqlSelectU2FDeviceHandleByUsername: fmt.Sprintf("SELECT keyHandle AS key_handle, publicKey AS public_key FROM %s WHERE username=$1", u2fDeviceHandlesTableName),
-			sqlUpsertU2FDeviceHandle:           fmt.Sprintf("INSERT INTO %s (username, keyHandle, publicKey) VALUES ($1, $2, $3) ON CONFLICT (username) DO UPDATE SET keyHandle=$2, publicKey=$3", u2fDeviceHandlesTableName),
-
-			sqlInsertAuthenticationAttempt:            fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES ($1, $2, $3)", authenticationLogsTableName),
-			sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>$1 AND username=$2 ORDER BY time DESC LIMIT $3 OFFSET $4", authenticationLogsTableName),
-
-			sqlSelectExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public'",
-
-			sqlConfigSetValue: fmt.Sprintf("INSERT INTO %s (category, key_name, value) VALUES ($1, $2, $3) ON CONFLICT (category, key_name) DO UPDATE SET value=$3", configTableName),
-			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=$1 AND key_name=$2", configTableName),
-		},
+		SQLProvider: NewSQLProvider("postgres", "pgx", buildPostgreSQLConnectionString(config)),
 	}
 
+	// All providers have differing SELECT existing table statements.
+	provider.sqlSelectExistingTables = queryPostgreSelectExistingTables
+
+	// Specific alterations to this provider.
+	// PostgreSQL doesn't have a UPSERT statement but has an ON CONFLICT operation instead.
+	provider.sqlUpsertU2FDevice = fmt.Sprintf(queryFmtPostgresUpsertU2FDevice, tableU2FDevices)
+	provider.sqlUpsertTOTPSecret = fmt.Sprintf(queryFmtPostgresUpsertTOTPSecret, tableTOTPSecrets)
+	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtPostgresUpsertPreferred2FAMethod, tableUserPreferences)
+
+	// TODO: Remove this as part of the migrations change.
 	// Replace BLOB with BYTEA for Postgres.
 	for version, tables := range provider.sqlUpgradesCreateTableStatements {
 		for tableName, stmt := range tables {

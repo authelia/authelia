@@ -13,6 +13,39 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
+func NewSQLProvider(name, driverName, connectionString string) (provider SQLProvider) {
+	provider = SQLProvider{
+		name:             name,
+		driverName:       driverName,
+		connectionString: connectionString,
+
+		sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
+		sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
+
+		sqlRenameTable: queryRenameTable,
+
+		sqlSelectPreferred2FAMethodByUsername: fmt.Sprintf(queryFmtSelectPreferred2FAMethodByUsername, tableUserPreferences),
+		sqlUpsertPreferred2FAMethod:           fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
+
+		sqlSelectExistsIdentityVerificationToken: fmt.Sprintf(queryFmtSelectExistsIdentityVerificationToken, tableIdentityVerificationTokens),
+		sqlInsertIdentityVerificationToken:       fmt.Sprintf(queryFmtInsertIdentityVerificationToken, tableIdentityVerificationTokens),
+		sqlDeleteIdentityVerificationToken:       fmt.Sprintf(queryFmtDeleteIdentityVerificationToken, tableIdentityVerificationTokens),
+
+		sqlSelectTOTPSecretByUsername: fmt.Sprintf(queryFmtSelectTOTPSecretByUsername, tableTOTPSecrets),
+		sqlUpsertTOTPSecret:           fmt.Sprintf(queryFmtUpsertTOTPSecret, tableTOTPSecrets),
+		sqlDeleteTOTPSecret:           fmt.Sprintf(queryFmtDeleteTOTPSecret, tableTOTPSecrets),
+
+		sqlSelectU2FDeviceByUsername: fmt.Sprintf(queryFmtSelectU2FDeviceByUsername, tableU2FDevices),
+		sqlUpsertU2FDevice:           fmt.Sprintf(queryFmtUpsertU2FDevice, tableU2FDevices),
+
+		sqlInsertAuthenticationAttempt:            fmt.Sprintf(queryFmtInsertAuthenticationAttempt, tableAuthenticationLogs),
+		sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf(queryFmtSelectAuthenticationAttemptsByUsername, tableAuthenticationLogs),
+	}
+
+	return provider
+}
+
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
 	db               *sqlx.DB
@@ -24,24 +57,27 @@ type SQLProvider struct {
 	sqlUpgradesCreateTableStatements        map[SchemaVersion]map[string]string
 	sqlUpgradesCreateTableIndexesStatements map[SchemaVersion][]string
 
+	sqlRenameTable string
+
 	sqlUpsertPreferred2FAMethod           string
 	sqlSelectPreferred2FAMethodByUsername string
 
-	sqlInsertIdentityVerificationToken        string
-	sqlDeleteIdentityVerificationToken        string
-	sqlTestIdentityVerificationTokenExistence string
+	sqlInsertIdentityVerificationToken       string
+	sqlDeleteIdentityVerificationToken       string
+	sqlSelectExistsIdentityVerificationToken string
 
-	sqlUpsertTOTPSecret        string
-	sqlDeleteTOTPSecret        string
-	sqlGetTOTPSecretByUsername string
+	sqlUpsertTOTPSecret           string
+	sqlDeleteTOTPSecret           string
+	sqlSelectTOTPSecretByUsername string
 
-	sqlUpsertU2FDeviceHandle           string
-	sqlSelectU2FDeviceHandleByUsername string
+	sqlUpsertU2FDevice           string
+	sqlSelectU2FDeviceByUsername string
 
 	sqlInsertAuthenticationAttempt            string
 	sqlSelectAuthenticationAttemptsByUsername string
 
-	sqlSelectExistingTables string
+	sqlSelectExistingTables  string
+	sqlSelectLatestMigration string
 
 	sqlConfigSetValue string
 	sqlConfigGetValue string
@@ -56,6 +92,8 @@ func (p *SQLProvider) Configure(logger *logrus.Logger) (err error) {
 		return err
 	}
 
+	p.rebind()
+
 	return nil
 }
 
@@ -66,6 +104,7 @@ func (p *SQLProvider) StartupCheck(logger *logrus.Logger) (err error) {
 		return err
 	}
 
+	// TODO: Decide if this is needed, or if it should be configurable.
 	for i := 0; i < 19; i++ {
 		err = p.db.Ping()
 		if err == nil {
@@ -124,7 +163,7 @@ func (p *SQLProvider) RemoveIdentityVerificationToken(ctx context.Context, token
 
 // FindIdentityVerificationToken look for an identity verification token in the database.
 func (p *SQLProvider) FindIdentityVerificationToken(ctx context.Context, token string) (found bool, err error) {
-	err = p.db.GetContext(ctx, &found, p.sqlTestIdentityVerificationTokenExistence, token)
+	err = p.db.GetContext(ctx, &found, p.sqlSelectExistsIdentityVerificationToken, token)
 	if err != nil {
 		return false, err
 	}
@@ -148,7 +187,7 @@ func (p *SQLProvider) DeleteTOTPSecret(ctx context.Context, username string) (er
 
 // LoadTOTPSecret load a TOTP secret given a username from the database.
 func (p *SQLProvider) LoadTOTPSecret(ctx context.Context, username string) (secret string, err error) {
-	err = p.db.GetContext(ctx, &secret, p.sqlGetTOTPSecretByUsername, username)
+	err = p.db.GetContext(ctx, &secret, p.sqlSelectTOTPSecretByUsername, username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", ErrNoTOTPSecret
@@ -162,7 +201,7 @@ func (p *SQLProvider) LoadTOTPSecret(ctx context.Context, username string) (secr
 
 // SaveU2FDeviceHandle save a registered U2F device registration blob.
 func (p *SQLProvider) SaveU2FDeviceHandle(ctx context.Context, device models.U2FDevice) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlUpsertU2FDeviceHandle, device.Username, device.KeyHandle, device.PublicKey)
+	_, err = p.db.ExecContext(ctx, p.sqlUpsertU2FDevice, device.Username, device.KeyHandle, device.PublicKey)
 
 	return err
 }
@@ -173,7 +212,7 @@ func (p *SQLProvider) LoadU2FDeviceHandle(ctx context.Context, username string) 
 		Username: username,
 	}
 
-	err = p.db.GetContext(ctx, device, p.sqlSelectU2FDeviceHandleByUsername, username)
+	err = p.db.GetContext(ctx, device, p.sqlSelectU2FDeviceByUsername, username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoU2FDeviceHandle
@@ -252,7 +291,7 @@ func (p *SQLProvider) getSchemaBasicDetails() (version SchemaVersion, tables []s
 		tables = append(tables, table)
 	}
 
-	if utils.IsStringInSlice(configTableName, tables) {
+	if utils.IsStringInSlice(tableConfig, tables) {
 		rows, err := p.db.Query(p.sqlConfigGetValue, "schema", "version")
 		if err != nil {
 			return version, tables, err
