@@ -10,9 +10,10 @@ import (
 
 // Provider is an interface providing storage capabilities for persisting any kind of data related to Authelia.
 type Provider interface {
-	RegulatorProvider
+	Configure(logger *logrus.Logger) (err error)
 
-	StartupCheck(logger *logrus.Logger) (err error)
+	models.StartupCheck
+	RegulatorProvider
 
 	SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error)
 	LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error)

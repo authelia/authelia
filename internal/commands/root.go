@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -190,7 +191,7 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 	}
 }
 
-func doStartupCheck(logger *logrus.Logger, name string, provider middlewares.ProviderWithStartupCheck, disabled bool) (err error) {
+func doStartupCheck(logger *logrus.Logger, name string, provider models.StartupCheck, disabled bool) (err error) {
 	if disabled {
 		logger.Debugf("%s provider: startup check skipped as it is disabled", name)
 		return nil

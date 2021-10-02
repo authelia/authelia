@@ -12,7 +12,7 @@ import (
 )
 
 func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
-	s, err := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
+	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
 		IssuerPrivateKey: exampleIssuerPrivateKey,
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
@@ -32,8 +32,6 @@ func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 		},
 	})
 
-	require.NoError(t, err)
-
 	policyOne := s.GetClientPolicy("myclient")
 	assert.Equal(t, authorization.OneFactor, policyOne)
 
@@ -45,7 +43,7 @@ func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 }
 
 func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
-	s, err := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
+	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
 		IssuerPrivateKey: exampleIssuerPrivateKey,
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
@@ -57,8 +55,6 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 			},
 		},
 	})
-
-	require.NoError(t, err)
 
 	client, err := s.GetClient(context.Background(), "myinvalidclient")
 	assert.EqualError(t, err, "not_found")
@@ -78,12 +74,11 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 		Scopes:      []string{"openid", "profile"},
 		Secret:      "mysecret",
 	}
-	s, err := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
+
+	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
 		IssuerPrivateKey: exampleIssuerPrivateKey,
 		Clients:          []schema.OpenIDConnectClientConfiguration{c1},
 	})
-
-	require.NoError(t, err)
 
 	client, err := s.GetInternalClient(c1.ID)
 	require.NoError(t, err)
@@ -106,12 +101,11 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 		Scopes:      []string{"openid", "profile"},
 		Secret:      "mysecret",
 	}
-	s, err := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
+
+	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
 		IssuerPrivateKey: exampleIssuerPrivateKey,
 		Clients:          []schema.OpenIDConnectClientConfiguration{c1},
 	})
-
-	require.NoError(t, err)
 
 	client, err := s.GetInternalClient("another-client")
 	assert.Nil(t, client)
@@ -119,7 +113,7 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 }
 
 func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
-	s, err := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
+	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
 		IssuerPrivateKey: exampleIssuerPrivateKey,
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
@@ -131,8 +125,6 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 			},
 		},
 	})
-
-	require.NoError(t, err)
 
 	validClient := s.IsValidClientID("myclient")
 	invalidClient := s.IsValidClientID("myinvalidclient")

@@ -14,7 +14,7 @@ import (
 )
 
 // NewOpenIDConnectStore returns a new OpenIDConnectStore using the provided schema.OpenIDConnectConfiguration.
-func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (store *OpenIDConnectStore, err error) {
+func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (store *OpenIDConnectStore) {
 	logger := logging.Logger()
 
 	store = &OpenIDConnectStore{
@@ -39,7 +39,7 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (st
 		store.clients[client.ID] = NewClient(client)
 	}
 
-	return store, nil
+	return store
 }
 
 // GetClientPolicy retrieves the policy from the client with the matching provided id.

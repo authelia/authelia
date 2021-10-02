@@ -47,11 +47,20 @@ type SQLProvider struct {
 	sqlConfigGetValue string
 }
 
-// StartupCheck implements the provider startup check interface.
-func (p *SQLProvider) StartupCheck(logger *logrus.Logger) (err error) {
+func (p *SQLProvider) Configure(logger *logrus.Logger) (err error) {
 	p.log = logger
 
 	p.db, err = sqlx.Open(p.driverName, p.connectionString)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// StartupCheck implements the provider startup check interface.
+func (p *SQLProvider) StartupCheck(logger *logrus.Logger) (err error) {
+	err = p.Configure(logger)
 	if err != nil {
 		return err
 	}

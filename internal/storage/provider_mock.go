@@ -8,9 +8,10 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/v4/internal/models"
 )
 
 // MockProvider is a mock of Provider interface.
@@ -48,6 +49,20 @@ func (m *MockProvider) AppendAuthenticationLog(ctx context.Context, attempt mode
 func (mr *MockProviderMockRecorder) AppendAuthenticationLog(ctx, attempt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendAuthenticationLog", reflect.TypeOf((*MockProvider)(nil).AppendAuthenticationLog), ctx, attempt)
+}
+
+// Configure mocks base method.
+func (m *MockProvider) Configure(logger *logrus.Logger) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Configure", logger)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Configure indicates an expected call of Configure.
+func (mr *MockProviderMockRecorder) Configure(logger interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Configure", reflect.TypeOf((*MockProvider)(nil).Configure), logger)
 }
 
 // DeleteTOTPSecret mocks base method.
