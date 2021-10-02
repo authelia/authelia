@@ -41,7 +41,7 @@ func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration) (provid
 			sqlUpsertU2FDeviceHandle:           fmt.Sprintf("INSERT INTO %s (username, keyHandle, publicKey) VALUES ($1, $2, $3) ON CONFLICT (username) DO UPDATE SET keyHandle=$2, publicKey=$3", u2fDeviceHandlesTableName),
 
 			sqlInsertAuthenticationAttempt:            fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES ($1, $2, $3)", authenticationLogsTableName),
-			sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>$1 AND username=$2 AND ORDER BY time DESC LIMIT $3 OFFSET $4", authenticationLogsTableName),
+			sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>$1 AND username=$2 ORDER BY time DESC LIMIT $3 OFFSET $4", authenticationLogsTableName),
 
 			sqlSelectExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public'",
 
