@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	_ "github.com/go-sql-driver/mysql" // Load the MySQL Driver used in the connection string.
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // MySQLProvider is a MySQL provider.

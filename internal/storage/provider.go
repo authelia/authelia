@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/v4/internal/models"
 )
 
 // Provider is an interface providing storage capabilities for persisting any kind of data related to Authelia.
