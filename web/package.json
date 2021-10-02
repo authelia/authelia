@@ -28,8 +28,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "coverage": "COVERAGE=true craco build",
     "test": "craco test --coverage --no-cache",
-    "report": "nyc report -r clover -r json -r lcov -r text",
-    "commitlint": "commitlint --edit $1"
+    "report": "nyc report -r clover -r json -r lcov -r text"
   },
   "eslintConfig": {
     "extends": "react-app"
