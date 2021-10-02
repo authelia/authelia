@@ -66,7 +66,15 @@ func (p *SQLProvider) StartupCheck(logger *logrus.Logger) (err error) {
 		return err
 	}
 
-	err = p.db.Ping()
+	for i := 0; i < 19; i++ {
+		err = p.db.Ping()
+		if err == nil {
+			break
+		}
+
+		time.Sleep(time.Millisecond * 500)
+	}
+
 	if err != nil {
 		return err
 	}
