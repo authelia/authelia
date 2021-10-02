@@ -28,6 +28,8 @@ func NewMySQLProvider(config schema.MySQLStorageConfiguration) (provider *MySQLP
 
 	// TODO: Remove this as part of the migrations change.
 	provider.sqlUpgradesCreateTableStatements[SchemaVersion(1)][tableAuthenticationLogs] = "CREATE TABLE %s (username VARCHAR(100), successful BOOL, time INTEGER, INDEX usr_time_idx (username, time))"
+	provider.sqlConfigSetValue = fmt.Sprintf("REPLACE INTO %s (category, key_name, value) VALUES (?, ?, ?)", tableConfig)
+	provider.sqlConfigGetValue = fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key_name=?", tableConfig)
 
 	return provider
 }

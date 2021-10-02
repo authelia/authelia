@@ -38,6 +38,9 @@ func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration) (provid
 		}
 	}
 
+	provider.sqlConfigSetValue = fmt.Sprintf("INSERT INTO %s (category, key_name, value) VALUES ($1, $2, $3) ON CONFLICT (category, key_name) DO UPDATE SET value=$3", tableConfig)
+	provider.sqlConfigGetValue = fmt.Sprintf("SELECT value FROM %s WHERE category=$1 AND key_name=$2", tableConfig)
+
 	return provider
 }
 

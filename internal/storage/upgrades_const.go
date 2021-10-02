@@ -38,6 +38,14 @@ CREATE TABLE %s (
 	successful BOOL,
 	time INTEGER
 );`,
+
+		tableConfig: `
+			CREATE TABLE %s (
+				category VARCHAR(32) NOT NULL,
+				key_name VARCHAR(32) NOT NULL,
+				value TEXT,
+				PRIMARY KEY (category, key_name)
+			);`,
 	},
 }
 

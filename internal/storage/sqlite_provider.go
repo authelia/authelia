@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"fmt"
+
 	_ "github.com/mattn/go-sqlite3" // Load the SQLite Driver used in the connection string.
 )
 
@@ -17,6 +19,10 @@ func NewSQLiteProvider(path string) (provider *SQLiteProvider) {
 
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = querySQLiteSelectExistingTables
+
+	// TODO: Remove with migrations.
+	provider.sqlConfigSetValue = fmt.Sprintf("REPLACE INTO %s (category, key_name, value) VALUES (?, ?, ?)", tableConfig)
+	provider.sqlConfigGetValue = fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key_name=?", tableConfig)
 
 	return provider
 }
