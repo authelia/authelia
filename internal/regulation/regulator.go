@@ -47,7 +47,7 @@ func (r *Regulator) Mark(ctx context.Context, username string, successful bool) 
 	return r.storageProvider.AppendAuthenticationLog(ctx, models.AuthenticationAttempt{
 		Username:   username,
 		Successful: successful,
-		Time:       models.DBTime{Time: r.clock.Now()},
+		Time:       models.Time{Time: r.clock.Now()},
 	})
 }
 
@@ -59,7 +59,7 @@ func (r *Regulator) Regulate(ctx context.Context, username string) (time.Time, e
 		return time.Time{}, nil
 	}
 
-	attempts, err := r.storageProvider.LoadFailedAuthenticationAttempts(ctx, username, r.clock.Now().Add(-r.banTime), 10, 0)
+	attempts, err := r.storageProvider.LoadAuthenticationAttempts(ctx, username, r.clock.Now().Add(-r.banTime), 10, 0)
 	if err != nil {
 		return time.Time{}, nil
 	}

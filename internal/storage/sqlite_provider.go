@@ -3,7 +3,6 @@ package storage
 import (
 	"fmt"
 
-	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3" // Load the SQLite Driver used in the connection string.
 )
 
@@ -13,10 +12,12 @@ type SQLiteProvider struct {
 }
 
 // NewSQLiteProvider constructs a SQLite provider.
-func NewSQLiteProvider(path string) *SQLiteProvider {
-	provider := SQLiteProvider{
+func NewSQLiteProvider(path string) (provider *SQLiteProvider) {
+	provider = &SQLiteProvider{
 		SQLProvider{
-			name: "sqlite",
+			name:             "sqlite",
+			driverName:       "sqlite3",
+			connectionString: path,
 
 			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
 			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
@@ -36,7 +37,7 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("REPLACE INTO %s (username, keyHandle, publicKey) VALUES (?, ?, ?)", u2fDeviceHandlesTableName),
 
 			sqlInsertAuthenticationLog:         fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
-			sqlGetFailedAuthenticationAttempts: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>? AND username=? AND successful=0 ORDER BY time DESC LIMIT ? OFFSET ?", authenticationLogsTableName),
+			sqlGetFailedAuthenticationAttempts: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>? AND username=? AND ORDER BY time DESC LIMIT ? OFFSET ?", authenticationLogsTableName),
 
 			sqlGetExistingTables: "SELECT name FROM sqlite_master WHERE type='table'",
 
@@ -45,14 +46,5 @@ func NewSQLiteProvider(path string) *SQLiteProvider {
 		},
 	}
 
-	db, err := sqlx.Open("sqlite3", path)
-	if err != nil {
-		provider.log.Fatalf("Unable to create SQL database %s: %s", path, err)
-	}
-
-	if err := provider.initialize(db); err != nil {
-		provider.log.Fatalf("Unable to initialize SQL database %s: %s", path, err)
-	}
-
-	return &provider
+	return provider
 }

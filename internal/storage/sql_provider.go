@@ -9,16 +9,17 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 
-	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
-	db   *sqlx.DB
-	log  *logrus.Logger
-	name string
+	db               *sqlx.DB
+	log              *logrus.Logger
+	name             string
+	driverName       string
+	connectionString string
 
 	sqlUpgradesCreateTableStatements        map[SchemaVersion]map[string]string
 	sqlUpgradesCreateTableIndexesStatements map[SchemaVersion][]string
@@ -44,6 +45,28 @@ type SQLProvider struct {
 
 	sqlConfigSetValue string
 	sqlConfigGetValue string
+}
+
+// StartupCheck implements the provider startup check interface.
+func (p *SQLProvider) StartupCheck(logger *logrus.Logger) (err error) {
+	p.log = logger
+
+	p.db, err = sqlx.Open(p.driverName, p.connectionString)
+	if err != nil {
+		return err
+	}
+
+	err = p.db.Ping()
+	if err != nil {
+		return err
+	}
+
+	err = p.migrate()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // LoadPreferred2FAMethod load the preferred method for 2FA from the database.
@@ -151,8 +174,8 @@ func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model
 	return err
 }
 
-// LoadFailedAuthenticationAttempts retrieve the latest failed authentications from the authentication log.
-func (p *SQLProvider) LoadFailedAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
+// LoadAuthenticationAttempts retrieve the latest failed authentications from the authentication log.
+func (p *SQLProvider) LoadAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
 	rows, err := p.db.QueryxContext(ctx, p.sqlGetFailedAuthenticationAttempts, fromDate.Unix(), username, limit, limit*page)
 	if err != nil {
 		return nil, err
@@ -177,13 +200,6 @@ func (p *SQLProvider) LoadFailedAuthenticationAttempts(ctx context.Context, user
 	}
 
 	return attempts, nil
-}
-
-func (p *SQLProvider) initialize(db *sqlx.DB) (err error) {
-	p.db = db
-	p.log = logging.Logger()
-
-	return p.upgrade()
 }
 
 func (p *SQLProvider) getSchemaBasicDetails() (version SchemaVersion, tables []string, err error) {
@@ -222,7 +238,7 @@ func (p *SQLProvider) getSchemaBasicDetails() (version SchemaVersion, tables []s
 	return version, tables, nil
 }
 
-func (p *SQLProvider) upgrade() (err error) {
+func (p *SQLProvider) migrate() (err error) {
 	p.log.Debug("Storage schema is being checked to verify it is up to date")
 
 	version, tables, err := p.getSchemaBasicDetails()

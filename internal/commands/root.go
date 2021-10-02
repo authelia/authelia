@@ -101,9 +101,6 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		storageProvider = storage.NewMySQLProvider(*config.Storage.MySQL)
 	case config.Storage.Local != nil:
 		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
-	default:
-		// TODO: Add storage provider startup check and remove this.
-		errors = append(errors, fmt.Errorf("unrecognized storage provider"))
 	}
 
 	var (
@@ -161,6 +158,12 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 		failures []string
 		err      error
 	)
+
+	if err = doStartupCheck(logger, "storage", providers.StorageProvider, false); err != nil {
+		logger.Errorf("Failure running the storage provider startup check: %+v", err)
+
+		failures = append(failures, "storage")
+	}
 
 	if err = doStartupCheck(logger, "user", providers.UserProvider, false); err != nil {
 		logger.Errorf("Failure running the user provider startup check: %+v", err)

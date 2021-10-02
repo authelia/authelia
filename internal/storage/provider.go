@@ -5,22 +5,25 @@ import (
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/sirupsen/logrus"
 )
 
 // Provider is an interface providing storage capabilities for persisting any kind of data related to Authelia.
 type Provider interface {
 	RegulatorProvider
 
-	LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error)
-	SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error)
+	StartupCheck(logger *logrus.Logger) (err error)
 
-	FindIdentityVerificationToken(ctx context.Context, token string) (found bool, err error)
+	SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error)
+	LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error)
+
 	SaveIdentityVerificationToken(ctx context.Context, token string) (err error)
 	RemoveIdentityVerificationToken(ctx context.Context, token string) (err error)
+	FindIdentityVerificationToken(ctx context.Context, token string) (found bool, err error)
 
 	SaveTOTPSecret(ctx context.Context, username string, secret string) (err error)
-	LoadTOTPSecret(ctx context.Context, username string) (secret string, err error)
 	DeleteTOTPSecret(ctx context.Context, username string) (err error)
+	LoadTOTPSecret(ctx context.Context, username string) (secret string, err error)
 
 	SaveU2FDeviceHandle(ctx context.Context, device models.U2FDevice) (err error)
 	LoadU2FDeviceHandle(ctx context.Context, username string) (device *models.U2FDevice, err error)
@@ -29,5 +32,5 @@ type Provider interface {
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.
 type RegulatorProvider interface {
 	AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error)
-	LoadFailedAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error)
+	LoadAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error)
 }

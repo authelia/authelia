@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql" // Load the MySQL Driver used in the connection string.
-	"github.com/jmoiron/sqlx"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	_ "github.com/go-sql-driver/mysql" // Load the MySQL Driver used in the connection string.
 )
 
 // MySQLProvider is a MySQL provider.
@@ -16,10 +14,11 @@ type MySQLProvider struct {
 }
 
 // NewMySQLProvider a MySQL provider.
-func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProvider {
-	provider := MySQLProvider{
+func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) (provider *MySQLProvider) {
+	provider = &MySQLProvider{
 		SQLProvider{
-			name: "mysql",
+			name:       "mysql",
+			driverName: "mysql",
 
 			sqlUpgradesCreateTableStatements: sqlUpgradeCreateTableStatements,
 
@@ -38,7 +37,7 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("REPLACE INTO %s (username, keyHandle, publicKey) VALUES (?, ?, ?)", u2fDeviceHandlesTableName),
 
 			sqlInsertAuthenticationLog:         fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
-			sqlGetFailedAuthenticationAttempts: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>? AND username=? AND successful=0 ORDER BY time DESC LIMIT ? OFFSET ?", authenticationLogsTableName),
+			sqlGetFailedAuthenticationAttempts: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>? AND username=? AND ORDER BY time DESC LIMIT ? OFFSET ?", authenticationLogsTableName),
 
 			sqlGetExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema=database()",
 
@@ -49,14 +48,14 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 
 	provider.sqlUpgradesCreateTableStatements[SchemaVersion(1)][authenticationLogsTableName] = "CREATE TABLE %s (username VARCHAR(100), successful BOOL, time INTEGER, INDEX usr_time_idx (username, time))"
 
-	connectionString := configuration.Username
+	provider.connectionString = configuration.Username
 
 	if configuration.Password != "" {
-		connectionString += fmt.Sprintf(":%s", configuration.Password)
+		provider.connectionString += fmt.Sprintf(":%s", configuration.Password)
 	}
 
-	if connectionString != "" {
-		connectionString += "@"
+	if provider.connectionString != "" {
+		provider.connectionString += "@"
 	}
 
 	address := configuration.Host
@@ -64,22 +63,13 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) *MySQLProv
 		address += fmt.Sprintf(":%d", configuration.Port)
 	}
 
-	connectionString += fmt.Sprintf("tcp(%s)", address)
+	provider.connectionString += fmt.Sprintf("tcp(%s)", address)
 	if configuration.Database != "" {
-		connectionString += fmt.Sprintf("/%s", configuration.Database)
+		provider.connectionString += fmt.Sprintf("/%s", configuration.Database)
 	}
 
-	connectionString += "?"
-	connectionString += fmt.Sprintf("timeout=%ds", int32(configuration.Timeout/time.Second))
+	provider.connectionString += "?"
+	provider.connectionString += fmt.Sprintf("timeout=%ds", int32(configuration.Timeout/time.Second))
 
-	db, err := sqlx.Open("mysql", connectionString)
-	if err != nil {
-		provider.log.Fatalf("Unable to connect to SQL database: %v", err)
-	}
-
-	if err := provider.initialize(db); err != nil {
-		provider.log.Fatalf("Unable to initialize SQL database: %v", err)
-	}
-
-	return &provider
+	return provider
 }

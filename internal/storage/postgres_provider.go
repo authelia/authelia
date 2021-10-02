@@ -5,10 +5,8 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/jackc/pgx/v4/stdlib" // Load the PostgreSQL Driver used in the connection string.
-	"github.com/jmoiron/sqlx"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	_ "github.com/jackc/pgx/v4/stdlib" // Load the PostgreSQL Driver used in the connection string.
 )
 
 // PostgreSQLProvider is a PostgreSQL provider.
@@ -17,10 +15,11 @@ type PostgreSQLProvider struct {
 }
 
 // NewPostgreSQLProvider a PostgreSQL provider.
-func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) *PostgreSQLProvider {
-	provider := PostgreSQLProvider{
+func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) (provider *PostgreSQLProvider) {
+	provider = &PostgreSQLProvider{
 		SQLProvider{
-			name: "postgres",
+			name:       "postgres",
+			driverName: "pgx",
 
 			sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
 			sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
@@ -40,7 +39,7 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("INSERT INTO %s (username, keyHandle, publicKey) VALUES ($1, $2, $3) ON CONFLICT (username) DO UPDATE SET keyHandle=$2, publicKey=$3", u2fDeviceHandlesTableName),
 
 			sqlInsertAuthenticationLog:         fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES ($1, $2, $3)", authenticationLogsTableName),
-			sqlGetFailedAuthenticationAttempts: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>$1 AND username=$2 AND successful=0 ORDER BY time DESC LIMIT $3 OFFSET $4", authenticationLogsTableName),
+			sqlGetFailedAuthenticationAttempts: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>$1 AND username=$2 AND ORDER BY time DESC LIMIT $3 OFFSET $4", authenticationLogsTableName),
 
 			sqlGetExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public'",
 
@@ -82,16 +81,7 @@ func NewPostgreSQLProvider(configuration schema.PostgreSQLStorageConfiguration) 
 	}
 
 	args = append(args, fmt.Sprintf("connect_timeout=%d", int32(configuration.Timeout/time.Second)))
-	connectionString := strings.Join(args, " ")
+	provider.connectionString = strings.Join(args, " ")
 
-	db, err := sqlx.Open("pgx", connectionString)
-	if err != nil {
-		provider.log.Fatalf("Unable to connect to SQL database: %v", err)
-	}
-
-	if err := provider.initialize(db); err != nil {
-		provider.log.Fatalf("Unable to initialize SQL database: %v", err)
-	}
-
-	return &provider
+	return provider
 }
