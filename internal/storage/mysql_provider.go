@@ -39,7 +39,7 @@ func NewMySQLProvider(config schema.MySQLStorageConfiguration) (provider *MySQLP
 			sqlUpsertU2FDeviceHandle:           fmt.Sprintf("REPLACE INTO %s (username, keyHandle, publicKey) VALUES (?, ?, ?)", u2fDeviceHandlesTableName),
 
 			sqlInsertAuthenticationAttempt:            fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
-			sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>? AND username=? AND ORDER BY time DESC LIMIT ? OFFSET ?", authenticationLogsTableName),
+			sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>? AND username=? ORDER BY time DESC LIMIT ? OFFSET ?", authenticationLogsTableName),
 
 			sqlSelectExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema=database()",
 

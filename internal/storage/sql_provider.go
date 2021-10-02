@@ -195,6 +195,13 @@ func (p *SQLProvider) LoadAuthenticationAttempts(ctx context.Context, username s
 		return nil, err
 	}
 
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			p.log.Warnf("Error occurred closing SQL connection: %v", err)
+		}
+	}()
+
 	attempts = make([]models.AuthenticationAttempt, 0, limit)
 
 	for rows.Next() {
@@ -202,11 +209,6 @@ func (p *SQLProvider) LoadAuthenticationAttempts(ctx context.Context, username s
 
 		err = rows.StructScan(&attempt)
 		if err != nil {
-			closeErr := rows.Close()
-			if closeErr != nil {
-				return nil, fmt.Errorf("%w, error occurred closing connection: %+v", err, closeErr)
-			}
-
 			return nil, err
 		}
 
@@ -224,7 +226,12 @@ func (p *SQLProvider) getSchemaBasicDetails() (version SchemaVersion, tables []s
 		return version, tables, err
 	}
 
-	defer rows.Close()
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			p.log.Warnf("Error occurred closing SQL connection: %v", err)
+		}
+	}()
 
 	var table string
 
