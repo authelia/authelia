@@ -9,7 +9,7 @@
     "@fortawesome/react-fontawesome": "0.1.15",
     "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.11.2",
-    "axios": "0.21.4",
+    "axios": "0.22.0",
     "classnames": "2.3.1",
     "qrcode.react": "1.0.1",
     "query-string": "7.0.1",
@@ -28,8 +28,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "coverage": "COVERAGE=true craco build",
     "test": "craco test --coverage --no-cache",
-    "report": "nyc report -r clover -r json -r lcov -r text",
-    "commitlint": "commitlint --edit $1"
+    "report": "nyc report -r clover -r json -r lcov -r text"
   },
   "eslintConfig": {
     "extends": "react-app"
