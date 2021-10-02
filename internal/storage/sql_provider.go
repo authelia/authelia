@@ -24,24 +24,24 @@ type SQLProvider struct {
 	sqlUpgradesCreateTableStatements        map[SchemaVersion]map[string]string
 	sqlUpgradesCreateTableIndexesStatements map[SchemaVersion][]string
 
-	sqlGetPreferencesByUsername     string
-	sqlUpsertSecondFactorPreference string
+	sqlUpsertPreferred2FAMethod           string
+	sqlSelectPreferred2FAMethodByUsername string
 
-	sqlTestIdentityVerificationTokenExistence string
 	sqlInsertIdentityVerificationToken        string
 	sqlDeleteIdentityVerificationToken        string
+	sqlTestIdentityVerificationTokenExistence string
 
-	sqlGetTOTPSecretByUsername string
 	sqlUpsertTOTPSecret        string
 	sqlDeleteTOTPSecret        string
+	sqlGetTOTPSecretByUsername string
 
-	sqlGetU2FDeviceHandleByUsername string
-	sqlUpsertU2FDeviceHandle        string
+	sqlUpsertU2FDeviceHandle           string
+	sqlSelectU2FDeviceHandleByUsername string
 
-	sqlInsertAuthenticationLog         string
-	sqlGetFailedAuthenticationAttempts string
+	sqlInsertAuthenticationAttempt            string
+	sqlSelectAuthenticationAttemptsByUsername string
 
-	sqlGetExistingTables string
+	sqlSelectExistingTables string
 
 	sqlConfigSetValue string
 	sqlConfigGetValue string
@@ -69,9 +69,16 @@ func (p *SQLProvider) StartupCheck(logger *logrus.Logger) (err error) {
 	return nil
 }
 
+// SavePreferred2FAMethod save the preferred method for 2FA to the database.
+func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, method)
+
+	return err
+}
+
 // LoadPreferred2FAMethod load the preferred method for 2FA from the database.
 func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error) {
-	err = p.db.GetContext(ctx, &method, p.sqlGetPreferencesByUsername, username)
+	err = p.db.GetContext(ctx, &method, p.sqlSelectPreferred2FAMethodByUsername, username)
 
 	switch err {
 	case sql.ErrNoRows:
@@ -81,23 +88,6 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 	default:
 		return "", err
 	}
-}
-
-// SavePreferred2FAMethod save the preferred method for 2FA to the database.
-func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlUpsertSecondFactorPreference, username, method)
-
-	return err
-}
-
-// FindIdentityVerificationToken look for an identity verification token in the database.
-func (p *SQLProvider) FindIdentityVerificationToken(ctx context.Context, token string) (found bool, err error) {
-	err = p.db.GetContext(ctx, &found, p.sqlTestIdentityVerificationTokenExistence, token)
-	if err != nil {
-		return false, err
-	}
-
-	return found, nil
 }
 
 // SaveIdentityVerificationToken save an identity verification token in the database.
@@ -114,9 +104,26 @@ func (p *SQLProvider) RemoveIdentityVerificationToken(ctx context.Context, token
 	return err
 }
 
+// FindIdentityVerificationToken look for an identity verification token in the database.
+func (p *SQLProvider) FindIdentityVerificationToken(ctx context.Context, token string) (found bool, err error) {
+	err = p.db.GetContext(ctx, &found, p.sqlTestIdentityVerificationTokenExistence, token)
+	if err != nil {
+		return false, err
+	}
+
+	return found, nil
+}
+
 // SaveTOTPSecret save a TOTP secret of a given user in the database.
 func (p *SQLProvider) SaveTOTPSecret(ctx context.Context, username string, secret string) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPSecret, username, secret)
+
+	return err
+}
+
+// DeleteTOTPSecret delete a TOTP secret from the database given a username.
+func (p *SQLProvider) DeleteTOTPSecret(ctx context.Context, username string) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlDeleteTOTPSecret, username)
 
 	return err
 }
@@ -135,13 +142,6 @@ func (p *SQLProvider) LoadTOTPSecret(ctx context.Context, username string) (secr
 	return secret, nil
 }
 
-// DeleteTOTPSecret delete a TOTP secret from the database given a username.
-func (p *SQLProvider) DeleteTOTPSecret(ctx context.Context, username string) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlDeleteTOTPSecret, username)
-
-	return err
-}
-
 // SaveU2FDeviceHandle save a registered U2F device registration blob.
 func (p *SQLProvider) SaveU2FDeviceHandle(ctx context.Context, device models.U2FDevice) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlUpsertU2FDeviceHandle, device.Username, device.KeyHandle, device.PublicKey)
@@ -155,7 +155,7 @@ func (p *SQLProvider) LoadU2FDeviceHandle(ctx context.Context, username string) 
 		Username: username,
 	}
 
-	err = p.db.GetContext(ctx, device, p.sqlGetU2FDeviceHandleByUsername, username)
+	err = p.db.GetContext(ctx, device, p.sqlSelectU2FDeviceHandleByUsername, username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoU2FDeviceHandle
@@ -169,14 +169,14 @@ func (p *SQLProvider) LoadU2FDeviceHandle(ctx context.Context, username string) 
 
 // AppendAuthenticationLog append a mark to the authentication log.
 func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationLog, attempt.Username, attempt.Successful, attempt.Time)
+	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt, attempt.Username, attempt.Successful, attempt.Time)
 
 	return err
 }
 
 // LoadAuthenticationAttempts retrieve the latest failed authentications from the authentication log.
 func (p *SQLProvider) LoadAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
-	rows, err := p.db.QueryxContext(ctx, p.sqlGetFailedAuthenticationAttempts, fromDate.Unix(), username, limit, limit*page)
+	rows, err := p.db.QueryxContext(ctx, p.sqlSelectAuthenticationAttemptsByUsername, fromDate.Unix(), username, limit, limit*page)
 	if err != nil {
 		return nil, err
 	}
@@ -202,8 +202,31 @@ func (p *SQLProvider) LoadAuthenticationAttempts(ctx context.Context, username s
 	return attempts, nil
 }
 
+func (p *SQLProvider) rebind() {
+	p.sqlUpsertPreferred2FAMethod = p.db.Rebind(p.sqlUpsertPreferred2FAMethod)
+	p.sqlSelectPreferred2FAMethodByUsername = p.db.Rebind(p.sqlSelectPreferred2FAMethodByUsername)
+
+	p.sqlInsertIdentityVerificationToken = p.db.Rebind(p.sqlInsertIdentityVerificationToken)
+	p.sqlDeleteIdentityVerificationToken = p.db.Rebind(p.sqlDeleteIdentityVerificationToken)
+	p.sqlTestIdentityVerificationTokenExistence = p.db.Rebind(p.sqlTestIdentityVerificationTokenExistence)
+
+	p.sqlUpsertTOTPSecret = p.db.Rebind(p.sqlUpsertTOTPSecret)
+	p.sqlDeleteTOTPSecret = p.db.Rebind(p.sqlDeleteTOTPSecret)
+	p.sqlGetTOTPSecretByUsername = p.db.Rebind(p.sqlDeleteIdentityVerificationToken)
+
+	p.sqlUpsertU2FDeviceHandle = p.db.Rebind(p.sqlUpsertU2FDeviceHandle)
+	p.sqlSelectU2FDeviceHandleByUsername = p.db.Rebind(p.sqlSelectU2FDeviceHandleByUsername)
+
+	p.sqlInsertAuthenticationAttempt = p.db.Rebind(p.sqlInsertAuthenticationAttempt)
+	p.sqlSelectAuthenticationAttemptsByUsername = p.db.Rebind(p.sqlSelectAuthenticationAttemptsByUsername)
+
+	p.sqlSelectExistingTables = p.db.Rebind(p.sqlSelectExistingTables)
+	p.sqlConfigSetValue = p.db.Rebind(p.sqlConfigSetValue)
+	p.sqlConfigGetValue = p.db.Rebind(p.sqlConfigGetValue)
+}
+
 func (p *SQLProvider) getSchemaBasicDetails() (version SchemaVersion, tables []string, err error) {
-	rows, err := p.db.Query(p.sqlGetExistingTables)
+	rows, err := p.db.Query(p.sqlSelectExistingTables)
 	if err != nil {
 		return version, tables, err
 	}

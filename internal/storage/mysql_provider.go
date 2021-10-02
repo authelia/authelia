@@ -14,16 +14,17 @@ type MySQLProvider struct {
 }
 
 // NewMySQLProvider a MySQL provider.
-func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) (provider *MySQLProvider) {
+func NewMySQLProvider(config schema.MySQLStorageConfiguration) (provider *MySQLProvider) {
 	provider = &MySQLProvider{
 		SQLProvider{
-			name:       "mysql",
-			driverName: "mysql",
+			name:             "mysql",
+			driverName:       "mysql",
+			connectionString: buildMySQLConnectionString(config),
 
 			sqlUpgradesCreateTableStatements: sqlUpgradeCreateTableStatements,
 
-			sqlGetPreferencesByUsername:     fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", userPreferencesTableName),
-			sqlUpsertSecondFactorPreference: fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", userPreferencesTableName),
+			sqlSelectPreferred2FAMethodByUsername: fmt.Sprintf("SELECT second_factor_method FROM %s WHERE username=?", userPreferencesTableName),
+			sqlUpsertPreferred2FAMethod:           fmt.Sprintf("REPLACE INTO %s (username, second_factor_method) VALUES (?, ?)", userPreferencesTableName),
 
 			sqlTestIdentityVerificationTokenExistence: fmt.Sprintf("SELECT EXISTS (SELECT * FROM %s WHERE token=?)", identityVerificationTokensTableName),
 			sqlInsertIdentityVerificationToken:        fmt.Sprintf("INSERT INTO %s (token) VALUES (?)", identityVerificationTokensTableName),
@@ -33,13 +34,13 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) (provider 
 			sqlUpsertTOTPSecret:        fmt.Sprintf("REPLACE INTO %s (username, secret) VALUES (?, ?)", totpSecretsTableName),
 			sqlDeleteTOTPSecret:        fmt.Sprintf("DELETE FROM %s WHERE username=?", totpSecretsTableName),
 
-			sqlGetU2FDeviceHandleByUsername: fmt.Sprintf("SELECT keyHandle AS key_handle, publicKey AS public_key FROM %s WHERE username=?", u2fDeviceHandlesTableName),
-			sqlUpsertU2FDeviceHandle:        fmt.Sprintf("REPLACE INTO %s (username, keyHandle, publicKey) VALUES (?, ?, ?)", u2fDeviceHandlesTableName),
+			sqlSelectU2FDeviceHandleByUsername: fmt.Sprintf("SELECT keyHandle AS key_handle, publicKey AS public_key FROM %s WHERE username=?", u2fDeviceHandlesTableName),
+			sqlUpsertU2FDeviceHandle:           fmt.Sprintf("REPLACE INTO %s (username, keyHandle, publicKey) VALUES (?, ?, ?)", u2fDeviceHandlesTableName),
 
-			sqlInsertAuthenticationLog:         fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
-			sqlGetFailedAuthenticationAttempts: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>? AND username=? AND ORDER BY time DESC LIMIT ? OFFSET ?", authenticationLogsTableName),
+			sqlInsertAuthenticationAttempt:            fmt.Sprintf("INSERT INTO %s (username, successful, time) VALUES (?, ?, ?)", authenticationLogsTableName),
+			sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf("SELECT username, successful, time FROM %s WHERE time>? AND username=? AND ORDER BY time DESC LIMIT ? OFFSET ?", authenticationLogsTableName),
 
-			sqlGetExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema=database()",
+			sqlSelectExistingTables: "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema=database()",
 
 			sqlConfigSetValue: fmt.Sprintf("REPLACE INTO %s (category, key_name, value) VALUES (?, ?, ?)", configTableName),
 			sqlConfigGetValue: fmt.Sprintf("SELECT value FROM %s WHERE category=? AND key_name=?", configTableName),
@@ -48,28 +49,32 @@ func NewMySQLProvider(configuration schema.MySQLStorageConfiguration) (provider 
 
 	provider.sqlUpgradesCreateTableStatements[SchemaVersion(1)][authenticationLogsTableName] = "CREATE TABLE %s (username VARCHAR(100), successful BOOL, time INTEGER, INDEX usr_time_idx (username, time))"
 
-	provider.connectionString = configuration.Username
-
-	if configuration.Password != "" {
-		provider.connectionString += fmt.Sprintf(":%s", configuration.Password)
-	}
-
-	if provider.connectionString != "" {
-		provider.connectionString += "@"
-	}
-
-	address := configuration.Host
-	if configuration.Port > 0 {
-		address += fmt.Sprintf(":%d", configuration.Port)
-	}
-
-	provider.connectionString += fmt.Sprintf("tcp(%s)", address)
-	if configuration.Database != "" {
-		provider.connectionString += fmt.Sprintf("/%s", configuration.Database)
-	}
-
-	provider.connectionString += "?"
-	provider.connectionString += fmt.Sprintf("timeout=%ds", int32(configuration.Timeout/time.Second))
-
 	return provider
+}
+
+func buildMySQLConnectionString(config schema.MySQLStorageConfiguration) (connectionString string) {
+	connectionString = config.Username
+
+	if config.Password != "" {
+		connectionString += fmt.Sprintf(":%s", config.Password)
+	}
+
+	if connectionString != "" {
+		connectionString += "@"
+	}
+
+	address := config.Host
+	if config.Port > 0 {
+		address += fmt.Sprintf(":%d", config.Port)
+	}
+
+	connectionString += fmt.Sprintf("tcp(%s)", address)
+	if config.Database != "" {
+		connectionString += fmt.Sprintf("/%s", config.Database)
+	}
+
+	connectionString += "?"
+	connectionString += fmt.Sprintf("timeout=%ds", int32(config.Timeout/time.Second))
+
+	return connectionString
 }
