@@ -51,20 +51,6 @@ func (mr *MockProviderMockRecorder) AppendAuthenticationLog(ctx, attempt interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendAuthenticationLog", reflect.TypeOf((*MockProvider)(nil).AppendAuthenticationLog), ctx, attempt)
 }
 
-// Configure mocks base method.
-func (m *MockProvider) Configure(logger *logrus.Logger) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Configure", logger)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Configure indicates an expected call of Configure.
-func (mr *MockProviderMockRecorder) Configure(logger interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Configure", reflect.TypeOf((*MockProvider)(nil).Configure), logger)
-}
-
 // DeleteTOTPSecret mocks base method.
 func (m *MockProvider) DeleteTOTPSecret(ctx context.Context, username string) error {
 	m.ctrl.T.Helper()

@@ -14,11 +14,14 @@ import (
 )
 
 // NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
-func NewSQLProvider(name, driverName, connectionString string) (provider SQLProvider) {
+func NewSQLProvider(name, driverName, dataSourceName string) (provider SQLProvider) {
+	db, err := sqlx.Open(driverName, dataSourceName)
+
 	provider = SQLProvider{
-		name:             name,
-		driverName:       driverName,
-		connectionString: connectionString,
+		name:       name,
+		driverName: driverName,
+		db:         db,
+		errOpen:    err,
 
 		sqlUpgradesCreateTableStatements:        sqlUpgradeCreateTableStatements,
 		sqlUpgradesCreateTableIndexesStatements: sqlUpgradesCreateTableIndexesStatements,
@@ -48,11 +51,11 @@ func NewSQLProvider(name, driverName, connectionString string) (provider SQLProv
 
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
-	db               *sqlx.DB
-	log              *logrus.Logger
-	name             string
-	driverName       string
-	connectionString string
+	db         *sqlx.DB
+	log        *logrus.Logger
+	name       string
+	driverName string
+	errOpen    error
 
 	sqlUpgradesCreateTableStatements        map[SchemaVersion]map[string]string
 	sqlUpgradesCreateTableIndexesStatements map[SchemaVersion][]string
@@ -83,25 +86,16 @@ type SQLProvider struct {
 	sqlConfigGetValue string
 }
 
-// Configure runs the configuration tasks for the SQLProvider.
-func (p *SQLProvider) Configure(logger *logrus.Logger) (err error) {
-	p.log = logger
-
-	p.db, err = sqlx.Open(p.driverName, p.connectionString)
-	if err != nil {
-		return err
-	}
-
-	p.rebind()
-
-	return nil
-}
-
 // StartupCheck implements the provider startup check interface.
 func (p *SQLProvider) StartupCheck(logger *logrus.Logger) (err error) {
-	err = p.Configure(logger)
-	if err != nil {
-		return err
+	if p.errOpen != nil {
+		return p.errOpen
+	}
+
+	p.log = logger
+
+	if p.name == "postgres" {
+		p.rebind()
 	}
 
 	// TODO: Decide if this is needed, or if it should be configurable.
