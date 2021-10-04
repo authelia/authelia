@@ -557,6 +557,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "mpdcampbell",
+      "name": "Michael Campbell",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47434940?v=4",
+      "profile": "https://github.com/mpdcampbell",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7
