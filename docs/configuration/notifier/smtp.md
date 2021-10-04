@@ -99,8 +99,8 @@ The password sent for authentication with the SMTP server. Paired with the usern
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
-required: no
-{: .label .label-config .label-green }
+required: yes
+{: .label .label-config .label-red }
 </div>
 
 The address sent in the FROM header for the email. Basically who the email appears to come from. It should be noted
