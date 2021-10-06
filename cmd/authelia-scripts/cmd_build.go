@@ -65,7 +65,7 @@ func buildAutheliaBinary(xflags []string, buildkite bool) {
 	}
 }
 
-func buildFrontend() {
+func buildFrontend(branch string) {
 	cmd := utils.CommandWithStdout("pnpm", "install", "--shamefully-hoist")
 	cmd.Dir = webDirectory
 
@@ -74,14 +74,16 @@ func buildFrontend() {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("pnpm", "build")
-	cmd.Dir = webDirectory
+	if !strings.HasPrefix(branch, "renovate/") {
+		cmd = utils.CommandWithStdout("pnpm", "build")
+		cmd.Dir = webDirectory
 
-	cmd.Env = append(os.Environ(), "GENERATE_SOURCEMAP=false", "INLINE_RUNTIME_CHUNK=false")
+		cmd.Env = append(os.Environ(), "GENERATE_SOURCEMAP=false", "INLINE_RUNTIME_CHUNK=false")
 
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -140,6 +142,7 @@ func Build(cobraCmd *cobra.Command, args []string) {
 	branch := os.Getenv("BUILDKITE_BRANCH")
 
 	if strings.HasPrefix(branch, "renovate/") {
+		buildFrontend(branch)
 		log.Info("Skip building Authelia for deps...")
 		os.Exit(0)
 	}
@@ -161,7 +164,7 @@ func Build(cobraCmd *cobra.Command, args []string) {
 	}
 
 	log.Debug("Building Authelia frontend...")
-	buildFrontend()
+	buildFrontend(branch)
 
 	log.Debug("Building swagger-ui frontend...")
 	buildSwagger()
