@@ -28,7 +28,7 @@ will need to enroll their device only once to get access to all your application
 </p>
 
 After having successfully passed the first factor, select *Security Key* method and
-click on *Not registered yet?* link. This will send you an email to verify your identity.
+click on *Register device* link. This will send you an email to verify your identity.
 
 *NOTE: This e-mail has likely been sent to the mailbox at https://mail.example.com:8080/ if you're testing Authelia.*
 
