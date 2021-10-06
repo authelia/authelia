@@ -1,3 +1,5 @@
+import path from "path";
+
 import { loadEnv } from "vite";
 import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
@@ -51,6 +53,14 @@ export default defineConfig(({ mode }) => {
             hmr: {
                 clientPort: env.VITE_HMR_PORT || 3000,
             },
+        },
+        resolve: {
+            alias: [
+                {
+                    find: "@components",
+                    replacement: path.resolve(__dirname, "src/components"),
+                },
+            ],
         },
         plugins: [istanbulPlugin, svgr(), tsconfigPaths()],
     };

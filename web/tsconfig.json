@@ -14,7 +14,7 @@
       "@utils/*": ["utils/*"],
       "@views/*": ["views/*"]
     },
-    "target": "esnext",
+    "target": "es6",
     "lib": [
       "dom",
       "dom.iterable",

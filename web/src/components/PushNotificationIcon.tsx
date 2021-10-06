@@ -1,8 +1,7 @@
 import React from "react";
 
+import style from "@components/PushNotificationIcon.module.css";
 import { useIntermittentClass } from "@hooks/IntermittentClass";
-
-import style from "./PushNotificationIcon.module.css"; // TODO(nightah): change back to named alias
 
 export interface Props {
     width: number;

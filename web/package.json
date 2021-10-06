@@ -26,9 +26,9 @@
   "scripts": {
     "prepare": "cd .. && husky install .github",
     "start": "vite --host",
-    "build": "vite build --mode production --debug",
+    "build": "vite build",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "coverage": "VITE_COVERAGE=true vite build --mode production --debug",
+    "coverage": "VITE_COVERAGE=true vite build",
     "test": "jest --coverage --no-cache",
     "report": "nyc report -r clover -r json -r lcov -r text"
   },
