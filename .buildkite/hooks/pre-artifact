@@ -6,16 +6,18 @@ declare -A BUILDS=(["linux"]="amd64 arm arm64 amd64-musl arm-musl arm64-musl" ["
 DOCKER_IMAGE=authelia/authelia
 
 if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
-  echo "--- :docker: Saving artifacts for :buildkite: :docker: :github: releases"
-  for OS in "${!BUILDS[@]}"; do
-    for ARCH in ${BUILDS[$OS]}; do
-      tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia.service config.template.yml
-      sha256sum "authelia-${OS}-${ARCH}.tar.gz" > "authelia-${OS}-${ARCH}.tar.gz.sha256"
+  if [[ ! "${BUILDKITE_BRANCH}" =~ ^renovate/ ]]; then
+    echo "--- :docker: Saving artifacts for :buildkite: :docker: :github: releases"
+    for OS in "${!BUILDS[@]}"; do
+      for ARCH in ${BUILDS[$OS]}; do
+        tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia.service config.template.yml
+        sha256sum "authelia-${OS}-${ARCH}.tar.gz" > "authelia-${OS}-${ARCH}.tar.gz.sha256"
+      done
     done
-  done
 
-  tar -czf authelia-public_html.tar.gz -C dist public_html
-  sha256sum authelia-public_html.tar.gz > authelia-public_html.tar.gz.sha256
+    tar -czf authelia-public_html.tar.gz -C dist public_html
+    sha256sum authelia-public_html.tar.gz > authelia-public_html.tar.gz.sha256
+  fi
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then

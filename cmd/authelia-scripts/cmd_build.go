@@ -136,13 +136,19 @@ func cleanAssets() {
 
 // Build build Authelia.
 func Build(cobraCmd *cobra.Command, args []string) {
-	log.Info("Building Authelia...")
-
 	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
+	branch := os.Getenv("BUILDKITE_BRANCH")
+
+	if strings.HasPrefix(branch, "renovate/") {
+		log.Info("Skip building Authelia for deps...")
+		os.Exit(0)
+	}
+
+	log.Info("Building Authelia...")
 
 	Clean(cobraCmd, args)
 
-	xflags, err := getXFlags(os.Getenv("BUILDKITE_BRANCH"), os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
+	xflags, err := getXFlags(branch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
 	}
