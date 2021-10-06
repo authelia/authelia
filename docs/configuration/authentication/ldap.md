@@ -226,7 +226,7 @@ makes sure that value is not 0 which means the password requires changing at the
 |Implementation |Users Filter  |Groups Filter|
 |:-------------:|:------------:|:-----------:|
 |custom         |n/a           |n/a       |
-|activedirectory|(&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)))|(&(member={dn})(objectClass=group)(objectCategory=group))|
+|activedirectory|(&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)))|(&(member:1.2.840.113556.1.4.1941:={dn})(objectClass=group)(objectCategory=group))|
 
 
 _**Note:**_ The Active Directory filter `(sAMAccountType=805306368)` is exactly the same as 
