@@ -15,6 +15,7 @@ const istanbulPlugin = isCoverage
           requireEnv: true,
       })
     : undefined;
+const sourcemap = isCoverage ? "inline" : undefined;
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, "env");
@@ -29,6 +30,7 @@ export default defineConfig(({ mode }) => {
 
     return {
         build: {
+            sourcemap,
             outDir: "../internal/server/public_html",
             assetsDir: "static",
             rollupOptions: {
