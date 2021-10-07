@@ -50,7 +50,7 @@ specifiers:
   typescript: 4.4.3
   u2f-api: 1.2.1
   vite: 2.6.4
-  vite-plugin-istanbul: 2.2.1
+  vite-plugin-istanbul: 2.2.0
   vite-plugin-svgr: 0.4.0
   vite-react: 0.0.40
   vite-tsconfig-paths: 3.3.14
@@ -107,7 +107,7 @@ devDependencies:
   react-test-renderer: 17.0.2_react@17.0.2
   typescript: 4.4.3
   vite: 2.6.4
-  vite-plugin-istanbul: 2.2.1
+  vite-plugin-istanbul: 2.2.0
   vite-plugin-svgr: 0.4.0_vite@2.6.4
   vite-react: 0.0.40
   vite-tsconfig-paths: 3.3.14_vite@2.6.4
@@ -6968,8 +6968,8 @@ packages:
       vite: 2.6.4_less@4.1.2+sass@1.42.1
     dev: true
 
-  /vite-plugin-istanbul/2.2.1:
-    resolution: {integrity: sha512-M125S+jXA9zT9tI6h5mYj0ljugOiCey3D1JMlhAtBQ9N4PQQL71MjTIQMLFZ+ORM5A6U1qZSd5IKkr1oi3xzqw==}
+  /vite-plugin-istanbul/2.2.0:
+    resolution: {integrity: sha512-kcQV/pnYoryslh6q+kywf068LqrsBlEcg9tdMh/ISSXfC7SHhZguDAgdSSdE06v0/diZrrEOw/jTUzhp59TTFQ==}
     dependencies:
       istanbul-lib-instrument: 4.0.3
       test-exclude: 6.0.0
