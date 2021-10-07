@@ -32,15 +32,6 @@
     "test": "jest --coverage --no-cache",
     "report": "nyc report -r clover -r json -r lcov -r text"
   },
-  "babel": {
-    "env": {
-      "test": {
-        "presets": [
-          "react-app"
-        ]
-      }
-    }
-  },
   "eslintConfig": {
     "extends": "react-app"
   },
@@ -48,19 +39,24 @@
     "roots": [
       "<rootDir>/src"
     ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/src/setupTests.js"
-    ],
     "collectCoverageFrom": [
       "src/**/*.{js,jsx,ts,tsx}",
       "!src/**/*.d.ts"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/setupTests.js"
     ],
     "testMatch": [
       "<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}"
     ],
     "testEnvironment": "jsdom",
     "transform": {
-      "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "babel-jest",
+      "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": [
+        "esbuild-jest",
+        {
+          "sourcemap": true
+        }
+      ],
       "^.+\\.(css|svg)$": "jest-transform-stub"
     },
     "transformIgnorePatterns": [
@@ -135,8 +131,7 @@
     "@types/react-router-dom": "5.3.1",
     "@typescript-eslint/eslint-plugin": "4.31.2",
     "@typescript-eslint/parser": "4.31.2",
-    "babel-jest": "27.2.2",
-    "babel-preset-react-app": "10.0.0",
+    "esbuild-jest": "0.5.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-config-react-app": "6.0.0",
     "eslint-formatter-rdjson": "1.0.5",
