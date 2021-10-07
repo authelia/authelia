@@ -22,7 +22,7 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/ory/fosite v0.40.2
-	github.com/ory/herodot v0.9.11
+	github.com/ory/herodot v0.9.12
 	github.com/otiai10/copy v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.3.0
