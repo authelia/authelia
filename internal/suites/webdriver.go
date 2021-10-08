@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -99,6 +100,11 @@ func (wds *WebDriverSession) Stop() error {
 	_ = os.MkdirAll(coverageDir, 0775)
 
 	err = ioutil.WriteFile(fmt.Sprintf("%s/coverage-%d.json", coverageDir, time.Unix()), []byte(coverageData), 0664) //nolint:gosec
+	if err != nil {
+		return err
+	}
+
+	err = filepath.Walk("../../web/.nyc_output", fixCoveragePath)
 	if err != nil {
 		return err
 	}

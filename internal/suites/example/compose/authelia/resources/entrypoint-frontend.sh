@@ -2,4 +2,4 @@
 
 set -x
 
-yarn install --frozen-lockfile && yarn start
+pnpm install --shamefully-hoist --frozen-lockfile && pnpm start

@@ -23,10 +23,19 @@ cat << EOF
     agents:
       suite: "kubernetes"
 EOF
+elif [[ "${SUITE_NAME}" = "Standalone" ]]; then
+cat << EOF
+    agents:
+      suite: "standalone"
+EOF
 else
 cat << EOF
     agents:
       suite: "all"
+EOF
+cat << EOF
+    env:
+      SUITE: "${SUITE_NAME}"
 EOF
 fi
 done

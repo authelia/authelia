@@ -12,14 +12,18 @@ fi
 if [[ ! "${BUILDKITE_BRANCH}" =~ ^(v.*) ]] && [[ "${BUILDKITE_COMMAND_EXIT_STATUS}" == 0 ]]; then
   if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]] || [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
     echo "--- :codecov: Upload coverage reports"
+    NAME="UnitTest"
+    if [[ "${SUITE}" != "" ]]; then
+      NAME=${SUITE}
+    fi
     if [[ "${BUILDKITE_AGENT_META_DATA_CODECOV}" == "verbose" ]]; then
       BUILDKITE_AGENT_META_DATA_CODECOV="-v"
     fi
-    bash <(curl -s --connect-timeout 10 --retry 10 --retry-max-time 0 https://codecov.io/bash) -Z -c -s 'coverage*.txt' -F backend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
+    codecov -Z -c -f 'coverage*.txt' -n ${NAME} -F backend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
     if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
-      cd web && yarn report
+      cd web && pnpm report
     fi
-    bash <(curl -s --connect-timeout 10 --retry 10 --retry-max-time 0 https://codecov.io/bash) -Z -c -f '!*.go' -f '!*.zst' -F frontend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
+    codecov -Z -c -f '!Dockerfile*' -f '!*.go' -f '!*.zst' -n ${NAME} -F frontend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
   fi
 fi
 

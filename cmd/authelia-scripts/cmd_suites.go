@@ -142,7 +142,7 @@ func runSuiteSetupTeardown(command string, suite string) error {
 		if _, err := os.Stat("../../web/.nyc_output"); err == nil {
 			log.Infof("Generating frontend coverage reports for suite %s...", suite)
 
-			cmd := utils.Command("yarn", "report")
+			cmd := utils.Command("pnpm", "report")
 			cmd.Dir = "web"
 			cmd.Env = os.Environ()
 

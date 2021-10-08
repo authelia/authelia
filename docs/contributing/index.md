@@ -34,10 +34,10 @@ Here are the versions used for testing in Buildkite:
 
 ```console
 $ docker --version
-Docker version 19.03.5, build 633a0ea838
+Docker version 20.10.8, build 3967b7d
 
 $ docker-compose --version
-docker-compose version 1.24.1, build unknown
+docker-compose version 1.28.0, build unknown
 ```
 
 ### How can I serve my application under example.com?
