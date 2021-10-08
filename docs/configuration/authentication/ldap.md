@@ -108,7 +108,7 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
-Sets the base distinguished name container for all LDAP queries. If your LDAP domain is example.com this is usually 
+Sets the base distinguished name container for all LDAP queries. If your LDAP domain is example.com this is usually
 `dc=example,dc=com`, however you can fine tune this to be more specific for example to only include objects inside the
 authelia OU: `ou=authelia,dc=example,dc=com`. This is prefixed with the [additional_users_dn](#additional_users_dn) for
 user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
@@ -136,7 +136,7 @@ required: no
 Additional LDAP path to append to the [base_dn](#base_dn) when searching for users. Useful if you want to restrict
 exactly which OU to get users from for either security or performance reasons. For example setting it to
 `ou=users,ou=people` with a base_dn set to `dc=example,dc=com` will mean user searches will occur in
-`ou=users,ou=people,dc=example,dc=com`. The default value is dependent on the [implementation](#implementation), refer 
+`ou=users,ou=people,dc=example,dc=com`. The default value is dependent on the [implementation](#implementation), refer
 to the [attribute defaults](#attribute-defaults) for more information.
 
 
@@ -192,16 +192,16 @@ search.
 #### Users filter replacements
 |Placeholder             |Phase  |Replacement                                                     |
 |:----------------------:|:-----:|:--------------------------------------------------------------:|
-|{username_attribute}    |startup|The [username attribute](#username_attribute) configured        |
-|{mail_attribute}        |startup|The [mail attribute](#mail_attribute) configured                |
-|{display_name_attribute}|startup|The [display name attribute](#display_name_attribute) configured|
+|{username_attribute}    |startup|The configured username attribute                               |
+|{mail_attribute}        |startup|The configured mail attribute                                   |
+|{display_name_attribute}|startup|The configured display name attribute                           |
 |{input}                 |search |The input into the username field                               |
 
 #### Groups filter replacements
 |Placeholder             |Phase  |Replacement                                                                |
 |:----------------------:|:-----:|:-------------------------------------------------------------------------:|
 |{input}                 |search |The input into the username field                                          |
-|{username}              |search |The username from the profile lookup obtained from the [username attribute]|
+|{username}              |search |The username from the profile lookup obtained from the username attribute  |
 |{dn}                    |search |The distinguished name from the profile lookup                             |
 
 ### Defaults
@@ -211,10 +211,10 @@ The below tables describes the current attribute defaults for each implementatio
 This table describes the attribute defaults for each implementation. i.e. the username_attribute is
 described by the Username column.
 
-|Implementation |Username      |Display Name|Mail|Group Name|
-|:-------------:|:------------:|:----------:|:--:|:--------:|
-|custom         |n/a           |displayName |mail|cn        |
-|activedirectory|sAMAccountName|displayName |mail|cn        |
+|Implementation |Username      |Display Name|Mail |Group Name|
+|:-------------:|:------------:|:----------:|:---:|:--------:|
+|custom         |n/a           |displayName |mail |cn        |
+|activedirectory|sAMAccountName|displayName |mail |cn        |
 
 #### Filter defaults
 The filters are probably the most important part to get correct when setting up LDAP.
@@ -225,11 +225,10 @@ makes sure that value is not 0 which means the password requires changing at the
 
 |Implementation |Users Filter  |Groups Filter|
 |:-------------:|:------------:|:-----------:|
-|custom         |n/a           |n/a       |
+|custom         |n/a           |n/a          |
 |activedirectory|(&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)))|(&(member={dn})(objectClass=group)(objectCategory=group))|
 
-
-_**Note:**_ The Active Directory filter `(sAMAccountType=805306368)` is exactly the same as 
+_**Note:**_ The Active Directory filter `(sAMAccountType=805306368)` is exactly the same as
 `(&(objectCategory=person)(objectClass=user))` except that the former is more performant, you can read more about this
 and other Active Directory filters on the [TechNet wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx).
 
@@ -265,5 +264,4 @@ In versions <= `4.24.0` not including the `username_attribute` placeholder will 
 and will result in session resets when the refresh interval has expired, default of 5 minutes.
 
 [LDAP GeneralizedTime]: https://ldapwiki.com/wiki/GeneralizedTime
-[username attribute]: #username_attribute
 [TechNet wiki]: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
