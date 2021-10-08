@@ -3,7 +3,7 @@
 set +u
 
 if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
-  cd web && pnpm install --shamefully-hoist && cd ../
+  cd web && pnpm install && cd ../
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then

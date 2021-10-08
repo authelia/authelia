@@ -15,7 +15,7 @@ export interface Props {
 const LoginLayout = function (props: Props) {
     const style = useStyles();
     return (
-        <Grid id={props.id} className={style.root} container spacing={0} alignItems="center" justify="center">
+        <Grid id={props.id} className={style.root} container spacing={0} alignItems="center" justifyContent="center">
             <Container maxWidth="xs" className={style.rootContainer}>
                 <Grid container>
                     <Grid item xs={12}>

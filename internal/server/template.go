@@ -42,6 +42,7 @@ func ServeTemplatedFile(publicDir, file, rememberMe, resetPassword, session, the
 			base = baseURL.(string)
 		}
 
+		baseURL := "https://" + string(ctx.Request.Host()) + base + "/"
 		nonce := utils.RandomString(32, alphaNumericRunes)
 
 		switch extension := filepath.Ext(file); extension {
@@ -60,7 +61,7 @@ func ServeTemplatedFile(publicDir, file, rememberMe, resetPassword, session, the
 			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' ; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
 		}
 
-		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, CSPNonce, RememberMe, ResetPassword, Session, Theme string }{Base: base, CSPNonce: nonce, RememberMe: rememberMe, ResetPassword: resetPassword, Session: session, Theme: theme})
+		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, BaseURL, CSPNonce, RememberMe, ResetPassword, Session, Theme string }{Base: base, BaseURL: baseURL, CSPNonce: nonce, RememberMe: rememberMe, ResetPassword: resetPassword, Session: session, Theme: theme})
 		if err != nil {
 			ctx.Error("an error occurred", 503)
 			logger.Errorf("Unable to execute template: %v", err)
