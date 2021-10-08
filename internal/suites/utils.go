@@ -1,8 +1,11 @@
 package suites
 
 import (
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 // GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
@@ -24,4 +27,38 @@ func GetWebDriverPort() int {
 	p, _ := strconv.Atoi(driverPort)
 
 	return p
+}
+
+func fixCoveragePath(path string, file os.FileInfo, err error) error {
+	if err != nil {
+		return err
+	}
+
+	if file.IsDir() {
+		return nil
+	}
+
+	coverage, err := filepath.Match("*.json", file.Name())
+
+	if err != nil {
+		return err
+	}
+
+	if coverage {
+		read, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		wd, _ := os.Getwd()
+		ciPath := strings.TrimSuffix(wd, "internal/suites")
+		content := strings.ReplaceAll(string(read), "/node/src/app/", ciPath+"web/")
+
+		err = ioutil.WriteFile(path, []byte(content), 0)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
