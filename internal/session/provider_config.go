@@ -19,6 +19,10 @@ import (
 func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509.CertPool) ProviderConfig {
 	config := session.NewDefaultConfig()
 
+	config.SessionIDGeneratorFunc = func() []byte {
+		return []byte(utils.RandomString(30, utils.AlphaNumericCharacters))
+	}
+
 	// Override the cookie name.
 	config.CookieName = configuration.Name
 
