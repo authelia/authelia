@@ -13,11 +13,11 @@ if [[ ! "${BUILDKITE_BRANCH}" =~ ^(v.*) ]] && [[ "${BUILDKITE_COMMAND_EXIT_STATU
   if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]] || [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
     echo "--- :codecov: Upload coverage reports"
     NAME="UnitTest"
+    if [[ "${SUITE}" != "" ]]; then
+      NAME=${SUITE}
+    fi
     if [[ "${BUILDKITE_AGENT_META_DATA_CODECOV}" == "verbose" ]]; then
       BUILDKITE_AGENT_META_DATA_CODECOV="-v"
-    fi
-    if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
-      NAME=$(echo ${BUILDKITE_LABEL/:selenium: /} | awk '{ print $1 }')
     fi
     codecov -Z -c -f 'coverage*.txt' -n ${NAME} -F backend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
     if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
