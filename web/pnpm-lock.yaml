@@ -49,7 +49,7 @@ specifiers:
   react-test-renderer: 17.0.2
   typescript: 4.4.3
   u2f-api: 1.2.1
-  vite: 2.6.4
+  vite: 2.6.5
   vite-plugin-istanbul: 2.2.0
   vite-plugin-svgr: 0.4.0
   vite-react: 0.0.40
@@ -106,11 +106,11 @@ devDependencies:
   prettier: 2.4.1
   react-test-renderer: 17.0.2_react@17.0.2
   typescript: 4.4.3
-  vite: 2.6.4
+  vite: 2.6.5
   vite-plugin-istanbul: 2.2.0
-  vite-plugin-svgr: 0.4.0_vite@2.6.4
+  vite-plugin-svgr: 0.4.0_vite@2.6.5
   vite-react: 0.0.40
-  vite-tsconfig-paths: 3.3.14_vite@2.6.4
+  vite-tsconfig-paths: 3.3.14_vite@2.6.5
 
 packages:
 
@@ -6992,13 +6992,13 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-svgr/0.4.0_vite@2.6.4:
+  /vite-plugin-svgr/0.4.0_vite@2.6.5:
     resolution: {integrity: sha512-aNhPEYxn2L4m1lOvUpJksMPxNZbYBq1npnMhi6D5HUykBV03bVmcu3WGHZ50lIYr0CC5t+yEvck8hNbHOOgKxg==}
     peerDependencies:
       vite: ^2.0.0
     dependencies:
       '@svgr/core': 5.5.0
-      vite: 2.6.4
+      vite: 2.6.5
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -7023,7 +7023,7 @@ packages:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths/3.3.14_vite@2.6.4:
+  /vite-tsconfig-paths/3.3.14_vite@2.6.5:
     resolution: {integrity: sha512-Z501YCOTTwBk+zDq0furrD+O+X/zawKIo8L3eE0GVSr700AvWAArnlUHOzoRJQw0fJLfd+61rD7jkT20Jh8gtA==}
     peerDependencies:
       vite: '>2.0.0-0'
@@ -7032,33 +7032,9 @@ packages:
       globrex: 0.1.2
       recrawl-sync: 2.2.1
       tsconfig-paths: 3.11.0
-      vite: 2.6.4
+      vite: 2.6.5
     transitivePeerDependencies:
       - supports-color
-    dev: true
-
-  /vite/2.6.4:
-    resolution: {integrity: sha512-zNGZgjKGprdLKJ1g1taAvNt51JbGAdrAUU9hpLzgtlks+cXBxTZUsEAGEtLbF3UvlYOVAPXS8r9E9gxYAv6z+A==}
-    engines: {node: '>=12.2.0'}
-    hasBin: true
-    peerDependencies:
-      less: '*'
-      sass: '*'
-      stylus: '*'
-    peerDependenciesMeta:
-      less:
-        optional: true
-      sass:
-        optional: true
-      stylus:
-        optional: true
-    dependencies:
-      esbuild: 0.13.4
-      postcss: 8.3.9
-      resolve: 1.20.0
-      rollup: 2.58.0
-    optionalDependencies:
-      fsevents: 2.3.2
     dev: true
 
   /vite/2.6.4_less@4.1.2+sass@1.42.1:
@@ -7083,6 +7059,30 @@ packages:
       resolve: 1.20.0
       rollup: 2.58.0
       sass: 1.42.1
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: true
+
+  /vite/2.6.5:
+    resolution: {integrity: sha512-vavXMChDUb4Oh4YunrK9BrH5Ox74cu0eOp0VuyI/iqFz1FqbWD72So2c9I87lLL2n0+6tFPV5ijow60KrtxuZg==}
+    engines: {node: '>=12.2.0'}
+    hasBin: true
+    peerDependencies:
+      less: '*'
+      sass: '*'
+      stylus: '*'
+    peerDependenciesMeta:
+      less:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+    dependencies:
+      esbuild: 0.13.4
+      postcss: 8.3.9
+      resolve: 1.20.0
+      rollup: 2.58.0
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
