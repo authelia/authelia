@@ -53,7 +53,7 @@ specifiers:
   vite-plugin-istanbul: 2.2.0
   vite-plugin-svgr: 0.4.0
   vite-react: 0.0.41
-  vite-tsconfig-paths: 3.3.14
+  vite-tsconfig-paths: 3.3.15
 
 dependencies:
   '@fortawesome/fontawesome-svg-core': 1.2.36
@@ -110,7 +110,7 @@ devDependencies:
   vite-plugin-istanbul: 2.2.0
   vite-plugin-svgr: 0.4.0_vite@2.6.5
   vite-react: 0.0.41
-  vite-tsconfig-paths: 3.3.14_vite@2.6.5
+  vite-tsconfig-paths: 3.3.15_vite@2.6.5
 
 packages:
 
@@ -7114,8 +7114,8 @@ packages:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths/3.3.14_vite@2.6.5:
-    resolution: {integrity: sha512-Z501YCOTTwBk+zDq0furrD+O+X/zawKIo8L3eE0GVSr700AvWAArnlUHOzoRJQw0fJLfd+61rD7jkT20Jh8gtA==}
+  /vite-tsconfig-paths/3.3.15_vite@2.6.5:
+    resolution: {integrity: sha512-SFPj6Y5HWB2Vy6eZZSA2VF06Lkg74kkTtMYfs47QJ2z8Fm3qFNggKHWsGDH/gesW56Ly9xmDGr1IBC8o77G+mw==}
     peerDependencies:
       vite: '>2.0.0-0'
     dependencies:
