@@ -152,6 +152,6 @@
     "vite-plugin-istanbul": "2.2.0",
     "vite-plugin-svgr": "0.4.0",
     "vite-react": "0.0.41",
-    "vite-tsconfig-paths": "3.3.14"
+    "vite-tsconfig-paths": "3.3.15"
   }
 }
