@@ -73,13 +73,18 @@ func runCommand(cmd string, args ...string) {
 	}
 }
 
-func checkCommandExist(cmd string) {
+func checkCommandExist(cmd string, resolutionHint string) {
 	fmt.Print("Checking if '" + cmd + "' command is installed...")
 	command := exec.Command("bash", "-c", "command -v "+cmd) //nolint:gosec // Used only in development.
 	err := command.Run()
 
 	if err != nil {
-		log.Fatal("[ERROR] You must install " + cmd + " on your machine.")
+		msg := "[ERROR] You must install " + cmd + " on your machine."
+		if resolutionHint != "" {
+			msg += fmt.Sprintf(" %s", resolutionHint)
+		}
+
+		log.Fatal(msg)
 	}
 
 	fmt.Println("		OK")
@@ -199,10 +204,10 @@ func readVersions() {
 // Bootstrap bootstrap authelia dev environment.
 func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	bootstrapPrintln("Checking command installation...")
-	checkCommandExist("node")
-	checkCommandExist("pnpm")
-	checkCommandExist("docker")
-	checkCommandExist("docker-compose")
+	checkCommandExist("node", "Follow installation guidelines from https://nodejs.org/en/download/package-manager/ or download installer from https://nodejs.org/en/download/")
+	checkCommandExist("pnpm", "Follow installation guidelines from https://pnpm.io/installation")
+	checkCommandExist("docker", "Follow installation guidelines from https://docs.docker.com/get-docker/")
+	checkCommandExist("docker-compose", "Follow installation guidelines from https://docs.docker.com/compose/install/")
 
 	bootstrapPrintln("Getting versions of tools")
 	readVersions()
