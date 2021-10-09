@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@commitlint/cli': 13.2.0
+  '@commitlint/cli': 13.2.1
   '@commitlint/config-conventional': 13.2.0
   '@fortawesome/fontawesome-svg-core': 1.2.36
   '@fortawesome/free-regular-svg-icons': 5.15.4
@@ -77,7 +77,7 @@ dependencies:
   u2f-api: 1.2.1
 
 devDependencies:
-  '@commitlint/cli': 13.2.0_typescript@4.4.3
+  '@commitlint/cli': 13.2.1
   '@commitlint/config-conventional': 13.2.0
   '@testing-library/jest-dom': 5.14.1
   '@testing-library/react': 12.1.2_react-dom@17.0.2+react@17.0.2
@@ -524,22 +524,20 @@ packages:
       minimist: 1.2.5
     dev: true
 
-  /@commitlint/cli/13.2.0_typescript@4.4.3:
-    resolution: {integrity: sha512-RqG0cxxiwaL9OgQbA2ZEfZaVIRJmbtsZgnj5G07AjN7///s/40grSN4/kDl8YjUgvAZskPfJRoGGYNvHJ4zHWA==}
+  /@commitlint/cli/13.2.1:
+    resolution: {integrity: sha512-JGzYk2ay5JkRS5w+FLQzr0u/Kih52ds4HPpa3vnwVOQN8Q+S1VYr8Nk/6kRm6uNYsAcC1nejtuDxRdLcLh/9TA==}
     engines: {node: '>=v12'}
     hasBin: true
     dependencies:
       '@commitlint/format': 13.2.0
       '@commitlint/lint': 13.2.0
-      '@commitlint/load': 13.2.0_typescript@4.4.3
+      '@commitlint/load': 13.2.1
       '@commitlint/read': 13.2.0
       '@commitlint/types': 13.2.0
       lodash: 4.17.21
       resolve-from: 5.0.0
       resolve-global: 1.0.0
       yargs: 17.2.1
-    transitivePeerDependencies:
-      - typescript
     dev: true
 
   /@commitlint/config-conventional/13.2.0:
@@ -588,8 +586,8 @@ packages:
       '@commitlint/types': 13.2.0
     dev: true
 
-  /@commitlint/load/13.2.0_typescript@4.4.3:
-    resolution: {integrity: sha512-Nhkv+hwWCCxWGjmE9jd1U8kfGGCkZVpwzlTtdKxpY+Aj2VCFg3BjY+qA81pMF3oAsIpxchSaZG5llb8kduVjYg==}
+  /@commitlint/load/13.2.1:
+    resolution: {integrity: sha512-qlaJkj0hfa9gtWRfCfbgFBTK3GYQRmjZhba4l9mUu4wV9lEZ4ICFlrLtd/8kaLXf/8xbrPhkAPkVFOAqM0YwUQ==}
     engines: {node: '>=v12'}
     dependencies:
       '@commitlint/execute-rule': 13.2.0
@@ -600,8 +598,7 @@ packages:
       cosmiconfig: 7.0.1
       lodash: 4.17.21
       resolve-from: 5.0.0
-    transitivePeerDependencies:
-      - typescript
+      typescript: 4.4.3
     dev: true
 
   /@commitlint/message/13.2.0:
