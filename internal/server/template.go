@@ -18,7 +18,7 @@ var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
-func ServeTemplatedFile(publicDir, file, rememberMe, resetPassword, session, theme string) fasthttp.RequestHandler {
+func ServeTemplatedFile(publicDir, file, rememberMe, resetPassword, session, theme string, https bool) fasthttp.RequestHandler {
 	logger := logging.Logger()
 
 	f, err := assets.Open(publicDir + file)
@@ -42,7 +42,19 @@ func ServeTemplatedFile(publicDir, file, rememberMe, resetPassword, session, the
 			base = baseURL.(string)
 		}
 
-		baseURL := "https://" + string(ctx.Request.Host()) + base + "/"
+		var scheme = "https"
+
+		if !https {
+			proto := string(ctx.Request.Header.Peek(fasthttp.HeaderXForwardedProto))
+			switch proto {
+			case "":
+				scheme = "http"
+			default:
+				scheme = proto
+			}
+		}
+
+		baseURL := scheme + "://" + string(ctx.Request.Host()) + base + "/"
 		nonce := utils.RandomString(32, alphaNumericRunes)
 
 		switch extension := filepath.Ext(file); extension {

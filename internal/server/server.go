@@ -34,9 +34,11 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
 	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
-	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
-	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
-	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme)
+	https := configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate != ""
+
+	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
 
 	r := router.New()
 	r.GET("/", serveIndexHandler)
