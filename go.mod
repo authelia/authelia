@@ -32,7 +32,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
-	github.com/valyala/fasthttp v1.30.0
+	github.com/valyala/fasthttp v1.31.0
 	golang.org/x/sys v0.0.0-20210902050250-f475640dd07b // indirect
 	golang.org/x/text v0.3.7
 	gopkg.in/square/go-jose.v2 v2.6.0
