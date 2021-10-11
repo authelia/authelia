@@ -1,9 +1,10 @@
 import path from "path";
 
-import { loadEnv } from "vite";
+import reactRefresh from "@vitejs/plugin-react-refresh";
+import { defineConfig, loadEnv } from "vite";
+import eslintPlugin from "vite-plugin-eslint";
 import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
-import { defineConfig } from "vite-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 const isCoverage = process.env.VITE_COVERAGE === "true";
@@ -28,7 +29,19 @@ export default defineConfig(({ mode }) => {
         return "static/media/[name].[hash].[ext]";
     }
 
+    const htmlPlugin = () => {
+        return {
+            name: "html-transform",
+            transformIndexHtml(html: string) {
+                return html.replace(/%(.*?)%/g, function (match, p1) {
+                    return env[p1];
+                });
+            },
+        };
+    };
+
     return {
+        base: "./",
         build: {
             sourcemap,
             outDir: "../internal/server/public_html",
@@ -39,15 +52,6 @@ export default defineConfig(({ mode }) => {
                     chunkFileNames: `static/js/[name].[hash].js`,
                     assetFileNames: ({ name }) => assetOutput(name),
                 },
-            },
-        },
-        envDir: "env",
-        eslint: {
-            enable: true,
-        },
-        html: {
-            injectData: {
-                ...env,
             },
         },
         server: {
@@ -64,6 +68,6 @@ export default defineConfig(({ mode }) => {
                 },
             ],
         },
-        plugins: [istanbulPlugin, svgr(), tsconfigPaths()],
+        plugins: [eslintPlugin(), htmlPlugin(), istanbulPlugin, reactRefresh(), svgr(), tsconfigPaths()],
     };
 });
