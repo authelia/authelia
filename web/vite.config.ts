@@ -18,6 +18,7 @@ const istanbulPlugin = isCoverage
     : undefined;
 const sourcemap = isCoverage ? "inline" : undefined;
 
+// @ts-ignore
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, "env");
 
