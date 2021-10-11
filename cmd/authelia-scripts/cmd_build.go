@@ -82,13 +82,6 @@ func buildFrontend(branch string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		cmd = utils.CommandWithStdout("bash", "-c", "sed -i -e 's/{{.[a-zA-Z]*}}/\"&\"/g' internal/server/public_html/index.html")
-
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
 	}
 }
 

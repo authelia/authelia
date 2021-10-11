@@ -55,7 +55,7 @@ func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) erro
 		90*time.Second,
 		dockerEnvironment,
 		"authelia-frontend",
-		[]string{"vite v2.6.3 dev server running at", "ready in"})
+		[]string{"dev server running at", "ready in"})
 }
 
 func waitUntilSambaIsReady(dockerEnvironment *DockerEnvironment) error {

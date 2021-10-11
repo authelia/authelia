@@ -1,34 +1,40 @@
 import path from "path";
 
-import { loadEnv } from "vite";
+import reactRefresh from "@vitejs/plugin-react-refresh";
+import { defineConfig, loadEnv } from "vite";
+import eslintPlugin from "vite-plugin-eslint";
 import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
-import { defineConfig } from "vite-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-const isCoverage = process.env.VITE_COVERAGE === "true";
-const istanbulPlugin = isCoverage
-    ? istanbul({
-          include: "src/*",
-          exclude: ["node_modules"],
-          extension: [".js", ".jsx", ".ts", ".tsx"],
-          requireEnv: true,
-      })
-    : undefined;
-const sourcemap = isCoverage ? "inline" : undefined;
-
+// @ts-ignore
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, "env");
+    const isCoverage = process.env.VITE_COVERAGE === "true";
+    const sourcemap = isCoverage ? "inline" : undefined;
 
-    function assetOutput(name: string | undefined) {
-        if (name && name.endsWith(".css")) {
-            return "static/css/[name].[hash].[ext]";
-        }
+    const htmlPlugin = () => {
+        return {
+            name: "html-transform",
+            transformIndexHtml(html: string) {
+                return html.replace(/%(.*?)%/g, function (match, p1) {
+                    return env[p1];
+                });
+            },
+        };
+    };
 
-        return "static/media/[name].[hash].[ext]";
-    }
+    const istanbulPlugin = isCoverage
+        ? istanbul({
+              include: "src/*",
+              exclude: ["node_modules"],
+              extension: [".js", ".jsx", ".ts", ".tsx"],
+              requireEnv: true,
+          })
+        : undefined;
 
     return {
+        base: "./",
         build: {
             sourcemap,
             outDir: "../internal/server/public_html",
@@ -37,17 +43,14 @@ export default defineConfig(({ mode }) => {
                 output: {
                     entryFileNames: `static/js/[name].[hash].js`,
                     chunkFileNames: `static/js/[name].[hash].js`,
-                    assetFileNames: ({ name }) => assetOutput(name),
+                    assetFileNames: ({ name }) => {
+                        if (name && name.endsWith(".css")) {
+                            return "static/css/[name].[hash].[ext]";
+                        }
+
+                        return "static/media/[name].[hash].[ext]";
+                    },
                 },
-            },
-        },
-        envDir: "env",
-        eslint: {
-            enable: true,
-        },
-        html: {
-            injectData: {
-                ...env,
             },
         },
         server: {
@@ -64,6 +67,6 @@ export default defineConfig(({ mode }) => {
                 },
             ],
         },
-        plugins: [istanbulPlugin, svgr(), tsconfigPaths()],
+        plugins: [eslintPlugin(), htmlPlugin(), istanbulPlugin, reactRefresh(), svgr(), tsconfigPaths()],
     };
 });
