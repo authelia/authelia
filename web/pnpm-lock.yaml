@@ -50,7 +50,7 @@ specifiers:
   react-test-renderer: 17.0.2
   typescript: 4.4.3
   u2f-api: 1.2.1
-  vite: 2.6.5
+  vite: 2.6.7
   vite-plugin-eslint: 1.3.0
   vite-plugin-istanbul: 2.2.0
   vite-plugin-svgr: 0.4.0
@@ -108,11 +108,11 @@ devDependencies:
   prettier: 2.4.1
   react-test-renderer: 17.0.2_react@17.0.2
   typescript: 4.4.3
-  vite: 2.6.5
-  vite-plugin-eslint: 1.3.0_vite@2.6.5
+  vite: 2.6.7
+  vite-plugin-eslint: 1.3.0_vite@2.6.7
   vite-plugin-istanbul: 2.2.0
-  vite-plugin-svgr: 0.4.0_vite@2.6.5
-  vite-tsconfig-paths: 3.3.15_vite@2.6.5
+  vite-plugin-svgr: 0.4.0_vite@2.6.7
+  vite-tsconfig-paths: 3.3.15_vite@2.6.7
 
 packages:
 
@@ -6559,7 +6559,7 @@ packages:
     resolution: {integrity: sha512-NOJ6JZCAWr0zlxZt+xqCHNTEKOsrks2HQd4MqhP1qy4z1SkbEP467eNx6TgDKXMvUOb+OENfJCZwM+16n7fRfw==}
     dev: false
 
-  /vite-plugin-eslint/1.3.0_vite@2.6.5:
+  /vite-plugin-eslint/1.3.0_vite@2.6.7:
     resolution: {integrity: sha512-ng6liBWegj6bovfJVGsXXL2XeQR3xnqe4UsnwTE8rbsYTnAaiLfaZK3rruGAyiwCBPbBc2IEED6T7sus5NJfEw==}
     peerDependencies:
       vite: ^2.0.0
@@ -6567,7 +6567,7 @@ packages:
       '@rollup/pluginutils': 4.1.1
       eslint: 7.32.0
       rollup: 2.58.0
-      vite: 2.6.5
+      vite: 2.6.7
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -6581,18 +6581,18 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-svgr/0.4.0_vite@2.6.5:
+  /vite-plugin-svgr/0.4.0_vite@2.6.7:
     resolution: {integrity: sha512-aNhPEYxn2L4m1lOvUpJksMPxNZbYBq1npnMhi6D5HUykBV03bVmcu3WGHZ50lIYr0CC5t+yEvck8hNbHOOgKxg==}
     peerDependencies:
       vite: ^2.0.0
     dependencies:
       '@svgr/core': 5.5.0
-      vite: 2.6.5
+      vite: 2.6.7
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths/3.3.15_vite@2.6.5:
+  /vite-tsconfig-paths/3.3.15_vite@2.6.7:
     resolution: {integrity: sha512-SFPj6Y5HWB2Vy6eZZSA2VF06Lkg74kkTtMYfs47QJ2z8Fm3qFNggKHWsGDH/gesW56Ly9xmDGr1IBC8o77G+mw==}
     peerDependencies:
       vite: '>2.0.0-0'
@@ -6601,13 +6601,13 @@ packages:
       globrex: 0.1.2
       recrawl-sync: 2.2.1
       tsconfig-paths: 3.11.0
-      vite: 2.6.5
+      vite: 2.6.7
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite/2.6.5:
-    resolution: {integrity: sha512-vavXMChDUb4Oh4YunrK9BrH5Ox74cu0eOp0VuyI/iqFz1FqbWD72So2c9I87lLL2n0+6tFPV5ijow60KrtxuZg==}
+  /vite/2.6.7:
+    resolution: {integrity: sha512-ewk//jve9k6vlU8PfJmWUHN8k0YYdw4VaKOMvoQ3nT2Pb6k5OSMKQi4jPOzVH/TlUqMsCrq7IJ80xcuDDVyigg==}
     engines: {node: '>=12.2.0'}
     hasBin: true
     peerDependencies:
