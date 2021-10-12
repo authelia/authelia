@@ -1,5 +1,3 @@
-import path from "path";
-
 import reactRefresh from "@vitejs/plugin-react-refresh";
 import { defineConfig, loadEnv } from "vite";
 import eslintPlugin from "vite-plugin-eslint";
@@ -58,14 +56,6 @@ export default defineConfig(({ mode }) => {
             hmr: {
                 clientPort: env.VITE_HMR_PORT || 3000,
             },
-        },
-        resolve: {
-            alias: [
-                {
-                    find: "@components",
-                    replacement: path.resolve(__dirname, "src/components"),
-                },
-            ],
         },
         plugins: [eslintPlugin(), htmlPlugin(), istanbulPlugin, reactRefresh(), svgr(), tsconfigPaths()],
     };
