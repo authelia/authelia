@@ -86,7 +86,7 @@ func buildFrontend(branch string) {
 }
 
 func buildSwagger() {
-	swaggerVer := "3.52.3"
+	swaggerVer := "3.52.4"
 	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+swaggerVer+".tar.gz -O ./v"+swaggerVer+".tar.gz")
 
 	err := cmd.Run()
