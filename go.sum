@@ -212,8 +212,8 @@ github.com/envoyproxy/go-control-plane v0.9.9-0.20210217033140-668b12f5399d/go.m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojtoVVWjGfOF9635RETekkoH6Cc9SX0A=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
-github.com/fasthttp/router v1.4.3 h1:spS+LUnRryQ/+hbmYzs/xWGJlQCkeQI3hxGZdlVYhLU=
-github.com/fasthttp/router v1.4.3/go.mod h1:9ytWCfZ5LcCcbD3S7pEXyBX9vZnOZmN918WiiaYUzr8=
+github.com/fasthttp/router v1.4.4 h1:Z025tHFTjDp6T6QMBjloyGL6KV5wtakW365K/7KiE1c=
+github.com/fasthttp/router v1.4.4/go.mod h1:TiyF2kc+mogKcTxqkhUbiXpwklouv5dN58A0ZUo8J6s=
 github.com/fasthttp/session/v2 v2.4.3 h1:p5Ioork02mbnrExi4/CIvGxQBEfucPoNB3kKgdARVLA=
 github.com/fasthttp/session/v2 v2.4.3/go.mod h1:il8rBBs6LliAydq4d0R+syHsuigMLOIiMG6oUWmIhBI=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
@@ -1176,7 +1176,6 @@ github.com/santhosh-tekuri/jsonschema/v2 v2.1.0/go.mod h1:yzJzKUGV4RbWqWIBBP4wSO
 github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdhQKdks0=
 github.com/savsgio/dictpool v0.0.0-20210921080634-84324d0689d7 h1:xpWch10f2FeD/0DhPmyBOAq7bhnz4bWoQA6MpX+WHuA=
 github.com/savsgio/dictpool v0.0.0-20210921080634-84324d0689d7/go.mod h1:Yk5UwqSnptrDwMGAvYa96KVGp34nYCBuLbZNLf/L61o=
-github.com/savsgio/gotils v0.0.0-20210907153846-c06938798b52/go.mod h1:oejLrk1Y/5zOF+c/aHtXqn3TFlzzbAgPWg8zBiAHDas=
 github.com/savsgio/gotils v0.0.0-20210921075833-21a6215cb0e4 h1:ocK/D6lCgLji37Z2so4xhMl46se1ntReQQCUIU4BWI8=
 github.com/savsgio/gotils v0.0.0-20210921075833-21a6215cb0e4/go.mod h1:oejLrk1Y/5zOF+c/aHtXqn3TFlzzbAgPWg8zBiAHDas=
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
