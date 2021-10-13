@@ -11,7 +11,7 @@ require (
 	github.com/duosecurity/duo_api_golang v0.0.0-20211012165811-2e1863933615
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fasthttp/router v1.4.4
-	github.com/fasthttp/session/v2 v2.4.3
+	github.com/fasthttp/session/v2 v2.4.4
 	github.com/go-ldap/ldap/v3 v3.4.1
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang-jwt/jwt/v4 v4.1.0
