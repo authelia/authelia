@@ -6,7 +6,7 @@ specifiers:
   '@fortawesome/fontawesome-svg-core': 1.2.36
   '@fortawesome/free-regular-svg-icons': 5.15.4
   '@fortawesome/free-solid-svg-icons': 5.15.4
-  '@fortawesome/react-fontawesome': 0.1.15
+  '@fortawesome/react-fontawesome': 0.1.16
   '@material-ui/core': 4.12.3
   '@material-ui/icons': 4.11.2
   '@material-ui/styles': 4.11.4
@@ -60,7 +60,7 @@ dependencies:
   '@fortawesome/fontawesome-svg-core': 1.2.36
   '@fortawesome/free-regular-svg-icons': 5.15.4
   '@fortawesome/free-solid-svg-icons': 5.15.4
-  '@fortawesome/react-fontawesome': 0.1.15_f515edce028694561ceb456e3dba224c
+  '@fortawesome/react-fontawesome': 0.1.16_f515edce028694561ceb456e3dba224c
   '@material-ui/core': 4.12.3_7510db4ec16e957d3f42221e7066b6f6
   '@material-ui/icons': 4.11.2_e2d9f93125680675ebdca82510e8f964
   '@material-ui/styles': 4.11.4_7510db4ec16e957d3f42221e7066b6f6
@@ -732,10 +732,10 @@ packages:
       '@fortawesome/fontawesome-common-types': 0.2.36
     dev: false
 
-  /@fortawesome/react-fontawesome/0.1.15_f515edce028694561ceb456e3dba224c:
-    resolution: {integrity: sha512-/HFHdcoLESxxMkqZAcZ6RXDJ69pVApwdwRos/B2kiMWxDSAX2dFK8Er2/+rG+RsrzWB/dsAyjefLmemgmfE18g==}
+  /@fortawesome/react-fontawesome/0.1.16_f515edce028694561ceb456e3dba224c:
+    resolution: {integrity: sha512-aLmzDwC9rEOAJv2UJdMns89VZR5Ry4IHu5dQQh24Z/lWKEm44lfQr1UNalZlkUaQN8d155tNh+CS7ntntj1VMA==}
     peerDependencies:
-      '@fortawesome/fontawesome-svg-core': ^1.2.32
+      '@fortawesome/fontawesome-svg-core': ~1 || >=1.3.0-beta1
       react: '>=16.x'
     dependencies:
       '@fortawesome/fontawesome-svg-core': 1.2.36
