@@ -15,7 +15,7 @@ specifiers:
   '@types/node': 16.10.3
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.30
-  '@types/react-dom': 17.0.9
+  '@types/react-dom': 17.0.10
   '@types/react-router-dom': 5.3.1
   '@typescript-eslint/eslint-plugin': 5.1.0
   '@typescript-eslint/parser': 5.1.0
@@ -85,7 +85,7 @@ devDependencies:
   '@types/node': 16.10.3
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.30
-  '@types/react-dom': 17.0.9
+  '@types/react-dom': 17.0.10
   '@types/react-router-dom': 5.3.1
   '@typescript-eslint/eslint-plugin': 5.1.0_ff922970f7d32434fb4bbcef5cb9f71b
   '@typescript-eslint/parser': 5.1.0_typescript@4.4.4
@@ -1398,10 +1398,10 @@ packages:
       '@types/react': 17.0.27
     dev: true
 
-  /@types/react-dom/17.0.9:
-    resolution: {integrity: sha512-wIvGxLfgpVDSAMH5utdL9Ngm5Owu0VsGmldro3ORLXV8CShrL8awVj06NuEXFQ5xyaYfdca7Sgbk/50Ri1GdPg==}
+  /@types/react-dom/17.0.10:
+    resolution: {integrity: sha512-8oz3NAUId2z/zQdFI09IMhQPNgIbiP8Lslhv39DIDamr846/0spjZK0vnrMak0iB8EKb9QFTTIdg2Wj2zH5a3g==}
     dependencies:
-      '@types/react': 17.0.27
+      '@types/react': 17.0.30
     dev: true
 
   /@types/react-router-dom/5.3.1:
@@ -1416,13 +1416,13 @@ packages:
     resolution: {integrity: sha512-RNSXOyb3VyRs/EOGmjBhhGKTbnN6fHWvy5FNLzWfOWOGjgVUKqJZXfpKzLmgoU8h6Hj8mpALj/mbXQASOb92wQ==}
     dependencies:
       '@types/history': 4.7.9
-      '@types/react': 17.0.27
+      '@types/react': 17.0.30
     dev: true
 
   /@types/react-transition-group/4.4.3:
     resolution: {integrity: sha512-fUx5muOWSYP8Bw2BUQ9M9RK9+W1XBK/7FLJ8PTQpnpTEkn0ccyMffyEQvan4C3h53gHdx7KE5Qrxi/LnUGQtdg==}
     dependencies:
-      '@types/react': 17.0.27
+      '@types/react': 17.0.30
     dev: false
 
   /@types/react/17.0.27:
@@ -1431,6 +1431,7 @@ packages:
       '@types/prop-types': 15.7.4
       '@types/scheduler': 0.16.2
       csstype: 3.0.9
+    dev: true
 
   /@types/react/17.0.30:
     resolution: {integrity: sha512-3Dt/A8gd3TCXi2aRe84y7cK1K8G+N9CZRDG8kDGguOKa0kf/ZkSwTmVIDPsm/KbQOVMaDJXwhBtuOXxqwdpWVg==}
@@ -1438,7 +1439,6 @@ packages:
       '@types/prop-types': 15.7.4
       '@types/scheduler': 0.16.2
       csstype: 3.0.9
-    dev: true
 
   /@types/scheduler/0.16.2:
     resolution: {integrity: sha512-hppQEBDmlwhFAXKJX2KnWLYu5yMfi91yazPb2l+lbJiwW+wdo1gNeRA+3RgNSO39WYX2euey41KEwnqesU2Jew==}
