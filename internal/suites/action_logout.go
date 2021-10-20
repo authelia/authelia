@@ -1,25 +1,28 @@
 package suites
 
 import (
-	"context"
 	"fmt"
 	"net/url"
 	"testing"
+
+	"github.com/go-rod/rod"
 )
 
-func (wds *WebDriverSession) doLogout(ctx context.Context, t *testing.T) {
-	wds.doVisit(t, fmt.Sprintf("%s%s", GetLoginBaseURL(), "/logout"))
-	wds.verifyIsFirstFactorPage(ctx, t)
+func (rs *RodSession) doLogout(t *testing.T, page *rod.Page) {
+	rs.doVisit(t, page, fmt.Sprintf("%s%s", GetLoginBaseURL(), "/logout"))
+	rs.verifyIsFirstFactorPage(t, page)
 }
 
-func (wds *WebDriverSession) doLogoutWithRedirect(ctx context.Context, t *testing.T, targetURL string, firstFactor bool) {
-	wds.doVisit(t, fmt.Sprintf("%s%s%s", GetLoginBaseURL(), "/logout?rd=", url.QueryEscape(targetURL)))
+func (rs *RodSession) doLogoutWithRedirect(t *testing.T, page *rod.Page, targetURL string, firstFactor bool) {
+	rs.doVisit(t, page, fmt.Sprintf("%s%s%s", GetLoginBaseURL(), "/logout?rd=", url.QueryEscape(targetURL)))
 
 	if firstFactor {
-		wds.verifyIsFirstFactorPage(ctx, t)
+		rs.verifyIsFirstFactorPage(t, page)
 
 		return
 	}
 
-	wds.verifyURLIs(ctx, t, targetURL)
+	page.MustElementR("h1", "Public resource")
+
+	rs.verifyURLIs(t, page, targetURL)
 }

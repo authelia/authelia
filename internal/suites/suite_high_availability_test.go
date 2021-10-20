@@ -13,25 +13,25 @@ import (
 )
 
 type HighAvailabilityWebDriverSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewHighAvailabilityWebDriverSuite() *HighAvailabilityWebDriverSuite {
-	return &HighAvailabilityWebDriverSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &HighAvailabilityWebDriverSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *HighAvailabilityWebDriverSuite) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *HighAvailabilityWebDriverSuite) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -39,37 +39,42 @@ func (s *HighAvailabilityWebDriverSuite) TearDownSuite() {
 }
 
 func (s *HighAvailabilityWebDriverSuite) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
 
-	s.doLogout(ctx, s.T())
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+func (s *HighAvailabilityWebDriverSuite) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
+	secret := s.doRegisterThenLogout(s.T(), s.Context(ctx), "john", "password")
 
 	err := haDockerEnvironment.Restart("redis-node-0")
 	s.Require().NoError(err)
 
-	time.Sleep(5 * time.Second)
-
-	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
-	s.verifyIsSecondFactorPage(ctx, s.T())
+	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, "")
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisNodeFailure() {
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
+	secret := s.doRegisterThenLogout(s.T(), s.Context(ctx), "john", "password")
 
-	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
-	s.verifyIsSecondFactorPage(ctx, s.T())
+	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, "")
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	err := haDockerEnvironment.Stop("redis-node-0")
 	s.Require().NoError(err)
@@ -79,32 +84,32 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.Require().NoError(err)
 	}()
 
-	// Allow fail over to occur.
-	time.Sleep(3 * time.Second)
-
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Verify the user is still authenticated
-	s.doVisit(s.T(), GetLoginBaseURL())
-	s.verifyIsSecondFactorPage(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	// Then logout and login again to check we can see the secret.
-	s.doLogout(ctx, s.T())
-	s.verifyIsFirstFactorPage(ctx, s.T())
+	s.doLogout(s.T(), s.Context(ctx))
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, fmt.Sprintf("%s/secret.html", SecureBaseURL))
-	s.verifySecretAuthorized(ctx, s.T())
+	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, fmt.Sprintf("%s/secret.html", SecureBaseURL))
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisSentinelFailureAndSecondaryRedisNodeFailure() {
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
+	secret := s.doRegisterThenLogout(s.T(), s.Context(ctx), "john", "password")
 
-	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
-	s.verifyIsSecondFactorPage(ctx, s.T())
+	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, "")
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	err := haDockerEnvironment.Stop("redis-sentinel-0")
 	s.Require().NoError(err)
@@ -122,38 +127,39 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.Require().NoError(err)
 	}()
 
-	// Allow fail over to occur.
-	time.Sleep(3 * time.Second)
-
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Verify the user is still authenticated
-	s.doVisit(s.T(), GetLoginBaseURL())
-	s.verifyIsSecondFactorPage(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	secret := s.doRegisterThenLogout(ctx, s.T(), "john", "password")
+	secret := s.doRegisterThenLogout(s.T(), s.Context(ctx), "john", "password")
 
 	err := haDockerEnvironment.Restart("mariadb")
 	s.Require().NoError(err)
 
-	time.Sleep(20 * time.Second)
-
-	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
-	s.verifyIsSecondFactorPage(ctx, s.T())
+	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, "")
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaRestart() {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	secret := s.doRegisterAndLogin2FA(ctx, s.T(), "john", "password", false, "")
-	s.verifyIsSecondFactorPage(ctx, s.T())
+	secret := s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	err := haDockerEnvironment.Restart("authelia-backend")
 	s.Require().NoError(err)
@@ -161,19 +167,19 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 	err = waitUntilAutheliaBackendIsReady(haDockerEnvironment)
 	s.Require().NoError(err)
 
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Verify the user is still authenticated
-	s.doVisit(s.T(), GetLoginBaseURL())
-	s.verifyIsSecondFactorPage(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
 	// Then logout and login again to check the secret is still there
-	s.doLogout(ctx, s.T())
-	s.verifyIsFirstFactorPage(ctx, s.T())
+	s.doLogout(s.T(), s.Context(ctx))
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	s.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, fmt.Sprintf("%s/secret.html", SecureBaseURL))
-	s.verifySecretAuthorized(ctx, s.T())
+	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, fmt.Sprintf("%s/secret.html", SecureBaseURL))
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
 var UserJohn = "john"
@@ -220,31 +226,34 @@ var expectedAuthorizations = map[string](map[string]bool){
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
-	verifyUserIsAuthorized := func(ctx context.Context, t *testing.T, username, targetURL string, authorized bool) { //nolint:unparam
-		s.doVisit(t, targetURL)
-		s.verifyURLIs(ctx, t, targetURL)
+	verifyUserIsAuthorized := func(ctx context.Context, t *testing.T, targetURL string, authorized bool) {
+		s.doVisit(t, s.Context(ctx), targetURL)
+		s.verifyURLIs(t, s.Context(ctx), targetURL)
 
 		if authorized {
-			s.verifySecretAuthorized(ctx, t)
+			s.verifySecretAuthorized(t, s.Context(ctx))
 		} else {
-			s.verifyBodyContains(ctx, t, "403 Forbidden")
+			s.verifyBodyContains(t, s.Context(ctx), "403 Forbidden")
 		}
 	}
 
 	verifyAuthorization := func(username string) func(t *testing.T) {
 		return func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-			defer cancel()
+			defer func() {
+				s.collectScreenshot(ctx.Err(), s.Page)
+				cancel()
+			}()
 
-			s.doRegisterAndLogin2FA(ctx, t, username, "password", false, "")
+			s.doRegisterAndLogin2FA(t, s.Context(ctx), username, "password", false, "")
 
 			for url, authorizations := range expectedAuthorizations {
 				t.Run(url, func(t *testing.T) {
-					verifyUserIsAuthorized(ctx, t, username, url, authorizations[username])
+					verifyUserIsAuthorized(ctx, t, url, authorizations[username])
 				})
 			}
 
-			s.doLogout(ctx, t)
+			s.doLogout(t, s.Context(ctx))
 		}
 	}
 

@@ -1,15 +1,16 @@
 package suites
 
 import (
+	"github.com/go-rod/rod"
 	"github.com/stretchr/testify/suite"
-	"github.com/tebeka/selenium"
 )
 
-// SeleniumSuite is a selenium suite.
-type SeleniumSuite struct {
+// RodSuite is a go-rod suite.
+type RodSuite struct {
 	suite.Suite
 
-	*WebDriverSession
+	*RodSession
+	*rod.Page
 }
 
 // CommandSuite is a command line interface suite.
@@ -20,9 +21,4 @@ type CommandSuite struct {
 	coverageArg string //nolint:structcheck // TODO: Remove when bug fixed: https://github.com/golangci/golangci-lint/issues/537.
 
 	*DockerEnvironment
-}
-
-// WebDriver return the webdriver of the suite.
-func (s *SeleniumSuite) WebDriver() selenium.WebDriver {
-	return s.WebDriverSession.WebDriver
 }

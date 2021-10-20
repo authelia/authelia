@@ -11,40 +11,53 @@ import (
 )
 
 type BypassAllWebDriverSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewBypassAllWebDriverSuite() *BypassAllWebDriverSuite {
-	return &BypassAllWebDriverSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &BypassAllWebDriverSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *BypassAllWebDriverSuite) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *BypassAllWebDriverSuite) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (s *BypassAllWebDriverSuite) SetupTest() {
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
+
+func (s *BypassAllWebDriverSuite) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *BypassAllWebDriverSuite) TestShouldAccessPublicResource() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doVisit(s.T(), fmt.Sprintf("%s/secret.html", AdminBaseURL))
-	s.verifySecretAuthorized(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", AdminBaseURL))
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 
-	s.doVisit(s.T(), fmt.Sprintf("%s/secret.html", PublicBaseURL))
-	s.verifySecretAuthorized(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", PublicBaseURL))
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
 type BypassAllSuite struct {

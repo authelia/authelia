@@ -10,11 +10,11 @@ import (
 )
 
 type Traefik2Suite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewTraefik2Suite() *Traefik2Suite {
-	return &Traefik2Suite{SeleniumSuite: new(SeleniumSuite)}
+	return &Traefik2Suite{RodSuite: new(RodSuite)}
 }
 
 func (s *Traefik2Suite) TestOneFactorScenario() {
@@ -30,31 +30,34 @@ func (s *Traefik2Suite) TestCustomHeaders() {
 }
 
 func (s *Traefik2Suite) TestShouldKeepSessionAfterRedisRestart() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	wds, err := StartWebDriver()
-	s.Require().NoError(err)
-
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer func() {
-		err = wds.Stop()
+		cancel()
+		s.collectCoverage(s.Page)
+		s.collectScreenshot(ctx.Err(), s.Page)
+		s.MustClose()
+		err := s.RodSession.Stop()
 		s.Require().NoError(err)
 	}()
 
-	secret := wds.doRegisterThenLogout(ctx, s.T(), "john", "password")
+	browser, err := StartRod()
+	s.Require().NoError(err)
+	s.RodSession = browser
 
-	wds.doLoginTwoFactor(ctx, s.T(), "john", "password", false, secret, "")
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+	secret := s.doRegisterThenLogout(s.T(), s.Context(ctx), "john", "password")
 
-	wds.doVisit(s.T(), fmt.Sprintf("%s/secret.html", SecureBaseURL))
-	wds.verifySecretAuthorized(ctx, s.T())
+	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, secret, "")
+
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", SecureBaseURL))
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 
 	err = traefik2DockerEnvironment.Restart("redis")
 	s.Require().NoError(err)
 
-	time.Sleep(5 * time.Second)
-
-	wds.doVisit(s.T(), fmt.Sprintf("%s/secret.html", SecureBaseURL))
-	wds.verifySecretAuthorized(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", SecureBaseURL))
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
 func TestTraefik2Suite(t *testing.T) {

@@ -11,50 +11,54 @@ import (
 )
 
 type RedirectionURLScenario struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewRedirectionURLScenario() *RedirectionURLScenario {
 	return &RedirectionURLScenario{
-		SeleniumSuite: new(SeleniumSuite),
+		RodSuite: new(RodSuite),
 	}
 }
 
-func (rus *RedirectionURLScenario) SetupSuite() {
-	wds, err := StartWebDriver()
+func (s *RedirectionURLScenario) SetupSuite() {
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	rus.WebDriverSession = wds
+	s.RodSession = browser
 }
 
-func (rus *RedirectionURLScenario) TearDownSuite() {
-	err := rus.WebDriverSession.Stop()
+func (s *RedirectionURLScenario) TearDownSuite() {
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func (rus *RedirectionURLScenario) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	rus.doLogout(ctx, rus.T())
-	rus.doVisit(rus.T(), HomeBaseURL)
-	rus.verifyIsHome(ctx, rus.T())
+func (s *RedirectionURLScenario) SetupTest() {
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
 }
 
-func (rus *RedirectionURLScenario) TestShouldVerifyCustomURLParametersArePropagatedAfterRedirection() {
+func (s *RedirectionURLScenario) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
+}
+
+func (s *RedirectionURLScenario) TestShouldVerifyCustomURLParametersArePropagatedAfterRedirection() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html?myparam=test", SingleFactorBaseURL)
-	rus.doLoginOneFactor(ctx, rus.T(), "john", "password", false, targetURL)
-	rus.verifySecretAuthorized(ctx, rus.T())
-	rus.verifyURLIs(ctx, rus.T(), targetURL)
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
+	s.verifyURLIs(s.T(), s.Context(ctx), targetURL)
 }
 
 func TestRedirectionURLScenario(t *testing.T) {

@@ -7,11 +7,11 @@ import (
 )
 
 type HAProxySuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewHAProxySuite() *HAProxySuite {
-	return &HAProxySuite{SeleniumSuite: new(SeleniumSuite)}
+	return &HAProxySuite{RodSuite: new(RodSuite)}
 }
 
 func (s *HAProxySuite) TestOneFactorScenario() {

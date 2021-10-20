@@ -15,25 +15,25 @@ type OneFactorOnlySuite struct {
 }
 
 type OneFactorOnlyWebSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewOneFactorOnlyWebSuite() *OneFactorOnlyWebSuite {
-	return &OneFactorOnlyWebSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &OneFactorOnlyWebSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *OneFactorOnlyWebSuite) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *OneFactorOnlyWebSuite) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -41,62 +41,81 @@ func (s *OneFactorOnlyWebSuite) TearDownSuite() {
 }
 
 func (s *OneFactorOnlyWebSuite) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
 
-	s.doLogout(ctx, s.T())
+func (s *OneFactorOnlyWebSuite) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 // No target url is provided, then the user should be redirect to the default url.
 func (s *OneFactorOnlyWebSuite) TestShouldRedirectUserToDefaultURL() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
-	s.verifyURLIs(ctx, s.T(), HomeBaseURL+"/")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.verifyIsHome(s.T(), s.Context(ctx))
 }
 
 // Unsafe URL is provided, then the user should be redirect to the default url.
 func (s *OneFactorOnlyWebSuite) TestShouldRedirectUserToDefaultURLWhenURLIsUnsafe() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "http://unsafe.local")
-	s.verifyURLIs(ctx, s.T(), HomeBaseURL+"/")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "http://unsafe.local")
+	s.verifyIsHome(s.T(), s.Context(ctx))
 }
 
 // When use logged in and visit the portal again, she gets redirect to the authenticated view.
 func (s *OneFactorOnlyWebSuite) TestShouldDisplayAuthenticatedView() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
-	s.verifyURLIs(ctx, s.T(), HomeBaseURL+"/")
-	s.doVisit(s.T(), GetLoginBaseURL())
-	s.verifyIsAuthenticatedPage(ctx, s.T())
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.verifyIsHome(s.T(), s.Context(ctx))
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.verifyIsAuthenticatedPage(s.T(), s.Context(ctx))
 }
 
 func (s *OneFactorOnlyWebSuite) TestShouldRedirectAlreadyAuthenticatedUser() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
-	s.verifyURLIs(ctx, s.T(), HomeBaseURL+"/")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	s.doVisit(s.T(), fmt.Sprintf("%s?rd=https://singlefactor.example.com:8080/secret.html", GetLoginBaseURL()))
-	s.verifyURLIs(ctx, s.T(), "https://singlefactor.example.com:8080/secret.html")
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://singlefactor.example.com:8080/secret.html", GetLoginBaseURL()))
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
+	s.verifyURLIs(s.T(), s.Context(ctx), "https://singlefactor.example.com:8080/secret.html")
 }
 
 func (s *OneFactorOnlyWebSuite) TestShouldNotRedirectAlreadyAuthenticatedUserToUnsafeURL() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
-	s.verifyURLIs(ctx, s.T(), HomeBaseURL+"/")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
-	s.doVisit(s.T(), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL()))
-	s.verifyNotificationDisplayed(ctx, s.T(), "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.")
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL()))
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.")
 }
 
 func (s *OneFactorOnlySuite) TestWeb() {

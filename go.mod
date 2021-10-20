@@ -13,6 +13,7 @@ require (
 	github.com/fasthttp/router v1.4.4
 	github.com/fasthttp/session/v2 v2.4.4
 	github.com/go-ldap/ldap/v3 v3.4.1
+	github.com/go-rod/rod v0.101.8
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang-jwt/jwt/v4 v4.1.0
 	github.com/golang/mock v1.6.0
@@ -30,7 +31,6 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
-	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.31.0
 	golang.org/x/sys v0.0.0-20210902050250-f475640dd07b // indirect

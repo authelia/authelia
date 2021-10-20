@@ -1,10 +1,11 @@
 package suites
 
 import (
-	"context"
 	"testing"
+
+	"github.com/go-rod/rod"
 )
 
-func (wds *WebDriverSession) verifyIsAuthenticatedPage(ctx context.Context, t *testing.T) {
-	wds.WaitElementLocatedByID(ctx, t, "authenticated-stage")
+func (rs *RodSession) verifyIsAuthenticatedPage(t *testing.T, page *rod.Page) {
+	rs.WaitElementLocatedByCSSSelector(t, page, "authenticated-stage")
 }

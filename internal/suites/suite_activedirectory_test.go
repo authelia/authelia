@@ -7,11 +7,11 @@ import (
 )
 
 type ActiveDirectorySuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewActiveDirectorySuite() *ActiveDirectorySuite {
-	return &ActiveDirectorySuite{SeleniumSuite: new(SeleniumSuite)}
+	return &ActiveDirectorySuite{RodSuite: new(RodSuite)}
 }
 
 func (s *ActiveDirectorySuite) TestOneFactorScenario() {

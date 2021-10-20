@@ -1,52 +1,60 @@
 package suites
 
 import (
-	"context"
 	"testing"
+	"time"
 
+	"github.com/go-rod/rod"
 	"github.com/stretchr/testify/require"
 )
 
-func (wds *WebDriverSession) doInitiatePasswordReset(ctx context.Context, t *testing.T, username string) {
-	err := wds.WaitElementLocatedByID(ctx, t, "reset-password-button").Click()
+func (rs *RodSession) doInitiatePasswordReset(t *testing.T, page *rod.Page, username string) {
+	err := rs.WaitElementLocatedByCSSSelector(t, page, "reset-password-button").Click("left")
 	require.NoError(t, err)
 	// Fill in username
-	err = wds.WaitElementLocatedByID(ctx, t, "username-textfield").SendKeys(username)
+	err = rs.WaitElementLocatedByCSSSelector(t, page, "username-textfield").Input(username)
 	require.NoError(t, err)
 	// And click on the reset button
-	err = wds.WaitElementLocatedByID(ctx, t, "reset-button").Click()
+	err = rs.WaitElementLocatedByCSSSelector(t, page, "reset-button").Click("left")
 	require.NoError(t, err)
 }
 
-func (wds *WebDriverSession) doCompletePasswordReset(ctx context.Context, t *testing.T, newPassword1, newPassword2 string) {
+func (rs *RodSession) doCompletePasswordReset(t *testing.T, page *rod.Page, newPassword1, newPassword2 string) {
 	link := doGetLinkFromLastMail(t)
-	wds.doVisit(t, link)
+	rs.doVisit(t, page, link)
 
-	err := wds.WaitElementLocatedByID(ctx, t, "password1-textfield").SendKeys(newPassword1)
+	time.Sleep(1 * time.Second)
+
+	err := rs.WaitElementLocatedByCSSSelector(t, page, "password1-textfield").Input(newPassword1)
 	require.NoError(t, err)
-	err = wds.WaitElementLocatedByID(ctx, t, "password2-textfield").SendKeys(newPassword2)
+
+	time.Sleep(1 * time.Second)
+
+	err = rs.WaitElementLocatedByCSSSelector(t, page, "password2-textfield").Input(newPassword2)
 	require.NoError(t, err)
-	err = wds.WaitElementLocatedByID(ctx, t, "reset-button").Click()
+
+	err = rs.WaitElementLocatedByCSSSelector(t, page, "reset-button").Click("left")
 	require.NoError(t, err)
 }
 
-func (wds *WebDriverSession) doSuccessfullyCompletePasswordReset(ctx context.Context, t *testing.T, newPassword1, newPassword2 string) {
-	wds.doCompletePasswordReset(ctx, t, newPassword1, newPassword2)
-	wds.verifyIsFirstFactorPage(ctx, t)
+func (rs *RodSession) doSuccessfullyCompletePasswordReset(t *testing.T, page *rod.Page, newPassword1, newPassword2 string) {
+	rs.doCompletePasswordReset(t, page, newPassword1, newPassword2)
+	rs.verifyIsFirstFactorPage(t, page)
 }
 
-func (wds *WebDriverSession) doUnsuccessfulPasswordReset(ctx context.Context, t *testing.T, newPassword1, newPassword2 string) {
-	wds.doCompletePasswordReset(ctx, t, newPassword1, newPassword2)
+func (rs *RodSession) doUnsuccessfulPasswordReset(t *testing.T, page *rod.Page, newPassword1, newPassword2 string) {
+	rs.doCompletePasswordReset(t, page, newPassword1, newPassword2)
+	rs.verifyNotificationDisplayed(t, page, "Your supplied password does not meet the password policy requirements.")
 }
 
-func (wds *WebDriverSession) doResetPassword(ctx context.Context, t *testing.T, username, newPassword1, newPassword2 string, unsuccessful bool) {
-	wds.doInitiatePasswordReset(ctx, t, username)
+func (rs *RodSession) doResetPassword(t *testing.T, page *rod.Page, username, newPassword1, newPassword2 string, unsuccessful bool) {
+	rs.doInitiatePasswordReset(t, page, username)
 	// then wait for the "email sent notification"
-	wds.verifyMailNotificationDisplayed(ctx, t)
+	rs.verifyMailNotificationDisplayed(t, page)
 
 	if unsuccessful {
-		wds.doUnsuccessfulPasswordReset(ctx, t, newPassword1, newPassword2)
+		rs.doUnsuccessfulPasswordReset(t, page, newPassword1, newPassword2)
 	} else {
-		wds.doSuccessfullyCompletePasswordReset(ctx, t, newPassword1, newPassword2)
+		rs.doSuccessfullyCompletePasswordReset(t, page, newPassword1, newPassword2)
 	}
 }

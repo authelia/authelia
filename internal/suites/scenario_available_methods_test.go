@@ -5,36 +5,34 @@ import (
 	"log"
 	"time"
 
-	"github.com/tebeka/selenium"
-
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 type AvailableMethodsScenario struct {
-	*SeleniumSuite
+	*RodSuite
 
 	methods []string
 }
 
 func NewAvailableMethodsScenario(methods []string) *AvailableMethodsScenario {
 	return &AvailableMethodsScenario{
-		SeleniumSuite: new(SeleniumSuite),
-		methods:       methods,
+		RodSuite: new(RodSuite),
+		methods:  methods,
 	}
 }
 
 func (s *AvailableMethodsScenario) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.SeleniumSuite.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *AvailableMethodsScenario) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -42,26 +40,30 @@ func (s *AvailableMethodsScenario) TearDownSuite() {
 }
 
 func (s *AvailableMethodsScenario) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
 
-	s.doLogout(ctx, s.T())
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+func (s *AvailableMethodsScenario) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *AvailableMethodsScenario) TestShouldCheckAvailableMethods() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 
-	methodsButton := s.WaitElementLocatedByID(ctx, s.T(), "methods-button")
-	err := methodsButton.Click()
+	methodsButton := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "methods-button")
+	err := methodsButton.Click("left")
 	s.Assert().NoError(err)
 
-	methodsDialog := s.WaitElementLocatedByID(ctx, s.T(), "methods-dialog")
-	options, err := methodsDialog.FindElements(selenium.ByClassName, "method-option")
+	methodsDialog := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "methods-dialog")
+	options, err := methodsDialog.Elements(".method-option")
 	s.Assert().NoError(err)
 	s.Assert().Len(options, len(s.methods))
 

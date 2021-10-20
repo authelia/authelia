@@ -13,27 +13,27 @@ import (
 )
 
 type SigninEmailScenario struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewSigninEmailScenario() *SigninEmailScenario {
 	return &SigninEmailScenario{
-		SeleniumSuite: new(SeleniumSuite),
+		RodSuite: new(RodSuite),
 	}
 }
 
 func (s *SigninEmailScenario) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *SigninEmailScenario) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -41,21 +41,25 @@ func (s *SigninEmailScenario) TearDownSuite() {
 }
 
 func (s *SigninEmailScenario) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
 
-	s.doLogout(ctx, s.T())
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+func (s *SigninEmailScenario) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *SigninEmailScenario) TestShouldSignInWithUserEmail() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURL)
-	s.doLoginOneFactor(ctx, s.T(), "john.doe@authelia.com", "password", false, targetURL)
-	s.verifySecretAuthorized(ctx, s.T())
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john.doe@authelia.com", "password", false, targetURL)
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
 func TestSigninEmailScenario(t *testing.T) {

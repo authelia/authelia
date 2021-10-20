@@ -7,11 +7,11 @@ import (
 )
 
 type TraefikSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewTraefikSuite() *TraefikSuite {
-	return &TraefikSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &TraefikSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *TraefikSuite) TestOneFactorScenario() {

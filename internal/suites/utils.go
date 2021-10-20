@@ -1,11 +1,17 @@
 package suites
 
 import (
+	"context"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
-	"strconv"
+	"runtime"
 	"strings"
+	"time"
+
+	"github.com/go-rod/rod"
 )
 
 // GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
@@ -17,16 +23,51 @@ func GetLoginBaseURL() string {
 	return LoginBaseURL
 }
 
-// GetWebDriverPort returns the port to initialize the webdriver with.
-func GetWebDriverPort() int {
-	driverPort := os.Getenv("CHROMEDRIVER_PORT")
-	if driverPort == "" {
-		driverPort = defaultChromeDriverPort
+func (rs *RodSession) collectCoverage(page *rod.Page) {
+	coverageDir := "../../web/.nyc_output"
+	now := time.Now()
+
+	resp, err := page.Eval("JSON.stringify(window.__coverage__)")
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	p, _ := strconv.Atoi(driverPort)
+	coverageData := fmt.Sprintf("%v", resp.Value)
 
-	return p
+	_ = os.MkdirAll(coverageDir, 0775)
+
+	if coverageData != "<nil>" {
+		err = ioutil.WriteFile(fmt.Sprintf("%s/coverage-%d.json", coverageDir, now.Unix()), []byte(coverageData), 0664) //nolint:gosec
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = filepath.Walk("../../web/.nyc_output", fixCoveragePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
+	if err == context.DeadlineExceeded && os.Getenv("CI") == stringTrue {
+		base := "/buildkite/screenshots"
+		build := os.Getenv("BUILDKITE_BUILD_NUMBER")
+		suite := strings.ToLower(os.Getenv("SUITE"))
+		job := os.Getenv("BUILDKITE_JOB_ID")
+		path := filepath.Join(fmt.Sprintf("%s/%s/%s/%s", base, build, suite, job))
+
+		if err := os.MkdirAll(path, 0755); err != nil {
+			log.Fatal(err)
+		}
+
+		pc, _, _, _ := runtime.Caller(2)
+		fn := runtime.FuncForPC(pc)
+		p := "github.com/authelia/authelia/v4/internal/suites."
+		r := strings.NewReplacer(p, "", "(", "", ")", "", "*", "", ".", "-")
+
+		page.MustScreenshotFullPage(fmt.Sprintf("%s/%s.jpg", path, r.Replace(fn.Name())))
+	}
 }
 
 func fixCoveragePath(path string, file os.FileInfo, err error) error {
