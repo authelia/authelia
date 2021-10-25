@@ -46,9 +46,15 @@ const RegisterSecurityKey = function () {
             history.push(FirstFactorPath);
         } catch (err) {
             console.error(err);
-            createErrorNotification(
-                "Failed to register your security key. The identity verification process might have timed out.",
-            );
+            if ((err as Error).message.includes("Request failed with status code 403")) {
+                createErrorNotification(
+                    "You must open the link from the same device and browser that initiated the registration process",
+                );
+            } else {
+                createErrorNotification(
+                    "Failed to register your security key. The identity verification process might have timed out.",
+                );
+            }
         }
     }, [processToken, createErrorNotification, history]);
 
