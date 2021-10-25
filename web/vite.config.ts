@@ -1,4 +1,4 @@
-import reactRefresh from "@vitejs/plugin-react-refresh";
+import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 import eslintPlugin from "vite-plugin-eslint";
 import istanbul from "vite-plugin-istanbul";
@@ -58,6 +58,6 @@ export default defineConfig(({ mode }) => {
                 clientPort: env.VITE_HMR_PORT || 3000,
             },
         },
-        plugins: [eslintPlugin(), htmlPlugin(), istanbulPlugin, reactRefresh(), svgr(), tsconfigPaths()],
+        plugins: [eslintPlugin(), htmlPlugin(), istanbulPlugin, react(), svgr(), tsconfigPaths()],
     };
 });
