@@ -16,14 +16,9 @@ CREATE INDEX authentication_logs_remote_ip_idx ON authentication_logs (time, rem
 CREATE TABLE IF NOT EXISTS identity_verification_tokens (
     id INTEGER,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expired TIMESTAMP NULL DEFAULT NULL,
-    jti VARCHAR(36) NOT NULL,
-    exp TIMESTAMP NOT NULL,
-    username VARCHAR(100) NOT NULL,
-    action VARCHAR(32),
-    remote_ip VARCHAR(47) NOT NULL,
+    token VARCHAR(512),
     PRIMARY KEY (id),
-    UNIQUE (jti)
+    UNIQUE (token)
 );
 
 CREATE TABLE IF NOT EXISTS migrations (
