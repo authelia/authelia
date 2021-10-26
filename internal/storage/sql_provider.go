@@ -219,15 +219,14 @@ func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (devic
 }
 
 // AppendAuthenticationLog append a mark to the authentication log.
-func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, log models.AuthenticationAttempt) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt, log.Time, log.Successful, log.Username, log.RemoteIP, log.RequestURI, log.RequestMethod)
+func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt, attempt.Time, attempt.Successful, attempt.Username)
 	return err
 }
 
 // LoadAuthenticationLogs retrieve the latest failed authentications from the authentication log.
-func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (logs []models.AuthenticationAttempt, err error) {
+func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
 	rows, err := p.db.QueryxContext(ctx, p.sqlSelectAuthenticationAttemptsByUsername, fromDate, username, limit, limit*page)
-
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +238,7 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 		}
 	}()
 
-	logs = make([]models.AuthenticationAttempt, 0, limit)
+	attempts = make([]models.AuthenticationAttempt, 0, limit)
 
 	for rows.Next() {
 		var attempt models.AuthenticationAttempt
@@ -249,8 +248,8 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 			return nil, err
 		}
 
-		logs = append(logs, attempt)
+		attempts = append(attempts, attempt)
 	}
 
-	return logs, nil
+	return attempts, nil
 }
