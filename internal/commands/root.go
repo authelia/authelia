@@ -47,6 +47,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 		newCompletionCmd(),
 		NewHashPasswordCmd(),
 		NewRSACmd(),
+		NewStorageCmd(),
 		newValidateConfigCmd(),
 	)
 

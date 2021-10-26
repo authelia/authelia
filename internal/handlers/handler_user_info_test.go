@@ -45,26 +45,26 @@ func setPreferencesExpectations(mock *mocks.MockAutheliaCtx, preferences UserInf
 
 		mock.StorageProviderMock.
 			EXPECT().
-			LoadU2FDeviceHandle(mock.Ctx, gomock.Eq("john")).
+			LoadU2FDevice(mock.Ctx, gomock.Eq("john")).
 			Return(&models.U2FDevice{Username: "john", KeyHandle: u2fData, PublicKey: u2fData}, nil)
 	} else {
 		mock.StorageProviderMock.
 			EXPECT().
-			LoadU2FDeviceHandle(mock.Ctx, gomock.Eq("john")).
+			LoadU2FDevice(mock.Ctx, gomock.Eq("john")).
 			Return(nil, storage.ErrNoU2FDeviceHandle)
 	}
 
 	if preferences.HasTOTP {
-		totpSecret := "secret"
+		totpConfig := models.TOTPConfiguration{Username: "john", Secret: "secret", Digits: 6, Period: 30}
 		mock.StorageProviderMock.
 			EXPECT().
-			LoadTOTPSecret(mock.Ctx, gomock.Eq("john")).
-			Return(totpSecret, nil)
+			LoadTOTPConfiguration(mock.Ctx, gomock.Eq("john")).
+			Return(&totpConfig, nil)
 	} else {
 		mock.StorageProviderMock.
 			EXPECT().
-			LoadTOTPSecret(mock.Ctx, gomock.Eq("john")).
-			Return("", storage.ErrNoTOTPSecret)
+			LoadTOTPConfiguration(mock.Ctx, gomock.Eq("john")).
+			Return(nil, storage.ErrNoTOTPSecret)
 	}
 }
 
@@ -128,13 +128,13 @@ func (s *FetchSuite) TestShouldGetDefaultPreferenceIfNotInDB() {
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		LoadU2FDeviceHandle(s.mock.Ctx, gomock.Eq("john")).
+		LoadU2FDevice(s.mock.Ctx, gomock.Eq("john")).
 		Return(nil, storage.ErrNoU2FDeviceHandle)
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		LoadTOTPSecret(s.mock.Ctx, gomock.Eq("john")).
-		Return("", storage.ErrNoTOTPSecret)
+		LoadTOTPConfiguration(s.mock.Ctx, gomock.Eq("john")).
+		Return(nil, storage.ErrNoTOTPSecret)
 
 	UserInfoGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), UserInfo{Method: "totp"})
@@ -147,11 +147,11 @@ func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		LoadU2FDeviceHandle(s.mock.Ctx, gomock.Eq("john"))
+		LoadU2FDevice(s.mock.Ctx, gomock.Eq("john"))
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		LoadTOTPSecret(s.mock.Ctx, gomock.Eq("john"))
+		LoadTOTPConfiguration(s.mock.Ctx, gomock.Eq("john"))
 
 	UserInfoGet(s.mock.Ctx)
 

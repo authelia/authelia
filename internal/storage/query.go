@@ -1,44 +1,39 @@
-//nolint:gosec
 package storage
 
 const (
-	queryFmtSelectLatestMigrationsVersion = `
-		SELECT version
+	queryFmtSelectLatestMigration = `
+		SELECT id, time, prior, current, version
 		FROM %s
-		ORDER BY time DESC
+		ORDER BY id DESC
 		LIMIT 1;`
 
-	queryRenameTable = `
-		ALTER TABLE ?
-		RENAME TO ?;`
-
-	queryMySQLRenameTable = `
-		ALTER TABLE ?
-		RENAME ?;`
+	queryFmtInsertMigration = `
+		INSERT INTO %s (time, prior, current, version)
+		VALUES (?, ?, ?, ?);`
 )
 
 const (
 	queryMySQLSelectExistingTables = `
 		SELECT table_name
 		FROM information_schema.tables
-		WHERE table_type='BASE TABLE' AND table_schema=database();`
+		WHERE table_type = 'BASE TABLE' AND table_schema = database();`
 
 	queryPostgreSelectExistingTables = `
 		SELECT table_name
 		FROM information_schema.tables
-		WHERE table_type='BASE TABLE' AND table_schema='public';`
+		WHERE table_type = 'BASE TABLE' AND table_schema = 'public';`
 
 	querySQLiteSelectExistingTables = `
 		SELECT name
 		FROM sqlite_master
-		WHERE type='table';`
+		WHERE type = 'table';`
 )
 
 const (
 	queryFmtSelectPreferred2FAMethodByUsername = `
 		SELECT second_factor_method
 		FROM %s
-		WHERE username=?;`
+		WHERE username = ?;`
 
 	queryFmtUpsertPreferred2FAMethod = `
 		REPLACE INTO %s (username, second_factor_method)
@@ -48,51 +43,52 @@ const (
 		INSERT INTO %s (username, second_factor_method)
 		VALUES ($1, $2)
 			ON CONFLICT (username)
-			DO UPDATE SET second_factor_method=$2;`
+			DO UPDATE SET second_factor_method = $2;`
 )
 
 const (
-	// TODO: Select ID.
-	queryFmtSelectExistsIdentityVerificationToken = `
+	queryFmtSelectExistsIdentityVerification = `
 		SELECT EXISTS (
-			SELECT * FROM %s WHERE token=?
+			SELECT id
+			FROM %s
+			WHERE token = ?
 		);`
 
-	queryFmtInsertIdentityVerificationToken = `
+	queryFmtInsertIdentityVerification = `
 		INSERT INTO %s (token)
 		VALUES (?);`
 
-	queryFmtDeleteIdentityVerificationToken = `
+	queryFmtDeleteIdentityVerification = `
 		DELETE FROM %s
-		WHERE token=?;`
+		WHERE token = ?;`
 )
 
 const (
-	queryFmtSelectTOTPSecretByUsername = `
-		SELECT secret
+	queryFmtSelectTOTPConfigurationByUsername = `
+		SELECT id, username, algorithm, digits, totp_period, secret
 		FROM %s
-		WHERE username=?;`
+		WHERE username = ?;`
 
-	queryFmtUpsertTOTPSecret = `
-		REPLACE INTO %s (username, secret)
-		VALUES (?, ?);`
+	queryFmtUpsertTOTPConfiguration = `
+		REPLACE INTO %s (username, algorithm, digits, totp_period, secret)
+		VALUES (?, ?, ?, ?, ?);`
 
-	queryFmtPostgresUpsertTOTPSecret = `
-		INSERT INTO %s (username, secret)
-		VALUES ($1, $2)
+	queryFmtPostgresUpsertTOTPConfiguration = `
+		INSERT INTO %s (username, algorithm, digits, totp_period, secret)
+		VALUES ($1, $2, $3, $4, $5)
 			ON CONFLICT (username)
-			DO UPDATE SET secret=$2;`
+			DO UPDATE SET algorithm = $2, digits = $3, totp_period = $4, secret = $5;`
 
 	queryFmtDeleteTOTPSecret = `
 		DELETE FROM %s
-		WHERE username=?;`
+		WHERE username = ?;`
 )
 
 const (
 	queryFmtSelectU2FDeviceByUsername = `
 		SELECT key_handle, public_key
 		FROM %s
-		WHERE username=?;`
+		WHERE username = ?;`
 
 	queryFmtUpsertU2FDevice = `
 		REPLACE INTO %s (username, key_handle, public_key)
@@ -102,17 +98,18 @@ const (
 		INSERT INTO %s (username, key_handle, public_key)
 		VALUES ($1, $2, $3)
 			ON CONFLICT (username)
-			DO UPDATE SET key_handle=$2, public_key=$3`
+			DO UPDATE SET key_handle=$2, public_key=$3;`
 )
 
 const (
-	queryFmtInsertAuthenticationAttempt = `
-		INSERT INTO %s (username, successful, time)
-		VALUES (?, ?, ?);`
+	queryFmtInsertAuthenticationLogEntry = `
+		INSERT INTO %s (time, successful, username, auth_type, remote_ip, request_uri, request_method)
+		VALUES (?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtSelectAuthenticationAttemptsByUsername = `
-		SELECT username, successful, time
-		FROM %s WHERE time>? AND username=?
+	queryFmtSelect1FAAuthenticationLogEntryByUsername = `
+		SELECT time, successful, username
+		FROM %s
+		WHERE time > ? AND username = ? AND auth_type = '1FA'
 		ORDER BY time DESC
 		LIMIT ?
 		OFFSET ?;`

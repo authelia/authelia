@@ -109,7 +109,7 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 
 	require.NoError(s.T(), provider.StartupCheck(logging.Logger()))
-	require.NoError(s.T(), provider.DeleteTOTPSecret(ctx, username))
+	require.NoError(s.T(), provider.DeleteTOTPConfiguration(ctx, username))
 
 	// Login one factor.
 	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")

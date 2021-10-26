@@ -46,7 +46,8 @@ func SecondFactorU2FRegister(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.Debugf("Register U2F device for user %s", userSession.Username)
 
 	publicKey := elliptic.Marshal(elliptic.P256(), registration.PubKey.X, registration.PubKey.Y)
-	err = ctx.Providers.StorageProvider.SaveU2FDeviceHandle(ctx, models.U2FDevice{
+
+	err = ctx.Providers.StorageProvider.SaveU2FDevice(ctx, models.U2FDevice{
 		Username:  userSession.Username,
 		KeyHandle: registration.KeyHandle,
 		PublicKey: publicKey},

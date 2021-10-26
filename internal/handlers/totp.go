@@ -1,15 +1,17 @@
 package handlers
 
 import (
+	"errors"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 )
 
 // TOTPVerifier is the interface for verifying TOTPs.
 type TOTPVerifier interface {
-	Verify(token, secret string) (bool, error)
+	Verify(config *models.TOTPConfiguration, token string) (bool, error)
 }
 
 // TOTPVerifierImpl the production implementation for TOTP verification.
@@ -19,13 +21,43 @@ type TOTPVerifierImpl struct {
 }
 
 // Verify verifies TOTPs.
-func (tv *TOTPVerifierImpl) Verify(token, secret string) (bool, error) {
-	opts := totp.ValidateOpts{
-		Period:    tv.Period,
-		Skew:      tv.Skew,
-		Digits:    otp.DigitsSix,
-		Algorithm: otp.AlgorithmSHA1,
+func (tv *TOTPVerifierImpl) Verify(config *models.TOTPConfiguration, token string) (bool, error) {
+	if config == nil {
+		return false, errors.New("config not provided")
 	}
 
-	return totp.ValidateCustom(token, secret, time.Now().UTC(), opts)
+	opts := totp.ValidateOpts{
+		Period:    uint(config.Period),
+		Skew:      tv.Skew,
+		Digits:    otp.Digits(config.Digits),
+		Algorithm: otpStringToAlgo(config.Algorithm),
+	}
+
+	return totp.ValidateCustom(token, config.Secret, time.Now().UTC(), opts)
+}
+
+func otpAlgoToString(algorithm otp.Algorithm) (out string) {
+	switch algorithm {
+	case otp.AlgorithmSHA1:
+		return "SHA1"
+	case otp.AlgorithmSHA256:
+		return "SHA256"
+	case otp.AlgorithmSHA512:
+		return "SHA512"
+	default:
+		return ""
+	}
+}
+
+func otpStringToAlgo(in string) (algorithm otp.Algorithm) {
+	switch in {
+	case "SHA1":
+		return otp.AlgorithmSHA1
+	case "SHA256":
+		return otp.AlgorithmSHA256
+	case "SHA512":
+		return otp.AlgorithmSHA512
+	default:
+		return otp.AlgorithmSHA1
+	}
 }

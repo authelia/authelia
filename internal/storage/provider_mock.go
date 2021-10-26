@@ -8,10 +8,9 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
-
-	"github.com/authelia/authelia/v4/internal/models"
 )
 
 // MockProvider is a mock of Provider interface.
@@ -38,240 +37,188 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 }
 
 // AppendAuthenticationLog mocks base method.
-func (m *MockProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) error {
+func (m *MockProvider) AppendAuthenticationLog(arg0 context.Context, arg1 models.AuthenticationAttempt) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AppendAuthenticationLog", ctx, attempt)
+	ret := m.ctrl.Call(m, "AppendAuthenticationLog", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AppendAuthenticationLog indicates an expected call of AppendAuthenticationLog.
-func (mr *MockProviderMockRecorder) AppendAuthenticationLog(ctx, attempt interface{}) *gomock.Call {
+func (mr *MockProviderMockRecorder) AppendAuthenticationLog(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendAuthenticationLog", reflect.TypeOf((*MockProvider)(nil).AppendAuthenticationLog), ctx, attempt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendAuthenticationLog", reflect.TypeOf((*MockProvider)(nil).AppendAuthenticationLog), arg0, arg1)
 }
 
-// DeleteTOTPSecret mocks base method.
-func (m *MockProvider) DeleteTOTPSecret(ctx context.Context, username string) error {
+// DeleteTOTPConfiguration mocks base method.
+func (m *MockProvider) DeleteTOTPConfiguration(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteTOTPSecret", ctx, username)
+	ret := m.ctrl.Call(m, "DeleteTOTPConfiguration", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteTOTPSecret indicates an expected call of DeleteTOTPSecret.
-func (mr *MockProviderMockRecorder) DeleteTOTPSecret(ctx, username interface{}) *gomock.Call {
+// DeleteTOTPConfiguration indicates an expected call of DeleteTOTPConfiguration.
+func (mr *MockProviderMockRecorder) DeleteTOTPConfiguration(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTOTPSecret", reflect.TypeOf((*MockProvider)(nil).DeleteTOTPSecret), ctx, username)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTOTPConfiguration", reflect.TypeOf((*MockProvider)(nil).DeleteTOTPConfiguration), arg0, arg1)
 }
 
-// FindIdentityVerificationToken mocks base method.
-func (m *MockProvider) FindIdentityVerificationToken(ctx context.Context, token string) (bool, error) {
+// FindIdentityVerification mocks base method.
+func (m *MockProvider) FindIdentityVerification(arg0 context.Context, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindIdentityVerificationToken", ctx, token)
+	ret := m.ctrl.Call(m, "FindIdentityVerification", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindIdentityVerificationToken indicates an expected call of FindIdentityVerificationToken.
-func (mr *MockProviderMockRecorder) FindIdentityVerificationToken(ctx, token interface{}) *gomock.Call {
+// FindIdentityVerification indicates an expected call of FindIdentityVerification.
+func (mr *MockProviderMockRecorder) FindIdentityVerification(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdentityVerificationToken", reflect.TypeOf((*MockProvider)(nil).FindIdentityVerificationToken), ctx, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdentityVerification", reflect.TypeOf((*MockProvider)(nil).FindIdentityVerification), arg0, arg1)
 }
 
-// LoadAuthenticationAttempts mocks base method.
-func (m *MockProvider) LoadAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) ([]models.AuthenticationAttempt, error) {
+// LoadAuthenticationLogs mocks base method.
+func (m *MockProvider) LoadAuthenticationLogs(arg0 context.Context, arg1 string, arg2 time.Time, arg3, arg4 int) ([]models.AuthenticationAttempt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadAuthenticationAttempts", ctx, username, fromDate, limit, page)
+	ret := m.ctrl.Call(m, "LoadAuthenticationLogs", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([]models.AuthenticationAttempt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LoadAuthenticationAttempts indicates an expected call of LoadAuthenticationAttempts.
-func (mr *MockProviderMockRecorder) LoadAuthenticationAttempts(ctx, username, fromDate, limit, page interface{}) *gomock.Call {
+// LoadAuthenticationLogs indicates an expected call of LoadAuthenticationLogs.
+func (mr *MockProviderMockRecorder) LoadAuthenticationLogs(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthenticationAttempts", reflect.TypeOf((*MockProvider)(nil).LoadAuthenticationAttempts), ctx, username, fromDate, limit, page)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthenticationLogs", reflect.TypeOf((*MockProvider)(nil).LoadAuthenticationLogs), arg0, arg1, arg2, arg3, arg4)
 }
 
 // LoadPreferred2FAMethod mocks base method.
-func (m *MockProvider) LoadPreferred2FAMethod(ctx context.Context, username string) (string, error) {
+func (m *MockProvider) LoadPreferred2FAMethod(arg0 context.Context, arg1 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadPreferred2FAMethod", ctx, username)
+	ret := m.ctrl.Call(m, "LoadPreferred2FAMethod", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LoadPreferred2FAMethod indicates an expected call of LoadPreferred2FAMethod.
-func (mr *MockProviderMockRecorder) LoadPreferred2FAMethod(ctx, username interface{}) *gomock.Call {
+func (mr *MockProviderMockRecorder) LoadPreferred2FAMethod(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadPreferred2FAMethod", reflect.TypeOf((*MockProvider)(nil).LoadPreferred2FAMethod), ctx, username)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadPreferred2FAMethod", reflect.TypeOf((*MockProvider)(nil).LoadPreferred2FAMethod), arg0, arg1)
 }
 
-// LoadTOTPSecret mocks base method.
-func (m *MockProvider) LoadTOTPSecret(ctx context.Context, username string) (string, error) {
+// LoadTOTPConfiguration mocks base method.
+func (m *MockProvider) LoadTOTPConfiguration(arg0 context.Context, arg1 string) (*models.TOTPConfiguration, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadTOTPSecret", ctx, username)
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "LoadTOTPConfiguration", arg0, arg1)
+	ret0, _ := ret[0].(*models.TOTPConfiguration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LoadTOTPSecret indicates an expected call of LoadTOTPSecret.
-func (mr *MockProviderMockRecorder) LoadTOTPSecret(ctx, username interface{}) *gomock.Call {
+// LoadTOTPConfiguration indicates an expected call of LoadTOTPConfiguration.
+func (mr *MockProviderMockRecorder) LoadTOTPConfiguration(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTOTPSecret", reflect.TypeOf((*MockProvider)(nil).LoadTOTPSecret), ctx, username)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTOTPConfiguration", reflect.TypeOf((*MockProvider)(nil).LoadTOTPConfiguration), arg0, arg1)
 }
 
-// LoadU2FDeviceHandle mocks base method.
-func (m *MockProvider) LoadU2FDeviceHandle(ctx context.Context, username string) (*models.U2FDevice, error) {
+// LoadU2FDevice mocks base method.
+func (m *MockProvider) LoadU2FDevice(arg0 context.Context, arg1 string) (*models.U2FDevice, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadU2FDeviceHandle", ctx, username)
+	ret := m.ctrl.Call(m, "LoadU2FDevice", arg0, arg1)
 	ret0, _ := ret[0].(*models.U2FDevice)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LoadU2FDeviceHandle indicates an expected call of LoadU2FDeviceHandle.
-func (mr *MockProviderMockRecorder) LoadU2FDeviceHandle(ctx, username interface{}) *gomock.Call {
+// LoadU2FDevice indicates an expected call of LoadU2FDevice.
+func (mr *MockProviderMockRecorder) LoadU2FDevice(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadU2FDeviceHandle", reflect.TypeOf((*MockProvider)(nil).LoadU2FDeviceHandle), ctx, username)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadU2FDevice", reflect.TypeOf((*MockProvider)(nil).LoadU2FDevice), arg0, arg1)
 }
 
-// RemoveIdentityVerificationToken mocks base method.
-func (m *MockProvider) RemoveIdentityVerificationToken(ctx context.Context, token string) error {
+// RemoveIdentityVerification mocks base method.
+func (m *MockProvider) RemoveIdentityVerification(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveIdentityVerificationToken", ctx, token)
+	ret := m.ctrl.Call(m, "RemoveIdentityVerification", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// RemoveIdentityVerificationToken indicates an expected call of RemoveIdentityVerificationToken.
-func (mr *MockProviderMockRecorder) RemoveIdentityVerificationToken(ctx, token interface{}) *gomock.Call {
+// RemoveIdentityVerification indicates an expected call of RemoveIdentityVerification.
+func (mr *MockProviderMockRecorder) RemoveIdentityVerification(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveIdentityVerificationToken", reflect.TypeOf((*MockProvider)(nil).RemoveIdentityVerificationToken), ctx, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveIdentityVerification", reflect.TypeOf((*MockProvider)(nil).RemoveIdentityVerification), arg0, arg1)
 }
 
-// SaveIdentityVerificationToken mocks base method.
-func (m *MockProvider) SaveIdentityVerificationToken(ctx context.Context, token string) error {
+// SaveIdentityVerification mocks base method.
+func (m *MockProvider) SaveIdentityVerification(arg0 context.Context, arg1 models.IdentityVerification) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveIdentityVerificationToken", ctx, token)
+	ret := m.ctrl.Call(m, "SaveIdentityVerification", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveIdentityVerificationToken indicates an expected call of SaveIdentityVerificationToken.
-func (mr *MockProviderMockRecorder) SaveIdentityVerificationToken(ctx, token interface{}) *gomock.Call {
+// SaveIdentityVerification indicates an expected call of SaveIdentityVerification.
+func (mr *MockProviderMockRecorder) SaveIdentityVerification(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveIdentityVerificationToken", reflect.TypeOf((*MockProvider)(nil).SaveIdentityVerificationToken), ctx, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveIdentityVerification", reflect.TypeOf((*MockProvider)(nil).SaveIdentityVerification), arg0, arg1)
 }
 
 // SavePreferred2FAMethod mocks base method.
-func (m *MockProvider) SavePreferred2FAMethod(ctx context.Context, username, method string) error {
+func (m *MockProvider) SavePreferred2FAMethod(arg0 context.Context, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SavePreferred2FAMethod", ctx, username, method)
+	ret := m.ctrl.Call(m, "SavePreferred2FAMethod", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SavePreferred2FAMethod indicates an expected call of SavePreferred2FAMethod.
-func (mr *MockProviderMockRecorder) SavePreferred2FAMethod(ctx, username, method interface{}) *gomock.Call {
+func (mr *MockProviderMockRecorder) SavePreferred2FAMethod(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePreferred2FAMethod", reflect.TypeOf((*MockProvider)(nil).SavePreferred2FAMethod), ctx, username, method)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePreferred2FAMethod", reflect.TypeOf((*MockProvider)(nil).SavePreferred2FAMethod), arg0, arg1, arg2)
 }
 
-// SaveTOTPSecret mocks base method.
-func (m *MockProvider) SaveTOTPSecret(ctx context.Context, username, secret string) error {
+// SaveTOTPConfiguration mocks base method.
+func (m *MockProvider) SaveTOTPConfiguration(arg0 context.Context, arg1 models.TOTPConfiguration) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveTOTPSecret", ctx, username, secret)
+	ret := m.ctrl.Call(m, "SaveTOTPConfiguration", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveTOTPSecret indicates an expected call of SaveTOTPSecret.
-func (mr *MockProviderMockRecorder) SaveTOTPSecret(ctx, username, secret interface{}) *gomock.Call {
+// SaveTOTPConfiguration indicates an expected call of SaveTOTPConfiguration.
+func (mr *MockProviderMockRecorder) SaveTOTPConfiguration(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTOTPSecret", reflect.TypeOf((*MockProvider)(nil).SaveTOTPSecret), ctx, username, secret)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTOTPConfiguration", reflect.TypeOf((*MockProvider)(nil).SaveTOTPConfiguration), arg0, arg1)
 }
 
-// SaveU2FDeviceHandle mocks base method.
-func (m *MockProvider) SaveU2FDeviceHandle(ctx context.Context, device models.U2FDevice) error {
+// SaveU2FDevice mocks base method.
+func (m *MockProvider) SaveU2FDevice(arg0 context.Context, arg1 models.U2FDevice) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveU2FDeviceHandle", ctx, device)
+	ret := m.ctrl.Call(m, "SaveU2FDevice", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveU2FDeviceHandle indicates an expected call of SaveU2FDeviceHandle.
-func (mr *MockProviderMockRecorder) SaveU2FDeviceHandle(ctx, device interface{}) *gomock.Call {
+// SaveU2FDevice indicates an expected call of SaveU2FDevice.
+func (mr *MockProviderMockRecorder) SaveU2FDevice(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveU2FDeviceHandle", reflect.TypeOf((*MockProvider)(nil).SaveU2FDeviceHandle), ctx, device)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveU2FDevice", reflect.TypeOf((*MockProvider)(nil).SaveU2FDevice), arg0, arg1)
 }
 
 // StartupCheck mocks base method.
-func (m *MockProvider) StartupCheck(logger *logrus.Logger) error {
+func (m *MockProvider) StartupCheck(arg0 *logrus.Logger) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartupCheck", logger)
+	ret := m.ctrl.Call(m, "StartupCheck", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // StartupCheck indicates an expected call of StartupCheck.
-func (mr *MockProviderMockRecorder) StartupCheck(logger interface{}) *gomock.Call {
+func (mr *MockProviderMockRecorder) StartupCheck(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockProvider)(nil).StartupCheck), logger)
-}
-
-// MockRegulatorProvider is a mock of RegulatorProvider interface.
-type MockRegulatorProvider struct {
-	ctrl     *gomock.Controller
-	recorder *MockRegulatorProviderMockRecorder
-}
-
-// MockRegulatorProviderMockRecorder is the mock recorder for MockRegulatorProvider.
-type MockRegulatorProviderMockRecorder struct {
-	mock *MockRegulatorProvider
-}
-
-// NewMockRegulatorProvider creates a new mock instance.
-func NewMockRegulatorProvider(ctrl *gomock.Controller) *MockRegulatorProvider {
-	mock := &MockRegulatorProvider{ctrl: ctrl}
-	mock.recorder = &MockRegulatorProviderMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRegulatorProvider) EXPECT() *MockRegulatorProviderMockRecorder {
-	return m.recorder
-}
-
-// AppendAuthenticationLog mocks base method.
-func (m *MockRegulatorProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AppendAuthenticationLog", ctx, attempt)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AppendAuthenticationLog indicates an expected call of AppendAuthenticationLog.
-func (mr *MockRegulatorProviderMockRecorder) AppendAuthenticationLog(ctx, attempt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendAuthenticationLog", reflect.TypeOf((*MockRegulatorProvider)(nil).AppendAuthenticationLog), ctx, attempt)
-}
-
-// LoadAuthenticationAttempts mocks base method.
-func (m *MockRegulatorProvider) LoadAuthenticationAttempts(ctx context.Context, username string, fromDate time.Time, limit, page int) ([]models.AuthenticationAttempt, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadAuthenticationAttempts", ctx, username, fromDate, limit, page)
-	ret0, _ := ret[0].([]models.AuthenticationAttempt)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LoadAuthenticationAttempts indicates an expected call of LoadAuthenticationAttempts.
-func (mr *MockRegulatorProviderMockRecorder) LoadAuthenticationAttempts(ctx, username, fromDate, limit, page interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthenticationAttempts", reflect.TypeOf((*MockRegulatorProvider)(nil).LoadAuthenticationAttempts), ctx, username, fromDate, limit, page)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockProvider)(nil).StartupCheck), arg0)
 }

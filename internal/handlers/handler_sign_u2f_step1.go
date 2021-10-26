@@ -34,7 +34,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userSession := ctx.GetSession()
-	device, err := ctx.Providers.StorageProvider.LoadU2FDeviceHandle(ctx, userSession.Username)
+	device, err := ctx.Providers.StorageProvider.LoadU2FDevice(ctx, userSession.Username)
 
 	if err != nil {
 		if err == storage.ErrNoU2FDeviceHandle {

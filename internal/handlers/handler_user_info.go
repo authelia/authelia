@@ -41,7 +41,7 @@ func loadInfo(ctx *middlewares.AutheliaCtx, username string, storageProvider sto
 	go func() {
 		defer wg.Done()
 
-		_, err := storageProvider.LoadU2FDeviceHandle(ctx, username)
+		_, err := storageProvider.LoadU2FDevice(ctx, username)
 		if err != nil {
 			if err == storage.ErrNoU2FDeviceHandle {
 				return
@@ -59,7 +59,7 @@ func loadInfo(ctx *middlewares.AutheliaCtx, username string, storageProvider sto
 	go func() {
 		defer wg.Done()
 
-		_, err := storageProvider.LoadTOTPSecret(ctx, username)
+		_, err := storageProvider.LoadTOTPConfiguration(ctx, username)
 		if err != nil {
 			if err == storage.ErrNoTOTPSecret {
 				return

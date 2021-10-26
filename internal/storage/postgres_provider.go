@@ -18,7 +18,7 @@ type PostgreSQLProvider struct {
 // NewPostgreSQLProvider a PostgreSQL provider.
 func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration) (provider *PostgreSQLProvider) {
 	provider = &PostgreSQLProvider{
-		SQLProvider: NewSQLProvider("postgres", "pgx", buildPostgreSQLConnectionString(config)),
+		SQLProvider: NewSQLProvider("postgres", "pgx", dataSourceNamePostgreSQL(config)),
 	}
 
 	// All providers have differing SELECT existing table statements.
@@ -27,24 +27,13 @@ func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration) (provid
 	// Specific alterations to this provider.
 	// PostgreSQL doesn't have a UPSERT statement but has an ON CONFLICT operation instead.
 	provider.sqlUpsertU2FDevice = fmt.Sprintf(queryFmtPostgresUpsertU2FDevice, tableU2FDevices)
-	provider.sqlUpsertTOTPSecret = fmt.Sprintf(queryFmtPostgresUpsertTOTPSecret, tableTOTPSecrets)
+	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtPostgresUpsertTOTPConfiguration, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtPostgresUpsertPreferred2FAMethod, tableUserPreferences)
-
-	// TODO: Remove this as part of the migrations change.
-	// Replace BLOB with BYTEA for Postgres.
-	for version, tables := range provider.sqlUpgradesCreateTableStatements {
-		for tableName, stmt := range tables {
-			provider.sqlUpgradesCreateTableStatements[version][tableName] = strings.ReplaceAll(stmt, "BLOB", "BYTEA")
-		}
-	}
-
-	provider.sqlConfigSetValue = fmt.Sprintf("INSERT INTO %s (category, key_name, value) VALUES ($1, $2, $3) ON CONFLICT (category, key_name) DO UPDATE SET value=$3", tableConfig)
-	provider.sqlConfigGetValue = fmt.Sprintf("SELECT value FROM %s WHERE category=$1 AND key_name=$2", tableConfig)
 
 	return provider
 }
 
-func buildPostgreSQLConnectionString(config schema.PostgreSQLStorageConfiguration) (connectionString string) {
+func dataSourceNamePostgreSQL(config schema.PostgreSQLStorageConfiguration) (dataSourceName string) {
 	args := make([]string, 0)
 	if config.Username != "" {
 		args = append(args, fmt.Sprintf("user='%s'", config.Username))
@@ -66,8 +55,24 @@ func buildPostgreSQLConnectionString(config schema.PostgreSQLStorageConfiguratio
 		args = append(args, fmt.Sprintf("dbname=%s", config.Database))
 	}
 
-	if config.SSLMode != "" {
-		args = append(args, fmt.Sprintf("sslmode=%s", config.SSLMode))
+	if config.Schema != "" {
+		args = append(args, fmt.Sprintf("search_path=%s", config.Schema))
+	}
+
+	if config.SSL.Mode != "" {
+		args = append(args, fmt.Sprintf("sslmode=%s", config.SSL.Mode))
+	}
+
+	if config.SSL.Certificate != "" {
+		args = append(args, fmt.Sprintf("sslcert=%s", config.SSL.Certificate))
+	}
+
+	if config.SSL.Key != "" {
+		args = append(args, fmt.Sprintf("sslkey=%s", config.SSL.Key))
+	}
+
+	if config.SSL.RootCertificate != "" {
+		args = append(args, fmt.Sprintf("sslrootcert =%s", config.SSL.RootCertificate))
 	}
 
 	args = append(args, fmt.Sprintf("connect_timeout=%d", int32(config.Timeout/time.Second)))

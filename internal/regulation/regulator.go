@@ -47,7 +47,7 @@ func (r *Regulator) Mark(ctx context.Context, username string, successful bool) 
 	return r.storageProvider.AppendAuthenticationLog(ctx, models.AuthenticationAttempt{
 		Username:   username,
 		Successful: successful,
-		Time:       models.Time{Time: r.clock.Now()},
+		Time:       r.clock.Now(),
 	})
 }
 
@@ -59,7 +59,7 @@ func (r *Regulator) Regulate(ctx context.Context, username string) (time.Time, e
 		return time.Time{}, nil
 	}
 
-	attempts, err := r.storageProvider.LoadAuthenticationAttempts(ctx, username, r.clock.Now().Add(-r.banTime), 10, 0)
+	attempts, err := r.storageProvider.LoadAuthenticationLogs(ctx, username, r.clock.Now().Add(-r.banTime), 10, 0)
 	if err != nil {
 		return time.Time{}, nil
 	}
@@ -84,8 +84,8 @@ func (r *Regulator) Regulate(ctx context.Context, username string) (time.Time, e
 
 	// Now we compute the time between the latest attempt and the MaxRetry-th one. If it's
 	// within the FindTime then it means that the user has been banned.
-	durationBetweenLatestAttempts := latestFailedAttempts[0].Time.Time.Sub(
-		latestFailedAttempts[r.maxRetries-1].Time.Time)
+	durationBetweenLatestAttempts := latestFailedAttempts[0].Time.Sub(
+		latestFailedAttempts[r.maxRetries-1].Time)
 
 	if durationBetweenLatestAttempts < r.findTime {
 		bannedUntil := latestFailedAttempts[0].Time.Add(r.banTime)

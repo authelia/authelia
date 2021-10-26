@@ -1,6 +1,8 @@
 package storage
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
 	// ErrNoU2FDeviceHandle error thrown when no U2F device handle has been found in DB.
@@ -8,4 +10,9 @@ var (
 
 	// ErrNoTOTPSecret error thrown when no TOTP secret has been found in DB.
 	ErrNoTOTPSecret = errors.New("no TOTP secret registered")
+)
+
+const (
+	errFmtFailedMigration     = "schema migration %d (%s) failed: %w"
+	errFmtFailedMigrationPre1 = "schema migration pre1 failed: %w"
 )
