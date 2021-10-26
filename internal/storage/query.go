@@ -103,8 +103,8 @@ const (
 
 const (
 	queryFmtInsertAuthenticationLogEntry = `
-		INSERT INTO %s (time, successful, username)
-		VALUES (?, ?, ?);`
+		INSERT INTO %s (time, successful, username, request_uri)
+		VALUES (?, ?, ?, '');`
 
 	queryFmtSelect1FAAuthenticationLogEntryByUsername = `
 		SELECT time, successful, username
