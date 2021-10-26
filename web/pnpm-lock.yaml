@@ -16,7 +16,7 @@ specifiers:
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.33
   '@types/react-dom': 17.0.10
-  '@types/react-router-dom': 5.3.1
+  '@types/react-router-dom': 5.3.2
   '@typescript-eslint/eslint-plugin': 5.1.0
   '@typescript-eslint/parser': 5.1.0
   '@vitejs/plugin-react': 1.0.6
@@ -86,7 +86,7 @@ devDependencies:
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.33
   '@types/react-dom': 17.0.10
-  '@types/react-router-dom': 5.3.1
+  '@types/react-router-dom': 5.3.2
   '@typescript-eslint/eslint-plugin': 5.1.0_ff922970f7d32434fb4bbcef5cb9f71b
   '@typescript-eslint/parser': 5.1.0_typescript@4.4.4
   '@vitejs/plugin-react': 1.0.6
@@ -1445,8 +1445,8 @@ packages:
       '@types/react': 17.0.33
     dev: true
 
-  /@types/react-router-dom/5.3.1:
-    resolution: {integrity: sha512-UvyRy73318QI83haXlaMwmklHHzV9hjl3u71MmM6wYNu0hOVk9NLTa0vGukf8zXUqnwz4O06ig876YSPpeK28A==}
+  /@types/react-router-dom/5.3.2:
+    resolution: {integrity: sha512-ELEYRUie2czuJzaZ5+ziIp9Hhw+juEw8b7C11YNA4QdLCVbQ3qLi2l4aq8XnlqM7V31LZX8dxUuFUCrzHm6sqQ==}
     dependencies:
       '@types/history': 4.7.9
       '@types/react': 17.0.33
