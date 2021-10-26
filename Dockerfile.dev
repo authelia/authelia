@@ -1,19 +1,19 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:16-alpine AS builder-frontend
+FROM node:17-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 
 COPY web ./
 
 # Install the dependencies and build
-RUN yarn install --frozen-lockfile && GENERATE_SOURCEMAP=false INLINE_RUNTIME_CHUNK=false yarn build
+RUN yarn install --frozen-lockfile && yarn build
 
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.17.1-alpine AS builder-backend
+FROM golang:1.17.2-alpine AS builder-backend
 
 WORKDIR /go/src/app
 

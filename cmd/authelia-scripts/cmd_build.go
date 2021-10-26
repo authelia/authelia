@@ -65,8 +65,8 @@ func buildAutheliaBinary(xflags []string, buildkite bool) {
 	}
 }
 
-func buildFrontend() {
-	cmd := utils.CommandWithStdout("pnpm", "install", "--shamefully-hoist")
+func buildFrontend(branch string) {
+	cmd := utils.CommandWithStdout("pnpm", "install")
 	cmd.Dir = webDirectory
 
 	err := cmd.Run()
@@ -74,19 +74,19 @@ func buildFrontend() {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("pnpm", "build")
-	cmd.Dir = webDirectory
+	if !strings.HasPrefix(branch, "renovate/") {
+		cmd = utils.CommandWithStdout("pnpm", "build")
+		cmd.Dir = webDirectory
 
-	cmd.Env = append(os.Environ(), "GENERATE_SOURCEMAP=false", "INLINE_RUNTIME_CHUNK=false")
-
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
 func buildSwagger() {
-	swaggerVer := "3.52.3"
+	swaggerVer := "3.52.4"
 	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+swaggerVer+".tar.gz -O ./v"+swaggerVer+".tar.gz")
 
 	err := cmd.Run()
@@ -136,13 +136,20 @@ func cleanAssets() {
 
 // Build build Authelia.
 func Build(cobraCmd *cobra.Command, args []string) {
-	log.Info("Building Authelia...")
-
 	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
+	branch := os.Getenv("BUILDKITE_BRANCH")
+
+	if strings.HasPrefix(branch, "renovate/") {
+		buildFrontend(branch)
+		log.Info("Skip building Authelia for deps...")
+		os.Exit(0)
+	}
+
+	log.Info("Building Authelia...")
 
 	Clean(cobraCmd, args)
 
-	xflags, err := getXFlags(os.Getenv("BUILDKITE_BRANCH"), os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
+	xflags, err := getXFlags(branch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -155,7 +162,7 @@ func Build(cobraCmd *cobra.Command, args []string) {
 	}
 
 	log.Debug("Building Authelia frontend...")
-	buildFrontend()
+	buildFrontend(branch)
 
 	log.Debug("Building swagger-ui frontend...")
 	buildSwagger()

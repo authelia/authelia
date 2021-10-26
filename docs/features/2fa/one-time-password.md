@@ -17,7 +17,7 @@ grand_parent: Features
 
 
 After having successfully completed the first factor, select **One-Time Password method**
-option and click on **Not registered yet?** link. This will e-mail you to confirm your identity.
+option and click on **Register device** link. This will e-mail you to confirm your identity.
 
 *NOTE: If you're testing **Authelia**, this e-mail has likely been sent to the mailbox available at https://mail.example.com:8080/*
 

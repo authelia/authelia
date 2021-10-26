@@ -25,7 +25,7 @@ export interface Props {
 
 const DefaultMethodContainer = function (props: Props) {
     const style = useStyles();
-    const registerMessage = props.registered ? "Lost your device?" : "Not registered yet?";
+    const registerMessage = props.registered ? "Lost your device?" : "Register device";
 
     let container: ReactNode;
     let stateClass: string = "";
@@ -61,7 +61,7 @@ const DefaultMethodContainer = function (props: Props) {
 
 export default DefaultMethodContainer;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     container: {
         height: "200px",
     },
@@ -84,7 +84,10 @@ function NotRegisteredContainer() {
                 <InformationIcon />
             </div>
             <Typography style={{ color: "#5858ff" }}>
-                Register your first device by clicking on the link below
+                The resource you're attempting to access requires two-factor authentication.
+            </Typography>
+            <Typography style={{ color: "#5858ff" }}>
+                Register your first device by clicking on the link below.
             </Typography>
         </Fragment>
     );

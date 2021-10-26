@@ -6,8 +6,8 @@ set -x
 cd /
 
 echo "Use hot reloaded version of Authelia backend"
-go get github.com/cespare/reflex
-go get github.com/go-delve/delve/cmd/dlv
+go install github.com/cespare/reflex@latest
+go install github.com/go-delve/delve/cmd/dlv@latest
 
 cd /app
 

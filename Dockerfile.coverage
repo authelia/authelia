@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:16-alpine AS builder-frontend
+FROM node:17-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -10,12 +10,12 @@ COPY web ./
 
 # Install the dependencies and build
 RUN yarn global add pnpm && \
-    pnpm install --shamefully-hoist --frozen-lockfile && GENERATE_SOURCEMAP=false INLINE_RUNTIME_CHUNK=false pnpm coverage
+    pnpm install --frozen-lockfile && pnpm coverage
 
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.17.1-alpine AS builder-backend
+FROM golang:1.17.2-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
