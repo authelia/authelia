@@ -20,7 +20,7 @@ specifiers:
   '@typescript-eslint/eslint-plugin': 5.1.0
   '@typescript-eslint/parser': 5.1.0
   '@vitejs/plugin-react': 1.0.6
-  axios: 0.23.0
+  axios: 0.24.0
   classnames: 2.3.1
   esbuild-jest: 0.5.0
   eslint-config-prettier: 8.3.0
@@ -64,7 +64,7 @@ dependencies:
   '@material-ui/core': 4.12.3_14fc3c4d570feae7d722fbbd1b906730
   '@material-ui/icons': 4.11.2_e1da6087c1c875602416a1c0ed1d9c19
   '@material-ui/styles': 4.11.4_14fc3c4d570feae7d722fbbd1b906730
-  axios: 0.23.0
+  axios: 0.24.0
   classnames: 2.3.1
   qrcode.react: 1.0.1_react@17.0.2
   query-string: 7.0.1
@@ -1863,8 +1863,8 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /axios/0.23.0:
-    resolution: {integrity: sha512-NmvAE4i0YAv5cKq8zlDoPd1VLKAqX5oLuZKs8xkJa4qi6RGn0uhCYFjWtHHC9EM/MwOwYWOs53W+V0aqEXq1sg==}
+  /axios/0.24.0:
+    resolution: {integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==}
     dependencies:
       follow-redirects: 1.14.4
     transitivePeerDependencies:
