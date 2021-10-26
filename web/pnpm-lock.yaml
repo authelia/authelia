@@ -19,7 +19,7 @@ specifiers:
   '@types/react-router-dom': 5.3.1
   '@typescript-eslint/eslint-plugin': 5.1.0
   '@typescript-eslint/parser': 5.1.0
-  '@vitejs/plugin-react': 1.0.5
+  '@vitejs/plugin-react': 1.0.6
   axios: 0.23.0
   classnames: 2.3.1
   esbuild-jest: 0.5.0
@@ -89,7 +89,7 @@ devDependencies:
   '@types/react-router-dom': 5.3.1
   '@typescript-eslint/eslint-plugin': 5.1.0_ff922970f7d32434fb4bbcef5cb9f71b
   '@typescript-eslint/parser': 5.1.0_typescript@4.4.4
-  '@vitejs/plugin-react': 1.0.5
+  '@vitejs/plugin-react': 1.0.6
   esbuild-jest: 0.5.0
   eslint-config-prettier: 8.3.0
   eslint-config-react-app: 6.0.0_aff91c47e6dfb31c56b166e68f8e6763
@@ -1605,8 +1605,8 @@ packages:
       eslint-visitor-keys: 3.0.0
     dev: true
 
-  /@vitejs/plugin-react/1.0.5:
-    resolution: {integrity: sha512-n92p2fMlo0FZED+y5WYt+tM1mnQsVxcjZ8HuTJhv9gU/nW2zHwEoCemU78Az0KvF+bgafv2AdU4VEnP24bppvw==}
+  /@vitejs/plugin-react/1.0.6:
+    resolution: {integrity: sha512-wzbvi6w3w8yLDjurGwsZ0+fGW4zTSXnUzGz6wGeMrsnn14iYSyilqr3J1K2KbZ83Ramk+VBChh3FmpB09QpoUw==}
     engines: {node: '>=12.0.0'}
     dependencies:
       '@babel/core': 7.15.8
