@@ -167,7 +167,6 @@ func (p *SQLProvider) schemaMigrateRollback(prior, trackPrior int, migrateErr er
 
 func (p *SQLProvider) schemaMigrateApply(prior int, migration schemaMigration) (err error) {
 	_, err = p.db.Exec(migration.Query)
-	p.log.Infof("apply: %d %v", migration.Version, migration.Up)
 	if err != nil {
 		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
 	}
@@ -186,14 +185,13 @@ func (p *SQLProvider) schemaMigrateFinalize(prior int, migration schemaMigration
 		target = migration.Version - 1
 	}
 
-	query := fmt.Sprintf(`INSERT INTO %s (time, prior, current, version) 	VALUES (?, ?, ?, ?);`, tableMigrations)
 	// TODO: Add Version.
-	_, err = p.db.Exec(query, time.Now(), prior, target, "example version")
+	_, err = p.db.Exec(p.sqlInsertMigration, time.Now(), prior, target, utils.Version())
 	if err != nil {
 		return err
 	}
 
-	p.log.Infof("Storage schema migrated from version %d to %d", prior, target)
+	p.log.Debugf("Storage schema migrated from version %d to %d", prior, target)
 
 	return nil
 }
