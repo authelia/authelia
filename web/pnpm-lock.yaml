@@ -27,7 +27,7 @@ specifiers:
   eslint-config-react-app: 6.0.0
   eslint-formatter-rdjson: 1.0.5
   eslint-import-resolver-typescript: 2.5.0
-  eslint-plugin-flowtype: 6.1.1
+  eslint-plugin-flowtype: 8.0.2
   eslint-plugin-import: 2.25.2
   eslint-plugin-jsx-a11y: 6.4.1
   eslint-plugin-prettier: 4.0.0
@@ -92,10 +92,10 @@ devDependencies:
   '@vitejs/plugin-react': 1.0.6
   esbuild-jest: 0.5.0
   eslint-config-prettier: 8.3.0
-  eslint-config-react-app: 6.0.0_0d857cd8ddd332aee169eca7c5303434
+  eslint-config-react-app: 6.0.0_2c54fe37c7f32931df5a5694f99b0613
   eslint-formatter-rdjson: 1.0.5
   eslint-import-resolver-typescript: 2.5.0_eslint-plugin-import@2.25.2
-  eslint-plugin-flowtype: 6.1.1
+  eslint-plugin-flowtype: 8.0.2
   eslint-plugin-import: 2.25.2
   eslint-plugin-jsx-a11y: 6.4.1
   eslint-plugin-prettier: 4.0.0_17f48bd368adef070d55b664dd7cfbbe
@@ -2838,7 +2838,7 @@ packages:
       eslint: '>=7.0.0'
     dev: true
 
-  /eslint-config-react-app/6.0.0_0d857cd8ddd332aee169eca7c5303434:
+  /eslint-config-react-app/6.0.0_2c54fe37c7f32931df5a5694f99b0613:
     resolution: {integrity: sha512-bpoAAC+YRfzq0dsTk+6v9aHm/uqnDwayNAXleMypGl6CpxI9oXXscVHo4fk3eJPIn+rsbtNetB4r/ZIidFIE8A==}
     engines: {node: ^10.12.0 || >=12.0.0}
     peerDependencies:
@@ -2862,7 +2862,7 @@ packages:
       '@typescript-eslint/eslint-plugin': 5.2.0_36304e8db5dfcc75d333f420ad36e7b9
       '@typescript-eslint/parser': 5.2.0_typescript@4.4.4
       confusing-browser-globals: 1.0.10
-      eslint-plugin-flowtype: 6.1.1
+      eslint-plugin-flowtype: 8.0.2
       eslint-plugin-import: 2.25.2
       eslint-plugin-jsx-a11y: 6.4.1
       eslint-plugin-react: 7.26.1
@@ -2906,11 +2906,11 @@ packages:
       pkg-dir: 2.0.0
     dev: true
 
-  /eslint-plugin-flowtype/6.1.1:
-    resolution: {integrity: sha512-5RodSeZvKh1N0kppB9dSSO0ZqB8rHjdX9BUTVQUBnEzR3QU5aQVKEUlBJE7I7U7rhbJMxe3aHPmt/jD4+5Ya6g==}
-    engines: {node: ^10.12.0 || >=12.0.0}
+  /eslint-plugin-flowtype/8.0.2:
+    resolution: {integrity: sha512-Ka2OvOqUQTcs7qCtPtnngSCN7r4H7IqEjzHtN4RLth3naDPjAnSoGDdKlbNMrkp6C3fp9e8CvgzJ3mvt5v5/NA==}
+    engines: {node: '>=12.0.0'}
     peerDependencies:
-      eslint: ^7.32.0
+      eslint: ^8.1.0
     dependencies:
       lodash: 4.17.21
       string-natural-compare: 3.0.1
