@@ -130,7 +130,7 @@
     "@types/react-router-dom": "5.3.2",
     "@typescript-eslint/eslint-plugin": "5.2.0",
     "@typescript-eslint/parser": "5.2.0",
-    "@vitejs/plugin-react": "1.0.6",
+    "@vitejs/plugin-react": "1.0.7",
     "esbuild-jest": "0.5.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-config-react-app": "6.0.0",
